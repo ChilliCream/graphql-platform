@@ -1,5 +1,6 @@
 using HotChocolate.Execution;
 using Microsoft.EntityFrameworkCore;
+using static CookieCrumble.TestEnvironment;
 
 namespace HotChocolate.Data.Projections;
 
@@ -138,7 +139,7 @@ public class QueryableProjectionFilterTests
 
         // assert
         await Snapshot
-            .Create(postFix: TestEnvironment.TargetFramework)
+            .Create(Postfix([NET8_0], [NET9_0], [NET10_0]))
             .AddResult(res1)
             .MatchAsync(TestContext.Current.CancellationToken);
     }
@@ -181,7 +182,7 @@ public class QueryableProjectionFilterTests
 
         // assert
         await Snapshot
-            .Create(postFix: TestEnvironment.TargetFramework)
+            .Create(Postfix([NET8_0], [NET9_0], [NET10_0]))
             .AddResult(res1)
             .MatchAsync(TestContext.Current.CancellationToken);
     }
@@ -223,7 +224,7 @@ public class QueryableProjectionFilterTests
 
         // assert
         await Snapshot
-            .Create(postFix: TestEnvironment.TargetFramework)
+            .Create(Postfix([NET8_0], [NET9_0], [NET10_0]))
             .AddResult(res1)
             .MatchAsync(TestContext.Current.CancellationToken);
     }
@@ -266,7 +267,7 @@ public class QueryableProjectionFilterTests
 
         // assert
         await Snapshot
-            .Create(postFix: TestEnvironment.TargetFramework)
+            .Create(Postfix([NET8_0], [NET9_0], [NET10_0]))
             .AddResult(res1)
             .MatchAsync(TestContext.Current.CancellationToken);
     }

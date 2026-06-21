@@ -44,6 +44,12 @@ internal sealed class __Directive : ObjectType<DirectiveType>
                 new(Names.IsRepeatable,
                     type: nonNullBooleanType,
                     pureResolver: Resolvers.IsRepeatable),
+                new(Names.IsDeprecated,
+                    type: nonNullBooleanType,
+                    pureResolver: Resolvers.IsDeprecated),
+                new(Names.DeprecationReason,
+                    type: stringType,
+                    pureResolver: Resolvers.DeprecationReason),
                 new(Names.OnOperation,
                     type: nonNullBooleanType,
                     pureResolver: Resolvers.OnOperation)
@@ -76,6 +82,12 @@ internal sealed class __Directive : ObjectType<DirectiveType>
 
         public static object IsRepeatable(IResolverContext context)
             => context.Parent<DirectiveType>().IsRepeatable;
+
+        public static object IsDeprecated(IResolverContext context)
+            => context.Parent<DirectiveType>().IsDeprecated;
+
+        public static object? DeprecationReason(IResolverContext context)
+            => context.Parent<DirectiveType>().DeprecationReason;
 
         public static object Locations(IResolverContext context)
         {
@@ -117,6 +129,8 @@ internal sealed class __Directive : ObjectType<DirectiveType>
         public const string Name = "name";
         public const string Description = "description";
         public const string IsRepeatable = "isRepeatable";
+        public const string IsDeprecated = "isDeprecated";
+        public const string DeprecationReason = "deprecationReason";
         public const string IncludeDeprecated = "includeDeprecated";
         public const string Locations = "locations";
         public const string Args = "args";

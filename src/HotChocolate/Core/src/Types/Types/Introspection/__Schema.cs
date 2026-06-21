@@ -2,6 +2,7 @@
 using System.Runtime.CompilerServices;
 using HotChocolate.Configuration;
 using HotChocolate.Features;
+using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Types.Interceptors;
@@ -20,6 +21,7 @@ internal sealed class __Schema : ObjectType
         var typeListType = Parse($"[{nameof(__Type)}!]!");
         var typeType = Create(nameof(__Type));
         var nonNullTypeType = Parse($"{nameof(__Type)}!");
+        var nonNullBooleanType = Parse($"{ScalarNames.Boolean}!");
         var directiveListType = Parse($"[{nameof(__Directive)}!]!");
         var appDirectiveListType = Parse($"[{nameof(__AppliedDirective)}!]!");
         var nonNullStringListType = Parse($"[{ScalarNames.String}!]");
@@ -47,6 +49,16 @@ internal sealed class __Schema : ObjectType
                         Schema_Directives,
                         directiveListType,
                         pureResolver: Resolvers.Directives)
+                    {
+                        Arguments =
+                        {
+                            new(Names.IncludeDeprecated, type: nonNullBooleanType)
+                            {
+                                DefaultValue = BooleanValueNode.False,
+                                RuntimeDefaultValue = false
+                            }
+                        }
+                    }
                 }
         };
 
@@ -92,9 +104,15 @@ internal sealed class __Schema : ObjectType
             => context.Parent<ISchemaDefinition>().SubscriptionType;
 
         public static object Directives(IResolverContext context)
-            => context.Parent<ISchemaDefinition>()
+        {
+            var directiveDefinitions = context.Parent<ISchemaDefinition>()
                 .DirectiveDefinitions
                 .Where(t => Unsafe.As<DirectiveType>(t).IsPublic);
+
+            return context.ArgumentValue<bool>(Names.IncludeDeprecated)
+                ? directiveDefinitions
+                : directiveDefinitions.Where(t => !t.IsDeprecated);
+        }
 
         public static object AppliedDirectives(IResolverContext context)
             => context.Parent<ISchemaDefinition>().Directives
@@ -120,6 +138,7 @@ internal sealed class __Schema : ObjectType
         public const string MutationType = "mutationType";
         public const string SubscriptionType = "subscriptionType";
         public const string Directives = "directives";
+        public const string IncludeDeprecated = "includeDeprecated";
         public const string AppliedDirectives = "appliedDirectives";
         public const string OptInFeatures = "optInFeatures";
         public const string OptInFeatureStability = "optInFeatureStability";

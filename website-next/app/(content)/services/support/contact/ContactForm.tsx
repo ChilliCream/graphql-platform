@@ -111,7 +111,7 @@ export function ContactForm() {
     <form
       onSubmit={handleSubmit}
       noValidate
-      className="flex flex-col gap-5 rounded-xl border border-cc-card-border bg-cc-card-bg p-8 backdrop-blur-sm"
+      className="border-cc-card-border bg-cc-card-bg flex flex-col gap-5 rounded-xl border p-8 backdrop-blur-sm"
     >
       <Input
         label="Name"
@@ -147,7 +147,7 @@ export function ContactForm() {
         label="Subject"
         className={isSubmitting ? "pointer-events-none opacity-60" : undefined}
         panelClassName="p-1"
-        trigger={<span className="text-sm text-cc-ink">{data.subject}</span>}
+        trigger={<span className="text-cc-ink text-sm">{data.subject}</span>}
       >
         <ul className="m-0 flex list-none flex-col p-0">
           {SUBJECTS.map((s) => (

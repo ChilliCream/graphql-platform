@@ -1,5 +1,6 @@
 ---
 title: "Documentation"
+description: "Add GraphQL schema descriptions in Hot Chocolate with the [GraphQLDescription] attribute or XML documentation comments, visible in tooling and introspection."
 ---
 
 GraphQL descriptions enrich your schema with information that consumers see in developer tools, IDE autocompletion, and introspection results. Every type, field, argument, and enum value can carry a description string.

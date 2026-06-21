@@ -1,5 +1,6 @@
 ---
 title: Warmup
+description: "Pre-populate Hot Chocolate caches before serving traffic with `AddWarmupTask()`: run warmup requests at startup and on schema rebuilds to avoid cold starts."
 ---
 
 By default, Hot Chocolate constructs the schema eagerly during server startup. This means the schema and request executor are fully initialized before Kestrel begins accepting requests, ensuring initial requests perform optimally without any cold-start penalty.

@@ -1,5 +1,6 @@
 ---
 title: "Scalars"
+description: "Reference for GraphQL scalars in Hot Chocolate: built-in types like ID and DateTime, the NodaTime package, binding behavior, and custom scalar definitions."
 ---
 
 Scalars are the leaf types in a GraphQL schema. They represent concrete values like strings, numbers, and dates. Unlike object types, scalars cannot be decomposed further. They are where the query ends and actual data is returned.
@@ -147,12 +148,12 @@ builder
 
 The `UUID` scalar supports multiple serialization formats:
 
-| Specifier   | Format                                                               |
-| ----------- | -------------------------------------------------------------------- |
-| N           | 00000000000000000000000000000000                                     |
-| D (default) | 00000000-0000-0000-0000-000000000000                                 |
-| B           | \{00000000-0000-0000-0000-000000000000\}                             |
-| P           | (00000000-0000-0000-0000-000000000000)                               |
+| Specifier   | Format                                                                   |
+| ----------- | ------------------------------------------------------------------------ |
+| N           | 00000000000000000000000000000000                                         |
+| D (default) | 00000000-0000-0000-0000-000000000000                                     |
+| B           | \{00000000-0000-0000-0000-000000000000\}                                 |
+| P           | (00000000-0000-0000-0000-000000000000)                                   |
 | X           | \{0x00000000,0x0000,0x0000,\{0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00\}\} |
 
 The `UuidType` always returns values in the specified format. When parsing input, it tries the specified format first, then falls back to other formats.

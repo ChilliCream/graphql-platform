@@ -1,5 +1,6 @@
 ---
 title: "Installing Skills"
+description: "Install Agent Skills from GitHub repos, git URLs, or local folders with `dnx skillz add`: skillz finds every SKILL.md and wires it into your agents."
 ---
 
 `dnx skillz add` installs skills from a source into the AI coding agents you already have. Point it at a GitHub repository and skillz discovers every `SKILL.md`, detects your agents, and wires the skill into each one.

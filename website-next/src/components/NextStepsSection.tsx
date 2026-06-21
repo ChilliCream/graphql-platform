@@ -21,10 +21,10 @@ export function NextStepsSection({
 }: NextStepsProps) {
   return (
     <section className="py-20 text-center">
-      <h2 className="text-3xl font-semibold tracking-tight text-cc-ink sm:text-4xl">
+      <h2 className="text-cc-ink text-3xl font-semibold tracking-tight sm:text-4xl">
         {title}
       </h2>
-      <div className="mx-auto mt-4 max-w-2xl text-base text-cc-ink-dim sm:text-lg">
+      <div className="text-cc-ink-dim mx-auto mt-4 max-w-2xl text-base sm:text-lg">
         {text}
       </div>
       <div className="mt-8 flex flex-wrap justify-center gap-4">

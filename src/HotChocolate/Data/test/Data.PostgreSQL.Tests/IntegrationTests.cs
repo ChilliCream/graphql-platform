@@ -15,6 +15,7 @@ using Squadron;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
+using static CookieCrumble.TestEnvironment;
 
 namespace HotChocolate.Data;
 
@@ -53,7 +54,7 @@ public sealed partial class IntegrationTests(PostgreSqlResource resource)
             """);
 
         // assert
-        MatchSnapshot(result, interceptor);
+        MatchSnapshot(result, interceptor, Postfix([NET8_0, NET9_0]));
     }
 
     [Fact]
@@ -76,7 +77,7 @@ public sealed partial class IntegrationTests(PostgreSqlResource resource)
             """);
 
         // assert
-        MatchSnapshot(result, interceptor);
+        MatchSnapshot(result, interceptor, Postfix([NET8_0, NET9_0]));
     }
 
     [Fact]
@@ -105,7 +106,7 @@ public sealed partial class IntegrationTests(PostgreSqlResource resource)
             """);
 
         // assert
-        MatchSnapshot(result, interceptor);
+        MatchSnapshot(result, interceptor, Postfix([NET8_0], [NET9_0]));
     }
 
     [Fact]
@@ -129,7 +130,7 @@ public sealed partial class IntegrationTests(PostgreSqlResource resource)
             """);
 
         // assert
-        MatchSnapshot(result, interceptor);
+        MatchSnapshot(result, interceptor, Postfix([NET8_0, NET9_0]));
     }
 
     [Fact]
@@ -156,7 +157,7 @@ public sealed partial class IntegrationTests(PostgreSqlResource resource)
             """);
 
         // assert
-        MatchSnapshot(result, interceptor);
+        MatchSnapshot(result, interceptor, Postfix([NET8_0, NET9_0]));
     }
 
     [Fact]
@@ -185,7 +186,7 @@ public sealed partial class IntegrationTests(PostgreSqlResource resource)
             """);
 
         // assert
-        MatchSnapshot(result, interceptor);
+        MatchSnapshot(result, interceptor, Postfix([NET8_0], [NET9_0]));
     }
 
     [Fact]
@@ -216,7 +217,7 @@ public sealed partial class IntegrationTests(PostgreSqlResource resource)
             """);
 
         // assert
-        MatchSnapshot(result, interceptor);
+        MatchSnapshot(result, interceptor, Postfix([NET8_0], [NET9_0]));
     }
 
     [Fact]
@@ -239,7 +240,7 @@ public sealed partial class IntegrationTests(PostgreSqlResource resource)
             """);
 
         // assert
-        MatchSnapshot(result, interceptor);
+        MatchSnapshot(result, interceptor, Postfix([NET8_0, NET9_0]));
     }
 
     [Fact]
@@ -262,7 +263,7 @@ public sealed partial class IntegrationTests(PostgreSqlResource resource)
             """);
 
         // assert
-        MatchSnapshot(result, interceptor);
+        MatchSnapshot(result, interceptor, Postfix([NET8_0, NET9_0]));
     }
 
     [Fact]
@@ -287,7 +288,7 @@ public sealed partial class IntegrationTests(PostgreSqlResource resource)
             """);
 
         // assert
-        MatchSnapshot(result, interceptor);
+        MatchSnapshot(result, interceptor, Postfix([NET8_0, NET9_0]));
     }
 
     [Fact]
@@ -310,7 +311,7 @@ public sealed partial class IntegrationTests(PostgreSqlResource resource)
             """);
 
         // assert
-        MatchSnapshot(result, interceptor);
+        MatchSnapshot(result, interceptor, Postfix([NET8_0], [NET9_0]));
     }
 
     [Fact]
@@ -337,7 +338,7 @@ public sealed partial class IntegrationTests(PostgreSqlResource resource)
             """);
 
         // assert
-        MatchSnapshot(result, interceptor);
+        MatchSnapshot(result, interceptor, Postfix([NET8_0], [NET9_0]));
     }
 
     [Fact]
@@ -364,7 +365,7 @@ public sealed partial class IntegrationTests(PostgreSqlResource resource)
             """);
 
         // assert
-        MatchSnapshot(result, interceptor);
+        MatchSnapshot(result, interceptor, Postfix([NET8_0, NET9_0], [NET10_0]));
     }
 
     [Fact]
@@ -394,7 +395,7 @@ public sealed partial class IntegrationTests(PostgreSqlResource resource)
             """);
 
         // assert
-        MatchSnapshot(result, interceptor);
+        MatchSnapshot(result, interceptor, Postfix([NET8_0], [NET9_0]));
     }
 
     [Fact]
@@ -420,7 +421,7 @@ public sealed partial class IntegrationTests(PostgreSqlResource resource)
             """);
 
         // assert
-        MatchSnapshot(result, interceptor);
+        MatchSnapshot(result, interceptor, Postfix([NET8_0, NET9_0]));
     }
 
     [Fact]
@@ -444,7 +445,7 @@ public sealed partial class IntegrationTests(PostgreSqlResource resource)
             """);
 
         // assert
-        MatchSnapshot(result, interceptor);
+        MatchSnapshot(result, interceptor, Postfix([NET8_0], [NET9_0]));
     }
 
     [Fact]
@@ -467,7 +468,7 @@ public sealed partial class IntegrationTests(PostgreSqlResource resource)
             """);
 
         // assert
-        MatchSnapshot(result, interceptor);
+        MatchSnapshot(result, interceptor, Postfix([NET8_0, NET9_0]));
     }
 
     [Fact]
@@ -786,9 +787,10 @@ public sealed partial class IntegrationTests(PostgreSqlResource resource)
 
     private static void MatchSnapshot(
         IExecutionResult result,
-        TestQueryInterceptor queryInterceptor)
+        TestQueryInterceptor queryInterceptor,
+        string? postfix = null)
     {
-        var snapshot = Snapshot.Create(postFix: TestEnvironment.TargetFramework);
+        var snapshot = Snapshot.Create(postfix);
         var queries = NormalizeBrandLookupBatching(queryInterceptor.Queries);
 
         snapshot.Add(result.ToJson(), "Result", MarkdownLanguages.Json);

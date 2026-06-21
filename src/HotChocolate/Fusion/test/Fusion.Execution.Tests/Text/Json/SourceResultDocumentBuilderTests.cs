@@ -18,7 +18,7 @@ public class SourceResultDocumentBuilderTests : FusionTestBase
             }
             """);
 
-        using var builder = new SourceResultDocumentBuilder(operation, includeFlags: 0);
+        using var builder = new SourceResultDocumentBuilder(CommonTestExtensions.CreateArena(), operation, includeFlags: 0);
 
         // Root is already set up with the operation structure, now fill in values
         var userSelection = operation.RootSelectionSet.Selections[0];
@@ -60,7 +60,7 @@ public class SourceResultDocumentBuilderTests : FusionTestBase
             }
             """);
 
-        using var builder = new SourceResultDocumentBuilder(operation, includeFlags: 0);
+        using var builder = new SourceResultDocumentBuilder(CommonTestExtensions.CreateArena(), operation, includeFlags: 0);
         var userProperty = builder.Root.CreateProperty(operation.RootSelectionSet.Selections[0], 0);
 
         var userSelection = operation.RootSelectionSet.Selections[0];
@@ -101,7 +101,7 @@ public class SourceResultDocumentBuilderTests : FusionTestBase
             }
             """);
 
-        using var builder = new SourceResultDocumentBuilder(operation, includeFlags: 0);
+        using var builder = new SourceResultDocumentBuilder(CommonTestExtensions.CreateArena(), operation, includeFlags: 0);
         var userProperty = builder.Root.CreateProperty(operation.RootSelectionSet.Selections[0], 0);
         userProperty.SetNullValue();
 
@@ -129,7 +129,7 @@ public class SourceResultDocumentBuilderTests : FusionTestBase
             }
             """);
 
-        using var builder = new SourceResultDocumentBuilder(operation, includeFlags: 0);
+        using var builder = new SourceResultDocumentBuilder(CommonTestExtensions.CreateArena(), operation, includeFlags: 0);
         var userProperty = builder.Root.CreateProperty(operation.RootSelectionSet.Selections[0], 0);
 
         var userSelection = operation.RootSelectionSet.Selections[0];
@@ -174,7 +174,7 @@ public class SourceResultDocumentBuilderTests : FusionTestBase
             }
             """);
 
-        using var builder = new SourceResultDocumentBuilder(operation, includeFlags: 0);
+        using var builder = new SourceResultDocumentBuilder(CommonTestExtensions.CreateArena(), operation, includeFlags: 0);
         var usersProperty = builder.Root.CreateProperty(operation.RootSelectionSet.Selections[0], 0);
 
         var usersSelection = operation.RootSelectionSet.Selections[0];

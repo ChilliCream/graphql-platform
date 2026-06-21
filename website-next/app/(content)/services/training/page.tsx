@@ -1,6 +1,15 @@
+import type { Metadata } from "next";
+
 import { Offering } from "@/src/components/Offering";
+import { OfferingGrid } from "@/src/components/OfferingGrid";
 import { PageHero } from "@/src/components/PageHero";
 import { Section } from "@/src/components/Section";
+
+export const metadata: Metadata = {
+  title: "Training",
+  description:
+    "Train your team with ChilliCream: corporate GraphQL training and workshops covering Hot Chocolate, ASP.NET Core, React, and Relay, taught by experts.",
+};
 
 interface CorporateService {
   kind: string;
@@ -43,7 +52,7 @@ export default function TrainingPage() {
         teaser="At ChilliCream, we want you to be successful. We'll tell you how it is, and what you need to get there."
       />
       <Section title="Corporate Offers">
-        <div className="grid gap-6 md:grid-cols-2">
+        <OfferingGrid columns="md:grid-cols-2">
           {SERVICES.map((service) => (
             <Offering
               key={service.kind}
@@ -56,7 +65,7 @@ export default function TrainingPage() {
               }}
             />
           ))}
-        </div>
+        </OfferingGrid>
       </Section>
     </>
   );

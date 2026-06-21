@@ -1,5 +1,6 @@
 ---
 title: HTTP Transport
+description: "How Hot Chocolate implements the GraphQL over HTTP specification: content negotiation, status codes, incremental delivery, and streaming transports like SSE."
 ---
 
 Hot Chocolate implements the latest version of the [GraphQL over HTTP specification](https://github.com/graphql/graphql-over-http/blob/a1e6d8ca248c9a19eb59a2eedd988c204909ee3f/spec/GraphQLOverHTTP.md).

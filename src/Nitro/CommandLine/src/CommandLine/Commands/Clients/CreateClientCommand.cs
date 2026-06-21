@@ -45,7 +45,7 @@ internal sealed class CreateClientCommand : Command
         parseResult.AssertHasAuthentication(sessionService);
 
         var apiId = await console.GetOrPromptForApiIdAsync(
-            "For which API do you want to create a client?",
+            Prompts.SelectApiForCreateClient,
             parseResult,
             apisClient,
             sessionService,

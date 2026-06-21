@@ -1,5 +1,14 @@
+import type { Metadata } from "next";
+
 import { Offering } from "@/src/components/Offering";
+import { OfferingGrid } from "@/src/components/OfferingGrid";
 import { PageHero } from "@/src/components/PageHero";
+
+export const metadata: Metadata = {
+  title: "Advisory",
+  description:
+    "Get quick access to ChilliCream's GraphQL experts: hourly consulting, architecture guidance, code reviews, and full contracting engagements.",
+};
 
 interface InquiryPlan {
   title: string;
@@ -42,7 +51,7 @@ export default function AdvisoryPage() {
         teaser="At ChilliCream, we want you to be successful. From guidance to embedded experts, find the right level for your business."
       />
       <section className="py-8">
-        <div className="grid gap-6 md:grid-cols-2">
+        <OfferingGrid columns="md:grid-cols-2">
           {PLANS.map((plan) => (
             <Offering
               key={plan.title}
@@ -53,7 +62,7 @@ export default function AdvisoryPage() {
               callToAction={{ title: plan.ctaText, link: plan.ctaLink }}
             />
           ))}
-        </div>
+        </OfferingGrid>
       </section>
     </>
   );

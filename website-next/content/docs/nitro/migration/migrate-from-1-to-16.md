@@ -1,5 +1,6 @@
 ---
 title: "Migrating from 1 to 16"
+description: "Migration guide for updating the Nitro packages from 1.x to 16.x: renamed package IDs, the removed NitroOptions class, and per-component configuration."
 ---
 
 Starting with version 16, the packages align their version numbers with the rest of the platform (HotChocolate, Fusion, Mocha). This means you are migrating from `1.x` to `16.x`.

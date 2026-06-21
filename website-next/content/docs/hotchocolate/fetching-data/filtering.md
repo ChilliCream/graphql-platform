@@ -1,5 +1,6 @@
 ---
 title: Filtering
+description: "Generate filter input types from .NET models with the [UseFiltering] attribute in Hot Chocolate, translating client filters into native database queries."
 ---
 
 Hot Chocolate generates filter input types from your .NET models and translates client-supplied filter arguments into native database queries. The default implementation builds expression trees that apply to `IQueryable`, but you can customize filters for other data sources.

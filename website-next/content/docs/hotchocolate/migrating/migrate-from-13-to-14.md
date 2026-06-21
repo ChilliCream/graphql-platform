@@ -1,5 +1,6 @@
 ---
 title: Migrate Hot Chocolate from 13 to 14
+description: "Migration guide for moving a Hot Chocolate GraphQL server from version 13 to 14, walking through the breaking changes and manual update steps involved."
 ---
 
 This guide will walk you through the manual migration steps to update your Hot Chocolate GraphQL server to version 14.
@@ -53,7 +54,6 @@ Things that have been removed or had a change in behavior that may cause your co
 - Since the `RegisterService` method is no longer required, it has been removed, along with the `ServiceKind` enum.
 - Scoped services injected into query resolvers are now resolver-scoped by default (not request scoped). For mutation resolvers, services are request-scoped by default.
 - The default scope can be changed in two ways:
-
   1. Globally, using `ModifyOptions`:
 
      ```csharp
@@ -71,14 +71,14 @@ Things that have been removed or had a change in behavior that may cause your co
   2. On a per-resolver basis, with the `[UseRequestScope]` or `[UseResolverScope]` attribute.
      - Note: The `[UseServiceScope]` attribute has been removed.
 
-For more information, see the [Dependency Injection](https://chillicream.com/docs/hotchocolate/v14/server/dependency-injection) documentation.
+For more information, see the [Dependency Injection](../resolvers/dependency-injection.md) documentation.
 
 ## Entity framework integration changes
 
 - The `RegisterDbContext` method is no longer required, and has therefore been removed, along with the `DbContextKind` enum.
 - Use `RegisterDbContextFactory` to register a DbContext factory.
 
-For more information, see the [Entity Framework integration](https://chillicream.com/docs/hotchocolate/v14/fetching-data/entity-framework) documentation.
+For more information, see the [Entity Framework integration](../fetching-data/integrations/entity-framework.md) documentation.
 
 ## New GID format
 
@@ -165,7 +165,7 @@ The Operation Complexity Analyzer in v13 has been replaced by Cost Analysis in v
 - The `Complexity` property on `RequestExecutorOptions` (accessed via `ModifyRequestOptions`) has been removed.
 - Cost analysis is enabled by default.
 
-Please see the [documentation](https://chillicream.com/docs/hotchocolate/v14/security/cost-analysis) for further information.
+Please see the [documentation](../security/cost-analysis.md) for further information.
 
 ## DateTime scalar enforces a specific format
 

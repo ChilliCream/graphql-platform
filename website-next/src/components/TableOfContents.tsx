@@ -31,11 +31,11 @@ export function TableOfContents({ items }: TableOfContentsProps) {
   return (
     <>
       <aside className="hidden max-w-84 2xl:block" aria-hidden="true" />
-      <div className="cc-content-dark fixed right-0 top-18 z-30 -mt-px hidden max-h-[calc(100vh-72px-var(--docs-rail-bottom,0px))] min-h-[var(--docs-rail-min,0px)] w-80 flex-col px-5 pt-8 2xl:flex">
+      <div className="cc-content-dark fixed top-18 right-0 z-30 -mt-px hidden max-h-[calc(100vh-72px-var(--docs-rail-bottom,0px))] min-h-[var(--docs-rail-min,0px)] w-80 flex-col px-5 pt-8 2xl:flex">
         <TocHeader />
         <div
           data-toc-scroll
-          className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden pb-8"
+          className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto pb-8"
         >
           <TocNav sections={sections} />
         </div>
@@ -51,7 +51,7 @@ export function TableOfContents({ items }: TableOfContentsProps) {
 
 function TocHeader() {
   return (
-    <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-cc-ink-dim">
+    <p className="text-cc-ink-dim mb-3 text-xs font-semibold tracking-widest uppercase">
       On this page
     </p>
   );
@@ -60,7 +60,7 @@ function TocHeader() {
 export function TocNav({ sections }: { sections: TocSection[] }) {
   return (
     <nav>
-      <ul className="space-y-1 border-l border-cc-card-border text-sm">
+      <ul className="border-cc-card-border space-y-1 border-l text-sm">
         {sections.map((section) => (
           <li
             key={section.h2.id}
@@ -70,7 +70,7 @@ export function TocNav({ sections }: { sections: TocSection[] }) {
             <a
               href={`#${section.h2.id}`}
               data-toc-link={section.h2.id}
-              className="block border-l-2 border-transparent py-1 pl-3 text-cc-nav-text transition-colors hover:text-cc-white"
+              className="text-cc-nav-text hover:text-cc-white block border-l-2 border-transparent py-1 pl-3 transition-colors"
             >
               {section.h2.text}
             </a>
@@ -85,7 +85,7 @@ export function TocNav({ sections }: { sections: TocSection[] }) {
                     <a
                       href={`#${node.h3.id}`}
                       data-toc-link={node.h3.id}
-                      className="block border-l-2 border-transparent py-1 pl-6 text-cc-nav-text transition-colors hover:text-cc-white"
+                      className="text-cc-nav-text hover:text-cc-white block border-l-2 border-transparent py-1 pl-6 transition-colors"
                     >
                       {node.h3.text}
                     </a>
@@ -96,7 +96,7 @@ export function TocNav({ sections }: { sections: TocSection[] }) {
                             <a
                               href={`#${h4.id}`}
                               data-toc-link={h4.id}
-                              className="block border-l-2 border-transparent py-1 pl-9 text-cc-nav-text transition-colors hover:text-cc-white"
+                              className="text-cc-nav-text hover:text-cc-white block border-l-2 border-transparent py-1 pl-9 transition-colors"
                             >
                               {h4.text}
                             </a>

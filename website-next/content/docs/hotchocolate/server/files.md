@@ -1,5 +1,6 @@
 ---
 title: Files
+description: "Approaches for handling file uploads and downloads in Hot Chocolate: the Upload scalar with multipart requests, presigned upload URLs, and serving files."
 ---
 
 Handling files is traditionally not a concern of a GraphQL server, which is also why the [GraphQL over HTTP](https://github.com/graphql/graphql-over-http/blob/main/spec/GraphQLOverHTTP.md) specification does not mention it.

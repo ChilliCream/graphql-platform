@@ -1,5 +1,6 @@
 ---
 title: Migrate Hot Chocolate from 10 to 11
+description: "Step-by-step guide for migrating a Hot Chocolate GraphQL server from version 10 to 11, including the move to the consolidated HotChocolate.AspNetCore package."
 ---
 
 This guide will walk you through the manual migration steps to get you Hot Chocolate GraphQL server to version 11.
@@ -71,7 +72,7 @@ services
 
 After migrating the schema configuration, the next area that has fundamentally changed is the schema middleware.
 
-Hot Chocolate server now embraces the new endpoint routing API from ASP.NET core and with that brings a lot of new features. Head over [here](https://chillicream.com/docs/hotchocolate/v11/api-reference/aspnetcore) to read more about the ASP.NET Core integration.
+Hot Chocolate server now embraces the new endpoint routing API from ASP.NET core and with that brings a lot of new features. Head over [here](../server/index.md) to read more about the ASP.NET Core integration.
 
 **Old:**
 

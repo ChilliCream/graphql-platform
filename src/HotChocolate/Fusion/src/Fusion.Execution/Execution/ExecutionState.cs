@@ -19,6 +19,8 @@ internal sealed class ExecutionState
     private readonly List<int> _trackedNodeStateSlots = [];
     private readonly List<int> _trackedDependencySlots = [];
     private readonly ConcurrentQueue<ExecutionNodeResult> _completedResults = new();
+    private readonly ConcurrentQueue<PendingMerge> _pendingMerges = new();
+    private Dictionary<int, Exception?>? _mergeFailures;
     private ulong[] _failedOrSkippedBitset = [];
 
     private bool _collectTelemetry;
@@ -136,6 +138,8 @@ internal sealed class ExecutionState
         ResetRemainingDependencies();
 
         _completedResults.Clear();
+        ClearPendingMerges();
+        _mergeFailures?.Clear();
         _activeNodes = 0;
 
         Traces.Clear();
@@ -170,6 +174,52 @@ internal sealed class ExecutionState
 
     public bool TryDequeueCompletedResult([NotNullWhen(true)] out ExecutionNodeResult? result)
         => _completedResults.TryDequeue(out result);
+
+    public void EnqueueMerge(PendingMerge merge)
+    {
+        _pendingMerges.Enqueue(merge);
+        Signal.Set();
+    }
+
+    public bool TryDequeuePendingMerge(out PendingMerge merge)
+        => _pendingMerges.TryDequeue(out merge);
+
+    public void ApplyMerge(OperationPlanContext context, PendingMerge merge)
+    {
+        try
+        {
+            merge.Apply(context);
+        }
+        catch (OperationCanceledException) when (_cts.IsCancellationRequested)
+        {
+            MarkMergeFailed(merge.Node.Id, exception: null);
+        }
+        catch (Exception exception)
+        {
+            MarkMergeFailed(merge.Node.Id, exception);
+            context.DiagnosticEvents.SourceSchemaStoreError(
+                context,
+                merge.Node,
+                merge.SchemaName,
+                exception);
+            context.AddErrors(exception, merge.VariableValueSets, merge.ResultSelectionSet);
+        }
+    }
+
+    public ExecutionNodeResult ApplyPendingMergeFailure(ExecutionNodeResult result)
+    {
+        if (_mergeFailures is not null
+            && _mergeFailures.Remove(result.Id, out var exception))
+        {
+            return result with
+            {
+                Status = ExecutionStatus.Failed,
+                Exception = exception
+            };
+        }
+
+        return result;
+    }
 
     public void CancelProcessing()
     {
@@ -578,6 +628,20 @@ internal sealed class ExecutionState
         if (remainingDependencies == 0)
         {
             _ready.Add(node);
+        }
+    }
+
+    private void MarkMergeFailed(int nodeId, Exception? exception)
+    {
+        _mergeFailures ??= [];
+        _mergeFailures[nodeId] = exception;
+    }
+
+    private void ClearPendingMerges()
+    {
+        while (_pendingMerges.TryDequeue(out var merge))
+        {
+            merge.DisposeUnmerged();
         }
     }
 

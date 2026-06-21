@@ -4,9 +4,13 @@ type DocPageMetaProps = {
   author: string;
 };
 
-export function DocPageMeta({ isoDate, displayDate, author }: DocPageMetaProps) {
+export function DocPageMeta({
+  isoDate,
+  displayDate,
+  author,
+}: DocPageMetaProps) {
   return (
-    <footer className="mt-12 text-right text-sm text-cc-ink-dim">
+    <footer className="text-cc-ink-dim mt-12 text-right text-sm">
       Last updated on{" "}
       <time dateTime={isoDate}>
         <strong>{displayDate}</strong>

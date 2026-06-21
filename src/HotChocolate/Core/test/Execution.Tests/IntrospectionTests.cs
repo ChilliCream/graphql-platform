@@ -418,6 +418,128 @@ public class IntrospectionTests
         result.MatchSnapshot();
     }
 
+    [Fact]
+    public async Task DirectiveDeprecationIsExposed()
+    {
+        // arrange
+        const string query =
+            """
+            {
+                __schema {
+                    directives {
+                        name
+                        isDeprecated
+                        deprecationReason
+                    }
+                }
+            }
+            """;
+
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddDocumentFromString(
+                """
+                type Query @current {
+                    field: String
+                }
+
+                directive @current on OBJECT
+                """)
+            .UseField(next => next)
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // act
+        var result = await executor.ExecuteAsync(query, TestContext.Current.CancellationToken);
+
+        // assert
+        result.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task DeprecatedDirectivesAreFilteredByDefault()
+    {
+        // arrange
+        const string query =
+            """
+            {
+                defaultDirectives: __schema {
+                    directives {
+                        name
+                    }
+                }
+                allDirectives: __schema {
+                    directives(includeDeprecated: true) {
+                        name
+                        deprecationReason
+                    }
+                }
+            }
+            """;
+
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddDocumentFromString(
+                """
+                type Query @old @current {
+                    field: String
+                }
+
+                directive @old @deprecated(reason: "Use @current.") on OBJECT
+
+                directive @current on OBJECT
+                """)
+            .UseField(next => next)
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // act
+        var result = await executor.ExecuteAsync(query, TestContext.Current.CancellationToken);
+
+        // assert
+        // @old must only appear in the allDirectives list.
+        result.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task DirectiveDefinitionLocationIsExposed()
+    {
+        // arrange
+        const string query =
+            """
+            {
+                __type(name: "__DirectiveLocation") {
+                    enumValues {
+                        name
+                    }
+                }
+                __schema {
+                    directives {
+                        name
+                        locations
+                    }
+                }
+            }
+            """;
+
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddDocumentFromString(
+                """
+                type Query {
+                    field: String
+                }
+
+                directive @onDirectiveDefinition on DIRECTIVE_DEFINITION
+                """)
+            .UseField(next => next)
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // act
+        var result = await executor.ExecuteAsync(query, TestContext.Current.CancellationToken);
+
+        // assert
+        result.MatchSnapshot();
+    }
+
     private static Schema CreateSchema()
     {
         return SchemaBuilder.New()

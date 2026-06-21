@@ -10,6 +10,10 @@ using HotChocolate.Fusion.Language;
 using HotChocolate.Fusion.Text.Json;
 using HotChocolate.Language;
 using FusionNameNode = HotChocolate.Fusion.Language.NameNode;
+using IntValueNode = HotChocolate.Language.IntValueNode;
+using StringValueNode = HotChocolate.Language.StringValueNode;
+using ObjectFieldNode = HotChocolate.Language.ObjectFieldNode;
+using IValueNode = HotChocolate.Language.IValueNode;
 
 namespace Fusion.Execution.Benchmarks;
 

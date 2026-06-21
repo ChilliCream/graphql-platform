@@ -1,5 +1,6 @@
 ---
 title: "Get started with Strawberry Shake in a Console application"
+description: "Add a Strawberry Shake GraphQL client to a .NET console application: install the CLI tools, generate a typed client from a schema, and fetch your first data."
 ---
 
 In this tutorial we will walk you through the basics of adding a Strawberry Shake GraphQL client to a console project. For this example we will create a simple console application and fetch some simple data from our demo backend.
@@ -13,7 +14,7 @@ In this tutorial, we will teach you:
 - How to use the generated client in a classical or reactive way.
 - How to disable state management for ASP.NET core use-cases.
 
-## Step 1: Add the Strawberry Shake CLI tools
+# Step 1: Add the Strawberry Shake CLI tools
 
 The Strawberry Shake tool will help you to set up your project to create a GraphQL client.
 
@@ -31,7 +32,7 @@ dotnet new tool-manifest
 dotnet tool install StrawberryShake.Tools --local
 ```
 
-## Step 2: Create a console project
+# Step 2: Create a console project
 
 Next, we will create our console project so that we have a little playground.
 
@@ -53,7 +54,7 @@ dotnet new console --name Demo
 dotnet sln add ./Demo
 ```
 
-## Step 3: Install the required packages
+# Step 3: Install the required packages
 
 Strawberry Shake supports multiple GraphQL transport protocols. In this example we will use the standard GraphQL over HTTP protocol to interact with our GraphQL server.
 
@@ -63,7 +64,7 @@ Strawberry Shake supports multiple GraphQL transport protocols. In this example 
 dotnet add Demo package StrawberryShake.Server
 ```
 
-## Step 4: Add a GraphQL client to your project using the CLI tools
+# Step 4: Add a GraphQL client to your project using the CLI tools
 
 To add a client to your project, you need to run `dotnet graphql init {{ServerUrl}} --clientName {{ClientName}}`.
 
@@ -155,7 +156,7 @@ var services = serviceCollection.BuildServiceProvider();
 var client = services.GetRequiredService<IConferenceClient>();
 ```
 
-## Step 5: Use the ConferenceClient to perform a simple fetch
+# Step 5: Use the ConferenceClient to perform a simple fetch
 
 In this section we will perform a simple fetch with our `ConferenceClient` and output the result to the console.
 

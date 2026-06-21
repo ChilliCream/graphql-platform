@@ -1,5 +1,6 @@
 ---
 title: Authentication
+description: "Add authentication to a Hot Chocolate GraphQL server with ASP.NET Core's AddAuthentication and access the authenticated ClaimsPrincipal inside your resolvers."
 ---
 
 Authentication determines a user's identity. It is a prerequisite for authorization and also lets you access the authenticated user in your resolvers, for example to build a `me` field that returns the current user's profile.

@@ -1,5 +1,6 @@
 ---
 title: "MCP"
+description: "Publish MCP feature collections with Nitro: author GraphQL tools and prompts, version and validate them, and serve them at the `/graphql/mcp` endpoint."
 ---
 
 The [Model Context Protocol](https://modelcontextprotocol.io/) (MCP) is an open standard that connects AI applications to external systems through a single uniform interface. The host (Claude, ChatGPT, a VS Code agent) speaks the protocol once, and any MCP-compatible server plugs in without bespoke glue code per product.

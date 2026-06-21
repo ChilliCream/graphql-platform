@@ -1,5 +1,6 @@
 ---
 title: "Lists"
+description: "Expose .NET collections as GraphQL list types in Hot Chocolate, covering supported collection types, list nullability, and nested list definitions."
 ---
 
 GraphQL lists represent ordered collections of elements. When a resolver returns any .NET collection type, Hot Chocolate exposes it as a list in the schema.

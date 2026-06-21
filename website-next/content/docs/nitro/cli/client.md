@@ -1,5 +1,6 @@
 ---
 title: client Command
+description: "Reference for the `nitro client` commands: register GraphQL clients, upload versions with their persisted operations, and publish them to a stage."
 ---
 
 The `nitro client` commands manage clients of an API. A client is a registered consumer of a GraphQL API (for example a web app, a mobile app, or another service) along with the set of operations it sends.
