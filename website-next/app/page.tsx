@@ -6,7 +6,7 @@ import { HomeHero } from "@/src/components/home/HomeHero";
 import { LogoCloud } from "@/src/components/home/LogoCloud";
 import { NitroPricing } from "@/src/components/home/NitroPricing";
 import { ProtocolCards } from "@/src/components/home/ProtocolCards";
-import { StackDiagrams } from "@/src/components/home/StackDiagrams";
+import { ScrollScenes } from "@/src/components/home/act2/ScrollScenes";
 
 export default function Home() {
   return (
@@ -14,9 +14,9 @@ export default function Home() {
       <HomeHero />
       <LogoCloud />
       <BuildYourWay />
-      <StackDiagrams />
       <FusionFlow />
       <ProtocolCards />
+      <ScrollScenes />
       <NitroPricing />
       <GrabADrink />
       <div className="px-5 py-8 sm:px-12">

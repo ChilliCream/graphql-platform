@@ -50,9 +50,11 @@ const SOURCES: readonly Source[] = [
   },
 ];
 
-// Design coordinate window cropped to the streams band, and the convergence
-// point (the glowing composition node) within it.
-const VIEW = { x: 0, y: 3320, w: 1360, h: 1340 };
+// Design coordinate window cropped to the streams band, plus a tail below the
+// convergence point so the composition's single output line runs all the way to
+// the next section. The convergence point (the glowing composition node) sits
+// within it.
+const VIEW = { x: 0, y: 3320, w: 1360, h: 1420 };
 const GLOW = { x: 680, y: 4461.9 };
 
 // Each source's `x` is the design square's anchor, but the stream's descending
@@ -62,15 +64,6 @@ const STEM_DX = -5.3;
 
 const pctX = (x: number) => `${((x - VIEW.x) / VIEW.w) * 100}%`;
 const pctY = (y: number) => `${((y - VIEW.y) / VIEW.h) * 100}%`;
-
-function GlowBeam({ className }: { readonly className?: string }) {
-  return (
-    <div
-      aria-hidden="true"
-      className={`mx-auto h-16 w-px bg-gradient-to-b from-[rgba(245,241,234,0.7)] to-transparent sm:h-24 ${className ?? ""}`}
-    />
-  );
-}
 
 /**
  * The Fusion narrative, rendered as a tall top-to-bottom "river": independent
@@ -93,14 +86,15 @@ export function FusionFlow() {
           Queried together.
         </h2>
         <p className="text-cc-ink mx-auto mt-6 max-w-4xl text-lg text-pretty sm:text-xl">
-          Unify all your APIs into a comprehensive company graph, streamlining
-          data accessibility and enhancing integration. Transform the way you
-          manage and interact with your data.
+          Let teams split the backend where it makes sense: catalog, billing,
+          orders, shipping, identity. Fusion composes the service contracts into
+          one API, so apps keep one place to query while each service can keep
+          moving on its own.
         </p>
       </div>
 
       {/* Sources converge into the composition node. */}
-      <div className="relative mx-auto aspect-[1360/1340] w-full">
+      <div className="relative mx-auto aspect-[1360/1420] w-full">
         <svg
           viewBox={`${VIEW.x} ${VIEW.y} ${VIEW.w} ${VIEW.h}`}
           fill="none"
@@ -132,6 +126,23 @@ export function FusionFlow() {
               <stop offset="0" stopColor="#fff" />
               <stop offset="0.4" stopColor="#0e1522" stopOpacity="0" />
             </radialGradient>
+            {/* The composed graph leaving the node: one rainbow line carrying the
+                stream colors back out, then fading to transparent as it reaches
+                the copy below so it dissolves into the heading instead of
+                stopping hard. */}
+            <linearGradient
+              id="ff-out"
+              x1={GLOW.x}
+              y1={GLOW.y}
+              x2={GLOW.x}
+              y2={VIEW.y + VIEW.h}
+              gradientUnits="userSpaceOnUse"
+            >
+              <stop offset="0" stopColor="#f27765" />
+              <stop offset="0.55" stopColor="#eabd21" />
+              <stop offset="0.78" stopColor="#66be77" />
+              <stop offset="1" stopColor="#66be77" stopOpacity="0" />
+            </linearGradient>
           </defs>
 
           {/* The streams (with their built-in squares) sit at the bottom layer
@@ -139,6 +150,17 @@ export function FusionFlow() {
           {SOURCES.map((s) => (
             <path key={s.label} d={s.d} fill={s.color} />
           ))}
+
+          {/* Output line: leaves the composition node going straight down, the
+              way the five colored streams arrive into it. Drawn before the glow so
+              the halo sits on top and the line appears to emerge from the node. */}
+          <rect
+            x={GLOW.x - 0.75}
+            y={GLOW.y}
+            width={1.5}
+            height={VIEW.y + VIEW.h - GLOW.y}
+            fill="url(#ff-out)"
+          />
 
           <circle cx={GLOW.x} cy={GLOW.y} r={180} fill="url(#ff-halo-soft)" />
           <circle cx={GLOW.x} cy={GLOW.y} r={180} fill="url(#ff-halo-core)" />
@@ -150,7 +172,7 @@ export function FusionFlow() {
             stay at full strength. Broad and feathered, as in the design. */}
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute top-[38%] left-1/2 h-[55%] w-[min(1500px,96vw)] -translate-x-1/2 -translate-y-1/2"
+          className="pointer-events-none absolute top-[36%] left-1/2 h-[52%] w-[min(1500px,96vw)] -translate-x-1/2 -translate-y-1/2"
           style={{
             background:
               "radial-gradient(ellipse 50% 50% at 50% 50%, rgba(11,15,26,0.9) 0%, rgba(11,15,26,0.82) 38%, rgba(11,15,26,0.5) 62%, rgba(11,15,26,0) 85%)",
@@ -183,7 +205,7 @@ export function FusionFlow() {
         {SOURCES.map((s) => (
           <div
             key={s.label}
-            className="text-cc-ink-dim absolute -translate-y-1/2 font-mono text-base leading-none tracking-[0.15em] whitespace-nowrap uppercase sm:text-xl"
+            className="text-cc-ink-dim absolute hidden -translate-y-1/2 font-mono text-base leading-none tracking-[0.15em] whitespace-nowrap uppercase sm:block sm:text-xl"
             style={{ left: pctX(s.x + STEM_DX + 28), top: pctY(s.y + 10) }}
           >
             {s.label}
@@ -192,14 +214,14 @@ export function FusionFlow() {
 
         {/* "No matter the format" sits over the stream region. It breaks out of
             the section's max width so the line stays single, as in the design. */}
-        <div className="absolute top-[38%] left-1/2 w-screen max-w-[100vw] -translate-x-1/2 -translate-y-1/2 px-4 text-center">
+        <div className="absolute top-[36%] left-1/2 w-screen max-w-[100vw] -translate-x-1/2 -translate-y-1/2 px-4 text-center">
           <h2 className="font-heading text-cc-heading text-h3 sm:text-h2 font-semibold sm:whitespace-nowrap">
-            No Matter the Format. Fusion transforms.
+            Compose before it runs.
           </h2>
           <p className="text-cc-ink mx-auto mt-6 max-w-4xl px-4 text-lg text-pretty sm:text-xl">
-            Unify all your APIs into a comprehensive company graph, streamlining
-            data accessibility and enhancing integration. Transform the way you
-            manage and interact with your data.
+            Each part publishes its contract. Fusion checks that the pieces fit,
+            catches missing lookups and incompatible fields, and produces the
+            gateway artifact your runtime loads.
           </p>
         </div>
 
@@ -215,18 +237,28 @@ export function FusionFlow() {
         </div>
       </div>
 
-      {/* The API that speaks any language */}
+      {/* One API for every consumer. The composition's output line (in the box
+          above) now runs the whole way down to this heading; a single line then
+          continues below the copy and on into the protocol box. */}
       <div className="text-center">
-        <GlowBeam />
         <h2 className="font-heading text-cc-heading text-h3 sm:text-h2 font-semibold text-balance">
-          The API that speaks any Language.
+          One API for every consumer.
         </h2>
         <p className="text-cc-ink mx-auto mt-6 max-w-4xl text-lg text-pretty sm:text-xl">
-          Unify all your APIs into a comprehensive company graph, streamlining
-          data accessibility and enhancing integration. Transform the way you
-          manage and interact with your data.
+          Apps, tools, and agents ask for what they need through one gateway.
+          Fusion plans the request across the backend and returns one response.
         </p>
-        <GlowBeam className="mt-10" />
+        {/* Line below the copy, on into the protocol box. It fades in from the
+            copy and settles on #66be77 (green), the color the box shows where the
+            centered line meets it. */}
+        <div
+          aria-hidden="true"
+          className="mx-auto mt-10 h-28 w-px sm:h-36"
+          style={{
+            backgroundImage:
+              "linear-gradient(to bottom, transparent 0%, #66be77 30%, #66be77 100%)",
+          }}
+        />
       </div>
     </section>
   );
