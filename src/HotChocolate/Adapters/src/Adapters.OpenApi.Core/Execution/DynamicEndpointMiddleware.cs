@@ -181,9 +181,7 @@ internal sealed class DynamicEndpointMiddleware(
                     break;
                 }
 
-                // The complete body is not buffered yet. Mark everything as
-                // examined but consume nothing, then read again. AdvanceTo must be
-                // called here before the next ReadAsync.
+                // More data pending: examine all, consume nothing, read again.
                 body.AdvanceTo(result.Buffer.Start, result.Buffer.End);
             }
 
@@ -196,11 +194,7 @@ internal sealed class DynamicEndpointMiddleware(
             var bodyValue = jsonValueParser.Parse(result.Buffer);
             variables[bodyVariable] = bodyValue;
 
-            // Single AdvanceTo for the final ReadAsync, after the parser has
-            // consumed the buffer. The previous implementation also advanced
-            // inside the loop for the completed read, resulting in a second
-            // AdvanceTo with no intervening ReadAsync, which Kestrel rejects with
-            // "No reading operation to complete."
+            // Single AdvanceTo for the final read, after the parser consumed it.
             body.AdvanceTo(result.Buffer.End);
         }
 
