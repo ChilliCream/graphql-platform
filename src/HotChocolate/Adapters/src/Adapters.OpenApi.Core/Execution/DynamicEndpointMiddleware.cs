@@ -167,19 +167,18 @@ internal sealed class DynamicEndpointMiddleware(
             var body = httpContext.Request.BodyReader;
             ReadResult result;
 
-            while (true)
+            do
             {
                 result = await body.ReadAsync(cancellationToken);
 
                 if (result.IsCanceled)
                     throw new OperationCanceledException();
 
-                if (result.IsCompleted)
-                    break;
-
-                // More data pending: examine all, consume nothing, read again.
-                body.AdvanceTo(result.Buffer.Start, result.Buffer.End);
-            }
+                // Only advance while more data is pending; the final (completed)
+                // read is advanced once below, after the parser consumes it.
+                if (!result.IsCompleted)
+                    body.AdvanceTo(result.Buffer.Start, result.Buffer.End);
+            } while (!result.IsCompleted);
 
             if (result.Buffer.Length == 0)
             {
