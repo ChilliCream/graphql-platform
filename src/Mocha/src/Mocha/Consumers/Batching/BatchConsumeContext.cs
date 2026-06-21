@@ -21,7 +21,7 @@ internal sealed class BatchConsumeContext<TMessage> : IBatchConsumeContext<TMess
         Runtime = firstContext.Runtime;
         Transport = firstContext.Transport;
         Endpoint = firstContext.Endpoint;
-        Host = Runtime.Host;
+        Host = firstContext.Host;
         BatchId = batchId;
         ItemMessageType = itemMessageType;
         CancellationToken = cancellationToken;
