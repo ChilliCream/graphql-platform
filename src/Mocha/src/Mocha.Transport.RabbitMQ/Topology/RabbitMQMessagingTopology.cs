@@ -353,8 +353,7 @@ public sealed class RabbitMQMessagingTopology(
 
         private static void AppendByte(ref XxHash64 hash, byte value)
         {
-            Span<byte> buffer = stackalloc byte[1];
-            buffer[0] = value;
+            Span<byte> buffer = [value];
             hash.Append(buffer);
         }
     }

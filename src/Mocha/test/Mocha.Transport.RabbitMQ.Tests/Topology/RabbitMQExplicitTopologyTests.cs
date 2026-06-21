@@ -661,52 +661,6 @@ public class RabbitMQExplicitTopologyTests
             .MatchMarkdown();
     }
 
-    [Fact(Skip = "Placeholder: DeclareQueue conflict via descriptor API needs W2b shape-conflict"
-              + " diagnostic wired from the descriptor layer (RabbitMQQueueDescriptor.CreateConfiguration)"
-              + " into AddQueue. Today the shape-conflict throw is only reachable via topology.AddQueue"
-              + " directly; the descriptor accumulates configs and calls AddQueue in CreateConfiguration.")]
-    public void Build_Should_Throw_When_TwoDeclareQueueCallsConflictOnDurability()
-    {
-        // arrange
-        // Two DeclareQueue("orders") calls with conflicting Durable values (both declared) must
-        // surface a RabbitMQTopologyShapeConflictException at Build() time. This requires the
-        // descriptor to pass both nullable configs through AddQueue so the merge matrix can detect
-        // the declared-vs-declared conflict.
-        var services = new ServiceCollection();
-        var builder = services.AddMessageBus();
-
-        // act & assert
-        Assert.Throws<RabbitMQTopologyShapeConflictException>(() =>
-            builder.AddRabbitMQ(t =>
-            {
-                t.ConnectionProvider(_ => new StubConnectionProvider());
-                t.DeclareQueue("orders").Durable(true);
-                t.DeclareQueue("orders").Durable(false);
-            }).BuildRuntime());
-    }
-
-    [Fact(Skip = "Placeholder: cross-entity fanout-exchange / routing-key conflict check is deferred"
-              + " per plan v3 note (minor finding 8). A declared fanout exchange receiving a convention"
-              + " bind with a non-empty routing key should emit a shape-conflict diagnostic rather than"
-              + " silently producing a bind that the broker will ignore.")]
-    public void Build_Should_Throw_When_DeclaredFanoutExchangeReceivesConventionRoutingKeyBind()
-    {
-        // arrange
-        // A fanout exchange ignores routing keys; a convention that emits a routing-key bind
-        // against a declared fanout should be flagged instead of silently misbehaving.
-        var services = new ServiceCollection();
-        var builder = services.AddMessageBus();
-
-        // act & assert
-        Assert.Throws<RabbitMQTopologyShapeConflictException>(() =>
-            builder.AddRabbitMQ(t =>
-            {
-                t.ConnectionProvider(_ => new StubConnectionProvider());
-                t.DeclareExchange("orders.event").Type("fanout");
-                t.BindImplicitly();
-            }).BuildRuntime());
-    }
-
     [Fact]
     public void Receives_Should_BindFourTypesToOneQueue_When_AllReceivedViaReceives()
     {
