@@ -1,7 +1,4 @@
 using System.Collections.Immutable;
-using System.Globalization;
-using System.Security.Cryptography;
-using System.Text;
 using RabbitMQ.Client;
 
 namespace Mocha.Transport.RabbitMQ;
@@ -38,118 +35,13 @@ public abstract class RabbitMQBinding : TopologyResource<RabbitMQBindingConfigur
     }
 
     /// <summary>
-    /// Determines whether two binding argument sets are equal for the purpose of binding identity.
-    /// Equality is type sensitive: values of different runtime types are never equal, and binary
-    /// values are compared by content. This matches how the broker treats header-table arguments.
+    /// Builds the query component of a bind address.
     /// </summary>
-    internal static bool ArgumentsEqual(
-        IEnumerable<KeyValuePair<string, object?>>? left,
-        IEnumerable<KeyValuePair<string, object?>>? right)
+    private protected static string BuildQuery(string routingKey)
     {
-        var leftMap = left?.ToDictionary(kv => kv.Key, kv => kv.Value, StringComparer.Ordinal) ?? [];
-        var rightMap = right?.ToDictionary(kv => kv.Key, kv => kv.Value, StringComparer.Ordinal) ?? [];
-
-        if (leftMap.Count != rightMap.Count)
-        {
-            return false;
-        }
-
-        foreach (var (key, leftValue) in leftMap)
-        {
-            if (!rightMap.TryGetValue(key, out var rightValue) || !ArgumentValueEquals(leftValue, rightValue))
-            {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    private static bool ArgumentValueEquals(object? left, object? right)
-    {
-        if (left is null || right is null)
-        {
-            return left is null && right is null;
-        }
-
-        if (left.GetType() != right.GetType())
-        {
-            return false;
-        }
-
-        if (left is byte[] leftBytes && right is byte[] rightBytes)
-        {
-            return leftBytes.AsSpan().SequenceEqual(rightBytes);
-        }
-
-        return left.Equals(right);
-    }
-
-    /// <summary>
-    /// Produces a stable, order-independent representation of binding arguments. The result is the
-    /// same for the same set of key/value pairs regardless of insertion order or process, and it
-    /// distinguishes values by type so that bindings differing only by their arguments resolve to
-    /// distinct addresses.
-    /// </summary>
-    internal static string CanonicalizeArguments(IEnumerable<KeyValuePair<string, object?>>? arguments)
-    {
-        if (arguments is null)
-        {
-            return string.Empty;
-        }
-
-        var pairs = arguments
-            .OrderBy(kv => kv.Key, StringComparer.Ordinal)
-            .Select(kv => $"{Escape(kv.Key)}={FormatValue(kv.Value)}");
-
-        return string.Join("&", pairs);
-    }
-
-    private static string Escape(string value)
-        => value.Replace("%", "%25").Replace("=", "%3D").Replace("&", "%26");
-
-    private static string FormatValue(object? value)
-    {
-        return value switch
-        {
-            null => "null:",
-            byte[] bytes => "bin:" + Convert.ToHexString(bytes).ToLowerInvariant(),
-            _ => $"{value.GetType().Name}:{Escape(Convert.ToString(value, CultureInfo.InvariantCulture) ?? string.Empty)}"
-        };
-    }
-
-    /// <summary>
-    /// Computes a short, deterministic discriminator for the given canonical argument string,
-    /// suitable for distinguishing bind addresses that differ only by their arguments.
-    /// </summary>
-    internal static string ArgumentsDiscriminator(string canonicalArguments)
-    {
-        var hash = SHA256.HashData(Encoding.UTF8.GetBytes(canonicalArguments));
-        return Convert.ToHexString(hash, 0, 4).ToLowerInvariant();
-    }
-
-    /// <summary>
-    /// Builds the query component of a bind address, encoding the routing key and a stable arguments
-    /// discriminator so that bindings differing only by routing key or arguments resolve to distinct
-    /// addresses.
-    /// </summary>
-    private protected static string BuildQuery(
-        string routingKey,
-        ImmutableDictionary<string, object?> arguments)
-    {
-        var parts = new List<string>(2);
-
-        if (!string.IsNullOrEmpty(routingKey))
-        {
-            parts.Add("rk=" + Uri.EscapeDataString(routingKey));
-        }
-
-        if (!arguments.IsEmpty)
-        {
-            parts.Add("args=" + ArgumentsDiscriminator(CanonicalizeArguments(arguments)));
-        }
-
-        return string.Join("&", parts);
+        return string.IsNullOrEmpty(routingKey)
+            ? string.Empty
+            : "rk=" + Uri.EscapeDataString(routingKey);
     }
 
     /// <summary>
@@ -181,7 +73,7 @@ public sealed class RabbitMQExchangeBinding : RabbitMQBinding
     {
         var builder = new UriBuilder(Topology.Address);
         builder.Path = Topology.Address.AbsolutePath.TrimEnd('/') + "/b/e/" + Source.Name + "/e/" + Destination.Name;
-        builder.Query = BuildQuery(RoutingKey, Arguments);
+        builder.Query = BuildQuery(RoutingKey);
         Address = builder.Uri;
     }
 
@@ -223,7 +115,7 @@ public sealed class RabbitMQQueueBinding : RabbitMQBinding
     {
         var builder = new UriBuilder(Topology.Address);
         builder.Path = Topology.Address.AbsolutePath.TrimEnd('/') + "/b/e/" + Source.Name + "/q/" + Destination.Name;
-        builder.Query = BuildQuery(RoutingKey, Arguments);
+        builder.Query = BuildQuery(RoutingKey);
         Address = builder.Uri;
     }
 

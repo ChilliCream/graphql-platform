@@ -242,8 +242,6 @@ public class RabbitMQExplicitTopologyTests
     public void DeclareBinding_Should_RetainAllBindings_When_DifferentHeaderArguments()
     {
         // arrange & act
-        // headers bindings between the same exchange and queue are distinguished only by arguments
-        // and carry empty routing keys, so both must be retained with distinct addresses.
         var (_, _, topology) = CreateTopology(t =>
         {
             t.DeclareExchange("headers-ex").Type("headers");
@@ -255,11 +253,10 @@ public class RabbitMQExplicitTopologyTests
         // assert
         var bindings = topology.Bindings.Where(b => b.Source.Name == "headers-ex").ToList();
         Assert.Equal(2, bindings.Count);
-        Assert.Equal(2, bindings.Select(b => b.Address!.ToString()).Distinct().Count());
     }
 
     [Fact]
-    public void DeclareBinding_Should_Deduplicate_When_IdenticalHeaderArguments()
+    public void DeclareBinding_Should_RetainAllBindings_When_IdenticalHeaderArguments()
     {
         // arrange & act
         var (_, _, topology) = CreateTopology(t =>
@@ -271,15 +268,13 @@ public class RabbitMQExplicitTopologyTests
         });
 
         // assert
-        Assert.Single(topology.Bindings, b => b.Source.Name == "headers-ex");
+        Assert.Equal(2, topology.Bindings.Count(b => b.Source.Name == "headers-ex"));
     }
 
     [Fact]
     public void DeclareBinding_Should_RetainAllBindings_When_ArgumentValuesDifferByType()
     {
         // arrange & act
-        // an integer value and the string "1" are distinct header-table arguments, so neither the
-        // dedupe nor the address discriminator may collapse them.
         var (_, _, topology) = CreateTopology(t =>
         {
             t.DeclareExchange("headers-ex").Type("headers");
@@ -291,80 +286,10 @@ public class RabbitMQExplicitTopologyTests
         // assert
         var bindings = topology.Bindings.Where(b => b.Source.Name == "headers-ex").ToList();
         Assert.Equal(2, bindings.Count);
-        Assert.Equal(2, bindings.Select(b => b.Address!.ToString()).Distinct().Count());
     }
 
     [Fact]
-    public void DeclareBinding_Should_RetainAllBindings_When_ArgumentSeparatorsInjected()
-    {
-        // arrange & act
-        // a value containing the argument separators must not be confused with two separate arguments.
-        var (_, _, topology) = CreateTopology(t =>
-        {
-            t.DeclareExchange("headers-ex").Type("headers");
-            t.DeclareQueue("q");
-            t.DeclareBinding("headers-ex", "q").WithArgument("a", "1&b=2");
-            t.DeclareBinding("headers-ex", "q").WithArgument("a", "1").WithArgument("b", "2");
-        });
-
-        // assert
-        var bindings = topology.Bindings.Where(b => b.Source.Name == "headers-ex").ToList();
-        Assert.Equal(2, bindings.Count);
-        Assert.Equal(2, bindings.Select(b => b.Address!.ToString()).Distinct().Count());
-    }
-
-    [Fact]
-    public void DeclareBinding_Should_RetainAllBindings_When_BinaryArgumentsDifferByContent()
-    {
-        // arrange & act
-        var (_, _, topology) = CreateTopology(t =>
-        {
-            t.DeclareExchange("headers-ex").Type("headers");
-            t.DeclareQueue("q");
-            t.DeclareBinding("headers-ex", "q").WithArgument("token", new byte[] { 1, 2, 3 });
-            t.DeclareBinding("headers-ex", "q").WithArgument("token", new byte[] { 4, 5, 6 });
-        });
-
-        // assert
-        var bindings = topology.Bindings.Where(b => b.Source.Name == "headers-ex").ToList();
-        Assert.Equal(2, bindings.Count);
-        Assert.Equal(2, bindings.Select(b => b.Address!.ToString()).Distinct().Count());
-    }
-
-    [Fact]
-    public void DeclareBinding_Should_DeduplicateBinaryArguments_When_ContentEqual()
-    {
-        // arrange & act
-        // distinct byte[] instances with the same content are the same argument.
-        var (_, _, topology) = CreateTopology(t =>
-        {
-            t.DeclareExchange("headers-ex").Type("headers");
-            t.DeclareQueue("q");
-            t.DeclareBinding("headers-ex", "q").WithArgument("token", new byte[] { 1, 2, 3 });
-            t.DeclareBinding("headers-ex", "q").WithArgument("token", new byte[] { 1, 2, 3 });
-        });
-
-        // assert
-        Assert.Single(topology.Bindings, b => b.Source.Name == "headers-ex");
-    }
-
-    [Fact]
-    public void ArgumentsEqual_Should_DistinguishNullFromEmptyString()
-    {
-        // arrange
-        KeyValuePair<string, object?>[] withNull = [new("x", null)];
-        KeyValuePair<string, object?>[] withEmpty = [new("x", string.Empty)];
-
-        // act & assert
-        // a null header value and an empty string are distinct, both for equality and for the address.
-        Assert.False(RabbitMQBinding.ArgumentsEqual(withNull, withEmpty));
-        Assert.NotEqual(
-            RabbitMQBinding.CanonicalizeArguments(withNull),
-            RabbitMQBinding.CanonicalizeArguments(withEmpty));
-    }
-
-    [Fact]
-    public void AddBinding_Should_AdoptExplicitValue_When_ExistingAutoProvisionIsNull()
+    public void AddBinding_Should_LeaveExistingUnchanged_When_DuplicateAutoProvisionProvided()
     {
         // arrange
         var (_, binding, topology) = DeclareSingleBinding(b => { });
@@ -379,11 +304,11 @@ public class RabbitMQExplicitTopologyTests
         });
 
         // assert
-        Assert.True(binding.AutoProvision);
+        Assert.Null(binding.AutoProvision);
     }
 
     [Fact]
-    public void AddBinding_Should_PreferProvisioning_When_AutoProvisionConflicts()
+    public void AddBinding_Should_KeepExistingAutoProvision_When_DuplicateConflicts()
     {
         // arrange
         var (_, existingOptOut, optOutTopology) = DeclareSingleBinding(b => b.AutoProvision(false));
@@ -405,8 +330,8 @@ public class RabbitMQExplicitTopologyTests
             AutoProvision = false
         });
 
-        // assert - provisioning wins regardless of declaration order
-        Assert.True(existingOptOut.AutoProvision);
+        // assert
+        Assert.False(existingOptOut.AutoProvision);
         Assert.True(existingProvision.AutoProvision);
     }
 
@@ -420,13 +345,14 @@ public class RabbitMQExplicitTopologyTests
             t.DeclareExchange("ex");
             t.DeclareQueue("q");
         });
-        var binding = topology.AddBinding(new RabbitMQBindingConfiguration
+        topology.AddBinding(new RabbitMQBindingConfiguration
         {
             Source = "ex",
             Destination = "q",
             DestinationKind = RabbitMQDestinationKind.Queue,
             Origin = TopologyOrigin.Convention
         });
+        var binding = Assert.Single(topology.Bindings);
         Assert.Equal(TopologyOrigin.Convention, binding.Origin);
 
         // act

@@ -309,20 +309,11 @@ public sealed class RabbitMQRoutingStrategy : RoutingStrategy<RabbitMQMessagingT
             {
                 EnsureExchange(_topology, sendExchangeName);
 
-                if (_topology.Bindings.FirstOrDefault(b =>
-                        b.Source.Name == publishExchangeName
-                        && string.IsNullOrEmpty(b.RoutingKey)
-                        && b is RabbitMQExchangeBinding exchangeBinding
-                        && exchangeBinding.Destination.Name == sendExchangeName
-                    )
-                    is null)
-                {
-                    _topology.GetOrAddBinding(
-                        publishExchangeName,
-                        sendExchangeName,
-                        RabbitMQDestinationKind.Exchange,
-                        static (_, _, _) => new RabbitMQBindingConfiguration());
-                }
+                _topology.EnsureBinding(
+                    publishExchangeName,
+                    sendExchangeName,
+                    RabbitMQDestinationKind.Exchange,
+                    static (_, _, _) => new RabbitMQBindingConfiguration());
             }
 
             EnsureExchangeToQueueBinding(_topology, sendExchangeName, rabbitConfiguration.QueueName);
@@ -390,7 +381,7 @@ public sealed class RabbitMQRoutingStrategy : RoutingStrategy<RabbitMQMessagingT
                     exchangeName,
                     static _ => new RabbitMQExchangeConfiguration());
 
-                _topology.GetOrAddBinding(
+                _topology.EnsureBinding(
                     rabbitConfiguration.ExchangeName,
                     exchangeName,
                     RabbitMQDestinationKind.Exchange,
@@ -419,20 +410,11 @@ public sealed class RabbitMQRoutingStrategy : RoutingStrategy<RabbitMQMessagingT
         string sourceExchangeName,
         string queueName)
     {
-        if (topology.Bindings.FirstOrDefault(b =>
-                b.Source.Name == sourceExchangeName
-                && string.IsNullOrEmpty(b.RoutingKey)
-                && b is RabbitMQExchangeBinding exchangeBinding
-                && exchangeBinding.Destination.Name == queueName
-            )
-            is null)
-        {
-            topology.GetOrAddBinding(
-                sourceExchangeName,
-                queueName,
-                RabbitMQDestinationKind.Queue,
-                static (_, _, _) => new RabbitMQBindingConfiguration());
-        }
+        topology.EnsureBinding(
+            sourceExchangeName,
+            queueName,
+            RabbitMQDestinationKind.Queue,
+            static (_, _, _) => new RabbitMQBindingConfiguration());
     }
 
     private void ConfigureFaultOrSkippedEndpoint(

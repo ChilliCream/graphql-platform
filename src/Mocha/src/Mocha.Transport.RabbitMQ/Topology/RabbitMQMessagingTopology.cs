@@ -19,6 +19,7 @@ public sealed class RabbitMQMessagingTopology(
     private readonly List<RabbitMQExchange> _exchanges = [];
     private readonly List<RabbitMQQueue> _queues = [];
     private readonly List<RabbitMQBinding> _bindings = [];
+    private readonly Dictionary<BindingKey, RabbitMQBinding> _bindingsByKey = [];
 
     /// <summary>
     /// Gets a value indicating whether topology resources should be auto-provisioned by default.
@@ -156,10 +157,9 @@ public sealed class RabbitMQMessagingTopology(
     }
 
     /// <summary>
-    /// Gets the binding with the same identity, or creates it from the provided configuration.
-    /// Existing bindings are returned unchanged.
+    /// Ensures that a binding with the same identity exists in the topology.
     /// </summary>
-    public RabbitMQBinding GetOrAddBinding(
+    public void EnsureBinding(
         string source,
         string destination,
         RabbitMQDestinationKind destinationKind,
@@ -167,63 +167,70 @@ public sealed class RabbitMQMessagingTopology(
     {
         lock (_lock)
         {
-            var existing = FindBinding(source, destination, destinationKind);
-            if (existing is not null)
+            var key = CreateBindingKey(source, destination, destinationKind);
+
+            if (_bindingsByKey.TryGetValue(key, out _))
             {
-                return existing;
+                return;
             }
 
             var configuration = factory(source, destination, destinationKind);
             configuration.Source = source;
             configuration.Destination = destination;
             configuration.DestinationKind = destinationKind;
-            return CreateBinding(configuration);
+
+            if (TryCreateBindingKey(configuration, out key)
+                && _bindingsByKey.TryGetValue(key, out _))
+            {
+                return;
+            }
+
+            CreateBinding(configuration);
         }
     }
 
     /// <summary>
-    /// Adds a binding to the topology or updates the existing binding with the same identity.
+    /// Adds a binding to the topology if one with the same identity does not already exist.
     /// </summary>
-    public RabbitMQBinding AddBinding(RabbitMQBindingConfiguration configuration)
+    public void AddBinding(RabbitMQBindingConfiguration configuration)
     {
         lock (_lock)
         {
-            var existing = FindBinding(configuration);
-            if (existing is not null)
+            if (TryCreateBindingKey(configuration, out var key)
+                && _bindingsByKey.TryGetValue(key, out _))
             {
-                MergeBindingConfiguration(existing, configuration);
-                return existing;
+                return;
             }
 
-            return CreateBinding(configuration);
+            CreateBinding(configuration);
         }
     }
 
-    private RabbitMQBinding? FindBinding(RabbitMQBindingConfiguration configuration)
-        => FindBinding(
+    private static BindingKey CreateBindingKey(
+        string source,
+        string destination,
+        RabbitMQDestinationKind destinationKind)
+        => new(source, destination, destinationKind, string.Empty);
+
+    private static bool TryCreateBindingKey(
+        RabbitMQBindingConfiguration configuration,
+        out BindingKey key)
+    {
+        if (configuration.Arguments is { Count: > 0 })
+        {
+            key = default;
+            return false;
+        }
+
+        key = new(
             configuration.Source,
             configuration.Destination,
             configuration.DestinationKind,
-            configuration.RoutingKey,
-            configuration.Arguments?.Select(kv => new KeyValuePair<string, object?>(kv.Key, kv.Value)));
-
-    private RabbitMQBinding? FindBinding(
-        string source,
-        string destination,
-        RabbitMQDestinationKind destinationKind,
-        string? routingKey = null,
-        IEnumerable<KeyValuePair<string, object?>>? arguments = null)
-    {
-        var normalizedRoutingKey = routingKey ?? string.Empty;
-
-        return _bindings.FirstOrDefault(b =>
-            b.Source.Name == source
-            && b.RoutingKey == normalizedRoutingKey
-            && RabbitMQBinding.ArgumentsEqual(b.Arguments, arguments)
-            && MatchesDestination(b, destination, destinationKind));
+            configuration.RoutingKey ?? string.Empty);
+        return true;
     }
 
-    private RabbitMQBinding CreateBinding(RabbitMQBindingConfiguration configuration)
+    private void CreateBinding(RabbitMQBindingConfiguration configuration)
     {
         var source = _exchanges.FirstOrDefault(e => e.Name == configuration.Source);
         if (source is null)
@@ -275,52 +282,17 @@ public sealed class RabbitMQMessagingTopology(
         source.AddBinding(binding);
 
         _bindings.Add(binding);
+        if (TryCreateBindingKey(configuration, out var key))
+        {
+            _bindingsByKey.Add(key, binding);
+        }
 
         binding.Complete();
-
-        return binding;
     }
 
-    private static void MergeBindingConfiguration(
-        RabbitMQBinding binding,
-        RabbitMQBindingConfiguration configuration)
-    {
-        StrengthenAutoProvision(
-            binding.AutoProvision,
-            configuration.AutoProvision,
-            value => binding.AutoProvision = value);
-    }
-
-    private static void StrengthenAutoProvision(
-        bool? existing,
-        bool? incoming,
-        Action<bool?> assign)
-    {
-        if (existing is null)
-        {
-            assign(incoming);
-        }
-        else if (incoming == true)
-        {
-            assign(true);
-        }
-    }
-
-    private static bool MatchesDestination(RabbitMQBinding binding, RabbitMQBindingConfiguration configuration)
-        => MatchesDestination(binding, configuration.Destination, configuration.DestinationKind);
-
-    private static bool MatchesDestination(
-        RabbitMQBinding binding,
-        string destination,
-        RabbitMQDestinationKind destinationKind)
-    {
-        return destinationKind switch
-        {
-            RabbitMQDestinationKind.Queue =>
-                binding is RabbitMQQueueBinding qb && qb.Destination.Name == destination,
-            RabbitMQDestinationKind.Exchange =>
-                binding is RabbitMQExchangeBinding eb && eb.Destination.Name == destination,
-            _ => false
-        };
-    }
+    private readonly record struct BindingKey(
+        string Source,
+        string Destination,
+        RabbitMQDestinationKind DestinationKind,
+        string RoutingKey);
 }

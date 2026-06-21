@@ -153,12 +153,11 @@ public class RabbitMQMessagingTopologyTests
         };
 
         // act
-        var binding = topology.AddBinding(bindingConfig);
+        topology.AddBinding(bindingConfig);
 
         // assert
-        Assert.NotNull(binding);
+        var binding = Assert.Single(topology.Bindings);
         Assert.Equal("source-exchange", binding.Source.Name);
-        Assert.Contains(binding, topology.Bindings);
 
         var queueBinding = Assert.IsType<RabbitMQQueueBinding>(binding);
         Assert.Equal("destination-queue", queueBinding.Destination.Name);
@@ -181,12 +180,11 @@ public class RabbitMQMessagingTopologyTests
         };
 
         // act
-        var binding = topology.AddBinding(bindingConfig);
+        topology.AddBinding(bindingConfig);
 
         // assert
-        Assert.NotNull(binding);
+        var binding = Assert.Single(topology.Bindings);
         Assert.Equal("source-exchange", binding.Source.Name);
-        Assert.Contains(binding, topology.Bindings);
 
         var exchangeBinding = Assert.IsType<RabbitMQExchangeBinding>(binding);
         Assert.Equal("destination-exchange", exchangeBinding.Destination.Name);
