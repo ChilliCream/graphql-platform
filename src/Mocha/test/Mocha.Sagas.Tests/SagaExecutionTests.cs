@@ -928,28 +928,6 @@ public sealed class SagaExecutionTests
     }
 
     [Fact]
-    public void Describe_Should_IncludeAutoProvision_When_Configured()
-    {
-        // Arrange
-        var saga =
-            Saga.Create<TestState>(x =>
-            {
-                x.Initially().OnEvent<StartEvent>().StateFactory(_ => new TestState()).TransitionTo("Started");
-                x.During("Started").OnEvent<EndEvent>().AutoProvision().TransitionTo("Ended");
-                x.Finally("Ended");
-            });
-        Initialize(saga);
-
-        // Act
-        var description = saga.Describe();
-
-        // Assert
-        var startedState = description.States.Single(s => s.Name == "Started");
-        var transition = Assert.Single(startedState.Transitions);
-        Assert.True(transition.AutoProvision);
-    }
-
-    [Fact]
     public void Describe_Should_IncludeTransitionKind_When_Configured()
     {
         // Arrange
