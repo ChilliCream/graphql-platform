@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 import { CoffeeTray } from "@/src/icons/CoffeeTray";
 import { Fusion } from "@/src/icons/Fusion";
 import { HotChocolate } from "@/src/icons/HotChocolate";
@@ -94,7 +96,7 @@ export function BuildYourWay() {
             className="mt-3 grid grid-cols-2 gap-1 sm:grid-cols-3 lg:grid-cols-5"
           >
             {PRODUCTS.map(({ label, role, href, Icon }) => (
-              <a
+              <Link
                 key={label}
                 href={href}
                 className="group focus-visible:ring-cc-accent hover:bg-cc-card-bg/60 flex flex-col items-center gap-2 rounded-2xl border border-transparent px-2 py-3 text-center transition-colors duration-200 focus-visible:ring-2 focus-visible:outline-none"
@@ -111,7 +113,7 @@ export function BuildYourWay() {
                 <span className="text-cc-ink-dim group-hover:text-cc-accent text-[0.7rem] leading-tight transition-colors duration-200">
                   {role}
                 </span>
-              </a>
+              </Link>
             ))}
           </nav>
         </div>
