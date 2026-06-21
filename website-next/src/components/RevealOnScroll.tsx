@@ -59,7 +59,13 @@ export function RevealOnScroll({
   return (
     <div
       ref={ref}
-      className={`${className} ${DEFAULT_TRANSITION_CLASS_NAME} ${shown ? shownClassName : hiddenClassName}`}
+      className={[
+        className,
+        DEFAULT_TRANSITION_CLASS_NAME,
+        shown ? shownClassName : hiddenClassName,
+      ]
+        .filter(Boolean)
+        .join(" ")}
     >
       {children}
     </div>
