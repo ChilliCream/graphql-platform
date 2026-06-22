@@ -1,5 +1,6 @@
 using System.Buffers;
 using System.Buffers.Text;
+using System.Globalization;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Security.Cryptography;
@@ -18,6 +19,7 @@ internal sealed class ExpressionHasher : ExpressionVisitor
     private ReadOnlySpan<byte> New => "New:"u8;
     private ReadOnlySpan<byte> MemberInit => "MemberInit|"u8;
     private ReadOnlySpan<byte> Binding => "Binding:"u8;
+    private ReadOnlySpan<byte> Constant => "Constant:"u8;
 
     private byte[] _buffer;
     private readonly int _initialSize;
@@ -119,7 +121,22 @@ internal sealed class ExpressionHasher : ExpressionVisitor
         Append(Member);
         Append(node.Member);
         Append('|');
-        Visit(node.Expression);
+
+        if (node.Expression is ConstantExpression { Value: not null } constant)
+        {
+            var value = node.Member switch
+            {
+                FieldInfo f => f.GetValue(constant.Value),
+                PropertyInfo p => p.GetValue(constant.Value),
+                _ => null
+            };
+            AppendValue(value);
+        }
+        else
+        {
+            Visit(node.Expression);
+        }
+
         return node;
     }
 
@@ -174,6 +191,79 @@ internal sealed class ExpressionHasher : ExpressionVisitor
             VisitMemberBindingInternal(binding);
         }
         return node;
+    }
+
+    protected override Expression VisitConstant(ConstantExpression node)
+    {
+        Append(Constant);
+        Append(node.Type.FullName ?? node.Type.Name);
+        Append('|');
+        AppendValue(node.Value);
+        return node;
+    }
+
+    private void AppendValue(object? value)
+    {
+        if (value is null)
+        {
+            Append('-');
+            return;
+        }
+
+        switch (value)
+        {
+            case float f:
+                Append(f.ToString("R", CultureInfo.InvariantCulture));
+                return;
+            case double d:
+                Append(d.ToString("R", CultureInfo.InvariantCulture));
+                return;
+            case DateTime dt:
+                Append(dt.ToString("O", CultureInfo.InvariantCulture));
+                return;
+            case DateTimeOffset dto:
+                Append(dto.ToString("O", CultureInfo.InvariantCulture));
+                return;
+        }
+
+        var type = value.GetType();
+
+        if (type.IsPrimitive || type.IsEnum || value is string)
+        {
+            Append(Convert.ToString(value, CultureInfo.InvariantCulture) ?? string.Empty);
+            return;
+        }
+
+        if (value is decimal or TimeSpan or Guid)
+        {
+            Append(Convert.ToString(value, CultureInfo.InvariantCulture) ?? string.Empty);
+            return;
+        }
+
+        // Closure / wrapper objects (e.g. ExpressionParameter<T> emitted by HotChocolate's
+        // filter framework, or C# compiler-generated closures from captured variables) hold
+        // the actual filter value as an instance field or property. Hash both so different
+        // captured values produce different hashes; otherwise two predicates that differ
+        // only in their captured constant collide.
+        Append('{');
+        foreach (var field in type.GetFields(BindingFlags.Instance | BindingFlags.Public)
+                     .OrderBy(f => f.Name, StringComparer.Ordinal))
+        {
+            Append(field.Name);
+            Append('=');
+            AppendValue(field.GetValue(value));
+            Append(';');
+        }
+        foreach (var property in type.GetProperties(BindingFlags.Instance | BindingFlags.Public)
+                     .Where(p => p.GetIndexParameters().Length == 0 && p.CanRead)
+                     .OrderBy(p => p.Name, StringComparer.Ordinal))
+        {
+            Append(property.Name);
+            Append('=');
+            AppendValue(property.GetValue(value));
+            Append(';');
+        }
+        Append('}');
     }
 
     private void VisitMemberBindingInternal(MemberBinding binding)
