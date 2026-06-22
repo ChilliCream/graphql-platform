@@ -4,13 +4,14 @@ using HotChocolate.Types;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using IOPath = System.IO.Path;
 
 namespace HotChocolate.Data;
 
 public class InterfaceFieldProjectionTests : IDisposable
 {
-    private readonly string _fileName = System.IO.Path.Combine(
-        System.IO.Path.GetTempPath(),
+    private readonly string _fileName = IOPath.Combine(
+        IOPath.GetTempPath(),
         $"interface-field-projection-{Guid.NewGuid():N}.db");
 
     [Fact]
