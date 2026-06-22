@@ -22,6 +22,26 @@ public sealed class RequiresOptInDirectiveTests
     }
 
     [Fact]
+    public async Task RequiresOptIn_OnDirectiveDefinition_CodeFirst_AppliesDirective()
+    {
+        // arrange & act
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .ModifyOptions(o => o.EnableOptInFeatures = true)
+                .AddDirectiveType(d => d
+                    .Name("example")
+                    .Location(DirectiveLocation.Field)
+                    .RequiresOptIn("directiveFeature"))
+                .AddQueryType(d => d.Field("field").Type<IntType>().Resolve(() => 1))
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.True(
+            schema.DirectiveTypes["example"].Directives.ContainsDirective("requiresOptIn"));
+    }
+
+    [Fact]
     public async Task RequiresOptIn_OnDirectiveDefinition_SchemaFirst_IsAllowed()
     {
         // arrange & act
