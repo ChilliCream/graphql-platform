@@ -601,7 +601,7 @@ public sealed class OptInFeaturesIntrospectionTests
             """
             {
                 __schema {
-                    directives {
+                    directives(includeOptIn: ["directiveFeature"]) {
                         name
                         requiresOptIn
                     }
@@ -764,7 +764,56 @@ public sealed class OptInFeaturesIntrospectionTests
             """);
     }
 
+    [Fact]
+    public async Task Execute_IntrospectionOnDirectives_FiltersByOptIn()
+    {
+        // arrange
+        const string included =
+            """
+            { __schema { directives(includeOptIn: ["directiveFeature"]) { name } } }
+            """;
+
+        const string excluded =
+            """
+            { __schema { directives { name } } }
+            """;
+
+        var executor = SchemaBuilder.New()
+            .AddDocumentFromString(
+                """
+                type Query { field: Int }
+
+                directive @example @requiresOptIn(feature: "directiveFeature") on FIELD
+                """)
+            .Use(_ => _ => default)
+            .ModifyOptions(o => o.EnableOptInFeatures = true)
+            .Create()
+            .MakeExecutable();
+
+        // act
+        var withOptIn = await executor.ExecuteAsync(included, TestContext.Current.CancellationToken);
+        var withoutOptIn = await executor.ExecuteAsync(excluded, TestContext.Current.CancellationToken);
+
+        // assert
+        // The opt-in directive is shown only when its feature is opted into.
+        Assert.Contains("example", GetDirectiveNames(withOptIn));
+        Assert.DoesNotContain("example", GetDirectiveNames(withoutOptIn));
+    }
+
     private static readonly JsonSerializerOptions s_indented = new() { WriteIndented = true };
+
+    private static string[] GetDirectiveNames(IExecutionResult result)
+    {
+        using var document = JsonDocument.Parse(result.ToJson());
+
+        return document.RootElement
+            .GetProperty("data")
+            .GetProperty("__schema")
+            .GetProperty("directives")
+            .EnumerateArray()
+            .Select(d => d.GetProperty("name").GetString()!)
+            .ToArray();
+    }
 
     private static string GetDirective(IExecutionResult result, string directiveName)
     {
