@@ -65,8 +65,10 @@ public sealed class KestrelHttpEndpointIntegrationTests : OpenApiTestBase
         try
         {
             using var client = new HttpClient { BaseAddress = GetBaseAddress(host) };
+            // The PUT route is "/users/{userId:$user.id}", so "id" is supplied by the
+            // route segment and must not also appear in the body.
             var content = new StringContent(
-                """{ "id": "6", "name": "Test", "email": "test@example.com" }""",
+                """{ "name": "Test", "email": "test@example.com" }""",
                 Encoding.UTF8,
                 "application/json");
 
