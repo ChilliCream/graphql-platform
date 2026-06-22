@@ -172,26 +172,36 @@ internal sealed class DynamicEndpointMiddleware(
                 result = await body.ReadAsync(cancellationToken);
 
                 if (result.IsCanceled)
+                {
                     throw new OperationCanceledException();
+                }
 
                 // Only advance while more data is pending; the final (completed)
-                // read is advanced once below, after the parser consumes it.
+                // read is advanced in the finally block below.
                 if (!result.IsCompleted)
+                {
                     body.AdvanceTo(result.Buffer.Start, result.Buffer.End);
-
+                }
             } while (!result.IsCompleted);
 
-            if (result.Buffer.Length == 0)
+            try
             {
-                throw new BadRequestException("Expected to have a body");
+                if (result.Buffer.Length == 0)
+                {
+                    throw new BadRequestException("Expected to have a body");
+                }
+
+                var jsonValueParser = new JsonValueParser(buffer: variableBuffer);
+                var bodyValue = jsonValueParser.Parse(result.Buffer);
+                variables[bodyVariable] = bodyValue;
             }
-
-            var jsonValueParser = new JsonValueParser(buffer: variableBuffer);
-            var bodyValue = jsonValueParser.Parse(result.Buffer);
-            variables[bodyVariable] = bodyValue;
-
-            // Single AdvanceTo for the final read, after the parser consumed it.
-            body.AdvanceTo(result.Buffer.End);
+            finally
+            {
+                // Advance the final (completed) read exactly once, even if parsing
+                // or the empty-body guard threw, so Kestrel can drain the request
+                // body without a PipeReader contract violation.
+                body.AdvanceTo(result.Buffer.End);
+            }
         }
 
         InsertParametersIntoVariables(variables, endpointDescriptor, httpContext);
