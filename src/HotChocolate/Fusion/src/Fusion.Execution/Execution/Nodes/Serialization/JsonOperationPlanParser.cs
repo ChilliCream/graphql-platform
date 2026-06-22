@@ -4,6 +4,8 @@ using HotChocolate.Execution;
 using HotChocolate.Fusion.Language;
 using HotChocolate.Language;
 using HotChocolate.Types;
+using StringValueNode = HotChocolate.Language.StringValueNode;
+using IValueNode = HotChocolate.Language.IValueNode;
 
 namespace HotChocolate.Fusion.Execution.Nodes.Serialization;
 

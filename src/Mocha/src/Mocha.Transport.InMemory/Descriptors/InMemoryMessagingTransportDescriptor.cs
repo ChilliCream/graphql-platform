@@ -1,3 +1,5 @@
+using Mocha.Features;
+
 namespace Mocha.Transport.InMemory;
 
 /// <summary>
@@ -15,9 +17,10 @@ public sealed class InMemoryMessagingTransportDescriptor
 {
     private readonly List<InMemoryReceiveEndpointDescriptor> _receiveEndpoints = [];
     private readonly List<InMemoryDispatchEndpointDescriptor> _dispatchEndpoints = [];
-    private readonly List<InMemoryTopicDescriptor> _exchanges = [];
+    private readonly List<InMemoryTopicTopologyDescriptor> _exchanges = [];
     private readonly List<InMemoryQueueDescriptor> _queues = [];
-    private readonly List<InMemoryBindingDescriptor> _bindings = [];
+    private readonly List<InMemoryQueueTopologyDescriptor> _queueTopology = [];
+    private readonly List<InMemoryBindingTopologyDescriptor> _bindings = [];
 
     /// <summary>
     /// Creates a new in-memory transport descriptor bound to the specified setup context.
@@ -63,6 +66,14 @@ public sealed class InMemoryMessagingTransportDescriptor
     }
 
     /// <inheritdoc />
+    public new IInMemoryMessagingTransportDescriptor UseRoutingStrategy(Func<IServiceProvider, RoutingStrategy> factory)
+    {
+        base.UseRoutingStrategy(factory);
+
+        return this;
+    }
+
+    /// <inheritdoc />
     public new IInMemoryMessagingTransportDescriptor UseDispatch(
         DispatchMiddlewareConfiguration configuration,
         string? before = null,
@@ -93,17 +104,17 @@ public sealed class InMemoryMessagingTransportDescriptor
     }
 
     /// <inheritdoc />
-    public new IInMemoryMessagingTransportDescriptor BindHandlersImplicitly()
+    public new IInMemoryMessagingTransportDescriptor BindImplicitly()
     {
-        base.BindHandlersImplicitly();
+        base.BindImplicitly();
 
         return this;
     }
 
     /// <inheritdoc />
-    public new IInMemoryMessagingTransportDescriptor BindHandlersExplicitly()
+    public new IInMemoryMessagingTransportDescriptor BindExplicitly()
     {
-        base.BindHandlersExplicitly();
+        base.BindExplicitly();
 
         return this;
     }
@@ -129,11 +140,23 @@ public sealed class InMemoryMessagingTransportDescriptor
     }
 
     /// <inheritdoc />
+    public IInMemoryQueueDescriptor Queue(string name)
+    {
+        var queue = _queues.FirstOrDefault(q => q.Configuration.Name.EqualsOrdinal(name));
+        if (queue is not null)
+        {
+            return queue;
+        }
+
+        queue = InMemoryQueueDescriptor.New(Context, name);
+        _queues.Add(queue);
+        return queue;
+    }
+
+    /// <inheritdoc />
     public IInMemoryReceiveEndpointDescriptor Endpoint(string name)
     {
-        var endpoint = _receiveEndpoints.FirstOrDefault(e =>
-            e.Extend().Configuration.Name.EqualsOrdinal(name) || e.Extend().Configuration.QueueName.EqualsOrdinal(name)
-        );
+        var endpoint = _receiveEndpoints.FirstOrDefault(e => e.Configuration.Name.EqualsOrdinal(name));
 
         if (endpoint is null)
         {
@@ -147,7 +170,7 @@ public sealed class InMemoryMessagingTransportDescriptor
     /// <inheritdoc />
     public IInMemoryDispatchEndpointDescriptor DispatchEndpoint(string name)
     {
-        var endpoint = _dispatchEndpoints.FirstOrDefault(e => e.Extend().Configuration.Name.EqualsOrdinal(name));
+        var endpoint = _dispatchEndpoints.FirstOrDefault(e => e.Configuration.Name.EqualsOrdinal(name));
         if (endpoint is null)
         {
             endpoint = InMemoryDispatchEndpointDescriptor.New(Context, name);
@@ -158,40 +181,40 @@ public sealed class InMemoryMessagingTransportDescriptor
     }
 
     /// <inheritdoc />
-    public IInMemoryTopicDescriptor DeclareTopic(string name)
+    public IInMemoryTopicTopologyDescriptor DeclareTopic(string name)
     {
-        var exchange = _exchanges.FirstOrDefault(e => e.Extend().Configuration.Name.EqualsOrdinal(name));
+        var exchange = _exchanges.FirstOrDefault(e => e.Configuration.Name.EqualsOrdinal(name));
         if (exchange is null)
         {
-            exchange = InMemoryTopicDescriptor.New(Context, name);
+            exchange = InMemoryTopicTopologyDescriptor.New(Context, name);
             _exchanges.Add(exchange);
         }
         return exchange;
     }
 
     /// <inheritdoc />
-    public IInMemoryQueueDescriptor DeclareQueue(string name)
+    public IInMemoryQueueTopologyDescriptor DeclareQueue(string name)
     {
-        var queue = _queues.FirstOrDefault(q => q.Extend().Configuration.Name.EqualsOrdinal(name));
+        var queue = _queueTopology.FirstOrDefault(q => q.Configuration.Name.EqualsOrdinal(name));
         if (queue is null)
         {
-            queue = InMemoryQueueDescriptor.New(Context, name);
-            _queues.Add(queue);
+            queue = InMemoryQueueTopologyDescriptor.New(Context, name);
+            _queueTopology.Add(queue);
         }
         return queue;
     }
 
     /// <inheritdoc />
-    public IInMemoryBindingDescriptor DeclareBinding(string exchange, string queue)
+    public IInMemoryBindingTopologyDescriptor DeclareBinding(string exchange, string queue)
     {
         var binding = _bindings.FirstOrDefault(b =>
-            b.Extend().Configuration.Source.EqualsOrdinal(exchange)
-            && b.Extend().Configuration.Destination.EqualsOrdinal(queue)
+            b.Configuration.Source.EqualsOrdinal(exchange)
+            && b.Configuration.Destination.EqualsOrdinal(queue)
         );
 
         if (binding is null)
         {
-            binding = InMemoryBindingDescriptor.New(Context, exchange, queue);
+            binding = InMemoryBindingTopologyDescriptor.New(Context, exchange, queue);
             _bindings.Add(binding);
         }
 
@@ -204,6 +227,20 @@ public sealed class InMemoryMessagingTransportDescriptor
     /// <returns>The fully populated transport configuration ready for runtime initialization.</returns>
     public InMemoryTransportConfiguration CreateConfiguration()
     {
+        foreach (var queue in _queues.Select(q => q.CreateConfiguration()))
+        {
+            ConfigureQueueTopology(queue);
+            ConfigureQueueEndpoint(queue);
+        }
+
+        var topics = _exchanges.Select(e => e.CreateConfiguration()).ToList();
+        var queues = _queueTopology.Select(q => q.CreateConfiguration()).ToList();
+        var bindings = _bindings.Select(b => b.CreateConfiguration()).ToList();
+
+        Configuration.Topics = topics;
+        Configuration.Queues = queues;
+        Configuration.Bindings = bindings;
+
         Configuration.ReceiveEndpoints = _receiveEndpoints
             .Select(ReceiveEndpointConfiguration (e) => e.CreateConfiguration())
             .ToList();
@@ -212,13 +249,95 @@ public sealed class InMemoryMessagingTransportDescriptor
             .Select(DispatchEndpointConfiguration (e) => e.CreateConfiguration())
             .ToList();
 
-        Configuration.Topics = _exchanges.Select(e => e.CreateConfiguration()).ToList();
-
-        Configuration.Queues = _queues.Select(q => q.CreateConfiguration()).ToList();
-
-        Configuration.Bindings = _bindings.Select(b => b.CreateConfiguration()).ToList();
-
         return Configuration;
+    }
+
+    private void ConfigureQueueTopology(InMemoryQueueDescriptorConfiguration configuration)
+    {
+        DeclareQueue(configuration.Name!);
+
+        var schema = Configuration.Schema ?? InMemoryTransportConfiguration.DefaultSchema;
+        foreach (var source in configuration.SourceBindings)
+        {
+            if (!InMemoryDestinations.TryResolveSourceTopic(schema, source, out var topicName))
+            {
+                throw new InvalidOperationException(
+                    $"BindFrom source '{source}' could not be resolved to an in-memory topic name.");
+            }
+
+            DeclareTopic(topicName);
+            DeclareBinding(topicName, configuration.Name!);
+        }
+    }
+
+    private void ConfigureQueueEndpoint(InMemoryQueueDescriptorConfiguration configuration)
+    {
+        var endpoint = Endpoint(configuration.Name!);
+        var target = endpoint.Extend().Configuration;
+
+        target.ConsumerIdentities.AddRange(configuration.ConsumerIdentities);
+        target.ReceivedMessageTypes.AddRange(configuration.ReceivedMessageTypes);
+
+        if (configuration.BindMode is not null)
+        {
+            target.BindMode ??= configuration.BindMode;
+        }
+
+        if (configuration.Kind is not null && target.Kind == ReceiveEndpointKind.Default)
+        {
+            target.Kind = configuration.Kind.Value;
+        }
+
+        if (configuration.MaxConcurrency is not null)
+        {
+            target.MaxConcurrency ??= configuration.MaxConcurrency;
+        }
+
+        target.ReceiveMiddlewares.AddRange(configuration.ReceiveMiddlewares);
+        target.ReceivePipelineModifiers.AddRange(configuration.ReceivePipelineModifiers);
+
+        CopyFaultEndpointFeature(configuration, target);
+        CopySkippedEndpointFeature(configuration, target);
+    }
+
+    private static void CopyFaultEndpointFeature(
+        InMemoryQueueDescriptorConfiguration configuration,
+        InMemoryReceiveEndpointConfiguration target)
+    {
+        var source = configuration.Features.Get<ReceiveFaultEndpointFeature>();
+        if (source is null)
+        {
+            return;
+        }
+
+        var targetFeature = target.Features.GetOrSet<ReceiveFaultEndpointFeature>();
+        if (targetFeature is { Address: not null } or { IsDisabled: true })
+        {
+            return;
+        }
+
+        targetFeature.Address = source.Address;
+        targetFeature.IsDisabled = source.IsDisabled;
+    }
+
+    private static void CopySkippedEndpointFeature(
+        InMemoryQueueDescriptorConfiguration configuration,
+        InMemoryReceiveEndpointConfiguration target)
+    {
+        var source = configuration.Features.Get<ReceiveSkippedEndpointFeature>();
+        if (source is null)
+        {
+            return;
+        }
+
+        var targetFeature = target.Features.GetOrSet<ReceiveSkippedEndpointFeature>();
+        if (targetFeature is { Address: not null } or { IsDisabled: true })
+        {
+            return;
+        }
+
+        targetFeature.Address = source.Address;
+        targetFeature.IsDisabled = source.IsDisabled;
     }
 
     /// <summary>

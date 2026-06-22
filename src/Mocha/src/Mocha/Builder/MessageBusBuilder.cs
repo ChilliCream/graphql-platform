@@ -476,6 +476,8 @@ public partial class MessageBusBuilder : IMessageBusBuilder
             transport.Initialize(setupContext);
         }
 
+        ValidateDefaultTransports(transports);
+
         setupContext.Transport = null;
 
         // after we initialized the transport, we connect all outbound routes that have an URI
@@ -554,6 +556,19 @@ public partial class MessageBusBuilder : IMessageBusBuilder
         lazyRuntime.Runtime = runtime;
 
         return runtime;
+    }
+
+    private static void ValidateDefaultTransports(ImmutableArray<MessagingTransport> transports)
+    {
+        var defaultTransportNames = transports
+            .Where(t => t.IsDefaultTransport)
+            .Select(t => t.Name)
+            .ToArray();
+
+        if (defaultTransportNames.Length > 1)
+        {
+            throw ThrowHelper.MultipleDefaultTransports(defaultTransportNames);
+        }
     }
 
     private void PrepareHandlers()
