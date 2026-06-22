@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using HotChocolate.Fusion.Language;
+using HotChocolate.Fusion.Rewriters;
 using HotChocolate.Language.Utilities;
 using HotChocolate.Types;
 using static HotChocolate.Fusion.FusionUtilitiesResources;
@@ -139,6 +140,15 @@ public sealed class FieldSelectionMapValidator(
             }
 
             context.SelectedFields.Add(field);
+
+            if (node.Arguments.Length > 0)
+            {
+                ConstantArgumentValidator.Validate(
+                    FieldSelectionMapValueNodeConverter.Convert(node.Arguments),
+                    field,
+                    field.Coordinate.ToString(),
+                    context.Errors);
+            }
 
             var fieldNullableType = field.Type.NullableType();
 
@@ -379,6 +389,15 @@ public sealed class FieldSelectionMapValidator(
             }
 
             context.SelectedFields.Add(field);
+
+            if (node.Arguments.Length > 0)
+            {
+                ConstantArgumentValidator.Validate(
+                    FieldSelectionMapValueNodeConverter.Convert(node.Arguments),
+                    field,
+                    field.Coordinate.ToString(),
+                    context.Errors);
+            }
         }
 
         return Continue;
