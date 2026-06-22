@@ -40,6 +40,8 @@ directive @key(fields: FieldSelectionSet!) repeatable on OBJECT | INTERFACE
 
 Each `@key` directive on a type specifies one distinct unique key for that entity. Apply multiple `@key` directives to define alternative keys that the gateway can use to resolve the entity. Fields referenced in a key are implicitly shareable across subgraphs -- you do not need to add `@shareable` to key fields.
 
+Key fields may supply constant arguments to select a specific variant of a field (for example, `@key(fields: "id(scope: LOCAL)")`). Argument values must be constant literals (no variables), must match the field's declared argument definitions, and all required arguments must be supplied. Composition reports unknown, incompatible, or missing-required arguments as `KEY_INVALID_ARGUMENTS`.
+
 **Example -- single key:**
 
 ```graphql
@@ -140,7 +142,7 @@ directive @is(field: FieldSelectionMap!) on ARGUMENT_DEFINITION
 | -------- | -------------------- | ----------------------------------------------------------------------------- |
 | `field`  | `FieldSelectionMap!` | A selection map that describes the mapping from entity fields to the argument |
 
-When a lookup argument name matches the corresponding field on the return type, you can omit `@is`. Use `@is` when the names differ or when the mapping involves nested fields.
+When a lookup argument name matches the corresponding field on the return type, you can omit `@is`. Use `@is` when the names differ or when the mapping involves nested fields. Fields in the selection map may carry constant arguments (for example, `@is(field: "id(scope: LOCAL)")`); argument values must be constant literals (no variables), must match the field's argument definitions, and all required arguments must be supplied. Argument errors surface as `IS_INVALID_FIELDS`.
 
 **Example -- argument name differs from field name:**
 
@@ -195,7 +197,7 @@ directive @require(field: FieldSelectionMap!) on ARGUMENT_DEFINITION
 | -------- | -------------------- | ----------------------------------------------------------------------- |
 | `field`  | `FieldSelectionMap!` | A selection map describing which fields from the entity type are needed |
 
-Use `@require` when a resolver in one subgraph needs data that another subgraph owns. The gateway handles the data fetching automatically. This shifts cross-service data dependencies from hidden runtime failures to validated build-time contracts.
+Use `@require` when a resolver in one subgraph needs data that another subgraph owns. The gateway handles the data fetching automatically. This shifts cross-service data dependencies from hidden runtime failures to validated build-time contracts. Fields in the selection map may carry constant arguments to select a specific variant (for example, `@require(field: "dimension(unit: METRIC)")`); argument values must be constant literals (no variables), must match the field's argument definitions, and all required arguments must be supplied. Argument errors surface as `REQUIRE_INVALID_FIELDS`.
 
 **Example -- scalar requirement:**
 
@@ -288,7 +290,7 @@ directive @provides(fields: FieldSelectionSet!) on FIELD_DEFINITION
 | -------- | -------------------- | -------------------------------------------------------------------------------------------------- |
 | `fields` | `FieldSelectionSet!` | A field selection set describing the subfields of the returned type that this subgraph can resolve |
 
-This is a query-planning optimization. When a client requests provided subfields through this particular field path, the gateway resolves them from the current subgraph instead of making a separate call. Fields referenced in `@provides` must be marked `@external` on the return type.
+This is a query-planning optimization. When a client requests provided subfields through this particular field path, the gateway resolves them from the current subgraph instead of making a separate call. Fields referenced in `@provides` must be marked `@external` on the return type. Fields in a `@provides` selection must not have arguments; composition reports any argument usage as `PROVIDES_FIELDS_HAS_ARGUMENTS`.
 
 **Example:**
 
