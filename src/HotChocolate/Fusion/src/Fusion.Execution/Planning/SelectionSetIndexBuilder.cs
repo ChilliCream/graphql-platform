@@ -8,21 +8,27 @@ public sealed class SelectionSetIndexBuilder : ISelectionSetIndex, ISelectionSet
 {
     private List<SelectionSetNode>? _temp;
     private ImmutableDictionary<SelectionSetNode, uint> _selectionSets;
+    private readonly ImmutableDictionary<uint, SelectionSetNode>.Builder _selectionSetById;
     private ImmutableDictionary<uint, uint> _clonedToOriginalMap;
     private uint _nextId;
 
     internal SelectionSetIndexBuilder(
         ImmutableDictionary<SelectionSetNode, uint> selectionSets,
+        ImmutableDictionary<uint, SelectionSetNode> selectionSetById,
         ImmutableDictionary<uint, uint> clonedToOriginalMap,
         uint nextId)
     {
         _selectionSets = selectionSets;
+        _selectionSetById = selectionSetById.ToBuilder();
         _clonedToOriginalMap = clonedToOriginalMap;
         _nextId = nextId;
     }
 
     public uint GetId(SelectionSetNode selectionSet)
         => _selectionSets[selectionSet];
+
+    public bool TryGetSelectionSet(uint id, out SelectionSetNode selectionSet)
+        => _selectionSetById.TryGetValue(id, out selectionSet!);
 
     public bool TryGetOriginalIdFromCloned(uint clonedId, out uint originalId)
         => _clonedToOriginalMap.TryGetValue(clonedId, out originalId);
@@ -31,19 +37,30 @@ public sealed class SelectionSetIndexBuilder : ISelectionSetIndex, ISelectionSet
         => _selectionSets.ContainsKey(selectionSet);
 
     public void Register(uint id, SelectionSetNode branch)
-        => _selectionSets = _selectionSets.SetItem(branch, id);
+    {
+        _selectionSets = _selectionSets.SetItem(branch, id);
+        _selectionSetById.TryAdd(id, branch);
+    }
 
     public void Register(SelectionSet original, SelectionSetNode branch)
-        => _selectionSets = _selectionSets.SetItem(branch, original.Id);
+    {
+        _selectionSets = _selectionSets.SetItem(branch, original.Id);
+        _selectionSetById.TryAdd(original.Id, original.Node);
+    }
 
     public void Register(SelectionSetNode original, SelectionSetNode branch)
     {
         var id = _selectionSets[original];
         _selectionSets = _selectionSets.SetItem(branch, id);
+        _selectionSetById.TryAdd(id, original);
     }
 
     public void Register(SelectionSetNode original)
-        => _selectionSets = _selectionSets.SetItem(original, _nextId++);
+    {
+        var id = _nextId++;
+        _selectionSets = _selectionSets.SetItem(original, id);
+        _selectionSetById.TryAdd(id, original);
+    }
 
     public void RegisterCloned(SelectionSetNode original, SelectionSetNode cloned)
     {
@@ -84,15 +101,18 @@ public sealed class SelectionSetIndexBuilder : ISelectionSetIndex, ISelectionSet
                 id = _nextId++;
                 _selectionSets = _selectionSets.SetItem(field1.SelectionSet, id);
                 _selectionSets = _selectionSets.SetItem(field2.SelectionSet, id);
+                _selectionSetById.TryAdd(id, field1.SelectionSet);
             }
             else
             {
                 _selectionSets = _selectionSets.SetItem(field1.SelectionSet, id);
+                _selectionSetById.TryAdd(id, field2.SelectionSet);
             }
         }
         else
         {
             _selectionSets = _selectionSets.SetItem(field2.SelectionSet, id);
+            _selectionSetById.TryAdd(id, field1.SelectionSet);
         }
     }
 
@@ -124,6 +144,8 @@ public sealed class SelectionSetIndexBuilder : ISelectionSetIndex, ISelectionSet
             _selectionSets = _selectionSets.SetItem(selectionSet, key.Value);
         }
 
+        _selectionSetById.TryAdd(key.Value, temp[0]);
+
         ReturnSelectionSetList(temp);
     }
 
@@ -139,15 +161,18 @@ public sealed class SelectionSetIndexBuilder : ISelectionSetIndex, ISelectionSet
                 id = _nextId++;
                 _selectionSets = _selectionSets.SetItem(s1, id);
                 _selectionSets = _selectionSets.SetItem(s2, id);
+                _selectionSetById.TryAdd(id, s1);
             }
             else
             {
                 _selectionSets = _selectionSets.SetItem(s1, id);
+                _selectionSetById.TryAdd(id, s2);
             }
         }
         else
         {
             _selectionSets = _selectionSets.SetItem(s2, id);
+            _selectionSetById.TryAdd(id, s1);
         }
     }
 
@@ -160,15 +185,18 @@ public sealed class SelectionSetIndexBuilder : ISelectionSetIndex, ISelectionSet
                 id = _nextId++;
                 _selectionSets = _selectionSets.SetItem(selectionSet1, id);
                 _selectionSets = _selectionSets.SetItem(selectionSet2, id);
+                _selectionSetById.TryAdd(id, selectionSet1);
             }
             else
             {
                 _selectionSets = _selectionSets.SetItem(selectionSet1, id);
+                _selectionSetById.TryAdd(id, selectionSet2);
             }
         }
         else
         {
             _selectionSets = _selectionSets.SetItem(selectionSet2, id);
+            _selectionSetById.TryAdd(id, selectionSet1);
         }
     }
 
@@ -194,6 +222,8 @@ public sealed class SelectionSetIndexBuilder : ISelectionSetIndex, ISelectionSet
             _selectionSets = _selectionSets.SetItem(s, key.Value);
         }
 
+        _selectionSetById.TryAdd(key.Value, temp[0]);
+
         ReturnSelectionSetList(temp);
     }
 
@@ -212,7 +242,11 @@ public sealed class SelectionSetIndexBuilder : ISelectionSetIndex, ISelectionSet
     }
 
     public ISelectionSetIndex Build()
-        => new SelectionSetIndex(_selectionSets, _clonedToOriginalMap, _nextId);
+        => new SelectionSetIndex(
+            _selectionSets,
+            _selectionSetById.ToImmutable(),
+            _clonedToOriginalMap,
+            _nextId);
 
     public SelectionSetIndexBuilder ToBuilder()
         => this;
