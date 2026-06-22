@@ -660,19 +660,19 @@ internal static class LogEntryHelper
             .Build();
     }
 
-    public static LogEntry KeyFieldsHasArguments(
-        MutableOutputFieldDefinition keyField,
+    public static LogEntry KeyInvalidArguments(
         Directive keyDirective,
         MutableComplexTypeDefinition type,
-        MutableSchemaDefinition schema)
+        MutableSchemaDefinition schema,
+        ImmutableArray<string> errors)
     {
         return LogEntryBuilder.New()
             .SetMessage(
-                LogEntryHelper_KeyFieldsHasArguments,
+                LogEntryHelper_KeyInvalidArguments,
                 type.Name,
                 schema.Name,
-                keyField.Coordinate.ToString())
-            .SetCode(LogEntryCodes.KeyFieldsHasArguments)
+                string.Join(" ", errors))
+            .SetCode(LogEntryCodes.KeyInvalidArguments)
             .SetSeverity(LogSeverity.Error)
             .SetCoordinate(type.Coordinate)
             .SetTypeSystemMember(keyDirective)

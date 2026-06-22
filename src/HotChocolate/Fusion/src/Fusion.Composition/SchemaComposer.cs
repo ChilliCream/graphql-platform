@@ -153,7 +153,7 @@ public sealed class SchemaComposer
         new IsInvalidSyntaxRule(),
         new IsInvalidUsageRule(),
         new KeyDirectiveInFieldsArgumentRule(),
-        new KeyFieldsHasArgumentsRule(),
+        new KeyInvalidArgumentsRule(),
         new KeyFieldsSelectInvalidTypeRule(),
         new KeyInvalidFieldsTypeRule(),
         new KeyInvalidSyntaxRule(),

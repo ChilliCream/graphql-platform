@@ -1097,11 +1097,11 @@ namespace HotChocolate.Fusion.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A @key directive on type &apos;{0}&apos; in schema &apos;{1}&apos; references field &apos;{2}&apos;, which must not have arguments..
+        ///   Looks up a localized string similar to A @key directive on type &apos;{0}&apos; in schema &apos;{1}&apos; specifies invalid arguments. {2}.
         /// </summary>
-        internal static string LogEntryHelper_KeyFieldsHasArguments {
+        internal static string LogEntryHelper_KeyInvalidArguments {
             get {
-                return ResourceManager.GetString("LogEntryHelper_KeyFieldsHasArguments", resourceCulture);
+                return ResourceManager.GetString("LogEntryHelper_KeyInvalidArguments", resourceCulture);
             }
         }
         
