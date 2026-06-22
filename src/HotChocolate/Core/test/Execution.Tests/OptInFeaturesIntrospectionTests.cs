@@ -594,6 +594,50 @@ public sealed class OptInFeaturesIntrospectionTests
     }
 
     [Fact]
+    public async Task Execute_IntrospectionOnDirective_RequiresOptIn_MatchesSnapshot()
+    {
+        // arrange
+        const string query =
+            """
+            {
+                __schema {
+                    directives {
+                        name
+                        requiresOptIn
+                    }
+                }
+            }
+            """;
+
+        var executor = SchemaBuilder.New()
+            .AddDocumentFromString(
+                """
+                type Query { field: Int }
+
+                directive @example @requiresOptIn(feature: "directiveFeature") on FIELD
+                """)
+            .Use(_ => _ => default)
+            .ModifyOptions(o => o.EnableOptInFeatures = true)
+            .Create()
+            .MakeExecutable();
+
+        // act
+        var result = await executor.ExecuteAsync(query, TestContext.Current.CancellationToken);
+
+        // assert
+        var directive = GetDirective(result, "example");
+        directive.MatchInlineSnapshot(
+            """
+            {
+              "name": "example",
+              "requiresOptIn": [
+                "directiveFeature"
+              ]
+            }
+            """);
+    }
+
+    [Fact]
     public async Task Execute_IntrospectionOnDirectiveArgs_MatchesSnapshot()
     {
         // arrange
