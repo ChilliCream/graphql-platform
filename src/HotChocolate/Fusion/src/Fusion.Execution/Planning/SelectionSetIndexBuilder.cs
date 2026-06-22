@@ -137,7 +137,7 @@ public sealed class SelectionSetIndexBuilder : ISelectionSetIndex, ISelectionSet
             temp.Add(field.SelectionSet);
         }
 
-        key ??= _nextId;
+        key ??= _nextId++;
 
         foreach (var selectionSet in temp)
         {
@@ -215,7 +215,7 @@ public sealed class SelectionSetIndexBuilder : ISelectionSetIndex, ISelectionSet
             temp.Add(s);
         }
 
-        key ??= _nextId;
+        key ??= _nextId++;
 
         foreach (var s in temp)
         {
