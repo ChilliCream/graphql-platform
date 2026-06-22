@@ -51,7 +51,7 @@ export function HomeHero() {
         ))}
       </div>
 
-      <h1 className="font-heading text-cc-ink text-h4 sm:text-h3 lg:text-h2 xl:text-h1 font-semibold tracking-[-0.02em] text-balance">
+      <h1 className="font-heading text-cc-heading text-h4 sm:text-h3 lg:text-h2 xl:text-h1 font-semibold tracking-[-0.02em] text-balance">
         {HERO_HEADLINE.lead}
         <span
           className="block bg-clip-text pb-[0.12em] leading-[1.12] text-transparent"
@@ -61,7 +61,7 @@ export function HomeHero() {
         </span>
       </h1>
 
-      <p className="text-cc-ink-dim mt-6 max-w-2xl text-base text-pretty sm:text-xl">
+      <p className="text-cc-ink mt-6 max-w-2xl text-base text-pretty sm:text-xl">
         Unify all your APIs into a comprehensive company graph, streamlining
         data accessibility and enhancing integration. Transform the way you
         manage and interact with your data.

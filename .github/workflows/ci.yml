@@ -207,6 +207,18 @@ jobs:
         run: yarn build
         working-directory: website-next
 
+      - name: Visual Regression Tests
+        run: yarn test:visual
+        working-directory: website-next
+
+      - name: Upload Playwright Report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: playwright-report
+          path: website-next/playwright-report/
+          retention-days: 7
+
   configure:
     name: Generate Test Matrix
     runs-on: ubuntu-latest
@@ -251,7 +263,7 @@ jobs:
             8.x
             9.x
             10.x
-            11.0.100-preview.4.26230.115
+            11.0.100-preview.5.26302.115
 
       - name: Run Build
         id: run-build
@@ -321,7 +333,7 @@ jobs:
       - name: Install .NET
         uses: actions/setup-dotnet@9a946fdbd5fb07b82b2f5a4466058b876ab72bb2 # v5.3.0
         with:
-          dotnet-version: 11.0.100-preview.4.26230.115
+          dotnet-version: 11.0.100-preview.5.26302.115
 
       - name: Install dotnet-coverage
         run: |

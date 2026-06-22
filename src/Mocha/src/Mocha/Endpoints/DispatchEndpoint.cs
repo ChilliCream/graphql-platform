@@ -128,6 +128,7 @@ public abstract class DispatchEndpoint : IDispatchEndpoint
     {
         AssertUninitialized();
 
+        Transport.Routing.ConfigureEndpoint(context, configuration);
         Transport.Conventions.Configure(context, Transport, configuration);
         Configuration = configuration;
         Kind = configuration.Kind;
@@ -165,7 +166,7 @@ public abstract class DispatchEndpoint : IDispatchEndpoint
     /// <param name="context">The messaging configuration context used for topology discovery.</param>
     public void DiscoverTopology(IMessagingConfigurationContext context)
     {
-        Transport.Conventions.DiscoverTopology(context, this, Configuration);
+        Transport.Routing.DiscoverTopology(context, this, Configuration);
         context.Endpoints.AddOrUpdate(this);
     }
 

@@ -247,38 +247,84 @@ Available exchange defaults:
 
 Defaults never override explicitly configured values. If you declare a queue with a specific queue type, that setting takes precedence over the transport default. You can call `ConfigureDefaults` multiple times - each call accumulates settings on the same defaults object.
 
-# Declare custom topology
+# Configure queues
 
-Mocha auto-provisions topology by default. To declare additional exchanges, queues, or bindings:
+Use `transport.Queue("name")` when you need to customize a RabbitMQ queue. The queue builder is the primary API for queue names, queue type, arguments, handler assignment, source bindings, prefetch, concurrency, fault queues, and skipped queues.
+
+```csharp
+builder.Services
+    .AddMessageBus()
+    .AddEventHandler<OrderPlacedEventHandler>()
+    .AddRabbitMQ(transport =>
+    {
+        transport.BindExplicitly();
+
+        transport.Queue("orders.processing")
+            .BindImplicitly()
+            .Quorum()
+            .MaxPrefetch(50)
+            .MaxConcurrency(10)
+            .FaultEndpoint("order-errors")
+            .Handler<OrderPlacedEventHandler>();
+    });
+```
+
+`BindExplicitly()` at the transport scope means only queues you configure are used for receiving. `BindImplicitly()` on the queue tells Mocha to generate the convention-derived exchange bindings for the messages handled by that queue.
+
+Calling `Queue("name")` without `Handler<T>()`, `Consumer<T>()`, or `Receives<T>()` declares only the RabbitMQ queue. Add a handler, consumer, or received message type when the queue should also consume messages.
+
+```csharp
+transport.Queue("audit-log")
+    .Quorum()
+    .AutoProvision(false);
+```
+
+For custom source topology, bind the queue from a specific exchange:
+
+```csharp
+transport.Queue("eu-orders")
+    .BindExplicitly()
+    .BindFrom(new Uri("exchange:region-events"), "eu.*")
+    .Consumer<EuRegionConsumer>();
+```
+
+`BindExplicitly()` on the queue suppresses convention-derived exchange bindings for that queue, so only the `BindFrom(...)` sources are used.
+
+# Declare topology resources
+
+Mocha auto-provisions topology from registered handlers and queue builders by default.
+
+> Warning: Use `DeclareExchange()`, `DeclareQueue()`, and `DeclareBinding()` only when you need infrastructure topology that is not represented by a queue builder, or when you are aligning with topology managed outside of Mocha. For handler queues, prefer `transport.Queue("name")`.
+
+To declare infrastructure-only topology:
 
 ```csharp
 builder.Services
     .AddMessageBus()
     .AddRabbitMQ(transport =>
     {
-        // Declare an exchange
         transport.DeclareExchange("order-events")
             .Type(RabbitMQExchangeType.Fanout)
             .Durable()
             .AutoProvision();
 
-        // Declare a queue (use quorum type for production)
         transport.DeclareQueue("billing-orders")
             .Durable()
             .AutoProvision()
             .WithArgument("x-queue-type", "quorum");
 
-        // Bind the exchange to the queue
         transport.DeclareBinding("order-events", "billing-orders")
             .AutoProvision();
     });
 ```
 
-All explicitly declared topology is provisioned when the transport starts, before receive endpoints begin consuming.
+All declared topology is provisioned when the transport starts, before receive endpoints begin consuming.
 
 # Control auto-provisioning
 
 By default, the transport auto-provisions all topology resources (exchanges, queues, bindings) on the broker at startup. In production environments where infrastructure is managed externally - for example by Terraform, Ansible, or the [RabbitMQ Messaging Topology Operator](https://www.rabbitmq.com/kubernetes/operator/install-topology-operator) on Kubernetes - you can disable auto-provisioning so the transport expects resources to already exist.
+
+The examples in this section use `DeclareExchange()`, `DeclareQueue()`, and `DeclareBinding()` because they are about broker topology management. For application handler queues, use `Queue("name")` instead.
 
 ## Disable globally
 
@@ -386,9 +432,9 @@ transport.DeclareQueue("my-queue");                      // auto-provisioned (de
 transport.DeclareBinding("platform-events", "my-queue"); // auto-provisioned (default)
 ```
 
-# Prefetch and concurrency
+# Configure convention endpoints
 
-Use `transport.Handler<T>()` to claim a handler and configure prefetch and concurrency on its convention-named endpoint:
+Use `transport.Handler<T>()` at the end of the transport configuration when you want to keep the convention-derived queue name and only tune one handler endpoint:
 
 ```csharp
 builder.Services
@@ -410,7 +456,17 @@ transport.Handler<OrderPlacedEventHandler>()
     .ConfigureEndpoint(e => e.FaultEndpoint("order-errors"));
 ```
 
-For full control over the endpoint name and queue, use explicit binding with `Endpoint("name")`:
+For full control over the queue name, queue type, source bindings, and handler assignment, use `Queue("name")` instead.
+
+**MaxPrefetch** controls how many unacknowledged messages RabbitMQ delivers to the consumer at once. Default: `100`. Lower values reduce memory pressure under high load. Higher values improve throughput for fast handlers.
+
+**MaxConcurrency** controls how many messages the endpoint processes in parallel. Set this based on your handler's throughput characteristics.
+
+A good starting point: set `MaxPrefetch` equal to or slightly higher than `MaxConcurrency`. For slow handlers (long database operations, external API calls), lower `MaxPrefetch` to `10` to `20` to prevent messages from piling up in the consumer's unacknowledged buffer. For quorum queues specifically, avoid setting `MaxPrefetch` to `1` - a prefetch of `1` starves consumers while acknowledgements flow through the consensus mechanism and significantly reduces throughput.
+
+For prefetch tuning guidance from first principles, see [CloudAMQP Best Practices](https://www.cloudamqp.com/blog/part1-rabbitmq-best-practice.html).
+
+Example with the preferred queue builder:
 
 ```csharp
 builder.Services
@@ -418,23 +474,15 @@ builder.Services
     .AddEventHandler<OrderPlacedEventHandler>()
     .AddRabbitMQ(transport =>
     {
-        transport.BindHandlersExplicitly();
+        transport.BindExplicitly();
 
-        transport.Endpoint("order-processing")
-            .Queue("orders.processing")
+        transport.Queue("orders.processing")
+            .BindImplicitly()
             .MaxPrefetch(50)
             .MaxConcurrency(10)
             .Handler<OrderPlacedEventHandler>();
     });
 ```
-
-**MaxPrefetch** controls how many unacknowledged messages RabbitMQ delivers to the consumer at once. Default: `100`. Lower values reduce memory pressure under high load. Higher values improve throughput for fast handlers.
-
-**MaxConcurrency** controls how many messages the endpoint processes in parallel. Set this based on your handler's throughput characteristics.
-
-A good starting point: set `MaxPrefetch` equal to or slightly higher than `MaxConcurrency`. For slow handlers (long database operations, external API calls), lower `MaxPrefetch` to `10`–`20` to prevent messages from piling up in the consumer's unacknowledged buffer. For quorum queues specifically, avoid setting `MaxPrefetch` to `1` - a prefetch of `1` starves consumers while acknowledgements flow through the consensus mechanism and significantly reduces throughput.
-
-For prefetch tuning guidance from first principles, see [CloudAMQP Best Practices](https://www.cloudamqp.com/blog/part1-rabbitmq-best-practice.html).
 
 # Auto-provisioned resource naming
 
@@ -530,27 +578,20 @@ builder.Services
         .UseRabbitMQRoutingKey<RegionEvent>(msg => msg.Region))
     .AddRabbitMQ(transport =>
     {
-        transport.BindHandlersExplicitly();
+        transport.BindExplicitly();
 
-        // Declare topology: one topic exchange, two queues, two bindings with patterns
+        // Declare the exchange so the transport provisions it as a topic exchange
         transport.DeclareExchange("region-events")
             .Type(RabbitMQExchangeType.Topic);
 
-        transport.DeclareQueue("us-orders");
-        transport.DeclareQueue("eu-orders");
-
-        transport.DeclareBinding("region-events", "us-orders")
-            .RoutingKey("us.*");
-        transport.DeclareBinding("region-events", "eu-orders")
-            .RoutingKey("eu.*");
-
-        // Bind consumers to queues
-        transport.Endpoint("us-ep")
-            .Consumer<UsRegionConsumer>()
-            .Queue("us-orders");
-        transport.Endpoint("eu-ep")
-            .Consumer<EuRegionConsumer>()
-            .Queue("eu-orders");
+        transport.Queue("us-orders")
+            .BindExplicitly()
+            .BindFrom(new Uri("exchange:region-events"), "us.*")
+            .Consumer<UsRegionConsumer>();
+        transport.Queue("eu-orders")
+            .BindExplicitly()
+            .BindFrom(new Uri("exchange:region-events"), "eu.*")
+            .Consumer<EuRegionConsumer>();
 
         // Dispatch to the topic exchange
         transport.DispatchEndpoint("region-dispatch")
@@ -584,18 +625,15 @@ builder.Services
         .UseRabbitMQRoutingKey<TaskEvent>(msg => $"priority-{msg.Priority}"))
     .AddRabbitMQ(transport =>
     {
-        transport.BindHandlersExplicitly();
+        transport.BindExplicitly();
 
         transport.DeclareExchange("task-routing")
             .Type(RabbitMQExchangeType.Direct);
 
-        transport.DeclareQueue("high-priority-tasks");
-        transport.DeclareBinding("task-routing", "high-priority-tasks")
-            .RoutingKey("priority-high");
-
-        transport.Endpoint("high-priority-ep")
-            .Consumer<HighPriorityConsumer>()
-            .Queue("high-priority-tasks");
+        transport.Queue("high-priority-tasks")
+            .BindExplicitly()
+            .BindFrom(new Uri("exchange:task-routing"), "priority-high")
+            .Consumer<HighPriorityConsumer>();
 
         transport.DispatchEndpoint("task-dispatch")
             .ToExchange("task-routing")

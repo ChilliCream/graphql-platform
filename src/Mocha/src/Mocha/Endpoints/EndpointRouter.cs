@@ -96,24 +96,18 @@ public sealed class EndpointRouter : IEndpointRouter
                 }
             }
 
+            if (resolved is null
+                && context.Transports.FirstOrDefault(t => t.IsDefaultTransport) is { } defaultTransport)
+            {
+                TryCreateEndpoint(defaultTransport, out resolved);
+            }
+
             if (resolved is null)
             {
                 foreach (var transport in context.Transports)
                 {
-                    var configuration = transport.CreateEndpointConfiguration(context, address);
-                    if (configuration is not null)
+                    if (TryCreateEndpoint(transport, out resolved))
                     {
-                        resolved = transport.AddEndpoint(context, configuration);
-                        if (!resolved.IsCompleted)
-                        {
-                            resolved.DiscoverTopology(context);
-                            resolved.Complete(context);
-                        }
-
-                        // DiscoverTopology/Complete already register completed endpoints and rotate
-                        // change tokens. This only records the requested alias, rotating again would
-                        // make the freshly exposed token appear changed to callbacks.
-                        Upsert(resolved, address);
                         break;
                     }
                 }
@@ -126,6 +120,30 @@ public sealed class EndpointRouter : IEndpointRouter
         }
 
         return resolved;
+
+        bool TryCreateEndpoint(MessagingTransport transport, out DispatchEndpoint? endpoint)
+        {
+            var configuration = transport.CreateEndpointConfiguration(context, address);
+            if (configuration is not null)
+            {
+                endpoint = transport.AddEndpoint(context, configuration);
+                if (!endpoint.IsCompleted)
+                {
+                    endpoint.DiscoverTopology(context);
+                    endpoint.Complete(context);
+                }
+
+                // DiscoverTopology/Complete already register completed endpoints and rotate
+                // change tokens. This only records the requested alias, rotating again would
+                // make the freshly exposed token appear changed to callbacks.
+                Upsert(endpoint, address);
+
+                return true;
+            }
+
+            endpoint = null;
+            return false;
+        }
     }
 
     /// <inheritdoc />

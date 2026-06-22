@@ -1,3 +1,5 @@
+using Microsoft.Extensions.DependencyInjection;
+using Mocha.Features;
 using Mocha.Transport.Postgres.Tests.Helpers;
 
 namespace Mocha.Transport.Postgres.Tests.Descriptors;
@@ -122,17 +124,23 @@ public class PostgresDescriptorTests
     public void ReceiveEndpoint_Should_SetQueueName_When_QueueCalled()
     {
         // arrange & act
-        var runtime = PostgresBusFixture.CreateRuntime(t =>
-        {
-            t.DeclareQueue("custom-q");
-            t.Endpoint("ep").Queue("custom-q");
-        });
+        var services = new ServiceCollection();
+        services.AddSingleton(new MessageRecorder());
+        var builder = services.AddMessageBus();
+        builder.AddEventHandler<OrderCreatedHandler>();
+        var runtime = builder
+            .AddPostgres(t =>
+            {
+                t.ConnectionString("Host=localhost;Database=mocha_test;Username=test;Password=test");
+                t.Queue("custom-q").Handler<OrderCreatedHandler>().Kind(ReceiveEndpointKind.Error);
+            })
+            .BuildRuntime();
         var transport = runtime.Transports.OfType<PostgresMessagingTransport>().Single();
 
         // assert
         var endpoint = transport.ReceiveEndpoints
             .OfType<PostgresReceiveEndpoint>()
-            .Single(e => e.Name == "ep");
+            .Single(e => e.Queue.Name == "custom-q");
         Assert.Equal("custom-q", endpoint.Queue.Name);
     }
 
@@ -140,57 +148,188 @@ public class PostgresDescriptorTests
     public void ReceiveEndpoint_Should_SetKind_When_KindCalled()
     {
         // arrange & act
-        var runtime = PostgresBusFixture.CreateRuntime(t =>
-        {
-            t.DeclareQueue("err-q");
-            t.Endpoint("ep").Queue("err-q").Kind(ReceiveEndpointKind.Error);
-        });
+        var services = new ServiceCollection();
+        services.AddSingleton(new MessageRecorder());
+        var builder = services.AddMessageBus();
+        builder.AddEventHandler<OrderCreatedHandler>();
+        var runtime = builder
+            .AddPostgres(t =>
+            {
+                t.ConnectionString("Host=localhost;Database=mocha_test;Username=test;Password=test");
+                t.Queue("err-q").Handler<OrderCreatedHandler>().Kind(ReceiveEndpointKind.Error);
+            })
+            .BuildRuntime();
         var transport = runtime.Transports.OfType<PostgresMessagingTransport>().Single();
 
         // assert
         var endpoint = transport.ReceiveEndpoints
             .OfType<PostgresReceiveEndpoint>()
-            .Single(e => e.Name == "ep");
+            .Single(e => e.Queue.Name == "err-q");
         Assert.Equal(ReceiveEndpointKind.Error, endpoint.Kind);
     }
 
     [Fact]
-    public void ReceiveEndpoint_Should_SetFaultEndpoint_When_FaultEndpointCalled()
+    public void ReceiveEndpoint_Should_StoreVerbatimName_When_FaultEndpointUsesQueueUriWithPascalCase()
     {
         // arrange & act
-        var runtime = PostgresBusFixture.CreateRuntime(t =>
-        {
-            t.DeclareQueue("q");
-            t.DeclareQueue("q_err");
-            t.Endpoint("ep").Queue("q").FaultEndpoint("postgres:///q/q_err");
-        });
+        var services = new ServiceCollection();
+        services.AddSingleton(new MessageRecorder());
+        var builder = services.AddMessageBus();
+        builder.AddEventHandler<OrderCreatedHandler>();
+        var runtime = builder
+            .AddPostgres(t =>
+            {
+                t.ConnectionString("Host=localhost;Database=mocha_test;Username=test;Password=test");
+                t.Queue("q").FaultEndpoint(new Uri("queue:Legacy.Orders.V2_error")).Handler<OrderCreatedHandler>();
+            })
+            .BuildRuntime();
         var transport = runtime.Transports.OfType<PostgresMessagingTransport>().Single();
 
         // assert
         var endpoint = transport.ReceiveEndpoints
             .OfType<PostgresReceiveEndpoint>()
-            .Single(e => e.Name == "ep");
-        Assert.NotNull(endpoint.ErrorEndpoint);
-        Assert.Contains("q_err", endpoint.ErrorEndpoint!.Name);
+            .Single(e => e.Queue.Name == "q");
+        var feature = endpoint.Configuration.Features.Get<ReceiveFaultEndpointFeature>();
+        Assert.Equal("queue:Legacy.Orders.V2_error", feature?.Address?.OriginalString);
+        Assert.False(feature?.IsDisabled ?? false);
     }
 
     [Fact]
-    public void ReceiveEndpoint_Should_SetSkippedEndpoint_When_SkippedEndpointCalled()
+    public void ReceiveEndpoint_Should_UseLocalQueueUri_When_FaultEndpointConfiguredBeforeSchema()
     {
         // arrange & act
-        var runtime = PostgresBusFixture.CreateRuntime(t =>
-        {
-            t.DeclareQueue("q");
-            t.DeclareQueue("q_skip");
-            t.Endpoint("ep").Queue("q").SkippedEndpoint("postgres:///q/q_skip");
-        });
+        var services = new ServiceCollection();
+        services.AddSingleton(new MessageRecorder());
+        var builder = services.AddMessageBus();
+        builder.AddEventHandler<OrderCreatedHandler>();
+        var runtime = builder
+            .AddPostgres(t =>
+            {
+                t.ConnectionString("Host=localhost;Database=mocha_test;Username=test;Password=test");
+                t.Queue("q").FaultEndpoint(new Uri("queue:q_error")).Handler<OrderCreatedHandler>();
+                t.Schema("custom-postgres");
+            })
+            .BuildRuntime();
         var transport = runtime.Transports.OfType<PostgresMessagingTransport>().Single();
 
         // assert
         var endpoint = transport.ReceiveEndpoints
             .OfType<PostgresReceiveEndpoint>()
-            .Single(e => e.Name == "ep");
-        Assert.NotNull(endpoint.SkippedEndpoint);
-        Assert.Contains("q_skip", endpoint.SkippedEndpoint!.Name);
+            .Single(e => e.Queue.Name == "q");
+        Assert.Equal(
+            "queue:q_error",
+            endpoint.Configuration.Features.Get<ReceiveFaultEndpointFeature>()?.Address?.OriginalString);
+        Assert.Equal(
+            "q_error",
+            ((PostgresQueue)endpoint.Features.Get<ReceiveFaultEndpointFeature>()!.Endpoint!.Destination).Name);
+    }
+
+    [Fact]
+    public void ReceiveEndpoint_Should_PreserveLaterFaultEndpoint_When_QueueFaultEndpointConfiguredFirst()
+    {
+        // arrange & act
+        var services = new ServiceCollection();
+        services.AddSingleton(new MessageRecorder());
+        var builder = services.AddMessageBus();
+        builder.AddEventHandler<OrderCreatedHandler>();
+        var runtime = builder
+            .AddPostgres(t =>
+            {
+                t.ConnectionString("Host=localhost;Database=mocha_test;Username=test;Password=test");
+                t.Queue("q").FaultEndpoint(new Uri("queue:q_error")).Handler<OrderCreatedHandler>();
+                t.Endpoint("q").FaultEndpoint(new Uri("postgres:q/other_error"));
+            })
+            .BuildRuntime();
+        var transport = runtime.Transports.OfType<PostgresMessagingTransport>().Single();
+
+        // assert
+        var endpoint = transport.ReceiveEndpoints
+            .OfType<PostgresReceiveEndpoint>()
+            .Single(e => e.Queue.Name == "q");
+        Assert.Equal(
+            "postgres:q/other_error",
+            endpoint.Configuration.Features.Get<ReceiveFaultEndpointFeature>()?.Address?.OriginalString);
+        Assert.Equal(
+            "other_error",
+            ((PostgresQueue)endpoint.Features.Get<ReceiveFaultEndpointFeature>()!.Endpoint!.Destination).Name);
+    }
+
+    [Fact]
+    public void ReceiveEndpoint_Should_PreserveExtendedFaultAddress_When_QueueFaultEndpointConfiguredFirst()
+    {
+        // arrange & act
+        var services = new ServiceCollection();
+        services.AddSingleton(new MessageRecorder());
+        var builder = services.AddMessageBus();
+        builder.AddEventHandler<OrderCreatedHandler>();
+        var runtime = builder
+            .AddPostgres(t =>
+            {
+                t.ConnectionString("Host=localhost;Database=mocha_test;Username=test;Password=test");
+                var queue = t.Queue("q").FaultEndpoint(new Uri("queue:q_error")).Handler<OrderCreatedHandler>();
+                queue.Extend().Configuration.Features.GetOrSet<ReceiveFaultEndpointFeature>().Address =
+                    new Uri("queue:extended_error");
+            })
+            .BuildRuntime();
+        var transport = runtime.Transports.OfType<PostgresMessagingTransport>().Single();
+
+        // assert
+        var endpoint = transport.ReceiveEndpoints
+            .OfType<PostgresReceiveEndpoint>()
+            .Single(e => e.Queue.Name == "q");
+        Assert.Equal(
+            "queue:extended_error",
+            endpoint.Configuration.Features.Get<ReceiveFaultEndpointFeature>()?.Address?.OriginalString);
+        Assert.Equal(
+            "extended_error",
+            ((PostgresQueue)endpoint.Features.Get<ReceiveFaultEndpointFeature>()!.Endpoint!.Destination).Name);
+    }
+
+    [Fact]
+    public void ReceiveEndpoint_Should_SetDisableFlag_When_DisableFaultEndpointCalled()
+    {
+        // arrange & act
+        var services = new ServiceCollection();
+        services.AddSingleton(new MessageRecorder());
+        var builder = services.AddMessageBus();
+        builder.AddEventHandler<OrderCreatedHandler>();
+        var runtime = builder
+            .AddPostgres(t =>
+            {
+                t.ConnectionString("Host=localhost;Database=mocha_test;Username=test;Password=test");
+                t.Queue("q").DisableFaultEndpoint().Handler<OrderCreatedHandler>();
+            })
+            .BuildRuntime();
+        var transport = runtime.Transports.OfType<PostgresMessagingTransport>().Single();
+
+        // assert
+        var endpoint = transport.ReceiveEndpoints
+            .OfType<PostgresReceiveEndpoint>()
+            .Single(e => e.Queue.Name == "q");
+        var feature = endpoint.Configuration.Features.Get<ReceiveFaultEndpointFeature>();
+        Assert.True(feature?.IsDisabled);
+        Assert.Null(feature?.Address);
+    }
+
+    [Fact]
+    public void Transport_Should_DefaultBindModeImplicit_When_NotConfigured()
+    {
+        // arrange & act
+        var runtime = PostgresBusFixture.CreateRuntime(t => { });
+        var transport = runtime.Transports.OfType<PostgresMessagingTransport>().Single();
+
+        // assert
+        Assert.Equal(MessagingBindMode.Implicit, transport.BindMode);
+    }
+
+    [Fact]
+    public void Transport_Should_SetBindModeExplicit_When_BindExplicitlyCalled()
+    {
+        // arrange & act
+        var runtime = PostgresBusFixture.CreateRuntime(t => t.BindExplicitly());
+        var transport = runtime.Transports.OfType<PostgresMessagingTransport>().Single();
+
+        // assert
+        Assert.Equal(MessagingBindMode.Explicit, transport.BindMode);
     }
 }

@@ -1,0 +1,115 @@
+# Queue_Endpoint_DeclareQueue_Should_ConvergeToOneEntity_When_SameName
+
+## AllThreePaths
+
+```json
+{
+  "Schema": "rabbitmq",
+  "TransportType": "RabbitMQMessagingTransport",
+  "Entities": [
+    {
+      "Kind": "exchange",
+      "Name": "mocha.test-helpers.order-created",
+      "AutoProvision": true,
+      "Origin": "convention"
+    },
+    {
+      "Kind": "exchange",
+      "Name": "order-created",
+      "AutoProvision": true,
+      "Origin": "convention"
+    },
+    {
+      "Kind": "queue",
+      "Name": "orders",
+      "AutoProvision": false,
+      "Origin": "declared"
+    },
+    {
+      "Kind": "queue",
+      "Name": "orders_error",
+      "AutoProvision": false,
+      "Origin": "convention"
+    },
+    {
+      "Kind": "queue",
+      "Name": "orders_skipped",
+      "AutoProvision": false,
+      "Origin": "convention"
+    }
+  ],
+  "Links": [
+    {
+      "Kind": "bind",
+      "From": "rabbitmq://localhost:5672/e/mocha.test-helpers.order-created",
+      "To": "rabbitmq://localhost:5672/e/order-created",
+      "AutoProvision": true,
+      "Origin": "convention"
+    },
+    {
+      "Kind": "bind",
+      "From": "rabbitmq://localhost:5672/e/order-created",
+      "To": "rabbitmq://localhost:5672/q/orders",
+      "AutoProvision": true,
+      "Origin": "convention"
+    }
+  ]
+}
+```
+
+## EndpointOnly
+
+```json
+{
+  "Schema": "rabbitmq",
+  "TransportType": "RabbitMQMessagingTransport",
+  "Entities": [
+    {
+      "Kind": "exchange",
+      "Name": "mocha.test-helpers.order-created",
+      "AutoProvision": true,
+      "Origin": "convention"
+    },
+    {
+      "Kind": "exchange",
+      "Name": "order-created",
+      "AutoProvision": true,
+      "Origin": "convention"
+    },
+    {
+      "Kind": "queue",
+      "Name": "orders",
+      "AutoProvision": true,
+      "Origin": "declared"
+    },
+    {
+      "Kind": "queue",
+      "Name": "orders_error",
+      "AutoProvision": true,
+      "Origin": "convention"
+    },
+    {
+      "Kind": "queue",
+      "Name": "orders_skipped",
+      "AutoProvision": true,
+      "Origin": "convention"
+    }
+  ],
+  "Links": [
+    {
+      "Kind": "bind",
+      "From": "rabbitmq://localhost:5672/e/mocha.test-helpers.order-created",
+      "To": "rabbitmq://localhost:5672/e/order-created",
+      "AutoProvision": true,
+      "Origin": "convention"
+    },
+    {
+      "Kind": "bind",
+      "From": "rabbitmq://localhost:5672/e/order-created",
+      "To": "rabbitmq://localhost:5672/q/orders",
+      "AutoProvision": true,
+      "Origin": "convention"
+    }
+  ]
+}
+```

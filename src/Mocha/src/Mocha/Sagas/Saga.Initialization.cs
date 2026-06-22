@@ -136,8 +136,7 @@ public abstract partial class Saga<TState> where TState : SagaStateBase
                     action,
                     publish,
                     send,
-                    transition.StateFactory,
-                    transition.AutoProvision));
+                    transition.StateFactory));
         }
 
         transitions.AddRange(additionalTransitions);

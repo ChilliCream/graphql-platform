@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using Microsoft.Extensions.DependencyInjection;
 using Mocha.Events;
+using Mocha.Features;
 using Mocha.Middlewares;
 using Mocha.Transport.InMemory;
 
@@ -498,7 +499,8 @@ public sealed class ReceiveFaultMiddlewareTests : ReceiveMiddlewareTestBase
         {
             if (configuration is { Kind: ReceiveEndpointKind.Default, QueueName: { } queueName })
             {
-                configuration.ErrorEndpoint ??= new Uri($"{transport.Schema}:q/{queueName}_error");
+                var feature = configuration.Features.GetOrSet<ReceiveFaultEndpointFeature>();
+                feature.Address ??= new Uri($"{transport.Schema}:q/{queueName}_error");
             }
         }
     }
