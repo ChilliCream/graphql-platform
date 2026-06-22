@@ -162,6 +162,23 @@ public sealed class RequiresOptInDirectiveTests
         schema.MatchSnapshot();
     }
 
+    [Fact]
+    public async Task RequiresOptIn_OnDirectiveDefinition_ImplementationFirst_AppliesDirective()
+    {
+        // arrange & act
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .ModifyOptions(o => o.EnableOptInFeatures = true)
+                .AddType<ExampleDirective>()
+                .AddQueryType(d => d.Field("field").Type<IntType>().Resolve(() => 1))
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.True(
+            schema.DirectiveTypes["example"].Directives.ContainsDirective("requiresOptIn"));
+    }
+
     public sealed class Query
     {
         [RequiresOptIn("objectFieldFeature1")]
@@ -185,4 +202,8 @@ public sealed class RequiresOptInDirectiveTests
         [RequiresOptIn("enumValueFeature2")]
         Value
     }
+
+    [DirectiveType("example", DirectiveLocation.Field)]
+    [RequiresOptIn("directiveFeature")]
+    private sealed class ExampleDirective;
 }
