@@ -1,6 +1,8 @@
 using System.Threading.Channels;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Mocha.Features;
+using Mocha.Middlewares;
 using Mocha.Threading;
 
 namespace Mocha;
@@ -14,13 +16,15 @@ namespace Mocha;
 /// without any modifications to the middleware chain.
 /// </remarks>
 internal sealed class BatchConsumer<THandler, TEvent>(
-    Action<IConsumerDescriptor>? configure = null) : Consumer where THandler : IBatchEventHandler<TEvent>
+    Action<IConsumerDescriptor>? configure = null)
+    : Consumer where THandler : IBatchEventHandler<TEvent>
 {
     private BatchCollector<TEvent> _collector = null!;
     private Channel<MessageBatch<TEvent>> _channel = null!;
     private ChannelProcessor<MessageBatch<TEvent>> _processor = null!;
     private IServiceProvider _applicationServices = null!;
     private ILogger _logger = null!;
+    private MessageType? _itemMessageType;
 
     protected override void Configure(IConsumerDescriptor descriptor)
     {
@@ -57,13 +61,26 @@ internal sealed class BatchConsumer<THandler, TEvent>(
             options.MaxConcurrentBatches);
 
         _collector = new BatchCollector<TEvent>(options, batch => _channel.Writer.WriteAsync(batch), timeProvider);
+        _itemMessageType = context.Messages.GetMessageType(typeof(TEvent));
     }
 
     protected override async ValueTask ConsumeAsync(IConsumeContext context)
     {
+        var batchContext = (IBatchConsumeContext<TEvent>)context;
+        var handler = context.Services.GetRequiredService<THandler>();
+        await handler.HandleAsync(batchContext.Message, context.CancellationToken);
+    }
+
+    public override async ValueTask ProcessAsync(IReceiveContext context)
+    {
+        if (context is not IConsumeContext consumeContext)
+        {
+            throw ThrowHelper.InvalidHandlerContext();
+        }
+
         // we dispose the consume context so the reference is free as soon as we leave consume
         // as then the context will be returned to the pool
-        using var batchContext = new ConsumeContext<TEvent>(context);
+        using var batchContext = new ConsumeContext<TEvent>(consumeContext);
 
         // force deserialization to keep the work outside of the batch and also verify that
         // the message can be deserialized before adding to the batch
@@ -80,8 +97,30 @@ internal sealed class BatchConsumer<THandler, TEvent>(
             _logger.DispatchingBatch(batch.Count, batch.CompletionMode);
 
             await using var scope = _applicationServices.CreateAsyncScope();
-            var handler = scope.ServiceProvider.GetRequiredService<THandler>();
-            await handler.HandleAsync(batch, cancellationToken);
+
+            var batchContext = new BatchConsumeContext<TEvent>(
+                batch,
+                scope.ServiceProvider,
+                batch.GetContext(0),
+                Guid.NewGuid().ToString(),
+                _itemMessageType,
+                cancellationToken);
+
+            var consumerFeature = batchContext.Features.GetOrSet<ReceiveConsumerFeature>();
+            consumerFeature.CurrentConsumer = this;
+
+            var accessor = scope.ServiceProvider.GetRequiredService<ConsumeContextAccessor>();
+            var previousContext = accessor.Context;
+            accessor.Context = batchContext;
+
+            try
+            {
+                await Pipeline(batchContext);
+            }
+            finally
+            {
+                accessor.Context = previousContext;
+            }
 
             foreach (var entry in batch.Entries)
             {
