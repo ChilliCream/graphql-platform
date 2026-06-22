@@ -50,14 +50,29 @@ public class IntegrationTests
         // send first TriggerEvent to transition Started -> Triggered
         await bus.PublishAsync(new TriggerEvent(sagaId), CancellationToken.None);
 
-        // allow time for the first transition to complete before sending the second event
-        await Task.Delay(500, TestContext.Current.CancellationToken);
+        // wait until the first transition is persisted (state == "Triggered") before sending the
+        // second event, so the two events are applied to the saga in order
+        var runtime = provider.GetRequiredService<IMessagingRuntime>();
+        var sagaName = runtime.Naming.GetSagaName(typeof(StepThroughSaga));
+        var transitionDeadline = DateTime.UtcNow + s_timeout;
+        while (storage.Load<StepThroughState>(sagaName, sagaId)?.State != "Triggered"
+            && DateTime.UtcNow < transitionDeadline)
+        {
+            await Task.Delay(50, TestContext.Current.CancellationToken);
+        }
+
+        // fail fast if the first transition never happened, rather than sending the second event blindly
+        Assert.Equal("Triggered", storage.Load<StepThroughState>(sagaName, sagaId)?.State);
 
         // send second TriggerEvent to transition Triggered -> Completed (final)
         await bus.PublishAsync(new TriggerEvent(sagaId), CancellationToken.None);
 
-        // allow time for final state processing
-        await Task.Delay(1000, TestContext.Current.CancellationToken);
+        // wait for the saga to reach its final state and be deleted from the store
+        var deadline = DateTime.UtcNow + s_timeout;
+        while (storage.Count != 0 && DateTime.UtcNow < deadline)
+        {
+            await Task.Delay(50, TestContext.Current.CancellationToken);
+        }
 
         // assert - saga should be deleted from store after reaching final state
         Assert.Equal(0, storage.Count);
@@ -88,11 +103,28 @@ public class IntegrationTests
         var recorded = Assert.Single(recorder.Messages);
         var sagaId = Assert.IsType<TriggerEvent>(recorded).CorrelationId!.Value;
 
+        // wait until the saga instance is persisted before sending the timeout, so the
+        // SagaTimedOutEvent is applied to the stored instance
+        var runtime = provider.GetRequiredService<IMessagingRuntime>();
+        var sagaName = runtime.Naming.GetSagaName(typeof(TimeoutSaga));
+        var persistDeadline = DateTime.UtcNow + s_timeout;
+        while (storage.Load<TimeoutState>(sagaName, sagaId) is null && DateTime.UtcNow < persistDeadline)
+        {
+            await Task.Delay(50, TestContext.Current.CancellationToken);
+        }
+
+        // fail fast if the saga was never persisted, so the timeout below targets the stored instance
+        Assert.NotNull(storage.Load<TimeoutState>(sagaName, sagaId));
+
         // simulate timeout by sending SagaTimedOutEvent with the saga ID
         await bus.SendAsync(new SagaTimedOutEvent(sagaId), CancellationToken.None);
 
-        // allow time for final state processing
-        await Task.Delay(500, TestContext.Current.CancellationToken);
+        // wait for the saga to reach its final state and be deleted from the store
+        var deadline = DateTime.UtcNow + s_timeout;
+        while (storage.Load<TimeoutState>(sagaName, sagaId) is not null && DateTime.UtcNow < deadline)
+        {
+            await Task.Delay(50, TestContext.Current.CancellationToken);
+        }
 
         // assert - saga should be deleted from store after reaching final state
         Assert.Equal(0, storage.Count);
@@ -123,11 +155,28 @@ public class IntegrationTests
         var recorded = Assert.Single(recorder.Messages);
         var sagaId = Assert.IsType<TriggerEvent>(recorded).CorrelationId!.Value;
 
+        // wait until the saga instance is persisted before sending the timeout, so the
+        // SagaTimedOutEvent is applied to the stored instance
+        var runtime = provider.GetRequiredService<IMessagingRuntime>();
+        var sagaName = runtime.Naming.GetSagaName(typeof(TimeoutWithResponseSaga));
+        var persistDeadline = DateTime.UtcNow + s_timeout;
+        while (storage.Load<TimeoutState>(sagaName, sagaId) is null && DateTime.UtcNow < persistDeadline)
+        {
+            await Task.Delay(50, TestContext.Current.CancellationToken);
+        }
+
+        // fail fast if the saga was never persisted, so the timeout below targets the stored instance
+        Assert.NotNull(storage.Load<TimeoutState>(sagaName, sagaId));
+
         // simulate timeout by sending SagaTimedOutEvent with the saga ID
         await bus.SendAsync(new SagaTimedOutEvent(sagaId), CancellationToken.None);
 
-        // allow time for final state processing
-        await Task.Delay(500, TestContext.Current.CancellationToken);
+        // wait for the saga to reach its final state and be deleted from the store
+        var deadline = DateTime.UtcNow + s_timeout;
+        while (storage.Load<TimeoutState>(sagaName, sagaId) is not null && DateTime.UtcNow < deadline)
+        {
+            await Task.Delay(50, TestContext.Current.CancellationToken);
+        }
 
         // assert - saga should be deleted from store after reaching final state
         Assert.Equal(0, storage.Count);
@@ -137,9 +186,13 @@ public class IntegrationTests
     public async Task Saga_Should_SupportRequestResponse()
     {
         // arrange
+        var recorder = new MessageRecorder();
+        var replyGate = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         await using var provider = await CreateBusAsync(b =>
         {
-            b.AddRequestHandler<TriggerRequestHandler>();
+            b.Services.AddSingleton(recorder);
+            b.Services.AddSingleton(replyGate);
+            b.AddRequestHandler<GatedTriggerRequestHandler>();
             b.AddSaga<RequestResponseSaga>();
         });
 
@@ -147,12 +200,31 @@ public class IntegrationTests
         var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
         var storage = provider.GetRequiredService<InMemorySagaStateStorage>();
 
-        // act - publish StartRequestEvent to start the saga
+        // act - publish StartRequestEvent to start the saga, which sends TriggerRequest via .Send
         await bus.PublishAsync(new StartRequestEvent(), CancellationToken.None);
 
-        // allow time for: saga starts -> sends TriggerRequest -> handler responds
-        // -> saga receives reply via OnAnyReply -> transitions to Completed (final)
-        await Task.Delay(2000, TestContext.Current.CancellationToken);
+        // the handler parks on the reply gate, holding the saga in AwaitingResponse so the test can
+        // observe its persisted state before releasing the reply to finalize the saga
+        Assert.True(await recorder.WaitAsync(s_timeout), "request handler never executed");
+
+        // wait until the held saga's state is persisted, and assert it actually appeared
+        var appearDeadline = DateTime.UtcNow + s_timeout;
+        while (storage.Count == 0 && DateTime.UtcNow < appearDeadline)
+        {
+            await Task.Delay(50, TestContext.Current.CancellationToken);
+        }
+
+        Assert.True(storage.Count > 0, "saga state was not persisted while the reply was held");
+
+        // release the reply so it routes back via OnAnyReply and finalizes the saga
+        replyGate.SetResult();
+
+        // wait for the reply to finalize the saga and delete its state
+        var deadline = DateTime.UtcNow + s_timeout;
+        while (storage.Count != 0 && DateTime.UtcNow < deadline)
+        {
+            await Task.Delay(50, TestContext.Current.CancellationToken);
+        }
 
         // assert - saga should be deleted from store after reaching final state
         Assert.Equal(0, storage.Count);
@@ -544,6 +616,20 @@ public class IntegrationTests
         {
             recorder.Record(request);
             return new(new TriggerResponse());
+        }
+    }
+
+    // Signals that the request was received, then parks until the test releases the reply gate.
+    // Holding the reply keeps the saga in its AwaitingResponse state so the test can deterministically
+    // observe the persisted state before triggering finalization.
+    private sealed class GatedTriggerRequestHandler(MessageRecorder recorder, TaskCompletionSource replyGate)
+        : IEventRequestHandler<TriggerRequest, TriggerResponse>
+    {
+        public async ValueTask<TriggerResponse> HandleAsync(TriggerRequest request, CancellationToken cancellationToken)
+        {
+            recorder.Record(request);
+            await replyGate.Task.WaitAsync(cancellationToken);
+            return new TriggerResponse();
         }
     }
 
