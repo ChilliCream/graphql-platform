@@ -22,6 +22,7 @@ jobs:
       website_next_changes: ${{ steps.check-website-next.outputs.website_next_changes }}
       library_changes: ${{ steps.check-library.outputs.library_changes }}
       src_changes: ${{ steps.check-src.outputs.src_changes }}
+      nitro_client_changes: ${{ steps.check-nitro-client.outputs.nitro_client_changes }}
     steps:
       - name: Checkout Repository
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
@@ -69,6 +70,16 @@ jobs:
             echo "src_changes=true" >> $GITHUB_OUTPUT
           else
             echo "src_changes=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Check for changes in ChilliCream.Nitro.Client package
+        id: check-nitro-client
+        run: |
+          changes=$(git diff --name-only HEAD~1 HEAD -- ./src/Nitro/Common/src/ChilliCream.Nitro.Client)
+          if [[ -n "$changes" ]]; then
+            echo "nitro_client_changes=true" >> $GITHUB_OUTPUT
+          else
+            echo "nitro_client_changes=false" >> $GITHUB_OUTPUT
           fi
 
   spellcheck:
@@ -359,7 +370,9 @@ jobs:
     name: Validate Nitro Client
     runs-on: ubuntu-latest
     needs: check-changes
-    if: needs.check-changes.outputs.src_changes == 'true'
+    if: >-
+      needs.check-changes.outputs.nitro_client_changes == 'true' &&
+      !github.event.pull_request.head.repo.fork
     permissions:
       contents: read
       pull-requests: write
