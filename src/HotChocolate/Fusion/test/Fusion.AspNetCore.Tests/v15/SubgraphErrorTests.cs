@@ -1,5 +1,6 @@
 using HotChocolate.Transport;
 using HotChocolate.Transport.Http;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Fusion;
 
@@ -7,7 +8,7 @@ public class SubgraphErrorTests : FusionTestBase
 {
     #region Parallel, Shared Entry Field
 
-    [Fact(Skip = "There should only ever be one error associated with a field")]
+    [Fact]
     public async Task Resolve_Parallel_SharedEntryField_Nullable_Both_Services_Error_SharedEntryField()
     {
         // arrange
@@ -15,7 +16,7 @@ public class SubgraphErrorTests : FusionTestBase
             "A",
             """
             type Query {
-              viewer: Viewer @error
+              viewer: Viewer @error @shareable
             }
 
             type Viewer {
@@ -27,7 +28,7 @@ public class SubgraphErrorTests : FusionTestBase
             "B",
             """
             type Query {
-              viewer: Viewer @error
+              viewer: Viewer @error @shareable
             }
 
             type Viewer {
@@ -63,7 +64,7 @@ public class SubgraphErrorTests : FusionTestBase
         await MatchSnapshotAsync(gateway, request, result);
     }
 
-    [Fact(Skip = "Flaky in snapshot")]
+    [Fact(Skip = "Flaky in snapshot across target frameworks")]
     public async Task Resolve_Parallel_SharedEntryField_NonNull_Both_Services_Error_SharedEntryField()
     {
         // arrange
@@ -71,7 +72,7 @@ public class SubgraphErrorTests : FusionTestBase
             "A",
             """
             type Query {
-              viewer: Viewer! @error
+              viewer: Viewer! @error @shareable
             }
 
             type Viewer {
@@ -83,7 +84,7 @@ public class SubgraphErrorTests : FusionTestBase
             "B",
             """
             type Query {
-              viewer: Viewer! @error
+              viewer: Viewer! @error @shareable
             }
 
             type Viewer {
@@ -119,7 +120,7 @@ public class SubgraphErrorTests : FusionTestBase
         await MatchSnapshotAsync(gateway, request, result);
     }
 
-    [Fact(Skip = "Error is incorrectly placed")]
+    [Fact]
     public async Task Resolve_Parallel_SubField_Nullable_SharedEntryField_Nullable_One_Service_Errors_SharedEntryField()
     {
         // arrange
@@ -127,7 +128,7 @@ public class SubgraphErrorTests : FusionTestBase
             "A",
             """
             type Query {
-              viewer: Viewer @error
+              viewer: Viewer @error @shareable
             }
 
             type Viewer {
@@ -139,7 +140,7 @@ public class SubgraphErrorTests : FusionTestBase
             "B",
             """
             type Query {
-              viewer: Viewer
+              viewer: Viewer @shareable
             }
 
             type Viewer {
@@ -175,7 +176,7 @@ public class SubgraphErrorTests : FusionTestBase
         await MatchSnapshotAsync(gateway, request, result);
     }
 
-    [Fact(Skip = "Error is not correctly shown")]
+    [Fact]
     public async Task Resolve_Parallel_SubField_NonNull_SharedEntryField_Nullable_One_Service_Errors_SharedEntryField()
     {
         // arrange
@@ -183,7 +184,7 @@ public class SubgraphErrorTests : FusionTestBase
             "A",
             """
             type Query {
-              viewer: Viewer @error
+              viewer: Viewer @error @shareable
             }
 
             type Viewer {
@@ -195,7 +196,7 @@ public class SubgraphErrorTests : FusionTestBase
             "B",
             """
             type Query {
-              viewer: Viewer
+              viewer: Viewer @shareable
             }
 
             type Viewer {
@@ -231,7 +232,7 @@ public class SubgraphErrorTests : FusionTestBase
         await MatchSnapshotAsync(gateway, request, result);
     }
 
-    [Fact(Skip = "Error is not correctly shown")]
+    [Fact]
     public async Task Resolve_Parallel_SubField_NonNull_SharedEntryField_NonNull_One_Service_Errors_SharedEntryField()
     {
         // arrange
@@ -239,7 +240,7 @@ public class SubgraphErrorTests : FusionTestBase
             "A",
             """
             type Query {
-              viewer: Viewer! @error
+              viewer: Viewer! @error @shareable
             }
 
             type Viewer {
@@ -251,7 +252,7 @@ public class SubgraphErrorTests : FusionTestBase
             "B",
             """
             type Query {
-              viewer: Viewer!
+              viewer: Viewer! @shareable
             }
 
             type Viewer {
@@ -287,7 +288,7 @@ public class SubgraphErrorTests : FusionTestBase
         await MatchSnapshotAsync(gateway, request, result);
     }
 
-    [Fact(Skip = "Error is not correctly shown")]
+    [Fact]
     public async Task Resolve_Parallel_SubField_Nullable_SharedEntryField_Nullable_One_Service_Errors_SubField()
     {
         // arrange
@@ -295,7 +296,7 @@ public class SubgraphErrorTests : FusionTestBase
             "A",
             """
             type Query {
-              viewer: Viewer
+              viewer: Viewer @shareable
             }
 
             type Viewer {
@@ -307,7 +308,7 @@ public class SubgraphErrorTests : FusionTestBase
             "B",
             """
             type Query {
-              viewer: Viewer
+              viewer: Viewer @shareable
             }
 
             type Viewer {
@@ -343,7 +344,7 @@ public class SubgraphErrorTests : FusionTestBase
         await MatchSnapshotAsync(gateway, request, result);
     }
 
-    [Fact(Skip = "Error is not correctly shown")]
+    [Fact]
     public async Task Resolve_Parallel_SubField_NonNull_SharedEntryField_Nullable_One_Service_Errors_SubField()
     {
         // arrange
@@ -351,7 +352,7 @@ public class SubgraphErrorTests : FusionTestBase
             "A",
             """
             type Query {
-              viewer: Viewer
+              viewer: Viewer @shareable
             }
 
             type Viewer {
@@ -363,7 +364,7 @@ public class SubgraphErrorTests : FusionTestBase
             "B",
             """
             type Query {
-              viewer: Viewer
+              viewer: Viewer @shareable
             }
 
             type Viewer {
@@ -399,7 +400,7 @@ public class SubgraphErrorTests : FusionTestBase
         await MatchSnapshotAsync(gateway, request, result);
     }
 
-    [Fact(Skip = "Error is not correctly shown")]
+    [Fact]
     public async Task Resolve_Parallel_SubField_NonNull_SharedEntryField_NonNull_One_Service_Errors_SubField()
     {
         // arrange
@@ -407,7 +408,7 @@ public class SubgraphErrorTests : FusionTestBase
             "A",
             """
             type Query {
-              viewer: Viewer!
+              viewer: Viewer! @shareable
             }
 
             type Viewer {
@@ -419,7 +420,7 @@ public class SubgraphErrorTests : FusionTestBase
             "B",
             """
             type Query {
-              viewer: Viewer!
+              viewer: Viewer! @shareable
             }
 
             type Viewer {
@@ -455,170 +456,209 @@ public class SubgraphErrorTests : FusionTestBase
         await MatchSnapshotAsync(gateway, request, result);
     }
 
-    //     [Fact]
-    //     public async Task
-    //         Resolve_Parallel_SubField_Nullable_SharedEntryField_Nullable_One_Service_Returns_TopLevel_Error_Without_Data()
-    //     {
-    //         // arrange
-    //         var subgraphA = await TestSubgraph.CreateAsync(
-    //             """
-    //             type Query {
-    //               viewer: Viewer
-    //             }
-    //
-    //             type Viewer {
-    //               name: String
-    //             }
-    //             """);
-    //
-    //         var subgraphB = await TestSubgraph.CreateAsync(builder => builder
-    //             .AddDocumentFromString(
-    //                 """
-    //                 type Query {
-    //                   viewer: Viewer
-    //                 }
-    //
-    //                 type Viewer {
-    //                   userId: ID
-    //                 }
-    //                 """)
-    //             .AddResolverMocking()
-    //             .UseDefaultPipeline()
-    //             .UseRequest(_ => context =>
-    //             {
-    //                 context.Result =
-    //                     OperationResultBuilder.CreateError(ErrorBuilder.New().SetMessage("Top Level Error").Build());
-    //                 return default;
-    //             })
-    //         );
-    //
-    //         using var subgraphs = new TestSubgraphCollection(output, [subgraphA, subgraphB]);
-    //         var executor = await subgraphs.GetExecutorAsync();
-    //         var request = """
-    //                       query {
-    //                         viewer {
-    //                           userId
-    //                           name
-    //                         }
-    //                       }
-    //                       """;
-    //
-    //         // act
-    //         var result = await executor.ExecuteAsync(request);
-    //
-    //         // assert
-    //         MatchMarkdownSnapshot(request, result);
-    //     }
-    //
-    //     [Fact]
-    //     public async Task
-    //         Resolve_Parallel_SubField_NonNull_SharedEntryField_Nullable_One_Service_Returns_TopLevel_Error_Without_Data()
-    //     {
-    //         // arrange
-    //         var subgraphA = await TestSubgraph.CreateAsync(
-    //             """
-    //             type Query {
-    //               viewer: Viewer
-    //             }
-    //
-    //             type Viewer {
-    //               name: String!
-    //             }
-    //             """);
-    //
-    //         var subgraphB = await TestSubgraph.CreateAsync(builder => builder
-    //             .AddDocumentFromString(
-    //                 """
-    //                 type Query {
-    //                   viewer: Viewer
-    //                 }
-    //
-    //                 type Viewer {
-    //                   userId: ID!
-    //                 }
-    //                 """)
-    //             .AddResolverMocking()
-    //             .UseDefaultPipeline()
-    //             .UseRequest(_ => context =>
-    //             {
-    //                 context.Result =
-    //                     OperationResultBuilder.CreateError(ErrorBuilder.New().SetMessage("Top Level Error").Build());
-    //                 return default;
-    //             })
-    //         );
-    //
-    //         using var subgraphs = new TestSubgraphCollection(output, [subgraphA, subgraphB]);
-    //         var executor = await subgraphs.GetExecutorAsync();
-    //         var request = """
-    //                       query {
-    //                         viewer {
-    //                           userId
-    //                           name
-    //                         }
-    //                       }
-    //                       """;
-    //
-    //         // act
-    //         var result = await executor.ExecuteAsync(request);
-    //
-    //         // assert
-    //         MatchMarkdownSnapshot(request, result);
-    //     }
-    //
-    //     [Fact]
-    //     public async Task
-    //         Resolve_Parallel_SubField_NonNull_SharedEntryField_NonNull_One_Service_Returns_TopLevel_Error_Without_Data()
-    //     {
-    //         // arrange
-    //         var subgraphA = await TestSubgraph.CreateAsync(
-    //             """
-    //             type Query {
-    //               viewer: Viewer!
-    //             }
-    //
-    //             type Viewer {
-    //               name: String!
-    //             }
-    //             """);
-    //
-    //         var subgraphB = await TestSubgraph.CreateAsync(builder => builder
-    //             .AddDocumentFromString(
-    //                 """
-    //                 type Query {
-    //                   viewer: Viewer!
-    //                 }
-    //
-    //                 type Viewer {
-    //                   userId: ID!
-    //                 }
-    //                 """)
-    //             .AddResolverMocking()
-    //             .UseDefaultPipeline()
-    //             .UseRequest(_ => context =>
-    //             {
-    //                 context.Result =
-    //                     OperationResultBuilder.CreateError(ErrorBuilder.New().SetMessage("Top Level Error").Build());
-    //                 return default;
-    //             })
-    //         );
-    //
-    //         using var subgraphs = new TestSubgraphCollection(output, [subgraphA, subgraphB]);
-    //         var executor = await subgraphs.GetExecutorAsync();
-    //         var request = """
-    //                       query {
-    //                         viewer {
-    //                           userId
-    //                           name
-    //                         }
-    //                       }
-    //                       """;
-    //
-    //         // act
-    //         var result = await executor.ExecuteAsync(request);
-    //
-    //         // assert
-    //         MatchMarkdownSnapshot(request, result);
-    //     }
+    [Fact]
+    public async Task
+        Resolve_Parallel_SubField_Nullable_SharedEntryField_Nullable_One_Service_Returns_TopLevel_Error_Without_Data()
+    {
+        // arrange
+        var subgraphA = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+                viewer: Viewer @shareable
+            }
+
+            type Viewer {
+                name: String
+            }
+            """);
+
+        var subgraphB = CreateSourceSchema(
+            "B",
+            b => b
+                .AddDocumentFromString(
+                    """
+                    type Query {
+                        viewer: Viewer @shareable
+                    }
+
+                    type Viewer {
+                        userId: ID
+                    }
+                    """)
+                .AddResolverMocking()
+                .TryAddTypeInterceptor<RegisterFusionDirectivesTypeInterceptor>()
+                .UseDefaultPipeline()
+                .UseRequest(next => async context =>
+                {
+                    var error = ErrorBuilder.New().SetMessage("Top Level Error").Build();
+                    context.Result = new HotChocolate.Execution.OperationResult([error]);
+
+                    await next(context);
+                }));
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", subgraphA),
+            ("B", subgraphB)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            query {
+              viewer {
+                userId
+                name
+              }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"));
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    [Fact]
+    public async Task
+        Resolve_Parallel_SubField_NonNull_SharedEntryField_Nullable_One_Service_Returns_TopLevel_Error_Without_Data()
+    {
+        // arrange
+        var subgraphA = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+                viewer: Viewer @shareable
+            }
+
+            type Viewer {
+                name: String!
+            }
+            """);
+
+        var subgraphB = CreateSourceSchema(
+            "B",
+            b => b
+                .AddDocumentFromString(
+                    """
+                    type Query {
+                        viewer: Viewer @shareable
+                    }
+
+                    type Viewer {
+                        userId: ID!
+                    }
+                    """)
+                .AddResolverMocking()
+                .TryAddTypeInterceptor<RegisterFusionDirectivesTypeInterceptor>()
+                .UseDefaultPipeline()
+                .UseRequest(next => async context =>
+                {
+                    var error = ErrorBuilder.New().SetMessage("Top Level Error").Build();
+                    context.Result = new HotChocolate.Execution.OperationResult([error]);
+
+                    await next(context);
+                }));
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", subgraphA),
+            ("B", subgraphB)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            query {
+              viewer {
+                userId
+                name
+              }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"));
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    [Fact]
+    public async Task
+        Resolve_Parallel_SubField_NonNull_SharedEntryField_NonNull_One_Service_Returns_TopLevel_Error_Without_Data()
+    {
+        // arrange
+        var subgraphA = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+                viewer: Viewer! @shareable
+            }
+
+            type Viewer {
+                name: String!
+            }
+            """);
+
+        var subgraphB = CreateSourceSchema(
+            "B",
+            b => b
+                .AddDocumentFromString(
+                    """
+                    type Query {
+                        viewer: Viewer! @shareable
+                    }
+
+                    type Viewer {
+                        userId: ID!
+                    }
+                    """)
+                .AddResolverMocking()
+                .TryAddTypeInterceptor<RegisterFusionDirectivesTypeInterceptor>()
+                .UseDefaultPipeline()
+                .UseRequest(next => async context =>
+                {
+                    var error = ErrorBuilder.New().SetMessage("Top Level Error").Build();
+                    context.Result = new HotChocolate.Execution.OperationResult([error]);
+
+                    await next(context);
+                }));
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", subgraphA),
+            ("B", subgraphB)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            query {
+              viewer {
+                userId
+                name
+              }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"));
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
 
     #endregion
 
@@ -1032,7 +1072,7 @@ public class SubgraphErrorTests : FusionTestBase
 
     #region Entity Resolver
 
-    [Fact(Skip = "Ordering is not correct")]
+    [Fact]
     public async Task Entity_Resolver_SubField_Nullable_EntryField_Nullable_First_Service_Errors_SubField()
     {
         // arrange
@@ -1041,7 +1081,7 @@ public class SubgraphErrorTests : FusionTestBase
             """
             type Query {
               node(id: ID!): Node @lookup
-              productById(id: ID!): Product @lookup
+              productById(id: ID!): Product @lookup @shareable
             }
 
             type Product implements Node {
@@ -1059,7 +1099,7 @@ public class SubgraphErrorTests : FusionTestBase
             "B",
             """
             type Query {
-              productById(id: ID!): Product @lookup
+              productById(id: ID!): Product @lookup @shareable
             }
 
             type Product implements Node {
@@ -1102,7 +1142,7 @@ public class SubgraphErrorTests : FusionTestBase
         await MatchSnapshotAsync(gateway, request, result);
     }
 
-    [Fact(Skip = "Ordering is not correct")]
+    [Fact]
     public async Task Entity_Resolver_SubField_NonNull_EntryField_Nullable_First_Service_Errors_SubField()
     {
         // arrange
@@ -1111,7 +1151,7 @@ public class SubgraphErrorTests : FusionTestBase
             """
             type Query {
               node(id: ID!): Node @lookup
-              productById(id: ID!): Product @lookup
+              productById(id: ID!): Product @lookup @shareable
             }
 
             type Product implements Node {
@@ -1129,7 +1169,7 @@ public class SubgraphErrorTests : FusionTestBase
             "B",
             """
             type Query {
-              productById(id: ID!): Product @lookup
+              productById(id: ID!): Product @lookup @shareable
             }
 
             type Product implements Node {
@@ -1172,7 +1212,7 @@ public class SubgraphErrorTests : FusionTestBase
         await MatchSnapshotAsync(gateway, request, result);
     }
 
-    [Fact(Skip = "Ordering is not correct")]
+    [Fact]
     public async Task Entity_Resolver_SubField_NonNull_EntryField_NonNull_First_Service_Errors_SubField()
     {
         // arrange
@@ -1181,7 +1221,7 @@ public class SubgraphErrorTests : FusionTestBase
             """
             type Query {
               node(id: ID!): Node @lookup
-              productById(id: ID!): Product! @lookup
+              productById(id: ID!): Product! @lookup @shareable
             }
 
             type Product implements Node {
@@ -1199,7 +1239,7 @@ public class SubgraphErrorTests : FusionTestBase
             "B",
             """
             type Query {
-              productById(id: ID!): Product! @lookup
+              productById(id: ID!): Product! @lookup @shareable
             }
 
             type Product implements Node {
@@ -1242,7 +1282,7 @@ public class SubgraphErrorTests : FusionTestBase
         await MatchSnapshotAsync(gateway, request, result);
     }
 
-    [Fact(Skip = "Ordering is not correct")]
+    [Fact]
     public async Task Entity_Resolver_SubField_Nullable_EntryField_Nullable_Second_Service_Errors_SubField()
     {
         // arrange
@@ -1251,7 +1291,7 @@ public class SubgraphErrorTests : FusionTestBase
             """
             type Query {
               node(id: ID!): Node @lookup
-              productById(id: ID!): Product @lookup
+              productById(id: ID!): Product @lookup @shareable
             }
 
             type Product implements Node {
@@ -1269,7 +1309,7 @@ public class SubgraphErrorTests : FusionTestBase
             "B",
             """
             type Query {
-              productById(id: ID!): Product @lookup
+              productById(id: ID!): Product @lookup @shareable
             }
 
             type Product implements Node {
@@ -1312,7 +1352,7 @@ public class SubgraphErrorTests : FusionTestBase
         await MatchSnapshotAsync(gateway, request, result);
     }
 
-    [Fact(Skip = "Ordering is not correct")]
+    [Fact]
     public async Task Entity_Resolver_SubField_NonNull_EntryField_Nullable_Second_Service_Errors_SubField()
     {
         // arrange
@@ -1321,7 +1361,7 @@ public class SubgraphErrorTests : FusionTestBase
             """
             type Query {
               node(id: ID!): Node @lookup
-              productById(id: ID!): Product @lookup
+              productById(id: ID!): Product @lookup @shareable
             }
 
             type Product implements Node {
@@ -1339,7 +1379,7 @@ public class SubgraphErrorTests : FusionTestBase
             "B",
             """
             type Query {
-              productById(id: ID!): Product @lookup
+              productById(id: ID!): Product @lookup @shareable
             }
 
             type Product implements Node {
@@ -1381,7 +1421,7 @@ public class SubgraphErrorTests : FusionTestBase
         await MatchSnapshotAsync(gateway, request, result);
     }
 
-    [Fact(Skip = "Ordering is not correct")]
+    [Fact]
     public async Task Entity_Resolver_SubField_NonNull_EntryField_NonNull_Second_Service_Errors_SubField()
     {
         // arrange
@@ -1390,7 +1430,7 @@ public class SubgraphErrorTests : FusionTestBase
             """
             type Query {
               node(id: ID!): Node @lookup
-              productById(id: ID!): Product! @lookup
+              productById(id: ID!): Product! @lookup @shareable
             }
 
             type Product implements Node {
@@ -1408,7 +1448,7 @@ public class SubgraphErrorTests : FusionTestBase
             "B",
             """
             type Query {
-              productById(id: ID!): Product! @lookup
+              productById(id: ID!): Product! @lookup @shareable
             }
 
             type Product implements Node {
@@ -1451,7 +1491,7 @@ public class SubgraphErrorTests : FusionTestBase
         await MatchSnapshotAsync(gateway, request, result);
     }
 
-    [Fact(Skip = "Ordering is not correct")]
+    [Fact]
     public async Task Entity_Resolver_SubField_Nullable_EntryField_Nullable_First_Service_Errors_EntryField()
     {
         // arrange
@@ -1460,7 +1500,7 @@ public class SubgraphErrorTests : FusionTestBase
             """
             type Query {
               node(id: ID!): Node @lookup
-              productById(id: ID!): Product @lookup @error
+              productById(id: ID!): Product @lookup @shareable @error
             }
 
             type Product implements Node {
@@ -1478,7 +1518,7 @@ public class SubgraphErrorTests : FusionTestBase
             "B",
             """
             type Query {
-              productById(id: ID!): Product @lookup
+              productById(id: ID!): Product @lookup @shareable
             }
 
             type Product implements Node {
@@ -1521,7 +1561,7 @@ public class SubgraphErrorTests : FusionTestBase
         await MatchSnapshotAsync(gateway, request, result);
     }
 
-    [Fact(Skip = "Ordering is not correct")]
+    [Fact]
     public async Task Entity_Resolver_SubField_NonNull_EntryField_Nullable_First_Service_Errors_EntryField()
     {
         // arrange
@@ -1529,7 +1569,7 @@ public class SubgraphErrorTests : FusionTestBase
             "A",
             """
             type Query {
-              productById(id: ID!): Product @lookup @error
+              productById(id: ID!): Product @lookup @shareable @error
             }
 
             type Product {
@@ -1543,7 +1583,7 @@ public class SubgraphErrorTests : FusionTestBase
             "B",
             """
             type Query {
-              productById(id: ID!): Product @lookup
+              productById(id: ID!): Product @lookup @shareable
             }
 
             type Product {
@@ -1582,7 +1622,7 @@ public class SubgraphErrorTests : FusionTestBase
         await MatchSnapshotAsync(gateway, request, result);
     }
 
-    [Fact(Skip = "Ordering is not correct")]
+    [Fact]
     public async Task Entity_Resolver_SubField_NonNull_EntryField_NonNull_First_Service_Errors_EntryField()
     {
         // arrange
@@ -1590,7 +1630,7 @@ public class SubgraphErrorTests : FusionTestBase
             "A",
             """
             type Query {
-              productById(id: ID!): Product! @lookup @error
+              productById(id: ID!): Product! @lookup @shareable @error
             }
 
             type Product {
@@ -1604,7 +1644,7 @@ public class SubgraphErrorTests : FusionTestBase
             "B",
             """
             type Query {
-              productById(id: ID!): Product! @lookup
+              productById(id: ID!): Product! @lookup @shareable
             }
 
             type Product {
@@ -1643,7 +1683,7 @@ public class SubgraphErrorTests : FusionTestBase
         await MatchSnapshotAsync(gateway, request, result);
     }
 
-    [Fact(Skip = "Ordering is not correct")]
+    [Fact]
     public async Task Entity_Resolver_SubField_Nullable_EntryField_Nullable_Second_Service_Errors_EntryField()
     {
         // arrange
@@ -1651,7 +1691,7 @@ public class SubgraphErrorTests : FusionTestBase
             "A",
             """
             type Query {
-              productById(id: ID!): Product @lookup
+              productById(id: ID!): Product @lookup @shareable
             }
 
             type Product {
@@ -1665,7 +1705,7 @@ public class SubgraphErrorTests : FusionTestBase
             "B",
             """
             type Query {
-              productById(id: ID!): Product @lookup @error
+              productById(id: ID!): Product @lookup @shareable @error
             }
 
             type Product {
@@ -1704,7 +1744,7 @@ public class SubgraphErrorTests : FusionTestBase
         await MatchSnapshotAsync(gateway, request, result);
     }
 
-    [Fact(Skip = "Ordering is not correct")]
+    [Fact]
     public async Task Entity_Resolver_SubField_NonNull_EntryField_Nullable_Second_Service_Errors_EntryField()
     {
         // arrange
@@ -1712,7 +1752,7 @@ public class SubgraphErrorTests : FusionTestBase
             "A",
             """
             type Query {
-              productById(id: ID!): Product @lookup
+              productById(id: ID!): Product @lookup @shareable
             }
 
             type Product {
@@ -1726,7 +1766,7 @@ public class SubgraphErrorTests : FusionTestBase
             "B",
             """
             type Query {
-              productById(id: ID!): Product @lookup @error
+              productById(id: ID!): Product @lookup @shareable @error
             }
 
             type Product {
@@ -1765,7 +1805,7 @@ public class SubgraphErrorTests : FusionTestBase
         await MatchSnapshotAsync(gateway, request, result);
     }
 
-    [Fact(Skip = "Ordering is not correct")]
+    [Fact]
     public async Task Entity_Resolver_SubField_NonNull_EntryField_NonNull_Second_Service_Errors_EntryField()
     {
         // arrange
@@ -1773,7 +1813,7 @@ public class SubgraphErrorTests : FusionTestBase
             "A",
             """
             type Query {
-              productById(id: ID!): Product! @lookup
+              productById(id: ID!): Product! @lookup @shareable
             }
 
             type Product {
@@ -1787,7 +1827,7 @@ public class SubgraphErrorTests : FusionTestBase
             "B",
             """
             type Query {
-              productById(id: ID!): Product! @lookup @error
+              productById(id: ID!): Product! @lookup @shareable @error
             }
 
             type Product {
@@ -1826,7 +1866,7 @@ public class SubgraphErrorTests : FusionTestBase
         await MatchSnapshotAsync(gateway, request, result);
     }
 
-    [Fact(Skip = "Ordering is not correct")]
+    [Fact]
     public async Task Entity_Resolver_EntryField_Nullable_Both_Services_Error_EntryField()
     {
         // arrange
@@ -1834,7 +1874,7 @@ public class SubgraphErrorTests : FusionTestBase
             "A",
             """
             type Query {
-              productById(id: ID!): Product @lookup @error
+              productById(id: ID!): Product @lookup @shareable @error
             }
 
             type Product {
@@ -1848,7 +1888,7 @@ public class SubgraphErrorTests : FusionTestBase
             "B",
             """
             type Query {
-              productById(id: ID!): Product @lookup @error
+              productById(id: ID!): Product @lookup @shareable @error
             }
 
             type Product {
@@ -1887,7 +1927,7 @@ public class SubgraphErrorTests : FusionTestBase
         await MatchSnapshotAsync(gateway, request, result);
     }
 
-    [Fact(Skip = "Ordering is not correct")]
+    [Fact]
     public async Task Entity_Resolver_EntryField_NonNull_Both_Services_Error_EntryField()
     {
         // arrange
@@ -1895,7 +1935,7 @@ public class SubgraphErrorTests : FusionTestBase
             "A",
             """
             type Query {
-              productById(id: ID!): Product! @lookup @error
+              productById(id: ID!): Product! @lookup @shareable @error
             }
 
             type Product {
@@ -1909,7 +1949,7 @@ public class SubgraphErrorTests : FusionTestBase
             "B",
             """
             type Query {
-              productById(id: ID!): Product! @lookup @error
+              productById(id: ID!): Product! @lookup @shareable @error
             }
 
             type Product {
@@ -1956,8 +1996,7 @@ public class SubgraphErrorTests : FusionTestBase
     //         var subgraphA = await TestSubgraph.CreateAsync(
     //             """
     //             type Query {
-    //               productById(id: ID!): Product
-    //             }
+    //               productById(id: ID!): Product     //             }
     //
     //             type Product implements Node {
     //               id: ID!
@@ -1974,8 +2013,7 @@ public class SubgraphErrorTests : FusionTestBase
     //             .AddDocumentFromString(
     //                 """
     //                 type Query {
-    //                   productById(id: ID!): Product
-    //                 }
+    //                   productById(id: ID!): Product     //                 }
     //
     //                 type Product implements Node {
     //                   id: ID!
@@ -2024,8 +2062,7 @@ public class SubgraphErrorTests : FusionTestBase
     //         var subgraphA = await TestSubgraph.CreateAsync(
     //             """
     //             type Query {
-    //               productById(id: ID!): Product
-    //             }
+    //               productById(id: ID!): Product     //             }
     //
     //             type Product implements Node {
     //               id: ID!
@@ -2042,8 +2079,7 @@ public class SubgraphErrorTests : FusionTestBase
     //             .AddDocumentFromString(
     //                 """
     //                 type Query {
-    //                   productById(id: ID!): Product
-    //                 }
+    //                   productById(id: ID!): Product     //                 }
     //
     //                 type Product implements Node {
     //                   id: ID!
@@ -2092,8 +2128,7 @@ public class SubgraphErrorTests : FusionTestBase
     //         var subgraphA = await TestSubgraph.CreateAsync(
     //             """
     //             type Query {
-    //               productById(id: ID!): Product!
-    //             }
+    //               productById(id: ID!): Product //             }
     //
     //             type Product implements Node {
     //               id: ID!
@@ -2110,8 +2145,7 @@ public class SubgraphErrorTests : FusionTestBase
     //             .AddDocumentFromString(
     //                 """
     //                 type Query {
-    //                   productById(id: ID!): Product!
-    //                 }
+    //                   productById(id: ID!): Product //                 }
     //
     //                 type Product implements Node {
     //                   id: ID!
@@ -2161,8 +2195,7 @@ public class SubgraphErrorTests : FusionTestBase
     //             .AddDocumentFromString(
     //                 """
     //                 type Query {
-    //                   productById(id: ID!): Product
-    //                 }
+    //                   productById(id: ID!): Product     //                 }
     //
     //                 type Product implements Node {
     //                   id: ID!
@@ -2187,8 +2220,7 @@ public class SubgraphErrorTests : FusionTestBase
     //         var subgraphB = await TestSubgraph.CreateAsync(
     //             """
     //             type Query {
-    //               productById(id: ID!): Product
-    //             }
+    //               productById(id: ID!): Product     //             }
     //
     //             type Product implements Node {
     //               id: ID!
@@ -2230,8 +2262,7 @@ public class SubgraphErrorTests : FusionTestBase
     //             .AddDocumentFromString(
     //                 """
     //                 type Query {
-    //                   productById(id: ID!): Product
-    //                 }
+    //                   productById(id: ID!): Product     //                 }
     //
     //                 type Product implements Node {
     //                   id: ID!
@@ -2256,8 +2287,7 @@ public class SubgraphErrorTests : FusionTestBase
     //         var subgraphB = await TestSubgraph.CreateAsync(
     //             """
     //             type Query {
-    //               productById(id: ID!): Product
-    //             }
+    //               productById(id: ID!): Product     //             }
     //
     //             type Product implements Node {
     //               id: ID!
@@ -2299,8 +2329,7 @@ public class SubgraphErrorTests : FusionTestBase
     //             .AddDocumentFromString(
     //                 """
     //                 type Query {
-    //                   productById(id: ID!): Product!
-    //                 }
+    //                   productById(id: ID!): Product //                 }
     //
     //                 type Product implements Node {
     //                   id: ID!
@@ -2325,8 +2354,7 @@ public class SubgraphErrorTests : FusionTestBase
     //         var subgraphB = await TestSubgraph.CreateAsync(
     //             """
     //             type Query {
-    //               productById(id: ID!): Product!
-    //             }
+    //               productById(id: ID!): Product //             }
     //
     //             type Product implements Node {
     //               id: ID!
@@ -3454,61 +3482,4 @@ public class SubgraphErrorTests : FusionTestBase
     //     }
 
     #endregion
-
-    // [Fact]
-    // public async Task ErrorFilter_Is_Applied()
-    // {
-    //     // arrange
-    //     var server = CreateSourceSchema(
-    //         "A",
-    //         """
-    //         type Query {
-    //           field: String @error
-    //         }
-    //         """);
-    //
-    //     using var gateway = await CreateCompositeSchemaAsync(
-    //     [
-    //         ("A", server)
-    //     ],
-    //     configure: builder =>
-    //         builder.AddErrorFilter(error => error.WithMessage("REPLACED MESSAGE").WithCode("CUSTOM_CODE")));
-    //
-    //     // act
-    //     using var client = GraphQLHttpClient.Create(gateway.CreateClient());
-    //     using var result = await client.PostAsync(
-    //         """
-    //         query {
-    //           field
-    //         }
-    //         """,
-    //         new Uri("http://localhost:5000/graphql"));
-    //
-    //     // assert
-    //     using var response = await result.ReadAsResultAsync();
-    //     response.MatchInlineSnapshot("""
-    //                                {
-    //                                  "errors": [
-    //                                    {
-    //                                      "message": "REPLACED MESSAGE",
-    //                                      "locations": [
-    //                                        {
-    //                                          "line": 2,
-    //                                          "column": 3
-    //                                        }
-    //                                      ],
-    //                                      "path": [
-    //                                        "field"
-    //                                      ],
-    //                                      "extensions": {
-    //                                        "code": "CUSTOM_CODE"
-    //                                      }
-    //                                    }
-    //                                  ],
-    //                                  "data": {
-    //                                    "field": null
-    //                                  }
-    //                                }
-    //                                """);
-    // }
 }
