@@ -29,6 +29,7 @@ internal sealed class OptInFeaturesTypeInterceptor : TypeInterceptor
         switch (configuration)
         {
             case DirectiveTypeConfiguration directiveType:
+                _optInFeatures.UnionWith(directiveType.GetOptInFeatures());
                 _optInFeatures.UnionWith(
                     directiveType.Arguments.SelectMany(a => a.GetOptInFeatures()));
 
