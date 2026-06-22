@@ -45,6 +45,24 @@ namespace HotChocolate.Fusion {
             }
         }
         
+        internal static string ConstantArgumentValidator_ArgumentDoesNotExist {
+            get {
+                return ResourceManager.GetString("ConstantArgumentValidator_ArgumentDoesNotExist", resourceCulture);
+            }
+        }
+
+        internal static string ConstantArgumentValidator_MissingRequiredArgument {
+            get {
+                return ResourceManager.GetString("ConstantArgumentValidator_MissingRequiredArgument", resourceCulture);
+            }
+        }
+
+        internal static string ConstantArgumentValidator_ValueIncompatible {
+            get {
+                return ResourceManager.GetString("ConstantArgumentValidator_ValueIncompatible", resourceCulture);
+            }
+        }
+
         internal static string FieldSelectionMapValidator_ExpectedInputObjectType {
             get {
                 return ResourceManager.GetString("FieldSelectionMapValidator_ExpectedInputObjectType", resourceCulture);
