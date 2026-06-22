@@ -215,6 +215,20 @@ type Product {
 }
 ```
 
+**C# resolver**
+
+```csharp
+[ObjectType<Product>]
+public static partial class ProductNode
+{
+    public static decimal GetTaxEstimate(
+        [Parent] Product product,
+        [Require("seller.address.countryCode")] string countryCode,
+        [Require] float price)
+        => TaxCalculator.Estimate(countryCode, price);
+}
+```
+
 The gateway traverses `seller.address.countryCode` on the entity and passes the resolved value as the `countryCode` argument.
 
 ### List Aggregation Paths
@@ -234,6 +248,29 @@ type Product {
 ```
 
 The path `seller.addresses[countryCode]` means: navigate to `seller.addresses` (a list), then select `countryCode` from each element. If the seller has three addresses with country codes `"US"`, `"DE"`, and `"US"`, the resolver receives `["US", "DE", "US"]` as the `countryCodes` argument.
+
+**C# resolver**
+
+```csharp
+[ObjectType<Product>]
+public static partial class ProductNode
+{
+    public static decimal GetTaxEstimate(
+        [Parent] Product product,
+        [Require("seller.addresses[countryCode]")] string[] countryCodes,
+        [Require] float price)
+        => TaxCalculator.Estimate(countryCodes, price);
+}
+```
+
+For the list projection variant (`dimensions[{ weight, height }]`), the argument is a list of an input object type:
+
+```csharp
+public static int GetBulkEstimate(
+    [Parent] Product product,
+    [Require("dimensions[{ weight, height }]")] ProductDimensionInput[] dimensions)
+    => ShippingCalculator.Bulk(dimensions);
+```
 
 ## Declaring Contextually Available Fields
 
