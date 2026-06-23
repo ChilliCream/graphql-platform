@@ -2,7 +2,7 @@ using Microsoft.Extensions.Options;
 
 namespace HotChocolate.Fusion.Subscriptions.NATS;
 
-public sealed class NatsEventStreamBrokerProvider : IEventStreamBrokerProvider
+internal sealed class NatsEventStreamBrokerProvider : IEventStreamBrokerProvider
 {
     private readonly NatsEventStreamOptions _options;
 

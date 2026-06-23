@@ -6,13 +6,43 @@ using Microsoft.Extensions.Options;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
+/// <summary>
+/// Provides service registration helpers for NATS event stream brokers.
+/// </summary>
 public static class NatsEventStreamBrokerServiceCollectionExtensions
 {
+    /// <summary>
+    /// Registers NATS as the default Fusion event stream broker.
+    /// </summary>
+    /// <param name="builder">
+    /// The Fusion gateway builder.
+    /// </param>
+    /// <param name="configure">
+    /// An optional callback used to configure the NATS connection and JetStream settings.
+    /// </param>
+    /// <returns>
+    /// The same <see cref="IFusionGatewayBuilder"/> instance so additional calls can be chained.
+    /// </returns>
     public static IFusionGatewayBuilder AddNatsEventStreamBroker(
         this IFusionGatewayBuilder builder,
         Action<NatsEventStreamOptions>? configure = null)
         => builder.AddNatsEventStreamBroker(name: null, configure);
 
+    /// <summary>
+    /// Registers NATS as a named Fusion event stream broker.
+    /// </summary>
+    /// <param name="builder">
+    /// The Fusion gateway builder.
+    /// </param>
+    /// <param name="name">
+    /// The broker name used by the execution schema, or <c>null</c> to register the default broker.
+    /// </param>
+    /// <param name="configure">
+    /// An optional callback used to configure the NATS connection and JetStream settings.
+    /// </param>
+    /// <returns>
+    /// The same <see cref="IFusionGatewayBuilder"/> instance so additional calls can be chained.
+    /// </returns>
     public static IFusionGatewayBuilder AddNatsEventStreamBroker(
         this IFusionGatewayBuilder builder,
         string? name,
@@ -25,11 +55,38 @@ public static class NatsEventStreamBrokerServiceCollectionExtensions
         return builder;
     }
 
+    /// <summary>
+    /// Registers NATS as the default Fusion event stream broker.
+    /// </summary>
+    /// <param name="services">
+    /// The service collection to configure.
+    /// </param>
+    /// <param name="configure">
+    /// An optional callback used to configure the NATS connection and JetStream settings.
+    /// </param>
+    /// <returns>
+    /// The same <see cref="IServiceCollection"/> instance so additional calls can be chained.
+    /// </returns>
     public static IServiceCollection AddNatsEventStreamBroker(
         this IServiceCollection services,
         Action<NatsEventStreamOptions>? configure = null)
         => services.AddNatsEventStreamBroker(name: null, configure);
 
+    /// <summary>
+    /// Registers NATS as a named Fusion event stream broker.
+    /// </summary>
+    /// <param name="services">
+    /// The service collection to configure.
+    /// </param>
+    /// <param name="name">
+    /// The broker name used by the execution schema, or <c>null</c> to register the default broker.
+    /// </param>
+    /// <param name="configure">
+    /// An optional callback used to configure the NATS connection and JetStream settings.
+    /// </param>
+    /// <returns>
+    /// The same <see cref="IServiceCollection"/> instance so additional calls can be chained.
+    /// </returns>
     public static IServiceCollection AddNatsEventStreamBroker(
         this IServiceCollection services,
         string? name,

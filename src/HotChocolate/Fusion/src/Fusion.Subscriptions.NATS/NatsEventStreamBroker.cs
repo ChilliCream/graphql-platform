@@ -8,7 +8,7 @@ using NATS.Client.JetStream.Models;
 
 namespace HotChocolate.Fusion.Subscriptions.NATS;
 
-public sealed class NatsEventStreamBroker(NatsEventStreamOptions options)
+internal sealed class NatsEventStreamBroker(NatsEventStreamOptions options)
     : IEventStreamBroker
 {
     private readonly NatsConnection _connection = CreateConnection(options);
