@@ -462,6 +462,54 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
             return (null, fieldNode);
         }
 
+        if (source?.SourceTypeName is { } narrowedTypeName
+            && field.Type.NamedType().IsAbstractType())
+        {
+            if (!schema.Types.TryGetType(narrowedTypeName, out var narrowedType))
+            {
+                throw new InvalidOperationException(
+                    $"The narrowed source type '{narrowedTypeName}' for field "
+                    + $"'{complexType.Name}.{field.Name}' in source schema '{context.SchemaName}' "
+                    + "does not exist in the composite schema.");
+            }
+
+            if (narrowedType is not FusionObjectTypeDefinition narrowedObject)
+            {
+                throw new NotSupportedException(
+                    $"Supertype narrowing of field '{complexType.Name}.{field.Name}' in source schema "
+                    + $"'{context.SchemaName}' to the abstract type '{narrowedTypeName}' "
+                    + "is not yet supported. Only narrowing to a concrete object type is currently supported.");
+            }
+
+            var coverageSelectionSet = GetCoverageSelectionSet(context.SelectionSetIndex, fieldNode.SelectionSet);
+            var fieldNodeForSpill = coverageSelectionSet is not null
+                && !ReferenceEquals(coverageSelectionSet, fieldNode.SelectionSet)
+                    ? fieldNode.WithSelectionSet(coverageSelectionSet)
+                    : fieldNode;
+
+            if (!narrowedObject.Sources.TryGetMember(context.SchemaName, out var narrowedObjectSource))
+            {
+                throw new InvalidOperationException(
+                    $"The narrowed source type '{narrowedTypeName}' for field "
+                    + $"'{complexType.Name}.{field.Name}' is not declared in source schema "
+                    + $"'{context.SchemaName}'.");
+            }
+
+            foreach (var typeCondition in GetTopLevelTypeConditions(coverageSelectionSet))
+            {
+                var conditionName = typeCondition.Name.Value;
+                var covered =
+                    string.Equals(conditionName, narrowedTypeName, StringComparison.Ordinal)
+                    || narrowedObjectSource.Implements.Contains(conditionName)
+                    || narrowedObjectSource.MemberOf.Contains(conditionName);
+
+                if (!covered)
+                {
+                    return (null, fieldNodeForSpill);
+                }
+            }
+        }
+
         if (providedFieldNode is null && source?.Requirements is not null)
         {
             context.FieldsWithRequirements =
@@ -501,6 +549,51 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
         }
 
         return (fieldNode, null);
+
+        static SelectionSetNode? GetCoverageSelectionSet(
+            ISelectionSetIndex index,
+            SelectionSetNode? selectionSet)
+        {
+            if (selectionSet is null || !index.IsRegistered(selectionSet))
+            {
+                return selectionSet;
+            }
+
+            var selectionSetId = index.GetId(selectionSet);
+
+            if (index.TryGetOriginalIdFromCloned(selectionSetId, out var originalId))
+            {
+                selectionSetId = originalId;
+            }
+
+            return index.TryGetSelectionSet(selectionSetId, out var original)
+                ? original
+                : selectionSet;
+        }
+
+        static IEnumerable<NamedTypeNode> GetTopLevelTypeConditions(SelectionSetNode? selectionSet)
+        {
+            if (selectionSet is null)
+            {
+                yield break;
+            }
+
+            foreach (var selection in selectionSet.Selections)
+            {
+                if (selection is InlineFragmentNode { TypeCondition: { } typeCondition })
+                {
+                    yield return typeCondition;
+                }
+                else if (selection is InlineFragmentNode conditionlessFragment)
+                {
+                    foreach (var nestedTypeCondition in GetTopLevelTypeConditions(
+                        conditionlessFragment.SelectionSet))
+                    {
+                        yield return nestedTypeCondition;
+                    }
+                }
+            }
+        }
     }
 
     private static SelectionSetNode? MergeProvidedSelectionSets(
