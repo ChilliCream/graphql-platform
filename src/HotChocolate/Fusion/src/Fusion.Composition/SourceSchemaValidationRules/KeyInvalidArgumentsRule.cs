@@ -1,11 +1,9 @@
-using System.Collections.Immutable;
 using HotChocolate.Fusion.Events;
 using HotChocolate.Fusion.Events.Contracts;
 using HotChocolate.Fusion.Extensions;
 using HotChocolate.Fusion.Validators;
 using HotChocolate.Language;
 using HotChocolate.Types;
-using HotChocolate.Types.Mutable;
 using static HotChocolate.Fusion.Logging.LogEntryHelper;
 using static HotChocolate.Fusion.WellKnownArgumentNames;
 using static HotChocolate.Language.Utf8GraphQLParser.Syntax;
@@ -13,10 +11,12 @@ using static HotChocolate.Language.Utf8GraphQLParser.Syntax;
 namespace HotChocolate.Fusion.SourceSchemaValidationRules;
 
 /// <summary>
+/// The <c>@key</c> directive is used to define the set of fields that uniquely identify an entity.
 /// Fields included in the <c>fields</c> argument of the <c>@key</c> directive may accept arguments,
-/// provided the supplied values are constant literals that match the field's argument definitions.
-/// Each argument must be defined on the field, its value must be compatible with the argument type,
-/// and every required argument must be supplied.
+/// provided the supplied values are constant literals — variables are not permitted, since a key
+/// must be statically resolvable from the schema alone. The constants must satisfy the field’s
+/// argument definitions: argument names must be defined on the field, values must be coercible to
+/// the corresponding argument types, and required arguments without defaults must be supplied.
 /// </summary>
 /// <seealso href="https://graphql.github.io/composite-schemas-spec/draft/#sec-Key-Invalid-Arguments">
 /// Specification
@@ -69,7 +69,6 @@ internal sealed class KeyInvalidArgumentsRule : IEventHandler<ComplexTypeEvent>
             ConstantArgumentValidator.Validate(
                 fieldNode.Arguments,
                 field,
-                field.Coordinate.ToString(),
                 errors);
 
             if (fieldNode.SelectionSet is not null

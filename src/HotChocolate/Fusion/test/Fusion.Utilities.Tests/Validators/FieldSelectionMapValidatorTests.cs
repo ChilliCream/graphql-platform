@@ -290,8 +290,6 @@ public sealed class FieldSelectionMapValidatorTests
         {
             // The following Path is valid in the context of Book.
             { "String", "Book", "title" },
-            // A constant argument with a valid enum value is accepted.
-            { "Float", "Book", "weight(unit: POUND)" },
             { "String", "Book", "<Book>.title" },
             // For non-leaf fields, the Path must continue to specify subselections until a leaf
             // field is reached.
@@ -307,7 +305,9 @@ public sealed class FieldSelectionMapValidatorTests
             { "[ID]", "Query", "storeById.media[id]" },
             { "[ID]", "Query", "storeById.media[id] | storeById.media[id]" },
             { "[[ID]]", "Query", "nestedBookList[[id]]" },
-            { "[[BookIdAndTitleInput]]", "Query", "nestedBookList[[{ id, title }]]" }
+            { "[[BookIdAndTitleInput]]", "Query", "nestedBookList[[{ id, title }]]" },
+            // A constant argument with a valid enum value is accepted.
+            { "Float", "Book", "weight(unit: POUND)" }
         };
     }
 

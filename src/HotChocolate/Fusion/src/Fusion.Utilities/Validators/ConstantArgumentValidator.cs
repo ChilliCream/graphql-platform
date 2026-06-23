@@ -15,9 +15,9 @@ public static class ConstantArgumentValidator
     public static void Validate(
         IReadOnlyList<ArgumentNode> arguments,
         IOutputFieldDefinition field,
-        string fieldName,
         List<string> errors)
     {
+        var fieldCoordinate = field.Coordinate.ToString();
         var provided = new HashSet<string>(StringComparer.Ordinal);
 
         foreach (var argument in arguments)
@@ -28,7 +28,7 @@ public static class ConstantArgumentValidator
                     string.Format(
                         ConstantArgumentValidator_ArgumentDoesNotExist,
                         argument.Name.Value,
-                        fieldName));
+                        fieldCoordinate));
 
                 continue;
             }
@@ -41,7 +41,7 @@ public static class ConstantArgumentValidator
                     string.Format(
                         ConstantArgumentValidator_ValueIncompatible,
                         argument.Name.Value,
-                        fieldName,
+                        fieldCoordinate,
                         argumentDefinition.Type.ToTypeNode().Print(indented: false)));
             }
         }
@@ -56,7 +56,7 @@ public static class ConstantArgumentValidator
                     string.Format(
                         ConstantArgumentValidator_MissingRequiredArgument,
                         argumentDefinition.Name,
-                        fieldName));
+                        fieldCoordinate));
             }
         }
     }
@@ -89,20 +89,16 @@ public static class ConstantArgumentValidator
             return IsCompatible(value, type.ElementType());
         }
 
-        switch (type.AsTypeDefinition())
+        return type.AsTypeDefinition() switch
         {
-            case IEnumTypeDefinition enumType:
-                return value is EnumValueNode enumValue && enumType.Values.ContainsName(enumValue.Value);
-
-            case IInputObjectTypeDefinition inputObjectType:
-                return IsCompatibleObject(value, inputObjectType);
-
-            case IScalarTypeDefinition scalarType:
-                return IsCompatibleScalar(value, scalarType);
-
-            default:
-                return false;
-        }
+            IEnumTypeDefinition enumType
+                => value is EnumValueNode enumValue && enumType.Values.ContainsName(enumValue.Value),
+            IInputObjectTypeDefinition inputObjectType
+                => IsCompatibleObject(value, inputObjectType),
+            IScalarTypeDefinition scalarType
+                => IsCompatibleScalar(value, scalarType),
+            _ => false
+        };
     }
 
     private static bool IsCompatibleObject(IValueNode value, IInputObjectTypeDefinition inputObjectType)
@@ -148,10 +144,10 @@ public static class ConstantArgumentValidator
         // so any non-null constant literal is accepted; execution performs full coercion.
         return scalarType.Name switch
         {
-            "Int" => value is IntValueNode,
-            "Float" => value is FloatValueNode or IntValueNode,
-            "Boolean" => value is BooleanValueNode,
-            "String" or "ID" => value is StringValueNode,
+            SpecScalarNames.Int.Name => value is IntValueNode,
+            SpecScalarNames.Float.Name => value is FloatValueNode or IntValueNode,
+            SpecScalarNames.Boolean.Name => value is BooleanValueNode,
+            SpecScalarNames.String.Name or SpecScalarNames.ID.Name => value is StringValueNode,
             _ => true
         };
     }

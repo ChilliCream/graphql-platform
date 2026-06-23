@@ -39,8 +39,8 @@ public static class LogEntryCodes
     public const string IsInvalidSyntax = "IS_INVALID_SYNTAX";
     public const string IsInvalidUsage = "IS_INVALID_USAGE";
     public const string KeyDirectiveInFieldsArgument = "KEY_DIRECTIVE_IN_FIELDS_ARGUMENT";
-    public const string KeyInvalidArguments = "KEY_INVALID_ARGUMENTS";
     public const string KeyFieldsSelectInvalidType = "KEY_FIELDS_SELECT_INVALID_TYPE";
+    public const string KeyInvalidArguments = "KEY_INVALID_ARGUMENTS";
     public const string KeyInvalidFields = "KEY_INVALID_FIELDS";
     public const string KeyInvalidFieldsType = "KEY_INVALID_FIELDS_TYPE";
     public const string KeyInvalidSyntax = "KEY_INVALID_SYNTAX";

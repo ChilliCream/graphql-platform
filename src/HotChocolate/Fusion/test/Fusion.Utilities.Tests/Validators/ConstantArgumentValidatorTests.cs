@@ -1,5 +1,4 @@
 using HotChocolate.Language;
-using HotChocolate.Types;
 using HotChocolate.Types.Mutable;
 using HotChocolate.Types.Mutable.Serialization;
 
@@ -7,27 +6,6 @@ namespace HotChocolate.Fusion.Validators;
 
 public sealed class ConstantArgumentValidatorTests
 {
-    private static IComplexTypeDefinition GetQueryType()
-    {
-        var schema = SchemaParser.Parse(
-            """
-            type Query {
-                entity(id: ID!): String
-                product(unit: Unit = METRIC, code: Int): String
-            }
-
-            enum Unit { METRIC IMPERIAL }
-            """u8.ToArray());
-
-        return schema.QueryType!;
-    }
-
-    private static IOutputFieldDefinition GetEntityField()
-        => GetQueryType().Fields["entity"];
-
-    private static IOutputFieldDefinition GetProductField()
-        => GetQueryType().Fields["product"];
-
     [Fact]
     public void Validate_KnownArgumentWithValidValue_NoErrors()
     {
@@ -37,7 +15,7 @@ public sealed class ConstantArgumentValidatorTests
         var errors = new List<string>();
 
         // act
-        ConstantArgumentValidator.Validate(arguments, field, "Query.product", errors);
+        ConstantArgumentValidator.Validate(arguments, field, errors);
 
         // assert
         Assert.Empty(errors);
@@ -52,7 +30,7 @@ public sealed class ConstantArgumentValidatorTests
         var errors = new List<string>();
 
         // act
-        ConstantArgumentValidator.Validate(arguments, field, "Query.product", errors);
+        ConstantArgumentValidator.Validate(arguments, field, errors);
 
         // assert
         var error = Assert.Single(errors);
@@ -68,7 +46,7 @@ public sealed class ConstantArgumentValidatorTests
         var errors = new List<string>();
 
         // act
-        ConstantArgumentValidator.Validate(arguments, field, "Query.product", errors);
+        ConstantArgumentValidator.Validate(arguments, field, errors);
 
         // assert
         var error = Assert.Single(errors);
@@ -86,7 +64,7 @@ public sealed class ConstantArgumentValidatorTests
         var errors = new List<string>();
 
         // act
-        ConstantArgumentValidator.Validate(arguments, field, "Query.product", errors);
+        ConstantArgumentValidator.Validate(arguments, field, errors);
 
         // assert
         var error = Assert.Single(errors);
@@ -100,11 +78,11 @@ public sealed class ConstantArgumentValidatorTests
     {
         // arrange
         var field = GetEntityField();
-        var arguments = System.Array.Empty<ArgumentNode>();
+        var arguments = Array.Empty<ArgumentNode>();
         var errors = new List<string>();
 
         // act
-        ConstantArgumentValidator.Validate(arguments, field, "Query.entity", errors);
+        ConstantArgumentValidator.Validate(arguments, field, errors);
 
         // assert
         var error = Assert.Single(errors);
@@ -112,4 +90,25 @@ public sealed class ConstantArgumentValidatorTests
             "The required argument 'id' on field 'Query.entity' was not provided.",
             error);
     }
+
+    private static MutableObjectTypeDefinition GetQueryType()
+    {
+        var schema = SchemaParser.Parse(
+            """
+            type Query {
+                entity(id: ID!): String
+                product(unit: Unit = METRIC, code: Int): String
+            }
+
+            enum Unit { METRIC IMPERIAL }
+            """u8.ToArray());
+
+        return schema.QueryType!;
+    }
+
+    private static MutableOutputFieldDefinition GetEntityField()
+        => GetQueryType().Fields["entity"];
+
+    private static MutableOutputFieldDefinition GetProductField()
+        => GetQueryType().Fields["product"];
 }

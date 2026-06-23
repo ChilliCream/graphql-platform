@@ -146,7 +146,6 @@ public sealed class FieldSelectionMapValidator(
                 ConstantArgumentValidator.Validate(
                     FieldSelectionMapValueNodeConverter.Convert(node.Arguments),
                     field,
-                    field.Coordinate.ToString(),
                     context.Errors);
             }
 
@@ -395,7 +394,6 @@ public sealed class FieldSelectionMapValidator(
                 ConstantArgumentValidator.Validate(
                     FieldSelectionMapValueNodeConverter.Convert(node.Arguments),
                     field,
-                    field.Coordinate.ToString(),
                     context.Errors);
             }
         }

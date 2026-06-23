@@ -52,7 +52,7 @@ public sealed class FieldSelectionMapValueNodeConverterTests
     public void Convert_BlockStringValue_PreservesBlockFlag()
     {
         // arrange
-        var node = new StringValueNode("multi\nline", true);
+        var node = new StringValueNode("multi\nline", block: true);
 
         // act
         var result = FieldSelectionMapValueNodeConverter.Convert(node);

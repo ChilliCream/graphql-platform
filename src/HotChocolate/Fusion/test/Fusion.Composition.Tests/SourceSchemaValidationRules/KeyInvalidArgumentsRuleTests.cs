@@ -6,7 +6,7 @@ public sealed class KeyInvalidArgumentsRuleTests : RuleTestBase
 
     // A key field with no arguments is valid.
     [Fact]
-    public void Validate_KeyFieldsHaveNoArguments_Succeeds()
+    public void Validate_KeyFieldsWithoutArguments_Succeeds()
     {
         AssertValid(
         [
