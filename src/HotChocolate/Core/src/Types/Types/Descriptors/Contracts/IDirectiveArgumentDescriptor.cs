@@ -16,6 +16,57 @@ public interface IDirectiveArgumentDescriptor
     IDirectiveArgumentDescriptor Deprecated();
 
     /// <summary>
+    /// Sets a directive on the argument
+    /// <example>
+    /// <code lang="csharp">
+    /// descriptor.Directive(new MyDirective());
+    /// </code>
+    /// Results in the following schema
+    /// <code lang="graphql">
+    /// directive @example(arg: Int @myDirective) on FIELD
+    /// </code>
+    /// </example>
+    /// </summary>
+    /// <param name="directiveInstance">
+    /// The instance of the directive
+    /// </param>
+    /// <typeparam name="T">The type of the directive</typeparam>
+    IDirectiveArgumentDescriptor Directive<T>(T directiveInstance)
+        where T : class;
+
+    /// <summary>
+    /// Sets a directive on the argument
+    /// <example>
+    /// <code lang="csharp">
+    /// descriptor.Directive&lt;MyDirective>();
+    /// </code>
+    /// Results in the following schema
+    /// <code lang="graphql">
+    /// directive @example(arg: Int @myDirective) on FIELD
+    /// </code>
+    /// </example>
+    /// </summary>
+    /// <typeparam name="T">The type of the directive</typeparam>
+    IDirectiveArgumentDescriptor Directive<T>()
+        where T : class, new();
+
+    /// <summary>
+    /// Sets a directive on the argument
+    /// <example>
+    /// <code lang="csharp">
+    /// descriptor.Directive("myDirective");
+    /// </code>
+    /// Results in the following schema
+    /// <code lang="graphql">
+    /// directive @example(arg: Int @myDirective) on FIELD
+    /// </code>
+    /// </example>
+    /// </summary>
+    /// <param name="name">The name of the directive</param>
+    /// <param name="arguments">The arguments of the directive</param>
+    IDirectiveArgumentDescriptor Directive(string name, params ArgumentNode[] arguments);
+
+    /// <summary>
     /// Sets the name of the argument
     /// <example>
     /// <code lang="csharp">

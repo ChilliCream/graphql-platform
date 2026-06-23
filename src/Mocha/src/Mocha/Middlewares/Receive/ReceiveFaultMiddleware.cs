@@ -137,7 +137,7 @@ internal sealed class ReceiveFaultMiddleware(
         => new(
             static (context, next) =>
             {
-                var errorEndpoint = context.Endpoint.ErrorEndpoint;
+                var errorEndpoint = context.Endpoint.Features.Get<ReceiveFaultEndpointFeature>()?.Endpoint;
                 var pools = context.Services.GetRequiredService<IMessagingPools>();
                 var timeProvider = context.Services.GetRequiredService<TimeProvider>();
                 var middleware = new ReceiveFaultMiddleware(timeProvider, errorEndpoint, pools);

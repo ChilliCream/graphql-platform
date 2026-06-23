@@ -52,6 +52,13 @@ public sealed class RequiresOptInDirectiveTests
                     .Value("VALUE")
                     .RequiresOptIn("enumValueFeature1")
                     .RequiresOptIn("enumValueFeature2"))
+                .AddDirectiveType(d => d
+                    .Name("exampleDirective")
+                    .Location(DirectiveLocation.Field)
+                    .Argument("argument", a => a
+                        .Type<IntType>()
+                        .RequiresOptIn("directiveArgFeature1")
+                        .RequiresOptIn("directiveArgFeature2")))
                 .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert

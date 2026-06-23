@@ -191,6 +191,7 @@ preconfigured
 preparables
 PRIMEM
 PROJCS
+projectable
 protobuf
 publishaot
 pycache

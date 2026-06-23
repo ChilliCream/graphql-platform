@@ -168,6 +168,8 @@ public ref struct FieldSelectionMapParser
 
         var fieldName = ParseName();
 
+        var arguments = ParseArguments();
+
         NameNode? typeName = null;
 
         if (_reader.TokenKind == TokenKind.LeftAngleBracket)
@@ -192,7 +194,7 @@ public ref struct FieldSelectionMapParser
 
         var location = CreateLocation(in start);
 
-        return new PathSegmentNode(location, fieldName, typeName, pathSegment);
+        return new PathSegmentNode(location, fieldName, arguments, typeName, pathSegment);
     }
 
     private ObjectValueSelectionNode ParseObjectValueSelection()
@@ -221,6 +223,18 @@ public ref struct FieldSelectionMapParser
 
         var name = ParseName();
 
+        var arguments = ParseArguments();
+
+        // An object field is either "Name : SelectedValue" or the shorthand "Name Arguments?".
+        // Arguments are only valid on the shorthand form, so a value selection following a
+        // non-empty argument list is a syntax error.
+        if (arguments.Length > 0 && _reader.TokenKind == TokenKind.Colon)
+        {
+            throw new FieldSelectionMapSyntaxException(
+                _reader,
+                ArgumentsNotAllowedOnObjectFieldWithValue);
+        }
+
         IValueSelectionNode? selectedValue = null;
         if (_reader.TokenKind == TokenKind.Colon)
         {
@@ -230,7 +244,194 @@ public ref struct FieldSelectionMapParser
 
         var location = CreateLocation(in start);
 
-        return new ObjectFieldSelectionNode(location, name, selectedValue);
+        return new ObjectFieldSelectionNode(location, name, arguments, selectedValue);
+    }
+
+    private ImmutableArray<ArgumentNode> ParseArguments()
+    {
+        if (_reader.TokenKind != TokenKind.LeftParenthesis)
+        {
+            return [];
+        }
+
+        Expect(TokenKind.LeftParenthesis);
+
+        var arguments = ImmutableArray.CreateBuilder<ArgumentNode>();
+
+        while (_reader.TokenKind != TokenKind.RightParenthesis)
+        {
+            arguments.Add(ParseArgument());
+        }
+
+        if (arguments.Count == 0)
+        {
+            throw new FieldSelectionMapSyntaxException(
+                _reader,
+                UnexpectedToken,
+                _reader.TokenKind);
+        }
+
+        Expect(TokenKind.RightParenthesis);
+
+        return arguments.ToImmutable();
+    }
+
+    private ArgumentNode ParseArgument()
+    {
+        var start = Start();
+
+        var name = ParseName();
+        Expect(TokenKind.Colon);
+        var value = ParseValueLiteral();
+
+        var location = CreateLocation(in start);
+
+        return new ArgumentNode(location, name, value);
+    }
+
+    private IValueNode ParseValueLiteral()
+    {
+        switch (_reader.TokenKind)
+        {
+            case TokenKind.LeftSquareBracket:
+                return ParseListValue();
+
+            case TokenKind.LeftBrace:
+                return ParseObjectValue();
+
+            case TokenKind.IntValue:
+                return ParseIntValue();
+
+            case TokenKind.FloatValue:
+                return ParseFloatValue();
+
+            case TokenKind.StringValue:
+            case TokenKind.BlockStringValue:
+                return ParseStringValue();
+
+            case TokenKind.Name:
+                return ParseEnumOrKeywordValue();
+
+            default:
+                throw new FieldSelectionMapSyntaxException(
+                    _reader,
+                    UnexpectedToken,
+                    _reader.TokenKind);
+        }
+    }
+
+    private ListValueNode ParseListValue()
+    {
+        var start = Start();
+
+        Expect(TokenKind.LeftSquareBracket);
+
+        var items = ImmutableArray.CreateBuilder<IValueNode>();
+
+        while (_reader.TokenKind != TokenKind.RightSquareBracket)
+        {
+            items.Add(ParseValueLiteral());
+        }
+
+        Expect(TokenKind.RightSquareBracket);
+
+        var location = CreateLocation(in start);
+
+        return new ListValueNode(location, items.ToImmutable());
+    }
+
+    private ObjectValueNode ParseObjectValue()
+    {
+        var start = Start();
+
+        Expect(TokenKind.LeftBrace);
+
+        var fields = ImmutableArray.CreateBuilder<ObjectFieldNode>();
+
+        while (_reader.TokenKind != TokenKind.RightBrace)
+        {
+            fields.Add(ParseObjectField());
+        }
+
+        Expect(TokenKind.RightBrace);
+
+        var location = CreateLocation(in start);
+
+        return new ObjectValueNode(location, fields.ToImmutable());
+    }
+
+    private ObjectFieldNode ParseObjectField()
+    {
+        var start = Start();
+
+        var name = ParseName();
+        Expect(TokenKind.Colon);
+        var value = ParseValueLiteral();
+
+        var location = CreateLocation(in start);
+
+        return new ObjectFieldNode(location, name, value);
+    }
+
+    private IntValueNode ParseIntValue()
+    {
+        var start = Start();
+        var value = _reader.Value.ToString();
+        Expect(TokenKind.IntValue);
+        var location = CreateLocation(in start);
+
+        return new IntValueNode(location, value);
+    }
+
+    private FloatValueNode ParseFloatValue()
+    {
+        var start = Start();
+        var value = _reader.Value.ToString();
+        Expect(TokenKind.FloatValue);
+        var location = CreateLocation(in start);
+
+        return new FloatValueNode(location, value);
+    }
+
+    private StringValueNode ParseStringValue()
+    {
+        var start = Start();
+        var isBlock = _reader.TokenKind == TokenKind.BlockStringValue;
+
+        // The reader exposes the raw lexeme between the quotes. Decode it into the semantic
+        // value before advancing, since the span is only valid until the next read.
+        var value = isBlock
+            ? StringValueHelper.TrimBlockString(_reader.Value, _reader)
+            : StringValueHelper.UnescapeString(_reader.Value, _reader);
+
+        if (!_reader.Skip(TokenKind.StringValue) && !_reader.Skip(TokenKind.BlockStringValue))
+        {
+            throw new FieldSelectionMapSyntaxException(
+                _reader,
+                InvalidToken,
+                TokenKind.StringValue,
+                _reader.TokenKind);
+        }
+
+        var location = CreateLocation(in start);
+
+        return new StringValueNode(location, value, isBlock);
+    }
+
+    private IValueNode ParseEnumOrKeywordValue()
+    {
+        var start = Start();
+        var value = _reader.Value.ToString();
+        Expect(TokenKind.Name);
+        var location = CreateLocation(in start);
+
+        return value switch
+        {
+            "true" => new BooleanValueNode(location, true),
+            "false" => new BooleanValueNode(location, false),
+            "null" => new NullValueNode(location),
+            _ => new EnumValueNode(location, value)
+        };
     }
 
     private ListValueSelectionNode ParseListValueSelection()

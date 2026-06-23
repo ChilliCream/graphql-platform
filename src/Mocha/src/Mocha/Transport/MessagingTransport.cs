@@ -42,13 +42,13 @@ public abstract partial class MessagingTransport : IAsyncDisposable, IFeaturePro
     /// The receive endpoint used to accept reply messages for request/response flows, or
     /// <see langword="null"/> if the transport does not support replies.
     /// </summary>
-    public ReceiveEndpoint? ReplyReceiveEndpoint { get; protected set; }
+    public ReceiveEndpoint? ReplyReceiveEndpoint { get; protected internal set; }
 
     /// <summary>
     /// The dispatch endpoint used to send reply messages back to requestors, or
     /// <see langword="null"/> if the transport does not support replies.
     /// </summary>
-    public DispatchEndpoint? ReplyDispatchEndpoint { get; protected set; }
+    public DispatchEndpoint? ReplyDispatchEndpoint { get; protected internal set; }
 
     private IFeatureCollection? _features;
 
@@ -75,9 +75,29 @@ public abstract partial class MessagingTransport : IAsyncDisposable, IFeaturePro
     protected internal MessagingTransportConfiguration Configuration { get; protected set; } = null!;
 
     /// <summary>
+    /// Gets the bind mode that determines whether this transport derives missing
+    /// endpoints and routes from conventions or requires them to be configured explicitly.
+    /// When <see cref="MessagingBindMode.Implicit"/>, convention-based discovery and binds are enabled.
+    /// When <see cref="MessagingBindMode.Explicit"/>, discovery and convention binds are suppressed by default.
+    /// </summary>
+    public MessagingBindMode BindMode { get; private set; } = MessagingBindMode.Implicit;
+
+    /// <summary>
+    /// Gets a value indicating whether this transport is the designated default for routing when
+    /// multiple transports are registered and no explicit transport is specified for a message type.
+    /// </summary>
+    public bool IsDefaultTransport { get; private set; }
+
+    /// <summary>
     /// The convention registry scoped to this transport, applied during routing and endpoint configuration.
     /// </summary>
     public IConventionRegistry Conventions { get; protected set; } = null!;
+
+    /// <summary>
+    /// The routing strategy that resolves the transport's message routes and addresses into receive
+    /// and dispatch endpoint configurations and discovers the endpoints the transport exposes.
+    /// </summary>
+    public RoutingStrategy Routing { get; private set; } = null!;
 
     /// <summary>
     /// Produces a structural description of this transport including its endpoints, topology entities,
@@ -338,9 +358,10 @@ public abstract partial class MessagingTransport : IAsyncDisposable, IFeaturePro
     /// A <see cref="DispatchEndpointConfiguration"/> if the route can be served by this transport;
     /// otherwise <see langword="null"/>.
     /// </returns>
-    public abstract DispatchEndpointConfiguration? CreateEndpointConfiguration(
+    public virtual DispatchEndpointConfiguration? CreateEndpointConfiguration(
         IMessagingConfigurationContext context,
-        OutboundRoute route);
+        OutboundRoute route)
+        => Routing.CreateEndpointConfiguration(context, route);
 
     /// <summary>
     /// Creates the dispatch endpoint configuration for the given destination address, or returns
@@ -352,9 +373,10 @@ public abstract partial class MessagingTransport : IAsyncDisposable, IFeaturePro
     /// A <see cref="DispatchEndpointConfiguration"/> if the address can be served by this transport;
     /// otherwise <see langword="null"/>.
     /// </returns>
-    public abstract DispatchEndpointConfiguration? CreateEndpointConfiguration(
+    public virtual DispatchEndpointConfiguration? CreateEndpointConfiguration(
         IMessagingConfigurationContext context,
-        Uri address);
+        Uri address)
+        => Routing.CreateEndpointConfiguration(context, address);
 
     /// <summary>
     /// Creates the receive endpoint configuration for the given inbound route, or returns
@@ -366,9 +388,10 @@ public abstract partial class MessagingTransport : IAsyncDisposable, IFeaturePro
     /// A <see cref="ReceiveEndpointConfiguration"/> if the route can be served by this transport;
     /// otherwise <see langword="null"/>.
     /// </returns>
-    public abstract ReceiveEndpointConfiguration? CreateEndpointConfiguration(
+    public virtual ReceiveEndpointConfiguration? CreateEndpointConfiguration(
         IMessagingConfigurationContext context,
-        InboundRoute route);
+        InboundRoute route)
+        => Routing.CreateEndpointConfiguration(context, route);
 
     /// <summary>
     /// Factory method to create a transport-specific receive endpoint instance.
