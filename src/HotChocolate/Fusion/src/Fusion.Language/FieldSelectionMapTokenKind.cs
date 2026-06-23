@@ -17,6 +17,9 @@ internal enum FieldSelectionMapTokenKind
     /// <summary>{</summary>
     LeftBrace,
 
+    /// <summary>(</summary>
+    LeftParenthesis,
+
     /// <summary>[</summary>
     LeftSquareBracket,
 
@@ -31,6 +34,9 @@ internal enum FieldSelectionMapTokenKind
 
     /// <summary>&gt;</summary>
     RightAngleBracket,
+
+    /// <summary>)</summary>
+    RightParenthesis,
 
     /// <summary>]</summary>
     RightSquareBracket,

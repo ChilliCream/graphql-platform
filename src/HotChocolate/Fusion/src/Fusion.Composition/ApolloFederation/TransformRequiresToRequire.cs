@@ -1,3 +1,4 @@
+using HotChocolate.Fusion.Extensions;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Types.Mutable;
@@ -148,7 +149,7 @@ internal static class TransformRequiresToRequire
         argument.Directives.Add(
             new Directive(
                 requireDef,
-                new ArgumentAssignment("field", fieldName)));
+                new ArgumentAssignment("field", FormatFieldSelection(fieldNode))));
 
         targetField.Arguments.Add(argument);
     }
@@ -185,7 +186,8 @@ internal static class TransformRequiresToRequire
         // Detect whether the source field is a list type (e.g. [Product] or [Product!]!).
         var isList = sourceField.Type.NullableType() is ListType;
 
-        var hash = ComputeHash(declaringType.Name, targetField.Name, fieldName);
+        var fieldSelection = FormatFieldSelection(fieldNode);
+        var hash = ComputeHash(declaringType.Name, targetField.Name, fieldSelection);
         var inputTypeName = $"{namedType.Name}Input_{hash}";
         var inputType = new MutableInputObjectTypeDefinition(inputTypeName);
         var addedFields = new HashSet<string>(StringComparer.Ordinal);
@@ -197,15 +199,16 @@ internal static class TransformRequiresToRequire
 
         // For list types, paths inside the list bracket are relative to each element,
         // so we pass an empty prefix. For non-list types, paths are absolute from the
-        // declaring type, so we pass the field name as the prefix.
+        // declaring type, so we pass the field selection as the prefix.
         CollectInputFields(
             fieldNode.SelectionSet!,
             nestedType,
             schema,
             inputType,
-            isList ? string.Empty : fieldName,
+            isList ? string.Empty : fieldSelection,
             typeCondition: null,
             forceNullable,
+            pathIsExternal: IsExternal(sourceField),
             addedFields,
             fieldMappings);
 
@@ -217,7 +220,7 @@ internal static class TransformRequiresToRequire
         pendingInputTypes.Add(inputType);
 
         var fieldSelectionMap = isList
-            ? BuildListFieldSelectionMap(fieldName, fieldMappings)
+            ? BuildListFieldSelectionMap(fieldSelection, fieldMappings)
             : BuildFieldSelectionMap(fieldMappings);
 
         var argType = RebuildTypeWrapping(sourceField.Type, inputType);
@@ -288,7 +291,7 @@ internal static class TransformRequiresToRequire
                         new Directive(
                             requireDef,
                             new ArgumentAssignment(
-                                "field", $"<{typeName}>.{leafName}")));
+                                "field", $"<{typeName}>.{FormatFieldSelection(leafField)}")));
 
                     targetField.Arguments.Add(argument);
                     break;
@@ -297,6 +300,7 @@ internal static class TransformRequiresToRequire
                 case FieldNode { SelectionSet.Selections.Count: > 0 } nestedField:
                 {
                     var nestedFieldName = nestedField.Name.Value;
+                    var nestedFieldSelection = FormatFieldSelection(nestedField);
 
                     if (!concreteType.Fields.TryGetField(
                             nestedFieldName, out var sourceField))
@@ -313,7 +317,7 @@ internal static class TransformRequiresToRequire
                     }
 
                     var hash = ComputeHash(
-                        declaringType.Name, targetField.Name, nestedFieldName);
+                        declaringType.Name, targetField.Name, nestedFieldSelection);
                     var inputTypeName = $"{innerNamedType.Name}Input_{hash}";
                     var inputObj = new MutableInputObjectTypeDefinition(inputTypeName);
                     var addedFields = new HashSet<string>(StringComparer.Ordinal);
@@ -325,9 +329,10 @@ internal static class TransformRequiresToRequire
                         innerType,
                         schema,
                         inputObj,
-                        $"<{typeName}>.{nestedFieldName}",
+                        $"<{typeName}>.{nestedFieldSelection}",
                         typeCondition: null,
                         forceNullable: true,
+                        pathIsExternal: IsExternal(sourceField),
                         addedFields,
                         fieldMappings);
 
@@ -370,6 +375,7 @@ internal static class TransformRequiresToRequire
         string pathPrefix,
         string? typeCondition,
         bool forceNullable,
+        bool pathIsExternal,
         HashSet<string> addedFields,
         List<(string InputFieldName, string SourcePath)> fieldMappings)
     {
@@ -380,6 +386,7 @@ internal static class TransformRequiresToRequire
                 case FieldNode { SelectionSet: null or { Selections.Count: 0 } } leafField:
                 {
                     var fieldName = leafField.Name.Value;
+                    var fieldSelection = FormatFieldSelection(leafField);
 
                     if (addedFields.Contains(fieldName))
                     {
@@ -397,17 +404,24 @@ internal static class TransformRequiresToRequire
                         break;
                     }
 
+                    if (pathIsExternal
+                        && currentType is MutableObjectTypeDefinition
+                        && !IsKeyField(currentType, fieldName))
+                    {
+                        ApplyExternalDirective(sourceField);
+                    }
+
                     var actualType = forceNullable
                         ? StripNonNull(fieldType)
                         : fieldType;
 
                     var path = string.IsNullOrEmpty(pathPrefix)
                         ? typeCondition != null
-                            ? $"<{typeCondition}>.{fieldName}"
-                            : fieldName
+                            ? $"<{typeCondition}>.{fieldSelection}"
+                            : fieldSelection
                         : typeCondition != null
-                            ? $"{pathPrefix}<{typeCondition}>.{fieldName}"
-                            : $"{pathPrefix}.{fieldName}";
+                            ? $"{pathPrefix}<{typeCondition}>.{fieldSelection}"
+                            : $"{pathPrefix}.{fieldSelection}";
 
                     var inputField = new MutableInputFieldDefinition(
                         fieldName, actualType)
@@ -424,6 +438,7 @@ internal static class TransformRequiresToRequire
                 case FieldNode { SelectionSet.Selections.Count: > 0 } nestedField:
                 {
                     var fieldName = nestedField.Name.Value;
+                    var fieldSelection = FormatFieldSelection(nestedField);
 
                     if (!currentType.Fields.TryGetField(
                             fieldName, out var pathField))
@@ -441,11 +456,11 @@ internal static class TransformRequiresToRequire
 
                     var newPath = string.IsNullOrEmpty(pathPrefix)
                         ? typeCondition != null
-                            ? $"<{typeCondition}>.{fieldName}"
-                            : fieldName
+                            ? $"<{typeCondition}>.{fieldSelection}"
+                            : fieldSelection
                         : typeCondition != null
-                            ? $"{pathPrefix}<{typeCondition}>.{fieldName}"
-                            : $"{pathPrefix}.{fieldName}";
+                            ? $"{pathPrefix}<{typeCondition}>.{fieldSelection}"
+                            : $"{pathPrefix}.{fieldSelection}";
 
                     CollectInputFields(
                         nestedField.SelectionSet!,
@@ -455,6 +470,7 @@ internal static class TransformRequiresToRequire
                         newPath,
                         typeCondition: null,
                         forceNullable,
+                        pathIsExternal || IsExternal(pathField),
                         addedFields,
                         fieldMappings);
                     break;
@@ -477,6 +493,7 @@ internal static class TransformRequiresToRequire
                         pathPrefix,
                         fragmentTypeName,
                         forceNullable: true,
+                        pathIsExternal,
                         addedFields,
                         fieldMappings);
                     break;
@@ -496,11 +513,74 @@ internal static class TransformRequiresToRequire
     /// For example: <c>similar[{ id: id }]</c>
     /// </summary>
     private static string BuildListFieldSelectionMap(
-        string fieldName,
+        string fieldSelection,
         List<(string InputFieldName, string SourcePath)> fieldMappings)
     {
         var parts = fieldMappings.Select(m => $"{m.InputFieldName}: {m.SourcePath}");
-        return fieldName + "[{ " + string.Join(", ", parts) + " }]";
+        return fieldSelection + "[{ " + string.Join(", ", parts) + " }]";
+    }
+
+    private static string FormatFieldSelection(FieldNode fieldNode)
+    {
+        if (fieldNode.Arguments.Count == 0)
+        {
+            return fieldNode.Name.Value;
+        }
+
+        var arguments = fieldNode.Arguments.Select(a => a.ToString(indented: false));
+
+        return $"{fieldNode.Name.Value}({string.Join(", ", arguments)})";
+    }
+
+    private static bool IsExternal(MutableOutputFieldDefinition field)
+        => field.Directives.ContainsName(FederationDirectiveNames.External);
+
+    private static void ApplyExternalDirective(MutableOutputFieldDefinition field)
+    {
+        if (!IsExternal(field))
+        {
+            var externalDirectiveDefinition =
+                new MutableDirectiveDefinition(FederationDirectiveNames.External);
+
+            field.Directives.Add(new Directive(externalDirectiveDefinition));
+        }
+    }
+
+    private static bool IsKeyField(
+        MutableComplexTypeDefinition type,
+        string fieldName)
+    {
+        foreach (var keyDirective in type.GetKeyDirectives())
+        {
+            if (!keyDirective.Arguments.TryGetValue("fields", out var fieldsValue)
+                || fieldsValue is not StringValueNode fieldsString)
+            {
+                continue;
+            }
+
+            SelectionSetNode selectionSet;
+
+            try
+            {
+                selectionSet = Utf8GraphQLParser.Syntax.ParseSelectionSet(
+                    "{ " + fieldsString.Value + " }");
+            }
+            catch (SyntaxException)
+            {
+                continue;
+            }
+
+            foreach (var selection in selectionSet.Selections)
+            {
+                if (selection is FieldNode keyField
+                    && keyField.Name.Value.Equals(fieldName, StringComparison.Ordinal))
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     private static IInputType StripNonNull(IInputType type)

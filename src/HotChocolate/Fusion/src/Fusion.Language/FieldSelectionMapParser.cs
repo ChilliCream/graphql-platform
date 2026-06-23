@@ -167,6 +167,12 @@ public ref struct FieldSelectionMapParser
         var start = Start();
 
         var fieldName = ParseName();
+        IReadOnlyList<PathArgumentNode> arguments = [];
+
+        if (_reader.TokenKind == TokenKind.LeftParenthesis)
+        {
+            arguments = ParseArguments(fieldName, _reader.ReadBalancedParentheses());
+        }
 
         NameNode? typeName = null;
 
@@ -192,7 +198,169 @@ public ref struct FieldSelectionMapParser
 
         var location = CreateLocation(in start);
 
-        return new PathSegmentNode(location, fieldName, typeName, pathSegment);
+        return new PathSegmentNode(location, fieldName, arguments, typeName, pathSegment);
+    }
+
+    private IReadOnlyList<PathArgumentNode> ParseArguments(
+        NameNode fieldName,
+        string argumentList)
+    {
+        var arguments = new List<PathArgumentNode>();
+        var sourceText = argumentList.AsSpan(1, argumentList.Length - 2);
+        var position = 0;
+
+        while (position < sourceText.Length)
+        {
+            SkipWhitespaceAndCommas(sourceText, ref position);
+
+            if (position >= sourceText.Length)
+            {
+                break;
+            }
+
+            var name = ParseArgumentName(sourceText, ref position, fieldName);
+            SkipWhitespace(sourceText, ref position);
+
+            if (position >= sourceText.Length || sourceText[position] != CharConstants.Colon)
+            {
+                throw new FieldSelectionMapSyntaxException(
+                    _reader,
+                    $"Expected a ':' after argument `{name.Value}` on field `{fieldName.Value}`.");
+            }
+
+            position++;
+            SkipWhitespace(sourceText, ref position);
+
+            var value = ParseArgumentValue(sourceText, ref position, fieldName);
+            arguments.Add(new PathArgumentNode(name, value));
+        }
+
+        return arguments;
+    }
+
+    private static void SkipWhitespaceAndCommas(ReadOnlySpan<char> sourceText, ref int position)
+    {
+        while (position < sourceText.Length
+            && (char.IsWhiteSpace(sourceText[position]) || sourceText[position] == CharConstants.Comma))
+        {
+            position++;
+        }
+    }
+
+    private static void SkipWhitespace(ReadOnlySpan<char> sourceText, ref int position)
+    {
+        while (position < sourceText.Length && char.IsWhiteSpace(sourceText[position]))
+        {
+            position++;
+        }
+    }
+
+    private NameNode ParseArgumentName(
+        ReadOnlySpan<char> sourceText,
+        ref int position,
+        NameNode fieldName)
+    {
+        if (position >= sourceText.Length || !sourceText[position].IsLetterOrUnderscore())
+        {
+            throw new FieldSelectionMapSyntaxException(
+                _reader,
+                $"Expected an argument name on field `{fieldName.Value}`.");
+        }
+
+        var start = position++;
+
+        while (position < sourceText.Length
+            && (sourceText[position].IsLetterOrUnderscore() || char.IsDigit(sourceText[position])))
+        {
+            position++;
+        }
+
+        return new NameNode(sourceText[start..position].ToString());
+    }
+
+    private string ParseArgumentValue(
+        ReadOnlySpan<char> sourceText,
+        ref int position,
+        NameNode fieldName)
+    {
+        var start = position;
+        var parenthesesDepth = 0;
+        var bracketDepth = 0;
+        var braceDepth = 0;
+        var inString = false;
+        var escaped = false;
+
+        while (position < sourceText.Length)
+        {
+            var code = sourceText[position];
+
+            if (inString)
+            {
+                if (escaped)
+                {
+                    escaped = false;
+                }
+                else if (code == '\\')
+                {
+                    escaped = true;
+                }
+                else if (code == '"')
+                {
+                    inString = false;
+                }
+
+                position++;
+                continue;
+            }
+
+            switch (code)
+            {
+                case '"':
+                    inString = true;
+                    break;
+
+                case CharConstants.LeftParenthesis:
+                    parenthesesDepth++;
+                    break;
+
+                case CharConstants.RightParenthesis:
+                    parenthesesDepth--;
+                    break;
+
+                case CharConstants.LeftSquareBracket:
+                    bracketDepth++;
+                    break;
+
+                case CharConstants.RightSquareBracket:
+                    bracketDepth--;
+                    break;
+
+                case CharConstants.LeftBrace:
+                    braceDepth++;
+                    break;
+
+                case CharConstants.RightBrace:
+                    braceDepth--;
+                    break;
+
+                case CharConstants.Comma
+                    when parenthesesDepth == 0 && bracketDepth == 0 && braceDepth == 0:
+                    return sourceText[start..position].Trim().ToString();
+            }
+
+            position++;
+        }
+
+        var value = sourceText[start..position].Trim();
+
+        if (value.IsEmpty)
+        {
+            throw new FieldSelectionMapSyntaxException(
+                _reader,
+                $"Expected a value for an argument on field `{fieldName.Value}`.");
+        }
+
+        return value.ToString();
     }
 
     private ObjectValueSelectionNode ParseObjectValueSelection()

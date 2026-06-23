@@ -6,9 +6,8 @@ namespace HotChocolate.Fusion.Suites;
 public sealed class RequiresWithArgumentConflictTests : ComplianceTestBase
 {
     private const string SkipReason =
-        "Composition does not yet support @requires with field arguments "
-        + "(e.g. price(currency: \"USD\")). The @require FieldSet parser "
-        + "rejects argument syntax in the 'field' value.";
+        "Planner does not yet split conflicting argument-bearing @requires fields "
+        + "into separate subgraph fetches.";
 
     protected override Task<FusionGateway> BuildGatewayAsync()
         => FusionGatewayBuilder.ComposeAsync(

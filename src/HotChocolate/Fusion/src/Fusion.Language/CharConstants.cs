@@ -7,6 +7,7 @@ internal static class CharConstants
     public const char HorizontalTab = '\t';
     public const char LeftAngleBracket = '<';
     public const char LeftBrace = '{';
+    public const char LeftParenthesis = '(';
     public const char LeftSquareBracket = '[';
     public const char LineFeed = '\n';
     public const char Period = '.';
@@ -14,6 +15,7 @@ internal static class CharConstants
     public const char Return = '\r';
     public const char RightAngleBracket = '>';
     public const char RightBrace = '}';
+    public const char RightParenthesis = ')';
     public const char RightSquareBracket = ']';
     public const char Space = ' ';
     public const char Underscore = '_';

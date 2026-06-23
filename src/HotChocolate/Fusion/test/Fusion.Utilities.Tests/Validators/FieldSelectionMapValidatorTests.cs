@@ -103,6 +103,52 @@ public sealed class FieldSelectionMapValidatorTests
         Assert.Equal(expected, errors);
     }
 
+    [Fact]
+    public void InterfaceTypeCondition_WithPossibleTypeOverlap_IsValid()
+    {
+        // arrange
+        var sourceSchemaText =
+            new SourceSchemaText(
+                "A",
+                """
+                type Query {
+                    foo(input: RequirerInput @is(field: "{ foo: foo, bar: <Bar>.bar }")): Foo
+                }
+
+                interface Foo {
+                    foo: String
+                }
+
+                interface Bar {
+                    foo: String
+                    bar: String
+                }
+
+                type Baz implements Foo & Bar {
+                    foo: String
+                    bar: String
+                }
+
+                input RequirerInput {
+                    foo: String
+                    bar: String
+                }
+                """);
+        var sourceSchemaParser = new SourceSchemaParser(sourceSchemaText, new CompositionLog());
+        var schema = sourceSchemaParser.Parse().Value;
+        var fieldSelectionMap = GetFieldSelectionMap(schema, "Query", "foo", "input", "is");
+        var selectedValue = new FieldSelectionMapParser(fieldSelectionMap).Parse();
+        var inputType = schema.QueryType!.Fields["foo"].Arguments["input"].Type;
+        var outputType = schema.Types["Foo"];
+
+        // act
+        var errors =
+            new FieldSelectionMapValidator(schema).Validate(selectedValue, inputType, outputType);
+
+        // assert
+        Assert.Empty(errors);
+    }
+
     // If the "UserInput" type requires the "id" field, then an invalid selection would be missing
     // the required "id" field.
     [Fact]

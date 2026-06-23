@@ -161,7 +161,14 @@ public sealed class ApolloFederationSourceSchemaClientConfiguration
                     continue;
                 }
 
-                requires[argument.Name] = LookupArgumentPathMapper.Map(selection);
+                var path = LookupArgumentPathMapper.Map(selection);
+
+                if (path.Length == 0)
+                {
+                    path = argument.Name;
+                }
+
+                requires[argument.Name] = path;
             }
 
             if (requires.Count > 0)

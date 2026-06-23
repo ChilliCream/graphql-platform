@@ -120,6 +120,26 @@ public sealed class ValueSelectionToSelectionSetRewriterTests
                 """
             },
             {
+                "Product",
+                """price(currency: "USD")""",
+                """
+                {
+                    price(currency: "USD")
+                }
+                """
+            },
+            {
+                "Product",
+                """{ averagePrice: category.averagePrice(currency: "USD") }""",
+                """
+                {
+                    category {
+                        averagePrice(currency: "USD")
+                    }
+                }
+                """
+            },
+            {
                 "Location",
                 "{ coordinates: coordinates[{ lat: x, lon: y }] }",
                 """
@@ -220,6 +240,12 @@ public sealed class ValueSelectionToSelectionSetRewriterTests
         type Product {
             dimensions: Dimensions!
             parts: [Part!]!
+            price(currency: String!): Int
+            category: Category
+        }
+
+        type Category {
+            averagePrice(currency: String!): Int
         }
 
         type Dimensions {

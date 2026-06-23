@@ -22,6 +22,7 @@ internal static class RemoveExternalFields
     public static void Apply(MutableSchemaDefinition schema)
     {
         var referencedFields = CollectProvidesReferences(schema);
+        var emptyObjectTypes = new List<MutableObjectTypeDefinition>();
 
         foreach (var type in schema.Types)
         {
@@ -45,7 +46,51 @@ internal static class RemoveExternalFields
             {
                 complexType.Fields.Remove(field);
             }
+
+            if (complexType is MutableObjectTypeDefinition objectType
+                && objectType.Fields.Count == 0)
+            {
+                emptyObjectTypes.Add(objectType);
+            }
         }
+
+        foreach (var objectType in emptyObjectTypes)
+        {
+            if (!IsReferencedByOutputField(schema, objectType))
+            {
+                schema.Types.Remove(objectType.Name);
+            }
+        }
+    }
+
+    private static bool IsReferencedByOutputField(
+        MutableSchemaDefinition schema,
+        MutableObjectTypeDefinition objectType)
+    {
+        foreach (var type in schema.Types)
+        {
+            if (type is MutableUnionTypeDefinition unionType
+                && unionType.Types.AsEnumerable().Any(
+                    t => t.Name.Equals(objectType.Name, StringComparison.Ordinal)))
+            {
+                return true;
+            }
+
+            if (type is not MutableComplexTypeDefinition complexType)
+            {
+                continue;
+            }
+
+            foreach (var field in complexType.Fields)
+            {
+                if (field.Type.NamedType().Name.Equals(objectType.Name, StringComparison.Ordinal))
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     private static HashSet<(string TypeName, string FieldName)> CollectProvidesReferences(

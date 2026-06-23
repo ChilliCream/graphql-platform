@@ -25,11 +25,13 @@ internal static class CharExtensions
             case Colon:
             case LeftAngleBracket:
             case LeftBrace:
+            case LeftParenthesis:
             case LeftSquareBracket:
             case Period:
             case Pipe:
             case RightAngleBracket:
             case RightBrace:
+            case RightParenthesis:
             case RightSquareBracket:
                 return true;
 

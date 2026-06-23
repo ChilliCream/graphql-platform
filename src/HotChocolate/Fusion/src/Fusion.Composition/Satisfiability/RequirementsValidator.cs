@@ -139,7 +139,12 @@ internal sealed class RequirementsValidator(
             return [];
         }
 
-        var schemaNames = field.GetSchemaNames().Remove(context.ExcludeSchemaName);
+        var schemaNames = field.GetSchemaNames();
+        if (fieldNode.SelectionSet is null)
+        {
+            schemaNames = schemaNames.Remove(context.ExcludeSchemaName);
+        }
+
         var fieldType = field.Type.AsTypeDefinition();
 
         foreach (var schemaName in schemaNames)

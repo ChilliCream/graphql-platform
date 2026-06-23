@@ -113,10 +113,39 @@ public sealed class ValueSelectionToSelectionSetRewriter(
             ]);
         }
 
-        return new FieldNode(pathSegment.FieldName.Value, selectionSet);
+        return new FieldNode(
+            null,
+            new HotChocolate.Language.NameNode(pathSegment.FieldName.Value),
+            alias: null,
+            directives: [],
+            arguments: CreateArguments(pathSegment),
+            selectionSet);
 
         static SelectionSetNode? CreateSelectionSetNode(ISelectionNode? selection)
             => selection is null ? null : new SelectionSetNode([selection]);
+    }
+
+    private static IReadOnlyList<ArgumentNode> CreateArguments(PathSegmentNode pathSegment)
+    {
+        var arguments = pathSegment.GetArguments();
+
+        if (arguments.Count == 0)
+        {
+            return [];
+        }
+
+        var argumentNodes = new ArgumentNode[arguments.Count];
+
+        for (var i = 0; i < arguments.Count; i++)
+        {
+            var argument = arguments[i];
+            argumentNodes[i] = new ArgumentNode(
+                null,
+                new HotChocolate.Language.NameNode(argument.Name.Value),
+                Utf8GraphQLParser.Syntax.ParseValueLiteral(argument.Value, constant: false));
+        }
+
+        return argumentNodes;
     }
 
     private static ISelectionNode Visit(PathObjectValueSelectionNode node)

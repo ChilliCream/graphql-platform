@@ -31,14 +31,28 @@ public sealed class PathSegmentNode : IFieldSelectionMapSyntaxNode
         NameNode fieldName,
         NameNode? typeName,
         PathSegmentNode? pathSegment)
+        : this(location, fieldName, [], typeName, pathSegment)
+    {
+    }
+
+    public PathSegmentNode(
+        Location? location,
+        NameNode fieldName,
+        IReadOnlyList<PathArgumentNode> arguments,
+        NameNode? typeName,
+        PathSegmentNode? pathSegment)
     {
         ArgumentNullException.ThrowIfNull(fieldName);
+        ArgumentNullException.ThrowIfNull(arguments);
 
         FieldName = fieldName;
+        _arguments = arguments;
         TypeName = typeName;
         PathSegment = pathSegment;
         Location = location;
     }
+
+    private readonly IReadOnlyList<PathArgumentNode> _arguments;
 
     public FieldSelectionMapSyntaxKind Kind => FieldSelectionMapSyntaxKind.PathSegment;
 
@@ -49,6 +63,8 @@ public sealed class PathSegmentNode : IFieldSelectionMapSyntaxNode
     public NameNode? TypeName { get; }
 
     public PathSegmentNode? PathSegment { get; }
+
+    public IReadOnlyList<PathArgumentNode> GetArguments() => _arguments;
 
     public IEnumerable<IFieldSelectionMapSyntaxNode> GetNodes()
     {

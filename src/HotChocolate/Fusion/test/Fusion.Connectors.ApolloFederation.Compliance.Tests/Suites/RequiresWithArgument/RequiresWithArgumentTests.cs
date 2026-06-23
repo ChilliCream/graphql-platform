@@ -8,9 +8,8 @@ namespace HotChocolate.Fusion.Suites;
 public sealed class RequiresWithArgumentTests : ComplianceTestBase
 {
     private const string SkipReason =
-        "Composition does not yet support @requires with field arguments "
-        + "(e.g. price(currency: \"USD\")). The @require FieldSet parser "
-        + "rejects argument syntax in the 'field' value.";
+        "Planner does not yet satisfy argument-bearing @requires selections that "
+        + "include list fields and nested lookups.";
 
     protected override Task<FusionGateway> BuildGatewayAsync()
         => FusionGatewayBuilder.ComposeAsync(
@@ -19,7 +18,7 @@ public sealed class RequiresWithArgumentTests : ComplianceTestBase
             (CSubgraph.Name, CSubgraph.BuildAsync),
             (DSubgraph.Name, DSubgraph.BuildAsync));
 
-    [Fact(Skip = SkipReason)]
+    [Fact]
     public Task Products_ShippingEstimate_And_IsExpensiveCategory() => RunAsync(
         query: """
             query {
