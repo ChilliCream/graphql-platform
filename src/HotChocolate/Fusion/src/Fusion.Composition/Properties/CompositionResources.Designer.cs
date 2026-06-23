@@ -1286,6 +1286,15 @@ namespace HotChocolate.Fusion.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The @subscribe directive on field &apos;{0}&apos; in schema &apos;{1}&apos; specifies an invalid message selection..
+        /// </summary>
+        internal static string LogEntryHelper_SubscribeMessageInvalidFields {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_SubscribeMessageInvalidFields", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to The root query type in schema &apos;{0}&apos; must be accessible..
         /// </summary>
         internal static string LogEntryHelper_QueryRootTypeInaccessible {

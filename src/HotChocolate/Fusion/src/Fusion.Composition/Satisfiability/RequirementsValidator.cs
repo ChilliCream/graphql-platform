@@ -154,9 +154,26 @@ internal sealed class RequirementsValidator(
             schemaNames = schemaNames.Remove(context.ExcludeSchemaName);
         }
         var fieldType = field.Type.AsTypeDefinition();
+        var optionCount = 0;
+        var skippedDueToProvidedSelectionSet = false;
 
         foreach (var schemaName in schemaNames)
         {
+            SelectionSetNode? providedSelectionSet = null;
+
+            if (previousPathItem?.ProvidedSelectionSet is not null
+                && previousSchemaName == schemaName
+                && !previousPathItem.TryGetProvidedSelectionSet(
+                    field,
+                    type,
+                    schemaName,
+                    schema,
+                    out providedSelectionSet))
+            {
+                skippedDueToProvidedSelectionSet = true;
+                continue;
+            }
+
             // If the field is marked as partial, it must be provided by the current schema for it
             // to be an option.
             if (field.IsPartial(schemaName)
@@ -235,9 +252,10 @@ internal sealed class RequirementsValidator(
                 }
             }
 
+            optionCount++;
             context.CycleDetectionPath.Pop();
 
-            context.Path.Push(pathItem);
+            context.Path.Push(pathItem with { ProvidedSelectionSet = providedSelectionSet });
 
             if (fieldNode.SelectionSet is null)
             {
@@ -285,7 +303,8 @@ internal sealed class RequirementsValidator(
 
         context.FieldAccessCache.Add(cacheKey);
 
-        if (schemaNames.Length == 0)
+        if (schemaNames.Length == 0
+            || (optionCount == 0 && errors.Count == 0 && skippedDueToProvidedSelectionSet))
         {
             errors.Add(
                 new SatisfiabilityError(

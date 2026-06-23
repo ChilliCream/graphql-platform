@@ -423,6 +423,9 @@
   <data name="LogEntryHelper_ProvidesOnNonCompositeField" xml:space="preserve">
     <value>The field '{0}' in schema '{1}' includes a @provides directive, but does not return a composite type.</value>
   </data>
+  <data name="LogEntryHelper_SubscribeMessageInvalidFields" xml:space="preserve">
+    <value>The @subscribe directive on field '{0}' in schema '{1}' specifies an invalid message selection.</value>
+  </data>
   <data name="LogEntryHelper_QueryRootTypeInaccessible" xml:space="preserve">
     <value>The root query type in schema '{0}' must be accessible.</value>
   </data>

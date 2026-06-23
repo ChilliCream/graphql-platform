@@ -135,6 +135,13 @@ directive @fusion__schema_metadata(
   name: String!
 ) on ENUM_VALUE
 
+directive @fusion__subscribe(
+  broker: String
+  message: fusion__FieldSelectionSet!
+  schema: fusion__Schema!
+  topics: [String!]
+) on FIELD_DEFINITION
+
 "The @fusion__type directive specifies which source schemas provide parts of a composite type."
 directive @fusion__type(
   "The name of the source schema that originally provided part of the annotated type."

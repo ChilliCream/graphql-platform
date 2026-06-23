@@ -60,6 +60,40 @@ internal static class MutableOutputFieldDefinitionExtensions
             return null;
         }
 
+        public ImmutableArray<string> GetFusionSubscribeSchemaNames()
+        {
+            ImmutableArray<string>.Builder? builder = null;
+
+            foreach (var directive in field.Directives.AsEnumerable())
+            {
+                if (directive.Name != DirectiveNames.FusionSubscribe)
+                {
+                    continue;
+                }
+
+                builder ??= ImmutableArray.CreateBuilder<string>();
+                builder.Add((string)directive.Arguments[ArgumentNames.Schema].Value!);
+            }
+
+            return builder?.ToImmutable() ?? [];
+        }
+
+        public SelectionSetNode? GetFusionSubscribeMessage(string schemaName)
+        {
+            var fusionSubscribeDirective =
+                field.Directives.AsEnumerable().FirstOrDefault(
+                    d =>
+                        d.Name == DirectiveNames.FusionSubscribe
+                        && (string)d.Arguments[ArgumentNames.Schema].Value! == schemaName);
+
+            if (fusionSubscribeDirective?.Arguments.TryGetValue(ArgumentNames.Message, out var message) == true)
+            {
+                return ParseSelectionSet((string)message.Value!);
+            }
+
+            return null;
+        }
+
         public List<string> GetFusionLookupMap()
         {
             var items = new List<string>();

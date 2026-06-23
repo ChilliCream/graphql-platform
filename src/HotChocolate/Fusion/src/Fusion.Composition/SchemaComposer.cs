@@ -174,7 +174,8 @@ public sealed class SchemaComposer
         new RequireInvalidSyntaxRule(),
         new RootMutationUsedRule(),
         new RootQueryUsedRule(),
-        new RootSubscriptionUsedRule()
+        new RootSubscriptionUsedRule(),
+        new SubscribeMessageInvalidFieldsRule()
     ];
 
     private static readonly ImmutableArray<object> s_preMergeRules =

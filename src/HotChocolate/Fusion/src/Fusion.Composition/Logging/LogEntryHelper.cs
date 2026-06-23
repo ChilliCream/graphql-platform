@@ -1038,6 +1038,25 @@ internal static class LogEntryHelper
             .Build();
     }
 
+    public static LogEntry SubscribeMessageInvalidFields(
+        MutableOutputFieldDefinition field,
+        MutableSchemaDefinition schema,
+        ImmutableArray<string> errors)
+    {
+        var coordinate = field.Coordinate;
+
+        return LogEntryBuilder.New()
+            .SetMessage(LogEntryHelper_SubscribeMessageInvalidFields, coordinate.ToString(), schema.Name)
+            .SetCode(LogEntryCodes.SubscribeMessageInvalidFields)
+            .SetSeverity(LogSeverity.Error)
+            .SetCoordinate(coordinate)
+            .SetTypeSystemMember(field)
+            .SetSchema(schema)
+            .SetExtension("errors", errors)
+            .SetExtensionsFormatter(ErrorFormatter)
+            .Build();
+    }
+
     public static LogEntry QueryRootTypeInaccessible(
         ITypeDefinition type,
         MutableSchemaDefinition schema)

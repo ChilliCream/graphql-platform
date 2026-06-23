@@ -113,6 +113,15 @@ internal sealed class SatisfiabilityValidator
     {
         var previousSchemaName = path?.Item.SchemaName;
         var schemaNames = field.GetSchemaNames(first: previousSchemaName);
+        var subscribeSchemaNames = field.GetFusionSubscribeSchemaNames();
+
+        if (!subscribeSchemaNames.IsDefaultOrEmpty)
+        {
+            schemaNames = previousSchemaName is not null && subscribeSchemaNames.Contains(previousSchemaName)
+                ? subscribeSchemaNames.Remove(previousSchemaName).Insert(0, previousSchemaName)
+                : subscribeSchemaNames;
+        }
+
         var cycle = false;
         var errors = new List<SatisfiabilityError>();
         var optionCount = 0;
@@ -120,6 +129,20 @@ internal sealed class SatisfiabilityValidator
 
         foreach (var schemaName in schemaNames)
         {
+            SelectionSetNode? providedSelectionSet = null;
+
+            if (path?.Item.ProvidedSelectionSet is not null
+                && previousSchemaName == schemaName
+                && !path.Item.TryGetProvidedSelectionSet(
+                    field,
+                    type,
+                    schemaName,
+                    _schema,
+                    out providedSelectionSet))
+            {
+                continue;
+            }
+
             // If the field is marked as partial, it must be provided by the current schema for it
             // to be an option.
             if (field.IsPartial(schemaName)
@@ -128,7 +151,14 @@ internal sealed class SatisfiabilityValidator
                 continue;
             }
 
-            var pathItem = new SatisfiabilityPathItem(field, type, schemaName);
+            var pathItem = new SatisfiabilityPathItem(
+                field,
+                type,
+                schemaName)
+            {
+                ProvidedSelectionSet =
+                    field.GetFusionSubscribeMessage(schemaName) ?? providedSelectionSet
+            };
 
             // Validate that we are not in a cycle by checking if this path item
             // already appears in the ancestor chain.
@@ -192,6 +222,13 @@ internal sealed class SatisfiabilityValidator
             {
                 var fieldPath = new PathNode(pathItem, path);
                 var possibleTypes = fieldType.GetPossibleTypes(schemaName, _schema);
+
+                if (pathItem.ProvidedSelectionSet is { } pathItemProvidedSelectionSet)
+                {
+                    possibleTypes = FilterPossibleTypesByProvidedSelectionSet(
+                        possibleTypes,
+                        pathItemProvidedSelectionSet);
+                }
 
                 foreach (var possibleType in possibleTypes)
                 {
@@ -324,6 +361,54 @@ internal sealed class SatisfiabilityValidator
                     excludeSchemaName: transitionToSchemaName),
             SatisfiabilityValidator_NoLookupsFoundForType,
             SatisfiabilityValidator_UnableToSatisfyRequirementForLookup);
+    }
+
+    private IEnumerable<MutableObjectTypeDefinition> FilterPossibleTypesByProvidedSelectionSet(
+        IEnumerable<MutableObjectTypeDefinition> possibleTypes,
+        SelectionSetNode selectionSet)
+    {
+        HashSet<string>? providedTypeNames = null;
+
+        CollectRootTypeConditions(selectionSet, ref providedTypeNames);
+
+        if (providedTypeNames is null)
+        {
+            return possibleTypes;
+        }
+
+        return possibleTypes.Where(t => providedTypeNames.Contains(t.Name));
+    }
+
+    private void CollectRootTypeConditions(
+        SelectionSetNode selectionSet,
+        ref HashSet<string>? providedTypeNames)
+    {
+        foreach (var selection in selectionSet.Selections)
+        {
+            if (selection is not InlineFragmentNode inlineFragment)
+            {
+                continue;
+            }
+
+            if (inlineFragment.TypeCondition is { } typeCondition)
+            {
+                if (!_schema.Types.TryGetType(typeCondition.Name.Value, out var type))
+                {
+                    continue;
+                }
+
+                providedTypeNames ??= [];
+
+                foreach (var possibleType in _schema.GetPossibleTypes(type))
+                {
+                    providedTypeNames.Add(possibleType.Name);
+                }
+            }
+            else
+            {
+                CollectRootTypeConditions(inlineFragment.SelectionSet, ref providedTypeNames);
+            }
+        }
     }
 
     private static IType CreateType(ITypeNode typeNode, ITypeDefinition namedType)
