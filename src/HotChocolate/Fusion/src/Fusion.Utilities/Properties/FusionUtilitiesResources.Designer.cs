@@ -57,6 +57,18 @@ namespace HotChocolate.Fusion {
             }
         }
         
+        internal static string ConstantArgumentValidator_DuplicateArgument {
+            get {
+                return ResourceManager.GetString("ConstantArgumentValidator_DuplicateArgument", resourceCulture);
+            }
+        }
+        
+        internal static string ConstantArgumentValidator_DuplicateInputField {
+            get {
+                return ResourceManager.GetString("ConstantArgumentValidator_DuplicateInputField", resourceCulture);
+            }
+        }
+        
         internal static string ConstantArgumentValidator_MissingRequiredArgument {
             get {
                 return ResourceManager.GetString("ConstantArgumentValidator_MissingRequiredArgument", resourceCulture);

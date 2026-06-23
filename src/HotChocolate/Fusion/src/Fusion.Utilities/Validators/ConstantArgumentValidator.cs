@@ -33,7 +33,18 @@ public static class ConstantArgumentValidator
                 continue;
             }
 
-            provided.Add(argument.Name.Value);
+            if (!provided.Add(argument.Name.Value))
+            {
+                errors.Add(
+                    string.Format(
+                        ConstantArgumentValidator_DuplicateArgument,
+                        argument.Name.Value,
+                        fieldCoordinate));
+
+                continue;
+            }
+
+            ReportDuplicateInputObjectFields(argument.Value, fieldCoordinate, errors);
 
             if (ContainsVariable(argument.Value))
             {
@@ -83,6 +94,44 @@ public static class ConstantArgumentValidator
             _ => false
         };
 
+    // Reports input object fields whose name appears more than once within the same object value
+    // (recursively). The parser accepts duplicate names, so uniqueness is enforced here.
+    private static void ReportDuplicateInputObjectFields(
+        IValueNode value,
+        string fieldCoordinate,
+        List<string> errors)
+    {
+        switch (value)
+        {
+            case ObjectValueNode objectValue:
+                var seen = new HashSet<string>(StringComparer.Ordinal);
+
+                foreach (var field in objectValue.Fields)
+                {
+                    if (!seen.Add(field.Name.Value))
+                    {
+                        errors.Add(
+                            string.Format(
+                                ConstantArgumentValidator_DuplicateInputField,
+                                field.Name.Value,
+                                fieldCoordinate));
+                    }
+
+                    ReportDuplicateInputObjectFields(field.Value, fieldCoordinate, errors);
+                }
+
+                break;
+
+            case ListValueNode listValue:
+                foreach (var item in listValue.Items)
+                {
+                    ReportDuplicateInputObjectFields(item, fieldCoordinate, errors);
+                }
+
+                break;
+        }
+    }
+
     private static bool IsCompatible(IValueNode value, IType type)
     {
         if (type.IsNonNullType())
@@ -130,6 +179,8 @@ public static class ConstantArgumentValidator
             return false;
         }
 
+        // Tracks which fields are present for the required-field check below; duplicate field names
+        // are reported separately by ReportDuplicateInputObjectFields.
         var provided = new HashSet<string>(StringComparer.Ordinal);
 
         foreach (var field in objectValue.Fields)
@@ -169,7 +220,8 @@ public static class ConstantArgumentValidator
             SpecScalarNames.Int.Name => value is IntValueNode,
             SpecScalarNames.Float.Name => value is FloatValueNode or IntValueNode,
             SpecScalarNames.Boolean.Name => value is BooleanValueNode,
-            SpecScalarNames.String.Name or SpecScalarNames.ID.Name => value is StringValueNode,
+            SpecScalarNames.String.Name => value is StringValueNode,
+            SpecScalarNames.ID.Name => value is StringValueNode or IntValueNode,
             _ => true
         };
     }
