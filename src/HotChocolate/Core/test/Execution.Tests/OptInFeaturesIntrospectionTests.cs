@@ -36,6 +36,8 @@ public sealed class OptInFeaturesIntrospectionTests
                   "optInFeatures": [
                     "directiveArgFeature1",
                     "directiveArgFeature2",
+                    "directiveFeature1",
+                    "directiveFeature2",
                     "enumValueFeature1",
                     "enumValueFeature2",
                     "inputFieldFeature1",
@@ -594,7 +596,73 @@ public sealed class OptInFeaturesIntrospectionTests
     }
 
     [Fact]
-    public async Task Execute_IntrospectionOnDirectiveArgs_MatchesSnapshot()
+    public async Task Execute_IntrospectionOnDirectives_MatchesSnapshot()
+    {
+        // arrange
+        const string query =
+            """
+            {
+                __schema {
+                    directives(includeOptIn: ["directiveFeature1"]) {
+                        name
+                        requiresOptIn
+                    }
+                }
+            }
+            """;
+
+        var executor = CreateSchema().MakeExecutable();
+
+        // act
+        var result = await executor.ExecuteAsync(query, TestContext.Current.CancellationToken);
+
+        // assert
+        var directives = GetDirectives(result, "exampleDirective");
+        directives.MatchInlineSnapshot(
+            """
+            [
+              {
+                "name": "exampleDirective",
+                "requiresOptIn": [
+                  "directiveFeature1",
+                  "directiveFeature2"
+                ]
+              }
+            ]
+            """);
+    }
+
+    [Fact]
+    public async Task Execute_IntrospectionOnDirectivesFeatureDoesNotExist_MatchesSnapshot()
+    {
+        // arrange
+        const string query =
+            """
+            {
+                __schema {
+                    directives(includeOptIn: ["directiveFeatureDoesNotExist"]) {
+                        name
+                        requiresOptIn
+                    }
+                }
+            }
+            """;
+
+        var executor = CreateSchema().MakeExecutable();
+
+        // act
+        var result = await executor.ExecuteAsync(query, TestContext.Current.CancellationToken);
+
+        // assert
+        var directives = GetDirectives(result, "exampleDirective");
+        directives.MatchInlineSnapshot(
+            """
+            []
+            """);
+    }
+
+    [Fact]
+    public async Task Execute_IntrospectionOnDirectivesNoIncludedFeatures_MatchesSnapshot()
     {
         // arrange
         const string query =
@@ -602,6 +670,35 @@ public sealed class OptInFeaturesIntrospectionTests
             {
                 __schema {
                     directives {
+                        name
+                        requiresOptIn
+                    }
+                }
+            }
+            """;
+
+        var executor = CreateSchema().MakeExecutable();
+
+        // act
+        var result = await executor.ExecuteAsync(query, TestContext.Current.CancellationToken);
+
+        // assert
+        var directives = GetDirectives(result, "exampleDirective");
+        directives.MatchInlineSnapshot(
+            """
+            []
+            """);
+    }
+
+    [Fact]
+    public async Task Execute_IntrospectionOnDirectiveArgs_MatchesSnapshot()
+    {
+        // arrange
+        const string query =
+            """
+            {
+                __schema {
+                    directives(includeOptIn: ["directiveFeature1"]) {
                         name
                         args(includeOptIn: ["directiveArgFeature1"]) {
                             name
@@ -648,7 +745,7 @@ public sealed class OptInFeaturesIntrospectionTests
             """
             {
                 __schema {
-                    directives {
+                    directives(includeOptIn: ["directiveFeature1"]) {
                         name
                         args(includeOptIn: ["directiveArgFeatureDoesNotExist"]) {
                             name
@@ -688,7 +785,7 @@ public sealed class OptInFeaturesIntrospectionTests
             """
             {
                 __schema {
-                    directives {
+                    directives(includeOptIn: ["directiveFeature1"]) {
                         name
                         args {
                             name
@@ -721,6 +818,21 @@ public sealed class OptInFeaturesIntrospectionTests
     }
 
     private static readonly JsonSerializerOptions s_indented = new() { WriteIndented = true };
+
+    private static string GetDirectives(IExecutionResult result, string directiveName)
+    {
+        using var document = JsonDocument.Parse(result.ToJson());
+
+        var directives = document.RootElement
+            .GetProperty("data")
+            .GetProperty("__schema")
+            .GetProperty("directives")
+            .EnumerateArray()
+            .Where(d => d.GetProperty("name").GetString() == directiveName)
+            .ToArray();
+
+        return JsonSerializer.Serialize(directives, s_indented);
+    }
 
     private static string GetDirective(IExecutionResult result, string directiveName)
     {
@@ -836,6 +948,9 @@ public sealed class OptInFeaturesIntrospectionTests
         {
             descriptor.Name("exampleDirective");
             descriptor.Location(DirectiveLocation.Field);
+            descriptor
+                .RequiresOptIn("directiveFeature1")
+                .RequiresOptIn("directiveFeature2");
 
             descriptor
                 .Argument("argument1")
