@@ -20,11 +20,13 @@ enum Enum {
     @requiresOptIn(feature: "enumValueFeature2")
 }
 
-directive @exampleDirective(
+directive @directive(
   argument: Int @requiresOptIn(feature: "directiveArgFeature1") @requiresOptIn(feature: "directiveArgFeature2")
-) on FIELD
+)
+  @requiresOptIn(feature: "directiveFeature1")
+  @requiresOptIn(feature: "directiveFeature2") on FIELD
 
-"Indicates that the given field, argument, input field, or enum value requires giving explicit consent before being used."
+"Indicates that the given field, argument, input field, enum value, or directive definition requires giving explicit consent before being used."
 directive @requiresOptIn(
   "The name of the feature that requires opt in."
   feature: String!
@@ -33,3 +35,4 @@ directive @requiresOptIn(
   | ARGUMENT_DEFINITION
   | ENUM_VALUE
   | INPUT_FIELD_DEFINITION
+  | DIRECTIVE_DEFINITION
