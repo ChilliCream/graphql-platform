@@ -660,26 +660,6 @@ internal static class LogEntryHelper
             .Build();
     }
 
-    public static LogEntry KeyFieldsHasArguments(
-        MutableOutputFieldDefinition keyField,
-        Directive keyDirective,
-        MutableComplexTypeDefinition type,
-        MutableSchemaDefinition schema)
-    {
-        return LogEntryBuilder.New()
-            .SetMessage(
-                LogEntryHelper_KeyFieldsHasArguments,
-                type.Name,
-                schema.Name,
-                keyField.Coordinate.ToString())
-            .SetCode(LogEntryCodes.KeyFieldsHasArguments)
-            .SetSeverity(LogSeverity.Error)
-            .SetCoordinate(type.Coordinate)
-            .SetTypeSystemMember(keyDirective)
-            .SetSchema(schema)
-            .Build();
-    }
-
     public static LogEntry KeyFieldsSelectInvalidType(
         MutableOutputFieldDefinition keyField,
         Directive keyDirective,
@@ -693,6 +673,26 @@ internal static class LogEntryHelper
                 schema.Name,
                 keyField.Coordinate.ToString())
             .SetCode(LogEntryCodes.KeyFieldsSelectInvalidType)
+            .SetSeverity(LogSeverity.Error)
+            .SetCoordinate(type.Coordinate)
+            .SetTypeSystemMember(keyDirective)
+            .SetSchema(schema)
+            .Build();
+    }
+
+    public static LogEntry KeyInvalidArguments(
+        Directive keyDirective,
+        MutableComplexTypeDefinition type,
+        MutableSchemaDefinition schema,
+        ImmutableArray<string> errors)
+    {
+        return LogEntryBuilder.New()
+            .SetMessage(
+                LogEntryHelper_KeyInvalidArguments,
+                type.Name,
+                schema.Name,
+                string.Join(" ", errors))
+            .SetCode(LogEntryCodes.KeyInvalidArguments)
             .SetSeverity(LogSeverity.Error)
             .SetCoordinate(type.Coordinate)
             .SetTypeSystemMember(keyDirective)
