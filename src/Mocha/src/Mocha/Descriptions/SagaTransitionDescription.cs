@@ -9,7 +9,6 @@ namespace Mocha;
 /// <param name="EventTypeFullName">The fully qualified type name, or <c>null</c> if unavailable.</param>
 /// <param name="TransitionTo">The name of the target state.</param>
 /// <param name="TransitionKind">The kind of transition (e.g., move, complete).</param>
-/// <param name="AutoProvision">Whether the saga instance is auto-provisioned when this event arrives.</param>
 /// <param name="Publish">Events published during this transition, or <c>null</c> if none.</param>
 /// <param name="Send">Commands sent during this transition, or <c>null</c> if none.</param>
 public sealed record SagaTransitionDescription(
@@ -17,6 +16,5 @@ public sealed record SagaTransitionDescription(
     string? EventTypeFullName,
     string TransitionTo,
     SagaTransitionKind TransitionKind,
-    bool AutoProvision,
     IReadOnlyList<SagaEventDescription>? Publish,
     IReadOnlyList<SagaEventDescription>? Send);

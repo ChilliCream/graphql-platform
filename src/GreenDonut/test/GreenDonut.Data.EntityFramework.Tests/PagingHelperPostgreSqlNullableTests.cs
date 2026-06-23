@@ -313,6 +313,62 @@ public class PagingHelperPostgreSqlNullableTests(PostgreSqlResource resource)
             (await Assert.ThrowsAsync<InvalidOperationException>(Act)).Message);
     }
 
+    [Fact]
+    public async Task Paging_NullableNavigation_ValueTypeLeaf_Pages_Across_Null_Boundary()
+    {
+        // Arrange
+        var connectionString = CreateConnectionString();
+        await SeedItemsAsync(connectionString);
+        await using var context = new NullableTestsContext(Provider.PostgreSql, connectionString);
+
+        // Act
+        // Sort by a non-nullable value-type leaf (Detail.Number) behind a nullable
+        // navigation; the second page is requested after a null-navigation boundary.
+        var arguments = new PagingArguments(2) { NullOrdering = NullOrdering.NativeNullsLast };
+        var page1 = await context.Items
+            .OrderBy(x => x.Detail!.Number)
+            .ThenBy(x => x.Id)
+            .ToPageAsync(arguments, Xunit.TestContext.Current.CancellationToken);
+
+        arguments = arguments with { After = page1.CreateEndCursor() };
+        var page2 = await context.Items
+            .OrderBy(x => x.Detail!.Number)
+            .ThenBy(x => x.Id)
+            .ToPageAsync(arguments, Xunit.TestContext.Current.CancellationToken);
+
+        // Assert
+        Assert.Equal([1, 2], page1.Select(x => x.Id));
+        Assert.Equal([3, 4], page2.Select(x => x.Id));
+    }
+
+    [Fact]
+    public async Task Paging_NullableNavigation_ReferenceLeaf_Pages_Across_Null_Boundary()
+    {
+        // Arrange
+        var connectionString = CreateConnectionString();
+        await SeedItemsAsync(connectionString);
+        await using var context = new NullableTestsContext(Provider.PostgreSql, connectionString);
+
+        // Act
+        // Sort by a non-nullable reference leaf (Detail.Name) behind a nullable
+        // navigation; the second page is requested after a null-navigation boundary.
+        var arguments = new PagingArguments(2) { NullOrdering = NullOrdering.NativeNullsLast };
+        var page1 = await context.Items
+            .OrderBy(x => x.Detail!.Name)
+            .ThenBy(x => x.Id)
+            .ToPageAsync(arguments, Xunit.TestContext.Current.CancellationToken);
+
+        arguments = arguments with { After = page1.CreateEndCursor() };
+        var page2 = await context.Items
+            .OrderBy(x => x.Detail!.Name)
+            .ThenBy(x => x.Id)
+            .ToPageAsync(arguments, Xunit.TestContext.Current.CancellationToken);
+
+        // Assert
+        Assert.Equal([1, 2], page1.Select(x => x.Id));
+        Assert.Equal([3, 4], page2.Select(x => x.Id));
+    }
+
     private static async Task SeedAsync(string connectionString)
     {
         await using var context = new NullableTestsContext(Provider.PostgreSql, connectionString);
@@ -356,6 +412,22 @@ public class PagingHelperPostgreSqlNullableTests(PostgreSqlResource resource)
                 Time = new TimeOnly(19, 40, 00),
                 String = "19:40:00"
             });
+
+        await context.SaveChangesAsync();
+    }
+
+    private static async Task SeedItemsAsync(string connectionString)
+    {
+        await using var context = new NullableTestsContext(Provider.PostgreSql, connectionString);
+        await context.Database.EnsureCreatedAsync();
+
+        // Only the first item has a navigation; the rest are null and sort last,
+        // so paging crosses a null-navigation boundary between page 1 and page 2.
+        context.Items.AddRange(
+            new Item { Id = 1, Detail = new Detail { Number = 10, Name = "a" } },
+            new Item { Id = 2 },
+            new Item { Id = 3 },
+            new Item { Id = 4 });
 
         await context.SaveChangesAsync();
     }

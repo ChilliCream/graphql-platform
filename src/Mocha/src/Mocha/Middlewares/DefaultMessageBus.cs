@@ -436,7 +436,9 @@ public sealed class DefaultMessageBus(
         if (consumeContextAccessor.Context is { } ambient)
         {
             context.ConversationId ??= ambient.ConversationId;
-            context.CausationId ??= ambient.MessageId;
+            context.CausationId ??= ambient is IBatchConsumeContext batchContext
+                ? batchContext.BatchId
+                : ambient.MessageId;
         }
     }
 }

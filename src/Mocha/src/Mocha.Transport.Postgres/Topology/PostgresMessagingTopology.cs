@@ -46,12 +46,29 @@ public sealed class PostgresMessagingTopology(
     /// </summary>
     public PostgresBusDefaults Defaults => defaults;
 
+    public PostgresTopic GetOrAddTopic(
+        string name,
+        Func<string, PostgresTopicConfiguration> factory)
+    {
+        lock (_lock)
+        {
+            var topic = _topics.FirstOrDefault(t => t.Name == name);
+            if (topic is not null)
+            {
+                return topic;
+            }
+
+            var configuration = factory(name);
+            configuration.Name = name;
+            return CreateTopic(configuration);
+        }
+    }
+
     /// <summary>
-    /// Adds a new topic to the topology, initializing it from the given configuration.
+    /// Adds a topic to the topology or returns the existing topic with the same name.
     /// </summary>
     /// <param name="configuration">The topic configuration specifying name and provisioning settings.</param>
-    /// <returns>The created and initialized topic resource.</returns>
-    /// <exception cref="InvalidOperationException">Thrown if a topic with the same name already exists.</exception>
+    /// <returns>The created or updated topic resource.</returns>
     public PostgresTopic AddTopic(PostgresTopicConfiguration configuration)
     {
         lock (_lock)
@@ -59,53 +76,78 @@ public sealed class PostgresMessagingTopology(
             var topic = _topics.FirstOrDefault(t => t.Name == configuration.Name);
             if (topic is not null)
             {
-                throw new InvalidOperationException($"Topic '{configuration.Name}' already exists");
+                return topic;
             }
 
-            topic = new PostgresTopic();
+            return CreateTopic(configuration);
+        }
+    }
 
-            configuration.Topology = this;
-            defaults.Topic.ApplyTo(configuration);
-            topic.Initialize(configuration);
+    private PostgresTopic CreateTopic(PostgresTopicConfiguration configuration)
+    {
+        var topic = new PostgresTopic();
 
-            _topics.Add(topic);
+        configuration.Topology = this;
+        defaults.Topic.ApplyTo(configuration);
+        topic.Initialize(configuration);
 
-            topic.Complete();
+        _topics.Add(topic);
 
-            return topic;
+        topic.Complete();
+
+        return topic;
+    }
+
+    public PostgresQueue GetOrAddQueue(
+        string name,
+        Func<string, PostgresQueueConfiguration> factory)
+    {
+        lock (_lock)
+        {
+            var queue = _queues.FirstOrDefault(q => q.Name == name);
+            if (queue is not null)
+            {
+                return queue;
+            }
+
+            var configuration = factory(name);
+            configuration.Name = name;
+            return CreateQueue(configuration);
         }
     }
 
     /// <summary>
-    /// Adds a new queue to the topology, initializing it from the given configuration.
+    /// Adds a queue to the topology or returns the existing queue with the same name.
     /// </summary>
     /// <param name="configuration">The queue configuration specifying name, auto-delete, and provisioning settings.</param>
-    /// <returns>The created and initialized queue resource.</returns>
-    /// <exception cref="InvalidOperationException">Thrown if a queue with the same name already exists.</exception>
+    /// <returns>The created or updated queue resource.</returns>
     public PostgresQueue AddQueue(PostgresQueueConfiguration configuration)
     {
         lock (_lock)
         {
-            configuration.Topology ??= this;
-
             var queue = _queues.FirstOrDefault(q => q.Name == configuration.Name);
             if (queue is not null)
             {
-                throw new InvalidOperationException($"Queue '{configuration.Name}' already exists");
+                return queue;
             }
 
-            configuration.Topology = this;
-            defaults.Queue.ApplyTo(configuration);
-
-            queue = new PostgresQueue();
-            queue.Initialize(configuration);
-
-            _queues.Add(queue);
-
-            queue.Complete();
-
-            return queue;
+            return CreateQueue(configuration);
         }
+    }
+
+    private PostgresQueue CreateQueue(PostgresQueueConfiguration configuration)
+    {
+        configuration.Topology = this;
+        defaults.Queue.ApplyTo(configuration);
+
+        var queue = new PostgresQueue();
+        queue.Initialize(configuration);
+
+        _queues.Add(queue);
+
+        queue.Complete();
+
+        return queue;
     }
 
     /// <summary>

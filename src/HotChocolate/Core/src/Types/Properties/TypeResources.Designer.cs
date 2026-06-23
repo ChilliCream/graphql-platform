@@ -1826,7 +1826,7 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Indicates that the given field, argument, input field, or enum value requires giving explicit consent before being used..
+        ///   Looks up a localized string similar to Indicates that the given field, argument, input field, enum value, or directive definition requires giving explicit consent before being used..
         /// </summary>
         internal static string RequiresOptInDirectiveType_TypeDescription {
             get {

@@ -10,6 +10,11 @@ using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 using static System.Runtime.InteropServices.ImmutableCollectionsMarshal;
 using static HotChocolate.Types.DirectiveNames;
+using IntValueNode = HotChocolate.Language.IntValueNode;
+using StringValueNode = HotChocolate.Language.StringValueNode;
+using BooleanValueNode = HotChocolate.Language.BooleanValueNode;
+using EnumValueNode = HotChocolate.Language.EnumValueNode;
+using ListValueNode = HotChocolate.Language.ListValueNode;
 
 namespace HotChocolate.Fusion.Types.Completion;
 
@@ -792,6 +797,14 @@ internal static class CompositeSchemaBuilder
                 context.RegisterForCompletion(requirements);
             }
 
+            var compositeNamedTypeName = fieldDef.Type.NamedType().Name.Value;
+            var sourceNamedTypeName = fieldDirective.SourceType?.NamedType().Name.Value;
+            var sourceTypeName =
+                sourceNamedTypeName is not null
+                && !string.Equals(sourceNamedTypeName, compositeNamedTypeName, StringComparison.Ordinal)
+                    ? sourceNamedTypeName
+                    : null;
+
             temp.Add(
                 new SourceOutputField(
                     fieldDirective.SourceName ?? fieldDefinition.Name,
@@ -799,7 +812,8 @@ internal static class CompositeSchemaBuilder
                     requirements,
                     CompleteType(fieldDef.Type, fieldDirective.SourceType, context),
                     fieldDirective.IsExternal,
-                    fieldDirective.Provides));
+                    fieldDirective.Provides,
+                    sourceTypeName));
         }
 
         return new SourceObjectFieldCollection(temp.ToImmutable());

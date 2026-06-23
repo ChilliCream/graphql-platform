@@ -13,6 +13,12 @@
 # testing
 /coverage
 
+# playwright visual tests (committed baselines live in tests/visual/__screenshots__)
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+
 # next.js
 /.next/
 /out/

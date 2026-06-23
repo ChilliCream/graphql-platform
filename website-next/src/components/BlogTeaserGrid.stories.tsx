@@ -74,14 +74,6 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-export const FullPage: Story = {
-  args: { posts: SAMPLE.concat(SAMPLE.slice(0, 3)) },
-};
-
 export const PartialRow: Story = {
   args: { posts: SAMPLE.slice(0, 4) },
-};
-
-export const SinglePost: Story = {
-  args: { posts: [SAMPLE[0]] },
 };
