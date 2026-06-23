@@ -334,14 +334,14 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
 
         writer.WriteLine("schema: {0}", eventStreamSource.SchemaName);
 
-        if (!eventStreamSource.Directive.Topics.IsDefaultOrEmpty)
+        if (!eventStreamSource.Topics.IsDefaultOrEmpty)
         {
             writer.WriteLine(
                 "topics: [{0}]",
-                string.Join(", ", eventStreamSource.Directive.Topics));
+                string.Join(", ", eventStreamSource.Topics));
         }
 
-        if (eventStreamSource.Directive.Broker is { } broker)
+        if (eventStreamSource.Broker is { } broker)
         {
             writer.WriteLine("broker: {0}", broker);
         }

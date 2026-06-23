@@ -571,10 +571,9 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
         {
             SchemaName = eventStreamElement.GetProperty("schema").GetString()!,
             FieldName = fieldName,
-            Directive = new SubscribeDirective(
-                topics,
-                broker,
-                FieldDirectiveParser.ParseSelectionSet(message))
+            Topics = topics,
+            Broker = broker,
+            Message = FieldDirectiveParser.ParseSelectionSet(message)
         };
     }
 

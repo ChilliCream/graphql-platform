@@ -464,12 +464,12 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
         jsonWriter.WritePropertyName("schema");
         jsonWriter.WriteStringValue(eventStreamSource.SchemaName);
 
-        if (!eventStreamSource.Directive.Topics.IsDefaultOrEmpty)
+        if (!eventStreamSource.Topics.IsDefaultOrEmpty)
         {
             jsonWriter.WritePropertyName("topics");
             jsonWriter.WriteStartArray();
 
-            foreach (var topic in eventStreamSource.Directive.Topics)
+            foreach (var topic in eventStreamSource.Topics)
             {
                 jsonWriter.WriteStringValue(topic);
             }
@@ -477,7 +477,7 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
             jsonWriter.WriteEndArray();
         }
 
-        if (eventStreamSource.Directive.Broker is { } broker)
+        if (eventStreamSource.Broker is { } broker)
         {
             jsonWriter.WritePropertyName("broker");
             jsonWriter.WriteStringValue(broker);

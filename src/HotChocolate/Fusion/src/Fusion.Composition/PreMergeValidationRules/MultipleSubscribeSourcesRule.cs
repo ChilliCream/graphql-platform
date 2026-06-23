@@ -33,6 +33,21 @@ internal sealed class MultipleSubscribeSourcesRule : IEventHandler<OutputFieldGr
             return;
         }
 
+        for (var i = 1; i < contributions.Length; i++)
+        {
+            if (!TypeMergeHelper.SameTypeShape(
+                contributions[0].Field.Type,
+                contributions[i].Field.Type))
+            {
+                context.Log.Write(
+                    OutputFieldTypesNotMergeable(
+                        contributions[0].Field,
+                        contributions[0].Schema,
+                        contributions[i].Schema));
+                return;
+            }
+        }
+
         var reference = SubscribeIdentity.Create(contributions[0].Directive);
 
         for (var i = 1; i < contributions.Length; i++)

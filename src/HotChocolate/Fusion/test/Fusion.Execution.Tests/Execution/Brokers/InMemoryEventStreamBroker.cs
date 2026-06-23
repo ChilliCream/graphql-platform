@@ -9,11 +9,19 @@ public sealed class InMemoryEventStreamBroker(InMemoryEventStreamBrokerHub hub) 
     private bool _disposed;
 
     public async IAsyncEnumerable<EventMessage> Subscribe(
-        string topic,
+        ISubscriptionFieldContext context,
+        string[] topics,
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
-        ArgumentException.ThrowIfNullOrEmpty(topic);
+        ArgumentNullException.ThrowIfNull(context);
+        ArgumentNullException.ThrowIfNull(topics);
+        ArgumentOutOfRangeException.ThrowIfZero(topics.Length);
+
+        for (var i = 0; i < topics.Length; i++)
+        {
+            ArgumentException.ThrowIfNullOrEmpty(topics[i]);
+        }
 
         var channel = Channel.CreateUnbounded<EventMessage>(
             new UnboundedChannelOptions
@@ -28,7 +36,10 @@ public sealed class InMemoryEventStreamBroker(InMemoryEventStreamBrokerHub hub) 
             _channels.Add(channel);
         }
 
-        hub.Subscribe(topic, channel.Writer);
+        for (var i = 0; i < topics.Length; i++)
+        {
+            hub.Subscribe(topics[i], channel.Writer);
+        }
 
         try
         {
@@ -41,7 +52,10 @@ public sealed class InMemoryEventStreamBroker(InMemoryEventStreamBrokerHub hub) 
         }
         finally
         {
-            hub.Unsubscribe(topic, channel.Writer);
+            for (var i = 0; i < topics.Length; i++)
+            {
+                hub.Unsubscribe(topics[i], channel.Writer);
+            }
 
             lock (_channels)
             {
