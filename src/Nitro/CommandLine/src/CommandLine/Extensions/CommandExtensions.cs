@@ -47,10 +47,11 @@ internal static class CommandExtensions
 
                 console.Error.WriteErrorLine(message);
             }
-            catch (NitroClientGraphQLException ex) when (ex.Code == "HC0067")
+            catch (NitroClientGraphQLException ex) when (ex.Code == "HC0020")
             {
                 console.Error.WriteErrorLine(
-                    "The server rejected the persisted operation of the command. Make sure your Nitro backend is on the latest version.");
+                    "The server rejected the persisted operation of the command. "
+                    + "If you are running a self-hosted instance, make sure it's running the latest version, or downgrade your CLI to match.");
             }
             catch (NitroClientGraphQLException ex)
             {
