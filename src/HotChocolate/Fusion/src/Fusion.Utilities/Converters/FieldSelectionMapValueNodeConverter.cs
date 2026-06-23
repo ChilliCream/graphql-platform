@@ -2,7 +2,7 @@ using System.Collections.Immutable;
 using HotChocolate.Fusion.Language;
 using HC = HotChocolate.Language;
 
-namespace HotChocolate.Fusion.Rewriters;
+namespace HotChocolate.Fusion.Converters;
 
 /// <summary>
 /// Converts <see cref="Language"/> constant value nodes (as used in a field

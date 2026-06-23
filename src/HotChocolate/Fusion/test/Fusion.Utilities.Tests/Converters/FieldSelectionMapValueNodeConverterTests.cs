@@ -1,9 +1,8 @@
 using System.Collections.Immutable;
 using HotChocolate.Fusion.Language;
-using HotChocolate.Fusion.Rewriters;
 using HC = HotChocolate.Language;
 
-namespace HotChocolate.Fusion.Rewriters;
+namespace HotChocolate.Fusion.Converters;
 
 public sealed class FieldSelectionMapValueNodeConverterTests
 {

@@ -1,6 +1,6 @@
 using System.Collections.Immutable;
+using HotChocolate.Fusion.Converters;
 using HotChocolate.Fusion.Language;
-using HotChocolate.Fusion.Rewriters;
 using HotChocolate.Language.Utilities;
 using HotChocolate.Types;
 using static HotChocolate.Fusion.FusionUtilitiesResources;
