@@ -52,7 +52,14 @@ public sealed class RequiresOptInDirectiveTests
                     .Value("VALUE")
                     .RequiresOptIn("enumValueFeature1")
                     .RequiresOptIn("enumValueFeature2"))
-                .BuildSchemaAsync();
+                .AddDirectiveType(d => d
+                    .Name("exampleDirective")
+                    .Location(DirectiveLocation.Field)
+                    .Argument("argument", a => a
+                        .Type<IntType>()
+                        .RequiresOptIn("directiveArgFeature1")
+                        .RequiresOptIn("directiveArgFeature2")))
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         schema.MatchSnapshot();
@@ -69,7 +76,7 @@ public sealed class RequiresOptInDirectiveTests
                 .AddQueryType<Query>()
                 .AddInputObjectType<Input>()
                 .AddType<Enum>()
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         schema.MatchSnapshot();
@@ -107,7 +114,7 @@ public sealed class RequiresOptInDirectiveTests
                     }
                     """)
                 .UseField(_ => _ => default)
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         schema.MatchSnapshot();

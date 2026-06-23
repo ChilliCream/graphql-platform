@@ -123,7 +123,7 @@
     <Project Path="HotChocolate/Core/test/Execution.Tests/HotChocolate.Execution.Tests.csproj" />
     <Project Path="HotChocolate/Core/test/Features.Tests/HotChocolate.Features.Tests.csproj" />
     <Project Path="HotChocolate/Core/test/Fetching.Tests/HotChocolate.Fetching.Tests.csproj" />
-    <Project Path="HotChocolate/Core/test/StarWars/HotChocolate.StarWars.Tests.csproj" />
+    <Project Path="HotChocolate/Core/test/StarWars/HotChocolate.StarWars.csproj" />
     <Project Path="HotChocolate/Core/test/Subscriptions.InMemory.Tests/HotChocolate.Subscriptions.InMemory.Tests.csproj" />
     <Project Path="HotChocolate/Core/test/Subscriptions.Nats.Tests/HotChocolate.Subscriptions.Nats.Tests.csproj" />
     <Project Path="HotChocolate/Core/test/Subscriptions.Postgres.Tests/HotChocolate.Subscriptions.Postgres.Tests.csproj" />
@@ -233,7 +233,6 @@
     <Project Path="HotChocolate/Fusion/test/Fusion.Connectors.InMemory.Tests/HotChocolate.Fusion.Connectors.InMemory.Tests.csproj" />
     <Project Path="HotChocolate/Fusion/test/Fusion.Caching.Tests/HotChocolate.Fusion.Caching.Tests.csproj" />
     <Project Path="HotChocolate/Fusion/test/Fusion.Diagnostics.Tests/HotChocolate.Fusion.Diagnostics.Tests.csproj" />
-    <Project Path="HotChocolate/Fusion/test/Fusion.EventSources.Tests/HotChocolate.Fusion.EventSources.Tests.csproj" />
     <Project Path="HotChocolate/Fusion/test/Fusion.Execution.Tests/HotChocolate.Fusion.Execution.Tests.csproj" />
     <Project Path="HotChocolate/Fusion/test/Fusion.Language.Tests/HotChocolate.Fusion.Language.Tests.csproj" />
     <Project Path="HotChocolate/Fusion/test/Fusion.Packaging.Tests/HotChocolate.Fusion.Packaging.Tests.csproj" />
@@ -348,6 +347,12 @@
     <Project Path="HotChocolate/Utilities/test/Utilities.Tests/HotChocolate.Utilities.Tests.csproj" />
   </Folder>
   <Folder Name="/Mocha/" />
+  <Folder Name="/Mocha/examples/" />
+  <Folder Name="/Mocha/examples/Demo/">
+    <Project Path="Mocha/examples/Demo/Demo.Catalog/Demo.Catalog.csproj" />
+    <Project Path="Mocha/examples/Demo/Demo.Contracts/Demo.Contracts.csproj" />
+    <Project Path="Mocha/examples/Demo/Demo.ServiceDefaults/Demo.ServiceDefaults.csproj" />
+  </Folder>
   <Folder Name="/Mocha/src/">
     <Project Path="Mocha/src/Mocha.Abstractions/Mocha.Abstractions.csproj" />
     <Project Path="Mocha/src/Mocha.Analyzers/Mocha.Analyzers.csproj" />

@@ -9,7 +9,7 @@ public sealed class PostgresSagaStoreTests(PostgresFixture fixture) : IClassFixt
     private readonly PostgresFixture _fixture = fixture;
     private readonly List<IDisposable> _disposables = [];
 
-    public Task InitializeAsync() => Task.CompletedTask;
+    public ValueTask InitializeAsync() => ValueTask.CompletedTask;
 
     [Fact]
     public async Task SaveAsync_Should_InsertNewState_When_NoExistingRecord()
@@ -97,26 +97,28 @@ public sealed class PostgresSagaStoreTests(PostgresFixture fixture) : IClassFixt
 
         // Insert initial state so both stores will attempt an UPDATE path.
         var initial = new TestSagaState(id, "Initial") { Data = "seed" };
-        await store1.SaveAsync(saga, initial, default);
+        await store1.SaveAsync(saga, initial, TestContext.Current.CancellationToken);
 
         // Act - use an explicit transaction on store1 to hold a row lock.
         // Store1 updates within a transaction (reads V1, writes V2, row locked).
-        await context1.Database.BeginTransactionAsync(default);
+        await context1.Database.BeginTransactionAsync(TestContext.Current.CancellationToken);
         var fromStore1 = new TestSagaState(id, "FromStore1") { Data = "store1" };
-        await store1.SaveAsync(saga, fromStore1, default);
+        await store1.SaveAsync(saga, fromStore1, TestContext.Current.CancellationToken);
 
         // Store2 starts its save on a separate connection.
         // In READ COMMITTED, its SELECT sees the committed V1 (store1's tx not committed).
         // Its UPDATE WHERE version=V1 blocks on the row lock held by store1's tx.
         var fromStore2 = new TestSagaState(id, "FromStore2") { Data = "store2" };
-        var store2Task = Task.Run(() => store2.SaveAsync(saga, fromStore2, default), default);
+        var store2Task = Task.Run(
+            () => store2.SaveAsync(saga, fromStore2, default),
+            TestContext.Current.CancellationToken);
 
         // Give store2 time to SELECT and block on the UPDATE row lock.
-        await Task.Delay(200, default);
+        await Task.Delay(200, TestContext.Current.CancellationToken);
 
         // Commit store1's transaction - version changes V1→V2, row lock released.
         // Postgres READ COMMITTED re-evaluates store2's WHERE: version=V1 no longer matches.
-        await context1.Database.CommitTransactionAsync(default);
+        await context1.Database.CommitTransactionAsync(TestContext.Current.CancellationToken);
 
         // Assert - store2's update should find 0 rows and throw.
         await Assert.ThrowsAsync<DbUpdateConcurrencyException>(() => store2Task);
@@ -185,14 +187,14 @@ public sealed class PostgresSagaStoreTests(PostgresFixture fixture) : IClassFixt
         await context.Database.CurrentTransaction!.DisposeAsync();
     }
 
-    public Task DisposeAsync()
+    public ValueTask DisposeAsync()
     {
         foreach (var disposable in _disposables)
         {
             disposable.Dispose();
         }
 
-        return Task.CompletedTask;
+        return ValueTask.CompletedTask;
     }
 
     private async Task<(TestDbContext Context, PostgresSagaStore Store)> CreateStoreAsync(

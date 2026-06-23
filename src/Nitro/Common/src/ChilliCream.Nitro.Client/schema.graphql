@@ -186,13 +186,17 @@ type Api implements Node {
   clients(
     "Returns the elements in the list that come after the specified cursor."
     after: String
-    "Returns the elements in the list that come before the specified cursor."
-    before: String
     "Returns the first _n_ elements from the list."
     first: Int
-    "Returns the last _n_ elements from the list."
-    last: Int
+    orderBy: [ClientOrderByInput!]
+    search: String
   ): ClientsConnection
+  clientVersions(
+    "Returns the elements in the list that come after the specified cursor."
+    after: String
+    "Returns the first _n_ elements from the list."
+    first: Int
+  ): ApiClientVersionsConnection
   createdAt: DateTime!
   createdBy: UserInfo!
   documents(
@@ -281,6 +285,26 @@ type ApiChanged implements ApiChangeLog & WorkspaceChangeLog {
   path: [String!]!
   version: Version!
   workspaceId: ID!
+}
+
+"A connection to a list of items."
+type ApiClientVersionsConnection {
+  "A list of edges."
+  edges: [ApiClientVersionsEdge!]
+  "A flattened list of the nodes."
+  nodes: [ClientVersion!]
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+  "Identifies the total count of items in the connection."
+  totalCount: Int!
+}
+
+"An edge in a connection."
+type ApiClientVersionsEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: ClientVersion!
 }
 
 type ApiCreated implements ApiChangeLog & WorkspaceChangeLog {
@@ -735,7 +759,16 @@ type Client implements Node {
   api: Api
   createdAt: DateTime!
   createdBy: UserInfo!
+  deployments(
+    "Returns the elements in the list that come after the specified cursor."
+    after: String
+    "Returns the first _n_ elements from the list."
+    first: Int
+    stageId: ID
+  ): StageClientDeploymentsConnection
   id: ID!
+  latestPublishedVersion(stageId: ID!): PublishedClientVersion
+  metrics(from: DateTime, stageId: ID!, to: DateTime): ClientMetrics
   name: String!
   operations(
     "Returns the elements in the list that come after the specified cursor."
@@ -747,6 +780,17 @@ type Client implements Node {
     "Returns the last _n_ elements from the list."
     last: Int
   ): OperationsConnection
+  publishedVersions(
+    "Returns the elements in the list that come after the specified cursor."
+    after: String
+    "Returns the elements in the list that come before the specified cursor."
+    before: String
+    "Returns the first _n_ elements from the list."
+    first: Int
+    "Returns the last _n_ elements from the list."
+    last: Int
+    stage: String!
+  ): ClientPublishedVersionsConnection
   versions(
     "Returns the elements in the list that come after the specified cursor."
     after: String
@@ -814,9 +858,39 @@ type ClientInsightsEdge {
   node: ClientInsight!
 }
 
+type ClientMetrics {
+  errorRate: Float!
+  firstSeen: DateTime
+  lastSeen: DateTime
+  meanDuration: Float!
+  opm: Float!
+  p95Latency: Float!
+  p99Latency: Float!
+  totalErrors: Long!
+  totalRequests: Long!
+}
+
 type ClientNotFoundError implements Error {
   clientId: ID!
   message: String!
+}
+
+"A connection to a list of items."
+type ClientPublishedVersionsConnection {
+  "A list of edges."
+  edges: [ClientPublishedVersionsEdge!]
+  "A flattened list of the nodes."
+  nodes: [PublishedClientVersion!]
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+}
+
+"An edge in a connection."
+type ClientPublishedVersionsEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: PublishedClientVersion!
 }
 
 "A connection to a list of items."
@@ -4645,6 +4719,12 @@ type Stage implements Node {
     "Returns the last _n_ elements from the list."
     last: Int
   ): StageChangeLogConnection
+  clientDeployments(
+    "Returns the elements in the list that come after the specified cursor."
+    after: String
+    "Returns the first _n_ elements from the list."
+    first: Int
+  ): StageClientDeploymentsConnection
   conditions: [StageCondition!]!
   coordinate(coordinate: String!): GraphQLTypeSystemMember
   coordinates(
@@ -4778,6 +4858,26 @@ type StageChangeLogEdge {
   cursor: String!
   "The item at the end of the edge."
   node: StageChangeLog!
+}
+
+"A connection to a list of items."
+type StageClientDeploymentsConnection {
+  "A list of edges."
+  edges: [StageClientDeploymentsEdge!]
+  "A flattened list of the nodes."
+  nodes: [ClientDeployment!]
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+  "Identifies the total count of items in the connection."
+  totalCount: Int!
+}
+
+"An edge in a connection."
+type StageClientDeploymentsEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: ClientDeployment!
 }
 
 type StageClientsMetrics {
@@ -6448,6 +6548,14 @@ input ClientInsightsOrderByInput {
   opm: SortEnumType
   totalCount: SortEnumType
   totalCountWithError: SortEnumType
+}
+
+input ClientOrderByInput {
+  errorRate: SortEnumType
+  meanDuration: SortEnumType
+  name: SortEnumType
+  opm: SortEnumType
+  totalRequests: SortEnumType
 }
 
 input CommitFusionConfigurationPublishInput {

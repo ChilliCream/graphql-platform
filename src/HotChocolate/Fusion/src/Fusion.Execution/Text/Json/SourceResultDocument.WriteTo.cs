@@ -45,18 +45,12 @@ public sealed partial class SourceResultDocument
                     break;
 
                 case JsonTokenType.String:
-                {
-                    var value = document.ReadRawValue(row, includeQuotes: true);
-                    writer.WriteStringValue(value, skipEscaping: true);
+                    document.WriteRawStringValueTo(writer, row.Location, row.SizeOrLength);
                     break;
-                }
 
                 case JsonTokenType.Number:
-                {
-                    var value = document.ReadRawValue(row, includeQuotes: false);
-                    writer.WriteNumberValue(value);
+                    document.WriteRawNumberValueTo(writer, row.Location, row.SizeOrLength);
                     break;
-                }
 
                 default:
                     throw new NotSupportedException();

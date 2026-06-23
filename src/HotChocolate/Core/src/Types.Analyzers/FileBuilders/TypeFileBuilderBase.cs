@@ -334,6 +334,8 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
                 resolver.ReturnType.ToClassNonNullableFullyQualifiedWithNullRefQualifier());
         }
 
+        Writer.WriteIndentedLine("configuration.DeclaringType = context.ThisType;");
+
         WriteFieldFlags(resolver);
 
         if (resolver.Kind is ResolverKind.ConnectionResolver)
@@ -1401,6 +1403,20 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
                     + "global::HotChocolate.WellKnownContextData.InternalId);",
                     i,
                     parameter.Type.ToFullyQualified());
+                continue;
+            }
+
+            // Optional<T> arguments bind through ArgumentOptional<T>, which coerces the inner T
+            // and preserves whether the argument was supplied. This mirrors the reflection-based
+            // binding in ArgumentParameterExpressionBuilder.
+            if (parameter.Kind is ResolverParameterKind.Argument or ResolverParameterKind.Unknown
+                && parameter.Type.IsOptional(out var optionalInnerType))
+            {
+                Writer.WriteIndentedLine(
+                    "var args{0} = context.ArgumentOptional<{1}>(\"{2}\");",
+                    i,
+                    ToFullyQualifiedString(optionalInnerType, resolverMethod, typeLookup),
+                    parameter.Key ?? parameter.Name);
                 continue;
             }
 

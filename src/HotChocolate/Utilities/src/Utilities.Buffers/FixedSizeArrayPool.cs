@@ -90,6 +90,8 @@ internal sealed class FixedSizeArrayPool : IDisposable
         }
     }
 
+    public void Abandon(int count) => _bucket.Abandon(count);
+
     public void Dispose() => _bucket.Dispose();
 
     private sealed class Bucket : IDisposable
@@ -226,6 +228,9 @@ internal sealed class FixedSizeArrayPool : IDisposable
 
             return returned;
         }
+
+        // decrements the outstanding count without storing the arrays for reuse.
+        internal void Abandon(int count) => Interlocked.Add(ref _inUse, -count);
 
         // called from the TrimCallback timer once per minute.
         // if the pool is not under pressure we step the current level down one

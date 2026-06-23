@@ -1,7 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution.Configuration;
 using Squadron;
-using Xunit.Abstractions;
 
 namespace HotChocolate.Subscriptions.RabbitMQ;
 

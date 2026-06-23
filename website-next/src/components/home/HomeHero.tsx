@@ -1,0 +1,71 @@
+import type { CSSProperties } from "react";
+
+import {
+  HERO_ACCENT_GRADIENT,
+  HERO_DRINKS,
+  HERO_HEADLINE,
+  HERO_SWIRLS,
+} from "@/src/components/home/heroArtwork";
+import { Swirl } from "@/src/icons/Swirl";
+
+function position(
+  left: string,
+  top: string,
+  extra: CSSProperties,
+): CSSProperties {
+  return { left, top, transform: "translate(-50%, -50%)", ...extra };
+}
+
+/**
+ * Landing hero: the scattered product drinks and swirl marks around the
+ * headline. The artwork composition lives in
+ * {@link "@/src/components/home/heroArtwork"} and is shared with the share card;
+ * here it renders responsively in the DOM. The scatter is purely decorative, so
+ * the layer is hidden from assistive tech and ignores pointer events.
+ */
+export function HomeHero() {
+  return (
+    <section className="relative isolate mx-auto flex min-h-[34rem] max-w-6xl flex-col items-center justify-center px-5 py-20 text-center sm:min-h-[40rem] sm:px-12 lg:min-h-[46rem]">
+      {/* Decorative scatter, behind the headline. */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 -z-10 hidden select-none sm:block"
+      >
+        {HERO_DRINKS.map(({ Drink, left, top, heroWidth, rotate }) => (
+          <Drink
+            key={left + top}
+            className="absolute h-auto drop-shadow-[0_8px_20px_rgba(0,0,0,0.45)]"
+            style={position(left, top, { width: heroWidth, rotate })}
+          />
+        ))}
+        {HERO_SWIRLS.map(({ left, top, heroSize, rotate }) => (
+          <Swirl
+            key={left + top}
+            className="text-cc-nav-label/60 absolute"
+            style={position(left, top, {
+              width: heroSize,
+              height: heroSize,
+              rotate,
+            })}
+          />
+        ))}
+      </div>
+
+      <h1 className="font-heading text-cc-heading text-h4 sm:text-h3 lg:text-h2 xl:text-h1 font-semibold tracking-[-0.02em] text-balance">
+        {HERO_HEADLINE.lead}
+        <span
+          className="block bg-clip-text pb-[0.12em] leading-[1.12] text-transparent"
+          style={{ backgroundImage: HERO_ACCENT_GRADIENT }}
+        >
+          {HERO_HEADLINE.accent}
+        </span>
+      </h1>
+
+      <p className="text-cc-ink mt-6 max-w-2xl text-base text-pretty sm:text-xl">
+        Unify all your APIs into a comprehensive company graph, streamlining
+        data accessibility and enhancing integration. Transform the way you
+        manage and interact with your data.
+      </p>
+    </section>
+  );
+}

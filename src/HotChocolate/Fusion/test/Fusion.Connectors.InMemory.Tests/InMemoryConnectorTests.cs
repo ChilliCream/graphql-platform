@@ -19,7 +19,7 @@ public sealed class InMemoryConnectorTests
         services.AddGraphQLGateway()
             .AddInMemorySchema("products");
 
-        var executor = await services.BuildGatewayAsync();
+        var executor = await services.BuildGatewayAsync(TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -30,7 +30,8 @@ public sealed class InMemoryConnectorTests
                 name
               }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchMarkdownSnapshot();
@@ -54,7 +55,7 @@ public sealed class InMemoryConnectorTests
             .AddInMemorySchema("products")
             .AddInMemorySchema("reviews");
 
-        var executor = await services.BuildGatewayAsync();
+        var executor = await services.BuildGatewayAsync(TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -65,7 +66,8 @@ public sealed class InMemoryConnectorTests
                 name
               }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchMarkdownSnapshot();
@@ -89,7 +91,7 @@ public sealed class InMemoryConnectorTests
             .AddInMemorySchema("products")
             .AddInMemorySchema("reviews");
 
-        var executor = await services.BuildGatewayAsync();
+        var executor = await services.BuildGatewayAsync(TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -104,7 +106,8 @@ public sealed class InMemoryConnectorTests
                 }
               }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchMarkdownSnapshot();

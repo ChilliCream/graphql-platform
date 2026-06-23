@@ -1,5 +1,6 @@
 ---
 title: "Terms of Service"
+description: "Read ChilliCream's Terms of Service governing the use of our websites, products, and services."
 ---
 
 This policy is effective as of 26 August 2021.

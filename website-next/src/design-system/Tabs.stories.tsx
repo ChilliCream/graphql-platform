@@ -14,7 +14,7 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-export const StartingOnSecondTab: Story = {
+export const Default: Story = {
   args: {
     defaultIndex: 1,
     children: [
@@ -28,26 +28,5 @@ export const StartingOnSecondTab: Story = {
         Third tab content.
       </Tab>,
     ],
-  },
-};
-
-export const ManyTabs: Story = {
-  args: {
-    children: Array.from({ length: 8 }, (_, i) => (
-      <Tab key={i} label={`Tab ${i + 1}`}>
-        Content for tab {i + 1}. The tab strip wraps when there&apos;s not
-        enough horizontal room.
-      </Tab>
-    )),
-  },
-};
-
-export const SingleTab: Story = {
-  args: {
-    children: (
-      <Tab label="Only one">
-        A single tab still renders cleanly. The strip degrades gracefully.
-      </Tab>
-    ),
   },
 };

@@ -1,5 +1,6 @@
 ---
 title: "Privacy Policy"
+description: "Read ChilliCream's Privacy Policy explaining what personal information we collect, how we use and disclose it, and your rights."
 ---
 
 This policy is effective as of 26 August 2021.

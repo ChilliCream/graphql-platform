@@ -82,9 +82,8 @@ function resolveFeaturedImage(stem: string, raw: string | null): string | null {
   if (/^(https?:)?\/\//.test(raw) || raw.startsWith("/")) {
     return raw;
   }
-  // Co-located image: served from /public/blog/{stem}/ — the asset-copy
-  // step at content-setup time mirrors images out of /content/blog/{stem}/.
-  return `/blog/${stem}/${raw}`;
+  // Co-located image: blog images live under /public/images/blog/{stem}/.
+  return `/images/blog/${stem}/${raw}`;
 }
 
 /**

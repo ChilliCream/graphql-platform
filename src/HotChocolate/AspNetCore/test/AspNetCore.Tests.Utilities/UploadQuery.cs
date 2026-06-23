@@ -40,6 +40,14 @@ public class UploadQuery
         return await sr.ReadToEndAsync();
     }
 
+    public async Task<string> UploadWithText(IFile file, string text)
+    {
+        await using var stream = file.OpenReadStream();
+        using var sr = new StreamReader(stream, Encoding.UTF8);
+        await sr.ReadToEndAsync();
+        return text;
+    }
+
     public async Task<string?> NullableUpload(IFile? file)
     {
         if (file is null)

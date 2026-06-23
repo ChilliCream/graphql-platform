@@ -438,6 +438,32 @@ Deprecating a field now requires the implemented field in the interface to also 
 
 Previously, the global ID input value formatter was added to ID filter fields regardless of whether or not Global Object Identification was enabled. This is now conditional.
 
+## Filter operation limit
+
+Filtering now limits each filter argument to **64** operations by default. This protects the server from very large generated filters, including large `and` or `or` lists passed through variables.
+
+If a client sends more than 64 filter operations in a single filter argument, Hot Chocolate rejects the request before the filter expression is built and returns a GraphQL error with the code `HC0117`.
+
+If your application accepts larger filters, raise the limit on the filtering convention:
+
+```csharp
+builder
+    .AddGraphQL()
+    .AddFiltering(x => x
+        .AddDefaults()
+        .MaxAllowedFilterOperations(256));
+```
+
+To disable this limit, set `MaxAllowedFilterOperations` to `null`:
+
+```csharp
+builder
+    .AddGraphQL()
+    .AddFiltering(x => x
+        .AddDefaults()
+        .MaxAllowedFilterOperations(null));
+```
+
 ## fieldCoordinate renamed to coordinate in error extensions
 
 Some GraphQL validation errors included an extension named `fieldCoordinate` that provided a schema coordinate pointing to the field or argument that caused the error. Since schema coordinates can reference various schema elements (not just fields), we've renamed this extension to `coordinate` for clarity.
@@ -1083,9 +1109,66 @@ If you prefer, you can still register the remaining scalar types individually in
 
 ### InstrumentationOptions changes
 
-- `RenameRootActivity` was removed.
+- `RenameRootActivity` was removed. See [Recreating `RenameRootActivity`](#recreating-renamerootactivity) to reproduce the previous behavior in user code.
 - `RequestDetails.Operation` was renamed to `RequestDetails.OperationName`.
 - `RequestDetails.Query` was renamed to `RequestDetails.Document`.
+
+### Recreating `RenameRootActivity`
+
+The root span is usually owned by the transport instrumentation (for example ASP.NET Core), not Hot Chocolate. Recreate the old behavior with a diagnostic event listener that publishes the operation name, then apply it from the transport instrumentation in `EnrichWithHttpResponse`:
+
+```csharp
+using System.Diagnostics;
+using HotChocolate.Execution;
+using HotChocolate.Execution.Instrumentation;
+
+public sealed class RenameRootActivityListener : ExecutionDiagnosticEventListener
+{
+    public override IDisposable ExecuteRequest(RequestContext context) => new Scope(context);
+
+    private sealed class Scope(RequestContext context) : IDisposable
+    {
+        public void Dispose()
+        {
+            if (Activity.Current is not { } activity
+                || !context.TryGetOperation(out var operation)
+                || string.IsNullOrEmpty(operation.Name))
+            {
+                return;
+            }
+
+            var name = $"{operation.Kind.ToString().ToLowerInvariant()} {operation.Name}";
+
+            var root = activity;
+            while (root.Parent is { } parent)
+            {
+                root = parent;
+            }
+
+            root.SetCustomProperty("graphqlDisplayName", name);
+        }
+    }
+}
+```
+
+```csharp
+builder.Services
+    .AddGraphQLServer()
+    .AddInstrumentation()
+    .AddDiagnosticEventListener<RenameRootActivityListener>();
+
+builder.Services
+    .AddOpenTelemetry()
+    .WithTracing(tracing => tracing
+        .AddAspNetCoreInstrumentation(o => o.EnrichWithHttpResponse = (activity, _) =>
+        {
+            if (activity.GetCustomProperty("graphqlDisplayName") is string name)
+            {
+                activity.DisplayName = name;
+            }
+        })
+        .AddHotChocolateInstrumentation());
+```
 
 ## OpenTelemetry span and status changes
 

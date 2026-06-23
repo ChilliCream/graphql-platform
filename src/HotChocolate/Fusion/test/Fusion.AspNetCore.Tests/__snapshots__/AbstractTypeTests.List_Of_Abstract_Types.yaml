@@ -55,7 +55,7 @@ sourceSchemas:
         authorById(id: Int!): Author @lookup
       }
 
-      type Author implements SharedType {
+      type Author implements SharedType @key(fields: "id") {
         id: Int!
         name: String!
       }

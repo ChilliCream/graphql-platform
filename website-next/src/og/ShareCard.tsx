@@ -1,4 +1,19 @@
-import { ccAccent, ccBg, ccInk, ccSurface } from "@/src/theme/colors";
+import {
+  HERO_ACCENT_GRADIENT,
+  HERO_DRINKS,
+  HERO_HEADLINE,
+  HERO_SWIRLS,
+} from "@/src/components/home/heroArtwork";
+import { Swirl } from "@/src/icons/Swirl";
+import { ccBg, ccDarkSurface, ccInk } from "@/src/theme/colors";
+
+type ShareCardProps = {
+  /**
+   * Optional page name rendered under the headline (e.g. "Pricing"). When
+   * omitted the card shows the bare hero artwork, used for the homepage.
+   */
+  pageTitle?: string;
+};
 
 /** `#rrggbb` -> `rgba(r, g, b, a)`, so gradients derive from the same tokens. */
 function rgba(hex: string, alpha: number): string {
@@ -8,90 +23,138 @@ function rgba(hex: string, alpha: number): string {
   return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }
 
-type ShareCardProps = {
-  /** Brand badge text in the top-right box. */
-  badge: string;
-  /** Small uppercase accent line above the title. */
-  eyebrow: string;
-  /** Headline, large text lower-left. */
-  title: string;
-};
+/**
+ * Centered region the divider and page title occupy. Swirls that fall inside it
+ * are dropped when a title is shown, so none sit behind the subtitle.
+ */
+function inTitleZone(left: string, top: string): boolean {
+  const l = parseFloat(left);
+  const t = parseFloat(top);
+  return l >= 15 && l <= 85 && t >= 60 && t <= 80;
+}
 
 /**
- * The shared 1200x630 share-card layout used by both the per-doc OG image and
- * the default marketing OG image. Satori (next/og) supports only flexbox and a
- * subset of CSS, so this stays within those constraints.
+ * The shared 1200x630 share-card layout used by the marketing OG images. Satori
+ * (next/og) supports only flexbox and a subset of CSS, so this stays within
+ * those constraints. Reproduces the landing hero (artwork shared via
+ * {@link "@/src/components/home/heroArtwork"}): the scattered product drinks
+ * behind a centered two-line headline.
  */
-export function ShareCard({ badge, eyebrow, title }: ShareCardProps) {
+export function ShareCard({ pageTitle }: ShareCardProps) {
   return (
     <div
       style={{
+        position: "relative",
         width: "100%",
         height: "100%",
         display: "flex",
         flexDirection: "column",
-        justifyContent: "flex-end",
-        padding: "72px",
+        alignItems: "center",
+        justifyContent: "center",
         backgroundColor: ccBg,
-        backgroundImage:
-          `radial-gradient(1000px 600px at 85% 0%, ${rgba(ccAccent, 0.18)}, ${rgba(ccBg, 0)}), ` +
-          `linear-gradient(135deg, ${ccSurface} 0%, ${ccBg} 60%)`,
+        backgroundImage: ccDarkSurface,
         color: ccInk,
-        fontFamily: "Inter",
+        fontFamily: "Josefin Sans",
       }}
     >
-      <div
-        style={{
-          position: "absolute",
-          top: "72px",
-          right: "72px",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          padding: "16px 28px",
-          borderRadius: "16px",
-          border: `2px solid ${ccAccent}`,
-          backgroundColor: rgba(ccAccent, 0.08),
-          fontSize: "30px",
-          fontWeight: 700,
-          color: ccInk,
-        }}
-      >
-        {badge}
-      </div>
+      {/* Decorative scatter, behind the headline. */}
+      {HERO_DRINKS.map(({ Drink, left, top, cardWidth, aspect, rotate }) => (
+        <div
+          key={left + top}
+          style={{
+            position: "absolute",
+            left,
+            top,
+            display: "flex",
+            transform: `translate(-50%, -50%) rotate(${rotate})`,
+          }}
+        >
+          <Drink style={{ width: cardWidth, height: cardWidth * aspect }} />
+        </div>
+      ))}
+      {HERO_SWIRLS.filter(
+        ({ left, top }) => !pageTitle || !inTitleZone(left, top),
+      ).map(({ left, top, cardSize, rotate }) => (
+        <div
+          key={left + top}
+          style={{
+            position: "absolute",
+            left,
+            top,
+            display: "flex",
+            color: rgba("#62748e", 0.55),
+            transform: `translate(-50%, -50%) rotate(${rotate})`,
+          }}
+        >
+          <Swirl style={{ width: cardSize, height: cardSize }} />
+        </div>
+      ))}
 
+      {/* Headline */}
       <div
         style={{
           display: "flex",
           flexDirection: "column",
-          gap: "20px",
-          maxWidth: "900px",
+          alignItems: "center",
+          fontSize: "84px",
+          fontWeight: 600,
+          lineHeight: 1.04,
+          letterSpacing: "-1.5px",
         }}
       >
-        <div
-          style={{
-            display: "flex",
-            fontSize: "28px",
-            fontWeight: 700,
-            letterSpacing: "2px",
-            textTransform: "uppercase",
-            color: ccAccent,
-          }}
-        >
-          {eyebrow}
+        <div style={{ display: "flex", color: ccInk }}>
+          {HERO_HEADLINE.lead}
         </div>
         <div
           style={{
             display: "flex",
-            fontSize: "68px",
-            fontWeight: 700,
-            lineHeight: 1.1,
-            color: ccInk,
+            backgroundImage: HERO_ACCENT_GRADIENT,
+            backgroundClip: "text",
+            WebkitBackgroundClip: "text",
+            color: "transparent",
+            paddingBottom: "8px",
           }}
         >
-          {title}
+          {HERO_HEADLINE.accent}
         </div>
       </div>
+
+      {pageTitle ? (
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            minWidth: "360px",
+            marginTop: "18px",
+          }}
+        >
+          {/* Divider with fading edges; stretches to the title width (min 360px). */}
+          <div
+            style={{
+              alignSelf: "stretch",
+              height: "2px",
+              backgroundImage: `linear-gradient(90deg, ${rgba(ccInk, 0)} 0%, ${rgba(ccInk, 0.5)} 50%, ${rgba(ccInk, 0)} 100%)`,
+            }}
+          />
+          <div
+            style={{
+              maxWidth: "900px",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
+              marginTop: "16px",
+              fontFamily: "Inter",
+              fontSize: "40px",
+              fontWeight: 700,
+              textAlign: "center",
+              color: "#ffffff",
+            }}
+          >
+            {pageTitle}
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

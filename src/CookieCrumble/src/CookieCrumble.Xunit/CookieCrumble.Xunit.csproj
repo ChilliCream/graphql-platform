@@ -27,7 +27,7 @@
        fires per framework) to avoid a duplicate package-path collision. -->
   <Target Name="_AddGeneratorToPackage">
     <ItemGroup>
-      <TfmSpecificPackageFile Condition="'$(TargetFramework)' == 'net10.0'" Include="$(OutputPath)CookieCrumble.Analyzers.dll" PackagePath="analyzers/dotnet/cs" />
+      <TfmSpecificPackageFile Condition="'$(TargetFramework)' == 'net11.0'" Include="$(OutputPath)CookieCrumble.Analyzers.dll" PackagePath="analyzers/dotnet/cs" />
     </ItemGroup>
   </Target>
 

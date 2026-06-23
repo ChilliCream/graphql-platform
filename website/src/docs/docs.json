@@ -3231,5 +3231,44 @@
         ]
       }
     ]
+  },
+  {
+    "path": "skillz",
+    "title": "Skillz",
+    "description": "CLI for Agent Skills",
+    "metaDescription": "skillz is a .NET CLI for installing, updating, and authoring Agent Skills across Claude Code, Cursor, GitHub Copilot, and 55+ other coding agents.",
+    "latestStableVersion": "",
+    "versions": [
+      {
+        "path": "",
+        "title": "latest",
+        "items": [
+          {
+            "path": "index",
+            "title": "Introduction"
+          },
+          {
+            "path": "getting-started",
+            "title": "Getting Started"
+          },
+          {
+            "path": "installing-skills",
+            "title": "Installing Skills"
+          },
+          {
+            "path": "authoring-skills",
+            "title": "Authoring Skills"
+          },
+          {
+            "path": "reference",
+            "title": "Reference"
+          },
+          {
+            "path": "troubleshooting",
+            "title": "Troubleshooting"
+          }
+        ]
+      }
+    ]
   }
 ]

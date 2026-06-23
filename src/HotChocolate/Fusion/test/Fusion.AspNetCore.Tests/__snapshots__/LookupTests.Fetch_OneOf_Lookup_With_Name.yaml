@@ -47,7 +47,7 @@ sourceSchemas:
         lookups: InternalLookups! @internal
       }
 
-      type Author {
+      type Author @key(fields: "id") @key(fields: "name") {
         id: ID!
         name: String!
       }

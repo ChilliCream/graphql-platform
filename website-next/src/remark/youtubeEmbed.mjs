@@ -1,13 +1,15 @@
 /**
  * Rewrites a paragraph that contains nothing but a YouTube link into a
- * <Video> JSX element. Inline YouTube links inside surrounding text are left
- * alone, so raw markdown viewers (GitHub, etc.) still see a clickable link.
+ * <YouTubeVideo> JSX element. Inline YouTube links inside surrounding text are
+ * left alone, so raw markdown viewers (GitHub, etc.) still see a clickable link.
  */
 const SUPPORTED_HOSTS = new Set([
   "youtube.com",
   "youtu.be",
   "youtube-nocookie.com",
 ]);
+
+const ID_RE = /^[a-zA-Z0-9_-]{11}$/;
 
 export default function remarkYouTubeEmbed() {
   return (tree) => {
@@ -21,10 +23,14 @@ export default function remarkYouTubeEmbed() {
           continue;
         }
         const link = soleLinkChild(child);
-        if (!link || !isYouTubeUrl(link.url)) {
+        if (!link) {
           continue;
         }
-        node.children[i] = toVideoNode(link);
+        const videoId = extractYouTubeId(link.url);
+        if (!videoId) {
+          continue;
+        }
+        node.children[i] = toVideoNode(link, videoId);
       }
     });
   };
@@ -32,7 +38,7 @@ export default function remarkYouTubeEmbed() {
 
 function soleLinkChild(paragraph) {
   const meaningful = paragraph.children.filter(
-    (c) => !(c.type === "text" && (c.value ?? "").trim() === "")
+    (c) => !(c.type === "text" && (c.value ?? "").trim() === ""),
   );
   if (meaningful.length !== 1) {
     return null;
@@ -40,24 +46,38 @@ function soleLinkChild(paragraph) {
   return meaningful[0].type === "link" ? meaningful[0] : null;
 }
 
-function isYouTubeUrl(url) {
+function extractYouTubeId(url) {
   if (typeof url !== "string") {
-    return false;
+    return null;
   }
   let parsed;
   try {
-    parsed = new URL(url);
+    parsed = new URL(url.trim());
   } catch {
-    return false;
+    return null;
   }
   const host = parsed.hostname.replace(/^(www\.|m\.)/, "");
-  return SUPPORTED_HOSTS.has(host);
+  if (!SUPPORTED_HOSTS.has(host)) {
+    return null;
+  }
+  if (host === "youtu.be") {
+    const id = parsed.pathname.replace(/^\//, "").split("/")[0];
+    return ID_RE.test(id) ? id : null;
+  }
+  const v = parsed.searchParams.get("v");
+  if (v && ID_RE.test(v)) {
+    return v;
+  }
+  const match = parsed.pathname.match(
+    /^\/(?:embed|shorts|v)\/([a-zA-Z0-9_-]{11})/,
+  );
+  return match ? match[1] : null;
 }
 
-function toVideoNode(link) {
+function toVideoNode(link, videoId) {
   const label = linkText(link).trim();
   const attributes = [
-    { type: "mdxJsxAttribute", name: "src", value: link.url },
+    { type: "mdxJsxAttribute", name: "videoId", value: videoId },
   ];
   if (label.length > 0) {
     attributes.push({
@@ -68,7 +88,7 @@ function toVideoNode(link) {
   }
   return {
     type: "mdxJsxFlowElement",
-    name: "Video",
+    name: "YouTubeVideo",
     attributes,
     children: [],
   };

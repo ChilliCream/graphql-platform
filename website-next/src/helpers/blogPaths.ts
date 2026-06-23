@@ -49,7 +49,7 @@ export function listBlogPosts(): {
       if (!candidate) {
         throw new Error(
           `[blogPaths] Blog directory "${entry.name}" is missing the matching ` +
-            `${entry.name}.md(x) file inside it.`
+            `${entry.name}.md(x) file inside it.`,
         );
       }
       posts.push({ stem: entry.name, parsed, rel: candidate });
@@ -70,7 +70,7 @@ export function listBlogPosts(): {
     if (!parsed) {
       throw new Error(
         `[blogPaths] Invalid blog file "${entry.name}". ` +
-          `Expected name format YYYY-MM-DD-slug.md(x).`
+          `Expected name format YYYY-MM-DD-slug.md(x).`,
       );
     }
     posts.push({ stem, parsed, rel: entry.name });
@@ -79,29 +79,29 @@ export function listBlogPosts(): {
   return posts;
 }
 
-/** Build the canonical URL for a blog post stem. */
+/** Build the canonical URL for a blog post stem. The URL slug mirrors the
+ *  markdown file name, e.g. /blog/2019-06-05-hot-chocolate-9. */
 export function blogUrlForStem(parsed: BlogStem): string {
-  return `/blog/${parsed.year}/${parsed.month}/${parsed.day}/${parsed.slug}`;
+  return `/blog/${parsed.year}-${parsed.month}-${parsed.day}-${parsed.slug}`;
 }
 
-/** Reverse the catch-all slug (e.g. ['2019','06','05','hot-chocolate-9.0.0'])
- *  to a file path relative to BLOG_ROOT, or null if not found. */
+/** Reverse the catch-all slug (e.g. ['2019-06-05-hot-chocolate-9']) to a file
+ *  path relative to BLOG_ROOT, or null if not found. */
 export function resolveBlogFile(slug: string[]): string | null {
-  if (slug.length < 4) {
+  if (slug.length !== 1) {
     return null;
   }
-  const [year, month, day, ...rest] = slug;
-  const slugPart = rest.join("/");
-  const stem = `${year}-${month}-${day}-${slugPart}`;
+  const stem = slug[0];
+  if (!parseBlogStem(stem)) {
+    return null;
+  }
   const candidates = [
     `${stem}.md`,
     `${stem}.mdx`,
     `${stem}/${stem}.md`,
     `${stem}/${stem}.mdx`,
   ];
-  return (
-    candidates.find((c) => fs.existsSync(path.join(BLOG_ROOT, c))) ?? null
-  );
+  return candidates.find((c) => fs.existsSync(path.join(BLOG_ROOT, c))) ?? null;
 }
 
 /** Given a path relative to BLOG_ROOT (e.g. "2019-06-05-foo/2019-06-05-foo.md"),

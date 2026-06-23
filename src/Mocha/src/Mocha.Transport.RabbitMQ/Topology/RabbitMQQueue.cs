@@ -74,7 +74,6 @@ public sealed class RabbitMQQueue : TopologyResource<RabbitMQQueueConfiguration>
         ImmutableInterlocked.Update(ref _bindings, (current) => current.Add(binding));
     }
 
-    // TODO: this is a bit lost here
     /// <summary>
     /// Declares this queue on the broker using the specified channel.
     /// </summary>

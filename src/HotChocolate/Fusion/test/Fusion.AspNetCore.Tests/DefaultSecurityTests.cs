@@ -48,10 +48,11 @@ public class DefaultSecurityTests : FusionTestBase
 
         using var result = await client.PostAsync(
             "{ __schema { description } }",
-            new Uri("http://localhost:5000/graphql"));
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
 
         // assert
-        using var response = await result.ReadAsResultAsync();
+        using var response = await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
         response.MatchInlineSnapshot(
             """
             {
@@ -90,10 +91,11 @@ public class DefaultSecurityTests : FusionTestBase
 
         using var result = await client.PostAsync(
             "{ __schema { description } }",
-            new Uri("http://localhost:5000/graphql"));
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
 
         // assert
-        using var response = await result.ReadAsResultAsync();
+        using var response = await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
         response.MatchInlineSnapshot(
             """
             {
@@ -123,10 +125,11 @@ public class DefaultSecurityTests : FusionTestBase
 
         using var result = await client.PostAsync(
             "{ __schema { description } }",
-            new Uri("http://localhost:5000/graphql"));
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
 
         // assert
-        using var response = await result.ReadAsResultAsync();
+        using var response = await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
         response.MatchInlineSnapshot(
             """
             {
@@ -171,10 +174,11 @@ public class DefaultSecurityTests : FusionTestBase
               }
             }
             """,
-            new Uri("http://localhost:5000/graphql"));
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
 
         // assert
-        using var response = await result.ReadAsResultAsync();
+        using var response = await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
         response.MatchInlineSnapshot(
             """
             {
@@ -232,10 +236,11 @@ public class DefaultSecurityTests : FusionTestBase
               }
             }
             """,
-            new Uri("http://localhost:5000/graphql"));
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
 
         // assert - query passes validation and executes (no HC0087 error)
-        using var response = await result.ReadAsResultAsync();
+        using var response = await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
         Assert.Equal(JsonValueKind.Undefined, response.Errors.ValueKind);
         Assert.Equal(JsonValueKind.Object, response.Data.ValueKind);
     }

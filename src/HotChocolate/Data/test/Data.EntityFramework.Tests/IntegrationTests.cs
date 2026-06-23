@@ -38,10 +38,10 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
             await using (var seed = new BookContext(
                 new DbContextOptionsBuilder<BookContext>().UseSqlite(connectionString).Options))
             {
-                await seed.Database.EnsureCreatedAsync();
+                await seed.Database.EnsureCreatedAsync(Xunit.TestContext.Current.CancellationToken);
                 seed.Authors.Add(
                     new Author { Id = 1, Name = "Foo", Books = { new Book { Id = 1, Title = "Foo1" } } });
-                await seed.SaveChangesAsync();
+                await seed.SaveChangesAsync(Xunit.TestContext.Current.CancellationToken);
             }
 
             var result = await new ServiceCollection()
@@ -67,7 +67,9 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                             .ParentRequires<Book>(b => b.Author!);
                     })
                 .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
-                .ExecuteRequestAsync("{ books { title authorInfo { name } } }");
+                .ExecuteRequestAsync(
+                    "{ books { title authorInfo { name } } }",
+                    cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
             // assert
             // The SQL must join and select the Authors columns, proving the required navigation
@@ -124,7 +126,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                     .Name("Query")
                     .Field("executable")
                     .Resolve(_authors))
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -134,7 +136,8 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                 name
               }
             }
-            """);
+            """,
+            Xunit.TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -156,7 +159,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                     .Type<ObjectType<Author>>()
                     .Resolve(_authors.Take(1))
                     .UseSingleOrDefault())
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -166,7 +169,8 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                     name
                 }
             }
-            """);
+            """,
+            Xunit.TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -191,7 +195,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                     .UseProjection()
                     .UseFiltering()
                     .UseSorting())
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -201,7 +205,8 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                     name
                 }
             }
-            """);
+            """,
+            Xunit.TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -226,7 +231,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                     .UseProjection()
                     .UseFiltering()
                     .UseSorting())
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -236,7 +241,8 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                     name
                 }
             }
-            """);
+            """,
+            Xunit.TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -258,7 +264,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                     .Type<ObjectType<Author>>()
                     .Resolve(_authors)
                     .UseFirstOrDefault())
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -268,7 +274,8 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                     name
                 }
             }
-            """);
+            """,
+            Xunit.TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -293,7 +300,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                     .UseProjection()
                     .UseFiltering()
                     .UseSorting())
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -303,7 +310,8 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                     name
                 }
             }
-            """);
+            """,
+            Xunit.TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -322,7 +330,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
             .AddSorting()
             .AddProjections()
             .AddQueryType<Query>()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
         // assert
         var result = await executor.ExecuteAsync(
@@ -338,7 +346,8 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                     }
                 }
             }
-            """);
+            """,
+            Xunit.TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -361,7 +370,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                     .UseProjection()
                     .UseFiltering()
                     .UseSorting())
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -371,7 +380,8 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                     name
                 }
             }
-            """);
+            """,
+            Xunit.TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -396,7 +406,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                     .UseProjection()
                     .UseFiltering()
                     .UseSorting())
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -406,7 +416,8 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                     name
                 }
             }
-            """);
+            """,
+            Xunit.TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -431,7 +442,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                     .UseProjection()
                     .UseFiltering()
                     .UseSorting())
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -441,7 +452,8 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                     name
                 }
             }
-            """);
+            """,
+            Xunit.TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -466,7 +478,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                     .UseProjection()
                     .UseFiltering()
                     .UseSorting())
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -476,7 +488,8 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                     name
                 }
             }
-            """);
+            """,
+            Xunit.TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -501,7 +514,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                     .UseProjection()
                     .UseFiltering()
                     .UseSorting())
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -511,7 +524,8 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                     name
                 }
             }
-            """);
+            """,
+            Xunit.TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -536,7 +550,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                     .UseProjection()
                     .UseFiltering()
                     .UseSorting())
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -546,7 +560,8 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                     name
                 }
             }
-            """);
+            """,
+            Xunit.TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -574,7 +589,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                     .Type<ObjectType<SingleOrDefaultActiveUser>>()
                     .Resolve(users)
                     .UseSingleOrDefault())
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -585,7 +600,8 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                     isActive
                 }
             }
-            """);
+            """,
+            Xunit.TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -601,19 +617,19 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                 .UseInMemoryDatabase(databaseName)
                 .Options))
         {
-            await seedContext.Database.EnsureCreatedAsync();
+            await seedContext.Database.EnsureCreatedAsync(Xunit.TestContext.Current.CancellationToken);
 
             var blog1 = new ConstructorInjectionBlog { Name = "Blog1" };
             var blog2 = new ConstructorInjectionBlog { Name = "Blog2" };
 
             await seedContext.Blogs.AddRangeAsync(blog1, blog2);
-            await seedContext.SaveChangesAsync();
+            await seedContext.SaveChangesAsync(Xunit.TestContext.Current.CancellationToken);
 
             await seedContext.Posts.AddRangeAsync(
                 new ConstructorInjectionPost { BlogId = blog1.Id },
                 new ConstructorInjectionPost { BlogId = blog1.Id },
                 new ConstructorInjectionPost { BlogId = blog2.Id });
-            await seedContext.SaveChangesAsync();
+            await seedContext.SaveChangesAsync(Xunit.TestContext.Current.CancellationToken);
         }
 
         var executor = await new ServiceCollection()
@@ -622,7 +638,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
             .AddGraphQL()
             .AddProjections()
             .AddQueryType<ConstructorInjectionQuery>()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
         var result = await executor.ExecuteAsync(
             """
@@ -636,7 +652,8 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                     postCount
                 }
             }
-            """);
+            """,
+            Xunit.TestContext.Current.CancellationToken);
 
         var operationResult = result.ExpectOperationResult();
         Assert.True(operationResult.Errors is null || operationResult.Errors.Count == 0);
@@ -674,19 +691,19 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                 .UseInMemoryDatabase(databaseName)
                 .Options))
         {
-            await seedContext.Database.EnsureCreatedAsync();
+            await seedContext.Database.EnsureCreatedAsync(Xunit.TestContext.Current.CancellationToken);
 
             var blog1 = new ConstructorInjectionBlog { Name = "Blog1" };
             var blog2 = new ConstructorInjectionBlog { Name = "Blog2" };
 
             await seedContext.Blogs.AddRangeAsync(blog1, blog2);
-            await seedContext.SaveChangesAsync();
+            await seedContext.SaveChangesAsync(Xunit.TestContext.Current.CancellationToken);
 
             await seedContext.Posts.AddRangeAsync(
                 new ConstructorInjectionPost { BlogId = blog1.Id },
                 new ConstructorInjectionPost { BlogId = blog1.Id },
                 new ConstructorInjectionPost { BlogId = blog2.Id });
-            await seedContext.SaveChangesAsync();
+            await seedContext.SaveChangesAsync(Xunit.TestContext.Current.CancellationToken);
         }
 
         var executor = await new ServiceCollection()
@@ -695,7 +712,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
             .AddGraphQL()
             .AddProjections()
             .AddQueryType<ConstructorInjectionQuery>()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
         var result = await executor.ExecuteAsync(
             """
@@ -709,7 +726,8 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                     postCount
                 }
             }
-            """);
+            """,
+            Xunit.TestContext.Current.CancellationToken);
 
         var operationResult = result.ExpectOperationResult();
         Assert.True(operationResult.Errors is null || operationResult.Errors.Count == 0);
@@ -765,7 +783,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
             await using (var scope = services.CreateAsyncScope())
             {
                 await using var context = scope.ServiceProvider.GetRequiredService<ConditionalDbContext>();
-                await context.Database.EnsureCreatedAsync();
+                await context.Database.EnsureCreatedAsync(Xunit.TestContext.Current.CancellationToken);
 
                 context.Tenants.Add(
                     new ConditionalTenant
@@ -779,12 +797,12 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                         ]
                     });
 
-                await context.SaveChangesAsync();
+                await context.SaveChangesAsync(Xunit.TestContext.Current.CancellationToken);
             }
 
             var executor = await services
                 .GetRequiredService<IRequestExecutorProvider>()
-                .GetExecutorAsync();
+                .GetExecutorAsync(cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
             // act
             // the workspaces relation carries a variable based @include directive, which makes
@@ -804,13 +822,14 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                         }
                         """)
                     .SetVariableValues(new Dictionary<string, object?> { ["if"] = include })
-                    .Build());
+                    .Build(),
+                Xunit.TestContext.Current.CancellationToken);
 
             // assert
             await new Snapshot(postFix: include ? "include_true" : "include_false")
                 .Add(result, "Result")
                 .Add(sqlCapture.Sql ?? "<none>", "SQL")
-                .MatchMarkdownAsync();
+                .MatchMarkdownAsync(Xunit.TestContext.Current.CancellationToken);
         }
         finally
         {
@@ -847,7 +866,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
             await using (var scope = services.CreateAsyncScope())
             {
                 await using var context = scope.ServiceProvider.GetRequiredService<ConditionalDbContext>();
-                await context.Database.EnsureCreatedAsync();
+                await context.Database.EnsureCreatedAsync(Xunit.TestContext.Current.CancellationToken);
 
                 context.Tenants.Add(
                     new ConditionalTenant
@@ -861,12 +880,12 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                         ]
                     });
 
-                await context.SaveChangesAsync();
+                await context.SaveChangesAsync(Xunit.TestContext.Current.CancellationToken);
             }
 
             var executor = await services
                 .GetRequiredService<IRequestExecutorProvider>()
-                .GetExecutorAsync();
+                .GetExecutorAsync(cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
             // act
             // the parent field carries a variable based @include directive, which makes the
@@ -886,13 +905,14 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                         }
                         """)
                     .SetVariableValues(new Dictionary<string, object?> { ["if"] = true })
-                    .Build());
+                    .Build(),
+                Xunit.TestContext.Current.CancellationToken);
 
             // assert
             await new Snapshot()
                 .Add(result, "Result")
                 .Add(sqlCapture.Sql ?? "<none>", "SQL")
-                .MatchMarkdownAsync();
+                .MatchMarkdownAsync(Xunit.TestContext.Current.CancellationToken);
         }
         finally
         {
@@ -929,7 +949,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
             await using (var scope = services.CreateAsyncScope())
             {
                 await using var context = scope.ServiceProvider.GetRequiredService<ConditionalDbContext>();
-                await context.Database.EnsureCreatedAsync();
+                await context.Database.EnsureCreatedAsync(Xunit.TestContext.Current.CancellationToken);
 
                 context.Tenants.Add(
                     new ConditionalTenant
@@ -943,12 +963,12 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                         ]
                     });
 
-                await context.SaveChangesAsync();
+                await context.SaveChangesAsync(Xunit.TestContext.Current.CancellationToken);
             }
 
             var executor = await services
                 .GetRequiredService<IRequestExecutorProvider>()
-                .GetExecutorAsync();
+                .GetExecutorAsync(cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
             // act
             // the parent field is excluded at the top level, so the resolver is never invoked
@@ -967,7 +987,8 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                         }
                         """)
                     .SetVariableValues(new Dictionary<string, object?> { ["if"] = false })
-                    .Build());
+                    .Build(),
+                Xunit.TestContext.Current.CancellationToken);
 
             // assert
             var operationResult = result.ExpectOperationResult();
@@ -1015,7 +1036,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
             await using (var scope = services.CreateAsyncScope())
             {
                 await using var context = scope.ServiceProvider.GetRequiredService<ConditionalDbContext>();
-                await context.Database.EnsureCreatedAsync();
+                await context.Database.EnsureCreatedAsync(Xunit.TestContext.Current.CancellationToken);
 
                 context.Tenants.Add(
                     new ConditionalTenant
@@ -1029,12 +1050,12 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                         ]
                     });
 
-                await context.SaveChangesAsync();
+                await context.SaveChangesAsync(Xunit.TestContext.Current.CancellationToken);
             }
 
             var executor = await services
                 .GetRequiredService<IRequestExecutorProvider>()
-                .GetExecutorAsync();
+                .GetExecutorAsync(cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
             // act
             // the resolver builds the selector without runtime include flags, so the runtime
@@ -1056,13 +1077,14 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                         }
                         """)
                     .SetVariableValues(new Dictionary<string, object?> { ["if"] = include })
-                    .Build());
+                    .Build(),
+                Xunit.TestContext.Current.CancellationToken);
 
             // assert
             await new Snapshot(postFix: include ? "include_true" : "include_false")
                 .Add(result, "Result")
                 .Add(sqlCapture.Sql ?? "<none>", "SQL")
-                .MatchMarkdownAsync();
+                .MatchMarkdownAsync(Xunit.TestContext.Current.CancellationToken);
         }
         finally
         {
@@ -1099,7 +1121,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
             await using (var scope = services.CreateAsyncScope())
             {
                 await using var context = scope.ServiceProvider.GetRequiredService<ConditionalDbContext>();
-                await context.Database.EnsureCreatedAsync();
+                await context.Database.EnsureCreatedAsync(Xunit.TestContext.Current.CancellationToken);
 
                 context.Tenants.Add(
                     new ConditionalTenant
@@ -1113,12 +1135,12 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                         ]
                     });
 
-                await context.SaveChangesAsync();
+                await context.SaveChangesAsync(Xunit.TestContext.Current.CancellationToken);
             }
 
             var executor = await services
                 .GetRequiredService<IRequestExecutorProvider>()
-                .GetExecutorAsync();
+                .GetExecutorAsync(cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
             // act
             // the parent field carries a variable based @include directive and the resolver
@@ -1139,13 +1161,14 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                         }
                         """)
                     .SetVariableValues(new Dictionary<string, object?> { ["if"] = true })
-                    .Build());
+                    .Build(),
+                Xunit.TestContext.Current.CancellationToken);
 
             // assert
             await new Snapshot()
                 .Add(result, "Result")
                 .Add(sqlCapture.Sql ?? "<none>", "SQL")
-                .MatchMarkdownAsync();
+                .MatchMarkdownAsync(Xunit.TestContext.Current.CancellationToken);
         }
         finally
         {
@@ -1184,7 +1207,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
             await using (var scope = services.CreateAsyncScope())
             {
                 await using var context = scope.ServiceProvider.GetRequiredService<ConditionalDbContext>();
-                await context.Database.EnsureCreatedAsync();
+                await context.Database.EnsureCreatedAsync(Xunit.TestContext.Current.CancellationToken);
 
                 context.Tenants.Add(
                     new ConditionalTenant
@@ -1198,12 +1221,12 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                         ]
                     });
 
-                await context.SaveChangesAsync();
+                await context.SaveChangesAsync(Xunit.TestContext.Current.CancellationToken);
             }
 
             var executor = await services
                 .GetRequiredService<IRequestExecutorProvider>()
-                .GetExecutorAsync();
+                .GetExecutorAsync(cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
             // act
             // the projection is created for a connection field, so the selector is built
@@ -1225,13 +1248,14 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                         }
                         """)
                     .SetVariableValues(new Dictionary<string, object?> { ["if"] = include })
-                    .Build());
+                    .Build(),
+                Xunit.TestContext.Current.CancellationToken);
 
             // assert
             await new Snapshot(postFix: include ? "include_true" : "include_false")
                 .Add(result, "Result")
                 .Add(sqlCapture.Sql ?? "<none>", "SQL")
-                .MatchMarkdownAsync();
+                .MatchMarkdownAsync(Xunit.TestContext.Current.CancellationToken);
         }
         finally
         {
@@ -1268,7 +1292,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
             await using (var scope = services.CreateAsyncScope())
             {
                 await using var context = scope.ServiceProvider.GetRequiredService<ConditionalDbContext>();
-                await context.Database.EnsureCreatedAsync();
+                await context.Database.EnsureCreatedAsync(Xunit.TestContext.Current.CancellationToken);
 
                 context.Tenants.Add(
                     new ConditionalTenant
@@ -1282,12 +1306,12 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                         ]
                     });
 
-                await context.SaveChangesAsync();
+                await context.SaveChangesAsync(Xunit.TestContext.Current.CancellationToken);
             }
 
             var executor = await services
                 .GetRequiredService<IRequestExecutorProvider>()
-                .GetExecutorAsync();
+                .GetExecutorAsync(cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
             const string document =
                 """
@@ -1309,7 +1333,8 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                 OperationRequestBuilder.New()
                     .SetDocument(document)
                     .SetVariableValues(new Dictionary<string, object?> { ["if"] = false })
-                    .Build());
+                    .Build(),
+                Xunit.TestContext.Current.CancellationToken);
             var excludedSql = sqlCapture.Sql;
 
             sqlCapture.Sql = null;
@@ -1318,7 +1343,8 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                 OperationRequestBuilder.New()
                     .SetDocument(document)
                     .SetVariableValues(new Dictionary<string, object?> { ["if"] = true })
-                    .Build());
+                    .Build(),
+                Xunit.TestContext.Current.CancellationToken);
             var includedSql = sqlCapture.Sql;
 
             // assert
@@ -1327,7 +1353,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                 .Add(excludedSql ?? "<none>", "SQL include=false")
                 .Add(includedResult, "Result include=true")
                 .Add(includedSql ?? "<none>", "SQL include=true")
-                .MatchMarkdownAsync();
+                .MatchMarkdownAsync(Xunit.TestContext.Current.CancellationToken);
         }
         finally
         {
@@ -1425,7 +1451,8 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
             OperationRequestBuilder.New()
                 .SetDocument(document)
                 .SetVariableValues(new Dictionary<string, object?> { ["if"] = include })
-                .Build());
+                .Build(),
+            Xunit.TestContext.Current.CancellationToken);
 
         var operationResult = result.ExpectOperationResult();
         if (operationResult.Errors is { Count: > 0 })
@@ -1460,7 +1487,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
             await using (var scope = services.CreateAsyncScope())
             {
                 await using var context = scope.ServiceProvider.GetRequiredService<ConditionalDbContext>();
-                await context.Database.EnsureCreatedAsync();
+                await context.Database.EnsureCreatedAsync(Xunit.TestContext.Current.CancellationToken);
 
                 context.Tenants.Add(
                     new ConditionalTenant
@@ -1474,12 +1501,12 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                         ]
                     });
 
-                await context.SaveChangesAsync();
+                await context.SaveChangesAsync(Xunit.TestContext.Current.CancellationToken);
             }
 
             var executor = await services
                 .GetRequiredService<IRequestExecutorProvider>()
-                .GetExecutorAsync();
+                .GetExecutorAsync(cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
             return new ConditionalTestContext(
                 dbFile,
@@ -1497,6 +1524,58 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
             }
 
             throw;
+        }
+    }
+
+    [Fact]
+    public async Task UseProjection_Should_Project_Only_Selected_Columns_When_Entity_Is_Record()
+    {
+        // arrange
+        var fileName = Guid.NewGuid().ToString("N") + ".db";
+        var connectionString = "Data Source=" + fileName;
+        var sql = new List<string>();
+
+        try
+        {
+            await using (var seed = new RecordProjectionDbContext(
+                new DbContextOptionsBuilder<RecordProjectionDbContext>()
+                    .UseSqlite(connectionString)
+                    .Options))
+            {
+                await seed.Database.EnsureCreatedAsync(Xunit.TestContext.Current.CancellationToken);
+                seed.Products.Add(
+                    new RecordProjectionProduct { Id = 1, Name = "Product", Description = "Description" });
+                await seed.SaveChangesAsync(Xunit.TestContext.Current.CancellationToken);
+            }
+
+            var executor = await new ServiceCollection()
+                .AddDbContext<RecordProjectionDbContext>(
+                    b => b
+                        .UseSqlite(connectionString)
+                        .AddInterceptors(new SqlCapturingInterceptor(sql)))
+                .AddGraphQL()
+                .AddProjections()
+                .AddQueryType<RecordProjectionQuery>()
+                .BuildRequestExecutorAsync(cancellationToken: Xunit.TestContext.Current.CancellationToken);
+
+            // act
+            var result = await executor.ExecuteAsync(
+                "{ products { id } }",
+                Xunit.TestContext.Current.CancellationToken);
+
+            // assert
+            var operationResult = result.ExpectOperationResult();
+            Assert.Empty(operationResult.Errors);
+            string.Join("\n", sql).MatchInlineSnapshot(
+                """
+                SELECT "p"."Id"
+                FROM "Products" AS "p"
+                """);
+        }
+        finally
+        {
+            Microsoft.Data.Sqlite.SqliteConnection.ClearAllPools();
+            File.Delete(fileName);
         }
     }
 
@@ -1552,6 +1631,29 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
         public int Id { get; set; }
 
         public int BlogId { get; set; }
+    }
+
+    public class RecordProjectionQuery
+    {
+        [UseProjection]
+        public IQueryable<RecordProjectionProduct> GetProducts(RecordProjectionDbContext context)
+            => context.Products;
+    }
+
+    public class RecordProjectionDbContext(
+        DbContextOptions<RecordProjectionDbContext> options)
+        : DbContext(options)
+    {
+        public DbSet<RecordProjectionProduct> Products => Set<RecordProjectionProduct>();
+    }
+
+    public record RecordProjectionProduct
+    {
+        public required int Id { get; init; }
+
+        public required string Name { get; init; }
+
+        public required string Description { get; init; }
     }
 
     public class SingleOrDefaultUser

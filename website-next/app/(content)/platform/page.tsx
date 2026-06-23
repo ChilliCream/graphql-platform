@@ -1,7 +1,14 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 
 import { PageHero } from "@/src/components/PageHero";
 import { Section } from "@/src/components/Section";
+
+export const metadata: Metadata = {
+  title: "Platform",
+  description:
+    "Discover the ChilliCream GraphQL Platform: one place for analytics, continuous integration, and a trusted ecosystem for every API in your organization.",
+};
 
 const PLATFORM_SECTIONS = [
   {
@@ -34,15 +41,15 @@ export default function PlatformPage() {
             <Link
               key={section.href}
               href={section.href}
-              className="group flex flex-col rounded-xl border border-cc-card-border bg-cc-card-bg backdrop-blur-sm p-8 no-underline  transition-colors hover:border-fuchsia-400"
+              className="group border-cc-card-border bg-cc-card-bg hover:border-cc-accent flex flex-col rounded-xl border p-8 no-underline backdrop-blur-sm transition-colors"
             >
-              <h2 className="text-xl font-semibold text-cc-ink group-hover:text-fuchsia-400">
+              <h2 className="text-cc-ink group-hover:text-cc-accent text-xl font-semibold">
                 {section.title}
               </h2>
-              <p className="mt-3 text-sm text-cc-ink-dim">
+              <p className="text-cc-ink-dim mt-3 text-sm">
                 {section.description}
               </p>
-              <span className="mt-6 text-sm font-medium text-fuchsia-400">
+              <span className="text-cc-accent mt-6 text-sm font-medium">
                 Learn more →
               </span>
             </Link>

@@ -81,6 +81,7 @@ namespace TestNamespace
                     configuration.Description = GetDescription("Query and manages users.\n\nPlease note:\n* Users ...\n* Users ...\n    * Users ...\n    * Users ...\n\nYou need one of the following role: Owner,\nEditor, use XYZ to manage permissions.", true, field.Context.Options.UseXmlDocumentation);
                     configuration.Type = typeInspector.GetTypeRef(typeof(string), HotChocolate.Types.TypeContext.Output);
                     configuration.ResultType = typeof(string);
+                    configuration.DeclaringType = context.ThisType;
 
                     configuration.SetSourceGeneratorFlags();
 

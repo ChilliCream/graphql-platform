@@ -17,7 +17,7 @@ public class IntegrationTests
             .AddQueryType<QueryWithIgnoredField>()
             .AddType<EntityWithIgnoredFieldType>()
             .AddFiltering()
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         Assert.NotNull(schema);
@@ -38,7 +38,7 @@ public class IntegrationTests
             .AddQueryType<QueryWithExplicitIgnoredFieldFilter>()
             .AddType<EntityWithIgnoredFieldType>()
             .AddFiltering()
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         Assert.NotNull(schema);

@@ -4,7 +4,7 @@ import { compileMDX } from "next-mdx-remote/rsc";
 import type { VFile } from "vfile";
 import { rehypePlugins, remarkPlugins } from "@/src/mdx-plugins";
 import { useMDXComponents as getMDXComponents } from "@/mdx-components";
-import type { HeadingItem } from "@/src/design-system/TableOfContents";
+import type { HeadingItem } from "@/src/components/TableOfContents";
 
 type Frontmatter = {
   title?: string;
@@ -19,14 +19,14 @@ export type CompiledDoc<T extends Frontmatter = Frontmatter> = {
 };
 
 export async function compileDoc<T extends Frontmatter = Frontmatter>(
-  absPath: string
+  absPath: string,
 ): Promise<CompiledDoc<T>> {
   // MDX 3 rejects HTML comments (`<!-- ... -->`). They survive on disk for
   // tooling that reads them (e.g. cspell `<!-- spell-checker:ignore ... -->`)
   // but get stripped before MDX compilation.
   const source = (await fs.readFile(absPath, "utf-8")).replace(
     /<!--[\s\S]*?-->/g,
-    ""
+    "",
   );
   const captured: { toc: HeadingItem[] } = { toc: [] };
 

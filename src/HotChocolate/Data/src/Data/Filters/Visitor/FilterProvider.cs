@@ -36,6 +36,9 @@ public abstract class FilterProvider<TContext>
     /// <inheritdoc />
     public IReadOnlyCollection<IFilterFieldHandler> FieldHandlers => _fieldHandlers;
 
+    protected IFilterConvention FilterConvention
+        => _filterConvention ?? throw FilterConvention_ProviderHasToBeInitializedByConvention(GetType(), Scope);
+
     /// <inheritdoc />
     protected override FilterProviderConfiguration CreateConfiguration(IConventionContext context)
     {

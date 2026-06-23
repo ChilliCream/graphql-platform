@@ -19,7 +19,7 @@ public class EntitiesResolverForObjectTests
             .AddGraphQL()
             .AddApolloFederation()
             .AddQueryType<Query>()
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var context = CreateResolverContext(schema);
 
@@ -49,7 +49,7 @@ public class EntitiesResolverForObjectTests
             .AddGraphQL()
             .AddApolloFederation()
             .AddQueryType<Query>()
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var context = CreateResolverContext(schema);
 
@@ -78,7 +78,7 @@ public class EntitiesResolverForObjectTests
             .AddGraphQL()
             .AddApolloFederation()
             .AddQueryType<Query>()
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var context = CreateResolverContext(schema);
 
@@ -104,7 +104,7 @@ public class EntitiesResolverForObjectTests
             .AddGraphQL()
             .AddApolloFederation()
             .AddQueryType<Query>()
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var batchScheduler = new ManualBatchScheduler();
         var dataLoader = new FederatedTypeDataLoader(batchScheduler, new DataLoaderOptions());
@@ -140,7 +140,7 @@ public class EntitiesResolverForObjectTests
             .AddGraphQL()
             .AddApolloFederation()
             .AddQueryType<Query>()
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var context = CreateResolverContext(schema);
 
@@ -162,7 +162,7 @@ public class EntitiesResolverForObjectTests
             .AddGraphQL()
             .AddApolloFederation()
             .AddQueryType<Query>()
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var context = CreateResolverContext(schema);
 
@@ -185,7 +185,7 @@ public class EntitiesResolverForObjectTests
             .AddApolloFederation()
             .AddQueryType<Query>()
             .AddType<FederatedTypeWithRequiredDetail>()
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var context = CreateResolverContext(schema);
 
@@ -216,7 +216,7 @@ public class EntitiesResolverForObjectTests
             .AddApolloFederation()
             .AddQueryType<Query>()
             .AddType<FederatedTypeWithOptionalDetail>()
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var context = CreateResolverContext(schema);
 

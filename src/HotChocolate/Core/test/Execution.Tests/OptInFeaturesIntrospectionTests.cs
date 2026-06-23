@@ -1,3 +1,4 @@
+using System.Text.Json;
 using HotChocolate.Types;
 
 namespace HotChocolate.Execution;
@@ -24,7 +25,7 @@ public sealed class OptInFeaturesIntrospectionTests
         var executor = CreateSchema().MakeExecutable();
 
         // act
-        var result = await executor.ExecuteAsync(query);
+        var result = await executor.ExecuteAsync(query, TestContext.Current.CancellationToken);
 
         // assert
         result.MatchInlineSnapshot(
@@ -33,6 +34,8 @@ public sealed class OptInFeaturesIntrospectionTests
               "data": {
                 "__schema": {
                   "optInFeatures": [
+                    "directiveArgFeature1",
+                    "directiveArgFeature2",
                     "enumValueFeature1",
                     "enumValueFeature2",
                     "inputFieldFeature1",
@@ -77,7 +80,7 @@ public sealed class OptInFeaturesIntrospectionTests
         var executor = CreateSchema().MakeExecutable();
 
         // act
-        var result = await executor.ExecuteAsync(query);
+        var result = await executor.ExecuteAsync(query, TestContext.Current.CancellationToken);
 
         // assert
         result.MatchInlineSnapshot(
@@ -123,7 +126,7 @@ public sealed class OptInFeaturesIntrospectionTests
         var executor = CreateSchema().MakeExecutable();
 
         // act
-        var result = await executor.ExecuteAsync(query);
+        var result = await executor.ExecuteAsync(query, TestContext.Current.CancellationToken);
 
         // assert
         result.MatchInlineSnapshot(
@@ -162,7 +165,7 @@ public sealed class OptInFeaturesIntrospectionTests
         var executor = CreateSchema().MakeExecutable();
 
         // act
-        var result = await executor.ExecuteAsync(query);
+        var result = await executor.ExecuteAsync(query, TestContext.Current.CancellationToken);
 
         // assert
         result.MatchInlineSnapshot(
@@ -204,7 +207,7 @@ public sealed class OptInFeaturesIntrospectionTests
         var executor = CreateSchema().MakeExecutable();
 
         // act
-        var result = await executor.ExecuteAsync(query);
+        var result = await executor.ExecuteAsync(query, TestContext.Current.CancellationToken);
 
         // assert
         result.MatchInlineSnapshot(
@@ -262,7 +265,7 @@ public sealed class OptInFeaturesIntrospectionTests
         var executor = CreateSchema().MakeExecutable();
 
         // act
-        var result = await executor.ExecuteAsync(query);
+        var result = await executor.ExecuteAsync(query, TestContext.Current.CancellationToken);
 
         // assert
         result.MatchInlineSnapshot(
@@ -313,7 +316,7 @@ public sealed class OptInFeaturesIntrospectionTests
         var executor = CreateSchema().MakeExecutable();
 
         // act
-        var result = await executor.ExecuteAsync(query);
+        var result = await executor.ExecuteAsync(query, TestContext.Current.CancellationToken);
 
         // assert
         result.MatchInlineSnapshot(
@@ -361,7 +364,7 @@ public sealed class OptInFeaturesIntrospectionTests
         var executor = CreateSchema().MakeExecutable();
 
         // act
-        var result = await executor.ExecuteAsync(query);
+        var result = await executor.ExecuteAsync(query, TestContext.Current.CancellationToken);
 
         // assert
         result.MatchInlineSnapshot(
@@ -407,7 +410,7 @@ public sealed class OptInFeaturesIntrospectionTests
         var executor = CreateSchema().MakeExecutable();
 
         // act
-        var result = await executor.ExecuteAsync(query);
+        var result = await executor.ExecuteAsync(query, TestContext.Current.CancellationToken);
 
         // assert
         result.MatchInlineSnapshot(
@@ -446,7 +449,7 @@ public sealed class OptInFeaturesIntrospectionTests
         var executor = CreateSchema().MakeExecutable();
 
         // act
-        var result = await executor.ExecuteAsync(query);
+        var result = await executor.ExecuteAsync(query, TestContext.Current.CancellationToken);
 
         // assert
         result.MatchInlineSnapshot(
@@ -485,7 +488,7 @@ public sealed class OptInFeaturesIntrospectionTests
         var executor = CreateSchema().MakeExecutable();
 
         // act
-        var result = await executor.ExecuteAsync(query);
+        var result = await executor.ExecuteAsync(query, TestContext.Current.CancellationToken);
 
         // assert
         result.MatchInlineSnapshot(
@@ -531,7 +534,7 @@ public sealed class OptInFeaturesIntrospectionTests
         var executor = CreateSchema().MakeExecutable();
 
         // act
-        var result = await executor.ExecuteAsync(query);
+        var result = await executor.ExecuteAsync(query, TestContext.Current.CancellationToken);
 
         // assert
         result.MatchInlineSnapshot(
@@ -570,7 +573,7 @@ public sealed class OptInFeaturesIntrospectionTests
         var executor = CreateSchema().MakeExecutable();
 
         // act
-        var result = await executor.ExecuteAsync(query);
+        var result = await executor.ExecuteAsync(query, TestContext.Current.CancellationToken);
 
         // assert
         result.MatchInlineSnapshot(
@@ -590,6 +593,149 @@ public sealed class OptInFeaturesIntrospectionTests
             """);
     }
 
+    [Fact]
+    public async Task Execute_IntrospectionOnDirectiveArgs_MatchesSnapshot()
+    {
+        // arrange
+        const string query =
+            """
+            {
+                __schema {
+                    directives {
+                        name
+                        args(includeOptIn: ["directiveArgFeature1"]) {
+                            name
+                            requiresOptIn
+                        }
+                    }
+                }
+            }
+            """;
+
+        var executor = CreateSchema().MakeExecutable();
+
+        // act
+        var result = await executor.ExecuteAsync(query, TestContext.Current.CancellationToken);
+
+        // assert
+        var directive = GetDirective(result, "exampleDirective");
+        directive.MatchInlineSnapshot(
+            """
+            {
+              "name": "exampleDirective",
+              "args": [
+                {
+                  "name": "argument1",
+                  "requiresOptIn": [
+                    "directiveArgFeature1",
+                    "directiveArgFeature2"
+                  ]
+                },
+                {
+                  "name": "argument2",
+                  "requiresOptIn": []
+                }
+              ]
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task Execute_IntrospectionOnDirectiveArgsFeatureDoesNotExist_MatchesSnapshot()
+    {
+        // arrange
+        const string query =
+            """
+            {
+                __schema {
+                    directives {
+                        name
+                        args(includeOptIn: ["directiveArgFeatureDoesNotExist"]) {
+                            name
+                            requiresOptIn
+                        }
+                    }
+                }
+            }
+            """;
+
+        var executor = CreateSchema().MakeExecutable();
+
+        // act
+        var result = await executor.ExecuteAsync(query, TestContext.Current.CancellationToken);
+
+        // assert
+        var directive = GetDirective(result, "exampleDirective");
+        directive.MatchInlineSnapshot(
+            """
+            {
+              "name": "exampleDirective",
+              "args": [
+                {
+                  "name": "argument2",
+                  "requiresOptIn": []
+                }
+              ]
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task Execute_IntrospectionOnDirectiveArgsNoIncludedFeatures_MatchesSnapshot()
+    {
+        // arrange
+        const string query =
+            """
+            {
+                __schema {
+                    directives {
+                        name
+                        args {
+                            name
+                            requiresOptIn
+                        }
+                    }
+                }
+            }
+            """;
+
+        var executor = CreateSchema().MakeExecutable();
+
+        // act
+        var result = await executor.ExecuteAsync(query, TestContext.Current.CancellationToken);
+
+        // assert
+        var directive = GetDirective(result, "exampleDirective");
+        directive.MatchInlineSnapshot(
+            """
+            {
+              "name": "exampleDirective",
+              "args": [
+                {
+                  "name": "argument2",
+                  "requiresOptIn": []
+                }
+              ]
+            }
+            """);
+    }
+
+    private static readonly JsonSerializerOptions s_indented = new() { WriteIndented = true };
+
+    private static string GetDirective(IExecutionResult result, string directiveName)
+    {
+        using var document = JsonDocument.Parse(result.ToJson());
+
+        var directive = document.RootElement
+            .GetProperty("data")
+            .GetProperty("__schema")
+            .GetProperty("directives")
+            .EnumerateArray()
+            .Single(d => d.GetProperty("name").GetString() == directiveName);
+
+        return JsonSerializer.Serialize(directive, s_indented);
+    }
+
     private static Schema CreateSchema()
     {
         return SchemaBuilder.New()
@@ -600,6 +746,7 @@ public sealed class OptInFeaturesIntrospectionTests
             .AddQueryType<QueryType>()
             .AddType<ExampleInputType>()
             .AddType<ExampleEnumType>()
+            .AddDirectiveType<ExampleDirectiveType>()
             .ModifyOptions(o => o.EnableOptInFeatures = true)
             .Use(next => next)
             .Create();
@@ -680,6 +827,25 @@ public sealed class OptInFeaturesIntrospectionTests
             descriptor
                 .Value("VALUE3")
                 .Deprecated();
+        }
+    }
+
+    private sealed class ExampleDirectiveType : DirectiveType
+    {
+        protected override void Configure(IDirectiveTypeDescriptor descriptor)
+        {
+            descriptor.Name("exampleDirective");
+            descriptor.Location(DirectiveLocation.Field);
+
+            descriptor
+                .Argument("argument1")
+                .Type<IntType>()
+                .RequiresOptIn("directiveArgFeature1")
+                .RequiresOptIn("directiveArgFeature2");
+
+            descriptor
+                .Argument("argument2")
+                .Type<IntType>();
         }
     }
 }

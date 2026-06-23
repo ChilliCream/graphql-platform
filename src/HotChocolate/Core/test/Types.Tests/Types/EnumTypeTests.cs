@@ -95,9 +95,9 @@ public class EnumTypeTests : TypeTestBase
     {
         // act
         var schema = SchemaBuilder.New()
-            .AddDirectiveType(new DirectiveType(d => d
+            .AddDirectiveType(d => d
                 .Name("bar")
-                .Location(DirectiveLocation.Enum)))
+                .Location(DirectiveLocation.Enum))
             .AddEnumType(d => d.Name("Foo").Directive(new DirectiveNode("bar")).Value("ABC"))
             .ModifyOptions(o => o.StrictValidation = false)
             .Create();
@@ -357,9 +357,9 @@ public class EnumTypeTests : TypeTestBase
         // act
         var schema = SchemaBuilder
             .New()
-            .AddDirectiveType(new DirectiveType(d => d
+            .AddDirectiveType(d => d
                 .Name("bar")
-                .Location(DirectiveLocation.EnumValue)))
+                .Location(DirectiveLocation.EnumValue))
             .AddEnumType(d => d
                 .Name("Foo")
                 .Value("baz")
@@ -380,9 +380,9 @@ public class EnumTypeTests : TypeTestBase
         // act
         var schema = SchemaBuilder
             .New()
-            .AddDirectiveType(new DirectiveType(d => d
+            .AddDirectiveType(d => d
                 .Name("bar")
-                .Location(DirectiveLocation.EnumValue)))
+                .Location(DirectiveLocation.EnumValue))
             .AddEnumType(d => d
                 .Name("Foo")
                 .Value("baz")
@@ -403,9 +403,9 @@ public class EnumTypeTests : TypeTestBase
         // act
         var schema = SchemaBuilder
             .New()
-            .AddDirectiveType(new DirectiveType(d => d
+            .AddDirectiveType(d => d
                 .Name("bar")
-                .Location(DirectiveLocation.EnumValue)))
+                .Location(DirectiveLocation.EnumValue))
             .AddEnumType(d => d
                 .Name("Foo")
                 .Value("baz")
@@ -678,7 +678,7 @@ public class EnumTypeTests : TypeTestBase
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType<QueryWithEnum>()
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         schema.MatchSnapshot();
     }
@@ -690,7 +690,7 @@ public class EnumTypeTests : TypeTestBase
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType<QueryWithEnum>()
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var result = await executor.ExecuteAsync(
             """
@@ -701,7 +701,8 @@ public class EnumTypeTests : TypeTestBase
                     }
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         result.MatchMarkdownSnapshot();
     }
@@ -715,7 +716,7 @@ public class EnumTypeTests : TypeTestBase
                 .AddGraphQL()
                 .AddQueryType<QueryWithEnum>()
                 .ModifyOptions(o => o.SortFieldsByName = true)
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         schema.ToString().MatchInlineSnapshot(
@@ -745,7 +746,7 @@ public class EnumTypeTests : TypeTestBase
                 .AddGraphQL()
                 .AddQueryType<QueryWithEnum>()
                 .ModifyOptions(o => o.SortEnumValuesByName = true)
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         schema.ToString().MatchInlineSnapshot(
@@ -779,7 +780,7 @@ public class EnumTypeTests : TypeTestBase
                     o.SortFieldsByName = true;
                     o.SortEnumValuesByName = true;
                 })
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         schema.ToString().MatchInlineSnapshot(
@@ -809,7 +810,7 @@ public class EnumTypeTests : TypeTestBase
                 .AddGraphQL()
                 .AddQueryType<QueryWithEnum>()
                 .ModifyOptions(o => o.SortEnumValuesByName = true)
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -821,7 +822,8 @@ public class EnumTypeTests : TypeTestBase
                     }
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchMarkdownSnapshot();

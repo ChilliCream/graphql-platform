@@ -44,7 +44,7 @@ internal sealed class CreateOpenApiCollectionCommand : Command
 
         parseResult.AssertHasAuthentication(sessionService);
 
-        var apiId = await console.GetOrPromptForApiIdAsync("For which API do you want to create an OpenAPI collection?", parseResult, apisClient, sessionService, cancellationToken);
+        var apiId = await console.GetOrPromptForApiIdAsync(Prompts.SelectApiForCreateOpenApiCollection, parseResult, apisClient, sessionService, cancellationToken);
 
         var name = await console
             .PromptAsync("Name", defaultValue: null, parseResult, Opt<OpenApiCollectionNameOption>.Instance, cancellationToken);

@@ -32,7 +32,8 @@ public class Issue6645ReproTests
 
         // act
         var exception = await Record.ExceptionAsync(
-            async () => await services.GetRequestExecutorAsync());
+            async () => await services.GetRequestExecutorAsync(
+                cancellationToken: TestContext.Current.CancellationToken));
 
         // assert
         Assert.Null(exception);

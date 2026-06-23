@@ -19,7 +19,8 @@ public class MutationTests
                         a
                         b
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchInlineSnapshot(
             """
