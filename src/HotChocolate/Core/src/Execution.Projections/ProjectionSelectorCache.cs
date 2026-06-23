@@ -16,10 +16,10 @@ internal sealed class ProjectionSelectorCache
         _cache = new Cache<SelectorCacheKey, SelectorExpression>(capacity, diagnostics);
     }
 
-    public SelectorExpression<TValue> GetOrCreate<TValue>(
+    internal SelectorExpression<TValue> GetOrCreate<TValue>(
         Selection selection,
         ulong includeFlags,
-        Func<Selection, ulong, SelectorExpression> create)
+        Func<Selection, ulong, SelectorExpression<TValue>> create)
     {
         var key = new SelectorCacheKey(
             selection.DeclaringOperation.CacheId,
@@ -27,15 +27,10 @@ internal sealed class ProjectionSelectorCache
             includeFlags,
             typeof(TValue));
 
-        if (_cache.TryGet(key, out var selectorExpression))
-        {
-            return (SelectorExpression<TValue>)selectorExpression;
-        }
-
         return (SelectorExpression<TValue>)_cache.GetOrCreate(
             key,
-            (_, state) => create(state.selection, state.includeFlags),
-            (selection, includeFlags));
+            static (_, state) => state.Create(state.Selection, state.IncludeFlags),
+            new SelectorCacheCreateState<TValue>(selection, includeFlags, create));
     }
 
     private readonly record struct SelectorCacheKey(
@@ -43,4 +38,9 @@ internal sealed class ProjectionSelectorCache
         int SelectionId,
         ulong IncludeFlags,
         Type ValueType);
+
+    private readonly record struct SelectorCacheCreateState<TValue>(
+        Selection Selection,
+        ulong IncludeFlags,
+        Func<Selection, ulong, SelectorExpression<TValue>> Create);
 }
