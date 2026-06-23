@@ -150,4 +150,62 @@ public sealed class KeyInvalidArgumentsRuleTests : RuleTestBase
                 """
             ]);
     }
+
+    // A key field argument that uses a variable is invalid; arguments must be constant.
+    [Fact]
+    public void Validate_KeyFieldWithVariableArgument_Fails()
+    {
+        AssertInvalid(
+            [
+                """
+                type User @key(fields: "id tags(first: $var)") {
+                    id: ID!
+                    tags(first: Int): [String]
+                }
+                """
+            ],
+            [
+                """
+                {
+                    "message": "A @key directive on type 'User' in schema 'A' specifies invalid arguments. The value provided for argument 'first' on field 'User.tags' must be a constant value, not a variable.",
+                    "code": "KEY_INVALID_ARGUMENTS",
+                    "severity": "Error",
+                    "coordinate": "User",
+                    "member": "key",
+                    "schema": "A",
+                    "extensions": {}
+                }
+                """
+            ]);
+    }
+
+    // A variable supplied to a custom scalar argument is also rejected. Custom scalars are otherwise
+    // accepted leniently, so this guards against variables slipping through that path.
+    [Fact]
+    public void Validate_KeyFieldWithVariableArgumentOnCustomScalar_Fails()
+    {
+        AssertInvalid(
+            [
+                """
+                scalar Scope
+
+                type User @key(fields: "id(scope: $var)") {
+                    id(scope: Scope): ID!
+                }
+                """
+            ],
+            [
+                """
+                {
+                    "message": "A @key directive on type 'User' in schema 'A' specifies invalid arguments. The value provided for argument 'scope' on field 'User.id' must be a constant value, not a variable.",
+                    "code": "KEY_INVALID_ARGUMENTS",
+                    "severity": "Error",
+                    "coordinate": "User",
+                    "member": "key",
+                    "schema": "A",
+                    "extensions": {}
+                }
+                """
+            ]);
+    }
 }

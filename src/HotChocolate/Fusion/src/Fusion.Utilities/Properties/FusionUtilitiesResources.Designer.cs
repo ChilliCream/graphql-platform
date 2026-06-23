@@ -51,6 +51,12 @@ namespace HotChocolate.Fusion {
             }
         }
         
+        internal static string ConstantArgumentValidator_ArgumentMustBeConstant {
+            get {
+                return ResourceManager.GetString("ConstantArgumentValidator_ArgumentMustBeConstant", resourceCulture);
+            }
+        }
+        
         internal static string ConstantArgumentValidator_MissingRequiredArgument {
             get {
                 return ResourceManager.GetString("ConstantArgumentValidator_MissingRequiredArgument", resourceCulture);

@@ -35,6 +35,17 @@ public static class ConstantArgumentValidator
 
             provided.Add(argument.Name.Value);
 
+            if (ContainsVariable(argument.Value))
+            {
+                errors.Add(
+                    string.Format(
+                        ConstantArgumentValidator_ArgumentMustBeConstant,
+                        argument.Name.Value,
+                        fieldCoordinate));
+
+                continue;
+            }
+
             if (!IsCompatible(argument.Value, argumentDefinition.Type))
             {
                 errors.Add(
@@ -60,6 +71,17 @@ public static class ConstantArgumentValidator
             }
         }
     }
+
+    // A field selection map argument must be a constant; variables are never permitted, including
+    // when nested inside a list or input object value.
+    private static bool ContainsVariable(IValueNode value)
+        => value switch
+        {
+            VariableNode => true,
+            ListValueNode list => list.Items.Any(ContainsVariable),
+            ObjectValueNode obj => obj.Fields.Any(field => ContainsVariable(field.Value)),
+            _ => false
+        };
 
     private static bool IsCompatible(IValueNode value, IType type)
     {

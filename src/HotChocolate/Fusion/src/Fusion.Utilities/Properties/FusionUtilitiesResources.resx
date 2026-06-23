@@ -21,6 +21,9 @@
   <data name="ConstantArgumentValidator_ArgumentDoesNotExist" xml:space="preserve">
     <value>The argument '{0}' does not exist on field '{1}'.</value>
   </data>
+  <data name="ConstantArgumentValidator_ArgumentMustBeConstant" xml:space="preserve">
+    <value>The value provided for argument '{0}' on field '{1}' must be a constant value, not a variable.</value>
+  </data>
   <data name="ConstantArgumentValidator_MissingRequiredArgument" xml:space="preserve">
     <value>The required argument '{0}' on field '{1}' was not provided.</value>
   </data>
