@@ -22,48 +22,6 @@ public sealed class RequiresOptInDirectiveTests
     }
 
     [Fact]
-    public async Task RequiresOptIn_OnDirectiveDefinition_CodeFirst_AppliesDirective()
-    {
-        // arrange & act
-        var schema =
-            await new ServiceCollection()
-                .AddGraphQL()
-                .ModifyOptions(o => o.EnableOptInFeatures = true)
-                .AddDirectiveType(d => d
-                    .Name("example")
-                    .Location(DirectiveLocation.Field)
-                    .RequiresOptIn("directiveFeature"))
-                .AddQueryType(d => d.Field("field").Type<IntType>().Resolve(() => 1))
-                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
-
-        // assert
-        Assert.True(
-            schema.DirectiveTypes["example"].Directives.ContainsDirective("requiresOptIn"));
-    }
-
-    [Fact]
-    public async Task RequiresOptIn_OnDirectiveDefinition_SchemaFirst_IsAllowed()
-    {
-        // arrange & act
-        var schema =
-            await new ServiceCollection()
-                .AddGraphQL()
-                .ModifyOptions(o => o.EnableOptInFeatures = true)
-                .AddDocumentFromString(
-                    """
-                    type Query { field: Int }
-
-                    directive @example @requiresOptIn(feature: "directiveFeature") on FIELD
-                    """)
-                .UseField(_ => _ => default)
-                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
-
-        // assert
-        Assert.True(
-            schema.DirectiveTypes["example"].Directives.ContainsDirective("requiresOptIn"));
-    }
-
-    [Fact]
     public async Task BuildSchemaAsync_CodeFirst_MatchesSnapshot()
     {
         // arrange & act
@@ -95,8 +53,10 @@ public sealed class RequiresOptInDirectiveTests
                     .RequiresOptIn("enumValueFeature1")
                     .RequiresOptIn("enumValueFeature2"))
                 .AddDirectiveType(d => d
-                    .Name("exampleDirective")
+                    .Name("directive")
                     .Location(DirectiveLocation.Field)
+                    .RequiresOptIn("directiveFeature1")
+                    .RequiresOptIn("directiveFeature2")
                     .Argument("argument", a => a
                         .Type<IntType>()
                         .RequiresOptIn("directiveArgFeature1")
@@ -118,6 +78,7 @@ public sealed class RequiresOptInDirectiveTests
                 .AddQueryType<Query>()
                 .AddInputObjectType<Input>()
                 .AddType<Enum>()
+                .AddType<Directive>()
                 .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
@@ -154,29 +115,16 @@ public sealed class RequiresOptInDirectiveTests
                             @requiresOptIn(feature: "enumValueFeature1")
                             @requiresOptIn(feature: "enumValueFeature2")
                     }
+
+                    directive @directive
+                        @requiresOptIn(feature: "directiveFeature1")
+                        @requiresOptIn(feature: "directiveFeature2") on FIELD
                     """)
                 .UseField(_ => _ => default)
                 .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         schema.MatchSnapshot();
-    }
-
-    [Fact]
-    public async Task RequiresOptIn_OnDirectiveDefinition_ImplementationFirst_AppliesDirective()
-    {
-        // arrange & act
-        var schema =
-            await new ServiceCollection()
-                .AddGraphQL()
-                .ModifyOptions(o => o.EnableOptInFeatures = true)
-                .AddType<ExampleDirective>()
-                .AddQueryType(d => d.Field("field").Type<IntType>().Resolve(() => 1))
-                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
-
-        // assert
-        Assert.True(
-            schema.DirectiveTypes["example"].Directives.ContainsDirective("requiresOptIn"));
     }
 
     public sealed class Query
@@ -203,7 +151,8 @@ public sealed class RequiresOptInDirectiveTests
         Value
     }
 
-    [DirectiveType("example", DirectiveLocation.Field)]
-    [RequiresOptIn("directiveFeature")]
-    private sealed class ExampleDirective;
+    [DirectiveType("directive", DirectiveLocation.Field)]
+    [RequiresOptIn("directiveFeature1")]
+    [RequiresOptIn("directiveFeature2")]
+    private sealed class Directive;
 }
