@@ -4,6 +4,7 @@ internal static class WellKnownArgumentNames
 {
     public const string Apply = "apply";
     public const string AssumedSize = "assumedSize";
+    public const string Broker = "broker";
     public const string DestructiveHint = "destructiveHint";
     public const string Field = "field";
     public const string Fields = "fields";
@@ -18,6 +19,7 @@ internal static class WellKnownArgumentNames
     public const string Map = "map";
     public const string MaxAge = "maxAge";
     public const string Member = "member";
+    public const string Message = "message";
     public const string Name = "name";
     public const string OpenWorldHint = "openWorldHint";
     public const string Partial = "partial";
@@ -35,6 +37,7 @@ internal static class WellKnownArgumentNames
     public const string SlicingArgumentDefaultValue = "slicingArgumentDefaultValue";
     public const string SlicingArguments = "slicingArguments";
     public const string SourceType = "sourceType";
+    public const string Topics = "topics";
     public const string Type = "type";
     public const string Url = "url";
     public const string Vary = "vary";

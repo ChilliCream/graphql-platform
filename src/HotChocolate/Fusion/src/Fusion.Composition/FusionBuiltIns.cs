@@ -28,7 +28,8 @@ internal static class FusionBuiltIns
             new OverrideMutableDirectiveDefinition(s_stringType),
             new ProvidesMutableDirectiveDefinition(s_fieldSelectionSetType),
             new RequireMutableDirectiveDefinition(s_fieldSelectionMapType),
-            new ShareableMutableDirectiveDefinition()
+            new ShareableMutableDirectiveDefinition(),
+            new SubscribeMutableDirectiveDefinition(s_fieldSelectionSetType, s_stringType)
         ]).ToFrozenDictionary(d => d.Name);
 
     public static FrozenDictionary<string, MutableScalarTypeDefinition> SourceSchemaScalars { get; } =

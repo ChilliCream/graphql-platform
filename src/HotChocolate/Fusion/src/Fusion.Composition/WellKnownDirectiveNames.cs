@@ -19,6 +19,7 @@ internal static class WellKnownDirectiveNames
     public const string FusionLookup = "fusion__lookup";
     public const string FusionRequires = "fusion__requires";
     public const string FusionSchemaMetadata = "fusion__schema_metadata";
+    public const string FusionSubscribe = "fusion__subscribe";
     public const string FusionType = "fusion__type";
     public const string FusionUnionMember = "fusion__unionMember";
     public const string Inaccessible = DirectiveNames.Inaccessible.Name;
@@ -35,5 +36,6 @@ internal static class WellKnownDirectiveNames
     public const string SerializeAs = DirectiveNames.SerializeAs.Name;
     public const string Shareable = DirectiveNames.Shareable.Name;
     public const string SpecifiedBy = DirectiveNames.SpecifiedBy.Name;
+    public const string Subscribe = "subscribe";
     public const string Tag = DirectiveNames.Tag.Name;
 }

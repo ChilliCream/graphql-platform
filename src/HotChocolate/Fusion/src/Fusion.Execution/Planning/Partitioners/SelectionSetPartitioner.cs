@@ -25,7 +25,7 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
                 context,
                 input.SelectionSet.Type,
                 input.SelectionSet.Node,
-                null);
+                input.ProvidedSelectionSet);
 
         return new SelectionSetPartitionerResult(
             resolvable,

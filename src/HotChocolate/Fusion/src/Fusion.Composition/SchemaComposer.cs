@@ -192,6 +192,7 @@ public sealed class SchemaComposer
         new InputWithMissingRequiredFieldsRule(),
         new InputWithMissingOneOfRule(),
         new InvalidFieldSharingRule(),
+        new MultipleSubscribeSourcesRule(),
         new OutputFieldTypesMergeableRule(),
         new SpecifiedByUrlMismatchRule(),
         new TypeKindMismatchRule()

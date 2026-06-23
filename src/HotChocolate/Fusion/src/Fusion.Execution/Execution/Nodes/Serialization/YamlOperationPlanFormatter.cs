@@ -68,6 +68,10 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
                 WriteOperationNode(operationNode, nodeTrace, writer);
                 break;
 
+            case EventStreamExecutionNode eventStreamNode:
+                WriteEventStreamNode(eventStreamNode, nodeTrace, writer);
+                break;
+
             case OperationBatchExecutionNode batchNode:
                 WriteBatchExecutionNode(batchNode, nodeTrace, writer);
                 break;
@@ -291,6 +295,61 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
             writer.Unindent();
         }
 
+        TryWriteNodeTrace(writer, trace);
+
+        writer.Unindent();
+    }
+
+    private static void WriteEventStreamNode(
+        EventStreamExecutionNode node,
+        ExecutionNodeTrace? trace,
+        CodeWriter writer)
+    {
+        writer.WriteLine("- id: {0}", node.Id);
+        writer.Indent();
+
+        writer.WriteLine("type: {0}", node.Type.ToString());
+        writer.WriteLine("fieldName: {0}", node.FieldName);
+        writer.WriteLine("resultSelectionSet: >-");
+        writer.Indent();
+        writer.WriteLine(node.ResultSelectionSet.ToString(indented: false));
+        writer.Unindent();
+
+        if (!node.Source.IsRoot)
+        {
+            writer.WriteLine("source: {0}", node.Source.ToString());
+        }
+
+        if (!node.Target.IsRoot)
+        {
+            writer.WriteLine("target: {0}", node.Target.ToString());
+        }
+
+        TryWriteConditions(writer, node);
+
+        var eventStreamSource = node.EventStreamSource;
+
+        writer.WriteLine("eventStream:");
+        writer.Indent();
+
+        writer.WriteLine("schema: {0}", eventStreamSource.SchemaName);
+
+        if (!eventStreamSource.Directive.Topics.IsDefaultOrEmpty)
+        {
+            writer.WriteLine(
+                "topics: [{0}]",
+                string.Join(", ", eventStreamSource.Directive.Topics));
+        }
+
+        if (eventStreamSource.Directive.Broker is { } broker)
+        {
+            writer.WriteLine("broker: {0}", broker);
+        }
+
+        writer.WriteLine("message: {0}", node.Message);
+        writer.Unindent();
+
+        WriteDependencies(node.Dependencies, node.ParentDependencies, writer);
         TryWriteNodeTrace(writer, trace);
 
         writer.Unindent();

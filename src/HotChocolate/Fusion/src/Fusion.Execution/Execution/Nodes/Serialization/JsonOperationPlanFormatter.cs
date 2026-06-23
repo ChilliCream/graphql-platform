@@ -149,6 +149,10 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
 
             switch (node)
             {
+                case EventStreamExecutionNode eventStreamNode:
+                    WriteEventStreamNode(jsonWriter, operation, eventStreamNode, nodeTrace);
+                    break;
+
                 case OperationExecutionNode operationNode:
                     WriteOperationNode(jsonWriter, operation, operationNode, nodeTrace);
                     break;
@@ -394,6 +398,95 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
             jsonWriter.WritePropertyName("requiresFileUpload");
             jsonWriter.WriteBooleanValue(true);
         }
+
+        if (node.Dependencies.Length > 0 || node.ParentDependencies.Length > 0)
+        {
+            jsonWriter.WritePropertyName("dependencies");
+            jsonWriter.WriteStartArray();
+
+            foreach (var dependency in node.Dependencies)
+            {
+                jsonWriter.WriteNumberValue(dependency.Id);
+            }
+
+            foreach (var parentStepId in node.ParentDependencies)
+            {
+                WriteParentDependency(jsonWriter, parentStepId);
+            }
+
+            jsonWriter.WriteEndArray();
+        }
+
+        TryWriteNodeTrace(jsonWriter, operation, trace);
+
+        jsonWriter.WriteEndObject();
+    }
+
+    private static void WriteEventStreamNode(
+        JsonWriter jsonWriter,
+        Operation operation,
+        EventStreamExecutionNode node,
+        ExecutionNodeTrace? trace)
+    {
+        jsonWriter.WriteStartObject();
+
+        jsonWriter.WritePropertyName("id");
+        jsonWriter.WriteNumberValue(node.Id);
+
+        jsonWriter.WritePropertyName("type");
+        jsonWriter.WriteStringValue(node.Type.ToString());
+
+        jsonWriter.WritePropertyName("fieldName");
+        jsonWriter.WriteStringValue(node.FieldName);
+
+        jsonWriter.WritePropertyName("resultSelectionSet");
+        jsonWriter.WriteStringValue(node.ResultSelectionSet.ToString(indented: false));
+
+        if (!node.Source.IsRoot)
+        {
+            jsonWriter.WritePropertyName("source");
+            jsonWriter.WriteStringValue(node.Source.ToString());
+        }
+
+        if (!node.Target.IsRoot)
+        {
+            jsonWriter.WritePropertyName("target");
+            jsonWriter.WriteStringValue(node.Target.ToString());
+        }
+
+        TryWriteConditions(jsonWriter, node);
+
+        var eventStreamSource = node.EventStreamSource;
+
+        jsonWriter.WritePropertyName("eventStream");
+        jsonWriter.WriteStartObject();
+
+        jsonWriter.WritePropertyName("schema");
+        jsonWriter.WriteStringValue(eventStreamSource.SchemaName);
+
+        if (!eventStreamSource.Directive.Topics.IsDefaultOrEmpty)
+        {
+            jsonWriter.WritePropertyName("topics");
+            jsonWriter.WriteStartArray();
+
+            foreach (var topic in eventStreamSource.Directive.Topics)
+            {
+                jsonWriter.WriteStringValue(topic);
+            }
+
+            jsonWriter.WriteEndArray();
+        }
+
+        if (eventStreamSource.Directive.Broker is { } broker)
+        {
+            jsonWriter.WritePropertyName("broker");
+            jsonWriter.WriteStringValue(broker);
+        }
+
+        jsonWriter.WritePropertyName("message");
+        jsonWriter.WriteStringValue(node.Message);
+
+        jsonWriter.WriteEndObject();
 
         if (node.Dependencies.Length > 0 || node.ParentDependencies.Length > 0)
         {

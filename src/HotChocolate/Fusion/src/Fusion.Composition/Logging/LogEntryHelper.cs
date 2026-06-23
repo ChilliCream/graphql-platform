@@ -569,6 +569,22 @@ internal static class LogEntryHelper
             .Build();
     }
 
+    public static LogEntry MultipleSubscribeSources(
+        MutableOutputFieldDefinition field,
+        MutableSchemaDefinition schema)
+    {
+        return LogEntryBuilder.New()
+            .SetMessage(
+                LogEntryHelper_MultipleSubscribeSources,
+                field.Coordinate.ToString(),
+                schema.Name)
+            .SetCode(LogEntryCodes.MultipleSubscribeSources)
+            .SetSeverity(LogSeverity.Error)
+            .SetTypeSystemMember(field)
+            .SetSchema(schema)
+            .Build();
+    }
+
     public static LogEntry IsInvalidFields(
         Directive isDirective,
         MutableInputFieldDefinition argument,
