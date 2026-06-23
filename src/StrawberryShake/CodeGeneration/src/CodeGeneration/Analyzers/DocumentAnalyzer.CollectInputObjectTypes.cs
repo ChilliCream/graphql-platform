@@ -1,7 +1,5 @@
-using HotChocolate;
 using HotChocolate.Types;
 using StrawberryShake.CodeGeneration.Analyzers.Models;
-using StrawberryShake.CodeGeneration.Analyzers.Types;
 using static StrawberryShake.CodeGeneration.Utilities.NameUtils;
 
 namespace StrawberryShake.CodeGeneration.Analyzers;
@@ -10,21 +8,21 @@ public partial class DocumentAnalyzer
 {
     private static void CollectInputObjectTypes(IDocumentAnalyzerContext context)
     {
-        var analyzer = new InputObjectTypeUsageAnalyzer((Schema)context.Schema);
+        var analyzer = new InputObjectTypeUsageAnalyzer(context.Schema);
         analyzer.Analyze(context.Document);
 
         var namesOfInputTypesWithUploadScalar = CollectTypesWithUploadScalar(analyzer);
 
         foreach (var namedInputType in analyzer.InputTypes)
         {
-            if (namedInputType is InputObjectType inputObjectType)
+            if (namedInputType is IInputObjectTypeDefinition inputObjectType)
             {
                 RegisterInputObjectType(
                     context,
                     inputObjectType,
                     namesOfInputTypesWithUploadScalar.Contains(namedInputType.Name));
             }
-            else if (namedInputType is ILeafType)
+            else if (namedInputType.IsLeafType())
             {
                 context.RegisterType(namedInputType);
             }
@@ -33,18 +31,17 @@ public partial class DocumentAnalyzer
 
     private static void RegisterInputObjectType(
         IDocumentAnalyzerContext context,
-        InputObjectType inputObjectType,
+        IInputObjectTypeDefinition inputObjectType,
         bool hasUpload)
     {
-        RenameDirective? rename;
         var fields = new List<InputFieldModel>();
 
         foreach (var inputField in inputObjectType.Fields)
         {
-            rename = inputField.Directives.FirstOrDefault<RenameDirective>()?.ToValue<RenameDirective>();
+            var rename = inputField.Directives.GetStringArgument("rename", "name");
 
             fields.Add(new InputFieldModel(
-                GetClassName(rename?.Name ?? inputField.Name),
+                GetClassName(rename ?? inputField.Name),
                 inputField.Description,
                 inputField,
                 inputField.DefaultValue is not null
@@ -55,10 +52,10 @@ public partial class DocumentAnalyzer
             context.RegisterType(inputField.Type.NamedType());
         }
 
-        rename = inputObjectType.Directives.FirstOrDefault<RenameDirective>()?.ToValue<RenameDirective>();
+        var typeRename = inputObjectType.Directives.GetStringArgument("rename", "name");
 
         var typeName = context.ResolveTypeName(
-            GetClassName(rename?.Name ?? inputObjectType.Name));
+            GetClassName(typeRename ?? inputObjectType.Name));
 
         context.RegisterModel(
             typeName,
@@ -86,7 +83,7 @@ public partial class DocumentAnalyzer
                     continue;
                 }
 
-                if (namedInputType is InputObjectType type)
+                if (namedInputType is IInputObjectTypeDefinition type)
                 {
                     foreach (var field in type.Fields)
                     {
@@ -98,7 +95,7 @@ public partial class DocumentAnalyzer
                         }
                     }
                 }
-                else if (namedInputType is ScalarType { Name: "Upload" })
+                else if (namedInputType is IScalarTypeDefinition { Name: "Upload" })
                 {
                     detected = true;
                     namesOfInputTypesWithUploadScalar.Add("Upload");

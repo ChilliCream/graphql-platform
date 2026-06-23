@@ -1,5 +1,5 @@
-using HotChocolate;
 using HotChocolate.Language;
+using HotChocolate.Types.Mutable;
 using StrawberryShake.CodeGeneration.Analyzers.Models;
 using static StrawberryShake.CodeGeneration.Utilities.OperationDocumentHelper;
 
@@ -8,11 +8,11 @@ namespace StrawberryShake.CodeGeneration.Analyzers;
 public partial class DocumentAnalyzer
 {
     private readonly List<DocumentNode> _documents = [];
-    private Schema? _schema;
+    private MutableSchemaDefinition? _schema;
 
     public static DocumentAnalyzer New() => new();
 
-    public DocumentAnalyzer SetSchema(Schema schema)
+    public DocumentAnalyzer SetSchema(MutableSchemaDefinition schema)
     {
         _schema = schema;
         return this;

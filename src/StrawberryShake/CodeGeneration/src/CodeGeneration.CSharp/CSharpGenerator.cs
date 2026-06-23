@@ -2,6 +2,8 @@ using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using HotChocolate;
 using HotChocolate.Language;
+using HotChocolate.Types;
+using HotChocolate.Types.Mutable;
 using HotChocolate.Validation;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Formatting;
@@ -92,7 +94,6 @@ public static class CSharpGenerator
         // If we cannot create a schema, we will return the schema validation errors.
         if (!TryCreateSchema(
             typeSystemFiles,
-            fileLookup,
             errors,
             settings.StrictSchemaValidation,
             settings.NoStore,
@@ -404,23 +405,19 @@ public static class CSharpGenerator
 
     private static bool TryCreateSchema(
         IReadOnlyList<GraphQLFile> files,
-        Dictionary<ISyntaxNode, string> fileLookup,
         ICollection<IError> errors,
         bool strictValidation,
         bool noStore,
-        [NotNullWhen(true)] out Schema? schema)
+        [NotNullWhen(true)] out MutableSchemaDefinition? schema)
     {
         try
         {
             schema = SchemaHelper.Load(files, strictValidation, noStore);
             return true;
         }
-        catch (SchemaException ex)
+        catch (SchemaInitializationException ex)
         {
-            foreach (var error in ex.Errors)
-            {
-                errors.Add(error.SchemaError(fileLookup));
-            }
+            errors.Add(ex.SchemaError());
 
             schema = null;
             return false;
@@ -428,7 +425,7 @@ public static class CSharpGenerator
     }
 
     private static bool TryValidateRequestAsync(
-        Schema schema,
+        ISchemaDefinition schema,
         IReadOnlyList<GraphQLFile> executableFiles,
         Dictionary<ISyntaxNode, string> fileLookup,
         List<IError> errors)

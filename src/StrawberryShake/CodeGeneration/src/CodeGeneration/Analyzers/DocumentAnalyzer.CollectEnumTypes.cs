@@ -1,6 +1,5 @@
-using HotChocolate;
+using HotChocolate.Types;
 using StrawberryShake.CodeGeneration.Analyzers.Models;
-using StrawberryShake.CodeGeneration.Analyzers.Types;
 using static StrawberryShake.CodeGeneration.Utilities.NameUtils;
 
 namespace StrawberryShake.CodeGeneration.Analyzers;
@@ -9,33 +8,29 @@ public partial class DocumentAnalyzer
 {
     private static void CollectEnumTypes(IDocumentAnalyzerContext context)
     {
-        var analyzer = new EnumTypeUsageAnalyzer((Schema)context.Schema);
+        var analyzer = new EnumTypeUsageAnalyzer(context.Schema);
         analyzer.Analyze(context.Document);
 
         foreach (var enumType in analyzer.EnumTypes)
         {
-            RenameDirective? rename;
             var values = new List<EnumValueModel>();
 
             foreach (var enumValue in enumType.Values)
             {
-                rename = enumValue.Directives.FirstOrDefault<RenameDirective>()?.ToValue<RenameDirective>();
-
-                var value = enumValue.Directives.FirstOrDefault<EnumValueDirective>()?.ToValue<EnumValueDirective>();
+                var rename = enumValue.Directives.GetStringArgument("rename", "name");
+                var value = enumValue.Directives.GetStringArgument("enumValue", "value");
 
                 values.Add(new EnumValueModel(
-                    rename?.Name ?? GetEnumValue(enumValue.Name),
+                    rename ?? GetEnumValue(enumValue.Name),
                     enumValue.Description,
                     enumValue,
-                    value?.Value));
+                    value));
             }
 
-            rename = enumType.Directives.FirstOrDefault<RenameDirective>()?.ToValue<RenameDirective>();
+            var typeRename = enumType.Directives.GetStringArgument("rename", "name");
+            var serializationType = enumType.Directives.GetStringArgument("serializationType", "name");
 
-            var serializationType =
-                enumType.Directives.FirstOrDefault<SerializationTypeDirective>()?.ToValue<SerializationTypeDirective>();
-
-            var typeName = context.ResolveTypeName(rename?.Name ?? GetClassName(enumType.Name));
+            var typeName = context.ResolveTypeName(typeRename ?? GetClassName(enumType.Name));
 
             context.RegisterModel(
                 typeName,
@@ -43,7 +38,7 @@ public partial class DocumentAnalyzer
                     typeName,
                     enumType.Description,
                     enumType,
-                    serializationType?.Name,
+                    serializationType,
                     values));
         }
     }

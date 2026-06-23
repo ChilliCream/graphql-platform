@@ -1,8 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
-using Microsoft.Extensions.DependencyInjection;
-using HotChocolate.Execution;
 using HotChocolate.Language;
-using HotChocolate.StarWars;
 using StrawberryShake.CodeGeneration.Analyzers;
 using StrawberryShake.CodeGeneration.Analyzers.Models;
 using StrawberryShake.CodeGeneration.Utilities;
@@ -33,18 +30,8 @@ public static class TestDataHelper
 
     public static async Task<ClientModel> CreateClientModelAsync([StringSyntax("graphql")] string query)
     {
-        var schema =
-            await new ServiceCollection()
-                .AddStarWarsRepositories()
-                .AddGraphQL()
-                .AddStarWars()
-                .BuildSchemaAsync();
-
-        schema = SchemaHelper.Load(
-            [
-                new(schema.ToSyntaxNode()),
-                new(Utf8GraphQLParser.Parse("extend schema @key(fields: \"id\")"))
-            ]);
+        var schema = await TestSchemaHelper.CreateStarWarsSchemaAsync(
+            "extend schema @key(fields: \"id\")");
 
         var document = Utf8GraphQLParser.Parse(query);
 

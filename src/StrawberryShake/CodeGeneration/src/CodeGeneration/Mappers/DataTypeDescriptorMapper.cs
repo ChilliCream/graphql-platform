@@ -24,17 +24,17 @@ public static class DataTypeDescriptorMapper
             .ToList();
 
         var unionTypes = model.Schema.Types
-            .OfType<UnionType>()
+            .OfType<IUnionTypeDefinition>()
             .ToList();
 
         var dataTypeInfos = new Dictionary<string, DataTypeInfo>(StringComparer.Ordinal);
 
         foreach (var dataType in dataTypes)
         {
-            var objectType = model.Schema.Types.GetType<ObjectType>(dataType.Name);
+            var objectType = model.Schema.Types.GetType<IObjectTypeDefinition>(dataType.Name);
 
             var abstractTypes = new List<ITypeDefinition>();
-            abstractTypes.AddRange(unionTypes.Where(t => t.ContainsType(dataType.Name)));
+            abstractTypes.AddRange(unionTypes.Where(t => t.Types.ContainsName(dataType.Name)));
             abstractTypes.AddRange(objectType.Implements);
 
             if (!dataTypeInfos.TryGetValue(dataType.Name, out var dataTypeInfo))

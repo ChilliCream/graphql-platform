@@ -15,7 +15,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\HotChocolate\Core\src\Core\HotChocolate.Core.csproj" />
+    <ProjectReference Include="..\..\..\..\HotChocolate\Core\src\Types.Abstractions\HotChocolate.Types.Abstractions.csproj" />
+    <ProjectReference Include="..\..\..\..\HotChocolate\Core\src\Execution.Abstractions\HotChocolate.Execution.Abstractions.csproj" />
+    <ProjectReference Include="..\..\..\..\HotChocolate\Core\src\Validation\HotChocolate.Validation.csproj" />
+    <ProjectReference Include="..\..\..\..\HotChocolate\Mutable\src\Types.Mutable\HotChocolate.Types.Mutable.csproj" />
 
     <ProjectReference Include="..\..\..\Tooling\src\Configuration\StrawberryShake.Tools.Configuration.csproj" />
   </ItemGroup>

@@ -5,7 +5,7 @@ using HotChocolate.Types;
 
 namespace StrawberryShake.CodeGeneration.Analyzers;
 
-internal sealed class InputObjectTypeUsageAnalyzer(Schema schema) : SyntaxWalker<object?>
+internal sealed class InputObjectTypeUsageAnalyzer(ISchemaDefinition schema) : SyntaxWalker<object?>
 {
     private readonly HashSet<IInputTypeDefinition> _inputTypes = [];
     private readonly HashSet<IType> _visitedTypes = [];
@@ -56,7 +56,7 @@ internal sealed class InputObjectTypeUsageAnalyzer(Schema schema) : SyntaxWalker
 
     private void VisitNamedInputType(IInputTypeDefinition type)
     {
-        if (_inputTypes.Add(type) && type is InputObjectType inputObjectType)
+        if (_inputTypes.Add(type) && type is IInputObjectTypeDefinition inputObjectType)
         {
             foreach (IInputValueDefinition field in inputObjectType.Fields)
             {

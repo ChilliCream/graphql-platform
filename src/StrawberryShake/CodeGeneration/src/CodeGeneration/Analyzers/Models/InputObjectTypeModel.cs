@@ -21,7 +21,7 @@ public sealed class InputObjectTypeModel : ITypeModel
     public InputObjectTypeModel(
         string name,
         string? description,
-        InputObjectType type,
+        IInputObjectTypeDefinition type,
         bool hasUpload,
         IReadOnlyList<InputFieldModel> fields)
     {
@@ -45,7 +45,7 @@ public sealed class InputObjectTypeModel : ITypeModel
     /// <summary>
     /// Gets the input object type.
     /// </summary>
-    public InputObjectType Type { get; }
+    public IInputObjectTypeDefinition Type { get; }
 
     /// <summary>
     /// Defines if this input or one of its related has an upload scalar

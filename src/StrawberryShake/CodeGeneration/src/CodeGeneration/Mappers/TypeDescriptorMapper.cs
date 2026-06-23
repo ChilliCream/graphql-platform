@@ -164,15 +164,15 @@ public static partial class TypeDescriptorMapper
                 {
                     // if the output type is a union of which all types are entities,
                     // then the union is an also considered an entity.
-                    case UnionType typeA when typeA.Types.All(t => t.IsEntity()):
+                    case IUnionTypeDefinition typeA when typeA.Types.All(t => t.IsEntity()):
                         fallbackKind = TypeKind.Entity;
                         break;
 
-                    case UnionType typeB when typeB.Types.Any(t => t.IsEntity()):
+                    case IUnionTypeDefinition typeB when typeB.Types.Any(t => t.IsEntity()):
                         fallbackKind = TypeKind.EntityOrData;
                         parentRuntimeTypeName = GetInterfaceName(outputType.Type.Name);
                         break;
-                    case InterfaceType when (implementedBy?.Any(t => t.IsEntity()) == true):
+                    case IInterfaceTypeDefinition when (implementedBy?.Any(t => t.IsEntity()) == true):
                         fallbackKind = TypeKind.EntityOrData;
                         parentRuntimeTypeName = GetInterfaceName(outputType.Type.Name);
                         break;
@@ -260,10 +260,10 @@ public static partial class TypeDescriptorMapper
         if (kind == TypeKind.Result)
         {
             var resultTypeName = CreateResultRootTypeName(outputType.Name);
-            if (clientModel.OutputTypes.Any(t => t.Name.EqualsOrdinal(resultTypeName)))
+            if (clientModel.OutputTypes.Any(t => t.Name.Equals(resultTypeName, StringComparison.Ordinal)))
             {
                 resultTypeName = CreateResultRootTypeName(outputType.Name, outputType.Type);
-                if (clientModel.OutputTypes.Any(t => t.Name.EqualsOrdinal(resultTypeName)))
+                if (clientModel.OutputTypes.Any(t => t.Name.Equals(resultTypeName, StringComparison.Ordinal)))
                 {
                     throw ThrowHelper.ResultTypeNameCollision(resultTypeName);
                 }

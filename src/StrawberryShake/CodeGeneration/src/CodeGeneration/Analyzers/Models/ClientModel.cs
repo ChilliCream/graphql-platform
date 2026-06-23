@@ -1,5 +1,5 @@
-using HotChocolate;
 using HotChocolate.Types;
+using HotChocolate.Types.Mutable;
 using StrawberryShake.CodeGeneration.Extensions;
 
 namespace StrawberryShake.CodeGeneration.Analyzers.Models;
@@ -25,7 +25,7 @@ public class ClientModel
     /// The input types that could be passed in.
     /// </param>
     public ClientModel(
-        Schema schema,
+        MutableSchemaDefinition schema,
         IReadOnlyList<OperationModel> operations,
         IReadOnlyList<LeafTypeModel> leafTypes,
         IReadOnlyList<InputObjectTypeModel> inputObjectTypes)
@@ -65,7 +65,7 @@ public class ClientModel
     /// <summary>
     /// The analyzed schema
     /// </summary>
-    public Schema Schema { get; }
+    public MutableSchemaDefinition Schema { get; }
 
     /// <summary>
     /// Gets the operations

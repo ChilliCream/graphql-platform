@@ -18,7 +18,8 @@ public static class EntityIdFactoryDescriptorMapper
 
             foreach (var field in entity.Fields)
             {
-                if (field.Type.NamedType() is ILeafType leafType)
+                var leafType = field.Type.NamedType();
+                if (leafType.IsLeafType())
                 {
                     fields.Add(
                         new ScalarEntityIdDescriptor(

@@ -1,5 +1,6 @@
 using HotChocolate;
 using HotChocolate.Language;
+using HotChocolate.Types;
 using HotChocolate.Validation;
 using Microsoft.Extensions.DependencyInjection;
 using static StrawberryShake.CodeGeneration.Utilities.NameUtils;
@@ -25,7 +26,7 @@ internal static class OperationDocumentHelper
     /// <exception cref="ArgumentNullException"></exception>
     public static OperationDocuments CreateOperationDocuments(
         IEnumerable<DocumentNode> documents,
-        Schema? schema = null)
+        ISchemaDefinition? schema = null)
     {
         ArgumentNullException.ThrowIfNull(documents);
 

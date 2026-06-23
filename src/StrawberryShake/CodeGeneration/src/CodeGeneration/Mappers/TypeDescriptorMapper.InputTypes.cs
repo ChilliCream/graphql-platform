@@ -72,7 +72,7 @@ public static partial class TypeDescriptorMapper
         Dictionary<string, InputTypeDescriptorModel> typeDescriptors)
     {
         return typeDescriptors.Values
-            .First(t => t.Model.Type.Name.EqualsOrdinal(fieldNamedType.Name))
+            .First(t => t.Model.Type.Name.Equals(fieldNamedType.Name, StringComparison.Ordinal))
             .Descriptor;
     }
 }

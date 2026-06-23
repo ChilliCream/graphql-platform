@@ -1,8 +1,5 @@
-using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Language.Utilities;
-using HotChocolate.StarWars;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace StrawberryShake.CodeGeneration.Utilities;
 
@@ -12,19 +9,8 @@ public class QueryDocumentRewriterTests
     public async Task GetReturnTypeName()
     {
         // arrange
-        var schema =
-            await new ServiceCollection()
-                .AddStarWarsRepositories()
-                .AddGraphQL()
-                .AddStarWars()
-                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
-
-        schema =
-            SchemaHelper.Load(
-                [
-                    new(schema.ToSyntaxNode()),
-                    new(Utf8GraphQLParser.Parse("extend schema @key(fields: \"id\")"))
-                ]);
+        var schema = await TestSchemaHelper.CreateStarWarsSchemaAsync(
+            "extend schema @key(fields: \"id\")");
 
         var document =
             Utf8GraphQLParser.Parse(

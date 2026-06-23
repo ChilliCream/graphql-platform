@@ -18,6 +18,8 @@ internal static class CSharpCompiler
     private static readonly HttpConnection? s_httpConnection = null!;
     private static readonly WebSocketConnection? s_webSocketConnection = null!;
     private static readonly ServiceCollection? s_serviceCollection = null!;
+    private static readonly Type? s_serviceCollectionContainerBuilderExtensions =
+        typeof(ServiceCollectionContainerBuilderExtensions);
     private static readonly IHttpClientFactory? s_httpClientFactory = null!;
     private static readonly HttpClient? s_httpClient = null!;
     private static readonly InMemoryClient s_memoryClient = null!;
