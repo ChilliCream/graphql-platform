@@ -161,9 +161,9 @@ public sealed class EventStreamExecutionNode : ExecutionNode
             var source = node._eventStreamSource;
             var broker = context.RequestContext.RequestServices
                 .GetRequiredService<IEventStreamBrokerFactory>()
-                .Create(source.Directive.Broker);
+                .Create(source.Broker);
             var subscriptionContext = new SubscriptionFieldContext(context, node.FieldName);
-            var topics = ResolveTopics(source.Directive.Topics, context, node);
+            var topics = ResolveTopics(source.Topics, context, node);
             var enumerator = broker
                 .Subscribe(subscriptionContext, topics, _disposeCts.Token)
                 .GetAsyncEnumerator(_disposeCts.Token);

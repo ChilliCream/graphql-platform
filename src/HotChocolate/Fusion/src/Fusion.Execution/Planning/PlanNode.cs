@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using HotChocolate.Fusion.Types.Directives;
 using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Planning;
@@ -98,6 +99,8 @@ internal sealed record PlanNode
         = ImmutableDictionary<int, int>.Empty;
 
     public uint LastRequirementId { get; init; }
+
+    public SubscribeDirective? SubscribeDirective { get; init; }
 
     public double PathCost
         => (MaxDepth * Options.DepthWeight)

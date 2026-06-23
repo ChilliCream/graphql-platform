@@ -5,6 +5,7 @@ using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Planning.Partitioners;
 using HotChocolate.Fusion.Rewriters;
 using HotChocolate.Fusion.Types;
+using HotChocolate.Fusion.Types.Directives;
 using HotChocolate.Fusion.Types.Metadata;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
@@ -142,38 +143,60 @@ public sealed partial class OperationPlanner
             {
                 var possiblePlans = new PlanQueue(_schema);
 
-                // Enqueue a seed plan per candidate schema, each represents a possible plan branch.
-                foreach (var (schemaName, resolutionCost) in _schema.GetPossibleSchemas(selectionSet))
+                if (mainOperationDefinition.Operation == OperationType.Subscription
+                    && TryGetSubscribeSpec(selectionSet, out var subscribeSpec))
                 {
-                    possiblePlans.Enqueue(
-                        node with
-                        {
-                            SchemaName = schemaName,
-                            ResolutionCost = resolutionCost
-                        });
+                    var eventStreamPlan = PlanEventStreamSubscription(
+                        id,
+                        node,
+                        subscribeSpec,
+                        eventSourceEnabled,
+                        cancellationToken);
+
+                    internalOperationDefinition = eventStreamPlan.InternalOperationDefinition;
+                    planSteps = eventStreamPlan.Steps;
+                    searchSpace = eventStreamPlan.SearchSpace;
+                    expandedNodes = eventStreamPlan.ExpandedNodes;
+                    stepCount = eventStreamPlan.StepCount;
+                }
+                else
+                {
+                    // Enqueue a seed plan per candidate schema, each represents a possible plan branch.
+                    foreach (var (schemaName, resolutionCost) in _schema.GetPossibleSchemas(selectionSet))
+                    {
+                        possiblePlans.Enqueue(
+                            node with
+                            {
+                                SchemaName = schemaName,
+                                ResolutionCost = resolutionCost
+                            });
+                    }
                 }
 
-                // For plans that cannot be branched we simply enqueue the plan node.
-                // This often happens when we have computed fields like `node` which will be
-                // expanded later.
-                if (possiblePlans.Count < 1)
+                if (planSteps.IsEmpty)
                 {
-                    possiblePlans.Enqueue(node);
+                    // For plans that cannot be branched we simply enqueue the plan node.
+                    // This often happens when we have computed fields like `node` which will be
+                    // expanded later.
+                    if (possiblePlans.Count < 1)
+                    {
+                        possiblePlans.Enqueue(node);
+                    }
+
+                    // Now that we have seeded the possible plans we can start planning.
+                    var plan = Plan(id, possiblePlans, eventSourceEnabled, cancellationToken);
+
+                    if (!plan.HasValue)
+                    {
+                        throw new InvalidOperationException("No possible plan was found.");
+                    }
+
+                    internalOperationDefinition = plan.Value.InternalOperationDefinition;
+                    planSteps = plan.Value.Steps;
+                    searchSpace = plan.Value.SearchSpace;
+                    expandedNodes = plan.Value.ExpandedNodes;
+                    stepCount = plan.Value.StepCount;
                 }
-
-                // Now that we have seeded the possible plans we can start planning.
-                var plan = Plan(id, possiblePlans, eventSourceEnabled, cancellationToken);
-
-                if (!plan.HasValue)
-                {
-                    throw new InvalidOperationException("No possible plan was found.");
-                }
-
-                internalOperationDefinition = plan.Value.InternalOperationDefinition;
-                planSteps = plan.Value.Steps;
-                searchSpace = plan.Value.SearchSpace;
-                expandedNodes = plan.Value.ExpandedNodes;
-                stepCount = plan.Value.StepCount;
 
                 internalOperationDefinition =
                     AddTypeNameToAbstractSelections(
@@ -685,6 +708,192 @@ public sealed partial class OperationPlanner
         }
     }
 
+    private static bool TryGetSubscribeSpec(
+        SelectionSet selectionSet,
+        out SubscribeSpec spec)
+    {
+        spec = default;
+
+        if (selectionSet.Type is not FusionComplexTypeDefinition complexType)
+        {
+            return false;
+        }
+
+        FieldNode? rootFieldNode = null;
+
+        foreach (var selection in selectionSet.Selections)
+        {
+            if (selection is FieldNode fieldNode
+                && !fieldNode.Name.Value.Equals(IntrospectionFieldNames.TypeName, StringComparison.Ordinal))
+            {
+                rootFieldNode = fieldNode;
+                break;
+            }
+        }
+
+        if (rootFieldNode is null)
+        {
+            return false;
+        }
+
+        var field = complexType.Fields.GetField(rootFieldNode.Name.Value, allowInaccessibleFields: true);
+        var responseName = rootFieldNode.Alias?.Value ?? rootFieldNode.Name.Value;
+
+        foreach (var source in field.Sources.Members)
+        {
+            if (source.SubscribeDirective is { } directive)
+            {
+                var subscribeDirective = directive.Topics.IsDefaultOrEmpty
+                    ? new SubscribeDirective([rootFieldNode.Name.Value], directive.Broker, directive.Message)
+                    {
+                        SchemaKey = directive.SchemaKey
+                    }
+                    : directive;
+
+                spec = new SubscribeSpec(source.SchemaName, responseName, subscribeDirective);
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private EventStreamPlanningResult PlanEventStreamSubscription(
+        string operationId,
+        PlanNode seed,
+        SubscribeSpec subscribeSpec,
+        bool emitPlannerEvents,
+        CancellationToken cancellationToken)
+    {
+        var possiblePlans = new PlanQueue(_schema);
+        possiblePlans.Enqueue(
+            seed with
+            {
+                SchemaName = subscribeSpec.SchemaName,
+                SubscribeDirective = subscribeSpec.Directive,
+                ResolutionCost = 0
+            });
+
+        var plan = Plan(operationId, possiblePlans, emitPlannerEvents, cancellationToken);
+
+        if (!plan.HasValue)
+        {
+            throw new InvalidOperationException("No possible event stream plan was found.");
+        }
+
+        var rootStep = GetEventStreamRootStep(plan.Value.Steps);
+        var eventStreamPlan = new EventStreamPlan
+        {
+            FieldName = subscribeSpec.FieldName,
+            Source = CreateEventStreamSource(subscribeSpec),
+            Message = subscribeSpec.Directive.Message.ToString(indented: false)
+        };
+
+        var rootStepIndex = plan.Value.Steps.IndexOf(rootStep);
+        var updatedRootStep = rootStep with
+        {
+            Definition = CreateEventStreamMessageOperationDefinition(
+                rootStep.Definition,
+                [subscribeSpec.Directive.Message]),
+            EventStreamPlan = eventStreamPlan
+        };
+        var steps = plan.Value.Steps.SetItem(rootStepIndex, updatedRootStep);
+
+        return new EventStreamPlanningResult(
+            plan.Value.InternalOperationDefinition,
+            steps,
+            plan.Value.SearchSpace,
+            plan.Value.ExpandedNodes,
+            plan.Value.StepCount);
+    }
+
+    private OperationDefinitionNode CreateEventStreamMessageOperationDefinition(
+        OperationDefinitionNode definition,
+        IReadOnlyList<SelectionSetNode> messageSelectionSets)
+    {
+        if (messageSelectionSets.Count == 0)
+        {
+            return definition;
+        }
+
+        var rootField = GetSingleRootField(definition);
+        var fieldType = GetSubscriptionFieldType(rootField);
+        var mergedMessageSelectionSet = messageSelectionSets.Count == 1
+            ? messageSelectionSets[0]
+            : _mergeRewriter.Merge(messageSelectionSets, fieldType);
+
+        return definition.WithSelectionSet(
+            new SelectionSetNode([rootField.WithSelectionSet(mergedMessageSelectionSet)]));
+    }
+
+    private FieldNode GetSingleRootField(OperationDefinitionNode definition)
+    {
+        foreach (var selection in definition.SelectionSet.Selections)
+        {
+            if (selection is FieldNode field
+                && !field.Name.Value.Equals(IntrospectionFieldNames.TypeName, StringComparison.Ordinal))
+            {
+                return field;
+            }
+        }
+
+        throw new InvalidOperationException("The event stream operation must contain a root field.");
+    }
+
+    private ITypeDefinition GetSubscriptionFieldType(FieldNode rootField)
+    {
+        if (_schema.GetOperationType(OperationType.Subscription) is not FusionComplexTypeDefinition subscriptionType)
+        {
+            throw new InvalidOperationException("The subscription operation type must be a complex type.");
+        }
+
+        var field = subscriptionType.Fields.GetField(rootField.Name.Value, allowInaccessibleFields: true);
+        return field.Type.AsTypeDefinition();
+    }
+
+    private static EventStreamSource CreateEventStreamSource(SubscribeSpec spec)
+        => new()
+        {
+            SchemaName = spec.SchemaName,
+            FieldName = spec.FieldName,
+            Topics = spec.Directive.Topics,
+            Broker = spec.Directive.Broker,
+            Message = spec.Directive.Message
+        };
+
+    private static OperationPlanStep GetEventStreamRootStep(ImmutableList<PlanStep> steps)
+        => steps
+            .OfType<OperationPlanStep>()
+            .Single(t => t.Target.IsRoot && t.Definition.Operation == OperationType.Subscription);
+
+    private static SelectionSetNode? CreateSubscribeProvidedSelectionSet(
+        SelectionSetNode rootSelectionSet,
+        SubscribeDirective directive)
+    {
+        foreach (var selection in rootSelectionSet.Selections)
+        {
+            if (selection is FieldNode fieldNode
+                && !fieldNode.Name.Value.Equals(IntrospectionFieldNames.TypeName, StringComparison.Ordinal))
+            {
+                return new SelectionSetNode([fieldNode.WithSelectionSet(directive.Message)]);
+            }
+        }
+
+        return null;
+    }
+
+    private readonly record struct SubscribeSpec(
+        string SchemaName,
+        string FieldName,
+        SubscribeDirective Directive);
+
+    private readonly record struct EventStreamPlanningResult(
+        OperationDefinitionNode InternalOperationDefinition,
+        ImmutableList<PlanStep> Steps,
+        int SearchSpace,
+        int ExpandedNodes,
+        int StepCount);
+
     private void PlanRootSelections(
         OperationWorkItem workItem,
         PlanNode current,
@@ -729,7 +938,15 @@ public sealed partial class OperationPlanner
         {
             SchemaName = current.SchemaName,
             SelectionSet = workItem.SelectionSet,
-            SelectionSetIndex = index
+            SelectionSetIndex = index,
+            PruneUnprovidedAbstractBranches = workItem.Kind is OperationWorkItemKind.Root
+                && current.SubscribeDirective is not null,
+            ProvidedSelectionSet = workItem.Kind is OperationWorkItemKind.Root
+                && current.SubscribeDirective is not null
+                    ? CreateSubscribeProvidedSelectionSet(
+                        workItem.SelectionSet.Node,
+                        current.SubscribeDirective)
+                    : null
         };
 
         (var resolvable, var unresolvable, var fieldsWithRequirements, index) = _partitioner.Partition(input);
@@ -834,7 +1051,8 @@ public sealed partial class OperationPlanner
             MaxDepth = costState.MaxDepth,
             ExcessFanout = costState.ExcessFanout,
             OpsPerLevel = costState.OpsPerLevel,
-            OperationStepDepths = costState.StepDepths
+            OperationStepDepths = costState.StepDepths,
+            SubscribeDirective = current.SubscribeDirective
         };
 
         possiblePlans.EnqueueBranches(next);
@@ -1161,7 +1379,8 @@ public sealed partial class OperationPlanner
             MaxDepth = current.MaxDepth,
             ExcessFanout = current.ExcessFanout,
             OpsPerLevel = current.OpsPerLevel,
-            OperationStepDepths = current.OperationStepDepths
+            OperationStepDepths = current.OperationStepDepths,
+            SubscribeDirective = current.SubscribeDirective
         };
 
         possiblePlans.EnqueueBranches(next);
@@ -1366,7 +1585,8 @@ public sealed partial class OperationPlanner
             MaxDepth = costState.MaxDepth,
             ExcessFanout = costState.ExcessFanout,
             OpsPerLevel = costState.OpsPerLevel,
-            OperationStepDepths = costState.StepDepths
+            OperationStepDepths = costState.StepDepths,
+            SubscribeDirective = current.SubscribeDirective
         };
 
         possiblePlans.EnqueueBranches(next);
@@ -1491,7 +1711,8 @@ public sealed partial class OperationPlanner
             MaxDepth = costState.MaxDepth,
             ExcessFanout = costState.ExcessFanout,
             OpsPerLevel = costState.OpsPerLevel,
-            OperationStepDepths = costState.StepDepths
+            OperationStepDepths = costState.StepDepths,
+            SubscribeDirective = current.SubscribeDirective
         };
 
         possiblePlans.EnqueueBranches(next);
@@ -1620,7 +1841,8 @@ public sealed partial class OperationPlanner
             MaxDepth = costState.MaxDepth,
             ExcessFanout = costState.ExcessFanout,
             OpsPerLevel = costState.OpsPerLevel,
-            OperationStepDepths = costState.StepDepths
+            OperationStepDepths = costState.StepDepths,
+            SubscribeDirective = current.SubscribeDirective
         };
 
         possiblePlans.EnqueueBranches(next);
@@ -2422,8 +2644,10 @@ public sealed partial class OperationPlanner
         SelectionSetNode selectionSet,
         SelectionSetIndexBuilder index)
     {
-        var stack = new List<SelectionSetNode>();
-        stack.Add(selectionSet);
+        var stack = new List<SelectionSetNode>
+        {
+            selectionSet
+        };
 
         while (stack.Count > 0)
         {
@@ -2756,7 +2980,7 @@ internal static class PlannerExtensions
 
         public int WithRequirements { get; set; }
 
-        public HashSet<string> SpilloverSchemas { get; } = new(StringComparer.Ordinal);
+        public HashSet<string> SpilloverSchemas { get; } = [with(StringComparer.Ordinal)];
 
         public double ComputeCost(int totalFields)
         {

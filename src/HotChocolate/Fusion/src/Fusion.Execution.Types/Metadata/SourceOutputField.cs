@@ -1,3 +1,4 @@
+using HotChocolate.Fusion.Types.Directives;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
@@ -10,7 +11,8 @@ public sealed class SourceOutputField(
     IType type,
     bool isExternal,
     SelectionSetNode? provides,
-    string? sourceTypeName)
+    string? sourceTypeName,
+    SubscribeDirective? subscribeDirective = null)
     : ISourceMember
 {
     public string Name { get; } = name;
@@ -30,4 +32,6 @@ public sealed class SourceOutputField(
     /// from the composite field's named type, otherwise <c>null</c>.
     /// </summary>
     public string? SourceTypeName { get; } = sourceTypeName;
+
+    public SubscribeDirective? SubscribeDirective { get; } = subscribeDirective;
 }

@@ -782,6 +782,7 @@ internal static class CompositeSchemaBuilder
     {
         var fieldDirectives = FieldDirectiveParser.Parse(fieldDef.Directives);
         var requireDirectives = RequiredDirectiveParser.Parse(fieldDef.Directives);
+        var subscribeDirective = ParseSubscribeDirective(fieldDef.Directives);
         var temp = ImmutableArray.CreateBuilder<SourceOutputField>();
 
         foreach (var fieldDirective in fieldDirectives)
@@ -804,6 +805,8 @@ internal static class CompositeSchemaBuilder
                 && !string.Equals(sourceNamedTypeName, compositeNamedTypeName, StringComparison.Ordinal)
                     ? sourceNamedTypeName
                     : null;
+            var sourceSubscribeDirective =
+                GetSubscribeDirective(subscribeDirective, fieldDirective.SchemaKey, fieldDefinition.Name);
 
             temp.Add(
                 new SourceOutputField(
@@ -813,7 +816,8 @@ internal static class CompositeSchemaBuilder
                     CompleteType(fieldDef.Type, fieldDirective.SourceType, context),
                     fieldDirective.IsExternal,
                     fieldDirective.Provides,
-                    sourceTypeName));
+                    sourceTypeName,
+                    sourceSubscribeDirective));
         }
 
         return new SourceObjectFieldCollection(temp.ToImmutable());
@@ -867,6 +871,42 @@ internal static class CompositeSchemaBuilder
             return sourceType is null
                 ? context.GetType(type)
                 : context.GetType(sourceType, type.NamedType().Name.Value);
+        }
+
+        static SubscribeDirective? ParseSubscribeDirective(
+            IReadOnlyList<DirectiveNode> directives)
+        {
+            for (var i = 0; i < directives.Count; i++)
+            {
+                var directive = directives[i];
+                if (SubscribeDirectiveParser.CanParse(directive))
+                {
+                    return SubscribeDirectiveParser.Parse(directive);
+                }
+            }
+
+            return null;
+        }
+
+        static SubscribeDirective? GetSubscribeDirective(
+            SubscribeDirective? directive,
+            SchemaKey schemaKey,
+            string fieldName)
+        {
+            if (directive?.SchemaKey.Equals(schemaKey) == true)
+            {
+                return new SubscribeDirective(
+                    directive.Topics.IsDefaultOrEmpty
+                        ? [fieldName]
+                        : directive.Topics,
+                    directive.Broker,
+                    directive.Message)
+                {
+                    SchemaKey = directive.SchemaKey
+                };
+            }
+
+            return null;
         }
     }
 
