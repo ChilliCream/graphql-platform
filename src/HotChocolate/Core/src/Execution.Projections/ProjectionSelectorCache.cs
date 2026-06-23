@@ -16,7 +16,7 @@ internal sealed class ProjectionSelectorCache
         _cache = new Cache<SelectorCacheKey, SelectorExpression>(capacity, diagnostics);
     }
 
-    public SelectorExpression GetOrCreate<TEntity>(
+    public SelectorExpression<TValue> GetOrCreate<TValue>(
         Selection selection,
         ulong includeFlags,
         Func<Selection, ulong, SelectorExpression> create)
@@ -25,14 +25,14 @@ internal sealed class ProjectionSelectorCache
             selection.DeclaringOperation.CacheId,
             selection.Id,
             includeFlags,
-            typeof(TEntity));
+            typeof(TValue));
 
         if (_cache.TryGet(key, out var selectorExpression))
         {
-            return selectorExpression;
+            return (SelectorExpression<TValue>)selectorExpression;
         }
 
-        return _cache.GetOrCreate(
+        return (SelectorExpression<TValue>)_cache.GetOrCreate(
             key,
             (_, state) => create(state.selection, state.includeFlags),
             (selection, includeFlags));
