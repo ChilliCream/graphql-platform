@@ -434,11 +434,10 @@ public class DirectiveTypeTests : TypeTestBase
                     .Type<StringType>()
                     .Resolve("bar"))
             .AddDirectiveType(
-                new DirectiveType(
-                    d => d
-                        .Name("foo")
-                        .Location(DirectiveLocation.Object)
-                        .Use((_, _) => _ => default)))
+                d => d
+                    .Name("foo")
+                    .Location(DirectiveLocation.Object)
+                    .Use((_, _) => _ => default))
             .Create();
 
         // assert
@@ -460,11 +459,10 @@ public class DirectiveTypeTests : TypeTestBase
                     .Type<StringType>()
                     .Resolve("bar"))
             .AddDirectiveType(
-                new DirectiveType(
-                    d => d
-                        .Name("foo")
-                        .Location(DirectiveLocation.Object)
-                        .Use<DirectiveMiddleware>()))
+                d => d
+                    .Name("foo")
+                    .Location(DirectiveLocation.Object)
+                    .Use<DirectiveMiddleware>())
             .Create();
 
         // assert
@@ -486,11 +484,10 @@ public class DirectiveTypeTests : TypeTestBase
                     .Type<StringType>()
                     .Resolve("bar"))
             .AddDirectiveType(
-                new DirectiveType(
-                    d => d
-                        .Name("foo")
-                        .Location(DirectiveLocation.Object)
-                        .Use((_, next) => new DirectiveMiddleware(next))))
+                d => d
+                    .Name("foo")
+                    .Location(DirectiveLocation.Object)
+                    .Use((_, next) => new DirectiveMiddleware(next)))
             .Create();
 
         // assert
@@ -512,10 +509,9 @@ public class DirectiveTypeTests : TypeTestBase
                         .Type<StringType>()
                         .Resolve("bar"))
                 .AddDirectiveType(
-                    new DirectiveType(
-                        d => d.Name("foo")
-                            .Location(DirectiveLocation.Object)
-                            .Use(null!)))
+                    d => d.Name("foo")
+                        .Location(DirectiveLocation.Object)
+                        .Use(null!))
                 .Create();
 
         // assert
@@ -618,13 +614,12 @@ public class DirectiveTypeTests : TypeTestBase
                     .Resolve("asd")
                     .Directive("Qux"))
             .AddDirectiveType(
-                new DirectiveType(
-                    x => x
-                        .Name("Qux")
-                        .Location(DirectiveLocation.FieldDefinition)
-                        .Argument("bar")
-                        .Type<IntType>()
-                        .Deprecated("a")))
+                x => x
+                    .Name("Qux")
+                    .Location(DirectiveLocation.FieldDefinition)
+                    .Argument("bar")
+                    .Type<IntType>()
+                    .Deprecated("a"))
             .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
@@ -646,13 +641,12 @@ public class DirectiveTypeTests : TypeTestBase
                         .Resolve("asd")
                         .Directive("Qux", new ArgumentNode("bar", 1)))
                 .AddDirectiveType(
-                    new DirectiveType(
-                        x => x
-                            .Name("Qux")
-                            .Location(DirectiveLocation.FieldDefinition)
-                            .Argument("bar")
-                            .Type<NonNullType<IntType>>()
-                            .Deprecated("a")))
+                    x => x
+                        .Name("Qux")
+                        .Location(DirectiveLocation.FieldDefinition)
+                        .Argument("bar")
+                        .Type<NonNullType<IntType>>()
+                        .Deprecated("a"))
                 .BuildRequestExecutorAsync();
 
         // assert
@@ -1185,6 +1179,30 @@ public class DirectiveTypeTests : TypeTestBase
         var legacy = schema.DirectiveTypes["legacy"];
         Assert.True(legacy.IsDeprecated);
         Assert.Equal("Use the replacement directive.", legacy.DeprecationReason);
+    }
+
+    [Fact]
+    public void DirectiveArgument_AppliesDirective()
+    {
+        // arrange
+        // act
+        var schema = SchemaBuilder.New()
+            .AddQueryType(c => c
+                .Name("Query")
+                .Field("foo")
+                .Type<StringType>()
+                .Resolve("bar"))
+            .AddDirectiveType(d => d
+                .Name("foo")
+                .Location(DirectiveLocation.Field)
+                .Argument("arg", a => a
+                    .Type<IntType>()
+                    .Directive("deprecated")))
+            .Create();
+
+        // assert
+        var argument = schema.DirectiveTypes["foo"].Arguments["arg"];
+        Assert.True(argument.Directives.ContainsDirective("deprecated"));
     }
 
     public class DirectiveWithSyntaxTypeArg : DirectiveType

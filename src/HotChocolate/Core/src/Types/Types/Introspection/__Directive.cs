@@ -16,11 +16,14 @@ internal sealed class __Directive : ObjectType<DirectiveType>
     {
         var stringType = Create(ScalarNames.String);
         var nonNullStringType = Parse($"{ScalarNames.String}!");
+        var nonNullStringListType = Parse($"[{ScalarNames.String}!]");
         var nonNullBooleanType = Parse($"{ScalarNames.Boolean}!");
         var argumentListType = Parse($"[{nameof(__InputValue)}!]!");
         var locationListType = Parse($"[{nameof(__DirectiveLocation)}!]!");
 
-        return new ObjectTypeConfiguration(
+        var optInFeaturesEnabled = context.DescriptorContext.Options.EnableOptInFeatures;
+
+        var def = new ObjectTypeConfiguration(
             Names.__Directive,
             TypeResources.Directive_Description,
             typeof(DirectiveType))
@@ -30,7 +33,12 @@ internal sealed class __Directive : ObjectType<DirectiveType>
                 new(Names.Name, type: nonNullStringType, pureResolver: Resolvers.Name),
                 new(Names.Description, type: stringType, pureResolver: Resolvers.Description),
                 new(Names.Locations, type: locationListType, pureResolver: Resolvers.Locations),
-                new(Names.Args, type: argumentListType, pureResolver: Resolvers.Arguments)
+                new(
+                    Names.Args,
+                    type: argumentListType,
+                    pureResolver: optInFeaturesEnabled
+                        ? Resolvers.ArgumentsWithOptIn
+                        : Resolvers.Arguments)
                 {
                     Arguments =
                     {
@@ -70,6 +78,15 @@ internal sealed class __Directive : ObjectType<DirectiveType>
                 }
             }
         };
+
+        if (optInFeaturesEnabled)
+        {
+            def.Fields.Single(f => f.Name == Names.Args)
+                .Arguments
+                .Add(new(Names.IncludeOptIn, type: nonNullStringListType));
+        }
+
+        return def;
     }
 
     private static class Resolvers
@@ -95,7 +112,28 @@ internal sealed class __Directive : ObjectType<DirectiveType>
             return DirectiveLocationUtils.AsEnumerable(locations);
         }
 
-        public static object Arguments(IResolverContext context)
+        public static object ArgumentsWithOptIn(IResolverContext context)
+        {
+            var includeOptIn = context.ArgumentValue<string[]?>(Names.IncludeOptIn) ?? [];
+
+            // If an argument has no @requiresOptIn directives, it is always included.
+            // If an argument requires opting into features "f1" and "f2", then `includeOptIn`
+            // must list at least one of the features in order for the argument to be included.
+            return Arguments(context).Where(
+                a =>
+                {
+                    var requiredFeatures = a
+                        .Directives
+                        .Where(d => d.Definition is RequiresOptInDirectiveType)
+                        .Select(d => d.ToValue<RequiresOptIn>().Feature)
+                        .ToList();
+
+                    return requiredFeatures.Count == 0
+                        || requiredFeatures.Any(feature => includeOptIn.Contains(feature));
+                });
+        }
+
+        public static IEnumerable<IInputValueDefinition> Arguments(IResolverContext context)
         {
             var directive = context.Parent<DirectiveType>();
             return context.ArgumentValue<bool>(Names.IncludeDeprecated)
@@ -132,6 +170,7 @@ internal sealed class __Directive : ObjectType<DirectiveType>
         public const string IsDeprecated = "isDeprecated";
         public const string DeprecationReason = "deprecationReason";
         public const string IncludeDeprecated = "includeDeprecated";
+        public const string IncludeOptIn = "includeOptIn";
         public const string Locations = "locations";
         public const string Args = "args";
         public const string OnOperation = "onOperation";
