@@ -8,6 +8,7 @@ public sealed class SelectionSetIndexer : SyntaxWalker
 {
     private static readonly SelectionSetVisitor s_selectionSetVisitor = new();
     private readonly Dictionary<SelectionSetNode, uint> _selectionSetIds = [];
+    private readonly Dictionary<uint, SelectionSetNode> _selectionSetById = [];
     private uint _nextId = 1;
 
     public static ISelectionSetIndex Create(OperationDefinitionNode operation)
@@ -16,6 +17,7 @@ public sealed class SelectionSetIndexer : SyntaxWalker
         indexer.Visit(operation);
         return new SelectionSetIndex(
             indexer._selectionSetIds.ToImmutableDictionary(),
+            indexer._selectionSetById.ToImmutableDictionary(),
 #if NET10_0_OR_GREATER
             [],
 #else
@@ -33,7 +35,9 @@ public sealed class SelectionSetIndexer : SyntaxWalker
 
     protected override ISyntaxVisitorAction Enter(SelectionSetNode node, object? context)
     {
-        _selectionSetIds[node] = _nextId++;
+        var id = _nextId++;
+        _selectionSetIds[node] = id;
+        _selectionSetById[id] = node;
         return base.Enter(node, context);
     }
 

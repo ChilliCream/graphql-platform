@@ -9,7 +9,8 @@ public sealed class SourceOutputField(
     FieldRequirements? requirements,
     IType type,
     bool isExternal,
-    SelectionSetNode? provides)
+    SelectionSetNode? provides,
+    string? sourceTypeName)
     : ISourceMember
 {
     public string Name { get; } = name;
@@ -23,4 +24,10 @@ public sealed class SourceOutputField(
     public bool IsExternal { get; } = isExternal;
 
     public SelectionSetNode? Provides { get; } = provides;
+
+    /// <summary>
+    /// Gets the named type the source schema actually returns for this field when it differs
+    /// from the composite field's named type, otherwise <c>null</c>.
+    /// </summary>
+    public string? SourceTypeName { get; } = sourceTypeName;
 }
