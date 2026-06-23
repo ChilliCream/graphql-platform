@@ -10,7 +10,7 @@ namespace GreenDonut.Data;
 public static class HotChocolateExecutionDataLoaderExtensions
 {
     /// <summary>
-    /// Selects the fields that where selected in the GraphQL selection tree.
+    /// Selects the fields that were selected in the GraphQL selection tree.
     /// </summary>
     /// <param name="dataLoader">
     /// The data loader.
@@ -40,8 +40,8 @@ public static class HotChocolateExecutionDataLoaderExtensions
     }
 
     /// <summary>
-    /// Selects the fields that where selected in the GraphQL selection tree and applies
-    /// runtime include/skip directive flags.
+    /// Selects the fields that were selected in the GraphQL selection tree and projects exactly
+    /// the fields included by the runtime @skip/@include flags.
     /// </summary>
     /// <param name="dataLoader">
     /// The data loader.
@@ -50,7 +50,7 @@ public static class HotChocolateExecutionDataLoaderExtensions
     /// The selection that shall be applied to the data loader.
     /// </param>
     /// <param name="includeFlags">
-    /// The runtime include/skip directive flags, available as
+    /// The runtime @skip/@include directive flags, available as
     /// <see cref="HotChocolate.Resolvers.IResolverContext.IncludeFlags"/>.
     /// </param>
     /// <typeparam name="TKey">
@@ -88,7 +88,7 @@ public static class HotChocolateExecutionDataLoaderExtensions
     }
 
     /// <summary>
-    /// Selects the fields that where selected in the GraphQL selection tree.
+    /// Selects the fields that were selected in the GraphQL selection tree.
     /// </summary>
     /// <param name="dataLoader">
     /// The data loader.
@@ -111,13 +111,16 @@ public static class HotChocolateExecutionDataLoaderExtensions
         where TKey : notnull
         where TValue : notnull
     {
+        ArgumentNullException.ThrowIfNull(dataLoader);
+        ArgumentNullException.ThrowIfNull(selection);
+
         var expression = selection.AsSelector<TValue>();
         return dataLoader.Select(expression);
     }
 
     /// <summary>
-    /// Selects the fields that where selected in the GraphQL selection tree and applies
-    /// runtime include/skip directive flags.
+    /// Selects the fields that were selected in the GraphQL selection tree and projects exactly
+    /// the fields included by the runtime @skip/@include flags.
     /// </summary>
     /// <param name="dataLoader">
     /// The data loader.
@@ -126,7 +129,7 @@ public static class HotChocolateExecutionDataLoaderExtensions
     /// The selection that shall be applied to the data loader.
     /// </param>
     /// <param name="includeFlags">
-    /// The runtime include/skip directive flags, available as
+    /// The runtime @skip/@include directive flags, available as
     /// <see cref="HotChocolate.Resolvers.IResolverContext.IncludeFlags"/>.
     /// </param>
     /// <typeparam name="TKey">
@@ -145,12 +148,16 @@ public static class HotChocolateExecutionDataLoaderExtensions
         where TKey : notnull
         where TValue : notnull
     {
+        ArgumentNullException.ThrowIfNull(dataLoader);
+        ArgumentNullException.ThrowIfNull(selection);
+
         var expression = selection.AsSelector<TValue>(includeFlags);
         return dataLoader.Select(expression);
     }
 
     /// <summary>
-    /// Selects the fields that where selected in the GraphQL selection tree.
+    /// Selects the fields that were selected in the GraphQL selection tree.
+    /// Conditional selections are projected because no runtime include flags are available.
     /// </summary>
     /// <param name="dataLoader">
     /// The data loader.
@@ -173,13 +180,16 @@ public static class HotChocolateExecutionDataLoaderExtensions
         where TKey : notnull
         where TValue : notnull
     {
+        ArgumentNullException.ThrowIfNull(dataLoader);
+        ArgumentNullException.ThrowIfNull(selection);
+
         var expression = selection.AsSelector<TValue>();
         return dataLoader.Select(expression);
     }
 
     /// <summary>
-    /// Selects the fields that where selected in the GraphQL selection tree and applies
-    /// runtime include/skip directive flags.
+    /// Selects the fields that were selected in the GraphQL selection tree and projects exactly
+    /// the fields included by the runtime @skip/@include flags.
     /// </summary>
     /// <param name="dataLoader">
     /// The data loader.
@@ -188,7 +198,7 @@ public static class HotChocolateExecutionDataLoaderExtensions
     /// The selection that shall be applied to the data loader.
     /// </param>
     /// <param name="includeFlags">
-    /// The runtime include/skip directive flags, available as
+    /// The runtime @skip/@include directive flags, available as
     /// <see cref="HotChocolate.Resolvers.IResolverContext.IncludeFlags"/>.
     /// </param>
     /// <typeparam name="TKey">
@@ -207,12 +217,15 @@ public static class HotChocolateExecutionDataLoaderExtensions
         where TKey : notnull
         where TValue : notnull
     {
+        ArgumentNullException.ThrowIfNull(dataLoader);
+        ArgumentNullException.ThrowIfNull(selection);
+
         var expression = selection.AsSelector<TValue>(includeFlags);
         return dataLoader.Select(expression);
     }
 
     /// <summary>
-    /// Selects the fields that where selected in the GraphQL selection tree.
+    /// Selects the fields that were selected in the GraphQL selection tree.
     /// </summary>
     /// <param name="dataLoader">
     /// The data loader.
@@ -242,8 +255,8 @@ public static class HotChocolateExecutionDataLoaderExtensions
     }
 
     /// <summary>
-    /// Selects the fields that where selected in the GraphQL selection tree and applies
-    /// runtime include/skip directive flags.
+    /// Selects the fields that were selected in the GraphQL selection tree and projects exactly
+    /// the fields included by the runtime @skip/@include flags.
     /// </summary>
     /// <param name="dataLoader">
     /// The data loader.
@@ -252,7 +265,7 @@ public static class HotChocolateExecutionDataLoaderExtensions
     /// The selection that shall be applied to the data loader.
     /// </param>
     /// <param name="includeFlags">
-    /// The runtime include/skip directive flags, available as
+    /// The runtime @skip/@include directive flags, available as
     /// <see cref="HotChocolate.Resolvers.IResolverContext.IncludeFlags"/>.
     /// </param>
     /// <typeparam name="TKey">
