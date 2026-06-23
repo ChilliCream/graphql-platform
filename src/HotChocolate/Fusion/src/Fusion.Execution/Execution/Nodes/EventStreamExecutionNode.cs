@@ -7,7 +7,7 @@ using System.Text.Json;
 using HotChocolate.Buffers;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Diagnostics;
-using HotChocolate.Fusion.Execution.Brokers;
+using HotChocolate.Fusion.Subscriptions;
 using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Fusion.Text.Json;
 using HotChocolate.Language;

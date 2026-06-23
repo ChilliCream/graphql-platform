@@ -1,10 +1,10 @@
 using Microsoft.Extensions.DependencyInjection;
 
-namespace HotChocolate.Fusion.Execution.Brokers;
+namespace HotChocolate.Fusion.Subscriptions;
 
-internal sealed class DefaultEventStreamBrokerFactory(IServiceProvider services) : IEventStreamBrokerFactory
+public sealed class DefaultEventStreamBrokerFactory(IServiceProvider services) : IEventStreamBrokerFactory
 {
-    internal const string DefaultBrokerKey = "";
+    public const string DefaultBrokerKey = "";
 
     public IEventStreamBroker Create(string? broker)
     {

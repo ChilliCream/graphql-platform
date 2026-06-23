@@ -1,4 +1,4 @@
-using HotChocolate.Fusion.Execution.Brokers;
+using HotChocolate.Fusion.Subscriptions;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace Microsoft.Extensions.DependencyInjection;

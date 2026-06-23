@@ -39,6 +39,7 @@
     <PackageVersion Include="MongoDB.Driver" Version="3.0.0" />
     <PackageVersion Include="Moq" Version="4.20.72" />
     <PackageVersion Include="NATS.Client.Core" Version="2.7.2" />
+    <PackageVersion Include="NATS.Client.JetStream" Version="2.7.2" />
     <PackageVersion Include="NATS.Extensions.Microsoft.DependencyInjection" Version="2.7.2" />
     <PackageVersion Include="NetTopologySuite" Version="2.0.0" />
     <PackageVersion Include="Newtonsoft.Json" Version="13.0.2" />

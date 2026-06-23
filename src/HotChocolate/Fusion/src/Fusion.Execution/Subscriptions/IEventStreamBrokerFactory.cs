@@ -1,4 +1,4 @@
-namespace HotChocolate.Fusion.Execution.Brokers;
+namespace HotChocolate.Fusion.Subscriptions;
 
 /// <summary>
 /// Creates per-subscription broker sessions by broker label.

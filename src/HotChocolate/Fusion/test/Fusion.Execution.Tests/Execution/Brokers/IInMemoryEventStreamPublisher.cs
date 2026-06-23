@@ -1,4 +1,4 @@
-namespace HotChocolate.Fusion.Execution.Brokers;
+namespace HotChocolate.Fusion.Subscriptions;
 
 /// <summary>
 /// Publishes events into the in-memory broker hub.

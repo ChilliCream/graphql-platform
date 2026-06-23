@@ -1,6 +1,6 @@
 using System.Buffers;
 
-namespace HotChocolate.Fusion.Execution.Brokers;
+namespace HotChocolate.Fusion.Subscriptions;
 
 /// <summary>
 /// Represents a broker-agnostic event payload.
@@ -43,6 +43,9 @@ public sealed class EventMessage : IDisposable
     /// <summary>
     /// Gets the transport cursor associated with this event.
     /// </summary>
+    /// <remarks>
+    /// This span is empty when the broker does not provide a cursor for the event.
+    /// </remarks>
     public ReadOnlySpan<byte> Cursor
     {
         get

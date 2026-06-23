@@ -1,8 +1,9 @@
 using System.Collections.Frozen;
+using HotChocolate.Fusion.Execution;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
-namespace HotChocolate.Fusion.Execution.Brokers;
+namespace HotChocolate.Fusion.Subscriptions;
 
 internal sealed class SubscriptionFieldContext : ISubscriptionFieldContext
 {

@@ -1,10 +1,10 @@
 using System.Buffers;
 using System.Text;
-using HotChocolate.Fusion.Execution.Brokers;
+using HotChocolate.Fusion.Subscriptions;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace HotChocolate.Fusion.Execution.Brokers;
+namespace HotChocolate.Fusion.Subscriptions;
 
 public sealed class InMemoryEventStreamBrokerTests
 {

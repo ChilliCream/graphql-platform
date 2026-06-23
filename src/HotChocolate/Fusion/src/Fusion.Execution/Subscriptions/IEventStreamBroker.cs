@@ -1,4 +1,4 @@
-namespace HotChocolate.Fusion.Execution.Brokers;
+namespace HotChocolate.Fusion.Subscriptions;
 
 /// <summary>
 /// Represents a broker connection that can consume event-stream messages for subscription fields.

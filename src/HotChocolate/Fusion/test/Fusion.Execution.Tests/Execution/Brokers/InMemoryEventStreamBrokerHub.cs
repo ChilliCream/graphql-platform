@@ -1,7 +1,7 @@
 using System.Buffers;
 using System.Threading.Channels;
 
-namespace HotChocolate.Fusion.Execution.Brokers;
+namespace HotChocolate.Fusion.Subscriptions;
 
 public sealed class InMemoryEventStreamBrokerHub : IInMemoryEventStreamPublisher
 {
