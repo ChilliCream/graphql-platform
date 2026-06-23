@@ -67,7 +67,7 @@ public sealed class Operation : IOperation
         _elementsById = elementsById;
         _features = features;
         HasIncrementalParts = hasIncrementalParts;
-        CacheId = Interlocked.Increment(ref s_nextCacheId);
+        CacheId = CreateCacheId();
     }
 
     /// <summary>
@@ -134,6 +134,8 @@ public sealed class Operation : IOperation
     /// Gets the process-unique cache identifier for this operation.
     /// </summary>
     internal long CacheId { get; }
+
+    private static long CreateCacheId() => Interlocked.Increment(ref s_nextCacheId);
 
     /// <summary>
     /// Gets the selection set for the specified <paramref name="selection"/>
