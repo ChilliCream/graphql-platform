@@ -94,7 +94,7 @@ export function FusionFlow() {
       </div>
 
       {/* Sources converge into the composition node. */}
-      <div className="relative mx-auto aspect-[1360/1420] w-full">
+      <div className="relative mx-auto aspect-1360/1420 w-full">
         <svg
           viewBox={`${VIEW.x} ${VIEW.y} ${VIEW.w} ${VIEW.h}`}
           fill="none"
@@ -172,7 +172,7 @@ export function FusionFlow() {
             stay at full strength. Broad and feathered, as in the design. */}
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute top-[36%] left-1/2 h-[52%] w-[min(1500px,96vw)] -translate-x-1/2 -translate-y-1/2"
+          className="pointer-events-none absolute top-[52%] left-1/2 h-[52%] w-[min(1500px,96vw)] -translate-x-1/2 -translate-y-1/2 lg:top-[36%]"
           style={{
             background:
               "radial-gradient(ellipse 50% 50% at 50% 50%, rgba(11,15,26,0.9) 0%, rgba(11,15,26,0.82) 38%, rgba(11,15,26,0.5) 62%, rgba(11,15,26,0) 85%)",
@@ -200,24 +200,29 @@ export function FusionFlow() {
           ))}
         </svg>
 
-        {/* Source labels (HTML for crisp text), on top of the scrim. Sized to
-            sit flush with the top and bottom of the square. */}
+        {/* Source labels (HTML for crisp text), on top of the scrim. Shown at
+            every width: tiny next to the small markers on mobile, scaling up to
+            the design size on larger screens. */}
         {SOURCES.map((s) => (
           <div
             key={s.label}
-            className="text-cc-ink-dim absolute hidden -translate-y-1/2 font-mono text-base leading-none tracking-[0.15em] whitespace-nowrap uppercase sm:block sm:text-xl"
+            className="text-cc-ink-dim absolute translate-y-[-44%] font-mono text-[0.5rem] leading-none tracking-widest whitespace-nowrap uppercase sm:-translate-y-1/2 sm:text-xl sm:tracking-[0.15em]"
             style={{ left: pctX(s.x + STEM_DX + 28), top: pctY(s.y + 10) }}
           >
             {s.label}
           </div>
         ))}
 
-        {/* "No matter the format" sits over the stream region. */}
-        <div className="absolute top-[36%] left-1/2 w-full -translate-x-1/2 -translate-y-1/2 px-4 text-center">
-          <h2 className="font-heading text-cc-heading text-h3 sm:text-h2 font-semibold sm:whitespace-nowrap">
+        {/* Heading + copy sit over the stream region. The source squares/labels
+            occupy the top ~25% of the (aspect-ratio) artwork, so on smaller
+            screens, where the fixed-size heading is large relative to the box,
+            the block is centered lower (52%) to stay clear of them. The wide
+            desktop layout has room for the design's higher 36% placement. */}
+        <div className="absolute top-[27%] left-1/2 w-full -translate-x-1/2 px-4 text-center sm:top-[52%] sm:-translate-y-1/2 lg:top-[36%]">
+          <h2 className="font-heading text-cc-heading text-h3 sm:text-h2 font-semibold lg:whitespace-nowrap">
             Compose before it runs.
           </h2>
-          <p className="text-cc-ink mx-auto mt-6 max-w-4xl px-4 text-lg text-pretty sm:text-xl">
+          <p className="text-cc-ink mx-auto mt-3 max-w-4xl px-4 text-xs leading-snug text-pretty sm:mt-6 sm:text-xl sm:leading-relaxed">
             Each part publishes its contract. Fusion checks that the pieces fit,
             catches missing lookups and incompatible fields, and produces the
             gateway artifact your runtime loads.
@@ -237,6 +242,18 @@ export function FusionFlow() {
             </span>
             <span className="h-px flex-1 border-t border-dashed border-[rgba(245,241,234,0.3)]" />
           </div>
+        </div>
+
+        {/* Mobile-only composition caption: the desktop layout puts this to the
+            left of the glow with a dashed connector, but there is no room beside
+            the node on narrow screens, so it sits centered just beneath the orb. */}
+        <div
+          className="absolute left-1/2 -translate-x-1/2 text-center sm:hidden"
+          style={{ top: pctY(GLOW.y + 120) }}
+        >
+          <span className="text-cc-nav-label font-mono text-[0.5rem] tracking-[0.25em] whitespace-nowrap uppercase">
+            Fusion Composition
+          </span>
         </div>
       </div>
 
