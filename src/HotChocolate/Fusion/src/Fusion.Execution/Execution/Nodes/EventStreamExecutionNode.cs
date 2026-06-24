@@ -165,7 +165,7 @@ public sealed class EventStreamExecutionNode : ExecutionNode
             var subscriptionContext = new SubscriptionFieldContext(context, node.FieldName);
             var topics = ResolveTopics(source.Topics, context, node);
             var enumerator = broker
-                .Subscribe(subscriptionContext, topics, _disposeCts.Token)
+                .SubscribeAsync(subscriptionContext, topics, _disposeCts.Token)
                 .GetAsyncEnumerator(_disposeCts.Token);
 
             _subscription = new BrokerSubscription(source, broker, enumerator);

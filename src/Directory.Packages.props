@@ -15,6 +15,7 @@
     <PackageVersion Include="BenchmarkDotNet.Diagnostics.dotMemory" Version="0.15.8" />
     <PackageVersion Include="ChilliCream.ModelContextProtocol.AspNetCore" Version="1.4.0" />
     <PackageVersion Include="ChilliCream.Nitro.App" Version="$(NitroVersion)" />
+    <PackageVersion Include="Confluent.Kafka" Version="2.14.2" />
     <PackageVersion Include="DiffPlex" Version="1.9.0" />
     <PackageVersion Include="Duende.IdentityModel" Version="7.1.0" />
     <PackageVersion Include="Duende.IdentityModel.OidcClient" Version="6.0.1" />

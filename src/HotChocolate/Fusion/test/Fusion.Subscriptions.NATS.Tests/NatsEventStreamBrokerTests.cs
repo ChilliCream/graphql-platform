@@ -33,7 +33,7 @@ public sealed class NatsEventStreamBrokerTests : IClassFixture<NatsResource>
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
 
         await using var enumerator = broker
-            .Subscribe(EmptySubscriptionFieldContext.Instance, [subject], cts.Token)
+            .SubscribeAsync(EmptySubscriptionFieldContext.Instance, [subject], cts.Token)
             .GetAsyncEnumerator(cts.Token);
         var next = enumerator.MoveNextAsync().AsTask();
         await Task.Delay(250, cts.Token);
@@ -65,7 +65,7 @@ public sealed class NatsEventStreamBrokerTests : IClassFixture<NatsResource>
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
 
         await using var enumerator = broker
-            .Subscribe(EmptySubscriptionFieldContext.Instance, [subjectA, subjectB], cts.Token)
+            .SubscribeAsync(EmptySubscriptionFieldContext.Instance, [subjectA, subjectB], cts.Token)
             .GetAsyncEnumerator(cts.Token);
         var first = enumerator.MoveNextAsync().AsTask();
         await Task.Delay(250, cts.Token);
@@ -122,7 +122,7 @@ public sealed class NatsEventStreamBrokerTests : IClassFixture<NatsResource>
         await using (var broker = factory.Create(null))
         {
             await using var enumerator = broker
-                .Subscribe(EmptySubscriptionFieldContext.Instance, [subjectA, subjectB], cts.Token)
+                .SubscribeAsync(EmptySubscriptionFieldContext.Instance, [subjectA, subjectB], cts.Token)
                 .GetAsyncEnumerator(cts.Token);
             await PublishJetStreamAsync(fixture.Url, subjectA, """{"id":1}"""u8.ToArray(), cts.Token);
             await PublishJetStreamAsync(fixture.Url, subjectB, """{"id":2}"""u8.ToArray(), cts.Token);
@@ -143,7 +143,7 @@ public sealed class NatsEventStreamBrokerTests : IClassFixture<NatsResource>
         await using (var broker = factory.Create(null))
         {
             await using var enumerator = broker
-                .Subscribe(EmptySubscriptionFieldContext.Instance, [subjectA, subjectB], cts.Token)
+                .SubscribeAsync(EmptySubscriptionFieldContext.Instance, [subjectA, subjectB], cts.Token)
                 .GetAsyncEnumerator(cts.Token);
             var next = enumerator.MoveNextAsync().AsTask();
             await PublishJetStreamAsync(fixture.Url, subjectB, """{"id":3}"""u8.ToArray(), cts.Token);
@@ -169,7 +169,7 @@ public sealed class NatsEventStreamBrokerTests : IClassFixture<NatsResource>
         await using (var broker = factory.Create(null))
         {
             await using var enumerator = broker
-                .Subscribe(EmptySubscriptionFieldContext.Instance, [subject], cts.Token)
+                .SubscribeAsync(EmptySubscriptionFieldContext.Instance, [subject], cts.Token)
                 .GetAsyncEnumerator(cts.Token);
             _ = enumerator.MoveNextAsync().AsTask();
             await Task.Delay(250, cts.Token);
@@ -180,7 +180,7 @@ public sealed class NatsEventStreamBrokerTests : IClassFixture<NatsResource>
         await using (var broker = factory.Create(null))
         {
             await using var enumerator = broker
-                .Subscribe(EmptySubscriptionFieldContext.Instance, [subject], cts.Token)
+                .SubscribeAsync(EmptySubscriptionFieldContext.Instance, [subject], cts.Token)
                 .GetAsyncEnumerator(cts.Token);
             var next = enumerator.MoveNextAsync().AsTask();
             await Task.Delay(250, cts.Token);

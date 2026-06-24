@@ -12,7 +12,7 @@ public interface IEventStreamBroker : IAsyncDisposable
     /// The broker owns fan-in across the topic list and exposes it as one stream.
     /// The caller owns each yielded <see cref="EventMessage"/> and must dispose it after consuming it.
     /// </remarks>
-    IAsyncEnumerable<EventMessage> Subscribe(
+    IAsyncEnumerable<EventMessage> SubscribeAsync(
         ISubscriptionFieldContext context,
         string[] topics,
         CancellationToken cancellationToken);

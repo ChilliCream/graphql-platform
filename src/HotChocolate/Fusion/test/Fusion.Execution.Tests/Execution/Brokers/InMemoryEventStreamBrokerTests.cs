@@ -22,7 +22,7 @@ public sealed class InMemoryEventStreamBrokerTests
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
 
         await using var enumerator = broker
-            .Subscribe(
+            .SubscribeAsync(
                 EmptySubscriptionFieldContext.Instance,
                 ["book.created"],
                 cts.Token)
@@ -59,7 +59,7 @@ public sealed class InMemoryEventStreamBrokerTests
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
 
         await using var enumerator = broker
-            .Subscribe(
+            .SubscribeAsync(
                 EmptySubscriptionFieldContext.Instance,
                 ["book.created", "book.updated"],
                 cts.Token)

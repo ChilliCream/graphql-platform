@@ -8,7 +8,7 @@ public sealed class InMemoryEventStreamBroker(InMemoryEventStreamBrokerHub hub) 
     private readonly List<Channel<EventMessage>> _channels = [];
     private bool _disposed;
 
-    public async IAsyncEnumerable<EventMessage> Subscribe(
+    public async IAsyncEnumerable<EventMessage> SubscribeAsync(
         ISubscriptionFieldContext context,
         string[] topics,
         [EnumeratorCancellation] CancellationToken cancellationToken)

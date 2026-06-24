@@ -15,7 +15,7 @@ internal sealed class NatsEventStreamBroker(NatsEventStreamOptions options)
     private readonly List<SubscriptionSession> _sessions = [];
     private bool _disposed;
 
-    public IAsyncEnumerable<EventMessage> Subscribe(
+    public IAsyncEnumerable<EventMessage> SubscribeAsync(
         ISubscriptionFieldContext context,
         string[] topics,
         CancellationToken cancellationToken)
