@@ -54,6 +54,7 @@ dotnet test src/HotChocolate/Fusion
 - If you need 8 stubs + reflection, you're at the wrong test tier
 - Do not use em dash style sentences in docs, comments, or XML documentation. Use commas, periods, parentheses, or colons instead.
 - XML docs should describe the contract and concepts, not internals like pooling, iteration mechanics or leak other implementation detail.
+- Do not make new parameters optional just to avoid updating call sites. A parameter should only be optional when it has a sensible semantic default and the API is frequently used (where call-site brevity outweighs explicitness). If a parameter is logically required, make it required and update all call sites.
 
 ### Testing
 
@@ -76,6 +77,7 @@ dotnet test src/HotChocolate/Fusion
   ... assert code ...
   ```
 
+- Avoid `Assert.DoesNotContain` as it is a weak assertion that easily goes out of date, it only proves something is absent without verifying what *is* present. Prefer `Assert.Equal` to check the entire string value, or `Assert.Collection` to verify the complete contents of a collection.
 - Snapshot tests: update from `__mismatch__/` directory, understand ordering issues before updating
 - Filter tests during iteration, never run the full suite unnecessarily
 - Real databases in integration tests, not mocks (unless explicitly instructed otherwise)

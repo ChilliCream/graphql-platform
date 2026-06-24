@@ -53,8 +53,10 @@ public sealed class RequiresOptInDirectiveTests
                     .RequiresOptIn("enumValueFeature1")
                     .RequiresOptIn("enumValueFeature2"))
                 .AddDirectiveType(d => d
-                    .Name("exampleDirective")
+                    .Name("directive")
                     .Location(DirectiveLocation.Field)
+                    .RequiresOptIn("directiveFeature1")
+                    .RequiresOptIn("directiveFeature2")
                     .Argument("argument", a => a
                         .Type<IntType>()
                         .RequiresOptIn("directiveArgFeature1")
@@ -76,6 +78,7 @@ public sealed class RequiresOptInDirectiveTests
                 .AddQueryType<Query>()
                 .AddInputObjectType<Input>()
                 .AddType<Enum>()
+                .AddType<Directive>()
                 .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
@@ -112,6 +115,10 @@ public sealed class RequiresOptInDirectiveTests
                             @requiresOptIn(feature: "enumValueFeature1")
                             @requiresOptIn(feature: "enumValueFeature2")
                     }
+
+                    directive @directive
+                        @requiresOptIn(feature: "directiveFeature1")
+                        @requiresOptIn(feature: "directiveFeature2") on FIELD
                     """)
                 .UseField(_ => _ => default)
                 .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
@@ -143,4 +150,9 @@ public sealed class RequiresOptInDirectiveTests
         [RequiresOptIn("enumValueFeature2")]
         Value
     }
+
+    [DirectiveType("directive", DirectiveLocation.Field)]
+    [RequiresOptIn("directiveFeature1")]
+    [RequiresOptIn("directiveFeature2")]
+    private sealed class Directive;
 }

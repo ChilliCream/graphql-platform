@@ -1,11 +1,11 @@
 using System.Buffers;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 using GreenDonut.Data;
 using HotChocolate.Execution.Projections;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Utilities;
+using Microsoft.Extensions.DependencyInjection;
 
 // ReSharper disable once CheckNamespace
 namespace HotChocolate.Execution.Processing;
@@ -15,6 +15,11 @@ namespace HotChocolate.Execution.Processing;
 /// </summary>
 public static class HotChocolateExecutionSelectionExtensions
 {
+    // Treats every conditional selection as included. This is safe because include
+    // conditions are capped at 64 bits, so ulong.MaxValue satisfies every condition bit.
+    private const ulong IncludeAllFlags = ulong.MaxValue;
+    private static readonly SelectionExpressionBuilder s_builder = new();
+
     /// <summary>
     /// Creates a selector expression from a GraphQL selection.
     /// </summary>
@@ -41,8 +46,8 @@ public static class HotChocolateExecutionSelectionExtensions
     }
 
     /// <summary>
-    /// Creates a selector expression from a GraphQL selection and applies
-    /// runtime include/skip directive flags.
+    /// Creates a selector expression from a GraphQL selection and projects exactly
+    /// the fields included by the runtime @skip/@include flags.
     /// </summary>
     public static Expression<Func<TValue, TValue>> AsSelector<TValue>(
         this ISelection selection,
@@ -72,79 +77,128 @@ public static class HotChocolateExecutionSelectionExtensions
     /// </returns>
     public static Expression<Func<TValue, TValue>> AsSelector<TValue>(
         this Selection selection)
-        => AsSelector<TValue>(selection, 0);
+        => AsSelector<TValue>(selection, IncludeAllFlags);
 
     public static Expression<Func<TValue, TValue>> AsSelector<TValue>(
         this Selection selection,
         ulong includeFlags)
     {
-        var isConditional = selection.IsConditional;
+        ArgumentNullException.ThrowIfNull(selection);
 
-        // we first check if we already have an expression for this selection,
-        // this would be the cheapest way to get the expression.
-        if (!isConditional && TryGetExpression<TValue>(selection, out var expression))
+        var selectorExpression = GetOrCreateSelectorExpression<TValue>(selection);
+        var conditionMask = selectorExpression.ConditionMask;
+        var maskedFlags = includeFlags & conditionMask;
+
+        // The selector cached on the selection includes all conditional fields.
+        // We can reuse it when all conditions used by this selector are included.
+        if (maskedFlags == conditionMask)
         {
-            return expression;
+            return selectorExpression.Expression;
         }
 
-        // if we do not have an expression we need to create one.
-        // we first check what kind of field selection we have,
-        // connection, collection or single field.
+        var operation = selection.DeclaringOperation;
+        var cache = operation.Features.GetOrSetSafe(
+            static o => o.Schema.Services.GetRequiredService<ProjectionSelectorCache>(),
+            operation);
+
+        selectorExpression = cache.GetOrCreate(
+            selection,
+            maskedFlags,
+            static (selection, includeFlags) => CreateSelectorExpression<TValue>(selection, includeFlags));
+
+        return selectorExpression.Expression;
+    }
+
+    private static SelectorExpression<TValue> GetOrCreateSelectorExpression<TValue>(
+        Selection selection)
+        => selection.Features.GetOrSetSafe(
+            static selection => CreateSelectorExpression<TValue>(selection),
+            selection);
+
+    private static SelectorExpression<TValue> CreateSelectorExpression<TValue>(
+        Selection selection)
+        => CreateSelectorExpression<TValue>(selection, IncludeAllFlags);
+
+    private static SelectorExpression<TValue> CreateSelectorExpression<TValue>(
+        Selection selection,
+        ulong includeFlags)
+    {
         var flags = selection.Field.Flags;
 
         if ((flags & CoreFieldFlags.Connection) == CoreFieldFlags.Connection)
         {
-            var builder = new DefaultSelectorBuilder();
-            var buffer = ArrayPool<Selection>.Shared.Rent(16);
-            var count = GetConnectionSelections(selection, buffer);
-            for (var i = 0; i < count; i++)
-            {
-                builder.Add(
-                    isConditional
-                        ? buffer[i].GetExpression<TValue>(includeFlags)
-                        : buffer[i].GetOrCreateExpression<TValue>());
-            }
-            ArrayPool<Selection>.Shared.Return(buffer);
-            return isConditional
-                ? selection.GetExpression<TValue>(builder)
-                : selection.GetOrCreateExpression<TValue>(builder);
+            return CreateCompositeSelectorExpression<TValue>(
+                selection,
+                includeFlags,
+                GetConnectionSelections);
         }
 
         if ((flags & CoreFieldFlags.CollectionSegment) == CoreFieldFlags.CollectionSegment)
         {
-            var builder = new DefaultSelectorBuilder();
-            var buffer = ArrayPool<Selection>.Shared.Rent(16);
-            var count = GetCollectionSelections(selection, buffer);
-            for (var i = 0; i < count; i++)
-            {
-                builder.Add(
-                    isConditional
-                        ? buffer[i].GetExpression<TValue>(includeFlags)
-                        : buffer[i].GetOrCreateExpression<TValue>());
-            }
-            ArrayPool<Selection>.Shared.Return(buffer);
-            return isConditional
-                ? selection.GetExpression<TValue>(builder)
-                : selection.GetOrCreateExpression<TValue>(builder);
+            return CreateCompositeSelectorExpression<TValue>(
+                selection,
+                includeFlags,
+                GetCollectionSelections);
         }
+
+        Expression<Func<TValue, TValue>> expression;
+        ulong conditionMask;
 
         if ((flags & CoreFieldFlags.GlobalIdNodeField) == CoreFieldFlags.GlobalIdNodeField
             || (flags & CoreFieldFlags.GlobalIdNodesField) == CoreFieldFlags.GlobalIdNodesField)
         {
-            return isConditional
-                ? selection.GetNodeExpression<TValue>(includeFlags)
-                : selection.GetOrCreateNodeExpression<TValue>();
+            expression = s_builder.BuildNodeExpression<TValue>(selection, includeFlags, out conditionMask);
+        }
+        else
+        {
+            expression = s_builder.BuildExpression<TValue>(selection, includeFlags, out conditionMask);
         }
 
-        return isConditional
-            ? selection.GetExpression<TValue>(includeFlags)
-            : selection.GetOrCreateExpression<TValue>();
+        return new SelectorExpression<TValue>(includeFlags, conditionMask, expression);
     }
 
-    private static bool TryGetExpression<TValue>(
+    private static SelectorExpression<TValue> CreateCompositeSelectorExpression<TValue>(
         Selection selection,
-        [NotNullWhen(true)] out Expression<Func<TValue, TValue>>? expression)
-        => selection.Features.TryGet(out expression);
+        ulong includeFlags,
+        SelectionCollector collectSelections)
+    {
+        var builder = new DefaultSelectorBuilder();
+        var conditionMask = 0UL;
+        var buffer = ArrayPool<Selection>.Shared.Rent(16);
+
+        try
+        {
+            var count = collectSelections(selection, buffer);
+            for (var i = 0; i < count; i++)
+            {
+                var child = buffer[i];
+                var childSelectorExpression = GetOrCreateSelectorExpression<TValue>(child);
+                conditionMask |= childSelectorExpression.ConditionMask;
+
+                var childFlags = includeFlags & childSelectorExpression.ConditionMask;
+                var childExpression = childFlags == childSelectorExpression.ConditionMask
+                    ? childSelectorExpression
+                    : CreateSelectorExpression<TValue>(child, childFlags);
+
+                builder.Add(childExpression.Expression);
+            }
+        }
+        finally
+        {
+            ArrayPool<Selection>.Shared.Return(buffer);
+        }
+
+        return new SelectorExpression<TValue>(
+            includeFlags,
+            conditionMask,
+            builder.TryCompile<TValue>() ?? CreateIdentity<TValue>());
+    }
+
+    private static Expression<Func<TValue, TValue>> CreateIdentity<TValue>()
+    {
+        var parameter = Expression.Parameter(typeof(TValue), "root");
+        return Expression.Lambda<Func<TValue, TValue>>(parameter, parameter);
+    }
 
     private static int GetConnectionSelections(Selection selection, Span<Selection> buffer)
     {
@@ -207,30 +261,6 @@ public static class HotChocolateExecutionSelectionExtensions
 
         return count;
     }
-}
 
-file static class Extensions
-{
-    private static readonly SelectionExpressionBuilder s_builder = new();
-
-    extension(Selection selection)
-    {
-        public Expression<Func<TValue, TValue>> GetOrCreateExpression<TValue>()
-            => selection.Features.GetOrSetSafe(() => s_builder.BuildExpression<TValue>(selection));
-
-        public Expression<Func<TValue, TValue>> GetExpression<TValue>(ulong includeFlags)
-            => s_builder.BuildExpression<TValue>(selection, includeFlags);
-
-        public Expression<Func<TValue, TValue>> GetOrCreateExpression<TValue>(ISelectorBuilder expressionBuilder)
-            => selection.Features.GetOrSetSafe(() => expressionBuilder.TryCompile<TValue>()!);
-
-        public Expression<Func<TValue, TValue>> GetExpression<TValue>(ISelectorBuilder expressionBuilder)
-            => expressionBuilder.TryCompile<TValue>()!;
-
-        public Expression<Func<TValue, TValue>> GetOrCreateNodeExpression<TValue>()
-            => selection.Features.GetOrSetSafe(() => s_builder.BuildNodeExpression<TValue>(selection));
-
-        public Expression<Func<TValue, TValue>> GetNodeExpression<TValue>(ulong includeFlags)
-            => s_builder.BuildNodeExpression<TValue>(selection, includeFlags);
-    }
+    private delegate int SelectionCollector(Selection selection, Span<Selection> buffer);
 }
