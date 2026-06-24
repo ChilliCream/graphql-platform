@@ -160,6 +160,18 @@ flowchart LR
 > labels are mis-measured during headless rendering and get clipped at the box
 > edge. If a label is long, keep it concise rather than wrapping it.
 
+### Headings
+
+- **Start your sections at `#` (h1).** The page `title` from the frontmatter is
+  inserted later as the page's single `<h1>`, and every heading you write in the
+  body is automatically demoted one level at build time
+  (`src/remark/demoteHeadings.mjs`): `#` renders as `<h2>`, `##` renders as
+  `<h3>`, and so on.
+- So author your top-level sections with `#`, subsections with `##`, etc. Do not
+  start at `##` to "leave room" for the title; the demotion already handles that.
+- **Do not repeat the title as the first heading in the body.** The layout
+  already shows it, so a `# Page Title` at the top produces a duplicate heading.
+
 ### MDX gotchas
 
 - **Escape literal curly braces.** Raw `{...}` is parsed as a JavaScript

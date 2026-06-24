@@ -791,6 +791,10 @@
               {
                 "path": "migrate-from-10-to-11",
                 "title": "Migrate from 10 to 11"
+              },
+              {
+                "path": "migrate-from-graphql-dotnet",
+                "title": "Migrate from GraphQL.NET"
               }
             ]
           }

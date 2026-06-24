@@ -12,8 +12,10 @@ out/
 build/
 coverage/
 storybook-static/
-public/_optimized/
 .vercel/
+
+# Static assets (images and other files served as-is, not source to format)
+public/
 
 # Generated files
 git-metadata.generated.json
