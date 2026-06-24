@@ -116,25 +116,12 @@ internal sealed class __Directive : ObjectType<DirectiveType>
             return DirectiveLocationUtils.AsEnumerable(locations);
         }
 
-        public static object ArgumentsWithOptIn(IResolverContext context)
+        public static IEnumerable<IInputValueDefinition> ArgumentsWithOptIn(IResolverContext context)
         {
             var includeOptIn = context.ArgumentValue<string[]?>(Names.IncludeOptIn) ?? [];
 
-            // If an argument has no @requiresOptIn directives, it is always included.
-            // If an argument requires opting into features "f1" and "f2", then `includeOptIn`
-            // must list at least one of the features in order for the argument to be included.
             return Arguments(context).Where(
-                a =>
-                {
-                    var requiredFeatures = a
-                        .Directives
-                        .Where(d => d.Definition is RequiresOptInDirectiveType)
-                        .Select(d => d.ToValue<RequiresOptIn>().Feature)
-                        .ToList();
-
-                    return requiredFeatures.Count == 0
-                        || requiredFeatures.Any(feature => includeOptIn.Contains(feature));
-                });
+                a => OptInIntrospectionHelper.IsIncluded(a.Directives, includeOptIn));
         }
 
         public static IEnumerable<IInputValueDefinition> Arguments(IResolverContext context)
