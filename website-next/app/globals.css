@@ -56,6 +56,12 @@
   --color-cc-accent: #5eead4;
   --color-cc-accent-hover: #99f6e4;
 
+  /* Shared operational status hues for the production-view illustrations.
+     Rationed as data: color strictly tracks state. */
+  --color-cc-status-healthy: #34d399;
+  --color-cc-status-investigating: #fbbf24;
+  --color-cc-status-firing: #f0786a;
+
   /* Secondary brand CTA (the "Launch" button). */
   --color-cc-cta: oklch(51.8% 0.253 323.949);
   --color-cc-cta-hover: oklch(45.2% 0.211 324.591);
