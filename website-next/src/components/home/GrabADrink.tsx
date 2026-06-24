@@ -17,7 +17,9 @@ export function GrabADrink() {
         building.
       </p>
       <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
-        <SolidButton href="/get-started">Start for Free</SolidButton>
+        <SolidButton href="https://nitro.chillicream.com">
+          Start for Free
+        </SolidButton>
         <OutlineButton href="/services/support/contact">
           Talk to Us
         </OutlineButton>

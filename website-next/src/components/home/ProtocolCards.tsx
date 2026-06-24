@@ -22,7 +22,7 @@ const PROTOCOLS: readonly Protocol[] = [
   {
     Icon: BrowserIcon,
     title: "Web",
-    subtitle: "Browser SPA",
+    subtitle: "SPA / MPA",
     tags: ["GraphQL"],
   },
   {
@@ -49,11 +49,16 @@ const PROTOCOLS: readonly Protocol[] = [
 // card grid, so the chip anchors sit inboard of the card columns; every line
 // therefore runs on a diagonal and the bundle weaves on its way down.
 const CHIP_X = [250, 417, 583, 750];
-const CARD_X = [125, 375, 625, 875];
+// Card-column centers in the 0..1000 viewBox. The tile grid is 4 columns with a
+// fixed gap, so the centers sit slightly outboard of even quarters: with the
+// layer at its desktop width (1056px) and gap-x-10 (40px), each column is 234px
+// wide and centers land at 110.8 / 370.3 / 629.7 / 889.2. Matching these lets a
+// vertical spoke meet the exact top-middle of every tile.
+const CARD_X = [110.8, 370.3, 629.7, 889.2];
 // The connector layer is stretched over the whole region (chip box bottom to
-// the card row). LINK_Y is the y, in the 0..1000 viewBox, where the spokes meet
-// the icon tiles; tuned against the icon row on desktop.
-const LINK_Y = 720;
+// the card row). LINK_Y is the y, in the 0..1000 viewBox, of the icon tiles' top
+// edge, so spokes land cleanly on the top-middle of each tile.
+const LINK_Y = 694;
 
 /**
  * One spoke per (card, protocol) pairing, derived from each card's tags. The

@@ -212,9 +212,8 @@ export function FusionFlow() {
           </div>
         ))}
 
-        {/* "No matter the format" sits over the stream region. It breaks out of
-            the section's max width so the line stays single, as in the design. */}
-        <div className="absolute top-[36%] left-1/2 w-screen max-w-[100vw] -translate-x-1/2 -translate-y-1/2 px-4 text-center">
+        {/* "No matter the format" sits over the stream region. */}
+        <div className="absolute top-[36%] left-1/2 w-full -translate-x-1/2 -translate-y-1/2 px-4 text-center">
           <h2 className="font-heading text-cc-heading text-h3 sm:text-h2 font-semibold sm:whitespace-nowrap">
             Compose before it runs.
           </h2>
@@ -225,15 +224,19 @@ export function FusionFlow() {
           </p>
         </div>
 
-        {/* "Fusion Composition" caption with a dashed line running to the glow. */}
+        {/* "Fusion Composition" caption, aligned with the body copy's centered
+            column, with a dashed line running from the text to the glow (which
+            sits at the column's horizontal center). */}
         <div
-          className="absolute right-1/2 left-0 hidden -translate-y-1/2 items-center gap-4 pr-10 sm:flex"
+          className="absolute left-1/2 hidden w-full max-w-4xl -translate-x-1/2 -translate-y-1/2 sm:block"
           style={{ top: pctY(GLOW.y) }}
         >
-          <span className="text-cc-nav-label font-mono text-xs tracking-[0.2em] whitespace-nowrap uppercase sm:text-sm">
-            Fusion Composition
-          </span>
-          <span className="h-px flex-1 border-t border-dashed border-[rgba(245,241,234,0.3)]" />
+          <div className="flex w-1/2 items-center gap-4 pr-10">
+            <span className="text-cc-nav-label font-mono text-xs tracking-[0.2em] whitespace-nowrap uppercase sm:text-sm">
+              Fusion Composition
+            </span>
+            <span className="h-px flex-1 border-t border-dashed border-[rgba(245,241,234,0.3)]" />
+          </div>
         </div>
       </div>
 
