@@ -102,7 +102,7 @@ public sealed class KafkaFixture : IAsyncLifetime
 
     private static int GetFreeTcpPort()
     {
-        var listener = new TcpListener(IPAddress.Loopback, port: 0);
+        using var listener = new TcpListener(IPAddress.Loopback, port: 0);
         listener.Start();
 
         try
