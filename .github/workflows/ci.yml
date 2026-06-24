@@ -327,45 +327,6 @@ jobs:
           name: mismatch-files-${{ matrix.name }}
           path: ${{ matrix.directoryPath }}/**/__mismatch__/*
 
-  upload-coverage:
-    name: Upload Coverage
-    needs: library-tests
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      code-quality: write
-    steps:
-      - name: Download all coverage artifacts
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
-        with:
-          path: ./output/download
-          pattern: coverage-*
-
-      - name: Install .NET
-        uses: actions/setup-dotnet@9a946fdbd5fb07b82b2f5a4466058b876ab72bb2 # v5.3.0
-        with:
-          dotnet-version: 11.0.100-preview.5.26302.115
-
-      - name: Install dotnet-coverage
-        run: |
-          dotnet tool install --global dotnet-coverage --version 18.8.0
-          echo "$HOME/.dotnet/tools" >> "$GITHUB_PATH"
-
-      - name: Merge coverage reports
-        run: >
-          dotnet-coverage merge
-          --output ./output/merged.cobertura.xml
-          --output-format cobertura
-          "./output/download/**/*.cobertura.xml"
-
-      - name: Upload coverage to GitHub
-        uses: ChilliCream/upload-code-coverage@c4b498aa6251701297737919a9b879eaac3f41b4 # fork: scope PR lookup to base repo (upstream #14)
-        timeout-minutes: 10
-        with:
-          file: ./output/merged.cobertura.xml
-          language: "C#"
-          label: code-coverage/dotnet
-
   validate-nitro-client:
     name: Validate Nitro Client
     runs-on: ubuntu-latest
