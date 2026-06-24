@@ -538,6 +538,49 @@ public static class DirectiveNames
         }
     }
 
+    /// <summary>
+    /// The name constants of the @subscribe directive.
+    /// </summary>
+    public static class Subscribe
+    {
+        /// <summary>
+        /// The name of the @subscribe directive.
+        /// </summary>
+        public const string Name = "subscribe";
+
+        /// <summary>
+        /// The argument names of the @subscribe directive.
+        /// </summary>
+        public static class Arguments
+        {
+            /// <summary>
+            /// The name of the message argument.
+            /// </summary>
+            public const string Message = "message";
+
+            /// <summary>
+            /// The name of the topics argument.
+            /// </summary>
+            public const string Topics = "topics";
+
+            /// <summary>
+            /// The name of the broker argument.
+            /// </summary>
+            public const string Broker = "broker";
+        }
+    }
+
+    /// <summary>
+    /// The name constants of the @eventCursor directive.
+    /// </summary>
+    public static class EventCursor
+    {
+        /// <summary>
+        /// The name of the @eventCursor directive.
+        /// </summary>
+        public const string Name = "eventCursor";
+    }
+
     public static bool IsSpecDirective(string name)
         => name switch
         {
