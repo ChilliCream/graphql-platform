@@ -113,7 +113,7 @@ public sealed class PostgresMessageOutboxTests : IClassFixture<PostgresFixture>
     public void Dispose_Should_NotThrow_When_Called()
     {
         // Arrange
-        var options = new DbContextOptionsBuilder<TestDbContext>().UseNpgsql("Host=localhost;Database=test").Options;
+        var options = new DbContextOptionsBuilder<TestDbContext>().UseTestNpgsql("Host=localhost;Database=test").Options;
         using var context = new TestDbContext(options);
         var queries = PostgresMessageOutboxQueries.From(new OutboxTableInfo());
         var signal = new StubOutboxSignal();
@@ -130,7 +130,7 @@ public sealed class PostgresMessageOutboxTests : IClassFixture<PostgresFixture>
         StubOutboxSignal Signal)> CreateOutboxAsync()
     {
         var connectionString = await _fixture.CreateDatabaseAsync();
-        var options = new DbContextOptionsBuilder<TestDbContext>().UseNpgsql(connectionString).Options;
+        var options = new DbContextOptionsBuilder<TestDbContext>().UseTestNpgsql(connectionString).Options;
         var context = new TestDbContext(options);
         await context.Database.EnsureCreatedAsync();
         var queries = PostgresMessageOutboxQueries.From(new OutboxTableInfo());
