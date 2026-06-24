@@ -68,9 +68,62 @@ The following shows the default topology Mocha creates when you register an even
 
 <TopologyVisualization data='{"services":[{"host":{"serviceName":"MyService","assemblyName":"MyService.dll","instanceId":"my-svc-1"},"messageTypes":[{"identity":"msg:OrderPlaced","runtimeType":"OrderPlaced","runtimeTypeFullName":"MyApp.Messages.OrderPlaced","isInterface":false,"isInternal":false}],"consumers":[{"name":"OrderPlacedHandler","identityType":"OrderPlacedHandler","identityTypeFullName":"MyApp.Handlers.OrderPlacedHandler"}],"routes":{"inbound":[{"kind":"subscribe","messageTypeIdentity":"msg:OrderPlaced","consumerName":"OrderPlacedHandler","endpoint":{"name":"my-service.order-placed","address":"loopback://localhost/q/my-service.order-placed","transportName":"InMemory"}}],"outbound":[{"kind":"publish","messageTypeIdentity":"msg:OrderPlaced","endpoint":{"name":"OrderPlaced","address":"loopback://localhost/c/OrderPlaced","transportName":"InMemory"}}]},"sagas":[]}],"transports":[{"identifier":"inmemory","name":"InMemory","schema":"loopback","transportType":"InMemoryTransport","receiveEndpoints":[{"name":"my-service.order-placed","kind":"default","address":"loopback://localhost/q/my-service.order-placed","source":{"address":"loopback://localhost/q/my-service.order-placed"}}],"dispatchEndpoints":[{"name":"OrderPlaced","kind":"default","address":"loopback://localhost/c/OrderPlaced","destination":{"address":"loopback://localhost/c/OrderPlaced"}}],"topology":{"address":"loopback://localhost","entities":[{"kind":"channel","name":"OrderPlaced","address":"loopback://localhost/c/OrderPlaced","flow":"inbound","properties":{"type":"publish"}},{"kind":"queue","name":"my-service.order-placed","address":"loopback://localhost/q/my-service.order-placed","flow":"outbound","properties":{}}],"links":[{"kind":"subscription","address":"loopback://localhost/sub/OrderPlaced-my-service.order-placed","source":"loopback://localhost/c/OrderPlaced","target":"loopback://localhost/q/my-service.order-placed","direction":"forward","properties":{}}]}}]}' />
 
-# Configure handler endpoints
+# Configure queues
 
-Use `transport.Handler<T>()` to claim a handler for the InMemory transport and configure its convention-named endpoint:
+Use `transport.Queue("name")` when you want to choose the queue name, bind multiple handlers to one queue, or configure receive settings. The queue builder is the easiest way to customize in-memory topology because it combines queue declaration, handler binding, convention binding, and endpoint settings in one place.
+
+```csharp
+builder.Services
+    .AddMessageBus()
+    .AddEventHandler<OrderPlacedEventHandler>()
+    .AddInMemory(transport =>
+    {
+        transport.BindExplicitly();
+
+        transport.Queue("order-processing")
+            .BindImplicitly()
+            .MaxConcurrency(5)
+            .FaultEndpoint("order-errors")
+            .Handler<OrderPlacedEventHandler>();
+    });
+```
+
+`BindExplicitly()` at the transport scope means only queues you configure are used for receiving. `BindImplicitly()` on the queue tells Mocha to keep the convention-derived topic binding for the messages handled by that queue.
+
+Calling `Queue("name")` without `Handler<T>()`, `Consumer<T>()`, or `Receives<T>()` declares only the in-memory queue. Add a handler, consumer, or received message type when the queue should also consume messages.
+
+```csharp
+transport.Queue("audit")
+    .Receives<OrderPlacedEvent>();
+```
+
+# Declare topology resources
+
+The InMemory transport auto-generates topology from your handler registrations and queue builders.
+
+> Warning: Use `DeclareTopic()`, `DeclareQueue()`, and `DeclareBinding()` only when you need topology resources that are not represented by a receiving queue builder. For handler queues, prefer `transport.Queue("name")`.
+
+To declare infrastructure-only topology:
+
+```csharp
+builder.Services
+    .AddMessageBus()
+    .AddInMemory(transport =>
+    {
+        // Declare a topic
+        transport.DeclareTopic("order-events");
+
+        // Declare a queue
+        transport.DeclareQueue("billing-orders");
+
+        // Bind the topic to the queue
+        transport.DeclareBinding("order-events", "billing-orders");
+    });
+```
+
+# Configure convention endpoints
+
+Use `transport.Handler<T>()` at the end of the transport configuration when you want to keep the convention-derived queue name and only tune one handler endpoint:
 
 ```csharp
 builder.Services
@@ -91,8 +144,6 @@ transport.Handler<OrderPlacedEventHandler>()
     .ConfigureEndpoint(e => e.FaultEndpoint("order-errors"));
 ```
 
-Inside `ConfigureEndpoint()`, you have access to the full `IInMemoryReceiveEndpointDescriptor`, which supports `MaxConcurrency()`, `Queue()`, `FaultEndpoint()`, `SkippedEndpoint()`, and receive middleware.
-
 For raw `IConsumer` types, use `transport.Consumer<T>()`:
 
 ```csharp
@@ -111,41 +162,6 @@ builder.Services
     .AddInMemory(m => m.Handler<AuditHandler>());
 // OrderPlacedEventHandler → RabbitMQ (default)
 // AuditHandler → InMemory (claimed)
-```
-
-# Declare custom topology
-
-The InMemory transport auto-generates topology from your handler registrations. To declare custom topology explicitly:
-
-```csharp
-builder.Services
-    .AddMessageBus()
-    .AddInMemory(transport =>
-    {
-        // Declare a topic
-        transport.DeclareTopic("order-events");
-
-        // Declare a queue
-        transport.DeclareQueue("billing-orders");
-
-        // Bind the topic to the queue
-        transport.DeclareBinding("order-events", "billing-orders");
-    });
-```
-
-To control which handlers consume from which queues:
-
-```csharp
-builder.Services
-    .AddMessageBus()
-    .AddEventHandler<OrderPlacedEventHandler>()
-    .AddInMemory(transport =>
-    {
-        transport.BindHandlersExplicitly();
-
-        transport.Endpoint("order-processing")
-            .Handler<OrderPlacedEventHandler>();
-    });
 ```
 
 # Next steps

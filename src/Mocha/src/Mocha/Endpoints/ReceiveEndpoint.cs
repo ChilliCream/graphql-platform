@@ -74,24 +74,6 @@ public abstract class ReceiveEndpoint(MessagingTransport transport) : IReceiveEn
     public ReceiveEndpointKind Kind { get; protected set; }
 
     /// <summary>
-    /// Gets the dispatch endpoint to which faulted messages are forwarded.
-    /// </summary>
-    /// <remarks>
-    /// When <see langword="null"/>, faulted messages are not forwarded to an error queue.
-    /// Configured via <see cref="ReceiveEndpointConfiguration.ErrorEndpoint"/>.
-    /// </remarks>
-    public DispatchEndpoint? ErrorEndpoint { get; protected set; }
-
-    /// <summary>
-    /// Gets the dispatch endpoint to which skipped (unrecognized) messages are forwarded.
-    /// </summary>
-    /// <remarks>
-    /// When <see langword="null"/>, skipped messages are not forwarded.
-    /// Configured via <see cref="ReceiveEndpointConfiguration.SkippedEndpoint"/>.
-    /// </remarks>
-    public DispatchEndpoint? SkippedEndpoint { get; protected set; }
-
-    /// <summary>
     /// Gets the feature collection associated with this endpoint for storing extensibility data.
     /// </summary>
     public IFeatureCollection Features { get; } = new FeatureCollection();
@@ -164,7 +146,9 @@ public abstract class ReceiveEndpoint(MessagingTransport transport) : IReceiveEn
     {
         AssertUninitialized();
 
+        Transport.Routing.ConfigureEndpoint(context, configuration);
         Transport.Conventions.Configure(context, Transport, configuration);
+
         Configuration = configuration;
         Kind = configuration.Kind;
         Name = configuration.Name ?? throw ThrowHelper.EndpointNameRequired();
@@ -190,8 +174,21 @@ public abstract class ReceiveEndpoint(MessagingTransport transport) : IReceiveEn
     /// <param name="context">The messaging configuration context used for topology discovery.</param>
     public void DiscoverTopology(IMessagingConfigurationContext context)
     {
-        Transport.Conventions.DiscoverTopology(context, this, Configuration);
+        OnDiscoverTopology(context, Configuration);
+
+        Transport.Routing.DiscoverTopology(context, this, Configuration);
     }
+
+    /// <summary>
+    /// When overridden in a derived class, ensures the endpoint's own backing resource exists before
+    /// the topology conventions run.
+    /// </summary>
+    /// <param name="context">The messaging configuration context.</param>
+    /// <param name="configuration">The receive endpoint configuration.</param>
+    protected virtual void OnDiscoverTopology(
+        IMessagingConfigurationContext context,
+        ReceiveEndpointConfiguration configuration)
+    { }
 
     /// <summary>
     /// Finalizes the endpoint configuration by compiling the receive pipeline and resolving
@@ -210,14 +207,16 @@ public abstract class ReceiveEndpoint(MessagingTransport transport) : IReceiveEn
 
         Address ??= new UriBuilder { Scheme = Transport.Schema, Path = Name }.Uri;
 
-        if (ErrorEndpoint is null && Configuration.ErrorEndpoint is { } errorAddress)
+        var faultFeature = Features.Get<ReceiveFaultEndpointFeature>();
+        if (faultFeature is { Endpoint: null, Address: { } faultAddress })
         {
-            ErrorEndpoint = context.Endpoints.GetOrCreate(context, errorAddress);
+            faultFeature.Endpoint = context.Endpoints.GetOrCreate(context, faultAddress);
         }
 
-        if (SkippedEndpoint is null && Configuration.SkippedEndpoint is { } skippedAddress)
+        var skippedFeature = Features.Get<ReceiveSkippedEndpointFeature>();
+        if (skippedFeature is { Endpoint: null, Address: { } skippedAddress })
         {
-            SkippedEndpoint = context.Endpoints.GetOrCreate(context, skippedAddress);
+            skippedFeature.Endpoint = context.Endpoints.GetOrCreate(context, skippedAddress);
         }
 
         _pipeline = MiddlewareCompiler.CompileReceive(

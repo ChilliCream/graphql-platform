@@ -291,7 +291,7 @@ public sealed class DefaultGraphQLHttpClient : GraphQLHttpClient
             var fileContent = new StreamContent(file.OpenReadStream());
             if (!string.IsNullOrEmpty(file.ContentType))
             {
-                fileContent.Headers.ContentType = new MediaTypeHeaderValue(file.ContentType);
+                fileContent.Headers.TryAddWithoutValidation("Content-Type", file.ContentType);
             }
 
             form.Add(fileContent, i.ToString(), file.Name);
@@ -394,7 +394,7 @@ public sealed class DefaultGraphQLHttpClient : GraphQLHttpClient
             var fileContent = new StreamContent(fileInfo.File.OpenRead());
             if (!string.IsNullOrEmpty(fileInfo.File.ContentType))
             {
-                fileContent.Headers.ContentType = new MediaTypeHeaderValue(fileInfo.File.ContentType);
+                fileContent.Headers.TryAddWithoutValidation("Content-Type", fileInfo.File.ContentType);
             }
 
             form.Add(fileContent, fileInfo.Name, fileInfo.File.FileName);

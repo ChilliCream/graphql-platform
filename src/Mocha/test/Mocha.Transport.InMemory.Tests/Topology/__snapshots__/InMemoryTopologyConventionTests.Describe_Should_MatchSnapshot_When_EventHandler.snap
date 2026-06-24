@@ -1,31 +1,36 @@
-﻿{
+{
   "Schema": "memory",
   "TransportType": "InMemoryMessagingTransport",
   "Entities": [
     {
       "Kind": "queue",
       "Name": "test-app.order-created",
-      "Flow": "outbound"
+      "Flow": "outbound",
+      "Origin": "endpoint"
     },
     {
       "Kind": "topic",
       "Name": "mocha.test-helpers.order-created",
-      "Flow": "inbound"
+      "Flow": "inbound",
+      "Origin": "convention"
     },
     {
       "Kind": "topic",
       "Name": "order-created",
-      "Flow": "inbound"
+      "Flow": "inbound",
+      "Origin": "convention"
     }
   ],
   "Links": [
     {
       "Kind": "bind",
-      "Direction": "forward"
+      "Direction": "forward",
+      "Origin": "convention"
     },
     {
       "Kind": "bind",
-      "Direction": "forward"
+      "Direction": "forward",
+      "Origin": "convention"
     }
   ],
   "ReceiveEndpoints": [

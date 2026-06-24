@@ -202,7 +202,7 @@ public sealed class PostgresSagaStoreTests(PostgresFixture fixture) : IClassFixt
     {
         connectionString ??= await _fixture.CreateDatabaseAsync();
 
-        var options = new DbContextOptionsBuilder<TestDbContext>().UseNpgsql(connectionString).Options;
+        var options = new DbContextOptionsBuilder<TestDbContext>().UseTestNpgsql(connectionString).Options;
 
         var context = new TestDbContext(options);
         await context.Database.EnsureCreatedAsync();
