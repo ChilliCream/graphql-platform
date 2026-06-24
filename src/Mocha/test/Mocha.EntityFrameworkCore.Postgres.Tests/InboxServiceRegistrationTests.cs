@@ -1,4 +1,3 @@
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
@@ -112,7 +111,7 @@ public sealed class InboxServiceRegistrationTests
     {
         var services = new ServiceCollection();
         services.AddLogging();
-        services.AddDbContext<TestDbContext>(o => o.UseNpgsql(ConnectionString));
+        services.AddDbContext<TestDbContext>(o => o.UseTestNpgsql(ConnectionString));
 
         // Use a resilient signal to prevent ObjectDisposedException when
         // EF Core shares the internal service provider (and interceptors)
