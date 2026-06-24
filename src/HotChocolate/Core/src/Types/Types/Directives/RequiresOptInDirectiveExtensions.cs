@@ -111,6 +111,30 @@ public static class RequiresOptInDirectiveExtensions
     }
 
     /// <summary>
+    /// Adds an <c>@requiresOptIn</c> directive to a directive definition.
+    /// <code>
+    /// directive @example @requiresOptIn(feature: "your-feature") on FIELD
+    /// </code>
+    /// </summary>
+    /// <param name="descriptor">
+    /// The <paramref name="descriptor"/> on which this directive shall be annotated.
+    /// </param>
+    /// <param name="feature">
+    /// The name of the feature that requires opt in.
+    /// </param>
+    /// <returns>
+    /// Returns the <paramref name="descriptor"/> on which this directive
+    /// was applied for configuration chaining.
+    /// </returns>
+    public static IDirectiveTypeDescriptor RequiresOptIn(
+        this IDirectiveTypeDescriptor descriptor,
+        string feature)
+    {
+        ApplyRequiresOptIn(descriptor, feature);
+        return descriptor;
+    }
+
+    /// <summary>
     /// Adds an <c>@requiresOptIn</c> directive to an <see cref="EnumValue"/>.
     /// <code>
     /// enum Episode {
@@ -157,6 +181,10 @@ public static class RequiresOptInDirectiveExtensions
                 break;
 
             case IDirectiveArgumentDescriptor desc:
+                desc.Directive(new RequiresOptIn(feature));
+                break;
+
+            case IDirectiveTypeDescriptor desc:
                 desc.Directive(new RequiresOptIn(feature));
                 break;
 

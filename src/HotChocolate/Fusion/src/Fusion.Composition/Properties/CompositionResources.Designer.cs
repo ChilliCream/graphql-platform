@@ -1151,15 +1151,6 @@ namespace HotChocolate.Fusion.Properties {
         }
 
         /// <summary>
-        ///   Looks up a localized string similar to A @key directive on type &apos;{0}&apos; in schema &apos;{1}&apos; references field &apos;{2}&apos;, which must not have arguments..
-        /// </summary>
-        internal static string LogEntryHelper_KeyFieldsHasArguments {
-            get {
-                return ResourceManager.GetString("LogEntryHelper_KeyFieldsHasArguments", resourceCulture);
-            }
-        }
-
-        /// <summary>
         ///   Looks up a localized string similar to A @key directive on type &apos;{0}&apos; in schema &apos;{1}&apos; references field &apos;{2}&apos;, which must not be a list, interface, or union type..
         /// </summary>
         internal static string LogEntryHelper_KeyFieldsSelectInvalidType {
@@ -1168,6 +1159,15 @@ namespace HotChocolate.Fusion.Properties {
             }
         }
 
+        /// <summary>
+        ///   Looks up a localized string similar to A @key directive on type &apos;{0}&apos; in schema &apos;{1}&apos; specifies invalid arguments. {2}.
+        /// </summary>
+        internal static string LogEntryHelper_KeyInvalidArguments {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_KeyInvalidArguments", resourceCulture);
+            }
+        }
+        
         /// <summary>
         ///   Looks up a localized string similar to A @key directive on type &apos;{0}&apos; in schema &apos;{1}&apos; specifies an invalid field selection against the composed schema..
         /// </summary>

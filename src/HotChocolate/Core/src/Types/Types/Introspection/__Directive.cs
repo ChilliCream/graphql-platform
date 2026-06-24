@@ -84,6 +84,10 @@ internal sealed class __Directive : ObjectType<DirectiveType>
             def.Fields.Single(f => f.Name == Names.Args)
                 .Arguments
                 .Add(new(Names.IncludeOptIn, type: nonNullStringListType));
+
+            def.Fields.Add(new(Names.RequiresOptIn,
+                type: nonNullStringListType,
+                pureResolver: Resolvers.RequiresOptIn));
         }
 
         return def;
@@ -112,25 +116,12 @@ internal sealed class __Directive : ObjectType<DirectiveType>
             return DirectiveLocationUtils.AsEnumerable(locations);
         }
 
-        public static object ArgumentsWithOptIn(IResolverContext context)
+        public static IEnumerable<IInputValueDefinition> ArgumentsWithOptIn(IResolverContext context)
         {
             var includeOptIn = context.ArgumentValue<string[]?>(Names.IncludeOptIn) ?? [];
 
-            // If an argument has no @requiresOptIn directives, it is always included.
-            // If an argument requires opting into features "f1" and "f2", then `includeOptIn`
-            // must list at least one of the features in order for the argument to be included.
             return Arguments(context).Where(
-                a =>
-                {
-                    var requiredFeatures = a
-                        .Directives
-                        .Where(d => d.Definition is RequiresOptInDirectiveType)
-                        .Select(d => d.ToValue<RequiresOptIn>().Feature)
-                        .ToList();
-
-                    return requiredFeatures.Count == 0
-                        || requiredFeatures.Any(feature => includeOptIn.Contains(feature));
-                });
+                a => OptInIntrospectionHelper.IsIncluded(a.Directives, includeOptIn));
         }
 
         public static IEnumerable<IInputValueDefinition> Arguments(IResolverContext context)
@@ -140,6 +131,12 @@ internal sealed class __Directive : ObjectType<DirectiveType>
                 ? directive.Arguments
                 : directive.Arguments.Where(t => !t.IsDeprecated);
         }
+
+        public static object RequiresOptIn(IResolverContext context) =>
+            ((IDirectivesProvider)context.Parent<DirectiveType>())
+                .Directives
+                .Where(t => t.Definition is RequiresOptInDirectiveType)
+                .Select(d => d.ToValue<RequiresOptIn>().Feature);
 
         public static object OnOperation(IResolverContext context)
         {
@@ -171,6 +168,7 @@ internal sealed class __Directive : ObjectType<DirectiveType>
         public const string DeprecationReason = "deprecationReason";
         public const string IncludeDeprecated = "includeDeprecated";
         public const string IncludeOptIn = "includeOptIn";
+        public const string RequiresOptIn = "requiresOptIn";
         public const string Locations = "locations";
         public const string Args = "args";
         public const string OnOperation = "onOperation";
