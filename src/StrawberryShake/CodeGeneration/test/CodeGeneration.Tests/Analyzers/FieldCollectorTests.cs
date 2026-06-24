@@ -1,7 +1,4 @@
-using Microsoft.Extensions.DependencyInjection;
-using HotChocolate.Execution;
 using HotChocolate.Language;
-using HotChocolate.StarWars;
 using HotChocolate.Types;
 using Path = HotChocolate.Path;
 
@@ -13,12 +10,7 @@ public class FieldCollectorTests
     public async Task Collect_First_Level_No_Fragments()
     {
         // arrange
-        var schema =
-            await new ServiceCollection()
-                .AddStarWarsRepositories()
-                .AddGraphQL()
-                .AddStarWars()
-                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
+        var schema = await TestSchemaHelper.CreateStarWarsSchemaAsync();
 
         var document =
             Utf8GraphQLParser.Parse(@"
@@ -35,11 +27,13 @@ public class FieldCollectorTests
             .Definitions
             .OfType<OperationDefinitionNode>()
             .First();
+        var queryType = schema.QueryType
+            ?? throw new InvalidOperationException("The Star Wars schema must define a query type.");
 
         // act
         var selectionSetVariants =
             new FieldCollector(schema, document)
-                .CollectFields(operation.SelectionSet, schema.QueryType, Path.Root);
+                .CollectFields(operation.SelectionSet, queryType, Path.Root);
 
         // assert
         Assert.Collection(
@@ -51,14 +45,10 @@ public class FieldCollectorTests
     public async Task Collect_Second_Level_Fragments()
     {
         // arrange
-        var schema =
-            await new ServiceCollection()
-                .AddStarWarsRepositories()
-                .AddGraphQL()
-                .AddStarWars()
-                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
+        var schema = await TestSchemaHelper.CreateStarWarsSchemaAsync();
 
-        var character = schema.Types.GetType<InterfaceType>("Character");
+        var character = schema.Types.GetType<IInterfaceTypeDefinition>("Character")
+            ?? throw new InvalidOperationException("The Star Wars schema must define Character.");
 
         var document =
             Utf8GraphQLParser.Parse(@"
@@ -95,11 +85,11 @@ public class FieldCollectorTests
             selectionSetVariants.ReturnType.Fields,
             field => Assert.Equal("name", field.ResponseName));
         Assert.Equal("Character", selectionSetVariants.ReturnType.Type.Name);
-        Assert.Equal("Human", selectionSetVariants.Variants[0].Type.Name);
-        Assert.Equal("Droid", selectionSetVariants.Variants[1].Type.Name);
+        Assert.Equal("Droid", selectionSetVariants.Variants[0].Type.Name);
+        Assert.Equal("Human", selectionSetVariants.Variants[1].Type.Name);
 
         Assert.Collection(
-            selectionSetVariants.Variants[1].FragmentNodes,
+            selectionSetVariants.Variants[0].FragmentNodes,
             fragmentNode => Assert.Equal(FragmentKind.Inline, fragmentNode.Fragment.Kind));
     }
 }

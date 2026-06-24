@@ -139,7 +139,7 @@ public class DataTypeGenerator : CSharpSyntaxGenerator<DataTypeDescriptor>
     {
         foreach (var property in descriptor.Properties)
         {
-            if (property.Name.EqualsOrdinal(WellKnownNames.TypeName))
+            if (property.Name.Equals(WellKnownNames.TypeName, StringComparison.Ordinal))
             {
                 continue;
             }

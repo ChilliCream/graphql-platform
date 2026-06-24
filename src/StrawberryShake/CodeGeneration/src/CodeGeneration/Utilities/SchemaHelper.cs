@@ -3,6 +3,8 @@ using HotChocolate;
 using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Types;
+using HotChocolate.Types.Mutable;
+using HotChocolate.Types.Mutable.Serialization;
 using HotChocolate.Utilities;
 using StrawberryShake.CodeGeneration.Analyzers;
 using StrawberryShake.CodeGeneration.Analyzers.Types;
@@ -12,25 +14,30 @@ namespace StrawberryShake.CodeGeneration.Utilities;
 
 public static class SchemaHelper
 {
-    public static Schema Load(
+    public static MutableSchemaDefinition Load(
         IReadOnlyCollection<GraphQLFile> schemaFiles,
         bool strictValidation = true,
         bool noStore = false)
     {
         ArgumentNullException.ThrowIfNull(schemaFiles);
+        _ = strictValidation;
 
         var typeInfos = new TypeInfos();
         var lookup = new Dictionary<ISyntaxNode, string>();
         IndexSyntaxNodes(schemaFiles, lookup);
 
-        var builder = SchemaBuilder.New();
-        builder.Features.Set(typeInfos);
-
-        builder.ModifyOptions(o => o.StrictValidation = strictValidation);
+        var schema = new MutableSchemaDefinition();
+        schema.Features.Set(typeInfos);
 
         var leafTypes = new Dictionary<string, LeafTypeInfo>(StringComparer.Ordinal);
         var globalEntityPatterns = new List<SelectionSetNode>();
         var typeEntityPatterns = new Dictionary<string, SelectionSetNode>(StringComparer.Ordinal);
+        var definitions = new List<IDefinitionNode>();
+        var parserOptions = new SchemaParserOptions
+        {
+            IgnoreExistingTypes = true,
+            IgnoreExistingDirectives = true
+        };
 
         foreach (var document in schemaFiles.Select(f => f.Document))
         {
@@ -59,55 +66,39 @@ public static class SchemaHelper
             }
             else
             {
-                foreach (var scalar in document.Definitions.OfType<ScalarTypeDefinitionNode>())
-                {
-                    if (!BuiltInScalarNames.IsBuiltInScalar(scalar.Name.Value))
-                    {
-                        builder.AddType(new AnyType(
-                            scalar.Name.Value,
-                            scalar.Description?.Value));
-                    }
-                    else if (scalar.Name.Value == ScalarNames.Any)
-                    {
-                        builder.AddType(new AnyType());
-                    }
-                    else if (scalar.Name.Value == "JSON")
-                    {
-                        builder.AddType(new AnyType());
-                    }
-                }
-
-                builder.AddDocument(document);
+                definitions.AddRange(document.Definitions.Select(NormalizeDefinition));
             }
         }
 
-        AddDefaultScalarInfos(builder, leafTypes);
+        AddDefaultScalarInfos(leafTypes);
+        AddImplicitScalarDefinitions(schema, leafTypes.Keys, definitions);
+        AddBuiltInDirectiveDefinitions(schema);
+        SchemaParser.Parse(schema, IntrospectionSchema, parserOptions);
 
-        return builder
-            .ModifyOptions(
-                o =>
-                {
-                    o.EnableDefer = true;
-                    o.EnableStream = true;
-                    o.EnableTag = false;
-                    o.EnableFlagEnums = false;
-                    o.EnableSemanticIntrospection = false;
-                })
-            .SetSchema(d => d.Extend().OnBeforeCreate(
-                c => c.Features.Set(typeInfos)))
-            .TryAddTypeInterceptor(
-                new LeafTypeInterceptor(leafTypes))
-            .TryAddTypeInterceptor(
-                new EntityTypeInterceptor(globalEntityPatterns, typeEntityPatterns))
-            .Use(_ => _ => throw new NotSupportedException())
-            .Create();
+        if (definitions.Count > 0)
+        {
+            SchemaParser.Parse(schema, new DocumentNode(definitions), parserOptions);
+        }
+
+        AddIntrospectionFields(schema);
+        AnnotateSchema(schema, leafTypes, globalEntityPatterns, typeEntityPatterns);
+
+        return schema;
     }
 
     public static RuntimeTypeInfo GetOrCreateTypeInfo(
-        this Schema schema,
+        this MutableSchemaDefinition schema,
         string typeName,
         bool valueType = false)
         => schema.Features.GetOrSet<TypeInfos>().GetOrAdd(typeName, valueType);
+
+    private static IDefinitionNode NormalizeDefinition(IDefinitionNode definition)
+        => definition is SchemaDefinitionNode schemaDefinition
+            ? schemaDefinition.WithOperationTypes(
+                schemaDefinition.OperationTypes
+                    .Where(t => !t.Type.Name.Value.Equals("null", StringComparison.Ordinal))
+                    .ToArray())
+            : definition;
 
     private static void CollectScalarInfos(
         IEnumerable<ScalarTypeExtensionNode> scalarTypeExtensions,
@@ -169,7 +160,7 @@ public static class SchemaHelper
         string directiveName)
     {
         var directive = hasDirectives.Directives.FirstOrDefault(
-            t => directiveName.EqualsOrdinal(t.Name.Value));
+            t => directiveName.Equals(t.Name.Value, StringComparison.Ordinal));
 
         if (directive is { Arguments.Count: > 0 })
         {
@@ -217,9 +208,7 @@ public static class SchemaHelper
         }
     }
 
-    private static void AddDefaultScalarInfos(
-        ISchemaBuilder schemaBuilder,
-        Dictionary<string, LeafTypeInfo> leafTypes)
+    private static void AddDefaultScalarInfos(Dictionary<string, LeafTypeInfo> leafTypes)
     {
         TryAddLeafType(
             leafTypes,
@@ -373,17 +362,175 @@ public static class SchemaHelper
             typeName: "Uuid",
             runtimeType: TypeNames.Guid,
             serializationType: TypeNames.String);
+    }
 
-        // register aliases
-        schemaBuilder.AddType(new DurationType());
-        schemaBuilder.AddType(new DurationType("TimeSpan"));
-        schemaBuilder.AddType(new UriType());
-        schemaBuilder.AddType(new UriType("Uri"));
-        schemaBuilder.AddType(new UrlType());
-        schemaBuilder.AddType(new UrlType("Url"));
-        schemaBuilder.AddType(new UuidType());
-        schemaBuilder.AddType(new UuidType("Guid"));
-        schemaBuilder.AddType(new UuidType("Uuid"));
+    private static void AddImplicitScalarDefinitions(
+        MutableSchemaDefinition schema,
+        IEnumerable<string> scalarNames,
+        IEnumerable<IDefinitionNode> definitions)
+    {
+        var declaredTypeNames =
+            definitions
+                .OfType<ITypeDefinitionNode>()
+                .Select(t => t.Name.Value)
+                .ToHashSet(StringComparer.Ordinal);
+
+        foreach (var scalarName in scalarNames)
+        {
+            if (!declaredTypeNames.Contains(scalarName))
+            {
+                TryAddScalarDefinition(schema, scalarName);
+            }
+        }
+    }
+
+    private static void AddBuiltInDirectiveDefinitions(MutableSchemaDefinition schema)
+    {
+        TryAddDirectiveDefinition(schema, BuiltIns.Include.Create(schema));
+        TryAddDirectiveDefinition(schema, BuiltIns.Skip.Create(schema));
+        TryAddDirectiveDefinition(schema, BuiltIns.Deprecated.Create(schema));
+        TryAddDirectiveDefinition(schema, BuiltIns.SpecifiedBy.Create(schema));
+        TryAddDirectiveDefinition(schema, BuiltIns.OneOf.Create());
+    }
+
+    private static void AddIntrospectionFields(MutableSchemaDefinition schema)
+    {
+        if (schema.QueryType is null)
+        {
+            return;
+        }
+
+        var queryType = schema.QueryType;
+        var schemaType = schema.Types.GetType<MutableObjectTypeDefinition>("__Schema");
+        var typeType = schema.Types.GetType<MutableObjectTypeDefinition>("__Type");
+        var stringType = schema.Types.GetType<MutableScalarTypeDefinition>(ScalarNames.String);
+
+        if (!queryType.Fields.ContainsName("__schema"))
+        {
+            queryType.Fields.Add(
+                new MutableOutputFieldDefinition("__schema", new NonNullType(schemaType))
+                {
+                    Description = "Access the current type schema of this server.",
+                    DeclaringMember = queryType,
+                    IsIntrospectionField = true,
+                    Flags = FieldFlags.Introspection | FieldFlags.SchemaIntrospectionField
+                });
+        }
+
+        if (!queryType.Fields.ContainsName("__type"))
+        {
+            var field = new MutableOutputFieldDefinition("__type", typeType)
+            {
+                Description = "Request the type information of a single type.",
+                DeclaringMember = queryType,
+                IsIntrospectionField = true,
+                Flags = FieldFlags.Introspection | FieldFlags.TypeIntrospectionField
+            };
+
+            field.Arguments.Add(
+                new MutableInputFieldDefinition("name", new NonNullType(stringType))
+                {
+                    DeclaringMember = field
+                });
+
+            queryType.Fields.Add(field);
+        }
+    }
+
+    private static void TryAddDirectiveDefinition(
+        MutableSchemaDefinition schema,
+        MutableDirectiveDefinition directiveDefinition)
+    {
+        if (!schema.DirectiveDefinitions.ContainsName(directiveDefinition.Name))
+        {
+            schema.DirectiveDefinitions.Add(directiveDefinition);
+        }
+    }
+
+    private static void TryAddScalarDefinition(MutableSchemaDefinition schema, string typeName)
+    {
+        if (!schema.Types.TryGetType(typeName, out _))
+        {
+            schema.Types.Add(new MutableScalarTypeDefinition(typeName) { IsSpecScalar = true });
+        }
+    }
+
+    private static void AnnotateSchema(
+        MutableSchemaDefinition schema,
+        Dictionary<string, LeafTypeInfo> leafTypes,
+        IReadOnlyList<SelectionSetNode> globalEntityPatterns,
+        IReadOnlyDictionary<string, SelectionSetNode> typeEntityPatterns)
+    {
+        foreach (var type in schema.Types)
+        {
+            if (!type.IsLeafType())
+            {
+                continue;
+            }
+
+            if (leafTypes.TryGetValue(type.Name, out var leafType))
+            {
+                type.Features.Set(type is IScalarTypeDefinition
+                    ? new LeafTypeFeature(leafType.RuntimeType, leafType.SerializationType)
+                    : new LeafTypeFeature(null, leafType.SerializationType));
+            }
+            else
+            {
+                type.Features.Set(type is IScalarTypeDefinition
+                    ? new LeafTypeFeature(TypeNames.String, TypeNames.String)
+                    : new LeafTypeFeature(null, TypeNames.String));
+            }
+        }
+
+        var complexTypes = new List<IComplexTypeDefinition>();
+
+        foreach (var type in schema.Types)
+        {
+            if (type is not IComplexTypeDefinition complexType)
+            {
+                continue;
+            }
+
+            if (typeEntityPatterns.TryGetValue(complexType.Name, out var pattern))
+            {
+                complexType.Features.Set(new EntityFeature(pattern));
+            }
+            else
+            {
+                complexTypes.Add(complexType);
+            }
+        }
+
+        if (globalEntityPatterns.Count == 0)
+        {
+            return;
+        }
+
+        foreach (var complexType in complexTypes)
+        {
+            if (globalEntityPatterns.FirstOrDefault(
+                pattern => DoesPatternMatch(complexType, pattern)) is { } matchedPattern)
+            {
+                complexType.Features.Set(new EntityFeature(matchedPattern));
+            }
+        }
+    }
+
+    private static bool DoesPatternMatch(IComplexTypeDefinition outputType, SelectionSetNode pattern)
+    {
+        foreach (var selection in pattern.Selections.OfType<FieldNode>())
+        {
+            if (selection.SelectionSet is null
+                && outputType.Fields.TryGetField(selection.Name.Value, out var field)
+                && field.Type.NamedType().IsLeafType())
+            {
+                continue;
+            }
+
+            return false;
+        }
+
+        return true;
     }
 
     private static bool TryGetKeys(
@@ -439,4 +586,120 @@ public static class SchemaHelper
             typeInfos.GetOrAdd(runtimeType);
         }
     }
+
+    private const string IntrospectionSchema =
+        """
+        "A GraphQL Schema defines the capabilities of a GraphQL server. It exposes all available types and directives on the server, as well as the entry points for query, mutation, and subscription operations."
+        type __Schema {
+          description: String
+          "A list of all types supported by this server."
+          types: [__Type!]!
+          "The type that query operations will be rooted at."
+          queryType: __Type!
+          "If this server supports mutation, the type that mutation operations will be rooted at."
+          mutationType: __Type
+          "If this server support subscription, the type that subscription operations will be rooted at."
+          subscriptionType: __Type
+          "A list of all directives supported by this server."
+          directives: [__Directive!]!
+        }
+
+        "The fundamental unit of any GraphQL Schema is the type. There are many kinds of types in GraphQL as represented by the `__TypeKind` enum.\n\nDepending on the kind of a type, certain fields describe information about that type. Scalar types provide no information beyond a name and description, while Enum types provide their values. Object and Interface types provide the fields they describe. Abstract types, Union and Interface, provide the Object types possible at runtime. List and NonNull types compose other types."
+        type __Type {
+          kind: __TypeKind!
+          name: String
+          description: String
+          specifiedByURL: String
+          fields(includeDeprecated: Boolean! = false): [__Field!]
+          interfaces: [__Type!]
+          possibleTypes: [__Type!]
+          enumValues(includeDeprecated: Boolean! = false): [__EnumValue!]
+          inputFields(includeDeprecated: Boolean! = false): [__InputValue!]
+          ofType: __Type
+          isOneOf: Boolean
+        }
+
+        "An enum describing what kind of type a given `__Type` is."
+        enum __TypeKind {
+          "Indicates this type is a scalar."
+          SCALAR
+          "Indicates this type is an object. `fields` and `interfaces` are valid fields."
+          OBJECT
+          "Indicates this type is an interface. `fields` and `possibleTypes` are valid fields."
+          INTERFACE
+          "Indicates this type is a union. `possibleTypes` is a valid field."
+          UNION
+          "Indicates this type is an enum. `enumValues` is a valid field."
+          ENUM
+          "Indicates this type is an input object. `inputFields` is a valid field."
+          INPUT_OBJECT
+          "Indicates this type is a list. `ofType` is a valid field."
+          LIST
+          "Indicates this type is a non-null. `ofType` is a valid field."
+          NON_NULL
+        }
+
+        "Object and Interface types are described by a list of Fields, each of which has a name, potentially a list of arguments, and a return type."
+        type __Field {
+          name: String!
+          description: String
+          args(includeDeprecated: Boolean! = false): [__InputValue!]!
+          type: __Type!
+          isDeprecated: Boolean!
+          deprecationReason: String
+        }
+
+        "Arguments provided to Fields or Directives and the input fields of an InputObject are represented as Input Values which describe their type and optionally a default value."
+        type __InputValue {
+          name: String!
+          description: String
+          type: __Type!
+          "A GraphQL-formatted string representing the default value for this input value."
+          defaultValue: String
+          isDeprecated: Boolean!
+          deprecationReason: String
+        }
+
+        "One possible value for a given Enum. Enum values are unique values, not a placeholder for a string or numeric value. However an Enum value is returned in a JSON response as a string."
+        type __EnumValue {
+          name: String!
+          description: String
+          isDeprecated: Boolean!
+          deprecationReason: String
+        }
+
+        "A Directive provides a way to describe alternate runtime execution and type validation behavior in a GraphQL document.\n\nIn some cases, you need to provide options to alter GraphQL's execution behavior in ways field arguments will not suffice, such as conditionally including or skipping a field. Directives provide this by describing additional information to the executor."
+        type __Directive {
+          name: String!
+          description: String
+          isRepeatable: Boolean!
+          locations: [__DirectiveLocation!]!
+          args(includeDeprecated: Boolean! = false): [__InputValue!]!
+          onOperation: Boolean!
+          onFragment: Boolean!
+          onField: Boolean!
+        }
+
+        enum __DirectiveLocation {
+          QUERY
+          MUTATION
+          SUBSCRIPTION
+          FIELD
+          FRAGMENT_DEFINITION
+          FRAGMENT_SPREAD
+          INLINE_FRAGMENT
+          VARIABLE_DEFINITION
+          SCHEMA
+          SCALAR
+          OBJECT
+          FIELD_DEFINITION
+          ARGUMENT_DEFINITION
+          INTERFACE
+          UNION
+          ENUM
+          ENUM_VALUE
+          INPUT_OBJECT
+          INPUT_FIELD_DEFINITION
+        }
+        """;
 }

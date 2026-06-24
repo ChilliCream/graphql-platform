@@ -5,13 +5,13 @@ using HotChocolate.Types;
 
 namespace StrawberryShake.CodeGeneration.Analyzers;
 
-internal sealed class EnumTypeUsageAnalyzer(Schema schema) : SyntaxWalker<object?>
+internal sealed class EnumTypeUsageAnalyzer(ISchemaDefinition schema) : SyntaxWalker<object?>
 {
-    private readonly HashSet<EnumType> _enumTypes = [];
+    private readonly HashSet<IEnumTypeDefinition> _enumTypes = [];
     private readonly HashSet<IInputType> _visitedTypes = [];
     private readonly Stack<IType> _typeContext = new();
 
-    public ISet<EnumType> EnumTypes => _enumTypes;
+    public ISet<IEnumTypeDefinition> EnumTypes => _enumTypes;
 
     public void Analyze(DocumentNode document)
     {
@@ -126,11 +126,11 @@ internal sealed class EnumTypeUsageAnalyzer(Schema schema) : SyntaxWalker<object
                         type = innerType;
                         continue;
 
-                    case InputObjectType inputObjectType:
+                    case IInputObjectTypeDefinition inputObjectType:
                         VisitInputObjectType(inputObjectType);
                         break;
 
-                    case EnumType enumType:
+                    case IEnumTypeDefinition enumType:
                         _enumTypes.Add(enumType);
                         break;
                 }
@@ -140,7 +140,7 @@ internal sealed class EnumTypeUsageAnalyzer(Schema schema) : SyntaxWalker<object
         }
     }
 
-    private void VisitInputObjectType(InputObjectType type)
+    private void VisitInputObjectType(IInputObjectTypeDefinition type)
     {
         foreach (var field in type.Fields)
         {

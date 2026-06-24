@@ -13,7 +13,7 @@ public interface IDocumentAnalyzerContext
 
     DocumentNode Document { get; }
 
-    ObjectType OperationType { get; }
+    IObjectTypeDefinition OperationType { get; }
 
     OperationDefinitionNode OperationDefinition { get; }
 

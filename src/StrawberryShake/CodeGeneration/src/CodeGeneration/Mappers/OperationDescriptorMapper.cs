@@ -18,10 +18,11 @@ public static class OperationDescriptorMapper
             var arguments = modelOperation.Arguments.Select(
                     arg =>
                     {
-                        var typeName = arg.Type.TypeName();
+                        var typeName = arg.Type.NamedType().Name;
 
                         var namedTypeDescriptor =
-                            context.Types.Single(type => type.Name.EqualsOrdinal(typeName));
+                            context.Types.Single(
+                                type => type.Name.Equals(typeName, StringComparison.Ordinal));
 
                         hasUpload = hasUpload || namedTypeDescriptor.HasUpload();
 

@@ -11,7 +11,7 @@ public class OperationModel
 
     public OperationModel(
         string name,
-        ObjectType type,
+        IObjectTypeDefinition type,
         DocumentNode document,
         OperationType operationType,
         IReadOnlyList<ArgumentModel> arguments,
@@ -43,7 +43,7 @@ public class OperationModel
 
     public string Name { get; }
 
-    public ObjectType Type { get; }
+    public IObjectTypeDefinition Type { get; }
 
     public DocumentNode Document { get; }
 

@@ -65,7 +65,7 @@ internal sealed class TypeNameQueryRewriter : SyntaxRewriter<TypeNameQueryRewrit
             && context.Nodes.Peek() is FieldNode
             && !current.Selections
                 .OfType<FieldNode>()
-                .Any(t => t.Alias is null && t.Name.Value.EqualsOrdinal(TypeName)))
+                .Any(t => t.Alias is null && t.Name.Value.Equals(TypeName, StringComparison.Ordinal)))
         {
             var selections = current.Selections.ToList();
             selections.Insert(0, s_typeNameField);

@@ -1,9 +1,5 @@
-using Microsoft.Extensions.DependencyInjection;
-using HotChocolate.Execution;
 using HotChocolate.Language;
-using HotChocolate.StarWars;
 using HotChocolate.Utilities;
-using StrawberryShake.CodeGeneration.Utilities;
 
 namespace StrawberryShake.CodeGeneration.Analyzers;
 
@@ -13,20 +9,8 @@ public class DocumentAnalyzerTests
     public async Task One_Document_One_Op_One_Field_No_Fragments()
     {
         // arrange
-        var schema =
-            await new ServiceCollection()
-                .AddStarWarsRepositories()
-                .AddGraphQL()
-                .AddStarWars()
-                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
-
-        schema =
-            SchemaHelper.Load(
-                [
-                    new(schema.ToSyntaxNode()),
-                    new(Utf8GraphQLParser.Parse(
-                        @"extend scalar String @runtimeType(name: ""Abc"")"))
-                ]);
+        var schema = await TestSchemaHelper.CreateStarWarsSchemaAsync(
+            @"extend scalar String @runtimeType(name: ""Abc"")");
 
         var document =
             Utf8GraphQLParser.Parse(@"
@@ -75,22 +59,9 @@ public class DocumentAnalyzerTests
     public async Task One_Fragment_One_Deferred_Fragment()
     {
         // arrange
-        var schema =
-            await new ServiceCollection()
-                .AddStarWarsRepositories()
-                .AddGraphQL()
-                .AddStarWars()
-                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
-
-        schema =
-            SchemaHelper.Load(
-                [
-                    new(schema.ToSyntaxNode()),
-                    new(Utf8GraphQLParser.Parse(
-                        @"extend scalar String @runtimeType(name: ""Abc"")")),
-                    new(Utf8GraphQLParser.Parse(
-                        "extend schema @key(fields: \"id\")"))
-                ]);
+        var schema = await TestSchemaHelper.CreateStarWarsSchemaAsync(
+            @"extend scalar String @runtimeType(name: ""Abc"")",
+            "extend schema @key(fields: \"id\")");
 
         var document =
             Utf8GraphQLParser.Parse(

@@ -22,7 +22,7 @@ public class SchemaHelperTests
                 ]);
 
         // assert
-        var scalarType = schema.Types.GetType<ScalarType>("X509Certificate");
+        var scalarType = schema.Types.GetType<IScalarTypeDefinition>("X509Certificate");
 
         Assert.Equal(
             "global::System.String",
