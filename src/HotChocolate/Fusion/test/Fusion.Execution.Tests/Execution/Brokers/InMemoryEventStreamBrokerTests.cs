@@ -1,6 +1,5 @@
 using System.Buffers;
 using System.Text;
-using HotChocolate.Fusion.Subscriptions;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -25,6 +24,7 @@ public sealed class InMemoryEventStreamBrokerTests
             .SubscribeAsync(
                 EmptySubscriptionFieldContext.Instance,
                 ["book.created"],
+                cursor: null,
                 cts.Token)
             .GetAsyncEnumerator(cts.Token);
 
@@ -62,6 +62,7 @@ public sealed class InMemoryEventStreamBrokerTests
             .SubscribeAsync(
                 EmptySubscriptionFieldContext.Instance,
                 ["book.created", "book.updated"],
+                cursor: null,
                 cts.Token)
             .GetAsyncEnumerator(cts.Token);
 

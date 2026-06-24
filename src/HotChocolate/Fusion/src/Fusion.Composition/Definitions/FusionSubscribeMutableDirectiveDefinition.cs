@@ -21,6 +21,8 @@ internal sealed class FusionSubscribeMutableDirectiveDefinition : MutableDirecti
         Arguments.Add(new MutableInputFieldDefinition(Topics, new ListType(new NonNullType(stringType))));
         Arguments.Add(new MutableInputFieldDefinition(Broker, stringType));
         Arguments.Add(new MutableInputFieldDefinition(Message, new NonNullType(fieldSelectionSetType)));
+        Arguments.Add(new MutableInputFieldDefinition(CursorField, stringType));
+        Arguments.Add(new MutableInputFieldDefinition(CursorArgument, stringType));
 
         Locations = DirectiveLocation.FieldDefinition;
     }

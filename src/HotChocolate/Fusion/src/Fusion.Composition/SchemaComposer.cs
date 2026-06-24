@@ -148,6 +148,7 @@ public sealed class SchemaComposer
         new ExternalProvidesCollisionRule(),
         new ExternalRequireCollisionRule(),
         new ExternalUnusedRule(),
+        new EventCursorMarkerRule(),
         new InvalidShareableUsageRule(),
         new IsInvalidFieldTypeRule(),
         new IsInvalidSyntaxRule(),

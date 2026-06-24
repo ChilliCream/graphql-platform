@@ -1,3 +1,4 @@
+using System.Threading.Channels;
 using NATS.Client.Core;
 
 namespace HotChocolate.Fusion.Subscriptions.NATS;
@@ -7,6 +8,8 @@ namespace HotChocolate.Fusion.Subscriptions.NATS;
 /// </summary>
 public sealed class NatsEventStreamOptions
 {
+    private Func<Channel<EventMessage>> _createMessageChannel = CreateDefaultMessageChannel;
+
     /// <summary>
     /// Gets or sets the NATS server URL.
     /// </summary>
@@ -31,6 +34,39 @@ public sealed class NatsEventStreamOptions
     /// When this property is <c>null</c>, the broker uses core NATS pub/sub.
     /// </remarks>
     public NatsJetStreamOptions? JetStream { get; set; }
+
+    /// <summary>
+    /// Gets or sets the factory used to create the per-subscription message channel.
+    /// </summary>
+    /// <remarks>
+    /// The channel is only used for core NATS subscriptions with multiple subjects. The default
+    /// channel buffers five messages and waits when full. Use
+    /// <see cref="CreateBoundedMessageChannel"/> for bounded drop modes so dropped
+    /// <see cref="EventMessage"/> instances dispose their pooled buffers.
+    /// </remarks>
+    public Func<Channel<EventMessage>> CreateMessageChannel
+    {
+        get => _createMessageChannel;
+        set => _createMessageChannel = value ?? throw new ArgumentNullException(nameof(value));
+    }
+
+    public static Channel<EventMessage> CreateDefaultMessageChannel()
+        => CreateBoundedMessageChannel(capacity: 5, BoundedChannelFullMode.Wait);
+
+    /// <summary>
+    /// Creates a bounded message channel that disposes dropped messages.
+    /// </summary>
+    public static Channel<EventMessage> CreateBoundedMessageChannel(
+        int capacity,
+        BoundedChannelFullMode fullMode)
+        => Channel.CreateBounded<EventMessage>(
+            new BoundedChannelOptions(capacity)
+            {
+                SingleReader = true,
+                SingleWriter = false,
+                FullMode = fullMode
+            },
+            static message => message.Dispose());
 }
 
 /// <summary>

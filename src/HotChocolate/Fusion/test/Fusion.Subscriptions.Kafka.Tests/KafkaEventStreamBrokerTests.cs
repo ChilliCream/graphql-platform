@@ -29,7 +29,7 @@ public sealed class KafkaEventStreamBrokerTests : IClassFixture<KafkaFixture>
         await using var broker = factory.Create(null);
 
         await using var enumerator = broker
-            .SubscribeAsync(EmptySubscriptionFieldContext.Instance, [topic], cts.Token)
+            .SubscribeAsync(EmptySubscriptionFieldContext.Instance, [topic], cursor: null, cts.Token)
             .GetAsyncEnumerator(cts.Token);
         var next = enumerator.MoveNextAsync().AsTask();
         await WaitForAssignmentsAsync(assignments.Reader, count: 1, cts.Token);
@@ -41,7 +41,9 @@ public sealed class KafkaEventStreamBrokerTests : IClassFixture<KafkaFixture>
         Assert.True(await next);
         using var message = enumerator.Current;
         Assert.Equal("""{"id":1}""", Encoding.UTF8.GetString(message.Body));
-        Assert.Equal($"{topic}:0:0", Encoding.UTF8.GetString(message.Cursor));
+        Assert.Equal(
+            Convert.ToBase64String(Encoding.UTF8.GetBytes($"{topic}:0:0")),
+            Encoding.UTF8.GetString(message.Cursor));
     }
 
     [Fact]
@@ -60,7 +62,7 @@ public sealed class KafkaEventStreamBrokerTests : IClassFixture<KafkaFixture>
         await using var broker = factory.Create(null);
 
         await using var enumerator = broker
-            .SubscribeAsync(EmptySubscriptionFieldContext.Instance, [topicA, topicB], cts.Token)
+            .SubscribeAsync(EmptySubscriptionFieldContext.Instance, [topicA, topicB], cursor: null, cts.Token)
             .GetAsyncEnumerator(cts.Token);
         var first = enumerator.MoveNextAsync().AsTask();
         await WaitForAssignmentsAsync(assignments.Reader, count: 1, cts.Token);
@@ -88,6 +90,30 @@ public sealed class KafkaEventStreamBrokerTests : IClassFixture<KafkaFixture>
     }
 
     [Fact]
+    public async Task Subscribe_Should_ThrowFixedCursorError_When_CursorIsInvalid()
+    {
+        // arrange
+        var topic = CreateTopic();
+        var assignments = Channel.CreateUnbounded<IReadOnlyList<TopicPartition>>();
+        var services = CreateServices(assignments);
+        await using var provider = services.BuildServiceProvider();
+        var factory = provider.GetRequiredService<IEventStreamBrokerFactory>();
+        await using var broker = factory.Create(null);
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+
+        // act
+        var exception = Assert.Throws<InvalidEventMessageCursorException>(() =>
+            broker.SubscribeAsync(
+                EmptySubscriptionFieldContext.Instance,
+                [topic],
+                cursor: "not-base64",
+                cts.Token));
+
+        // assert
+        Assert.Equal(InvalidEventMessageCursorException.DefaultMessage, exception.Message);
+    }
+
+    [Fact]
     public async Task Subscribe_Should_DeliverEveryEventToEverySubscriber_When_TwoSubscribersShareTopic()
     {
         // arrange
@@ -104,10 +130,10 @@ public sealed class KafkaEventStreamBrokerTests : IClassFixture<KafkaFixture>
         await using var brokerB = factory.Create(null);
 
         await using var enumeratorA = brokerA
-            .SubscribeAsync(EmptySubscriptionFieldContext.Instance, [topic], cts.Token)
+            .SubscribeAsync(EmptySubscriptionFieldContext.Instance, [topic], cursor: null, cts.Token)
             .GetAsyncEnumerator(cts.Token);
         await using var enumeratorB = brokerB
-            .SubscribeAsync(EmptySubscriptionFieldContext.Instance, [topic], cts.Token)
+            .SubscribeAsync(EmptySubscriptionFieldContext.Instance, [topic], cursor: null, cts.Token)
             .GetAsyncEnumerator(cts.Token);
         var eventsA = ReadBodiesAsync(enumeratorA, count, cts.Token);
         var eventsB = ReadBodiesAsync(enumeratorB, count, cts.Token);
@@ -139,7 +165,7 @@ public sealed class KafkaEventStreamBrokerTests : IClassFixture<KafkaFixture>
         await using (var broker = factory.Create(null))
         {
             await using var enumerator = broker
-                .SubscribeAsync(EmptySubscriptionFieldContext.Instance, [topic], cts.Token)
+                .SubscribeAsync(EmptySubscriptionFieldContext.Instance, [topic], cursor: null, cts.Token)
                 .GetAsyncEnumerator(cts.Token);
             var pending = enumerator.MoveNextAsync().AsTask();
             await WaitForAssignmentsAsync(assignments.Reader, count: 1, cts.Token);
@@ -151,7 +177,7 @@ public sealed class KafkaEventStreamBrokerTests : IClassFixture<KafkaFixture>
         await using (var broker = factory.Create(null))
         {
             await using var enumerator = broker
-                .SubscribeAsync(EmptySubscriptionFieldContext.Instance, [topic], cts.Token)
+                .SubscribeAsync(EmptySubscriptionFieldContext.Instance, [topic], cursor: null, cts.Token)
                 .GetAsyncEnumerator(cts.Token);
             var next = enumerator.MoveNextAsync().AsTask();
             await WaitForAssignmentsAsync(assignments.Reader, count: 1, cts.Token);

@@ -1,3 +1,4 @@
+using System.Buffers;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Reactive.Disposables;
@@ -100,9 +101,15 @@ public sealed class EventStreamExecutionNode : ExecutionNode
 
             return SubscriptionResult.Success(subscriptionId, stream);
         }
+        catch (InvalidEventMessageCursorException ex)
+        {
+            context.AddErrors(ErrorBuilder.FromException(ex).Build(), _resultSelectionSet, Path.Root);
+            context.DiagnosticEvents.ExecutionNodeError(context, this, ex);
+            return SubscriptionResult.Failed(subscriptionId, ex);
+        }
         catch (Exception ex)
         {
-            context.AddErrors(ErrorBuilder.FromException(ex).Build(), _resultSelectionSet);
+            context.AddErrors(ErrorBuilder.FromException(ex).Build(), _resultSelectionSet, Path.Root);
             context.DiagnosticEvents.ExecutionNodeError(context, this, ex);
             return SubscriptionResult.Failed(subscriptionId, ex);
         }
@@ -122,12 +129,70 @@ public sealed class EventStreamExecutionNode : ExecutionNode
 
         public IAsyncEnumerator<EventMessageResult> GetAsyncEnumerator(
             CancellationToken cancellationToken = default)
-            => new EventStreamSubscriptionEnumerator(
-                _context,
-                _node,
-                _subscriptionId,
-                _diagnosticEvents,
-                cancellationToken);
+        {
+            try
+            {
+                return new EventStreamSubscriptionEnumerator(
+                    _context,
+                    _node,
+                    _subscriptionId,
+                    _diagnosticEvents,
+                    cancellationToken);
+            }
+            catch (InvalidEventMessageCursorException exception)
+            {
+                _context.AddErrors(
+                    ErrorBuilder.FromException(exception).SetMessage(exception.Message).Build(),
+                    _node._resultSelectionSet,
+                    Path.Root);
+                _diagnosticEvents.ExecutionNodeError(_context, _node, exception);
+                return new FailedEventStreamSubscriptionEnumerator(_node.Id, exception);
+            }
+            catch (Exception exception)
+            {
+                _context.AddErrors(
+                    ErrorBuilder.FromException(exception).Build(),
+                    _node._resultSelectionSet,
+                    Path.Root);
+                _diagnosticEvents.ExecutionNodeError(_context, _node, exception);
+
+                return new FailedEventStreamSubscriptionEnumerator(_node.Id, exception);
+            }
+        }
+    }
+
+    private sealed class FailedEventStreamSubscriptionEnumerator(int nodeId, Exception exception)
+        : IAsyncEnumerator<EventMessageResult>
+    {
+        private bool _yielded;
+
+        public EventMessageResult Current { get; private set; } = null!;
+
+        public ValueTask<bool> MoveNextAsync()
+        {
+            if (_yielded)
+            {
+                Current = null!;
+                return new ValueTask<bool>(false);
+            }
+
+            _yielded = true;
+            var timestamp = Stopwatch.GetTimestamp();
+            Current = new EventMessageResult(
+                nodeId,
+                Activity.Current,
+                ExecutionStatus.Failed,
+                Disposable.Empty,
+                timestamp,
+                Stopwatch.GetTimestamp(),
+                exception,
+                VariableValueSets: [],
+                DependentsToExecute: []);
+
+            return new ValueTask<bool>(true);
+        }
+
+        public ValueTask DisposeAsync() => default;
     }
 
     private sealed class EventStreamSubscriptionEnumerator : IAsyncEnumerator<EventMessageResult>
@@ -159,13 +224,14 @@ public sealed class EventStreamExecutionNode : ExecutionNode
             _subscriptionScope = diagnosticEvents.ExecuteSubscription(context.RequestContext, _subscriptionId);
 
             var source = node._eventStreamSource;
+            var subscriptionContext = new SubscriptionFieldContext(context, node.FieldName);
+            var cursor = ResolveCursor(source.CursorArgument, subscriptionContext);
             var broker = context.RequestContext.RequestServices
                 .GetRequiredService<IEventStreamBrokerFactory>()
                 .Create(source.Broker);
-            var subscriptionContext = new SubscriptionFieldContext(context, node.FieldName);
             var topics = ResolveTopics(source.Topics, context, node);
             var enumerator = broker
-                .SubscribeAsync(subscriptionContext, topics, _disposeCts.Token)
+                .SubscribeAsync(subscriptionContext, topics, cursor, _disposeCts.Token)
                 .GetAsyncEnumerator(_disposeCts.Token);
 
             _subscription = new BrokerSubscription(source, broker, enumerator);
@@ -223,7 +289,11 @@ public sealed class EventStreamExecutionNode : ExecutionNode
                 using (message)
                 {
                     var arena = subscription.ArenaSource.GetNextArena();
-                    var document = DecodeMessage(arena, message, _node.FieldName);
+                    var document = DecodeMessage(
+                        arena,
+                        message,
+                        _node.FieldName,
+                        _node._eventStreamSource.CursorField);
                     sourceResult = new SourceSchemaResult(CompactPath.Root, document);
                     _resultBuffer[0] = sourceResult;
 
@@ -260,14 +330,16 @@ public sealed class EventStreamExecutionNode : ExecutionNode
 
                 scope ??= Disposable.Empty;
 
-                var error = ErrorBuilder.FromException(exception).Build();
                 _context.DiagnosticEvents.SubscriptionEventError(
                     _context,
                     _node,
                     subscription.Source.SchemaName,
                     _subscriptionId,
                     exception);
-                _context.AddErrors(error, _node._resultSelectionSet);
+                _context.AddErrors(
+                    ErrorBuilder.FromException(exception).Build(),
+                    _node._resultSelectionSet,
+                    Path.Root);
 
                 return new EventMessageResult(
                     _node.Id,
@@ -449,19 +521,37 @@ public sealed class EventStreamExecutionNode : ExecutionNode
                 _ => value.ToString(indented: false)
             };
 
+        private static string? ResolveCursor(
+            string? cursorArgument,
+            SubscriptionFieldContext subscriptionContext)
+        {
+            if (string.IsNullOrEmpty(cursorArgument)
+                || !subscriptionContext.Arguments.TryGetValue(cursorArgument, out var value)
+                || value is NullValueNode)
+            {
+                return null;
+            }
+
+            Debug.Assert(
+                value is StringValueNode,
+                "The event stream cursor argument is guaranteed to be a string by GraphQL validation.");
+            return ((StringValueNode)value).Value;
+        }
+
         private static SourceResultDocument DecodeMessage(
             IMemoryArena arena,
             EventMessage message,
-            string fieldName)
+            string fieldName,
+            string? cursorField)
         {
             using var buffer = new ArenaBufferWriter(arena);
             var writer = new JsonWriter(buffer, s_eventMessageWriterOptions);
 
             writer.WriteStartObject();
-            writer.WritePropertyName("data");
+            writer.WritePropertyName("data"u8);
             writer.WriteStartObject();
             writer.WritePropertyName(fieldName);
-            writer.WriteRawValue(message.Body);
+            WriteEventPayload(writer, message, cursorField);
             writer.WriteEndObject();
             writer.WriteEndObject();
 
@@ -470,6 +560,100 @@ public sealed class EventStreamExecutionNode : ExecutionNode
                 buffer.Segments,
                 buffer.UsedChunks,
                 buffer.LastLength);
+        }
+
+        private static void WriteEventPayload(
+            JsonWriter writer,
+            EventMessage message,
+            string? cursorField)
+        {
+            if (string.IsNullOrEmpty(cursorField))
+            {
+                writer.WriteRawValue(message.Body);
+                return;
+            }
+
+            var reader = new Utf8JsonReader(message.Body, isFinalBlock: true, state: default);
+            using var document = JsonDocument.ParseValue(ref reader);
+
+            if (document.RootElement.ValueKind is not JsonValueKind.Object)
+            {
+                throw new InvalidOperationException(
+                    "The event stream message body must be a JSON object when a cursor field is configured.");
+            }
+
+            writer.WriteStartObject();
+
+            foreach (var property in document.RootElement.EnumerateObject())
+            {
+                if (property.NameEquals(cursorField))
+                {
+                    continue;
+                }
+
+                writer.WritePropertyName(property.Name);
+                WriteRawJsonValue(writer, property.Value);
+            }
+
+            writer.WritePropertyName(cursorField);
+
+            if (message.Cursor.IsEmpty)
+            {
+                writer.WriteNullValue();
+            }
+            else
+            {
+                WriteCursorValue(writer, message.Cursor);
+            }
+
+            writer.WriteEndObject();
+        }
+
+        private static void WriteCursorValue(JsonWriter writer, ReadOnlySpan<byte> cursor)
+        {
+            var byteCount = cursor.Length + 2;
+            byte[]? rented = null;
+            var buffer = byteCount <= 256
+                ? stackalloc byte[byteCount]
+                : rented = ArrayPool<byte>.Shared.Rent(byteCount);
+
+            try
+            {
+                buffer[0] = (byte)'"';
+                cursor.CopyTo(buffer[1..]);
+                buffer[byteCount - 1] = (byte)'"';
+                writer.WriteRawValue(buffer[..byteCount]);
+            }
+            finally
+            {
+                if (rented is not null)
+                {
+                    ArrayPool<byte>.Shared.Return(rented);
+                }
+            }
+        }
+
+        private static void WriteRawJsonValue(JsonWriter writer, JsonElement element)
+        {
+            var rawText = element.GetRawText();
+            var byteCount = Encoding.UTF8.GetByteCount(rawText);
+            byte[]? rented = null;
+            var buffer = byteCount <= 256
+                ? stackalloc byte[byteCount]
+                : rented = ArrayPool<byte>.Shared.Rent(byteCount);
+
+            try
+            {
+                var written = Encoding.UTF8.GetBytes(rawText, buffer);
+                writer.WriteRawValue(buffer[..written]);
+            }
+            finally
+            {
+                if (rented is not null)
+                {
+                    ArrayPool<byte>.Shared.Return(rented);
+                }
+            }
         }
     }
 

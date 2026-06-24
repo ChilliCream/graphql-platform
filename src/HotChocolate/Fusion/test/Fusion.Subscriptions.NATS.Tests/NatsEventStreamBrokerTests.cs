@@ -1,4 +1,5 @@
 using System.Text;
+using System.Threading.Channels;
 using DotNet.Testcontainers.Builders;
 using DotNet.Testcontainers.Containers;
 using HotChocolate.Language;
@@ -26,14 +27,19 @@ public sealed class NatsEventStreamBrokerTests : IClassFixture<NatsResource>
         var subject = CreateSubject();
         var services = new ServiceCollection();
         services.AddNatsEventStreamBroker(configure: o =>
-            o.Url = _natsResource.NatsConnectionString);
+        {
+            o.Url = _natsResource.NatsConnectionString;
+            o.CreateMessageChannel =
+                () => throw new InvalidOperationException(
+                    "A channel should not be created for one subject.");
+        });
         await using var provider = services.BuildServiceProvider();
         var factory = provider.GetRequiredService<IEventStreamBrokerFactory>();
         await using var broker = factory.Create(null);
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
 
         await using var enumerator = broker
-            .SubscribeAsync(EmptySubscriptionFieldContext.Instance, [subject], cts.Token)
+            .SubscribeAsync(EmptySubscriptionFieldContext.Instance, [subject], cursor: null, cts.Token)
             .GetAsyncEnumerator(cts.Token);
         var next = enumerator.MoveNextAsync().AsTask();
         await Task.Delay(250, cts.Token);
@@ -56,16 +62,26 @@ public sealed class NatsEventStreamBrokerTests : IClassFixture<NatsResource>
         // arrange
         var subjectA = CreateSubject();
         var subjectB = CreateSubject();
+        var channelCreated = false;
         var services = new ServiceCollection();
         services.AddNatsEventStreamBroker(configure: o =>
-            o.Url = _natsResource.NatsConnectionString);
+        {
+            o.Url = _natsResource.NatsConnectionString;
+            o.CreateMessageChannel = () =>
+            {
+                channelCreated = true;
+                return NatsEventStreamOptions.CreateBoundedMessageChannel(
+                    capacity: 1,
+                    BoundedChannelFullMode.Wait);
+            };
+        });
         await using var provider = services.BuildServiceProvider();
         var factory = provider.GetRequiredService<IEventStreamBrokerFactory>();
         await using var broker = factory.Create(null);
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
 
         await using var enumerator = broker
-            .SubscribeAsync(EmptySubscriptionFieldContext.Instance, [subjectA, subjectB], cts.Token)
+            .SubscribeAsync(EmptySubscriptionFieldContext.Instance, [subjectA, subjectB], cursor: null, cts.Token)
             .GetAsyncEnumerator(cts.Token);
         var first = enumerator.MoveNextAsync().AsTask();
         await Task.Delay(250, cts.Token);
@@ -92,6 +108,66 @@ public sealed class NatsEventStreamBrokerTests : IClassFixture<NatsResource>
         }
 
         Assert.Equal(["""{"id":1}""", """{"id":2}"""], bodies.Order());
+        Assert.True(channelCreated);
+    }
+
+    [Fact]
+    public async Task Subscribe_Should_Throw_When_CoreNatsReceivesCursor()
+    {
+        // arrange
+        var subject = CreateSubject();
+        var services = new ServiceCollection();
+        services.AddNatsEventStreamBroker(configure: o =>
+            o.Url = _natsResource.NatsConnectionString);
+        await using var provider = services.BuildServiceProvider();
+        var factory = provider.GetRequiredService<IEventStreamBrokerFactory>();
+        await using var broker = factory.Create(null);
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+
+        // act
+        var exception = Assert.Throws<InvalidEventMessageCursorException>(() =>
+            broker.SubscribeAsync(
+                EmptySubscriptionFieldContext.Instance,
+                [subject],
+                cursor: "MQ==",
+                cts.Token));
+
+        // assert
+        Assert.Equal(InvalidEventMessageCursorException.DefaultMessage, exception.Message);
+    }
+
+    [Fact]
+    public async Task Subscribe_Should_ThrowFixedCursorError_When_JetStreamCursorIsInvalid()
+    {
+        // arrange
+        var subject = CreateSubject();
+        var stream = "S" + Guid.NewGuid().ToString("N");
+        var durable = "D" + Guid.NewGuid().ToString("N");
+        var services = new ServiceCollection();
+        services.AddNatsEventStreamBroker(configure: o =>
+        {
+            o.Url = _natsResource.NatsConnectionString;
+            o.JetStream = new NatsJetStreamOptions
+            {
+                Stream = stream,
+                DurableConsumer = durable
+            };
+        });
+        await using var provider = services.BuildServiceProvider();
+        var factory = provider.GetRequiredService<IEventStreamBrokerFactory>();
+        await using var broker = factory.Create(null);
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+
+        // act
+        var exception = Assert.Throws<InvalidEventMessageCursorException>(() =>
+            broker.SubscribeAsync(
+                EmptySubscriptionFieldContext.Instance,
+                [subject],
+                cursor: "not-base64",
+                cts.Token));
+
+        // assert
+        Assert.Equal(InvalidEventMessageCursorException.DefaultMessage, exception.Message);
     }
 
     [Fact]
@@ -122,7 +198,11 @@ public sealed class NatsEventStreamBrokerTests : IClassFixture<NatsResource>
         await using (var broker = factory.Create(null))
         {
             await using var enumerator = broker
-                .SubscribeAsync(EmptySubscriptionFieldContext.Instance, [subjectA, subjectB], cts.Token)
+                .SubscribeAsync(
+                    EmptySubscriptionFieldContext.Instance,
+                    [subjectA, subjectB],
+                    cursor: null,
+                    cts.Token)
                 .GetAsyncEnumerator(cts.Token);
             await PublishJetStreamAsync(fixture.Url, subjectA, """{"id":1}"""u8.ToArray(), cts.Token);
             await PublishJetStreamAsync(fixture.Url, subjectB, """{"id":2}"""u8.ToArray(), cts.Token);
@@ -130,12 +210,12 @@ public sealed class NatsEventStreamBrokerTests : IClassFixture<NatsResource>
             Assert.True(await enumerator.MoveNextAsync());
             using var first = enumerator.Current;
             Assert.True(first.Cursor.Length > 0);
-            var firstCursor = ulong.Parse(Encoding.UTF8.GetString(first.Cursor));
+            var firstCursor = DecodeJetStreamCursor(first.Cursor);
 
             Assert.True(await enumerator.MoveNextAsync());
             using var second = enumerator.Current;
             Assert.True(second.Cursor.Length > 0);
-            var secondCursor = ulong.Parse(Encoding.UTF8.GetString(second.Cursor));
+            var secondCursor = DecodeJetStreamCursor(second.Cursor);
 
             Assert.True(secondCursor > firstCursor);
         }
@@ -143,7 +223,11 @@ public sealed class NatsEventStreamBrokerTests : IClassFixture<NatsResource>
         await using (var broker = factory.Create(null))
         {
             await using var enumerator = broker
-                .SubscribeAsync(EmptySubscriptionFieldContext.Instance, [subjectA, subjectB], cts.Token)
+                .SubscribeAsync(
+                    EmptySubscriptionFieldContext.Instance,
+                    [subjectA, subjectB],
+                    cursor: null,
+                    cts.Token)
                 .GetAsyncEnumerator(cts.Token);
             var next = enumerator.MoveNextAsync().AsTask();
             await PublishJetStreamAsync(fixture.Url, subjectB, """{"id":3}"""u8.ToArray(), cts.Token);
@@ -169,7 +253,7 @@ public sealed class NatsEventStreamBrokerTests : IClassFixture<NatsResource>
         await using (var broker = factory.Create(null))
         {
             await using var enumerator = broker
-                .SubscribeAsync(EmptySubscriptionFieldContext.Instance, [subject], cts.Token)
+                .SubscribeAsync(EmptySubscriptionFieldContext.Instance, [subject], cursor: null, cts.Token)
                 .GetAsyncEnumerator(cts.Token);
             _ = enumerator.MoveNextAsync().AsTask();
             await Task.Delay(250, cts.Token);
@@ -180,7 +264,7 @@ public sealed class NatsEventStreamBrokerTests : IClassFixture<NatsResource>
         await using (var broker = factory.Create(null))
         {
             await using var enumerator = broker
-                .SubscribeAsync(EmptySubscriptionFieldContext.Instance, [subject], cts.Token)
+                .SubscribeAsync(EmptySubscriptionFieldContext.Instance, [subject], cursor: null, cts.Token)
                 .GetAsyncEnumerator(cts.Token);
             var next = enumerator.MoveNextAsync().AsTask();
             await Task.Delay(250, cts.Token);
@@ -225,6 +309,12 @@ public sealed class NatsEventStreamBrokerTests : IClassFixture<NatsResource>
 
     private static string CreateSubject()
         => "fusion." + Guid.NewGuid().ToString("N");
+
+    private static ulong DecodeJetStreamCursor(ReadOnlySpan<byte> cursor)
+    {
+        var decoded = Convert.FromBase64String(Encoding.UTF8.GetString(cursor));
+        return ulong.Parse(Encoding.UTF8.GetString(decoded));
+    }
 
     private sealed class EmptySubscriptionFieldContext : ISubscriptionFieldContext
     {

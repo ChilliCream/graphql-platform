@@ -566,6 +566,12 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
         var broker = eventStreamElement.TryGetProperty("broker", out var brokerElement)
             ? brokerElement.GetString()
             : null;
+        var cursorField = eventStreamElement.TryGetProperty("cursorField", out var cursorFieldElement)
+            ? cursorFieldElement.GetString()
+            : null;
+        var cursorArgument = eventStreamElement.TryGetProperty("cursorArgument", out var cursorArgumentElement)
+            ? cursorArgumentElement.GetString()
+            : null;
 
         return new EventStreamSource
         {
@@ -573,7 +579,9 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
             FieldName = fieldName,
             Topics = topics,
             Broker = broker,
-            Message = FieldDirectiveParser.ParseSelectionSet(message)
+            Message = FieldDirectiveParser.ParseSelectionSet(message),
+            CursorField = cursorField,
+            CursorArgument = cursorArgument
         };
     }
 

@@ -5,6 +5,8 @@ internal static class WellKnownArgumentNames
     public const string Apply = "apply";
     public const string AssumedSize = "assumedSize";
     public const string Broker = "broker";
+    public const string CursorArgument = "cursorArgument";
+    public const string CursorField = "cursorField";
     public const string DestructiveHint = "destructiveHint";
     public const string Field = "field";
     public const string Fields = "fields";

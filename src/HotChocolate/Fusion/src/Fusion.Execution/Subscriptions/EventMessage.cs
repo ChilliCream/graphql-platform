@@ -41,10 +41,11 @@ public sealed class EventMessage : IDisposable
     }
 
     /// <summary>
-    /// Gets the transport cursor associated with this event.
+    /// Gets the base64-encoded transport cursor associated with this event.
     /// </summary>
     /// <remarks>
-    /// This span is empty when the broker does not provide a cursor for the event.
+    /// This span is empty when the broker does not provide a cursor for the event. Brokers own
+    /// translating their native cursor representation into the opaque base64 token exposed here.
     /// </remarks>
     public ReadOnlySpan<byte> Cursor
     {

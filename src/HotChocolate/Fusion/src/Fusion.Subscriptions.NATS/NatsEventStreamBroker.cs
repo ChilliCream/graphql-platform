@@ -18,6 +18,7 @@ internal sealed class NatsEventStreamBroker(NatsEventStreamOptions options)
     public IAsyncEnumerable<EventMessage> SubscribeAsync(
         ISubscriptionFieldContext context,
         string[] topics,
+        string? cursor,
         CancellationToken cancellationToken)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
@@ -30,9 +31,21 @@ internal sealed class NatsEventStreamBroker(NatsEventStreamOptions options)
             ArgumentException.ThrowIfNullOrEmpty(topics[i]);
         }
 
-        return options.JetStream is null
-            ? SubscribeCoreAsync(topics, cancellationToken)
-            : SubscribeJetStreamAsync(topics, options.JetStream, cancellationToken);
+        if (options.JetStream is null)
+        {
+            if (!string.IsNullOrEmpty(cursor))
+            {
+                throw new InvalidEventMessageCursorException();
+            }
+
+            return SubscribeCoreAsync(topics, cancellationToken);
+        }
+
+        var startSequence = string.IsNullOrEmpty(cursor)
+            ? default(ulong?)
+            : ParseJetStreamSequence(cursor);
+
+        return SubscribeJetStreamAsync(topics, options.JetStream, startSequence, cancellationToken);
     }
 
     public async ValueTask DisposeAsync()
@@ -64,17 +77,67 @@ internal sealed class NatsEventStreamBroker(NatsEventStreamOptions options)
         await _connection.DisposeAsync().ConfigureAwait(false);
     }
 
-    private async IAsyncEnumerable<EventMessage> SubscribeCoreAsync(
+    private IAsyncEnumerable<EventMessage> SubscribeCoreAsync(
         string[] topics,
+        CancellationToken cancellationToken)
+        => topics.Length == 1
+            ? SubscribeCoreSingleTopicAsync(topics[0], cancellationToken)
+            : SubscribeCoreMultipleTopicsAsync(topics, cancellationToken);
+
+    private async IAsyncEnumerable<EventMessage> SubscribeCoreSingleTopicAsync(
+        string topic,
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         var session = CreateSession(cancellationToken);
-        var channel = Channel.CreateUnbounded<EventMessage>(
-            new UnboundedChannelOptions
+        INatsSub<byte[]>? subscription = null;
+
+        try
+        {
+            subscription = await _connection
+                .SubscribeCoreAsync<byte[]>(
+                    topic,
+                    queueGroup: null,
+                    serializer: null,
+                    opts: null,
+                    cancellationToken: session.Token)
+                .ConfigureAwait(false);
+
+            await _connection.PingAsync(session.Token).ConfigureAwait(false);
+
+            await foreach (var message in subscription.Msgs
+                .ReadAllAsync(session.Token)
+                .ConfigureAwait(false))
             {
-                SingleReader = true,
-                SingleWriter = false
-            });
+                message.EnsureSuccess();
+                yield return CreateMessage(message.Data ?? []);
+            }
+        }
+        finally
+        {
+            session.Cancel();
+
+            if (subscription is not null)
+            {
+                try
+                {
+                    await subscription.UnsubscribeAsync().ConfigureAwait(false);
+                }
+                catch (Exception) when (session.Token.IsCancellationRequested)
+                {
+                }
+            }
+
+            RemoveSession(session);
+            session.Dispose();
+        }
+    }
+
+    private async IAsyncEnumerable<EventMessage> SubscribeCoreMultipleTopicsAsync(
+        string[] topics,
+        [EnumeratorCancellation] CancellationToken cancellationToken)
+    {
+        var channel = options.CreateMessageChannel();
+        var session = CreateSession(cancellationToken);
         var subscriptions = new INatsSub<byte[]>[topics.Length];
         var pumpTasks = new Task[topics.Length];
 
@@ -132,6 +195,7 @@ internal sealed class NatsEventStreamBroker(NatsEventStreamOptions options)
     private async IAsyncEnumerable<EventMessage> SubscribeJetStreamAsync(
         string[] topics,
         NatsJetStreamOptions jetStreamOptions,
+        ulong? startSequence,
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         var session = CreateSession(cancellationToken);
@@ -139,10 +203,7 @@ internal sealed class NatsEventStreamBroker(NatsEventStreamOptions options)
         var consumer = await js
             .CreateOrUpdateConsumerAsync(
                 jetStreamOptions.Stream,
-                new ConsumerConfig(jetStreamOptions.DurableConsumer)
-                {
-                    FilterSubjects = topics
-                },
+                CreateConsumerConfig(topics, jetStreamOptions, startSequence),
                 session.Token)
             .ConfigureAwait(false);
 
@@ -217,6 +278,67 @@ internal sealed class NatsEventStreamBroker(NatsEventStreamOptions options)
         return new NatsConnection(opts);
     }
 
+    private static ConsumerConfig CreateConsumerConfig(
+        string[] topics,
+        NatsJetStreamOptions jetStreamOptions,
+        ulong? startSequence)
+    {
+        if (startSequence is null)
+        {
+            return new ConsumerConfig(jetStreamOptions.DurableConsumer)
+            {
+                FilterSubjects = topics
+            };
+        }
+
+        return new ConsumerConfig
+        {
+            AckPolicy = ConsumerConfigAckPolicy.Explicit,
+            DeliverPolicy = ConsumerConfigDeliverPolicy.ByStartSequence,
+            OptStartSeq = startSequence.GetValueOrDefault() + 1,
+            FilterSubjects = topics
+        };
+    }
+
+    private static ulong ParseJetStreamSequence(string cursor)
+    {
+        var maxDecodedLength = GetMaxBase64DecodedLength(cursor.Length);
+        byte[]? rented = null;
+        var buffer = maxDecodedLength <= 256
+            ? stackalloc byte[maxDecodedLength]
+            : rented = ArrayPool<byte>.Shared.Rent(maxDecodedLength);
+
+        try
+        {
+            if (!Convert.TryFromBase64Chars(cursor.AsSpan(), buffer, out var bytesWritten))
+            {
+                throw new InvalidEventMessageCursorException();
+            }
+
+            var decodedCursor = buffer[..bytesWritten];
+
+            if (!Utf8Parser.TryParse(decodedCursor, out ulong sequence, out var bytesConsumed)
+                || bytesConsumed != decodedCursor.Length)
+            {
+                throw new InvalidEventMessageCursorException();
+            }
+
+            if (sequence == ulong.MaxValue)
+            {
+                throw new InvalidEventMessageCursorException();
+            }
+
+            return sequence;
+        }
+        finally
+        {
+            if (rented is not null)
+            {
+                ArrayPool<byte>.Shared.Return(rented);
+            }
+        }
+    }
+
     private static async Task PumpCoreMessagesAsync(
         INatsSub<byte[]> subscription,
         ChannelWriter<EventMessage> writer,
@@ -232,9 +354,13 @@ internal sealed class NatsEventStreamBroker(NatsEventStreamOptions options)
 
                 var eventMessage = CreateMessage(message.Data ?? []);
 
-                if (!writer.TryWrite(eventMessage))
+                if (!await WriteMessageAsync(
+                    writer,
+                    eventMessage,
+                    cancellationToken)
+                    .ConfigureAwait(false))
                 {
-                    eventMessage.Dispose();
+                    break;
                 }
             }
         }
@@ -246,6 +372,37 @@ internal sealed class NatsEventStreamBroker(NatsEventStreamOptions options)
         }
         catch (Exception) when (cancellationToken.IsCancellationRequested)
         {
+        }
+        catch (Exception ex)
+        {
+            writer.TryComplete(ex);
+        }
+    }
+
+    private static async ValueTask<bool> WriteMessageAsync(
+        ChannelWriter<EventMessage> writer,
+        EventMessage eventMessage,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            if (writer.TryWrite(eventMessage))
+            {
+                return true;
+            }
+
+            await writer.WriteAsync(eventMessage, cancellationToken).ConfigureAwait(false);
+            return true;
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            eventMessage.Dispose();
+            return false;
+        }
+        catch (ChannelClosedException)
+        {
+            eventMessage.Dispose();
+            return false;
         }
     }
 
@@ -281,25 +438,43 @@ internal sealed class NatsEventStreamBroker(NatsEventStreamOptions options)
 
     private static EventMessage CreateMessage(ReadOnlySpan<byte> body, ulong sequence)
     {
-        var maxCursorLength = sequence == 0 ? 1 : 20;
-        var owner = MemoryPool<byte>.Shared.Rent(body.Length + maxCursorLength);
-        body.CopyTo(owner.Memory.Span);
+        Span<byte> rawCursor = stackalloc byte[20];
 
         if (!Utf8Formatter.TryFormat(
             sequence,
-            owner.Memory.Span[body.Length..],
-            out var cursorLength))
+            rawCursor,
+            out var rawCursorLength))
+        {
+            throw new InvalidOperationException(
+                "The NATS JetStream sequence cursor could not be formatted.");
+        }
+
+        var cursorLength = GetBase64EncodedLength(rawCursorLength);
+        var owner = MemoryPool<byte>.Shared.Rent(body.Length + cursorLength);
+        body.CopyTo(owner.Memory.Span);
+
+        if (Base64.EncodeToUtf8(
+                rawCursor[..rawCursorLength],
+                owner.Memory.Span[body.Length..],
+                out _,
+                out var bytesWritten) is not OperationStatus.Done)
         {
             owner.Dispose();
             throw new InvalidOperationException(
-                "The NATS JetStream sequence cursor could not be formatted.");
+                "The NATS JetStream sequence cursor could not be encoded.");
         }
 
         return new EventMessage(
             owner,
             0..body.Length,
-            body.Length..(body.Length + cursorLength));
+            body.Length..(body.Length + bytesWritten));
     }
+
+    private static int GetBase64EncodedLength(int length)
+        => (length + 2) / 3 * 4;
+
+    private static int GetMaxBase64DecodedLength(int length)
+        => (length + 3) / 4 * 3;
 
     private static void DisposeQueuedMessages(Channel<EventMessage> channel)
     {
@@ -309,14 +484,10 @@ internal sealed class NatsEventStreamBroker(NatsEventStreamOptions options)
         }
     }
 
-    private sealed class SubscriptionSession : IDisposable
+    private sealed class SubscriptionSession(CancellationToken cancellationToken) : IDisposable
     {
-        private readonly CancellationTokenSource _cts;
-
-        public SubscriptionSession(CancellationToken cancellationToken)
-        {
-            _cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-        }
+        private readonly CancellationTokenSource _cts =
+            CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
 
         public CancellationToken Token => _cts.Token;
 

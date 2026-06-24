@@ -14,6 +14,8 @@ internal static class SubscribeDirectiveParser
         var topics = ImmutableArray<string>.Empty;
         string? broker = null;
         SelectionSetNode? message = null;
+        string? cursorField = null;
+        string? cursorArgument = null;
 
         foreach (var argument in directive.Arguments)
         {
@@ -36,6 +38,14 @@ internal static class SubscribeDirectiveParser
                         ((StringValueNode)argument.Value).Value);
                     break;
 
+                case "cursorField":
+                    cursorField = ((StringValueNode)argument.Value).Value;
+                    break;
+
+                case "cursorArgument":
+                    cursorArgument = ((StringValueNode)argument.Value).Value;
+                    break;
+
                 default:
                     throw new DirectiveParserException(
                         $"The argument `{argument.Name.Value}` is not supported on @subscribe.");
@@ -54,7 +64,7 @@ internal static class SubscribeDirectiveParser
                 "The `message` argument is required on the @subscribe directive.");
         }
 
-        return new SubscribeDirective(topics, broker, message)
+        return new SubscribeDirective(topics, broker, message, cursorField, cursorArgument)
         {
             SchemaKey = new SchemaKey(schemaKey)
         };

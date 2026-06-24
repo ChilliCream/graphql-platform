@@ -900,7 +900,9 @@ internal static class CompositeSchemaBuilder
                         ? [fieldName]
                         : directive.Topics,
                     directive.Broker,
-                    directive.Message)
+                    directive.Message,
+                    directive.CursorField,
+                    directive.CursorArgument)
                 {
                     SchemaKey = directive.SchemaKey
                 };

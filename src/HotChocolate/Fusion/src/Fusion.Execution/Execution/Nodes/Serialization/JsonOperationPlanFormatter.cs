@@ -486,6 +486,18 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
         jsonWriter.WritePropertyName("message");
         jsonWriter.WriteStringValue(node.Message);
 
+        if (eventStreamSource.CursorField is { } cursorField)
+        {
+            jsonWriter.WritePropertyName("cursorField");
+            jsonWriter.WriteStringValue(cursorField);
+        }
+
+        if (eventStreamSource.CursorArgument is { } cursorArgument)
+        {
+            jsonWriter.WritePropertyName("cursorArgument");
+            jsonWriter.WriteStringValue(cursorArgument);
+        }
+
         jsonWriter.WriteEndObject();
 
         if (node.Dependencies.Length > 0 || node.ParentDependencies.Length > 0)

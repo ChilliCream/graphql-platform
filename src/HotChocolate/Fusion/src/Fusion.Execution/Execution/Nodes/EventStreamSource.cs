@@ -14,4 +14,8 @@ internal sealed class EventStreamSource
     internal string? Broker { get; init; }
 
     internal required SelectionSetNode Message { get; init; }
+
+    internal string? CursorField { get; init; }
+
+    internal string? CursorArgument { get; init; }
 }

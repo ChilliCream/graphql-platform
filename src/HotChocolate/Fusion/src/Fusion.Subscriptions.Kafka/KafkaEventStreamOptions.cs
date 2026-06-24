@@ -8,6 +8,8 @@ namespace HotChocolate.Fusion.Subscriptions.Kafka;
 /// </summary>
 public sealed class KafkaEventStreamOptions
 {
+    private Func<Channel<EventMessage>> _createMessageChannel = CreateDefaultMessageChannel;
+
     /// <summary>
     /// Gets or sets the Kafka bootstrap servers.
     /// </summary>
@@ -71,8 +73,11 @@ public sealed class KafkaEventStreamOptions
     /// <see cref="CreateBoundedMessageChannel"/> for bounded drop modes so dropped
     /// <see cref="EventMessage"/> instances dispose their pooled buffers.
     /// </remarks>
-    public Func<Channel<EventMessage>> CreateMessageChannel { get; set; } =
-        CreateDefaultMessageChannel;
+    public Func<Channel<EventMessage>> CreateMessageChannel
+    {
+        get => _createMessageChannel;
+        set => _createMessageChannel = value ?? throw new ArgumentNullException(nameof(value));
+    }
 
     /// <summary>
     /// Gets or sets the target number of records librdkafka keeps queued locally.

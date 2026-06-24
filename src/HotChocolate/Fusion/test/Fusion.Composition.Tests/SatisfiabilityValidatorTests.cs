@@ -357,6 +357,36 @@ public sealed class SatisfiabilityValidatorTests
     }
 
     [Fact]
+    public void Validate_Should_Succeed_When_CursorFieldProvidedByEventCursor()
+    {
+        // arrange
+        var (result, log) = ValidateSatisfiability(
+        [
+            """
+            # Schema Events
+            type Query {
+                version: String
+            }
+
+            type Subscription {
+                bookChanged: BookChangedEvent
+                    @subscribe(topics: ["book.changed"], message: "{ id title }")
+            }
+
+            type BookChangedEvent {
+                id: ID!
+                title: String!
+                cursor: String @eventCursor
+            }
+            """
+        ]);
+
+        // assert
+        Assert.True(result.IsSuccess);
+        Assert.True(log.IsEmpty);
+    }
+
+    [Fact]
     public void Validate_Should_Fail_When_SubscribeMessageOmitsNestedLookupKey()
     {
         // arrange

@@ -1,5 +1,6 @@
 using System.Buffers;
 using System.Buffers.Text;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Channels;
@@ -10,12 +11,16 @@ namespace HotChocolate.Fusion.Subscriptions.Kafka;
 internal sealed class KafkaEventStreamBroker(KafkaEventStreamOptions options)
     : IEventStreamBroker
 {
+    private static readonly Encoding s_strictUtf8 =
+        new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
+
     private readonly List<SubscriptionSession> _sessions = [];
     private bool _disposed;
 
     public IAsyncEnumerable<EventMessage> SubscribeAsync(
         ISubscriptionFieldContext context,
         string[] topics,
+        string? cursor,
         CancellationToken cancellationToken)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
@@ -28,7 +33,8 @@ internal sealed class KafkaEventStreamBroker(KafkaEventStreamOptions options)
             ArgumentException.ThrowIfNullOrEmpty(topics[i]);
         }
 
-        return SubscribeCoreAsync(topics, cancellationToken);
+        KafkaCursor? kafkaCursor = string.IsNullOrEmpty(cursor) ? null : ParseCursor(cursor, topics);
+        return SubscribeCoreAsync(topics, kafkaCursor, cancellationToken);
     }
 
     public async ValueTask DisposeAsync()
@@ -62,12 +68,15 @@ internal sealed class KafkaEventStreamBroker(KafkaEventStreamOptions options)
 
     private async IAsyncEnumerable<EventMessage> SubscribeCoreAsync(
         string[] topics,
+        KafkaCursor? cursor,
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
-        var session = CreateSession(cancellationToken);
         var channel = options.CreateMessageChannel();
+        var reader = channel.Reader;
+        var writer = channel.Writer;
         var consumerConfig = CreateConsumerConfig(options);
-        var pumpTask = StartPump(topics, consumerConfig, channel.Writer, session.Token);
+        var session = CreateSession(cancellationToken);
+        var pumpTask = StartPump(topics, cursor, consumerConfig, writer, session.Token);
         session.SetPumpTask(pumpTask);
 
         try
@@ -78,12 +87,12 @@ internal sealed class KafkaEventStreamBroker(KafkaEventStreamOptions options)
 
                 try
                 {
-                    if (!await channel.Reader.WaitToReadAsync(session.Token).ConfigureAwait(false))
+                    if (!await reader.WaitToReadAsync(session.Token).ConfigureAwait(false))
                     {
                         break;
                     }
 
-                    if (!channel.Reader.TryRead(out message))
+                    if (!reader.TryRead(out message))
                     {
                         continue;
                     }
@@ -200,12 +209,14 @@ internal sealed class KafkaEventStreamBroker(KafkaEventStreamOptions options)
 
     private Task StartPump(
         string[] topics,
+        KafkaCursor? cursor,
         ConsumerConfig consumerConfig,
         ChannelWriter<EventMessage> writer,
         CancellationToken cancellationToken)
     {
         var state = new PumpState(
             topics,
+            cursor,
             consumerConfig,
             writer,
             cancellationToken,
@@ -230,9 +241,20 @@ internal sealed class KafkaEventStreamBroker(KafkaEventStreamOptions options)
                     state.OnPartitionsAssigned?.Invoke(partitions))
                 .Build();
 
-            // A unique group id per Subscribe call gives every GraphQL subscriber its own fan-out
-            // stream instead of Kafka's competing-consumer load balancing.
-            consumer.Subscribe(state.Topics);
+            if (state.Cursor is { } cursor)
+            {
+                consumer.Assign(
+                    new TopicPartitionOffset(
+                        cursor.Topic,
+                        new Partition(cursor.Partition),
+                        new Offset(cursor.Offset + 1)));
+            }
+            else
+            {
+                // A unique group id per Subscribe call gives every GraphQL subscriber its own fan-out
+                // stream instead of Kafka's competing-consumer load balancing.
+                consumer.Subscribe(state.Topics);
+            }
 
             while (!state.CancellationToken.IsCancellationRequested)
             {
@@ -358,33 +380,246 @@ internal sealed class KafkaEventStreamBroker(KafkaEventStreamOptions options)
         // Kafka cursors are per partition, so the at-most-once path still emits the full
         // coordinate as informational cursor data.
         var topicLength = Encoding.UTF8.GetByteCount(topic);
-        var cursorMaxLength = topicLength + 1 + 11 + 1 + 20;
-        var owner = MemoryPool<byte>.Shared.Rent(body.Length + cursorMaxLength);
-        body.CopyTo(owner.Memory.Span);
-        var cursor = owner.Memory.Span[body.Length..];
-        var written = Encoding.UTF8.GetBytes(topic.AsSpan(), cursor);
-        cursor[written++] = (byte)':';
+        var rawCursorMaxLength = topicLength + 1 + 11 + 1 + 20;
 
-        if (!Utf8Formatter.TryFormat(partition, cursor[written..], out var partitionLength))
+        byte[]? rented = null;
+        var rawCursor = rawCursorMaxLength <= 256
+            ? stackalloc byte[rawCursorMaxLength]
+            : rented = ArrayPool<byte>.Shared.Rent(rawCursorMaxLength);
+
+        try
         {
-            throw new InvalidOperationException("The Kafka partition cursor could not be formatted.");
+            var written = Encoding.UTF8.GetBytes(topic.AsSpan(), rawCursor);
+            rawCursor[written++] = (byte)':';
+
+            if (!Utf8Formatter.TryFormat(partition, rawCursor[written..], out var partitionLength))
+            {
+                throw new InvalidOperationException("The Kafka partition cursor could not be formatted.");
+            }
+
+            written += partitionLength;
+            rawCursor[written++] = (byte)':';
+
+            if (!Utf8Formatter.TryFormat(offset, rawCursor[written..], out var offsetLength))
+            {
+                throw new InvalidOperationException("The Kafka offset cursor could not be formatted.");
+            }
+
+            written += offsetLength;
+
+            var cursorLength = GetBase64EncodedLength(written);
+            var owner = MemoryPool<byte>.Shared.Rent(body.Length + cursorLength);
+            body.CopyTo(owner.Memory.Span);
+
+            if (Base64.EncodeToUtf8(
+                    rawCursor[..written],
+                    owner.Memory.Span[body.Length..],
+                    out _,
+                    out var bytesWritten) is not OperationStatus.Done)
+            {
+                owner.Dispose();
+                throw new InvalidOperationException("The Kafka cursor could not be encoded.");
+            }
+
+            return new EventMessage(
+                owner,
+                0..body.Length,
+                body.Length..(body.Length + bytesWritten));
         }
-
-        written += partitionLength;
-        cursor[written++] = (byte)':';
-
-        if (!Utf8Formatter.TryFormat(offset, cursor[written..], out var offsetLength))
+        finally
         {
-            throw new InvalidOperationException("The Kafka offset cursor could not be formatted.");
+            if (rented is not null)
+            {
+                ArrayPool<byte>.Shared.Return(rented);
+            }
         }
-
-        written += offsetLength;
-
-        return new EventMessage(
-            owner,
-            0..body.Length,
-            body.Length..(body.Length + written));
     }
+
+    private static KafkaCursor ParseCursor(string cursor, string[] topics)
+    {
+        var maxDecodedLength = GetMaxBase64DecodedLength(cursor.Length);
+        byte[]? rented = null;
+        var buffer = maxDecodedLength <= 256
+            ? stackalloc byte[maxDecodedLength]
+            : rented = ArrayPool<byte>.Shared.Rent(maxDecodedLength);
+
+        try
+        {
+            if (!Convert.TryFromBase64Chars(cursor.AsSpan(), buffer, out var bytesWritten))
+            {
+                throw new InvalidEventMessageCursorException();
+            }
+
+            return ParseDecodedCursor(buffer[..bytesWritten], topics);
+        }
+        finally
+        {
+            if (rented is not null)
+            {
+                ArrayPool<byte>.Shared.Return(rented);
+            }
+        }
+    }
+
+    private static KafkaCursor ParseDecodedCursor(
+        ReadOnlySpan<byte> cursor,
+        string[] topics)
+    {
+        var offsetSeparator = cursor.LastIndexOf((byte)':');
+        var partitionSeparator = offsetSeparator > 0
+            ? cursor[..offsetSeparator].LastIndexOf((byte)':')
+            : -1;
+
+        if (partitionSeparator <= 0
+            || offsetSeparator <= partitionSeparator + 1
+            || offsetSeparator == cursor.Length - 1)
+        {
+            throw new InvalidEventMessageCursorException();
+        }
+
+        if (!TryGetTopic(cursor[..partitionSeparator], topics, out var topic))
+        {
+            throw new InvalidEventMessageCursorException();
+        }
+
+        var partitionSpan = cursor[(partitionSeparator + 1)..offsetSeparator];
+        if (!Utf8Parser.TryParse(partitionSpan, out int partition, out var partitionBytesConsumed)
+            || partitionBytesConsumed != partitionSpan.Length
+            || partition < 0)
+        {
+            throw new InvalidEventMessageCursorException();
+        }
+
+        var offsetSpan = cursor[(offsetSeparator + 1)..];
+        if (!Utf8Parser.TryParse(offsetSpan, out long offset, out var offsetBytesConsumed)
+            || offsetBytesConsumed != offsetSpan.Length
+            || offset < 0
+            || offset == long.MaxValue)
+        {
+            throw new InvalidEventMessageCursorException();
+        }
+
+        return new KafkaCursor(topic, partition, offset);
+    }
+
+    private static bool TryGetTopic(
+        ReadOnlySpan<byte> cursorTopic,
+        string[] topics,
+        [NotNullWhen(true)] out string? topic)
+    {
+        if (topics.Length == 1)
+        {
+            topic = topics[0];
+            if (TopicEquals(cursorTopic, topic))
+            {
+                return true;
+            }
+
+            topic = null;
+            return false;
+        }
+
+        int charCount;
+
+        try
+        {
+            charCount = s_strictUtf8.GetCharCount(cursorTopic);
+        }
+        catch (DecoderFallbackException)
+        {
+            topic = null;
+            return false;
+        }
+
+        char[]? rented = null;
+        var buffer = charCount <= 256
+            ? stackalloc char[charCount]
+            : rented = ArrayPool<char>.Shared.Rent(charCount);
+
+        try
+        {
+            var written = s_strictUtf8.GetChars(cursorTopic, buffer);
+            var cursorTopicText = buffer[..written];
+
+            for (var i = 0; i < topics.Length; i++)
+            {
+                var candidate = topics[i];
+
+                if (cursorTopicText.SequenceEqual(candidate.AsSpan()))
+                {
+                    topic = candidate;
+                    return true;
+                }
+            }
+
+            topic = null;
+            return false;
+        }
+        finally
+        {
+            if (rented is not null)
+            {
+                ArrayPool<char>.Shared.Return(rented);
+            }
+        }
+    }
+
+    private static bool TopicEquals(ReadOnlySpan<byte> cursorTopic, string topic)
+    {
+        if (cursorTopic.Length == topic.Length)
+        {
+            for (var i = 0; i < cursorTopic.Length; i++)
+            {
+                var cursorByte = cursorTopic[i];
+                var topicChar = topic[i];
+
+                if (cursorByte > 0x7f || topicChar > 0x7f)
+                {
+                    break;
+                }
+
+                if (cursorByte != topicChar)
+                {
+                    return false;
+                }
+
+                if (i == cursorTopic.Length - 1)
+                {
+                    return true;
+                }
+            }
+        }
+
+        var byteCount = Encoding.UTF8.GetByteCount(topic);
+        if (byteCount != cursorTopic.Length)
+        {
+            return false;
+        }
+
+        byte[]? rented = null;
+        var buffer = byteCount <= 256
+            ? stackalloc byte[byteCount]
+            : rented = ArrayPool<byte>.Shared.Rent(byteCount);
+
+        try
+        {
+            var written = Encoding.UTF8.GetBytes(topic.AsSpan(), buffer);
+            return cursorTopic.SequenceEqual(buffer[..written]);
+        }
+        finally
+        {
+            if (rented is not null)
+            {
+                ArrayPool<byte>.Shared.Return(rented);
+            }
+        }
+    }
+
+    private static int GetBase64EncodedLength(int length)
+        => (length + 2) / 3 * 4;
+
+    private static int GetMaxBase64DecodedLength(int length)
+        => (length + 3) / 4 * 3;
 
     private static void DisposeQueuedMessages(Channel<EventMessage> channel)
     {
@@ -430,8 +665,14 @@ internal sealed class KafkaEventStreamBroker(KafkaEventStreamOptions options)
 
     private sealed record PumpState(
         string[] Topics,
+        KafkaCursor? Cursor,
         ConsumerConfig ConsumerConfig,
         ChannelWriter<EventMessage> Writer,
         CancellationToken CancellationToken,
         Action<IReadOnlyList<TopicPartition>>? OnPartitionsAssigned);
+
+    private readonly record struct KafkaCursor(
+        string Topic,
+        int Partition,
+        long Offset);
 }

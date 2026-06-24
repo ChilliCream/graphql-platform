@@ -35,12 +35,6 @@ internal sealed class KafkaEventStreamBrokerProvider : IEventStreamBrokerProvide
                 "Kafka event stream broker options require a group id prefix.");
         }
 
-        if (options.CreateMessageChannel is null)
-        {
-            throw new InvalidOperationException(
-                "Kafka event stream broker options require a message channel factory.");
-        }
-
         if (options.ConsumerQueuedMinMessages <= 0)
         {
             throw new InvalidOperationException(

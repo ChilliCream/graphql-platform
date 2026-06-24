@@ -88,7 +88,16 @@ internal static class MutableOutputFieldDefinitionExtensions
 
             if (fusionSubscribeDirective?.Arguments.TryGetValue(ArgumentNames.Message, out var message) == true)
             {
-                return ParseSelectionSet((string)message.Value!);
+                var selectionSet = ParseSelectionSet((string)message.Value!);
+
+                if (fusionSubscribeDirective.Arguments.TryGetValue(ArgumentNames.CursorField, out var cursorField)
+                    && cursorField.Value is string cursorFieldName)
+                {
+                    return selectionSet.WithSelections(
+                        [.. selectionSet.Selections, new FieldNode(cursorFieldName)]);
+                }
+
+                return selectionSet;
             }
 
             return null;

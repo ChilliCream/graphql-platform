@@ -1278,7 +1278,9 @@ internal sealed class SourceSchemaMerger
                 contributions[count++] = new SubscribeContribution(
                     _schemaConstantNames[sourceSchema.Name],
                     sourceField.IsShareable,
-                    subscribeDirective);
+                    subscribeDirective,
+                    GetEventCursorFieldName(sourceField),
+                    GetEventCursorArgumentName(sourceField));
             }
         }
 
@@ -1307,11 +1309,11 @@ internal sealed class SourceSchemaMerger
                 return;
             }
 
-            var firstKey = SubscribeIdentity.Create(first.Directive);
+            var firstKey = SubscribeIdentity.Create(first);
 
             for (var i = 1; i < count; i++)
             {
-                if (!SubscribeIdentity.Create(contributions[i].Directive).Equals(firstKey))
+                if (!SubscribeIdentity.Create(contributions[i]).Equals(firstKey))
                 {
                     return;
                 }
@@ -1344,6 +1346,16 @@ internal sealed class SourceSchemaMerger
                 ArgumentNames.Message,
                 first.Directive.Message.ToString(indented: false)));
 
+        if (first.CursorField is { } cursorField)
+        {
+            arguments.Add(new ArgumentAssignment(ArgumentNames.CursorField, cursorField));
+        }
+
+        if (first.CursorArgument is { } cursorArgument)
+        {
+            arguments.Add(new ArgumentAssignment(ArgumentNames.CursorArgument, cursorArgument));
+        }
+
         field.Directives.Add(
             new Directive(
                 _fusionDirectiveDefinitions[DirectiveNames.FusionSubscribe],
@@ -1353,19 +1365,56 @@ internal sealed class SourceSchemaMerger
     private readonly record struct SubscribeContribution(
         string Schema,
         bool IsShareable,
-        SubscribeDirectiveInfo Directive);
+        SubscribeDirectiveInfo Directive,
+        string? CursorField,
+        string? CursorArgument);
+
+    private static string? GetEventCursorFieldName(MutableOutputFieldDefinition sourceField)
+    {
+        if (sourceField.Type.AsTypeDefinition() is not MutableComplexTypeDefinition type)
+        {
+            return null;
+        }
+
+        foreach (var field in type.Fields.AsEnumerable())
+        {
+            if (field.HasEventCursorDirective)
+            {
+                return field.Name;
+            }
+        }
+
+        return null;
+    }
+
+    private static string? GetEventCursorArgumentName(MutableOutputFieldDefinition sourceField)
+    {
+        foreach (var argument in sourceField.Arguments.AsEnumerable())
+        {
+            if (argument.HasEventCursorDirective)
+            {
+                return argument.Name;
+            }
+        }
+
+        return null;
+    }
 
     private readonly record struct SubscribeIdentity(
         string? Broker,
         string Topics,
-        string Message)
+        string Message,
+        string? CursorField,
+        string? CursorArgument)
     {
-        public static SubscribeIdentity Create(SubscribeDirectiveInfo directive)
+        public static SubscribeIdentity Create(SubscribeContribution contribution)
         {
             return new SubscribeIdentity(
-                directive.Broker,
-                NormalizeTopics(directive.Topics),
-                NormalizeSelectionSet(directive.Message));
+                contribution.Directive.Broker,
+                NormalizeTopics(contribution.Directive.Topics),
+                NormalizeSelectionSet(contribution.Directive.Message),
+                contribution.CursorField,
+                contribution.CursorArgument);
         }
     }
 

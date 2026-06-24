@@ -3,6 +3,9 @@ namespace HotChocolate.Fusion.Logging;
 public static class LogEntryCodes
 {
     public const string ConflictingSourceSchemaName = "CONFLICTING_SOURCE_SCHEMA_NAME";
+    public const string CursorArgumentNotString = "CURSOR_ARGUMENT_NOT_STRING";
+    public const string CursorFieldNotString = "CURSOR_FIELD_NOT_STRING";
+    public const string CursorMarkerOnNonSubscriptionField = "CURSOR_MARKER_ON_NON_SUBSCRIPTION_FIELD";
     public const string DisallowedInaccessible = "DISALLOWED_INACCESSIBLE";
     public const string EmptyMergedEnumType = "EMPTY_MERGED_ENUM_TYPE";
     public const string EmptyMergedInputObjectType = "EMPTY_MERGED_INPUT_OBJECT_TYPE";
@@ -47,6 +50,8 @@ public static class LogEntryCodes
     public const string LookupMustHaveArguments = "LOOKUP_MUST_HAVE_ARGUMENTS";
     public const string LookupReturnsList = "LOOKUP_RETURNS_LIST";
     public const string LookupReturnsNonNullableType = "LOOKUP_RETURNS_NON_NULLABLE_TYPE";
+    public const string MultipleCursorArguments = "MULTIPLE_CURSOR_ARGUMENTS";
+    public const string MultipleCursorFields = "MULTIPLE_CURSOR_FIELDS";
     public const string MultipleSubscribeSources = "MULTIPLE_SUBSCRIBE_SOURCES";
     public const string NonNullInputFieldIsInaccessible = "NON_NULL_INPUT_FIELD_IS_INACCESSIBLE";
     public const string NoQueries = "NO_QUERIES";

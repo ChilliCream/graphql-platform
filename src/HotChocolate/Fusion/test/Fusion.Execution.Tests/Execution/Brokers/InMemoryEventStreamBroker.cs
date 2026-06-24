@@ -8,10 +8,11 @@ public sealed class InMemoryEventStreamBroker(InMemoryEventStreamBrokerHub hub) 
     private readonly List<Channel<EventMessage>> _channels = [];
     private bool _disposed;
 
-    public async IAsyncEnumerable<EventMessage> SubscribeAsync(
+    public IAsyncEnumerable<EventMessage> SubscribeAsync(
         ISubscriptionFieldContext context,
         string[] topics,
-        [EnumeratorCancellation] CancellationToken cancellationToken)
+        string? cursor,
+        CancellationToken cancellationToken)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
         ArgumentNullException.ThrowIfNull(context);
@@ -23,6 +24,18 @@ public sealed class InMemoryEventStreamBroker(InMemoryEventStreamBrokerHub hub) 
             ArgumentException.ThrowIfNullOrEmpty(topics[i]);
         }
 
+        if (!string.IsNullOrEmpty(cursor))
+        {
+            throw new InvalidEventMessageCursorException();
+        }
+
+        return SubscribeCoreAsync(topics, cancellationToken);
+    }
+
+    private async IAsyncEnumerable<EventMessage> SubscribeCoreAsync(
+        string[] topics,
+        [EnumeratorCancellation] CancellationToken cancellationToken)
+    {
         var channel = Channel.CreateUnbounded<EventMessage>(
             new UnboundedChannelOptions
             {

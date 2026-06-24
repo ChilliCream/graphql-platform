@@ -744,7 +744,12 @@ public sealed partial class OperationPlanner
             if (source.SubscribeDirective is { } directive)
             {
                 var subscribeDirective = directive.Topics.IsDefaultOrEmpty
-                    ? new SubscribeDirective([rootFieldNode.Name.Value], directive.Broker, directive.Message)
+                    ? new SubscribeDirective(
+                        [rootFieldNode.Name.Value],
+                        directive.Broker,
+                        directive.Message,
+                        directive.CursorField,
+                        directive.CursorArgument)
                     {
                         SchemaKey = directive.SchemaKey
                     }
@@ -790,11 +795,12 @@ public sealed partial class OperationPlanner
         };
 
         var rootStepIndex = plan.Value.Steps.IndexOf(rootStep);
+        var eventStreamMessage = CreateEventStreamMessageSelectionSet(subscribeSpec.Directive);
         var updatedRootStep = rootStep with
         {
             Definition = CreateEventStreamMessageOperationDefinition(
                 rootStep.Definition,
-                [subscribeSpec.Directive.Message]),
+                [eventStreamMessage]),
             EventStreamPlan = eventStreamPlan
         };
         var steps = plan.Value.Steps.SetItem(rootStepIndex, updatedRootStep);
@@ -858,8 +864,25 @@ public sealed partial class OperationPlanner
             FieldName = spec.FieldName,
             Topics = spec.Directive.Topics,
             Broker = spec.Directive.Broker,
-            Message = spec.Directive.Message
+            Message = spec.Directive.Message,
+            CursorField = spec.Directive.CursorField,
+            CursorArgument = spec.Directive.CursorArgument
         };
+
+    private static SelectionSetNode CreateEventStreamMessageSelectionSet(
+        SubscribeDirective directive)
+    {
+        if (string.IsNullOrEmpty(directive.CursorField))
+        {
+            return directive.Message;
+        }
+
+        return directive.Message.WithSelections(
+            [
+                .. directive.Message.Selections,
+                new FieldNode(directive.CursorField)
+            ]);
+    }
 
     private static OperationPlanStep GetEventStreamRootStep(ImmutableList<PlanStep> steps)
         => steps
@@ -875,7 +898,9 @@ public sealed partial class OperationPlanner
             if (selection is FieldNode fieldNode
                 && !fieldNode.Name.Value.Equals(IntrospectionFieldNames.TypeName, StringComparison.Ordinal))
             {
-                return new SelectionSetNode([fieldNode.WithSelectionSet(directive.Message)]);
+                return new SelectionSetNode([
+                    fieldNode.WithSelectionSet(CreateEventStreamMessageSelectionSet(directive))
+                ]);
             }
         }
 

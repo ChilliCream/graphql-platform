@@ -5,6 +5,7 @@ using HotChocolate.Fusion.Events.Contracts;
 using HotChocolate.Fusion.Extensions;
 using HotChocolate.Fusion.Info;
 using HotChocolate.Language;
+using HotChocolate.Types;
 using HotChocolate.Types.Mutable;
 using static HotChocolate.Fusion.Logging.LogEntryHelper;
 
@@ -48,11 +49,11 @@ internal sealed class MultipleSubscribeSourcesRule : IEventHandler<OutputFieldGr
             }
         }
 
-        var reference = SubscribeIdentity.Create(contributions[0].Directive);
+        var reference = SubscribeIdentity.Create(contributions[0]);
 
         for (var i = 1; i < contributions.Length; i++)
         {
-            if (!SubscribeIdentity.Create(contributions[i].Directive).Equals(reference))
+            if (!SubscribeIdentity.Create(contributions[i]).Equals(reference))
             {
                 context.Log.Write(MultipleSubscribeSources(contributions[0].Field, contributions[0].Schema));
                 return;
@@ -69,15 +70,50 @@ internal sealed class MultipleSubscribeSourcesRule : IEventHandler<OutputFieldGr
     private readonly record struct SubscribeIdentity(
         string? Broker,
         string Topics,
-        string Message)
+        string Message,
+        string? CursorField,
+        string? CursorArgument)
     {
-        public static SubscribeIdentity Create(SubscribeDirectiveInfo directive)
+        public static SubscribeIdentity Create(SubscribeContribution contribution)
         {
             return new SubscribeIdentity(
-                directive.Broker,
-                NormalizeTopics(directive.Topics),
-                NormalizeSelectionSet(directive.Message));
+                contribution.Directive.Broker,
+                NormalizeTopics(contribution.Directive.Topics),
+                NormalizeSelectionSet(contribution.Directive.Message),
+                GetEventCursorFieldName(contribution.Field),
+                GetEventCursorArgumentName(contribution.Field));
         }
+    }
+
+    private static string? GetEventCursorFieldName(MutableOutputFieldDefinition sourceField)
+    {
+        if (sourceField.Type.AsTypeDefinition() is not MutableComplexTypeDefinition type)
+        {
+            return null;
+        }
+
+        foreach (var field in type.Fields.AsEnumerable())
+        {
+            if (field.HasEventCursorDirective)
+            {
+                return field.Name;
+            }
+        }
+
+        return null;
+    }
+
+    private static string? GetEventCursorArgumentName(MutableOutputFieldDefinition sourceField)
+    {
+        foreach (var argument in sourceField.Arguments.AsEnumerable())
+        {
+            if (argument.HasEventCursorDirective)
+            {
+                return argument.Name;
+            }
+        }
+
+        return null;
     }
 
     private static string NormalizeTopics(ImmutableArray<string> topics)

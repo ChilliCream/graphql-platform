@@ -347,6 +347,17 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
         }
 
         writer.WriteLine("message: {0}", node.Message);
+
+        if (eventStreamSource.CursorField is { } cursorField)
+        {
+            writer.WriteLine("cursorField: {0}", cursorField);
+        }
+
+        if (eventStreamSource.CursorArgument is { } cursorArgument)
+        {
+            writer.WriteLine("cursorArgument: {0}", cursorArgument);
+        }
+
         writer.Unindent();
 
         WriteDependencies(node.Dependencies, node.ParentDependencies, writer);
