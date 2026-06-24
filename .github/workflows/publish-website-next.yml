@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - main
+      - pse/ui-prototyping
     paths:
       - .github/workflows/publish-website-next.yml
       - website-next/**
