@@ -85,6 +85,38 @@ public class InMemoryScheduledMessageStoreTests
         Assert.False(cancelled);
     }
 
+    [Fact]
+    public async Task PersistAsync_Should_PreserveBodyAndHeaders_When_OriginalsMutatedAfterPersist()
+    {
+        // arrange
+        var now = DateTimeOffset.UtcNow;
+        var store = new InMemoryScheduledMessageStore(new NoopSignal());
+        var body = new byte[] { 1, 2, 3 };
+        var headers = new Headers();
+        headers.Set("k", "v");
+        var envelope = new MessageEnvelope
+        {
+            MessageType = "urn:test",
+            DestinationAddress = "memory://test",
+            Headers = headers,
+            Body = body
+        };
+
+        await store.PersistAsync(envelope, now.AddMinutes(1), TestContext.Current.CancellationToken);
+
+        // act - mutate the originals after persisting
+        Array.Clear(body);
+        headers.Set("k", "changed");
+
+        // assert - stored copy is unaffected
+        var took = store.TryTakeDue(now.AddMinutes(2), out var taken);
+        Assert.True(took);
+        Assert.NotNull(taken);
+        Assert.Equal(new byte[] { 1, 2, 3 }, taken.Body.ToArray());
+        Assert.True(taken.Headers!.TryGetValue("k", out var storedValue));
+        Assert.Equal("v", storedValue);
+    }
+
     private static MessageEnvelope Envelope(string id)
         => new() { MessageId = id, MessageType = "urn:test", DestinationAddress = "memory://test" };
 

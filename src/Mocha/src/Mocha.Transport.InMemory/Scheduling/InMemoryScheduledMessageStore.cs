@@ -27,9 +27,11 @@ public sealed class InMemoryScheduledMessageStore(ISchedulerSignal signal) : ISc
     {
         var id = Guid.NewGuid();
 
+        var stored = new MessageEnvelope(envelope) { Body = envelope.Body.ToArray() };
+
         lock (_lock)
         {
-            _entries[id] = new Entry(envelope, scheduledTime);
+            _entries[id] = new Entry(stored, scheduledTime);
         }
 
         signal.Notify(scheduledTime);
