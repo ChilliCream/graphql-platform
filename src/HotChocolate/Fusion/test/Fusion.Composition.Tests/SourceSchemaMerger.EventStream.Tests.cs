@@ -65,13 +65,18 @@ public sealed class SourceSchemaMergerEventStreamTests : SourceSchemaMergerTestB
     }
 
     [Fact]
-    public void Merge_EventStream_Should_InferTopics_When_TopicsOmittedWithMultipleArguments()
+    public void Merge_EventStream_Should_PreserveDeclarationOrderAndSkipCursor_When_TopicsOmittedWithMultipleArguments()
     {
+        // arrange
+        // Non-cursor arguments are declared z, m, a (the reverse of alphabetical) with the
+        // @eventCursor argument 'after' interleaved. The inferred topic must follow declaration
+        // order (z, m, a) and skip the cursor, even though the merged SDL prints arguments
+        // alphabetically. If topics were sorted alphabetically the result would be a, m, z.
         AssertMatches(
             [
                 """
                 type Subscription {
-                    onUserCreated(after: String @eventCursor, a: String, b: String): User
+                    onUserCreated(z: String, after: String @eventCursor, m: String, a: String): User
                         @eventStream(message: "{ id }")
                 }
 
@@ -89,12 +94,13 @@ public sealed class SourceSchemaMergerEventStreamTests : SourceSchemaMergerTestB
               onUserCreated(
                 a: String @fusion__inputField(schema: A)
                 after: String @fusion__inputField(schema: A)
-                b: String @fusion__inputField(schema: A)
+                m: String @fusion__inputField(schema: A)
+                z: String @fusion__inputField(schema: A)
               ): User
                 @fusion__field(schema: A)
                 @fusion__eventStream(
                   schema: A
-                  topics: ["onUserCreated-{$args.a}-{$args.b}"]
+                  topics: ["onUserCreated-{$args.z}-{$args.m}-{$args.a}"]
                   message: "{ id }"
                   cursorArgument: "after"
                 )
