@@ -832,13 +832,6 @@ internal static class OperationPlanExecutor
         // which represents the subscription to a source schema.
         var root = operationPlan.RootNodes.Single();
 
-        // In the case of a subscription the initial node must always be an operation node
-        // that represents the subscription to a specific source schema.
-        if (root is not OperationExecutionNode subscriptionNode)
-        {
-            throw new InvalidOperationException("The specified operation plan is not supported.");
-        }
-
         // We create a new CancellationTokenSource that can be used to halt the execution engine,
         // without also cancelling the entire request pipeline.
         var executionCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
@@ -850,7 +843,12 @@ internal static class OperationPlanExecutor
             context = requestContext.Schema.Services.GetRequiredService<OperationPlanContextPool>().Rent();
             context.Initialize(requestContext, requestContext.VariableValues[0], operationPlan, executionCts);
 
-            var subscriptionResult = subscriptionNode.Subscribe(context);
+            var subscriptionResult = root switch
+            {
+                OperationExecutionNode subscriptionNode => subscriptionNode.Subscribe(context),
+                EventStreamExecutionNode eventStreamNode => eventStreamNode.Subscribe(context),
+                _ => throw new InvalidOperationException("The specified operation plan is not supported.")
+            };
             var executionState = context.ExecutionState;
 
             cancellationRegistration = executionCts.Token.Register(
@@ -870,7 +868,7 @@ internal static class OperationPlanExecutor
 
             var subscriptionEnumerable = CreateResponseStream(
                 context,
-                subscriptionNode,
+                root,
                 subscriptionResult,
                 requestContext.Schema.Services.GetService<ExecutionConcurrencyGate>(),
                 requestContext.Schema.GetRequestOptions().ExecutionTimeout,
@@ -1035,7 +1033,7 @@ internal static class OperationPlanExecutor
 
     private static async IAsyncEnumerable<OperationResult> CreateResponseStream(
         OperationPlanContext context,
-        OperationExecutionNode subscriptionNode,
+        ExecutionNode subscriptionNode,
         SubscriptionResult subscriptionResult,
         ExecutionConcurrencyGate? concurrencyGate,
         TimeSpan eventTimeout,
@@ -1057,7 +1055,7 @@ internal static class OperationPlanExecutor
             static state => Unsafe.As<CancellationTokenSource>(state)!.Cancel(),
             eventCts);
 
-        var schemaName = subscriptionNode.SchemaName ?? context.GetDynamicSchemaName(subscriptionNode);
+        var schemaName = GetSubscriptionSchemaName(context, subscriptionNode);
 
         try
         {
@@ -1099,7 +1097,7 @@ internal static class OperationPlanExecutor
                             eventArgs.Status,
                             eventArgs.Duration,
                             Exception: null,
-                            DependentsToExecute: [],
+                            DependentsToExecute: eventArgs.DependentsToExecute,
                             SkippedDefinitions: [],
                             VariableValueSets: eventArgs.VariableValueSets));
 
@@ -1184,6 +1182,12 @@ internal static class OperationPlanExecutor
             eventCts?.Dispose();
         }
     }
+
+    private static string GetSubscriptionSchemaName(
+        OperationPlanContext context,
+        ExecutionNode subscriptionNode)
+        => subscriptionNode.SchemaName
+            ?? (subscriptionNode is EventStreamExecutionNode ? "event-stream" : context.GetDynamicSchemaName(subscriptionNode));
 }
 
 internal readonly record struct IncrementalPlanResult(

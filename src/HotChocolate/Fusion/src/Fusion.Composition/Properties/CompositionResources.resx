@@ -312,6 +312,15 @@
   <data name="LogEntryHelper_ExternalUnused" xml:space="preserve">
     <value>The external field '{0}' in schema '{1}' is not referenced by a @provides directive in the schema.</value>
   </data>
+  <data name="LogEntryHelper_EventCursorArgumentNotString" xml:space="preserve">
+    <value>The @eventCursor argument '{0}' in schema '{1}' must be of type String.</value>
+  </data>
+  <data name="LogEntryHelper_EventCursorFieldNotString" xml:space="preserve">
+    <value>The @eventCursor field '{0}' in schema '{1}' must be of type String.</value>
+  </data>
+  <data name="LogEntryHelper_EventCursorMarkerOnNonSubscriptionField" xml:space="preserve">
+    <value>The @eventCursor marker '{0}' in schema '{1}' must be reachable from an @eventStream subscription field.</value>
+  </data>
   <data name="LogEntryHelper_FieldArgumentTypesNotMergeable" xml:space="preserve">
     <value>The argument '{0}' has a different type shape in schema '{1}' than it does in schema '{2}'.</value>
   </data>
@@ -344,6 +353,18 @@
   </data>
   <data name="LogEntryHelper_InvalidShareableUsage" xml:space="preserve">
     <value>The field '{0}' in schema '{1}' must not be marked as shareable.</value>
+  </data>
+  <data name="LogEntryHelper_MultipleEventStreamSources" xml:space="preserve">
+    <value>The shareable subscription field '{0}' in schema '{1}' must declare the same @eventStream source in every source schema.</value>
+  </data>
+  <data name="LogEntryHelper_MultipleCursorArguments" xml:space="preserve">
+    <value>The @eventStream field '{0}' in schema '{1}' must not declare more than one @eventCursor argument.</value>
+  </data>
+  <data name="LogEntryHelper_EventStreamTopicsEmpty" xml:space="preserve">
+    <value>The @eventStream directive on field '{0}' in schema '{1}' must not declare an empty list of topics. Omit the 'topics' argument to derive topics automatically.</value>
+  </data>
+  <data name="LogEntryHelper_MultipleCursorFields" xml:space="preserve">
+    <value>The @eventStream field '{0}' in schema '{1}' must not declare more than one @eventCursor field on its return type.</value>
   </data>
   <data name="LogEntryHelper_IsInvalidFields" xml:space="preserve">
     <value>The @is directive on argument '{0}' in schema '{1}' specifies an invalid field selection against the composed schema.</value>
@@ -419,6 +440,9 @@
   </data>
   <data name="LogEntryHelper_ProvidesOnNonCompositeField" xml:space="preserve">
     <value>The field '{0}' in schema '{1}' includes a @provides directive, but does not return a composite type.</value>
+  </data>
+  <data name="LogEntryHelper_EventStreamMessageInvalidFields" xml:space="preserve">
+    <value>The @eventStream directive on field '{0}' in schema '{1}' specifies an invalid message selection.</value>
   </data>
   <data name="LogEntryHelper_QueryRootTypeInaccessible" xml:space="preserve">
     <value>The root query type in schema '{0}' must be accessible.</value>
