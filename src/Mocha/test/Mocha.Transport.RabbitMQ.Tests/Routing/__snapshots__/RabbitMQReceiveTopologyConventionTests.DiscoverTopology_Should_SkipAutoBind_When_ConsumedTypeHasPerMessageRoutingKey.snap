@@ -9,37 +9,23 @@
       "Origin": "convention"
     },
     {
-      "Kind": "exchange",
-      "Name": "order-created",
+      "Kind": "queue",
+      "Name": "mocha.transport.rabbit-m-q.tests.order-spy",
+      "AutoProvision": true,
+      "Origin": "endpoint"
+    },
+    {
+      "Kind": "queue",
+      "Name": "mocha.transport.rabbit-m-q.tests.order-spy_error",
       "AutoProvision": true,
       "Origin": "convention"
     },
     {
       "Kind": "queue",
-      "Name": "orders",
-      "AutoProvision": true,
-      "Origin": "declared"
-    },
-    {
-      "Kind": "queue",
-      "Name": "orders_error",
-      "AutoProvision": true,
-      "Origin": "convention"
-    },
-    {
-      "Kind": "queue",
-      "Name": "orders_skipped",
+      "Name": "mocha.transport.rabbit-m-q.tests.order-spy_skipped",
       "AutoProvision": true,
       "Origin": "convention"
     }
   ],
-  "Links": [
-    {
-      "Kind": "bind",
-      "From": "rabbitmq://localhost:5672/e/mocha.test-helpers.order-created",
-      "To": "rabbitmq://localhost:5672/e/order-created",
-      "AutoProvision": true,
-      "Origin": "convention"
-    }
-  ]
+  "Links": []
 }

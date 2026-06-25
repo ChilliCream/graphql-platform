@@ -70,6 +70,7 @@ public sealed class MessageBusConfigurationValidationTests
                 Assert.All(
                     runtime.Router.InboundRoutes.Where(route => route.Kind == InboundRouteKind.Reply),
                     route => Assert.NotNull(route.Endpoint));
+            },
             services => services.AddInMemorySagas());
     }
 
