@@ -108,7 +108,8 @@ public class GraphQLQueryBenchmark
     public async Task<int> Send_Large_Request_With_Fusion()
     {
         using var result = await _fusionClient.SendAsync(_fusionItemsRequest);
-        using var document = await result.ReadAsResultAsync();
+        using var arena = new MemoryArena();
+        using var document = await result.ReadAsResultAsync(arena);
         return document.Root.GetProperty("data"u8).GetProperty("items"u8).GetArrayLength();
     }
 
@@ -125,7 +126,8 @@ public class GraphQLQueryBenchmark
     public async Task<int> Send_Small_Request_With_Fusion()
     {
         using var result = await _fusionClient.SendAsync(_fusionFewItemsRequest);
-        using var document = await result.ReadAsResultAsync();
+        using var arena = new MemoryArena();
+        using var document = await result.ReadAsResultAsync(arena);
         return document.Root.GetProperty("data"u8).GetProperty("fewItems"u8).GetArrayLength();
     }
 }
