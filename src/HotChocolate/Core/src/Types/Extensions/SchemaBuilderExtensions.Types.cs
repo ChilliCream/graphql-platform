@@ -468,6 +468,16 @@ public static partial class SchemaBuilderExtensions
         return AddDirectiveType(builder, typeof(TDirective));
     }
 
+    public static ISchemaBuilder AddDirectiveType(
+        this ISchemaBuilder builder,
+        Action<IDirectiveTypeDescriptor> configure)
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(configure);
+
+        return builder.AddDirectiveType(new DirectiveType(configure));
+    }
+
     public static ISchemaBuilder SetSchema<TSchema>(
         this ISchemaBuilder builder)
         where TSchema : Schema

@@ -351,6 +351,8 @@ The `@key(fields: "id")` directive explicitly declares that `Product` is identif
 
 The `fields` value uses GraphQL field names, not C# member names.
 
+Key fields may supply constant arguments to select a specific variant of a field. For example, `@key(fields: "id(scope: LOCAL)")` selects the `id` field with the constant argument `scope: LOCAL`. Argument values must be constant literals (no variables), must match the field's declared argument definitions, and all required arguments must be supplied.
+
 An entity can have multiple keys. Each `@key` directive on a type represents one key.
 
 **GraphQL schema with scalar composite key**

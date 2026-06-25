@@ -165,6 +165,16 @@ public class DefaultNamingConventionsTests
     }
 
     [Fact]
+    public void GetReceiveEndpointName_Should_KebabCaseName_When_ErrorQueueLikePascalInput()
+    {
+        var sut = new DefaultNamingConventions(s_hostWithService);
+
+        var result = sut.GetReceiveEndpointName("ErrorQueue", ReceiveEndpointKind.Default);
+
+        Assert.Equal("error-queue", result);
+    }
+
+    [Fact]
     public void GetSagaName_Should_StripHandlerSuffixAndKebabCase_When_HandlerSuffix()
     {
         var sut = new DefaultNamingConventions(s_hostWithService);

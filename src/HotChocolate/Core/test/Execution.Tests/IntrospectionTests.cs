@@ -336,12 +336,12 @@ public class IntrospectionTests
                     """)
                 .UseField(next => next)
                 .ModifyOptions(o => o.EnableDirectiveIntrospection = true)
-                .AddDirectiveType(new DirectiveType(d =>
+                .AddDirectiveType(d =>
                 {
                     d.Name("foo");
                     d.Location(DirectiveLocation.FieldDefinition);
                     d.Internal();
-                }))
+                })
                 .ExecuteRequestAsync(
                     @"{
                         __schema {
@@ -391,12 +391,12 @@ public class IntrospectionTests
                 .ModifyOptions(o => o.EnableDirectiveIntrospection = true)
                 .ModifyOptions(o => o.DefaultDirectiveVisibility = DirectiveVisibility.Internal)
                 .ModifyOptions(o => o.DisableInternalDirectives = true)
-                .AddDirectiveType(new DirectiveType(d =>
+                .AddDirectiveType(d =>
                 {
                     d.Name("foo");
                     d.Location(DirectiveLocation.FieldDefinition);
                     d.Internal();
-                }))
+                })
                 .ExecuteRequestAsync(
                     @"{
                         __schema {

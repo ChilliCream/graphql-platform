@@ -98,6 +98,43 @@ public class InboxIntegrationTests
     }
 
     [Fact]
+    public async Task Inbox_Should_RecordEachBatchEntry_When_BatchReceived()
+    {
+        // arrange
+        var inbox = new InMemoryMessageInbox();
+        var recorder = new BatchMessageRecorder();
+        await using var provider = await CreateBusWithInboxAsync(
+            inbox,
+            b =>
+            {
+                b.Services.AddSingleton(recorder);
+                b.AddBatchHandler<InboxBatchTestEventHandler>(opts =>
+                {
+                    opts.MaxBatchSize = 2;
+                    opts.BatchTimeout = TimeSpan.FromSeconds(5);
+                });
+            },
+            t => t.Endpoint("batch-ep").Handler<InboxBatchTestEventHandler>().MaxConcurrency(2));
+
+        using var scope = provider.CreateScope();
+        var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
+
+        // act
+        await bus.PublishAsync(new InboxBatchTestEvent { Payload = "batch-1" }, CancellationToken.None);
+        await bus.PublishAsync(new InboxBatchTestEvent { Payload = "batch-2" }, CancellationToken.None);
+
+        // assert
+        Assert.True(await recorder.WaitAsync(s_timeout), "Batch handler did not receive the events within timeout");
+
+        var batch = Assert.IsAssignableFrom<IMessageBatch<InboxBatchTestEvent>>(Assert.Single(recorder.Batches));
+        Assert.Equal(2, batch.Count);
+
+        await WaitUntilAsync(() => inbox.RecordedEnvelopes.Count >= 2, s_timeout);
+        Assert.Equal(2, inbox.RecordedEnvelopes.Count);
+        Assert.Equal(2, inbox.RecordedEnvelopes.Select(static e => e.MessageId).Distinct().Count());
+    }
+
+    [Fact]
     public async Task Inbox_Should_SkipRecording_When_SkipInboxFeatureSet()
     {
         // arrange
@@ -156,6 +193,12 @@ public class InboxIntegrationTests
     private static async Task<ServiceProvider> CreateBusWithInboxAsync(
         InMemoryMessageInbox inbox,
         Action<IMessageBusHostBuilder> configure)
+        => await CreateBusWithInboxAsync(inbox, configure, configureTransport: null);
+
+    private static async Task<ServiceProvider> CreateBusWithInboxAsync(
+        InMemoryMessageInbox inbox,
+        Action<IMessageBusHostBuilder> configure,
+        Action<IInMemoryMessagingTransportDescriptor>? configureTransport)
     {
         var services = new ServiceCollection();
         services.AddSingleton<IMessageInbox>(inbox);
@@ -164,7 +207,14 @@ public class InboxIntegrationTests
         builder.UseInboxCore();
 
         configure(builder);
-        builder.AddInMemory();
+        if (configureTransport is null)
+        {
+            builder.AddInMemory();
+        }
+        else
+        {
+            builder.AddInMemory(configureTransport);
+        }
 
         var provider = services.BuildServiceProvider();
         var runtime = (MessagingRuntime)provider.GetRequiredService<IMessagingRuntime>();
@@ -181,11 +231,26 @@ public class InboxIntegrationTests
         public required string Payload { get; init; }
     }
 
+    public sealed class InboxBatchTestEvent
+    {
+        public required string Payload { get; init; }
+    }
+
     public sealed class InboxTestEventHandler(MessageRecorder recorder) : IEventHandler<InboxTestEvent>
     {
         public ValueTask HandleAsync(InboxTestEvent message, CancellationToken cancellationToken)
         {
             recorder.Record(message);
+            return default;
+        }
+    }
+
+    public sealed class InboxBatchTestEventHandler(BatchMessageRecorder recorder)
+        : IBatchEventHandler<InboxBatchTestEvent>
+    {
+        public ValueTask HandleAsync(IMessageBatch<InboxBatchTestEvent> batch, CancellationToken cancellationToken)
+        {
+            recorder.Record(batch);
             return default;
         }
     }

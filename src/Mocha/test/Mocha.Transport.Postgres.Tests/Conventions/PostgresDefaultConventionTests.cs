@@ -1,6 +1,8 @@
 using Microsoft.Extensions.DependencyInjection;
 using Mocha.Transport.Postgres.Tests.Helpers;
 
+using Mocha.Features;
+
 namespace Mocha.Transport.Postgres.Tests.Conventions;
 
 public class PostgresDefaultConventionTests
@@ -14,8 +16,9 @@ public class PostgresDefaultConventionTests
         var receiveEndpoint = transport.ReceiveEndpoints.First(e => e.Kind == ReceiveEndpointKind.Default);
 
         // assert
-        Assert.NotNull(receiveEndpoint.ErrorEndpoint);
-        Assert.Contains("_error", receiveEndpoint.ErrorEndpoint!.Name);
+        var feature = receiveEndpoint.Features.Get<ReceiveFaultEndpointFeature>();
+        Assert.NotNull(feature?.Endpoint);
+        Assert.Contains("_error", feature.Endpoint!.Name);
     }
 
     [Fact]
@@ -27,8 +30,9 @@ public class PostgresDefaultConventionTests
         var receiveEndpoint = transport.ReceiveEndpoints.First(e => e.Kind == ReceiveEndpointKind.Default);
 
         // assert
-        Assert.NotNull(receiveEndpoint.SkippedEndpoint);
-        Assert.Contains("_skipped", receiveEndpoint.SkippedEndpoint!.Name);
+        var feature = receiveEndpoint.Features.Get<ReceiveSkippedEndpointFeature>();
+        Assert.NotNull(feature?.Endpoint);
+        Assert.Contains("_skipped", feature.Endpoint!.Name);
     }
 
     [Fact]
@@ -44,7 +48,7 @@ public class PostgresDefaultConventionTests
         // assert - reply endpoints should not get auto error/skipped endpoints
         if (replyEndpoint is not null)
         {
-            Assert.Null(replyEndpoint.ErrorEndpoint);
+            Assert.Null(replyEndpoint.Features.Get<ReceiveFaultEndpointFeature>()?.Endpoint);
         }
     }
 
@@ -57,8 +61,9 @@ public class PostgresDefaultConventionTests
         var receiveEndpoint = transport.ReceiveEndpoints.First(e => e.Kind == ReceiveEndpointKind.Default);
 
         // assert
-        Assert.NotNull(receiveEndpoint.ErrorEndpoint);
-        var errorDest = receiveEndpoint.ErrorEndpoint!.Destination;
+        var errorEndpoint = receiveEndpoint.Features.Get<ReceiveFaultEndpointFeature>()?.Endpoint;
+        Assert.NotNull(errorEndpoint);
+        var errorDest = errorEndpoint!.Destination;
         Assert.IsType<PostgresQueue>(errorDest);
         Assert.EndsWith("_error", ((PostgresQueue)errorDest).Name);
     }
@@ -72,8 +77,9 @@ public class PostgresDefaultConventionTests
         var receiveEndpoint = transport.ReceiveEndpoints.First(e => e.Kind == ReceiveEndpointKind.Default);
 
         // assert
-        Assert.NotNull(receiveEndpoint.SkippedEndpoint);
-        var skippedDest = receiveEndpoint.SkippedEndpoint!.Destination;
+        var skippedEndpoint = receiveEndpoint.Features.Get<ReceiveSkippedEndpointFeature>()?.Endpoint;
+        Assert.NotNull(skippedEndpoint);
+        var skippedDest = skippedEndpoint!.Destination;
         Assert.IsType<PostgresQueue>(skippedDest);
         Assert.EndsWith("_skipped", ((PostgresQueue)skippedDest).Name);
     }
@@ -90,21 +96,20 @@ public class PostgresDefaultConventionTests
             .AddPostgres(t =>
             {
                 t.ConnectionString("Host=localhost;Database=test;Username=test;Password=test");
-                t.DeclareQueue("my-q");
                 t.DeclareQueue("custom-error-q");
-                t.Endpoint("ep")
-                    .Queue("my-q")
+                t.Queue("my-q")
                     .Handler<OrderCreatedHandler>()
-                    .FaultEndpoint("postgres:///q/custom-error-q");
+                    .FaultEndpoint(new Uri("postgres:///q/custom-error-q"));
             })
             .BuildRuntime();
         var transport = runtime.Transports.OfType<PostgresMessagingTransport>().Single();
-        var receiveEndpoint = transport.ReceiveEndpoints.First(e => e.Name == "ep");
+        var receiveEndpoint = transport.ReceiveEndpoints.First(e => e.Name == "my-q");
 
         // assert
-        Assert.NotNull(receiveEndpoint.ErrorEndpoint);
-        Assert.IsType<PostgresQueue>(receiveEndpoint.ErrorEndpoint!.Destination);
-        Assert.Equal("custom-error-q", ((PostgresQueue)receiveEndpoint.ErrorEndpoint.Destination).Name);
+        var errorEndpoint = receiveEndpoint.Features.Get<ReceiveFaultEndpointFeature>()?.Endpoint;
+        Assert.NotNull(errorEndpoint);
+        Assert.IsType<PostgresQueue>(errorEndpoint!.Destination);
+        Assert.Equal("custom-error-q", ((PostgresQueue)errorEndpoint.Destination).Name);
     }
 
     private static MessagingRuntime CreateRuntime(Action<IMessageBusHostBuilder> configure)

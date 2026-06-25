@@ -1801,6 +1801,43 @@ public class ObjectTypeTests : TypeTestBase
             .MatchSnapshot();
     }
 
+    // A string-named field with ResolveWith collides with a same-named runtime
+    // property. The explicit resolver must win, even when a named runtime-type
+    // binding installs the resolver-type interceptor (regression, see #9921).
+    [Fact]
+    public async Task ResolveWith_StringNamedField_Wins_Over_SameNamed_Property()
+    {
+        // arrange
+        var executor = await new ServiceCollection()
+            .AddGraphQLServer()
+            .AddQueryType<ResolveWithCollisionQuery>()
+            .AddType<BookWithChaptersType>()
+            .AddType(new AnyType("JSON", "Arbitrary JSON.", BindingBehavior.Explicit))
+            .BindRuntimeType<System.Text.Json.JsonElement>("JSON")
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // act
+        var result = await executor.ExecuteAsync(
+            "{ book { chapters { title } } }",
+            cancellationToken: TestContext.Current.CancellationToken);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "book": {
+                  "chapters": [
+                    {
+                      "title": "from resolver"
+                    }
+                  ]
+                }
+              }
+            }
+            """);
+    }
+
     [Fact]
     public void IgnoreIndexers()
     {
@@ -2589,5 +2626,30 @@ public class ObjectTypeTests : TypeTestBase
         public object[] ObjList5 => throw new InvalidOperationException();
 
         public ImmutableArray<object> ObjList6 => throw new InvalidOperationException();
+    }
+
+    public sealed record Chapter(string Title);
+
+    public class BookWithChapters
+    {
+        // left null to surface the bug: if the property shadows the resolver, the
+        // non-null list field returns null and the request fails with HC0018.
+        public List<Chapter> Chapters { get; set; } = null!;
+    }
+
+    public class ResolveWithCollisionQuery
+    {
+        public BookWithChapters Book() => new();
+    }
+
+    public class BookWithChaptersType : ObjectType<BookWithChapters>
+    {
+        protected override void Configure(IObjectTypeDescriptor<BookWithChapters> descriptor)
+            => descriptor.Field("chapters").ResolveWith<ChapterResolver>(r => r.Get());
+
+        public sealed class ChapterResolver
+        {
+            public List<Chapter> Get() => [new Chapter("from resolver")];
+        }
     }
 }
