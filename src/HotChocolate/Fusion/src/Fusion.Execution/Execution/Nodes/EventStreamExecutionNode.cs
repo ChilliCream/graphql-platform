@@ -378,36 +378,9 @@ public sealed class EventStreamExecutionNode : ExecutionNode
             string topic,
             OperationPlanContext context,
             EventStreamExecutionNode node)
-        {
-            var start = topic.IndexOf("{$", StringComparison.Ordinal);
-
-            if (start < 0)
-            {
-                return topic;
-            }
-
-            var builder = new StringBuilder(topic.Length);
-            var offset = 0;
-
-            while (start >= 0)
-            {
-                var end = topic.IndexOf('}', start + 2);
-                if (end < 0)
-                {
-                    throw new InvalidOperationException(
-                        $"The topic template `{topic}` contains an unterminated placeholder.");
-                }
-
-                builder.Append(topic, offset, start - offset);
-                var expression = topic.AsSpan(start + 2, end - start - 2);
-                builder.Append(ResolveTopicExpression(expression, context, node));
-                offset = end + 1;
-                start = topic.IndexOf("{$", offset, StringComparison.Ordinal);
-            }
-
-            builder.Append(topic, offset, topic.Length - offset);
-            return builder.ToString();
-        }
+            => TopicTemplate.Expand(
+                topic,
+                expression => ResolveTopicExpression(expression, context, node));
 
         private static string ResolveTopicExpression(
             ReadOnlySpan<char> expression,
