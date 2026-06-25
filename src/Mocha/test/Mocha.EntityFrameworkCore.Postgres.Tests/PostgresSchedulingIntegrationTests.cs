@@ -1,7 +1,6 @@
 using System.Collections.Concurrent;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Mocha.EntityFrameworkCore.Postgres.Tests.Helpers;
@@ -80,8 +79,7 @@ public sealed class PostgresSchedulingIntegrationTests(PostgresFixture fixture) 
         var services = new ServiceCollection();
         services.AddSingleton(recorder);
         services.AddLogging();
-        services.AddDbContext<TestDbContext>(o => o.UseNpgsql(connectionString)
-                .ConfigureWarnings(w => w.Ignore(CoreEventId.ManyServiceProvidersCreatedWarning)));
+        services.AddDbContext<TestDbContext>(o => o.UseTestNpgsql(connectionString));
         services.AddSingleton<ISchedulerSignal>(new ResilientSchedulerSignal());
 
         var builder = services.AddMessageBus();
@@ -497,8 +495,7 @@ public sealed class PostgresSchedulingIntegrationTests(PostgresFixture fixture) 
         var services = new ServiceCollection();
         services.AddSingleton(recorder);
         services.AddLogging();
-        services.AddDbContext<TestDbContext>(o => o.UseNpgsql(connectionString)
-                .ConfigureWarnings(w => w.Ignore(CoreEventId.ManyServiceProvidersCreatedWarning)));
+        services.AddDbContext<TestDbContext>(o => o.UseTestNpgsql(connectionString));
 
         // Register the resilient signal BEFORE UsePostgresScheduling() so that
         // TryAddSingleton<ISchedulerSignal> in UseSchedulerCore() is a no-op.

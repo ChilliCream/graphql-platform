@@ -1,4 +1,3 @@
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Mocha.EntityFrameworkCore.Postgres.Tests.Helpers;
@@ -45,7 +44,7 @@ public sealed class SchedulingServiceRegistrationTests
     {
         var services = new ServiceCollection();
         services.AddLogging();
-        services.AddDbContext<TestDbContext>(o => o.UseNpgsql(ConnectionString));
+        services.AddDbContext<TestDbContext>(o => o.UseTestNpgsql(ConnectionString));
 
         var builder = services.AddMessageBus();
         builder.AddEntityFramework<TestDbContext>(ef => ef.UsePostgresScheduling());
