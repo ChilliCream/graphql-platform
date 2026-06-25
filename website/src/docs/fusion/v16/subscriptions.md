@@ -425,6 +425,22 @@ await producer.ProduceAsync(
 producer.Flush();
 ```
 
+With Amazon SQS, publish to the SNS topic that the gateway's `ResolveTopicArn` maps the
+logical topic to. SNS fans the message out to every subscribed queue:
+
+```csharp
+using var sns = new AmazonSimpleNotificationServiceClient();
+
+var payload = JsonSerializer.Serialize(new { id = "1" });
+
+await sns.PublishAsync(
+    "arn:aws:sns:us-east-1:123456789012:product-price-changed",
+    payload);
+```
+
+In direct queue mode (no `ResolveTopicArn`), there is no shared topic to publish to;
+you send to the per-subscription queue URLs yourself, which is mainly useful for tests.
+
 ## Topics
 
 By default Fusion infers the topic from the field name and its arguments, joined with
@@ -571,7 +587,8 @@ treat it as a black box and never parse or construct it.
 
 > **Note:** Resumable streams need a broker that retains and orders history. Configure
 > NATS with JetStream, or use Kafka or Azure Event Hubs. Core NATS pub/sub does not keep
-> history, so it cannot resume.
+> history, so it cannot resume, and Amazon SQS deletes each event once delivered, so
+> SQS-backed streams cannot resume either.
 
 For NATS, enable JetStream when registering the broker:
 
