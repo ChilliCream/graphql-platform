@@ -623,7 +623,7 @@ A saga that waits for a message that never arrives will stay in its current stat
 
 Mocha provides a saga-level `Timeout()` API that sets a single deadline for the entire saga instance. The timeout is scheduled when the saga is created and automatically cancelled when the saga reaches any final state.
 
-> **Prerequisites:** Durable, cancellable timeouts require a scheduling store. Configure `UsePostgresScheduling()` before using `Timeout()` — see [Scheduling: Set up store-based scheduling](/docs/mocha/v16/scheduling#set-up-store-based-scheduling-for-rabbitmq) for setup instructions. Native transport scheduling (InMemory, PostgreSQL) also works but does not support automatic cancellation.
+> **Prerequisites:** Durable, cancellable timeouts require a scheduling store. Configure `UsePostgresScheduling()` before using `Timeout()` — see [Scheduling: Set up store-based scheduling](/docs/mocha/v16/scheduling#set-up-store-based-scheduling-for-rabbitmq) for setup instructions. The in-memory transport supports scheduling by default with no extra setup, including cancellation of pending timeouts when the saga reaches a final state. For timeouts that must survive a process restart, use `UsePostgresScheduling()`.
 
 ## Configure a saga-level timeout
 
@@ -666,21 +666,21 @@ Use `OnTimeout()` on a state descriptor to define what happens when the timeout 
 
 ## Key behaviors
 
-| Behavior            | Detail                                                                                                                                                                                                                                                                                      |
-| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Scope               | Per-saga instance, not per-state. The deadline covers the entire saga lifetime.                                                                                                                                                                                                             |
-| Duration            | Fixed at configuration time via `TimeSpan`.                                                                                                                                                                                                                                                 |
-| Auto-cancellation   | When the saga reaches any final state (normal completion, error final state, etc.), the pending timeout is cancelled.                                                                                                                                                                       |
-| Late delivery       | If the timeout fires after the saga was already deleted, the event is silently dropped.                                                                                                                                                                                                     |
-| Missing handler     | If no `OnTimeout()` handler is configured for the current state, the saga throws an execution error. See [troubleshooting](#timeout-troubleshooting) below.                                                                                                                                 |
-| Recommended pattern | `DuringAny().OnTimeout()` handles the timeout regardless of which state the saga is in.                                                                                                                                                                                                     |
-| Response on timeout | Chain `.Respond()` on the timed-out final state to send a response back to the original requester.                                                                                                                                                                                          |
-| Scheduling store    | Requires a scheduling store for durable timeouts. Configure `UsePostgresScheduling()` — see [Scheduling](/docs/mocha/v16/scheduling#set-up-store-based-scheduling-for-rabbitmq) for setup. Native transport scheduling (InMemory, PostgreSQL) also works but does not support cancellation. |
+| Behavior            | Detail                                                                                                                                                                                                                                                                                   |
+| ------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Scope               | Per-saga instance, not per-state. The deadline covers the entire saga lifetime.                                                                                                                                                                                                          |
+| Duration            | Fixed at configuration time via `TimeSpan`.                                                                                                                                                                                                                                              |
+| Auto-cancellation   | When the saga reaches any final state (normal completion, error final state, etc.), the pending timeout is cancelled.                                                                                                                                                                    |
+| Late delivery       | If the timeout fires after the saga was already deleted, the event is silently dropped.                                                                                                                                                                                                  |
+| Missing handler     | If no `OnTimeout()` handler is configured for the current state, the saga throws an execution error. See [troubleshooting](#timeout-troubleshooting) below.                                                                                                                              |
+| Recommended pattern | `DuringAny().OnTimeout()` handles the timeout regardless of which state the saga is in.                                                                                                                                                                                                  |
+| Response on timeout | Chain `.Respond()` on the timed-out final state to send a response back to the original requester.                                                                                                                                                                                       |
+| Scheduling store    | The in-memory transport supports scheduling, including cancellation, by default with no extra setup. For durable timeouts that survive a process restart, configure `UsePostgresScheduling()` (see [Scheduling](/docs/mocha/v16/scheduling#set-up-store-based-scheduling-for-rabbitmq)). |
 
 ## Timeout troubleshooting
 
 **Timeout never fires.**
-Verify that a scheduling provider is configured. For durable, cancellable timeouts, register `UsePostgresScheduling()` with an EF Core DbContext. Native transport scheduling (InMemory, PostgreSQL) works without extra setup but does not cancel timeouts when the saga completes normally.
+Verify that a scheduling provider is configured. The in-memory transport supports scheduling and cancellation by default with no extra setup. For durable timeouts that survive a process restart, register `UsePostgresScheduling()` with an EF Core DbContext.
 
 **"SagaExecutionException: No transition defined for SagaTimedOutEvent."**
 You configured `Timeout()` but did not add an `OnTimeout()` handler. Add a catch-all handler:

@@ -164,6 +164,14 @@ builder.Services
 // AuditHandler → InMemory (claimed)
 ```
 
+# Scheduled messages
+
+The in-memory transport schedules messages out of the box, with no extra setup. A message dispatched with a future `ScheduledTime` (for example via `ScheduleSendAsync`, `SchedulePublishAsync`, or a saga's `Timeout()`) is held in process and delivered once its time arrives. A message scheduled for a time in the past is delivered immediately.
+
+Scheduled messages are held in memory only, so they are lost if the process restarts. For scheduled work or timeouts that must survive a restart, use a store-based provider such as `UsePostgresScheduling()`.
+
+Cancellation is supported: a pending scheduled message can be cancelled before it is dispatched (for example, a saga's timeout is cancelled automatically when the saga reaches a final state).
+
 # Next steps
 
 - [RabbitMQ Transport](/docs/mocha/v16/transports/rabbitmq) - Configure the RabbitMQ transport for production deployments.

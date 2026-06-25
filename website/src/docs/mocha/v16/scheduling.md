@@ -131,7 +131,7 @@ if (result.IsCancellable)
 | `ScheduledTime` | `DateTimeOffset` | The time at which the message is scheduled for delivery.                                  |
 | `IsCancellable` | `bool`           | `true` when the scheduling infrastructure supports cancellation and a token was assigned. |
 
-`IsCancellable` is `true` when a store-based scheduling provider (like Postgres) is registered. If no store is registered, the message is still scheduled (through the transport's native scheduling), but cancellation is not available.
+`IsCancellable` is `true` when a store-based scheduling provider (like Postgres) is registered, or when using the in-memory transport (which supports cancellation by default). If no store is registered and the transport does not support cancellation natively, `IsCancellable` is `false`.
 
 ## Real-world example: cancellable reminder
 
@@ -232,11 +232,11 @@ Each transport handles scheduling differently. Mocha adapts automatically based 
 
 | Transport  | Scheduling type                       | Durability                   | Cancellation support                 | Setup required                            |
 | ---------- | ------------------------------------- | ---------------------------- | ------------------------------------ | ----------------------------------------- |
-| InMemory   | Native (in-process scheduler)         | Non-durable, lost on restart | No                                   | None                                      |
+| InMemory   | Native (in-process scheduler)         | Non-durable, lost on restart | Yes                                  | None                                      |
 | PostgreSQL | Native (scheduled_time column)        | Durable, survives restarts   | No                                   | None                                      |
 | RabbitMQ   | Store-based (via Postgres middleware) | Durable with Postgres store  | Yes (with `UsePostgresScheduling()`) | `UsePostgresScheduling()` + EF Core model |
 
-**InMemory:** The transport schedules messages natively using an internal scheduler. Messages scheduled for a time in the past are delivered immediately. Scheduled messages are lost if the process restarts. Cancellation is not supported.
+**InMemory:** The transport schedules messages natively using an internal scheduler. Messages scheduled for a time in the past are delivered immediately. Scheduled messages are lost if the process restarts. Cancellation is supported: a pending scheduled message can be cancelled before it is dispatched.
 
 **PostgreSQL:** The transport handles scheduling natively. When you set `ScheduledTime`, the transport writes a `scheduled_time` column alongside the message. Messages are only delivered to consumers after the scheduled time has passed. No additional setup is required beyond the standard [PostgreSQL transport configuration](/docs/mocha/v16/transports/postgres). Cancellation is not supported with native scheduling.
 
@@ -327,7 +327,7 @@ This does not happen. The dispatcher uses row-level locking to ensure each messa
 The message was already dispatched before the cancellation request reached the store. Once the background worker picks up a message and delivers it, the row is deleted and cancellation is no longer possible. If you need a wider cancellation window, schedule messages further in the future or check `SchedulingResult.IsCancellable` to confirm the infrastructure supports cancellation.
 
 **`SchedulingResult.IsCancellable` is false.**
-No store-based scheduling provider is registered. Cancellation requires a provider like `UsePostgresScheduling()` that persists messages to a store. Transports with native scheduling (InMemory, PostgreSQL) do not support cancellation. If you need cancellation support, configure `UsePostgresScheduling()` with an EF Core DbContext.
+No store-based scheduling provider is registered, and the active transport does not support native cancellation. The in-memory transport supports cancellation by default; the PostgreSQL transport's native scheduling does not. If you need cancellation with native PostgreSQL scheduling, configure `UsePostgresScheduling()` with an EF Core DbContext.
 
 # Next steps
 
