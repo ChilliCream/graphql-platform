@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { ImageResponse } from "next/og";
 import { loadShareCardFonts } from "@/src/og/fonts";
+import { enableSatoriHooks } from "@/src/og/satoriHooks";
 import { ShareCard } from "@/src/og/ShareCard";
 
 /** Shared 1200x630 frame for every marketing share card. */
@@ -58,6 +59,8 @@ async function resolvePageTitle(page: PageModule): Promise<string | undefined> {
  */
 export function createPageShareCardImage(page: PageModule) {
   return async function Image() {
+    enableSatoriHooks();
+
     const [pageTitle, fonts] = await Promise.all([
       resolvePageTitle(page),
       loadShareCardFonts(),

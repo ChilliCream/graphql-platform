@@ -1,5 +1,6 @@
 import { ImageResponse } from "next/og";
 import { loadShareCardFonts } from "@/src/og/fonts";
+import { enableSatoriHooks } from "@/src/og/satoriHooks";
 import { ShareCard } from "@/src/og/ShareCard";
 
 // Required under `output: export` for this paramless metadata route, which has
@@ -16,6 +17,8 @@ export const size = {
 export const contentType = "image/png";
 
 export default async function Image() {
+  enableSatoriHooks();
+
   const fonts = await loadShareCardFonts();
 
   return new ImageResponse(<ShareCard />, {
