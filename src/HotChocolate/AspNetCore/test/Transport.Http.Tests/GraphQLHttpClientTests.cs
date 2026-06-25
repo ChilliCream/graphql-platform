@@ -975,6 +975,7 @@ public class GraphQLHttpClientTests : ServerTestBase
     [Theory]
     [InlineData((string?)null)]
     [InlineData("application/pdf")]
+    [InlineData("text/plain; charset=utf-8")]
     public async Task Post_GraphQL_FileUpload(string? contentType)
     {
         // arrange

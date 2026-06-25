@@ -26,6 +26,7 @@ basicsaga
 bbox
 BCPROCKS
 Bedok
+Benjie
 bfnrt
 birthdates
 blazor
@@ -95,6 +96,7 @@ GHSA
 Giroux
 grafbase
 GraphiQL
+graphqlconf
 graphqlconfig
 graphqlrc
 graphqls
@@ -224,10 +226,13 @@ roundtrips
 rovo
 rovodev
 RRGGBB
+Ruckstuhl
 runbooks
 sandboxed
+SASL
 Satisfiability
 Senn
+servicebus
 shoooe
 SHORTSHA
 Silmarillion
@@ -278,6 +283,7 @@ unlisten
 unpublish
 unserialized
 Unsubscriber
+unsupplied
 uppercased
 Upsert
 upvote

@@ -3,8 +3,10 @@ import type { CSSProperties } from "react";
 import {
   HERO_ACCENT_GRADIENT,
   HERO_DRINKS,
+  HERO_DRINKS_MOBILE,
   HERO_HEADLINE,
   HERO_SWIRLS,
+  HERO_SWIRLS_MOBILE,
 } from "@/src/components/home/heroArtwork";
 import { Swirl } from "@/src/icons/Swirl";
 
@@ -26,7 +28,31 @@ function position(
 export function HomeHero() {
   return (
     <section className="relative isolate mx-auto flex min-h-[34rem] max-w-6xl flex-col items-center justify-center px-5 py-20 text-center sm:min-h-[40rem] sm:px-12 lg:min-h-[46rem]">
-      {/* Decorative scatter, behind the headline. */}
+      {/* Decorative scatter, behind the headline. Trimmed corner composition on
+          phones, full scatter from the `sm` breakpoint up. */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 -z-10 select-none sm:hidden"
+      >
+        {HERO_DRINKS_MOBILE.map(({ Drink, left, top, width, rotate }) => (
+          <Drink
+            key={left + top}
+            className="absolute h-auto drop-shadow-[0_8px_20px_rgba(0,0,0,0.45)]"
+            style={position(left, top, { width, rotate })}
+          />
+        ))}
+        {HERO_SWIRLS_MOBILE.map(({ left, top, heroSize, rotate }) => (
+          <Swirl
+            key={left + top}
+            className="text-cc-nav-label/60 absolute"
+            style={position(left, top, {
+              width: heroSize,
+              height: heroSize,
+              rotate,
+            })}
+          />
+        ))}
+      </div>
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 -z-10 hidden select-none sm:block"

@@ -275,7 +275,7 @@ internal sealed class ExecutionState
             // a node can explicitly choose which of its dependents should run
             // by calling EnqueueDependentForExecution during execution.
             // if it did, any dependent not in that list is skipped.
-            if (result.DependentsToExecute.Length > 0)
+            if (!result.DependentsToExecute.IsDefault)
             {
                 var dependentsToExecute = result.DependentsToExecute;
 

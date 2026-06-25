@@ -782,6 +782,7 @@ internal static class CompositeSchemaBuilder
     {
         var fieldDirectives = FieldDirectiveParser.Parse(fieldDef.Directives);
         var requireDirectives = RequiredDirectiveParser.Parse(fieldDef.Directives);
+        var eventStreamDirective = ParseEventStreamDirective(fieldDef.Directives);
         var temp = ImmutableArray.CreateBuilder<SourceOutputField>();
 
         foreach (var fieldDirective in fieldDirectives)
@@ -797,6 +798,16 @@ internal static class CompositeSchemaBuilder
                 context.RegisterForCompletion(requirements);
             }
 
+            var compositeNamedTypeName = fieldDef.Type.NamedType().Name.Value;
+            var sourceNamedTypeName = fieldDirective.SourceType?.NamedType().Name.Value;
+            var sourceTypeName =
+                sourceNamedTypeName is not null
+                && !string.Equals(sourceNamedTypeName, compositeNamedTypeName, StringComparison.Ordinal)
+                    ? sourceNamedTypeName
+                    : null;
+            var sourceEventStreamDirective =
+                GetEventStreamDirective(eventStreamDirective, fieldDirective.SchemaKey, fieldDefinition.Name);
+
             temp.Add(
                 new SourceOutputField(
                     fieldDirective.SourceName ?? fieldDefinition.Name,
@@ -804,7 +815,9 @@ internal static class CompositeSchemaBuilder
                     requirements,
                     CompleteType(fieldDef.Type, fieldDirective.SourceType, context),
                     fieldDirective.IsExternal,
-                    fieldDirective.Provides));
+                    fieldDirective.Provides,
+                    sourceTypeName,
+                    sourceEventStreamDirective));
         }
 
         return new SourceObjectFieldCollection(temp.ToImmutable());
@@ -858,6 +871,44 @@ internal static class CompositeSchemaBuilder
             return sourceType is null
                 ? context.GetType(type)
                 : context.GetType(sourceType, type.NamedType().Name.Value);
+        }
+
+        static EventStreamDirective? ParseEventStreamDirective(
+            IReadOnlyList<DirectiveNode> directives)
+        {
+            for (var i = 0; i < directives.Count; i++)
+            {
+                var directive = directives[i];
+                if (EventStreamDirectiveParser.CanParse(directive))
+                {
+                    return EventStreamDirectiveParser.Parse(directive);
+                }
+            }
+
+            return null;
+        }
+
+        static EventStreamDirective? GetEventStreamDirective(
+            EventStreamDirective? directive,
+            SchemaKey schemaKey,
+            string fieldName)
+        {
+            if (directive?.SchemaKey.Equals(schemaKey) == true)
+            {
+                return new EventStreamDirective(
+                    directive.Topics.IsDefaultOrEmpty
+                        ? [fieldName]
+                        : directive.Topics,
+                    directive.Broker,
+                    directive.Message,
+                    directive.CursorField,
+                    directive.CursorArgument)
+                {
+                    SchemaKey = directive.SchemaKey
+                };
+            }
+
+            return null;
         }
     }
 

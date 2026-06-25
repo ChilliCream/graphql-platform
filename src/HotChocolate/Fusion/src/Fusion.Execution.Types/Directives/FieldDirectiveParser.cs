@@ -35,7 +35,7 @@ internal static class FieldDirectiveParser
 
                 case "provides":
                     var providesValue = ((StringValueNode)argument.Value).Value;
-                    provides = ParseProvidesSelectionSet(providesValue);
+                    provides = ParseSelectionSet(providesValue);
                     break;
 
                 case "external":
@@ -62,7 +62,7 @@ internal static class FieldDirectiveParser
         return new FieldDirective(new SchemaKey(schemaKey), sourceName, sourceType, provides, isExternal);
     }
 
-    private static SelectionSetNode ParseProvidesSelectionSet(string value)
+    public static SelectionSetNode ParseSelectionSet(string value)
     {
         try
         {

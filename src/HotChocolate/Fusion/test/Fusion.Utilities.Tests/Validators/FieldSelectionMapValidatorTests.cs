@@ -305,7 +305,9 @@ public sealed class FieldSelectionMapValidatorTests
             { "[ID]", "Query", "storeById.media[id]" },
             { "[ID]", "Query", "storeById.media[id] | storeById.media[id]" },
             { "[[ID]]", "Query", "nestedBookList[[id]]" },
-            { "[[BookIdAndTitleInput]]", "Query", "nestedBookList[[{ id, title }]]" }
+            { "[[BookIdAndTitleInput]]", "Query", "nestedBookList[[{ id, title }]]" },
+            // A constant argument with a valid enum value is accepted.
+            { "Float", "Book", "weight(unit: POUND)" }
         };
     }
 
@@ -417,6 +419,22 @@ public sealed class FieldSelectionMapValidatorTests
                 "Query",
                 "nestedBookList[[{ id }]]",
                 ["The selection on input type 'BookIdAndTitleInput' must include all required fields."]
+            },
+            // Unknown argument on a selected field.
+            {
+                "Float",
+                "Book",
+                "weight(scale: POUND)",
+                ["The argument 'scale' does not exist on field 'Book.weight'."]
+            },
+            // Incompatible argument value.
+            {
+                "Float",
+                "Book",
+                "weight(unit: 5)",
+                [
+                    "The value provided for argument 'unit' on field 'Book.weight' is not compatible with the type 'WeightUnit'."
+                ]
             }
         };
     }
@@ -449,6 +467,7 @@ public sealed class FieldSelectionMapValidatorTests
                 isbn: String!
                 author: Author!
                 nullableAuthor: Author # Added
+                weight(unit: WeightUnit = KILOGRAM): Float # Added
             }
 
             type Movie implements Media {
@@ -486,6 +505,9 @@ public sealed class FieldSelectionMapValidatorTests
             input IdInput {
                 id: ID!
             }
+
+            # Added
+            enum WeightUnit { KILOGRAM POUND }
             """);
 
     private static ReadOnlySpan<char> GetFieldSelectionMap(

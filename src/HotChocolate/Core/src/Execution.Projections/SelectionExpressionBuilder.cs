@@ -53,15 +53,23 @@ internal sealed class SelectionExpressionBuilder
 
     public Expression<Func<TRoot, TRoot>> BuildExpression<TRoot>(
         Selection selection,
-        ulong includeFlags = 0)
+        ulong includeFlags)
+        => BuildExpression<TRoot>(selection, includeFlags, out _);
+
+    public Expression<Func<TRoot, TRoot>> BuildExpression<TRoot>(
+        Selection selection,
+        ulong includeFlags,
+        out ulong dependencyMask)
     {
         var rootType = typeof(TRoot);
         var parameter = Expression.Parameter(rootType, "root");
         var requirements = selection.DeclaringOperation.Schema.Features.GetRequired<FieldRequirementsMetadata>();
-        var context = new Context(parameter, rootType, requirements, new NullabilityInfoContext(), includeFlags);
+        var mask = new DependencyMask();
+        var context = new Context(parameter, rootType, requirements, new NullabilityInfoContext(), includeFlags, mask);
         var root = new TypeContainer();
 
         CollectTypes(context, selection, root);
+        dependencyMask = mask.Value;
 
         var selectionSetExpression = BuildTypeSwitchExpression(context, root);
 
@@ -75,12 +83,19 @@ internal sealed class SelectionExpressionBuilder
 
     public Expression<Func<TRoot, TRoot>> BuildNodeExpression<TRoot>(
         Selection selection,
-        ulong includeFlags = 0)
+        ulong includeFlags)
+        => BuildNodeExpression<TRoot>(selection, includeFlags, out _);
+
+    public Expression<Func<TRoot, TRoot>> BuildNodeExpression<TRoot>(
+        Selection selection,
+        ulong includeFlags,
+        out ulong dependencyMask)
     {
         var rootType = typeof(TRoot);
         var parameter = Expression.Parameter(rootType, "root");
         var requirements = selection.DeclaringOperation.Schema.Features.GetRequired<FieldRequirementsMetadata>();
-        var context = new Context(parameter, rootType, requirements, new NullabilityInfoContext(), includeFlags);
+        var mask = new DependencyMask();
+        var context = new Context(parameter, rootType, requirements, new NullabilityInfoContext(), includeFlags, mask);
         var root = new TypeContainer();
 
         var entityType = selection.DeclaringOperation
@@ -97,6 +112,7 @@ internal sealed class SelectionExpressionBuilder
         var typeNode = new TypeNode(entityType.RuntimeType);
         var selectionSet = selection.DeclaringOperation.GetSelectionSet(selection, entityType);
         CollectSelections(context, selectionSet, typeNode);
+        dependencyMask = mask.Value;
         root.TryAddNode(typeNode);
 
         if (typeNode.Nodes.Count == 0)
@@ -381,6 +397,11 @@ internal sealed class SelectionExpressionBuilder
     {
         foreach (var selection in selectionSet.Selections)
         {
+            context.Mask.Value |= selection.IncludeConditionMask;
+
+            // This is the only place that checks include flags.
+            // If another check is added, its condition bits must be added to the mask too.
+            // Otherwise the selector cache may reuse the wrong expression.
             if (!selection.IsIncluded(context.IncludeFlags))
             {
                 continue;
@@ -625,7 +646,8 @@ internal sealed class SelectionExpressionBuilder
         Type ParentType,
         FieldRequirementsMetadata Requirements,
         NullabilityInfoContext NullabilityInfoContext,
-        ulong IncludeFlags)
+        ulong IncludeFlags,
+        DependencyMask Mask)
     {
         public TypeNode? GetRequirements(Selection selection)
         {
@@ -634,6 +656,11 @@ internal sealed class SelectionExpressionBuilder
                 ? Requirements.GetRequirements(selection.Field)
                 : null;
         }
+    }
+
+    private sealed class DependencyMask
+    {
+        public ulong Value;
     }
 
     private static bool ShouldReuseExistingInstance(Type type)

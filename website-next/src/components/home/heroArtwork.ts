@@ -114,6 +114,54 @@ export const HERO_DRINKS: readonly HeroDrink[] = [
   },
 ];
 
+/**
+ * Trimmed scatter for small screens. The full desktop composition is too dense
+ * for a phone, so mobile gets four drinks pinned to the corners (two above the
+ * headline, two below the copy) with their own sizes and positions, kept clear
+ * of the centered text.
+ */
+export interface HeroMobileDrink {
+  readonly Drink: ComponentType<HeroDrinkComponentProps>;
+  /** Center x as a percentage of the hero box. */
+  readonly left: string;
+  /** Center y as a percentage of the hero box. */
+  readonly top: string;
+  readonly rotate: string;
+  /** Fixed width for the on-page hero (clamp keeps it sensible across phones). */
+  readonly width: string;
+}
+
+export const HERO_DRINKS_MOBILE: readonly HeroMobileDrink[] = [
+  {
+    Drink: GreenDonut,
+    left: "17%",
+    top: "13%",
+    rotate: "-8deg",
+    width: "clamp(2.75rem,11vw,3.25rem)",
+  },
+  {
+    Drink: Nitro,
+    left: "83%",
+    top: "13%",
+    rotate: "9deg",
+    width: "clamp(2.5rem,10vw,3rem)",
+  },
+  {
+    Drink: StrawberryShake,
+    left: "22%",
+    top: "87%",
+    rotate: "6deg",
+    width: "clamp(2.6rem,10.5vw,3rem)",
+  },
+  {
+    Drink: Fusion,
+    left: "78%",
+    top: "87%",
+    rotate: "-4deg",
+    width: "clamp(2.75rem,11vw,3.25rem)",
+  },
+];
+
 export interface HeroSwirl {
   readonly left: string;
   readonly top: string;
@@ -201,6 +249,55 @@ export const HERO_SWIRLS: readonly HeroSwirl[] = [
     rotate: "12deg",
     heroSize: "1.5rem",
     cardSize: 24,
+  },
+];
+
+/**
+ * Sparse swirl set for small screens: a few marks tucked into the vertical gaps
+ * around the centered headline and copy, none overlapping the text.
+ */
+export const HERO_SWIRLS_MOBILE: readonly HeroSwirl[] = [
+  {
+    left: "11%",
+    top: "38%",
+    rotate: "-12deg",
+    heroSize: "1.3rem",
+    cardSize: 21,
+  },
+  {
+    left: "82%",
+    top: "28%",
+    rotate: "16deg",
+    heroSize: "1.2rem",
+    cardSize: 19,
+  },
+  {
+    left: "13%",
+    top: "73%",
+    rotate: "20deg",
+    heroSize: "1.2rem",
+    cardSize: 19,
+  },
+  {
+    left: "86%",
+    top: "75%",
+    rotate: "-8deg",
+    heroSize: "1.3rem",
+    cardSize: 21,
+  },
+  {
+    left: "50%",
+    top: "15%",
+    rotate: "14deg",
+    heroSize: "1.2rem",
+    cardSize: 19,
+  },
+  {
+    left: "50%",
+    top: "89%",
+    rotate: "-16deg",
+    heroSize: "1.2rem",
+    cardSize: 19,
   },
 ];
 
