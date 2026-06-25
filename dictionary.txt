@@ -226,6 +226,7 @@ rovodev
 RRGGBB
 runbooks
 sandboxed
+SASL
 Satisfiability
 Senn
 shoooe
