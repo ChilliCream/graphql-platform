@@ -19,7 +19,7 @@ public static class EventStream
     /// Always thrown. Event-stream fields are fulfilled by the distributed GraphQL executor,
     /// not the local resolver.
     /// </exception>
-    public static T Create<T>(params object[] args)
+    public static T Create<T>(params object?[] args)
         => throw new NotSupportedException(
             "Event-stream fields are fulfilled by the Fusion gateway broker, "
             + "not the local resolver.");

@@ -24,6 +24,7 @@
     <PackageVersion Include="JsonSchema.Net" Version="7.3.4" />
     <PackageVersion Include="Marten" Version="8.37.0" />
     <PackageVersion Include="McMaster.Extensions.CommandLineUtils" Version="4.0.1" />
+    <PackageVersion Include="MessagePack" Version="2.5.301" />
     <PackageVersion Include="Microsoft.Azure.Functions.Extensions" Version="1.1.0" />
     <PackageVersion Include="Microsoft.Azure.Functions.Worker.Core" Version="2.0.0" />
     <PackageVersion Include="Microsoft.Azure.Functions.Worker.Extensions.Abstractions" Version="1.1.0" />
