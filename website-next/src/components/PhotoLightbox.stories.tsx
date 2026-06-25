@@ -2,19 +2,21 @@ import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 import { Picture } from "@/src/design-system/Picture";
 import { PhotoLightbox } from "./PhotoLightbox";
 
-const photo = (seed: string) => ({
-  src: `https://picsum.photos/seed/${seed}/400/600`,
-  alt: `Trip photo ${seed}`,
-});
+// Deterministic inline placeholders: no network (so the screenshot is stable in
+// visual tests) and no text (so there is no cross-environment font rendering).
+const swatch = (hue: number, width = 400, height = 600) =>
+  "data:image/svg+xml," +
+  encodeURIComponent(
+    `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}">` +
+      `<rect width="100%" height="100%" fill="hsl(${hue},55%,45%)"/>` +
+      `<circle cx="${width * 0.5}" cy="${height * 0.38}" r="${Math.min(width, height) * 0.28}" fill="hsl(${hue},65%,72%)"/>` +
+      `</svg>`,
+  );
 
-const SAMPLE = [
-  photo("a"),
-  photo("b"),
-  photo("c"),
-  photo("d"),
-  photo("e"),
-  photo("f"),
-];
+const SAMPLE = Array.from({ length: 6 }, (_, i) => ({
+  src: swatch(i * 60),
+  alt: `Trip photo ${i + 1}`,
+}));
 
 const GRID_CLASS =
   "grid list-none grid-cols-2 gap-3 p-0 sm:grid-cols-3 lg:grid-cols-4";
@@ -24,7 +26,7 @@ const GRID_CLASS =
 // from the `images` prop, matched to the clicked thumbnail by that index.
 const thumbnails = (images: readonly { src: string; alt: string }[]) =>
   images.map((image, index) => (
-    <li key={`${image.src}-${index}`} className="m-0 p-0">
+    <li key={`${image.alt}-${index}`} className="m-0 p-0">
       <a
         href={image.src}
         data-photo-index={index}
