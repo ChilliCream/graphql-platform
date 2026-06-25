@@ -906,7 +906,7 @@ internal sealed class SourceSchemaMerger
                 AddFusionFieldDirectives(outputField, fieldGroup);
                 AddFusionListSizeDirectives(outputField, memberDefinitions);
                 AddFusionRequiresDirectives(outputField, complexType, [.. fieldGroup]);
-                AddFusionSubscribeDirectives(outputField, fieldGroup);
+                AddFusionEventStreamDirectives(outputField, fieldGroup);
 
                 if (fieldGroup.Any(i => i.Field.HasInaccessibleDirective()))
                 {
@@ -1258,27 +1258,27 @@ internal sealed class SourceSchemaMerger
         }
     }
 
-    private void AddFusionSubscribeDirectives(
+    private void AddFusionEventStreamDirectives(
         MutableOutputFieldDefinition field,
         ImmutableArray<OutputFieldInfo> fieldGroup)
     {
-        SubscribeContribution[]? contributions = null;
+        EventStreamContribution[]? contributions = null;
         var count = 0;
 
         foreach (var (sourceField, _, sourceSchema) in fieldGroup)
         {
-            foreach (var subscribeDirective in sourceField.GetSubscribeDirectives())
+            foreach (var eventStreamDirective in sourceField.GetEventStreamDirectives())
             {
-                contributions ??= new SubscribeContribution[fieldGroup.Length];
+                contributions ??= new EventStreamContribution[fieldGroup.Length];
                 if (count == contributions.Length)
                 {
                     Array.Resize(ref contributions, count * 2);
                 }
 
-                contributions[count++] = new SubscribeContribution(
+                contributions[count++] = new EventStreamContribution(
                     _schemaConstantNames[sourceSchema.Name],
                     sourceField.IsShareable,
-                    subscribeDirective,
+                    eventStreamDirective,
                     GetEventCursorFieldName(sourceField),
                     GetEventCursorArgumentName(sourceField));
             }
@@ -1309,11 +1309,11 @@ internal sealed class SourceSchemaMerger
                 return;
             }
 
-            var firstKey = SubscribeIdentity.Create(first);
+            var firstKey = EventStreamIdentity.Create(first);
 
             for (var i = 1; i < count; i++)
             {
-                if (!SubscribeIdentity.Create(contributions[i]).Equals(firstKey))
+                if (!EventStreamIdentity.Create(contributions[i]).Equals(firstKey))
                 {
                     return;
                 }
@@ -1358,14 +1358,14 @@ internal sealed class SourceSchemaMerger
 
         field.Directives.Add(
             new Directive(
-                _fusionDirectiveDefinitions[DirectiveNames.FusionSubscribe],
+                _fusionDirectiveDefinitions[DirectiveNames.FusionEventStream],
                 arguments));
     }
 
-    private readonly record struct SubscribeContribution(
+    private readonly record struct EventStreamContribution(
         string Schema,
         bool IsShareable,
-        SubscribeDirectiveInfo Directive,
+        EventStreamDirectiveInfo Directive,
         string? CursorField,
         string? CursorArgument);
 
@@ -1400,16 +1400,16 @@ internal sealed class SourceSchemaMerger
         return null;
     }
 
-    private readonly record struct SubscribeIdentity(
+    private readonly record struct EventStreamIdentity(
         string? Broker,
         string Topics,
         string Message,
         string? CursorField,
         string? CursorArgument)
     {
-        public static SubscribeIdentity Create(SubscribeContribution contribution)
+        public static EventStreamIdentity Create(EventStreamContribution contribution)
         {
-            return new SubscribeIdentity(
+            return new EventStreamIdentity(
                 contribution.Directive.Broker,
                 NormalizeTopics(contribution.Directive.Topics),
                 NormalizeSelectionSet(contribution.Directive.Message),
@@ -1822,8 +1822,8 @@ internal sealed class SourceSchemaMerger
                 new FusionSchemaMetadataMutableDirectiveDefinition(stringType)
             },
             {
-                DirectiveNames.FusionSubscribe,
-                new FusionSubscribeMutableDirectiveDefinition(
+                DirectiveNames.FusionEventStream,
+                new FusionEventStreamMutableDirectiveDefinition(
                     schemaEnumType,
                     fieldSelectionSetType,
                     stringType)

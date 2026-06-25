@@ -71,14 +71,14 @@ public sealed class EventStreamPlannerTests : FusionTestBase
           @fusion__type(schema: EVENTS) {
           bookChanged: Book
             @fusion__field(schema: EVENTS)
-            @fusion__subscribe(
+            @fusion__eventStream(
               schema: EVENTS
               topics: ["book.changed"]
               message: "{ id }"
             )
           changed: Node
             @fusion__field(schema: EVENTS)
-            @fusion__subscribe(
+            @fusion__eventStream(
               schema: EVENTS
               topics: ["book.changed"]
               message: "{ __typename ... on Book { id } }"
@@ -159,7 +159,7 @@ public sealed class EventStreamPlannerTests : FusionTestBase
           internal: Boolean! = false
         ) repeatable on OBJECT | INTERFACE
 
-        directive @fusion__subscribe(
+        directive @fusion__eventStream(
           schema: fusion__Schema!
           topics: [String!]
           broker: String

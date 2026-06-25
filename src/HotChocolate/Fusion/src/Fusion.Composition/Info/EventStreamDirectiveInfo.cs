@@ -3,7 +3,7 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Info;
 
-internal readonly record struct SubscribeDirectiveInfo(
+internal readonly record struct EventStreamDirectiveInfo(
     ImmutableArray<string> Topics,
     string? Broker,
     SelectionSetNode Message);

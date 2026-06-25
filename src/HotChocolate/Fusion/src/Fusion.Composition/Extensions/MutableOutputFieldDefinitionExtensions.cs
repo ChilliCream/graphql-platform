@@ -60,13 +60,13 @@ internal static class MutableOutputFieldDefinitionExtensions
             return null;
         }
 
-        public ImmutableArray<string> GetFusionSubscribeSchemaNames()
+        public ImmutableArray<string> GetFusionEventStreamSchemaNames()
         {
             ImmutableArray<string>.Builder? builder = null;
 
             foreach (var directive in field.Directives.AsEnumerable())
             {
-                if (directive.Name != DirectiveNames.FusionSubscribe)
+                if (directive.Name != DirectiveNames.FusionEventStream)
                 {
                     continue;
                 }
@@ -78,19 +78,19 @@ internal static class MutableOutputFieldDefinitionExtensions
             return builder?.ToImmutable() ?? [];
         }
 
-        public SelectionSetNode? GetFusionSubscribeMessage(string schemaName)
+        public SelectionSetNode? GetFusionEventStreamMessage(string schemaName)
         {
-            var fusionSubscribeDirective =
+            var fusionEventStreamDirective =
                 field.Directives.AsEnumerable().FirstOrDefault(
                     d =>
-                        d.Name == DirectiveNames.FusionSubscribe
+                        d.Name == DirectiveNames.FusionEventStream
                         && (string)d.Arguments[ArgumentNames.Schema].Value! == schemaName);
 
-            if (fusionSubscribeDirective?.Arguments.TryGetValue(ArgumentNames.Message, out var message) == true)
+            if (fusionEventStreamDirective?.Arguments.TryGetValue(ArgumentNames.Message, out var message) == true)
             {
                 var selectionSet = ParseSelectionSet((string)message.Value!);
 
-                if (fusionSubscribeDirective.Arguments.TryGetValue(ArgumentNames.CursorField, out var cursorField)
+                if (fusionEventStreamDirective.Arguments.TryGetValue(ArgumentNames.CursorField, out var cursorField)
                     && cursorField.Value is string cursorFieldName)
                 {
                     return selectionSet.WithSelections(

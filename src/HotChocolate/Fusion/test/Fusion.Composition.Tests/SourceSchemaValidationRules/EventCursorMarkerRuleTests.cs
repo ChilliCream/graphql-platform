@@ -16,7 +16,7 @@ public sealed class EventCursorMarkerRuleTests : RuleTestBase
 
             type Subscription {
                 onUserChanged(after: String! @eventCursor): UserChangedEvent
-                    @subscribe(message: "{ id changeType }")
+                    @eventStream(message: "{ id changeType }")
             }
 
             type UserChangedEvent {
@@ -40,7 +40,7 @@ public sealed class EventCursorMarkerRuleTests : RuleTestBase
 
             type Subscription {
                 onUserChanged(after: [String!] @eventCursor): UserChangedEvent
-                    @subscribe(message: "{ id changeType }")
+                    @eventStream(message: "{ id changeType }")
             }
 
             type UserChangedEvent {
@@ -88,7 +88,7 @@ public sealed class EventCursorMarkerRuleTests : RuleTestBase
 
             type Subscription {
                 onUserChanged: UserChangedEvent
-                    @subscribe(message: "{ id changeType }")
+                    @eventStream(message: "{ id changeType }")
             }
 
             type UserChangedEvent {
@@ -102,7 +102,7 @@ public sealed class EventCursorMarkerRuleTests : RuleTestBase
         [
             """
             {
-                "message": "The @subscribe field 'Subscription.onUserChanged' in schema 'A' must not declare more than one @eventCursor field on its return type.",
+                "message": "The @eventStream field 'Subscription.onUserChanged' in schema 'A' must not declare more than one @eventCursor field on its return type.",
                 "code": "MULTIPLE_CURSOR_FIELDS",
                 "severity": "Error",
                 "coordinate": "Subscription.onUserChanged",
@@ -126,7 +126,7 @@ public sealed class EventCursorMarkerRuleTests : RuleTestBase
 
             type Subscription {
                 onUserChanged(after: String @eventCursor, cursor: String @eventCursor): UserChangedEvent
-                    @subscribe(message: "{ id changeType }")
+                    @eventStream(message: "{ id changeType }")
             }
 
             type UserChangedEvent {
@@ -138,7 +138,7 @@ public sealed class EventCursorMarkerRuleTests : RuleTestBase
         [
             """
             {
-                "message": "The @subscribe field 'Subscription.onUserChanged' in schema 'A' must not declare more than one @eventCursor argument.",
+                "message": "The @eventStream field 'Subscription.onUserChanged' in schema 'A' must not declare more than one @eventCursor argument.",
                 "code": "MULTIPLE_CURSOR_ARGUMENTS",
                 "severity": "Error",
                 "coordinate": "Subscription.onUserChanged",
@@ -169,7 +169,7 @@ public sealed class EventCursorMarkerRuleTests : RuleTestBase
         [
             """
             {
-                "message": "The @eventCursor marker 'Query.search(after:)' in schema 'A' must be reachable from an @subscribe subscription field.",
+                "message": "The @eventCursor marker 'Query.search(after:)' in schema 'A' must be reachable from an @eventStream subscription field.",
                 "code": "CURSOR_MARKER_ON_NON_SUBSCRIPTION_FIELD",
                 "severity": "Error",
                 "coordinate": "Query.search(after:)",
@@ -180,7 +180,7 @@ public sealed class EventCursorMarkerRuleTests : RuleTestBase
             """,
             """
             {
-                "message": "The @eventCursor marker 'Query.cursor' in schema 'A' must be reachable from an @subscribe subscription field.",
+                "message": "The @eventCursor marker 'Query.cursor' in schema 'A' must be reachable from an @eventStream subscription field.",
                 "code": "CURSOR_MARKER_ON_NON_SUBSCRIPTION_FIELD",
                 "severity": "Error",
                 "coordinate": "Query.cursor",

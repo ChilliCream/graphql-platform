@@ -22,7 +22,7 @@ public sealed class EventStreamHotChocolateIntegrationTests
     private const string BrokerName = "memory";
 
     [Fact]
-    public async Task Compose_Should_DeriveSubscribeDirective_When_SchemaIsAttributeAuthored()
+    public async Task Compose_Should_DeriveEventStreamDirective_When_SchemaIsAttributeAuthored()
     {
         // arrange
         var sdl = await PrintSourceSchemaSdlAsync(
@@ -32,15 +32,15 @@ public sealed class EventStreamHotChocolateIntegrationTests
         var composed = Compose(sdl);
 
         // assert
-        // The @fusion__subscribe directive must carry the topics, broker, cursorField and
-        // cursorArgument derived from the attribute-authored @subscribe/@eventCursor markers. A
-        // directive or argument-name mismatch would silently drop @subscribe and this snapshot
+        // The @fusion__eventStream directive must carry the topics, broker, cursorField and
+        // cursorArgument derived from the attribute-authored @eventStream/@eventCursor markers. A
+        // directive or argument-name mismatch would silently drop @eventStream and this snapshot
         // would lose the directive entirely.
         composed.MatchSnapshot(extension: ".graphql");
     }
 
     [Fact]
-    public async Task Compose_Should_DeriveIdenticalSubscribeDirective_When_SchemaIsFluentAuthored()
+    public async Task Compose_Should_DeriveIdenticalEventStreamDirective_When_SchemaIsFluentAuthored()
     {
         // arrange
         var attributeSdl = await PrintSourceSchemaSdlAsync(
@@ -56,7 +56,7 @@ public sealed class EventStreamHotChocolateIntegrationTests
         // The fluent composition is pinned to the committed ground-truth SDL so an identical
         // regression in both authoring surfaces (which the equality check alone would not catch)
         // still fails here. The equality check then proves both surfaces compose to the same
-        // execution schema, including the derived @fusion__subscribe directive.
+        // execution schema, including the derived @fusion__eventStream directive.
         fluentComposed.MatchSnapshot(extension: ".graphql");
         Assert.Equal(attributeComposed, fluentComposed);
     }
@@ -122,10 +122,30 @@ public sealed class EventStreamHotChocolateIntegrationTests
         // re-delivers the cursor's own event.
         Assert.Equal("Y3Vyc29yLTE=", hub.GetLastSubscribedCursor(topic));
 
-        Assert.Collection(
-            initialEvents,
-            first => Assert.Contains("\"id\": \"u1\"", first),
-            second => Assert.Contains("\"id\": \"u2\"", second));
+        string.Join("\n---\n", initialEvents).MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "onUserCreated": {
+                  "user": {
+                    "id": "u1"
+                  },
+                  "cursor": "Y3Vyc29yLTE="
+                }
+              }
+            }
+            ---
+            {
+              "data": {
+                "onUserCreated": {
+                  "user": {
+                    "id": "u2"
+                  },
+                  "cursor": "Y3Vyc29yLTI="
+                }
+              }
+            }
+            """);
 
         string.Join("\n---\n", resumedEvents).MatchInlineSnapshot(
             """
@@ -396,7 +416,7 @@ public sealed class EventStreamHotChocolateIntegrationTests
         public string Version => "1.0.0";
     }
 
-    // attribute authoring of the @subscribe and @eventCursor directives
+    // attribute authoring of the @eventStream and @eventCursor directives
     [GraphQLName("Subscription")]
     public class AttributeSubscriptions
     {
@@ -405,7 +425,7 @@ public sealed class EventStreamHotChocolateIntegrationTests
             => EventStream.Create<OnUserCreatedEvent>(after);
     }
 
-    // fluent authoring of the same @subscribe and @eventCursor directives, named identically so
+    // fluent authoring of the same @eventStream and @eventCursor directives, named identically so
     // the two authoring surfaces compose into the same execution schema.
     public class FluentSubscriptionType : ObjectType<FluentSubscriptions>
     {

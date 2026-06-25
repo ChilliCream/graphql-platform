@@ -100,7 +100,7 @@ internal sealed record PlanNode
 
     public uint LastRequirementId { get; init; }
 
-    public SubscribeDirective? SubscribeDirective { get; init; }
+    public EventStreamDirective? EventStreamDirective { get; init; }
 
     public double PathCost
         => (MaxDepth * Options.DepthWeight)

@@ -25,9 +25,13 @@ public static class EventStreamTests
 
             type Subscriptions {
               onUserDeleted(after: String! @eventCursor, id: String!): OnUserCreatedEvent!
-                @subscribe(message: "user { id }", topics: ["onUserDeleted"], broker: "bar")
+                @eventStream(
+                  message: "user { id }"
+                  topics: ["onUserDeleted"]
+                  broker: "bar"
+                )
               onUserCreated(after: String! @eventCursor, id: String!): OnUserCreatedEvent!
-                @subscribe(
+                @eventStream(
                   message: "user { id }"
                   topics: ["onUserCreated-{$args.id}"]
                   broker: "foo"
@@ -59,15 +63,15 @@ public static class EventStreamTests
             directive @eventCursor on FIELD_DEFINITION | ARGUMENT_DEFINITION
 
             """
-            The @subscribe directive declares that a subscription field is fulfilled by an
+            The @eventStream directive declares that a subscription field is fulfilled by an
             event stream behind the distributed GraphQL executor. The directive carries the
             payload selection set as well as the topics and broker that the executor uses to
             resolve the stream.
 
 
-            directive @subscribe(message: FieldSelectionSet!, topics: [String!], broker: String) on FIELD_DEFINITION
+            directive @eventStream(message: FieldSelectionSet!, topics: [String!], broker: String) on FIELD_DEFINITION
             """
-            directive @subscribe(
+            directive @eventStream(
               "Gets the payload selection set."
               message: FieldSelectionSet!
               "Gets the topics the event stream subscribes to."
@@ -78,7 +82,7 @@ public static class EventStreamTests
             """");
     }
 
-    // fluent authoring of the @subscribe and @eventCursor directives
+    // fluent authoring of the @eventStream and @eventCursor directives
     public class SubscriptionsType : ObjectType<Subscriptions>
     {
         protected override void Configure(IObjectTypeDescriptor<Subscriptions> descriptor)
@@ -92,7 +96,7 @@ public static class EventStreamTests
 
     public class Subscriptions
     {
-        // attribute authoring of the @subscribe and @eventCursor directives
+        // attribute authoring of the @eventStream and @eventCursor directives
         [EventStream("user { id }", Topic = "onUserCreated-{$args.id}", Broker = "foo")]
         public OnUserCreatedEvent OnUserCreated([EventCursor] string after, string id)
             => EventStream.Create<OnUserCreatedEvent>(after);

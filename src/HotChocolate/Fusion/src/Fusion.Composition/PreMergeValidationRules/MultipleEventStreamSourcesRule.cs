@@ -11,19 +11,19 @@ using static HotChocolate.Fusion.Logging.LogEntryHelper;
 
 namespace HotChocolate.Fusion.PreMergeValidationRules;
 
-internal sealed class MultipleSubscribeSourcesRule : IEventHandler<OutputFieldGroupEvent>
+internal sealed class MultipleEventStreamSourcesRule : IEventHandler<OutputFieldGroupEvent>
 {
     public void Handle(OutputFieldGroupEvent @event, CompositionContext context)
     {
         var fieldGroup = @event.FieldGroup;
-        ImmutableArray<SubscribeContribution>.Builder? builder = null;
+        ImmutableArray<EventStreamContribution>.Builder? builder = null;
 
         foreach (var (field, _, schema) in fieldGroup)
         {
-            foreach (var directive in field.GetSubscribeDirectives())
+            foreach (var directive in field.GetEventStreamDirectives())
             {
-                builder ??= ImmutableArray.CreateBuilder<SubscribeContribution>();
-                builder.Add(new SubscribeContribution(field, schema, field.IsShareable, directive));
+                builder ??= ImmutableArray.CreateBuilder<EventStreamContribution>();
+                builder.Add(new EventStreamContribution(field, schema, field.IsShareable, directive));
             }
         }
 
@@ -49,34 +49,34 @@ internal sealed class MultipleSubscribeSourcesRule : IEventHandler<OutputFieldGr
             }
         }
 
-        var reference = SubscribeIdentity.Create(contributions[0]);
+        var reference = EventStreamIdentity.Create(contributions[0]);
 
         for (var i = 1; i < contributions.Length; i++)
         {
-            if (!SubscribeIdentity.Create(contributions[i]).Equals(reference))
+            if (!EventStreamIdentity.Create(contributions[i]).Equals(reference))
             {
-                context.Log.Write(MultipleSubscribeSources(contributions[0].Field, contributions[0].Schema));
+                context.Log.Write(MultipleEventStreamSources(contributions[0].Field, contributions[0].Schema));
                 return;
             }
         }
     }
 
-    private readonly record struct SubscribeContribution(
+    private readonly record struct EventStreamContribution(
         MutableOutputFieldDefinition Field,
         MutableSchemaDefinition Schema,
         bool IsShareable,
-        SubscribeDirectiveInfo Directive);
+        EventStreamDirectiveInfo Directive);
 
-    private readonly record struct SubscribeIdentity(
+    private readonly record struct EventStreamIdentity(
         string? Broker,
         string Topics,
         string Message,
         string? CursorField,
         string? CursorArgument)
     {
-        public static SubscribeIdentity Create(SubscribeContribution contribution)
+        public static EventStreamIdentity Create(EventStreamContribution contribution)
         {
-            return new SubscribeIdentity(
+            return new EventStreamIdentity(
                 contribution.Directive.Broker,
                 NormalizeTopics(contribution.Directive.Topics),
                 NormalizeSelectionSet(contribution.Directive.Message),

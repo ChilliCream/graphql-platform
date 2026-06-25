@@ -125,7 +125,7 @@ public sealed class NatsSubscriptionTests : IClassFixture<NatsResource>
               @fusion__type(schema: EVENTS) {
               onBookChanged: Book
                 @fusion__field(schema: EVENTS)
-                @fusion__subscribe(
+                @fusion__eventStream(
                   schema: EVENTS
                   topics: ["{{subject}}"]
                   broker: "nats"
@@ -179,7 +179,7 @@ public sealed class NatsSubscriptionTests : IClassFixture<NatsResource>
               internal: Boolean! = false
             ) repeatable on OBJECT | INTERFACE
 
-            directive @fusion__subscribe(
+            directive @fusion__eventStream(
               schema: fusion__Schema!
               topics: [String!]
               broker: String

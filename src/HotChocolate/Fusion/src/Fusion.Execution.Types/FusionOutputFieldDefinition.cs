@@ -168,15 +168,15 @@ public sealed class FusionOutputFieldDefinition : IOutputFieldDefinition, IInacc
     /// <summary>
     /// Gets the event-stream metadata associated with this composed subscription field.
     /// </summary>
-    public SubscribeDirective? SubscribeDirective
+    public EventStreamDirective? EventStreamDirective
     {
         get
         {
             foreach (var source in Sources.Members)
             {
-                if (source.SubscribeDirective is { } subscribeDirective)
+                if (source.EventStreamDirective is { } eventStreamDirective)
                 {
-                    return subscribeDirective;
+                    return eventStreamDirective;
                 }
             }
 

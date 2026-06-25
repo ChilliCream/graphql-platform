@@ -271,7 +271,7 @@ public sealed class SatisfiabilityValidatorTests
     }
 
     [Fact]
-    public void Validate_Should_Fail_When_SubscribeMessageOmitsLookupKey()
+    public void Validate_Should_Fail_When_EventStreamMessageOmitsLookupKey()
     {
         // arrange
         var (result, log) = ValidateSatisfiability(
@@ -280,7 +280,7 @@ public sealed class SatisfiabilityValidatorTests
             # Schema Events
             type Subscription {
                 bookChanged: Book
-                    @subscribe(topics: ["book.changed"], message: "{ __typename }")
+                    @eventStream(topics: ["book.changed"], message: "{ __typename }")
             }
 
             type Book {
@@ -322,7 +322,7 @@ public sealed class SatisfiabilityValidatorTests
     }
 
     [Fact]
-    public void Validate_Should_Succeed_When_SubscribeMessageProvidesLookupKey()
+    public void Validate_Should_Succeed_When_EventStreamMessageProvidesLookupKey()
     {
         // arrange
         var (result, log) = ValidateSatisfiability(
@@ -331,7 +331,7 @@ public sealed class SatisfiabilityValidatorTests
             # Schema Events
             type Subscription {
                 bookChanged: Book
-                    @subscribe(topics: ["book.changed"], message: "{ id }")
+                    @eventStream(topics: ["book.changed"], message: "{ id }")
             }
 
             type Book {
@@ -370,7 +370,7 @@ public sealed class SatisfiabilityValidatorTests
 
             type Subscription {
                 bookChanged: BookChangedEvent
-                    @subscribe(topics: ["book.changed"], message: "{ id title }")
+                    @eventStream(topics: ["book.changed"], message: "{ id title }")
             }
 
             type BookChangedEvent {
@@ -387,7 +387,7 @@ public sealed class SatisfiabilityValidatorTests
     }
 
     [Fact]
-    public void Validate_Should_Fail_When_SubscribeMessageOmitsNestedLookupKey()
+    public void Validate_Should_Fail_When_EventStreamMessageOmitsNestedLookupKey()
     {
         // arrange
         var (result, log) = ValidateSatisfiability(
@@ -396,7 +396,7 @@ public sealed class SatisfiabilityValidatorTests
             # Schema Events
             type Subscription {
                 reviewChanged: Review
-                    @subscribe(
+                    @eventStream(
                         topics: ["review.changed"]
                         message: "{ product { __typename } }"
                     )
@@ -445,7 +445,7 @@ public sealed class SatisfiabilityValidatorTests
     }
 
     [Fact]
-    public void Validate_Should_Succeed_When_SubscribeMessageProvidesNestedLookupKey()
+    public void Validate_Should_Succeed_When_EventStreamMessageProvidesNestedLookupKey()
     {
         // arrange
         var (result, log) = ValidateSatisfiability(
@@ -454,7 +454,7 @@ public sealed class SatisfiabilityValidatorTests
             # Schema Events
             type Subscription {
                 reviewChanged: Review
-                    @subscribe(
+                    @eventStream(
                         topics: ["review.changed"]
                         message: "{ product { id } }"
                     )
@@ -487,7 +487,7 @@ public sealed class SatisfiabilityValidatorTests
     }
 
     [Fact]
-    public void Validate_Should_Succeed_When_SubscribeMessageProvidesInterfaceLookupKey()
+    public void Validate_Should_Succeed_When_EventStreamMessageProvidesInterfaceLookupKey()
     {
         // arrange
         var (result, log) = ValidateSatisfiability(
@@ -496,7 +496,7 @@ public sealed class SatisfiabilityValidatorTests
             # Schema Events
             type Subscription {
                 nodeChanged: Node
-                    @subscribe(topics: ["node.changed"], message: "{ id }")
+                    @eventStream(topics: ["node.changed"], message: "{ id }")
             }
 
             interface Node {
@@ -530,7 +530,7 @@ public sealed class SatisfiabilityValidatorTests
     }
 
     [Fact]
-    public void Validate_Should_Succeed_When_SubscribeMessageNarrowsAbstractBranch()
+    public void Validate_Should_Succeed_When_EventStreamMessageNarrowsAbstractBranch()
     {
         // arrange
         var (result, log) = ValidateSatisfiability(
@@ -539,7 +539,7 @@ public sealed class SatisfiabilityValidatorTests
             # Schema Events
             type Subscription {
                 nodeChanged: Node
-                    @subscribe(
+                    @eventStream(
                         topics: ["node.changed"]
                         message: "{ __typename ... on Book { id } }"
                     )
@@ -586,7 +586,7 @@ public sealed class SatisfiabilityValidatorTests
     }
 
     [Fact]
-    public void Validate_Should_Fail_When_SubscribeMessageNarrowedBranchOmitsLookupKey()
+    public void Validate_Should_Fail_When_EventStreamMessageNarrowedBranchOmitsLookupKey()
     {
         // arrange
         var (result, log) = ValidateSatisfiability(
@@ -595,7 +595,7 @@ public sealed class SatisfiabilityValidatorTests
             # Schema Events
             type Subscription {
                 nodeChanged: Node
-                    @subscribe(
+                    @eventStream(
                         topics: ["node.changed"]
                         message: "{ __typename ... on Book { __typename } }"
                     )

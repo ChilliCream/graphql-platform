@@ -633,16 +633,16 @@ internal static class LogEntryHelper
             .Build();
     }
 
-    public static LogEntry MultipleSubscribeSources(
+    public static LogEntry MultipleEventStreamSources(
         MutableOutputFieldDefinition field,
         MutableSchemaDefinition schema)
     {
         return LogEntryBuilder.New()
             .SetMessage(
-                LogEntryHelper_MultipleSubscribeSources,
+                LogEntryHelper_MultipleEventStreamSources,
                 field.Coordinate.ToString(),
                 schema.Name)
-            .SetCode(LogEntryCodes.MultipleSubscribeSources)
+            .SetCode(LogEntryCodes.MultipleEventStreamSources)
             .SetSeverity(LogSeverity.Error)
             .SetTypeSystemMember(field)
             .SetSchema(schema)
@@ -1134,7 +1134,7 @@ internal static class LogEntryHelper
             .Build();
     }
 
-    public static LogEntry SubscribeMessageInvalidFields(
+    public static LogEntry EventStreamMessageInvalidFields(
         MutableOutputFieldDefinition field,
         MutableSchemaDefinition schema,
         ImmutableArray<string> errors)
@@ -1142,8 +1142,8 @@ internal static class LogEntryHelper
         var coordinate = field.Coordinate;
 
         return LogEntryBuilder.New()
-            .SetMessage(LogEntryHelper_SubscribeMessageInvalidFields, coordinate.ToString(), schema.Name)
-            .SetCode(LogEntryCodes.SubscribeMessageInvalidFields)
+            .SetMessage(LogEntryHelper_EventStreamMessageInvalidFields, coordinate.ToString(), schema.Name)
+            .SetCode(LogEntryCodes.EventStreamMessageInvalidFields)
             .SetSeverity(LogSeverity.Error)
             .SetCoordinate(coordinate)
             .SetTypeSystemMember(field)

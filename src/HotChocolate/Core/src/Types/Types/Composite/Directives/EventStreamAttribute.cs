@@ -5,11 +5,11 @@ namespace HotChocolate.Types.Composite;
 
 /// <summary>
 /// <para>
-/// Applies the @subscribe directive to this subscription field to declare that it is
+/// Applies the @eventStream directive to this subscription field to declare that it is
 /// fulfilled by an event stream behind the distributed GraphQL executor.
 /// </para>
 /// <para>
-/// @subscribe(message: "user { id }", topics: ["onUserCreated"], broker: "kafka")
+/// @eventStream(message: "user { id }", topics: ["onUserCreated"], broker: "kafka")
 /// </para>
 /// </summary>
 [AttributeUsage(AttributeTargets.Method)]

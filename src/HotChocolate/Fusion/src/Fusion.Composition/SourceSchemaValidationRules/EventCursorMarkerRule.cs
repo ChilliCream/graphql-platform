@@ -13,7 +13,7 @@ namespace HotChocolate.Fusion.SourceSchemaValidationRules;
 /// </summary>
 /// <remarks>
 /// <para>
-/// A cursor argument belongs on a subscription field with <c>@subscribe</c>. A cursor field belongs
+/// A cursor argument belongs on a subscription field with <c>@eventStream</c>. A cursor field belongs
 /// directly on that subscription field's return type. Both markers must use <c>String</c> or
 /// <c>String!</c>, and each subscription field can declare at most one cursor argument and one
 /// cursor field.
@@ -24,7 +24,7 @@ namespace HotChocolate.Fusion.SourceSchemaValidationRules;
 /// <code><![CDATA[
 /// type Subscription {
 ///   onUserChanged(after: String @eventCursor): UserChangedEvent
-///     @subscribe(message: "{ id changeType }")
+///     @eventStream(message: "{ id changeType }")
 /// }
 ///
 /// type UserChangedEvent {
@@ -54,7 +54,7 @@ internal sealed class EventCursorMarkerRule : IEventHandler<OutputFieldEvent>
         var (field, declaringType, schema) = @event;
         var isSubscriptionRootField =
             schema.SubscriptionType == declaringType
-            && field.GetSubscribeDirectives().Length > 0;
+            && field.GetEventStreamDirectives().Length > 0;
 
         if (isSubscriptionRootField)
         {
@@ -152,7 +152,7 @@ internal sealed class EventCursorMarkerRule : IEventHandler<OutputFieldEvent>
 
         foreach (var subscriptionField in schema.SubscriptionType.Fields.AsEnumerable())
         {
-            if (subscriptionField.GetSubscribeDirectives().Length > 0
+            if (subscriptionField.GetEventStreamDirectives().Length > 0
                 && subscriptionField.Type.AsTypeDefinition() == declaringType
                 && declaringType is MutableComplexTypeDefinition { Fields: var fields }
                 && fields.Contains(field))

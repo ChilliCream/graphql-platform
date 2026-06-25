@@ -13,7 +13,7 @@ type Subscription @fusion__type(schema: EVENTS) {
     id: String! @fusion__inputField(schema: EVENTS)
   ): OnUserCreatedEvent!
     @fusion__field(schema: EVENTS)
-    @fusion__subscribe(
+    @fusion__eventStream(
       schema: EVENTS
       topics: ["onUserCreated-{$args.id}"]
       broker: "memory"

@@ -219,7 +219,7 @@ public sealed class EventStreamCursorTests
               @fusion__type(schema: EVENTS) {
               onBookChanged(after: String): BookChanged
                 @fusion__field(schema: EVENTS)
-                @fusion__subscribe(
+                @fusion__eventStream(
                   schema: EVENTS
                   topics: ["{{topic}}"]
                   broker: "memory"
@@ -259,7 +259,7 @@ public sealed class EventStreamCursorTests
               external: Boolean! = false
             ) repeatable on FIELD_DEFINITION
 
-            directive @fusion__subscribe(
+            directive @fusion__eventStream(
               schema: fusion__Schema!
               topics: [String!]
               broker: String

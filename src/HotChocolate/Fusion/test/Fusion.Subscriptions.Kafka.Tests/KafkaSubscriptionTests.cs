@@ -146,7 +146,7 @@ public sealed class KafkaSubscriptionTests : IClassFixture<KafkaFixture>
               @fusion__type(schema: EVENTS) {
               onBookChanged: Book
                 @fusion__field(schema: EVENTS)
-                @fusion__subscribe(
+                @fusion__eventStream(
                   schema: EVENTS
                   topics: ["{{topic}}"]
                   broker: "kafka"
@@ -200,7 +200,7 @@ public sealed class KafkaSubscriptionTests : IClassFixture<KafkaFixture>
               internal: Boolean! = false
             ) repeatable on OBJECT | INTERFACE
 
-            directive @fusion__subscribe(
+            directive @fusion__eventStream(
               schema: fusion__Schema!
               topics: [String!]
               broker: String

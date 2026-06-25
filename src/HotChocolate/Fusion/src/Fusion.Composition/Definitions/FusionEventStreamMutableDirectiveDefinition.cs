@@ -6,16 +6,16 @@ using static HotChocolate.Fusion.WellKnownDirectiveNames;
 namespace HotChocolate.Fusion.Definitions;
 
 /// <summary>
-/// The <c>@fusion__subscribe</c> directive specifies broker metadata for a composed
+/// The <c>@fusion__eventStream</c> directive specifies broker metadata for a composed
 /// subscription field.
 /// </summary>
-internal sealed class FusionSubscribeMutableDirectiveDefinition : MutableDirectiveDefinition
+internal sealed class FusionEventStreamMutableDirectiveDefinition : MutableDirectiveDefinition
 {
-    public FusionSubscribeMutableDirectiveDefinition(
+    public FusionEventStreamMutableDirectiveDefinition(
         MutableEnumTypeDefinition schemaMutableEnumType,
         MutableScalarTypeDefinition fieldSelectionSetType,
         MutableScalarTypeDefinition stringType)
-        : base(FusionSubscribe)
+        : base(FusionEventStream)
     {
         Arguments.Add(new MutableInputFieldDefinition(Schema, new NonNullType(schemaMutableEnumType)));
         Arguments.Add(new MutableInputFieldDefinition(Topics, new ListType(new NonNullType(stringType))));

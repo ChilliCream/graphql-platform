@@ -57,28 +57,28 @@ internal static class DirectivesProviderExtensions
             return null;
         }
 
-        public ImmutableArray<SubscribeDirectiveInfo> GetSubscribeDirectives()
+        public ImmutableArray<EventStreamDirectiveInfo> GetEventStreamDirectives()
         {
-            ImmutableArray<SubscribeDirectiveInfo>.Builder? builder = null;
+            ImmutableArray<EventStreamDirectiveInfo>.Builder? builder = null;
 
-            foreach (var subscribeDirective in member.Directives.AsEnumerable())
+            foreach (var eventStreamDirective in member.Directives.AsEnumerable())
             {
-                if (subscribeDirective.Name != WellKnownDirectiveNames.Subscribe)
+                if (eventStreamDirective.Name != WellKnownDirectiveNames.EventStream)
                 {
                     continue;
                 }
 
-                if (!subscribeDirective.Arguments.TryGetValue(ArgumentNames.Message, out var message)
+                if (!eventStreamDirective.Arguments.TryGetValue(ArgumentNames.Message, out var message)
                     || message is not StringValueNode messageArgument)
                 {
                     continue;
                 }
 
-                builder ??= ImmutableArray.CreateBuilder<SubscribeDirectiveInfo>();
+                builder ??= ImmutableArray.CreateBuilder<EventStreamDirectiveInfo>();
                 builder.Add(
-                    new SubscribeDirectiveInfo(
-                        GetOptionalStringListArgument(subscribeDirective, ArgumentNames.Topics),
-                        GetOptionalStringArgument(subscribeDirective, ArgumentNames.Broker),
+                    new EventStreamDirectiveInfo(
+                        GetOptionalStringListArgument(eventStreamDirective, ArgumentNames.Topics),
+                        GetOptionalStringArgument(eventStreamDirective, ArgumentNames.Broker),
                         ParseSelectionSet(messageArgument.Value)));
             }
 

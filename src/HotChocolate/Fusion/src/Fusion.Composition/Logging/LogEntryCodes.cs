@@ -52,7 +52,7 @@ public static class LogEntryCodes
     public const string LookupReturnsNonNullableType = "LOOKUP_RETURNS_NON_NULLABLE_TYPE";
     public const string MultipleCursorArguments = "MULTIPLE_CURSOR_ARGUMENTS";
     public const string MultipleCursorFields = "MULTIPLE_CURSOR_FIELDS";
-    public const string MultipleSubscribeSources = "MULTIPLE_SUBSCRIBE_SOURCES";
+    public const string MultipleEventStreamSources = "MULTIPLE_EVENT_STREAM_SOURCES";
     public const string NonNullInputFieldIsInaccessible = "NON_NULL_INPUT_FIELD_IS_INACCESSIBLE";
     public const string NoQueries = "NO_QUERIES";
     public const string OutputFieldTypesNotMergeable = "OUTPUT_FIELD_TYPES_NOT_MERGEABLE";
@@ -75,7 +75,7 @@ public static class LogEntryCodes
     public const string RootQueryUsed = "ROOT_QUERY_USED";
     public const string RootSubscriptionUsed = "ROOT_SUBSCRIPTION_USED";
     public const string SpecifiedByUrlMismatch = "SPECIFIED_BY_URL_MISMATCH";
-    public const string SubscribeMessageInvalidFields = "SUBSCRIBE_MESSAGE_INVALID_FIELDS";
+    public const string EventStreamMessageInvalidFields = "EVENT_STREAM_MESSAGE_INVALID_FIELDS";
     public const string TypeKindMismatch = "TYPE_KIND_MISMATCH";
     public const string UnsatisfiableQueryPath = "UNSATISFIABLE_QUERY_PATH";
 }

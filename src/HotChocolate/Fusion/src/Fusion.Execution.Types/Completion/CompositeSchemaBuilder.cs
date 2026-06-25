@@ -782,7 +782,7 @@ internal static class CompositeSchemaBuilder
     {
         var fieldDirectives = FieldDirectiveParser.Parse(fieldDef.Directives);
         var requireDirectives = RequiredDirectiveParser.Parse(fieldDef.Directives);
-        var subscribeDirective = ParseSubscribeDirective(fieldDef.Directives);
+        var eventStreamDirective = ParseEventStreamDirective(fieldDef.Directives);
         var temp = ImmutableArray.CreateBuilder<SourceOutputField>();
 
         foreach (var fieldDirective in fieldDirectives)
@@ -805,8 +805,8 @@ internal static class CompositeSchemaBuilder
                 && !string.Equals(sourceNamedTypeName, compositeNamedTypeName, StringComparison.Ordinal)
                     ? sourceNamedTypeName
                     : null;
-            var sourceSubscribeDirective =
-                GetSubscribeDirective(subscribeDirective, fieldDirective.SchemaKey, fieldDefinition.Name);
+            var sourceEventStreamDirective =
+                GetEventStreamDirective(eventStreamDirective, fieldDirective.SchemaKey, fieldDefinition.Name);
 
             temp.Add(
                 new SourceOutputField(
@@ -817,7 +817,7 @@ internal static class CompositeSchemaBuilder
                     fieldDirective.IsExternal,
                     fieldDirective.Provides,
                     sourceTypeName,
-                    sourceSubscribeDirective));
+                    sourceEventStreamDirective));
         }
 
         return new SourceObjectFieldCollection(temp.ToImmutable());
@@ -873,29 +873,29 @@ internal static class CompositeSchemaBuilder
                 : context.GetType(sourceType, type.NamedType().Name.Value);
         }
 
-        static SubscribeDirective? ParseSubscribeDirective(
+        static EventStreamDirective? ParseEventStreamDirective(
             IReadOnlyList<DirectiveNode> directives)
         {
             for (var i = 0; i < directives.Count; i++)
             {
                 var directive = directives[i];
-                if (SubscribeDirectiveParser.CanParse(directive))
+                if (EventStreamDirectiveParser.CanParse(directive))
                 {
-                    return SubscribeDirectiveParser.Parse(directive);
+                    return EventStreamDirectiveParser.Parse(directive);
                 }
             }
 
             return null;
         }
 
-        static SubscribeDirective? GetSubscribeDirective(
-            SubscribeDirective? directive,
+        static EventStreamDirective? GetEventStreamDirective(
+            EventStreamDirective? directive,
             SchemaKey schemaKey,
             string fieldName)
         {
             if (directive?.SchemaKey.Equals(schemaKey) == true)
             {
-                return new SubscribeDirective(
+                return new EventStreamDirective(
                     directive.Topics.IsDefaultOrEmpty
                         ? [fieldName]
                         : directive.Topics,

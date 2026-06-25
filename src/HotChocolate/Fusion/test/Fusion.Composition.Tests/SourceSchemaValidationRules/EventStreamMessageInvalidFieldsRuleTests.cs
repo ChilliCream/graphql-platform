@@ -1,18 +1,18 @@
 namespace HotChocolate.Fusion.SourceSchemaValidationRules;
 
-public sealed class SubscribeMessageInvalidFieldsRuleTests : RuleTestBase
+public sealed class EventStreamMessageInvalidFieldsRuleTests : RuleTestBase
 {
-    protected override object Rule { get; } = new SubscribeMessageInvalidFieldsRule();
+    protected override object Rule { get; } = new EventStreamMessageInvalidFieldsRule();
 
     [Fact]
-    public void Validate_SubscribeMessageObjectSelection_Succeeds()
+    public void Validate_EventStreamMessageObjectSelection_Succeeds()
     {
         AssertValid(
         [
             """
             type Subscription {
                 bookChanged: Book
-                    @subscribe(topics: ["book.changed"], message: "{ id author { name } }")
+                    @eventStream(topics: ["book.changed"], message: "{ id author { name } }")
             }
 
             type Book {
@@ -28,14 +28,14 @@ public sealed class SubscribeMessageInvalidFieldsRuleTests : RuleTestBase
     }
 
     [Fact]
-    public void Validate_SubscribeMessageAbstractSelection_Succeeds()
+    public void Validate_EventStreamMessageAbstractSelection_Succeeds()
     {
         AssertValid(
         [
             """
             type Subscription {
                 nodeChanged: Node
-                    @subscribe(
+                    @eventStream(
                         topics: ["node.changed"]
                         message: "{ __typename ... on Book { id } ... on Author { id } }"
                     )
@@ -57,14 +57,14 @@ public sealed class SubscribeMessageInvalidFieldsRuleTests : RuleTestBase
     }
 
     [Fact]
-    public void Validate_SubscribeMessageUnknownField_Fails()
+    public void Validate_EventStreamMessageUnknownField_Fails()
     {
         AssertInvalid(
             [
                 """
                 type Subscription {
                     bookChanged: Book
-                        @subscribe(topics: ["book.changed"], message: "{ missing }")
+                        @eventStream(topics: ["book.changed"], message: "{ missing }")
                 }
 
                 type Book {
@@ -75,8 +75,8 @@ public sealed class SubscribeMessageInvalidFieldsRuleTests : RuleTestBase
             [
                 """
                 {
-                    "message": "The @subscribe directive on field 'Subscription.bookChanged' in schema 'A' specifies an invalid message selection.",
-                    "code": "SUBSCRIBE_MESSAGE_INVALID_FIELDS",
+                    "message": "The @eventStream directive on field 'Subscription.bookChanged' in schema 'A' specifies an invalid message selection.",
+                    "code": "EVENT_STREAM_MESSAGE_INVALID_FIELDS",
                     "severity": "Error",
                     "coordinate": "Subscription.bookChanged",
                     "member": "bookChanged",
@@ -92,14 +92,14 @@ public sealed class SubscribeMessageInvalidFieldsRuleTests : RuleTestBase
     }
 
     [Fact]
-    public void Validate_SubscribeMessageMissingObjectSubselection_Fails()
+    public void Validate_EventStreamMessageMissingObjectSubselection_Fails()
     {
         AssertInvalid(
             [
                 """
                 type Subscription {
                     bookChanged: Book
-                        @subscribe(topics: ["book.changed"], message: "{ author }")
+                        @eventStream(topics: ["book.changed"], message: "{ author }")
                 }
 
                 type Book {
@@ -114,8 +114,8 @@ public sealed class SubscribeMessageInvalidFieldsRuleTests : RuleTestBase
             [
                 """
                 {
-                    "message": "The @subscribe directive on field 'Subscription.bookChanged' in schema 'A' specifies an invalid message selection.",
-                    "code": "SUBSCRIBE_MESSAGE_INVALID_FIELDS",
+                    "message": "The @eventStream directive on field 'Subscription.bookChanged' in schema 'A' specifies an invalid message selection.",
+                    "code": "EVENT_STREAM_MESSAGE_INVALID_FIELDS",
                     "severity": "Error",
                     "coordinate": "Subscription.bookChanged",
                     "member": "bookChanged",
@@ -131,14 +131,14 @@ public sealed class SubscribeMessageInvalidFieldsRuleTests : RuleTestBase
     }
 
     [Fact]
-    public void Validate_SubscribeMessageScalarSubselection_Fails()
+    public void Validate_EventStreamMessageScalarSubselection_Fails()
     {
         AssertInvalid(
             [
                 """
                 type Subscription {
                     bookChanged: Book
-                        @subscribe(topics: ["book.changed"], message: "{ id { value } }")
+                        @eventStream(topics: ["book.changed"], message: "{ id { value } }")
                 }
 
                 type Book {
@@ -149,8 +149,8 @@ public sealed class SubscribeMessageInvalidFieldsRuleTests : RuleTestBase
             [
                 """
                 {
-                    "message": "The @subscribe directive on field 'Subscription.bookChanged' in schema 'A' specifies an invalid message selection.",
-                    "code": "SUBSCRIBE_MESSAGE_INVALID_FIELDS",
+                    "message": "The @eventStream directive on field 'Subscription.bookChanged' in schema 'A' specifies an invalid message selection.",
+                    "code": "EVENT_STREAM_MESSAGE_INVALID_FIELDS",
                     "severity": "Error",
                     "coordinate": "Subscription.bookChanged",
                     "member": "bookChanged",
@@ -166,14 +166,14 @@ public sealed class SubscribeMessageInvalidFieldsRuleTests : RuleTestBase
     }
 
     [Fact]
-    public void Validate_SubscribeMessageInvalidTypeCondition_Fails()
+    public void Validate_EventStreamMessageInvalidTypeCondition_Fails()
     {
         AssertInvalid(
             [
                 """
                 type Subscription {
                     nodeChanged: Node
-                        @subscribe(topics: ["node.changed"], message: "{ ... on Review { id } }")
+                        @eventStream(topics: ["node.changed"], message: "{ ... on Review { id } }")
                 }
 
                 interface Node {
@@ -192,8 +192,8 @@ public sealed class SubscribeMessageInvalidFieldsRuleTests : RuleTestBase
             [
                 """
                 {
-                    "message": "The @subscribe directive on field 'Subscription.nodeChanged' in schema 'A' specifies an invalid message selection.",
-                    "code": "SUBSCRIBE_MESSAGE_INVALID_FIELDS",
+                    "message": "The @eventStream directive on field 'Subscription.nodeChanged' in schema 'A' specifies an invalid message selection.",
+                    "code": "EVENT_STREAM_MESSAGE_INVALID_FIELDS",
                     "severity": "Error",
                     "coordinate": "Subscription.nodeChanged",
                     "member": "nodeChanged",

@@ -539,17 +539,17 @@ public static class DirectiveNames
     }
 
     /// <summary>
-    /// The name constants of the @subscribe directive.
+    /// The name constants of the @eventStream directive.
     /// </summary>
-    public static class Subscribe
+    public static class EventStream
     {
         /// <summary>
-        /// The name of the @subscribe directive.
+        /// The name of the @eventStream directive.
         /// </summary>
-        public const string Name = "subscribe";
+        public const string Name = "eventStream";
 
         /// <summary>
-        /// The argument names of the @subscribe directive.
+        /// The argument names of the @eventStream directive.
         /// </summary>
         public static class Arguments
         {

@@ -113,13 +113,13 @@ internal sealed class SatisfiabilityValidator
     {
         var previousSchemaName = path?.Item.SchemaName;
         var schemaNames = field.GetSchemaNames(first: previousSchemaName);
-        var subscribeSchemaNames = field.GetFusionSubscribeSchemaNames();
+        var eventStreamSchemaNames = field.GetFusionEventStreamSchemaNames();
 
-        if (!subscribeSchemaNames.IsDefaultOrEmpty)
+        if (!eventStreamSchemaNames.IsDefaultOrEmpty)
         {
-            schemaNames = previousSchemaName is not null && subscribeSchemaNames.Contains(previousSchemaName)
-                ? subscribeSchemaNames.Remove(previousSchemaName).Insert(0, previousSchemaName)
-                : subscribeSchemaNames;
+            schemaNames = previousSchemaName is not null && eventStreamSchemaNames.Contains(previousSchemaName)
+                ? eventStreamSchemaNames.Remove(previousSchemaName).Insert(0, previousSchemaName)
+                : eventStreamSchemaNames;
         }
 
         var cycle = false;
@@ -157,7 +157,7 @@ internal sealed class SatisfiabilityValidator
                 schemaName)
             {
                 ProvidedSelectionSet =
-                    field.GetFusionSubscribeMessage(schemaName) ?? providedSelectionSet
+                    field.GetFusionEventStreamMessage(schemaName) ?? providedSelectionSet
             };
 
             // Validate that we are not in a cycle by checking if this path item

@@ -12,7 +12,7 @@ public sealed class SourceOutputField(
     bool isExternal,
     SelectionSetNode? provides,
     string? sourceTypeName,
-    SubscribeDirective? subscribeDirective = null)
+    EventStreamDirective? eventStreamDirective = null)
     : ISourceMember
 {
     public string Name { get; } = name;
@@ -33,5 +33,5 @@ public sealed class SourceOutputField(
     /// </summary>
     public string? SourceTypeName { get; } = sourceTypeName;
 
-    public SubscribeDirective? SubscribeDirective { get; } = subscribeDirective;
+    public EventStreamDirective? EventStreamDirective { get; } = eventStreamDirective;
 }

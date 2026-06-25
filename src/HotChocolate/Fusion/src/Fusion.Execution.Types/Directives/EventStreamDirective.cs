@@ -4,7 +4,7 @@ using HotChocolate.Language;
 namespace HotChocolate.Fusion.Types.Directives;
 
 /*
-directive @fusion__subscribe(
+directive @fusion__eventStream(
     schema: fusion__Schema!
     topics: [String!]
     broker: String
@@ -13,7 +13,7 @@ directive @fusion__subscribe(
     cursorArgument: String
 ) on FIELD_DEFINITION
 */
-public sealed class SubscribeDirective(
+public sealed class EventStreamDirective(
     ImmutableArray<string> topics,
     string? broker,
     SelectionSetNode message,

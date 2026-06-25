@@ -962,7 +962,7 @@ namespace HotChocolate.Fusion.Properties {
         }
 
         /// <summary>
-        ///   Looks up a localized string similar to The @eventCursor marker &apos;{0}&apos; in schema &apos;{1}&apos; must be reachable from an @subscribe subscription field..
+        ///   Looks up a localized string similar to The @eventCursor marker &apos;{0}&apos; in schema &apos;{1}&apos; must be reachable from an @eventStream subscription field..
         /// </summary>
         internal static string LogEntryHelper_EventCursorMarkerOnNonSubscriptionField {
             get {
@@ -1079,16 +1079,16 @@ namespace HotChocolate.Fusion.Properties {
         }
 
         /// <summary>
-        ///   Looks up a localized string similar to The shareable subscription field &apos;{0}&apos; in schema &apos;{1}&apos; must declare the same @subscribe source in every source schema..
+        ///   Looks up a localized string similar to The shareable subscription field &apos;{0}&apos; in schema &apos;{1}&apos; must declare the same @eventStream source in every source schema..
         /// </summary>
-        internal static string LogEntryHelper_MultipleSubscribeSources {
+        internal static string LogEntryHelper_MultipleEventStreamSources {
             get {
-                return ResourceManager.GetString("LogEntryHelper_MultipleSubscribeSources", resourceCulture);
+                return ResourceManager.GetString("LogEntryHelper_MultipleEventStreamSources", resourceCulture);
             }
         }
 
         /// <summary>
-        ///   Looks up a localized string similar to The @subscribe field &apos;{0}&apos; in schema &apos;{1}&apos; must not declare more than one @eventCursor argument..
+        ///   Looks up a localized string similar to The @eventStream field &apos;{0}&apos; in schema &apos;{1}&apos; must not declare more than one @eventCursor argument..
         /// </summary>
         internal static string LogEntryHelper_MultipleCursorArguments {
             get {
@@ -1097,7 +1097,7 @@ namespace HotChocolate.Fusion.Properties {
         }
 
         /// <summary>
-        ///   Looks up a localized string similar to The @subscribe field &apos;{0}&apos; in schema &apos;{1}&apos; must not declare more than one @eventCursor field on its return type..
+        ///   Looks up a localized string similar to The @eventStream field &apos;{0}&apos; in schema &apos;{1}&apos; must not declare more than one @eventCursor field on its return type..
         /// </summary>
         internal static string LogEntryHelper_MultipleCursorFields {
             get {
@@ -1331,11 +1331,11 @@ namespace HotChocolate.Fusion.Properties {
         }
 
         /// <summary>
-        ///   Looks up a localized string similar to The @subscribe directive on field &apos;{0}&apos; in schema &apos;{1}&apos; specifies an invalid message selection..
+        ///   Looks up a localized string similar to The @eventStream directive on field &apos;{0}&apos; in schema &apos;{1}&apos; specifies an invalid message selection..
         /// </summary>
-        internal static string LogEntryHelper_SubscribeMessageInvalidFields {
+        internal static string LogEntryHelper_EventStreamMessageInvalidFields {
             get {
-                return ResourceManager.GetString("LogEntryHelper_SubscribeMessageInvalidFields", resourceCulture);
+                return ResourceManager.GetString("LogEntryHelper_EventStreamMessageInvalidFields", resourceCulture);
             }
         }
 

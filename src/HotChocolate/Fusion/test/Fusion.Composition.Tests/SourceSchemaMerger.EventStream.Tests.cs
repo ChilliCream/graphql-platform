@@ -3,10 +3,10 @@ using HotChocolate.Fusion.Options;
 
 namespace HotChocolate.Fusion;
 
-public sealed class SourceSchemaMergerSubscribeTests : SourceSchemaMergerTestBase
+public sealed class SourceSchemaMergerEventStreamTests : SourceSchemaMergerTestBase
 {
     [Fact]
-    public void Merge_Subscribe_Should_Collapse_When_ShareableDeclarationsAreIdentical()
+    public void Merge_EventStream_Should_Collapse_When_ShareableDeclarationsAreIdentical()
     {
         AssertMatches(
             [
@@ -14,7 +14,7 @@ public sealed class SourceSchemaMergerSubscribeTests : SourceSchemaMergerTestBas
                 type Subscription {
                     bookChanged: Book
                         @shareable
-                        @subscribe(
+                        @eventStream(
                             topics: ["book.changed", "book.updated"]
                             broker: "events"
                             message: "{ id }"
@@ -29,7 +29,7 @@ public sealed class SourceSchemaMergerSubscribeTests : SourceSchemaMergerTestBas
                 type Subscription {
                     bookChanged: Book
                         @shareable
-                        @subscribe(
+                        @eventStream(
                             topics: ["book.updated", "book.changed"]
                             broker: "events"
                             message: "{ id }"
@@ -50,7 +50,7 @@ public sealed class SourceSchemaMergerSubscribeTests : SourceSchemaMergerTestBas
               bookChanged: Book
                 @fusion__field(schema: A)
                 @fusion__field(schema: B)
-                @fusion__subscribe(
+                @fusion__eventStream(
                   schema: A
                   topics: ["book.changed", "book.updated"]
                   broker: "events"
@@ -65,7 +65,7 @@ public sealed class SourceSchemaMergerSubscribeTests : SourceSchemaMergerTestBas
     }
 
     [Fact]
-    public void Merge_Subscribe_Should_Collapse_When_ReturnTypesDifferOnlyByNullability()
+    public void Merge_EventStream_Should_Collapse_When_ReturnTypesDifferOnlyByNullability()
     {
         AssertMatches(
             [
@@ -73,7 +73,7 @@ public sealed class SourceSchemaMergerSubscribeTests : SourceSchemaMergerTestBas
                 type Subscription {
                     bookChanged: Book!
                         @shareable
-                        @subscribe(topics: ["book.changed"], message: "{ id }")
+                        @eventStream(topics: ["book.changed"], message: "{ id }")
                 }
 
                 type Book {
@@ -84,7 +84,7 @@ public sealed class SourceSchemaMergerSubscribeTests : SourceSchemaMergerTestBas
                 type Subscription {
                     bookChanged: Book
                         @shareable
-                        @subscribe(topics: ["book.changed"], message: "{ id }")
+                        @eventStream(topics: ["book.changed"], message: "{ id }")
                 }
 
                 type Book {
@@ -101,7 +101,7 @@ public sealed class SourceSchemaMergerSubscribeTests : SourceSchemaMergerTestBas
               bookChanged: Book
                 @fusion__field(schema: A, sourceType: "Book!")
                 @fusion__field(schema: B)
-                @fusion__subscribe(schema: A, topics: ["book.changed"], message: "{ id }")
+                @fusion__eventStream(schema: A, topics: ["book.changed"], message: "{ id }")
             }
 
             type Book @fusion__type(schema: A) @fusion__type(schema: B) {
@@ -111,7 +111,7 @@ public sealed class SourceSchemaMergerSubscribeTests : SourceSchemaMergerTestBas
     }
 
     [Fact]
-    public void Compose_Subscribe_Should_Fail_When_ShareableDeclarationsDiffer()
+    public void Compose_EventStream_Should_Fail_When_ShareableDeclarationsDiffer()
     {
         var log = new CompositionLog();
         var composer = new SchemaComposer(
@@ -122,7 +122,7 @@ public sealed class SourceSchemaMergerSubscribeTests : SourceSchemaMergerTestBas
                     type Subscription {
                         bookChanged: Book
                             @shareable
-                            @subscribe(topics: ["book.changed"], message: "{ id }")
+                            @eventStream(topics: ["book.changed"], message: "{ id }")
                     }
 
                     type Book {
@@ -135,7 +135,7 @@ public sealed class SourceSchemaMergerSubscribeTests : SourceSchemaMergerTestBas
                     type Subscription {
                         bookChanged: Book
                             @shareable
-                            @subscribe(topics: ["book.updated"], message: "{ id }")
+                            @eventStream(topics: ["book.updated"], message: "{ id }")
                     }
 
                     type Book {
@@ -149,12 +149,12 @@ public sealed class SourceSchemaMergerSubscribeTests : SourceSchemaMergerTestBas
         var result = composer.Compose();
 
         Assert.True(result.IsFailure);
-        var entry = Assert.Single(log, t => t.Code == LogEntryCodes.MultipleSubscribeSources);
+        var entry = Assert.Single(log, t => t.Code == LogEntryCodes.MultipleEventStreamSources);
         Assert.Equal(LogSeverity.Error, entry.Severity);
     }
 
     [Fact]
-    public void Compose_Subscribe_Should_Fail_When_ReturnTypesDifferBeyondNullability()
+    public void Compose_EventStream_Should_Fail_When_ReturnTypesDifferBeyondNullability()
     {
         var log = new CompositionLog();
         var composer = new SchemaComposer(
@@ -165,7 +165,7 @@ public sealed class SourceSchemaMergerSubscribeTests : SourceSchemaMergerTestBas
                     type Subscription {
                         changed: Book
                             @shareable
-                            @subscribe(topics: ["node.changed"], message: "{ id }")
+                            @eventStream(topics: ["node.changed"], message: "{ id }")
                     }
 
                     interface Node {
@@ -182,7 +182,7 @@ public sealed class SourceSchemaMergerSubscribeTests : SourceSchemaMergerTestBas
                     type Subscription {
                         changed: Node
                             @shareable
-                            @subscribe(topics: ["node.changed"], message: "{ id }")
+                            @eventStream(topics: ["node.changed"], message: "{ id }")
                     }
 
                     interface Node {
@@ -217,7 +217,7 @@ public sealed class SourceSchemaMergerSubscribeTests : SourceSchemaMergerTestBas
     }
 
     [Fact]
-    public void Compose_Subscribe_Should_Fail_With_InvalidFieldSharing_When_NotShareable()
+    public void Compose_EventStream_Should_Fail_With_InvalidFieldSharing_When_NotShareable()
     {
         var log = new CompositionLog();
         var composer = new SchemaComposer(
@@ -227,7 +227,7 @@ public sealed class SourceSchemaMergerSubscribeTests : SourceSchemaMergerTestBas
                     """
                     type Subscription {
                         bookChanged: Book
-                            @subscribe(topics: ["book.changed"], message: "{ id }")
+                            @eventStream(topics: ["book.changed"], message: "{ id }")
                     }
 
                     type Book {
@@ -239,7 +239,7 @@ public sealed class SourceSchemaMergerSubscribeTests : SourceSchemaMergerTestBas
                     """
                     type Subscription {
                         bookChanged: Book
-                            @subscribe(topics: ["book.changed"], message: "{ id }")
+                            @eventStream(topics: ["book.changed"], message: "{ id }")
                     }
 
                     type Book {

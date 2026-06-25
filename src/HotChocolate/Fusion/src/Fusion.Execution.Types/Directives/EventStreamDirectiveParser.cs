@@ -3,12 +3,12 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Types.Directives;
 
-internal static class SubscribeDirectiveParser
+internal static class EventStreamDirectiveParser
 {
     public static bool CanParse(DirectiveNode directiveNode)
-        => directiveNode.Name.Value.Equals(FusionBuiltIns.Subscribe, StringComparison.Ordinal);
+        => directiveNode.Name.Value.Equals(FusionBuiltIns.EventStream, StringComparison.Ordinal);
 
-    public static SubscribeDirective Parse(DirectiveNode directive)
+    public static EventStreamDirective Parse(DirectiveNode directive)
     {
         string? schemaKey = null;
         var topics = ImmutableArray<string>.Empty;
@@ -48,23 +48,23 @@ internal static class SubscribeDirectiveParser
 
                 default:
                     throw new DirectiveParserException(
-                        $"The argument `{argument.Name.Value}` is not supported on @subscribe.");
+                        $"The argument `{argument.Name.Value}` is not supported on @eventStream.");
             }
         }
 
         if (string.IsNullOrEmpty(schemaKey))
         {
             throw new DirectiveParserException(
-                "The `schema` argument is required on the @subscribe directive.");
+                "The `schema` argument is required on the @eventStream directive.");
         }
 
         if (message is null)
         {
             throw new DirectiveParserException(
-                "The `message` argument is required on the @subscribe directive.");
+                "The `message` argument is required on the @eventStream directive.");
         }
 
-        return new SubscribeDirective(topics, broker, message, cursorField, cursorArgument)
+        return new EventStreamDirective(topics, broker, message, cursorField, cursorArgument)
         {
             SchemaKey = new SchemaKey(schemaKey)
         };

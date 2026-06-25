@@ -3,18 +3,18 @@ using HotChocolate.Language;
 namespace HotChocolate.Types.Composite;
 
 /// <summary>
-/// Provides extension methods to configure the @subscribe and @eventCursor directives
+/// Provides extension methods to configure the @eventStream and @eventCursor directives
 /// with the fluent API.
 /// </summary>
 public static class EventStreamDescriptorExtensions
 {
     /// <summary>
     /// <para>
-    /// Applies the @subscribe directive to this subscription field to declare that it is
+    /// Applies the @eventStream directive to this subscription field to declare that it is
     /// fulfilled by an event stream behind the distributed GraphQL executor.
     /// </para>
     /// <para>
-    /// @subscribe(message: "user { id }", topics: ["onUserCreated"], broker: "kafka")
+    /// @eventStream(message: "user { id }", topics: ["onUserCreated"], broker: "kafka")
     /// </para>
     /// </summary>
     /// <param name="descriptor">The object field descriptor.</param>
@@ -23,7 +23,7 @@ public static class EventStreamDescriptorExtensions
     /// </param>
     /// <param name="topic">The topic the event stream subscribes to.</param>
     /// <param name="broker">The broker that provides the event stream.</param>
-    /// <returns>The object field descriptor with the @subscribe directive applied.</returns>
+    /// <returns>The object field descriptor with the @eventStream directive applied.</returns>
     public static IObjectFieldDescriptor EventStream(
         this IObjectFieldDescriptor descriptor,
         string message,
@@ -40,11 +40,11 @@ public static class EventStreamDescriptorExtensions
 
     /// <summary>
     /// <para>
-    /// Applies the @subscribe directive to this subscription field to declare that it is
+    /// Applies the @eventStream directive to this subscription field to declare that it is
     /// fulfilled by an event stream behind the distributed GraphQL executor.
     /// </para>
     /// <para>
-    /// @subscribe(message: "user { id }", topics: ["onUserCreated"], broker: "kafka")
+    /// @eventStream(message: "user { id }", topics: ["onUserCreated"], broker: "kafka")
     /// </para>
     /// </summary>
     /// <param name="descriptor">The object field descriptor.</param>
@@ -53,7 +53,7 @@ public static class EventStreamDescriptorExtensions
     /// </param>
     /// <param name="topics">The topics the event stream subscribes to.</param>
     /// <param name="broker">The broker that provides the event stream.</param>
-    /// <returns>The object field descriptor with the @subscribe directive applied.</returns>
+    /// <returns>The object field descriptor with the @eventStream directive applied.</returns>
     public static IObjectFieldDescriptor EventStream(
         this IObjectFieldDescriptor descriptor,
         string message,

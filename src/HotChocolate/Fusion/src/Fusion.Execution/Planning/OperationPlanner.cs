@@ -144,12 +144,12 @@ public sealed partial class OperationPlanner
                 var possiblePlans = new PlanQueue(_schema);
 
                 if (mainOperationDefinition.Operation == OperationType.Subscription
-                    && TryGetSubscribeSpec(selectionSet, out var subscribeSpec))
+                    && TryResolveEventStream(selectionSet, out var subscriptionField))
                 {
                     var eventStreamPlan = PlanEventStreamSubscription(
                         id,
                         node,
-                        subscribeSpec,
+                        subscriptionField,
                         eventSourceEnabled,
                         cancellationToken);
 
@@ -708,11 +708,11 @@ public sealed partial class OperationPlanner
         }
     }
 
-    private static bool TryGetSubscribeSpec(
+    private static bool TryResolveEventStream(
         SelectionSet selectionSet,
-        out SubscribeSpec spec)
+        out SubscriptionField subscriptionField)
     {
-        spec = default;
+        subscriptionField = default;
 
         if (selectionSet.Type is not FusionComplexTypeDefinition complexType)
         {
@@ -741,10 +741,10 @@ public sealed partial class OperationPlanner
 
         foreach (var source in field.Sources.Members)
         {
-            if (source.SubscribeDirective is { } directive)
+            if (source.EventStreamDirective is { } directive)
             {
-                var subscribeDirective = directive.Topics.IsDefaultOrEmpty
-                    ? new SubscribeDirective(
+                var eventStreamDirective = directive.Topics.IsDefaultOrEmpty
+                    ? new EventStreamDirective(
                         [rootFieldNode.Name.Value],
                         directive.Broker,
                         directive.Message,
@@ -755,7 +755,7 @@ public sealed partial class OperationPlanner
                     }
                     : directive;
 
-                spec = new SubscribeSpec(source.SchemaName, responseName, subscribeDirective);
+                subscriptionField = new SubscriptionField(responseName, source.SchemaName, eventStreamDirective);
                 return true;
             }
         }
@@ -766,7 +766,7 @@ public sealed partial class OperationPlanner
     private EventStreamPlanningResult PlanEventStreamSubscription(
         string operationId,
         PlanNode seed,
-        SubscribeSpec subscribeSpec,
+        SubscriptionField subscriptionField,
         bool emitPlannerEvents,
         CancellationToken cancellationToken)
     {
@@ -774,8 +774,8 @@ public sealed partial class OperationPlanner
         possiblePlans.Enqueue(
             seed with
             {
-                SchemaName = subscribeSpec.SchemaName,
-                SubscribeDirective = subscribeSpec.Directive,
+                SchemaName = subscriptionField.SchemaName,
+                EventStreamDirective = subscriptionField.Directive,
                 ResolutionCost = 0
             });
 
@@ -789,13 +789,13 @@ public sealed partial class OperationPlanner
         var rootStep = GetEventStreamRootStep(plan.Value.Steps);
         var eventStreamPlan = new EventStreamPlan
         {
-            FieldName = subscribeSpec.FieldName,
-            Source = CreateEventStreamSource(subscribeSpec),
-            Message = subscribeSpec.Directive.Message.ToString(indented: false)
+            FieldName = subscriptionField.Name,
+            Source = CreateEventStreamSource(subscriptionField),
+            Message = subscriptionField.Directive.Message.ToString(indented: false)
         };
 
         var rootStepIndex = plan.Value.Steps.IndexOf(rootStep);
-        var eventStreamMessage = CreateEventStreamMessageSelectionSet(subscribeSpec.Directive);
+        var eventStreamMessage = CreateEventStreamMessageSelectionSet(subscriptionField.Directive);
         var updatedRootStep = rootStep with
         {
             Definition = CreateEventStreamMessageOperationDefinition(
@@ -857,20 +857,20 @@ public sealed partial class OperationPlanner
         return field.Type.AsTypeDefinition();
     }
 
-    private static EventStreamSource CreateEventStreamSource(SubscribeSpec spec)
+    private static EventStreamSource CreateEventStreamSource(SubscriptionField subscriptionField)
         => new()
         {
-            SchemaName = spec.SchemaName,
-            FieldName = spec.FieldName,
-            Topics = spec.Directive.Topics,
-            Broker = spec.Directive.Broker,
-            Message = spec.Directive.Message,
-            CursorField = spec.Directive.CursorField,
-            CursorArgument = spec.Directive.CursorArgument
+            SchemaName = subscriptionField.SchemaName,
+            FieldName = subscriptionField.Name,
+            Topics = subscriptionField.Directive.Topics,
+            Broker = subscriptionField.Directive.Broker,
+            Message = subscriptionField.Directive.Message,
+            CursorField = subscriptionField.Directive.CursorField,
+            CursorArgument = subscriptionField.Directive.CursorArgument
         };
 
     private static SelectionSetNode CreateEventStreamMessageSelectionSet(
-        SubscribeDirective directive)
+        EventStreamDirective directive)
     {
         if (string.IsNullOrEmpty(directive.CursorField))
         {
@@ -889,9 +889,9 @@ public sealed partial class OperationPlanner
             .OfType<OperationPlanStep>()
             .Single(t => t.Target.IsRoot && t.Definition.Operation == OperationType.Subscription);
 
-    private static SelectionSetNode? CreateSubscribeProvidedSelectionSet(
+    private static SelectionSetNode? CreateEventStreamProvidedSelectionSet(
         SelectionSetNode rootSelectionSet,
-        SubscribeDirective directive)
+        EventStreamDirective directive)
     {
         foreach (var selection in rootSelectionSet.Selections)
         {
@@ -907,10 +907,10 @@ public sealed partial class OperationPlanner
         return null;
     }
 
-    private readonly record struct SubscribeSpec(
+    private readonly record struct SubscriptionField(
+        string Name,
         string SchemaName,
-        string FieldName,
-        SubscribeDirective Directive);
+        EventStreamDirective Directive);
 
     private readonly record struct EventStreamPlanningResult(
         OperationDefinitionNode InternalOperationDefinition,
@@ -965,12 +965,12 @@ public sealed partial class OperationPlanner
             SelectionSet = workItem.SelectionSet,
             SelectionSetIndex = index,
             PruneUnprovidedAbstractBranches = workItem.Kind is OperationWorkItemKind.Root
-                && current.SubscribeDirective is not null,
+                && current.EventStreamDirective is not null,
             ProvidedSelectionSet = workItem.Kind is OperationWorkItemKind.Root
-                && current.SubscribeDirective is not null
-                    ? CreateSubscribeProvidedSelectionSet(
+                && current.EventStreamDirective is not null
+                    ? CreateEventStreamProvidedSelectionSet(
                         workItem.SelectionSet.Node,
-                        current.SubscribeDirective)
+                        current.EventStreamDirective)
                     : null
         };
 
@@ -1077,7 +1077,7 @@ public sealed partial class OperationPlanner
             ExcessFanout = costState.ExcessFanout,
             OpsPerLevel = costState.OpsPerLevel,
             OperationStepDepths = costState.StepDepths,
-            SubscribeDirective = current.SubscribeDirective
+            EventStreamDirective = current.EventStreamDirective
         };
 
         possiblePlans.EnqueueBranches(next);
@@ -1405,7 +1405,7 @@ public sealed partial class OperationPlanner
             ExcessFanout = current.ExcessFanout,
             OpsPerLevel = current.OpsPerLevel,
             OperationStepDepths = current.OperationStepDepths,
-            SubscribeDirective = current.SubscribeDirective
+            EventStreamDirective = current.EventStreamDirective
         };
 
         possiblePlans.EnqueueBranches(next);
@@ -1611,7 +1611,7 @@ public sealed partial class OperationPlanner
             ExcessFanout = costState.ExcessFanout,
             OpsPerLevel = costState.OpsPerLevel,
             OperationStepDepths = costState.StepDepths,
-            SubscribeDirective = current.SubscribeDirective
+            EventStreamDirective = current.EventStreamDirective
         };
 
         possiblePlans.EnqueueBranches(next);
@@ -1737,7 +1737,7 @@ public sealed partial class OperationPlanner
             ExcessFanout = costState.ExcessFanout,
             OpsPerLevel = costState.OpsPerLevel,
             OperationStepDepths = costState.StepDepths,
-            SubscribeDirective = current.SubscribeDirective
+            EventStreamDirective = current.EventStreamDirective
         };
 
         possiblePlans.EnqueueBranches(next);
@@ -1867,7 +1867,7 @@ public sealed partial class OperationPlanner
             ExcessFanout = costState.ExcessFanout,
             OpsPerLevel = costState.OpsPerLevel,
             OperationStepDepths = costState.StepDepths,
-            SubscribeDirective = current.SubscribeDirective
+            EventStreamDirective = current.EventStreamDirective
         };
 
         possiblePlans.EnqueueBranches(next);

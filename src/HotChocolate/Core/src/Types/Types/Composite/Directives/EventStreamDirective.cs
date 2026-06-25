@@ -4,17 +4,17 @@ namespace HotChocolate.Types.Composite;
 
 /// <summary>
 /// <para>
-/// The @subscribe directive declares that a subscription field is fulfilled by an
+/// The @eventStream directive declares that a subscription field is fulfilled by an
 /// event stream behind the distributed GraphQL executor. The directive carries the
 /// payload selection set as well as the topics and broker that the executor uses to
 /// resolve the stream.
 /// </para>
 /// <para>
-/// directive @subscribe(message: FieldSelectionSet!, topics: [String!], broker: String) on FIELD_DEFINITION
+/// directive @eventStream(message: FieldSelectionSet!, topics: [String!], broker: String) on FIELD_DEFINITION
 /// </para>
 /// </summary>
 [DirectiveType(
-    DirectiveNames.Subscribe.Name,
+    DirectiveNames.EventStream.Name,
     DirectiveLocation.FieldDefinition,
     IsRepeatable = false)]
 public sealed class EventStreamDirective
@@ -62,23 +62,23 @@ public sealed class EventStreamDirective
     /// <summary>
     /// Gets the payload selection set.
     /// </summary>
-    [GraphQLName(DirectiveNames.Subscribe.Arguments.Message)]
+    [GraphQLName(DirectiveNames.EventStream.Arguments.Message)]
     [GraphQLType<NonNullType<FieldSelectionSetType>>]
     public SelectionSetNode Message { get; }
 
     /// <summary>
     /// Gets the topics the event stream subscribes to.
     /// </summary>
-    [GraphQLName(DirectiveNames.Subscribe.Arguments.Topics)]
+    [GraphQLName(DirectiveNames.EventStream.Arguments.Topics)]
     public IReadOnlyList<string>? Topics { get; }
 
     /// <summary>
     /// Gets the broker that provides the event stream.
     /// </summary>
-    [GraphQLName(DirectiveNames.Subscribe.Arguments.Broker)]
+    [GraphQLName(DirectiveNames.EventStream.Arguments.Broker)]
     public string? Broker { get; }
 
     /// <inheritdoc />
     public override string ToString()
-        => $"@subscribe(message: {Message.ToString(false)[1..^1]})";
+        => $"@eventStream(message: {Message.ToString(false)[1..^1]})";
 }

@@ -4,14 +4,14 @@ using HotChocolate.Types.Mutable;
 namespace HotChocolate.Fusion.Definitions;
 
 /// <summary>
-/// The <c>@subscribe</c> directive declares event-stream metadata for a subscription field.
+/// The <c>@eventStream</c> directive declares event-stream metadata for a subscription field.
 /// </summary>
-internal sealed class SubscribeMutableDirectiveDefinition : MutableDirectiveDefinition
+internal sealed class EventStreamMutableDirectiveDefinition : MutableDirectiveDefinition
 {
-    public SubscribeMutableDirectiveDefinition(
+    public EventStreamMutableDirectiveDefinition(
         MutableScalarTypeDefinition fieldSelectionSetType,
         MutableScalarTypeDefinition stringType)
-        : base(WellKnownDirectiveNames.Subscribe)
+        : base(WellKnownDirectiveNames.EventStream)
     {
         Arguments.Add(
             new MutableInputFieldDefinition(

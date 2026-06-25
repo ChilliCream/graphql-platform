@@ -20,7 +20,7 @@ public sealed class SchemaComposerTests
 
                     type Subscription {
                         onUserChanged(after: String @eventCursor): UserChangedEvent
-                            @subscribe(message: "{ id changeType }")
+                            @eventStream(message: "{ id changeType }")
                     }
 
                     type UserChangedEvent {
@@ -52,7 +52,7 @@ public sealed class SchemaComposerTests
             type Subscription @fusion__type(schema: EVENTS) {
                 onUserChanged(after: String @fusion__inputField(schema: EVENTS)): UserChangedEvent
                     @fusion__field(schema: EVENTS)
-                    @fusion__subscribe(
+                    @fusion__eventStream(
                         schema: EVENTS
                         message: "{ id changeType }"
                         cursorField: "cursor"
