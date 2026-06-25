@@ -1279,6 +1279,7 @@ internal sealed class SourceSchemaMerger
                     _schemaConstantNames[sourceSchema.Name],
                     sourceField.IsShareable,
                     eventStreamDirective,
+                    ResolveEventStreamTopics(eventStreamDirective, sourceField),
                     GetEventCursorFieldName(sourceField),
                     GetEventCursorArgumentName(sourceField));
             }
@@ -1325,16 +1326,13 @@ internal sealed class SourceSchemaMerger
             new(ArgumentNames.Schema, new EnumValueNode(first.Schema))
         ];
 
-        if (!first.Directive.Topics.IsDefaultOrEmpty)
-        {
-            arguments.Add(
-                new ArgumentAssignment(
-                    ArgumentNames.Topics,
-                    new ListValueNode(
-                        first.Directive.Topics
-                            .Select(t => new StringValueNode(t))
-                            .ToList())));
-        }
+        arguments.Add(
+            new ArgumentAssignment(
+                ArgumentNames.Topics,
+                new ListValueNode(
+                    first.Topics
+                        .Select(t => new StringValueNode(t))
+                        .ToList())));
 
         if (first.Directive.Broker is { } broker)
         {
@@ -1366,8 +1364,39 @@ internal sealed class SourceSchemaMerger
         string Schema,
         bool IsShareable,
         EventStreamDirectiveInfo Directive,
+        ImmutableArray<string> Topics,
         string? CursorField,
         string? CursorArgument);
+
+    private static ImmutableArray<string> ResolveEventStreamTopics(
+        EventStreamDirectiveInfo directive,
+        MutableOutputFieldDefinition sourceField)
+    {
+        // Author provided non-empty topics: pass through unchanged. (topics: [] is rejected
+        // earlier by EventStreamTopicsEmptyRule and never reaches here.)
+        if (directive.Topics is { Length: > 0 } topics)
+        {
+            return topics;
+        }
+
+        // Topics omitted: infer "<fieldName>" plus "-{$args.<argName>}" for every argument, in
+        // declaration order, that does not carry @eventCursor.
+        var builder = new StringBuilder(sourceField.Name);
+
+        foreach (var argument in sourceField.Arguments.AsEnumerable())
+        {
+            if (argument.HasEventCursorDirective)
+            {
+                continue;
+            }
+
+            builder.Append("-{$args.");
+            builder.Append(argument.Name);
+            builder.Append('}');
+        }
+
+        return [builder.ToString()];
+    }
 
     private static string? GetEventCursorFieldName(MutableOutputFieldDefinition sourceField)
     {
@@ -1411,7 +1440,7 @@ internal sealed class SourceSchemaMerger
         {
             return new EventStreamIdentity(
                 contribution.Directive.Broker,
-                NormalizeTopics(contribution.Directive.Topics),
+                NormalizeTopics(contribution.Topics),
                 NormalizeSelectionSet(contribution.Directive.Message),
                 contribution.CursorField,
                 contribution.CursorArgument);

@@ -176,7 +176,8 @@ public sealed class SchemaComposer
         new RootMutationUsedRule(),
         new RootQueryUsedRule(),
         new RootSubscriptionUsedRule(),
-        new EventStreamMessageInvalidFieldsRule()
+        new EventStreamMessageInvalidFieldsRule(),
+        new EventStreamTopicsEmptyRule()
     ];
 
     private static readonly ImmutableArray<object> s_preMergeRules =

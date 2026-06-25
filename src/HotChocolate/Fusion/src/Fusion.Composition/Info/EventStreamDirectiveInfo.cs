@@ -4,6 +4,6 @@ using HotChocolate.Language;
 namespace HotChocolate.Fusion.Info;
 
 internal readonly record struct EventStreamDirectiveInfo(
-    ImmutableArray<string> Topics,
+    ImmutableArray<string>? Topics,
     string? Broker,
     SelectionSetNode Message);

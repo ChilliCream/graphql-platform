@@ -78,7 +78,7 @@ internal sealed class MultipleEventStreamSourcesRule : IEventHandler<OutputField
         {
             return new EventStreamIdentity(
                 contribution.Directive.Broker,
-                NormalizeTopics(contribution.Directive.Topics),
+                NormalizeTopics(ResolveEventStreamTopics(contribution.Directive, contribution.Field)),
                 NormalizeSelectionSet(contribution.Directive.Message),
                 GetEventCursorFieldName(contribution.Field),
                 GetEventCursorArgumentName(contribution.Field));
@@ -114,6 +114,36 @@ internal sealed class MultipleEventStreamSourcesRule : IEventHandler<OutputField
         }
 
         return null;
+    }
+
+    private static ImmutableArray<string> ResolveEventStreamTopics(
+        EventStreamDirectiveInfo directive,
+        MutableOutputFieldDefinition sourceField)
+    {
+        // Author provided non-empty topics: pass through unchanged. (topics: [] is rejected
+        // earlier by EventStreamTopicsEmptyRule and never reaches here.)
+        if (directive.Topics is { Length: > 0 } topics)
+        {
+            return topics;
+        }
+
+        // Topics omitted: infer "<fieldName>" plus "-{$args.<argName>}" for every argument, in
+        // declaration order, that does not carry @eventCursor.
+        var builder = new StringBuilder(sourceField.Name);
+
+        foreach (var argument in sourceField.Arguments.AsEnumerable())
+        {
+            if (argument.HasEventCursorDirective)
+            {
+                continue;
+            }
+
+            builder.Append("-{$args.");
+            builder.Append(argument.Name);
+            builder.Append('}');
+        }
+
+        return [builder.ToString()];
     }
 
     private static string NormalizeTopics(ImmutableArray<string> topics)

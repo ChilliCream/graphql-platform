@@ -125,14 +125,18 @@ internal static class DirectivesProviderExtensions
             ? stringValue.Value
             : null;
 
-    private static ImmutableArray<string> GetOptionalStringListArgument(
+    private static ImmutableArray<string>? GetOptionalStringListArgument(
         IDirective directive,
         string name)
     {
-        if (!directive.Arguments.TryGetValue(name, out var value)
-            || value is not ListValueNode listValue)
+        if (!directive.Arguments.TryGetValue(name, out var value))
         {
-            return [];
+            return null;
+        }
+
+        if (value is not ListValueNode listValue)
+        {
+            return null;
         }
 
         var builder = ImmutableArray.CreateBuilder<string>(listValue.Items.Count);

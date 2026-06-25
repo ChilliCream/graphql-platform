@@ -360,6 +360,9 @@
   <data name="LogEntryHelper_MultipleCursorArguments" xml:space="preserve">
     <value>The @eventStream field '{0}' in schema '{1}' must not declare more than one @eventCursor argument.</value>
   </data>
+  <data name="LogEntryHelper_EventStreamTopicsEmpty" xml:space="preserve">
+    <value>The @eventStream directive on field '{0}' in schema '{1}' must not declare an empty list of topics. Omit the 'topics' argument to derive topics automatically.</value>
+  </data>
   <data name="LogEntryHelper_MultipleCursorFields" xml:space="preserve">
     <value>The @eventStream field '{0}' in schema '{1}' must not declare more than one @eventCursor field on its return type.</value>
   </data>

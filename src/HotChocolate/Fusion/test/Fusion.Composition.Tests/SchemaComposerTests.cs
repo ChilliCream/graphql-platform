@@ -54,6 +54,7 @@ public sealed class SchemaComposerTests
                     @fusion__field(schema: EVENTS)
                     @fusion__eventStream(
                         schema: EVENTS
+                        topics: ["onUserChanged"]
                         message: "{ id changeType }"
                         cursorField: "cursor"
                         cursorArgument: "after"

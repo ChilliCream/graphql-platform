@@ -65,6 +65,156 @@ public sealed class SourceSchemaMergerEventStreamTests : SourceSchemaMergerTestB
     }
 
     [Fact]
+    public void Merge_EventStream_Should_InferTopics_When_TopicsOmittedWithMultipleArguments()
+    {
+        AssertMatches(
+            [
+                """
+                type Subscription {
+                    onUserCreated(after: String @eventCursor, a: String, b: String): User
+                        @eventStream(message: "{ id }")
+                }
+
+                type User {
+                    id: ID!
+                }
+                """
+            ],
+            """
+            schema {
+              subscription: Subscription
+            }
+
+            type Subscription @fusion__type(schema: A) {
+              onUserCreated(
+                a: String @fusion__inputField(schema: A)
+                after: String @fusion__inputField(schema: A)
+                b: String @fusion__inputField(schema: A)
+              ): User
+                @fusion__field(schema: A)
+                @fusion__eventStream(
+                  schema: A
+                  topics: ["onUserCreated-{$args.a}-{$args.b}"]
+                  message: "{ id }"
+                  cursorArgument: "after"
+                )
+            }
+
+            type User @fusion__type(schema: A) {
+              id: ID! @fusion__field(schema: A)
+            }
+            """);
+    }
+
+    [Fact]
+    public void Merge_EventStream_Should_InferFieldNameOnly_When_TopicsOmittedWithCursorArgumentOnly()
+    {
+        AssertMatches(
+            [
+                """
+                type Subscription {
+                    onUserCreated(after: String @eventCursor): User
+                        @eventStream(message: "{ id }")
+                }
+
+                type User {
+                    id: ID!
+                }
+                """
+            ],
+            """
+            schema {
+              subscription: Subscription
+            }
+
+            type Subscription @fusion__type(schema: A) {
+              onUserCreated(after: String @fusion__inputField(schema: A)): User
+                @fusion__field(schema: A)
+                @fusion__eventStream(
+                  schema: A
+                  topics: ["onUserCreated"]
+                  message: "{ id }"
+                  cursorArgument: "after"
+                )
+            }
+
+            type User @fusion__type(schema: A) {
+              id: ID! @fusion__field(schema: A)
+            }
+            """);
+    }
+
+    [Fact]
+    public void Merge_EventStream_Should_InferFieldNameAndArgument_When_TopicsOmittedWithSingleArgument()
+    {
+        AssertMatches(
+            [
+                """
+                type Subscription {
+                    onUserCreated(id: String!): User
+                        @eventStream(message: "{ id }")
+                }
+
+                type User {
+                    id: ID!
+                }
+                """
+            ],
+            """
+            schema {
+              subscription: Subscription
+            }
+
+            type Subscription @fusion__type(schema: A) {
+              onUserCreated(id: String! @fusion__inputField(schema: A)): User
+                @fusion__field(schema: A)
+                @fusion__eventStream(
+                  schema: A
+                  topics: ["onUserCreated-{$args.id}"]
+                  message: "{ id }"
+                )
+            }
+
+            type User @fusion__type(schema: A) {
+              id: ID! @fusion__field(schema: A)
+            }
+            """);
+    }
+
+    [Fact]
+    public void Merge_EventStream_Should_PreserveTopics_When_TopicsProvided()
+    {
+        AssertMatches(
+            [
+                """
+                type Subscription {
+                    onUserCreated(id: String): User
+                        @eventStream(topics: ["custom.topic"], message: "{ id }")
+                }
+
+                type User {
+                    id: ID!
+                }
+                """
+            ],
+            """
+            schema {
+              subscription: Subscription
+            }
+
+            type Subscription @fusion__type(schema: A) {
+              onUserCreated(id: String @fusion__inputField(schema: A)): User
+                @fusion__field(schema: A)
+                @fusion__eventStream(schema: A, topics: ["custom.topic"], message: "{ id }")
+            }
+
+            type User @fusion__type(schema: A) {
+              id: ID! @fusion__field(schema: A)
+            }
+            """);
+    }
+
+    [Fact]
     public void Merge_EventStream_Should_Collapse_When_ReturnTypesDifferOnlyByNullability()
     {
         AssertMatches(

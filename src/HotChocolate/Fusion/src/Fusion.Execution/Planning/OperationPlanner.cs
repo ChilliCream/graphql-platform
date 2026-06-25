@@ -743,19 +743,7 @@ public sealed partial class OperationPlanner
         {
             if (source.EventStreamDirective is { } directive)
             {
-                var eventStreamDirective = directive.Topics.IsDefaultOrEmpty
-                    ? new EventStreamDirective(
-                        [rootFieldNode.Name.Value],
-                        directive.Broker,
-                        directive.Message,
-                        directive.CursorField,
-                        directive.CursorArgument)
-                    {
-                        SchemaKey = directive.SchemaKey
-                    }
-                    : directive;
-
-                subscriptionField = new SubscriptionField(responseName, source.SchemaName, eventStreamDirective);
+                subscriptionField = new SubscriptionField(responseName, source.SchemaName, directive);
                 return true;
             }
         }
