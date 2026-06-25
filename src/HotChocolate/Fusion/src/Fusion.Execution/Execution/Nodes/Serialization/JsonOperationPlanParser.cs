@@ -2,6 +2,7 @@ using System.Collections.Immutable;
 using System.Text.Json;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Language;
+using HotChocolate.Fusion.Types.Directives;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using StringValueNode = HotChocolate.Language.StringValueNode;
@@ -250,6 +251,10 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
 
                 case "OperationBatch":
                     parsedNodes.Add(ParseOperationBatchNodeInfo(nodeElement, id, schema));
+                    break;
+
+                case "EventStream":
+                    parsedNodes.Add(ParseEventStreamNodeInfo(nodeElement, id, schema));
                     break;
 
                 case "Introspection":
@@ -519,6 +524,89 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
         };
     }
 
+    private static ParsedEventStreamNodeInfo ParseEventStreamNodeInfo(
+        JsonElement nodeElement, int id, ISchemaDefinition schema)
+    {
+        var resultSelectionSet = Utf8GraphQLParser.Syntax.ParseSelectionSet(
+            nodeElement.GetProperty("resultSelectionSet").GetString()!);
+        var source = nodeElement.TryGetProperty("source", out var sourceElement)
+            ? SelectionPath.Parse(sourceElement.GetString()!)
+            : SelectionPath.Root;
+        var target = nodeElement.TryGetProperty("target", out var targetElement)
+            ? SelectionPath.Parse(targetElement.GetString()!)
+            : SelectionPath.Root;
+        var dependencies = TryParseDependencies(nodeElement, out var parentDependencies);
+        var conditions = TryParseConditions(nodeElement);
+        var fieldName = nodeElement.GetProperty("fieldName").GetString()!;
+        var message = nodeElement.GetProperty("eventStream").GetProperty("message").GetString()!;
+        var eventStreamSource = ParseEventStreamSource(nodeElement, fieldName, message);
+
+        return new ParsedEventStreamNodeInfo
+        {
+            Id = id,
+            FieldName = fieldName,
+            Source = source,
+            Target = target,
+            ResultSelectionSet = ResultSelectionSet.Create(resultSelectionSet, schema),
+            EventStreamSource = eventStreamSource,
+            Message = message,
+            Dependencies = dependencies,
+            ParentDependencies = parentDependencies,
+            Conditions = conditions
+        };
+    }
+
+    private static EventStreamSource ParseEventStreamSource(
+        JsonElement nodeElement,
+        string fieldName,
+        string message)
+    {
+        var eventStreamElement = nodeElement.GetProperty("eventStream");
+        var topics = ParseTopics(eventStreamElement, fieldName);
+        var broker = eventStreamElement.TryGetProperty("broker", out var brokerElement)
+            ? brokerElement.GetString()
+            : null;
+        var cursorField = eventStreamElement.TryGetProperty("cursorField", out var cursorFieldElement)
+            ? cursorFieldElement.GetString()
+            : null;
+        var cursorArgument = eventStreamElement.TryGetProperty("cursorArgument", out var cursorArgumentElement)
+            ? cursorArgumentElement.GetString()
+            : null;
+
+        return new EventStreamSource
+        {
+            SchemaName = eventStreamElement.GetProperty("schema").GetString()!,
+            FieldName = fieldName,
+            Topics = topics,
+            Broker = broker,
+            Message = FieldDirectiveParser.ParseSelectionSet(message),
+            CursorField = cursorField,
+            CursorArgument = cursorArgument
+        };
+    }
+
+    private static ImmutableArray<string> ParseTopics(JsonElement eventStreamElement, string fieldName)
+    {
+        if (!eventStreamElement.TryGetProperty("topics", out var topicsElement))
+        {
+            return [fieldName];
+        }
+
+        var builder = ImmutableArray.CreateBuilder<string>();
+
+        foreach (var topicElement in topicsElement.EnumerateArray())
+        {
+            if (topicElement.GetString() is { } topic)
+            {
+                builder.Add(topic);
+            }
+        }
+
+        return builder.Count == 0
+            ? [fieldName]
+            : builder.ToImmutable();
+    }
+
     private static ParsedOperationNodeInfo ParseOperationBatchNodeInfo(
         JsonElement nodeElement, int id, ISchemaDefinition schema)
     {
@@ -620,6 +708,28 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
             throw new InvalidOperationException("The resultSelectionSet is required in a valid operation plan.");
         }
 
+        dependencies = TryParseDependencies(nodeElement, out parentDependencies);
+
+        if (nodeElement.TryGetProperty("batchingGroupId", out var batchingGroupIdElement))
+        {
+            batchingGroupId = batchingGroupIdElement.GetInt32();
+        }
+
+        var conditions = TryParseConditions(nodeElement);
+
+        var requiresFileUpload = nodeElement.TryGetProperty("requiresFileUpload", out var requiresFileUploadElement)
+            && requiresFileUploadElement.ValueKind == JsonValueKind.True;
+
+        return (schemaName, opSource, source, requirements, forwardedVariables,
+            resultSelectionSet, dependencies, parentDependencies, batchingGroupId, conditions, requiresFileUpload);
+    }
+
+    private static int[]? TryParseDependencies(
+        JsonElement nodeElement,
+        out int[]? parentDependencies)
+    {
+        parentDependencies = null;
+
         if (nodeElement.TryGetProperty("dependencies", out var dependenciesElement))
         {
             List<int>? intDeps = null;
@@ -645,22 +755,11 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
                 }
             }
 
-            dependencies = intDeps?.ToArray();
             parentDependencies = parentDeps?.ToArray();
+            return intDeps?.ToArray();
         }
 
-        if (nodeElement.TryGetProperty("batchingGroupId", out var batchingGroupIdElement))
-        {
-            batchingGroupId = batchingGroupIdElement.GetInt32();
-        }
-
-        var conditions = TryParseConditions(nodeElement);
-
-        var requiresFileUpload = nodeElement.TryGetProperty("requiresFileUpload", out var requiresFileUploadElement)
-            && requiresFileUploadElement.ValueKind == JsonValueKind.True;
-
-        return (schemaName, opSource, source, requirements, forwardedVariables,
-            resultSelectionSet, dependencies, parentDependencies, batchingGroupId, conditions, requiresFileUpload);
+        return null;
     }
 
     private static ParsedNodeInfo ParseIntrospectionNodeInfo(
@@ -844,6 +943,48 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
                 ResultSelectionSet,
                 Conditions,
                 RequiresFileUpload);
+
+            if (ParentDependencies is not null)
+            {
+                foreach (var parentId in ParentDependencies)
+                {
+                    node.AddParentDependency(parentId);
+                }
+            }
+
+            return (node, Dependencies, null, null);
+        }
+    }
+
+    private sealed class ParsedEventStreamNodeInfo : ParsedNodeInfo
+    {
+        public required string FieldName { get; init; }
+
+        public required SelectionPath Source { get; init; }
+
+        public required SelectionPath Target { get; init; }
+
+        public required ResultSelectionSet ResultSelectionSet { get; init; }
+
+        public required EventStreamSource EventStreamSource { get; init; }
+
+        public required string Message { get; init; }
+
+        public int[]? ParentDependencies { get; init; }
+
+        public ExecutionNodeCondition[] Conditions { get; init; } = [];
+
+        public override (ExecutionNode, int[]?, Dictionary<string, int>?, int?) ToExecutionNodeTuple()
+        {
+            var node = new EventStreamExecutionNode(
+                Id,
+                FieldName,
+                Target,
+                Source,
+                ResultSelectionSet,
+                EventStreamSource,
+                Message,
+                Conditions);
 
             if (ParentDependencies is not null)
             {

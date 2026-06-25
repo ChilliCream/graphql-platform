@@ -1,6 +1,7 @@
 using HotChocolate.Features;
-using HotChocolate.Fusion.Types.Collections;
 using HotChocolate.Fusion.Types.Completion;
+using HotChocolate.Fusion.Types.Collections;
+using HotChocolate.Fusion.Types.Directives;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
@@ -161,6 +162,25 @@ public sealed class FusionOutputFieldDefinition : IOutputFieldDefinition, IInacc
         {
             EnsureNotSealed(_completed);
             field = value;
+        }
+    }
+
+    /// <summary>
+    /// Gets the event-stream metadata associated with this composed subscription field.
+    /// </summary>
+    public EventStreamDirective? EventStreamDirective
+    {
+        get
+        {
+            foreach (var source in Sources.Members)
+            {
+                if (source.EventStreamDirective is { } eventStreamDirective)
+                {
+                    return eventStreamDirective;
+                }
+            }
+
+            return null;
         }
     }
 

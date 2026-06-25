@@ -229,8 +229,10 @@ RRGGBB
 Ruckstuhl
 runbooks
 sandboxed
+SASL
 Satisfiability
 Senn
+servicebus
 shoooe
 SHORTSHA
 Silmarillion

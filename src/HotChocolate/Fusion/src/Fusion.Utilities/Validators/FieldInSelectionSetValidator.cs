@@ -28,6 +28,11 @@ public sealed class FieldInSelectionSetValidator(ISchemaDefinition schema)
         FieldNode node,
         FieldInSelectionSetValidatorContext context)
     {
+        if (node.Name.Value == IntrospectionFieldNames.TypeName)
+        {
+            return Skip;
+        }
+
         var type = context.TypeContext.Peek();
 
         if (context.DeclaringType == type && context.Field.Name == node.Name.Value)
