@@ -11,7 +11,7 @@ several subgraphs.
 Fusion supports two complementary models for subscriptions:
 
 1. **Federated Event Streams.** The subscription is backed by
-   a message broker (NATS, Kafka, or Azure Event Hubs).
+   a message broker (NATS, Kafka, Azure Event Hubs, or Amazon SQS).
    The gateway subscribes to a broker topic, and for every event it
    resolves the requested fields across your subgraphs with
    ordinary stateless fetches. This is the recommended model for scale, because the
@@ -309,6 +309,68 @@ By default a subscriber without a cursor starts at the latest event; set
 only a limited number of non-exclusive readers per partition and consumer group, so set
 `ConsumerGroup` to spread independent gateways across consumer groups when the service
 quota requires it.
+
+### Amazon SQS
+
+Install the `HotChocolate.Fusion.Subscriptions.AmazonSqs` package and register the
+broker. On real AWS, the region and the default AWS credential chain are usually all you
+need:
+
+```csharp
+builder
+    .AddGraphQLGateway()
+    .AddFileSystemConfiguration("./gateway.far")
+    .AddAmazonSqsEventStreamBroker(options =>
+    {
+        options.Region = "us-east-1";
+    });
+```
+
+Set `Credentials` to supply explicit AWS credentials, or `ServiceUrl` to point at a
+LocalStack or other SQS-compatible endpoint:
+
+```csharp
+builder
+    .AddGraphQLGateway()
+    .AddFileSystemConfiguration("./gateway.far")
+    .AddAmazonSqsEventStreamBroker(options =>
+    {
+        options.ServiceUrl = "http://localhost:4566";
+        options.Region = "us-east-1";
+        options.Credentials = new BasicAWSCredentials("test", "test");
+    });
+```
+
+The gateway creates a dedicated SQS queue per active subscription and deletes it when
+the subscription ends. To broadcast one event to every subscriber, configure
+`ResolveTopicArn` so each generated queue is subscribed to the SNS topic for the logical
+Fusion topic:
+
+```csharp
+builder
+    .AddGraphQLGateway()
+    .AddFileSystemConfiguration("./gateway.far")
+    .AddAmazonSqsEventStreamBroker(options =>
+    {
+        options.Region = "us-east-1";
+        options.ResolveTopicArn = topic => topic switch
+        {
+            "product.price-changed" => "arn:aws:sns:us-east-1:123456789012:product-price-changed",
+            _ => null
+        };
+    });
+```
+
+Without `ResolveTopicArn`, the broker runs in direct queue mode: publishers must send to
+the generated SQS queue URLs themselves. That mode is useful for controlled integration
+tests and custom topologies, but it is not SNS fan-out.
+
+The queue name is derived from the logical topic using `QueueNamePrefix`. Tune
+`WaitTimeSeconds` (long-poll wait), `MaxNumberOfMessages` (messages per receive), and
+`VisibilityTimeoutSeconds` (raise it for slow consumers to avoid duplicate delivery) on
+`AmazonSqsEventStreamOptions`. The broker uses standard queues and consumes at-least-once,
+so design resolvers to tolerate the occasional duplicate event. SQS does not retain an
+ordered history, so SQS-backed streams are not [resumable](#client-resumable-subscriptions).
 
 ### Using multiple brokers
 
