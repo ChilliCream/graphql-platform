@@ -66,10 +66,10 @@ public sealed class MessageBusConfigurationValidationTests
                     .Single(route => route.Kind == InboundRouteKind.Reply);
 
                 Assert.Equal(ReceiveEndpointKind.Reply, replyRoute.Endpoint?.Kind);
-                Assert.DoesNotContain(
-                    runtime.Router.InboundRoutes,
-                    route => route.Kind == InboundRouteKind.Reply && route.Endpoint is null);
-            },
+
+                Assert.All(
+                    runtime.Router.InboundRoutes.Where(route => route.Kind == InboundRouteKind.Reply),
+                    route => Assert.NotNull(route.Endpoint));
             services => services.AddInMemorySagas());
     }
 
