@@ -1159,6 +1159,31 @@ public static partial class SchemaRequestExecutorBuilderExtensions
         return builder.ConfigureSchema(b => b.AddDirectiveType(directiveType));
     }
 
+    /// <summary>
+    /// This helper adds a new GraphQL directive type and applies the
+    /// <paramref name="configure"/> delegate.
+    /// </summary>
+    /// <param name="builder">
+    /// The GraphQL configuration builder.
+    /// </param>
+    /// <param name="configure">
+    /// A delegate to configure the type.
+    /// </param>
+    /// <returns>
+    /// Returns the GraphQL configuration builder.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="builder"/> or <paramref name="configure"/> is <c>null</c>
+    /// </exception>
+    public static IRequestExecutorBuilder AddDirectiveType(
+        this IRequestExecutorBuilder builder,
+        Action<IDirectiveTypeDescriptor> configure)
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(configure);
+        return builder.ConfigureSchema(b => b.AddDirectiveType(configure));
+    }
+
     public static IRequestExecutorBuilder SetSchema<TSchema>(
         this IRequestExecutorBuilder builder)
         where TSchema : Schema

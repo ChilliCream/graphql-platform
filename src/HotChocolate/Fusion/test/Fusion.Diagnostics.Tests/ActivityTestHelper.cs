@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Globalization;
 using System.Text.RegularExpressions;
 using Newtonsoft.Json;
 using OpenTelemetry;
@@ -60,13 +61,89 @@ public static partial class ActivityTestHelper
 
         if (byParent.TryGetValue(activity.SpanId, out var children) && children.Count > 0)
         {
-            data["activities"] = children
+            data["activities"] = OrderActivities(children)
                 .Select(c => SerializeActivity(c, byParent))
                 .ToList();
         }
 
         return data;
     }
+
+    // Keep snapshot order tied to trace semantics instead of scheduler-dependent timestamps.
+    private static IReadOnlyList<Activity> OrderActivities(IEnumerable<Activity> activities)
+        => activities
+            .OrderBy(GetActivitySortRank)
+            .ThenBy(GetStepId)
+            .ThenBy(a => GetTagValue(a, "graphql.source_schema.name"), StringComparer.Ordinal)
+            .ThenBy(a => GetTagValue(a, "graphql.source_schema.operation.name"), StringComparer.Ordinal)
+            .ThenBy(a => GetTagValue(a, "graphql.field.path"), StringComparer.Ordinal)
+            .ThenBy(a => GetTagValue(a, "http.request.method"), StringComparer.Ordinal)
+            .ThenBy(a => GetTagValue(a, "url.full"), StringComparer.Ordinal)
+            .ThenBy(a => GetTagValue(a, "url.path"), StringComparer.Ordinal)
+            .ThenBy(a => a.Source.Name, StringComparer.Ordinal)
+            .ThenBy(a => a.OperationName, StringComparer.Ordinal)
+            .ThenBy(a => a.DisplayName, StringComparer.Ordinal)
+            .ThenBy(a => a.Kind.ToString(), StringComparer.Ordinal)
+            .ThenBy(a => a.Status.ToString(), StringComparer.Ordinal)
+            .ThenBy(GetActivityContentKey, StringComparer.Ordinal)
+            .ToList();
+
+    private static int GetActivitySortRank(Activity activity)
+        => activity.OperationName switch
+        {
+            "Microsoft.AspNetCore.Hosting.HttpRequestIn" => 10,
+            "ExecuteHttpRequest" => 20,
+            "Parse HTTP Request" => 30,
+            "GraphQL Operation" => 40,
+            "GraphQL Document Parsing" => 50,
+            "GraphQL Document Validation" => 60,
+            "GraphQL Operation Planning" => 70,
+            "GraphQL Variable Coercion" => 80,
+            "GraphQL Operation Execution" => 90,
+            "GraphQL Step Execution" => 100,
+            "System.Net.Http.HttpRequestOut" => 110,
+            "Format HTTP Response" => 120,
+            _ => 1000
+        };
+
+    private static int GetStepId(Activity activity)
+    {
+        var value = GetTagValue(activity, "graphql.operation.step.id");
+
+        if (int.TryParse(value, NumberStyles.None, CultureInfo.InvariantCulture, out var stepId))
+        {
+            return stepId;
+        }
+
+        return int.MaxValue;
+    }
+
+    private static string GetActivityContentKey(Activity activity)
+        => string.Concat(
+            activity.TagObjects
+                .Select(t => $"{t.Key}:{FormatValue(t.Value)};")
+                .Concat(activity.Events.Select(e => $"{e.Name};")));
+
+    private static string GetTagValue(Activity activity, string name)
+    {
+        foreach (var tag in activity.TagObjects)
+        {
+            if (tag.Key.Equals(name, StringComparison.Ordinal))
+            {
+                return FormatValue(tag.Value);
+            }
+        }
+
+        return "";
+    }
+
+    private static string FormatValue(object? value)
+        => value switch
+        {
+            null => "",
+            IFormattable formattable => formattable.ToString(null, CultureInfo.InvariantCulture),
+            _ => value.ToString() ?? ""
+        };
 
     private static IEnumerable<KeyValuePair<string, object?>> ScrubEventTags(
         IEnumerable<KeyValuePair<string, object?>>? tags)
@@ -154,11 +231,11 @@ public static partial class ActivityTestHelper
                 var spanIds = new HashSet<ActivitySpanId>(exported.Select(a => a.SpanId));
                 var byParent = exported
                     .GroupBy(a => a.ParentSpanId)
-                    .ToDictionary(g => g.Key, g => g.OrderBy(a => a.StartTimeUtc).ToList());
+                    .ToDictionary(g => g.Key, g => OrderActivities(g).ToList());
 
-                return exported
+                return OrderActivities(exported
                     .Where(a => a.ParentSpanId == default || !spanIds.Contains(a.ParentSpanId))
-                    .OrderBy(a => a.StartTimeUtc)
+                    .ToList())
                     .Select(root => SerializeActivity(root, byParent))
                     .ToList();
             }

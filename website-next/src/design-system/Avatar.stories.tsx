@@ -14,7 +14,7 @@ type Story = StoryObj<typeof meta>;
  */
 export const Avatar: Story = {
   args: {
-    src: "https://picsum.photos/seed/avatar/96/96",
+    src: "/placeholders/avatar.png",
     alt: "User avatar",
     width: 96,
     height: 96,
@@ -28,7 +28,7 @@ export const Avatar: Story = {
  */
 export const BrokenAvatar: Story = {
   args: {
-    src: "https://example.invalid/missing.png",
+    src: "/placeholders/missing.png",
     alt: "An avatar that fails to load",
     width: 96,
     height: 96,

@@ -91,30 +91,42 @@ export function BuildYourWay() {
             <span className="bg-cc-ink-faint h-px flex-1" />
           </div>
 
+          {/* Five products across three layouts. Mobile is a 2-up grid with the
+              lone last item centered. The medium tier uses a 6-column grid where
+              each tile spans 2 columns: the top three fill columns 1-2/3-4/5-6
+              and the 4th tile starts at column 2, so the bottom two settle into
+              the gaps between the top three (an "Olympic rings" arrangement).
+              Large collapses everything onto a single five-up row. */}
           <nav
             aria-label="ChilliCream products"
-            className="mt-3 grid grid-cols-2 gap-1 sm:grid-cols-3 lg:grid-cols-5"
+            className="mt-3 grid grid-cols-2 gap-1 sm:grid-cols-6 lg:grid-cols-5"
           >
-            {PRODUCTS.map(({ label, role, href, Icon }) => (
-              <Link
-                key={label}
-                href={href}
-                className="group focus-visible:ring-cc-accent hover:bg-cc-card-bg/60 flex flex-col items-center gap-2 rounded-2xl border border-transparent px-2 py-3 text-center transition-colors duration-200 focus-visible:ring-2 focus-visible:outline-none"
-              >
-                <DrinkIcon
-                  Icon={Icon}
-                  name={label}
-                  base={56}
-                  className="transition-transform duration-200 group-hover:-translate-y-1"
-                />
-                <span className="text-cc-heading font-heading text-sm leading-tight font-semibold">
-                  {label}
-                </span>
-                <span className="text-cc-ink-dim group-hover:text-cc-accent text-[0.7rem] leading-tight transition-colors duration-200">
-                  {role}
-                </span>
-              </Link>
-            ))}
+            {PRODUCTS.map(({ label, role, href, Icon }, index) => {
+              const isLast = index === PRODUCTS.length - 1;
+              const isFirstOnSecondRow = index === 3;
+              return (
+                <Link
+                  key={label}
+                  href={href}
+                  className={`group focus-visible:ring-cc-accent hover:bg-cc-card-bg/60 flex flex-col items-center gap-2 rounded-2xl border border-transparent px-2 py-3 text-center transition-colors duration-200 focus-visible:ring-2 focus-visible:outline-none sm:col-span-2 lg:col-span-1 ${
+                    isLast ? "max-sm:col-span-2" : ""
+                  } ${isFirstOnSecondRow ? "sm:col-start-2 lg:col-start-auto" : ""}`}
+                >
+                  <DrinkIcon
+                    Icon={Icon}
+                    name={label}
+                    base={56}
+                    className="transition-transform duration-200 group-hover:-translate-y-1"
+                  />
+                  <span className="text-cc-heading font-heading text-sm leading-tight font-semibold">
+                    {label}
+                  </span>
+                  <span className="text-cc-ink-dim group-hover:text-cc-ink text-[0.7rem] leading-tight transition-colors duration-200">
+                    {role}
+                  </span>
+                </Link>
+              );
+            })}
           </nav>
         </div>
       </div>

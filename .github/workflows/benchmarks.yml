@@ -142,7 +142,7 @@ jobs:
             echo "Installing .NET..."
             curl -sSL https://dot.net/v1/dotnet-install.sh -o dotnet-install.sh
             chmod +x dotnet-install.sh
-            ./dotnet-install.sh --version 11.0.100-preview.4.26230.115 --install-dir $HOME/.dotnet
+            ./dotnet-install.sh --version 11.0.100-preview.5.26302.115 --install-dir $HOME/.dotnet
             rm dotnet-install.sh
             echo "$HOME/.dotnet" >> $GITHUB_PATH
             export PATH="$HOME/.dotnet:$PATH"

@@ -25,6 +25,7 @@ public class RabbitMQTransportConfiguration : MessagingTransportConfiguration
     {
         Name = DefaultName;
         Schema = DefaultSchema;
+        RoutingStrategyFactory = static _ => new RabbitMQRoutingStrategy();
     }
 
     /// <summary>
