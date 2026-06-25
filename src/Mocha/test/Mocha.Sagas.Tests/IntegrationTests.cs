@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Mocha.Transport.InMemory;
 
 namespace Mocha.Sagas.Tests;
@@ -19,6 +20,12 @@ public class IntegrationTests
         var provider = services.BuildServiceProvider();
         var runtime = (MessagingRuntime)provider.GetRequiredService<IMessagingRuntime>();
         await runtime.StartAsync(CancellationToken.None);
+
+        foreach (var hostedService in provider.GetServices<IHostedService>())
+        {
+            await hostedService.StartAsync(CancellationToken.None);
+        }
+
         return provider;
     }
 
@@ -123,13 +130,28 @@ public class IntegrationTests
         var recorded = Assert.Single(recorder.Messages);
         var sagaId = Assert.IsType<TriggerEvent>(recorded).CorrelationId!.Value;
 
+        // wait until the saga instance is persisted before sending the timeout, so the
+        // SagaTimedOutEvent is applied to the stored instance
+        var runtime = provider.GetRequiredService<IMessagingRuntime>();
+        var sagaName = runtime.Naming.GetSagaName(typeof(TimeoutWithResponseSaga));
+        var persistDeadline = DateTime.UtcNow + s_timeout;
+        while (storage.Load<TimeoutState>(sagaName, sagaId) is null && DateTime.UtcNow < persistDeadline)
+        {
+            await Task.Delay(50, TestContext.Current.CancellationToken);
+        }
+
+        Assert.NotNull(storage.Load<TimeoutState>(sagaName, sagaId));
+
         // simulate timeout by sending SagaTimedOutEvent with the saga ID
         await bus.SendAsync(new SagaTimedOutEvent(sagaId), CancellationToken.None);
 
-        // allow time for final state processing
-        await Task.Delay(500, TestContext.Current.CancellationToken);
+        // wait for the saga to reach its final state and be deleted from the store
+        var deadline = DateTime.UtcNow + s_timeout;
+        while (storage.Load<TimeoutState>(sagaName, sagaId) is not null && DateTime.UtcNow < deadline)
+        {
+            await Task.Delay(50, TestContext.Current.CancellationToken);
+        }
 
-        // assert - saga should be deleted from store after reaching final state
         Assert.Equal(0, storage.Count);
     }
 
