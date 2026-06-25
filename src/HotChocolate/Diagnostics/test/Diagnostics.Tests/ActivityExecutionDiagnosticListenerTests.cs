@@ -733,11 +733,13 @@ public partial class ActivityExecutionDiagnosticListenerTests
                 .Services
                 .BuildServiceProvider();
 
-            var executor = await services.GetRequestExecutorAsync();
+            var executor = await services.GetRequestExecutorAsync(
+                cancellationToken: TestContext.Current.CancellationToken);
             var sender = services.GetRequiredService<ITopicEventSender>();
 
             await using var result = await executor.ExecuteAsync(
-                "subscription OnMessageSubscription { onMessage }");
+                "subscription OnMessageSubscription { onMessage }",
+                TestContext.Current.CancellationToken);
             await using var responseStream = result.ExpectResponseStream();
 
             var results = responseStream.ReadResultsAsync().GetAsyncEnumerator(cts.Token);
@@ -781,7 +783,8 @@ public partial class ActivityExecutionDiagnosticListenerTests
                 .Services
                 .BuildServiceProvider();
 
-            var executor = await services.GetRequestExecutorAsync();
+            var executor = await services.GetRequestExecutorAsync(
+                cancellationToken: TestContext.Current.CancellationToken);
             var sender = services.GetRequiredService<ITopicEventSender>();
 
             // the linked token becomes RequestAborted, so cancelling abortCts
@@ -842,7 +845,8 @@ public partial class ActivityExecutionDiagnosticListenerTests
                 .AddSingleton(signal)
                 .BuildServiceProvider();
 
-            var executor = await services.GetRequestExecutorAsync();
+            var executor = await services.GetRequestExecutorAsync(
+                cancellationToken: TestContext.Current.CancellationToken);
             var sender = services.GetRequiredService<ITopicEventSender>();
 
             // the linked token becomes RequestAborted, so cancelling abortCts
@@ -898,7 +902,8 @@ public partial class ActivityExecutionDiagnosticListenerTests
                 .Services
                 .BuildServiceProvider();
 
-            var executor = await services.GetRequestExecutorAsync();
+            var executor = await services.GetRequestExecutorAsync(
+                cancellationToken: TestContext.Current.CancellationToken);
 
             // act
             // the resolver cancels the request token and then observes the
@@ -907,17 +912,9 @@ public partial class ActivityExecutionDiagnosticListenerTests
             await executor.ExecuteAsync("{ cancelRequest }", cts.Token);
 
             // assert
-            // the request and operation spans must be Unset (neither Error nor Ok),
-            // carry no error.type, and record no exception event
-            var requestSpan = activities.Exported
-                .Single(a => a.OperationName == "GraphQL Operation");
-            var operationSpan = activities.Exported
-                .Single(a => a.OperationName == "GraphQL Operation Execution");
-
-            Assert.Equal(ActivityStatusCode.Unset, requestSpan.Status);
-            Assert.Equal(ActivityStatusCode.Unset, operationSpan.Status);
-            Assert.Null(requestSpan.GetTagItem("error.type"));
-            Assert.DoesNotContain(requestSpan.Events, e => e.Name == "exception");
+            // the snapshot records the request and operation span status for a
+            // client cancellation mid execution
+            activities.MatchSnapshot();
         }
     }
 
@@ -939,23 +936,19 @@ public partial class ActivityExecutionDiagnosticListenerTests
                 .Services
                 .BuildServiceProvider();
 
-            var executor = await services.GetRequestExecutorAsync();
+            var executor = await services.GetRequestExecutorAsync(
+                cancellationToken: TestContext.Current.CancellationToken);
 
             // act
             var result = await executor.ExecuteAsync("{ blockUntilTimeout }", cts.Token);
 
             // assert
-            // an execution timeout is a server-side failure and must stay Error
-            var requestSpan = activities.Exported
-                .Single(a => a.OperationName == "GraphQL Operation");
-            var operationSpan = activities.Exported
-                .Single(a => a.OperationName == "GraphQL Operation Execution");
-
+            // the timeout actually triggered (scenario guard); the snapshot records
+            // the resulting request and operation span status
             var operationResult = Assert.IsType<OperationResult>(result);
-
-            Assert.Equal(ActivityStatusCode.Error, requestSpan.Status);
-            Assert.Equal(ActivityStatusCode.Error, operationSpan.Status);
             Assert.Equal(ErrorCodes.Execution.Timeout, operationResult.Errors[0].Code);
+
+            activities.MatchSnapshot();
         }
     }
 
@@ -983,7 +976,8 @@ public partial class ActivityExecutionDiagnosticListenerTests
                 .AddSingleton(signal)
                 .BuildServiceProvider();
 
-            var executor = await services.GetRequestExecutorAsync();
+            var executor = await services.GetRequestExecutorAsync(
+                cancellationToken: TestContext.Current.CancellationToken);
             var sender = services.GetRequiredService<ITopicEventSender>();
 
             await using var result = await executor.ExecuteAsync(
@@ -1013,16 +1007,9 @@ public partial class ActivityExecutionDiagnosticListenerTests
             }
 
             // assert
-            // a server-side event timeout is an error and must stay Error, with the
-            // cancellation exception recorded
-            var eventSpan = activities.Exported
-                .Single(a => a.OperationName == "GraphQL Subscription Event");
-
-            Assert.Equal(ActivityStatusCode.Error, eventSpan.Status);
-            Assert.Equal(
-                "System.OperationCanceledException",
-                eventSpan.GetTagItem("error.type"));
-            Assert.Contains(eventSpan.Events, e => e.Name == "exception");
+            // the snapshot records the subscription event span status for a
+            // server-side event timeout
+            activities.MatchSnapshot();
         }
     }
 
