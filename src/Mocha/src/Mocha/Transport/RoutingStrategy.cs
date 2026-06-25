@@ -129,6 +129,14 @@ public abstract class RoutingStrategy
 
         Transport.ReplyDispatchEndpoint = Transport.DispatchEndpoints.FirstOrDefault(x => x.Kind == DispatchEndpointKind.Reply);
         Transport.ReplyReceiveEndpoint = Transport.ReceiveEndpoints.FirstOrDefault(x => x.Kind == ReceiveEndpointKind.Reply);
+
+        if (Transport.ReplyReceiveEndpoint is { } replyEndpoint)
+        {
+            foreach (var route in context.Router.InboundRoutes.Where(static route => route.Kind == Reply).ToArray())
+            {
+                context.BindRouteToEndpoint(route, replyEndpoint);
+            }
+        }
     }
 
     protected virtual void DiscoverImplicitEndpoints(IMessagingSetupContext context)
