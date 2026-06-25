@@ -65,15 +65,23 @@ const STEM_DX = -5.3;
 const pctX = (x: number) => `${((x - VIEW.x) / VIEW.w) * 100}%`;
 const pctY = (y: number) => `${((y - VIEW.y) / VIEW.h) * 100}%`;
 
+/** Broad, feathered scrim that dims the streams behind the copy. */
+const SCRIM =
+  "radial-gradient(ellipse 50% 50% at 50% 50%, rgba(11,15,26,0.9) 0%, rgba(11,15,26,0.82) 38%, rgba(11,15,26,0.5) 62%, rgba(11,15,26,0) 85%)";
+
 /**
- * The Fusion narrative, rendered as a tall top-to-bottom "river": independent
- * subgraphs (Catalog, Billing, ...) flow down and converge into a single
- * glowing composition node, which then speaks every protocol (gRPC, GraphQL,
- * OpenAPI, MCP) and fans back out to every consumer.
+ * The Fusion narrative, rendered as a top-to-bottom "river": independent
+ * subgraphs (Catalog, Billing, ...) flow down and converge into a single glowing
+ * composition node, which then speaks every protocol and fans back out to every
+ * consumer.
  *
- * The stream/glow artwork is lifted verbatim from the design SVG (its 1360x8000
- * coordinate space, cropped via `VIEW`), while the headings and source labels
- * are real HTML positioned by the same coordinates so they stay crisp.
+ * The streams keep the design's exact curves (lifted verbatim from the design
+ * SVG), but the artwork carries no fixed aspect ratio: the heading and copy sit
+ * in normal flow with proportional padding that reproduces the design's tall
+ * proportions, so at desktop the lines render undistorted, and when the copy
+ * wraps on narrow screens the box simply grows taller and the (aspect-free) line
+ * SVG stretches with it. The round orb and square markers are CSS, so they never
+ * distort, and they share the same 0..100 coordinate space as the lines.
  */
 export function FusionFlow() {
   return (
@@ -93,13 +101,65 @@ export function FusionFlow() {
         </p>
       </div>
 
-      {/* Sources converge into the composition node. */}
+      {/* Sources converge into the composition node. The design aspect ratio
+          gives the streams their tall, undistorted proportions at every width,
+          and the box still grows taller if the copy ever wraps past it. */}
       <div className="relative mx-auto aspect-1360/1420 w-full">
+        {/* Stream lines (exact design paths). preserveAspectRatio="none" lets the
+            box drive the height; at the design's proportions they render
+            undistorted, and they stretch gracefully when the copy wraps taller. */}
         <svg
           viewBox={`${VIEW.x} ${VIEW.y} ${VIEW.w} ${VIEW.h}`}
+          preserveAspectRatio="none"
           fill="none"
           aria-hidden="true"
-          className="absolute inset-0 h-full w-full"
+          className="absolute inset-0 z-0 h-full w-full"
+        >
+          <defs>
+            <linearGradient
+              id="ff-out"
+              x1={GLOW.x}
+              y1={GLOW.y}
+              x2={GLOW.x}
+              y2={VIEW.y + VIEW.h}
+              gradientUnits="userSpaceOnUse"
+            >
+              <stop offset="0" stopColor="#f27765" />
+              <stop offset="0.55" stopColor="#eabd21" />
+              <stop offset="0.78" stopColor="#66be77" />
+              <stop offset="1" stopColor="#66be77" stopOpacity="0" />
+            </linearGradient>
+          </defs>
+
+          {SOURCES.map((s) => (
+            <path key={s.label} d={s.d} fill={s.color} />
+          ))}
+
+          {/* Output line leaving the node, straight down into the next section. */}
+          <rect
+            x={GLOW.x - 0.75}
+            y={GLOW.y}
+            width={1.5}
+            height={VIEW.y + VIEW.h - GLOW.y}
+            fill="url(#ff-out)"
+          />
+        </svg>
+
+        {/* Scrim dims the streams behind the copy so it stays readable. */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute top-[36%] left-1/2 z-[1] h-[44%] w-[min(1500px,96vw)] -translate-x-1/2 -translate-y-1/2"
+          style={{ background: SCRIM }}
+        />
+
+        {/* Composition node: main's exact glow (soft halo + inner halo + crisp
+            core), in its own square SVG centred on the node so it always renders
+            perfectly round, no matter how the stream box stretches. */}
+        <svg
+          viewBox={`${GLOW.x - 180} ${GLOW.y - 180} 360 360`}
+          aria-hidden="true"
+          className="pointer-events-none absolute left-1/2 z-10 aspect-square w-[26.5%] -translate-x-1/2 -translate-y-1/2"
+          style={{ left: pctX(GLOW.x), top: pctY(GLOW.y) }}
         >
           <defs>
             <radialGradient
@@ -126,140 +186,71 @@ export function FusionFlow() {
               <stop offset="0" stopColor="#fff" />
               <stop offset="0.4" stopColor="#0e1522" stopOpacity="0" />
             </radialGradient>
-            {/* The composed graph leaving the node: one rainbow line carrying the
-                stream colors back out, then fading to transparent as it reaches
-                the copy below so it dissolves into the heading instead of
-                stopping hard. */}
-            <linearGradient
-              id="ff-out"
-              x1={GLOW.x}
-              y1={GLOW.y}
-              x2={GLOW.x}
-              y2={VIEW.y + VIEW.h}
-              gradientUnits="userSpaceOnUse"
-            >
-              <stop offset="0" stopColor="#f27765" />
-              <stop offset="0.55" stopColor="#eabd21" />
-              <stop offset="0.78" stopColor="#66be77" />
-              <stop offset="1" stopColor="#66be77" stopOpacity="0" />
-            </linearGradient>
           </defs>
-
-          {/* The streams (with their built-in squares) sit at the bottom layer
-              so the scrim can dim them behind the copy. */}
-          {SOURCES.map((s) => (
-            <path key={s.label} d={s.d} fill={s.color} />
-          ))}
-
-          {/* Output line: leaves the composition node going straight down, the
-              way the five colored streams arrive into it. Drawn before the glow so
-              the halo sits on top and the line appears to emerge from the node. */}
-          <rect
-            x={GLOW.x - 0.75}
-            y={GLOW.y}
-            width={1.5}
-            height={VIEW.y + VIEW.h - GLOW.y}
-            fill="url(#ff-out)"
-          />
-
           <circle cx={GLOW.x} cy={GLOW.y} r={180} fill="url(#ff-halo-soft)" />
           <circle cx={GLOW.x} cy={GLOW.y} r={180} fill="url(#ff-halo-core)" />
           <circle cx={GLOW.x} cy={GLOW.y} r={15} fill="#fff" />
         </svg>
 
-        {/* Soft dark scrim that ONLY dims the streams behind the copy. It sits
-            above the lines but below the squares, labels and headline, so those
-            stay at full strength. Broad and feathered, as in the design. */}
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute top-[52%] left-1/2 h-[52%] w-[min(1500px,96vw)] -translate-x-1/2 -translate-y-1/2 lg:top-[36%]"
-          style={{
-            background:
-              "radial-gradient(ellipse 50% 50% at 50% 50%, rgba(11,15,26,0.9) 0%, rgba(11,15,26,0.82) 38%, rgba(11,15,26,0.5) 62%, rgba(11,15,26,0) 85%)",
-          }}
-        />
-
-        {/* Larger square markers, redrawn on top of the scrim so they stay
-            bright (and bigger than the design's hairline path squares). */}
-        <svg
-          viewBox={`${VIEW.x} ${VIEW.y} ${VIEW.w} ${VIEW.h}`}
-          fill="none"
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-0 h-full w-full"
-        >
-          {SOURCES.map((s) => (
-            <rect
-              key={s.label}
-              x={s.x + STEM_DX - 11}
-              y={s.y - 1}
-              width={22}
-              height={22}
-              rx={5}
-              fill={s.color}
-            />
-          ))}
-        </svg>
-
-        {/* Source labels (HTML for crisp text), on top of the scrim. Shown at
-            every width: tiny next to the small markers on mobile, scaling up to
-            the design size on larger screens. */}
+        {/* Square markers (CSS so they stay square), centred on each stream. */}
         {SOURCES.map((s) => (
           <div
             key={s.label}
-            className="text-cc-ink-dim absolute translate-y-[-44%] font-mono text-[0.5rem] leading-none tracking-widest whitespace-nowrap uppercase sm:-translate-y-1/2 sm:text-xl sm:tracking-[0.15em]"
+            className="absolute z-30 aspect-square w-[1.6%] -translate-x-1/2 -translate-y-1/2 rounded-[22%]"
+            style={{
+              left: pctX(s.x + STEM_DX),
+              top: pctY(s.y + 10),
+              backgroundColor: s.color,
+            }}
+          />
+        ))}
+
+        {/* Source labels. Shown at every width: tiny next to the small markers on
+            mobile, scaling up to the design size on larger screens. */}
+        {SOURCES.map((s) => (
+          <div
+            key={s.label}
+            className="text-cc-ink-dim absolute z-30 -translate-y-[44%] font-mono text-[0.5rem] leading-none tracking-widest whitespace-nowrap uppercase sm:-translate-y-1/2 sm:text-xl sm:tracking-[0.15em]"
             style={{ left: pctX(s.x + STEM_DX + 28), top: pctY(s.y + 10) }}
           >
             {s.label}
           </div>
         ))}
 
-        {/* Heading + copy sit over the stream region. The source squares/labels
-            occupy the top ~25% of the (aspect-ratio) artwork, so on smaller
-            screens, where the fixed-size heading is large relative to the box,
-            the block is centered lower (52%) to stay clear of them. The wide
-            desktop layout has room for the design's higher 36% placement. */}
-        <div className="absolute top-[27%] left-1/2 w-full -translate-x-1/2 px-4 text-center sm:top-[52%] sm:-translate-y-1/2 lg:top-[36%]">
+        {/* Heading + copy. In normal flow, so its height drives the box; the
+            proportional padding opens the fan above and the convergence below and
+            reproduces the design's tall proportions. */}
+        <div className="relative z-20 px-4 pt-[34%] pb-[38%] text-center">
           <h2 className="font-heading text-cc-heading text-h3 sm:text-h2 font-semibold lg:whitespace-nowrap">
             Compose before it runs.
           </h2>
-          <p className="text-cc-ink mx-auto mt-3 max-w-4xl px-4 text-xs leading-snug text-pretty sm:mt-6 sm:text-xl sm:leading-relaxed">
+          <p className="text-cc-ink mx-auto mt-4 max-w-4xl px-4 text-sm text-pretty sm:mt-6 sm:text-xl">
             Each part publishes its contract. Fusion checks that the pieces fit,
             catches missing lookups and incompatible fields, and produces the
             gateway artifact your runtime loads.
           </p>
         </div>
 
-        {/* "Fusion Composition" caption, aligned with the body copy's centered
-            column, with a dashed line running from the text to the glow (which
-            sits at the column's horizontal center). */}
+        {/* "Fusion Composition" caption, beside the node with a dashed connector
+            running to the glow. Shown at every width (smaller on mobile). */}
         <div
-          className="absolute left-1/2 hidden w-full max-w-4xl -translate-x-1/2 -translate-y-1/2 sm:block"
+          className="absolute left-1/2 z-30 w-full max-w-4xl -translate-x-1/2 -translate-y-1/2"
           style={{ top: pctY(GLOW.y) }}
         >
-          <div className="flex w-1/2 items-center gap-4 pr-10">
-            <span className="text-cc-nav-label font-mono text-xs tracking-[0.2em] whitespace-nowrap uppercase sm:text-sm">
+          {/* On mobile the copy column is full width, so the text+connector are
+              pushed to the right (short dashed line) to sit close to the node;
+              on larger screens the text aligns with the copy and the line fills
+              the gap to the glow. */}
+          <div className="flex w-1/2 items-center justify-end gap-2 pr-6 sm:justify-start sm:gap-4 sm:pr-10">
+            <span className="text-cc-nav-label font-mono text-[0.5rem] tracking-[0.15em] whitespace-nowrap uppercase sm:text-sm sm:tracking-[0.2em]">
               Fusion Composition
             </span>
-            <span className="h-px flex-1 border-t border-dashed border-[rgba(245,241,234,0.3)]" />
+            <span className="h-px w-10 flex-none border-t border-dashed border-[rgba(245,241,234,0.3)] sm:w-auto sm:flex-1" />
           </div>
-        </div>
-
-        {/* Mobile-only composition caption: the desktop layout puts this to the
-            left of the glow with a dashed connector, but there is no room beside
-            the node on narrow screens, so it sits centered just beneath the orb. */}
-        <div
-          className="absolute left-1/2 -translate-x-1/2 text-center sm:hidden"
-          style={{ top: pctY(GLOW.y + 120) }}
-        >
-          <span className="text-cc-nav-label font-mono text-[0.5rem] tracking-[0.25em] whitespace-nowrap uppercase">
-            Fusion Composition
-          </span>
         </div>
       </div>
 
-      {/* One API for every consumer. The composition's output line (in the box
-          above) now runs the whole way down to this heading; a single line then
-          continues below the copy and on into the protocol box. */}
+      {/* One API for every consumer. */}
       <div className="text-center">
         <h2 className="font-heading text-cc-heading text-h3 sm:text-h2 font-semibold text-balance">
           One API for every consumer.
@@ -268,9 +259,7 @@ export function FusionFlow() {
           Apps, tools, and agents ask for what they need through one gateway.
           Fusion plans the request across the backend and returns one response.
         </p>
-        {/* Line below the copy, on into the protocol box. It fades in from the
-            copy and settles on #66be77 (green), the color the box shows where the
-            centered line meets it. */}
+        {/* Line below the copy, on into the protocol box. */}
         <div
           aria-hidden="true"
           className="mx-auto mt-10 h-28 w-px sm:h-36"
