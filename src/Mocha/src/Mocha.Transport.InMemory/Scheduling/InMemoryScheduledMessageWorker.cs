@@ -93,6 +93,10 @@ internal sealed class InMemoryScheduledMessageWorker(
             await using var scope = services.CreateAsyncScope();
             context.Initialize(scope.ServiceProvider, endpoint, runtime, messageType, cancellationToken);
             context.SkipScheduler();
+
+            // Unlike the Postgres dispatcher, this worker does not call SkipOutbox(): the in-memory
+            // transport is not paired with an outbox, and the re-dispatched envelope carries no
+            // headers, so the outbox middleware passes through. Avoids coupling to Mocha.Outbox.
             context.Envelope = envelope;
             await endpoint.ExecuteAsync(context);
         }
