@@ -19,7 +19,7 @@ type BlogTeaserProps = {
 
 export function BlogTeaser({ post }: BlogTeaserProps) {
   return (
-    <article className="group/teaser h-full">
+    <article className="group/teaser h-full w-full">
       <Link
         href={post.href}
         className="border-cc-ink-faint bg-cc-white/2.5 hover:border-cc-card-border-hover hover:bg-cc-white/5 flex h-full flex-col overflow-hidden rounded-2xl border no-underline transition-[background-color,border-color,transform] duration-150 hover:-translate-y-0.5"

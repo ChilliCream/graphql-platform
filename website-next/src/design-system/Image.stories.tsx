@@ -23,7 +23,7 @@ type Story = StoryObj<typeof meta>;
  */
 export const Broken: Story = {
   args: {
-    src: "https://example.invalid/missing.png",
+    src: "/placeholders/missing.png",
     alt: "An image that fails to load",
     width: 640,
     height: 360,
