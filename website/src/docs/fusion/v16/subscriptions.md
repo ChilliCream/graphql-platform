@@ -11,8 +11,9 @@ several subgraphs.
 Fusion supports two complementary models for subscriptions:
 
 1. **Federated Event Streams.** The subscription is backed by
-   a message broker (NATS or Kafka). The gateway subscribes to a broker topic,
-   and for every event it resolves the requested fields across your subgraphs with
+   a message broker (NATS, Kafka, or Azure Event Hubs).
+   The gateway subscribes to a broker topic, and for every event it
+   resolves the requested fields across your subgraphs with
    ordinary stateless fetches. This is the recommended model for scale, because the
    gateway holds no per-subscription state of its own.
 2. **Subgraph subscriptions over Server-Sent Events (SSE).** The subscription is
@@ -269,6 +270,46 @@ Kafka gives every GraphQL subscriber its own consumer group, so each client rece
 the full stream rather than competing for partitions. SASL and SSL options are
 available on `KafkaEventStreamOptions` for secured clusters.
 
+### Azure Event Hubs
+
+Install the `HotChocolate.Fusion.Subscriptions.AzureEventHubs` package and register the
+broker. Each subscribed topic is treated as an Event Hub name, so the topic the gateway
+resolves for a field (see [Topics](#topics)) must match a hub in the namespace.
+
+Authenticate with a connection string:
+
+```csharp
+builder
+    .AddGraphQLGateway()
+    .AddFileSystemConfiguration("./gateway.far")
+    .AddAzureEventHubsEventStreamBroker(options =>
+    {
+        options.ConnectionString = "<event-hubs-connection-string>";
+    });
+```
+
+Or with a fully qualified namespace and a token credential. When you set
+`FullyQualifiedNamespace` without supplying a `Credential`, the broker uses
+`DefaultAzureCredential`:
+
+```csharp
+builder
+    .AddGraphQLGateway()
+    .AddFileSystemConfiguration("./gateway.far")
+    .AddAzureEventHubsEventStreamBroker(options =>
+    {
+        options.FullyQualifiedNamespace = "my-namespace.servicebus.windows.net";
+        options.Credential = new DefaultAzureCredential();
+    });
+```
+
+Every GraphQL subscriber reads independently, so each client receives the full stream.
+By default a subscriber without a cursor starts at the latest event; set
+`StartFromEarliest` to begin from the earliest retained event instead. Event Hubs allows
+only a limited number of non-exclusive readers per partition and consumer group, so set
+`ConsumerGroup` to spread independent gateways across consumer groups when the service
+quota requires it.
+
 ### Using multiple brokers
 
 To run more than one broker, give each a name and select one per field with the
@@ -361,6 +402,11 @@ and without re-receiving events it has already processed.
 Resumption is driven by an opaque **cursor**. The broker assigns each event a cursor;
 the client stores the most recent one and, on reconnect, passes it back to resume the
 stream from immediately after that event.
+
+Only single-topic event streams are resumable. A cursor identifies a position within a
+single ordered topic, so a field that subscribes to multiple topics cannot be resumed:
+passing a cursor to such a field resolves it to `null` with an error. Keep a field to a
+single topic when it needs to support resumption.
 
 Two markers wire this up, both expressed with the `@eventCursor` directive:
 
@@ -457,12 +503,13 @@ event 2 onward and never re-receives event 1. A first-time subscriber simply omi
 the argument.
 
 The cursor is an opaque, base64-encoded token. Its meaning is owned by the broker (a
-JetStream sequence for NATS, a `topic:partition:offset` for Kafka), so clients should
+JetStream sequence for NATS, a `topic:partition:offset` for Kafka, a
+`partition:sequenceNumber` for Azure Event Hubs), so clients should
 treat it as a black box and never parse or construct it.
 
 > **Note:** Resumable streams need a broker that retains and orders history. Configure
-> NATS with JetStream, or use Kafka. Core NATS pub/sub does not keep history, so it
-> cannot resume.
+> NATS with JetStream, or use Kafka or Azure Event Hubs. Core NATS pub/sub does not keep
+> history, so it cannot resume.
 
 For NATS, enable JetStream when registering the broker:
 
