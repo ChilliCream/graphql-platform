@@ -33,7 +33,7 @@ const PLANS: readonly Plan[] = [
       "Pay only for what you use after",
     ],
     cta: "Start for Free",
-    ctaHref: "/get-started",
+    ctaHref: "https://nitro.chillicream.com",
   },
   {
     Icon: DripBrewer,
@@ -48,8 +48,8 @@ const PLANS: readonly Plan[] = [
       "99.95% SLA · email + private chat",
       "SSO, audit log, role-based access",
     ],
-    cta: "Start for Free",
-    ctaHref: "/get-started",
+    cta: "Talk to Us",
+    ctaHref: "/services/support/contact",
     popular: true,
   },
   {
