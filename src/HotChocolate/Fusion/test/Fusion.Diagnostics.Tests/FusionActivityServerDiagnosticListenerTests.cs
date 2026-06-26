@@ -1,3 +1,4 @@
+using System.Text.Json;
 using HotChocolate.Diagnostics;
 using HotChocolate.Resolvers;
 using HotChocolate.Transport.Http;
@@ -414,6 +415,101 @@ public class FusionActivityServerDiagnosticListenerTests : FusionTestBase
         }
     }
 
+    [Fact]
+    public async Task Request_Should_Be_Unset_When_Client_Disconnects()
+    {
+        using var guard = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+
+        using (CaptureActivities(out var activities))
+        {
+            // arrange
+            var signal = new BlockingSignal();
+            using var server = CreateSourceSchema(
+                "a",
+                b => b.AddQueryType<Query>(),
+                configureServices: s => s.AddSingleton(signal));
+
+            using var gateway = await CreateCompositeSchemaAsync(
+                [("a", server)],
+                configureGatewayBuilder: b => b.AddInstrumentation(
+                    o => o.Scopes = FusionActivityScopes.All));
+
+            using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+            using var requestCts = CancellationTokenSource.CreateLinkedTokenSource(guard.Token);
+
+            var request = new OperationRequest("{ blockUntilCancelled }");
+
+            // act
+            // start the request, wait until the source resolver is actually executing, then
+            // drop the connection by cancelling the client token (a dropped browser tab)
+            var postTask = PostAndIgnoreCancellationAsync(client, request, requestCts.Token);
+            await signal.Entered.Task.WaitAsync(guard.Token);
+            await requestCts.CancelAsync();
+            await postTask;
+
+            // assert
+            // the snapshot records every span status for a client disconnect mid execution
+            activities.MatchSnapshot(Postfix([NET11_0]));
+        }
+    }
+
+    [Fact]
+    public async Task Request_Should_Be_Error_When_Timeout()
+    {
+        using (CaptureActivities(out var activities))
+        {
+            // arrange
+            // a tiny execution timeout combined with a resolver that blocks until the
+            // request token fires forces a server-side execution timeout (HC0045)
+            using var server = CreateSourceSchema(
+                "a",
+                b => b.AddQueryType<Query>());
+
+            using var gateway = await CreateCompositeSchemaAsync(
+                [("a", server)],
+                configureGatewayBuilder: b => b
+                    .AddInstrumentation(o => o.Scopes = FusionActivityScopes.All)
+                    .ModifyRequestOptions(o => o.ExecutionTimeout = TimeSpan.FromMilliseconds(200)));
+
+            using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+            var request = new OperationRequest("{ blockUntilTimeout }");
+
+            // act
+            using var result = await client.PostAsync(request, s_url, TestContext.Current.CancellationToken);
+            using var operationResult = await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
+
+            // assert
+            // the timeout actually triggered (scenario guard); the snapshot records the
+            // resulting span statuses
+            var code = operationResult.Errors[0].GetProperty("extensions").GetProperty("code").GetString();
+            Assert.Equal(ErrorCodes.Execution.Timeout, code);
+
+            activities.MatchSnapshot(Postfix([NET11_0]));
+        }
+    }
+
+    private static async Task PostAndIgnoreCancellationAsync(
+        GraphQLHttpClient client,
+        OperationRequest request,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            using var result = await client.PostAsync(request, s_url, cancellationToken);
+            await result.ReadAsResultAsync(cancellationToken);
+        }
+        catch (OperationCanceledException)
+        {
+            // expected: the caller aborted the in-flight request
+        }
+        catch (InvalidOperationException)
+        {
+            // expected: the aborted request yields an empty response that cannot be
+            // read as a GraphQL result
+        }
+    }
+
     public class Query
     {
         public string SayHello() => "hello";
@@ -429,6 +525,31 @@ public class FusionActivityServerDiagnosticListenerTests : FusionTestBase
                     .Build());
 
         public Deep Deep() => new();
+
+        public async Task<string> BlockUntilCancelled(
+            [Service] BlockingSignal signal,
+            CancellationToken cancellationToken)
+        {
+            // signal that execution has actually reached the resolver, then block until
+            // the connection drops (the request abort token fires)
+            signal.Entered.TrySetResult();
+            await Task.Delay(Timeout.Infinite, cancellationToken);
+            return "unreachable";
+        }
+
+        public async Task<string> BlockUntilTimeout(CancellationToken cancellationToken)
+        {
+            // block until the execution timeout cancels the (combined) request token,
+            // producing an HC0045 (timeout) result
+            await Task.Delay(Timeout.Infinite, cancellationToken);
+            return "unreachable";
+        }
+    }
+
+    public sealed class BlockingSignal
+    {
+        public TaskCompletionSource Entered { get; } =
+            new(TaskCreationOptions.RunContinuationsAsynchronously);
     }
 
     public class Deep
