@@ -373,6 +373,82 @@ public sealed class SourceSchemaMergerEventStreamTests : SourceSchemaMergerTestB
     }
 
     [Fact]
+    public void Compose_EventStream_Should_Fail_When_AbstractMessageMissingTypeName()
+    {
+        var log = new CompositionLog();
+        var composer = new SchemaComposer(
+            [
+                new SourceSchemaText(
+                    "A",
+                    """
+                    type Subscription {
+                        nodeChanged: Node
+                            @eventStream(topics: ["node.changed"], message: "{ id }")
+                    }
+
+                    interface Node {
+                        id: ID!
+                    }
+
+                    type Book implements Node {
+                        id: ID!
+                    }
+                    """)
+            ],
+            new SchemaComposerOptions { Merger = { AddFusionDefinitions = false } },
+            log);
+
+        var result = composer.Compose();
+
+        Assert.True(result.IsFailure);
+        log.Select(t => t.ToString()).MatchInlineSnapshots(
+        [
+            """
+            {
+                "message": "The @eventStream directive on field 'Subscription.nodeChanged' in schema 'A' selects an abstract type but its message does not include '__typename' at that level, which is required to resolve the concrete type at runtime.",
+                "code": "EVENT_STREAM_MESSAGE_ABSTRACT_TYPE_REQUIRES_TYPENAME",
+                "severity": "Error",
+                "coordinate": "Subscription.nodeChanged",
+                "member": "nodeChanged",
+                "schema": "A",
+                "extensions": {}
+            }
+            """
+        ]);
+    }
+
+    [Fact]
+    public void Compose_EventStream_Should_Succeed_When_AbstractMessageIncludesTypeName()
+    {
+        var log = new CompositionLog();
+        var composer = new SchemaComposer(
+            [
+                new SourceSchemaText(
+                    "A",
+                    """
+                    type Subscription {
+                        nodeChanged: Node
+                            @eventStream(topics: ["node.changed"], message: "{ __typename id }")
+                    }
+
+                    interface Node {
+                        id: ID!
+                    }
+
+                    type Book implements Node {
+                        id: ID!
+                    }
+                    """)
+            ],
+            new SchemaComposerOptions { Merger = { AddFusionDefinitions = false } },
+            log);
+
+        var result = composer.Compose();
+
+        Assert.True(result.IsSuccess);
+    }
+
+    [Fact]
     public void Compose_EventStream_Should_Fail_With_InvalidFieldSharing_When_NotShareable()
     {
         var log = new CompositionLog();

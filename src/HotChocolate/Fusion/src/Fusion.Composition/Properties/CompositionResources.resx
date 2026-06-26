@@ -363,6 +363,9 @@
   <data name="LogEntryHelper_EventStreamTopicsEmpty" xml:space="preserve">
     <value>The @eventStream directive on field '{0}' in schema '{1}' must not declare an empty list of topics. Omit the 'topics' argument to derive topics automatically.</value>
   </data>
+  <data name="LogEntryHelper_EventStreamMessageAbstractTypeRequiresTypeName" xml:space="preserve">
+    <value>The @eventStream directive on field '{0}' in schema '{1}' selects an abstract type but its message does not include '__typename' at that level, which is required to resolve the concrete type at runtime.</value>
+  </data>
   <data name="LogEntryHelper_MultipleCursorFields" xml:space="preserve">
     <value>The @eventStream field '{0}' in schema '{1}' must not declare more than one @eventCursor field on its return type.</value>
   </data>

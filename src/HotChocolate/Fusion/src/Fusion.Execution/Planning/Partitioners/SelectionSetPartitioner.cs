@@ -26,7 +26,14 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
                 context,
                 input.SelectionSet.Type,
                 input.SelectionSet.Node,
-                input.ProvidedSelectionSet);
+                input.ProvidedSelectionSet,
+                // An incoming provided set is the complete data an event stream message already
+                // delivers, so fields it does not cover are spilled. A @provides scope, in
+                // contrast, is partial: it is layered on native ownership and is introduced
+                // further down during recursion, never here at the entry point.
+                input.ProvidedSelectionSet is not null
+                    ? ProvidedCoverage.Complete
+                    : ProvidedCoverage.Partial);
 
         return new SelectionSetPartitionerResult(
             resolvable,
@@ -70,7 +77,8 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
         Context context,
         ITypeDefinition type,
         SelectionSetNode selectionSetNode,
-        SelectionSetNode? providedSelectionSetNode)
+        SelectionSetNode? providedSelectionSetNode,
+        ProvidedCoverage coverage)
     {
         var complexType = type as FusionComplexTypeDefinition;
         List<ISelectionNode>? resolvableSelections = null;
@@ -113,7 +121,8 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
                                 context,
                                 complexType!,
                                 fieldNode,
-                                GetProvidedField(fieldNode, providedSelectionSetNode));
+                                GetProvidedField(fieldNode, providedSelectionSetNode),
+                                coverage);
 
                         context.PopConditions(savedCount);
 
@@ -133,7 +142,8 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
                                 context,
                                 type,
                                 inlineFragmentNode,
-                                providedSelectionSetNode);
+                                providedSelectionSetNode,
+                                coverage);
 
                         CompleteSelection(inlineFragmentNode, resolvable, unresolvable, i);
                     }
@@ -449,14 +459,19 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
         Context context,
         FusionComplexTypeDefinition complexType,
         FieldNode fieldNode,
-        FieldNode? providedFieldNode)
+        FieldNode? providedFieldNode,
+        ProvidedCoverage coverage)
     {
         var field = complexType.Fields.GetField(fieldNode.Name.Value, allowInaccessibleFields: true);
         field.Sources.TryGetMember(context.SchemaName, out var source);
 
-        // The field is resolvable from the current schema when either the parent's provides
-        // scope covers it, or the schema declares a non-external source for it.
-        var isResolvable = providedFieldNode is not null || source is { IsExternal: false };
+        // With complete coverage (an event stream message shape), the provided set is all the
+        // data we already have here, so a field is only resolvable when the set covers it.
+        // Native ownership is ignored, which spills selections the message does not carry.
+        // With partial coverage (a @provides scope), the provided set only adds fields, so an
+        // uncovered field falls back to native ownership and a non-external source resolves it.
+        var isResolvable = providedFieldNode is not null
+            || (coverage is ProvidedCoverage.Partial && source is { IsExternal: false });
 
         if (!isResolvable)
         {
@@ -535,7 +550,15 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
                 context,
                 field.Type.AsTypeDefinition(),
                 selectionSet,
-                MergeProvidedSelectionSets(providedFieldNode?.SelectionSet, source?.Provides));
+                MergeProvidedSelectionSets(providedFieldNode?.SelectionSet, source?.Provides),
+                // Complete coverage propagates only into a subtree the provided set covers (a
+                // matched providedFieldNode). Uncovered fields revert to partial and fall back
+                // to native resolvability. The set is the merged message and @provides shape, so
+                // within an already complete event stream scope a field covered only by
+                // @provides also stays complete (at worst an extra lookup).
+                coverage is ProvidedCoverage.Complete && providedFieldNode is not null
+                    ? ProvidedCoverage.Complete
+                    : ProvidedCoverage.Partial);
 
             context.Nodes.Pop();
 
@@ -621,7 +644,8 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
         Context context,
         ITypeDefinition type,
         InlineFragmentNode inlineFragmentNode,
-        SelectionSetNode? providedFieldNode)
+        SelectionSetNode? providedFieldNode,
+        ProvidedCoverage coverage)
     {
         // TODO: we need to implement proper type routing here later.
         var typeCondition = type;
@@ -651,7 +675,8 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
                 context,
                 typeCondition,
                 inlineFragmentNode.SelectionSet,
-                providedFieldNode);
+                providedFieldNode,
+                coverage);
 
         context.Nodes.Pop();
 

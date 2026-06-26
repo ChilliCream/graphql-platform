@@ -43,7 +43,7 @@ public sealed class SelectionSetValidator(ISchemaDefinition schema)
         {
             if (complexType.Fields.TryGetField(node.Name.Value, out var field))
             {
-                var fieldType = field.Type.NullableType();
+                var fieldType = field.Type.NamedType();
 
                 if (fieldType is IComplexTypeDefinition or IUnionTypeDefinition)
                 {

@@ -1,5 +1,6 @@
 ---
 title: "Subscriptions"
+description: "How Fusion federates GraphQL subscriptions with broker-backed Federated Event Streams and SSE subgraph subscriptions."
 ---
 
 GraphQL subscriptions let clients receive a continuous stream of results whenever
@@ -30,7 +31,7 @@ Federated event streams decouple the event source from the GraphQL schema. Your
 services publish events to a message broker; the gateway subscribes to the relevant
 topics and turns each event into a fully resolved GraphQL result.
 
-![Federated Event Streams architecture: clients open a long-lived subscription to the Fusion gateway, the gateway subscribes to a topic on the message broker, your services publish events, and on each event the gateway performs stateless HTTP fetches against the owning subgraphs to resolve the selection set](../../shared/fusion/fusion-subscriptions-architecture.png)
+![Federated Event Streams architecture: clients open a long-lived subscription to the Fusion gateway, the gateway subscribes to a topic on the message broker, your services publish events, and on each event the gateway performs stateless HTTP fetches against the owning subgraphs to resolve the selection set](../../../public/images/fusion-docs/fusion-subscriptions-architecture.png)
 
 The flow has four moving parts:
 
@@ -128,7 +129,8 @@ public class SubscriptionType : ObjectType<Subscriptions>
 }
 ```
 
-> **Note:** The resolver body of an event-stream field never runs; the gateway fulfills
+> [!NOTE]
+> The resolver body of an event-stream field never runs; the gateway fulfills
 > these fields from the broker, not a local resolver. `EventStream.Create<T>` is a
 > compile-time placeholder that always throws. Pass the field's arguments to it so
 > analyzers do not flag them as unused.
@@ -146,7 +148,7 @@ subscription {
 
 Notice that the client selects `name` and `price`, even though the event payload
 only carries `id`. Because `onProductPriceChanged` returns the `Product`
-[entity](/docs/fusion/v16/entities-and-lookups), the gateway resolves the remaining
+[entity](./entities-and-lookups.md), the gateway resolves the remaining
 fields the same way it resolves a federated query.
 A client can even select fields owned by other subgraphs, for example `reviews` from a
 Reviews subgraph, and the gateway fetches them per event:
@@ -512,7 +514,8 @@ A client subscribing with `onProductPriceChanged(productId: "1")` is wired to th
 topic `product.price-changed.1`, so it only receives the events relevant to that
 product. This keeps fan-out at the broker rather than in the gateway.
 
-> **Note:** `{$args.<name>}` is the placeholder. To include a literal brace in a topic,
+> [!NOTE]
+> `{$args.<name>}` is the placeholder. To include a literal brace in a topic,
 > double it: `{{` produces `{` and `}}` produces `}`. To wrap a value in literal braces,
 > escape the outer pair, so `topic-{{{$args.productId}}}` resolves to `topic-{1}` (for
 > `productId: "1"`), and `topic-{{{{{$args.productId}}}}}` resolves to `topic-{{1}}`.
@@ -632,7 +635,8 @@ JetStream sequence for NATS, a `topic:partition:offset` for Kafka, a
 `partition:sequenceNumber` for Azure Event Hubs), so clients should
 treat it as a black box and never parse or construct it.
 
-> **Note:** Resumable streams need a broker that retains and orders history. Configure
+> [!NOTE]
+> Resumable streams need a broker that retains and orders history. Configure
 > NATS with JetStream, or use Kafka or Azure Event Hubs. Core NATS pub/sub does not keep
 > history, so it cannot resume; Amazon SQS deletes each event once delivered; and Redis
 > Pub/Sub does not retain history either, so SQS- and Redis-backed streams cannot resume.
@@ -724,7 +728,7 @@ event: complete
 For details on defining subscriptions in a subgraph (the `[Subscribe]` and `[Topic]`
 attributes, `ITopicEventSender`, and the in-memory, Redis, NATS, and Postgres
 providers), see
-[Hot Chocolate subscriptions](/docs/hotchocolate/v16/defining-a-schema/subscriptions).
+[Hot Chocolate subscriptions](../hotchocolate/defining-a-schema/subscriptions.md).
 
 ## Configuring the subgraph transport
 
@@ -753,7 +757,8 @@ settings under the HTTP transport's subscription capability:
 Set `supported` to `false` to tell the gateway a subgraph does not serve
 subscriptions, or restrict `formats` to pin a single transport.
 
-> **Note:** Subgraph subscriptions are only supported through the default HTTP
+> [!NOTE]
+> Subgraph subscriptions are only supported through the default HTTP
 > connector. Subgraphs integrated through the Apollo Federation connector cannot serve
 > subscriptions.
 
@@ -773,4 +778,4 @@ gateway sources events:
 # Directive reference
 
 For the full SDL of `@eventStream` and `@eventCursor`, including the composed output,
-see the [Directive Reference](/docs/fusion/v16/directives-reference).
+see the [Directive Reference](./directives-reference.md).
