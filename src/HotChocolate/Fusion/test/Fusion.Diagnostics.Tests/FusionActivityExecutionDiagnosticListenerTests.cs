@@ -908,7 +908,7 @@ public class FusionActivityExecutionDiagnosticListenerTests : FusionTestBase
     }
 
     [Fact]
-    public async Task Subscription_Span_Should_Be_Ok_When_Closed_Gracefully()
+    public async Task Subscription_Should_Be_Ok_When_Server_Completes()
     {
         using var cts = new CancellationTokenSource(5000);
 
@@ -956,7 +956,7 @@ public class FusionActivityExecutionDiagnosticListenerTests : FusionTestBase
     }
 
     [Fact]
-    public async Task Subscription_Span_Should_Reflect_Client_Abort_When_Connection_Dropped()
+    public async Task Subscription_Should_Be_Unset_When_Client_Disconnects()
     {
         using var cts = new CancellationTokenSource(5000);
         using var abortCts = new CancellationTokenSource();
@@ -1015,7 +1015,7 @@ public class FusionActivityExecutionDiagnosticListenerTests : FusionTestBase
     }
 
     [Fact]
-    public async Task Subscription_Span_Should_Reflect_Client_Abort_When_Connection_Dropped_During_Event()
+    public async Task Subscription_Should_Be_Unset_When_Client_Disconnects_During_Event()
     {
         using var cts = new CancellationTokenSource(5000);
         using var abortCts = new CancellationTokenSource();
