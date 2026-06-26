@@ -8,7 +8,6 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\Mocha.Mediator\Mocha.Mediator.csproj" />
-    <ProjectReference Include="..\..\src\Mocha.Mediator.Abstractions\Mocha.Mediator.Abstractions.csproj" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
   </ItemGroup>
 </Project>

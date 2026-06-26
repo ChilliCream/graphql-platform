@@ -223,6 +223,17 @@ internal sealed class FusionActivityExecutionDiagnosticEventListener(
     {
         if (Activity.Current is { } activity)
         {
+            // An intentional caller cancellation (browser tab closed, connection
+            // dropped) is not an error. The in-flight downstream fetch can surface
+            // the abort as an exception, but per the OpenTelemetry semantic
+            // conventions the span is left Unset instead of being marked Error. A
+            // server-side execution timeout uses a different token and is not
+            // treated as a client cancellation, so it keeps the error behavior.
+            if (FusionClientCancellation.IsClientCanceled(context.RequestContext))
+            {
+                return;
+            }
+
             activity.SetStatus(ActivityStatusCode.Error);
             activity.AddGraphQLErrorEvent(
                 error,
@@ -243,6 +254,12 @@ internal sealed class FusionActivityExecutionDiagnosticEventListener(
     {
         if (Activity.Current is { } activity)
         {
+            // A caller cancellation is not an error; leave the span Unset.
+            if (FusionClientCancellation.IsClientCanceled(context.RequestContext))
+            {
+                return;
+            }
+
             activity.SetStatus(ActivityStatusCode.Error);
             activity.AddGraphQLErrorEvent(
                 error,
@@ -263,6 +280,12 @@ internal sealed class FusionActivityExecutionDiagnosticEventListener(
     {
         if (Activity.Current is { } activity)
         {
+            // A caller cancellation is not an error; leave the span Unset.
+            if (FusionClientCancellation.IsClientCanceled(context.RequestContext))
+            {
+                return;
+            }
+
             activity.SetStatus(ActivityStatusCode.Error);
             activity.AddGraphQLErrorEvent(
                 error,
@@ -311,6 +334,13 @@ internal sealed class FusionActivityExecutionDiagnosticEventListener(
     {
         if (Activity.Current is { } activity)
         {
+            // A caller cancellation is not an error; leave the span Unset. A
+            // per-event execution timeout uses a different token and stays Error.
+            if (FusionClientCancellation.IsClientCanceled(context.RequestContext))
+            {
+                return;
+            }
+
             activity.SetStatus(ActivityStatusCode.Error);
             activity.AddGraphQLErrorEvent(
                 exception,

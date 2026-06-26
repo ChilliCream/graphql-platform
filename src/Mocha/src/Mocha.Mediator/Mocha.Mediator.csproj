@@ -8,7 +8,6 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\Mocha.Abstractions\Mocha.Abstractions.csproj" />
-    <ProjectReference Include="..\Mocha.Mediator.Abstractions\Mocha.Mediator.Abstractions.csproj" />
     <ProjectReference Include="..\Mocha.Utilities\Mocha.Utilities.csproj" />
   </ItemGroup>
   <ItemGroup>
