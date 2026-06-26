@@ -34,22 +34,18 @@ public class ConnectionOverridePagingCostTests
 
     // [UsePaging] and [UseConnection] are two ways to declare the same connection field, so they
     // must derive the same @listSize.assumedSize from the global MaxPageSize when no per-field
-    // override is set. The source-gen connection shape (connection flag + [UseConnection]) must
-    // match too.
+    // override is set. NoOverrideQueryType (connection flag + [UseConnection]) is the same shape a
+    // source-generated connection resolver produces.
     [Fact]
     public async Task ListSize_AssumedSize_Should_Be_Equal_For_UsePaging_And_UseConnection_Without_Override()
     {
         // arrange & act
         var usePaging = await GetBooksAssumedSizeAsync(b => b.AddQueryType<UsePagingQuery>());
         var useConnection = await GetBooksAssumedSizeAsync(b => b.AddQueryType<NoOverrideQueryType>());
-        var sourceGenConnection = await GetBooksAssumedSizeAsync(b => b.AddQueryType<NoOverrideQueryType>());
 
         // assert
         Assert.Equal(100, usePaging);
-        Assert.Equal(100, useConnection);
-        Assert.Equal(100, sourceGenConnection);
         Assert.Equal(usePaging, useConnection);
-        Assert.Equal(usePaging, sourceGenConnection);
     }
 
     private static async Task<int?> GetBooksAssumedSizeAsync(
