@@ -12,10 +12,11 @@ internal sealed class RemoveClientDirectivesRewriter : SyntaxRewriter<object?>
     {
         var current = node;
 
-        if (current.Directives.Any(t => t.Name.Value.EqualsOrdinal(Returns)))
+        if (current.Directives.Any(t => t.Name.Value.Equals(Returns, StringComparison.Ordinal)))
         {
             var directiveNodes = current.Directives.ToList();
-            directiveNodes.RemoveAll(static t => t.Name.Value.EqualsOrdinal(Returns));
+            directiveNodes.RemoveAll(
+                static t => t.Name.Value.Equals(Returns, StringComparison.Ordinal));
             current = current.WithDirectives(directiveNodes);
         }
 

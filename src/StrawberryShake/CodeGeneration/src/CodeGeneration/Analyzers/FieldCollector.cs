@@ -3,6 +3,7 @@ using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
 using HotChocolate.Features;
+using StrawberryShake.CodeGeneration.Utilities;
 using static StrawberryShake.CodeGeneration.Utilities.TypeHelpers;
 using Path = HotChocolate.Path;
 using IHasDirectives = HotChocolate.Language.IHasDirectives;
@@ -157,7 +158,7 @@ internal sealed class FieldCollector
         if ((type is IComplexTypeDefinition ct && ct.Fields.TryGetField(fieldName, out field))
             || fieldSyntax.Name.Value is WellKnownNames.TypeName)
         {
-            field ??= TypeNameField.Default;
+            field ??= TypeNameField.For(type);
 
             if (fields.TryGetValue(responseName, out var fieldSelection))
             {
@@ -252,7 +253,7 @@ internal sealed class FieldCollector
         var fragmentDefinitionSyntax =
             _document.Definitions
                 .OfType<FragmentDefinitionNode>()
-                .FirstOrDefault(t => t.Name.Value.EqualsOrdinal(fragmentName));
+                .FirstOrDefault(t => t.Name.Value.Equals(fragmentName, StringComparison.Ordinal));
 
         if (fragmentDefinitionSyntax is not null)
         {
@@ -312,24 +313,28 @@ internal sealed class FieldCollector
 
     private sealed class TypeNameField : IOutputFieldDefinition
     {
-        private TypeNameField()
+        private readonly IFeatureCollection _features = new FeatureCollection();
+
+        private TypeNameField(bool includeDescription)
         {
+            var stringType = new MissingType(ScalarNames.String);
+            stringType.Features.Set(new LeafTypeFeature(TypeNames.String, TypeNames.String));
+
             Name = WellKnownNames.TypeName;
-            Type = new NonNullType(new StringType());
+            Description = includeDescription
+                ? "The name of the current Object type at runtime."
+                : null;
+            Type = new NonNullType(stringType);
             Arguments = EmptyCollections.InputFieldDefinitions;
         }
 
         public string Name { get; }
 
-        public string? Description => null;
+        public string? Description { get; }
 
-        public IReadOnlyDirectiveCollection Directives => throw new NotImplementedException();
+        public IReadOnlyDirectiveCollection Directives => EmptyCollections.Directives;
 
         public ISyntaxNode? SyntaxNode => null;
-
-        public Type RuntimeType => typeof(string);
-
-        public IReadOnlyDictionary<string, object?> ContextData { get; } = new ExtensionData();
 
         public bool IsIntrospectionField => true;
 
@@ -353,9 +358,14 @@ internal sealed class FieldCollector
 
         public int Index => 0;
 
-        public static TypeNameField Default { get; } = new();
+        public static TypeNameField For(IOutputTypeDefinition type)
+            => type.Kind is TypeKind.Object ? WithDescription : WithoutDescription;
 
-        public IFeatureCollection Features => throw new NotImplementedException();
+        private static TypeNameField WithDescription { get; } = new(includeDescription: true);
+
+        private static TypeNameField WithoutDescription { get; } = new(includeDescription: false);
+
+        public IFeatureCollection Features => _features;
 
         public FieldDefinitionNode ToSyntaxNode() => throw new NotImplementedException();
 

@@ -33,7 +33,7 @@ public static class FragmentHelper
     public static FragmentNode? GetFragment(FragmentNode fragmentNode, string name)
     {
         if (fragmentNode.Fragment.Kind == FragmentKind.Named
-            && fragmentNode.Fragment.Name.EqualsOrdinal(name))
+            && fragmentNode.Fragment.Name.Equals(name, StringComparison.Ordinal))
         {
             return fragmentNode;
         }
@@ -606,7 +606,7 @@ public static class FragmentHelper
     private static string GetDeferLabel(DirectiveNode directive)
     {
         var argument = directive.Arguments.FirstOrDefault(
-            t => t.Name.Value.EqualsOrdinal(DirectiveNames.Defer.Arguments.Label));
+            t => t.Name.Value.Equals(DirectiveNames.Defer.Arguments.Label, StringComparison.Ordinal));
 
         if (argument?.Value is not StringValueNode { Value.Length: > 0 } sv)
         {

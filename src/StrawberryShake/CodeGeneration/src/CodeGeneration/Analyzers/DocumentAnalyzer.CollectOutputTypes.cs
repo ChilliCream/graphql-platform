@@ -84,14 +84,14 @@ public partial class DocumentAnalyzer
 
         EnqueueFields(selectionSetVariants, backlog);
 
-        if (namedType is UnionType or InterfaceType)
+        if (namedType is IUnionTypeDefinition or IInterfaceTypeDefinition)
         {
             s_selectionAnalyzer.Analyze(
                 context,
                 fieldSelection,
                 selectionSetVariants);
         }
-        else if (namedType is ObjectType)
+        else if (namedType is IObjectTypeDefinition)
         {
             s_selectionAnalyzer.Analyze(
                 context,

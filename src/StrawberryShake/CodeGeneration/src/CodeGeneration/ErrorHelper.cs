@@ -1,6 +1,7 @@
 using HotChocolate;
 using HotChocolate.Collections.Immutable;
 using HotChocolate.Language;
+using HotChocolate.Types.Mutable;
 using static StrawberryShake.CodeGeneration.CodeGenerationErrorCodes;
 using Location = HotChocolate.Location;
 
@@ -33,35 +34,13 @@ public static class ErrorHelper
         return error.WithExtensions(extensions);
     }
 
-    public static IError SchemaError(
-        this ISchemaError error,
-        IDictionary<ISyntaxNode, string> fileLookup)
-    {
-        var builder = ErrorBuilder.New();
-
-        foreach (var extension in error.Extensions)
-        {
-            builder.SetExtension(extension.Key, extension.Value);
-        }
-
-        builder.SetExtension(TitleExtensionKey, "Schema validation error");
-
-        foreach (var syntaxNode in error.SyntaxNodes)
-        {
-            // if the error has a syntax node we will try to lookup the
-            // document and add the filename to the error.
-            if (fileLookup.TryGetValue(syntaxNode, out var filename))
-            {
-                builder.SetExtension(FileExtensionKey, filename);
-            }
-        }
-
-        return builder
-            .SetMessage(error.Message)
-            .SetCode(error.Code)
-            .SetException(error.Exception)
+    public static IError SchemaError(this SchemaInitializationException exception) =>
+        ErrorBuilder.New()
+            .SetMessage(exception.Message ?? "The GraphQL schema could not be initialized.")
+            .SetCode(SchemaValidationError)
+            .SetException(exception)
+            .SetExtension(TitleExtensionKey, "Schema validation error")
             .Build();
-    }
 
     public static IError SyntaxError(
         this SyntaxException exception,

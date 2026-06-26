@@ -1,6 +1,3 @@
-using Microsoft.Extensions.DependencyInjection;
-using HotChocolate.StarWars;
-using HotChocolate.Execution;
 using HotChocolate.Language;
 
 namespace StrawberryShake.CodeGeneration.Analyzers;
@@ -11,12 +8,7 @@ public class InterfaceTypeSelectionSetAnalyzerTests
     public async Task Interface_With_Default_Names_One_Models()
     {
         // arrange
-        var schema =
-            await new ServiceCollection()
-                .AddStarWarsRepositories()
-                .AddGraphQL()
-                .AddStarWars()
-                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
+        var schema = await TestSchemaHelper.CreateStarWarsSchemaAsync();
 
         var document =
             Utf8GraphQLParser.Parse(@"
@@ -52,12 +44,7 @@ public class InterfaceTypeSelectionSetAnalyzerTests
     public async Task Interface_With_Default_Names_Two_Models()
     {
         // arrange
-        var schema =
-            await new ServiceCollection()
-                .AddStarWarsRepositories()
-                .AddGraphQL()
-                .AddStarWars()
-                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
+        var schema = await TestSchemaHelper.CreateStarWarsSchemaAsync();
 
         var document =
             Utf8GraphQLParser.Parse(@"
@@ -84,8 +71,8 @@ public class InterfaceTypeSelectionSetAnalyzerTests
 
         Assert.Collection(
             context.GetImplementations(result),
-            model => Assert.Equal("IGetHero_Hero_Human", model.Name),
-            model => Assert.Equal("IGetHero_Hero_Droid", model.Name));
+            model => Assert.Equal("IGetHero_Hero_Droid", model.Name),
+            model => Assert.Equal("IGetHero_Hero_Human", model.Name));
 
         Assert.Collection(
             result.Fields,
@@ -96,12 +83,7 @@ public class InterfaceTypeSelectionSetAnalyzerTests
     public async Task Interface_With_Fragment_Definition_One_Model()
     {
         // arrange
-        var schema =
-            await new ServiceCollection()
-                .AddStarWarsRepositories()
-                .AddGraphQL()
-                .AddStarWars()
-                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
+        var schema = await TestSchemaHelper.CreateStarWarsSchemaAsync();
 
         var document =
             Utf8GraphQLParser.Parse(@"
@@ -139,12 +121,7 @@ public class InterfaceTypeSelectionSetAnalyzerTests
     public async Task Interface_With_Fragment_Definition_Two_Models()
     {
         // arrange
-        var schema =
-            await new ServiceCollection()
-                .AddStarWarsRepositories()
-                .AddGraphQL()
-                .AddStarWars()
-                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
+        var schema = await TestSchemaHelper.CreateStarWarsSchemaAsync();
 
         var document =
             Utf8GraphQLParser.Parse(@"
@@ -182,8 +159,8 @@ public class InterfaceTypeSelectionSetAnalyzerTests
 
         Assert.Collection(
             context.GetImplementations(result),
-            model => Assert.Equal("IGetHero_Hero_Human", model.Name),
-            model => Assert.Equal("IGetHero_Hero_Droid", model.Name));
+            model => Assert.Equal("IGetHero_Hero_Droid", model.Name),
+            model => Assert.Equal("IGetHero_Hero_Human", model.Name));
 
         Assert.Empty(result.Fields);
     }
@@ -192,12 +169,7 @@ public class InterfaceTypeSelectionSetAnalyzerTests
     public async Task Union_With_Fragment_Definition_Two_Models()
     {
         // arrange
-        var schema =
-            await new ServiceCollection()
-                .AddStarWarsRepositories()
-                .AddGraphQL()
-                .AddStarWars()
-                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
+        var schema = await TestSchemaHelper.CreateStarWarsSchemaAsync();
 
         var document =
             Utf8GraphQLParser.Parse(

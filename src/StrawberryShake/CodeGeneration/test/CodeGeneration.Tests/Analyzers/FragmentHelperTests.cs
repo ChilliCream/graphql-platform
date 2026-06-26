@@ -1,7 +1,4 @@
-using Microsoft.Extensions.DependencyInjection;
-using HotChocolate.Execution;
 using HotChocolate.Language;
-using HotChocolate.StarWars;
 using StrawberryShake.CodeGeneration.Analyzers.Models;
 
 namespace StrawberryShake.CodeGeneration.Analyzers;
@@ -12,12 +9,7 @@ public class FragmentHelperTests
     public async Task GetReturnTypeName_Found()
     {
         // arrange
-        var schema =
-            await new ServiceCollection()
-                .AddStarWarsRepositories()
-                .AddGraphQL()
-                .AddStarWars()
-                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
+        var schema = await TestSchemaHelper.CreateStarWarsSchemaAsync();
 
         var document =
             Utf8GraphQLParser.Parse(
@@ -63,12 +55,7 @@ public class FragmentHelperTests
     public async Task GetReturnTypeName_Not_Found()
     {
         // arrange
-        var schema =
-            await new ServiceCollection()
-                .AddStarWarsRepositories()
-                .AddGraphQL()
-                .AddStarWars()
-                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
+        var schema = await TestSchemaHelper.CreateStarWarsSchemaAsync();
 
         var document =
             Utf8GraphQLParser.Parse(@"
@@ -112,12 +99,7 @@ public class FragmentHelperTests
     public async Task GetFragment_From_FragmentTree_Found()
     {
         // arrange
-        var schema =
-            await new ServiceCollection()
-                .AddStarWarsRepositories()
-                .AddGraphQL()
-                .AddStarWars()
-                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
+        var schema = await TestSchemaHelper.CreateStarWarsSchemaAsync();
 
         var document =
             Utf8GraphQLParser.Parse(
@@ -172,12 +154,7 @@ public class FragmentHelperTests
     public async Task Create_TypeModels_Infer_TypeStructure()
     {
         // arrange
-        var schema =
-            await new ServiceCollection()
-                .AddStarWarsRepositories()
-                .AddGraphQL()
-                .AddStarWars()
-                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
+        var schema = await TestSchemaHelper.CreateStarWarsSchemaAsync();
 
         var document =
             Utf8GraphQLParser.Parse(@"
@@ -289,12 +266,7 @@ public class FragmentHelperTests
     public async Task Create_TypeModels_Infer_From_Fragments()
     {
         // arrange
-        var schema =
-            await new ServiceCollection()
-                .AddStarWarsRepositories()
-                .AddGraphQL()
-                .AddStarWars()
-                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
+        var schema = await TestSchemaHelper.CreateStarWarsSchemaAsync();
 
         var document =
             Utf8GraphQLParser.Parse(@"
@@ -424,12 +396,7 @@ public class FragmentHelperTests
     public async Task Create_TypeModels_Infer_From_Fragments_With_HoistedFragment()
     {
         // arrange
-        var schema =
-            await new ServiceCollection()
-                .AddStarWarsRepositories()
-                .AddGraphQL()
-                .AddStarWars()
-                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
+        var schema = await TestSchemaHelper.CreateStarWarsSchemaAsync();
 
         var document =
             Utf8GraphQLParser.Parse(

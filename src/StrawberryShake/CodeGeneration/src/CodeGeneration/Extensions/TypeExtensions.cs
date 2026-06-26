@@ -13,9 +13,9 @@ public static class TypeExtensions
     public static SelectionSetNode GetEntityDefinition(this ITypeDefinition typeDefinition)
         => typeDefinition.Features.GetRequired<EntityFeature>().Pattern;
 
-    public static string GetRuntimeType(this ILeafType leafType)
-        => leafType.Features.GetRequired<LeafTypeFeature>().RuntimeType ?? "String";
+    public static string GetRuntimeType(this ITypeDefinition type)
+        => type.Features.GetRequired<LeafTypeFeature>().RuntimeType ?? "String";
 
-    public static string GetSerializationType(this ILeafType leafType)
-        => leafType.Features.GetRequired<LeafTypeFeature>().SerializationType;
+    public static string GetSerializationType(this ITypeDefinition type)
+        => type.Features.GetRequired<LeafTypeFeature>().SerializationType;
 }

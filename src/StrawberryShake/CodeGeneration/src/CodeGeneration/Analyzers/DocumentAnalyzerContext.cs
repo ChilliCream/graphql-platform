@@ -2,8 +2,9 @@ using System.Diagnostics.CodeAnalysis;
 using HotChocolate;
 using HotChocolate.Language;
 using HotChocolate.Types;
-using StrawberryShake.CodeGeneration.Analyzers.Models;
+using HotChocolate.Types.Mutable;
 using StrawberryShake.CodeGeneration.Extensions;
+using StrawberryShake.CodeGeneration.Analyzers.Models;
 using Path = HotChocolate.Path;
 
 namespace StrawberryShake.CodeGeneration.Analyzers;
@@ -17,7 +18,7 @@ public class DocumentAnalyzerContext : IDocumentAnalyzerContext
     private readonly FieldCollector _fieldCollector;
 
     public DocumentAnalyzerContext(
-        Schema schema,
+        MutableSchemaDefinition schema,
         DocumentNode document)
     {
         Schema = schema ?? throw new ArgumentNullException(nameof(schema));
@@ -34,7 +35,7 @@ public class DocumentAnalyzerContext : IDocumentAnalyzerContext
 
     public DocumentNode Document { get; }
 
-    public ObjectType OperationType { get; }
+    public IObjectTypeDefinition OperationType { get; }
 
     public OperationDefinitionNode OperationDefinition { get; }
 
@@ -99,16 +100,16 @@ public class DocumentAnalyzerContext : IDocumentAnalyzerContext
 
     public void RegisterType(ITypeDefinition type)
     {
-        if (type is ILeafType leafType && _typeModels.Values.All(x => x.Type.Name != type.Name))
+        if (type.IsLeafType() && _typeModels.Values.All(x => x.Type.Name != type.Name))
         {
             _typeModels.Add(
-                leafType.Name,
+                type.Name,
                 new LeafTypeModel(
-                    leafType.Name,
-                    leafType.Description,
-                    leafType,
-                    leafType.GetSerializationType(),
-                    leafType.GetRuntimeType()));
+                    type.Name,
+                    type.Description,
+                    type,
+                    type.GetSerializationType(),
+                    type.GetRuntimeType()));
         }
     }
 
