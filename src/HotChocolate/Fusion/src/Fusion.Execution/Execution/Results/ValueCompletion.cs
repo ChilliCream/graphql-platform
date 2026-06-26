@@ -59,6 +59,7 @@ internal sealed class ValueCompletion
             var error = errorTrie?.FindFirstError();
             var canExecutionContinue =
                 BuildResultForInvalidSource(
+                    source,
                     sourceValueKind,
                     target,
                     resultSelectionSet,
@@ -257,6 +258,7 @@ internal sealed class ValueCompletion
     }
 
     private bool BuildResultForInvalidSource(
+        SourceResultElement source,
         JsonValueKind sourceValueKind,
         CompositeResultElement target,
         ResultSelectionSet resultSelectionSet,
@@ -270,6 +272,15 @@ internal sealed class ValueCompletion
             }
 
             return true;
+        }
+
+        // A clean null source without an associated error is a legitimate
+        // "not found" state (e.g. a lookup that resolved to null), so each
+        // selected field is completed with its own nullability semantics
+        // instead of surfacing an unexpected execution error.
+        if (sourceValueKind is JsonValueKind.Null && error is null)
+        {
+            return CompleteNullSource(source, target, resultSelectionSet);
         }
 
         var fallbackError = error ??
@@ -288,6 +299,58 @@ internal sealed class ValueCompletion
         }
 
         return BuildErrorResult(target, resultSelectionSet, fallbackError, target.CompactPath);
+    }
+
+    /// <summary>
+    /// Completes the selection set of <paramref name="target"/> for a <c>null</c>
+    /// source, applying per-field nullability so that non-null fields produce a
+    /// non-null violation and nullable fields are set to <c>null</c>.
+    /// </summary>
+    /// <returns>
+    /// <c>true</c>, if the execution can continue.
+    /// <c>false</c>, if the execution needs to be halted.
+    /// </returns>
+    private bool CompleteNullSource(
+        SourceResultElement source,
+        CompositeResultElement target,
+        ResultSelectionSet resultSelectionSet)
+    {
+        foreach (var responseName in resultSelectionSet.ResponseNames)
+        {
+            if (!target.TryGetProperty(responseName, out var fieldResult)
+                || fieldResult.IsInternal)
+            {
+                continue;
+            }
+
+            var selection = fieldResult.AssertSelection();
+            var childSet = resultSelectionSet.TryGetChild(selection.ResponseName);
+
+            if (!TryCompleteValue(
+                    source,
+                    JsonValueKind.Null,
+                    fieldResult,
+                    errorTrie: null,
+                    selection,
+                    selection.Type,
+                    0,
+                    childSet))
+            {
+                switch (_errorHandlingMode)
+                {
+                    case ErrorHandlingMode.Propagate:
+                        var didPropagateToRoot = PropagateNullValues(fieldResult);
+                        if (didPropagateToRoot)
+                        {
+                            return false;
+                        }
+
+                        return ApplyPocketedErrors(target);
+                }
+            }
+        }
+
+        return ApplyPocketedErrors(target);
     }
 
     private static bool TryInitializeTargetObject(CompositeResultElement target)
