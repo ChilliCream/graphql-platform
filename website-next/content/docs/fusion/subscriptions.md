@@ -12,7 +12,7 @@ several subgraphs.
 Fusion supports two complementary models for subscriptions:
 
 1. **Federated Event Streams.** The subscription is backed by
-   a message broker (NATS, Kafka, Azure Event Hubs, or Amazon SQS).
+   a message broker (NATS, Kafka, Azure Event Hubs, Amazon SQS, or Redis).
    The gateway subscribes to a broker topic, and for every event it
    resolves the requested fields across your subgraphs with
    ordinary stateless fetches. This is the recommended model for scale, because the
@@ -374,6 +374,39 @@ The queue name is derived from the logical topic using `QueueNamePrefix`. Tune
 so design resolvers to tolerate the occasional duplicate event. SQS does not retain an
 ordered history, so SQS-backed streams are not [resumable](#client-resumable-subscriptions).
 
+### Redis
+
+Install the `HotChocolate.Fusion.Subscriptions.Redis` package and register the broker.
+Each subscribed topic is treated as a Redis Pub/Sub channel name:
+
+```csharp
+builder
+    .AddGraphQLGateway()
+    .AddFileSystemConfiguration("./gateway.far")
+    .AddRedisEventStreamBroker(options =>
+    {
+        options.Configuration = "localhost:6379";
+    });
+```
+
+Redis Pub/Sub broadcasts every message to all connected subscribers, so each GraphQL
+subscriber receives the full stream. For finer control over the connection, set
+`ConfigurationOptions` (which takes precedence over `Configuration`), or supply an
+existing `ConnectionMultiplexer` that the broker shares but does not dispose:
+
+```csharp
+builder
+    .AddGraphQLGateway()
+    .AddFileSystemConfiguration("./gateway.far")
+    .AddRedisEventStreamBroker(options =>
+    {
+        options.ConnectionMultiplexer = ConnectionMultiplexer.Connect("localhost:6379");
+    });
+```
+
+Redis Pub/Sub does not retain message history, so Redis-backed streams are not
+[resumable](#client-resumable-subscriptions).
+
 ### Using multiple brokers
 
 To run more than one broker, give each a name and select one per field with the
@@ -442,6 +475,20 @@ await sns.PublishAsync(
 
 In direct queue mode (no `ResolveTopicArn`), there is no shared topic to publish to;
 you send to the per-subscription queue URLs yourself, which is mainly useful for tests.
+
+With Redis, publish to the channel that matches the field's topic. Redis fans the
+message out to every subscribed gateway:
+
+```csharp
+var multiplexer = await ConnectionMultiplexer.ConnectAsync("localhost:6379");
+var subscriber = multiplexer.GetSubscriber();
+
+var payload = JsonSerializer.Serialize(new { id = "1" });
+
+await subscriber.PublishAsync(
+    RedisChannel.Literal("onProductPriceChanged-1"),
+    payload);
+```
 
 ## Topics
 
@@ -591,8 +638,8 @@ treat it as a black box and never parse or construct it.
 > [!NOTE]
 > Resumable streams need a broker that retains and orders history. Configure
 > NATS with JetStream, or use Kafka or Azure Event Hubs. Core NATS pub/sub does not keep
-> history, so it cannot resume, and Amazon SQS deletes each event once delivered, so
-> SQS-backed streams cannot resume either.
+> history, so it cannot resume; Amazon SQS deletes each event once delivered; and Redis
+> Pub/Sub does not retain history either, so SQS- and Redis-backed streams cannot resume.
 
 For NATS, enable JetStream when registering the broker:
 

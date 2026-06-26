@@ -524,7 +524,7 @@ Use `@internal` when a field or type exists solely for the gateway's entity reso
 
 ## `@eventStream`
 
-Backs a subscription root field with a message broker (NATS, Kafka, Azure Event Hubs, or Amazon SQS). The gateway subscribes to the configured topics and, for each event, resolves the field's selection set across the subgraphs from the event payload.
+Backs a subscription root field with a message broker (NATS, Kafka, Azure Event Hubs, Amazon SQS, or Redis). The gateway subscribes to the configured topics and, for each event, resolves the field's selection set across the subgraphs from the event payload.
 
 ```graphql
 directive @eventStream(
