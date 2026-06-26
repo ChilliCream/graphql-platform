@@ -58,6 +58,11 @@ var projPct = projValid == 0 ? 100.0 : 100.0 * projCovered / projValid;
 var rows = new List<FileRow>();
 foreach (var (path, lines) in changed.OrderBy(x => x.Key, StringComparer.Ordinal))
 {
+    if (IsTestPath(path))
+    {
+        continue; // patch coverage measures production code, not test/benchmark sources
+    }
+
     var hits = Match(coverage, path);
     if (hits is null)
     {
@@ -347,6 +352,15 @@ static string BuildJson(string sha, List<FileRow> withMisses)
     b.AppendLine("  ]");
     b.Append('}');
     return b.ToString();
+}
+
+static bool IsTestPath(string path)
+{
+    var p = "/" + path.Replace('\\', '/') + "/";
+    return p.Contains("/test/", StringComparison.OrdinalIgnoreCase)
+        || p.Contains("/tests/", StringComparison.OrdinalIgnoreCase)
+        || p.Contains("/benchmark/", StringComparison.OrdinalIgnoreCase)
+        || p.Contains("/benchmarks/", StringComparison.OrdinalIgnoreCase);
 }
 
 static string Sha256Hex(string value)
