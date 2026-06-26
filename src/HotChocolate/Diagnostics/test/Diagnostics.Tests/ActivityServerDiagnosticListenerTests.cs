@@ -2,8 +2,10 @@ using System.Text.Json;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.AspNetCore.Tests.Utilities;
+using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Resolvers;
+using HotChocolate.Subscriptions;
 using HotChocolate.Transport.Http;
 using HotChocolate.Types;
 using static CookieCrumble.TestEnvironment;
@@ -486,6 +488,250 @@ public class ActivityServerDiagnosticListenerTests(TestServerFactory serverFacto
         }
     }
 
+    [Fact]
+    public async Task Http_Subscription_Should_Be_Ok_When_Server_Completes()
+    {
+        using var guard = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+
+        using (CaptureActivities(out var activities))
+        {
+            // arrange
+            var signal = new HttpSubscriptionSignal();
+            using var server = CreateInstrumentedServer(
+                o => o.Scopes = ActivityScopes.All,
+                b => b
+                    .AddTypeExtension<SubscriptionDiagnosticsExtension>()
+                    .Services.AddSingleton(signal));
+            using var client = GraphQLHttpClient.Create(server.CreateClient());
+            var sender = server.Services.GetRequiredService<ITopicEventSender>();
+
+            var request = new OperationRequest("subscription OnMessageSubscription { onMessage }");
+
+            using var result = await client.PostAsync(request, s_url, guard.Token);
+            var results = result.ReadAsResultStreamAsync().GetAsyncEnumerator(guard.Token);
+
+            // act
+            // wait until the server subscribed to the topic, push one event, then
+            // complete the topic so the client observes a clean, graceful close
+            try
+            {
+                var moveNext = results.MoveNextAsync().AsTask();
+                await signal.Subscribed.Task.WaitAsync(guard.Token);
+                await sender.SendAsync("OnMessage", "hello", guard.Token);
+                Assert.True(await moveNext);
+                await sender.CompleteAsync("OnMessage");
+                Assert.False(await results.MoveNextAsync());
+            }
+            finally
+            {
+                await IgnoreCancellationAsync(results.DisposeAsync().AsTask());
+            }
+
+            // assert
+            activities.MatchSnapshot(Postfix([NET11_0]));
+        }
+    }
+
+    [Fact]
+    public async Task Http_Subscription_Should_Be_Unset_When_Client_Disconnects()
+    {
+        using var guard = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+
+        using (CaptureActivities(out var activities))
+        {
+            // arrange
+            var signal = new HttpSubscriptionSignal();
+            using var server = CreateInstrumentedServer(
+                o => o.Scopes = ActivityScopes.All,
+                b => b
+                    .AddTypeExtension<SubscriptionDiagnosticsExtension>()
+                    .Services.AddSingleton(signal));
+            using var client = GraphQLHttpClient.Create(server.CreateClient());
+            using var requestCts = CancellationTokenSource.CreateLinkedTokenSource(guard.Token);
+            var sender = server.Services.GetRequiredService<ITopicEventSender>();
+
+            var request = new OperationRequest("subscription OnMessageSubscription { onMessage }");
+
+            using var result = await client.PostAsync(request, s_url, requestCts.Token);
+            var results = result.ReadAsResultStreamAsync().GetAsyncEnumerator(requestCts.Token);
+
+            try
+            {
+                // receive one event successfully while the connection is alive
+                var moveNext = results.MoveNextAsync().AsTask();
+                await signal.Subscribed.Task.WaitAsync(guard.Token);
+                await sender.SendAsync("OnMessage", "hello", guard.Token);
+                Assert.True(await moveNext);
+
+                // act
+                // the subscription is now idle, waiting for the next event.
+                // drop the connection (close the tab) by aborting the request.
+                var next = results.MoveNextAsync().AsTask();
+                await requestCts.CancelAsync();
+
+                // tear down must complete promptly; guard against a hang
+                var completed = await Task.WhenAny(next, Task.Delay(2000, guard.Token));
+                Assert.Same(next, completed);
+                await IgnoreCancellationAsync(next);
+            }
+            finally
+            {
+                await IgnoreCancellationAsync(results.DisposeAsync().AsTask());
+            }
+
+            // assert
+            activities.MatchSnapshot(Postfix([NET11_0]));
+        }
+    }
+
+    [Fact]
+    public async Task Http_Subscription_Should_Be_Unset_When_Client_Disconnects_During_Event()
+    {
+        using var guard = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+
+        using (CaptureActivities(out var activities))
+        {
+            // arrange
+            var signal = new HttpSubscriptionSignal();
+            using var server = CreateInstrumentedServer(
+                o => o.Scopes = ActivityScopes.All,
+                b => b
+                    .AddTypeExtension<SubscriptionDiagnosticsExtension>()
+                    .Services.AddSingleton(signal));
+            using var client = GraphQLHttpClient.Create(server.CreateClient());
+            using var requestCts = CancellationTokenSource.CreateLinkedTokenSource(guard.Token);
+            var sender = server.Services.GetRequiredService<ITopicEventSender>();
+
+            var request = new OperationRequest(
+                "subscription OnBlockingMessageSubscription { onBlockingMessage }");
+
+            using var result = await client.PostAsync(request, s_url, requestCts.Token);
+            var results = result.ReadAsResultStreamAsync().GetAsyncEnumerator(requestCts.Token);
+
+            try
+            {
+                // start processing an event; the resolver blocks until the
+                // connection drops, so the event is in flight when we abort
+                var next = results.MoveNextAsync().AsTask();
+                await signal.Subscribed.Task.WaitAsync(guard.Token);
+                await sender.SendAsync("OnBlockingMessage", "hello", guard.Token);
+
+                // wait until execution has actually entered the blocking resolver
+                await signal.Entered.Task.WaitAsync(guard.Token);
+
+                // act
+                // drop the connection (close the tab) while the event is in flight
+                await requestCts.CancelAsync();
+
+                // tear down must complete promptly; guard against a hang
+                var completed = await Task.WhenAny(next, Task.Delay(2000, guard.Token));
+                Assert.Same(next, completed);
+                await IgnoreCancellationAsync(next);
+            }
+            finally
+            {
+                await IgnoreCancellationAsync(results.DisposeAsync().AsTask());
+            }
+
+            // assert
+            activities.MatchSnapshot(Postfix([NET11_0]));
+        }
+    }
+
+    [Fact]
+    public async Task Http_Subscription_Event_Should_Be_Error_When_Timeout()
+    {
+        using var guard = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+
+        using (CaptureActivities(out var activities))
+        {
+            // arrange
+            // a blocking resolver combined with a tiny per-event timeout forces a
+            // server-side event timeout (not a client abort): the request is never
+            // aborted by the caller
+            var signal = new HttpSubscriptionSignal();
+            using var server = CreateInstrumentedServer(
+                o => o.Scopes = ActivityScopes.All,
+                b => b
+                    .AddTypeExtension<SubscriptionDiagnosticsExtension>()
+                    .ModifyRequestOptions(o => o.ExecutionTimeout = TimeSpan.FromMilliseconds(200))
+                    .Services.AddSingleton(signal));
+            using var client = GraphQLHttpClient.Create(server.CreateClient());
+            var sender = server.Services.GetRequiredService<ITopicEventSender>();
+
+            var request = new OperationRequest(
+                "subscription OnBlockingMessageSubscription { onBlockingMessage }");
+
+            using var result = await client.PostAsync(request, s_url, guard.Token);
+            var results = result.ReadAsResultStreamAsync().GetAsyncEnumerator(guard.Token);
+
+            try
+            {
+                // start processing an event that blocks past the per-event timeout
+                var first = results.MoveNextAsync().AsTask();
+                await signal.Subscribed.Task.WaitAsync(guard.Token);
+                await sender.SendAsync("OnBlockingMessage", "hello", guard.Token);
+
+                // wait until execution actually entered the blocking resolver
+                await signal.Entered.Task.WaitAsync(guard.Token);
+
+                // act
+                // let the per-event timeout elapse, then complete the topic so the
+                // stream ends cleanly once the errored event span is recorded
+                var completed = await Task.WhenAny(first, Task.Delay(5000, guard.Token));
+                Assert.Same(first, completed);
+                await IgnoreCancellationAsync(first);
+                await sender.CompleteAsync("OnBlockingMessage");
+                await DrainAsync(results, guard.Token);
+            }
+            finally
+            {
+                await IgnoreCancellationAsync(results.DisposeAsync().AsTask());
+            }
+
+            // assert
+            // the snapshot records the subscription event span status for a
+            // server-side event timeout
+            activities.MatchSnapshot(Postfix([NET11_0]));
+        }
+    }
+
+    private static async Task DrainAsync(
+        IAsyncEnumerator<HotChocolate.Transport.OperationResult> results,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            while (await results.MoveNextAsync().AsTask().WaitAsync(cancellationToken))
+            {
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            // expected: the streamed read was torn down before a clean close
+        }
+        catch (IOException)
+        {
+            // expected: tearing down an in-flight SSE read can surface as an I/O failure
+        }
+    }
+
+    private static async Task IgnoreCancellationAsync(Task task)
+    {
+        try
+        {
+            await task;
+        }
+        catch (OperationCanceledException)
+        {
+            // expected: the streamed read was aborted by the client
+        }
+        catch (IOException)
+        {
+            // expected: aborting an in-flight SSE read can surface as an I/O failure
+        }
+    }
+
     private static async Task PostAndIgnoreCancellationAsync(
         GraphQLHttpClient client,
         OperationRequest request,
@@ -552,6 +798,57 @@ public class ActivityServerDiagnosticListenerTests(TestServerFactory serverFacto
 
     public sealed class HttpCancellationSignal
     {
+        public TaskCompletionSource Entered { get; } =
+            new(TaskCreationOptions.RunContinuationsAsynchronously);
+    }
+
+    [ExtendObjectType("Subscription")]
+    public class SubscriptionDiagnosticsExtension
+    {
+        public async ValueTask<ISourceStream<string>> SubscribeToMessages(
+            [Service] ITopicEventReceiver receiver,
+            [Service] HttpSubscriptionSignal signal,
+            CancellationToken cancellationToken)
+        {
+            // subscribe first, then signal so the test only pushes an event once
+            // the server is guaranteed to receive it (no pre-subscription drop)
+            var stream = await receiver.SubscribeAsync<string>("OnMessage", cancellationToken);
+            signal.Subscribed.TrySetResult();
+            return stream;
+        }
+
+        [Subscribe(With = nameof(SubscribeToMessages))]
+        public string OnMessage([EventMessage] string message) => message;
+
+        public async ValueTask<ISourceStream<string>> SubscribeToBlockingMessages(
+            [Service] ITopicEventReceiver receiver,
+            [Service] HttpSubscriptionSignal signal,
+            CancellationToken cancellationToken)
+        {
+            var stream = await receiver.SubscribeAsync<string>("OnBlockingMessage", cancellationToken);
+            signal.Subscribed.TrySetResult();
+            return stream;
+        }
+
+        [Subscribe(With = nameof(SubscribeToBlockingMessages))]
+        public async Task<string> OnBlockingMessage(
+            [EventMessage] string message,
+            [Service] HttpSubscriptionSignal signal,
+            CancellationToken cancellationToken)
+        {
+            // signal that the event resolver started, then block until the event is
+            // torn down (client disconnect or per-event timeout)
+            signal.Entered.TrySetResult();
+            await Task.Delay(Timeout.Infinite, cancellationToken);
+            return message;
+        }
+    }
+
+    public sealed class HttpSubscriptionSignal
+    {
+        public TaskCompletionSource Subscribed { get; } =
+            new(TaskCreationOptions.RunContinuationsAsynchronously);
+
         public TaskCompletionSource Entered { get; } =
             new(TaskCreationOptions.RunContinuationsAsynchronously);
     }
