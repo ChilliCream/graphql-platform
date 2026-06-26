@@ -27,9 +27,16 @@ public class RazorQueryGenerator : CSharpSyntaxGenerator<OperationDescriptor>
             ? SyntaxKind.PublicKeyword
             : SyntaxKind.InternalKeyword;
 
+        // Persisted component state requires a store to rehydrate into.
+        var persistedState = settings.RazorPersistedState && !settings.NoStore;
+
+        var baseType = persistedState
+            ? TypeNames.UsePersistentQuery.WithGeneric(resultType)
+            : TypeNames.UseQuery.WithGeneric(resultType);
+
         var classDeclaration =
             ClassDeclaration(componentName)
-                .AddImplements(TypeNames.UseQuery.WithGeneric(resultType))
+                .AddImplements(baseType)
                 .AddModifiers(
                     Token(modifier),
                     Token(SyntaxKind.PartialKeyword))
@@ -42,10 +49,20 @@ public class RazorQueryGenerator : CSharpSyntaxGenerator<OperationDescriptor>
                 CreateArgumentProperty(argument));
         }
 
-        classDeclaration = classDeclaration.AddMembers(
-            CreateLifecycleMethodMethod("OnInitialized", descriptor.Arguments));
-        classDeclaration = classDeclaration.AddMembers(
-            CreateLifecycleMethodMethod("OnParametersSet", descriptor.Arguments));
+        if (persistedState)
+        {
+            classDeclaration = classDeclaration.AddMembers(
+                CreatePersistenceKeyMethod(descriptor.Arguments));
+            classDeclaration = classDeclaration.AddMembers(
+                CreateWatchMethod(resultType, descriptor.Arguments));
+        }
+        else
+        {
+            classDeclaration = classDeclaration.AddMembers(
+                CreateLifecycleMethodMethod("OnInitialized", descriptor.Arguments));
+            classDeclaration = classDeclaration.AddMembers(
+                CreateLifecycleMethodMethod("OnParametersSet", descriptor.Arguments));
+        }
 
         return new CSharpSyntaxGeneratorResult(
             componentName,
@@ -128,6 +145,79 @@ public class RazorQueryGenerator : CSharpSyntaxGenerator<OperationDescriptor>
                 TokenList(
                     Token(SyntaxKind.ProtectedKeyword),
                     Token(SyntaxKind.OverrideKeyword)))
+            .WithBody(Block(bodyStatements));
+    }
+
+    private MethodDeclarationSyntax CreatePersistenceKeyMethod(
+        IReadOnlyList<PropertyDescriptor> arguments)
+    {
+        var argumentList = new List<ArgumentSyntax>();
+
+        foreach (var argument in arguments)
+        {
+            argumentList.Add(Argument(IdentifierName(GetPropertyName(argument.Name))));
+        }
+
+        var bodyStatements =
+            SingletonList<StatementSyntax>(
+                ReturnStatement(
+                    InvocationExpression(
+                            MemberAccessExpression(
+                                SyntaxKind.SimpleMemberAccessExpression,
+                                IdentifierName("Operation"),
+                                IdentifierName("GetPersistenceKey")))
+                        .WithArgumentList(
+                            ArgumentList(SeparatedList(argumentList)))));
+
+        return MethodDeclaration(
+                ParseTypeName(TypeNames.String),
+                Identifier("GetPersistenceKey"))
+            .WithModifiers(
+                TokenList(
+                    Token(SyntaxKind.ProtectedKeyword),
+                    Token(SyntaxKind.OverrideKeyword)))
+            .WithBody(Block(bodyStatements));
+    }
+
+    private MethodDeclarationSyntax CreateWatchMethod(
+        string resultType,
+        IReadOnlyList<PropertyDescriptor> arguments)
+    {
+        var argumentList = new List<ArgumentSyntax>();
+
+        foreach (var argument in arguments)
+        {
+            argumentList.Add(Argument(IdentifierName(GetPropertyName(argument.Name))));
+        }
+
+        argumentList.Add(Argument(IdentifierName("persistedState")));
+
+        var bodyStatements =
+            SingletonList<StatementSyntax>(
+                ReturnStatement(
+                    InvocationExpression(
+                            MemberAccessExpression(
+                                SyntaxKind.SimpleMemberAccessExpression,
+                                IdentifierName("Operation"),
+                                IdentifierName("Watch")))
+                        .WithArgumentList(
+                            ArgumentList(SeparatedList(argumentList)))));
+
+        var returnType =
+            ParseTypeName(
+                "global::System.IObservable<"
+                + TypeNames.IOperationResult.WithGeneric(resultType)
+                + ">");
+
+        return MethodDeclaration(returnType, Identifier("CreateWatch"))
+            .WithModifiers(
+                TokenList(
+                    Token(SyntaxKind.ProtectedKeyword),
+                    Token(SyntaxKind.OverrideKeyword)))
+            .AddParameterListParameters(
+                Parameter(Identifier("persistedState"))
+                    .WithType(
+                        ParseTypeName("global::System.ReadOnlyMemory<global::System.Byte>?")))
             .WithBody(Block(bodyStatements));
     }
 }

@@ -1,3 +1,4 @@
+using System.Buffers;
 using System.Text.Json;
 using StrawberryShake.Json;
 using static StrawberryShake.ResultFields;
@@ -24,6 +25,7 @@ public abstract class OperationResultBuilder<TResultData>
         IOperationResultDataInfo? dataInfo = null;
         IReadOnlyList<IClientError>? errors = null;
         IReadOnlyDictionary<string, object?>? extensions = null;
+        JsonElement? persistedData = null;
 
         try
         {
@@ -34,6 +36,11 @@ public abstract class OperationResultBuilder<TResultData>
                 {
                     dataInfo = BuildData(dataProp);
                     data = ResultDataFactory.Create(dataInfo);
+
+                    if (CapturePersistedData)
+                    {
+                        persistedData = dataProp.Clone();
+                    }
                 }
 
                 if (body.RootElement.TryGetProperty(Errors, out var errorsProp)
@@ -90,13 +97,58 @@ public abstract class OperationResultBuilder<TResultData>
             };
         }
 
+        var contextData = response.ContextData;
+
+        if (persistedData is { } captured)
+        {
+            var augmented = contextData is null
+                ? new Dictionary<string, object?>()
+                : new Dictionary<string, object?>(contextData);
+            augmented[WellKnownContextData.PersistedData] = captured;
+            contextData = augmented;
+        }
+
         return new OperationResult<TResultData>(
             data,
             dataInfo,
             ResultDataFactory,
             errors,
             extensions,
-            response.ContextData);
+            contextData);
+    }
+
+    /// <summary>
+    /// When overridden to return <c>true</c>, the raw transport "data" payload is captured
+    /// into <see cref="IOperationResult.ContextData"/> under
+    /// <see cref="WellKnownContextData.PersistedData"/> so it can be persisted and later
+    /// rehydrated via <see cref="BuildFromPersistedData"/>.
+    /// </summary>
+    protected virtual bool CapturePersistedData => false;
+
+    /// <summary>
+    /// Builds a runtime operation result from a previously persisted transport "data"
+    /// payload, without executing the operation.
+    /// </summary>
+    /// <param name="persistedData">
+    /// The UTF-8 encoded JSON of the GraphQL response "data" object.
+    /// </param>
+    /// <returns>
+    /// Returns the runtime result.
+    /// </returns>
+    public IOperationResult<TResultData> BuildFromPersistedData(ReadOnlyMemory<byte> persistedData)
+    {
+        var bufferWriter = new ArrayBufferWriter<byte>();
+
+        using (var writer = new Utf8JsonWriter(bufferWriter))
+        {
+            writer.WriteStartObject();
+            writer.WritePropertyName(Data);
+            writer.WriteRawValue(persistedData.Span, skipInputValidation: true);
+            writer.WriteEndObject();
+        }
+
+        using var document = JsonDocument.Parse(bufferWriter.WrittenMemory);
+        return Build(new Response<JsonDocument>(document, null));
     }
 
     protected abstract IOperationResultDataInfo BuildData(JsonElement obj);

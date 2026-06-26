@@ -13,13 +13,15 @@ public class CSharpSyntaxGeneratorSettings
         bool noStore,
         bool inputRecords,
         bool entityRecords,
-        bool razorComponents)
+        bool razorComponents,
+        bool razorPersistedState)
     {
         AccessModifier = accessModifier;
         NoStore = noStore;
         InputRecords = inputRecords;
         EntityRecords = entityRecords;
         RazorComponents = razorComponents;
+        RazorPersistedState = razorPersistedState;
     }
 
     /// <summary>
@@ -46,4 +48,10 @@ public class CSharpSyntaxGeneratorSettings
     /// Generate Razor components.
     /// </summary>
     public bool RazorComponents { get; }
+
+    /// <summary>
+    /// Generate Razor query components that persist their result during a server prerender
+    /// and rehydrate it on the interactive client (requires a store).
+    /// </summary>
+    public bool RazorPersistedState { get; }
 }

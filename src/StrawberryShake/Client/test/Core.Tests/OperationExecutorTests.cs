@@ -269,6 +269,62 @@ public class OperationExecutorTests
         Assert.Equal(storeUpdateResult, actualStoreUpdateResult.Data);
     }
 
+    [Fact]
+    public async Task Watch_WithPersistedState_RehydratesWithoutNetwork()
+    {
+        // arrange
+        var connection = new Mock<IConnection<string>>();
+        var operationStore = new Mock<IOperationStore>();
+        var resultBuilder = new PersistedMockResultBuilder();
+        var resultPatcher = new Mock<IResultPatcher<string>>();
+        var document = new Mock<IDocument>();
+        var request = new OperationRequest("abc", document.Object);
+        var observer = new ResultObserver();
+
+        var executor = new OperationExecutor<string, string>(
+            connection.Object,
+            () => resultBuilder,
+            () => resultPatcher.Object,
+            operationStore.Object);
+
+        var rehydrated = Mock.Of<IOperationResult<string>>(e => e.Data == "rehydrated");
+        operationStore.Setup(e => e.TryGet(request, out rehydrated)).Returns(true);
+        operationStore.Setup(e => e.Watch<string>(request))
+            .Returns(Observable.Return(rehydrated));
+
+        // act
+        executor.Watch(request, ReadOnlyMemory<byte>.Empty, strategy: null)
+            .Subscribe(observer);
+
+        // assert
+        var result = await observer.WaitForResult();
+        Assert.Equal("rehydrated", result.Data);
+        operationStore.Verify(
+            e => e.Set(request, It.IsAny<IOperationResult<string>>()),
+            Times.Once);
+        connection.Verify(e => e.ExecuteAsync(It.IsAny<OperationRequest>()), Times.Never);
+    }
+
+    [Fact]
+    public void Storeless_Watch_WithPersistedState_Throws()
+    {
+        // arrange
+        var connection = new Mock<IConnection<string>>();
+        var resultBuilder = new PersistedMockResultBuilder();
+        var resultPatcher = new Mock<IResultPatcher<string>>();
+        var document = new Mock<IDocument>();
+        var request = new OperationRequest("abc", document.Object);
+
+        var executor = new StorelessOperationExecutor<string, string>(
+            connection.Object,
+            () => resultBuilder,
+            () => resultPatcher.Object);
+
+        // act & assert
+        Assert.Throws<NotSupportedException>(
+            () => executor.Watch(request, ReadOnlyMemory<byte>.Empty, strategy: null));
+    }
+
     private static async IAsyncEnumerable<TValue> ToAsyncEnumerable<TValue>(params TValue[] values)
     {
         foreach (var value in values)
@@ -284,6 +340,19 @@ public class OperationExecutorTests
         public IOperationResult<string> Build(Response<string> response)
         {
             return Mock.Of<IOperationResult<string>>(e => e.Data == response.Body);
+        }
+    }
+
+    private sealed class PersistedMockResultBuilder : IOperationResultBuilder<string, string>
+    {
+        public IOperationResult<string> Build(Response<string> response)
+        {
+            return Mock.Of<IOperationResult<string>>(e => e.Data == response.Body);
+        }
+
+        public IOperationResult<string> BuildFromPersistedData(ReadOnlyMemory<byte> persistedData)
+        {
+            return Mock.Of<IOperationResult<string>>(e => e.Data == "rehydrated");
         }
     }
 

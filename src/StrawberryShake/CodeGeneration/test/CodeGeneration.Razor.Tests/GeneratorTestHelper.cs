@@ -89,7 +89,8 @@ public static class GeneratorTestHelper
                 NoStore = settings.NoStore,
                 InputRecords = settings.InputRecords,
                 EntityRecords = settings.EntityRecords,
-                RazorComponents = settings.RazorComponents
+                RazorComponents = settings.RazorComponents,
+                RazorPersistedState = settings.RazorPersistedState
             });
 
         Assert.False(
@@ -307,6 +308,8 @@ public static class GeneratorTestHelper
         public bool EntityRecords { get; set; }
 
         public bool RazorComponents { get; set; }
+
+        public bool RazorPersistedState { get; set; }
 
         public List<TransportProfile> Profiles { get; set; } = [];
 

@@ -25,6 +25,7 @@ public class OperationServiceGenerator : ClassBaseGenerator<OperationDescriptor>
     private const string Request = "request";
     private const string Value = "value";
     private const string CancellationToken = "cancellationToken";
+    private const string PersistedState = "persistedState";
 
     private static readonly string s_filesType =
         TypeNames.Dictionary.WithGeneric(TypeNames.String, TypeNames.Upload.MakeNullable());
@@ -116,6 +117,17 @@ public class OperationServiceGenerator : ClassBaseGenerator<OperationDescriptor>
         AddFileMapMethods(descriptor, classBuilder);
 
         classBuilder.AddMethod(CreateWatchMethod(descriptor, resultTypeName));
+
+        // Persisted component state is a query-only, store-backed feature.
+        if (settings.RazorPersistedState
+            && !settings.NoStore
+            && descriptor is QueryOperationDescriptor)
+        {
+            classBuilder.AddMethod(
+                CreateWatchWithPersistedStateMethod(descriptor, resultTypeName));
+            classBuilder.AddMethod(CreatePersistenceKeyMethod(descriptor));
+        }
+
         classBuilder.AddMethod(CreateRequestMethod(descriptor));
         classBuilder.AddMethod(CreateRequestVariablesMethod(descriptor, descriptor.HasUpload));
 
@@ -330,6 +342,82 @@ public class OperationServiceGenerator : ClassBaseGenerator<OperationDescriptor>
                     .SetMethodName(UnderscoreOperationExecutor, "Watch")
                     .AddArgument(Request)
                     .AddArgument(Strategy));
+    }
+
+    private static MethodBuilder CreateWatchWithPersistedStateMethod(
+        OperationDescriptor descriptor,
+        string runtimeTypeName)
+    {
+        var watchMethod =
+            MethodBuilder
+                .New()
+                .SetPublic()
+                .SetReturnType(
+                    TypeNames.IOperationObservable
+                        .WithGeneric(TypeNames.IOperationResult.WithGeneric(runtimeTypeName)))
+                .SetName(TypeNames.Watch);
+
+        foreach (var arg in descriptor.Arguments)
+        {
+            watchMethod
+                .AddParameter()
+                .SetName(GetParameterName(arg.Name))
+                .SetType(arg.Type.ToTypeReference());
+        }
+
+        watchMethod.AddParameter()
+            .SetName(PersistedState)
+            .SetType("global::System.ReadOnlyMemory<global::System.Byte>?");
+
+        watchMethod.AddParameter()
+            .SetName(Strategy)
+            .SetType(TypeNames.ExecutionStrategy.MakeNullable())
+            .SetDefault("null");
+
+        return watchMethod
+            .AddCode(
+                AssignmentBuilder
+                    .New()
+                    .SetLeftHandSide($"var {Request}")
+                    .SetRightHandSide(CreateRequestMethodCall(descriptor)))
+            .AddCode(
+                MethodCallBuilder
+                    .New()
+                    .SetReturn()
+                    .SetMethodName(UnderscoreOperationExecutor, "Watch")
+                    .AddArgument(Request)
+                    .AddArgument(PersistedState)
+                    .AddArgument(Strategy));
+    }
+
+    private static MethodBuilder CreatePersistenceKeyMethod(OperationDescriptor descriptor)
+    {
+        var method =
+            MethodBuilder
+                .New()
+                .SetPublic()
+                .SetReturnType(TypeNames.String)
+                .SetName("GetPersistenceKey");
+
+        foreach (var arg in descriptor.Arguments)
+        {
+            method
+                .AddParameter()
+                .SetName(GetParameterName(arg.Name))
+                .SetType(arg.Type.ToTypeReference());
+        }
+
+        return method
+            .AddCode(
+                AssignmentBuilder
+                    .New()
+                    .SetLeftHandSide($"var {Request}")
+                    .SetRightHandSide(CreateRequestMethodCall(descriptor)))
+            .AddCode(
+                MethodCallBuilder
+                    .New()
+                    .SetReturn()
+                    .SetMethodName(Request, "GetHash"));
     }
 
     private MethodBuilder CreateExecuteMethod(

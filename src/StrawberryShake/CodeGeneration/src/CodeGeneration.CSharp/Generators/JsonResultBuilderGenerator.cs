@@ -72,6 +72,18 @@ public partial class JsonResultBuilderGenerator : ClassBaseGenerator<ResultBuild
                 .SetAccessModifier(AccessModifier.Protected)
                 .SetOverride());
 
+        // Capture the raw transport "data" payload so persisted Razor components can save it
+        // during a server prerender and rehydrate it on the interactive client.
+        if (settings.RazorPersistedState && settings.IsStoreEnabled())
+        {
+            classBuilder
+                .AddProperty("CapturePersistedData")
+                .SetType("global::System.Boolean")
+                .SetAccessModifier(AccessModifier.Protected)
+                .SetOverride()
+                .AsLambda("true");
+        }
+
         var assignment = AssignmentBuilder
             .New()
             .SetLeftHandSide(GetPropertyName(ResultDataFactory))

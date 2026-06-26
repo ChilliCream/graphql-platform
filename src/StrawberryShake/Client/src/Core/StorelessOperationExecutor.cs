@@ -101,4 +101,16 @@ public partial class StorelessOperationExecutor<TData, TResult>
 
         return new StorelessOperationExecutorObservable(_connection, _resultBuilder, request);
     }
+
+    /// <summary>
+    /// Not supported by the storeless executor. Persisted component state requires a store
+    /// to rehydrate into.
+    /// </summary>
+    public IObservable<IOperationResult<TResult>> Watch(
+        OperationRequest request,
+        ReadOnlyMemory<byte>? persistedState,
+        ExecutionStrategy? strategy = null)
+        => throw new NotSupportedException(
+            "Persisted component state requires a client with a store. "
+            + "Disable NoStore to use persisted Razor components.");
 }

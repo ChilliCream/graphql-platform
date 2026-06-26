@@ -61,6 +61,12 @@ public class StrawberryShakeSettings
     public bool? RazorComponents { get; set; }
 
     /// <summary>
+    /// Defines if generated blazor query components shall persist their result during a
+    /// server prerender and rehydrate it on the interactive client. Requires a store.
+    /// </summary>
+    public bool? RazorPersistedState { get; set; }
+
+    /// <summary>
     /// Gets the record generator settings.
     /// </summary>
     public StrawberryShakeSettingsRecords Records { get; } =

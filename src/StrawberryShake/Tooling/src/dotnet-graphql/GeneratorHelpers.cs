@@ -81,6 +81,7 @@ internal static class GeneratorHelpers
             InputRecords = configSettings.Records.Inputs,
             EntityRecords = configSettings.Records.Entities,
             RazorComponents = configSettings.RazorComponents ?? args.RazorComponents,
+            RazorPersistedState = configSettings.RazorPersistedState ?? false,
             SingleCodeFile = configSettings.UseSingleFile ?? args.UseSingleFile,
             RequestStrategy = configSettings.RequestStrategy ?? args.Strategy,
             HashProvider = GetHashProvider(configSettings.HashAlgorithm ?? args.HashAlgorithm),

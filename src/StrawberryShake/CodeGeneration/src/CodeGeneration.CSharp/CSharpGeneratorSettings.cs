@@ -49,6 +49,12 @@ public class CSharpGeneratorSettings
     public bool RazorComponents { get; set; }
 
     /// <summary>
+    /// Generate razor query components that persist their result during a server prerender
+    /// and rehydrate it on the interactive client (requires a store).
+    /// </summary>
+    public bool RazorPersistedState { get; set; }
+
+    /// <summary>
     /// Generate a single CSharp code file.
     /// </summary>
     public bool SingleCodeFile { get; set; } = true;

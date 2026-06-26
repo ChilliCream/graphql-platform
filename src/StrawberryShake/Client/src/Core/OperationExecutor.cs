@@ -117,4 +117,47 @@ public partial class OperationExecutor<TData, TResult>
             request,
             strategy ?? _strategy);
     }
+
+    /// <summary>
+    /// Registers a request and subscribes to updates on the request results, optionally
+    /// seeding the store from a previously persisted transport payload so that the operation
+    /// is not re-executed. This is used to rehydrate prerendered Blazor components.
+    /// </summary>
+    /// <param name="request">
+    /// The operation request.
+    /// </param>
+    /// <param name="persistedState">
+    /// The UTF-8 encoded JSON of the GraphQL response "data" object captured during a server
+    /// prerender, or <c>null</c> to execute the operation normally.
+    /// </param>
+    /// <param name="strategy">
+    /// The request execution strategy.
+    /// </param>
+    /// <returns>
+    /// The observable that can be used to subscribe to results.
+    /// </returns>
+    public IObservable<IOperationResult<TResult>> Watch(
+        OperationRequest request,
+        ReadOnlyMemory<byte>? persistedState,
+        ExecutionStrategy? strategy = null)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+
+        if (persistedState is { } state)
+        {
+            // Rehydrate the persisted payload through the existing deserialization path so
+            // the entity store and operation store are seeded, then serve it from the cache.
+            var result = _resultBuilder().BuildFromPersistedData(state);
+            _operationStore.Set(request, result);
+            strategy ??= ExecutionStrategy.CacheFirst;
+        }
+
+        return new OperationExecutorObservable(
+            _connection,
+            _operationStore,
+            _resultBuilder,
+            _resultPatcher,
+            request,
+            strategy ?? ExecutionStrategy.CacheFirst);
+    }
 }
