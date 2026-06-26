@@ -49,9 +49,10 @@ var changed = ParseDiff(File.ReadAllLines(diffPath));
 // 2. Parse cobertura: absolute path -> (line -> hits). Merge partial-class duplicates by max hits.
 var coverage = ParseCobertura(coberturaPath);
 
-// Whole-project line coverage (every instrumented file in the report).
-var projValid = coverage.Sum(f => f.Value.Count);
-var projCovered = coverage.Sum(f => f.Value.Values.Count(h => h > 0));
+// Whole-project line coverage (production files only; test/benchmark sources are excluded).
+var prodFiles = coverage.Where(f => !IsTestPath(f.Key)).ToList();
+var projValid = prodFiles.Sum(f => f.Value.Count);
+var projCovered = prodFiles.Sum(f => f.Value.Values.Count(h => h > 0));
 var projPct = projValid == 0 ? 100.0 : 100.0 * projCovered / projValid;
 
 // 3. Intersect per file. A changed line counts only if it appears in coverage (executable).
