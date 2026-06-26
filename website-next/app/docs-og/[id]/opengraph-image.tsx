@@ -11,6 +11,7 @@ import {
 import { readFrontmatter } from "@/src/helpers/readFrontmatter";
 import { DocsShareCard } from "@/src/og/DocsShareCard";
 import { loadShareCardFonts } from "@/src/og/fonts";
+import { enableSatoriHooks } from "@/src/og/satoriHooks";
 
 export const dynamicParams = false;
 
@@ -32,6 +33,8 @@ export function generateStaticParams(): Params[] {
 }
 
 export default async function Image({ params }: { params: Promise<Params> }) {
+  enableSatoriHooks();
+
   const { id } = await params;
   const slug = decodeDocId(id);
   const rel = resolveFile(slug);

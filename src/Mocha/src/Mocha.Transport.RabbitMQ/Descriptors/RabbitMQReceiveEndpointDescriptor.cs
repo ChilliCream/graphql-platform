@@ -15,8 +15,7 @@ internal sealed class RabbitMQReceiveEndpointDescriptor
         Configuration = new RabbitMQReceiveEndpointConfiguration
         {
             Name = name,
-            QueueName = name,
-            BindMode = MessagingBindMode.Implicit
+            QueueName = name
         };
     }
 

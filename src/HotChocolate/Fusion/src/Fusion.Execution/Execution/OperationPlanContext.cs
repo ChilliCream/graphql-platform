@@ -185,7 +185,7 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
     internal ImmutableArray<ExecutionNode> GetDependentsToExecute(ExecutionNode node)
     {
         var nodeCompletionSet = _nodesToComplete[node.Id];
-        return nodeCompletionSet?.GetSnapshot() ?? [];
+        return nodeCompletionSet?.GetSnapshot() ?? default;
     }
 
     internal void TrackSkippedDefinition(ExecutionNode node, IOperationPlanNode skippedDefinition)

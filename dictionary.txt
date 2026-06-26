@@ -26,6 +26,7 @@ basicsaga
 bbox
 BCPROCKS
 Bedok
+Benjie
 bfnrt
 birthdates
 blazor
@@ -54,6 +55,7 @@ contentfiles
 Contoso
 conv
 Cookiebot
+coverable
 CQRS
 creds
 csclient
@@ -95,6 +97,7 @@ GHSA
 Giroux
 grafbase
 GraphiQL
+graphqlconf
 graphqlconfig
 graphqlrc
 graphqls
@@ -129,6 +132,7 @@ Linq
 Liquibase
 lscache
 Marek
+marocchino
 matchesBrics
 maxage
 MCPEXP
@@ -224,10 +228,13 @@ roundtrips
 rovo
 rovodev
 RRGGBB
+Ruckstuhl
 runbooks
 sandboxed
+SASL
 Satisfiability
 Senn
+servicebus
 shoooe
 SHORTSHA
 Silmarillion

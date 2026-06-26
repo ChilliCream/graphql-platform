@@ -113,7 +113,7 @@ public sealed class InboundRoute
 
         if (Endpoint is null)
         {
-            throw ThrowHelper.RouteEndpointNotConnected();
+            throw ThrowHelper.RouteEndpointNotConnected(this);
         }
 
         MarkCompleted();

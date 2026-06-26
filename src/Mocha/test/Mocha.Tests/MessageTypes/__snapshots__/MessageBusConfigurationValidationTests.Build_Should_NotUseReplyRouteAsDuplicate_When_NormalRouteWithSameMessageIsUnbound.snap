@@ -1,0 +1,8 @@
+The message bus configuration has 1 unbound inbound route.
+Each route below was registered but never attached to a receive endpoint.
+
+[1] StockInfoResultHandler (Mocha.Tests.MessageTypes.MessageBusConfigurationValidationTests+StockInfoResultHandler)
+    message : urn:message:mocha.tests.message-types:stock-info-result (Mocha.Tests.MessageTypes.MessageBusConfigurationValidationTests+StockInfoResult)
+    kind    : Subscribe
+    where   : MessageType(urn:message:mocha.tests.message-types:stock-info-result)
+    fix     : Transport 'memory' uses explicit bind mode, so no convention receive endpoint is created for unbound consumers. If this consumer should receive over a transport, bind it to a receive endpoint. If it is handled in-process only or superseded, remove it from message bus registration. Available default receive endpoints: memory: stock-start.

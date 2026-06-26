@@ -148,6 +148,7 @@ public sealed class SchemaComposer
         new ExternalProvidesCollisionRule(),
         new ExternalRequireCollisionRule(),
         new ExternalUnusedRule(),
+        new EventCursorMarkerRule(),
         new InvalidShareableUsageRule(),
         new IsInvalidFieldTypeRule(),
         new IsInvalidSyntaxRule(),
@@ -174,7 +175,9 @@ public sealed class SchemaComposer
         new RequireInvalidSyntaxRule(),
         new RootMutationUsedRule(),
         new RootQueryUsedRule(),
-        new RootSubscriptionUsedRule()
+        new RootSubscriptionUsedRule(),
+        new EventStreamMessageInvalidFieldsRule(),
+        new EventStreamTopicsEmptyRule()
     ];
 
     private static readonly ImmutableArray<object> s_preMergeRules =
@@ -192,6 +195,7 @@ public sealed class SchemaComposer
         new InputWithMissingRequiredFieldsRule(),
         new InputWithMissingOneOfRule(),
         new InvalidFieldSharingRule(),
+        new MultipleEventStreamSourcesRule(),
         new OutputFieldTypesMergeableRule(),
         new SpecifiedByUrlMismatchRule(),
         new TypeKindMismatchRule()
@@ -205,6 +209,7 @@ public sealed class SchemaComposer
         new EmptyMergedObjectTypeRule(),
         new EmptyMergedUnionTypeRule(),
         new EnumTypeDefaultValueInaccessibleRule(),
+        new EventStreamMessageAbstractTypeRequiresTypeNameRule(),
         new ImplementedByInaccessibleRule(),
         new InterfaceFieldNoImplementationRule(),
         new IsInvalidFieldsRule(),

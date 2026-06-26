@@ -3,6 +3,9 @@ namespace HotChocolate.Fusion.Logging;
 public static class LogEntryCodes
 {
     public const string ConflictingSourceSchemaName = "CONFLICTING_SOURCE_SCHEMA_NAME";
+    public const string CursorArgumentNotString = "CURSOR_ARGUMENT_NOT_STRING";
+    public const string CursorFieldNotString = "CURSOR_FIELD_NOT_STRING";
+    public const string CursorMarkerOnNonSubscriptionField = "CURSOR_MARKER_ON_NON_SUBSCRIPTION_FIELD";
     public const string DisallowedInaccessible = "DISALLOWED_INACCESSIBLE";
     public const string EmptyMergedEnumType = "EMPTY_MERGED_ENUM_TYPE";
     public const string EmptyMergedInputObjectType = "EMPTY_MERGED_INPUT_OBJECT_TYPE";
@@ -47,6 +50,9 @@ public static class LogEntryCodes
     public const string LookupMustHaveArguments = "LOOKUP_MUST_HAVE_ARGUMENTS";
     public const string LookupReturnsList = "LOOKUP_RETURNS_LIST";
     public const string LookupReturnsNonNullableType = "LOOKUP_RETURNS_NON_NULLABLE_TYPE";
+    public const string MultipleCursorArguments = "MULTIPLE_CURSOR_ARGUMENTS";
+    public const string MultipleCursorFields = "MULTIPLE_CURSOR_FIELDS";
+    public const string MultipleEventStreamSources = "MULTIPLE_EVENT_STREAM_SOURCES";
     public const string NonNullInputFieldIsInaccessible = "NON_NULL_INPUT_FIELD_IS_INACCESSIBLE";
     public const string NoQueries = "NO_QUERIES";
     public const string OutputFieldTypesNotMergeable = "OUTPUT_FIELD_TYPES_NOT_MERGEABLE";
@@ -69,6 +75,10 @@ public static class LogEntryCodes
     public const string RootQueryUsed = "ROOT_QUERY_USED";
     public const string RootSubscriptionUsed = "ROOT_SUBSCRIPTION_USED";
     public const string SpecifiedByUrlMismatch = "SPECIFIED_BY_URL_MISMATCH";
+    public const string EventStreamMessageInvalidFields = "EVENT_STREAM_MESSAGE_INVALID_FIELDS";
+    public const string EventStreamMessageAbstractTypeRequiresTypeName =
+        "EVENT_STREAM_MESSAGE_ABSTRACT_TYPE_REQUIRES_TYPENAME";
+    public const string EventStreamTopicsEmpty = "EVENT_STREAM_TOPICS_EMPTY";
     public const string TypeKindMismatch = "TYPE_KIND_MISMATCH";
     public const string UnsatisfiableQueryPath = "UNSATISFIABLE_QUERY_PATH";
 }
