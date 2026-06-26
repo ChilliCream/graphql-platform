@@ -60,23 +60,27 @@ public class RabbitMQReceiveTopologyConventionTests
     }
 
     [Fact]
-    public void DiscoverTopology_Should_FailBuild_When_ConsumedTypeHasPerMessageRoutingKey()
+    public void DiscoverTopology_Should_SkipAutoBind_When_ConsumedTypeHasPerMessageRoutingKey()
     {
         // arrange
-        // a per-message routing-key function makes the consume bind underivable, so the build must fail
-        // rather than generate a key-less bind that may silently fail to match.
+        // a per-message routing-key function makes the consume bind underivable, so the receive
+        // convention silently skips the type from auto-binding rather than emitting a key-less bind
+        // that may fail to match. The build succeeds and no convention bind targets the consumer queue.
         // act
-        var ex = Record.Exception(() => CreateRuntime(
+        var runtime = CreateRuntime(
             b =>
             {
                 b.AddConsumer<OrderSpyConsumer>();
                 b.AddMessage<OrderCreated>(d => d.UseRabbitMQRoutingKey<OrderCreated>(m => m.OrderId));
             },
-            t => t.BindImplicitly()));
+            t => t.BindImplicitly());
+        var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
+        var description = transport.Describe();
 
         // assert
-        Assert.IsType<InvalidOperationException>(ex);
-        Assert.Contains(typeof(OrderCreated).FullName!, ex.Message);
+        // the topology shows the consumer queue with no convention exchange chain or queue bind for
+        // the skipped per-message-routing-key type.
+        RabbitMQDescribeSnapshot.Create(description).MatchSnapshot();
     }
 
     [Fact]
@@ -135,8 +139,8 @@ public class RabbitMQReceiveTopologyConventionTests
     public void DiscoverTopology_Should_SuppressQueueBind_When_QueueBindExplicit()
     {
         // arrange
-        // queue-scope auto-binding is off, so the convention must not bind any exchange into the
-        // queue; the type-owned publish/send exchanges are kept because they belong to the type.
+        // queue-scope auto-binding is off, so the convention suppresses the whole convention pair:
+        // neither the publish/send exchanges nor any exchange-to-queue bind are generated.
         var runtime = CreateRuntime(
             b => b.AddConsumer<OrderSpyConsumer>(),
             t =>
@@ -180,11 +184,11 @@ public class RabbitMQReceiveTopologyConventionTests
     }
 
     [Fact]
-    public void DiscoverTopology_Should_KeepTypeExchanges_When_TransportBindExplicit()
+    public void DiscoverTopology_Should_OmitTypeExchanges_When_QueueBindExplicit()
     {
         // arrange
-        // transport-scope auto-binding is off, so no exchange is bound into the queue; the type-owned
-        // publish/send exchanges still appear because suppression scope removes only the queue binds.
+        // auto-binding is off, so the convention suppresses the whole convention pair: the type-owned
+        // publish/send exchanges are omitted along with every exchange-to-queue bind.
         var runtime = CreateRuntime(
             b => b.AddConsumer<OrderSpyConsumer>(),
             t =>

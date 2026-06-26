@@ -4,20 +4,20 @@
   "Entities": [
     {
       "Kind": "queue",
-      "Name": "orders",
-      "AutoProvision": false,
+      "Name": "inventory",
+      "AutoProvision": true,
       "Origin": "declared"
     },
     {
       "Kind": "queue",
-      "Name": "orders_error",
-      "AutoProvision": false,
+      "Name": "inventory_error",
+      "AutoProvision": true,
       "Origin": "convention"
     },
     {
       "Kind": "queue",
-      "Name": "orders_skipped",
-      "AutoProvision": false,
+      "Name": "inventory_skipped",
+      "AutoProvision": true,
       "Origin": "convention"
     }
   ],

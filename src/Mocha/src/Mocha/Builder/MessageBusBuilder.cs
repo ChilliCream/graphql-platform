@@ -522,6 +522,8 @@ public partial class MessageBusBuilder : IMessageBusBuilder
             }
         }
 
+        ValidateInboundRoutesAreBound(setupContext);
+
         foreach (var route in router.InboundRoutes)
         {
             if (!route.IsCompleted)

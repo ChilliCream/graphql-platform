@@ -17,6 +17,8 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
+    <!-- Dependency of Microsoft.EntityFrameworkCore.Sqlite. Pinned to secure version. -->
+    <PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" />
   </ItemGroup>
 
 </Project>

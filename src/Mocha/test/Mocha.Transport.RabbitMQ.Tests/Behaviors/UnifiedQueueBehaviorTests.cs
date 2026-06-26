@@ -23,9 +23,9 @@ public class UnifiedQueueBehaviorTests
     public async Task PublishAsync_Should_RouteToConsumer_When_PlacedViaUnifiedQueue()
     {
         // arrange
-        // The unified Queue() API places a consumer on the "orders" queue. Publishing
-        // an OrderCreated message should deliver to that consumer through the convention exchange
-        // chain that binds into the queue automatically (AutoBind defaults to on).
+        // The unified Queue() API declares the "orders" queue and places a consumer on it. Under
+        // explicit binding the convention publish chain is suppressed, so the publish is routed to
+        // that queue via the message declaration; publishing OrderCreated must reach the consumer.
         var capture = new OrderCapture();
         await using var vhost = await _fixture.CreateVhostAsync();
         await using var bus = await new ServiceCollection()
@@ -33,6 +33,7 @@ public class UnifiedQueueBehaviorTests
             .AddSingleton(capture)
             .AddMessageBus()
             .AddConsumer<OrderSpyConsumer>()
+            .AddMessage<OrderCreated>(d => d.Publish(r => r.ToRabbitMQQueue("orders")))
             .AddRabbitMQ(t =>
             {
                 t.BindExplicitly();

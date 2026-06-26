@@ -20,9 +20,13 @@ public class PostgresHandlerBindingTests
     [Fact]
     public void BindExplicitly_Should_ThrowOnBuild_When_HandlersNotManuallyBound()
     {
-        // arrange & act & assert - registering a handler but not manually binding it
-        // should throw because the inbound route is unconnected
-        Assert.ThrowsAny<InvalidOperationException>(() => CreateRuntime(b => b.AddEventHandler<OrderCreatedHandler>(), t => t.BindExplicitly()));
+        var exception = Assert.Throws<InvalidOperationException>(() =>
+            CreateRuntime(b => b.AddEventHandler<OrderCreatedHandler>(), t => t.BindExplicitly()));
+
+        Assert.Contains("unbound inbound route", exception.Message);
+        Assert.Contains(nameof(OrderCreatedHandler), exception.Message);
+        Assert.Contains(InboundRouteKind.Subscribe.ToString(), exception.Message);
+        Assert.Contains("explicit bind mode", exception.Message);
     }
 
     [Fact]
