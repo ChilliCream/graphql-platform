@@ -343,6 +343,15 @@ public sealed partial class CompositeResultDocument : IDisposable
             return document.ReadRawValue(row.Location, row.SizeOrLength);
         }
 
+        if (row.TokenType == ElementTokenType.String)
+        {
+            // An inline string value synthesized by the result layer (the __typename
+            // introspection field). Its concrete type comes from the enclosing selection set,
+            // which the merge has already specialized to the runtime type.
+            var typeName = _operation.GetSelectionSetById(row.Location).Type.Name;
+            return Utf8StringCache.GetQuotedUtf8String(typeName);
+        }
+
         throw new NotSupportedException();
     }
 
@@ -353,7 +362,19 @@ public sealed partial class CompositeResultDocument : IDisposable
 
         foreach (var selection in selections)
         {
-            WriteEmptyProperty(startObjectCursor, selection);
+            if (selection.Field.IsIntrospectionField
+                && selection.Field.Name == IntrospectionFieldNames.TypeName)
+            {
+                // __typename resolves to the concrete type of this selection set. Synthesizing it
+                // here means payloads that never echo __typename (such as broker event streams)
+                // still report it, while a subgraph that does echo it simply overwrites the slot
+                // with the identical value.
+                WriteTypeNameProperty(startObjectCursor, selection, selectionSet.Id);
+            }
+            else
+            {
+                WriteEmptyProperty(startObjectCursor, selection);
+            }
         }
 
         _metaDb.AppendEndObject();
@@ -446,6 +467,29 @@ public sealed partial class CompositeResultDocument : IDisposable
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void WriteEmptyProperty(Cursor parent, Selection selection)
+        => _metaDb.AppendEmptyPropertyWithNullValue(
+            parentRow: parent.Value,
+            selectionId: selection.Id,
+            flags: GetPropertyFlags(selection));
+
+    // Writes the __typename property with its value already set to the concrete type name of the
+    // enclosing selection set. The value row stores the selection-set id as an inline string
+    // reference, so the interned type name is resolved (and quoted) lazily when read.
+    private void WriteTypeNameProperty(Cursor parent, Selection selection, int selectionSetId)
+    {
+        var propertyCursor = _metaDb.AppendEmptyProperty(
+            parentRow: parent.Value,
+            selectionId: selection.Id,
+            flags: GetPropertyFlags(selection));
+
+        _metaDb.Append(
+            ElementTokenType.String,
+            location: selectionSetId,
+            parentRow: propertyCursor.Value);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private ElementFlags GetPropertyFlags(Selection selection)
     {
         var flags = ElementFlags.None;
 
@@ -464,10 +508,7 @@ public sealed partial class CompositeResultDocument : IDisposable
             flags |= ElementFlags.IsNullable;
         }
 
-        _metaDb.AppendEmptyPropertyWithNullValue(
-            parentRow: parent.Value,
-            selectionId: selection.Id,
-            flags: flags);
+        return flags;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

@@ -1106,6 +1106,15 @@ namespace HotChocolate.Fusion.Properties {
         }
 
         /// <summary>
+        ///   Looks up a localized string similar to The @eventStream directive on field &apos;{0}&apos; in schema &apos;{1}&apos; selects an abstract type but its message does not include &apos;__typename&apos; at that level, which is required to resolve the concrete type at runtime..
+        /// </summary>
+        internal static string LogEntryHelper_EventStreamMessageAbstractTypeRequiresTypeName {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_EventStreamMessageAbstractTypeRequiresTypeName", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to The @eventStream field &apos;{0}&apos; in schema &apos;{1}&apos; must not declare more than one @eventCursor field on its return type..
         /// </summary>
         internal static string LogEntryHelper_MultipleCursorFields {

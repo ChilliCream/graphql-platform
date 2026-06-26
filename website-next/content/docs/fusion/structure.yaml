@@ -26,6 +26,8 @@ items:
     title: Request Limits
   - path: cache-control
     title: Cache Control
+  - path: subscriptions
+    title: Subscriptions
   - path: performance-tuning
     title: Performance Tuning
   - path: aspire-integration

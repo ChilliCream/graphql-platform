@@ -681,6 +681,22 @@ internal static class LogEntryHelper
             .Build();
     }
 
+    public static LogEntry EventStreamMessageAbstractTypeRequiresTypeName(
+        MutableOutputFieldDefinition field,
+        MutableSchemaDefinition schema)
+    {
+        return LogEntryBuilder.New()
+            .SetMessage(
+                LogEntryHelper_EventStreamMessageAbstractTypeRequiresTypeName,
+                field.Coordinate.ToString(),
+                schema.Name)
+            .SetCode(LogEntryCodes.EventStreamMessageAbstractTypeRequiresTypeName)
+            .SetSeverity(LogSeverity.Error)
+            .SetTypeSystemMember(field)
+            .SetSchema(schema)
+            .Build();
+    }
+
     public static LogEntry MultipleCursorFields(
         MutableOutputFieldDefinition field,
         MutableSchemaDefinition schema)

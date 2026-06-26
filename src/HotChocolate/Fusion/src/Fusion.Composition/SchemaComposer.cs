@@ -209,6 +209,7 @@ public sealed class SchemaComposer
         new EmptyMergedObjectTypeRule(),
         new EmptyMergedUnionTypeRule(),
         new EnumTypeDefaultValueInaccessibleRule(),
+        new EventStreamMessageAbstractTypeRequiresTypeNameRule(),
         new ImplementedByInaccessibleRule(),
         new InterfaceFieldNoImplementationRule(),
         new IsInvalidFieldsRule(),

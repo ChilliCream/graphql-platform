@@ -174,6 +174,63 @@ public sealed class EventStreamHotChocolateIntegrationTests
     }
 
     [Fact]
+    public async Task Subscribe_Should_ResolveTypename_When_ConcretePayloadSelectsTypename()
+    {
+        // arrange
+        var hub = new ResumableEventStreamBrokerHub();
+        var services = CreateServices(hub);
+        var sdl = await PrintSourceSchemaSdlAsync(
+            b => b.AddSubscriptionType<AttributeSubscriptions>());
+        var executor = await BuildGatewayAsync(services, sdl);
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+
+        // The single static topic that "onUserCreated-{$args.id}" expands to for id "42".
+        const string topic = "onUserCreated-42";
+
+        // act
+        // The broker body carries no __typename at either the root payload or the nested user
+        // object, so both __typename values must be synthesized from the schema along the
+        // event-stream path, which has no subgraph round-trip to echo them back.
+        var events = await CollectEventsAsync(
+            executor,
+            """
+            subscription {
+              onUserCreated(id: "42") {
+                __typename
+                user { __typename id }
+                cursor
+              }
+            }
+            """,
+            count: 1,
+            () => PublishAfterSubscribedAsync(
+                hub,
+                topic,
+                [("""{"user":{"id":"u1"}}""", "Y3Vyc29yLTE=")],
+                cts.Token),
+            cts.Token);
+
+        // assert
+        // __typename must resolve to the concrete schema type at every nesting level the client
+        // selected it, even though the raw broker body contains neither value.
+        events.Single().MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "onUserCreated": {
+                  "__typename": "OnUserCreatedEvent",
+                  "user": {
+                    "__typename": "User",
+                    "id": "u1"
+                  },
+                  "cursor": "Y3Vyc29yLTE="
+                }
+              }
+            }
+            """);
+    }
+
+    [Fact]
     public async Task Subscribe_Should_ExpandTopicTemplate_When_ArgumentIsProvided()
     {
         // arrange
@@ -231,6 +288,360 @@ public sealed class EventStreamHotChocolateIntegrationTests
                     "id": "u7"
                   },
                   "cursor": "Y3Vyc29yLTc="
+                }
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task Subscribe_Should_ResolveAbstractTypename_When_PayloadIsInterface()
+    {
+        // arrange
+        var hub = new ResumableEventStreamBrokerHub();
+        var services = CreateServices(hub);
+        var sdl = await PrintSourceSchemaSdlAsync(
+            b => b
+                .AddSubscriptionType<AnimalSubscriptions>()
+                .AddType<Cat>()
+                .AddType<Dog>());
+        var executor = await BuildGatewayAsync(services, sdl);
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+
+        const string topic = "onAnimalCreated";
+
+        // act
+        // An interface payload carries its concrete type in the body's __typename. The two events
+        // resolve to different runtime types, so each must select the matching inline-fragment
+        // fields and report the __typename carried by its own body.
+        var events = await CollectEventsAsync(
+            executor,
+            """
+            subscription {
+              onAnimalCreated {
+                __typename
+                ... on Cat { name livesLeft }
+                ... on Dog { name goodBoy }
+              }
+            }
+            """,
+            count: 2,
+            () => PublishAfterSubscribedAsync(
+                hub,
+                topic,
+                [
+                    ("""{"__typename":"Cat","name":"Whiskers","livesLeft":9}""", "Y3Vyc29yLTE="),
+                    ("""{"__typename":"Dog","name":"Rex","goodBoy":true}""", "Y3Vyc29yLTI=")
+                ],
+                cts.Token),
+            cts.Token);
+
+        // assert
+        // The body's __typename selects the runtime type, which gates the inline fragments: the Cat
+        // event resolves only the Cat fields and the Dog event only the Dog fields, each reporting
+        // its own __typename rather than a synthesized one.
+        string.Join("\n---\n", events).MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "onAnimalCreated": {
+                  "__typename": "Cat",
+                  "name": "Whiskers",
+                  "livesLeft": 9
+                }
+              }
+            }
+            ---
+            {
+              "data": {
+                "onAnimalCreated": {
+                  "__typename": "Dog",
+                  "name": "Rex",
+                  "goodBoy": true
+                }
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task Subscribe_Should_ResolveTypenameForEachElement_When_PayloadContainsObjectList()
+    {
+        // arrange
+        var hub = new ResumableEventStreamBrokerHub();
+        var services = CreateServices(hub);
+        var sdl = await PrintSourceSchemaSdlAsync(
+            b => b.AddSubscriptionType<ListSubscriptions>());
+        var executor = await BuildGatewayAsync(services, sdl);
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+
+        const string topic = "onUsersCreated";
+
+        // act
+        // The body carries no __typename on the payload or on any list element, so the concrete
+        // type name must be synthesized for the root payload and injected into every element of the
+        // list.
+        var events = await CollectEventsAsync(
+            executor,
+            """
+            subscription {
+              onUsersCreated {
+                __typename
+                users { __typename id }
+              }
+            }
+            """,
+            count: 1,
+            () => PublishAfterSubscribedAsync(
+                hub,
+                topic,
+                [("""{"users":[{"id":"u1"},{"id":"u2"}]}""", "Y3Vyc29yLTE=")],
+                cts.Token),
+            cts.Token);
+
+        // assert
+        // Every list element resolves the concrete element type name, not just the first, and the
+        // element fields remain intact.
+        events.Single().MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "onUsersCreated": {
+                  "__typename": "OnUsersCreatedEvent",
+                  "users": [
+                    {
+                      "__typename": "User",
+                      "id": "u1"
+                    },
+                    {
+                      "__typename": "User",
+                      "id": "u2"
+                    }
+                  ]
+                }
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task Subscribe_Should_ResolveNestedAbstractTypename_When_FieldIsInterface()
+    {
+        // arrange
+        var hub = new ResumableEventStreamBrokerHub();
+        var services = CreateServices(hub);
+        var sdl = await PrintSourceSchemaSdlAsync(
+            b => b
+                .AddSubscriptionType<ContentSubscriptions>()
+                .AddType<Article>()
+                .AddType<Photo>());
+        var executor = await BuildGatewayAsync(services, sdl);
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+
+        const string topic = "onContentCreated";
+
+        // act
+        // The root payload is a concrete object whose `content` field is an interface. The root
+        // __typename is synthesized from the schema, while each nested content object carries its
+        // concrete type in the body's __typename, which gates the inline fragments at the nested level.
+        var events = await CollectEventsAsync(
+            executor,
+            """
+            subscription {
+              onContentCreated {
+                __typename
+                content {
+                  __typename
+                  id
+                  ... on Article { headline }
+                  ... on Photo { url }
+                }
+              }
+            }
+            """,
+            count: 2,
+            () => PublishAfterSubscribedAsync(
+                hub,
+                topic,
+                [
+                    ("""{"content":{"__typename":"Article","id":"a1","headline":"Breaking"}}""", "Y3Vyc29yLTE="),
+                    ("""{"content":{"__typename":"Photo","id":"p1","url":"https://img/1.png"}}""", "Y3Vyc29yLTI=")
+                ],
+                cts.Token),
+            cts.Token);
+
+        // assert
+        // Each nested content resolves only its matching fragment fields and reports the body's
+        // __typename, while the concrete root payload reports a synthesized OnContentCreatedEvent.
+        events.MatchInlineSnapshots(
+        [
+            """
+            {
+              "data": {
+                "onContentCreated": {
+                  "__typename": "OnContentCreatedEvent",
+                  "content": {
+                    "__typename": "Article",
+                    "id": "a1",
+                    "headline": "Breaking"
+                  }
+                }
+              }
+            }
+            """,
+            """
+            {
+              "data": {
+                "onContentCreated": {
+                  "__typename": "OnContentCreatedEvent",
+                  "content": {
+                    "__typename": "Photo",
+                    "id": "p1",
+                    "url": "https://img/1.png"
+                  }
+                }
+              }
+            }
+            """
+        ]);
+    }
+
+    [Fact]
+    public async Task Subscribe_Should_ResolveUnionTypename_When_PayloadIsUnion()
+    {
+        // arrange
+        var hub = new ResumableEventStreamBrokerHub();
+        var services = CreateServices(hub);
+        var sdl = await PrintSourceSchemaSdlAsync(
+            b => b
+                .AddSubscriptionType<SearchSubscriptions>()
+                .AddType<Product>()
+                .AddType<Category>());
+        var executor = await BuildGatewayAsync(services, sdl);
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+
+        const string topic = "onSearchHit";
+
+        // act
+        // A union payload is fragment-only and carries its concrete member in the body's __typename.
+        // The two events resolve to different members, each selecting only its own fragment fields.
+        var events = await CollectEventsAsync(
+            executor,
+            """
+            subscription {
+              onSearchHit {
+                __typename
+                ... on Product { name }
+                ... on Category { title }
+              }
+            }
+            """,
+            count: 2,
+            () => PublishAfterSubscribedAsync(
+                hub,
+                topic,
+                [
+                    ("""{"__typename":"Product","name":"Widget"}""", "Y3Vyc29yLTE="),
+                    ("""{"__typename":"Category","title":"Tools"}""", "Y3Vyc29yLTI=")
+                ],
+                cts.Token),
+            cts.Token);
+
+        // assert
+        // The body's __typename selects the runtime member, gating the inline fragments: the Product
+        // event resolves only the Product field and the Category event only the Category field.
+        events.MatchInlineSnapshots(
+        [
+            """
+            {
+              "data": {
+                "onSearchHit": {
+                  "__typename": "Product",
+                  "name": "Widget"
+                }
+              }
+            }
+            """,
+            """
+            {
+              "data": {
+                "onSearchHit": {
+                  "__typename": "Category",
+                  "title": "Tools"
+                }
+              }
+            }
+            """
+        ]);
+    }
+
+    [Fact]
+    public async Task Subscribe_Should_ResolveAbstractTypenameForEachElement_When_PayloadContainsInterfaceList()
+    {
+        // arrange
+        var hub = new ResumableEventStreamBrokerHub();
+        var services = CreateServices(hub);
+        var sdl = await PrintSourceSchemaSdlAsync(
+            b => b
+                .AddSubscriptionType<AnimalListSubscriptions>()
+                .AddType<Cat>()
+                .AddType<Dog>());
+        var executor = await BuildGatewayAsync(services, sdl);
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+
+        const string topic = "onAnimalsCreated";
+
+        // act
+        // Every list element is an interface whose concrete type is carried by that element's body
+        // __typename, so each element resolves its own runtime type and fragment fields independently.
+        var events = await CollectEventsAsync(
+            executor,
+            """
+            subscription {
+              onAnimalsCreated {
+                __typename
+                animals {
+                  __typename
+                  ... on Cat { name livesLeft }
+                  ... on Dog { name goodBoy }
+                }
+              }
+            }
+            """,
+            count: 1,
+            () => PublishAfterSubscribedAsync(
+                hub,
+                topic,
+                [
+                    (
+                        """{"animals":[{"__typename":"Cat","name":"Whiskers","livesLeft":9},{"__typename":"Dog","name":"Rex","goodBoy":true}]}""",
+                        "Y3Vyc29yLTE="
+                    )
+                ],
+                cts.Token),
+            cts.Token);
+
+        // assert
+        // Each element resolves the concrete type from its own body __typename, while the concrete
+        // root payload reports a synthesized OnAnimalsCreatedEvent.
+        events.Single().MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "onAnimalsCreated": {
+                  "__typename": "OnAnimalsCreatedEvent",
+                  "animals": [
+                    {
+                      "__typename": "Cat",
+                      "name": "Whiskers",
+                      "livesLeft": 9
+                    },
+                    {
+                      "__typename": "Dog",
+                      "name": "Rex",
+                      "goodBoy": true
+                    }
+                  ]
                 }
               }
             }
@@ -449,4 +860,99 @@ public sealed class EventStreamHotChocolateIntegrationTests
     public record OnUserCreatedEvent(User User, [property: EventCursor] string Cursor);
 
     public record User(string Id);
+
+    // attribute authoring of an event stream whose payload carries a list of a concrete object
+    // type, so __typename must be synthesized for every element of the list.
+    [GraphQLName("Subscription")]
+    public class ListSubscriptions
+    {
+        [EventStream("users { id }", Topic = "onUsersCreated", Broker = BrokerName)]
+        public OnUsersCreatedEvent OnUsersCreated()
+            => EventStream.Create<OnUsersCreatedEvent>();
+    }
+
+    public record OnUsersCreatedEvent(IReadOnlyList<User> Users);
+
+    // attribute authoring of an event stream whose payload is an interface, so the concrete type is
+    // carried by the broker body's __typename rather than synthesized.
+    [GraphQLName("Subscription")]
+    public class AnimalSubscriptions
+    {
+        [EventStream(
+            "__typename name ... on Cat { livesLeft } ... on Dog { goodBoy }",
+            Topic = "onAnimalCreated",
+            Broker = BrokerName)]
+        public IAnimal OnAnimalCreated()
+            => EventStream.Create<IAnimal>();
+    }
+
+    [InterfaceType("Animal")]
+    public interface IAnimal
+    {
+        string Name { get; }
+    }
+
+    public record Cat(string Name, int LivesLeft) : IAnimal;
+
+    public record Dog(string Name, bool GoodBoy) : IAnimal;
+
+    // attribute authoring of an event stream whose concrete payload contains a list of an
+    // interface, so each element carries its concrete type in the body's __typename.
+    [GraphQLName("Subscription")]
+    public class AnimalListSubscriptions
+    {
+        [EventStream(
+            "animals { __typename name ... on Cat { livesLeft } ... on Dog { goodBoy } }",
+            Topic = "onAnimalsCreated",
+            Broker = BrokerName)]
+        public OnAnimalsCreatedEvent OnAnimalsCreated()
+            => EventStream.Create<OnAnimalsCreatedEvent>();
+    }
+
+    public record OnAnimalsCreatedEvent(IReadOnlyList<IAnimal> Animals);
+
+    // attribute authoring of an event stream whose concrete payload contains an interface field, so
+    // the nested concrete type is carried by the body's __typename while the root is synthesized.
+    [GraphQLName("Subscription")]
+    public class ContentSubscriptions
+    {
+        [EventStream(
+            "content { __typename id ... on Article { headline } ... on Photo { url } }",
+            Topic = "onContentCreated",
+            Broker = BrokerName)]
+        public OnContentCreatedEvent OnContentCreated()
+            => EventStream.Create<OnContentCreatedEvent>();
+    }
+
+    public record OnContentCreatedEvent(IContent Content);
+
+    [InterfaceType("Content")]
+    public interface IContent
+    {
+        string Id { get; }
+    }
+
+    public record Article(string Id, string Headline) : IContent;
+
+    public record Photo(string Id, string Url) : IContent;
+
+    // attribute authoring of an event stream whose payload is a union, which is fragment-only and
+    // carries its concrete member type in the broker body's __typename.
+    [GraphQLName("Subscription")]
+    public class SearchSubscriptions
+    {
+        [EventStream(
+            "__typename ... on Product { name } ... on Category { title }",
+            Topic = "onSearchHit",
+            Broker = BrokerName)]
+        public ISearchResult OnSearchHit()
+            => EventStream.Create<ISearchResult>();
+    }
+
+    [UnionType("SearchResult")]
+    public interface ISearchResult;
+
+    public record Product(string Name) : ISearchResult;
+
+    public record Category(string Title) : ISearchResult;
 }

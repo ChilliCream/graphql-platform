@@ -76,6 +76,8 @@ public static class LogEntryCodes
     public const string RootSubscriptionUsed = "ROOT_SUBSCRIPTION_USED";
     public const string SpecifiedByUrlMismatch = "SPECIFIED_BY_URL_MISMATCH";
     public const string EventStreamMessageInvalidFields = "EVENT_STREAM_MESSAGE_INVALID_FIELDS";
+    public const string EventStreamMessageAbstractTypeRequiresTypeName =
+        "EVENT_STREAM_MESSAGE_ABSTRACT_TYPE_REQUIRES_TYPENAME";
     public const string EventStreamTopicsEmpty = "EVENT_STREAM_TOPICS_EMPTY";
     public const string TypeKindMismatch = "TYPE_KIND_MISMATCH";
     public const string UnsatisfiableQueryPath = "UNSATISFIABLE_QUERY_PATH";
