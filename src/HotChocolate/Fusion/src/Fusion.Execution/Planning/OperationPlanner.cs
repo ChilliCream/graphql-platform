@@ -927,7 +927,8 @@ public sealed partial class OperationPlanner
             lookup,
             workItem.EstimatedDepth,
             backlog,
-            workItem.Conditions);
+            workItem.Conditions,
+            workItem.AllowSourceSchemaReentry);
         PlanSelections(
             workItem,
             current,
@@ -947,19 +948,23 @@ public sealed partial class OperationPlanner
         var stepDepth = workItem.EstimatedDepth;
         var index = current.SelectionSetIndex;
 
+        // The event stream message describes the shape the broker delivers. Fields the client
+        // selected beyond that shape are spilled even though the source schema owns them, so the
+        // lookups that resolve them are allowed to re-enter the source schema itself.
+        var isEventStreamRoot = workItem.Kind is OperationWorkItemKind.Root
+            && current.EventStreamDirective is not null;
+
         var input = new SelectionSetPartitionerInput
         {
             SchemaName = current.SchemaName,
             SelectionSet = workItem.SelectionSet,
             SelectionSetIndex = index,
-            PruneUnprovidedAbstractBranches = workItem.Kind is OperationWorkItemKind.Root
-                && current.EventStreamDirective is not null,
-            ProvidedSelectionSet = workItem.Kind is OperationWorkItemKind.Root
-                && current.EventStreamDirective is not null
-                    ? CreateEventStreamProvidedSelectionSet(
-                        workItem.SelectionSet.Node,
-                        current.EventStreamDirective)
-                    : null
+            PruneUnprovidedAbstractBranches = isEventStreamRoot,
+            ProvidedSelectionSet = isEventStreamRoot
+                ? CreateEventStreamProvidedSelectionSet(
+                    workItem.SelectionSet.Node,
+                    current.EventStreamDirective!)
+                : null
         };
 
         (var resolvable, var unresolvable, var fieldsWithRequirements, index) = _partitioner.Partition(input);
@@ -971,7 +976,11 @@ public sealed partial class OperationPlanner
             return;
         }
 
-        backlog = backlog.PushUnresolvable(unresolvable, current.SchemaName, stepDepth);
+        backlog = backlog.PushUnresolvable(
+            unresolvable,
+            current.SchemaName,
+            stepDepth,
+            allowSourceSchemaReentry: isEventStreamRoot);
         backlog = backlog.PushRequirements(fieldsWithRequirements, new StepConsumer(stepId), stepDepth);
 
         // Lookups are always queries. Root work items can also be rewritten to the query root
@@ -1080,7 +1089,8 @@ public sealed partial class OperationPlanner
         Lookup lookup,
         int lookupStepDepth,
         Backlog backlog,
-        ExecutionNodeCondition[]? conditions = null)
+        ExecutionNodeCondition[]? conditions = null,
+        bool allowSourceSchemaReentry = false)
     {
         var processed = new HashSet<string>();
         var lookupStepId = current.Steps.NextId();
@@ -1121,7 +1131,8 @@ public sealed partial class OperationPlanner
 
         foreach (var (step, stepIndex, schemaName) in current.GetCandidateSteps(workItemSelectionSet.Id))
         {
-            if (!processed.Add(schemaName) || lookup.SchemaName.Equals(schemaName))
+            if (!processed.Add(schemaName)
+                || (!allowSourceSchemaReentry && lookup.SchemaName.Equals(schemaName)))
             {
                 continue;
             }
@@ -1194,7 +1205,7 @@ public sealed partial class OperationPlanner
                 index,
                 workItemSelectionSet.Id) is { } ancestorMatch
             && processed.Add(ancestorMatch.Step.SchemaName!)
-            && !lookup.SchemaName.Equals(ancestorMatch.Step.SchemaName))
+            && (allowSourceSchemaReentry || !lookup.SchemaName.Equals(ancestorMatch.Step.SchemaName)))
         {
             if (TryInlineIntoAncestorStep(
                 ancestorMatch,

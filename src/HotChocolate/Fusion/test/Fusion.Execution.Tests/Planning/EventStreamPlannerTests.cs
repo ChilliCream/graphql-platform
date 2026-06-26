@@ -30,6 +30,82 @@ public sealed class EventStreamPlannerTests : FusionTestBase
     }
 
     [Fact]
+    public void CreatePlan_Should_ResolveNestedEntityFields_When_EventStreamReturnsWrapperType()
+    {
+        // arrange
+        var schema = ComposeSchema(ReviewsSchema);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            subscription {
+              onCreateReview {
+                review {
+                  id
+                  body
+                }
+              }
+            }
+            """);
+
+        // assert
+        // The @eventStream message only carries `review { id }`, but `body` is also selected.
+        // Review is @key(fields: "id"), so the planner spills `body` to a follow-up lookup
+        // (node 2) that re-enters the source schema, keyed on the `id` the message delivers.
+        MatchInline(
+            plan,
+            """
+            operation:
+              - document: |
+                  subscription {
+                    onCreateReview {
+                      review {
+                        id
+                        id @fusion__requirement
+                        body
+                      }
+                    }
+                  }
+                hash: 123456789101112
+                searchSpace: 2
+                expandedNodes: 3
+            nodes:
+              - id: 1
+                type: EventStream
+                fieldName: onCreateReview
+                resultSelectionSet: >-
+                  { onCreateReview }
+                eventStream:
+                  schema: a
+                  topics: [onCreateReview]
+                  message: { review { id } }
+                  cursorField: cursor
+                  cursorArgument: after
+              - id: 2
+                type: Operation
+                schema: a
+                operation: |
+                  query Op_123456789101112_2($__fusion_1_id: ID!) {
+                    node(id: $__fusion_1_id) {
+                      __typename
+                      ... on Review {
+                        body
+                      }
+                    }
+                  }
+                source: $.node<Review>
+                target: $.onCreateReview.review
+                requirements:
+                  - name: __fusion_1_id
+                    selectionMap: >-
+                      id
+                dependencies:
+                  - id: 1
+            """);
+    }
+
+    [Fact]
     public void FormatPlan_Should_WriteTopics_When_EventStreamHasSource()
     {
         // arrange
@@ -50,6 +126,67 @@ public sealed class EventStreamPlannerTests : FusionTestBase
         // assert
         Assert.Contains("\"topics\":[\"book.changed\"]", json, StringComparison.Ordinal);
     }
+
+    private const string ReviewsSchema =
+        """
+        schema {
+          query: Query
+          mutation: Mutation
+          subscription: Subscription
+        }
+
+        type Query {
+          node(id: ID!): Node @lookup @shareable
+          nodes(ids: [ID!]!): [Node]! @shareable
+          reviewById(id: ID!): Review @lookup
+        }
+
+        type Subscription {
+          onCreateReview(after: String @eventCursor): ReviewCreated!
+            @eventStream(message: "review { id }", topics: ["onCreateReview"])
+        }
+
+        type ReviewCreated {
+          review: Review!
+          cursor: String! @eventCursor
+        }
+
+        type Review implements Node @key(fields: "id") {
+          product: Product!
+          author: User
+          id: ID!
+          body: String!
+          stars: Int!
+        }
+
+        type Product @key(fields: "id") {
+          id: ID!
+        }
+
+        type User @key(fields: "id") {
+          id: ID!
+          name: String!
+        }
+
+        interface Node {
+          id: ID!
+        }
+
+        input CreateReviewInput {
+          body: String!
+          stars: Int!
+          productId: ID!
+          authorId: ID!
+        }
+
+        type Mutation {
+          createReview(input: CreateReviewInput!): CreateReviewPayload!
+        }
+
+        type CreateReviewPayload {
+          review: Review
+        }
+        """;
 
     private const string EventStreamSchema =
         """
