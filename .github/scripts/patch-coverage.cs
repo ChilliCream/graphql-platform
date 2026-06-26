@@ -4,13 +4,26 @@
 
 using System.Globalization;
 using System.Text;
+using System.Text.Json;
 using System.Xml.Linq;
 
 var positional = args.Where(a => !a.StartsWith("--", StringComparison.Ordinal)).ToArray();
 var jsonOnly = args.Contains("--json");
+if (positional.Length < 2)
+{
+    Console.Error.WriteLine("usage: dotnet patch-coverage.cs -- <cobertura.xml> <diff.txt> [threshold] [--json]");
+    Environment.Exit(1);
+}
+
 var coberturaPath = positional[0];
 var diffPath = positional[1];
-var threshold = positional.Length > 2 ? double.Parse(positional[2], CultureInfo.InvariantCulture) : 80.0;
+var threshold = 80.0;
+if (positional.Length > 2
+    && !double.TryParse(positional[2], NumberStyles.Float, CultureInfo.InvariantCulture, out threshold))
+{
+    Console.Error.WriteLine($"invalid threshold '{positional[2]}' (expected a number)");
+    Environment.Exit(1);
+}
 
 // Link base (CI provides these; falls back to plain text when unset).
 var server = (Environment.GetEnvironmentVariable("GITHUB_SERVER_URL") ?? "https://github.com").TrimEnd('/');
@@ -322,13 +335,13 @@ static string BuildJson(string sha, List<FileRow> withMisses)
 {
     var b = new StringBuilder();
     b.AppendLine("{");
-    b.AppendLine($"  \"sha\": \"{sha}\",");
+    b.AppendLine($"  \"sha\": {JsonStr(sha)},");
     b.AppendLine("  \"files\": [");
     for (var i = 0; i < withMisses.Count; i++)
     {
         var pairs = string.Join(", ", RangePairs(withMisses[i].Missed).Select(p => $"[{p.Start}, {p.End}]"));
         var comma = i == withMisses.Count - 1 ? "" : ",";
-        b.AppendLine($"    {{ \"path\": \"{withMisses[i].Path}\", \"ranges\": [{pairs}] }}{comma}");
+        b.AppendLine($"    {{ \"path\": {JsonStr(withMisses[i].Path)}, \"ranges\": [{pairs}] }}{comma}");
     }
 
     b.AppendLine("  ]");
@@ -341,5 +354,8 @@ static string Sha256Hex(string value)
     var bytes = System.Security.Cryptography.SHA256.HashData(Encoding.UTF8.GetBytes(value));
     return Convert.ToHexStringLower(bytes);
 }
+
+// Quoted, escaped JSON string literal (handles quotes, backslashes, and control characters in paths).
+static string JsonStr(string value) => $"\"{JsonEncodedText.Encode(value)}\"";
 
 internal record FileRow(string Path, int Covered, int Coverable, List<int> Missed, bool NotInstrumented);
