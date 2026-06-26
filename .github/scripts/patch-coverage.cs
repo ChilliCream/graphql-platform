@@ -50,7 +50,7 @@ var changed = ParseDiff(File.ReadAllLines(diffPath));
 var coverage = ParseCobertura(coberturaPath);
 
 // Whole-project line coverage (production files only; test/benchmark sources are excluded).
-var prodFiles = coverage.Where(f => !IsTestPath(f.Key)).ToList();
+var prodFiles = coverage.Where(f => IsProductionPath(f.Key)).ToList();
 var projValid = prodFiles.Sum(f => f.Value.Count);
 var projCovered = prodFiles.Sum(f => f.Value.Values.Count(h => h > 0));
 var projPct = projValid == 0 ? 100.0 : 100.0 * projCovered / projValid;
@@ -59,7 +59,7 @@ var projPct = projValid == 0 ? 100.0 : 100.0 * projCovered / projValid;
 var rows = new List<FileRow>();
 foreach (var (path, lines) in changed.OrderBy(x => x.Key, StringComparer.Ordinal))
 {
-    if (IsTestPath(path))
+    if (!IsProductionPath(path))
     {
         continue; // patch coverage measures production code, not test/benchmark sources
     }
@@ -355,13 +355,14 @@ static string BuildJson(string sha, List<FileRow> withMisses)
     return b.ToString();
 }
 
-static bool IsTestPath(string path)
+static bool IsProductionPath(string path)
 {
+    // Exclude test and benchmark sources; everything else counts as production.
     var p = "/" + path.Replace('\\', '/') + "/";
-    return p.Contains("/test/", StringComparison.OrdinalIgnoreCase)
+    return !(p.Contains("/test/", StringComparison.OrdinalIgnoreCase)
         || p.Contains("/tests/", StringComparison.OrdinalIgnoreCase)
         || p.Contains("/benchmark/", StringComparison.OrdinalIgnoreCase)
-        || p.Contains("/benchmarks/", StringComparison.OrdinalIgnoreCase);
+        || p.Contains("/benchmarks/", StringComparison.OrdinalIgnoreCase));
 }
 
 static string Sha256Hex(string value)
