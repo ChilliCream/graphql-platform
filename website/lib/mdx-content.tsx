@@ -14,6 +14,7 @@ import {
 } from "@/components/mdx/example-tabs";
 import { InlineCode } from "@/components/mdx/inline-code";
 import { PackageInstallation } from "@/components/mdx/package-installation";
+import { PhotoGrid } from "@/components/mdx/photo-grid";
 import { Video } from "@/components/mdx/video";
 import { Warning } from "@/components/mdx/warning";
 import { ApiChoiceTabs } from "@/components/mdx/api-choice-tabs";
@@ -32,6 +33,7 @@ const mdxComponents = {
   Implementation,
   Schema,
   PackageInstallation,
+  PhotoGrid,
   Video,
   Warning,
   ApiChoiceTabs,
@@ -58,6 +60,7 @@ const mdxComponents = {
   schema: Schema,
   packageinstallation: PackageInstallation,
   warning: Warning,
+  photogrid: PhotoGrid,
   apichoicetabs: ApiChoiceTabs,
   inputchoicetabs: InputChoiceTabs,
   pipelinechoicetabs: PipelineChoiceTabs,

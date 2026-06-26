@@ -85,6 +85,9 @@ public class RabbitMQMessageTypeExtensionTests
                 t.ConnectionProvider(_ => new StubConnectionProvider());
                 t.BindExplicitly();
                 t.AutoProvision(false);
+                // Under explicit binding the dispatch destination is not auto-materialized, so the
+                // send target queue must be declared for the route to resolve.
+                t.DeclareQueue("my-queue");
                 t.Queue("payment-q").Handler<ProcessPaymentHandler>();
             })
             .BuildRuntime();

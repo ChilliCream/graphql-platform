@@ -294,7 +294,7 @@ public sealed class RabbitMQMessagingTransportDescriptor
         target.ConsumerIdentities.AddRange(configuration.ConsumerIdentities);
         target.ReceivedMessageTypes.AddRange(configuration.ReceivedMessageTypes);
 
-        target.BindMode = configuration.BindMode ?? target.BindMode ?? MessagingBindMode.Implicit;
+        target.BindMode = configuration.BindMode ?? target.BindMode;
 
         if (configuration.Kind is not null && target.Kind == ReceiveEndpointKind.Default)
         {

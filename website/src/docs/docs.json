@@ -350,6 +350,10 @@
             "title": "Cache Control"
           },
           {
+            "path": "subscriptions",
+            "title": "Subscriptions"
+          },
+          {
             "path": "performance-tuning",
             "title": "Performance Tuning"
           },

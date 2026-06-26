@@ -509,11 +509,4 @@ public sealed class OperationExecutionNode : ExecutionNode
             await _clientScope.DisposeAsync();
         }
     }
-
-    private static class SubscriptionId
-    {
-        private static ulong s_subscriptionId;
-
-        public static ulong Next() => Interlocked.Increment(ref s_subscriptionId);
-    }
 }

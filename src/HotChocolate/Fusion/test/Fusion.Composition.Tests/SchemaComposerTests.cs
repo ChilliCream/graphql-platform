@@ -6,6 +6,70 @@ namespace HotChocolate.Fusion;
 public sealed class SchemaComposerTests
 {
     [Fact]
+    public void Compose_Should_Succeed_When_CursorFieldAndArgumentAreValid()
+    {
+        // arrange
+        var schemaComposer = new SchemaComposer(
+            [
+                new SourceSchemaText(
+                    "Events",
+                    """
+                    type Query {
+                        version: String
+                    }
+
+                    type Subscription {
+                        onUserChanged(after: String @eventCursor): UserChangedEvent
+                            @eventStream(message: "{ id changeType }")
+                    }
+
+                    type UserChangedEvent {
+                        id: ID!
+                        changeType: String!
+                        cursor: String @eventCursor
+                    }
+                    """)
+            ],
+            new SchemaComposerOptions { Merger = { AddFusionDefinitions = false } },
+            new CompositionLog());
+
+        // act
+        var result = schemaComposer.Compose();
+
+        // assert
+        Assert.True(result.IsSuccess);
+        result.Value.MatchInlineSnapshot(
+            """
+            schema {
+                query: Query
+                subscription: Subscription
+            }
+
+            type Query @fusion__type(schema: EVENTS) {
+                version: String @fusion__field(schema: EVENTS)
+            }
+
+            type Subscription @fusion__type(schema: EVENTS) {
+                onUserChanged(after: String @fusion__inputField(schema: EVENTS)): UserChangedEvent
+                    @fusion__field(schema: EVENTS)
+                    @fusion__eventStream(
+                        schema: EVENTS
+                        topics: ["onUserChanged"]
+                        message: "{ id changeType }"
+                        cursorField: "cursor"
+                        cursorArgument: "after"
+                    )
+            }
+
+            type UserChangedEvent @fusion__type(schema: EVENTS) {
+                changeType: String! @fusion__field(schema: EVENTS)
+                cursor: String @fusion__field(schema: EVENTS)
+                id: ID! @fusion__field(schema: EVENTS)
+            }
+            """);
+    }
+
+    [Fact]
     public void Compose_LookupFieldWithoutArguments_FailsWithLookupMustHaveArgumentsError()
     {
         // arrange

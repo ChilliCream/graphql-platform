@@ -22,6 +22,7 @@ MD033:
     - List
     - PackageInstallation
     - Panel
+    - PhotoGrid
     - PipelineChoiceTabs
     - Schema
     - span
