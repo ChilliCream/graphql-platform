@@ -1,7 +1,11 @@
+using System.Text.Json;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.AspNetCore.Tests.Utilities;
+using HotChocolate.Execution.Configuration;
+using HotChocolate.Resolvers;
 using HotChocolate.Transport.Http;
+using HotChocolate.Types;
 using static CookieCrumble.TestEnvironment;
 using static HotChocolate.Diagnostics.ActivityTestHelper;
 using OperationRequest = HotChocolate.Transport.OperationRequest;
@@ -418,11 +422,98 @@ public class ActivityServerDiagnosticListenerTests(TestServerFactory serverFacto
         }
     }
 
+    [Fact]
+    public async Task Http_Request_Should_Be_Unset_When_Client_Disconnects()
+    {
+        using var guard = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+
+        using (CaptureActivities(out var activities))
+        {
+            // arrange
+            var signal = new HttpCancellationSignal();
+            using var server = CreateInstrumentedServer(
+                o => o.Scopes = ActivityScopes.All,
+                b => b
+                    .AddTypeExtension<CancellationQueryExtension>()
+                    .Services.AddSingleton(signal));
+            using var client = GraphQLHttpClient.Create(server.CreateClient());
+            using var requestCts = CancellationTokenSource.CreateLinkedTokenSource(guard.Token);
+
+            var request = new OperationRequest("{ blockUntilCancelled }");
+
+            // act
+            // start the request, wait until the resolver is actually executing, then drop
+            // the connection by cancelling the client token (a dropped browser tab)
+            var postTask = PostAndIgnoreCancellationAsync(client, request, requestCts.Token);
+            await signal.Entered.Task.WaitAsync(guard.Token);
+            await requestCts.CancelAsync();
+            await postTask;
+
+            // assert
+            // the snapshot records every span status for a client disconnect mid execution
+            activities.MatchSnapshot(Postfix([NET11_0]));
+        }
+    }
+
+    [Fact]
+    public async Task Http_Request_Should_Be_Error_When_Timeout()
+    {
+        using (CaptureActivities(out var activities))
+        {
+            // arrange
+            // a tiny execution timeout combined with a resolver that blocks until the
+            // request token fires forces a server-side execution timeout (HC0045)
+            using var server = CreateInstrumentedServer(
+                o => o.Scopes = ActivityScopes.All,
+                b => b
+                    .AddTypeExtension<CancellationQueryExtension>()
+                    .ModifyRequestOptions(o => o.ExecutionTimeout = TimeSpan.FromMilliseconds(200)));
+            using var client = GraphQLHttpClient.Create(server.CreateClient());
+
+            var request = new OperationRequest("{ blockUntilTimeout }");
+
+            // act
+            using var result = await client.PostAsync(request, s_url, TestContext.Current.CancellationToken);
+            using var operationResult = await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
+
+            // assert
+            // the timeout actually triggered (scenario guard); the snapshot records the
+            // resulting span statuses
+            var code = operationResult.Errors[0].GetProperty("extensions").GetProperty("code").GetString();
+            Assert.Equal(ErrorCodes.Execution.Timeout, code);
+
+            activities.MatchSnapshot(Postfix([NET11_0]));
+        }
+    }
+
+    private static async Task PostAndIgnoreCancellationAsync(
+        GraphQLHttpClient client,
+        OperationRequest request,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            using var result = await client.PostAsync(request, s_url, cancellationToken);
+            await result.ReadAsResultAsync(cancellationToken);
+        }
+        catch (OperationCanceledException)
+        {
+            // expected: the caller aborted the in-flight request
+        }
+        catch (InvalidOperationException)
+        {
+            // expected: the aborted request yields an empty response that cannot be
+            // read as a GraphQL result
+        }
+    }
+
     private TestServer CreateInstrumentedServer(
-        Action<InstrumentationOptions>? options = null)
+        Action<InstrumentationOptions>? options = null,
+        Action<IRequestExecutorBuilder>? configureBuilder = null)
         => CreateStarWarsServer(
                 configureServices: services =>
-                    services
+                {
+                    var builder = services
                         .AddGraphQLServer()
                         .AddInstrumentation(options)
                         .ModifyPagingOptions(o => o.RequirePagingBoundaries = false)
@@ -431,5 +522,37 @@ public class ActivityServerDiagnosticListenerTests(TestServerFactory serverFacto
                             {
                                 o.EnableDefer = true;
                                 o.EnableStream = true;
-                            }));
+                            });
+
+                    configureBuilder?.Invoke(builder);
+                });
+
+    [ExtendObjectType("Query")]
+    public class CancellationQueryExtension
+    {
+        public async Task<string> BlockUntilCancelled(
+            IResolverContext context,
+            [Service] HttpCancellationSignal signal)
+        {
+            // signal that execution has actually reached the resolver, then block
+            // until the connection drops (the request abort token fires)
+            signal.Entered.TrySetResult();
+            await Task.Delay(Timeout.Infinite, context.RequestAborted);
+            return "unreachable";
+        }
+
+        public async Task<string> BlockUntilTimeout(IResolverContext context)
+        {
+            // block until the execution timeout cancels the (combined) request token,
+            // producing an HC0045 (timeout) result
+            await Task.Delay(Timeout.Infinite, context.RequestAborted);
+            return "unreachable";
+        }
+    }
+
+    public sealed class HttpCancellationSignal
+    {
+        public TaskCompletionSource Entered { get; } =
+            new(TaskCreationOptions.RunContinuationsAsynchronously);
+    }
 }

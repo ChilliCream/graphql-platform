@@ -49,6 +49,18 @@ internal sealed class FusionActivityExecutionDiagnosticEventListener(
 
     public override void RequestError(RequestContext context, Exception error)
     {
+        // An intentional caller cancellation (browser tab closed, connection
+        // dropped) surfaces here as an OperationCanceledException. Per the
+        // OpenTelemetry semantic conventions this is not an error, so the span
+        // is left Unset with no error.type and no exception event. Server-side
+        // execution timeouts never reach RequestError as an exception (the
+        // timeout middleware turns them into an HC0045 result), so only genuine
+        // client cancellations are filtered out here.
+        if (error is OperationCanceledException)
+        {
+            return;
+        }
+
         if (context.Features.TryGet<ExecuteRequestSpan>(out var span))
         {
             var activity = span.Activity;
