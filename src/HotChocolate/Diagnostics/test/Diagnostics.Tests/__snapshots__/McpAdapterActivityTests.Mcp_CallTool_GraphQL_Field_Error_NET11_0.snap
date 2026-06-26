@@ -252,47 +252,6 @@
           ]
         }
       ]
-    },
-    {
-      "OperationName": "Microsoft.AspNetCore.Hosting.HttpRequestIn",
-      "DisplayName": "POST /graphql/mcp/",
-      "Kind": "Server",
-      "Status": "Unset",
-      "tags": [
-        {
-          "Key": "server.address",
-          "Value": "localhost"
-        },
-        {
-          "Key": "server.port",
-          "Value": 80
-        },
-        {
-          "Key": "http.request.method",
-          "Value": "POST"
-        },
-        {
-          "Key": "url.scheme",
-          "Value": "http"
-        },
-        {
-          "Key": "url.path",
-          "Value": "/graphql/mcp"
-        },
-        {
-          "Key": "network.protocol.version",
-          "Value": "1.1"
-        },
-        {
-          "Key": "http.response.status_code",
-          "Value": 200
-        },
-        {
-          "Key": "http.route",
-          "Value": "/graphql/mcp/"
-        }
-      ],
-      "event": []
     }
   ]
 }

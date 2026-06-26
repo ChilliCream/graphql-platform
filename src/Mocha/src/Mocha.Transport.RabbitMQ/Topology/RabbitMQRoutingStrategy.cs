@@ -270,13 +270,6 @@ public sealed class RabbitMQRoutingStrategy : RoutingStrategy<RabbitMQMessagingT
 
             if (messageType.HasPerMessageRoutingKey())
             {
-                if (autoBind)
-                {
-                    throw ThrowHelper.CannotCreateRabbitMQAutoBind(
-                        messageType,
-                        "it has a per-message routing key");
-                }
-
                 continue;
             }
 
@@ -306,6 +299,16 @@ public sealed class RabbitMQRoutingStrategy : RoutingStrategy<RabbitMQMessagingT
             // exchange into the receive queue. This keeps Publish<T> and Send<T> converged on the
             // same queue while still allowing separate publish and send exchange names.
             // Example: publish/order-created -> send/order-created -> queue/orders.
+            //
+            // Skip the whole convention pair when the endpoint binds explicitly: the upstream
+            // publish/send exchanges only exist to feed the exchange-to-queue binding below, so
+            // without that final hop they would be declared on this service but bound to nothing,
+            // contradicting the "explicit means explicit" contract.
+            if (!autoBind)
+            {
+                continue;
+            }
+
             var publishExchangeName = context.Naming.GetPublishEndpointName(messageType.RuntimeType);
             _topology.EnsureExchange(publishExchangeName);
 
@@ -321,10 +324,7 @@ public sealed class RabbitMQRoutingStrategy : RoutingStrategy<RabbitMQMessagingT
                     static (_, _, _) => new RabbitMQBindingConfiguration());
             }
 
-            if (autoBind)
-            {
-                _topology.EnsureExchangeToQueueBinding(sendExchangeName, rabbitConfiguration.QueueName);
-            }
+            _topology.EnsureExchangeToQueueBinding(sendExchangeName, rabbitConfiguration.QueueName);
         }
     }
 
@@ -340,14 +340,21 @@ public sealed class RabbitMQRoutingStrategy : RoutingStrategy<RabbitMQMessagingT
             return;
         }
 
-        if (rabbitConfiguration.ExchangeName is not null)
+        // Under BindExplicitly, the dispatch endpoint must not materialize a destination
+        // exchange the user never declared: the user retains full ownership of the topology,
+        // and a default-config (fanout) shadow can collide with a previously-declared exchange
+        // on the broker (PRECONDITION_FAILED on declare). The user is expected to either
+        // DeclareExchange it explicitly or rely on a pre-existing broker entity.
+        var bindImplicitly = Transport.BindMode == MessagingBindMode.Implicit;
+
+        if (rabbitConfiguration.ExchangeName is not null && bindImplicitly)
         {
             _topology.GetOrAddExchange(
                 rabbitConfiguration.ExchangeName,
                 static _ => new RabbitMQExchangeConfiguration());
         }
 
-        if (rabbitConfiguration.QueueName is not null)
+        if (rabbitConfiguration.QueueName is not null && bindImplicitly)
         {
             _topology.GetOrAddQueue(
                 rabbitConfiguration.QueueName,
@@ -357,7 +364,7 @@ public sealed class RabbitMQRoutingStrategy : RoutingStrategy<RabbitMQMessagingT
         var schema = Transport.Schema;
 
         if (rabbitConfiguration.ExchangeName is not null
-            && Transport.BindMode == MessagingBindMode.Implicit)
+            && bindImplicitly)
         {
             foreach (var (runtimeType, kind) in rabbitConfiguration.Routes)
             {

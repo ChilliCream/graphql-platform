@@ -104,7 +104,7 @@ public sealed class OutboundRoute
 
         if (Endpoint is null)
         {
-            throw ThrowHelper.RouteEndpointNotConnected();
+            throw ThrowHelper.RouteEndpointNotConnected(this);
         }
 
         Destination ??= Endpoint.Address;

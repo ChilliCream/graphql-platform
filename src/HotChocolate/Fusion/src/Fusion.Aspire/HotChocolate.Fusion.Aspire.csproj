@@ -9,6 +9,7 @@
 
   <ItemGroup>
     <PackageReference Include="Aspire.Hosting" />
+    <PackageReference Include="MessagePack" />
     <PackageReference Include="Microsoft.Extensions.Logging" />
   </ItemGroup>
 

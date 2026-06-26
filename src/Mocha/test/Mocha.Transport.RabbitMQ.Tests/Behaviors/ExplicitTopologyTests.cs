@@ -135,7 +135,8 @@ public class ExplicitTopologyTests
         // arrange
         // The queue URI stores the name verbatim; the default convention must not kebab-case
         // or otherwise transform it. The spy endpoint on that exact name receives messages
-        // forwarded there when the handler throws.
+        // forwarded there when the handler throws. Under explicit binding the publish path to the
+        // handler queue is declared explicitly because the convention chain is suppressed.
         var faultCapture = new FaultCapture();
         await using var vhost = await _fixture.CreateVhostAsync();
         await using var bus = await new ServiceCollection()
@@ -147,12 +148,16 @@ public class ExplicitTopologyTests
             .AddRabbitMQ(t =>
             {
                 t.BindExplicitly();
+                t.DeclareExchange("orders-ex");
+                t.DeclareQueue("main-ep");
+                t.DeclareBinding("orders-ex", "main-ep");
                 t.Queue("main-ep")
                     .Handler<ThrowingOrderHandler>()
                     .FaultEndpoint(new Uri("queue:custom-orders-error"));
                 t.Queue("custom-orders-error")
                     .Kind(ReceiveEndpointKind.Error)
                     .Consumer<FaultSpyConsumer>();
+                t.DispatchEndpoint("orders-dispatch").ToExchange("orders-ex").Publish<OrderCreated>();
             })
             .BuildTestBusAsync();
 
@@ -173,7 +178,9 @@ public class ExplicitTopologyTests
         // arrange
         // DisableFaultEndpoint removes the error queue entirely. When the handler throws, the
         // fault middleware finds no error endpoint and silently acknowledges the message; no
-        // message should arrive in any queue named after the conventional "_error" suffix.
+        // message should arrive in any queue named after the conventional "_error" suffix. Under
+        // explicit binding the publish path to the handler queue is declared explicitly because the
+        // convention chain is suppressed.
         var faultCapture = new FaultCapture();
         await using var vhost = await _fixture.CreateVhostAsync();
         await using var bus = await new ServiceCollection()
@@ -185,6 +192,9 @@ public class ExplicitTopologyTests
             .AddRabbitMQ(t =>
             {
                 t.BindExplicitly();
+                t.DeclareExchange("orders-ex");
+                t.DeclareQueue("main-ep");
+                t.DeclareBinding("orders-ex", "main-ep");
                 t.Queue("main-ep")
                     .Handler<ThrowingOrderHandler>()
                     .DisableFaultEndpoint();
@@ -193,6 +203,7 @@ public class ExplicitTopologyTests
                 t.Queue("main-ep_error")
                     .Kind(ReceiveEndpointKind.Error)
                     .Consumer<FaultSpyConsumer>();
+                t.DispatchEndpoint("orders-dispatch").ToExchange("orders-ex").Publish<OrderCreated>();
             })
             .BuildTestBusAsync();
 

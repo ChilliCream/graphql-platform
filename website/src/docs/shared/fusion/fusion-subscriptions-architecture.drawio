@@ -1,0 +1,58 @@
+<mxfile host="app.diagrams.net" type="device">
+  <diagram name="EDFS" id="edfs-1">
+    <mxGraphModel dx="1100" dy="760" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1020" pageHeight="500" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" value="Federated Event Streams" style="text;html=1;align=center;verticalAlign=middle;fontSize=18;fontStyle=1;fontColor=#3A4250;" vertex="1" parent="1">
+          <mxGeometry x="420" y="10" width="440" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="broker" value="Message Broker (NATS, Kafka)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F2A33E;strokeColor=#D98B25;fontColor=#ffffff;fontSize=15;fontStyle=1;shadow=1;arcSize=14;" vertex="1" parent="1">
+          <mxGeometry x="300" y="60" width="680" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="gw" value="Fusion Gateway" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#7C5CFC;strokeColor=#6A48E0;fontColor=#ffffff;fontSize=16;fontStyle=1;shadow=1;arcSize=12;verticalAlign=top;spacingTop=14;" vertex="1" parent="1">
+          <mxGeometry x="350" y="300" width="230" height="74" as="geometry" />
+        </mxCell>
+        <mxCell id="gwsub" value="Router" style="text;html=1;align=center;fontSize=11;fontColor=#EDE7FF;" vertex="1" parent="1">
+          <mxGeometry x="350" y="344" width="230" height="18" as="geometry" />
+        </mxCell>
+        <mxCell id="clbl" value="Clients" style="text;html=1;align=center;fontSize=12;fontStyle=1;fontColor=#7A8597;" vertex="1" parent="1">
+          <mxGeometry x="40" y="242" width="130" height="22" as="geometry" />
+        </mxCell>
+        <mxCell id="ua" value="User A" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#4C8DF5;strokeColor=#3B79E0;fontColor=#ffffff;fontSize=13;fontStyle=1;shadow=1;arcSize=18;" vertex="1" parent="1">
+          <mxGeometry x="40" y="270" width="130" height="44" as="geometry" />
+        </mxCell>
+        <mxCell id="ub" value="User B" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#4C8DF5;strokeColor=#3B79E0;fontColor=#ffffff;fontSize=13;fontStyle=1;shadow=1;arcSize=18;" vertex="1" parent="1">
+          <mxGeometry x="40" y="350" width="130" height="44" as="geometry" />
+        </mxCell>
+        <mxCell id="sg" value="Subgraphs" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F4F7FA;strokeColor=#C7D0DA;fontColor=#6A7585;fontSize=13;fontStyle=1;verticalAlign=top;arcSize=8;spacingTop=6;" vertex="1" parent="1">
+          <mxGeometry x="744" y="270" width="206" height="180" as="geometry" />
+        </mxCell>
+        <mxCell id="prod" value="Products" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#28C18A;strokeColor=#1FA876;fontColor=#ffffff;fontSize=14;fontStyle=1;shadow=1;arcSize=16;" vertex="1" parent="1">
+          <mxGeometry x="766" y="306" width="162" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="rev" value="Reviews" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#28C18A;strokeColor=#1FA876;fontColor=#ffffff;fontSize=14;fontStyle=1;shadow=1;arcSize=16;" vertex="1" parent="1">
+          <mxGeometry x="766" y="378" width="162" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="e_ua" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#8A98A8;fontColor=#5A6573;endArrow=block;endFill=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.3;entryDx=0;entryDy=0;" edge="1" parent="1" source="ua" target="gw">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_ub" value="subscribe (long-lived)" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#8A98A8;fontColor=#5A6573;endArrow=block;endFill=1;fontSize=11;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.7;entryDx=0;entryDy=0;" edge="1" parent="1" source="ub" target="gw">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_sub" value="subscribe to topic" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#7C5CFC;fontColor=#6A48E0;dashed=1;endArrow=block;endFill=1;fontSize=11;fontStyle=1;exitX=0.3;exitY=0;exitDx=0;exitDy=0;entryX=0.2;entryY=1;entryDx=0;entryDy=0;" edge="1" parent="1" source="gw" target="broker">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_pub" value="publish event" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#1FA876;fontColor=#1FA876;endArrow=block;endFill=1;fontSize=11;fontStyle=1;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.78;entryY=1;entryDx=0;entryDy=0;" edge="1" parent="1" source="prod" target="broker">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_fetch" value="HTTP fetch on each event (stateless)" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#8A98A8;fontColor=#5A6573;endArrow=block;endFill=1;fontSize=11;fontStyle=1;exitX=1;exitY=0.32;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="gw" target="prod">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_fetch2" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#8A98A8;fontColor=#5A6573;endArrow=block;endFill=1;exitX=1;exitY=0.7;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="gw" target="rev">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

@@ -18,15 +18,11 @@ interface Protocol {
 
 const CHIPS = ["gRPC", "GraphQL", "OpenAPI", "MCP"] as const;
 
-/** Brand spectrum used for the chip-box border. */
-const SPECTRUM =
-  "linear-gradient(100deg,#16b9e4 0%,#7c92c6 33%,#b681a9 63%,#f0786a 100%)";
-
 const PROTOCOLS: readonly Protocol[] = [
   {
     Icon: BrowserIcon,
     title: "Web",
-    subtitle: "Browser SPA",
+    subtitle: "SPA / MPA",
     tags: ["GraphQL"],
   },
   {
@@ -39,7 +35,7 @@ const PROTOCOLS: readonly Protocol[] = [
     Icon: RobotIcon,
     title: "AI Agents",
     subtitle: "MCP Tools",
-    tags: ["GraphQL", "gRPC"],
+    tags: ["GraphQL", "MCP"],
   },
   {
     Icon: HandshakeIcon,
@@ -53,11 +49,16 @@ const PROTOCOLS: readonly Protocol[] = [
 // card grid, so the chip anchors sit inboard of the card columns; every line
 // therefore runs on a diagonal and the bundle weaves on its way down.
 const CHIP_X = [250, 417, 583, 750];
-const CARD_X = [125, 375, 625, 875];
+// Card-column centers in the 0..1000 viewBox. The tile grid is 4 columns with a
+// fixed gap, so the centers sit slightly outboard of even quarters: with the
+// layer at its desktop width (1056px) and gap-x-10 (40px), each column is 234px
+// wide and centers land at 110.8 / 370.3 / 629.7 / 889.2. Matching these lets a
+// vertical spoke meet the exact top-middle of every tile.
+const CARD_X = [110.8, 370.3, 629.7, 889.2];
 // The connector layer is stretched over the whole region (chip box bottom to
-// the card row). LINK_Y is the y, in the 0..1000 viewBox, where the spokes meet
-// the icon tiles; tuned against the icon row on desktop.
-const LINK_Y = 720;
+// the card row). LINK_Y is the y, in the 0..1000 viewBox, of the icon tiles' top
+// edge, so spokes land cleanly on the top-middle of each tile.
+const LINK_Y = 694;
 
 /**
  * One spoke per (card, protocol) pairing, derived from each card's tags. The
@@ -88,17 +89,22 @@ function ProtocolTag({ label }: { readonly label: string }) {
 }
 
 /**
- * "Choose your Protocol" section: the protocol chip box feeds connector lines
- * down through the headline and into four consumer archetypes (Web, Mobile, AI
- * Agents, Partners), each tile showing the protocols it speaks.
+ * "Different protocols" section: the protocol chip box feeds connector lines
+ * down through the headline and into four caller archetypes, each tile showing
+ * the protocols it speaks.
  */
 export function ProtocolCards() {
   return (
-    <section className="mx-auto max-w-6xl px-5 py-16 sm:px-12 sm:py-20">
-      {/* Protocol chip box with the brand-spectrum border. */}
+    <section className="mx-auto max-w-6xl px-5 pb-16 sm:px-12 sm:pb-20">
+      {/* Protocol chip box. The gradient runs left→right so the centered connector
+          line coming down from the Fusion section meets the midpoint color
+          (#66be77) for a seamless join. */}
       <div
         className="mx-auto max-w-3xl rounded-2xl p-px"
-        style={{ backgroundImage: SPECTRUM }}
+        style={{
+          backgroundImage:
+            "linear-gradient(to right,#f27765 0%,#eabd21 25%,#66be77 50%,#00bce5 75%,#a983ba 100%)",
+        }}
       >
         <div className="bg-cc-surface grid grid-cols-2 gap-3 rounded-[15px] p-3 sm:grid-cols-4 sm:p-4">
           {CHIPS.map((chip) => (
@@ -134,16 +140,27 @@ export function ProtocolCards() {
         </svg>
 
         <div className="relative px-4 pt-16 pb-20 text-center sm:pt-24 sm:pb-28">
-          <h2 className="font-heading text-cc-heading text-h3 sm:text-h2 leading-[1.1] font-semibold text-balance">
-            Choose your Protocol.
-            <br />
-            One Source of Truth.
-          </h2>
-          <p className="text-cc-ink mx-auto mt-6 max-w-4xl text-lg text-pretty sm:text-xl">
-            Unify all your APIs into a comprehensive company graph, streamlining
-            data accessibility and enhancing integration. Transform the way you
-            manage and interact with your data.
-          </p>
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute top-1/2 left-1/2 h-[74%] w-[min(980px,96vw)] -translate-x-1/2 -translate-y-1/2"
+            style={{
+              background:
+                "radial-gradient(ellipse 50% 50% at 50% 50%, rgba(11,15,26,0.92) 0%, rgba(11,15,26,0.8) 42%, rgba(11,15,26,0.45) 68%, rgba(11,15,26,0) 88%)",
+            }}
+          />
+          <div className="relative">
+            <h2 className="font-heading text-cc-heading text-h3 sm:text-h2 leading-[1.1] font-semibold text-balance">
+              Different protocols.
+              <br />
+              One source.
+            </h2>
+            <p className="text-cc-ink mx-auto mt-6 max-w-4xl text-lg text-pretty sm:text-xl">
+              Let each caller use the protocol that fits: GraphQL for apps, gRPC
+              for services, OpenAPI for HTTP integrations, and MCP for agents.
+              The API model stays in one place, so every surface can evolve from
+              the same source.
+            </p>
+          </div>
         </div>
 
         <div className="relative grid grid-cols-2 gap-x-6 gap-y-12 sm:gap-x-10 md:grid-cols-4">

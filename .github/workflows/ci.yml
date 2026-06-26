@@ -327,24 +327,33 @@ jobs:
           name: mismatch-files-${{ matrix.name }}
           path: ${{ matrix.directoryPath }}/**/__mismatch__/*
 
-  upload-coverage:
-    name: Upload Coverage
-    needs: library-tests
+  patch-coverage:
+    name: Patch Coverage
     runs-on: ubuntu-latest
+    needs: [check-changes, library-tests]
+    if: needs.check-changes.outputs.library_changes == 'true'
     permissions:
       contents: read
-      code-quality: write
+      pull-requests: write
     steps:
-      - name: Download all coverage artifacts
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+      - name: Checkout repository
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
-          path: ./output/download
-          pattern: coverage-*
+          show-progress: false
+          fetch-depth: 0
+          # PR-authored patch-coverage.cs runs in this job; keep the job token out of the workspace.
+          persist-credentials: false
 
       - name: Install .NET
         uses: actions/setup-dotnet@9a946fdbd5fb07b82b2f5a4466058b876ab72bb2 # v5.3.0
         with:
           dotnet-version: 11.0.100-preview.5.26302.115
+
+      - name: Download all coverage artifacts
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          path: ./output/download
+          pattern: coverage-*
 
       - name: Install dotnet-coverage
         run: |
@@ -358,13 +367,39 @@ jobs:
           --output-format cobertura
           "./output/download/**/*.cobertura.xml"
 
-      - name: Upload coverage to GitHub
-        uses: ChilliCream/upload-code-coverage@c4b498aa6251701297737919a9b879eaac3f41b4 # fork: scope PR lookup to base repo (upstream #14)
-        timeout-minutes: 10
+      - name: Compute changed lines
+        run: >
+          git diff --unified=0 --diff-filter=d
+          "${{ github.event.pull_request.base.sha }}...HEAD"
+          -- '*.cs' > ./output/pr.diff
+
+      - name: Generate patch coverage report
+        id: report
+        env:
+          GITHUB_SHA: ${{ github.event.pull_request.head.sha }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          dotnet .github/scripts/patch-coverage.cs -- ./output/merged.cobertura.xml ./output/pr.diff > ./output/report.md
+          if [ -s ./output/report.md ]; then
+            echo "has_content=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_content=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Write job summary
+        if: steps.report.outputs.has_content == 'true'
+        run: cat ./output/report.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Post sticky comment
+        # Fork PRs get a read-only token and cannot post comments; coverage still
+        # appears in the job summary above for those PRs.
+        if: >
+          steps.report.outputs.has_content == 'true' &&
+          github.event.pull_request.head.repo.full_name == github.repository
+        uses: marocchino/sticky-pull-request-comment@0ea0beb66eb9baf113663a64ec522f60e49231c0 # v3.0.4
         with:
-          file: ./output/merged.cobertura.xml
-          language: "C#"
-          label: code-coverage/dotnet
+          header: patch-coverage
+          path: ./output/report.md
 
   validate-nitro-client:
     name: Validate Nitro Client

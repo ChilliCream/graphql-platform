@@ -8,7 +8,7 @@ namespace Mocha.Transport.RabbitMQ.Tests.Topology;
 public class RabbitMQExplicitTopologyTests
 {
     [Fact]
-    public void Describe_Should_KeepConventionEntities_When_ExplicitBindingAndAutoBindDefaultOn()
+    public void Describe_Should_OmitConventionEntities_When_ExplicitBindingAndQueueInheritsDefault()
     {
         // arrange
         var runtime = CreateRuntime(
@@ -24,8 +24,8 @@ public class RabbitMQExplicitTopologyTests
         var description = transport.Describe();
 
         // assert
-        // explicit handler binding governs axis A only: with auto-binding left at its default the
-        // convention still fabricates the publish/send exchanges and binds them into the declared queue.
+        // transport-level BindExplicitly propagates to the queue endpoint, which does not override the
+        // bind mode, so the whole convention pair (publish/send exchanges and their binds) is suppressed.
         RabbitMQDescribeSnapshot.Create(description).MatchSnapshot();
     }
 
@@ -46,9 +46,8 @@ public class RabbitMQExplicitTopologyTests
         var description = transport.Describe();
 
         // assert
-        // BindExplicitly at transport scope removes the convention bind into the queue.
-        // The type-owned publish/send exchanges are still produced because they are owned by the type
-        // (suppression scope, reading X from plan v3 section 3.4), but no exchange-to-queue bind appears.
+        // BindExplicitly suppresses the whole convention pair: the publish/send exchanges and their
+        // exchange-to-queue bind are all omitted, leaving only the explicitly declared queue.
         RabbitMQDescribeSnapshot.Create(description).MatchSnapshot();
     }
 
@@ -110,13 +109,15 @@ public class RabbitMQExplicitTopologyTests
     public void GetPublishEndpoint_Should_DeriveConventionExchange_When_UnconfiguredTypeInExplicitMode()
     {
         // arrange
-        // OrderCreated has a consumer but no configured outbound route. Explicit binding governs
-        // consumer binding only, so producer dispatch must still derive the convention destination.
+        // OrderCreated has a consumer but no configured outbound route, so producer dispatch derives
+        // the convention publish exchange by naming convention. Under explicit binding the topology is
+        // not auto-materialized, so the convention exchange must be declared for the endpoint to resolve.
         var runtime = CreateRuntime(
             b => b.AddConsumer<OrderSpyConsumer>(),
             t =>
             {
                 t.BindExplicitly();
+                t.DeclareExchange("mocha.test-helpers.order-created");
                 t.Queue("orders").AutoProvision(true).Consumer<OrderSpyConsumer>();
             });
         var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
@@ -542,28 +543,32 @@ public class RabbitMQExplicitTopologyTests
     }
 
     [Fact]
-    public void Build_Should_Throw_When_AutoBindDerivedForDynamicRoutingKeyType()
+    public void Build_Should_SkipAutoBind_When_DerivedForDynamicRoutingKeyType()
     {
         // arrange
-        // A custom routing-key function makes the bind key underivable. The receive convention must
-        // fail the build rather than emit a key-less bind that would silently not match.
+        // A custom routing-key function makes the bind key underivable. The receive convention skips
+        // the type from auto-binding rather than emitting a key-less bind that would silently not match,
+        // so the build succeeds and no convention bind targets the consumer queue.
         var services = new ServiceCollection();
         var builder = services.AddMessageBus();
         builder.AddMessage<OrderCreated>(d => d.UseRabbitMQRoutingKey<OrderCreated>(msg => msg.OrderId));
         builder.AddConsumer<OrderSpyConsumer>();
 
-        // act & assert
-        var exception = Assert.Throws<InvalidOperationException>(() =>
-            builder
-                .AddRabbitMQ(t =>
-                {
-                    t.ConnectionProvider(_ => new StubConnectionProvider());
-                    t.BindImplicitly();
-                })
-                .BuildRuntime());
+        // act
+        var runtime = builder
+            .AddRabbitMQ(t =>
+            {
+                t.ConnectionProvider(_ => new StubConnectionProvider());
+                t.BindImplicitly();
+            })
+            .BuildRuntime();
+        var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
+        var description = transport.Describe();
 
-        Assert.Contains("OrderCreated", exception.Message);
-        Assert.Contains("routing key", exception.Message);
+        // assert
+        // the topology shows the consumer queue with no convention exchange chain or queue bind for
+        // the skipped dynamic-routing-key type.
+        RabbitMQDescribeSnapshot.Create(description).MatchSnapshot();
     }
 
     [Fact]
@@ -667,11 +672,12 @@ public class RabbitMQExplicitTopologyTests
     }
 
     [Fact]
-    public void Receives_Should_BindFourTypesToOneQueue_When_AllReceivedViaReceives()
+    public void Receives_Should_OmitConventionBinds_When_ExplicitBindingAndAllReceivedViaReceives()
     {
         // arrange
-        // A single "inventory" endpoint binds four distinct message types via Receives<T>().
-        // The convention emits one exchange chain per type, and all four chains bind into the queue.
+        // A single "inventory" endpoint declares four distinct message types via Receives<T>().
+        // Under explicit binding the convention emits no exchange chain or bind for any of them; the
+        // user owns the topology, so only the explicitly declared queue and its infra queues remain.
         var runtime = CreateRuntime(
             b =>
             {

@@ -1,3 +1,5 @@
+using System.Collections.Immutable;
+using HotChocolate.Fusion.Info;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Types.Mutable;
@@ -55,6 +57,34 @@ internal static class DirectivesProviderExtensions
             return null;
         }
 
+        public ImmutableArray<EventStreamDirectiveInfo> GetEventStreamDirectives()
+        {
+            ImmutableArray<EventStreamDirectiveInfo>.Builder? builder = null;
+
+            foreach (var eventStreamDirective in member.Directives.AsEnumerable())
+            {
+                if (eventStreamDirective.Name != WellKnownDirectiveNames.EventStream)
+                {
+                    continue;
+                }
+
+                if (!eventStreamDirective.Arguments.TryGetValue(ArgumentNames.Message, out var message)
+                    || message is not StringValueNode messageArgument)
+                {
+                    continue;
+                }
+
+                builder ??= ImmutableArray.CreateBuilder<EventStreamDirectiveInfo>();
+                builder.Add(
+                    new EventStreamDirectiveInfo(
+                        GetOptionalStringListArgument(eventStreamDirective, ArgumentNames.Topics),
+                        GetOptionalStringArgument(eventStreamDirective, ArgumentNames.Broker),
+                        ParseSelectionSet(messageArgument.Value)));
+            }
+
+            return builder?.ToImmutable() ?? [];
+        }
+
         public HashSet<string> GetTags()
         {
             var tags = new HashSet<string>();
@@ -87,6 +117,50 @@ internal static class DirectivesProviderExtensions
         public bool HasInaccessibleDirective()
         {
             return member.Directives.ContainsName(WellKnownDirectiveNames.Inaccessible);
+        }
+    }
+
+    private static string? GetOptionalStringArgument(IDirective directive, string name)
+        => directive.Arguments.TryGetValue(name, out var value) && value is StringValueNode stringValue
+            ? stringValue.Value
+            : null;
+
+    private static ImmutableArray<string>? GetOptionalStringListArgument(
+        IDirective directive,
+        string name)
+    {
+        if (!directive.Arguments.TryGetValue(name, out var value))
+        {
+            return null;
+        }
+
+        if (value is not ListValueNode listValue)
+        {
+            return null;
+        }
+
+        var builder = ImmutableArray.CreateBuilder<string>(listValue.Items.Count);
+
+        foreach (var item in listValue.Items)
+        {
+            if (item is StringValueNode stringValue)
+            {
+                builder.Add(stringValue.Value);
+            }
+        }
+
+        return builder.ToImmutable();
+    }
+
+    private static SelectionSetNode ParseSelectionSet(string value)
+    {
+        try
+        {
+            return Utf8GraphQLParser.Syntax.ParseSelectionSet(value);
+        }
+        catch (SyntaxException)
+        {
+            return Utf8GraphQLParser.Syntax.ParseSelectionSet($"{{ {value} }}");
         }
     }
 }

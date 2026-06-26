@@ -8,18 +8,20 @@ In HotChocolate, these directives are expressed using C# attributes. See the ind
 
 # Quick Reference
 
-| Directive                        | Locations                    | Repeatable | Purpose                                           |
-| -------------------------------- | ---------------------------- | :--------: | ------------------------------------------------- |
-| [`@key`](#key)                   | `OBJECT`, `INTERFACE`        |    Yes     | Define entity identity                            |
-| [`@lookup`](#lookup)             | `FIELD_DEFINITION`           |     No     | Mark entity lookup resolvers                      |
-| [`@is`](#is)                     | `ARGUMENT_DEFINITION`        |     No     | Map lookup arguments to entity fields             |
-| [`@require`](#require)           | `ARGUMENT_DEFINITION`        |     No     | Declare cross-subgraph data dependencies          |
-| [`@shareable`](#shareable)       | `OBJECT`, `FIELD_DEFINITION` |    Yes     | Allow multiple subgraphs to define the same field |
-| [`@provides`](#provides)         | `FIELD_DEFINITION`           |     No     | Declare locally-resolvable subfields              |
-| [`@external`](#external)         | `FIELD_DEFINITION`           |     No     | Mark field as owned by another subgraph           |
-| [`@override`](#override)         | `FIELD_DEFINITION`           |     No     | Migrate field ownership between subgraphs         |
-| [`@internal`](#internal)         | `OBJECT`, `FIELD_DEFINITION` |     No     | Hide from composite schema and merge process      |
-| [`@inaccessible`](#inaccessible) | 10 locations                 |     No     | Hide from client-facing composite schema          |
+| Directive                        | Locations                                 | Repeatable | Purpose                                           |
+| -------------------------------- | ----------------------------------------- | :--------: | ------------------------------------------------- |
+| [`@key`](#key)                   | `OBJECT`, `INTERFACE`                     |    Yes     | Define entity identity                            |
+| [`@lookup`](#lookup)             | `FIELD_DEFINITION`                        |     No     | Mark entity lookup resolvers                      |
+| [`@is`](#is)                     | `ARGUMENT_DEFINITION`                     |     No     | Map lookup arguments to entity fields             |
+| [`@require`](#require)           | `ARGUMENT_DEFINITION`                     |     No     | Declare cross-subgraph data dependencies          |
+| [`@shareable`](#shareable)       | `OBJECT`, `FIELD_DEFINITION`              |    Yes     | Allow multiple subgraphs to define the same field |
+| [`@provides`](#provides)         | `FIELD_DEFINITION`                        |     No     | Declare locally-resolvable subfields              |
+| [`@external`](#external)         | `FIELD_DEFINITION`                        |     No     | Mark field as owned by another subgraph           |
+| [`@override`](#override)         | `FIELD_DEFINITION`                        |     No     | Migrate field ownership between subgraphs         |
+| [`@internal`](#internal)         | `OBJECT`, `FIELD_DEFINITION`              |     No     | Hide from composite schema and merge process      |
+| [`@inaccessible`](#inaccessible) | 10 locations                              |     No     | Hide from client-facing composite schema          |
+| [`@eventStream`](#eventstream)   | `FIELD_DEFINITION`                        |     No     | Back a subscription field with a message broker   |
+| [`@eventCursor`](#eventcursor)   | `ARGUMENT_DEFINITION`, `FIELD_DEFINITION` |     No     | Mark the resume cursor for resumable streams      |
 
 ---
 
@@ -518,6 +520,93 @@ Use `@internal` when a field or type exists solely for the gateway's entity reso
 
 ---
 
+# Federated Event Streams
+
+## `@eventStream`
+
+Backs a subscription root field with a message broker (NATS, Kafka, Azure Event Hubs, Amazon SQS, or Redis). The gateway subscribes to the configured topics and, for each event, resolves the field's selection set across the subgraphs from the event payload.
+
+```graphql
+directive @eventStream(
+  message: FieldSelectionSet!
+  topics: [String!]
+  broker: String
+) on FIELD_DEFINITION
+```
+
+| Argument  | Type                 | Description                                                                                                                             |
+| --------- | -------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| `message` | `FieldSelectionSet!` | The shape of the event payload, as a selection set over the field's return type (e.g. `"{ id }"`).                                      |
+| `topics`  | `[String!]`          | The broker topic(s) to subscribe to. Supports `{$args.<name>}` templates. When omitted, inferred from the field name and its arguments. |
+| `broker`  | `String`             | The name of the registered broker. Defaults to the unnamed broker.                                                                      |
+
+**Example -- broker-backed subscription:**
+
+```graphql
+# Source schema (Products subgraph)
+type Subscription {
+  onProductPriceChanged(productId: ID!): Product @eventStream(message: "{ id }")
+}
+```
+
+```graphql
+# Composed schema
+type Subscription {
+  onProductPriceChanged(productId: ID!): Product
+}
+```
+
+The directive is removed from the client-facing schema; the gateway records the broker binding on its internal subscribe metadata.
+
+> **In C#:** `[EventStream("...")]` attribute or `.EventStream(...)`. See [Subscriptions](/docs/fusion/v16/subscriptions).
+
+---
+
+## `@eventCursor`
+
+Enables resumable subscriptions. On a subscription field argument it marks the input that accepts a resume cursor; on an output field it marks the value that carries each event's cursor for the client to store and replay after a reconnect.
+
+```graphql
+directive @eventCursor on ARGUMENT_DEFINITION | FIELD_DEFINITION
+```
+
+The marked argument and field must both be of type `String`. A subscription field may declare at most one cursor argument and at most one cursor field.
+
+**Example -- resumable subscription:**
+
+```graphql
+# Source schema (Products subgraph)
+type Subscription {
+  onProductPriceChanged(
+    productId: ID!
+    after: String @eventCursor
+  ): ProductPriceChange @eventStream(message: "{ product { id } }")
+}
+
+type ProductPriceChange {
+  product: Product!
+  cursor: String @eventCursor
+}
+```
+
+```graphql
+# Composed schema
+type Subscription {
+  onProductPriceChanged(productId: ID!, after: String): ProductPriceChange
+}
+
+type ProductPriceChange {
+  product: Product!
+  cursor: String
+}
+```
+
+During composition the two `@eventCursor` markers are recorded on the gateway's internal subscribe metadata (as `cursorField` and `cursorArgument`), so the gateway knows which field surfaces the cursor and which argument resumes the stream.
+
+> **In C#:** `[EventCursor]` attribute or `.EventCursor()`. See [Client-resumable subscriptions](/docs/fusion/v16/subscriptions#client-resumable-subscriptions).
+
+---
+
 # See Also
 
 - [GraphQL Composite Schemas Specification](https://graphql.github.io/composite-schemas-spec/draft/) -- The specification that defines these directives
@@ -526,5 +615,6 @@ Use `@internal` when a field or type exists solely for the gateway's entity reso
 - [Field Ownership](/docs/fusion/v16/field-ownership-and-sharing) -- Ownership model with `@shareable`, `@external`, and `@provides`
 - [Data Requirements](/docs/fusion/v16/data-requirements-and-mapping) -- Cross-subgraph data dependencies with `@require`
 - [Schema Exposure and Evolution](/docs/fusion/v16/schema-exposure-and-evolution) -- Visibility control with `@internal`, `@inaccessible`, and `@override`
+- [Subscriptions](/docs/fusion/v16/subscriptions) -- Federated event streams with `@eventStream` and `@eventCursor`
 - [Cache Control](/docs/fusion/v16/cache-control) -- CDN and HTTP caching behavior
 - [Composition](/docs/fusion/v16/composition) -- How directives affect schema merging
