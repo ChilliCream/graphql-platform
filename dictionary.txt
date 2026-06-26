@@ -55,6 +55,7 @@ contentfiles
 Contoso
 conv
 Cookiebot
+coverable
 CQRS
 creds
 csclient
@@ -131,6 +132,7 @@ Linq
 Liquibase
 lscache
 Marek
+marocchino
 matchesBrics
 maxage
 MCPEXP

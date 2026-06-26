@@ -21,9 +21,13 @@ public class RabbitMQHandlerBindingTests
     [Fact]
     public void BindExplicitly_Should_ThrowOnBuild_When_HandlersNotManuallyBound()
     {
-        // arrange & act & assert - registering a handler but not manually binding it
-        // should throw because the inbound route is unconnected
-        Assert.ThrowsAny<InvalidOperationException>(() => CreateRuntime(b => b.AddEventHandler<OrderCreatedHandler>(), t => t.BindExplicitly()));
+        var exception = Assert.Throws<InvalidOperationException>(() =>
+            CreateRuntime(b => b.AddEventHandler<OrderCreatedHandler>(), t => t.BindExplicitly()));
+
+        Assert.Contains("unbound inbound route", exception.Message);
+        Assert.Contains(nameof(OrderCreatedHandler), exception.Message);
+        Assert.Contains(InboundRouteKind.Subscribe.ToString(), exception.Message);
+        Assert.Contains("explicit bind mode", exception.Message);
     }
 
     [Fact]
@@ -90,8 +94,8 @@ public class RabbitMQHandlerBindingTests
     public void BindExplicitly_Should_SuppressConventionBinds_When_TransportExplicit()
     {
         // arrange
-        // BindExplicitly suppresses both discovery and default convention binds.
-        // Type-owned exchanges are still created but no exchange-to-queue binds are generated.
+        // BindExplicitly suppresses both discovery and the whole convention pair: no type-owned
+        // publish/send exchanges and no exchange-to-queue binds are generated.
         var runtime = CreateRuntime(
             b => b.AddConsumer<OrderSpyConsumer>(),
             t =>
@@ -113,8 +117,8 @@ public class RabbitMQHandlerBindingTests
     {
         // arrange
         // A handler placed on the unified Queue() API constitutes an explicit claim.
-        // With BindExplicitly, no convention exchange-to-queue binds are generated.
-        // Type-owned exchanges still appear. The endpoint exists under the declared queue name.
+        // With BindExplicitly, the whole convention pair is suppressed: no type-owned exchanges and
+        // no exchange-to-queue binds are generated. The endpoint exists under the declared queue name.
         var runtime = CreateRuntime(
             b => b.AddEventHandler<OrderCreatedHandler>(),
             t =>

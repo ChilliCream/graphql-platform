@@ -9,8 +9,31 @@ internal static class ThrowHelper
     public static Exception MiddlewareKeyNotFound(string key)
         => new InvalidOperationException($"Middleware with key {key} not found");
 
-    public static Exception RouteEndpointNotConnected()
-        => new InvalidOperationException("Endpoint is not connected");
+    public static Exception RouteEndpointNotConnected(InboundRoute route)
+    {
+        var consumer = route.Consumer?.Identity.FullName
+            ?? route.Consumer?.Name
+            ?? "(unknown consumer)";
+        var message = route.MessageType?.RuntimeType.FullName
+            ?? route.MessageType?.Identity
+            ?? "(no message type)";
+
+        return new InvalidOperationException(
+            $"Inbound route for consumer '{consumer}', message '{message}', and kind '{route.Kind}' "
+            + "is not connected to a receive endpoint.");
+    }
+
+    public static Exception RouteEndpointNotConnected(OutboundRoute route)
+    {
+        var message = route.MessageType?.RuntimeType.FullName
+            ?? route.MessageType?.Identity
+            ?? "(no message type)";
+        var destination = route.Destination?.ToString() ?? "(no destination)";
+
+        return new InvalidOperationException(
+            $"Outbound route for message '{message}', kind '{route.Kind}', and destination '{destination}' "
+            + "is not connected to a dispatch endpoint.");
+    }
 
     public static Exception RouteMustNotBeInitialized()
         => new InvalidOperationException("Route must not be initialized");
@@ -86,15 +109,6 @@ internal static class ThrowHelper
     public static Exception NoTransportForMessageType(MessageType messageType)
         => new InvalidOperationException(
             $"No transport can handle message type '{messageType.RuntimeType.FullName}'.");
-
-    public static InvalidOperationException CannotCreateRabbitMQAutoBind(
-        MessageType messageType,
-        string reason)
-        => new(
-            "Cannot create a RabbitMQ auto-bind for consumed message type "
-            + $"'{messageType.RuntimeType.FullName}' because "
-            + reason
-            + ".");
 
     public static Exception MultipleDefaultTransports(IEnumerable<string> transportNames)
         => new InvalidOperationException(
