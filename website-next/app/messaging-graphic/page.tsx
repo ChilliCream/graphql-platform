@@ -8,9 +8,10 @@ export const metadata: Metadata = {
 };
 
 const VERSIONS = [
-  { v: 1, name: "Linear pipeline" },
-  { v: 2, name: "Message bus / hub" },
-  { v: 3, name: "Layered lanes" },
+  { v: 1, name: "Centered flow" },
+  { v: 2, name: "Left-to-right pipeline" },
+  { v: 3, name: "Numbered bands" },
+  { v: 4, name: "Message bus" },
 ];
 
 export default function MessagingGraphicHubPage() {
