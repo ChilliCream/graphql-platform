@@ -1819,7 +1819,10 @@ AddErrors_Next:
         {
             if (current.ValueKind != JsonValueKind.Object)
             {
-                return default;
+                // An intermediate value on the path is not an object. If it is null, the target
+                // value null-propagates from here, so we surface the null element (not Undefined)
+                // and let value completion integrate it together with any source error.
+                return current.ValueKind is JsonValueKind.Null ? current : default;
             }
 
             var segment = sourcePath[i];
@@ -1866,6 +1869,13 @@ AddErrors_Next:
         for (var i = 0; i < sourcePath.Length; i++)
         {
             var segment = sourcePath[i];
+
+            // Source schema error paths only carry response names and list indices, never type
+            // conditions, so inline-fragment segments have no corresponding level in the trie.
+            if (segment.Kind is SelectionPathSegmentKind.InlineFragment)
+            {
+                continue;
+            }
 
             if (!current.TryGetValue(segment.Name, out current))
             {
