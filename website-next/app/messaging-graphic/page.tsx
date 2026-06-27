@@ -12,6 +12,7 @@ const VERSIONS = [
   { v: 2, name: "Left-to-right pipeline" },
   { v: 3, name: "Numbered bands" },
   { v: 4, name: "Message bus" },
+  { v: 5, name: "Broker hub" },
 ];
 
 export default function MessagingGraphicHubPage() {

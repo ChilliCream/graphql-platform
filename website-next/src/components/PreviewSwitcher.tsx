@@ -54,7 +54,7 @@ const TRACK_VERSION_COUNTS: Readonly<Record<string, number>> = {
   "/observability-section": 3,
   "/nitro-section": 3,
   "/combined-section": 6,
-  "/messaging-graphic": 4,
+  "/messaging-graphic": 5,
 };
 
 interface PreviewSwitcherProps {
