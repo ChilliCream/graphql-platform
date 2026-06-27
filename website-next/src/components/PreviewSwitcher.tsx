@@ -6,6 +6,15 @@ import { usePathname } from "next/navigation";
 const MANIFEST: readonly string[] = [
   "/landing/preview",
   "/platform/preview-hub",
+  "/platform/scene-illustrations",
+  "/platform-section",
+  "/mocha-section",
+  "/agentic-section",
+  "/governance-section",
+  "/observability-section",
+  "/nitro-section",
+  "/combined-section",
+  "/messaging-graphic",
   "/platform/preview/build",
   "/platform/preview/agentic-coding",
   "/platform/preview/observability",
@@ -35,6 +44,19 @@ const MAX_VERSIONS = 9;
 const VERSION_PATTERN = /^(.*)\/v(\d+)\/?$/;
 const PLATFORM_SCENE_PATTERN = /^\/platform\/preview\/[^/]+$/;
 
+/** Tracks that ship fewer than MAX_VERSIONS variations; others default to 9. */
+const TRACK_VERSION_COUNTS: Readonly<Record<string, number>> = {
+  "/platform/scene-illustrations": 6,
+  "/platform-section": 5,
+  "/mocha-section": 8,
+  "/agentic-section": 3,
+  "/governance-section": 3,
+  "/observability-section": 3,
+  "/nitro-section": 3,
+  "/combined-section": 6,
+  "/messaging-graphic": 3,
+};
+
 interface PreviewSwitcherProps {
   readonly className?: string;
 }
@@ -61,7 +83,8 @@ export function PreviewSwitcher({ className }: PreviewSwitcherProps) {
     return null;
   }
 
-  const versions = Array.from({ length: MAX_VERSIONS }, (_, i) => i + 1);
+  const count = TRACK_VERSION_COUNTS[base] ?? MAX_VERSIONS;
+  const versions = Array.from({ length: count }, (_, i) => i + 1);
 
   return (
     <div

@@ -32,6 +32,8 @@ import { TABREEL_CANVAS } from "./primitives/reel/TabReel";
 
 interface NitroWrapperProps {
   readonly className?: string;
+  /** Standalone-screen loop length in ms (defaults to the master clock's 11000). */
+  readonly durationMs?: number;
 }
 
 /** The full 5-tab Nitro product reel (Author / Observe / Diagnose / Schema / Fusion). */
@@ -82,8 +84,12 @@ interface StandaloneScreenProps extends NitroWrapperProps {
   }) => React.ReactElement;
 }
 
-function StandaloneScreen({ Screen, className }: StandaloneScreenProps) {
-  const { ref, progress } = useMasterClock();
+function StandaloneScreen({
+  Screen,
+  className,
+  durationMs,
+}: StandaloneScreenProps) {
+  const { ref, progress } = useMasterClock({ durationMs });
   return (
     <ThemeProvider theme="dark" reducedMotion="never" className={className}>
       {/* The reel tab screens render into a fixed design canvas absolutely
@@ -105,29 +111,59 @@ function StandaloneScreen({ Screen, className }: StandaloneScreenProps) {
   );
 }
 
-/** Standalone "Author" screen — schema-aware GraphQL authoring. */
-export function NitroCompose({ className }: NitroWrapperProps) {
-  return <StandaloneScreen Screen={ComposeScreen} className={className} />;
+/** Standalone "Author" screen: schema-aware GraphQL authoring. */
+export function NitroCompose({ className, durationMs }: NitroWrapperProps) {
+  return (
+    <StandaloneScreen
+      Screen={ComposeScreen}
+      className={className}
+      durationMs={durationMs}
+    />
+  );
 }
 
-/** Standalone "Observe" screen — monitoring to operation to slow trace span. */
-export function NitroTrace({ className }: NitroWrapperProps) {
-  return <StandaloneScreen Screen={TraceScreen} className={className} />;
+/** Standalone "Observe" screen: monitoring to operation to slow trace span. */
+export function NitroTrace({ className, durationMs }: NitroWrapperProps) {
+  return (
+    <StandaloneScreen
+      Screen={TraceScreen}
+      className={className}
+      durationMs={durationMs}
+    />
+  );
 }
 
-/** Standalone "Diagnose" screen — error spike to failing operation to stack trace. */
-export function NitroDiagnose({ className }: NitroWrapperProps) {
-  return <StandaloneScreen Screen={DiagnoseScreen} className={className} />;
+/** Standalone "Diagnose" screen: error spike to failing operation to stack trace. */
+export function NitroDiagnose({ className, durationMs }: NitroWrapperProps) {
+  return (
+    <StandaloneScreen
+      Screen={DiagnoseScreen}
+      className={className}
+      durationMs={durationMs}
+    />
+  );
 }
 
-/** Standalone "Schema" screen — deprecated-field usage drill-down. */
-export function NitroSchema({ className }: NitroWrapperProps) {
-  return <StandaloneScreen Screen={SchemaScreen} className={className} />;
+/** Standalone "Schema" screen: deprecated-field usage drill-down. */
+export function NitroSchema({ className, durationMs }: NitroWrapperProps) {
+  return (
+    <StandaloneScreen
+      Screen={SchemaScreen}
+      className={className}
+      durationMs={durationMs}
+    />
+  );
 }
 
-/** Standalone "Fusion" screen — federated query plan walkthrough. */
-export function NitroFusion({ className }: NitroWrapperProps) {
-  return <StandaloneScreen Screen={FusionScreen} className={className} />;
+/** Standalone "Fusion" screen: federated query plan walkthrough. */
+export function NitroFusion({ className, durationMs }: NitroWrapperProps) {
+  return (
+    <StandaloneScreen
+      Screen={FusionScreen}
+      className={className}
+      durationMs={durationMs}
+    />
+  );
 }
 
 // Theme provider for custom composition.
