@@ -145,13 +145,17 @@ public class QueryableSortVisitorVariablesTests : IClassFixture<SchemaCache>
             })
             .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
-        const string query =
-            "query($order: [ItemSortInput!]){ items(order: $order){ name } }";
-
         // act
         var result = await executor.ExecuteAsync(
             OperationRequestBuilder.New()
-                .SetDocument(query)
+                .SetDocument(
+                    """
+                    query($order: [ItemSortInput!]) {
+                      items(order: $order) {
+                        name
+                      }
+                    }
+                    """)
                 .SetVariableValues("""{ "order": [ { "flagged": "DESC" } ] }""")
                 .Build(),
             TestContext.Current.CancellationToken);
