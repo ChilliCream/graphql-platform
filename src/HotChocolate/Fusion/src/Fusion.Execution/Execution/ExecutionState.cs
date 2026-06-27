@@ -24,6 +24,7 @@ internal sealed class ExecutionState
     private ulong[] _failedOrSkippedBitset = [];
 
     private bool _collectTelemetry;
+    private bool _processingCompletedEarly;
     private CancellationTokenSource _cts = default!;
     private byte[] _nodeStates = [];
     private int[] _remainingDependencies = [];
@@ -38,6 +39,20 @@ internal sealed class ExecutionState
         _collectTelemetry = collectTelemetry;
         _cts = cts;
     }
+
+    /// <summary>
+    /// Sets the CancellationTokenSource that <see cref="CancelProcessing"/> cancels, letting a subscription scope it
+    /// per event instead of to the whole request.
+    /// </summary>
+    public void SetCancellationSource(CancellationTokenSource cts)
+        => _cts = cts;
+
+    /// <summary>
+    /// True when processing stopped early because a field error null-propagated to the root,
+    /// settling the result as <c>null</c>. Lets the caller tell this self-inflicted stop from a real
+    /// cancellation (timeout or abort).
+    /// </summary>
+    public bool ProcessingCompletedEarly => _processingCompletedEarly;
 
     public void Clean()
     {
@@ -141,6 +156,7 @@ internal sealed class ExecutionState
         ClearPendingMerges();
         _mergeFailures?.Clear();
         _activeNodes = 0;
+        _processingCompletedEarly = false;
 
         Traces.Clear();
         Signal.TryResetToIdle();
@@ -223,6 +239,8 @@ internal sealed class ExecutionState
 
     public void CancelProcessing()
     {
+        _processingCompletedEarly = true;
+
         if (!_cts.IsCancellationRequested)
         {
             _cts.Cancel();

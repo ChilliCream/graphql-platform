@@ -1047,13 +1047,12 @@ internal static class OperationPlanExecutor
             static state => Unsafe.As<AsyncAutoResetEvent>(state)!.TryResetToIdle(),
             executionState.Signal);
 
-        // We allocate a single CancellationTokenSource per subscription and reuse it
-        // across all events via TryReset(). The execution token is linked in so that
-        // client-abort / server-shutdown still propagates.
-        var eventCts = new CancellationTokenSource();
-        var eventCtsRegistration = executionCancellationToken.UnsafeRegister(
-            static state => Unsafe.As<CancellationTokenSource>(state)!.Cancel(),
-            eventCts);
+        // We allocate one CancellationTokenSource per subscription and reuse it across
+        // healthy events via TryReset(). If a cancellation is requested because of
+        // null-propagation to the root, we replace the source before the next event.
+        // The execution token is linked in so that client-abort / server-shutdown still
+        // propagates.
+        var (eventCts, eventCtsRegistration) = CreateEventCancellation();
 
         var schemaName = GetSubscriptionSchemaName(context, subscriptionNode);
 
@@ -1140,9 +1139,14 @@ internal static class OperationPlanExecutor
                     // so we throw here to properly cancel the request execution.
                     requestCancellationToken.ThrowIfCancellationRequested();
 
-                    // If the event budget was exhausted, surface it as a cancellation so the
-                    // stream tears down and the caller can observe the timeout.
-                    eventToken.ThrowIfCancellationRequested();
+                    // If the event token was cancelled by a genuine timeout or abort, tear the
+                    // stream down. A root-null halt also cancels the event token, but that is benign
+                    // (the result is a settled {data: null, errors: [...]}), so we keep the stream
+                    // alive and let context.Complete() produce it.
+                    if (!executionState.ProcessingCompletedEarly)
+                    {
+                        eventToken.ThrowIfCancellationRequested();
+                    }
 
                     result = context.Complete(reusable: true);
                 }
@@ -1166,11 +1170,24 @@ internal static class OperationPlanExecutor
                         concurrencyGate!.Release();
                     }
 
-                    // Reset the shared CTS so the next event can start with a fresh budget.
-                    // If TryReset() returns false the source was cancelled (timeout or
-                    // client-abort); the thrown OperationCanceledException has already
-                    // propagated and the enumerator surfaces the teardown.
-                    eventCts.TryReset();
+                    if (executionState.ProcessingCompletedEarly)
+                    {
+                        // A root-null halt cancelled the event source. A cancelled source cannot be
+                        // reset, so swap in a fresh one (and re-link client-abort / shutdown) for the
+                        // next event. This only happens on events that null-propagate to the root.
+                        await eventCtsRegistration.DisposeAsync();
+                        eventCts.Dispose();
+                        (eventCts, eventCtsRegistration) = CreateEventCancellation();
+                    }
+                    else
+                    {
+                        // Healthy event: reset the shared source so the next event starts with a
+                        // fresh timeout budget and no allocation. If TryReset() returns false the
+                        // source was cancelled by a timeout or client-abort; the thrown
+                        // OperationCanceledException has already propagated and the enumerator
+                        // surfaces the teardown.
+                        eventCts.TryReset();
+                    }
                 }
 
                 yield return result;
@@ -1180,6 +1197,18 @@ internal static class OperationPlanExecutor
         {
             await eventCtsRegistration.DisposeAsync();
             eventCts?.Dispose();
+        }
+
+        // Creates a fresh event-scoped cancellation source, links client-abort / shutdown into it,
+        // and installs it as the engine's cancellation source for the next event.
+        (CancellationTokenSource Source, CancellationTokenRegistration Registration) CreateEventCancellation()
+        {
+            var cts = new CancellationTokenSource();
+            var registration = executionCancellationToken.UnsafeRegister(
+                static state => Unsafe.As<CancellationTokenSource>(state)!.Cancel(),
+                cts);
+            executionState.SetCancellationSource(cts);
+            return (cts, registration);
         }
     }
 
