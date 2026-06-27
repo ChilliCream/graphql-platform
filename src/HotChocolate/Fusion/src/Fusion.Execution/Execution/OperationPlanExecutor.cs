@@ -1047,11 +1047,11 @@ internal static class OperationPlanExecutor
             static state => Unsafe.As<AsyncAutoResetEvent>(state)!.TryResetToIdle(),
             executionState.Signal);
 
-        // We allocate a single CancellationTokenSource per subscription and reuse it
-        // across all events via TryReset(). The execution token is linked in so that
-        // client-abort / server-shutdown still propagates.
-        // if a cancellation is requested because of null-propagation to the root,
-        // we will reset the source and continue to the next event.
+        // We allocate one CancellationTokenSource per subscription and reuse it across
+        // healthy events via TryReset(). If a cancellation is requested because of
+        // null-propagation to the root, we replace the source before the next event.
+        // The execution token is linked in so that client-abort / server-shutdown still
+        // propagates.
         var (eventCts, eventCtsRegistration) = CreateEventCancellation();
 
         var schemaName = GetSubscriptionSchemaName(context, subscriptionNode);
