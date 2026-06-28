@@ -126,6 +126,10 @@ public sealed class MessageType
     /// Completes initialization by resolving the full type hierarchy and registering enclosed message types.
     /// </summary>
     /// <param name="context">The messaging configuration context.</param>
+    [UnconditionalSuppressMessage(
+        "Trimming",
+        "IL2026:RequiresUnreferencedCode",
+        Justification = "Reflection fallback is guarded by IsAotCompatible. AOT uses source-generated enclosed types.")]
     public void Complete(IMessagingConfigurationContext context)
     {
         var enclosedMessageTypes = ImmutableArray.CreateBuilder<MessageType>();
@@ -150,9 +154,7 @@ public sealed class MessageType
                     + "Set IsAotCompatible = false to allow reflection-based type discovery.");
             }
 
-#pragma warning disable IL2026
             CompleteViaReflection(context, enclosedMessageTypes, enclosedMessageIdentities);
-#pragma warning restore IL2026
         }
 
         EnclosedMessageTypes = enclosedMessageTypes.ToImmutableArray();

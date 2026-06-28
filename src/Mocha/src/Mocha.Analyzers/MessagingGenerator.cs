@@ -255,7 +255,7 @@ public sealed class MessagingGenerator : IIncrementalGenerator
             }
 
             // Include ImportedModuleTypesInfo entries so the DI generator can skip
-            // serializer registration for types already covered by referenced modules.
+            // registrations for types already covered by module methods invoked in this compilation.
             var importedModuleInfos = callSiteInfos.OfType<ImportedModuleTypesInfo>().ToImmutableArray();
 
             if (importedModuleInfos.Length > 0)
@@ -525,6 +525,8 @@ public sealed class MessagingGenerator : IIncrementalGenerator
                 }
             }
 
+            AddRequiredCallSiteTypes(callSiteInfos, requiredTypes);
+
             // If all required types are covered by imported modules, no local JsonContext is needed.
             if (requiredTypes.Count == 0 || requiredTypes.IsSubsetOf(importedTypes))
             {
@@ -585,6 +587,25 @@ public sealed class MessagingGenerator : IIncrementalGenerator
         }
     }
 
+    private static void AddRequiredCallSiteTypes(
+        ImmutableArray<SyntaxInfo> callSiteInfos,
+        HashSet<string> requiredTypes)
+    {
+        foreach (var info in callSiteInfos)
+        {
+            if (info is CallSiteMessageTypeInfo callSite
+                && callSite.Kind is not (CallSiteKind.MediatorSend or CallSiteKind.MediatorQuery or CallSiteKind.MediatorPublish))
+            {
+                requiredTypes.Add(callSite.MessageTypeName);
+
+                if (callSite.ResponseTypeName is not null)
+                {
+                    requiredTypes.Add(callSite.ResponseTypeName);
+                }
+            }
+        }
+    }
+
     private static void ValidateCallSiteJsonContext(
         SourceProductionContext context,
         ImmutableArray<SyntaxInfo> callSiteInfos,
@@ -616,8 +637,8 @@ public sealed class MessagingGenerator : IIncrementalGenerator
             }
         }
 
-        // If there are no covered types at all, nothing to validate against.
-        if (coveredTypes.Count == 0)
+        // If there are no covered types and no local context, MO0015 handles the missing context case.
+        if (coveredTypes.Count == 0 && jsonContextInfo.JsonContextTypeName is null)
         {
             return;
         }

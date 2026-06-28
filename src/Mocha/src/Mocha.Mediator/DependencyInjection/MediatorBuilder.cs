@@ -216,7 +216,7 @@ public sealed class MediatorBuilder : IMediatorBuilder
                 : [];
 
         var pipelines = new Dictionary<Type, MediatorDelegate>();
-        var notificationTerminals = new Dictionary<Type, List<MediatorDelegate>>();
+        var notificationTerminals = new Dictionary<Type, NotificationTerminals>();
 
         foreach (var (handlerType, configureDelegate) in _handlerDescriptors)
         {
@@ -228,13 +228,13 @@ public sealed class MediatorBuilder : IMediatorBuilder
 
             if (config.Kind == MediatorHandlerKind.Notification)
             {
-                if (!notificationTerminals.TryGetValue(config.MessageType!, out var list))
+                if (!notificationTerminals.TryGetValue(config.MessageType!, out var notification))
                 {
-                    list = [];
-                    notificationTerminals[config.MessageType!] = list;
+                    notification = new NotificationTerminals(config.MessageType!);
+                    notificationTerminals[config.MessageType!] = notification;
                 }
 
-                list.Add(terminal);
+                notification.Terminals.Add(terminal);
             }
             else
             {
@@ -253,11 +253,12 @@ public sealed class MediatorBuilder : IMediatorBuilder
         // wrapped in middleware, producing a MediatorDelegate[] per notification type.
         var notificationPipelines = new Dictionary<Type, ImmutableArray<MediatorDelegate>>(notificationTerminals.Count);
 
-        foreach (var (notificationType, terminals) in notificationTerminals)
+        foreach (var notification in notificationTerminals.Values)
         {
-            factoryCtx.MessageType = notificationType;
+            factoryCtx.MessageType = notification.MessageType;
             factoryCtx.ResponseType = null;
 
+            var terminals = notification.Terminals;
             var compiled = ImmutableArray.CreateBuilder<MediatorDelegate>(terminals.Count);
             for (var i = 0; i < terminals.Count; i++)
             {
@@ -265,7 +266,7 @@ public sealed class MediatorBuilder : IMediatorBuilder
                     MediatorMiddlewareCompiler.Compile(factoryCtx, terminals[i], middlewareConfigs, modifiers));
             }
 
-            notificationPipelines[notificationType] = compiled.ToImmutable();
+            notificationPipelines[notification.MessageType] = compiled.ToImmutable();
         }
 
         var pools = applicationServices.GetRequiredService<IMediatorPools>();
@@ -324,5 +325,14 @@ public sealed class MediatorBuilder : IMediatorBuilder
                 _ => new AggregateMediatorDiagnosticEvents(listeners)
             };
         });
+    }
+
+    private sealed class NotificationTerminals(
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.Interfaces)] Type messageType)
+    {
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.Interfaces)]
+        public Type MessageType { get; } = messageType;
+
+        public List<MediatorDelegate> Terminals { get; } = [];
     }
 }

@@ -20,8 +20,8 @@ namespace Mocha.Analyzers.Inspectors;
 /// containing the type names.
 /// </para>
 /// <para>
-/// Downstream generators use this to avoid emitting duplicate serializer registrations for
-/// types already covered by a referenced module.
+/// Downstream diagnostics and generators use this to treat types registered by invoked
+/// module methods as already covered.
 /// </para>
 /// <para>
 /// The syntactic pre-filter (<see cref="InvocationModuleFilter"/>) broadly matches any

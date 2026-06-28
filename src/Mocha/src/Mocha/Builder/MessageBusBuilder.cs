@@ -429,6 +429,11 @@ public partial class MessageBusBuilder : IMessageBusBuilder
         var servicesCollection = new ServiceCollection();
         AddCoreServices(servicesCollection, applicationServices);
 
+        foreach (var configure in _configureServices)
+        {
+            configure(applicationServices, servicesCollection);
+        }
+
         var responseManager = applicationServices.GetRequiredService<DeferredResponseManager>();
 
         // Materialize consumers from registrations

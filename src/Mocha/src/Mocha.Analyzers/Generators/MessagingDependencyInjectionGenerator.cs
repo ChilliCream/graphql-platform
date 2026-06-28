@@ -59,8 +59,8 @@ public sealed class MessagingDependencyInjectionGenerator : ISyntaxGenerator
             }
         }
 
-        // Collect type names imported from referenced modules - these already have
-        // serializer registrations from the referenced module's Add*() method.
+        // Collect type names imported from module methods invoked in this compilation.
+        // Those module methods have already registered their own message, saga, and handler metadata.
         var importedTypeNames = new HashSet<string>(StringComparer.Ordinal);
         var importedSagaTypeNames = new HashSet<string>(StringComparer.Ordinal);
         var importedHandlerTypeNames = new HashSet<string>(StringComparer.Ordinal);
@@ -98,8 +98,7 @@ public sealed class MessagingDependencyInjectionGenerator : ISyntaxGenerator
 
         // Collect all unique message types that this module actually registers
         // serializers for via AddMessageConfiguration. Only types in the local
-        // JsonSerializerContext (excluding imports) qualify. This set is used for both
-        // the [MessagingModuleInfo] attribute and the actual serializer registrations.
+        // JsonSerializerContext and not already registered by invoked modules qualify.
         var messageTypes = new HashSet<string>(StringComparer.Ordinal);
 
         if (jsonContextTypeName is not null)
@@ -255,7 +254,11 @@ public sealed class MessagingDependencyInjectionGenerator : ISyntaxGenerator
 
             foreach (var saga in sagas)
             {
-                builder.WriteSagaConfiguration(saga.SagaTypeName, saga.StateTypeName, jsonContextTypeName);
+                var sagaJsonContextTypeName = jsonContextTypeNames.Contains(saga.StateTypeName)
+                    ? jsonContextTypeName
+                    : null;
+
+                builder.WriteSagaConfiguration(saga.SagaTypeName, saga.StateTypeName, sagaJsonContextTypeName);
             }
         }
 

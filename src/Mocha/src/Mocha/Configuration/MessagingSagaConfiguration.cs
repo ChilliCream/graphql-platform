@@ -15,7 +15,7 @@ public sealed class MessagingSagaConfiguration
     public required Type SagaType { get; init; }
 
     /// <summary>
-    /// The pre-built state serializer for this saga.
+    /// The pre-built state serializer for this saga, or <see langword="null"/> to use the runtime fallback.
     /// </summary>
-    public required ISagaStateSerializer StateSerializer { get; init; }
+    public ISagaStateSerializer? StateSerializer { get; init; }
 }

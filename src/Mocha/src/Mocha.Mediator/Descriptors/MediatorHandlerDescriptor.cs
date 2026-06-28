@@ -32,13 +32,15 @@ public class MediatorHandlerDescriptor
     /// <see cref="MediatorDescriptorBase{T}.Extend"/>, auto-detects handler metadata
     /// from the handler type's interfaces.
     /// </summary>
+    [UnconditionalSuppressMessage(
+        "Trimming",
+        "IL2026:RequiresUnreferencedCode",
+        Justification = "Reflection fallback is only used when source-generated handler configuration is absent.")]
     public MediatorHandlerConfiguration CreateConfiguration()
     {
         if (Configuration.MessageType is null)
         {
-#pragma warning disable IL2026
             DetectHandler(Configuration.HandlerType!);
-#pragma warning restore IL2026
         }
 
         return Configuration;

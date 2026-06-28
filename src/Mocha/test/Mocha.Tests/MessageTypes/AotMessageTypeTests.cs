@@ -1,4 +1,5 @@
 using System.Buffers;
+using System.Text.Json.Serialization;
 using Microsoft.Extensions.DependencyInjection;
 using Mocha.Events;
 using Mocha.Transport.InMemory;
@@ -110,6 +111,29 @@ public class AotMessageTypeTests
         Assert.Contains(notAcknowledged.Identity, notAcknowledged.EnclosedMessageIdentities);
     }
 
+    [Fact]
+    public void GetSerializer_Should_UseConfiguredJsonTypeInfoResolver_When_AotMode()
+    {
+        // arrange
+        var runtime = CreateAotRuntime(builder =>
+        {
+            builder.AddJsonTypeInfoResolver(AotMessageTypeJsonContext.Default);
+            builder.ConfigureMessageBus(bus => bus.AddMessage<GetOrderStatus>(
+                static descriptor => descriptor.Extend().Configuration.EnclosedTypes = [typeof(GetOrderStatus)]));
+        });
+
+        var messageType = runtime.Messages.GetMessageType(typeof(GetOrderStatus))!;
+
+        // act
+        var serializer = messageType.GetSerializer(MessageContentType.Json);
+        var writer = new ArrayBufferWriter<byte>();
+        serializer!.Serialize(new GetOrderStatus { OrderId = "42" }, writer);
+        var deserialized = serializer.Deserialize<GetOrderStatus>(writer.WrittenMemory);
+
+        // assert
+        Assert.Equal("42", deserialized?.OrderId);
+    }
+
     public sealed class GetOrderStatus : IEventRequest<OrderStatusResponse>
     {
         public string OrderId { get; init; } = "";
@@ -174,3 +198,6 @@ public class AotMessageTypeTests
         return (MessagingRuntime)provider.GetRequiredService<IMessagingRuntime>();
     }
 }
+
+[JsonSerializable(typeof(AotMessageTypeTests.GetOrderStatus))]
+internal partial class AotMessageTypeJsonContext : JsonSerializerContext;

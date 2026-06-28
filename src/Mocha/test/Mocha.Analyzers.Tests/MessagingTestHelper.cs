@@ -3,6 +3,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
+using System.Threading.Tasks;
 using Basic.Reference.Assemblies;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -54,6 +55,25 @@ internal static class MessagingTestHelper
             .ToImmutableArray();
     }
 
+    public static ImmutableArray<Diagnostic> GetCompilationDiagnostics(
+        string[] sourceTexts,
+        string? assemblyName = "Tests",
+        bool publishAot = false)
+    {
+        var compilation = CreateCompilation(sourceTexts, assemblyName);
+        var driver = CreateDriver(publishAot);
+
+        driver = driver.RunGeneratorsAndUpdateCompilation(
+            compilation,
+            out var outputCompilation,
+            out var generatorDiagnostics);
+
+        return generatorDiagnostics
+            .Concat(outputCompilation.GetDiagnostics())
+            .Where(static d => !s_ignoreCodes.Contains(d.Id))
+            .ToImmutableArray();
+    }
+
     public static ImmutableArray<string> GetGeneratedSourceTexts(
         string[] sourceTexts,
         string? assemblyName = "Tests",
@@ -73,6 +93,15 @@ internal static class MessagingTestHelper
         string? assemblyName,
         bool publishAot)
     {
+        var compilation = CreateCompilation(sourceTexts, assemblyName);
+
+        return CreateDriver(publishAot).RunGenerators(compilation);
+    }
+
+    private static CSharpCompilation CreateCompilation(
+        string[] sourceTexts,
+        string? assemblyName)
+    {
         IEnumerable<PortableExecutableReference> references =
         [
 #if NET8_0
@@ -88,11 +117,22 @@ internal static class MessagingTestHelper
             // Mocha (IConsumer, IBatchEventHandler, Saga, SagaStateBase)
             MetadataReference.CreateFromFile(typeof(IConsumer).Assembly.Location),
 
+#if NET11_0
+            // System.Collections.Immutable
+            MetadataReference.CreateFromFile(typeof(ImmutableArray<>).Assembly.Location),
+#endif
+
+            // System.Text.Json
+            MetadataReference.CreateFromFile(typeof(JsonSerializerOptions).Assembly.Location),
+
             // Microsoft.Extensions.DependencyInjection.Abstractions
             MetadataReference.CreateFromFile(typeof(IServiceCollection).Assembly.Location),
 
             // System.Runtime.CompilerServices.Unsafe
             MetadataReference.CreateFromFile(typeof(Unsafe).Assembly.Location),
+
+            // System.Threading.Tasks.Extensions
+            MetadataReference.CreateFromFile(typeof(ValueTask).Assembly.Location),
 
             // System.Runtime from the actual runtime (needed for predefined type resolution
             // so that assembly-level attribute constructor arguments can be bound)
@@ -102,17 +142,18 @@ internal static class MessagingTestHelper
                     "System.Runtime.dll"))
         ];
 
-        var compilation = CSharpCompilation.Create(
+        return CSharpCompilation.Create(
             assemblyName: assemblyName,
             syntaxTrees: sourceTexts.Select(s => CSharpSyntaxTree.ParseText(s)),
             references,
             new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+    }
 
+    private static GeneratorDriver CreateDriver(bool publishAot)
+    {
         var generator = new MessagingGenerator();
-        GeneratorDriver driver = CSharpGeneratorDriver.Create(generator)
+        return CSharpGeneratorDriver.Create(generator)
             .WithUpdatedAnalyzerConfigOptions(new TestAnalyzerConfigOptionsProvider(publishAot));
-
-        return driver.RunGenerators(compilation);
     }
 
     private static void AddDiagnosticsToSnapshot(
