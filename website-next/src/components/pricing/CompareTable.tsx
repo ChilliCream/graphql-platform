@@ -59,7 +59,7 @@ export function CompareTable() {
                 >
                   <th
                     scope="colgroup"
-                    colSpan={5}
+                    colSpan={TIERS.length + 1}
                     className="text-cc-nav-label px-5 py-3 text-left font-mono text-[0.65rem] tracking-[0.15em] uppercase"
                   >
                     {group.title}
