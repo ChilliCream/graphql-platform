@@ -22,7 +22,7 @@ namespace HotChocolate.Fusion;
 /// </summary>
 internal static class FusionGatewayBuilder
 {
-    private const string DefaultBaseAddress = "http://localhost/graphql";
+    private static Uri SubgraphAddress(string name) => new($"http://{name}/graphql");
 
     /// <summary>
     /// Composes a Fusion gateway around the supplied Apollo Federation subgraphs.
@@ -121,7 +121,7 @@ internal static class FusionGatewayBuilder
         return new SubgraphInfo(
             host.Name,
             transformResult.Value,
-            new Uri(DefaultBaseAddress));
+            SubgraphAddress(host.Name));
     }
 
     private static async Task<string> FetchSubgraphSdlAsync(SubgraphHost host)
@@ -264,24 +264,48 @@ internal static class FusionGatewayBuilder
         string SourceSchemaSdl,
         Uri BaseAddress);
 
+    // The gateway resolves an HttpClient by the configured client name and then
+    // overwrites its BaseAddress from the source-schema configuration, so the
+    // client name does not select the endpoint: the request URL does. Every
+    // subgraph here is addressed as 'http://{name}/graphql', so requests are
+    // dispatched to the matching in-process TestServer by host.
     private sealed class TestSubgraphHttpClientFactory : IHttpClientFactory
     {
-        private readonly Dictionary<string, SubgraphHost> _subgraphs;
+        private readonly HostDispatchingHandler _handler;
 
         public TestSubgraphHttpClientFactory(IReadOnlyList<SubgraphHost> subgraphs)
         {
-            _subgraphs = subgraphs.ToDictionary(static s => s.Name, StringComparer.Ordinal);
+            _handler = new HostDispatchingHandler(subgraphs);
         }
 
-        public HttpClient CreateClient(string name)
+        public HttpClient CreateClient(string name) => new(_handler, disposeHandler: false);
+    }
+
+    private sealed class HostDispatchingHandler : HttpMessageHandler
+    {
+        private readonly Dictionary<string, HttpMessageInvoker> _byHost;
+
+        public HostDispatchingHandler(IReadOnlyList<SubgraphHost> subgraphs)
         {
-            if (!_subgraphs.TryGetValue(name, out var subgraph))
+            _byHost = subgraphs.ToDictionary(
+                static s => s.Name,
+                static s => new HttpMessageInvoker(s.Server.CreateHandler(), disposeHandler: false),
+                StringComparer.OrdinalIgnoreCase);
+        }
+
+        protected override Task<HttpResponseMessage> SendAsync(
+            HttpRequestMessage request,
+            CancellationToken cancellationToken)
+        {
+            var host = request.RequestUri?.Host;
+
+            if (host is null || !_byHost.TryGetValue(host, out var invoker))
             {
                 throw new InvalidOperationException(
-                    $"No subgraph host registered for Apollo Federation subgraph '{name}'.");
+                    $"No subgraph host registered for '{host}'.");
             }
 
-            return subgraph.CreateClient();
+            return invoker.SendAsync(request, cancellationToken);
         }
     }
 
