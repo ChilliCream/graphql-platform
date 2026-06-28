@@ -13,6 +13,7 @@ const VERSIONS = [
   { v: 3, name: "Numbered bands" },
   { v: 4, name: "Message bus" },
   { v: 5, name: "Broker hub" },
+  { v: 6, name: "Sequence diagram" },
 ];
 
 export default function MessagingGraphicHubPage() {
