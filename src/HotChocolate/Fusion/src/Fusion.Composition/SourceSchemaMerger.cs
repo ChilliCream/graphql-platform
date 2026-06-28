@@ -121,7 +121,7 @@ internal sealed class SourceSchemaMerger
         if (_options.AddFusionDefinitions)
         {
             AddFusionDefinitions(mergedSchema);
-            LiftConnectorKindOntoEnumValues(mergedSchema);
+            LiftConnectorKindOntoSchemaMetadata(mergedSchema);
         }
 
         return mergedSchema;
@@ -1789,10 +1789,6 @@ internal sealed class SourceSchemaMerger
         return new Dictionary<string, MutableDirectiveDefinition>
         {
             {
-                DirectiveNames.FusionConnector,
-                new FusionConnectorMutableDirectiveDefinition(stringType)
-            },
-            {
                 DirectiveNames.FusionCost,
                 new FusionCostMutableDirectiveDefinition(schemaEnumType, stringType)
             },
@@ -1881,7 +1877,7 @@ internal sealed class SourceSchemaMerger
         }
     }
 
-    private void LiftConnectorKindOntoEnumValues(MutableSchemaDefinition mergedSchema)
+    private void LiftConnectorKindOntoSchemaMetadata(MutableSchemaDefinition mergedSchema)
     {
         if (!mergedSchema.Types.TryGetType<MutableEnumTypeDefinition>(
             TypeNames.FusionSchema,
@@ -1890,7 +1886,7 @@ internal sealed class SourceSchemaMerger
             return;
         }
 
-        var connectorDirective = _fusionDirectiveDefinitions[DirectiveNames.FusionConnector];
+        var metadataDirective = _fusionDirectiveDefinitions[DirectiveNames.FusionSchemaMetadata];
 
         foreach (var schema in _schemas)
         {
@@ -1904,10 +1900,29 @@ internal sealed class SourceSchemaMerger
 
             if (schemaEnum.Values.TryGetValue(_schemaConstantNames[schema.Name], out var enumValue))
             {
-                enumValue.Directives.Add(
-                    new Directive(
-                        connectorDirective,
-                        new ArgumentAssignment(ArgumentNames.Kind, kindString.Value)));
+                var currentMetadata =
+                    enumValue.Directives.FirstOrDefault(DirectiveNames.FusionSchemaMetadata);
+                List<ArgumentAssignment> arguments = currentMetadata is null
+                    ? [new ArgumentAssignment(ArgumentNames.Name, schema.Name)]
+                    : currentMetadata.Arguments
+                        .Select(static t => new ArgumentAssignment(t.Name, t.Value))
+                        .ToList();
+
+                if (arguments.All(static t => t.Name != ArgumentNames.Kind))
+                {
+                    arguments.Add(new ArgumentAssignment(ArgumentNames.Kind, kindString.Value));
+                }
+
+                var newMetadata = new Directive(metadataDirective, arguments);
+
+                if (currentMetadata is null)
+                {
+                    enumValue.Directives.Add(newMetadata);
+                }
+                else
+                {
+                    enumValue.Directives.Replace(currentMetadata, newMetadata);
+                }
             }
         }
     }

@@ -7,13 +7,13 @@ namespace HotChocolate.Fusion.Execution.Types;
 public sealed class FusionSchemaDefinitionConnectorKindTests
 {
     [Fact]
-    public void GetSourceSchemaConnectorKind_Should_ReturnApollo_When_DirectiveStampedAsApollo()
+    public void GetSourceSchemaConnectorKind_Should_ReturnApolloFederation_When_MetadataKindIsStamped()
     {
         // arrange
         var schema = ComposeSchema(
             ("Products",
              """
-             schema @fusion__connector(kind: "Apollo") {
+             schema @fusion__connector(kind: "ApolloFederation") {
                query: Query
              }
 
@@ -30,7 +30,7 @@ public sealed class FusionSchemaDefinitionConnectorKindTests
         var kind = schema.GetSourceSchemaConnectorKind("Products");
 
         // assert
-        Assert.Equal("Apollo", kind);
+        Assert.Equal("ApolloFederation", kind);
     }
 
     [Fact]
@@ -82,7 +82,7 @@ public sealed class FusionSchemaDefinitionConnectorKindTests
         var schema = ComposeSchema(
             ("Products",
              """
-             schema @fusion__connector(kind: "Apollo") {
+             schema @fusion__connector(kind: "ApolloFederation") {
                query: Query
              }
 

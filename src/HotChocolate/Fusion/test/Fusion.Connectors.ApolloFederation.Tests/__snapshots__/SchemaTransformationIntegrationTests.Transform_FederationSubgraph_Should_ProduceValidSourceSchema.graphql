@@ -1,4 +1,4 @@
-schema @fusion__connector(kind: "Apollo") {
+schema @fusion__connector(kind: "ApolloFederation") {
   query: Query
 }
 

@@ -9,14 +9,14 @@ namespace HotChocolate.Fusion;
 public sealed class SourceSchemaMergerConnectorDirectiveTests
 {
     [Fact]
-    public void Merge_Should_LiftConnectorKind_OntoEnumValue_When_DirectivePresent()
+    public void Merge_Should_LiftConnectorKind_OntoSchemaMetadata_When_DirectivePresent()
     {
         // arrange
         var sourceSchemaText =
             new SourceSchemaText(
                 "Products",
                 """
-                schema @fusion__connector(kind: "Apollo") {
+                schema @fusion__connector(kind: "ApolloFederation") {
                   query: Query
                 }
 
@@ -41,11 +41,11 @@ public sealed class SourceSchemaMergerConnectorDirectiveTests
 
         // assert
         Assert.True(result.IsSuccess);
-        Assert.Equal("Apollo", GetConnectorKind(result.Value, "PRODUCTS"));
+        Assert.Equal("ApolloFederation", GetConnectorKind(result.Value, "PRODUCTS"));
     }
 
     [Fact]
-    public void Merge_Should_OmitConnectorDirective_When_DirectiveAbsent()
+    public void Merge_Should_OmitMetadataKind_When_DirectiveAbsent()
     {
         // arrange
         var sourceSchemaText =
@@ -69,7 +69,7 @@ public sealed class SourceSchemaMergerConnectorDirectiveTests
 
         // assert
         Assert.True(result.IsSuccess);
-        Assert.Null(GetConnectorDirective(result.Value, "CATALOG"));
+        Assert.Null(GetConnectorKindOrDefault(result.Value, "CATALOG"));
     }
 
     [Fact]
@@ -79,7 +79,7 @@ public sealed class SourceSchemaMergerConnectorDirectiveTests
         var apolloSource = new SourceSchemaText(
             "Reviews",
             """
-            schema @fusion__connector(kind: "Apollo") {
+            schema @fusion__connector(kind: "ApolloFederation") {
               query: Query
             }
 
@@ -112,25 +112,37 @@ public sealed class SourceSchemaMergerConnectorDirectiveTests
 
         // assert
         Assert.True(result.IsSuccess);
-        Assert.Equal("Apollo", GetConnectorKind(result.Value, "REVIEWS"));
-        Assert.Null(GetConnectorDirective(result.Value, "CATALOG"));
+        Assert.Equal("ApolloFederation", GetConnectorKind(result.Value, "REVIEWS"));
+        Assert.Null(GetConnectorKindOrDefault(result.Value, "CATALOG"));
     }
 
     private static string GetConnectorKind(MutableSchemaDefinition mergedSchema, string valueName)
     {
-        var directive = GetConnectorDirective(mergedSchema, valueName);
+        var directive = GetSchemaMetadataDirective(mergedSchema, valueName);
         Assert.NotNull(directive);
         Assert.True(directive.Arguments.TryGetValue("kind", out var kindValue));
         return Assert.IsType<StringValueNode>(kindValue).Value;
     }
 
-    private static Directive? GetConnectorDirective(
+    private static string? GetConnectorKindOrDefault(MutableSchemaDefinition mergedSchema, string valueName)
+    {
+        var directive = GetSchemaMetadataDirective(mergedSchema, valueName);
+
+        if (directive?.Arguments.TryGetValue("kind", out var kindValue) == true)
+        {
+            return Assert.IsType<StringValueNode>(kindValue).Value;
+        }
+
+        return null;
+    }
+
+    private static Directive? GetSchemaMetadataDirective(
         MutableSchemaDefinition mergedSchema,
         string valueName)
     {
         var schemaEnum = Assert.IsAssignableFrom<MutableEnumTypeDefinition>(
             mergedSchema.Types["fusion__Schema"]);
         Assert.True(schemaEnum.Values.TryGetValue(valueName, out var enumValue));
-        return enumValue.Directives.FirstOrDefault("fusion__connector");
+        return enumValue.Directives.FirstOrDefault("fusion__schema_metadata");
     }
 }

@@ -6,18 +6,17 @@ using HotChocolate.Types.Mutable;
 namespace HotChocolate.Fusion.ApolloFederation;
 
 /// <summary>
-/// Stamps the <c>@fusion__connector(kind: "Apollo")</c> directive onto the source schema
-/// so the composer can lift the kind onto the corresponding <c>fusion__Schema</c> enum value
-/// in the merged execution schema.
+/// Stamps the Apollo Federation connector kind onto the source schema so the composer can
+/// lift it into <c>@fusion__schema_metadata(kind:)</c> in the merged execution schema.
 /// </summary>
 internal static class StampConnectorKind
 {
-    private const string ApolloKind = "Apollo";
+    private const string ApolloKind = "ApolloFederation";
 
     /// <summary>
     /// Applies the connector kind stamp to the schema. Idempotent: the directive
     /// definition is registered only when missing, and a duplicate
-    /// <c>@fusion__connector(kind: "Apollo")</c> instance is not added when one
+    /// <c>@fusion__connector(kind: "ApolloFederation")</c> instance is not added when one
     /// is already present.
     /// </summary>
     /// <param name="schema">

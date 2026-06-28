@@ -3,6 +3,7 @@ using System.Text.Json;
 using HotChocolate.Buffers;
 using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Execution.Clients;
+using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Language;
 
 namespace HotChocolate.Fusion;
@@ -11,41 +12,6 @@ public class ApolloFederationConnectorTests
 {
     private static readonly IReadOnlyDictionary<string, EntityRequiresInfo> s_noRequires
         = new Dictionary<string, EntityRequiresInfo>(StringComparer.Ordinal);
-
-    [Fact]
-    public void Configuration_Should_StoreProperties()
-    {
-        // arrange
-        var baseAddress = new Uri("http://localhost:5000/graphql");
-
-        // act
-        var config = new ApolloFederationSourceSchemaClientConfiguration(
-            "products",
-            "products-http",
-            baseAddress,
-            supportedOperations: SupportedOperationType.Query);
-
-        // assert
-        Assert.Equal("products", config.Name);
-        Assert.Equal("products-http", config.HttpClientName);
-        Assert.Same(baseAddress, config.BaseAddress);
-        Assert.Equal(SupportedOperationType.Query, config.SupportedOperations);
-    }
-
-    [Fact]
-    public void Configuration_Should_DefaultToQueryAndMutation()
-    {
-        // arrange & act
-        var config = new ApolloFederationSourceSchemaClientConfiguration(
-            "products",
-            "products-http",
-            new Uri("http://localhost:5000/graphql"));
-
-        // assert
-        Assert.Equal(
-            SupportedOperationType.Query | SupportedOperationType.Mutation,
-            config.SupportedOperations);
-    }
 
     [Fact]
     public void Rewrite_SimpleLookup_Should_ProduceEntitiesQuery()
@@ -340,31 +306,23 @@ public class ApolloFederationConnectorTests
             """,
             2UL);
 
-        var requests = ImmutableArray.Create(
-            new SourceSchemaClientRequest
-            {
-                Node = null!,
-                SchemaName = "test",
-                OperationType = OperationType.Query,
-                OperationSourceText = productOp.OperationText,
-                OperationHash = 1UL,
-                Variables = []
-            },
-            new SourceSchemaClientRequest
-            {
-                Node = null!,
-                SchemaName = "test",
-                OperationType = OperationType.Query,
-                OperationSourceText = userOp.OperationText,
-                OperationHash = 2UL,
-                Variables = []
-            });
-
-        var rewrittenOps = new[] { productOp, userOp };
+        var entityOperations = new[]
+        {
+            CreateEntityOperation(productOp),
+            CreateEntityOperation(userOp)
+        };
 
         // act
-        var (queryText, variablesJson) =
-            ApolloFederationSourceSchemaClient.BuildCombinedEntityQuery(requests, rewrittenOps);
+        var queryText = ApolloOperationBatchExecutionNode
+            .CreateCombinedOperation(entityOperations)
+            .SourceText;
+        var variables = ApolloEntityExecution.CreateBatchVariables(
+            [ImmutableArray<VariableValues>.Empty, ImmutableArray<VariableValues>.Empty],
+            [true, true],
+            entityOperations,
+            out var buffer);
+        var variablesJson = ToJson(variables);
+        buffer.Dispose();
 
         // assert: query structure
         Assert.Contains("$r0: [_Any!]!", queryText);
@@ -517,22 +475,19 @@ public class ApolloFederationConnectorTests
 
         var rewritten = rewriter.GetOrRewrite(sourceText, 555UL);
 
-        var requests = ImmutableArray.Create(
-            new SourceSchemaClientRequest
-            {
-                Node = null!,
-                SchemaName = "list",
-                OperationType = OperationType.Query,
-                OperationSourceText = rewritten.OperationText,
-                OperationHash = 555UL,
-                Variables = []
-            });
-
-        var rewrittenOps = new[] { rewritten };
+        var entityOperation = CreateEntityOperation(rewritten);
 
         // act
-        var (queryText, variablesJson) =
-            ApolloFederationSourceSchemaClient.BuildCombinedEntityQuery(requests, rewrittenOps);
+        var queryText = ApolloOperationBatchExecutionNode
+            .CreateCombinedOperation([entityOperation])
+            .SourceText;
+        var variables = ApolloEntityExecution.CreateBatchVariables(
+            [ImmutableArray<VariableValues>.Empty],
+            [true],
+            [entityOperation],
+            out var buffer);
+        var variablesJson = ToJson(variables);
+        buffer.Dispose();
 
         // assert: the batched query shape uses '_entities' and carries the
         // entity '__typename' in its representations, exactly as for a flat
@@ -676,22 +631,16 @@ public class ApolloFederationConnectorTests
         var variableValues = CreateVariableValues(
             """{"__fusion_1_id":"p1","__fusion_2_price":9.99}""");
 
-        var requests = ImmutableArray.Create(
-            new SourceSchemaClientRequest
-            {
-                Node = null!,
-                SchemaName = "products",
-                OperationType = OperationType.Query,
-                OperationSourceText = rewritten.OperationText,
-                OperationHash = 203UL,
-                Variables = [variableValues]
-            });
-
-        var rewrittenOps = new[] { rewritten };
+        var entityOperation = CreateEntityOperation(rewritten);
 
         // act
-        var (_, variablesJson) =
-            ApolloFederationSourceSchemaClient.BuildCombinedEntityQuery(requests, rewrittenOps);
+        var variables = ApolloEntityExecution.CreateBatchVariables(
+            [ImmutableArray.Create(variableValues)],
+            [true],
+            [entityOperation],
+            out var buffer);
+        var variablesJson = ToJson(variables);
+        buffer.Dispose();
 
         // assert
         Assert.Contains("\"__typename\":\"Product\"", variablesJson);
@@ -711,5 +660,25 @@ public class ApolloFederationConnectorTests
         }
         var length = writer.Position - startPosition;
         return new VariableValues(default, JsonSegment.Create(writer, startPosition, length));
+    }
+
+    private static ApolloEntityOperation CreateEntityOperation(RewrittenOperation rewritten)
+    {
+        var fields = rewritten.VariableToKeyFieldMap
+            .Select(t => new ApolloRepresentationField(t.Key, t.Value))
+            .ToArray();
+
+        return new ApolloEntityOperation(
+            OperationSourceText.Create(string.Empty, OperationType.Query, rewritten.OperationText),
+            rewritten.EntityTypeName!,
+            rewritten.LookupFieldName!,
+            rewritten.InlineFragment?.ToString(indented: true) ?? string.Empty,
+            fields);
+    }
+
+    private static string ToJson(VariableValues variables)
+    {
+        using var document = JsonDocument.Parse(variables.Values.AsSequence());
+        return document.RootElement.GetRawText();
     }
 }
