@@ -27,7 +27,7 @@ function position(
  */
 export function HomeHero() {
   return (
-    <section className="relative isolate mx-auto flex min-h-[34rem] max-w-6xl flex-col items-center justify-center px-5 py-20 text-center sm:min-h-[40rem] sm:px-12 lg:min-h-[46rem]">
+    <section className="relative isolate mx-auto flex min-h-[34rem] max-w-7xl flex-col items-center justify-center px-5 py-20 text-center sm:min-h-[40rem] sm:px-12 lg:min-h-[46rem]">
       {/* Decorative scatter, behind the headline. Trimmed corner composition on
           phones, full scatter from the `sm` breakpoint up. */}
       <div

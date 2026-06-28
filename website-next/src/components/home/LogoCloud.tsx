@@ -10,7 +10,7 @@ import { SwissLifeLogo } from "@/src/icons/SwissLifeLogo";
  */
 export function LogoCloud() {
   return (
-    <section className="mx-auto max-w-6xl px-5 py-12 text-center sm:px-12 sm:py-16">
+    <section className="mx-auto max-w-7xl px-5 py-12 text-center sm:px-12 sm:py-16">
       <p className="text-cc-nav-label font-mono text-xs tracking-[0.2em] uppercase">
         Trusted by Enterprises
       </p>
