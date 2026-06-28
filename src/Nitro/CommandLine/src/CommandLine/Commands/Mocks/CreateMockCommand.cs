@@ -61,7 +61,7 @@ internal sealed class CreateMockCommand : Command
             parseResult.GetRequiredValue(Opt<MockSchemaNameOption>.Instance);
 
         var apiId = await console.GetOrPromptForApiIdAsync(
-            "For which API do you want to create a mock schema?",
+            Prompts.SelectApiForCreateMockSchema,
             parseResult,
             apisClient,
             sessionService,

@@ -1,4 +1,4 @@
-﻿{
+{
   "Data": {
     "__schema": {
       "QueryType": {
@@ -117,6 +117,34 @@
                   "Name": "Boolean",
                   "OfType": null
                 }
+              },
+              "IsDeprecated": false,
+              "DeprecationReason": null
+            },
+            {
+              "Name": "isDeprecated",
+              "Description": null,
+              "Args": [],
+              "Type": {
+                "Kind": "NonNull",
+                "Name": null,
+                "OfType": {
+                  "Kind": "Scalar",
+                  "Name": "Boolean",
+                  "OfType": null
+                }
+              },
+              "IsDeprecated": false,
+              "DeprecationReason": null
+            },
+            {
+              "Name": "deprecationReason",
+              "Description": null,
+              "Args": [],
+              "Type": {
+                "Kind": "Scalar",
+                "Name": "String",
+                "OfType": null
               },
               "IsDeprecated": false,
               "DeprecationReason": null
@@ -294,6 +322,12 @@
             {
               "Name": "INPUT_FIELD_DEFINITION",
               "Description": "Location adjacent to an input object field definition.",
+              "IsDeprecated": false,
+              "DeprecationReason": null
+            },
+            {
+              "Name": "DIRECTIVE_DEFINITION",
+              "Description": "Location adjacent to a directive definition.",
               "IsDeprecated": false,
               "DeprecationReason": null
             }
@@ -666,7 +700,22 @@
             {
               "Name": "directives",
               "Description": "A list of all directives supported by this server.",
-              "Args": [],
+              "Args": [
+                {
+                  "Name": "includeDeprecated",
+                  "Description": null,
+                  "Type": {
+                    "Kind": "NonNull",
+                    "Name": null,
+                    "OfType": {
+                      "Kind": "Scalar",
+                      "Name": "Boolean",
+                      "OfType": null
+                    }
+                  },
+                  "DefaultValue": "false"
+                }
+              ],
               "Type": {
                 "Kind": "NonNull",
                 "Name": null,
@@ -2959,6 +3008,57 @@
             },
             {
               "__typename": "__Field",
+              "Name": "isDeprecated",
+              "Description": null,
+              "Args": [],
+              "Type": {
+                "__typename": "__Type",
+                "Name": null,
+                "Kind": "NonNull",
+                "Description": null,
+                "Fields": null,
+                "InputFields": null,
+                "Interfaces": null,
+                "EnumValues": null,
+                "PossibleTypes": null,
+                "OfType": {
+                  "__typename": "__Type",
+                  "Name": "Boolean",
+                  "Kind": "Scalar",
+                  "Description": null,
+                  "Fields": null,
+                  "InputFields": null,
+                  "Interfaces": null,
+                  "EnumValues": null,
+                  "PossibleTypes": null,
+                  "OfType": null
+                }
+              },
+              "IsDeprecated": false,
+              "DeprecationReason": null
+            },
+            {
+              "__typename": "__Field",
+              "Name": "deprecationReason",
+              "Description": null,
+              "Args": [],
+              "Type": {
+                "__typename": "__Type",
+                "Name": "String",
+                "Kind": "Scalar",
+                "Description": null,
+                "Fields": null,
+                "InputFields": null,
+                "Interfaces": null,
+                "EnumValues": null,
+                "PossibleTypes": null,
+                "OfType": null
+              },
+              "IsDeprecated": false,
+              "DeprecationReason": null
+            },
+            {
+              "__typename": "__Field",
               "Name": "onOperation",
               "Description": null,
               "Args": [],
@@ -3196,6 +3296,13 @@
               "__typename": "__EnumValue",
               "Name": "INPUT_FIELD_DEFINITION",
               "Description": "Location adjacent to an input object field definition.",
+              "IsDeprecated": false,
+              "DeprecationReason": null
+            },
+            {
+              "__typename": "__EnumValue",
+              "Name": "DIRECTIVE_DEFINITION",
+              "Description": "Location adjacent to a directive definition.",
               "IsDeprecated": false,
               "DeprecationReason": null
             }
@@ -3867,7 +3974,37 @@
               "__typename": "__Field",
               "Name": "directives",
               "Description": "A list of all directives supported by this server.",
-              "Args": [],
+              "Args": [
+                {
+                  "__typename": "__InputValue",
+                  "Name": "includeDeprecated",
+                  "Description": null,
+                  "Type": {
+                    "__typename": "__Type",
+                    "Name": null,
+                    "Kind": "NonNull",
+                    "Description": null,
+                    "Fields": null,
+                    "InputFields": null,
+                    "Interfaces": null,
+                    "EnumValues": null,
+                    "PossibleTypes": null,
+                    "OfType": {
+                      "__typename": "__Type",
+                      "Name": "Boolean",
+                      "Kind": "Scalar",
+                      "Description": null,
+                      "Fields": null,
+                      "InputFields": null,
+                      "Interfaces": null,
+                      "EnumValues": null,
+                      "PossibleTypes": null,
+                      "OfType": null
+                    }
+                  },
+                  "DefaultValue": "false"
+                }
+              ],
               "Type": {
                 "__typename": "__Type",
                 "Name": null,

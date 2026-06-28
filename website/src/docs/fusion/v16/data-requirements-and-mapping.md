@@ -217,6 +217,24 @@ type Product {
 
 The gateway traverses `seller.address.countryCode` on the entity and passes the resolved value as the `countryCode` argument.
 
+### Constant Arguments in Field Selections
+
+Fields referenced in a `@require` or `@is` field selection map may carry constant arguments to parameterize or disambiguate the selected field. This is useful when a field offers multiple representations via an argument, and the resolver always needs one specific form.
+
+**GraphQL schema**
+
+```graphql
+# Shipping subgraph
+type Product {
+  shippingCost(size: Int! @require(field: "dimension(unit: METRIC)")): Float
+  dimension(unit: Unit!): Int
+}
+```
+
+Here the `@require` path selects `dimension` with the constant argument `unit: METRIC`. The gateway evaluates this selection against the Products subgraph and passes the resulting value to `shippingCost`.
+
+Argument values in a field selection map must be constant literals (no variables). They must match the field's declared argument definitions, and all required arguments must be supplied. Violations surface as `IS_INVALID_FIELDS` for `@is` and `REQUIRE_INVALID_FIELDS` for `@require`. Note that `@provides` field selections must not include arguments at all; any argument usage there is reported as `PROVIDES_FIELDS_HAS_ARGUMENTS`.
+
 ### List Aggregation Paths
 
 When an entity field is a list, you can use bracket notation to select a field from each element. The gateway collects the selected values into a flat list.

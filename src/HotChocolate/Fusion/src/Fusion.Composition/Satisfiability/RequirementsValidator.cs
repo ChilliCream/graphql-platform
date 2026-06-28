@@ -5,7 +5,6 @@ using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Types.Mutable;
 using static HotChocolate.Fusion.Properties.CompositionResources;
-using static HotChocolate.Language.Utf8GraphQLParser.Syntax;
 
 namespace HotChocolate.Fusion.Satisfiability;
 
@@ -18,12 +17,14 @@ internal sealed class RequirementsValidator(
         MutableObjectTypeDefinition contextType,
         SatisfiabilityPathItem? parentPathItem,
         string excludeSchemaName,
+        bool allowIntermediatesFromExcludedSchema = false,
         SatisfiabilityPath? cycleDetectionPath = null)
     {
         var context = new RequirementsValidatorContext(
             contextType,
             parentPathItem,
             excludeSchemaName,
+            allowIntermediatesFromExcludedSchema,
             cycleDetectionPath);
 
         var errors = new List<SatisfiabilityError>();
@@ -139,16 +140,40 @@ internal sealed class RequirementsValidator(
             return [];
         }
 
+        // Leaf fields in the requirement must be sourced from outside the
+        // excluded schema. Intermediate fields (with a sub-selection) may also
+        // be sourced from the excluded schema when validating a field-level
+        // @require: those intermediates are navigation steps the gateway can
+        // resolve locally in the requiring schema as part of executing the
+        // requiring field. For lookup-key validation the excluded schema has
+        // not been entered yet, so intermediates must also come from outside
+        // it (default behavior).
         var schemaNames = field.GetSchemaNames();
-        if (fieldNode.SelectionSet is null)
+        if (fieldNode.SelectionSet is null || !context.AllowIntermediatesFromExcludedSchema)
         {
             schemaNames = schemaNames.Remove(context.ExcludeSchemaName);
         }
-
         var fieldType = field.Type.AsTypeDefinition();
+        var optionCount = 0;
+        var skippedDueToProvidedSelectionSet = false;
 
         foreach (var schemaName in schemaNames)
         {
+            SelectionSetNode? providedSelectionSet = null;
+
+            if (previousPathItem?.ProvidedSelectionSet is not null
+                && previousSchemaName == schemaName
+                && !previousPathItem.TryGetProvidedSelectionSet(
+                    field,
+                    type,
+                    schemaName,
+                    schema,
+                    out providedSelectionSet))
+            {
+                skippedDueToProvidedSelectionSet = true;
+                continue;
+            }
+
             // If the field is marked as partial, it must be provided by the current schema for it
             // to be an option.
             if (field.IsPartial(schemaName)
@@ -208,7 +233,8 @@ internal sealed class RequirementsValidator(
                         type,
                         context.Path.Peek(),
                         excludeSchemaName: schemaName,
-                        context.CycleDetectionPath);
+                        allowIntermediatesFromExcludedSchema: true,
+                        cycleDetectionPath: context.CycleDetectionPath);
 
                 if (requirementErrors.Length != 0)
                 {
@@ -226,9 +252,10 @@ internal sealed class RequirementsValidator(
                 }
             }
 
+            optionCount++;
             context.CycleDetectionPath.Pop();
 
-            context.Path.Push(pathItem);
+            context.Path.Push(pathItem with { ProvidedSelectionSet = providedSelectionSet });
 
             if (fieldNode.SelectionSet is null)
             {
@@ -276,7 +303,8 @@ internal sealed class RequirementsValidator(
 
         context.FieldAccessCache.Add(cacheKey);
 
-        if (schemaNames.Length == 0)
+        if (schemaNames.Length == 0
+            || (optionCount == 0 && errors.Count == 0 && skippedDueToProvidedSelectionSet))
         {
             errors.Add(
                 new SatisfiabilityError(
@@ -294,94 +322,20 @@ internal sealed class RequirementsValidator(
         RequirementsValidatorContext context,
         string transitionToSchemaName)
     {
-        var errors = new List<SatisfiabilityError>();
-
-        var lookupDirectives =
-            schema.GetPossibleFusionLookupDirectives(type, transitionToSchemaName);
-
-        if (!lookupDirectives.Any() && !CanTransitionToSchemaThroughPath(context.Path, transitionToSchemaName))
-        {
-            errors.Add(
-                new SatisfiabilityError(
-                    string.Format(
-                        RequirementsValidator_NoLookupsFoundForType,
-                        type.Name,
-                        transitionToSchemaName)));
-
-            return [.. errors];
-        }
-
-        foreach (var lookupDirective in lookupDirectives)
-        {
-            var lookupKeyArg = (string)lookupDirective.Arguments["key"].Value!;
-            var lookupFieldArg = (string)lookupDirective.Arguments["field"].Value!;
-            var lookupPathArg = (string?)lookupDirective.Arguments["path"].Value;
-
-            var lookupRequirements = ParseSelectionSet($"{{ {lookupKeyArg} }}");
-            var lookupFieldName = ParseFieldDefinition(lookupFieldArg).Name.Value;
-
-            // Ensure that lookup requirements are satisfied.
-            var requirementErrors =
+        return SourceSchemaTransitionHelper.ValidateSourceSchemaTransition(
+            schema,
+            type,
+            transitionToSchemaName,
+            [.. context.Path],
+            (contextType, parentPathItem, lookupRequirements) =>
                 Validate(
                     lookupRequirements,
-                    type,
-                    context.Path.Peek(),
+                    contextType,
+                    parentPathItem,
                     excludeSchemaName: transitionToSchemaName,
-                    context.CycleDetectionPath);
-
-            if (requirementErrors.IsEmpty)
-            {
-                return [];
-            }
-
-            var lookupName = lookupPathArg is null
-                ? lookupFieldName
-                : $"{lookupPathArg}.{lookupFieldName}";
-
-            errors.Add(
-                new SatisfiabilityError(
-                    string.Format(
-                        RequirementsValidator_UnableToSatisfyRequirementForLookup,
-                        lookupRequirements.ToString(indented: false),
-                        lookupName,
-                        transitionToSchemaName),
-                    requirementErrors));
-        }
-
-        return [.. errors];
-    }
-
-    /// <summary>
-    /// We check whether the path we're currently on exists one-to-one
-    /// on the given schema or whether a type on the path has a lookup
-    /// on the given schema.
-    /// </summary>
-    private bool CanTransitionToSchemaThroughPath(
-        SatisfiabilityPath path,
-        string schemaName)
-    {
-        foreach (var pathItem in path)
-        {
-            var lookupDirectives =
-                schema.GetPossibleFusionLookupDirectives(
-                    pathItem.Type,
-                    schemaName);
-
-            var hasLookups = lookupDirectives.Count > 0;
-            var fieldExists = pathItem.Field.ExistsInSchema(schemaName);
-
-            if (hasLookups && fieldExists)
-            {
-                return true;
-            }
-
-            if (!fieldExists)
-            {
-                return false;
-            }
-        }
-
-        return true;
+                    cycleDetectionPath: context.CycleDetectionPath),
+            RequirementsValidator_NoLookupsFoundForType,
+            RequirementsValidator_UnableToSatisfyRequirementForLookup);
     }
 }
 
@@ -391,6 +345,7 @@ internal sealed class RequirementsValidatorContext
         MutableObjectTypeDefinition contextType,
         SatisfiabilityPathItem? parentPathItem,
         string excludeSchemaName,
+        bool allowIntermediatesFromExcludedSchema = false,
         SatisfiabilityPath? cycleDetectionPath = null)
     {
         TypeContext.Push(contextType);
@@ -401,6 +356,7 @@ internal sealed class RequirementsValidatorContext
         }
 
         ExcludeSchemaName = excludeSchemaName;
+        AllowIntermediatesFromExcludedSchema = allowIntermediatesFromExcludedSchema;
         CycleDetectionPath = cycleDetectionPath ?? [];
     }
 
@@ -409,6 +365,8 @@ internal sealed class RequirementsValidatorContext
     public SatisfiabilityPath Path { get; } = [];
 
     public string ExcludeSchemaName { get; }
+
+    public bool AllowIntermediatesFromExcludedSchema { get; }
 
     public SatisfiabilityPath CycleDetectionPath { get; }
 

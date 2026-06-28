@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using static HotChocolate.Fusion.Language.CharConstants;
 
 namespace HotChocolate.Fusion.Language;
@@ -141,6 +142,8 @@ internal class FieldSelectionMapSyntaxSerializer(SyntaxSerializerOptions options
 
         writer.Write(node.Name.Value);
 
+        WriteArguments(node.Arguments, writer);
+
         if (node.ValueSelection is not null)
         {
             writer.Write($"{Colon} ");
@@ -163,6 +166,235 @@ internal class FieldSelectionMapSyntaxSerializer(SyntaxSerializerOptions options
         }
 
         return Skip;
+    }
+
+    protected override ISyntaxVisitorAction Enter(
+        ArgumentNode node,
+        ISyntaxWriter writer)
+    {
+        writer.Write(node.Name.Value);
+        writer.Write($"{Colon} ");
+        Visit(node.Value, writer);
+
+        return Skip;
+    }
+
+    protected override ISyntaxVisitorAction Enter(
+        ObjectFieldNode node,
+        ISyntaxWriter writer)
+    {
+        writer.Write(node.Name.Value);
+        writer.Write($"{Colon} ");
+        Visit(node.Value, writer);
+
+        return Skip;
+    }
+
+    protected override ISyntaxVisitorAction Enter(
+        IntValueNode node,
+        ISyntaxWriter writer)
+    {
+        writer.Write(node.Value);
+
+        return Skip;
+    }
+
+    protected override ISyntaxVisitorAction Enter(
+        FloatValueNode node,
+        ISyntaxWriter writer)
+    {
+        writer.Write(node.Value);
+
+        return Skip;
+    }
+
+    protected override ISyntaxVisitorAction Enter(
+        StringValueNode node,
+        ISyntaxWriter writer)
+    {
+        if (node.Block)
+        {
+            // Block strings are printed in HotChocolate's multi-line triple-quote layout so the
+            // two serializers stay in sync. The layout uses real newlines even in compact mode.
+            var lines = node.Value
+                .Replace("\"\"\"", "\\\"\"\"")
+                .Replace("\r", string.Empty)
+                .Split('\n');
+
+            if (lines.Length == 1)
+            {
+                lines[0] = lines[0].Trim();
+            }
+
+            writer.Write("\"\"\"");
+
+            foreach (var line in lines)
+            {
+                writer.WriteLine();
+                writer.WriteIndent();
+                writer.Write(line);
+            }
+
+            writer.WriteLine();
+            writer.WriteIndent();
+            writer.Write("\"\"\"");
+        }
+        else
+        {
+            // A regular string is printed in its canonical double-quoted form with escape
+            // sequences. The escaping mirrors HotChocolate's WriteEscapeCharacter so both stay
+            // in sync.
+            writer.Write(Quote);
+            WriteEscapedString(node.Value, writer);
+            writer.Write(Quote);
+        }
+
+        return Skip;
+    }
+
+    private static void WriteEscapedString(string value, ISyntaxWriter writer)
+    {
+        foreach (var c in value)
+        {
+            switch (c)
+            {
+                case Quote:
+                    writer.Write(Backslash);
+                    writer.Write(Quote);
+                    break;
+
+                case Backslash:
+                    writer.Write(Backslash);
+                    writer.Write(Backslash);
+                    break;
+
+                case '\b':
+                    writer.Write(Backslash);
+                    writer.Write('b');
+                    break;
+
+                case '\f':
+                    writer.Write(Backslash);
+                    writer.Write('f');
+                    break;
+
+                case LineFeed:
+                    writer.Write(Backslash);
+                    writer.Write('n');
+                    break;
+
+                case Return:
+                    writer.Write(Backslash);
+                    writer.Write('r');
+                    break;
+
+                case HorizontalTab:
+                    writer.Write(Backslash);
+                    writer.Write('t');
+                    break;
+
+                default:
+                    writer.Write(c);
+                    break;
+            }
+        }
+    }
+
+    protected override ISyntaxVisitorAction Enter(
+        BooleanValueNode node,
+        ISyntaxWriter writer)
+    {
+        writer.Write(node.Value ? "true" : "false");
+
+        return Skip;
+    }
+
+    protected override ISyntaxVisitorAction Enter(
+        NullValueNode node,
+        ISyntaxWriter writer)
+    {
+        writer.Write("null");
+
+        return Skip;
+    }
+
+    protected override ISyntaxVisitorAction Enter(
+        EnumValueNode node,
+        ISyntaxWriter writer)
+    {
+        writer.Write(node.Value);
+
+        return Skip;
+    }
+
+    protected override ISyntaxVisitorAction Enter(
+        ListValueNode node,
+        ISyntaxWriter writer)
+    {
+        writer.Write(LeftSquareBracket);
+
+        if (node.Items.Length > 0)
+        {
+            Visit(node.Items[0], writer);
+
+            for (var i = 1; i < node.Items.Length; i++)
+            {
+                writer.Write(", ");
+                Visit(node.Items[i], writer);
+            }
+        }
+
+        writer.Write(RightSquareBracket);
+
+        return Skip;
+    }
+
+    protected override ISyntaxVisitorAction Enter(
+        ObjectValueNode node,
+        ISyntaxWriter writer)
+    {
+        writer.Write(LeftBrace);
+
+        if (node.Fields.Length > 0)
+        {
+            writer.WriteSpace();
+
+            Visit(node.Fields[0], writer);
+
+            for (var i = 1; i < node.Fields.Length; i++)
+            {
+                writer.Write(", ");
+                Visit(node.Fields[i], writer);
+            }
+
+            writer.WriteSpace();
+        }
+
+        writer.Write(RightBrace);
+
+        return Skip;
+    }
+
+    private void WriteArguments(
+        ImmutableArray<ArgumentNode> arguments,
+        ISyntaxWriter writer)
+    {
+        if (arguments.Length == 0)
+        {
+            return;
+        }
+
+        writer.Write(LeftParenthesis);
+
+        Visit(arguments[0], writer);
+
+        for (var i = 1; i < arguments.Length; i++)
+        {
+            writer.Write(", ");
+            Visit(arguments[i], writer);
+        }
+
+        writer.Write(RightParenthesis);
     }
 
     private void WriteLineOrSpace(ISyntaxWriter writer)

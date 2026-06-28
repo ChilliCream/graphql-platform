@@ -7,8 +7,7 @@ import {
 } from "react";
 import type { AdmonitionKind } from "@/src/design-system/Admonition";
 
-const ALERT_REGEX =
-  /^\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION|EXPERIMENTAL)\]\s*\n?/;
+const ALERT_REGEX = /^\[!(NOTE|TIP|WARNING|CAUTION|EXPERIMENTAL)\]\s*\n?/;
 
 export type AdmonitionMatch = {
   kind: AdmonitionKind;
@@ -18,7 +17,7 @@ export type AdmonitionMatch = {
 export function detectAdmonition(children: ReactNode): AdmonitionMatch | null {
   const arr = Children.toArray(children);
   const firstIndex = arr.findIndex(
-    (c) => isValidElement(c) || (typeof c === "string" && c.trim().length > 0)
+    (c) => isValidElement(c) || (typeof c === "string" && c.trim().length > 0),
   );
   if (firstIndex === -1) {
     return null;
@@ -30,7 +29,7 @@ export function detectAdmonition(children: ReactNode): AdmonitionMatch | null {
   }
 
   const innerChildren = Children.toArray(
-    (first.props as { children?: ReactNode }).children
+    (first.props as { children?: ReactNode }).children,
   );
   const firstInner = innerChildren[0];
   if (typeof firstInner !== "string") {

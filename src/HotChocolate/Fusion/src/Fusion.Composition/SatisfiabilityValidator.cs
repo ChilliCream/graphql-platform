@@ -113,6 +113,15 @@ internal sealed class SatisfiabilityValidator
     {
         var previousSchemaName = path?.Item.SchemaName;
         var schemaNames = field.GetSchemaNames(first: previousSchemaName);
+        var eventStreamSchemaNames = field.GetFusionEventStreamSchemaNames();
+
+        if (!eventStreamSchemaNames.IsDefaultOrEmpty)
+        {
+            schemaNames = previousSchemaName is not null && eventStreamSchemaNames.Contains(previousSchemaName)
+                ? eventStreamSchemaNames.Remove(previousSchemaName).Insert(0, previousSchemaName)
+                : eventStreamSchemaNames;
+        }
+
         var cycle = false;
         var errors = new List<SatisfiabilityError>();
         var optionCount = 0;
@@ -120,6 +129,20 @@ internal sealed class SatisfiabilityValidator
 
         foreach (var schemaName in schemaNames)
         {
+            SelectionSetNode? providedSelectionSet = null;
+
+            if (path?.Item.ProvidedSelectionSet is not null
+                && previousSchemaName == schemaName
+                && !path.Item.TryGetProvidedSelectionSet(
+                    field,
+                    type,
+                    schemaName,
+                    _schema,
+                    out providedSelectionSet))
+            {
+                continue;
+            }
+
             // If the field is marked as partial, it must be provided by the current schema for it
             // to be an option.
             if (field.IsPartial(schemaName)
@@ -128,7 +151,14 @@ internal sealed class SatisfiabilityValidator
                 continue;
             }
 
-            var pathItem = new SatisfiabilityPathItem(field, type, schemaName);
+            var pathItem = new SatisfiabilityPathItem(
+                field,
+                type,
+                schemaName)
+            {
+                ProvidedSelectionSet =
+                    field.GetFusionEventStreamMessage(schemaName) ?? providedSelectionSet
+            };
 
             // Validate that we are not in a cycle by checking if this path item
             // already appears in the ancestor chain.
@@ -168,7 +198,8 @@ internal sealed class SatisfiabilityValidator
                         requirements,
                         type,
                         path?.Item,
-                        excludeSchemaName: schemaName);
+                        excludeSchemaName: schemaName,
+                        allowIntermediatesFromExcludedSchema: true);
 
                 if (requirementErrors.Length != 0)
                 {
@@ -191,6 +222,13 @@ internal sealed class SatisfiabilityValidator
             {
                 var fieldPath = new PathNode(pathItem, path);
                 var possibleTypes = fieldType.GetPossibleTypes(schemaName, _schema);
+
+                if (pathItem.ProvidedSelectionSet is { } pathItemProvidedSelectionSet)
+                {
+                    possibleTypes = FilterPossibleTypesByProvidedSelectionSet(
+                        possibleTypes,
+                        pathItemProvidedSelectionSet);
+                }
 
                 foreach (var possibleType in possibleTypes)
                 {
@@ -238,7 +276,7 @@ internal sealed class SatisfiabilityValidator
             _log.Write(
                 LogEntryBuilder.New()
                     .SetMessage(error.ToString())
-                    .SetCode(LogEntryCodes.Unsatisfiable)
+                    .SetCode(LogEntryCodes.UnsatisfiableQueryPath)
                     .SetSeverity(LogSeverity.Error)
                     .SetExtension("error", error)
                     .Build());
@@ -297,7 +335,7 @@ internal sealed class SatisfiabilityValidator
                 _log.Write(
                     LogEntryBuilder.New()
                         .SetMessage(error.ToString())
-                        .SetCode(LogEntryCodes.Unsatisfiable)
+                        .SetCode(LogEntryCodes.UnsatisfiableQueryPath)
                         .SetSeverity(LogSeverity.Error)
                         .SetExtension("error", error)
                         .Build());
@@ -310,93 +348,67 @@ internal sealed class SatisfiabilityValidator
         PathNode? path,
         string transitionToSchemaName)
     {
-        var errors = new List<SatisfiabilityError>();
-
-        var lookupDirectives =
-            _schema.GetPossibleFusionLookupDirectives(type, transitionToSchemaName);
-
-        if (lookupDirectives.Count == 0 && !CanTransitionToSchemaThroughPath(path, transitionToSchemaName))
-        {
-            errors.Add(
-                new SatisfiabilityError(
-                    string.Format(
-                        SatisfiabilityValidator_NoLookupsFoundForType,
-                        type.Name,
-                        transitionToSchemaName)));
-
-            return [.. errors];
-        }
-
-        foreach (var lookupDirective in lookupDirectives)
-        {
-            var lookupKeyArg = (string)lookupDirective.Arguments["key"].Value!;
-            var lookupFieldArg = (string)lookupDirective.Arguments["field"].Value!;
-            var lookupPathArg = (string?)lookupDirective.Arguments["path"].Value;
-
-            var lookupRequirements = ParseSelectionSet($"{{ {lookupKeyArg} }}");
-            var lookupFieldName = ParseFieldDefinition(lookupFieldArg).Name.Value;
-
-            // Ensure that lookup requirements are satisfied.
-            var requirementErrors =
+        return SourceSchemaTransitionHelper.ValidateSourceSchemaTransition(
+            _schema,
+            type,
+            transitionToSchemaName,
+            [.. path.EnumerateFromLeaf()],
+            (contextType, parentPathItem, lookupRequirements) =>
                 _requirementsValidator.Validate(
                     lookupRequirements,
-                    type,
-                    path?.Item,
-                    excludeSchemaName: transitionToSchemaName);
-
-            if (requirementErrors.IsEmpty)
-            {
-                return [];
-            }
-
-            var lookupName = lookupPathArg is null
-                ? lookupFieldName
-                : $"{lookupPathArg}.{lookupFieldName}";
-
-            errors.Add(
-                new SatisfiabilityError(
-                    string.Format(
-                        SatisfiabilityValidator_UnableToSatisfyRequirementForLookup,
-                        lookupRequirements.ToString(indented: false),
-                        lookupName,
-                        transitionToSchemaName),
-                    requirementErrors));
-        }
-
-        return [.. errors];
+                    contextType,
+                    parentPathItem,
+                    excludeSchemaName: transitionToSchemaName),
+            SatisfiabilityValidator_NoLookupsFoundForType,
+            SatisfiabilityValidator_UnableToSatisfyRequirementForLookup);
     }
 
-    /// <summary>
-    /// We check whether the path we're currently on exists one-to-one
-    /// on the given schema or whether a type on the path has a lookup
-    /// on the given schema.
-    /// </summary>
-    private bool CanTransitionToSchemaThroughPath(
-        PathNode? path,
-        string schemaName)
+    private IEnumerable<MutableObjectTypeDefinition> FilterPossibleTypesByProvidedSelectionSet(
+        IEnumerable<MutableObjectTypeDefinition> possibleTypes,
+        SelectionSetNode selectionSet)
     {
-        for (var node = path; node is not null; node = node.Parent)
+        HashSet<string>? providedTypeNames = null;
+
+        CollectRootTypeConditions(selectionSet, ref providedTypeNames);
+
+        if (providedTypeNames is null)
         {
-            var lookupDirectives =
-                _schema.GetPossibleFusionLookupDirectives(
-                    node.Item.Type,
-                    schemaName);
-
-            var hasLookups = lookupDirectives.Count > 0;
-            var fieldExists = node.Item.Field.ExistsInSchema(schemaName);
-
-            if (hasLookups && fieldExists)
-            {
-                return true;
-            }
-
-            if (!fieldExists)
-            {
-                return false;
-            }
+            return possibleTypes;
         }
 
-        return true;
+        return possibleTypes.Where(t => providedTypeNames.Contains(t.Name));
+    }
+
+    private void CollectRootTypeConditions(
+        SelectionSetNode selectionSet,
+        ref HashSet<string>? providedTypeNames)
+    {
+        foreach (var selection in selectionSet.Selections)
+        {
+            if (selection is not InlineFragmentNode inlineFragment)
+            {
+                continue;
+            }
+
+            if (inlineFragment.TypeCondition is { } typeCondition)
+            {
+                if (!_schema.Types.TryGetType(typeCondition.Name.Value, out var type))
+                {
+                    continue;
+                }
+
+                providedTypeNames ??= [];
+
+                foreach (var possibleType in _schema.GetPossibleTypes(type))
+                {
+                    providedTypeNames.Add(possibleType.Name);
+                }
+            }
+            else
+            {
+                CollectRootTypeConditions(inlineFragment.SelectionSet, ref providedTypeNames);
+            }
+        }
     }
 
     private static IType CreateType(ITypeNode typeNode, ITypeDefinition namedType)

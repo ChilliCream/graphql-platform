@@ -20,7 +20,7 @@ public class Issue6232ReproTests
             .AddGraphQL()
             .AddApolloFederation()
             .AddQueryType<Query>()
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var type = schema.Types.GetType<ObjectType>(nameof(ExternalListFields));
         var representation = new ObjectValueNode(

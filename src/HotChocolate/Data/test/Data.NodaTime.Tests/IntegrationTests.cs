@@ -42,7 +42,7 @@ public sealed class IntegrationTests(PostgreSqlResource resource)
                         // HotChocolate can use the same filter for both types.
                         .BindRuntimeType<DateOnly, LocalDateOperationFilterInputType>())
             .AddSorting()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(q => q
@@ -58,7 +58,7 @@ public sealed class IntegrationTests(PostgreSqlResource resource)
                         }
                     }
                 }
-                """));
+                """), Xunit.TestContext.Current.CancellationToken);
 
         // assert
         result.ExpectOperationResult().MatchInlineSnapshot(

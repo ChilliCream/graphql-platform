@@ -23,7 +23,8 @@ public class FluentApiTests : IClassFixture<RavenDBResource<CustomRavenDBDefault
         var executor = await CreateExecutorAsync();
 
         // act
-        var result = await executor.ExecuteAsync("""
+        var result = await executor.ExecuteAsync(
+            """
             {
                 allCars {
                     id
@@ -33,10 +34,11 @@ public class FluentApiTests : IClassFixture<RavenDBResource<CustomRavenDBDefault
                     }
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
-        await Snapshot.Create().AddResult(result).MatchAsync();
+        await Snapshot.Create().AddResult(result).MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -46,7 +48,8 @@ public class FluentApiTests : IClassFixture<RavenDBResource<CustomRavenDBDefault
         var executor = await CreateExecutorAsync();
 
         // act
-        var result = await executor.ExecuteAsync("""
+        var result = await executor.ExecuteAsync(
+            """
             {
                 pagingName(first: 2) {
                     nodes {
@@ -64,10 +67,11 @@ public class FluentApiTests : IClassFixture<RavenDBResource<CustomRavenDBDefault
 
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
-        await Snapshot.Create().AddResult(result).MatchAsync();
+        await Snapshot.Create().AddResult(result).MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -77,7 +81,8 @@ public class FluentApiTests : IClassFixture<RavenDBResource<CustomRavenDBDefault
         var executor = await CreateExecutorAsync();
 
         // act
-        var result = await executor.ExecuteAsync("""
+        var result = await executor.ExecuteAsync(
+            """
             {
                 pagingExecutable(first: 2) {
                     nodes {
@@ -95,10 +100,11 @@ public class FluentApiTests : IClassFixture<RavenDBResource<CustomRavenDBDefault
 
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
-        await Snapshot.Create().AddResult(result).MatchAsync();
+        await Snapshot.Create().AddResult(result).MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -108,7 +114,8 @@ public class FluentApiTests : IClassFixture<RavenDBResource<CustomRavenDBDefault
         var executor = await CreateExecutorAsync();
 
         // act
-        var result = await executor.ExecuteAsync("""
+        var result = await executor.ExecuteAsync(
+            """
             {
                 pagingName(where: {engine: {cylinderCount: {gte: 4}}}) {
                     nodes {
@@ -125,10 +132,11 @@ public class FluentApiTests : IClassFixture<RavenDBResource<CustomRavenDBDefault
                     }
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
-        await Snapshot.Create().AddResult(result).MatchAsync();
+        await Snapshot.Create().AddResult(result).MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -138,7 +146,8 @@ public class FluentApiTests : IClassFixture<RavenDBResource<CustomRavenDBDefault
         var executor = await CreateExecutorAsync();
 
         // act
-        var result = await executor.ExecuteAsync("""
+        var result = await executor.ExecuteAsync(
+            """
             {
                 pagingRaven(first: 2) {
                     nodes {
@@ -155,10 +164,11 @@ public class FluentApiTests : IClassFixture<RavenDBResource<CustomRavenDBDefault
 
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
-        await Snapshot.Create().AddResult(result).MatchAsync();
+        await Snapshot.Create().AddResult(result).MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -168,7 +178,8 @@ public class FluentApiTests : IClassFixture<RavenDBResource<CustomRavenDBDefault
         var executor = await CreateExecutorAsync();
 
         // act
-        var result = await executor.ExecuteAsync("""
+        var result = await executor.ExecuteAsync(
+            """
             {
                 offsetPaging(skip:1, take:1) {
                     items {
@@ -184,10 +195,11 @@ public class FluentApiTests : IClassFixture<RavenDBResource<CustomRavenDBDefault
                     }
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
-        await Snapshot.Create().AddResult(result).MatchAsync();
+        await Snapshot.Create().AddResult(result).MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -197,7 +209,8 @@ public class FluentApiTests : IClassFixture<RavenDBResource<CustomRavenDBDefault
         var executor = await CreateExecutorAsync();
 
         // act
-        var result = await executor.ExecuteAsync("""
+        var result = await executor.ExecuteAsync(
+            """
             {
                 firstOrDefault {
                     id
@@ -207,10 +220,11 @@ public class FluentApiTests : IClassFixture<RavenDBResource<CustomRavenDBDefault
                     }
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
-        await Snapshot.Create().AddResult(result).MatchAsync();
+        await Snapshot.Create().AddResult(result).MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -220,7 +234,8 @@ public class FluentApiTests : IClassFixture<RavenDBResource<CustomRavenDBDefault
         var executor = await CreateExecutorAsync();
 
         // act
-        var result = await executor.ExecuteAsync("""
+        var result = await executor.ExecuteAsync(
+            """
             {
                 executable {
                     id
@@ -230,10 +245,11 @@ public class FluentApiTests : IClassFixture<RavenDBResource<CustomRavenDBDefault
                     }
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
-        await Snapshot.Create().AddResult(result).MatchAsync();
+        await Snapshot.Create().AddResult(result).MatchAsync(TestContext.Current.CancellationToken);
     }
 
     public ValueTask<IRequestExecutor> CreateExecutorAsync() => new ServiceCollection()

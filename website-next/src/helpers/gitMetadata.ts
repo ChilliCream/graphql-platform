@@ -1,11 +1,18 @@
-import { execFileSync, spawnSync } from "node:child_process";
+import fs from "node:fs";
 import path from "node:path";
+import { formatDate } from "./formatDate";
+
+const DISPLAY_DATE_OPTIONS: Intl.DateTimeFormatOptions = {
+  year: "numeric",
+  month: "long",
+  day: "2-digit",
+};
 
 const WEBSITE_ROOT = process.cwd();
-const DOCS_DIR = path.join(WEBSITE_ROOT, "content", "docs");
-const BLOGS_DIR = path.join(WEBSITE_ROOT, "content", "blogs");
-const APP_CONTENT_DIR = path.join(WEBSITE_ROOT, "app", "(content)");
-const HEADER = "@@COMMIT@@";
+// Static manifest produced by `yarn generate-git-metadata` in the release
+// workflow. Absent during development and builds outside the workflow, in which
+// case every lookup falls back to a static placeholder.
+const MANIFEST_PATH = path.join(WEBSITE_ROOT, "git-metadata.generated.json");
 
 export interface GitMetadata {
   /** ISO 8601 timestamp of the last commit touching the file. */
@@ -18,29 +25,28 @@ export interface GitMetadata {
 
 type Entry = { date: string; author: string };
 
-const REPO_ROOT = tryGitRoot();
-if (REPO_ROOT !== null) {
-  warnIfShallow(REPO_ROOT);
-}
+let cache: Record<string, Entry> | null | undefined;
 
-let manifestPromise: Promise<Record<string, Entry>> | undefined;
-
-function loadManifest(): Promise<Record<string, Entry>> {
-  if (!manifestPromise) {
-    manifestPromise = Promise.resolve(buildManifest());
+function loadManifest(): Record<string, Entry> {
+  if (cache === undefined) {
+    try {
+      cache = JSON.parse(fs.readFileSync(MANIFEST_PATH, "utf8"));
+    } catch {
+      cache = null; // dev / unoptimized / not generated yet
+    }
   }
-  return manifestPromise;
+  return cache ?? {};
 }
 
 /**
- * Returns the raw last-commit date for a file, or `undefined` if git has no
- * record of it. Used by callers (e.g. sitemap generation) that want to fall
- * back to filesystem mtime when git attribution is unavailable.
+ * Returns the raw last-commit date for a file, or `undefined` if the generated
+ * manifest has no record of it. Used by callers (e.g. sitemap generation) that
+ * want to fall back to filesystem mtime when git attribution is unavailable.
  */
 export async function getLastModifiedFromGit(
   absoluteFilePath: string,
 ): Promise<Date | undefined> {
-  const manifest = await loadManifest();
+  const manifest = loadManifest();
   const key = path.relative(WEBSITE_ROOT, absoluteFilePath);
   const entry = manifest[key];
   if (!entry) {
@@ -53,7 +59,7 @@ export async function getLastModifiedFromGit(
 export async function getGitMetadata(
   absoluteFilePath: string,
 ): Promise<GitMetadata> {
-  const manifest = await loadManifest();
+  const manifest = loadManifest();
   const key = path.relative(WEBSITE_ROOT, absoluteFilePath);
   const entry = manifest[key];
 
@@ -68,117 +74,16 @@ export async function getGitMetadata(
 
   return {
     isoDate: date.toISOString(),
-    displayDate: formatDate(date),
+    displayDate: formatDate(date, DISPLAY_DATE_OPTIONS),
     author: entry.author || "Unknown",
   };
-}
-
-function buildManifest(): Record<string, Entry> {
-  if (REPO_ROOT === null) {
-    return {};
-  }
-  const repoRoot = REPO_ROOT;
-
-  const trackedPaths = [DOCS_DIR, BLOGS_DIR, APP_CONTENT_DIR].map((p) =>
-    path.relative(repoRoot, p),
-  );
-
-  let stdout: string;
-  try {
-    stdout = execFileSync(
-      "git",
-      [
-        "-c",
-        "core.quotePath=false",
-        "log",
-        "--name-only",
-        "--no-merges",
-        "--diff-filter=AMR",
-        `--format=${HEADER}%aI%x09%an`,
-        "--",
-        ...trackedPaths,
-      ],
-      {
-        cwd: repoRoot,
-        encoding: "utf-8",
-        maxBuffer: 256 * 1024 * 1024,
-        stdio: ["ignore", "pipe", "ignore"],
-      },
-    );
-  } catch {
-    return {};
-  }
-
-  const out: Record<string, Entry> = {};
-  let currentDate: string | null = null;
-  let currentAuthor: string | null = null;
-
-  for (const line of stdout.split("\n")) {
-    if (line === "") {
-      continue;
-    }
-    if (line.startsWith(HEADER)) {
-      const rest = line.slice(HEADER.length);
-      const tab = rest.indexOf("\t");
-      currentDate = tab === -1 ? rest : rest.slice(0, tab);
-      currentAuthor = tab === -1 ? "" : rest.slice(tab + 1);
-      continue;
-    }
-    if (currentDate === null || !isTrackedFile(line)) {
-      continue;
-    }
-    const abs = path.join(repoRoot, line);
-    const key = path.relative(WEBSITE_ROOT, abs);
-    if (key.startsWith("..") || out[key]) {
-      continue;
-    }
-    out[key] = { date: currentDate, author: currentAuthor ?? "" };
-  }
-
-  return out;
-}
-
-function isTrackedFile(repoRelativeFile: string): boolean {
-  if (/\.mdx?$/.test(repoRelativeFile)) {
-    return true;
-  }
-  return path.basename(repoRelativeFile) === "page.tsx";
-}
-
-function tryGitRoot(): string | null {
-  const res = spawnSync("git", ["rev-parse", "--show-toplevel"], {
-    cwd: WEBSITE_ROOT,
-    encoding: "utf-8",
-  });
-  return res.status === 0 ? res.stdout.trim() : null;
-}
-
-function warnIfShallow(repoRoot: string): void {
-  const res = spawnSync("git", ["rev-parse", "--is-shallow-repository"], {
-    cwd: repoRoot,
-    encoding: "utf-8",
-  });
-  if (res.status === 0 && res.stdout.trim() === "true") {
-    console.warn(
-      "[git-metadata] shallow clone detected — doc attribution will be inaccurate. " +
-        "Use `actions/checkout` with `fetch-depth: 0` in CI.",
-    );
-  }
 }
 
 function fallback(): GitMetadata {
   const now = new Date();
   return {
     isoDate: now.toISOString(),
-    displayDate: formatDate(now),
+    displayDate: formatDate(now, DISPLAY_DATE_OPTIONS),
     author: "Unknown",
   };
-}
-
-function formatDate(date: Date): string {
-  return date.toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "long",
-    day: "2-digit",
-  });
 }

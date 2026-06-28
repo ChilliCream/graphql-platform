@@ -321,6 +321,47 @@ public class RabbitMQTopologyDescriptorTests
     }
 
     [Fact]
+    public void DeclareBinding_Should_UseLastRoutingKey_When_RoutingKeyCalledMultipleTimes()
+    {
+        // arrange & act
+        var (_, _, topology) = CreateTopology(t =>
+        {
+            t.DeclareExchange("src-exchange");
+            t.DeclareQueue("dest-queue");
+            t.DeclareBinding("src-exchange", "dest-queue")
+                .RoutingKey("first")
+                .RoutingKey("second");
+        });
+
+        // assert
+        var binding = Assert.Single(topology.Bindings);
+        Assert.Equal("second", binding.RoutingKey);
+    }
+
+    [Fact]
+    public void DeclareBinding_Should_CreateSeparateBindings_When_DeclaredTwiceForSamePair()
+    {
+        // arrange & act
+        var (_, _, topology) = CreateTopology(t =>
+        {
+            t.DeclareExchange("src-exchange");
+            t.DeclareQueue("dest-queue");
+            t.DeclareBinding("src-exchange", "dest-queue").RoutingKey("first.key");
+            t.DeclareBinding("src-exchange", "dest-queue").RoutingKey("second.key");
+        });
+
+        // assert
+        var bindings = topology.Bindings
+            .Where(b => b.Source.Name == "src-exchange"
+                && b is RabbitMQQueueBinding qb && qb.Destination.Name == "dest-queue")
+            .ToList();
+        Assert.Equal(2, bindings.Count);
+        Assert.Equal(
+            ["first.key", "second.key"],
+            bindings.Select(b => b.RoutingKey).OrderBy(k => k, StringComparer.Ordinal));
+    }
+
+    [Fact]
     public void DeclareBinding_Should_SetDestinationKindQueue_When_ToQueueCalled()
     {
         // arrange & act

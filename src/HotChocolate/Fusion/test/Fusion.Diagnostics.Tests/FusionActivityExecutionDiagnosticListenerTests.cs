@@ -6,6 +6,7 @@ using HotChocolate.PersistedOperations;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
+using static CookieCrumble.TestEnvironment;
 using static HotChocolate.Fusion.Diagnostics.ActivityTestHelper;
 
 namespace HotChocolate.Fusion.Diagnostics;
@@ -30,17 +31,18 @@ public class FusionActivityExecutionDiagnosticListenerTests : FusionTestBase
             configureGatewayBuilder: b => b.AddInstrumentation());
 
             // act
-            var executor = await gateway.Services.GetRequestExecutorAsync();
+            var executor = await gateway.Services.GetRequestExecutorAsync(
+                cancellationToken: TestContext.Current.CancellationToken);
 
             var request = OperationRequestBuilder.New()
                 .SetDocument("{ sayHello }")
                 .Build();
 
             // act
-            await executor.ExecuteAsync(request);
+            await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
 
             // assert
-            activities.MatchSnapshot();
+            activities.MatchSnapshot(Postfix([NET11_0]));
         }
     }
 
@@ -64,17 +66,18 @@ public class FusionActivityExecutionDiagnosticListenerTests : FusionTestBase
                 o.IncludeDocument = true;
             }));
 
-            var executor = await gateway.Services.GetRequestExecutorAsync();
+            var executor = await gateway.Services.GetRequestExecutorAsync(
+                cancellationToken: TestContext.Current.CancellationToken);
 
             var request = OperationRequestBuilder.New()
                 .SetDocument("query SayHelloOperation { sayHello }")
                 .Build();
 
             // act
-            await executor.ExecuteAsync(request);
+            await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
 
             // assert
-            activities.MatchSnapshot();
+            activities.MatchSnapshot(Postfix([NET11_0]));
         }
     }
 
@@ -98,14 +101,15 @@ public class FusionActivityExecutionDiagnosticListenerTests : FusionTestBase
                 o.IncludeDocument = true;
             }));
 
-            var executor = await gateway.Services.GetRequestExecutorAsync();
+            var executor = await gateway.Services.GetRequestExecutorAsync(
+                cancellationToken: TestContext.Current.CancellationToken);
 
             var request = OperationRequestBuilder.New()
                 .SetDocument("query SayHelloOperation { sayHello_ }")
                 .Build();
 
             // act
-            await executor.ExecuteAsync(request);
+            await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
 
             // assert
             activities.MatchSnapshot();
@@ -132,17 +136,18 @@ public class FusionActivityExecutionDiagnosticListenerTests : FusionTestBase
                 o.IncludeDocument = true;
             }));
 
-            var executor = await gateway.Services.GetRequestExecutorAsync();
+            var executor = await gateway.Services.GetRequestExecutorAsync(
+                cancellationToken: TestContext.Current.CancellationToken);
 
             var request = OperationRequestBuilder.New()
                 .SetDocument("query SayHelloOperation { causeFatalError }")
                 .Build();
 
             // act
-            await executor.ExecuteAsync(request);
+            await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
 
             // assert
-            activities.MatchSnapshot();
+            activities.MatchSnapshot(Postfix([NET11_0]));
         }
     }
 
@@ -167,17 +172,18 @@ public class FusionActivityExecutionDiagnosticListenerTests : FusionTestBase
                 o.IncludeDocument = true;
             }));
 
-            var executor = await gateway.Services.GetRequestExecutorAsync();
+            var executor = await gateway.Services.GetRequestExecutorAsync(
+                cancellationToken: TestContext.Current.CancellationToken);
 
             var request = OperationRequestBuilder.New()
                 .SetDocument("query SayHelloQuery { sayHello }")
                 .Build();
 
             // act
-            await executor.ExecuteAsync(request);
+            await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
 
             // assert
-            activities.MatchSnapshot();
+            activities.MatchSnapshot(Postfix([NET11_0]));
         }
     }
 
@@ -203,17 +209,18 @@ public class FusionActivityExecutionDiagnosticListenerTests : FusionTestBase
             configureGatewayBuilder: b => b.AddInstrumentation(o =>
                 o.Scopes = FusionActivityScopes.All));
 
-            var executor = await gateway.Services.GetRequestExecutorAsync();
+            var executor = await gateway.Services.GetRequestExecutorAsync(
+                cancellationToken: TestContext.Current.CancellationToken);
 
             var request = OperationRequestBuilder.New()
                 .SetDocument("{ sayHello sayGoodbye }")
                 .Build();
 
             // act
-            await executor.ExecuteAsync(request);
+            await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
 
             // assert
-            activities.MatchSnapshot();
+            activities.MatchSnapshot(Postfix([NET11_0]));
         }
     }
 
@@ -240,13 +247,16 @@ public class FusionActivityExecutionDiagnosticListenerTests : FusionTestBase
                     (_, s) => s.AddSingleton<IOperationDocumentStorage>(storage))
                 .UsePersistedOperationPipeline());
 
-            var executor = await gateway.Services.GetRequestExecutorAsync();
+            var executor = await gateway.Services.GetRequestExecutorAsync(
+                cancellationToken: TestContext.Current.CancellationToken);
 
             // act
-            await executor.ExecuteAsync(OperationRequest.FromId("say-hello-persisted-id"));
+            await executor.ExecuteAsync(
+                OperationRequest.FromId("say-hello-persisted-id"),
+                TestContext.Current.CancellationToken);
 
             // assert
-            activities.MatchSnapshot();
+            activities.MatchSnapshot(Postfix([NET11_0]));
         }
     }
 
@@ -270,14 +280,15 @@ public class FusionActivityExecutionDiagnosticListenerTests : FusionTestBase
                     (_, s) => s.AddSingleton<IOperationDocumentStorage>(new NoopOperationDocumentStorage()))
                 .UsePersistedOperationPipeline());
 
-            var executor = await gateway.Services.GetRequestExecutorAsync();
+            var executor = await gateway.Services.GetRequestExecutorAsync(
+                cancellationToken: TestContext.Current.CancellationToken);
 
             var request = OperationRequestBuilder.New()
                 .SetDocumentId("a8c5e2f1d3b4a6e7c9d0f1a2b3c4d5e6")
                 .Build();
 
             // act
-            await executor.ExecuteAsync(request);
+            await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
 
             // assert
             activities.MatchSnapshot();
@@ -305,14 +316,15 @@ public class FusionActivityExecutionDiagnosticListenerTests : FusionTestBase
                     (_, s) => s.AddSingleton<IOperationDocumentStorage>(new NoopOperationDocumentStorage()))
                 .UsePersistedOperationPipeline());
 
-            var executor = await gateway.Services.GetRequestExecutorAsync();
+            var executor = await gateway.Services.GetRequestExecutorAsync(
+                cancellationToken: TestContext.Current.CancellationToken);
 
             var request = OperationRequestBuilder.New()
                 .SetDocument("{ sayHello }")
                 .Build();
 
             // act
-            await executor.ExecuteAsync(request);
+            await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
 
             // assert
             activities.MatchSnapshot();
@@ -336,14 +348,15 @@ public class FusionActivityExecutionDiagnosticListenerTests : FusionTestBase
             configureGatewayBuilder: b => b.AddInstrumentation(o =>
                 o.Scopes = FusionActivityScopes.All));
 
-            var executor = await gateway.Services.GetRequestExecutorAsync();
+            var executor = await gateway.Services.GetRequestExecutorAsync(
+                cancellationToken: TestContext.Current.CancellationToken);
 
             var request = OperationRequestBuilder.New()
                 .SetDocument("{ sayHello")
                 .Build();
 
             // act
-            await executor.ExecuteAsync(request);
+            await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
 
             // assert
             activities.MatchSnapshot();
@@ -367,14 +380,15 @@ public class FusionActivityExecutionDiagnosticListenerTests : FusionTestBase
             configureGatewayBuilder: b => b.AddInstrumentation(o =>
                 o.Scopes = FusionActivityScopes.All));
 
-            var executor = await gateway.Services.GetRequestExecutorAsync();
+            var executor = await gateway.Services.GetRequestExecutorAsync(
+                cancellationToken: TestContext.Current.CancellationToken);
 
             var request = OperationRequestBuilder.New()
                 .SetDocument("{ unknownField123 }")
                 .Build();
 
             // act
-            await executor.ExecuteAsync(request);
+            await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
 
             // assert
             activities.MatchSnapshot();
@@ -397,17 +411,18 @@ public class FusionActivityExecutionDiagnosticListenerTests : FusionTestBase
             ],
             configureGatewayBuilder: b => b.AddInstrumentation());
 
-            var executor = await gateway.Services.GetRequestExecutorAsync();
+            var executor = await gateway.Services.GetRequestExecutorAsync(
+                cancellationToken: TestContext.Current.CancellationToken);
 
             var request = OperationRequestBuilder.New()
                 .SetDocument("{ sayHello }")
                 .Build();
 
             // act
-            await executor.ExecuteAsync(request);
+            await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
 
             // assert
-            activities.MatchSnapshot();
+            activities.MatchSnapshot(Postfix([NET11_0]));
         }
     }
 
@@ -430,7 +445,8 @@ public class FusionActivityExecutionDiagnosticListenerTests : FusionTestBase
             configureGatewayBuilder: b => b.AddInstrumentation(o =>
                 o.Scopes = FusionActivityScopes.All));
 
-            var executor = await gateway.Services.GetRequestExecutorAsync();
+            var executor = await gateway.Services.GetRequestExecutorAsync(
+                cancellationToken: TestContext.Current.CancellationToken);
 
             var request = OperationRequestBuilder.New()
                 .SetDocument("query($mood: Mood!) { greetMood(mood: $mood) }")
@@ -439,10 +455,10 @@ public class FusionActivityExecutionDiagnosticListenerTests : FusionTestBase
                 .Build();
 
             // act
-            await executor.ExecuteAsync(request);
+            await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
 
             // assert
-            activities.MatchSnapshot();
+            activities.MatchSnapshot(Postfix([NET11_0]));
         }
     }
 
@@ -463,17 +479,126 @@ public class FusionActivityExecutionDiagnosticListenerTests : FusionTestBase
             configureGatewayBuilder: b => b.AddInstrumentation(o =>
                 o.Scopes = FusionActivityScopes.All));
 
-            var executor = await gateway.Services.GetRequestExecutorAsync();
+            var executor = await gateway.Services.GetRequestExecutorAsync(
+                cancellationToken: TestContext.Current.CancellationToken);
 
             var request = OperationRequestBuilder.New()
                 .SetDocument("{ sayHello }")
                 .Build();
 
             // act
-            await executor.ExecuteAsync(request);
+            await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
 
             // assert
-            activities.MatchSnapshot();
+            activities.MatchSnapshot(Postfix([NET11_0]));
+        }
+    }
+
+    [Fact]
+    public async Task RequestSpanDisplayName_Should_BeOperationType_When_OperationNameInSpanNameDisabled()
+    {
+        using (CaptureActivities(out var activities))
+        {
+            // arrange
+            using var server1 = CreateSourceSchema(
+                "a",
+                b => b.AddQueryType<Query>());
+
+            using var gateway = await CreateCompositeSchemaAsync(
+            [
+                ("a", server1)
+            ],
+            configureGatewayBuilder: b => b.AddInstrumentation(o =>
+                o.Scopes = FusionActivityScopes.All));
+
+            var executor = await gateway.Services.GetRequestExecutorAsync(
+                cancellationToken: TestContext.Current.CancellationToken);
+
+            var request = OperationRequestBuilder.New()
+                .SetDocument("query GetHeroName { sayHello }")
+                .Build();
+
+            // act
+            await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
+
+            // assert
+            var requestSpan = activities.Exported
+                .Single(a => a.OperationName == "GraphQL Operation");
+            Assert.Equal("query", requestSpan.DisplayName);
+        }
+    }
+
+    [Fact]
+    public async Task RequestSpanDisplayName_Should_IncludeOperationName_When_OperationNameInSpanNameEnabledAndNamed()
+    {
+        using (CaptureActivities(out var activities))
+        {
+            // arrange
+            using var server1 = CreateSourceSchema(
+                "a",
+                b => b.AddQueryType<Query>());
+
+            using var gateway = await CreateCompositeSchemaAsync(
+            [
+                ("a", server1)
+            ],
+            configureGatewayBuilder: b => b.AddInstrumentation(o =>
+            {
+                o.Scopes = FusionActivityScopes.All;
+                o.IncludeOperationNameInSpanName = true;
+            }));
+
+            var executor = await gateway.Services.GetRequestExecutorAsync(
+                cancellationToken: TestContext.Current.CancellationToken);
+
+            var request = OperationRequestBuilder.New()
+                .SetDocument("query GetHeroName { sayHello }")
+                .Build();
+
+            // act
+            await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
+
+            // assert
+            var requestSpan = activities.Exported
+                .Single(a => a.OperationName == "GraphQL Operation");
+            Assert.Equal("query GetHeroName", requestSpan.DisplayName);
+        }
+    }
+
+    [Fact]
+    public async Task RequestSpanDisplayName_Should_FallBackToOperationType_When_OperationNameInSpanNameEnabledAndAnonymous()
+    {
+        using (CaptureActivities(out var activities))
+        {
+            // arrange
+            using var server1 = CreateSourceSchema(
+                "a",
+                b => b.AddQueryType<Query>());
+
+            using var gateway = await CreateCompositeSchemaAsync(
+            [
+                ("a", server1)
+            ],
+            configureGatewayBuilder: b => b.AddInstrumentation(o =>
+            {
+                o.Scopes = FusionActivityScopes.All;
+                o.IncludeOperationNameInSpanName = true;
+            }));
+
+            var executor = await gateway.Services.GetRequestExecutorAsync(
+                cancellationToken: TestContext.Current.CancellationToken);
+
+            var request = OperationRequestBuilder.New()
+                .SetDocument("{ sayHello }")
+                .Build();
+
+            // act
+            await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
+
+            // assert
+            var requestSpan = activities.Exported
+                .Single(a => a.OperationName == "GraphQL Operation");
+            Assert.Equal("query", requestSpan.DisplayName);
         }
     }
 
@@ -495,17 +620,18 @@ public class FusionActivityExecutionDiagnosticListenerTests : FusionTestBase
                 o.Scopes = FusionActivityScopes.ValidateDocument
                     | FusionActivityScopes.PlanOperation));
 
-            var executor = await gateway.Services.GetRequestExecutorAsync();
+            var executor = await gateway.Services.GetRequestExecutorAsync(
+                cancellationToken: TestContext.Current.CancellationToken);
 
             var request = OperationRequestBuilder.New()
                 .SetDocument("{ sayHello }")
                 .Build();
 
             // act
-            await executor.ExecuteAsync(request);
+            await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
 
             // assert
-            activities.MatchSnapshot();
+            activities.MatchSnapshot(Postfix([NET11_0]));
         }
     }
 
@@ -535,14 +661,15 @@ public class FusionActivityExecutionDiagnosticListenerTests : FusionTestBase
                 o.IncludeDocument = true;
             }));
 
-            var executor = await gateway.Services.GetRequestExecutorAsync();
+            var executor = await gateway.Services.GetRequestExecutorAsync(
+                cancellationToken: TestContext.Current.CancellationToken);
 
             var request = OperationRequestBuilder.New()
                 .SetDocument("{ sayHello sayGoodbye }")
                 .Build();
 
             // act
-            await executor.ExecuteAsync(request);
+            await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
 
             // assert
             activities.MatchSnapshot();
@@ -555,13 +682,17 @@ public class FusionActivityExecutionDiagnosticListenerTests : FusionTestBase
         using (CaptureActivities(out var activities))
         {
             // arrange
+            var coordination = new DeepErrorCoordination();
+
             using var server1 = CreateSourceSchema(
                 "a",
-                b => b.AddQueryType<QueryA>());
+                b => b.AddQueryType<QueryAWithSignal>(),
+                configureServices: s => s.AddSingleton(coordination));
 
             using var server2 = CreateSourceSchema(
                 "b",
-                b => b.AddQueryType<QueryBWithDeepError>());
+                b => b.AddQueryType<QueryBWithDeepError>(),
+                configureServices: s => s.AddSingleton(coordination));
 
             using var gateway = await CreateCompositeSchemaAsync(
             [
@@ -574,7 +705,8 @@ public class FusionActivityExecutionDiagnosticListenerTests : FusionTestBase
                 o.IncludeDocument = true;
             }));
 
-            var executor = await gateway.Services.GetRequestExecutorAsync();
+            var executor = await gateway.Services.GetRequestExecutorAsync(
+                cancellationToken: TestContext.Current.CancellationToken);
 
             var request = OperationRequestBuilder.New()
                 .SetDocument(
@@ -591,10 +723,10 @@ public class FusionActivityExecutionDiagnosticListenerTests : FusionTestBase
                 .Build();
 
             // act
-            await executor.ExecuteAsync(request);
+            await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
 
             // assert
-            activities.MatchSnapshot();
+            activities.MatchSnapshot(Postfix([NET11_0]));
         }
     }
 
@@ -613,7 +745,8 @@ public class FusionActivityExecutionDiagnosticListenerTests : FusionTestBase
             configureGatewayBuilder: b => b.AddInstrumentation(o =>
                 o.Scopes = FusionActivityScopes.All));
 
-        var executor = await gateway.Services.GetRequestExecutorAsync();
+        var executor = await gateway.Services.GetRequestExecutorAsync(
+            cancellationToken: TestContext.Current.CancellationToken);
 
         // act - execute twice so second uses cached document
         var request = OperationRequestBuilder.New()
@@ -621,14 +754,14 @@ public class FusionActivityExecutionDiagnosticListenerTests : FusionTestBase
             .SetDocumentHash(new OperationDocumentHash("abc", "sha256", HashFormat.Hex))
             .Build();
 
-        await executor.ExecuteAsync(request);
+        await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
 
         using (CaptureActivities(out var activities))
         {
-            await executor.ExecuteAsync(request);
+            await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
 
             // assert
-            activities.MatchSnapshot();
+            activities.MatchSnapshot(Postfix([NET11_0]));
         }
     }
 
@@ -653,11 +786,13 @@ public class FusionActivityExecutionDiagnosticListenerTests : FusionTestBase
             configureGatewayBuilder: b => b.AddInstrumentation(o =>
                 o.Scopes = FusionActivityScopes.All));
 
-            var executor = await gateway.Services.GetRequestExecutorAsync();
+            var executor = await gateway.Services.GetRequestExecutorAsync(
+                cancellationToken: TestContext.Current.CancellationToken);
 
             // act
             await using var result = await executor.ExecuteAsync(
-                "subscription OnMessageSubscription { onMessage }");
+                "subscription OnMessageSubscription { onMessage }",
+                TestContext.Current.CancellationToken);
             await using var responseStream = result.ExpectResponseStream();
             var results = responseStream.ReadResultsAsync().GetAsyncEnumerator(cts.Token);
 
@@ -671,7 +806,7 @@ public class FusionActivityExecutionDiagnosticListenerTests : FusionTestBase
             }
 
             // assert
-            activities.MatchSnapshot();
+            activities.MatchSnapshot(Postfix([NET11_0]));
         }
     }
 
@@ -696,11 +831,13 @@ public class FusionActivityExecutionDiagnosticListenerTests : FusionTestBase
             configureGatewayBuilder: b => b.AddInstrumentation(o =>
                 o.Scopes = FusionActivityScopes.All));
 
-            var executor = await gateway.Services.GetRequestExecutorAsync();
+            var executor = await gateway.Services.GetRequestExecutorAsync(
+                cancellationToken: TestContext.Current.CancellationToken);
 
             // act
             await using var result = await executor.ExecuteAsync(
-                "subscription OnFailingMessageSubscription { onFailingMessage }");
+                "subscription OnFailingMessageSubscription { onFailingMessage }",
+                TestContext.Current.CancellationToken);
             await using var responseStream = result.ExpectResponseStream();
             var results = responseStream.ReadResultsAsync().GetAsyncEnumerator(cts.Token);
 
@@ -738,7 +875,8 @@ public class FusionActivityExecutionDiagnosticListenerTests : FusionTestBase
             configureGatewayBuilder: b => b.AddInstrumentation(o =>
                 o.Scopes = FusionActivityScopes.All));
 
-            var executor = await gateway.Services.GetRequestExecutorAsync();
+            var executor = await gateway.Services.GetRequestExecutorAsync(
+                cancellationToken: TestContext.Current.CancellationToken);
 
             // act
             IExecutionResult? result = null;
@@ -746,7 +884,8 @@ public class FusionActivityExecutionDiagnosticListenerTests : FusionTestBase
             try
             {
                 result = await executor.ExecuteAsync(
-                    "subscription OnMessageSubscription { onMessage }");
+                    "subscription OnMessageSubscription { onMessage }",
+                    TestContext.Current.CancellationToken);
             }
             catch
             {
@@ -806,6 +945,16 @@ public class FusionActivityExecutionDiagnosticListenerTests : FusionTestBase
     }
 
     [GraphQLName("Query")]
+    public class QueryAWithSignal
+    {
+        public string SayHello([Service] DeepErrorCoordination coordination)
+        {
+            coordination.SignalSourceACompleted();
+            return "hello";
+        }
+    }
+
+    [GraphQLName("Query")]
     public class QueryB
     {
         public string SayGoodbye() => "goodbye";
@@ -826,13 +975,31 @@ public class FusionActivityExecutionDiagnosticListenerTests : FusionTestBase
 
     public class DeeperB
     {
-        public string CauseFatalError(IResolverContext context)
-            => throw new GraphQLException(
+        public async Task<string> CauseFatalError(
+            IResolverContext context,
+            [Service] DeepErrorCoordination coordination)
+        {
+            await coordination.WaitForSourceACompletedAsync();
+
+            throw new GraphQLException(
                 ErrorBuilder.New()
                     .SetMessage("deep fail")
                     .SetCode("CUSTOM_ERROR_CODE")
                     .SetPath(context.Path)
                     .Build());
+        }
+    }
+
+    public sealed class DeepErrorCoordination
+    {
+        private readonly TaskCompletionSource _sourceACompleted =
+            new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        public void SignalSourceACompleted()
+            => _sourceACompleted.TrySetResult();
+
+        public Task WaitForSourceACompletedAsync()
+            => _sourceACompleted.Task.WaitAsync(TimeSpan.FromSeconds(5));
     }
 
     public class Deep

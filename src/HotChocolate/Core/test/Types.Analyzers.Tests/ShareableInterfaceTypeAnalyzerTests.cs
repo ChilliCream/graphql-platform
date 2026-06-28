@@ -39,7 +39,7 @@ public class ShareableInterfaceTypeAnalyzerTests
                 public string Name { get; set; }
             }
             """],
-            enableAnalyzers: true).MatchMarkdownAsync();
+            enableAnalyzers: true).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -77,7 +77,7 @@ public class ShareableInterfaceTypeAnalyzerTests
                 public string Name { get; set; }
             }
             """],
-            enableAnalyzers: true).MatchMarkdownAsync();
+            enableAnalyzers: true).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -117,7 +117,7 @@ public class ShareableInterfaceTypeAnalyzerTests
                 public string Name { get; set; }
             }
             """],
-            enableAnalyzers: true).MatchMarkdownAsync();
+            enableAnalyzers: true).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -157,7 +157,7 @@ public class ShareableInterfaceTypeAnalyzerTests
                 public string Name { get; set; }
             }
             """],
-            enableAnalyzers: true).MatchMarkdownAsync();
+            enableAnalyzers: true).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -199,6 +199,6 @@ public class ShareableInterfaceTypeAnalyzerTests
                 public string Name { get; set; }
             }
             """],
-            enableAnalyzers: true).MatchMarkdownAsync();
+            enableAnalyzers: true).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 }

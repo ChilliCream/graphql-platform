@@ -26,7 +26,7 @@ public class GenericHandlerTests
                     => new("ok");
             }
             """
-        ]).MatchMarkdownAsync();
+        ]).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -49,7 +49,7 @@ public class GenericHandlerTests
                     => new("processed");
             }
             """
-        ]).MatchMarkdownAsync();
+        ]).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -82,6 +82,6 @@ public class GenericHandlerTests
                 public ValueTask HandleAsync(MidCommand command, CancellationToken ct) => default;
             }
             """
-        ]).MatchMarkdownAsync();
+        ]).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 }

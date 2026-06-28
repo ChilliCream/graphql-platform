@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using HotChocolate.Fusion.Converters;
 using HotChocolate.Fusion.Language;
 using HotChocolate.Language.Utilities;
 using HotChocolate.Types;
@@ -412,6 +413,14 @@ public sealed class FieldSelectionMapValidator(
             }
 
             context.SelectedFields.Add(field);
+
+            if (node.Arguments.Length > 0)
+            {
+                ConstantArgumentValidator.Validate(
+                    FieldSelectionMapValueNodeConverter.Convert(node.Arguments),
+                    field,
+                    context.Errors);
+            }
         }
 
         return Continue;

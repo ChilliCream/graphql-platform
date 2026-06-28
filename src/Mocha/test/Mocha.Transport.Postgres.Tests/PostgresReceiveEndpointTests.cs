@@ -1,4 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
+using Mocha.Features;
 using Mocha.Transport.Postgres.Tests.Helpers;
 
 namespace Mocha.Transport.Postgres.Tests;
@@ -10,10 +11,7 @@ public class PostgresReceiveEndpointTests
     {
         // arrange
         var runtime = CreateRuntime(t =>
-        {
-            t.DeclareQueue("my-q");
-            t.Endpoint("ep").Queue("my-q").Handler<OrderCreatedHandler>();
-        });
+            t.Queue("my-q").Handler<OrderCreatedHandler>());
         var transport = runtime.Transports.OfType<PostgresMessagingTransport>().Single();
 
         // act
@@ -30,9 +28,8 @@ public class PostgresReceiveEndpointTests
         // arrange
         var runtime = CreateRuntime(t =>
         {
-            t.DeclareQueue("q");
             t.DeclareQueue("q_error");
-            t.Endpoint("ep").Queue("q").Handler<OrderCreatedHandler>().FaultEndpoint("postgres:///q/q_error");
+            t.Queue("q").Handler<OrderCreatedHandler>().FaultEndpoint(new Uri("postgres:///q/q_error"));
         });
         var transport = runtime.Transports.OfType<PostgresMessagingTransport>().Single();
 
@@ -40,7 +37,7 @@ public class PostgresReceiveEndpointTests
         var endpoint = transport.ReceiveEndpoints.OfType<PostgresReceiveEndpoint>().First(e => e.Queue.Name == "q");
 
         // assert
-        Assert.NotNull(endpoint.ErrorEndpoint);
+        Assert.NotNull(endpoint.Features.Get<ReceiveFaultEndpointFeature>()?.Endpoint);
     }
 
     [Fact]
@@ -49,9 +46,8 @@ public class PostgresReceiveEndpointTests
         // arrange
         var runtime = CreateRuntime(t =>
         {
-            t.DeclareQueue("q");
             t.DeclareQueue("q_skipped");
-            t.Endpoint("ep").Queue("q").Handler<OrderCreatedHandler>().SkippedEndpoint("postgres:///q/q_skipped");
+            t.Queue("q").Handler<OrderCreatedHandler>().SkippedEndpoint(new Uri("postgres:///q/q_skipped"));
         });
         var transport = runtime.Transports.OfType<PostgresMessagingTransport>().Single();
 
@@ -59,7 +55,7 @@ public class PostgresReceiveEndpointTests
         var endpoint = transport.ReceiveEndpoints.OfType<PostgresReceiveEndpoint>().First(e => e.Queue.Name == "q");
 
         // assert
-        Assert.NotNull(endpoint.SkippedEndpoint);
+        Assert.NotNull(endpoint.Features.Get<ReceiveSkippedEndpointFeature>()?.Endpoint);
     }
 
     [Fact]
@@ -69,7 +65,7 @@ public class PostgresReceiveEndpointTests
         var runtime = CreateRuntime(t =>
         {
             t.DeclareQueue("err-q");
-            t.Endpoint("err-ep").Queue("err-q").Kind(ReceiveEndpointKind.Error);
+            t.Endpoint("err-q").Kind(ReceiveEndpointKind.Error);
         });
         var transport = runtime.Transports.OfType<PostgresMessagingTransport>().Single();
 
@@ -85,10 +81,7 @@ public class PostgresReceiveEndpointTests
     {
         // arrange
         var runtime = CreateRuntime(t =>
-        {
-            t.DeclareQueue("my-q");
-            t.Endpoint("ep").Queue("my-q").Handler<OrderCreatedHandler>();
-        });
+            t.Queue("my-q").Handler<OrderCreatedHandler>());
         var transport = runtime.Transports.OfType<PostgresMessagingTransport>().Single();
 
         // act
@@ -104,10 +97,7 @@ public class PostgresReceiveEndpointTests
     {
         // arrange
         var runtime = CreateRuntime(t =>
-        {
-            t.DeclareQueue("my-q");
-            t.Endpoint("ep").Queue("my-q").Handler<OrderCreatedHandler>();
-        });
+            t.Queue("my-q").Handler<OrderCreatedHandler>());
         var transport = runtime.Transports.OfType<PostgresMessagingTransport>().Single();
 
         // act

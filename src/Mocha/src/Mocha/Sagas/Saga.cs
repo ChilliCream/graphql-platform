@@ -92,7 +92,6 @@ public abstract partial class Saga : IFeatureProvider
                         eventType.FullName,
                         transition.TransitionTo,
                         transition.TransitionKind,
-                        transition.AutoProvision,
                         transition.Publish.IsEmpty
                             ? null
                             : transition
@@ -566,6 +565,9 @@ public abstract partial class Saga<TState> : Saga where TState : SagaStateBase
             var requestType = context.Runtime.GetMessageType(message.GetType());
             var endpoint = context.Runtime.GetSendEndpoint(requestType);
 
+            // Route the reply to the shared reply endpoint, where the saga's OnReply/OnAnyReply route
+            // is bound. The reply is delivered to the saga consumer there and correlated by the saga
+            // header, so no correlation id is required.
             options = options with { ReplyEndpoint = endpoint.Transport.ReplyReceiveEndpoint?.Source.Address };
 
             options.Headers.Set(SagaContextData.SagaId, state.Id.ToString("D"));

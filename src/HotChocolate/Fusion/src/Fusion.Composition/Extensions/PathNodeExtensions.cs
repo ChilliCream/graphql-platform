@@ -20,6 +20,14 @@ internal static class PathNodeExtensions
             return false;
         }
 
+        public IEnumerable<SatisfiabilityPathItem> EnumerateFromLeaf()
+        {
+            for (var node = path; node is not null; node = node.Parent)
+            {
+                yield return node.Item;
+            }
+        }
+
         public string ToPathString()
         {
             if (path is null)

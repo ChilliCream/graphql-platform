@@ -5033,6 +5033,34 @@
               "deprecationReason": null
             },
             {
+              "name": "isDeprecated",
+              "description": null,
+              "args": [],
+              "type": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "SCALAR",
+                  "name": "Boolean",
+                  "ofType": null
+                }
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
+              "name": "deprecationReason",
+              "description": null,
+              "args": [],
+              "type": {
+                "kind": "SCALAR",
+                "name": "String",
+                "ofType": null
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
               "name": "onOperation",
               "description": null,
               "args": [],
@@ -5205,6 +5233,12 @@
             {
               "name": "INPUT_FIELD_DEFINITION",
               "description": "Location adjacent to an input object field definition.",
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
+              "name": "DIRECTIVE_DEFINITION",
+              "description": "Location adjacent to a directive definition.",
               "isDeprecated": false,
               "deprecationReason": null
             }
@@ -5577,7 +5611,22 @@
             {
               "name": "directives",
               "description": "A list of all directives supported by this server.",
-              "args": [],
+              "args": [
+                {
+                  "name": "includeDeprecated",
+                  "description": null,
+                  "type": {
+                    "kind": "NON_NULL",
+                    "name": null,
+                    "ofType": {
+                      "kind": "SCALAR",
+                      "name": "Boolean",
+                      "ofType": null
+                    }
+                  },
+                  "defaultValue": "false"
+                }
+              ],
               "type": {
                 "kind": "NON_NULL",
                 "name": null,

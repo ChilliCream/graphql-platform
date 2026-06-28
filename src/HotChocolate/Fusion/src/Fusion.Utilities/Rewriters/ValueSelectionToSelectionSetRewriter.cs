@@ -1,3 +1,4 @@
+using HotChocolate.Fusion.Converters;
 using HotChocolate.Fusion.Language;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -37,6 +38,49 @@ public sealed class ValueSelectionToSelectionSetRewriter(
         }
 
         return _mergeSelectionSetRewriter.Merge([new SelectionSetNode(selections)], type);
+    }
+
+    /// <summary>
+    /// Turns the value selections into a single selection set without using a schema, so it can
+    /// run before the schema is built. Unlike the schema-based overloads, it does not merge or
+    /// remove duplicate selections.
+    /// </summary>
+    /// <param name="nodes">
+    /// The value selections to convert.
+    /// </param>
+    /// <returns>
+    /// A selection set that represents the given value selections.
+    /// </returns>
+    public static SelectionSetNode Rewrite(IEnumerable<IValueSelectionNode> nodes)
+    {
+        ArgumentNullException.ThrowIfNull(nodes);
+
+        var selections = new List<ISelectionNode>();
+
+        foreach (var node in nodes)
+        {
+            Flatten(Visit(node), selections);
+        }
+
+        return new SelectionSetNode(selections);
+    }
+
+    private static void Flatten(ISelectionNode selection, List<ISelectionNode> selections)
+    {
+        // An inline fragment without a type condition only groups selections, so we inline its
+        // members to keep the resulting selection list flat. Type-conditioned inline fragments and
+        // fields are preserved as-is.
+        if (selection is InlineFragmentNode { TypeCondition: null } inlineFragment)
+        {
+            foreach (var inner in inlineFragment.SelectionSet.Selections)
+            {
+                Flatten(inner, selections);
+            }
+
+            return;
+        }
+
+        selections.Add(selection);
     }
 
     private static ISelectionNode Visit(IValueSelectionNode node)
@@ -125,7 +169,8 @@ public sealed class ValueSelectionToSelectionSetRewriter(
             => selection is null ? null : new SelectionSetNode([selection]);
     }
 
-    private static IReadOnlyList<ArgumentNode> CreateArguments(PathSegmentNode pathSegment)
+    private static IReadOnlyList<HotChocolate.Language.ArgumentNode> CreateArguments(
+        PathSegmentNode pathSegment)
     {
         var arguments = pathSegment.GetArguments();
 
@@ -134,12 +179,12 @@ public sealed class ValueSelectionToSelectionSetRewriter(
             return [];
         }
 
-        var argumentNodes = new ArgumentNode[arguments.Count];
+        var argumentNodes = new HotChocolate.Language.ArgumentNode[arguments.Count];
 
         for (var i = 0; i < arguments.Count; i++)
         {
             var argument = arguments[i];
-            argumentNodes[i] = new ArgumentNode(
+            argumentNodes[i] = new HotChocolate.Language.ArgumentNode(
                 null,
                 new HotChocolate.Language.NameNode(argument.Name.Value),
                 Utf8GraphQLParser.Syntax.ParseValueLiteral(argument.Value, constant: false));
@@ -162,7 +207,13 @@ public sealed class ValueSelectionToSelectionSetRewriter(
         {
             if (field.ValueSelection is null)
             {
-                selections.Add(new FieldNode(field.Name.Value));
+                selections.Add(
+                    new FieldNode(
+                        new HotChocolate.Language.NameNode(field.Name.Value),
+                        null,
+                        [],
+                        FieldSelectionMapValueNodeConverter.Convert(field.Arguments),
+                        null));
             }
             else
             {

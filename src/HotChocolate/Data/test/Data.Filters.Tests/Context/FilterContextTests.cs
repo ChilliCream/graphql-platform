@@ -26,7 +26,7 @@ public class FilterContextTests
                     return Array.Empty<Book>();
                 }))
             .AddFiltering()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         const string query =
@@ -38,7 +38,7 @@ public class FilterContextTests
             }
             """;
 
-        await executor.ExecuteAsync(query);
+        await executor.ExecuteAsync(query, TestContext.Current.CancellationToken);
 
         // assert
         Assert.NotNull(context);
@@ -69,7 +69,7 @@ public class FilterContextTests
                     return Array.Empty<Book>();
                 }))
             .AddFiltering()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         const string query =
@@ -81,7 +81,7 @@ public class FilterContextTests
             }
             """;
 
-        await executor.ExecuteAsync(query);
+        await executor.ExecuteAsync(query, TestContext.Current.CancellationToken);
 
         // assert
         Assert.NotNull(context);
@@ -106,7 +106,7 @@ public class FilterContextTests
                     return Array.Empty<Book>();
                 }))
             .AddFiltering()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         const string query =
@@ -118,7 +118,7 @@ public class FilterContextTests
             }
             """;
 
-        await executor.ExecuteAsync(query);
+        await executor.ExecuteAsync(query, TestContext.Current.CancellationToken);
 
         // assert
         Assert.NotNull(context);
@@ -143,7 +143,7 @@ public class FilterContextTests
                     return Array.Empty<Book>();
                 }))
             .AddFiltering()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         const string query =
@@ -155,7 +155,7 @@ public class FilterContextTests
             }
             """;
 
-        await executor.ExecuteAsync(query);
+        await executor.ExecuteAsync(query, TestContext.Current.CancellationToken);
 
         // assert
         Assert.NotNull(context);
@@ -189,7 +189,7 @@ public class FilterContextTests
                     return Array.Empty<Book>();
                 }))
             .AddFiltering()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         const string query =
@@ -206,7 +206,7 @@ public class FilterContextTests
             }
             """;
 
-        await executor.ExecuteAsync(query);
+        await executor.ExecuteAsync(query, TestContext.Current.CancellationToken);
 
         // assert
         Assert.NotNull(context);
@@ -243,7 +243,7 @@ public class FilterContextTests
                     return Array.Empty<Book>();
                 }))
             .AddFiltering()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         const string query =
@@ -255,7 +255,7 @@ public class FilterContextTests
             }
             """;
 
-        await executor.ExecuteAsync(query);
+        await executor.ExecuteAsync(query, TestContext.Current.CancellationToken);
 
         // assert
         Assert.NotNull(context);
@@ -290,7 +290,7 @@ public class FilterContextTests
                     return Array.Empty<Book>();
                 }))
             .AddFiltering()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         const string query =
@@ -322,7 +322,7 @@ public class FilterContextTests
             }
             """;
 
-        await executor.ExecuteAsync(query);
+        await executor.ExecuteAsync(query, TestContext.Current.CancellationToken);
 
         // assert
         Assert.NotNull(context);
@@ -349,7 +349,7 @@ public class FilterContextTests
                     return Array.Empty<Book>();
                 }))
             .AddFiltering()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         const string query =
@@ -371,7 +371,7 @@ public class FilterContextTests
             }
             """;
 
-        await executor.ExecuteAsync(query);
+        await executor.ExecuteAsync(query, TestContext.Current.CancellationToken);
 
         // assert
         Assert.NotNull(localContextData);
@@ -398,7 +398,7 @@ public class FilterContextTests
                     return Array.Empty<Book>();
                 }))
             .AddFiltering()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         const string query =
@@ -421,7 +421,7 @@ public class FilterContextTests
             }
             """;
 
-        await executor.ExecuteAsync(query);
+        await executor.ExecuteAsync(query, TestContext.Current.CancellationToken);
 
         // assert
         Assert.NotNull(localContextData);
@@ -446,7 +446,7 @@ public class FilterContextTests
                     return Array.Empty<Book>();
                 }))
             .AddFiltering()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         const string query = @"
@@ -457,7 +457,7 @@ public class FilterContextTests
             }
         ";
 
-        await executor.ExecuteAsync(query);
+        await executor.ExecuteAsync(query, TestContext.Current.CancellationToken);
 
         // assert
         Assert.Null(obj);
@@ -481,7 +481,7 @@ public class FilterContextTests
                     return Array.Empty<Book>();
                 }))
             .AddFiltering()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         const string query = @"
@@ -492,7 +492,7 @@ public class FilterContextTests
             }
         ";
 
-        await executor.ExecuteAsync(query);
+        await executor.ExecuteAsync(query, TestContext.Current.CancellationToken);
 
         // assert
         Assert.NotNull(context);

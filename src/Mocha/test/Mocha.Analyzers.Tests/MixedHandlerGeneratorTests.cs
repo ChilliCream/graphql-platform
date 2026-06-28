@@ -54,7 +54,7 @@ public class MixedHandlerGeneratorTests
                     => default;
             }
             """
-        ]).MatchMarkdownAsync();
+        ]).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -70,7 +70,7 @@ public class MixedHandlerGeneratorTests
                 public void DoStuff() { }
             }
             """
-        ]).MatchMarkdownAsync();
+        ]).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -105,6 +105,6 @@ public class MixedHandlerGeneratorTests
                     => new(new UserDto(1, "Test"));
             }
             """
-        ]).MatchMarkdownAsync();
+        ]).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 }

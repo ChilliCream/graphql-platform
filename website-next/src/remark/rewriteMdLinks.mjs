@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 
-const CONTENT_ROOTS = ["content/docs", "content/blogs"];
+const CONTENT_ROOTS = ["content/docs", "content/blog"];
 const RULE_ID = "remark-rewrite-md-links";
 const PAGE_FILE_RE = /^page\.(tsx?|jsx?|mdx?)$/;
 const BLOG_STEM_RE = /^(\d{4})-(\d{2})-(\d{2})-(.+)$/;
@@ -17,8 +17,19 @@ export default function remarkRewriteMdLinks() {
     const cwd = file.cwd ?? process.cwd();
     const appDir = path.join(cwd, "app");
 
+    // Pages authored under content/blog or content/docs must use relative
+    // markdown links, not hard-coded root-absolute /blog/ or /docs/ URLs.
+    const sourceRel = path.relative(cwd, sourcePath).split(path.sep).join("/");
+    const sourceUnderContent = CONTENT_ROOTS.some(
+      (r) => sourceRel === r || sourceRel.startsWith(`${r}/`),
+    );
+
+    const publicDir = path.join(cwd, "public");
+
     walk(tree, (node) => {
-      if (node.type !== "link" || typeof node.url !== "string") {
+      const isLink = node.type === "link";
+      const isImage = node.type === "image";
+      if ((!isLink && !isImage) || typeof node.url !== "string") {
         return;
       }
 
@@ -27,11 +38,51 @@ export default function remarkRewriteMdLinks() {
         return;
       }
 
-      // Root-absolute: check content roots for /docs and /blogs, otherwise
+      // Relative reference that resolves into public/ — rewrite to a rooted
+      // URL (e.g. "../../../public/image.png" -> "/image.png"). Applies to both
+      // links and image sources.
+      if (!node.url.startsWith("/")) {
+        const publicUrl = rewritePublicAsset(
+          node.url,
+          sourceDir,
+          publicDir,
+          cwd,
+          file,
+          node,
+        );
+        if (publicUrl !== null) {
+          node.url = publicUrl;
+          return;
+        }
+      }
+
+      // Root-absolute asset sources (e.g. an image at "/image.png") are already
+      // rooted; only links get route-existence validation below.
+      if (node.url.startsWith("/") && !isLink) {
+        return;
+      }
+
+      // Root-absolute: check content roots for /docs and /blog, otherwise
       // verify a matching literal/dynamic route exists in app/.
       if (node.url.startsWith("/")) {
         const pathPart = node.url.split(/[#?]/, 1)[0];
         const segments = pathPart.split("/").filter(Boolean);
+
+        // Forbid root-absolute /blog/ and /docs/ links in content pages.
+        // Authors must link relatively so the URLs stay verifiable and
+        // survive restructuring (the relative target is rewritten below).
+        if (
+          sourceUnderContent &&
+          (segments[0] === "blog" || segments[0] === "docs")
+        ) {
+          file.fail(
+            `Root-absolute link "${node.url}" is not allowed in content pages — ` +
+              `use a relative markdown link to the target file instead`,
+            node,
+            RULE_ID,
+          );
+          return;
+        }
 
         if (segments[0] === "docs") {
           const subSegments = segments.slice(1);
@@ -39,7 +90,7 @@ export default function remarkRewriteMdLinks() {
             file.fail(
               `Broken root-absolute link "${node.url}" — /docs has no index page`,
               node,
-              RULE_ID
+              RULE_ID,
             );
             return;
           }
@@ -47,19 +98,19 @@ export default function remarkRewriteMdLinks() {
             file.fail(
               `Broken root-absolute link "${node.url}" — no matching file found under docs/`,
               node,
-              RULE_ID
+              RULE_ID,
             );
           }
           return;
         }
 
-        if (segments[0] === "blogs") {
+        if (segments[0] === "blog") {
           if (!blogsRouteExists(cwd, segments.slice(1))) {
             file.fail(
-              `Broken root-absolute link "${node.url}" — no matching post found under blogs/ ` +
-                `(expected /blogs/YYYY/MM/DD/slug)`,
+              `Broken root-absolute link "${node.url}" — no matching post found under blog/ ` +
+                `(expected /blog/YYYY-MM-DD-slug)`,
               node,
-              RULE_ID
+              RULE_ID,
             );
           }
           return;
@@ -69,7 +120,7 @@ export default function remarkRewriteMdLinks() {
           file.fail(
             `Broken root-absolute link "${node.url}" — no matching page found in app/`,
             node,
-            RULE_ID
+            RULE_ID,
           );
         }
         return;
@@ -87,19 +138,19 @@ export default function remarkRewriteMdLinks() {
         file.fail(
           `Broken markdown link "${node.url}" — file not found at ${path.relative(cwd, absResolved)}`,
           node,
-          RULE_ID
+          RULE_ID,
         );
       }
 
       const rel = path.relative(cwd, absResolved).split(path.sep).join("/");
       const root = CONTENT_ROOTS.find(
-        (r) => rel === r || rel.startsWith(`${r}/`)
+        (r) => rel === r || rel.startsWith(`${r}/`),
       );
       if (!root) {
         file.fail(
           `Markdown link "${node.url}" resolves outside the content roots (${CONTENT_ROOTS.join(", ")}): ${rel}`,
           node,
-          RULE_ID
+          RULE_ID,
         );
       }
 
@@ -107,14 +158,14 @@ export default function remarkRewriteMdLinks() {
       // Strip the on-disk "content/" prefix to produce the public URL.
       const urlRel = cleanRel.replace(/^content\//, "");
 
-      if (root === "content/blogs") {
+      if (root === "content/blog") {
         const blogUrl = blogUrlFromCleanRel(urlRel);
         if (blogUrl === null) {
           file.fail(
             `Markdown link "${node.url}" resolves to a blog file with an invalid name "${urlRel}". ` +
-              `Expected content/blogs/YYYY-MM-DD-slug.md or content/blogs/YYYY-MM-DD-slug/YYYY-MM-DD-slug.md`,
+              `Expected content/blog/YYYY-MM-DD-slug.md or content/blog/YYYY-MM-DD-slug/YYYY-MM-DD-slug.md`,
             node,
-            RULE_ID
+            RULE_ID,
           );
           return;
         }
@@ -127,24 +178,54 @@ export default function remarkRewriteMdLinks() {
   };
 }
 
-/** Convert a path relative to cwd (without extension) under blogs/ into the
- *  canonical /blogs/YYYY/MM/DD/slug URL, or null if it doesn't match. */
-function blogUrlFromCleanRel(cleanRel) {
-  // cleanRel looks like "blogs/2019-06-05-foo" or "blogs/2019-06-05-foo/2019-06-05-foo"
-  const segments = cleanRel.split("/");
-  if (segments[0] !== "blogs") {
-    return null;
-  }
-  const stem = segments[1];
-  if (!stem) {
-    return null;
-  }
-  const m = BLOG_STEM_RE.exec(stem);
+/**
+ * Resolve a relative URL against the source file and, if it lands inside
+ * public/, return its rooted URL (path relative to public/, with a leading
+ * "/"). Returns null when the target is outside public/ so the caller can fall
+ * through to other handling. Fails the build for a public/ path that doesn't
+ * exist on disk.
+ */
+function rewritePublicAsset(url, sourceDir, publicDir, cwd, file, node) {
+  const m = /^([^#?]+)([#?].*)?$/.exec(url);
   if (!m) {
     return null;
   }
-  const [, yyyy, mm, dd, slug] = m;
-  return `/blogs/${yyyy}/${mm}/${dd}/${slug}`;
+
+  const [, filePart, suffix = ""] = m;
+  const absResolved = path.resolve(sourceDir, filePart);
+  const relToPublic = path.relative(publicDir, absResolved);
+
+  // Outside public/ (escapes upward or onto another drive) — not our concern.
+  if (relToPublic.startsWith("..") || path.isAbsolute(relToPublic)) {
+    return null;
+  }
+
+  if (!fs.existsSync(absResolved)) {
+    file.fail(
+      `Broken asset link "${url}" — file not found at ${path.relative(cwd, absResolved)}`,
+      node,
+      RULE_ID,
+    );
+    return null;
+  }
+
+  const urlPath = relToPublic.split(path.sep).join("/");
+  return `/${urlPath}${suffix}`;
+}
+
+/** Convert a path relative to cwd (without extension) under blog/ into the
+ *  canonical /blog/YYYY-MM-DD-slug URL, or null if it doesn't match. */
+function blogUrlFromCleanRel(cleanRel) {
+  // cleanRel looks like "blog/2019-06-05-foo" or "blog/2019-06-05-foo/2019-06-05-foo"
+  const segments = cleanRel.split("/");
+  if (segments[0] !== "blog") {
+    return null;
+  }
+  const stem = segments[1];
+  if (!stem || !BLOG_STEM_RE.test(stem)) {
+    return null;
+  }
+  return `/blog/${stem}`;
 }
 
 function appRouteExists(appDir, segments) {
@@ -213,24 +294,19 @@ function docsFileExists(cwd, subSegments) {
     `${joined}/index.mdx`,
   ];
   return candidates.some((c) =>
-    fs.existsSync(path.join(cwd, "content", "docs", c))
+    fs.existsSync(path.join(cwd, "content", "docs", c)),
   );
 }
 
-/** Verify that /blogs/YYYY/MM/DD/slug maps to an actual blog file on disk. */
+/** Verify that /blog/YYYY-MM-DD-slug maps to an actual blog file on disk. */
 function blogsRouteExists(cwd, subSegments) {
-  if (subSegments.length < 4) {
+  if (subSegments.length !== 1) {
     return false;
   }
-  const [yyyy, mm, dd, ...rest] = subSegments;
-  if (!/^\d{4}$/.test(yyyy) || !/^\d{2}$/.test(mm) || !/^\d{2}$/.test(dd)) {
+  const stem = subSegments[0];
+  if (!BLOG_STEM_RE.test(stem)) {
     return false;
   }
-  const slug = rest.join("/");
-  if (!slug) {
-    return false;
-  }
-  const stem = `${yyyy}-${mm}-${dd}-${slug}`;
   const candidates = [
     `${stem}.md`,
     `${stem}.mdx`,
@@ -238,7 +314,7 @@ function blogsRouteExists(cwd, subSegments) {
     `${stem}/${stem}.mdx`,
   ];
   return candidates.some((c) =>
-    fs.existsSync(path.join(cwd, "content", "blogs", c))
+    fs.existsSync(path.join(cwd, "content", "blog", c)),
   );
 }
 

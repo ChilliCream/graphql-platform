@@ -8,7 +8,7 @@ import { CodeBlock } from "./CodeBlock";
 export async function renderBlock(
   language: string,
   code: string,
-  meta?: string
+  meta?: string,
 ): Promise<ReactElement> {
   return (await CodeBlock({
     children: (

@@ -1,0 +1,7 @@
+{
+  "message": "The @requiresOptIn directive must not appear on required (non-null without a default) arguments.",
+  "extensions": {
+    "argument": "argument"
+  }
+}
+

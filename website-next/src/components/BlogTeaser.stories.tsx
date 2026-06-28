@@ -22,20 +22,20 @@ export const WithImage: Story = {
       href: "/blog/2025/02/01/hot-chocolate-15",
       title: "What's new for Hot Chocolate 15",
       date: "2025-02-01",
-      featuredImage: "https://picsum.photos/seed/hot-chocolate-15/800/450",
+      featuredImage: "/placeholders/featured.png",
       author: "Michael Staib",
-      authorImageUrl: "https://i.pravatar.cc/100?u=michael",
+      authorImageUrl: "/placeholders/avatar.png",
     },
   },
 };
 
-export const NoImage: Story = {
+export const BrokenImage: Story = {
   args: {
     post: {
       href: "/blog/2024/01/01/example",
-      title: "A post without a featured image still renders cleanly",
+      title: "A post whose featured image fails to load",
       date: "2024-01-01",
-      featuredImage: null,
+      featuredImage: "/placeholders/missing.png",
       author: "Jane Doe",
       authorImageUrl: null,
     },
@@ -49,7 +49,7 @@ export const LongTitle: Story = {
       title:
         "A particularly long blog post title that needs to wrap across multiple lines and eventually clamp",
       date: "2024-06-15",
-      featuredImage: "https://picsum.photos/seed/long-title/800/450",
+      featuredImage: "/placeholders/featured.png",
       author: "Author Name",
       authorImageUrl: null,
     },

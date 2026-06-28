@@ -19,9 +19,12 @@ internal sealed class ExecutionState
     private readonly List<int> _trackedNodeStateSlots = [];
     private readonly List<int> _trackedDependencySlots = [];
     private readonly ConcurrentQueue<ExecutionNodeResult> _completedResults = new();
+    private readonly ConcurrentQueue<PendingMerge> _pendingMerges = new();
+    private Dictionary<int, Exception?>? _mergeFailures;
     private ulong[] _failedOrSkippedBitset = [];
 
     private bool _collectTelemetry;
+    private bool _processingCompletedEarly;
     private CancellationTokenSource _cts = default!;
     private byte[] _nodeStates = [];
     private int[] _remainingDependencies = [];
@@ -36,6 +39,20 @@ internal sealed class ExecutionState
         _collectTelemetry = collectTelemetry;
         _cts = cts;
     }
+
+    /// <summary>
+    /// Sets the CancellationTokenSource that <see cref="CancelProcessing"/> cancels, letting a subscription scope it
+    /// per event instead of to the whole request.
+    /// </summary>
+    public void SetCancellationSource(CancellationTokenSource cts)
+        => _cts = cts;
+
+    /// <summary>
+    /// True when processing stopped early because a field error null-propagated to the root,
+    /// settling the result as <c>null</c>. Lets the caller tell this self-inflicted stop from a real
+    /// cancellation (timeout or abort).
+    /// </summary>
+    public bool ProcessingCompletedEarly => _processingCompletedEarly;
 
     public void Clean()
     {
@@ -95,7 +112,7 @@ internal sealed class ExecutionState
                 {
                     // we skip root nodes as they are enqueued by the algorithm
                     // one by one.
-                    if (node.Dependencies.Length == 0)
+                    if (node.Dependencies.Length == 0 && node.OptionalDependencies.Length == 0)
                     {
                         continue;
                     }
@@ -136,7 +153,10 @@ internal sealed class ExecutionState
         ResetRemainingDependencies();
 
         _completedResults.Clear();
+        ClearPendingMerges();
+        _mergeFailures?.Clear();
         _activeNodes = 0;
+        _processingCompletedEarly = false;
 
         Traces.Clear();
         Signal.TryResetToIdle();
@@ -171,8 +191,56 @@ internal sealed class ExecutionState
     public bool TryDequeueCompletedResult([NotNullWhen(true)] out ExecutionNodeResult? result)
         => _completedResults.TryDequeue(out result);
 
+    public void EnqueueMerge(PendingMerge merge)
+    {
+        _pendingMerges.Enqueue(merge);
+        Signal.Set();
+    }
+
+    public bool TryDequeuePendingMerge(out PendingMerge merge)
+        => _pendingMerges.TryDequeue(out merge);
+
+    public void ApplyMerge(OperationPlanContext context, PendingMerge merge)
+    {
+        try
+        {
+            merge.Apply(context);
+        }
+        catch (OperationCanceledException) when (_cts.IsCancellationRequested)
+        {
+            MarkMergeFailed(merge.Node.Id, exception: null);
+        }
+        catch (Exception exception)
+        {
+            MarkMergeFailed(merge.Node.Id, exception);
+            context.DiagnosticEvents.SourceSchemaStoreError(
+                context,
+                merge.Node,
+                merge.SchemaName,
+                exception);
+            context.AddErrors(exception, merge.VariableValueSets, merge.ResultSelectionSet);
+        }
+    }
+
+    public ExecutionNodeResult ApplyPendingMergeFailure(ExecutionNodeResult result)
+    {
+        if (_mergeFailures is not null
+            && _mergeFailures.Remove(result.Id, out var exception))
+        {
+            return result with
+            {
+                Status = ExecutionStatus.Failed,
+                Exception = exception
+            };
+        }
+
+        return result;
+    }
+
     public void CancelProcessing()
     {
+        _processingCompletedEarly = true;
+
         if (!_cts.IsCancellationRequested)
         {
             _cts.Cancel();
@@ -225,7 +293,7 @@ internal sealed class ExecutionState
             // a node can explicitly choose which of its dependents should run
             // by calling EnqueueDependentForExecution during execution.
             // if it did, any dependent not in that list is skipped.
-            if (result.DependentsToExecute.Length > 0)
+            if (!result.DependentsToExecute.IsDefault)
             {
                 var dependentsToExecute = result.DependentsToExecute;
 
@@ -578,6 +646,20 @@ internal sealed class ExecutionState
         if (remainingDependencies == 0)
         {
             _ready.Add(node);
+        }
+    }
+
+    private void MarkMergeFailed(int nodeId, Exception? exception)
+    {
+        _mergeFailures ??= [];
+        _mergeFailures[nodeId] = exception;
+    }
+
+    private void ClearPendingMerges()
+    {
+        while (_pendingMerges.TryDequeue(out var merge))
+        {
+            merge.DisposeUnmerged();
         }
     }
 

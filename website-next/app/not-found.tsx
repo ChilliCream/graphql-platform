@@ -1,13 +1,7 @@
-import Link from "next/link";
+// TODO: Create a proper illustration
+
+import { NotFoundContent } from "@/src/components/NotFoundContent";
 
 export default function NotFound() {
-  return (
-    <>
-      <h1>404</h1>
-      <p>This page does not exist.</p>
-      <p>
-        <Link href="/">Go home</Link>
-      </p>
-    </>
-  );
+  return <NotFoundContent />;
 }

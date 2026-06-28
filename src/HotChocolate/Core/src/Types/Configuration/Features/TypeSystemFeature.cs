@@ -14,6 +14,8 @@ internal sealed class TypeSystemFeature
     public List<Action<ISchemaTypeDescriptor>> SchemaTypeOptions { get; } = [];
     public List<SchemaDocumentInfo> SchemaDocuments { get; } = [];
 #if NET10_0_OR_GREATER
+    public ImmutableDictionary<string, IReadOnlyList<DirectiveNode>> DirectiveExtensions { get; set; } =
+        [];
     public ImmutableDictionary<string, IReadOnlyList<DirectiveNode>> ScalarDirectives { get; set; } =
         [];
     public ImmutableDictionary<Type, RuntimeTypeBinding> RuntimeTypeBindings { get; set; } =
@@ -23,6 +25,8 @@ internal sealed class TypeSystemFeature
     public ImmutableDictionary<string, RuntimeTypeNameBinding> NameRuntimeTypeBinding { get; set; } =
         [];
 #else
+    public ImmutableDictionary<string, IReadOnlyList<DirectiveNode>> DirectiveExtensions { get; set; } =
+        ImmutableDictionary<string, IReadOnlyList<DirectiveNode>>.Empty;
     public ImmutableDictionary<string, IReadOnlyList<DirectiveNode>> ScalarDirectives { get; set; } =
         ImmutableDictionary<string, IReadOnlyList<DirectiveNode>>.Empty;
     public ImmutableDictionary<Type, RuntimeTypeBinding> RuntimeTypeBindings { get; set; } =

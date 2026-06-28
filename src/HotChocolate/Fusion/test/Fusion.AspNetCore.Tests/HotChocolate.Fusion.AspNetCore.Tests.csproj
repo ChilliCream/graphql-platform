@@ -1,5 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-  <Import Project="$([MSBuild]::GetPathOfFileAbove('Xunit2.Directory.Build.props', '$(MSBuildThisFileDirectory)..\'))" />
+
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Test.props', '$(MSBuildThisFileDirectory)'))" />
 
   <PropertyGroup>
     <AssemblyName>HotChocolate.Fusion.AspNetCore.Tests</AssemblyName>
@@ -10,6 +11,7 @@
     <ProjectReference Include="..\..\src\Fusion.AspNetCore\HotChocolate.Fusion.AspNetCore.csproj" />
     <ProjectReference Include="..\..\src\Fusion.Composition\HotChocolate.Fusion.Composition.csproj" />
     <ProjectReference Include="..\..\src\Fusion.Execution\HotChocolate.Fusion.Execution.csproj" />
+    <ProjectReference Include="..\..\src\Fusion.Subscriptions.NATS\HotChocolate.Fusion.Subscriptions.NATS.csproj" />
     <ProjectReference Include="..\..\..\AspNetCore\src\AspNetCore\HotChocolate.AspNetCore.csproj" />
     <ProjectReference Include="..\..\..\AspNetCore\src\Transport.Sockets.Client\HotChocolate.Transport.Sockets.Client.csproj" />
     <ProjectReference Include="..\..\..\..\CookieCrumble\src\CookieCrumble.HotChocolate\CookieCrumble.HotChocolate.csproj" />
@@ -19,6 +21,9 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.TestHost" />
+    <PackageReference Include="NATS.Client.Core" />
+    <PackageReference Include="NATS.Client.JetStream" />
+    <PackageReference Include="Testcontainers" />
   </ItemGroup>
 
   <ItemGroup>

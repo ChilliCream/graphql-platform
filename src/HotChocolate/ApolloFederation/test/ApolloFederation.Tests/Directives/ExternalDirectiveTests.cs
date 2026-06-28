@@ -50,7 +50,7 @@ public class ExternalDirectiveTests : FederationTypesTestBase
                         .Type<StringType>()
                         .Resolve(_ => default!);
                 })
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var query = schema.Types.GetType<ObjectType>("User");
@@ -77,7 +77,7 @@ public class ExternalDirectiveTests : FederationTypesTestBase
             .AddGraphQL()
             .AddApolloFederation()
             .AddQueryType<Query>()
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var query = schema.Types.GetType<ObjectType>("User");

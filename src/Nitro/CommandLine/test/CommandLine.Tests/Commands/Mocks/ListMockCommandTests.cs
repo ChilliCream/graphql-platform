@@ -24,7 +24,7 @@ public sealed class ListMockCommandTests(NitroCommandFixture fixture) : MocksCom
                             --api-id <api-id>        The ID of the API [env: NITRO_API_ID]
                             --cursor <cursor>        The pagination cursor to resume from [env: NITRO_CURSOR]
                             --cloud-url <cloud-url>  The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL]
-                            --api-key <api-key>      The API key used for authentication [env: NITRO_API_KEY]
+                            --api-key <api-key>      The API key or PAT used for authentication [env: NITRO_API_KEY]
                             --output <json>          The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
                             -?, -h, --help           Show help and usage information
 
@@ -138,7 +138,7 @@ public sealed class ListMockCommandTests(NitroCommandFixture fixture) : MocksCom
 
         // act
         command.SelectOption(0);
-        var result = await command.RunToCompletionAsync();
+        var result = await command.RunToCompletionAsync(TestContext.Current.CancellationToken);
 
         // assert
         Assert.Empty(result.StdErr);
@@ -273,7 +273,7 @@ public sealed class ListMockCommandTests(NitroCommandFixture fixture) : MocksCom
 
         // act
         command.SelectOption(0);
-        var result = await command.RunToCompletionAsync();
+        var result = await command.RunToCompletionAsync(TestContext.Current.CancellationToken);
 
         // assert
         Assert.Empty(result.StdErr);
@@ -328,7 +328,7 @@ public sealed class ListMockCommandTests(NitroCommandFixture fixture) : MocksCom
 
         // act
         command.SelectOption(0);
-        var result = await command.RunToCompletionAsync();
+        var result = await command.RunToCompletionAsync(TestContext.Current.CancellationToken);
 
         // assert
         Assert.Empty(result.StdErr);

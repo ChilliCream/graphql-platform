@@ -19,6 +19,7 @@ internal static class FusionBuiltIns
         new HashSet<MutableDirectiveDefinition>(
         [
             new ConnectorMutableDirectiveDefinition(s_stringType),
+            new EventCursorMutableDirectiveDefinition(),
             new ExternalMutableDirectiveDefinition(),
             new InaccessibleMutableDirectiveDefinition(),
             new InternalMutableDirectiveDefinition(),
@@ -28,7 +29,8 @@ internal static class FusionBuiltIns
             new OverrideMutableDirectiveDefinition(s_stringType),
             new ProvidesMutableDirectiveDefinition(s_fieldSelectionSetType),
             new RequireMutableDirectiveDefinition(s_fieldSelectionMapType),
-            new ShareableMutableDirectiveDefinition()
+            new ShareableMutableDirectiveDefinition(),
+            new EventStreamMutableDirectiveDefinition(s_fieldSelectionSetType, s_stringType)
         ]).ToFrozenDictionary(d => d.Name);
 
     public static FrozenDictionary<string, MutableScalarTypeDefinition> SourceSchemaScalars { get; } =

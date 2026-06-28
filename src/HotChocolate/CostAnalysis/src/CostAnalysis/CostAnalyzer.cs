@@ -230,6 +230,10 @@ internal sealed class CostAnalyzer(RequestCostOptions options) : TypeDocumentVal
     {
         var costContext = context.GetCostContext();
         var processed = costContext.Processed;
+
+        // Deduplicate response names only within this selection set.
+        // Nested sets can reuse names like "nodes" and must still be priced.
+        processed.Clear();
         var inputCostVisitor = costContext.InputCostVisitor;
 
         var typeCostSum = 0.0;
@@ -240,9 +244,9 @@ internal sealed class CostAnalyzer(RequestCostOptions options) : TypeDocumentVal
             var fieldInfo = fields[i];
             var fieldNode = fieldInfo.SyntaxNode;
 
-            if (processed.Add(fieldInfo.ResponseName)
-                && fieldInfo.DeclaringType.NamedType().IsAssignableFrom(possibleType)
-                && possibleType.Fields.TryGetField(fieldNode.Name.Value, out var field))
+            if (fieldInfo.DeclaringType.NamedType().IsAssignableFrom(possibleType)
+                && possibleType.Fields.TryGetField(fieldNode.Name.Value, out var field)
+                && processed.Add(fieldInfo.ResponseName))
             {
                 // https://ibm.github.io/graphql-specs/cost-spec.html#sec-Field-Cost
                 // First, add up the raw cost of field f by calculating the sum of:

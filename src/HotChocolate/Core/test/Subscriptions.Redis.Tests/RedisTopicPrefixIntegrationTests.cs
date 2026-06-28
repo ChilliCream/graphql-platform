@@ -3,7 +3,6 @@ using HotChocolate.Execution.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Squadron;
 using StackExchange.Redis;
-using Xunit.Abstractions;
 
 namespace HotChocolate.Subscriptions.Redis;
 

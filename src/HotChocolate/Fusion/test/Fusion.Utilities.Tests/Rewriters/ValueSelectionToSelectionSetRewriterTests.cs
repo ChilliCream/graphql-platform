@@ -209,6 +209,32 @@ public sealed class ValueSelectionToSelectionSetRewriterTests
         };
     }
 
+    [Fact]
+    public void Rewrite_PathSegmentWithArgument_KeepsArgument()
+    {
+        // arrange
+        var value = new FieldSelectionMapParser("dimension(unit: METRIC).length").Parse();
+
+        // act
+        var selectionSet = ValueSelectionToSelectionSetRewriter.Rewrite([value]);
+
+        // assert
+        Assert.Equal("{ dimension(unit: METRIC) { length } }", selectionSet.ToString(indented: false));
+    }
+
+    [Fact]
+    public void Rewrite_ObjectFieldWithArgument_KeepsArgument()
+    {
+        // arrange
+        var value = new FieldSelectionMapParser("{ width(unit: IMPERIAL) }").Parse();
+
+        // act
+        var selectionSet = ValueSelectionToSelectionSetRewriter.Rewrite([value]);
+
+        // assert
+        Assert.Contains("width(unit: IMPERIAL)", selectionSet.ToString(indented: false));
+    }
+
     private static readonly ISchemaDefinition s_schema = SchemaParser.Parse(
         """
         type Query {

@@ -61,7 +61,7 @@ internal sealed class SetDefaultWorkspaceCommand : Command
 
         var selected = await PagedSelectionPrompt
             .New(paginationContainer)
-            .Title("Which workspace do you want to use as your default?".AsQuestion())
+            .Title(Prompts.SelectDefaultWorkspace.AsQuestion())
             .UseConverter(x => x.Name)
             .RenderAsync(console, cancellationToken);
 
@@ -73,7 +73,7 @@ internal sealed class SetDefaultWorkspaceCommand : Command
         var selectedWorkspace = new Workspace(selected.Id, selected.Name);
         await sessionService.SelectWorkspaceAsync(selectedWorkspace, cancellationToken);
 
-        console.OkQuestion("Which workspace do you want to use as your default?", selectedWorkspace.Name);
+        console.OkQuestion(Prompts.SelectDefaultWorkspace, selectedWorkspace.Name);
 
         return ExitCodes.Success;
     }

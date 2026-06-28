@@ -62,7 +62,7 @@ internal sealed class ListClientVersionsCommand : Command
         if (clientId is null)
         {
             var apiId = await console.GetOrPromptForApiIdAsync(
-                "For which API do you want to list client versions?",
+                Prompts.SelectApiForListClientVersions,
                 parseResult, apisClient, sessionService, ct);
 
             var selectedClient = await SelectClientPrompt

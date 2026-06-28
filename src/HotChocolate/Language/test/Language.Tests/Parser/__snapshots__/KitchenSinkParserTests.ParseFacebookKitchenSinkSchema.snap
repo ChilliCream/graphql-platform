@@ -3094,6 +3094,7 @@ AST:
           "Directives": []
         }
       ],
+      "Directives": [],
       "Locations": [
         {
           "Kind": "Name",
@@ -3199,6 +3200,7 @@ AST:
           "Directives": []
         }
       ],
+      "Directives": [],
       "Locations": [
         {
           "Kind": "Name",
@@ -3304,6 +3306,7 @@ AST:
           "Directives": []
         }
       ],
+      "Directives": [],
       "Locations": [
         {
           "Kind": "Name",
@@ -3409,6 +3412,7 @@ AST:
           "Directives": []
         }
       ],
+      "Directives": [],
       "Locations": [
         {
           "Kind": "Name",

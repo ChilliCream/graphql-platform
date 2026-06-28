@@ -17,12 +17,12 @@ export function FromOurBlog({ limit = 3, className }: FromOurBlogProps) {
   return (
     <section className={className}>
       <div className="mb-6 flex items-baseline justify-between gap-4">
-        <h2 className="m-0 text-2xl font-semibold text-slate-900">
+        <h2 className="text-cc-ink m-0 text-2xl font-semibold">
           From our blog
         </h2>
         <Link
           href="/blog"
-          className="flex-none text-sm font-medium text-primary-700 no-underline hover:text-primary-800"
+          className="text-cc-accent hover:text-cc-accent-hover flex-none text-sm font-medium no-underline"
         >
           View all →
         </Link>

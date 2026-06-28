@@ -438,6 +438,32 @@ Deprecating a field now requires the implemented field in the interface to also 
 
 Previously, the global ID input value formatter was added to ID filter fields regardless of whether or not Global Object Identification was enabled. This is now conditional.
 
+## Filter operation limit
+
+Filtering now limits each filter argument to **64** operations by default. This protects the server from very large generated filters, including large `and` or `or` lists passed through variables.
+
+If a client sends more than 64 filter operations in a single filter argument, Hot Chocolate rejects the request before the filter expression is built and returns a GraphQL error with the code `HC0117`.
+
+If your application accepts larger filters, raise the limit on the filtering convention:
+
+```csharp
+builder
+    .AddGraphQL()
+    .AddFiltering(x => x
+        .AddDefaults()
+        .MaxAllowedFilterOperations(256));
+```
+
+To disable this limit, set `MaxAllowedFilterOperations` to `null`:
+
+```csharp
+builder
+    .AddGraphQL()
+    .AddFiltering(x => x
+        .AddDefaults()
+        .MaxAllowedFilterOperations(null));
+```
+
 ## fieldCoordinate renamed to coordinate in error extensions
 
 Some GraphQL validation errors included an extension named `fieldCoordinate` that provided a schema coordinate pointing to the field or argument that caused the error. Since schema coordinates can reference various schema elements (not just fields), we've renamed this extension to `coordinate` for clarity.
@@ -646,30 +672,19 @@ If you hit a mismatch, you have two options:
 1. Provide variables as raw JSON through `SetVariableValues(string)`, bypassing CLR serialization entirely.
 2. Register a custom `JsonConverter` for the affected type so the emitted JSON matches the scalar's expected format.
 
-If you need to pass an Upload scalar value, you can do the following:
+If you need to pass an `Upload` scalar value, register the file on the builder via `AddFile` and reference it from your variables by the same key:
 
 ```csharp
-var requestBuilder = new OperationRequestBuilder();
-requestBuilder.SetVariableValues("""{ "file" : "yourKey" }""");
-requestBuilder.Features.Set<IFileLookup>(fileLookup);
+var file = new StreamFile("Foo.txt", () => new MemoryStream(/* your bytes */));
 
-public class FileLookup : IFileLookup
-{
-    public bool TryGetFile(string name, [NotNullWhen(true)] out IFile? file)
-    {
-        if (name == "yourKey")
-        {
-            file = new StreamFile("Foo.txt", () => new MemoryStream());
-            return true;
-        }
-
-        file = null;
-        return false;
-    }
-}
+var request = OperationRequestBuilder.New()
+    .SetDocument("mutation ($file: Upload!) { upload(file: $file) }")
+    .SetVariableValues("""{ "file": "yourKey" }""")
+    .AddFile("yourKey", file)
+    .Build();
 ```
 
-`yourKey` in this case is just a marker you choose for the file.
+`yourKey` is just a marker you choose to correlate the variable value with the file. Call `AddFile` multiple times to register additional files on the same request.
 
 **Global state methods**
 
@@ -688,7 +703,7 @@ Use `OperationRequestBuilder.From(request)` to create a builder pre-populated fr
 
 **Features collection**
 
-The builder now exposes a `Features` property of type `IFeatureCollection` for attaching extensibility features (such as `IFileLookup` for file uploads).
+The builder now exposes a `Features` property of type `IFeatureCollection` for attaching extensibility features.
 
 ## Snapshot matching on IExecutionResult
 
@@ -1094,9 +1109,66 @@ If you prefer, you can still register the remaining scalar types individually in
 
 ### InstrumentationOptions changes
 
-- `RenameRootActivity` was removed.
+- `RenameRootActivity` was removed. See [Recreating `RenameRootActivity`](#recreating-renamerootactivity) to reproduce the previous behavior in user code.
 - `RequestDetails.Operation` was renamed to `RequestDetails.OperationName`.
 - `RequestDetails.Query` was renamed to `RequestDetails.Document`.
+
+### Recreating `RenameRootActivity`
+
+The root span is usually owned by the transport instrumentation (for example ASP.NET Core), not Hot Chocolate. Recreate the old behavior with a diagnostic event listener that publishes the operation name, then apply it from the transport instrumentation in `EnrichWithHttpResponse`:
+
+```csharp
+using System.Diagnostics;
+using HotChocolate.Execution;
+using HotChocolate.Execution.Instrumentation;
+
+public sealed class RenameRootActivityListener : ExecutionDiagnosticEventListener
+{
+    public override IDisposable ExecuteRequest(RequestContext context) => new Scope(context);
+
+    private sealed class Scope(RequestContext context) : IDisposable
+    {
+        public void Dispose()
+        {
+            if (Activity.Current is not { } activity
+                || !context.TryGetOperation(out var operation)
+                || string.IsNullOrEmpty(operation.Name))
+            {
+                return;
+            }
+
+            var name = $"{operation.Kind.ToString().ToLowerInvariant()} {operation.Name}";
+
+            var root = activity;
+            while (root.Parent is { } parent)
+            {
+                root = parent;
+            }
+
+            root.SetCustomProperty("graphqlDisplayName", name);
+        }
+    }
+}
+```
+
+```csharp
+builder.Services
+    .AddGraphQLServer()
+    .AddInstrumentation()
+    .AddDiagnosticEventListener<RenameRootActivityListener>();
+
+builder.Services
+    .AddOpenTelemetry()
+    .WithTracing(tracing => tracing
+        .AddAspNetCoreInstrumentation(o => o.EnrichWithHttpResponse = (activity, _) =>
+        {
+            if (activity.GetCustomProperty("graphqlDisplayName") is string name)
+            {
+                activity.DisplayName = name;
+            }
+        })
+        .AddHotChocolateInstrumentation());
+```
 
 ## OpenTelemetry span and status changes
 
@@ -1343,6 +1415,25 @@ mutation {
 ```
 
 The transaction boundary now lives inside the resolver for the coarse-grained mutation, where you control it directly with your data access layer.
+
+## Marten nullable boolean `neq` filter now includes null rows
+
+`HotChocolate.Data.Marten` has been updated to Marten 8.37.0 (from 8.0.0) to address the critical advisory [GHSA-vmw2-qwm8-x84c](https://github.com/advisories/GHSA-vmw2-qwm8-x84c). This change lands in **16.0.10**.
+
+Filtering a nullable `bool` property with `neq` now also returns rows where the value is `null`. Marten 8.10.1 changed the SQL it emits for `!=` predicates on nullable boolean JSON properties ([JasperFx/marten#3953](https://github.com/JasperFx/marten/issues/3953)): the `WHERE` clause now includes an `IS NULL OR ...` branch. Other nullable property types (numeric, string, enum) are unaffected.
+
+For a query against a nullable `Bar` column:
+
+```graphql
+{
+  root(where: { bar: { neq: true } }) {
+    bar
+  }
+}
+```
+
+- Previously: only rows where `Bar = false` were returned.
+- Now: rows where `Bar = false` and rows where `Bar IS NULL` are returned.
 
 # Deprecations
 

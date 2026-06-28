@@ -120,7 +120,7 @@ sourceSchemas:
         bookById(id: Int!): Book @internal @lookup
       }
 
-      type Book {
+      type Book @key(fields: "id") {
         id: Int!
         author: String!
       }

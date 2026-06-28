@@ -283,6 +283,35 @@ internal sealed class ClientsClient(
             pageClient.Versions?.PageInfo.HasNextPage ?? false);
     }
 
+    public async Task<ConnectionPage<IListClientPublishedVersionsCommand_PublishedClientVersionEdge>?> ListClientPublishedVersionsAsync(
+        string clientId,
+        string stage,
+        string? after,
+        int? first,
+        CancellationToken cancellationToken)
+    {
+        var result = await apiClient.ListClientPublishedVersionsCommandQuery.ExecuteAsync(
+            clientId,
+            stage,
+            after,
+            first,
+            cancellationToken);
+
+        var data = OperationResultHelper.EnsureData(result);
+        if (data.Node is not IListClientPublishedVersionsCommandQuery_Node_Client client)
+        {
+            return null;
+        }
+
+        var connection = client.PublishedVersions;
+        var items = connection?.Edges?.ToArray() ?? [];
+
+        return new ConnectionPage<IListClientPublishedVersionsCommand_PublishedClientVersionEdge>(
+            items,
+            connection?.PageInfo.EndCursor,
+            connection?.PageInfo.HasNextPage ?? false);
+    }
+
     private static ConnectionPage<IClientDetailPrompt_ClientVersionEdge> MapVersionPage(
         IEnumerable<IClientDetailPrompt_ClientVersionEdge>? edges,
         string? endCursor,

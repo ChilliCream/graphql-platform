@@ -17,7 +17,7 @@ public class RootTypePartialAnalyzerTests
                 public static string Hello() => "world";
             }
             """],
-            enableAnalyzers: true).MatchMarkdownAsync();
+            enableAnalyzers: true).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -35,7 +35,7 @@ public class RootTypePartialAnalyzerTests
                 public string Hello() => "world";
             }
             """],
-            enableAnalyzers: true).MatchMarkdownAsync();
+            enableAnalyzers: true).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -53,7 +53,7 @@ public class RootTypePartialAnalyzerTests
                 public static string Hello() => "world";
             }
             """],
-            enableAnalyzers: true).MatchMarkdownAsync();
+            enableAnalyzers: true).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -71,7 +71,7 @@ public class RootTypePartialAnalyzerTests
                 public string Hello() => "world";
             }
             """],
-            enableAnalyzers: true).MatchMarkdownAsync();
+            enableAnalyzers: true).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -95,6 +95,6 @@ public class RootTypePartialAnalyzerTests
                 public List<string> GetGreeting([Parent] List<Query> roots)
                     => default!;
             }
-            """]).MatchMarkdownAsync();
+            """]).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 }

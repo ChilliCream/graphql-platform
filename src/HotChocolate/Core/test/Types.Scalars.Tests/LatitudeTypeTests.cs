@@ -1,5 +1,5 @@
 using System.Text.Json;
-using CookieCrumble.Xunit.Attributes;
+using CookieCrumble.Xunit3.Attributes;
 using HotChocolate.Execution;
 using HotChocolate.Features;
 using HotChocolate.Language;
@@ -312,7 +312,7 @@ public class LatitudeTypeTests : ScalarTypeTestBase
 
         // act
         var operation = CommonTestExtensions.CreateOperation();
-        var resultDocument = new ResultDocument(operation, 0);
+        var resultDocument = new ResultDocument(CommonTestExtensions.CreateArena(), operation, 0);
         var resultElement = resultDocument.Data.GetProperty("first");
         scalar.CoerceOutputValue(runtimeValue, resultElement);
 
@@ -329,7 +329,7 @@ public class LatitudeTypeTests : ScalarTypeTestBase
 
         // act
         var operation = CommonTestExtensions.CreateOperation();
-        var resultDocument = new ResultDocument(operation, 0);
+        var resultDocument = new ResultDocument(CommonTestExtensions.CreateArena(), operation, 0);
         var resultElement = resultDocument.Data.GetProperty("first");
         var result = Record.Exception(() => scalar.CoerceOutputValue(runtimeValue, resultElement));
 
@@ -346,7 +346,7 @@ public class LatitudeTypeTests : ScalarTypeTestBase
 
         // act
         var operation = CommonTestExtensions.CreateOperation();
-        var resultDocument = new ResultDocument(operation, 0);
+        var resultDocument = new ResultDocument(CommonTestExtensions.CreateArena(), operation, 0);
         var resultElement = resultDocument.Data.GetProperty("first");
         var result = Record.Exception(() => scalar.CoerceOutputValue(runtimeValue, resultElement));
 
@@ -363,7 +363,7 @@ public class LatitudeTypeTests : ScalarTypeTestBase
 
         // act
         var operation = CommonTestExtensions.CreateOperation();
-        var resultDocument = new ResultDocument(operation, 0);
+        var resultDocument = new ResultDocument(CommonTestExtensions.CreateArena(), operation, 0);
         var resultElement = resultDocument.Data.GetProperty("first");
         scalar.CoerceOutputValue(runtimeValue, resultElement);
 
@@ -380,7 +380,7 @@ public class LatitudeTypeTests : ScalarTypeTestBase
 
         // act
         var operation = CommonTestExtensions.CreateOperation();
-        var resultDocument = new ResultDocument(operation, 0);
+        var resultDocument = new ResultDocument(CommonTestExtensions.CreateArena(), operation, 0);
         var resultElement = resultDocument.Data.GetProperty("first");
         var result = Record.Exception(() => scalar.CoerceOutputValue(runtimeValue, resultElement));
 
@@ -397,7 +397,7 @@ public class LatitudeTypeTests : ScalarTypeTestBase
 
         // act
         var operation = CommonTestExtensions.CreateOperation();
-        var resultDocument = new ResultDocument(operation, 0);
+        var resultDocument = new ResultDocument(CommonTestExtensions.CreateArena(), operation, 0);
         var resultElement = resultDocument.Data.GetProperty("first");
         var result = Record.Exception(() => scalar.CoerceOutputValue(runtimeValue, resultElement));
 
@@ -412,10 +412,10 @@ public class LatitudeTypeTests : ScalarTypeTestBase
         var executor = await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<DefaultLatitudeType>()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
-        var res = await executor.ExecuteAsync("{ test }");
+        var res = await executor.ExecuteAsync("{ test }", TestContext.Current.CancellationToken);
 
         // assert
         res.ToJson().MatchSnapshot();

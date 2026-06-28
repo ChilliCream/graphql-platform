@@ -9,6 +9,6 @@ internal static partial class OutputHelper
         return ExecutableNameRegex().Replace(output, "$1  graphql");
     }
 
-    [GeneratedRegex(@"(Usage:\r?\n)  [\w]+")]
+    [GeneratedRegex(@"(Usage:\r?\n)  \S+")]
     private static partial Regex ExecutableNameRegex();
 }

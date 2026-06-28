@@ -174,7 +174,7 @@ public class ObjectTypeDescriptorTests : DescriptorTestBase
         var executor = schema.MakeExecutable();
 
         // act
-        var result = await executor.ExecuteAsync("{ a b c}");
+        var result = await executor.ExecuteAsync("{ a b c}", TestContext.Current.CancellationToken);
 
         // assert
         result.ToJson().MatchSnapshot();

@@ -15,6 +15,7 @@ import rehypeRaw from "rehype-raw";
 const BLOCK_COMPONENTS = [
   "video",
   "packageinstallation",
+  "photogrid",
   "surveyprompt",
   "exampletabs",
   "inputchoicetabs",
