@@ -18,8 +18,6 @@ namespace Microsoft.Extensions.DependencyInjection
                 typeof(global::TestApp.DeleteOrderCommand),
                 typeof(global::TestApp.GetUserQuery),
                 typeof(global::TestApp.OrderCreated),
-                typeof(global::TestApp.UserDto),
-                typeof(int),
             },
             HandlerTypes = new global::System.Type[]
             {

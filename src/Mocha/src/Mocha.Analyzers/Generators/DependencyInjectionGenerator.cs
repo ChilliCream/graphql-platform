@@ -41,11 +41,6 @@ public sealed class DependencyInjectionGenerator : ISyntaxGenerator
         foreach (var handler in handlers)
         {
             allMessageTypeNames.Add(handler.MessageTypeName);
-
-            if (handler.ResponseTypeName is not null)
-            {
-                allMessageTypeNames.Add(handler.ResponseTypeName);
-            }
         }
 
         foreach (var handler in notificationHandlers)

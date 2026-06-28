@@ -95,7 +95,7 @@ public sealed class MediatorGenerator : IIncrementalGenerator
         }
 
         s_callSitePredicate = callSiteFilterBuilder.Build();
-        s_callSiteInspectorLookup = new Dictionary<SyntaxKind, ImmutableArray<ISyntaxInspector>>();
+        s_callSiteInspectorLookup = [];
 
         foreach (var kvp in callSiteInspectorLookup)
         {

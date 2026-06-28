@@ -17,7 +17,6 @@ namespace Microsoft.Extensions.DependencyInjection
             MessageTypes = new global::System.Type[]
             {
                 typeof(global::TestApp.CreateOrderCommand),
-                typeof(int),
             },
             HandlerTypes = new global::System.Type[]
             {

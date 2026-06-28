@@ -15,7 +15,6 @@ namespace Microsoft.Extensions.DependencyInjection
             MessageTypes = new global::System.Type[]
             {
                 typeof(global::TestApp.GetOrderQuery),
-                typeof(string),
             },
             HandlerTypes = new global::System.Type[]
             {

@@ -79,7 +79,7 @@ public sealed class ImportedModuleTypeInspector : ISyntaxInspector
                     continue;
                 }
 
-                List<string>? targetList = namedArg.Key switch
+                var targetList = namedArg.Key switch
                 {
                     SyntaxConstants.MessageTypesProperty => messageTypeNames,
                     SyntaxConstants.SagaTypesProperty => sagaTypeNames,

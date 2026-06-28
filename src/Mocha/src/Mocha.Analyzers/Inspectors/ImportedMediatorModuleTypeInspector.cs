@@ -79,7 +79,7 @@ public sealed class ImportedMediatorModuleTypeInspector : ISyntaxInspector
                     continue;
                 }
 
-                List<string>? targetList = namedArg.Key switch
+                var targetList = namedArg.Key switch
                 {
                     SyntaxConstants.MessageTypesProperty => messageTypeNames,
                     SyntaxConstants.HandlerTypesProperty => handlerTypeNames,

@@ -2,6 +2,7 @@ using System.Collections.Immutable;
 using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using Mocha.Analyzers.Filters;
 using Mocha.Analyzers.Generators;
@@ -131,11 +132,19 @@ public sealed class MessagingGenerator : IIncrementalGenerator
             return string.Equals(publishAot, "true", StringComparison.OrdinalIgnoreCase);
         });
 
-        // Extract JsonContext data from the Compilation into an equatable model so that
-        // CompilationProvider (which is never value-equal) does not flow into RegisterSourceOutput.
+        var jsonSerializableInfos = context
+            .SyntaxProvider.CreateSyntaxProvider(
+                predicate: static (s, _) => IsJsonSerializableAttributeCandidate(s),
+                transform: static (ctx, ct) => ExtractJsonSerializableInfo(ctx.Node, ctx.SemanticModel, ct))
+            .WhereNotNull()
+            .WithComparer(EqualityComparer<JsonSerializableAttributeInfo>.Default)
+            .Collect()
+            .WithTrackingName("MochaJsonSerializableInfos");
+
+        // Keep JsonContext data syntax-driven instead of flowing CompilationProvider into this path.
         var jsonContextInfo = syntaxInfos
-            .Combine(context.CompilationProvider)
-            .Select(static (source, ct) => ExtractJsonContextInfo(source.Left, source.Right, ct));
+            .Combine(jsonSerializableInfos)
+            .Select(static (source, _) => BuildJsonContextInfo(source.Left, source.Right));
 
         context.RegisterSourceOutput(
             assemblyName
@@ -295,10 +304,58 @@ public sealed class MessagingGenerator : IIncrementalGenerator
         return new MessagingModuleInfo(defaultModuleName);
     }
 
-    private static JsonContextInfo ExtractJsonContextInfo(
-        ImmutableArray<SyntaxInfo> syntaxInfos,
-        Compilation compilation,
+    private static bool IsJsonSerializableAttributeCandidate(SyntaxNode node)
+        => node is AttributeSyntax attribute
+        && GetUnqualifiedName(attribute.Name) is "JsonSerializable" or "JsonSerializableAttribute";
+
+    private static string? GetUnqualifiedName(NameSyntax name)
+        => name switch
+        {
+            IdentifierNameSyntax identifier => identifier.Identifier.Text,
+            GenericNameSyntax generic => generic.Identifier.Text,
+            QualifiedNameSyntax qualified => GetUnqualifiedName(qualified.Right),
+            AliasQualifiedNameSyntax aliasQualified => aliasQualified.Name.Identifier.Text,
+            _ => null
+        };
+
+    private static JsonSerializableAttributeInfo? ExtractJsonSerializableInfo(
+        SyntaxNode node,
+        SemanticModel semanticModel,
         CancellationToken cancellationToken)
+    {
+        if (node is not AttributeSyntax attribute
+            || attribute.ArgumentList?.Arguments.FirstOrDefault()?.Expression is not TypeOfExpressionSyntax typeOf)
+        {
+            return null;
+        }
+
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var contextDeclaration = attribute.FirstAncestorOrSelf<TypeDeclarationSyntax>();
+        if (contextDeclaration is null)
+        {
+            return null;
+        }
+
+        var contextSymbol = semanticModel.GetDeclaredSymbol(contextDeclaration, cancellationToken);
+        if (contextSymbol is null)
+        {
+            return null;
+        }
+
+        if (semanticModel.GetTypeInfo(typeOf.Type, cancellationToken).Type is not INamedTypeSymbol serializableType)
+        {
+            return null;
+        }
+
+        return new JsonSerializableAttributeInfo(
+            contextSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
+            CreateJsonSerializableTypeInfo(serializableType, attribute.GetLocation().ToLocationInfo()));
+    }
+
+    private static JsonContextInfo BuildJsonContextInfo(
+        ImmutableArray<SyntaxInfo> syntaxInfos,
+        ImmutableArray<JsonSerializableAttributeInfo> jsonSerializableInfos)
     {
         // Find the module info to get the JsonContext type name.
         string? jsonContextTypeName = null;
@@ -317,61 +374,51 @@ public sealed class MessagingGenerator : IIncrementalGenerator
             return new JsonContextInfo(null, ImmutableEquatableArray<JsonSerializableTypeInfo>.Empty);
         }
 
-        var metadataName = jsonContextTypeName.StartsWith("global::", StringComparison.Ordinal)
-            ? jsonContextTypeName.Substring("global::".Length)
-            : jsonContextTypeName;
-
-        var contextSymbol = compilation.GetTypeByMetadataName(metadataName);
-
-        if (contextSymbol is null)
-        {
-            return new JsonContextInfo(jsonContextTypeName, ImmutableEquatableArray<JsonSerializableTypeInfo>.Empty);
-        }
-
-        cancellationToken.ThrowIfCancellationRequested();
-
         var serializableTypes = new List<JsonSerializableTypeInfo>();
 
-        foreach (var attr in contextSymbol.GetAttributes())
+        foreach (var info in jsonSerializableInfos)
         {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            if (attr.AttributeClass?.Name != "JsonSerializableAttribute"
-                || attr.ConstructorArguments.Length == 0
-                || attr.ConstructorArguments[0].Value is not INamedTypeSymbol serializableType)
+            if (info.JsonContextTypeName == jsonContextTypeName)
             {
-                continue;
+                serializableTypes.Add(info.SerializableType);
             }
-
-            var typeName = serializableType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
-
-            // Walk the full type hierarchy (base types + interfaces), same as MessagingHandlerInspector.
-            var hierarchy = new List<string>();
-            var currentBase = serializableType.BaseType;
-
-            while (currentBase is not null && currentBase.SpecialType != SpecialType.System_Object)
-            {
-                hierarchy.Add(currentBase.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat));
-                currentBase = currentBase.BaseType;
-            }
-
-            foreach (var iface in serializableType.AllInterfaces)
-            {
-                hierarchy.Add(iface.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat));
-            }
-
-            var location = attr.ApplicationSyntaxReference?.GetSyntax(cancellationToken).GetLocation().ToLocationInfo();
-
-            serializableTypes.Add(new JsonSerializableTypeInfo(
-                typeName,
-                new ImmutableEquatableArray<string>(hierarchy),
-                location));
         }
 
         return new JsonContextInfo(
             jsonContextTypeName,
             new ImmutableEquatableArray<JsonSerializableTypeInfo>(serializableTypes));
     }
+
+    private static JsonSerializableTypeInfo CreateJsonSerializableTypeInfo(
+        INamedTypeSymbol serializableType,
+        LocationInfo? location)
+    {
+        var typeName = serializableType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+
+        // Walk the full type hierarchy (base types + interfaces), same as MessagingHandlerInspector.
+        var hierarchy = new List<string>();
+        var currentBase = serializableType.BaseType;
+
+        while (currentBase is not null && currentBase.SpecialType != SpecialType.System_Object)
+        {
+            hierarchy.Add(currentBase.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat));
+            currentBase = currentBase.BaseType;
+        }
+
+        foreach (var iface in serializableType.AllInterfaces)
+        {
+            hierarchy.Add(iface.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat));
+        }
+
+        return new JsonSerializableTypeInfo(
+            typeName,
+            new ImmutableEquatableArray<string>(hierarchy),
+            location);
+    }
+
+    private sealed record JsonSerializableAttributeInfo(
+        string JsonContextTypeName,
+        JsonSerializableTypeInfo SerializableType);
 
     private static void ValidateRequestHandlerPairing(
         SourceProductionContext context,
@@ -720,6 +767,7 @@ public sealed class MessagingGenerator : IIncrementalGenerator
 
 file static class Extensions
 {
-    public static IncrementalValuesProvider<SyntaxInfo> WhereNotNull(this IncrementalValuesProvider<SyntaxInfo?> source)
+    public static IncrementalValuesProvider<T> WhereNotNull<T>(this IncrementalValuesProvider<T?> source)
+        where T : class
         => source.Where(static t => t is not null)!;
 }

@@ -18,8 +18,6 @@ namespace Microsoft.Extensions.DependencyInjection
                 typeof(global::TestApp.MyQuery),
                 typeof(global::TestApp.ResponseCommand),
                 typeof(global::TestApp.VoidCommand),
-                typeof(int),
-                typeof(string),
             },
             HandlerTypes = new global::System.Type[]
             {

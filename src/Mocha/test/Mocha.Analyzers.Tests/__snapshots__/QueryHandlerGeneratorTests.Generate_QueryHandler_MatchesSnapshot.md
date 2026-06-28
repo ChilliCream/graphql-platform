@@ -15,7 +15,6 @@ namespace Microsoft.Extensions.DependencyInjection
             MessageTypes = new global::System.Type[]
             {
                 typeof(global::TestApp.GetUserQuery),
-                typeof(global::TestApp.UserDto),
             },
             HandlerTypes = new global::System.Type[]
             {

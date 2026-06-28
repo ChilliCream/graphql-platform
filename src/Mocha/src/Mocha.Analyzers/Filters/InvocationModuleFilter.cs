@@ -5,8 +5,9 @@ namespace Mocha.Analyzers.Filters;
 
 /// <summary>
 /// Provides a singleton <see cref="ISyntaxFilter"/> that matches invocation expressions
-/// where the method name starts with "Add". This is a cheap syntactic pre-screen for
-/// module registration methods like <c>builder.AddOrderService()</c>.
+/// where the non-generic method name starts with "Add" and the invocation has no arguments.
+/// This is a cheap syntactic pre-screen for module registration methods like
+/// <c>builder.AddOrderService()</c>.
 /// </summary>
 public sealed class InvocationModuleFilter : ISyntaxFilter
 {
@@ -14,19 +15,15 @@ public sealed class InvocationModuleFilter : ISyntaxFilter
 
     /// <inheritdoc />
     public bool IsMatch(SyntaxNode node)
-        => node is InvocationExpressionSyntax { Expression: MemberAccessExpressionSyntax memberAccess }
-        && GetMethodName(memberAccess) is { } name
-        && name.StartsWith("Add", StringComparison.Ordinal);
+        => node is InvocationExpressionSyntax
+        {
+            ArgumentList.Arguments.Count: 0,
+            Expression: MemberAccessExpressionSyntax { Name: IdentifierNameSyntax identifier }
+        }
+        && identifier.Identifier.Text.StartsWith("Add", StringComparison.Ordinal);
 
     /// <summary>
     /// Gets the singleton instance of <see cref="InvocationModuleFilter"/>.
     /// </summary>
     public static InvocationModuleFilter Instance { get; } = new();
-
-    private static string? GetMethodName(MemberAccessExpressionSyntax memberAccess)
-        => memberAccess.Name switch
-        {
-            IdentifierNameSyntax identifier => identifier.Identifier.Text,
-            _ => null
-        };
 }

@@ -18,8 +18,6 @@ namespace Microsoft.Extensions.DependencyInjection
                 typeof(global::TestApp.DeleteItemCommand),
                 typeof(global::TestApp.GetItemQuery),
                 typeof(global::TestApp.ItemCreated),
-                typeof(global::TestApp.ItemDto),
-                typeof(int),
             },
             HandlerTypes = new global::System.Type[]
             {
