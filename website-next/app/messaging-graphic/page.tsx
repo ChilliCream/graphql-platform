@@ -15,6 +15,7 @@ const VERSIONS = [
   { v: 5, name: "Broker hub" },
   { v: 6, name: "Sequence diagram" },
   { v: 7, name: "Layered stack" },
+  { v: 8, name: "Timeline" },
 ];
 
 export default function MessagingGraphicHubPage() {
