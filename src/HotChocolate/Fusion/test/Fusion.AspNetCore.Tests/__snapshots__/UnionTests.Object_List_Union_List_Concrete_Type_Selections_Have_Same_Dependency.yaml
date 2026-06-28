@@ -89,6 +89,10 @@ sourceSchemas:
         query: Query
       }
 
+      type Query {
+        users: [User]
+      }
+
       type Discussion {
         id: ID!
         product: Product
@@ -103,10 +107,6 @@ sourceSchemas:
         id: ID!
       }
 
-      type Query {
-        users: [User]
-      }
-
       type User {
         posts: [Post]
       }
@@ -114,6 +114,7 @@ sourceSchemas:
       union Post = Photo | Discussion
     interactions:
       - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
             query testQuery_3579b174_1 {
               users {
@@ -213,20 +214,19 @@ sourceSchemas:
         query: Query
       }
 
+      type Query {
+        productById(id: ID!): Product @lookup
+      }
+
       type Product {
         id: ID!
         subgraph2: String!
       }
-
-      type Query {
-        productById(id: ID!): Product @lookup
-      }
     interactions:
       - request:
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
           document: |
-            query testQuery_3579b174_2(
-              $__fusion_1_id: ID!
-            ) {
+            query testQuery_3579b174_2($__fusion_1_id: ID!) {
               productById(id: $__fusion_1_id) {
                 subgraph2
               }
@@ -388,9 +388,7 @@ operationPlan:
       type: OperationBatch
       schema: B
       operation: |
-        query testQuery_3579b174_2(
-          $__fusion_1_id: ID!
-        ) {
+        query testQuery_3579b174_2($__fusion_1_id: ID!) {
           productById(id: $__fusion_1_id) {
             subgraph2
           }

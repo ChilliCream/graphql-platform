@@ -51,14 +51,16 @@ const IndexPage: FC<IndexPageProps> = ({ recentPosts }) => {
         <Fusion />
       </BackgroundContainer>
       <IndexPageHero>
-        <HeroTitleFirst>Unleash the Power</HeroTitleFirst>
-        <HeroTitleSecond>of Unified Services</HeroTitleSecond>
+        <HeroTitleFirst>The API Platform</HeroTitleFirst>
+        <HeroTitleSecond>for Humans and Agents</HeroTitleSecond>
         <HeroTeaser>
           Unify all your APIs into a comprehensive company graph, streamlining
           data accessibility and enhancing integration. Transform the way you
           manage and interact with your data.
         </HeroTeaser>
-        <HeroLink to="/docs/nitro/apis/fusion">Get Started</HeroLink>
+        <HeroLink to="/docs/nitro/apis/fusion" data-track="get_started_click">
+          Get Started
+        </HeroLink>
       </IndexPageHero>
       <CompaniesSection />
       <ContentSection
@@ -134,10 +136,12 @@ const IndexPage: FC<IndexPageProps> = ({ recentPosts }) => {
           Book a demo to see it in action, or dive right in and start now.
           We're here to help you revolutionize your API strategy.
         "
-        primaryLink="mailto:contact@chillicream.com?subject=Demo"
+        primaryLink="/services/support/contact?subject=Schedule+a+Demo"
         primaryLinkText="Book a Demo"
+        primaryTrack="book_demo_click"
         secondaryLink="https://nitro.chillicream.com"
         secondaryLinkText="Launch"
+        secondaryTrack="launch_click"
       />
       <CommunitySection />
       <NewsletterSection />

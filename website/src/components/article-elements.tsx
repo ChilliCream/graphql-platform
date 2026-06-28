@@ -38,7 +38,8 @@ export const ArticleTitle = styled.h1`
   margin-right: 16px;
   margin-bottom: 24px;
   margin-left: 16px;
-  font-size: 3rem;
+  font-size: 2.5rem;
+  line-height: 1.2em;
 
   @media only screen and (min-width: 860px) {
     margin-right: 0;
@@ -60,8 +61,8 @@ export const ArticleContent = styled.div`
   }
 
   > * {
-    font-size: 1.125rem;
-    line-height: 1.6em;
+    font-size: 1.0625rem;
+    line-height: 1.7em;
   }
 
   > h1,
@@ -71,32 +72,32 @@ export const ArticleContent = styled.div`
   > h5,
   > h6 {
     position: relative;
-    line-height: 1.12em;
-    margin: 48px 16px 24px;
+    line-height: 1.25em;
+    margin: 56px 16px 20px;
   }
 
   > h1 {
-    font-size: 2.5rem;
-  }
-
-  > h2 {
     font-size: 2.25rem;
   }
 
-  > h3 {
-    font-size: 2rem;
-  }
-
-  > h4 {
+  > h2 {
     font-size: 1.875rem;
   }
 
-  > h5 {
+  > h3 {
     font-size: 1.5rem;
   }
 
+  > h4 {
+    font-size: 1.25rem;
+  }
+
   > h5 {
-    font-size: 1.375rem;
+    font-size: 1.125rem;
+  }
+
+  > h6 {
+    font-size: 1rem;
   }
 
   > blockquote {

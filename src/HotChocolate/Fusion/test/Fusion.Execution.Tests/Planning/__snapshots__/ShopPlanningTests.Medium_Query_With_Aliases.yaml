@@ -132,9 +132,7 @@ nodes:
     type: Operation
     schema: f
     operation: |
-      query Op_123456789101112_2(
-        $__fusion_1_id: ID!
-      ) {
+      query Op_123456789101112_2($__fusion_1_id: ID!) {
         productById(id: $__fusion_1_id) {
           reviews {
             nodes {
@@ -178,9 +176,7 @@ nodes:
     type: OperationBatch
     schema: e
     operation: |
-      query Op_123456789101112_3(
-        $__fusion_2_id: ID!
-      ) {
+      query Op_123456789101112_3($__fusion_2_id: ID!) {
         productById(id: $__fusion_2_id) {
           weight
           pictureFileName
@@ -207,9 +203,7 @@ nodes:
     type: OperationBatch
     schema: e
     operation: |
-      query Op_123456789101112_10(
-        $__fusion_11_id: ID!
-      ) {
+      query Op_123456789101112_10($__fusion_11_id: ID!) {
         productById(id: $__fusion_11_id) {
           weight
         }
@@ -229,9 +223,7 @@ nodes:
     type: OperationBatch
     schema: b
     operation: |
-      query Op_123456789101112_4(
-        $__fusion_3_id: ID!
-      ) {
+      query Op_123456789101112_4($__fusion_3_id: ID!) {
         productByIdAsync(id: $__fusion_3_id) {
           quantity
           item {
@@ -292,9 +284,7 @@ nodes:
     type: OperationBatch
     schema: f
     operation: |
-      query Op_123456789101112_6(
-        $__fusion_6_id: ID!
-      ) {
+      query Op_123456789101112_6($__fusion_6_id: ID!) {
         productById(id: $__fusion_6_id) {
           reviews {
             edges {
@@ -322,9 +312,7 @@ nodes:
     type: OperationBatch
     schema: e
     operation: |
-      query Op_123456789101112_7(
-        $__fusion_7_id: ID!
-      ) {
+      query Op_123456789101112_7($__fusion_7_id: ID!) {
         productById(id: $__fusion_7_id) {
           weight
           pictureFileName
@@ -350,9 +338,7 @@ nodes:
     type: OperationBatch
     schema: a
     operation: |
-      query Op_123456789101112_9(
-        $__fusion_10_id: ID!
-      ) {
+      query Op_123456789101112_9($__fusion_10_id: ID!) {
         userById(id: $__fusion_10_id) {
           birthdate
         }
@@ -372,9 +358,7 @@ nodes:
     type: OperationBatch
     schema: a
     operation: |
-      query Op_123456789101112_11(
-        $__fusion_12_id: ID!
-      ) {
+      query Op_123456789101112_11($__fusion_12_id: ID!) {
         userById(id: $__fusion_12_id) {
           birthdate
           username

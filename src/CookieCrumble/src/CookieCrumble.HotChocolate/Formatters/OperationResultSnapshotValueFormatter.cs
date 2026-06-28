@@ -30,7 +30,7 @@ internal sealed class OperationResultSnapshotValueFormatter : SnapshotValueForma
             writer.WriteNumber("variableIndex", value.VariableIndex.Value);
         }
 
-        if (value.Data.ValueKind is JsonValueKind.Object)
+        if (value.Data.ValueKind is JsonValueKind.Object or JsonValueKind.Null)
         {
             writer.WritePropertyName("data");
             value.Data.WriteTo(writer);

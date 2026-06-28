@@ -34,8 +34,8 @@ sourceSchemas:
         query: Query
       }
 
-      interface Authorable {
-        author: Author
+      type Query {
+        authorable: Authorable
       }
 
       type Author @key(fields: "id") {
@@ -50,11 +50,12 @@ sourceSchemas:
         author: Author
       }
 
-      type Query {
-        authorable: Authorable
+      interface Authorable {
+        author: Author
       }
     interactions:
       - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
             query testQuery_1703e95b_1 {
               authorable {
@@ -88,23 +89,22 @@ sourceSchemas:
         query: Query
       }
 
+      type Query {
+        authorById(id: ID!): Author @lookup
+      }
+
       type Author {
         id: ID!
         displayName: String!
         email: String
       }
-
-      type Query {
-        authorById(id: ID!): Author @lookup
-      }
     interactions:
       - request:
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
           kind: OperationBatch
           items:
             - document: |
-                query testQuery_1703e95b_2(
-                  $__fusion_1_id: ID!
-                ) {
+                query testQuery_1703e95b_2($__fusion_1_id: ID!) {
                   authorById(id: $__fusion_1_id) {
                     email
                   }
@@ -114,9 +114,7 @@ sourceSchemas:
                   "__fusion_1_id": "QXV0aG9yOjI="
                 }
             - document: |
-                query testQuery_1703e95b_3(
-                  $__fusion_2_id: ID!
-                ) {
+                query testQuery_1703e95b_3($__fusion_2_id: ID!) {
                   authorById(id: $__fusion_2_id) {
                     displayName
                   }
@@ -189,9 +187,7 @@ operationPlan:
       type: Operation
       schema: B
       operation: |
-        query testQuery_1703e95b_2(
-          $__fusion_1_id: ID!
-        ) {
+        query testQuery_1703e95b_2($__fusion_1_id: ID!) {
           authorById(id: $__fusion_1_id) {
             email
           }
@@ -209,9 +205,7 @@ operationPlan:
       type: Operation
       schema: B
       operation: |
-        query testQuery_1703e95b_3(
-          $__fusion_2_id: ID!
-        ) {
+        query testQuery_1703e95b_3($__fusion_2_id: ID!) {
           authorById(id: $__fusion_2_id) {
             displayName
           }

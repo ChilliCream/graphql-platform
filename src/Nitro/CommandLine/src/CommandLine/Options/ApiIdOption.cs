@@ -1,18 +1,14 @@
-namespace ChilliCream.Nitro.CommandLine.Options;
+namespace ChilliCream.Nitro.CommandLine;
 
 internal class ApiIdOption : Option<string>
 {
-    public ApiIdOption() : base("--api-id", "The ID of the API")
-    {
-        IsRequired = true;
-        this.DefaultFromEnvironmentValue("API_ID");
-    }
-}
+    public const string OptionName = "--api-id";
 
-internal sealed class OptionalApiIdOption : ApiIdOption
-{
-    public OptionalApiIdOption() : base()
+    public ApiIdOption() : base(OptionName)
     {
-        IsRequired = false;
+        Description = "The ID of the API";
+        Required = true;
+        this.DefaultFromEnvironmentValue(EnvironmentVariables.ApiId);
+        this.NonEmptyStringsOnly();
     }
 }

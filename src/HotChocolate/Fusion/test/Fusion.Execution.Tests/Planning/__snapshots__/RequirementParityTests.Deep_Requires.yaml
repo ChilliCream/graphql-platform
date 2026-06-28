@@ -55,9 +55,7 @@ nodes:
     type: Operation
     schema: b
     operation: |
-      query Op_123456789101112_4(
-        $__fusion_4_id: ID!
-      ) {
+      query Op_123456789101112_4($__fusion_4_id: ID!) {
         postById(id: $__fusion_4_id) {
           comments {
             id
@@ -76,9 +74,7 @@ nodes:
     type: Operation
     schema: c
     operation: |
-      query Op_123456789101112_5(
-        $__fusion_5_id: ID!
-      ) {
+      query Op_123456789101112_5($__fusion_5_id: ID!) {
         commentById(id: $__fusion_5_id) {
           authorId
         }

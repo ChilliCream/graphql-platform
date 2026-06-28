@@ -14,6 +14,8 @@ using BenchmarkDotNet.Columns;
 using BenchmarkDotNet.Exporters.Csv;
 using BenchmarkDotNet.Exporters;
 using HotChocolate.Buffers;
+using HotChocolate.Fusion;
+using HotChocolate.Fusion.Execution;
 
 namespace Fusion.Execution.Benchmarks;
 
@@ -49,13 +51,27 @@ public class GraphQLQueryBenchmark
         (_server, _app) = await GraphQLServerHelper.CreateTestServer();
         _client = _server.CreateClient();
 
+        var fusionItems = new HotChocolate.Fusion.Transport.OperationRequest(
+            "{ items }",
+            id: null,
+            operationName: null,
+            onError: null,
+            variables: VariableValues.Empty,
+            extensions: JsonSegment.Empty);
+        var fusionFewItems = new HotChocolate.Fusion.Transport.OperationRequest(
+            "{ fewItems }",
+            id: null,
+            operationName: null,
+            onError: null,
+            variables: VariableValues.Empty,
+            extensions: JsonSegment.Empty);
+
+        _fusionItemsRequest = new FusionGraphQLHttpRequest(fusionItems, _requestUri);
+        _fusionFewItemsRequest = new FusionGraphQLHttpRequest(fusionFewItems, _requestUri);
+        _fusionClient = new FusionClient(_client);
+
         var items = new HotChocolate.Transport.OperationRequest("{ items }");
         var fewItems = new HotChocolate.Transport.OperationRequest("{ fewItems }");
-
-
-        _fusionItemsRequest = new FusionGraphQLHttpRequest(items, _requestUri);
-        _fusionFewItemsRequest = new FusionGraphQLHttpRequest(fewItems, _requestUri);
-        _fusionClient = new FusionClient(_client);
 
         _transportItemsRequest = new TransportGraphQLHttpRequest(items, _requestUri);
         _transportFewItemsRequest = new TransportGraphQLHttpRequest(fewItems, _requestUri);
@@ -92,7 +108,8 @@ public class GraphQLQueryBenchmark
     public async Task<int> Send_Large_Request_With_Fusion()
     {
         using var result = await _fusionClient.SendAsync(_fusionItemsRequest);
-        using var document = await result.ReadAsResultAsync();
+        using var arena = new MemoryArena();
+        using var document = await result.ReadAsResultAsync(arena);
         return document.Root.GetProperty("data"u8).GetProperty("items"u8).GetArrayLength();
     }
 
@@ -109,7 +126,8 @@ public class GraphQLQueryBenchmark
     public async Task<int> Send_Small_Request_With_Fusion()
     {
         using var result = await _fusionClient.SendAsync(_fusionFewItemsRequest);
-        using var document = await result.ReadAsResultAsync();
+        using var arena = new MemoryArena();
+        using var document = await result.ReadAsResultAsync(arena);
         return document.Root.GetProperty("data"u8).GetProperty("fewItems"u8).GetArrayLength();
     }
 }

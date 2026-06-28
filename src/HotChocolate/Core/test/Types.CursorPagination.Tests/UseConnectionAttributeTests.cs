@@ -18,7 +18,8 @@ public class UseConnectionAttributeTests
                 {
                   foos(first: 3)
                 }
-                """);
+                """,
+                cancellationToken: TestContext.Current.CancellationToken);
 
         AssertErrorCode(result, ErrorCodes.Paging.MaxPaginationItems);
     }
@@ -34,7 +35,8 @@ public class UseConnectionAttributeTests
                 {
                   foos
                 }
-                """);
+                """,
+                cancellationToken: TestContext.Current.CancellationToken);
 
         AssertErrorCode(result, ErrorCodes.Paging.NoPagingBoundaries);
     }
@@ -50,7 +52,8 @@ public class UseConnectionAttributeTests
                 {
                   foosNoBackward
                 }
-                """);
+                """,
+                cancellationToken: TestContext.Current.CancellationToken);
 
         AssertErrorCode(result, ErrorCodes.Paging.FirstValueNotSet);
     }
@@ -66,12 +69,13 @@ public class UseConnectionAttributeTests
                 {
                   foosClampedDefault
                 }
-                """);
+                """,
+                cancellationToken: TestContext.Current.CancellationToken);
 
         var operationResult = result.ExpectOperationResult();
 
         Assert.True(
-            operationResult.Errors is null || operationResult.Errors.Count == 0,
+            operationResult.Errors.Count == 0,
             $"Expected no errors but got: {operationResult.ToJson()}");
 
         using var document = JsonDocument.Parse(operationResult.ToJson());

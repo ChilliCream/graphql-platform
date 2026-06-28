@@ -22,6 +22,10 @@ sourceSchemas:
         query: Query
       }
 
+      type Query {
+        post: Post
+      }
+
       type Discussion {
         id: ID!
         title: String
@@ -32,13 +36,10 @@ sourceSchemas:
         imageUrl: String!
       }
 
-      type Query {
-        post: Post
-      }
-
       union Post = Photo | Discussion
     interactions:
       - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
             query testQuery_a239ceba_1 {
               post {

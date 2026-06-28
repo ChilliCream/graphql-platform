@@ -19,6 +19,7 @@ public static class WellKnownAttributes
     public const string QueryAttribute = "HotChocolate.QueryAttribute";
     public const string MutationAttribute = "HotChocolate.MutationAttribute";
     public const string SubscriptionAttribute = "HotChocolate.SubscriptionAttribute";
+    public const string SubscribeAttribute = "HotChocolate.Types.SubscribeAttribute";
     public const string NodeResolverAttribute = "HotChocolate.Types.Relay.NodeResolverAttribute";
     public const string ParentAttribute = "HotChocolate.ParentAttribute";
     public const string EventMessageAttribute = "HotChocolate.EventMessageAttribute";
@@ -39,6 +40,7 @@ public static class WellKnownAttributes
     public const string ObsoleteAttribute = "System.ObsoleteAttribute";
     public const string BatchResolverAttribute = "HotChocolate.Types.BatchResolverAttribute";
     public const string GraphQLTypeAttribute = "HotChocolate.GraphQLTypeAttribute";
+    public const string IsSelectedAttribute = "HotChocolate.Types.IsSelectedAttribute";
 
     public static HashSet<string> BindAttributes { get; } =
     [

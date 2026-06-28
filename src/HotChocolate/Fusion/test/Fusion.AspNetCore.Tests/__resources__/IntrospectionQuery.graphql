@@ -29,6 +29,7 @@ fragment FullType on __Type {
   name
   description
   specifiedByURL
+  isOneOf
   fields(includeDeprecated: true) {
     name
     description

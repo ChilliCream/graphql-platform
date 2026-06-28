@@ -1,9 +1,7 @@
 title: Field_Below_Shared_Field_Only_Available_On_One_Subgraph_Type_Of_Shared_Field_Not_Node_3
 request:
   document: |
-    query(
-      $productId: ID!
-    ) {
+    query($productId: ID!) {
       productById(id: $productId) {
         subgraph1Only {
           subgraph2Only
@@ -44,8 +42,10 @@ sourceSchemas:
         query: Query
       }
 
-      interface Node {
-        id: ID!
+      type Query {
+        node(id: ID!): Node @lookup @shareable
+        productById(id: ID!): Product @lookup
+        productAvailabilityById(id: ID!): ProductAvailability @lookup @shareable
       }
 
       type Product implements Node {
@@ -64,17 +64,14 @@ sourceSchemas:
         subgraph1Only: String!
       }
 
-      type Query {
-        node(id: ID!): Node @lookup @shareable
-        productById(id: ID!): Product @lookup
-        productAvailabilityById(id: ID!): ProductAvailability @lookup @shareable
+      interface Node {
+        id: ID!
       }
     interactions:
       - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
-            query Op_b7bd95cc_1(
-              $productId: ID!
-            ) {
+            query Op_b7bd95cc_1($productId: ID!) {
               productById(id: $productId) {
                 subgraph1Only {
                   subgraph1Only
@@ -113,8 +110,9 @@ sourceSchemas:
         query: Query
       }
 
-      interface Node {
-        id: ID!
+      type Query {
+        node(id: ID!): Node @lookup @shareable
+        productAvailabilityById(id: ID!): ProductAvailability @lookup @shareable
       }
 
       type ProductAvailability implements Node {
@@ -128,18 +126,16 @@ sourceSchemas:
         sharedScalar: String! @shareable
       }
 
-      type Query {
-        node(id: ID!): Node @lookup @shareable
-        productAvailabilityById(id: ID!): ProductAvailability @lookup @shareable
+      interface Node {
+        id: ID!
       }
     interactions:
       - request:
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
           kind: OperationBatch
           items:
             - document: |
-                query Op_b7bd95cc_2(
-                  $__fusion_1_id: ID!
-                ) {
+                query Op_b7bd95cc_2($__fusion_1_id: ID!) {
                   productAvailabilityById(id: $__fusion_1_id) {
                     subgraph2Only
                   }
@@ -149,9 +145,7 @@ sourceSchemas:
                   "__fusion_1_id": "UHJvZHVjdEF2YWlsYWJpbGl0eTox"
                 }
             - document: |
-                query Op_b7bd95cc_3(
-                  $__fusion_2_id: ID!
-                ) {
+                query Op_b7bd95cc_3($__fusion_2_id: ID!) {
                   node(id: $__fusion_2_id) {
                     __typename
                     ... on ProductAvailability {
@@ -190,9 +184,7 @@ sourceSchemas:
 operationPlan:
   operation:
     - document: |
-        query(
-          $productId: ID!
-        ) {
+        query($productId: ID!) {
           productById(id: $productId) {
             subgraph1Only {
               subgraph2Only
@@ -214,9 +206,7 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query Op_b7bd95cc_1(
-          $productId: ID!
-        ) {
+        query Op_b7bd95cc_1($productId: ID!) {
           productById(id: $productId) {
             subgraph1Only {
               subgraph1Only
@@ -234,9 +224,7 @@ operationPlan:
       type: Operation
       schema: B
       operation: |
-        query Op_b7bd95cc_2(
-          $__fusion_1_id: ID!
-        ) {
+        query Op_b7bd95cc_2($__fusion_1_id: ID!) {
           productAvailabilityById(id: $__fusion_1_id) {
             subgraph2Only
           }
@@ -254,9 +242,7 @@ operationPlan:
       type: Operation
       schema: B
       operation: |
-        query Op_b7bd95cc_3(
-          $__fusion_2_id: ID!
-        ) {
+        query Op_b7bd95cc_3($__fusion_2_id: ID!) {
           node(id: $__fusion_2_id) {
             __typename
             ... on ProductAvailability {

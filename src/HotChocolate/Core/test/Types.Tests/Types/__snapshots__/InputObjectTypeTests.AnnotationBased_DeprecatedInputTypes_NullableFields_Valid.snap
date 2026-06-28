@@ -1,4 +1,4 @@
-﻿schema {
+schema {
   query: Query
 }
 
@@ -8,6 +8,6 @@ type Query {
 
 input DeprecatedInputFieldsInput {
   obsoleteWithReason: Int @deprecated(reason: "reason")
-  obsolete: Int @deprecated
+  obsolete: Int @deprecated(reason: "No longer supported.")
   deprecated: Int @deprecated(reason: "reason")
 }

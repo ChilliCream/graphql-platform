@@ -1,9 +1,7 @@
 title: InputObject_Missing_NonNull_Field_With_Default_Value
 request:
   document: |
-    query testQuery(
-      $cat: Cat!
-    ) {
+    query testQuery($cat: Cat!) {
       catName(input: $cat)
     }
   variables: |
@@ -36,10 +34,9 @@ sourceSchemas:
       }
     interactions:
       - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
-            query testQuery_d0958502_1(
-              $cat: Cat!
-            ) {
+            query testQuery_d0958502_1($cat: Cat!) {
               catName(input: $cat)
             }
           variables: |
@@ -59,9 +56,7 @@ sourceSchemas:
 operationPlan:
   operation:
     - document: |
-        query testQuery(
-          $cat: Cat!
-        ) {
+        query testQuery($cat: Cat!) {
           catName(input: $cat)
         }
       name: testQuery
@@ -73,9 +68,7 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query testQuery_d0958502_1(
-          $cat: Cat!
-        ) {
+        query testQuery_d0958502_1($cat: Cat!) {
           catName(input: $cat)
         }
       forwardedVariables:

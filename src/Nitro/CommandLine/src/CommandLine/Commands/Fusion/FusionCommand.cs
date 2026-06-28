@@ -12,15 +12,15 @@ internal sealed class FusionCommand : Command
 {
     public FusionCommand() : base("fusion")
     {
-        Description = "Manage Fusion configurations";
+        Description = "Manage Fusion configurations.";
 
-        AddCommand(new FusionComposeCommand());
-        AddCommand(new FusionDownloadCommand());
-        AddCommand(new FusionMigrateCommand());
-        AddCommand(new FusionPublishCommand());
-        AddCommand(new FusionRunCommand());
-        AddCommand(new FusionSettingsCommand());
-        AddCommand(new FusionValidateCommand());
-        AddCommand(new FusionUploadCommand());
+        Subcommands.Add(new FusionComposeCommand());
+        Subcommands.Add(new FusionDownloadCommand());
+        Subcommands.Add(new FusionMigrateCommand());
+        Subcommands.Add(new FusionPublishCommand());
+        Subcommands.Add(new FusionRunCommand());
+        Subcommands.Add(new FusionSettingsCommand());
+        Subcommands.Add(new FusionValidateCommand());
+        Subcommands.Add(new FusionUploadCommand());
     }
 }

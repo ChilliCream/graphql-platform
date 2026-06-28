@@ -125,7 +125,7 @@ public class DateTypeTests
 
         // act
         var operation = CommonTestExtensions.CreateOperation();
-        var resultDocument = new ResultDocument(operation, 0);
+        var resultDocument = new ResultDocument(CommonTestExtensions.CreateArena(), operation, 0);
         var resultValue = resultDocument.Data.GetProperty("first");
         type.CoerceOutputValue(dateOnly, resultValue);
 
@@ -213,7 +213,7 @@ public class DateTypeTests
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<QueryDate1>()
-            .BuildSchemaAsync()
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -231,7 +231,8 @@ public class DateTypeTests
                         date(date: "2017-12-30")
                     }
                 }
-                """)
+                """,
+                cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -241,7 +242,7 @@ public class DateTypeTests
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<QueryDate2>()
-            .BuildSchemaAsync()
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -259,7 +260,8 @@ public class DateTypeTests
                         date
                     }
                 }
-                """)
+                """,
+                cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -276,6 +278,21 @@ public class DateTypeTests
 
         // assert
         Assert.IsType<DateOnly>(result);
+    }
+
+    [Fact]
+    public void DateType_Relaxed_Format_Check_With_Utc_Z_Suffix()
+    {
+        // arrange
+        const string s = "2020-12-12T00:00:00.000Z";
+
+        // act
+        var type = new DateType(disableFormatCheck: true);
+        var inputValue = JsonDocument.Parse($"\"{s}\"").RootElement;
+        var result = type.CoerceInputValue(inputValue, null!);
+
+        // assert
+        Assert.Equal(new DateOnly(2020, 12, 12), Assert.IsType<DateOnly>(result));
     }
 
     public class Query

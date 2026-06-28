@@ -68,8 +68,10 @@ sourceSchemas:
         query: Query
       }
 
-      interface Node {
-        id: ID!
+      type Query {
+        productsA: [Product]
+        productsB: [Product]
+        productById(id: ID!): Product @lookup @internal
       }
 
       type Product implements Node {
@@ -77,13 +79,12 @@ sourceSchemas:
         name: String!
       }
 
-      type Query {
-        productsA: [Product]
-        productsB: [Product]
-        productById(id: ID!): Product @lookup @internal
+      interface Node {
+        id: ID!
       }
     interactions:
       - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
             query Op_9ad18dbf_1 {
               productsA {
@@ -136,8 +137,9 @@ sourceSchemas:
         query: Query
       }
 
-      interface Node {
-        id: ID!
+      type Query {
+        node(id: ID!): Node @lookup
+        nodes(ids: [ID!]!): [Node]!
       }
 
       type Product implements Node {
@@ -146,16 +148,14 @@ sourceSchemas:
         reviewCount: Int!
       }
 
-      type Query {
-        node(id: ID!): Node @lookup
-        nodes(ids: [ID!]!): [Node]!
+      interface Node {
+        id: ID!
       }
     interactions:
       - request:
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
           document: |
-            query Op_9ad18dbf_2(
-              $__fusion_1_id: ID!
-            ) {
+            query Op_9ad18dbf_2($__fusion_1_id: ID!) {
               node(id: $__fusion_1_id) {
                 __typename
                 ... on Product {
@@ -289,9 +289,7 @@ operationPlan:
       type: OperationBatch
       schema: B
       operation: |
-        query Op_9ad18dbf_2(
-          $__fusion_1_id: ID!
-        ) {
+        query Op_9ad18dbf_2($__fusion_1_id: ID!) {
           node(id: $__fusion_1_id) {
             __typename
             ... on Product {

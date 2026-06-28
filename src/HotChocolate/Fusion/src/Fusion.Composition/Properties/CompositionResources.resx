@@ -33,6 +33,12 @@
   <data name="CompositionLogExtensions_EntryMessageWithSchemaName" xml:space="preserve">
     <value>{0} (Schema: '{1}')</value>
   </data>
+  <data name="ConnectorMutableDirectiveDefinition_Argument_Kind_Description" xml:space="preserve">
+    <value>The kind of connector that backs this source schema.</value>
+  </data>
+  <data name="ConnectorMutableDirectiveDefinition_Description" xml:space="preserve">
+    <value>The @fusion__connector directive declares which connector kind handles this source schema.</value>
+  </data>
   <data name="CostDirective_WeightArgument_Invalid" xml:space="preserve">
     <value>The @cost directive must have a 'weight' argument of type String.</value>
   </data>
@@ -56,6 +62,12 @@
   </data>
   <data name="ExternalMutableDirectiveDefinition_Description" xml:space="preserve">
     <value>The @external directive indicates that a field is recognized by the current source schema but is not directly contributed (resolved) by it.</value>
+  </data>
+  <data name="FusionConnectorMutableDirectiveDefinition_Argument_Kind_Description" xml:space="preserve">
+    <value>The kind of connector that handles the source schema represented by this enum value.</value>
+  </data>
+  <data name="FusionConnectorMutableDirectiveDefinition_Description" xml:space="preserve">
+    <value>The @fusion__connector directive declares which connector kind handles a source schema.</value>
   </data>
   <data name="FusionCostMutableDirectiveDefinition_Argument_Schema_Description" xml:space="preserve">
     <value>The name of the source schema that defined the cost metadata.</value>
@@ -300,6 +312,15 @@
   <data name="LogEntryHelper_ExternalUnused" xml:space="preserve">
     <value>The external field '{0}' in schema '{1}' is not referenced by a @provides directive in the schema.</value>
   </data>
+  <data name="LogEntryHelper_EventCursorArgumentNotString" xml:space="preserve">
+    <value>The @eventCursor argument '{0}' in schema '{1}' must be of type String.</value>
+  </data>
+  <data name="LogEntryHelper_EventCursorFieldNotString" xml:space="preserve">
+    <value>The @eventCursor field '{0}' in schema '{1}' must be of type String.</value>
+  </data>
+  <data name="LogEntryHelper_EventCursorMarkerOnNonSubscriptionField" xml:space="preserve">
+    <value>The @eventCursor marker '{0}' in schema '{1}' must be reachable from an @eventStream subscription field.</value>
+  </data>
   <data name="LogEntryHelper_FieldArgumentTypesNotMergeable" xml:space="preserve">
     <value>The argument '{0}' has a different type shape in schema '{1}' than it does in schema '{2}'.</value>
   </data>
@@ -327,8 +348,26 @@
   <data name="LogEntryHelper_InvalidGraphQL" xml:space="preserve">
     <value>Invalid GraphQL in source schema. Exception message: {0}.</value>
   </data>
+  <data name="LogEntryHelper_InvalidGraphQLInExtensions" xml:space="preserve">
+    <value>Invalid GraphQL in source schema extensions. Exception message: {0}.</value>
+  </data>
   <data name="LogEntryHelper_InvalidShareableUsage" xml:space="preserve">
     <value>The field '{0}' in schema '{1}' must not be marked as shareable.</value>
+  </data>
+  <data name="LogEntryHelper_MultipleEventStreamSources" xml:space="preserve">
+    <value>The shareable subscription field '{0}' in schema '{1}' must declare the same @eventStream source in every source schema.</value>
+  </data>
+  <data name="LogEntryHelper_MultipleCursorArguments" xml:space="preserve">
+    <value>The @eventStream field '{0}' in schema '{1}' must not declare more than one @eventCursor argument.</value>
+  </data>
+  <data name="LogEntryHelper_EventStreamTopicsEmpty" xml:space="preserve">
+    <value>The @eventStream directive on field '{0}' in schema '{1}' must not declare an empty list of topics. Omit the 'topics' argument to derive topics automatically.</value>
+  </data>
+  <data name="LogEntryHelper_EventStreamMessageAbstractTypeRequiresTypeName" xml:space="preserve">
+    <value>The @eventStream directive on field '{0}' in schema '{1}' selects an abstract type but its message does not include '__typename' at that level, which is required to resolve the concrete type at runtime.</value>
+  </data>
+  <data name="LogEntryHelper_MultipleCursorFields" xml:space="preserve">
+    <value>The @eventStream field '{0}' in schema '{1}' must not declare more than one @eventCursor field on its return type.</value>
   </data>
   <data name="LogEntryHelper_IsInvalidFields" xml:space="preserve">
     <value>The @is directive on argument '{0}' in schema '{1}' specifies an invalid field selection against the composed schema.</value>
@@ -345,11 +384,11 @@
   <data name="LogEntryHelper_KeyDirectiveInFieldsArgument" xml:space="preserve">
     <value>A @key directive on type '{0}' in schema '{1}' references field '{2}', which must not include directive applications.</value>
   </data>
-  <data name="LogEntryHelper_KeyFieldsHasArguments" xml:space="preserve">
-    <value>A @key directive on type '{0}' in schema '{1}' references field '{2}', which must not have arguments.</value>
-  </data>
   <data name="LogEntryHelper_KeyFieldsSelectInvalidType" xml:space="preserve">
     <value>A @key directive on type '{0}' in schema '{1}' references field '{2}', which must not be a list, interface, or union type.</value>
+  </data>
+  <data name="LogEntryHelper_KeyInvalidArguments" xml:space="preserve">
+    <value>A @key directive on type '{0}' in schema '{1}' specifies invalid arguments. {2}</value>
   </data>
   <data name="LogEntryHelper_KeyInvalidFields" xml:space="preserve">
     <value>A @key directive on type '{0}' in schema '{1}' specifies an invalid field selection against the composed schema.</value>
@@ -359,6 +398,9 @@
   </data>
   <data name="LogEntryHelper_KeyInvalidSyntax" xml:space="preserve">
     <value>A @key directive on type '{0}' in schema '{1}' contains invalid syntax in the 'fields' argument.</value>
+  </data>
+  <data name="LogEntryHelper_LookupMustHaveArguments" xml:space="preserve">
+    <value>The lookup field '{0}' in schema '{1}' must declare at least one argument.</value>
   </data>
   <data name="LogEntryHelper_LookupReturnsList" xml:space="preserve">
     <value>The lookup field '{0}' in schema '{1}' must not return a list.</value>
@@ -401,6 +443,9 @@
   </data>
   <data name="LogEntryHelper_ProvidesOnNonCompositeField" xml:space="preserve">
     <value>The field '{0}' in schema '{1}' includes a @provides directive, but does not return a composite type.</value>
+  </data>
+  <data name="LogEntryHelper_EventStreamMessageInvalidFields" xml:space="preserve">
+    <value>The @eventStream directive on field '{0}' in schema '{1}' specifies an invalid message selection.</value>
   </data>
   <data name="LogEntryHelper_QueryRootTypeInaccessible" xml:space="preserve">
     <value>The root query type in schema '{0}' must be accessible.</value>
@@ -494,9 +539,6 @@
   </data>
   <data name="SatisfiabilityValidator_CycleDetected" xml:space="preserve">
     <value>Cycle detected: {0} -&gt; {1}.</value>
-  </data>
-  <data name="SatisfiabilityValidator_MaxRecursionDepthReached" xml:space="preserve">
-    <value>Satisfiability validation reached the maximum recursion depth ({0}) while visiting type '{1}'. Validation of deeply nested fields may be incomplete.</value>
   </data>
   <data name="SatisfiabilityValidator_NodeTypeHasNoNodeLookup" xml:space="preserve">
     <value>Type '{0}' implements the 'Node' interface, but no source schema provides a non-internal 'Query.node&lt;Node&gt;' lookup field for this type.</value>

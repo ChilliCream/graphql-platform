@@ -1,4 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
+using Mocha.Features;
 using Mocha.Transport.Postgres.Tests.Helpers;
 
 namespace Mocha.Transport.Postgres.Tests;
@@ -102,6 +103,21 @@ public class PostgresTransportTests
         Assert.True(found);
         Assert.NotNull(endpoint);
         Assert.Same(existingEndpoint, endpoint);
+    }
+
+    [Fact]
+    public void TryGetDispatchEndpoint_Should_ReturnReplyDispatchEndpoint_When_ReplyAliasUsed()
+    {
+        // arrange
+        var runtime = CreateRuntimeWithHandlers(b => b.AddEventHandler<OrderCreatedHandler>());
+        var transport = runtime.Transports.OfType<PostgresMessagingTransport>().Single();
+
+        // act
+        var found = transport.TryGetDispatchEndpoint(new Uri("postgres:replies"), out var endpoint);
+
+        // assert
+        Assert.True(found);
+        Assert.Same(transport.ReplyDispatchEndpoint, endpoint);
     }
 
     [Fact]
@@ -490,7 +506,7 @@ public class PostgresTransportTests
     }
 
     [Fact]
-    public void CreateEndpointConfiguration_Should_CreateReplyConfig_When_PostgresRepliesPath()
+    public void CreateEndpointConfiguration_Should_CreateReplyConfig_When_InternalPostgresReplyAddressUsed()
     {
         // arrange
         var runtime = CreateRuntimeWithHandlers(b => b.AddEventHandler<OrderCreatedHandler>());
@@ -498,7 +514,7 @@ public class PostgresTransportTests
         var context = (IMessagingConfigurationContext)runtime;
 
         // act
-        var config = transport.CreateEndpointConfiguration(context, new Uri("postgres:///replies"));
+        var config = transport.CreateEndpointConfiguration(context, new Uri("postgres:replies"));
 
         // assert
         Assert.NotNull(config);
@@ -569,11 +585,13 @@ public class PostgresTransportTests
         var receiveEndpoint = transport.ReceiveEndpoints.First(e => e.Kind == ReceiveEndpointKind.Default);
 
         // assert
-        Assert.NotNull(receiveEndpoint.ErrorEndpoint);
-        Assert.Contains("_error", receiveEndpoint.ErrorEndpoint!.Name);
+        var faultFeature = receiveEndpoint.Features.Get<ReceiveFaultEndpointFeature>();
+        Assert.NotNull(faultFeature?.Endpoint);
+        Assert.Contains("_error", faultFeature.Endpoint!.Name);
 
-        Assert.NotNull(receiveEndpoint.SkippedEndpoint);
-        Assert.Contains("_skipped", receiveEndpoint.SkippedEndpoint!.Name);
+        var skippedFeature = receiveEndpoint.Features.Get<ReceiveSkippedEndpointFeature>();
+        Assert.NotNull(skippedFeature?.Endpoint);
+        Assert.Contains("_skipped", skippedFeature.Endpoint!.Name);
     }
 
     [Fact]

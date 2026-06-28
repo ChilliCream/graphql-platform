@@ -34,9 +34,7 @@ nodes:
     type: OperationBatch
     schema: b
     operation: |
-      query Op_123456789101112_2(
-        $__fusion_1_id: ID!
-      ) {
+      query Op_123456789101112_2($__fusion_1_id: ID!) {
         productById(id: $__fusion_1_id) {
           rating
         }
@@ -56,9 +54,7 @@ nodes:
     type: OperationBatch
     schema: c
     operation: |
-      query Op_123456789101112_3(
-        $__fusion_2_id: ID!
-      ) {
+      query Op_123456789101112_3($__fusion_2_id: ID!) {
         productById(id: $__fusion_2_id) {
           deliveryEstimate
         }

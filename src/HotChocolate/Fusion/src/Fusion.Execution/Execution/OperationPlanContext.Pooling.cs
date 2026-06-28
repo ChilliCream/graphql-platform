@@ -1,4 +1,6 @@
 using System.Collections.Immutable;
+using System.Diagnostics;
+using HotChocolate.Buffers;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Diagnostics;
 using HotChocolate.Fusion.Execution.Nodes;
@@ -23,27 +25,40 @@ public sealed partial class OperationPlanContext
     internal void Initialize(
         RequestContext requestContext,
         IVariableValueCollection variables,
-        OperationPlan operationPlan,
-        CancellationTokenSource cancellationTokenSource)
+        IOperationPlan operationPlan,
+        CancellationTokenSource cancellationTokenSource,
+        MemoryArena? memory = null)
     {
         ArgumentNullException.ThrowIfNull(requestContext);
         ArgumentNullException.ThrowIfNull(variables);
         ArgumentNullException.ThrowIfNull(operationPlan);
 
-        _disposed = false;
+        _disposed = 0;
         RequestContext = requestContext;
+
+        _memory = memory
+            ?? requestContext.Memory
+            ?? throw new InvalidOperationException(
+                "The operation plan context requires a memory arena.");
+        _memorySource.Set(_memory);
+        _currentMemorySource = _memorySource;
+
         Variables = variables;
         OperationPlan = operationPlan;
         IncludeFlags = operationPlan.Operation.CreateIncludeFlags(variables);
+        DeferFlags = operationPlan.Operation.CreateDeferFlags(variables);
         _collectTelemetry = requestContext.CollectOperationPlanTelemetry();
         _clientScope = requestContext.CreateClientScope();
+        _clientScopeCreatedAt = Stopwatch.GetTimestamp();
 
         _resultStore.Initialize(
+            Memory,
             requestContext.Schema,
             _errorHandler,
             operationPlan.Operation,
             requestContext.ErrorHandlingMode(),
             IncludeFlags,
+            DeferFlags,
             requestContext.Schema.GetOptions().PathSegmentLocalPoolCapacity);
 
         _executionState.Initialize(_collectTelemetry, cancellationTokenSource);
@@ -73,9 +88,15 @@ public sealed partial class OperationPlanContext
         _executionState.Clean();
 
         RequestContext = default!;
+        _memory = null;
+        _memorySource.Clear();
+        _currentMemorySource = null!;
         Variables = default!;
         OperationPlan = default!;
+        DeferFlags = 0;
         _clientScope = default!;
+        _requirementValues = default;
+        _requirementKeys = null;
         Traces =
 #if NET10_0_OR_GREATER
             [];
@@ -84,27 +105,31 @@ public sealed partial class OperationPlanContext
 #endif
         _traceId = null;
         _start = 0;
+        _clientScopeCreatedAt = 0;
     }
 
     /// <summary>
     /// Permanently destroys the context and its owned resources.
     /// Called when the pool drops a context (pool full) or during pool disposal.
     /// </summary>
-    internal void Destroy() => _resultStore.Dispose();
+    internal void Destroy()
+    {
+        _resultStore.Dispose();
+        _executionState.Destroy();
+    }
 
     public async ValueTask DisposeAsync()
     {
-        if (!_disposed)
+        if (Interlocked.Exchange(ref _disposed, 1) != 0)
         {
-            _disposed = true;
-            await _clientScope.DisposeAsync();
-
-            if (_pool is not null)
-            {
-                _pool.Return(this);
-                _pool = null;
-            }
+            return;
         }
+
+        await _clientScope.DisposeAsync();
+
+        var pool = _pool;
+        _pool = null;
+        pool?.Return(this);
     }
 
     private void EnsureNodeArrayCapacity(int maxNodeId)

@@ -20,16 +20,17 @@ sourceSchemas:
         query: Query
       }
 
+      type Query {
+        productBySlug(slug: String!): Product
+      }
+
       type Product {
         id: ID!
         name: String!
       }
-
-      type Query {
-        productBySlug(slug: String!): Product
-      }
     interactions:
       - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
             query testQuery_0abed161_1 {
               productBySlug(slug: "product") {

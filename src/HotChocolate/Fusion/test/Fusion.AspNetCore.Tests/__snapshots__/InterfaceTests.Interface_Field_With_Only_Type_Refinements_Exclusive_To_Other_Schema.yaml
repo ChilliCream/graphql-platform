@@ -22,8 +22,8 @@ sourceSchemas:
         query: Query
       }
 
-      interface SomeInterface {
-        value: String
+      type Query {
+        someField: SomeInterface
       }
 
       type ConcreteTypeA implements SomeInterface {
@@ -31,11 +31,12 @@ sourceSchemas:
         specificToA: String
       }
 
-      type Query {
-        someField: SomeInterface
+      interface SomeInterface {
+        value: String
       }
     interactions:
       - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
             query Op_405afc94_1 {
               someField {
@@ -58,8 +59,8 @@ sourceSchemas:
         query: Query
       }
 
-      interface SomeInterface {
-        value: String
+      type Query {
+        anotherField: SomeInterface
       }
 
       type ConcreteTypeB implements SomeInterface {
@@ -67,8 +68,8 @@ sourceSchemas:
         specificToB: String
       }
 
-      type Query {
-        anotherField: SomeInterface
+      interface SomeInterface {
+        value: String
       }
 operationPlan:
   operation:

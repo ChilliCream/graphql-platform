@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Diagnostics.CodeAnalysis;
+using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Types.Mutable;
 
@@ -93,6 +94,8 @@ internal sealed record SatisfiabilityPathItem(
     string SchemaName)
 {
     public ITypeDefinition FieldType { get; } = Field.Type.AsTypeDefinition();
+
+    public SelectionSetNode? ProvidedSelectionSet { get; init; }
 
     private readonly int _hashCode = HashCode.Combine(Field, Type, SchemaName);
 

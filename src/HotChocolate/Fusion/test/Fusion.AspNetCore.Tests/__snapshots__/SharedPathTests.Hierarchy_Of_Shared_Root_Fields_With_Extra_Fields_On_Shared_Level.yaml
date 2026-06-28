@@ -34,16 +34,6 @@ sourceSchemas:
         query: Query
       }
 
-      interface IInterface @key(fields: "id") {
-        id: Int!
-      }
-
-      type Product implements IInterface {
-        id: Int!
-        schema1: String!
-        shared: SharedProduct @shareable
-      }
-
       type Query {
         productById(id: Int!): Product @lookup
         viewer: Viewer! @shareable
@@ -52,6 +42,12 @@ sourceSchemas:
         unsharedInterface: IInterface!
         union: IUnion! @shareable
         topReview: Review! @shareable
+      }
+
+      type Product implements IInterface @key(fields: "id") {
+        id: Int!
+        schema1: String!
+        shared: SharedProduct @shareable
       }
 
       type Review implements IInterface {
@@ -77,9 +73,14 @@ sourceSchemas:
         schema1: String!
       }
 
+      interface IInterface @key(fields: "id") {
+        id: Int!
+      }
+
       union IUnion = Product | Review
     interactions:
       - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
             query Op_2deb87e6_1 {
               viewer {
@@ -108,16 +109,6 @@ sourceSchemas:
         query: Query
       }
 
-      interface IInterface @key(fields: "id") {
-        id: Int!
-      }
-
-      type Product implements IInterface {
-        id: Int!
-        schema2: String!
-        shared: SharedProduct @shareable
-      }
-
       type Query {
         product(id: Int!): Product @lookup
         viewer: Viewer! @shareable
@@ -125,6 +116,12 @@ sourceSchemas:
         interface: IInterface! @shareable
         union: IUnion! @shareable
         topReview: Review! @shareable
+      }
+
+      type Product implements IInterface @key(fields: "id") {
+        id: Int!
+        schema2: String!
+        shared: SharedProduct @shareable
       }
 
       type Review implements IInterface {
@@ -150,9 +147,14 @@ sourceSchemas:
         schema2: String!
       }
 
+      interface IInterface @key(fields: "id") {
+        id: Int!
+      }
+
       union IUnion = Product | Review
     interactions:
       - request:
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
           kind: OperationBatch
           items:
             - document: |
@@ -205,6 +207,7 @@ sourceSchemas:
       }
     interactions:
       - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
             query Op_2deb87e6_3 {
               viewer {

@@ -10,34 +10,39 @@ on:
       - .docker/website/**
       - website/**
 
+permissions:
+  contents: read
+
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
           show-progress: false
 
       - name: Docker Login
-        uses: docker/login-action@v3
+        uses: docker/login-action@650006c6eb7dba73a995cc03b0b2d7f5ca915bee # v4.2.0
         with:
           registry: ${{ secrets.CONTAINER_REG_URL }}
           username: ${{ secrets.CONTAINER_REG_USERNAME }}
           password: ${{ secrets.CONTAINER_REG_PASSWORD }}
 
       - name: Install Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
         with:
-          node-version: 22
+          node-version: 24
           cache: "yarn"
           cache-dependency-path: "website/yarn.lock"
 
       - name: Cache Next.js Build Artifacts
-        uses: actions/cache@v5
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
         with:
-          path: website/.next/cache
+          path: |
+            website/.next/cache
+            website/public/optimized
           key: ${{ runner.os }}-nextjs-${{ hashFiles('website/yarn.lock') }}-${{ github.sha }}
           restore-keys: |
             ${{ runner.os }}-nextjs-${{ hashFiles('website/yarn.lock') }}-
@@ -64,9 +69,13 @@ jobs:
       - name: Build Website
         run: yarn build
         working-directory: website
+        env:
+          NEXT_PUBLIC_COOKIEBOT_CBID: ${{ secrets.NEXT_PUBLIC_COOKIEBOT_CBID }}
+          NEXT_PUBLIC_GA_MEASUREMENT_ID: ${{ secrets.NEXT_PUBLIC_GA_MEASUREMENT_ID }}
+          NEXT_PUBLIC_GTM_ID: ${{ secrets.NEXT_PUBLIC_GTM_ID }}
 
       - name: Build WebSite Container
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@f9f3042f7e2789586610d6e8b85c8f03e5195baf # v7.2.0
         with:
           context: ./website
           file: .docker/website/dockerfile
@@ -74,10 +83,9 @@ jobs:
           tags: ${{ secrets.CONTAINER_REG_DOMAIN }}/ccc-website-${{ github.ref_name }}:${{ github.run_id }}
 
       - name: Deploy to Azure WebApp
-        uses: azure/webapps-deploy@v3
+        uses: azure/webapps-deploy@02a81bead70021f5284939794bcec79c271ab383 # v3
         with:
           app-name: ccc-p-us1-website
-          slot-name: "next"
           publish-profile: ${{ secrets.AZURE_PUBLISH_PROFILE }}
           images: ${{ secrets.CONTAINER_REG_DOMAIN }}/ccc-website-${{ github.ref_name }}:${{ github.run_id }}
 

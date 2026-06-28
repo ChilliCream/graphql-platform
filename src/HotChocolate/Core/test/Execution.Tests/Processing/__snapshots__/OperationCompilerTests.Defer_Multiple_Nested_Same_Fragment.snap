@@ -1,11 +1,11 @@
 {
   hero(episode: EMPIRE) {
     ... @defer {
-      ... CharFields
+      ...CharFields
       ... @defer {
-        ... CharFields
+        ...CharFields
         ... @defer {
-          ... CharFields
+          ...CharFields
         }
       }
     }

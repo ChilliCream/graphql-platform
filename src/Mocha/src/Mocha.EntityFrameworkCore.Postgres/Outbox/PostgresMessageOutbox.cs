@@ -83,8 +83,6 @@ internal sealed class PostgresMessageOutbox : IMessageOutbox, IDisposable
                 await connection.OpenAsync(cancellationToken);
             }
 
-            var transaction = _originalDbContext.Database.CurrentTransaction?.GetDbTransaction() as NpgsqlTransaction;
-
             await using var writer = new Utf8JsonWriter(_arrayWriter);
             writer.WriteEnvelope(envelope);
             writer.Flush(); // we know it's not async
@@ -99,7 +97,7 @@ internal sealed class PostgresMessageOutbox : IMessageOutbox, IDisposable
 
             await command.ExecuteNonQueryAsync(cancellationToken);
 
-            if (transaction is null)
+            if (_originalDbContext.Database.CurrentTransaction?.GetDbTransaction() is not NpgsqlTransaction)
             {
                 _signal.Set();
             }

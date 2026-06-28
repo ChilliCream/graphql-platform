@@ -95,17 +95,27 @@ internal ref struct JsonVariableCoercion
         // Handle List types
         if (type.Kind is TypeKind.List)
         {
+            var elementType = (IInputType)type.ListType().ElementType;
+
             if (element.ValueKind is not JsonValueKind.Array)
             {
-                value = null;
-                error = ErrorBuilder.New()
-                    .SetMessage("The value is not a list value.")
-                    .SetExtension("variable", $"{path}")
-                    .Build();
-                return false;
+                if (!TryParseAndValidate(
+                    elementType,
+                    element,
+                    path,
+                    depth + 1,
+                    out var itemValue,
+                    out error))
+                {
+                    value = null;
+                    return false;
+                }
+
+                value = new ListValueNode(itemValue);
+                error = null;
+                return true;
             }
 
-            var elementType = (IInputType)type.ListType().ElementType;
             var buffer = ArrayPool<IValueNode>.Shared.Rent(64);
             var count = 0;
 
@@ -345,7 +355,8 @@ internal ref struct JsonVariableCoercion
         {
             if (element.ValueKind is JsonValueKind.String
                 && element.GetString() is { Length: > 0 } fileKey
-                && _context.Features.GetRequired<IFileLookup>().TryGetFile(fileKey, out _))
+                && _context.Features.Get<IFileLookup>() is { } fileLookup
+                && fileLookup.TryGetFile(fileKey, out _))
             {
                 value = new StringValueNode($"$.file({fileKey})");
                 error = null;

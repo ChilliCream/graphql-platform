@@ -9,9 +9,8 @@ Hot Chocolate is designed for high throughput out of the box. The schema is buil
 The schema is constructed eagerly at startup by default. You can go a step further and register warmup tasks that pre-populate in-memory caches before the server starts accepting traffic. This eliminates cold-start latency for the first requests after deployment.
 
 ```csharp
-// Program.cs
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddWarmupTask(async (executor, cancellationToken) =>
     {
         var request = OperationRequestBuilder.New()
@@ -36,9 +35,8 @@ Hot Chocolate caches parsed and compiled operations so that repeated requests sk
 - `OperationDocumentCacheSize` controls the parsed document cache (default `256`, minimum `16`).
 
 ```csharp
-// Program.cs
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .ModifyOptions(options =>
     {
         options.PreparedOperationCacheSize = 1024;
@@ -46,7 +44,7 @@ builder.Services
     });
 ```
 
-In v16, each cache is scoped to a single schema instance. If your application hosts multiple schemas, each schema maintains its own caches.
+Each cache is scoped to a single schema instance. If your application hosts multiple schemas, each schema maintains its own caches.
 
 For APIs with a known set of operations, consider using [persisted operations](/docs/hotchocolate/v16/performance/trusted-documents) to eliminate parsing and validation entirely.
 
@@ -57,7 +55,6 @@ DataLoaders collect individual fetch requests during resolver execution and disp
 The default `MaxBatchSize` for DataLoaders is `1024`. If your data source has a lower limit on batch sizes (for example, a SQL `IN` clause limit), you can adjust this through `DataLoaderOptions` when creating a manual DataLoader class:
 
 ```csharp
-// DataLoaders/ProductByIdDataLoader.cs
 public class ProductByIdDataLoader : BatchDataLoader<int, Product>
 {
     private readonly IDbContextFactory<CatalogContext> _dbContextFactory;
@@ -85,14 +82,13 @@ public class ProductByIdDataLoader : BatchDataLoader<int, Product>
 
 For most applications, the source-generated DataLoader approach (using the `[DataLoader]` attribute) is the recommended starting point.
 
-[Learn more about DataLoaders](/docs/hotchocolate/v16/resolvers-and-data/dataloader)
+[Learn more about DataLoaders](/docs/hotchocolate/v16/fetching-data/batching/dataloader)
 
 # Projections and Database Efficiency
 
 Use `[UseProjection]` to translate GraphQL field selections into database-level `SELECT` clauses. When a client requests only `name` and `email`, Hot Chocolate queries only those columns from the database rather than loading entire entities.
 
 ```csharp
-// Types/UserQueries.cs
 [QueryType]
 public static partial class UserQueries
 {
@@ -109,7 +105,6 @@ Combine `[UseProjection]` with `[UseFiltering]` and `[UseSorting]` to push filte
 As an alternative to middleware stacking, `QueryContext<T>` integrates projection, filtering, and sorting into a single return type:
 
 ```csharp
-// Types/UserQueries.cs
 [QueryType]
 public static partial class UserQueries
 {
@@ -120,16 +115,15 @@ public static partial class UserQueries
 
 Do not combine `QueryContext<T>` with `[UseProjection]` on the same field. The HC0099 analyzer warns when both are present.
 
-[Learn more about projections](/docs/hotchocolate/v16/resolvers-and-data/projections)
+[Learn more about projections](/docs/hotchocolate/v16/fetching-data/projections)
 
 # Cost Analysis for Resource Protection
 
 Cost analysis calculates the cost of every operation before execution and rejects operations that exceed your budget. Even on private APIs, cost analysis protects against accidentally expensive operations during development. It catches runaway queries before they reach production.
 
 ```csharp
-// Program.cs
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .ModifyCostOptions(options =>
     {
         options.MaxFieldCost = 5_000;
@@ -140,7 +134,7 @@ builder.Services
 
 Use the `GraphQL-Cost: report` HTTP header to inspect the cost of any operation without changing enforcement. Send your most complex expected operations and verify they fall within your limits.
 
-[Learn more about cost analysis](/docs/hotchocolate/v16/securing-your-api/cost-analysis)
+[Learn more about cost analysis](/docs/hotchocolate/v16/security/cost-analysis)
 
 # Reduce Response Size
 
@@ -153,9 +147,8 @@ Large responses increase serialization time, network transfer time, and client p
 Enable these directives in schema options:
 
 ```csharp
-// Program.cs
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .ModifyOptions(options =>
     {
         options.EnableDefer = true;
@@ -163,7 +156,7 @@ builder.Services
     });
 ```
 
-In v16, the default incremental delivery wire format is v0.2, which uses `pending`, `incremental`, and `completed` fields to track deferred fragments.
+The default incremental delivery wire format is v0.2, which uses `pending`, `incremental`, and `completed` fields to track deferred fragments.
 
 [Learn more about incremental delivery](/docs/hotchocolate/v16/server/http-transport)
 
@@ -180,7 +173,6 @@ Use OpenTelemetry to find slow resolvers and DataLoaders. Hot Chocolate ships wi
 For custom diagnostics, implement a diagnostic event listener:
 
 ```csharp
-// Diagnostics/PerformanceEventListener.cs
 public class PerformanceEventListener : ExecutionDiagnosticEventListener
 {
     private readonly ILogger<PerformanceEventListener> _logger;
@@ -216,9 +208,8 @@ public class PerformanceEventListener : ExecutionDiagnosticEventListener
 ```
 
 ```csharp
-// Program.cs
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddDiagnosticEventListener<PerformanceEventListener>();
 ```
 
@@ -230,8 +221,8 @@ Diagnostic event handlers execute synchronously as part of the GraphQL request. 
 
 - **Server warmup:** [Warmup](/docs/hotchocolate/v16/server/warmup) covers custom warmup tasks and lazy initialization.
 - **Persisted operations:** [Persisted Operations](/docs/hotchocolate/v16/performance/trusted-documents) covers both pre-stored and automatic persisted operations.
-- **DataLoaders:** [DataLoader](/docs/hotchocolate/v16/resolvers-and-data/dataloader) covers source-generated DataLoaders, manual DataLoader classes, and batch resolvers.
-- **Projections:** [Projections](/docs/hotchocolate/v16/resolvers-and-data/projections) covers the `[UseProjection]` middleware and `QueryContext<T>`.
-- **Cost analysis:** [Cost Analysis](/docs/hotchocolate/v16/securing-your-api/cost-analysis) covers custom weights, filtering and sorting costs, and the tuning guide.
+- **DataLoaders:** [DataLoader](/docs/hotchocolate/v16/fetching-data/batching/dataloader) covers source-generated DataLoaders, manual DataLoader classes, and batch resolvers.
+- **Projections:** [Projections](/docs/hotchocolate/v16/fetching-data/projections) covers the `[UseProjection]` middleware and `QueryContext<T>`.
+- **Cost analysis:** [Cost Analysis](/docs/hotchocolate/v16/security/cost-analysis) covers custom weights, filtering and sorting costs, and the tuning guide.
 - **Instrumentation:** [Instrumentation](/docs/hotchocolate/v16/server/instrumentation) covers diagnostic event listeners and OpenTelemetry integration.
-- **Configuration reference:** [Options](/docs/hotchocolate/v16/api-reference/options) lists all schema, request, and server options with their defaults.
+- **Configuration reference:** [Options](/docs/hotchocolate/v16/server/options) lists all schema, request, and server options with their defaults.

@@ -1,8 +1,7 @@
-using System.CommandLine.Invocation;
-using ChilliCream.Nitro.CommandLine.Client;
-using ChilliCream.Nitro.CommandLine.Configuration;
+using ChilliCream.Nitro.Client;
+using ChilliCream.Nitro.Client.FusionConfiguration;
 using ChilliCream.Nitro.CommandLine.Helpers;
-using ChilliCream.Nitro.CommandLine.Options;
+using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Fusion.PublishCommand;
@@ -11,37 +10,63 @@ internal sealed class FusionConfigurationPublishCancelCommand : Command
 {
     public FusionConfigurationPublishCancelCommand() : base("cancel")
     {
-        Description = "Cancels a Fusion configuration publish.";
-        AddOption(Opt<OptionalRequestIdOption>.Instance);
+        Description = "Cancel a Fusion configuration publish.";
 
-        this.SetHandler(
-            ExecuteAsync,
-            Bind.FromServiceProvider<InvocationContext>(),
-            Bind.FromServiceProvider<IAnsiConsole>(),
-            Bind.FromServiceProvider<IApiClient>(),
-            Bind.FromServiceProvider<ISessionService>(),
-            Bind.FromServiceProvider<CancellationToken>());
+        Options.Add(Opt<OptionalRequestIdOption>.Instance);
+
+        this.AddGlobalNitroOptions();
+
+        this.AddExamples("fusion publish cancel");
+
+        this.SetActionWithExceptionHandling(ExecuteAsync);
     }
 
     private static async Task<int> ExecuteAsync(
-        InvocationContext context,
-        IAnsiConsole console,
-        IApiClient client,
-        ISessionService sessionService,
+        ICommandServices services,
+        ParseResult parseResult,
         CancellationToken cancellationToken)
     {
+        var console = services.GetRequiredService<INitroConsole>();
+        var fusionConfigurationClient = services.GetRequiredService<IFusionConfigurationClient>();
+        var sessionService = services.GetRequiredService<ISessionService>();
+        var fileSystem = services.GetRequiredService<IFileSystem>();
+
+        parseResult.AssertHasAuthentication(sessionService);
+
         var requestId =
-            context.ParseResult.GetValueForOption(Opt<OptionalRequestIdOption>.Instance) ??
-            await FusionConfigurationPublishingState.GetRequestId(cancellationToken) ??
+            parseResult.GetValue(Opt<OptionalRequestIdOption>.Instance) ??
+            await FusionConfigurationPublishingState.GetRequestId(fileSystem, cancellationToken) ??
             throw new ExitException(
-                "No request ID was provided and no request ID was found in the cache. Please provide a request ID.");
+                Messages.NoFusionRequestId);
 
-        console.Title("Cancel the composition of a Fusion configuration");
+        await using (var activity = console.StartActivity(
+            "Canceling publication",
+            "Failed to cancel the publication."))
+        {
+            var result = await fusionConfigurationClient.ReleaseDeploymentSlotAsync(requestId, cancellationToken);
 
-        await FusionPublishHelpers.ReleaseDeploymentSlot(requestId, console, client, cancellationToken);
+            if (result.Errors is { Count: > 0 })
+            {
+                foreach (var error in result.Errors)
+                {
+                    var errorMessage = error switch
+                    {
+                        IUnauthorizedOperation err => err.Message,
+                        IFusionConfigurationRequestNotFoundError err => err.Message,
+                        IInvalidProcessingStateTransitionError err => err.Message,
+                        IError err => Messages.UnexpectedMutationError(err),
+                        _ => Messages.UnexpectedMutationError()
+                    };
 
-        console.MarkupLine("Cancelled the composition of Fusion configuration.");
+                    console.Error.WriteErrorLine(errorMessage);
+                }
 
-        return ExitCodes.Success;
+                throw new ExitException();
+            }
+
+            activity.Success($"Canceled publication for request '{requestId.EscapeMarkup()}'.");
+
+            return ExitCodes.Success;
+        }
     }
 }

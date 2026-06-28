@@ -1,4 +1,4 @@
-using ChilliCream.Nitro.CommandLine.Client;
+using ChilliCream.Nitro.Client;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Stages.Components;
 

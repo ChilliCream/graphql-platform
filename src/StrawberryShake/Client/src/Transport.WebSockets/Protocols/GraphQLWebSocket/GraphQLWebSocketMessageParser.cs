@@ -43,7 +43,7 @@ internal ref struct GraphQLWebSocketMessageParser
     /// <summary>
     /// Parses the message out of the sequence
     /// </summary>
-    /// <returns></returns>
+    /// <returns>The parsed message.</returns>
     /// <exception cref="SerializationException">
     /// Thrown when an invalid token, an unknown field or the type is not specified
     /// </exception>

@@ -44,8 +44,8 @@ sourceSchemas:
         query: Query
       }
 
-      interface Votable {
-        viewerCanVote: Boolean!
+      type Query {
+        wrappers: [Wrapper]
       }
 
       type Comment implements Votable {
@@ -59,15 +59,16 @@ sourceSchemas:
         title: String!
       }
 
-      type Query {
-        wrappers: [Wrapper]
-      }
-
       type Wrapper {
         votable: Votable
       }
+
+      interface Votable {
+        viewerCanVote: Boolean!
+      }
     interactions:
       - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
             query testQuery_877cb4f8_1 {
               wrappers {

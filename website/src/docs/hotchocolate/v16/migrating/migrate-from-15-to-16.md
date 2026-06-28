@@ -6,8 +6,6 @@ This guide will walk you through the manual migration steps to update your Hot C
 
 Start by installing the latest `16.x.x` version of **all** of the `HotChocolate.*` packages referenced by your project.
 
-> This guide is still a work in progress with more updates to follow.
-
 # Breaking changes
 
 Things that have been removed or had a change in behavior that may cause your code not to compile or lead to unexpected behavior at runtime if not addressed.
@@ -24,17 +22,17 @@ As a bonus, this tightens your development loop, since schema errors surface imm
 If you're currently using `InitializeOnStartup`, you can safely remove it. If you also provided the `warmup` argument to run a task during the initialization, you can migrate that task to the new `AddWarmupTask` API:
 
 ```diff
-builder.Services.AddGraphQLServer()
+builder.AddGraphQL()
 -   .InitializeOnStartup(warmup: (executor, ct) => { /* ... */ });
 +   .AddWarmupTask((executor, ct) => { /* ... */ });
 ```
 
-Warmup tasks registered with `AddWarmupTask` run at startup **and** when the schema is updated at runtime by default. Checkout the [documentation](/docs/hotchocolate/v16/server/warmup), if you need your warmup task to only run at startup.
+Warmup tasks registered with `AddWarmupTask` run at startup **and** when the schema is updated at runtime by default. Check out the [documentation](/docs/hotchocolate/v16/server/warmup), if you need your warmup task to only run at startup.
 
 If you need to preserve lazy initialization for specific scenarios (though this is rarely recommended), you can opt out by setting the `LazyInitialization` option to `true`:
 
 ```csharp
-builder.Services.AddGraphQLServer()
+builder.AddGraphQL()
     .ModifyOptions(options => options.LazyInitialization = true);
 ```
 
@@ -48,13 +46,30 @@ Starting with v16, we're introducing a more explicit model where Hot Chocolate c
 
 ```diff
 builder.Services.AddSingleton<MyService>();
-builder.Services.AddGraphQLServer()
+builder.AddGraphQL()
 +   .AddApplicationService<MyService>()
-    .AddDiagnosticEventListener<MyDiagnosticEventListener>()
+
+    // either
+    .AddDiagnosticEventListener<MyDiagnosticEventListener>();
     // or
-    .AddDiagnosticEventListener(sp => new MyService(sp.GetRequiredService<MyService>()));
+    .AddDiagnosticEventListener(sp => new MyDiagnosticEventListener(sp.GetRequiredService<MyService>()));
 
 public class MyDiagnosticEventListener(MyService service) : ExecutionDiagnosticEventListener;
+```
+
+Sometimes the registration of required services is not as obvious. For example, the types for logging are registered in framework code.
+
+```diff
+builder.Services.AddLogging();
+builder.AddGraphQL()
++   .AddApplicationService<ILogger<MyLoggingDiagnosticEventListener>>()
+
+    // either
+    .AddDiagnosticEventListener<MyLoggingDiagnosticEventListener>();
+    // or
+    .AddDiagnosticEventListener(sp => new MyLoggingDiagnosticEventListener(sp.GetRequiredService<ILogger<MyLoggingDiagnosticEventListener>>()));
+
+public class MyLoggingDiagnosticEventListener(ILogger<MyLoggingDiagnosticEventListener> logger) : ExecutionDiagnosticEventListener;
 ```
 
 Services registered via `AddApplicationService<T>()` are resolved once during schema initialization from the application service provider and registered as singletons in the schema service provider.
@@ -66,7 +81,6 @@ If you're using any of the following configuration APIs, ensure that the applica
 - `AddErrorFilter`
 - `AddDiagnosticEventListener`
 - `AddOperationCompilerOptimizer`
-- `AddTransactionScopeHandler`
 - `AddRedisOperationDocumentStorage`
 - `AddAzureBlobStorageOperationDocumentStorage`
 - `AddInstrumentation` with a custom `ActivityEnricher`
@@ -79,6 +93,41 @@ If you need to access the application service provider from within the schema se
 IServiceProvider applicationServices = schemaServices.GetRootServiceProvider();
 ```
 
+## Internal directives hidden from schema endpoint
+
+Previously, the `/graphql/schema.graphql` endpoint was returning the schema containing internal directives like `@authorize`. Starting with v16 the endpoint no longer includes internal directives by default.
+
+If you need to retain the previous behavior, set `DisableInternalDirectives` to `true` through `ModifyOptions`. This treats every directive as public, even directives that explicitly call `Internal()` and regardless of `DefaultDirectiveVisibility`:
+
+```csharp
+builder.Services
+    .AddGraphQLServer()
+    .ModifyOptions(o => o.DisableInternalDirectives = true);
+```
+
+Be aware that internal directives may carry sensitive information (for example, authorization policies attached via `@authorize`). Only enable this if you understand and accept that risk.
+
+## New analyzers
+
+If you reference the `HotChocolate.Types.Analyzers` package, version 16 ships a number of new analyzers that surface misconfigurations and discouraged patterns at compile time. Several of them report at `Error` severity, so they can break a build that compiled cleanly on version 15. In most cases the fix is exactly what the diagnostic suggests. If you believe a diagnostic is a false positive, please [open an issue](https://github.com/ChilliCream/graphql-platform/issues).
+
+The following new analyzers report at `Error` severity and can fail your build:
+
+| ID     | Title                                              | What it reports                                                                                                                            |
+| ------ | -------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| HC0094 | Bind member not found                              | The member referenced by `BindMember`/`nameof(...)` does not exist on the target type.                                                     |
+| HC0095 | Bind member type mismatch                          | The type used in a `nameof` expression does not match the `[ObjectType<T>]` type.                                                          |
+| HC0097 | Parent attribute type mismatch                     | A `[Parent]` parameter's type must be the parent runtime type or a base type/interface it implements.                                      |
+| HC0098 | Parent method type mismatch                        | The type argument in `Parent<T>()` must be the parent runtime type or a base type/interface it implements.                                 |
+| HC0099 | QueryContext with UseProjection                    | A resolver with a `QueryContext<T>` parameter cannot also use `[UseProjection]`.                                                           |
+| HC0100 | Data attribute order                               | `[UsePaging]`, `[UseProjection]`, `[UseFiltering]` and `[UseSorting]` must be applied in that order.                                       |
+| HC0101 | QueryContext connection type mismatch              | The `QueryContext<T>` type argument must match the connection's node type.                                                                 |
+| HC0092 | ID attribute redundant on node resolver parameters | `[ID]` is redundant on a `[NodeResolver]` parameter, since the attribute already declares the `id` parameter as an ID type. Remove `[ID]`. |
+| HC0093 | Node resolver must be public                       | A `[NodeResolver]` method must be `public`.                                                                                                |
+| HC0104 | Node resolver `id` parameter                       | The first parameter of a node resolver must be the node ID and must be named `id`.                                                         |
+| HC0105 | ID attribute must target the property              | On a record parameter, the `[ID]` attribute must use the `property:` target specifier (`[property: ID]`).                                  |
+| HC0106 | Microsoft authorization attribute not allowed      | Use the `[Authorize]` attribute from `HotChocolate.Authorization` instead of the one from `Microsoft.AspNetCore.Authorization`.            |
+
 ## Cache size configuration
 
 Previously, document and operation cache sizes were globally configured through the `IServiceCollection`. In an effort to align and properly scope our configuration APIs, we've moved the configuration of these caches to the `IRequestExecutorBuilder`. If you're currently calling `AddDocumentCache` or `AddOperationCache` directly on the `IServiceCollection`, move the configuration to `ModifyOptions` on the `IRequestExecutorBuilder`:
@@ -87,7 +136,7 @@ Previously, document and operation cache sizes were globally configured through 
 -builder.Services.AddDocumentCache(200);
 -builder.Services.AddOperationCache(100);
 
-builder.Services.AddGraphQLServer()
+builder.AddGraphQL()
 +    .ModifyOptions(options =>
 +    {
 +        options.OperationDocumentCacheSize = 200;
@@ -101,8 +150,8 @@ If you were previously accessing `IDocumentCache` or `IPreparedOperationCache` t
 For instance, to populate the document cache during startup, create a custom `IRequestExecutorWarmupTask` that injects `IDocumentCache`:
 
 ```csharp
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddWarmupTask<MyWarmupTask>();
 
 public class MyWarmupTask(IDocumentCache cache) : IRequestExecutorWarmupTask
@@ -125,7 +174,7 @@ Previously, document hash providers were globally configured through the `IServi
 ```diff
 -builder.Services.AddSha256DocumentHashProvider();
 
-builder.Services.AddGraphQLServer()
+builder.AddGraphQL()
 +    .AddSha256DocumentHashProvider()
 ```
 
@@ -149,8 +198,8 @@ builder.Services
 +               Url = "nats://localhost:4222"
 +           })));
 
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddSubscriptionType<Subscription>()
     .AddNatsSubscriptions();
 ```
@@ -160,7 +209,7 @@ If your code directly references NATS client types, add the `NATS.Client.Core` p
 ## MaxAllowedNodeBatchSize & EnsureAllNodesCanBeResolved options moved
 
 ```diff
-builder.Services.AddGraphQLServer()
+builder.AddGraphQL()
 -    .ModifyOptions(options =>
 -    {
 -        options.MaxAllowedNodeBatchSize = 100;
@@ -203,6 +252,60 @@ public class CustomRequestMiddleware
     }
 }
 ```
+
+## IRequestExecutorResolver split into provider, events, and manager
+
+The single `IRequestExecutorResolver` interface from v15 has been removed and its responsibilities split across three more focused abstractions in `HotChocolate.Execution.Abstractions`:
+
+| v15 (`IRequestExecutorResolver`)      | v16                                                                            |
+| ------------------------------------- | ------------------------------------------------------------------------------ |
+| `GetRequestExecutorAsync(schemaName)` | `IRequestExecutorProvider.GetExecutorAsync(schemaName)`                        |
+| `Events` (`IObservable<…>`)           | `IRequestExecutorEvents` (which itself is `IObservable<RequestExecutorEvent>`) |
+| `EvictRequestExecutor(schemaName)`    | `IRequestExecutorManager.EvictExecutor(schemaName)`                            |
+
+`IRequestExecutorManager` derives from `IRequestExecutorProvider`, so inject the manager when you need both lookup and eviction, the provider when you only need lookup, and `IRequestExecutorEvents` when you only need to react to executor lifecycle events:
+
+```diff
+-public class MyService(IRequestExecutorResolver resolver)
++public class MyService(
++    IRequestExecutorManager executors,
++    IRequestExecutorEvents events)
+ {
+-    public ValueTask<IRequestExecutor> GetExecutorAsync(CancellationToken ct)
+-        => resolver.GetRequestExecutorAsync(cancellationToken: ct);
++    public ValueTask<IRequestExecutor> GetExecutorAsync(CancellationToken ct)
++        => executors.GetExecutorAsync(cancellationToken: ct);
+
+-    public void EvictDefault() => resolver.EvictRequestExecutor();
++    public void EvictDefault() => executors.EvictExecutor();
+
+-    public IDisposable Subscribe(IObserver<RequestExecutorEvent> observer)
+-        => resolver.Events.Subscribe(observer);
++    public IDisposable Subscribe(IObserver<RequestExecutorEvent> observer)
++        => events.Subscribe(observer);
+ }
+```
+
+The `IServiceProvider.GetRequestExecutorAsync(...)` extension method has been kept as a convenience and now resolves `IRequestExecutorProvider` from the container internally, so call sites such as `services.GetRequestExecutorAsync()` continue to compile unchanged.
+
+The legacy `RequestExecutorEvicted` event (already marked obsolete in v15) has been removed; subscribe to `IRequestExecutorEvents` and filter on `RequestExecutorEventType.Evicted` instead.
+
+## RequestExecutorProxy
+
+`RequestExecutorProxy` still exists and serves the same purpose, giving you a long-lived handle to the executor for a particular schema that is hot-swapped automatically when the schema is rebuilt. Two things have changed:
+
+**Constructor signature.** The proxy no longer takes an `IRequestExecutorResolver`; it now takes the new provider and events abstractions explicitly:
+
+```diff
+-var proxy = new RequestExecutorProxy(resolver, "Schema");
++var proxy = new RequestExecutorProxy(executorProvider, executorEvents, "Schema");
+```
+
+**The proxy now implements `IRequestExecutor`.** You can pass a `RequestExecutorProxy` directly anywhere an `IRequestExecutor` is expected, without first calling `GetRequestExecutorAsync()`. `ExecuteAsync` and `ExecuteBatchAsync` resolve the current executor internally.
+
+The CLR events `ExecutorUpdated` and `ExecutorEvicted` have been removed. If you need to react to swaps, derive from `RequestExecutorProxy` and override `OnConfigureRequestExecutor(newExecutor, oldExecutor)` (runs under the proxy's lock, before `CurrentExecutor` is replaced) or `OnAfterRequestExecutorSwapped(newExecutor, oldExecutor)` (runs after the swap, outside the lock).
+
+The separate `AutoUpdateRequestExecutorProxy` helper has been removed; the base `RequestExecutorProxy` now subscribes to executor events on construction and updates `CurrentExecutor` automatically.
 
 ## Schema.DefaultName moved to ISchemaDefinition.DefaultName
 
@@ -334,6 +437,32 @@ Deprecating a field now requires the implemented field in the interface to also 
 ## Global ID formatter conditionally added to filter fields
 
 Previously, the global ID input value formatter was added to ID filter fields regardless of whether or not Global Object Identification was enabled. This is now conditional.
+
+## Filter operation limit
+
+Filtering now limits each filter argument to **64** operations by default. This protects the server from very large generated filters, including large `and` or `or` lists passed through variables.
+
+If a client sends more than 64 filter operations in a single filter argument, Hot Chocolate rejects the request before the filter expression is built and returns a GraphQL error with the code `HC0117`.
+
+If your application accepts larger filters, raise the limit on the filtering convention:
+
+```csharp
+builder
+    .AddGraphQL()
+    .AddFiltering(x => x
+        .AddDefaults()
+        .MaxAllowedFilterOperations(256));
+```
+
+To disable this limit, set `MaxAllowedFilterOperations` to `null`:
+
+```csharp
+builder
+    .AddGraphQL()
+    .AddFiltering(x => x
+        .AddDefaults()
+        .MaxAllowedFilterOperations(null));
+```
 
 ## fieldCoordinate renamed to coordinate in error extensions
 
@@ -520,7 +649,9 @@ var request = OperationRequestBuilder.New()
 
 **Variable values are now JSON-based**
 
-`SetVariableValues` now accepts JSON strings, `JsonDocument`, `IEnumerable<KeyValuePair<string, JsonElement>>`, or `IReadOnlyDictionary<string, object?>`. When you pass a dictionary of CLR objects, values are serialized to JSON internally. You can also pass variables directly as a JSON string:
+`SetVariableValues` now accepts JSON strings, `JsonDocument`, `IEnumerable<KeyValuePair<string, JsonElement>>`, or `IReadOnlyDictionary<string, object?>`.
+
+The preferred way to provide variables now is as a JSON string.
 
 ```csharp
 var request = OperationRequestBuilder.New()
@@ -528,6 +659,32 @@ var request = OperationRequestBuilder.New()
     .SetVariableValues("""{ "id": "42" }""")
     .Build();
 ```
+
+CLR objects passed via `SetVariableValues(Dictionary<string, object?>)` are now serialized to JSON internally.
+
+As a result, the JSON shape of a value must match what the target scalar expects. Some examples:
+
+- `DateTime` no longer fits a `Date` scalar, since its JSON form does not match the required `yyyy-MM-dd`.
+- Enums must be passed as their GraphQL name (`"VALUE"`) rather than the CLR member (`MyEnum.Value`).
+
+If you hit a mismatch, you have two options:
+
+1. Provide variables as raw JSON through `SetVariableValues(string)`, bypassing CLR serialization entirely.
+2. Register a custom `JsonConverter` for the affected type so the emitted JSON matches the scalar's expected format.
+
+If you need to pass an `Upload` scalar value, register the file on the builder via `AddFile` and reference it from your variables by the same key:
+
+```csharp
+var file = new StreamFile("Foo.txt", () => new MemoryStream(/* your bytes */));
+
+var request = OperationRequestBuilder.New()
+    .SetDocument("mutation ($file: Upload!) { upload(file: $file) }")
+    .SetVariableValues("""{ "file": "yourKey" }""")
+    .AddFile("yourKey", file)
+    .Build();
+```
+
+`yourKey` is just a marker you choose to correlate the variable value with the file. Call `AddFile` multiple times to register additional files on the same request.
 
 **Global state methods**
 
@@ -546,7 +703,44 @@ Use `OperationRequestBuilder.From(request)` to create a builder pre-populated fr
 
 **Features collection**
 
-The builder now exposes a `Features` property of type `IFeatureCollection` for attaching extensibility features (such as `IFileLookup` for file uploads).
+The builder now exposes a `Features` property of type `IFeatureCollection` for attaching extensibility features.
+
+## Snapshot matching on IExecutionResult
+
+The internal layout of `IExecutionResult` implementations has changed and is no longer compatible with general-purpose object serializers used by snapshot libraries like `Snapshooter` or `Verify`. Snapshotting the result instance directly will either fail or produce unstable output.
+
+Serialize the result to JSON first and snapshot that instead:
+
+```diff
+var result = await executor.ExecuteAsync("{ example }");
+
+- result.MatchSnapshot();
++ result.ToJson().MatchSnapshot();
+```
+
+If you're using **CookieCrumble**, you don't need to convert manually: it has native snapshot support for `IExecutionResult` and serializes it correctly out of the box.
+
+## AllowNonPersistedOperation moved
+
+The `AllowNonPersistedOperation` extension method has moved from `OperationRequestBuilderExtensions` (in `HotChocolate.Abstractions`) to `PersistedOperationRequestOverridesExtensions` (in `HotChocolate.Execution.Abstractions`). The namespace (`HotChocolate.Execution`) and the method signature are unchanged, so normal call sites continue to compile:
+
+```csharp
+builder.AllowNonPersistedOperation();
+```
+
+If you called the method through its declaring type, update the reference:
+
+```diff
+-OperationRequestBuilderExtensions.AllowNonPersistedOperation(builder);
++PersistedOperationRequestOverridesExtensions.AllowNonPersistedOperation(builder);
+```
+
+The method now writes a `PersistedOperationRequestOverrides` feature on the request instead of setting the `HotChocolate.Execution.NonPersistedOperationAllowed` global state entry. The `OnlyAllowPersistedDocuments` middleware only reads the feature in v16. If you previously bypassed the extension method and set the flag through global state, switch to writing the feature:
+
+```diff
+-builder.SetGlobalState("HotChocolate.Execution.NonPersistedOperationAllowed", true);
++builder.Features.Set(new PersistedOperationRequestOverrides(AllowNonPersistedOperation: true));
+```
 
 ## Any and Json scalars merged
 
@@ -569,16 +763,16 @@ public JsonElement GetData() => ...;
 If you previously returned `Dictionary<string, object>` or other .NET types from a field typed as `Json` or `Any`, you now need to register the JSON type converter explicitly. Without it, the type system has no way to convert arbitrary .NET types to `JsonElement`:
 
 ```csharp
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddJsonTypeConverter();
 ```
 
 For custom reference types that need specific serialization, register a dedicated converter instead:
 
 ```csharp
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddTypeConverter<TimeZoneInfo, JsonElement>(
         value => JsonSerializer.SerializeToElement(value.Id));
 ```
@@ -596,45 +790,6 @@ query {
   foo(input: { key: "value" })
   # Now returns: "JsonElement"
   # Previously (v15): "Dictionary`2"
-}
-```
-
-### Runtime objects passed as variables to OperationRequestBuilder are now serialized as JSON
-
-Passing CLR objects via `OperationRequestBuilder.SetVariableValues(Dictionary<string, object?>)` now serializes the values as JSON.
-
-You may prefer providing variables directly as JSON:
-
-```csharp
-var requestBuilder = new OperationRequestBuilder();
-requestBuilder.SetVariableValues("""{ "id": 42 }""");
-```
-
-Note that this can lead to errors if the emitted JSON for a type is not valid for the corresponding GraphQL scalar, f. e. du to format restrictions.
-For example, a `DateTime` value can no longer be used to fill a `Date` scalar since the JSON format does not match the expected yyyy-MM-dd format.
-
-You can also bypass this by annotating your types with custom JsonConverters.
-
-If you need to pass an Upload scalar value, you can do the following:
-
-```csharp
-var requestBuilder = new OperationRequestBuilder();
-requestBuilder.SetVariableValues("""{ "file" : "yourKey" }""");
-requestBuilder.Features.Set<IFileLookup>(fileLookup);
-
-public class FileLookup : IFileLookup
-{
-    public bool TryGetFile(string name, [NotNullWhen(true)] out IFile? file)
-    {
-        if (name == "yourKey")
-        {
-            file = new StreamFile("Foo.txt", () => new MemoryStream());
-            return true;
-        }
-
-        file = null;
-        return false;
-    }
 }
 ```
 
@@ -666,7 +821,20 @@ Note that this option is likely to be removed in a later release, so it's recomm
 
 ## DateTime scalar serialization
 
-The `DateTime` scalar now serializes with up to 7 fractional seconds (`FFFFFFF`) as opposed to exactly 3 (`fff`).
+The `DateTime` scalar now serializes with up to 7 fractional seconds (`FFFFFFF`) as opposed to exactly 3 (`fff`). Trailing zeros are stripped, and the fractional component is omitted entirely when zero, so `2023-12-24T15:30:00.5000000Z` is now emitted as `2023-12-24T15:30:00.5Z` and `2023-12-24T15:30:00.0000000Z` is emitted as `2023-12-24T15:30:00Z`.
+
+If you need fractional seconds to always be present in the output (for example, to preserve a fixed-width format your clients depend on), set `AlwaysOutputFractionalSeconds = true` on `DateTimeOptions`. You can also tune the precision via `OutputPrecision`. To restore the exact v15 behavior of always emitting three fractional digits, combine both:
+
+```csharp
+builder.AddGraphQL()
+    .AddType(new DateTimeType(new DateTimeOptions
+    {
+        OutputPrecision = 3,
+        AlwaysOutputFractionalSeconds = true
+    }));
+```
+
+The same options apply to the `LocalDateTime` and `LocalTime` scalars (and to their counterparts in `HotChocolate.Types.NodaTime`, which expose a matching `DateTimeOptions` struct).
 
 ## IHasRuntimeType is now IRuntimeTypeProvider
 
@@ -724,12 +892,63 @@ The `DefaultHttpMethod` enum has been removed. Use the `UseGet` boolean property
 +o.UseGet = true;
 ```
 
+## Nitro integration
+
+The Nitro NuGet packages have been restructured in v16. Versions now align with the rest of the platform, so you are migrating from `1.x` to `16.x`. For the full migration guide covering all package renames, API changes, and complete before/after examples, see [Migrating Nitro from 1 to 16](/docs/nitro/migration/migrate-from-1-to-16).
+
+The key changes for HotChocolate projects:
+
+- **Package rename:** The old `ChilliCream.Nitro` package is now `ChilliCream.Nitro.HotChocolate`. A new meta-package takes the old `ChilliCream.Nitro` ID.
+- **Connection settings** are configured once on the service collection via `AddNitro()`.
+- **Per-schema feature options** (persisted operations, metrics, operation reporting) are configured via `ModifyNitroOptions()` on the GraphQL builder.
+- **`AddNitroExporter()`** is replaced by `AddOpenTelemetry()` on the `INitroBuilder`.
+- **Asset cache** is now configured globally on `INitroBuilder` instead of per-schema.
+- **`AddDefaults()`** is a source-generated method that wires up the default integration when the correct packages are referenced.
+
+> Note: If you are self-hosting the Nitro backend, make sure to update it to the latest version as well. `10.1.0` is the minimum version required to work with the `ChilliCream.Nitro.*` packages.
+
+**Before**
+
+```csharp
+builder.Services
+    .AddGraphQLServer()
+    .AddNitro(o =>
+    {
+        o.ApiId = "...";
+        o.ApiKey = "...";
+        o.Stage = "...";
+        o.EnablePersistedQueries = true;
+        o.Metrics.Enabled = true;
+    });
+```
+
+**After**
+
+```csharp
+builder.Services
+    .AddNitro(o =>
+    {
+        o.ApiId = "...";
+        o.ApiKey = "...";
+        o.Stage = "...";
+    })
+    .AddDefaults();
+
+builder.Services
+    .AddGraphQLServer()
+    .ModifyNitroOptions(o =>
+    {
+        o.PersistedOperations.Enabled = true;
+        o.Metrics.Enabled = true;
+    });
+```
+
 ## Server options now configured via ModifyServerOptions
 
 `GraphQLServerOptions` (GET requests, multipart, batching, schema requests, etc.) are now configured at the schema level using `ModifyServerOptions` instead of per-endpoint:
 
 ```diff
-builder.Services.AddGraphQLServer()
+builder.AddGraphQL()
 +   .ModifyServerOptions(o =>
 +   {
 +       o.EnableGetRequests = false;
@@ -755,7 +974,7 @@ In v15, request batching was enabled by default (`EnableBatching = true`). In v1
 If you were relying on the previous default, you need to explicitly enable batching:
 
 ```csharp
-builder.Services.AddGraphQLServer()
+builder.AddGraphQL()
     .ModifyServerOptions(o => o.Batching = AllowedBatching.All);
 ```
 
@@ -800,8 +1019,8 @@ Accept: application/jsonl; incrementalSpec=v0.1
 To restore v0.1 as the server-wide default (used when the client doesn't specify `incrementalSpec`):
 
 ```csharp
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddHttpResponseFormatter(
         incrementalDeliveryFormat: IncrementalDeliveryFormat.Version_0_1);
 ```
@@ -809,16 +1028,12 @@ builder.Services
 Or with the options overload:
 
 ```csharp
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddHttpResponseFormatter(
         new HttpResponseFormatterOptions { /* ... */ },
         incrementalDeliveryFormat: IncrementalDeliveryFormat.Version_0_1);
 ```
-
-## OperationRequestBuilder.AddVariableValues renamed to SetVariableValues
-
-`OperationRequestBuilder.AddVariableValues` has been renamed to `SetVariableValues`.
 
 ## TimeSpan scalar renamed to Duration
 
@@ -871,8 +1086,8 @@ If you still need one of the removed scalars, add it back manually in your appli
 v16 adds a dedicated `AddNodaTime()` extension method that registers all five built-in NodaTime scalars and the related CLR bindings and converters:
 
 ```diff
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
 -   .AddType<DateTimeType>()
 -   .AddType<DurationType>()
 -   .AddType<LocalDateType>()
@@ -894,9 +1109,66 @@ If you prefer, you can still register the remaining scalar types individually in
 
 ### InstrumentationOptions changes
 
-- `RenameRootActivity` was removed.
+- `RenameRootActivity` was removed. See [Recreating `RenameRootActivity`](#recreating-renamerootactivity) to reproduce the previous behavior in user code.
 - `RequestDetails.Operation` was renamed to `RequestDetails.OperationName`.
 - `RequestDetails.Query` was renamed to `RequestDetails.Document`.
+
+### Recreating `RenameRootActivity`
+
+The root span is usually owned by the transport instrumentation (for example ASP.NET Core), not Hot Chocolate. Recreate the old behavior with a diagnostic event listener that publishes the operation name, then apply it from the transport instrumentation in `EnrichWithHttpResponse`:
+
+```csharp
+using System.Diagnostics;
+using HotChocolate.Execution;
+using HotChocolate.Execution.Instrumentation;
+
+public sealed class RenameRootActivityListener : ExecutionDiagnosticEventListener
+{
+    public override IDisposable ExecuteRequest(RequestContext context) => new Scope(context);
+
+    private sealed class Scope(RequestContext context) : IDisposable
+    {
+        public void Dispose()
+        {
+            if (Activity.Current is not { } activity
+                || !context.TryGetOperation(out var operation)
+                || string.IsNullOrEmpty(operation.Name))
+            {
+                return;
+            }
+
+            var name = $"{operation.Kind.ToString().ToLowerInvariant()} {operation.Name}";
+
+            var root = activity;
+            while (root.Parent is { } parent)
+            {
+                root = parent;
+            }
+
+            root.SetCustomProperty("graphqlDisplayName", name);
+        }
+    }
+}
+```
+
+```csharp
+builder.Services
+    .AddGraphQLServer()
+    .AddInstrumentation()
+    .AddDiagnosticEventListener<RenameRootActivityListener>();
+
+builder.Services
+    .AddOpenTelemetry()
+    .WithTracing(tracing => tracing
+        .AddAspNetCoreInstrumentation(o => o.EnrichWithHttpResponse = (activity, _) =>
+        {
+            if (activity.GetCustomProperty("graphqlDisplayName") is string name)
+            {
+                activity.DisplayName = name;
+            }
+        })
+        .AddHotChocolateInstrumentation());
+```
 
 ## OpenTelemetry span and status changes
 
@@ -980,37 +1252,188 @@ We removed the following methods from the `IExecutionDiagnosticEventListener` si
 
 Some other methods also had a change in their signature - simply override them again to fix any compilation issues.
 
-<!--
-TODO: This should probably go on in the Fusion specific guide.
+## IOperationMessagePayload exposes raw JSON
 
-### Fusion diagnostic listener API redesign
+The `IOperationMessagePayload` interface, used by `ISocketSessionInterceptor` hooks (`OnConnectAsync`, `OnPingAsync`, `OnPongAsync`), no longer exposes the `As<T>()` deserialization helper. It now provides direct access to the raw `JsonElement?` through a `Payload` property:
 
-Fusion diagnostics were redesigned in v16.
+```diff
+-public interface IOperationMessagePayload
+-{
+-    T? As<T>() where T : class;
+-}
++public interface IOperationMessagePayload
++{
++    JsonElement? Payload { get; }
++}
+```
 
-- v15 interface: `HotChocolate.Fusion.Execution.Diagnostic.IFusionDiagnosticEvents` / `IFusionDiagnosticEventListener`
-- v16 interface: `HotChocolate.Fusion.Diagnostics.IFusionExecutionDiagnosticEvents` / `IFusionExecutionDiagnosticEventListener`
+If you were calling `.As<T>()` to deserialize the payload, switch to `Payload?.Deserialize<T>()`:
 
-This is not a signature-only change. The old high-level hooks were removed:
+```diff
+public override ValueTask<ConnectionStatus> OnConnectAsync(
+    ISocketSession session,
+    IOperationMessagePayload connectionInitMessage,
+    CancellationToken cancellationToken = default)
+{
+-   var payload = connectionInitMessage.As<MyConnectPayload>();
++   var payload = connectionInitMessage.Payload?.Deserialize<MyConnectPayload>();
 
-- `ExecuteFederatedQuery(IRequestContext)`
-- `QueryPlanExecutionError(Exception)`
-- `ResolveError(Exception)`
-- `ResolveByKeyBatchError(Exception)`
-- `SubgraphRequestError(string, Exception)`
+    // ...
+}
+```
 
-The new API is execution-stage specific and provides request/plan/node/subscription hooks, for example:
+## Experimental @semanticNonNull support removed
 
-- `PlanOperation(...)`, `PlanOperationError(...)`
-- `ExecuteOperationNode(...)`, `ExecuteOperationBatchNode(...)`, `ExecuteSubscriptionNode(...)`, `ExecuteNodeFieldNode(...)`, `ExecuteIntrospectionNode(...)`
-- `ExecutionNodeError(...)`, `SourceSchemaTransportError(...)`, `SourceSchemaStoreError(...)`
-- `OnSubscriptionEvent(...)`, `SubscriptionEventError(...)`
+Hot Chocolate v15 included experimental support for the `@semanticNonNull` directive, which let you mark fields as semantically non-null while still returning `null` (rather than propagating to the parent) when a resolver errored. We've removed this feature in v16 in favor of the [`onError` proposal](https://github.com/graphql/graphql-spec/pull/1163).
 
-There is no 1:1 mapping for all old methods. In most cases:
+If you previously opted in to this feature, remove the option:
 
-- `SubgraphRequestError(...)` maps to `SourceSchemaTransportError(...)`
-- `ResolveError(...)` / `ResolveByKeyBatchError(...)` map to `ExecutionNodeError(...)` and source-schema error hooks depending on error kind
+```diff
+builder.AddGraphQL()
+    .ModifyOptions(o =>
+    {
+-       o.EnableSemanticNonNull = true;
+    });
+```
 
-Also note that `SubscriptionTransportError(...)` is no longer exposed separately in the fusion diagnostics API; use `SourceSchemaTransportError(...)`. -->
+If you still need to keep the behavior of not propagating nulls for errors on non-null fields, set the `DefaultErrorHandlingMode` to `ErrorHandlingMode.Null`:
+
+```csharp
+builder
+    .AddGraphQL()
+    .ModifyRequestOptions(o => o.DefaultErrorHandlingMode = ErrorHandlingMode.Null);
+```
+
+### Clients that still need a schema with @semanticNonNull annotations
+
+If you have a client that still relies on the schema being annotated with `@semanticNonNull`, you have a few options to obtain such a schema.
+
+**Schema snapshot tests**
+
+If you're producing a schema string for snapshot tests like this:
+
+```csharp
+ISchemaDefinition schema = await new ServiceCollection()
+    .AddGraphQL()
+    // ...
+    .BuildSchemaAsync();
+
+string schemaStr = schema.ToString();
+
+// assert schemaStr ...
+```
+
+Switch to `SchemaFormatter` with `RewriteToSemanticNonNull` enabled:
+
+```csharp
+string schemaStr = SchemaFormatter.FormatAsString(
+    schema,
+    new SchemaFormatterOptions { RewriteToSemanticNonNull = true });
+```
+
+**Downloading the schema from the server**
+
+If you're using `MapGraphQLSchema()` to expose the schema at `/graphql/schema`, you can additionally call `MapGraphQLSemanticNonNullSchema()` to expose a variant annotated with `@semanticNonNull` at `/graphql/semantic-non-null-schema.graphql`:
+
+```csharp
+app.MapGraphQLSchema();
+app.MapGraphQLSemanticNonNullSchema();
+```
+
+**Exporting the schema via the CLI**
+
+If you're using the schema export command, add the `--semantic-non-null` flag to emit the schema with `@semanticNonNull` annotations:
+
+```bash
+dotnet run -- schema export --output schema.graphql --semantic-non-null
+```
+
+## Parameterless handler registration on filter, sort, and projection providers removed
+
+The parameterless activator overloads have been removed from the filtering, sorting, and projection provider descriptors. Custom handlers must now be registered either by passing an instance or by passing a factory that receives a provider context. The context exposes `InputParser`, `InputFormatter`, `SchemaServices`, `TypeConverter`, etc.
+
+Affected APIs:
+
+- `IFilterProviderDescriptor<TContext>.AddFieldHandler<T>()` -> `AddFieldHandler(Func<FilterProviderContext, T>)`
+- `ISortProviderDescriptor<TContext>.AddFieldHandler<T>()` -> `AddFieldHandler(Func<SortProviderContext, T>)`
+- `ISortProviderDescriptor<TContext>.AddOperationHandler<T>()` -> `AddOperationHandler(Func<SortProviderContext, T>)`
+- `IProjectionProviderDescriptor.RegisterFieldHandler<T>()` -> `RegisterFieldHandler(Func<ProjectionProviderContext, T>)`
+- `IProjectionProviderDescriptor.RegisterFieldInterceptor<T>()` -> `RegisterFieldInterceptor(Func<ProjectionProviderContext, T>)`
+- `IProjectionProviderDescriptor.RegisterOptimizer<T>()` -> `RegisterOptimizer(Func<ProjectionProviderContext, T>)`
+
+**Before**
+
+```csharp
+public class CustomFilteringConvention : FilterConvention
+{
+    protected override void Configure(IFilterConventionDescriptor descriptor)
+    {
+        descriptor.AddDefaults();
+        descriptor.Provider(
+            new QueryableFilterProvider(
+                x => x
+                    .AddFieldHandler<QueryableStringInvariantEqualsHandler>()
+                    .AddDefaultFieldHandlers()));
+    }
+}
+```
+
+**After**
+
+```csharp
+public class CustomFilteringConvention : FilterConvention
+{
+    protected override void Configure(IFilterConventionDescriptor descriptor)
+    {
+        descriptor.AddDefaults();
+        descriptor.Provider(
+            new QueryableFilterProvider(
+                x => x
+                    .AddFieldHandler(ctx => new QueryableStringInvariantEqualsHandler(ctx.InputParser))
+                    .AddDefaultFieldHandlers()));
+    }
+}
+```
+
+The `CanHandle` signature also changed on the filtering, sorting, and projection handler interfaces. If you have overridden it, re-override against the new signature.
+
+## Transaction scope handlers removed
+
+`AddTransactionScopeHandler` and `AddDefaultTransactionScopeHandler` have been removed. The `ITransactionScopeHandler` abstraction wrapped an entire mutation operation in a single transaction and rolled back all root field results when any root field errored. This violates the GraphQL specification, which defines mutation root fields as independent: each field's result must be observable regardless of whether subsequent fields succeed or fail.
+
+If you relied on transaction handlers to keep multiple mutation fields consistent, model that coupling explicitly in the schema. Replace fine-grained root fields with a single coarse-grained mutation that accepts a composite input and performs the work as one unit:
+
+```graphql
+mutation {
+  # Before: separate fields, transactionality was implicit and spec-violating
+  addProducts(productIds: [...]) { ... }
+  removeProducts(productIds: [...]) { ... }
+
+  # After: one mutation that answers the client use case
+  updateCart(input: { productsToAdd: [...], productsToRemove: [...] }) { ... }
+}
+```
+
+The transaction boundary now lives inside the resolver for the coarse-grained mutation, where you control it directly with your data access layer.
+
+## Marten nullable boolean `neq` filter now includes null rows
+
+`HotChocolate.Data.Marten` has been updated to Marten 8.37.0 (from 8.0.0) to address the critical advisory [GHSA-vmw2-qwm8-x84c](https://github.com/advisories/GHSA-vmw2-qwm8-x84c). This change lands in **16.0.10**.
+
+Filtering a nullable `bool` property with `neq` now also returns rows where the value is `null`. Marten 8.10.1 changed the SQL it emits for `!=` predicates on nullable boolean JSON properties ([JasperFx/marten#3953](https://github.com/JasperFx/marten/issues/3953)): the `WHERE` clause now includes an `IS NULL OR ...` branch. Other nullable property types (numeric, string, enum) are unaffected.
+
+For a query against a nullable `Bar` column:
+
+```graphql
+{
+  root(where: { bar: { neq: true } }) {
+    bar
+  }
+}
+```
+
+- Previously: only rows where `Bar = false` were returned.
+- Now: rows where `Bar = false` and rows where `Bar IS NULL` are returned.
 
 # Deprecations
 
@@ -1021,6 +1444,31 @@ Things that will continue to function this release, but we encourage you to move
 The GraphQL `ByteArray` type has been deprecated. Use the `Base64String` type instead.
 
 # Noteworthy changes
+
+## Validation walker is now operation-scoped for fragment visits by default
+
+The base `DocumentValidatorVisitor` no longer re-walks a fragment definition on every sibling spread within an operation. Each fragment is now visited at most once per operation. Cycle detection continues to work via `context.Path.Contains(fragment)` in `FragmentVisitor`.
+
+User-visible effect: some queries that previously failed validation with false-positive errors now validate cleanly. For example, a `@defer` directive with a label inside a fragment spread twice was reported as a duplicate label collision against itself; that case (and similar over-counted errors for argument names, variable usage, input fields, and fragment spread possibility) now behaves correctly. Queries that should fail still fail, with no duplicates per spread.
+
+If you wrote a custom `DocumentValidatorVisitor` that called `context.Fragments.Leave(...)`, you have two options:
+
+1. **Match the new default (operation-scoped):** remove the `Leave` call. Each fragment is walked at most once per operation; sibling spreads short-circuit.
+2. **Opt back into per-spread re-walks:** keep the `Leave` call. This is what `CostAnalyzer` does, because per-spread re-walks are required to correctly accumulate cost across reused fragments.
+
+```diff
+if (context.Fragments.TryEnter(node, out var fragment))
+{
+    var result = Visit(fragment, node, context);
+-   context.Fragments.Leave(fragment); // remove for operation-scoped (recommended for validation rules)
+    // keep the Leave(...) call if your rule needs per-spread re-walks (e.g. cost analysis)
+
+    if (result.IsBreak())
+    {
+        return Break;
+    }
+}
+```
 
 ## RunWithGraphQLCommandsAsync returns exit code
 
@@ -1034,3 +1482,70 @@ var app = builder.Build();
 - await app.RunWithGraphQLCommandsAsync(args);
 + return await app.RunWithGraphQLCommandsAsync(args);
 ```
+
+## Parser recursion depth limit
+
+The parser now enforces a maximum recursion depth of **200** by default. Deeply nested selection sets, list values, object values, or type references that exceed this depth are rejected with a `SyntaxException` instead of causing a stack overflow. If your queries legitimately exceed this depth, increase the limit:
+
+```csharp
+builder
+    .AddGraphQL()
+    .ModifyParserOptions(o =>
+    {
+        o.MaxAllowedRecursionDepth = 500;
+    });
+```
+
+## Parser directive limit
+
+The parser now limits the number of directives per location (field, operation, fragment definition) to **4** by default. Documents with more directives on a single location are rejected at parse time. If you use more than 4 directives per location, increase the limit:
+
+```csharp
+builder
+    .AddGraphQL()
+    .ModifyParserOptions(o =>
+    {
+        o.MaxAllowedDirectives = 8;
+    });
+```
+
+## Fragment visit budget
+
+Validation now caps the total number of fragment visits per operation at **1,000** by default. Each time a fragment spread is entered during validation counts as one visit. Queries with deeply nested or heavily reused fragment spreads that exceed this budget will have remaining fragments skipped during validation. If you have complex queries with many fragment spreads, increase the limit:
+
+```csharp
+builder
+    .AddGraphQL()
+    .ModifyValidationOptions(o =>
+    {
+        o.MaxAllowedFragmentVisits = 5_000;
+    });
+```
+
+## Field merge comparison budget
+
+The overlapping-fields-can-be-merged validation rule now caps comparison work at **100,000** by default. Queries that exceed this budget are rejected. If you have very complex queries that trigger this limit, increase it:
+
+```csharp
+builder
+    .AddGraphQL()
+    .SetMaxAllowedFieldMergeComparisons(200_000);
+```
+
+## Concurrent execution gate
+
+Hot Chocolate v16 introduces a concurrency gate that limits how many GraphQL operations execute at the same time. The gate sits in the request pipeline just before operation execution and applies uniformly to queries, mutations, subscription handshakes, and each subscription event.
+
+Configure the limit through `ModifyServerOptions`:
+
+```csharp
+builder
+    .AddGraphQL()
+    .ModifyServerOptions(o => o.MaxConcurrentExecutions = 128);
+```
+
+The default is **64**. Operations that arrive while the gate is full queue up and run as slots free. Set the limit to `null` to disable the gate entirely.
+
+Every execution is bounded by the `ExecutionTimeout` option (default 30 seconds). This applies uniformly to queries, mutations, subscription handshakes, and each subscription event. The budget covers both the time an execution spends waiting for a concurrency slot and the time it spends running. When the budget is exceeded, the execution is cancelled and the caller receives a clean timeout error. `ExecutionTimeout` is the single setting that controls cancellation for every execution.
+
+Subscriptions participate in the limit like any other operation. The initial subscribe consumes a slot while the subscribe resolver runs, and each emitted event consumes a slot while its result is being produced. Idle subscriptions (waiting on the next event) cost nothing. The slot is released between events.

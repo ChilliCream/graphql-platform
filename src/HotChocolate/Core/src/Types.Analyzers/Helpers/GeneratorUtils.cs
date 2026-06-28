@@ -184,12 +184,8 @@ internal static class GeneratorUtils
     /// </summary>
     public static string? EscapeForStringLiteral(string? s)
     {
-        if (s == null)
-        {
-            return null;
-        }
-
-        return s.Replace("\\", "\\\\")
+        return s?
+            .Replace("\\", "\\\\")
             .Replace("\"", "\\\"")
             .Replace("\n", "\\n")
             .Replace("\r", "\\r")

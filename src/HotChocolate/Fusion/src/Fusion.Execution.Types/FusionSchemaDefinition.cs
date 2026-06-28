@@ -22,6 +22,7 @@ public sealed class FusionSchemaDefinition : ISchemaDefinition, IAsyncDisposable
     private readonly ConcurrentDictionary<string, ImmutableArray<FusionObjectTypeDefinition>> _possibleTypes = new();
     private readonly ConcurrentDictionary<(string, string?), ImmutableArray<Lookup>> _possibleLookups = new();
     private readonly IServiceProvider _services;
+    private readonly ImmutableDictionary<string, SourceSchemaInfo> _sourceSchemaLookup;
     private PlannerTopologyCache? _plannerTopologyCache;
     private ImmutableArray<FusionUnionTypeDefinition> _unionTypes;
     private IFeatureCollection _features;
@@ -38,7 +39,8 @@ public sealed class FusionSchemaDefinition : ISchemaDefinition, IAsyncDisposable
         FusionDirectiveCollection directives,
         FusionTypeDefinitionCollection types,
         FusionDirectiveDefinitionCollection directiveDefinitions,
-        IFeatureCollection features)
+        IFeatureCollection features,
+        ImmutableDictionary<string, SourceSchemaInfo> sourceSchemaLookup)
     {
         Name = name;
         Description = description;
@@ -50,6 +52,7 @@ public sealed class FusionSchemaDefinition : ISchemaDefinition, IAsyncDisposable
         Types = types;
         DirectiveDefinitions = directiveDefinitions;
         _features = features;
+        _sourceSchemaLookup = sourceSchemaLookup;
     }
 
     public static FusionSchemaDefinition Create(
@@ -135,6 +138,32 @@ public sealed class FusionSchemaDefinition : ISchemaDefinition, IAsyncDisposable
         => DirectiveDefinitions;
 
     public IFeatureCollection Features => _features;
+
+    /// <summary>
+    /// Gets the connector kind declared by the specified source schema.
+    /// </summary>
+    /// <param name="sourceSchemaName">The source schema name.</param>
+    /// <returns>
+    /// The connector kind (for example <c>"Apollo"</c>) declared via
+    /// <c>@fusion__connector(kind:)</c> on the corresponding <c>fusion__Schema</c>
+    /// enum value, or <see langword="null"/> if the source schema has no
+    /// connector kind associated with it. Callers that want to default
+    /// treat <see langword="null"/> as <c>"GraphQL"</c>.
+    /// </returns>
+    public string? GetSourceSchemaConnectorKind(string sourceSchemaName)
+    {
+        ArgumentException.ThrowIfNullOrEmpty(sourceSchemaName);
+
+        foreach (var info in _sourceSchemaLookup.Values)
+        {
+            if (string.Equals(info.Name, sourceSchemaName, StringComparison.Ordinal))
+            {
+                return info.ConnectorKind;
+            }
+        }
+
+        return null;
+    }
 
     public FusionObjectTypeDefinition GetOperationType(OperationType operation)
     {
@@ -395,8 +424,10 @@ public sealed class FusionSchemaDefinition : ISchemaDefinition, IAsyncDisposable
     }
 
     /// <summary>
-    /// Tries to get the best direct lookup to transition from one schema to another without intermediary transitions.
-    /// The best lookup algorithm will try to find the smallest possible key that does not require any intermediary transitions.
+    /// Tries to get the best direct lookup to transition from one schema
+    /// to another without intermediary transitions.
+    /// The best lookup algorithm will try to find the smallest possible key that does not
+    /// require any intermediary transitions.
     /// </summary>
     /// <param name="type">The type to get the best direct lookup for.</param>
     /// <param name="fromSchemas">The schemas to get the best direct lookup from.</param>
@@ -413,7 +444,7 @@ public sealed class FusionSchemaDefinition : ISchemaDefinition, IAsyncDisposable
         ArgumentNullException.ThrowIfNull(fromSchemas);
         ArgumentException.ThrowIfNullOrEmpty(toSchema);
 
-        foreach (var fromSchema in fromSchemas)
+        foreach (var fromSchema in fromSchemas.OrderBy(static t => t, StringComparer.Ordinal))
         {
             if (TryGetBestDirectLookup(type, fromSchema, toSchema, out lookup))
             {
@@ -501,7 +532,7 @@ public sealed class FusionSchemaDefinition : ISchemaDefinition, IAsyncDisposable
         => SchemaFormatter.FormatAsDocument(this);
 
     ISyntaxNode ISyntaxNodeProvider.ToSyntaxNode()
-        => SchemaFormatter.FormatAsDocument(this);
+        => ToSyntaxNode();
 
     public async ValueTask DisposeAsync()
     {

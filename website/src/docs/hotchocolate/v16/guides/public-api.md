@@ -15,7 +15,6 @@ Your schema is a contract. Once external developers build against it, changing o
 **Add descriptions to every type, field, and argument.** Public API consumers rely on introspection and tooling like [Nitro](/products/nitro) to explore your schema. A field without a description is a field that generates support tickets.
 
 ```csharp
-// Types/Organization.cs
 [GraphQLDescription("A company or group that owns repositories.")]
 public class Organization
 {
@@ -29,16 +28,15 @@ public class Organization
 
 **Plan for deprecation from day one.** Use `@deprecated` to phase out fields and `@requiresOptIn` to gate experimental features. Never remove a field without a deprecation period.
 
-[Learn more about schema documentation](/docs/hotchocolate/v16/building-a-schema/documentation)
+[Learn more about schema documentation](/docs/hotchocolate/v16/defining-a-schema/documentation)
 
-[Learn more about versioning and deprecation](/docs/hotchocolate/v16/building-a-schema/versioning)
+[Learn more about versioning and deprecation](/docs/hotchocolate/v16/defining-a-schema/versioning)
 
 # Use Cursor-Based Pagination for All Lists
 
 Every list field that could grow beyond a handful of items should be a connection. Connections give clients a standardized way to page through results, and they give you control over how much data a single request can fetch.
 
 ```csharp
-// Types/OrganizationQueries.cs
 [QueryType]
 public static partial class OrganizationQueries
 {
@@ -53,9 +51,8 @@ Set `MaxPageSize` deliberately. This value is the upper bound on how many items 
 For public APIs, require clients to specify how many items they want by enabling `RequirePagingBoundaries`. Without this, clients that omit `first` or `last` still get results, but cost analysis has to assume the worst case.
 
 ```csharp
-// Program.cs
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .ModifyPagingOptions(opt =>
     {
         opt.MaxPageSize = 100;
@@ -64,7 +61,7 @@ builder.Services
     });
 ```
 
-[Learn more about pagination](/docs/hotchocolate/v16/resolvers-and-data/pagination)
+[Learn more about pagination](/docs/hotchocolate/v16/fetching-data/pagination)
 
 # Configure Cost Analysis
 
@@ -73,9 +70,8 @@ Cost analysis is the most important security layer for a public GraphQL API. It 
 Hot Chocolate enables cost analysis by default. The default limits (`MaxFieldCost = 1000`, `MaxTypeCost = 1000`) work as a starting point, but you should tune them based on your schema and expected query patterns.
 
 ```csharp
-// Program.cs
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .ModifyCostOptions(options =>
     {
         options.MaxFieldCost = 5_000;
@@ -99,7 +95,6 @@ For paginated fields, these weights multiply by the page size. A resolver with w
 If a resolver calls an external API, runs a complex computation, or triggers a database-heavy operation, increase its cost weight:
 
 ```csharp
-// Types/ReportQueries.cs
 [QueryType]
 public static partial class ReportQueries
 {
@@ -116,7 +111,6 @@ public static partial class ReportQueries
 For list fields where you know the typical size differs from the default, use `[ListSize]` to give the analyzer a more accurate estimate:
 
 ```csharp
-// Types/OrganizationNode.cs
 [ObjectType<Organization>]
 public static partial class OrganizationNode
 {
@@ -133,7 +127,7 @@ public static partial class OrganizationNode
 
 Use the `GraphQL-Cost: report` HTTP header to see the cost of any query without changing enforcement. Send your most complex expected queries and verify they fall within your limits before deploying.
 
-[Learn more about cost analysis](/docs/hotchocolate/v16/securing-your-api/cost-analysis)
+[Learn more about cost analysis](/docs/hotchocolate/v16/security/cost-analysis)
 
 # Control Introspection
 
@@ -144,16 +138,14 @@ Introspection lets anyone discover every type, field, and argument in your schem
 **Option B: Restrict introspection in production.** If you prefer to control schema discovery, disable introspection and allow it only for authorized requests:
 
 ```csharp
-// Program.cs
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AllowIntrospection(builder.Environment.IsDevelopment());
 ```
 
 For a more granular approach, use a request interceptor to allow introspection based on authentication or a specific header:
 
 ```csharp
-// Interceptors/IntrospectionInterceptor.cs
 public class IntrospectionInterceptor : DefaultHttpRequestInterceptor
 {
     public override ValueTask OnCreateAsync(HttpContext context,
@@ -172,21 +164,19 @@ public class IntrospectionInterceptor : DefaultHttpRequestInterceptor
 ```
 
 ```csharp
-// Program.cs
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AllowIntrospection(false)
     .AddHttpRequestInterceptor<IntrospectionInterceptor>();
 ```
 
-[Learn more about introspection](/docs/hotchocolate/v16/securing-your-api/introspection)
+[Learn more about introspection](/docs/hotchocolate/v16/security/introspection)
 
 # Set Up Authorization
 
 Most public APIs have fields that require authentication or specific permissions. Use the `[Authorize]` attribute to protect sensitive types and fields.
 
 ```csharp
-// Types/ViewerQueries.cs
 [QueryType]
 public static partial class ViewerQueries
 {
@@ -205,7 +195,6 @@ public static partial class ViewerQueries
 For role-based access:
 
 ```csharp
-// Types/AdminQueries.cs
 [QueryType]
 public static partial class AdminQueries
 {
@@ -219,7 +208,6 @@ public static partial class AdminQueries
 For policy-based access, define policies in your service configuration:
 
 ```csharp
-// Program.cs
 builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy("CanReadBilling", policy =>
@@ -230,7 +218,6 @@ builder.Services.AddAuthorization(options =>
 Then apply them to fields:
 
 ```csharp
-// Types/BillingNode.cs
 [ObjectType<Organization>]
 public static partial class BillingNode
 {
@@ -245,7 +232,7 @@ public static partial class BillingNode
 
 Use `HotChocolate.Authorization.AuthorizeAttribute`, not the Microsoft one. The Microsoft attribute does not integrate with the Hot Chocolate authorization pipeline.
 
-[Learn more about authorization](/docs/hotchocolate/v16/securing-your-api/authorization)
+[Learn more about authorization](/docs/hotchocolate/v16/security/authorization)
 
 # Rate Limiting and Depth Limits
 
@@ -256,9 +243,8 @@ Cost analysis handles query complexity, but you also want to limit how many requ
 Set a maximum query depth to reject pathologically nested queries before cost analysis even runs:
 
 ```csharp
-// Program.cs
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddMaxExecutionDepthRule(15);
 ```
 
@@ -269,7 +255,6 @@ Choose a depth that accommodates your deepest legitimate query path. For most AP
 Combine Hot Chocolate's query-level protections with ASP.NET Core's rate limiting middleware to limit requests per client:
 
 ```csharp
-// Program.cs
 builder.Services.AddRateLimiter(options =>
 {
     options.AddFixedWindowLimiter("graphql", opt =>
@@ -295,12 +280,11 @@ Rate limiting and cost analysis complement each other. Rate limiting caps the nu
 
 Request batching allows a client to send multiple GraphQL operations in a single HTTP request. For internal APIs where you trust the client, this can improve performance. For public APIs, batching lets a client bypass your per-request rate limits by packing many expensive operations into one request.
 
-In Hot Chocolate v16, request batching is disabled by default. If you have explicitly enabled it, disable it for your public API:
+In Hot Chocolate, request batching is disabled by default. If you have explicitly enabled it, disable it for your public API:
 
 ```csharp
-// Program.cs
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .ModifyRequestOptions(opt => opt.AllowedBatchOperations = AllowedBatchOperations.None);
 ```
 
@@ -309,7 +293,6 @@ builder.Services
 Here is a complete `Program.cs` that combines all the configuration from this guide into one starting point:
 
 ```csharp
-// Program.cs
 var builder = WebApplication.CreateBuilder(args);
 
 // Authentication (configure for your identity provider)
@@ -335,8 +318,8 @@ builder.Services.AddRateLimiter(options =>
 });
 
 // GraphQL server
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddAuthorization()
     .AddMaxExecutionDepthRule(15)
     .ModifyPagingOptions(opt =>
@@ -374,10 +357,10 @@ Adjust the specific values (`MaxPageSize`, `MaxFieldCost`, `MaxTypeCost`, depth 
 
 # Next Steps
 
-- **Cost analysis reference:** [Cost Analysis](/docs/hotchocolate/v16/securing-your-api/cost-analysis) covers all options, custom weights, filtering and sorting costs, and the tuning guide.
-- **Authorization reference:** [Authorization](/docs/hotchocolate/v16/securing-your-api/authorization) covers roles, policies, global authorization, and accessing `IResolverContext` in handlers.
-- **Pagination reference:** [Pagination](/docs/hotchocolate/v16/resolvers-and-data/pagination) covers the `Connection<T>` type, total counts, extending connection types, and pagination providers.
-- **Schema documentation:** [Documentation](/docs/hotchocolate/v16/building-a-schema/documentation) covers `[GraphQLDescription]`, XML docs, and priority order.
-- **Schema versioning:** [Versioning](/docs/hotchocolate/v16/building-a-schema/versioning) covers `@deprecated`, `@requiresOptIn`, and feature stability.
-- **Introspection:** [Introspection](/docs/hotchocolate/v16/securing-your-api/introspection) covers disabling, allowlisting, and custom error messages.
+- **Cost analysis reference:** [Cost Analysis](/docs/hotchocolate/v16/security/cost-analysis) covers all options, custom weights, filtering and sorting costs, and the tuning guide.
+- **Authorization reference:** [Authorization](/docs/hotchocolate/v16/security/authorization) covers roles, policies, global authorization, and accessing `IResolverContext` in handlers.
+- **Pagination reference:** [Pagination](/docs/hotchocolate/v16/fetching-data/pagination) covers the `Connection<T>` type, total counts, extending connection types, and pagination providers.
+- **Schema documentation:** [Documentation](/docs/hotchocolate/v16/defining-a-schema/documentation) covers `[GraphQLDescription]`, XML docs, and priority order.
+- **Schema versioning:** [Versioning](/docs/hotchocolate/v16/defining-a-schema/versioning) covers `@deprecated`, `@requiresOptIn`, and feature stability.
+- **Introspection:** [Introspection](/docs/hotchocolate/v16/security/introspection) covers disabling, allowlisting, and custom error messages.
 - **Trusted documents:** If you later add first-party clients that you control, [Trusted Documents](/docs/hotchocolate/v16/performance/trusted-documents) let you bypass cost analysis for pre-approved operations.

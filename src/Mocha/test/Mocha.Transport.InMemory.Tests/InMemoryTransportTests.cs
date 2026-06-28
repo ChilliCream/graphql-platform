@@ -92,6 +92,27 @@ public class InMemoryTransportTests
     }
 
     [Fact]
+    public async Task TryGetDispatchEndpoint_Should_ReturnReplyDispatchEndpoint_When_ReplyAliasUsed()
+    {
+        // arrange
+        await using var provider = await new ServiceCollection()
+            .AddMessageBus()
+            .AddRequestHandler<ProcessPaymentHandler>()
+            .AddInMemory()
+            .BuildServiceProvider();
+
+        var runtime = (MessagingRuntime)provider.GetRequiredService<IMessagingRuntime>();
+        var transport = runtime.Transports.OfType<InMemoryMessagingTransport>().Single();
+
+        // act
+        var found = transport.TryGetDispatchEndpoint(new Uri("memory:replies"), out var endpoint);
+
+        // assert
+        Assert.True(found);
+        Assert.Same(transport.ReplyDispatchEndpoint, endpoint);
+    }
+
+    [Fact]
     public async Task TryGetDispatchEndpoint_Should_Resolve_When_TopologyBaseAddressUsed()
     {
         // arrange

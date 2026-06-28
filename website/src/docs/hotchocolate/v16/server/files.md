@@ -32,8 +32,8 @@ Hot Chocolate implements the [GraphQL multipart request specification](https://g
 Register the `Upload` scalar to use file upload streams in your input types or as an argument:
 
 ```csharp
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddType<UploadType>();
 ```
 
@@ -95,7 +95,7 @@ Take a look at the implementation-first or code-first example.
 </Schema>
 </ExampleTabs>
 
-[Learn more about arguments](/docs/hotchocolate/v16/building-a-schema/arguments)
+[Learn more about arguments](/docs/hotchocolate/v16/defining-a-schema/arguments)
 
 In input object types you can use it as follows:
 
@@ -136,15 +136,15 @@ Take a look at the implementation-first or code-first example.
 </Schema>
 </ExampleTabs>
 
-[Learn more about input object types](/docs/hotchocolate/v16/building-a-schema/input-object-types)
+[Learn more about input object types](/docs/hotchocolate/v16/defining-a-schema/input-object-types)
 
 If you need to upload a list of files, use a `List<IFile>` or `ListType<UploadType>`.
 
-[Learn more about lists](/docs/hotchocolate/v16/building-a-schema/lists)
+[Learn more about lists](/docs/hotchocolate/v16/defining-a-schema/lists)
 
 ### UploadValueNode
 
-In v16, the upload literal node was renamed from `FileValueNode` to `UploadValueNode`. If you reference this type in custom scalar logic or tests, update your code:
+The upload literal node is called `UploadValueNode`. If you reference this type in custom scalar logic or tests, use the following pattern:
 
 ```csharp
 if (valueLiteral is UploadValueNode uploadValue)
@@ -324,6 +324,6 @@ If you are using a cloud provider for file storage, you are likely already acces
 
 # Next Steps
 
-- [Arguments](/docs/hotchocolate/v16/building-a-schema/arguments) for details on defining input arguments.
-- [Input Object Types](/docs/hotchocolate/v16/building-a-schema/input-object-types) for defining complex input types.
+- [Arguments](/docs/hotchocolate/v16/defining-a-schema/arguments) for details on defining input arguments.
+- [Input Object Types](/docs/hotchocolate/v16/defining-a-schema/input-object-types) for defining complex input types.
 - [Migrate from v15 to v16](/docs/hotchocolate/v16/migrating/migrate-from-15-to-16#filevaluenode-renamed-to-uploadvaluenode) for the `FileValueNode` rename details.

@@ -1,3 +1,4 @@
+using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Introspection;
 
@@ -28,6 +29,14 @@ internal static class IntrospectionTypeReferences
         if (context.Options.EnableOptInFeatures)
         {
             EnqueueTypeRef(backlog, context.TypeInspector.GetTypeRef(typeof(__OptInFeatureStability)), nextIndex++);
+        }
+
+        if (context.Options.EnableSemanticIntrospection)
+        {
+            EnqueueTypeRef(backlog, context.TypeInspector.GetTypeRef(typeof(__SearchResult)), nextIndex++);
+            EnqueueTypeRef(backlog, context.TypeInspector.GetTypeRef(typeof(__SchemaDefinition)), nextIndex++);
+            EnqueueTypeRef(backlog, context.TypeInspector.GetTypeRef(typeof(IntType)), nextIndex++);
+            EnqueueTypeRef(backlog, context.TypeInspector.GetTypeRef(typeof(FloatType)), nextIndex++);
         }
 
         static void EnqueueTypeRef(

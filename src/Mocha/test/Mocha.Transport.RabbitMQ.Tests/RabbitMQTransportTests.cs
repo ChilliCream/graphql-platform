@@ -1,4 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
+using Mocha.Features;
 using Mocha.Transport.RabbitMQ.Tests.Helpers;
 
 namespace Mocha.Transport.RabbitMQ.Tests;
@@ -66,6 +67,21 @@ public class RabbitMQTransportTests
         Assert.True(found, "TryGetDispatchEndpoint should resolve matching address");
         Assert.NotNull(endpoint);
         Assert.Same(existingEndpoint, endpoint);
+    }
+
+    [Fact]
+    public void TryGetDispatchEndpoint_Should_ReturnReplyDispatchEndpoint_When_ReplyAliasUsed()
+    {
+        // arrange
+        var runtime = CreateRuntime(b => b.AddRequestHandler<ProcessPaymentHandler>());
+        var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
+
+        // act
+        var found = transport.TryGetDispatchEndpoint(new Uri("rabbitmq:replies"), out var endpoint);
+
+        // assert
+        Assert.True(found);
+        Assert.Same(transport.ReplyDispatchEndpoint, endpoint);
     }
 
     [Fact]
@@ -232,11 +248,13 @@ public class RabbitMQTransportTests
         var receiveEndpoint = transport.ReceiveEndpoints.First(e => e.Kind == ReceiveEndpointKind.Default);
 
         // assert
-        Assert.NotNull(receiveEndpoint.ErrorEndpoint);
-        Assert.Contains("_error", receiveEndpoint.ErrorEndpoint!.Name);
+        var faultFeature = receiveEndpoint.Features.Get<ReceiveFaultEndpointFeature>();
+        Assert.NotNull(faultFeature?.Endpoint);
+        Assert.Contains("_error", faultFeature.Endpoint!.Name);
 
-        Assert.NotNull(receiveEndpoint.SkippedEndpoint);
-        Assert.Contains("_skipped", receiveEndpoint.SkippedEndpoint!.Name);
+        var skippedFeature = receiveEndpoint.Features.Get<ReceiveSkippedEndpointFeature>();
+        Assert.NotNull(skippedFeature?.Endpoint);
+        Assert.Contains("_skipped", skippedFeature.Endpoint!.Name);
     }
 
     [Fact]
@@ -350,7 +368,7 @@ public class RabbitMQTransportTests
     }
 
     [Fact]
-    public void CreateEndpointConfiguration_Should_CreateReplyConfig_When_RabbitMQRepliesPath()
+    public void CreateEndpointConfiguration_Should_CreateReplyConfig_When_InternalRabbitMQReplyAddressUsed()
     {
         // arrange
         var runtime = CreateRuntime(b => b.AddRequestHandler<ProcessPaymentHandler>());
@@ -358,7 +376,7 @@ public class RabbitMQTransportTests
         var context = (IMessagingConfigurationContext)runtime;
 
         // act
-        var config = transport.CreateEndpointConfiguration(context, new Uri("rabbitmq:///replies"));
+        var config = transport.CreateEndpointConfiguration(context, new Uri("rabbitmq:replies"));
 
         // assert
         Assert.NotNull(config);

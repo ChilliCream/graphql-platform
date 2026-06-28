@@ -1,0 +1,36 @@
+title: CLI
+items:
+  - path: installation
+    title: Installation
+  - path: global-options
+    title: Global Options
+  - path: login
+    title: login
+  - path: logout
+    title: logout
+  - path: status
+    title: status
+  - path: launch
+    title: launch
+  - path: api
+    title: api
+  - path: api-key
+    title: api-key
+  - path: pat
+    title: pat
+  - path: schema
+    title: schema
+  - path: client
+    title: client
+  - path: fusion
+    title: fusion
+  - path: mcp
+    title: mcp
+  - path: openapi
+    title: openapi
+  - path: environment
+    title: environment
+  - path: stage
+    title: stage
+  - path: workspace
+    title: workspace

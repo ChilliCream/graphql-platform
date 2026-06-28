@@ -128,8 +128,8 @@ Then configure the server to register the directive and write the final headers:
 ```csharp
 using HotChocolate.Caching;
 
-builder.Services
-    .AddGraphQLServer()`
+builder
+    .AddGraphQL()
     .AddQueryType<Query>()
     .UseQueryCache()
     .AddCacheControl()
@@ -148,8 +148,8 @@ builder.Services
 ```csharp
 using HotChocolate.Caching;
 
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddQueryType<Query>()
     .UseQueryCache()
     .AddCacheControl()
@@ -208,14 +208,12 @@ public sealed class NoCacheHeaderInterceptor : DefaultHttpRequestInterceptor
 Register the interceptor:
 
 ```csharp
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddHttpRequestInterceptor<NoCacheHeaderInterceptor>();
 ```
 
-:::note
-You can only register a single HttpRequestInterceptor per schema.
-:::
+> **Note:** You can only register a single HttpRequestInterceptor per schema.
 
 # Putting It Together
 
@@ -230,4 +228,4 @@ In day-to-day terms, the flow is simple:
 
 - [HTTP Transport](/docs/hotchocolate/v16/server/http-transport) for request and response behavior.
 - [Interceptors](/docs/hotchocolate/v16/server/interceptors) for request-level control.
-- [Configuration Options](/docs/hotchocolate/v16/api-reference/options) for the full options reference.
+- [Configuration Options](/docs/hotchocolate/v16/server/options) for the full options reference.

@@ -53,9 +53,10 @@ public sealed class RequestGroupingExecutionTests : FusionTestBase
               }
             }
             """,
-            new Uri("http://localhost:5000/graphql"));
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
 
-        using var response = await result.ReadAsResultAsync();
+        using var response = await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal(JsonValueKind.Object, response.Data.ValueKind);
@@ -130,9 +131,13 @@ public sealed class RequestGroupingExecutionTests : FusionTestBase
               }
             }
             """,
-            new Uri("http://localhost:5000/graphql")).WaitAsync(TimeSpan.FromSeconds(5));
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken)
+            .WaitAsync(
+                TimeSpan.FromSeconds(5),
+                TestContext.Current.CancellationToken);
 
-        using var response = await result.ReadAsResultAsync();
+        using var response = await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal(JsonValueKind.Object, response.Data.ValueKind);
@@ -210,9 +215,10 @@ public sealed class RequestGroupingExecutionTests : FusionTestBase
               }
             }
             """,
-            new Uri("http://localhost:5000/graphql"));
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
 
-        using var response = await result.ReadAsResultAsync();
+        using var response = await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal(JsonValueKind.Array, response.Errors.ValueKind);
@@ -268,9 +274,10 @@ public sealed class RequestGroupingExecutionTests : FusionTestBase
               }
             }
             """,
-            new Uri("http://localhost:5000/graphql"));
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
 
-        using var response = await result.ReadAsResultAsync();
+        using var response = await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal(JsonValueKind.Array, response.Errors.ValueKind);

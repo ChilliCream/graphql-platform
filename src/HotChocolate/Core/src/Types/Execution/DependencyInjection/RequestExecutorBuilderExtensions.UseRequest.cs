@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Execution.Pipeline;
@@ -280,7 +281,10 @@ public static partial class RequestExecutorBuilderExtensions
     /// <returns>
     /// An <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its execution.
     /// </returns>
-    public static IRequestExecutorBuilder UseRequest<TMiddleware>(
+    public static IRequestExecutorBuilder UseRequest<
+        [DynamicallyAccessedMembers(
+            DynamicallyAccessedMemberTypes.PublicConstructors
+            | DynamicallyAccessedMemberTypes.PublicMethods)] TMiddleware>(
         this IRequestExecutorBuilder builder,
         string? key = null,
         string? before = null,
@@ -476,6 +480,26 @@ public static partial class RequestExecutorBuilderExtensions
     }
 
     /// <summary>
+    /// Adds a middleware that will be used to limit the number of concurrent
+    /// GraphQL executions against the current schema. The gate counts every
+    /// execution (queries, mutations, subscription handshakes, and per-event
+    /// subscription executions) as a single slot.
+    /// </summary>
+    /// <param name="builder">
+    /// The <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its execution.
+    /// </param>
+    /// <returns>
+    /// An <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its execution.
+    /// </returns>
+    public static IRequestExecutorBuilder UseConcurrencyGate(
+        this IRequestExecutorBuilder builder)
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+
+        return builder.UseRequest(CommonMiddleware.ConcurrencyGate);
+    }
+
+    /// <summary>
     /// Adds a middleware that will be used to execute the operation.
     /// </summary>
     /// <param name="builder">
@@ -622,6 +646,7 @@ public static partial class RequestExecutorBuilderExtensions
             .UseOperationResolver()
             .UseSkipWarmupExecution()
             .UseOperationVariableCoercion()
+            .UseConcurrencyGate()
             .UseOperationExecution();
     }
 
@@ -644,6 +669,7 @@ public static partial class RequestExecutorBuilderExtensions
             .UseOperationResolver()
             .UseSkipWarmupExecution()
             .UseOperationVariableCoercion()
+            .UseConcurrencyGate()
             .UseOperationExecution();
     }
 
@@ -659,6 +685,7 @@ public static partial class RequestExecutorBuilderExtensions
         pipeline.Add(OperationResolverMiddleware.Create());
         pipeline.Add(CommonMiddleware.SkipWarmupExecution);
         pipeline.Add(OperationVariableCoercionMiddleware.Create());
+        pipeline.Add(CommonMiddleware.ConcurrencyGate);
         pipeline.Add(OperationExecutionMiddleware.Create());
     }
 }

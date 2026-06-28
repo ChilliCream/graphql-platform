@@ -611,12 +611,8 @@ public static class SymbolExtensions
         var methodName = qualifiedName.Substring(lastDotIndex + 1);
 
         var typeSymbol = ResolveTypeSymbol(typeName, compilation);
-        if (typeSymbol == null)
-        {
-            return null;
-        }
 
-        return typeSymbol
+        return typeSymbol?
             .GetMembers(methodName)
             .OfType<IMethodSymbol>()
             .FirstOrDefault(m => m.ToString() == documentationId);
@@ -786,6 +782,32 @@ public static class SymbolExtensions
 
     public static bool IsSelection(this IParameterSymbol parameter)
         => parameter.Type.ToDisplayString() == WellKnownTypes.ISelection;
+
+    public static bool IsOptional(this ITypeSymbol type, [NotNullWhen(true)] out ITypeSymbol? innerType)
+    {
+        if (type is INamedTypeSymbol { IsGenericType: true, TypeArguments.Length: 1 } namedType
+            && namedType.ToDisplayString().StartsWith(WellKnownTypes.OptionalGeneric, StringComparison.Ordinal))
+        {
+            innerType = namedType.TypeArguments[0];
+            return true;
+        }
+
+        innerType = null;
+        return false;
+    }
+
+    public static bool IsIsSelected(this IParameterSymbol parameter)
+    {
+        foreach (var attribute in parameter.GetAttributes())
+        {
+            if (attribute.AttributeClass?.ToDisplayString() == WellKnownAttributes.IsSelectedAttribute)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
 
     public static bool IsGlobalState(
         this IParameterSymbol parameter,

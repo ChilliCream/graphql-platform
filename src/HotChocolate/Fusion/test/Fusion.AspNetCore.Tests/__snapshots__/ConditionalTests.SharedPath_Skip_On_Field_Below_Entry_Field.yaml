@@ -1,9 +1,7 @@
 title: SharedPath_Skip_On_Field_Below_Entry_Field
 request:
   document: |
-    query testQuery(
-      $skip: Boolean!
-    ) {
+    query testQuery($skip: Boolean!) {
       viewer {
         fieldA
         fieldB @skip(if: $skip)
@@ -38,6 +36,7 @@ sourceSchemas:
       }
     interactions:
       - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
             query testQuery_c549857e_1 {
               viewer {
@@ -69,10 +68,9 @@ sourceSchemas:
       }
     interactions:
       - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
-            query testQuery_c549857e_2(
-              $skip: Boolean!
-            ) {
+            query testQuery_c549857e_2($skip: Boolean!) {
               viewer {
                 fieldB @skip(if: $skip)
               }
@@ -92,9 +90,7 @@ sourceSchemas:
 operationPlan:
   operation:
     - document: |
-        query testQuery(
-          $skip: Boolean!
-        ) {
+        query testQuery($skip: Boolean!) {
           viewer {
             fieldA
             fieldB @skip(if: $skip)
@@ -118,9 +114,7 @@ operationPlan:
       type: Operation
       schema: B
       operation: |
-        query testQuery_c549857e_2(
-          $skip: Boolean!
-        ) {
+        query testQuery_c549857e_2($skip: Boolean!) {
           viewer {
             fieldB @skip(if: $skip)
           }

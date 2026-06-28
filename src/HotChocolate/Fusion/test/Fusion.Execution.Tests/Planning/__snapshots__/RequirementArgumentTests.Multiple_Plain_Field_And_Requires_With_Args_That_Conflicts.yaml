@@ -27,10 +27,7 @@ nodes:
     type: Operation
     schema: a
     operation: |
-      query Op_123456789101112_2(
-        $__fusion_1_otherField: String!
-          $__fusion_2_id: ID!
-      ) {
+      query Op_123456789101112_2($__fusion_1_otherField: String!, $__fusion_2_id: ID!) {
         testById(id: $__fusion_2_id) {
           anotherWithRequiresAndArgs(otherField: $__fusion_1_otherField)
         }
@@ -52,10 +49,7 @@ nodes:
     type: Operation
     schema: a
     operation: |
-      query Op_123456789101112_5(
-        $__fusion_5_otherField: String!
-          $__fusion_6_id: ID!
-      ) {
+      query Op_123456789101112_5($__fusion_5_otherField: String!, $__fusion_6_id: ID!) {
         testById(id: $__fusion_6_id) {
           fieldWithRequiresAndArgs(otherField: $__fusion_5_otherField)
         }
@@ -77,9 +71,7 @@ nodes:
     type: Operation
     schema: b
     operation: |
-      query Op_123456789101112_3(
-        $__fusion_3_id: ID!
-      ) {
+      query Op_123456789101112_3($__fusion_3_id: ID!) {
         testById(id: $__fusion_3_id) {
           otherField
           id
@@ -98,9 +90,7 @@ nodes:
     type: Operation
     schema: b
     operation: |
-      query Op_123456789101112_4(
-        $__fusion_4_id: ID!
-      ) {
+      query Op_123456789101112_4($__fusion_4_id: ID!) {
         testById(id: $__fusion_4_id) {
           id
         }
@@ -118,9 +108,7 @@ nodes:
     type: Operation
     schema: b
     operation: |
-      query Op_123456789101112_6(
-        $__fusion_7_id: ID!
-      ) {
+      query Op_123456789101112_6($__fusion_7_id: ID!) {
         testById(id: $__fusion_7_id) {
           otherField
         }
@@ -138,9 +126,7 @@ nodes:
     type: Operation
     schema: b
     operation: |
-      query Op_123456789101112_7(
-        $__fusion_8_id: ID!
-      ) {
+      query Op_123456789101112_7($__fusion_8_id: ID!) {
         testById(id: $__fusion_8_id) {
           otherField(arg: 1)
         }

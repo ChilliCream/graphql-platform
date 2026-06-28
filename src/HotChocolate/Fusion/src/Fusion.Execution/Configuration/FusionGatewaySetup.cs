@@ -29,4 +29,6 @@ public sealed class FusionGatewaySetup
     public List<Action<IServiceProvider, DocumentValidatorBuilder>> DocumentValidatorBuilderModifiers { get; } = [];
 
     public List<Func<IServiceProvider, ISourceSchemaClientConfiguration>> ClientConfigurationModifiers { get; } = [];
+
+    public List<ISourceSchemaClientConfigurationParser> SourceSchemaClientConfigurationParsers { get; } = [];
 }

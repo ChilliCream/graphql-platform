@@ -15,8 +15,8 @@ While eager initialization ensures your schema is ready at startup, you might wa
 Register warmup tasks using the `AddWarmupTask()` method to execute requests against the newly created schema during initialization:
 
 ```csharp
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddWarmupTask(async (executor, cancellationToken) =>
     {
         await executor.ExecuteAsync("{ __typename }", cancellationToken);
@@ -25,7 +25,7 @@ builder.Services
 
 The warmup process is blocking. The server does not start answering requests until both the schema creation and all warmup tasks have finished.
 
-By default, warmup tasks run both at server startup and whenever the schema is rebuilt at runtime (for example, when using [dynamic schemas](/docs/hotchocolate/v16/building-a-schema/dynamic-schemas)). When the request executor changes, warmup tasks execute in the background while requests continue to be handled by the old request executor. Once warmup completes, requests are served by the new and already warmed-up request executor.
+By default, warmup tasks run both at server startup and whenever the schema is rebuilt at runtime (for example, when using [dynamic schemas](/docs/hotchocolate/v16/defining-a-schema/dynamic-schemas)). When the request executor changes, warmup tasks execute in the background while requests continue to be handled by the old request executor. Once warmup completes, requests are served by the new and already warmed-up request executor.
 
 Since the execution of an operation could have side-effects, you might want to warm up the executor but skip the actual execution of the request. Mark an operation as a warmup request for this purpose:
 
@@ -57,8 +57,8 @@ await executor.ExecuteAsync(request, cancellationToken);
 For more control over warmup behavior, implement the `IRequestExecutorWarmupTask` interface:
 
 ```csharp
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddWarmupTask<MyWarmupTask>();
 
 public class MyWarmupTask : IRequestExecutorWarmupTask
@@ -81,16 +81,16 @@ You can register your custom warmup task using either the delegate form or the g
 
 ```csharp
 // Delegate form
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddWarmupTask(async (executor, ct) =>
     {
         await executor.ExecuteAsync("{ __typename }", ct);
     });
 
 // Generic form with IRequestExecutorWarmupTask
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddWarmupTask<MyWarmupTask>();
 ```
 
@@ -99,8 +99,8 @@ builder.Services
 If you need to export the schema as part of your startup process (for example, for CI/CD or schema registry integration), use the `ExportSchemaOnStartup()` method:
 
 ```csharp
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .ExportSchemaOnStartup("./schema.graphql");
 ```
 
@@ -147,8 +147,8 @@ public class MyExecutionEventListener : ExecutionDiagnosticEventListener
 If you need to defer schema construction until the first request (though this is rarely recommended), you can opt into lazy initialization:
 
 ```csharp
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .ModifyOptions(options => options.LazyInitialization = true)
 ```
 
@@ -157,5 +157,5 @@ With lazy initialization enabled, the schema is constructed when it is first nee
 # Next Steps
 
 - [Instrumentation](/docs/hotchocolate/v16/server/instrumentation) for monitoring request execution and tracing.
-- [Dynamic Schemas](/docs/hotchocolate/v16/building-a-schema/dynamic-schemas) for schemas that change at runtime.
+- [Dynamic Schemas](/docs/hotchocolate/v16/defining-a-schema/dynamic-schemas) for schemas that change at runtime.
 - [Migrate from v15 to v16](/docs/hotchocolate/v16/migrating/migrate-from-15-to-16#eager-initialization-by-default) for migration details on the `InitializeOnStartup` removal.

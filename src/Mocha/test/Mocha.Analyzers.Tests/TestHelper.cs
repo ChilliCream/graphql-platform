@@ -1,5 +1,4 @@
 using System.Collections.Immutable;
-using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Encodings.Web;
@@ -160,18 +159,6 @@ internal static class TestHelper
         if (hasDiagnostics)
         {
             snapshot.Add(Encoding.UTF8.GetString(stream.ToArray()), title, MarkdownLanguages.Json);
-        }
-    }
-
-    internal static class ForceInvariantDefaultCultureModuleInitializer
-    {
-        [ModuleInitializer]
-        internal static void Initialize()
-        {
-            // Compile errors are localized, so enforce a common default culture,
-            // since otherwise the snapshot comparison may fail
-            CultureInfo.DefaultThreadCurrentCulture = CultureInfo.InvariantCulture;
-            CultureInfo.DefaultThreadCurrentUICulture = CultureInfo.InvariantCulture;
         }
     }
 }

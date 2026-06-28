@@ -18,7 +18,7 @@ Add the Fusion Aspire package to the AppHost project:
 
 ```bash
 cd AppHost
-dotnet add package HotChocolate.Fusion.Aspire --version 16.0.0-p.11.36
+dotnet add package HotChocolate.Fusion.Aspire
 ```
 
 Your subgraph projects need the `HotChocolate.AspNetCore.CommandLine` package so the orchestrator can extract their schemas. If you followed the [Getting Started](/docs/fusion/v16/getting-started) tutorial, your subgraphs already have this.

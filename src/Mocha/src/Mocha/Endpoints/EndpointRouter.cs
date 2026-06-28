@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using Microsoft.Extensions.Primitives;
 
 namespace Mocha;
 
@@ -20,6 +21,11 @@ public sealed class EndpointRouter : IEndpointRouter
     // Single unified index - all addresses (endpoint address, resource address, aliases) map to endpoints
     private readonly Dictionary<Uri, ImmutableHashSet<DispatchEndpoint>> _byAddress = [];
 
+    private readonly ChangeTokenSource _changeTokens = new();
+
+    /// <inheritdoc />
+    public IChangeToken GetChangeToken() => _changeTokens.Current;
+
     /// <inheritdoc />
     public IReadOnlyList<DispatchEndpoint> Endpoints
     {
@@ -39,9 +45,8 @@ public sealed class EndpointRouter : IEndpointRouter
 
         lock (_lock)
         {
-            if (_byAddress.TryGetValue(address, out var endpoints) && !endpoints.IsEmpty)
+            if (TryGetEndpoint(address, out endpoint))
             {
-                endpoint = endpoints.First();
                 return true;
             }
 
@@ -57,7 +62,12 @@ public sealed class EndpointRouter : IEndpointRouter
 
         lock (_lock)
         {
-            return _byAddress.TryGetValue(address, out var set) ? set : [];
+            if (!_byAddress.TryGetValue(address, out var endpoints))
+            {
+                return [];
+            }
+
+            return endpoints;
         }
     }
 
@@ -67,49 +77,72 @@ public sealed class EndpointRouter : IEndpointRouter
         ArgumentNullException.ThrowIfNull(context);
         ArgumentNullException.ThrowIfNull(address);
 
-        // First try fast read path
-        if (TryGet(address, out var existing))
-        {
-            return existing;
-        }
+        DispatchEndpoint? resolved = null;
 
-        // Need write lock for resolution/creation
         lock (_lock)
         {
-            // Double-check after acquiring write lock
-            if (_byAddress.TryGetValue(address, out var endpoints) && !endpoints.IsEmpty)
+            if (TryGetEndpoint(address, out resolved))
             {
-                return endpoints.First();
+                return resolved;
             }
 
-            // Ask each transport if they already have this endpoint
             foreach (var transport in context.Transports)
             {
                 if (transport.TryGetDispatchEndpoint(address, out var endpoint))
                 {
-                    AddOrUpdateInternal(endpoint, address);
-                    return endpoint;
+                    Upsert(endpoint, address);
+                    resolved = endpoint;
+                    break;
                 }
             }
 
-            // Try to create on each transport
-            foreach (var transport in context.Transports)
+            if (resolved is null
+                && context.Transports.FirstOrDefault(t => t.IsDefaultTransport) is { } defaultTransport)
             {
-                var configuration = transport.CreateEndpointConfiguration(context, address);
-                if (configuration is not null)
+                TryCreateEndpoint(defaultTransport, out resolved);
+            }
+
+            if (resolved is null)
+            {
+                foreach (var transport in context.Transports)
                 {
-                    var endpoint = transport.AddEndpoint(context, configuration);
-
-                    endpoint.DiscoverTopology(context);
-
-                    endpoint.Complete(context);
-
-                    AddOrUpdateInternal(endpoint, address);
-                    return endpoint;
+                    if (TryCreateEndpoint(transport, out resolved))
+                    {
+                        break;
+                    }
                 }
             }
 
-            throw ThrowHelper.NoTransportForAddress(address.ToString());
+            if (resolved is null)
+            {
+                throw ThrowHelper.NoTransportForAddress(address.ToString());
+            }
+        }
+
+        return resolved;
+
+        bool TryCreateEndpoint(MessagingTransport transport, out DispatchEndpoint? endpoint)
+        {
+            var configuration = transport.CreateEndpointConfiguration(context, address);
+            if (configuration is not null)
+            {
+                endpoint = transport.AddEndpoint(context, configuration);
+                if (!endpoint.IsCompleted)
+                {
+                    endpoint.DiscoverTopology(context);
+                    endpoint.Complete(context);
+                }
+
+                // DiscoverTopology/Complete already register completed endpoints and rotate
+                // change tokens. This only records the requested alias, rotating again would
+                // make the freshly exposed token appear changed to callbacks.
+                Upsert(endpoint, address);
+
+                return true;
+            }
+
+            endpoint = null;
+            return false;
         }
     }
 
@@ -118,9 +151,15 @@ public sealed class EndpointRouter : IEndpointRouter
     {
         ArgumentNullException.ThrowIfNull(endpoint);
 
+        bool changed;
         lock (_lock)
         {
-            AddOrUpdateInternal(endpoint, null);
+            changed = Upsert(endpoint, null);
+        }
+
+        if (changed && endpoint.IsCompleted)
+        {
+            _changeTokens.Rotate();
         }
     }
 
@@ -129,6 +168,8 @@ public sealed class EndpointRouter : IEndpointRouter
     {
         ArgumentNullException.ThrowIfNull(endpoint);
         ArgumentNullException.ThrowIfNull(address);
+
+        var changed = false;
 
         lock (_lock)
         {
@@ -144,6 +185,12 @@ public sealed class EndpointRouter : IEndpointRouter
 
             _endpoints[endpoint] = addresses.Add(address);
             AddToIndex(_byAddress, address, endpoint);
+            changed = true;
+        }
+
+        if (changed && endpoint.IsCompleted)
+        {
+            _changeTokens.Rotate();
         }
     }
 
@@ -151,6 +198,8 @@ public sealed class EndpointRouter : IEndpointRouter
     public void Remove(DispatchEndpoint endpoint)
     {
         ArgumentNullException.ThrowIfNull(endpoint);
+
+        var changed = false;
 
         lock (_lock)
         {
@@ -166,10 +215,28 @@ public sealed class EndpointRouter : IEndpointRouter
             }
 
             _endpoints.Remove(endpoint);
+            changed = true;
+        }
+
+        if (changed)
+        {
+            _changeTokens.Rotate();
         }
     }
 
-    private void AddOrUpdateInternal(DispatchEndpoint endpoint, Uri? resolvedAddress)
+    private bool TryGetEndpoint(Uri address, [NotNullWhen(true)] out DispatchEndpoint? endpoint)
+    {
+        if (_byAddress.TryGetValue(address, out var endpoints))
+        {
+            endpoint = endpoints.FirstOrDefault();
+            return endpoint is not null;
+        }
+
+        endpoint = null;
+        return false;
+    }
+
+    private bool Upsert(DispatchEndpoint endpoint, Uri? resolvedAddress)
     {
         var endpointAddress = endpoint.Address;
         var resourceAddress = endpoint.Destination?.Address;
@@ -179,6 +246,7 @@ public sealed class EndpointRouter : IEndpointRouter
             // Build new set of addresses
             var newAddresses = ImmutableHashSet<Uri>.Empty;
 
+            // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
             if (endpointAddress is not null)
             {
                 newAddresses = newAddresses.Add(endpointAddress);
@@ -203,6 +271,8 @@ public sealed class EndpointRouter : IEndpointRouter
                 }
             }
 
+            var addressesChanged = !oldAddresses.SetEquals(newAddresses);
+
             // Remove addresses that are no longer valid
             foreach (var addr in oldAddresses.Except(newAddresses))
             {
@@ -216,32 +286,33 @@ public sealed class EndpointRouter : IEndpointRouter
             }
 
             _endpoints[endpoint] = newAddresses;
+            return addressesChanged;
         }
-        else
+
+        // New endpoint
+        var addresses = ImmutableHashSet<Uri>.Empty;
+
+        // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
+        if (endpointAddress is not null)
         {
-            // New endpoint
-            var addresses = ImmutableHashSet<Uri>.Empty;
-
-            if (endpointAddress is not null)
-            {
-                addresses = addresses.Add(endpointAddress);
-                AddToIndex(_byAddress, endpointAddress, endpoint);
-            }
-
-            if (resourceAddress is not null)
-            {
-                addresses = addresses.Add(resourceAddress);
-                AddToIndex(_byAddress, resourceAddress, endpoint);
-            }
-
-            if (resolvedAddress is not null && !addresses.Contains(resolvedAddress))
-            {
-                addresses = addresses.Add(resolvedAddress);
-                AddToIndex(_byAddress, resolvedAddress, endpoint);
-            }
-
-            _endpoints[endpoint] = addresses;
+            addresses = addresses.Add(endpointAddress);
+            AddToIndex(_byAddress, endpointAddress, endpoint);
         }
+
+        if (resourceAddress is not null)
+        {
+            addresses = addresses.Add(resourceAddress);
+            AddToIndex(_byAddress, resourceAddress, endpoint);
+        }
+
+        if (resolvedAddress is not null && !addresses.Contains(resolvedAddress))
+        {
+            addresses = addresses.Add(resolvedAddress);
+            AddToIndex(_byAddress, resolvedAddress, endpoint);
+        }
+
+        _endpoints[endpoint] = addresses;
+        return true;
     }
 
     private static void AddToIndex(

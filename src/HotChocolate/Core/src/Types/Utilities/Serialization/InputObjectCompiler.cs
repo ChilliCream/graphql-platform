@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Types;
@@ -15,6 +16,11 @@ internal static class InputObjectCompiler
     private static readonly ParameterExpression s_fieldValues =
         Expression.Parameter(typeof(object?[]), "fieldValues");
 
+    [UnconditionalSuppressMessage(
+        "ReflectionAnalysis",
+        "IL2072",
+        Justification =
+            "Runtime types come from schema type registration and are preserved by the type system.")]
     public static Func<object?[], object> CompileFactory(
         InputObjectType inputType,
         ConstructorInfo? constructor = null)
@@ -68,6 +74,11 @@ internal static class InputObjectCompiler
         return func;
     }
 
+    [UnconditionalSuppressMessage(
+        "ReflectionAnalysis",
+        "IL2072",
+        Justification =
+            "Runtime types come from schema type registration and are preserved by the type system.")]
     public static Func<object?[], object> CompileFactory(
         DirectiveType directiveType,
         ConstructorInfo? constructor = null)
@@ -332,6 +343,11 @@ internal static class InputObjectCompiler
         }
     }
 
+    [UnconditionalSuppressMessage(
+        "AOT",
+        "IL3050",
+        Justification =
+            "Optional<T> is a well-known framework type and MakeGenericType for it is safe.")]
     private static Expression CreateOptional(Expression fieldValue, Type runtimeType)
     {
         var from =

@@ -16,9 +16,6 @@ internal sealed class MessagingRuntimeHostedService(IMessagingRuntime runtime) :
 
     public async Task StopAsync(CancellationToken cancellationToken)
     {
-        if (_runtime is not null)
-        {
-            await _runtime.DisposeAsync();
-        }
+        await _runtime.DisposeAsync();
     }
 }

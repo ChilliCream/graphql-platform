@@ -36,16 +36,6 @@ sourceSchemas:
         query: Query
       }
 
-      interface IInterface @key(fields: "id") {
-        id: Int!
-      }
-
-      type Product implements IInterface {
-        id: Int!
-        schema1: String!
-        shared: SharedProduct @shareable
-      }
-
       type Query {
         productById(id: Int!): Product @lookup
         viewer: Viewer! @shareable
@@ -54,6 +44,12 @@ sourceSchemas:
         unsharedInterface: IInterface!
         union: IUnion! @shareable
         topReview: Review! @shareable
+      }
+
+      type Product implements IInterface @key(fields: "id") {
+        id: Int!
+        schema1: String!
+        shared: SharedProduct @shareable
       }
 
       type Review implements IInterface {
@@ -79,9 +75,14 @@ sourceSchemas:
         schema1: String!
       }
 
+      interface IInterface @key(fields: "id") {
+        id: Int!
+      }
+
       union IUnion = Product | Review
     interactions:
       - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
             query Op_c1c44a8c_1 {
               productById(id: 1) {
@@ -116,16 +117,6 @@ sourceSchemas:
         query: Query
       }
 
-      interface IInterface @key(fields: "id") {
-        id: Int!
-      }
-
-      type Product implements IInterface {
-        id: Int!
-        schema2: String!
-        shared: SharedProduct @shareable
-      }
-
       type Query {
         product(id: Int!): Product @lookup
         viewer: Viewer! @shareable
@@ -133,6 +124,12 @@ sourceSchemas:
         interface: IInterface! @shareable
         union: IUnion! @shareable
         topReview: Review! @shareable
+      }
+
+      type Product implements IInterface @key(fields: "id") {
+        id: Int!
+        schema2: String!
+        shared: SharedProduct @shareable
       }
 
       type Review implements IInterface {
@@ -158,15 +155,18 @@ sourceSchemas:
         schema2: String!
       }
 
+      interface IInterface @key(fields: "id") {
+        id: Int!
+      }
+
       union IUnion = Product | Review
     interactions:
       - request:
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
           kind: OperationBatch
           items:
             - document: |
-                query Op_c1c44a8c_2(
-                  $__fusion_1_id: Int!
-                ) {
+                query Op_c1c44a8c_2($__fusion_1_id: Int!) {
                   product(id: $__fusion_1_id) {
                     shared {
                       schema2
@@ -178,9 +178,7 @@ sourceSchemas:
                   "__fusion_1_id": 1
                 }
             - document: |
-                query Op_c1c44a8c_3(
-                  $__fusion_2_id: Int!
-                ) {
+                query Op_c1c44a8c_3($__fusion_2_id: Int!) {
                   product(id: $__fusion_2_id) {
                     shared {
                       shared2 {
@@ -257,9 +255,7 @@ operationPlan:
       type: Operation
       schema: B
       operation: |
-        query Op_c1c44a8c_2(
-          $__fusion_1_id: Int!
-        ) {
+        query Op_c1c44a8c_2($__fusion_1_id: Int!) {
           product(id: $__fusion_1_id) {
             shared {
               schema2
@@ -279,9 +275,7 @@ operationPlan:
       type: Operation
       schema: B
       operation: |
-        query Op_c1c44a8c_3(
-          $__fusion_2_id: Int!
-        ) {
+        query Op_c1c44a8c_3($__fusion_2_id: Int!) {
           product(id: $__fusion_2_id) {
             shared {
               shared2 {

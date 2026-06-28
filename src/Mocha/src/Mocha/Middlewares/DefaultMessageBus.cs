@@ -437,10 +437,16 @@ public sealed class DefaultMessageBus(
 
     private void PropagateCorrelationIds(DispatchContext context)
     {
+        // ConversationId and CausationId are lineage ids that flow through the whole graph.
+        // CorrelationId is a per-hop routing key (request/reply pairing, saga correlation) and must
+        // be set explicitly, never inherited, or an outbound message could complete the wrong
+        // request promise or attach to the wrong saga.
         if (consumeContextAccessor.Context is { } ambient)
         {
             context.ConversationId ??= ambient.ConversationId;
-            context.CausationId ??= ambient.MessageId;
+            context.CausationId ??= ambient is IBatchConsumeContext batchContext
+                ? batchContext.BatchId
+                : ambient.MessageId;
         }
     }
 }

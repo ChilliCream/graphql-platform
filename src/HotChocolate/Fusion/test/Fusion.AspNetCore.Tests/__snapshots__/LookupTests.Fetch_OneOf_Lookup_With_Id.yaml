@@ -48,6 +48,10 @@ sourceSchemas:
         query: Query
       }
 
+      type Query {
+        books: [Book!]!
+      }
+
       type Author @key(fields: "id") {
         id: ID!
       }
@@ -57,12 +61,9 @@ sourceSchemas:
         title: String!
         author: Author! @shareable
       }
-
-      type Query {
-        books: [Book!]!
-      }
     interactions:
       - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
             query Op_fb4f667e_1 {
               books {
@@ -106,32 +107,30 @@ sourceSchemas:
         query: Query
       }
 
-      type Author {
+      type Query {
+        lookups: InternalLookups! @internal
+      }
+
+      type Author @key(fields: "id") @key(fields: "name") {
         id: ID!
         name: String!
       }
 
       type InternalLookups @internal {
-        author(by: AuthorByInput! @is(field: "{\n  id\n} | {\n  name\n}")): Author! @lookup @internal
-      }
-
-      type Query {
-        lookups: InternalLookups! @internal
+        author(by: AuthorByInput! @is(field: "{\n  id\n} | {\n  name\n}")): Author
+          @lookup
+          @internal
       }
 
       input AuthorByInput @oneOf {
         id: ID
         name: String
       }
-
-      "The `@oneOf` directive is used within the type system definition language to indicate that an Input Object is a OneOf Input Object."
-      directive @oneOf on INPUT_OBJECT
     interactions:
       - request:
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
           document: |
-            query Op_fb4f667e_2(
-              $__fusion_1_by: AuthorByInput!
-            ) {
+            query Op_fb4f667e_2($__fusion_1_by: AuthorByInput!) {
               lookups {
                 author(by: $__fusion_1_by) {
                   name
@@ -180,12 +179,12 @@ sourceSchemas:
         query: Query
       }
 
-      type Author {
-        name: String! @shareable
-      }
-
       type Query {
         topAuthor: Author!
+      }
+
+      type Author {
+        name: String! @shareable
       }
 operationPlan:
   operation:
@@ -218,9 +217,7 @@ operationPlan:
       type: Operation
       schema: b
       operation: |
-        query Op_fb4f667e_2(
-          $__fusion_1_by: AuthorByInput!
-        ) {
+        query Op_fb4f667e_2($__fusion_1_by: AuthorByInput!) {
           lookups {
             author(by: $__fusion_1_by) {
               name

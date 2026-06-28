@@ -23,6 +23,8 @@ internal sealed record SourceSchemaSettings
 
         public bool? InferKeysFromLookups { get; init; }
 
+        public bool? InferShareable { get; init; }
+
         public bool? InheritInterfaceKeys { get; init; }
     }
 

@@ -12,12 +12,10 @@ internal sealed class StageCommand : Command
 {
     public StageCommand() : base("stage")
     {
-        Description = "Manage stages";
+        Description = "Manage stages.";
 
-        this.AddNitroCloudDefaultOptions();
-
-        AddCommand(new EditStagesCommand());
-        AddCommand(new DeleteStageCommand());
-        AddCommand(new ListStagesCommand());
+        Subcommands.Add(new EditStagesCommand());
+        Subcommands.Add(new DeleteStageCommand());
+        Subcommands.Add(new ListStagesCommand());
     }
 }

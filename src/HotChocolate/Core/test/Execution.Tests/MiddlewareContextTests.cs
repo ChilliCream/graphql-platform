@@ -27,7 +27,7 @@ public class MiddlewareContextTests
             .Build();
 
         // act
-        var result = await schema.MakeExecutable().ExecuteAsync(request);
+        var result = await schema.MakeExecutable().ExecuteAsync(request, TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -53,7 +53,7 @@ public class MiddlewareContextTests
 
         // act
         var result =
-            await schema.MakeExecutable().ExecuteAsync(request);
+            await schema.MakeExecutable().ExecuteAsync(request, TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -102,7 +102,8 @@ public class MiddlewareContextTests
                         baz
                     }
                 }
-            }");
+            }",
+            TestContext.Current.CancellationToken);
 
         // assert
         list.Select(t => t.SyntaxNodes[0].Node.Name.Value).ToList().MatchSnapshot();
@@ -134,7 +135,7 @@ public class MiddlewareContextTests
                                     await next(context);
                                 });
                     })
-                .ExecuteRequestAsync("{ foo }");
+                .ExecuteRequestAsync("{ foo }", cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -195,7 +196,7 @@ public class MiddlewareContextTests
                                 context.ReplaceArguments(original);
                             });
                 })
-            .ExecuteRequestAsync("{ abc(a: \"abc   \") }");
+            .ExecuteRequestAsync("{ abc(a: \"abc   \") }", cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchSnapshot();
     }
@@ -221,7 +222,7 @@ public class MiddlewareContextTests
                                 context.ReplaceArguments(original);
                             });
                 })
-            .ExecuteRequestAsync("{ abc(a: \"abc   \") }");
+            .ExecuteRequestAsync("{ abc(a: \"abc   \") }", cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchSnapshot();
     }
@@ -244,7 +245,7 @@ public class MiddlewareContextTests
                                 await next(context);
                             });
                 })
-            .ExecuteRequestAsync("{ abc(a: \"abc\") }");
+            .ExecuteRequestAsync("{ abc(a: \"abc\") }", cancellationToken: TestContext.Current.CancellationToken);
 
         Assert.NotNull(result.ContextData);
         Assert.True(result.ContextData.TryGetValue("abc", out var value));
@@ -278,7 +279,7 @@ public class MiddlewareContextTests
                                 await next(context);
                             });
                 })
-            .ExecuteRequestAsync("{ abc(a: \"abc\") }");
+            .ExecuteRequestAsync("{ abc(a: \"abc\") }", cancellationToken: TestContext.Current.CancellationToken);
 
         Assert.NotNull(result.ContextData);
         Assert.True(result.ContextData.TryGetValue("abc", out var value));
@@ -367,7 +368,7 @@ public class MiddlewareContextTests
                                 await next(context);
                             });
                 })
-            .ExecuteRequestAsync("{ abc(a: \"abc\") }");
+            .ExecuteRequestAsync("{ abc(a: \"abc\") }", cancellationToken: TestContext.Current.CancellationToken);
 
         Assert.NotNull(result.ContextData);
         Assert.True(result.ContextData.TryGetValue("abc", out var value));
@@ -392,7 +393,7 @@ public class MiddlewareContextTests
                                 await next(context);
                             });
                 })
-            .ExecuteRequestAsync("{ abc(a: \"abc\") }");
+            .ExecuteRequestAsync("{ abc(a: \"abc\") }", cancellationToken: TestContext.Current.CancellationToken);
 
         Snapshot
             .Create()
@@ -428,7 +429,7 @@ public class MiddlewareContextTests
                                 await next(context);
                             });
                 })
-            .ExecuteRequestAsync("{ abc(a: \"abc\") }");
+            .ExecuteRequestAsync("{ abc(a: \"abc\") }", cancellationToken: TestContext.Current.CancellationToken);
 
         Snapshot
             .Create()

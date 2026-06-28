@@ -5,7 +5,9 @@ using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
+using ChilliCream.Nitro.CommandLine.Arguments;
 using ChilliCream.Nitro.CommandLine.Helpers;
+using ChilliCream.Nitro.CommandLine.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
@@ -16,48 +18,35 @@ namespace ChilliCream.Nitro.CommandLine.Commands.Fusion;
 [RequiresDynamicCode("JSON serialization and deserialization might require types that cannot be statically analyzed and might need runtime code generation. Use System.Text.Json source generation for native AOT applications.")]
 [RequiresUnreferencedCode("JSON serialization and deserialization might require types that cannot be statically analyzed. Use the overload that takes a JsonTypeInfo or JsonSerializerContext, or make sure all of the required types are preserved.")]
 #endif
-public class FusionRunCommand : Command
+internal class FusionRunCommand : Command
 {
     public FusionRunCommand() : base("run")
     {
-        base.Description = "Starts a Fusion gateway with the specified archive."
+        Description = "Start a Fusion gateway with the specified archive."
             + Environment.NewLine
             + "This command only supports Fusion v2.";
 
-        var archiveArgument = new Argument<FileInfo>("ARCHIVE_FILE")
-        {
-            Description = "The path to the Fusion archive file"
-        };
-        archiveArgument.LegalFilePathsOnly();
+        Arguments.Add(Opt<FusionRunArchiveArgument>.Instance);
+        Options.Add(Opt<FusionRunPortOption>.Instance);
 
-        AddArgument(archiveArgument);
+        this.AddExamples("fusion run ./gateway.far --port 5000");
 
-        var portOption = new Option<int>("--port");
-        portOption.AddAlias("-p");
-
-        AddOption(portOption);
-
-        this.SetHandler(async context =>
-        {
-            var archiveFile = context.ParseResult.GetValueForArgument(archiveArgument);
-
-            var console = context.BindingContext.GetRequiredService<IAnsiConsole>();
-
-            var port = context.ParseResult.GetValueForOption(portOption);
-
-            await ExecuteAsync(archiveFile, console, port, context.GetCancellationToken());
-        });
+        this.SetActionWithExceptionHandling(ExecuteAsync);
     }
 
-    private static async Task ExecuteAsync(
-        FileInfo archiveFile,
-        IAnsiConsole console,
-        int? port,
+    private static async Task<int> ExecuteAsync(
+        ICommandServices services,
+        ParseResult parseResult,
         CancellationToken cancellationToken)
     {
-        if (!archiveFile.Exists)
+        var console = services.GetRequiredService<INitroConsole>();
+        var fileSystem = services.GetRequiredService<IFileSystem>();
+
+        var archiveFilePath = parseResult.GetRequiredValue(Opt<FusionRunArchiveArgument>.Instance);
+        var port = parseResult.GetValue(Opt<FusionRunPortOption>.Instance);
+        if (!fileSystem.FileExists(archiveFilePath))
         {
-            throw new ExitException($"Archive file '{archiveFile.FullName}' does not exist.");
+            throw new ExitException(Messages.ArchiveFileDoesNotExist(archiveFilePath));
         }
 
         port ??= GetRandomUnusedPort();
@@ -83,7 +72,7 @@ public class FusionRunCommand : Command
 
                 services.AddRouting()
                     .AddGraphQLGatewayServer()
-                    .AddFileSystemConfiguration(archiveFile.FullName)
+                    .AddFileSystemConfiguration(archiveFilePath)
                     .ModifyRequestOptions(o => o.CollectOperationPlanTelemetry = true)
                     .ModifyServerOptions(o => o.Tool.ServeMode = App.ServeMode.Insider);
             })
@@ -131,6 +120,8 @@ public class FusionRunCommand : Command
         });
 
         await host.RunAsync(cancellationToken);
+
+        return ExitCodes.Success;
     }
 
     private static int GetRandomUnusedPort()

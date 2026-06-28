@@ -2,13 +2,13 @@ schema {
   query: QueryType
 }
 
-type Foo {
-  bar: String!
-}
-
 type QueryType {
   foos(where: FooFilterInput): [Foo]
   foosBar(where: Bar_FooFilterInput): [Foo]
+}
+
+type Foo {
+  bar: String!
 }
 
 input Bar_FooFilterInput {

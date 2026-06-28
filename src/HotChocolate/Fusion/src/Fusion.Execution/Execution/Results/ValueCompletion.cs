@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 using HotChocolate.Execution;
@@ -58,6 +59,7 @@ internal sealed class ValueCompletion
             var error = errorTrie?.FindFirstError();
             var canExecutionContinue =
                 BuildResultForInvalidSource(
+                    source,
                     sourceValueKind,
                     target,
                     resultSelectionSet,
@@ -69,6 +71,11 @@ internal sealed class ValueCompletion
             }
 
             return ApplyPocketedErrors(target);
+        }
+
+        if (target.ValueKind is JsonValueKind.Undefined)
+        {
+            InitializeTargetObject(source, target);
         }
 
         foreach (var property in source.EnumerateObject())
@@ -121,6 +128,23 @@ internal sealed class ValueCompletion
         }
 
         return ApplyPocketedErrors(target);
+    }
+
+    private void InitializeTargetObject(
+        SourceResultElement source,
+        CompositeResultElement target)
+    {
+        if (!TryGetSelectionContext(target, out var selection, out var type)
+            || !type.IsCompositeType())
+        {
+            throw new InvalidOperationException(
+                "Cannot initialize a result object without selection metadata.");
+        }
+
+        var objectType = GetType(type, source);
+        var objectSelectionSet = selection.GetSelectionSet(objectType)!;
+
+        target.SetObjectValue(objectSelectionSet);
     }
 
     /// <summary>
@@ -194,14 +218,8 @@ internal sealed class ValueCompletion
 
             if (parentResult.ValueKind is JsonValueKind.Undefined)
             {
-                var parentSelection = parentResult.Selection;
                 var promotedError = ErrorBuilder.FromError(error)
                     .SetPath(parentPath);
-
-                if (parentSelection is not null)
-                {
-                    promotedError = promotedError.AddLocation(parentSelection.SyntaxNodes[0].Node);
-                }
 
                 _store.AddError(_errorHandler.Handle(promotedError.Build()));
                 parentResult.SetNullValue();
@@ -240,6 +258,7 @@ internal sealed class ValueCompletion
     }
 
     private bool BuildResultForInvalidSource(
+        SourceResultElement source,
         JsonValueKind sourceValueKind,
         CompositeResultElement target,
         ResultSelectionSet resultSelectionSet,
@@ -255,12 +274,161 @@ internal sealed class ValueCompletion
             return true;
         }
 
+        // A clean null source without an associated error is a legitimate
+        // "not found" state (e.g. a lookup that resolved to null), so each
+        // selected field is completed with its own nullability semantics
+        // instead of surfacing an unexpected execution error.
+        if (sourceValueKind is JsonValueKind.Null && error is null)
+        {
+            return CompleteNullSource(source, target, resultSelectionSet);
+        }
+
         var fallbackError = error ??
             ErrorBuilder.New()
                 .SetMessage("Unexpected Execution Error")
                 .Build();
 
+        if (target.ValueKind is JsonValueKind.Undefined
+            && !TryInitializeTargetObject(target))
+        {
+            return BuildErrorResultForUndefinedTarget(
+                target,
+                resultSelectionSet,
+                fallbackError,
+                target.CompactPath);
+        }
+
         return BuildErrorResult(target, resultSelectionSet, fallbackError, target.CompactPath);
+    }
+
+    /// <summary>
+    /// Completes the selection set of <paramref name="target"/> for a <c>null</c>
+    /// source, applying per-field nullability so that non-null fields produce a
+    /// non-null violation and nullable fields are set to <c>null</c>.
+    /// </summary>
+    /// <returns>
+    /// <c>true</c>, if the execution can continue.
+    /// <c>false</c>, if the execution needs to be halted.
+    /// </returns>
+    private bool CompleteNullSource(
+        SourceResultElement source,
+        CompositeResultElement target,
+        ResultSelectionSet resultSelectionSet)
+    {
+        foreach (var responseName in resultSelectionSet.ResponseNames)
+        {
+            if (!target.TryGetProperty(responseName, out var fieldResult)
+                || fieldResult.IsInternal)
+            {
+                continue;
+            }
+
+            var selection = fieldResult.AssertSelection();
+            var childSet = resultSelectionSet.TryGetChild(selection.ResponseName);
+
+            if (!TryCompleteValue(
+                    source,
+                    JsonValueKind.Null,
+                    fieldResult,
+                    errorTrie: null,
+                    selection,
+                    selection.Type,
+                    0,
+                    childSet))
+            {
+                switch (_errorHandlingMode)
+                {
+                    case ErrorHandlingMode.Propagate:
+                        var didPropagateToRoot = PropagateNullValues(fieldResult);
+                        if (didPropagateToRoot)
+                        {
+                            return false;
+                        }
+
+                        return ApplyPocketedErrors(target);
+                }
+            }
+        }
+
+        return ApplyPocketedErrors(target);
+    }
+
+    private static bool TryInitializeTargetObject(CompositeResultElement target)
+    {
+        if (!TryGetSelectionContext(target, out var selection, out var type)
+            || type.NamedType() is not IObjectTypeDefinition objectType)
+        {
+            return false;
+        }
+
+        if (selection.IsLeaf)
+        {
+            return false;
+        }
+
+        target.SetObjectValue(selection.GetSelectionSet(objectType)!);
+        return true;
+    }
+
+    private static bool TryGetSelectionContext(
+        CompositeResultElement target,
+        [NotNullWhen(true)] out Selection? selection,
+        [NotNullWhen(true)] out IType? type)
+    {
+        type = target.Type;
+
+        if (type is null)
+        {
+            selection = null;
+            return false;
+        }
+
+        var current = target;
+        while ((selection = current.Selection) is null)
+        {
+            var parent = current.Parent;
+            if (parent.IsNullOrInvalidated)
+            {
+                type = null;
+                return false;
+            }
+
+            current = parent;
+        }
+
+        return true;
+    }
+
+    private bool BuildErrorResultForUndefinedTarget(
+        CompositeResultElement target,
+        ResultSelectionSet resultSelectionSet,
+        IError error,
+        CompactPath path)
+    {
+        var operation = target.Operation;
+        var errorPath = path.ToPath(operation);
+        var hasResponseNames = false;
+
+        foreach (var responseName in resultSelectionSet.ResponseNames)
+        {
+            hasResponseNames = true;
+            var errorWithPath = ErrorBuilder.FromError(error)
+                .SetPath(errorPath.Append(responseName))
+                .Build();
+
+            _store.AddError(_errorHandler.Handle(errorWithPath));
+        }
+
+        if (!hasResponseNames)
+        {
+            var errorWithPath = ErrorBuilder.FromError(error)
+                .SetPath(errorPath)
+                .Build();
+
+            _store.AddError(_errorHandler.Handle(errorWithPath));
+        }
+
+        return true;
     }
 
     private bool ApplyPocketedErrors(CompositeResultElement target)
@@ -320,7 +488,6 @@ internal sealed class ValueCompletion
     {
         var errorWithPath = ErrorBuilder.FromError(error)
             .SetPath(path)
-            .AddLocation(selection.SyntaxNodes[0].Node)
             .Build();
         errorWithPath = _errorHandler.Handle(errorWithPath);
 
@@ -387,7 +554,6 @@ internal sealed class ValueCompletion
                     var path = target.CompactPath.ToPath(target.Operation);
                     error = ErrorBuilder.FromError(errorFromPath)
                         .SetPath(path)
-                        .AddLocation(selection.SyntaxNodes[0].Node)
                         .Build();
                 }
                 else
@@ -397,7 +563,6 @@ internal sealed class ValueCompletion
                         .SetMessage("Cannot return null for non-nullable field.")
                         .SetCode(ErrorCodes.Execution.NonNullViolation)
                         .SetPath(path)
-                        .AddLocation(selection.SyntaxNodes[0].Node)
                         .Build();
                 }
 
@@ -434,7 +599,6 @@ internal sealed class ValueCompletion
             {
                 var errorWithPath = ErrorBuilder.FromError(errorFromPath)
                     .SetPath(target.Path)
-                    .AddLocation(selection.SyntaxNodes[0].Node)
                     .Build();
                 errorWithPath = _errorHandler.Handle(errorWithPath);
 
@@ -525,7 +689,6 @@ internal sealed class ValueCompletion
             {
                 var errorWithPath = ErrorBuilder.FromError(error)
                     .SetPath(target.CompactPath.ToPath(target.Operation, i))
-                    .AddLocation(selection.SyntaxNodes[0].Node)
                     .Build();
                 errorWithPath = _errorHandler.Handle(errorWithPath);
 
@@ -643,8 +806,9 @@ TryCompleteList_MoveNext:
         // with the current selection set.
         if (target.ValueKind is JsonValueKind.Undefined)
         {
-            var operation = parentSelection.DeclaringSelectionSet.DeclaringOperation;
-            var objectSelectionSet = operation.GetSelectionSet(parentSelection, objectType);
+            var objectSelectionSet = parentSelection.GetSelectionSet(objectType)
+                ?? throw new InvalidOperationException(
+                    "Cannot initialize a result object without a selection set.");
             target.SetObjectValue(objectSelectionSet);
         }
 
@@ -738,7 +902,7 @@ file static class ValueCompletionExtensions
         => type switch
         {
             ListType listType => listType.ElementType,
-            NonNullType nonNullType => nonNullType.NullableType,
-            _ => type
+            NonNullType { NullableType: ListType listType } => listType.ElementType,
+            _ => throw new ArgumentException($"The type '{type}' is not a list type.", nameof(type))
         };
 }

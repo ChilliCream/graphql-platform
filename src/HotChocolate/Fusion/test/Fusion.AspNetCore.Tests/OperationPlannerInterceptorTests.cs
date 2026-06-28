@@ -47,10 +47,11 @@ public class OperationPlannerInterceptorTests : FusionTestBase
 
         using var result = await client.PostAsync(
             request,
-            new Uri("http://localhost:5000/graphql"));
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
 
         // assert
-        using var response = await result.ReadAsResultAsync();
+        using var response = await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
 
         Assert.True(interceptor1.HasHitOnAfterPlanCompleted);
     }
@@ -94,10 +95,11 @@ public class OperationPlannerInterceptorTests : FusionTestBase
 
         using var result = await client.PostAsync(
             request,
-            new Uri("http://localhost:5000/graphql"));
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
 
         // assert
-        using var response = await result.ReadAsResultAsync();
+        using var response = await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
 
         Assert.True(interceptor1.HasHitOnAfterPlanCompleted);
         Assert.True(interceptor2.HasHitOnAfterPlanCompleted);
@@ -134,7 +136,7 @@ public class OperationPlannerInterceptorTests : FusionTestBase
                 };
 
             [Lookup]
-            public Book GetBookById(int id)
+            public Book? GetBookById(int id)
                 => _books[id];
 
             [UsePaging]
@@ -182,12 +184,12 @@ public class OperationPlannerInterceptorTests : FusionTestBase
 
             [Internal]
             [Lookup]
-            public Book GetBookById(int id)
+            public Book? GetBookById(int id)
                 => _books[id];
 
             [Internal]
             [Lookup]
-            public Author GetAuthorById(int id)
+            public Author? GetAuthorById(int id)
                 => _authors[id];
 
             [UsePaging]

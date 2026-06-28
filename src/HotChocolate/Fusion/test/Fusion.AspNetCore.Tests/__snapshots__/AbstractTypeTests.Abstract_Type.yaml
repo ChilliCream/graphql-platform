@@ -29,11 +29,24 @@ sourceSchemas:
         query: Query
       }
 
-      interface SharedType @key(fields: "id") {
-        id: Int!
+      type Query {
+        abstractType: SharedType!
+        otherAbstractType: SharedType!
+        abstractTypes: [SharedType!]!
+        interfaceConnection(
+          "Returns the first _n_ elements from the list."
+          first: Int
+          "Returns the elements in the list that come after the specified cursor."
+          after: String
+          "Returns the last _n_ elements from the list."
+          last: Int
+          "Returns the elements in the list that come before the specified cursor."
+          before: String
+        ): InterfaceConnectionConnection
+        authorById(id: Int!): Author @lookup
       }
 
-      type Author implements SharedType {
+      type Author implements SharedType @key(fields: "id") {
         id: Int!
         name: String!
       }
@@ -77,15 +90,12 @@ sourceSchemas:
         id: Int!
       }
 
-      type Query {
-        abstractType: SharedType!
-        otherAbstractType: SharedType!
-        abstractTypes: [SharedType!]!
-        interfaceConnection("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): InterfaceConnectionConnection
-        authorById(id: Int!): Author! @lookup
+      interface SharedType @key(fields: "id") {
+        id: Int!
       }
     interactions:
       - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
             query Op_05500418_1 {
               abstractType {

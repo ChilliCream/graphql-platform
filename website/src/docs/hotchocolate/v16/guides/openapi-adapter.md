@@ -17,15 +17,14 @@ dotnet add package HotChocolate.Adapters.OpenApi
 Register the adapter on your GraphQL server and map the endpoints:
 
 ```csharp
-// Program.cs
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services
     .AddRouting()
     .AddOpenApi(options => options.AddGraphQLTransformer());
 
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddQueryType<Query>()
     .AddMutationType<Mutation>()
     .AddOpenApiDefinitionStorage(myStorage);
@@ -201,14 +200,12 @@ Each document is a separate entry in your `IOpenApiDefinitionStorage`. Fragment-
 The `IOpenApiDefinitionStorage` interface provides endpoint and fragment definitions to the adapter:
 
 ```csharp
-// Services/MyOpenApiStorage.cs
 using HotChocolate.Adapters.OpenApi;
+using HotChocolate.Adapters.OpenApi.Storage;
 using HotChocolate.Language;
 
 public class MyOpenApiStorage : IOpenApiDefinitionStorage
 {
-    public event EventHandler? Changed;
-
     public ValueTask<IEnumerable<IOpenApiDefinition>>
         GetDefinitionsAsync(
             CancellationToken cancellationToken = default)
@@ -230,22 +227,27 @@ public class MyOpenApiStorage : IOpenApiDefinitionStorage
         return ValueTask.FromResult<IEnumerable<IOpenApiDefinition>>(
             documents);
     }
+
+    // IOpenApiDefinitionStorage also extends IObservable, enabling
+    // hot-reload when definitions change.
+    public IDisposable Subscribe(
+        IObserver<OpenApiDefinitionStorageEventArgs> observer)
+        => /* your subscription logic */;
 }
 ```
 
 Register it with your GraphQL server:
 
 ```csharp
-// Program.cs
 var storage = new MyOpenApiStorage();
 
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddQueryType<Query>()
     .AddOpenApiDefinitionStorage(storage);
 ```
 
-The storage raises its `Changed` event when definitions are modified. The adapter picks up changes at runtime, adding, updating, or removing HTTP endpoints without a restart. This hot-reload behavior extends to the OpenAPI specification.
+The storage implements `IObservable<OpenApiDefinitionStorageEventArgs>`. When you push `Updated` or `Removed` events through this observable, the adapter picks up changes at runtime, adding, updating, or removing HTTP endpoints without a restart. This hot-reload behavior extends to the OpenAPI specification.
 
 # OpenAPI Specification
 
@@ -255,12 +257,11 @@ Each endpoint definition's description becomes the OpenAPI operation summary. Ro
 
 # Fusion Integration
 
-The OpenAPI adapter works with Fusion gateway servers. Replace `AddGraphQLServer()` with `AddGraphQLGatewayServer()` and the rest of the configuration remains the same:
+The OpenAPI adapter works with Fusion gateway servers. Replace `AddGraphQL()` with `AddGraphQLGateway()` and the rest of the configuration remains the same:
 
 ```csharp
-// Program.cs
-builder.Services
-    .AddGraphQLGatewayServer()
+builder
+    .AddGraphQLGateway()
     .AddInMemoryConfiguration(compositeSchema)
     .AddHttpClientConfiguration("Subgraph", subgraphUri)
     .AddOpenApiDefinitionStorage(myStorage);

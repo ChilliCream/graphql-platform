@@ -27,6 +27,10 @@ sourceSchemas:
         query: Query
       }
 
+      type Query {
+        post: Post
+      }
+
       type Discussion {
         id: ID!
         subgraph1: String
@@ -36,13 +40,10 @@ sourceSchemas:
         id: ID!
       }
 
-      type Query {
-        post: Post
-      }
-
       union Post = Photo | Discussion
     interactions:
       - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
             query testQuery_3d3597da_1 {
               post {
@@ -72,20 +73,19 @@ sourceSchemas:
         query: Query
       }
 
+      type Query {
+        photoById(id: ID!): Photo @lookup
+      }
+
       type Photo {
         id: ID!
         subgraph2: String!
       }
-
-      type Query {
-        photoById(id: ID!): Photo @lookup
-      }
     interactions:
       - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
-            query testQuery_3d3597da_2(
-              $__fusion_1_id: ID!
-            ) {
+            query testQuery_3d3597da_2($__fusion_1_id: ID!) {
               photoById(id: $__fusion_1_id) {
                 subgraph2
               }
@@ -143,9 +143,7 @@ operationPlan:
       type: Operation
       schema: B
       operation: |
-        query testQuery_3d3597da_2(
-          $__fusion_1_id: ID!
-        ) {
+        query testQuery_3d3597da_2($__fusion_1_id: ID!) {
           photoById(id: $__fusion_1_id) {
             subgraph2
           }

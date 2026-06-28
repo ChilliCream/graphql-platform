@@ -360,6 +360,46 @@ public sealed class SourceSchemaPreprocessorTests
     }
 
     [Fact]
+    public void Preprocess_InferKeysFromLookups_DoesNotApplyToInvalidLookups()
+    {
+        // arrange
+        var sourceSchemaText =
+            new SourceSchemaText(
+                "A",
+                """
+                type Query {
+                    personById(id1: ID!): Person @lookup
+                    personByIdNoArguments: Person @lookup
+                    personByIdNonNull(id2: ID!): Person! @lookup
+                    personByIdListType(id3: ID!): [Person] @lookup
+                }
+
+                type Person {
+                    id1: ID!
+                    id2: ID!
+                    id3: ID!
+                }
+                """);
+        var compositionLog = new CompositionLog();
+        var sourceSchemaParser = new SourceSchemaParser(sourceSchemaText, compositionLog);
+        var schema = sourceSchemaParser.Parse().Value;
+        var preprocessor =
+            new SourceSchemaPreprocessor(
+                schema,
+                [],
+                compositionLog);
+
+        // act
+        var result = preprocessor.Preprocess();
+
+        // assert
+        Assert.True(result.IsSuccess);
+        var keyDirective =
+            Assert.Single(schema.Types["Person"].Directives, d => d.Name == WellKnownDirectiveNames.Key);
+        Assert.Equal("id1", keyDirective.Arguments["fields"].Value);
+    }
+
+    [Fact]
     public void Preprocess_InheritInterfaceKeysEnabled_InheritsInterfaceKeys()
     {
         // arrange
@@ -406,37 +446,35 @@ public sealed class SourceSchemaPreprocessorTests
             // lang=graphql
             """
             type Cat implements Pet & Animal
-                @key(fields: "name")
-                @key(fields: "id")
-                @key(fields: "age") {
-                age: Int
-                id: ID!
-                name: String
+              @key(fields: "name")
+              @key(fields: "id")
+              @key(fields: "age") {
+              age: Int
+              id: ID!
+              name: String
             }
 
             type Dog implements Pet & Animal
-                @key(fields: "name")
-                @key(fields: "id")
-                @key(fields: "age") {
-                age: Int
-                id: ID!
-                name: String
+              @key(fields: "name")
+              @key(fields: "id")
+              @key(fields: "age") {
+              age: Int
+              id: ID!
+              name: String
             }
 
-            interface Animal
-                @key(fields: "id")
-                @key(fields: "age") {
-                age: Int
-                id: ID!
+            interface Animal @key(fields: "id") @key(fields: "age") {
+              age: Int
+              id: ID!
             }
 
             interface Pet implements Animal
-                @key(fields: "name")
-                @key(fields: "id")
-                @key(fields: "age") {
-                age: Int
-                id: ID!
-                name: String
+              @key(fields: "name")
+              @key(fields: "id")
+              @key(fields: "age") {
+              age: Int
+              id: ID!
+              name: String
             }
             """);
     }
@@ -527,30 +565,22 @@ public sealed class SourceSchemaPreprocessorTests
             }
 
             type Query {
-              node(id: ID!): Node
-                @lookup
-              productById(id: ID!): Product
-                @lookup
-              productByName(productName: String!
-                @is(field: "name")): Product
-                @lookup
+              node(id: ID!): Node @lookup
+              productById(id: ID!): Product @lookup
+              productByName(productName: String! @is(field: "name")): Product @lookup
             }
 
-            type Product implements Node
-              @key(fields: "id")
-              @key(fields: "name") {
+            type Product implements Node @key(fields: "id") @key(fields: "name") {
               id: ID!
               name: String!
             }
 
-            type Review implements Node
-              @key(fields: "id") {
+            type Review implements Node @key(fields: "id") {
               id: ID!
               title: String!
             }
 
-            interface Node
-              @key(fields: "id") {
+            interface Node @key(fields: "id") {
               id: ID!
             }
             """);
@@ -610,7 +640,7 @@ public sealed class SourceSchemaPreprocessorTests
               product(id: ID!): Product
               productByGtin(gtin: String!): Product
               productById(id: ID!): Product!
-              productByIdAndOther(id: ID! other: String): Product
+              productByIdAndOther(id: ID!, other: String): Product
               productsById(ids: [ID!]!): [Product]
             }
 
@@ -747,17 +777,77 @@ public sealed class SourceSchemaPreprocessorTests
             }
 
             type Query {
-              productById(id: ID!): Product
-                @lookup
-                @shareable
+              productById(id: ID!): Product @lookup @shareable
             }
 
-            type Product
-              @key(fields: "id") {
+            type Product @key(fields: "id") {
               id: ID!
-              name: String!
-                @shareable
+              name: String! @shareable
             }
             """);
+    }
+
+    [Fact]
+    public void FusionV1CompatibilityMode_Should_Not_Apply_Shareable_To_Subscription_Root_Fields()
+    {
+        // arrange
+        var sourceSchemaTextA =
+            new SourceSchemaText(
+                "A",
+                """
+                type Query {
+                  productById(id: ID!): Product @lookup
+                }
+
+                type Subscription {
+                  productAdded: Product
+                }
+
+                type Product {
+                  id: ID!
+                  name: String!
+                }
+                """);
+
+        var sourceSchemaTextB =
+            new SourceSchemaText(
+                "B",
+                """
+                type Query {
+                  productById(id: ID!): Product @lookup
+                }
+
+                type Subscription {
+                  productAdded: Product
+                }
+
+                type Product {
+                  id: ID!
+                  name: String!
+                }
+                """);
+        var compositionLog = new CompositionLog();
+        var sourceSchemaParser1 = new SourceSchemaParser(sourceSchemaTextA, compositionLog);
+        var sourceSchemaParser2 = new SourceSchemaParser(sourceSchemaTextB, compositionLog);
+        var schema1 = sourceSchemaParser1.Parse().Value;
+        var schema2 = sourceSchemaParser2.Parse().Value;
+        var schemas =
+            ImmutableSortedSet.Create(
+                new SchemaByNameComparer<MutableSchemaDefinition>(), schema1, schema2);
+        var schema = schemas[0];
+        var preprocessor =
+            new SourceSchemaPreprocessor(
+                schema,
+                schemas,
+                compositionLog,
+                new Version(1, 0, 0));
+
+        // act
+        preprocessor.Preprocess();
+
+        // assert
+        var subscriptionType = schema.SubscriptionType!;
+        var productAdded = subscriptionType.Fields["productAdded"];
+        Assert.False(productAdded.Directives.ContainsName(WellKnownDirectiveNames.Shareable));
     }
 }

@@ -10,7 +10,7 @@ public sealed class EntityTypeDescriptor : ICodeDescriptor
     /// <param name="name">
     /// The name of the GraphQL type
     /// </param>
-    /// <param name="runtimeType"></param>
+    /// <param name="runtimeType">The runtime type information of the entity.</param>
     /// <param name="properties">
     /// The properties of this entity.
     /// </param>

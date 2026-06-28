@@ -18,8 +18,6 @@ namespace HotChocolate.Fusion;
 
 internal sealed class SatisfiabilityValidator
 {
-    private const int MaxRecursionDepth = 500;
-
     private readonly SatisfiabilityOptions _options;
     private readonly RequirementsValidator _requirementsValidator;
     private readonly MutableSchemaDefinition _schema;
@@ -38,7 +36,8 @@ internal sealed class SatisfiabilityValidator
 
     public CompositionResult Validate()
     {
-        var context = new SatisfiabilityValidatorContext();
+        var visited = new HashSet<(MutableObjectTypeDefinition, string?)>();
+        var worklist = new Queue<WorkItem>();
 
         MutableObjectTypeDefinition?[] rootTypes =
             [_schema.QueryType, _schema.MutationType, _schema.SubscriptionType];
@@ -47,8 +46,21 @@ internal sealed class SatisfiabilityValidator
         {
             if (rootType is not null)
             {
-                VisitObjectType(rootType, context);
+                worklist.Enqueue(new WorkItem(rootType, null));
             }
+        }
+
+        while (worklist.Count > 0)
+        {
+            var work = worklist.Dequeue();
+            var prevSchema = work.Path?.Item.SchemaName;
+
+            if (!visited.Add((work.ObjectType, prevSchema)))
+            {
+                continue;
+            }
+
+            VisitObjectType(work.ObjectType, work.Path, worklist, visited);
         }
 
         return _log.HasErrors
@@ -58,31 +70,10 @@ internal sealed class SatisfiabilityValidator
 
     private void VisitObjectType(
         MutableObjectTypeDefinition objectType,
-        SatisfiabilityValidatorContext context)
+        PathNode? path,
+        Queue<WorkItem> worklist,
+        HashSet<(MutableObjectTypeDefinition, string?)> visited)
     {
-        if (context.Depth >= MaxRecursionDepth)
-        {
-            if (!context.DepthLimitReached)
-            {
-                context.DepthLimitReached = true;
-
-                _log.Write(
-                    LogEntryBuilder.New()
-                        .SetMessage(
-                            SatisfiabilityValidator_MaxRecursionDepthReached,
-                            MaxRecursionDepth,
-                            objectType.Name)
-                        .SetCode(LogEntryCodes.Unsatisfiable)
-                        .SetSeverity(LogSeverity.Warning)
-                        .Build());
-            }
-
-            return;
-        }
-
-        context.Depth++;
-        context.TypeContext.Push(objectType);
-
         foreach (var field in objectType.Fields)
         {
             if (field.HasFusionInaccessibleDirective())
@@ -104,33 +95,33 @@ internal sealed class SatisfiabilityValidator
                     continue;
                 }
 
-                VisitNodeField(objectType, field, nodeType, context);
+                VisitNodeField(objectType, field, nodeType, path, worklist);
 
                 continue;
             }
 
-            VisitOutputField(field, context);
+            VisitOutputField(field, objectType, path, worklist, visited);
         }
-
-        context.TypeContext.Pop();
-        context.Depth--;
     }
 
     private void VisitOutputField(
         MutableOutputFieldDefinition field,
-        SatisfiabilityValidatorContext context)
+        MutableObjectTypeDefinition type,
+        PathNode? path,
+        Queue<WorkItem> worklist,
+        HashSet<(MutableObjectTypeDefinition, string?)> visited)
     {
-        var type = context.TypeContext.Peek();
-        var previousPathItem = context.Path.TryPeek(out var item) ? item : null;
-        var previousSchemaName = previousPathItem?.SchemaName;
-        var cacheKey = new FieldAccessCacheKey(field, type, previousSchemaName);
+        var previousSchemaName = path?.Item.SchemaName;
+        var schemaNames = field.GetSchemaNames(first: previousSchemaName);
+        var eventStreamSchemaNames = field.GetFusionEventStreamSchemaNames();
 
-        if (context.FieldAccessCache.Contains(cacheKey))
+        if (!eventStreamSchemaNames.IsDefaultOrEmpty)
         {
-            return;
+            schemaNames = previousSchemaName is not null && eventStreamSchemaNames.Contains(previousSchemaName)
+                ? eventStreamSchemaNames.Remove(previousSchemaName).Insert(0, previousSchemaName)
+                : eventStreamSchemaNames;
         }
 
-        var schemaNames = field.GetSchemaNames(first: previousSchemaName);
         var cycle = false;
         var errors = new List<SatisfiabilityError>();
         var optionCount = 0;
@@ -138,18 +129,40 @@ internal sealed class SatisfiabilityValidator
 
         foreach (var schemaName in schemaNames)
         {
-            // If the field is marked as partial, it must be provided by the current schema for it
-            // to be an option.
-            if (field.IsPartial(schemaName)
-                && previousPathItem?.Provides(field, type, schemaName, _schema) != true)
+            SelectionSetNode? providedSelectionSet = null;
+
+            if (path?.Item.ProvidedSelectionSet is not null
+                && previousSchemaName == schemaName
+                && !path.Item.TryGetProvidedSelectionSet(
+                    field,
+                    type,
+                    schemaName,
+                    _schema,
+                    out providedSelectionSet))
             {
                 continue;
             }
 
-            var pathItem = new SatisfiabilityPathItem(field, type, schemaName);
+            // If the field is marked as partial, it must be provided by the current schema for it
+            // to be an option.
+            if (field.IsPartial(schemaName)
+                && path?.Item.Provides(field, type, schemaName, _schema) != true)
+            {
+                continue;
+            }
 
-            // Validate that we are not in a cycle.
-            if (!context.CycleDetectionPath.Push(pathItem))
+            var pathItem = new SatisfiabilityPathItem(
+                field,
+                type,
+                schemaName)
+            {
+                ProvidedSelectionSet =
+                    field.GetFusionEventStreamMessage(schemaName) ?? providedSelectionSet
+            };
+
+            // Validate that we are not in a cycle by checking if this path item
+            // already appears in the ancestor chain.
+            if (path.ContainsItem(pathItem))
             {
                 cycle = true;
                 continue;
@@ -158,7 +171,7 @@ internal sealed class SatisfiabilityValidator
             // Validate transition between source schemas.
             if (previousSchemaName is not null && previousSchemaName != schemaName)
             {
-                var transitionErrors = ValidateSourceSchemaTransition(type, context, schemaName);
+                var transitionErrors = ValidateSourceSchemaTransition(type, path, schemaName);
 
                 if (transitionErrors.Any())
                 {
@@ -170,8 +183,6 @@ internal sealed class SatisfiabilityValidator
                                 schemaName,
                                 pathItem),
                             transitionErrors));
-
-                    context.CycleDetectionPath.Pop();
 
                     continue;
                 }
@@ -186,8 +197,9 @@ internal sealed class SatisfiabilityValidator
                     _requirementsValidator.Validate(
                         requirements,
                         type,
-                        previousPathItem,
-                        excludeSchemaName: schemaName);
+                        path?.Item,
+                        excludeSchemaName: schemaName,
+                        allowIntermediatesFromExcludedSchema: true);
 
                 if (requirementErrors.Length != 0)
                 {
@@ -199,29 +211,33 @@ internal sealed class SatisfiabilityValidator
                                 pathItem),
                             requirementErrors));
 
-                    context.CycleDetectionPath.Pop();
-
                     continue;
                 }
             }
 
             optionCount++;
 
-            context.Path.Push(pathItem);
-
-            // Visit each of the possible types that the field may return.
+            // Enqueue child types for later processing.
             if (fieldType is MutableComplexTypeDefinition or MutableUnionTypeDefinition)
             {
+                var fieldPath = new PathNode(pathItem, path);
                 var possibleTypes = fieldType.GetPossibleTypes(schemaName, _schema);
+
+                if (pathItem.ProvidedSelectionSet is { } pathItemProvidedSelectionSet)
+                {
+                    possibleTypes = FilterPossibleTypesByProvidedSelectionSet(
+                        possibleTypes,
+                        pathItemProvidedSelectionSet);
+                }
 
                 foreach (var possibleType in possibleTypes)
                 {
-                    VisitObjectType(possibleType, context);
+                    if (!visited.Contains((possibleType, schemaName)))
+                    {
+                        worklist.Enqueue(new WorkItem(possibleType, fieldPath));
+                    }
                 }
             }
-
-            context.Path.Pop();
-            context.CycleDetectionPath.Pop();
 
             // When we reach a leaf field, we can break early as we only need a single option.
             if (fieldType.IsLeafType())
@@ -229,8 +245,6 @@ internal sealed class SatisfiabilityValidator
                 break;
             }
         }
-
-        context.FieldAccessCache.Add(cacheKey);
 
         // Log an error if there are no options for accessing the field, and there is no cycle
         // (which would imply an option for accessing the same field repeatedly).
@@ -240,7 +254,7 @@ internal sealed class SatisfiabilityValidator
             var qualifiedFieldName = $"{type.Name}.{field.Name}";
 
             if (_options.IgnoredNonAccessibleFields.TryGetValue(qualifiedFieldName, out var ignoredPaths)
-                && ignoredPaths.Contains(context.Path.ToString()))
+                && ignoredPaths.Contains(path.ToPathString()))
             {
                 return;
             }
@@ -251,7 +265,7 @@ internal sealed class SatisfiabilityValidator
                         SatisfiabilityValidator_UnableToAccessFieldOnPath,
                         type.Name,
                         field.Name,
-                        context.Path)
+                        path.ToPathString())
                     : string.Format(
                         SatisfiabilityValidator_UnableToAccessField,
                         type.Name,
@@ -262,7 +276,7 @@ internal sealed class SatisfiabilityValidator
             _log.Write(
                 LogEntryBuilder.New()
                     .SetMessage(error.ToString())
-                    .SetCode(LogEntryCodes.Unsatisfiable)
+                    .SetCode(LogEntryCodes.UnsatisfiableQueryPath)
                     .SetSeverity(LogSeverity.Error)
                     .SetExtension("error", error)
                     .Build());
@@ -273,7 +287,8 @@ internal sealed class SatisfiabilityValidator
         MutableObjectTypeDefinition queryType,
         MutableOutputFieldDefinition nodeField,
         IInterfaceTypeDefinition nodeType,
-        SatisfiabilityValidatorContext context)
+        PathNode? path,
+        Queue<WorkItem> worklist)
     {
         foreach (var possibleType in _schema.GetPossibleTypes(nodeType))
         {
@@ -283,7 +298,7 @@ internal sealed class SatisfiabilityValidator
             var hasNodeLookup = false;
 
             var nodePathItem = new SatisfiabilityPathItem(nodeField, queryType, "*");
-            context.Path.Push(nodePathItem);
+            var nodePath = new PathNode(nodePathItem, path);
 
             foreach (var lookup in byIdLookups)
             {
@@ -307,11 +322,9 @@ internal sealed class SatisfiabilityValidator
                 var lookupField = new MutableOutputFieldDefinition(lookupFieldDefinition.Name.Value, lookupFieldType);
 
                 var lookupPathItem = new SatisfiabilityPathItem(lookupField, queryType, schemaName);
-                context.Path.Push(lookupPathItem);
+                var lookupPath = new PathNode(lookupPathItem, nodePath);
 
-                VisitObjectType(possibleType, context);
-
-                context.Path.Pop();
+                worklist.Enqueue(new WorkItem(possibleType, lookupPath));
             }
 
             if (!hasNodeLookup)
@@ -322,108 +335,80 @@ internal sealed class SatisfiabilityValidator
                 _log.Write(
                     LogEntryBuilder.New()
                         .SetMessage(error.ToString())
-                        .SetCode(LogEntryCodes.Unsatisfiable)
+                        .SetCode(LogEntryCodes.UnsatisfiableQueryPath)
                         .SetSeverity(LogSeverity.Error)
                         .SetExtension("error", error)
                         .Build());
             }
-
-            context.Path.Pop();
         }
     }
 
     private ImmutableArray<SatisfiabilityError> ValidateSourceSchemaTransition(
         MutableObjectTypeDefinition type,
-        SatisfiabilityValidatorContext context,
+        PathNode? path,
         string transitionToSchemaName)
     {
-        var errors = new List<SatisfiabilityError>();
-
-        var lookupDirectives =
-            _schema.GetPossibleFusionLookupDirectives(type, transitionToSchemaName);
-
-        if (!lookupDirectives.Any() && !CanTransitionToSchemaThroughPath(context.Path, transitionToSchemaName))
-        {
-            errors.Add(
-                new SatisfiabilityError(
-                    string.Format(
-                        SatisfiabilityValidator_NoLookupsFoundForType,
-                        type.Name,
-                        transitionToSchemaName)));
-
-            return [.. errors];
-        }
-
-        foreach (var lookupDirective in lookupDirectives)
-        {
-            var lookupKeyArg = (string)lookupDirective.Arguments["key"].Value!;
-            var lookupFieldArg = (string)lookupDirective.Arguments["field"].Value!;
-            var lookupPathArg = (string?)lookupDirective.Arguments["path"].Value;
-
-            var lookupRequirements = ParseSelectionSet($"{{ {lookupKeyArg} }}");
-            var lookupFieldName = ParseFieldDefinition(lookupFieldArg).Name.Value;
-
-            // Ensure that lookup requirements are satisfied.
-            var requirementErrors =
+        return SourceSchemaTransitionHelper.ValidateSourceSchemaTransition(
+            _schema,
+            type,
+            transitionToSchemaName,
+            [.. path.EnumerateFromLeaf()],
+            (contextType, parentPathItem, lookupRequirements) =>
                 _requirementsValidator.Validate(
                     lookupRequirements,
-                    type,
-                    context.Path.Peek(),
-                    excludeSchemaName: transitionToSchemaName);
-
-            if (requirementErrors.IsEmpty)
-            {
-                return [];
-            }
-
-            var lookupName = lookupPathArg is null
-                ? lookupFieldName
-                : $"{lookupPathArg}.{lookupFieldName}";
-
-            errors.Add(
-                new SatisfiabilityError(
-                    string.Format(
-                        SatisfiabilityValidator_UnableToSatisfyRequirementForLookup,
-                        lookupRequirements.ToString(indented: false),
-                        lookupName,
-                        transitionToSchemaName),
-                    requirementErrors));
-        }
-
-        return [.. errors];
+                    contextType,
+                    parentPathItem,
+                    excludeSchemaName: transitionToSchemaName),
+            SatisfiabilityValidator_NoLookupsFoundForType,
+            SatisfiabilityValidator_UnableToSatisfyRequirementForLookup);
     }
 
-    /// <summary>
-    /// We check whether the path we're currently on exists one-to-one
-    /// on the given schema or whether a type on the path has a lookup
-    /// on the given schema.
-    /// </summary>
-    private bool CanTransitionToSchemaThroughPath(
-        SatisfiabilityPath path,
-        string schemaName)
+    private IEnumerable<MutableObjectTypeDefinition> FilterPossibleTypesByProvidedSelectionSet(
+        IEnumerable<MutableObjectTypeDefinition> possibleTypes,
+        SelectionSetNode selectionSet)
     {
-        foreach (var pathItem in path)
+        HashSet<string>? providedTypeNames = null;
+
+        CollectRootTypeConditions(selectionSet, ref providedTypeNames);
+
+        if (providedTypeNames is null)
         {
-            var lookupDirectives =
-                _schema.GetPossibleFusionLookupDirectives(
-                    pathItem.Type,
-                    schemaName);
-
-            var hasLookups = lookupDirectives.Count > 0;
-            var fieldExists = pathItem.Field.ExistsInSchema(schemaName);
-
-            if (hasLookups && fieldExists)
-            {
-                return true;
-            }
-
-            if (!fieldExists)
-            {
-                return false;
-            }
+            return possibleTypes;
         }
 
-        return true;
+        return possibleTypes.Where(t => providedTypeNames.Contains(t.Name));
+    }
+
+    private void CollectRootTypeConditions(
+        SelectionSetNode selectionSet,
+        ref HashSet<string>? providedTypeNames)
+    {
+        foreach (var selection in selectionSet.Selections)
+        {
+            if (selection is not InlineFragmentNode inlineFragment)
+            {
+                continue;
+            }
+
+            if (inlineFragment.TypeCondition is { } typeCondition)
+            {
+                if (!_schema.Types.TryGetType(typeCondition.Name.Value, out var type))
+                {
+                    continue;
+                }
+
+                providedTypeNames ??= [];
+
+                foreach (var possibleType in _schema.GetPossibleTypes(type))
+                {
+                    providedTypeNames.Add(possibleType.Name);
+                }
+            }
+            else
+            {
+                CollectRootTypeConditions(inlineFragment.SelectionSet, ref providedTypeNames);
+            }
+        }
     }
 
     private static IType CreateType(ITypeNode typeNode, ITypeDefinition namedType)
@@ -440,19 +425,4 @@ internal sealed class SatisfiabilityValidator
 
         return namedType;
     }
-}
-
-internal sealed class SatisfiabilityValidatorContext
-{
-    public Stack<MutableObjectTypeDefinition> TypeContext { get; } = [];
-
-    public SatisfiabilityPath Path { get; } = [];
-
-    public SatisfiabilityPath CycleDetectionPath { get; } = [];
-
-    public HashSet<FieldAccessCacheKey> FieldAccessCache { get; } = [];
-
-    public int Depth { get; set; }
-
-    public bool DepthLimitReached { get; set; }
 }

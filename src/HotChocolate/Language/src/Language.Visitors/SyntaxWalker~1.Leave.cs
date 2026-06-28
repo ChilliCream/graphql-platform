@@ -91,6 +91,8 @@ public partial class SyntaxWalker<TContext>
                 return Leave((InputObjectTypeExtensionNode)node, context);
             case SyntaxKind.SchemaCoordinate:
                 return Leave((SchemaCoordinateNode)node, context);
+            case SyntaxKind.DirectiveExtension:
+                return Leave((DirectiveExtensionNode)node, context);
             default:
                 throw new NotSupportedException(node.GetType().FullName);
         }
@@ -289,4 +291,9 @@ public partial class SyntaxWalker<TContext>
        SchemaCoordinateNode node,
        TContext context) =>
        DefaultAction;
+
+    protected virtual ISyntaxVisitorAction Leave(
+        DirectiveExtensionNode node,
+        TContext context) =>
+        DefaultAction;
 }

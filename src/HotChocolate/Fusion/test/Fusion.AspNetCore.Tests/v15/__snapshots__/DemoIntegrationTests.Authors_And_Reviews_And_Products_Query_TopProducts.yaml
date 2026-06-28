@@ -96,16 +96,12 @@ sourceSchemas:
         query: Query
       }
 
-      interface Node {
-        id: ID!
-      }
-
       type Query {
         node(id: ID!): Node @lookup @shareable
         nodes(ids: [ID!]!): [Node]! @shareable
         userById(id: ID!): User!
         users: [User!]!
-        testWithTwoArgumentsDifferingNullability(first: Int! second: Int): String!
+        testWithTwoArgumentsDifferingNullability(first: Int!, second: Int): String!
       }
 
       type User implements Node {
@@ -114,12 +110,15 @@ sourceSchemas:
         username: String!
         birthdate: String!
       }
+
+      interface Node {
+        id: ID!
+      }
     interactions:
       - request:
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
           document: |
-            query TopProducts_c6ef3d11_3(
-              $__fusion_2_id: ID!
-            ) {
+            query TopProducts_c6ef3d11_3($__fusion_2_id: ID!) {
               node(id: $__fusion_2_id) {
                 __typename
                 ... on User {
@@ -247,20 +246,16 @@ sourceSchemas:
         query: Query
       }
 
-      interface Node {
-        id: ID!
+      type Query {
+        node(id: ID!): Node @lookup @shareable
+        nodes(ids: [ID!]!): [Node]! @shareable
+        reviews: [Review!]!
       }
 
       type Product implements Node {
         id: ID!
         reviews: [Review!]!
         reviewCount: Int!
-      }
-
-      type Query {
-        node(id: ID!): Node @lookup @shareable
-        nodes(ids: [ID!]!): [Node]! @shareable
-        reviews: [Review!]!
       }
 
       type Review implements Node {
@@ -275,12 +270,15 @@ sourceSchemas:
         reviews: [Review!]!
         errorField: String @error
       }
+
+      interface Node {
+        id: ID!
+      }
     interactions:
       - request:
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
           document: |
-            query TopProducts_c6ef3d11_2(
-              $__fusion_1_id: ID!
-            ) {
+            query TopProducts_c6ef3d11_2($__fusion_1_id: ID!) {
               node(id: $__fusion_1_id) {
                 __typename
                 ... on Product {
@@ -398,8 +396,11 @@ sourceSchemas:
         query: Query
       }
 
-      interface Node {
-        id: ID!
+      type Query {
+        node(id: ID!): Node @lookup @shareable
+        nodes(ids: [ID!]!): [Node]! @shareable
+        productById(id: ID!): Product @lookup @shareable
+        topProducts(first: Int!): [Product!]!
       }
 
       type Product implements Node {
@@ -411,19 +412,16 @@ sourceSchemas:
         repeatData(data: RepeatDataInput!): RepeatDataPayload!
       }
 
-      type Query {
-        node(id: ID!): Node @lookup @shareable
-        nodes(ids: [ID!]!): [Node]! @shareable
-        productById(id: ID!): Product @lookup @shareable
-        topProducts(first: Int!): [Product!]!
-      }
-
       type RepeatDataData {
         num: Int!
       }
 
       type RepeatDataPayload {
         data: RepeatDataData!
+      }
+
+      interface Node {
+        id: ID!
       }
 
       input RepeatDataDataInput {
@@ -435,6 +433,7 @@ sourceSchemas:
       }
     interactions:
       - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
             query TopProducts_c6ef3d11_1 {
               topProducts(first: 2) {
@@ -498,9 +497,7 @@ operationPlan:
       type: Operation
       schema: B
       operation: |
-        query TopProducts_c6ef3d11_2(
-          $__fusion_1_id: ID!
-        ) {
+        query TopProducts_c6ef3d11_2($__fusion_1_id: ID!) {
           node(id: $__fusion_1_id) {
             __typename
             ... on Product {
@@ -525,9 +522,7 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query TopProducts_c6ef3d11_3(
-          $__fusion_2_id: ID!
-        ) {
+        query TopProducts_c6ef3d11_3($__fusion_2_id: ID!) {
           node(id: $__fusion_2_id) {
             __typename
             ... on User {

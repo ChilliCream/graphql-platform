@@ -165,9 +165,9 @@ public class SyntaxWriterTests
         var result = writer.ToString();
 
         // assert
-        // The result should have proper indentation with each field on its own line
-        Assert.Contains($"query GetUser({Environment.NewLine}", result);
-        Assert.Contains($"{Environment.NewLine}  $id: ID!{Environment.NewLine}", result);
+        // The result should have proper indentation with each field on its own line.
+        // Variable definitions that fit within print width stay on one line.
+        Assert.Contains("query GetUser($id: ID!) {", result);
         Assert.Contains($"  user(id: $id) {{{Environment.NewLine}", result);
         Assert.Contains($"    name{Environment.NewLine}", result);
         Assert.Contains($"    email{Environment.NewLine}", result);

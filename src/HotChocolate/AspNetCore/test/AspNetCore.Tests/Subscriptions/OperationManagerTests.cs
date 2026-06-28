@@ -20,7 +20,7 @@ public class OperationManagerTests
                 .AddStarWars()
                 .AddInMemorySubscriptions()
                 .AddSocketSessionInterceptor<TestSocketSessionInterceptor>()
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var socketSession = new TestSocketSession();
 
@@ -53,7 +53,7 @@ public class OperationManagerTests
                 .AddStarWars()
                 .AddInMemorySubscriptions()
                 .AddSocketSessionInterceptor<TestSocketSessionInterceptor>()
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var socketSession = new TestSocketSession();
 
@@ -88,7 +88,7 @@ public class OperationManagerTests
                 .AddStarWars()
                 .AddInMemorySubscriptions()
                 .AddSocketSessionInterceptor<TestSocketSessionInterceptor>()
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var socketSession = new TestSocketSession();
 
@@ -127,7 +127,7 @@ public class OperationManagerTests
                 .AddStarWars()
                 .AddInMemorySubscriptions()
                 .AddSocketSessionInterceptor<TestSocketSessionInterceptor>()
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var socketSession = new TestSocketSession();
 
@@ -174,7 +174,7 @@ public class OperationManagerTests
                 .AddStarWars()
                 .AddInMemorySubscriptions()
                 .AddSocketSessionInterceptor<TestSocketSessionInterceptor>()
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var session = new Mock<ISocketSession>();
         var subscriptions = new OperationManager(session.Object, new ExecutorSession(executor));
@@ -198,7 +198,7 @@ public class OperationManagerTests
                 .AddStarWars()
                 .AddInMemorySubscriptions()
                 .AddSocketSessionInterceptor<TestSocketSessionInterceptor>()
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var session = new Mock<ISocketSession>();
         var subscriptions = new OperationManager(session.Object, new ExecutorSession(executor));
@@ -222,7 +222,7 @@ public class OperationManagerTests
                 .AddStarWars()
                 .AddInMemorySubscriptions()
                 .AddSocketSessionInterceptor<TestSocketSessionInterceptor>()
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var socketSession = new TestSocketSession();
 
@@ -252,7 +252,7 @@ public class OperationManagerTests
                 .AddStarWars()
                 .AddInMemorySubscriptions()
                 .AddSocketSessionInterceptor<TestSocketSessionInterceptor>()
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var socketSession = new TestSocketSession();
 

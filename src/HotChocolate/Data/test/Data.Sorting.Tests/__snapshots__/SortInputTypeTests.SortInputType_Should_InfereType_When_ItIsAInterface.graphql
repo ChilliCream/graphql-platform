@@ -2,16 +2,16 @@ schema {
   query: Query
 }
 
+type Query {
+  root(where: ITestOfFooFilterInput): ITestOfFoo!
+}
+
 type Foo {
   bar: String!
 }
 
 type ITestOfFoo {
   prop: Foo!
-}
-
-type Query {
-  root(where: ITestOfFooFilterInput): ITestOfFoo!
 }
 
 input FooFilterInput {

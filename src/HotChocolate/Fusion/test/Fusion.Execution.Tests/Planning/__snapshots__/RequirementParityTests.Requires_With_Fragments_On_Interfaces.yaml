@@ -59,7 +59,12 @@ nodes:
           $__fusion_2_guestToken: String
       ) {
         userById(id: $__fusion_1_id) {
-          permissions(displayName: $__fusion_2_displayName, accountType: $__fusion_2_accountType, adminLevel: $__fusion_2_adminLevel, guestToken: $__fusion_2_guestToken)
+          permissions(
+            displayName: $__fusion_2_displayName
+            accountType: $__fusion_2_accountType
+            adminLevel: $__fusion_2_adminLevel
+            guestToken: $__fusion_2_guestToken
+          )
         }
       }
     source: $.userById

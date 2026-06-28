@@ -113,25 +113,37 @@ public sealed class InputParser
         bool defaults,
         IInputValueInfo? field)
     {
+        var elementType = type.ElementType;
+        var flatList = !elementType.IsListType();
+
+        // Input object elements can be materialized as dictionaries when the input
+        // object has no concrete runtime binding. Such a dictionary has to be
+        // converted to the list's runtime element type before it is added,
+        // otherwise the strongly typed runtime list would reject it.
+        var coerceElements = flatList && elementType.NamedType().Kind is TypeKind.InputObject;
+        var elementRuntimeType = coerceElements ? elementType.ToRuntimeType() : null;
+
         if (resultValue.Kind == SyntaxKind.ListValue)
         {
             var list = CreateList(type);
             var items = ((ListValueNode)resultValue).Items;
-            var flatList = !type.ElementType.IsListType();
-            var elementType = type.ElementType;
 
             if (flatList)
             {
                 for (var i = 0; i < items.Count; i++)
                 {
+                    var itemPath = path.Append(i);
+                    var element = ParseLiteralInternal(
+                        items[i],
+                        elementType,
+                        itemPath,
+                        stack,
+                        defaults,
+                        field);
                     list.Add(
-                        ParseLiteralInternal(
-                            items[i],
-                            elementType,
-                            path.Append(i),
-                            stack,
-                            defaults,
-                            field));
+                        coerceElements
+                            ? ConvertListElement(type, field, itemPath, elementRuntimeType!, element)
+                            : element);
                 }
             }
             else
@@ -163,16 +175,45 @@ public sealed class InputParser
         else
         {
             var list = CreateList(type);
+            var itemPath = path.Append(0);
+            var element = ParseLiteralInternal(
+                resultValue,
+                elementType,
+                itemPath,
+                stack,
+                defaults,
+                field);
             list.Add(
-                ParseLiteralInternal(
-                    resultValue,
-                    type.ElementType,
-                    path.Append(0),
-                    stack,
-                    defaults,
-                    field));
+                coerceElements
+                    ? ConvertListElement(type, field, itemPath, elementRuntimeType!, element)
+                    : element);
             return list;
         }
+    }
+
+    private object? ConvertListElement(
+        ListType type,
+        IInputValueInfo? field,
+        Path path,
+        Type elementRuntimeType,
+        object? element)
+    {
+        var value = ConvertValue(elementRuntimeType, element, out var conversionException);
+
+        if (conversionException is not null)
+        {
+            if (field is not null)
+            {
+                throw InvalidTypeConversion(type.ElementType, field, path, null, conversionException);
+            }
+
+            // Without a field context (the IType / JsonElement overloads) there is no
+            // coercion error to build, so surface the underlying conversion error
+            // instead of letting the runtime list throw a misleading type-mismatch.
+            throw conversionException;
+        }
+
+        return value;
     }
 
     private object ParseObject(
@@ -476,6 +517,14 @@ public sealed class InputParser
         IFeatureProvider context)
     {
         var list = CreateList(type);
+        var elementType = type.ElementType;
+
+        // Input object elements can be materialized as dictionaries when the input
+        // object has no concrete runtime binding. Such a dictionary has to be
+        // converted to the list's runtime element type before it is added,
+        // otherwise the strongly typed runtime list would reject it.
+        var coerceElements = !elementType.IsListType() && elementType.NamedType().Kind is TypeKind.InputObject;
+        var elementRuntimeType = coerceElements ? elementType.ToRuntimeType() : null;
 
         if (inputValue.ValueKind is JsonValueKind.Array)
         {
@@ -483,13 +532,21 @@ public sealed class InputParser
             foreach (var element in inputValue.EnumerateArray())
             {
                 var newPath = path.Append(i++);
-                list.Add(Deserialize(element, type.ElementType, newPath, field, context));
+                var value = Deserialize(element, elementType, newPath, field, context);
+                list.Add(
+                    coerceElements
+                        ? ConvertListElement(type, field, newPath, elementRuntimeType!, value)
+                        : value);
             }
         }
         else
         {
             var newPath = path.Append(0);
-            list.Add(Deserialize(inputValue, type.ElementType, newPath, field, context));
+            var value = Deserialize(inputValue, elementType, newPath, field, context);
+            list.Add(
+                coerceElements
+                    ? ConvertListElement(type, field, newPath, elementRuntimeType!, value)
+                    : value);
         }
 
         return list;
@@ -652,7 +709,9 @@ public sealed class InputParser
             // we will create a default instance and assign that instead.
             if (field.RuntimeType.IsValueType)
             {
+#pragma warning disable IL2072
                 value = Activator.CreateInstance(field.RuntimeType);
+#pragma warning restore IL2072
             }
 
             return field.IsOptional
@@ -749,7 +808,11 @@ public sealed class InputParser
     }
 
     private static IList CreateList(ListType type)
-        => (IList)Activator.CreateInstance(type.ToRuntimeType())!;
+    {
+#pragma warning disable IL2072
+        return (IList)Activator.CreateInstance(type.ToRuntimeType())!;
+#pragma warning restore IL2072
+    }
 
     private readonly struct Optional : IOptional
     {

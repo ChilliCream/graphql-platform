@@ -1,5 +1,9 @@
-﻿schema {
+schema {
   query: Query
+}
+
+type Query {
+  items(skip: Int, take: Int): ItemsCollectionSegment
 }
 
 "Information about the offset pagination."
@@ -16,8 +20,4 @@ type ItemsCollectionSegment {
   pageInfo: CollectionSegmentInfo!
   "A flattened list of the items."
   items: [String!]
-}
-
-type Query {
-  items(skip: Int take: Int): ItemsCollectionSegment
 }

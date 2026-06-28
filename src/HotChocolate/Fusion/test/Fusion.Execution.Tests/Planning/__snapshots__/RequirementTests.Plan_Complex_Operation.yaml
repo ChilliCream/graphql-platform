@@ -1,8 +1,6 @@
 operation:
   - document: |
-      query getReviews(
-        $userId: ID!
-      ) {
+      query getReviews($userId: ID!) {
         userById(id: $userId) {
           name
         }
@@ -49,9 +47,7 @@ nodes:
   - id: 2
     type: Operation
     operation: |
-      query getReviews_123456789101112_2(
-        $userId: ID!
-      ) {
+      query getReviews_123456789101112_2($userId: ID!) {
         node(id: $userId) {
           __typename
           id
@@ -65,9 +61,7 @@ nodes:
     type: Operation
     schema: a
     operation: |
-      query getReviews_123456789101112_3(
-        $userId: ID!
-      ) {
+      query getReviews_123456789101112_3($userId: ID!) {
         node(id: $userId) {
           __typename
           ... on User {
@@ -85,9 +79,7 @@ nodes:
     type: Operation
     schema: a
     operation: |
-      query getReviews_123456789101112_4(
-        $userId: ID!
-      ) {
+      query getReviews_123456789101112_4($userId: ID!) {
         userById(id: $userId) {
           name
         }
@@ -103,9 +95,7 @@ nodes:
     type: Operation
     schema: f
     operation: |
-      query getReviews_123456789101112_5(
-        $__fusion_1_id: ID!
-      ) {
+      query getReviews_123456789101112_5($__fusion_1_id: ID!) {
         userById(id: $__fusion_1_id) {
           reviews {
             nodes {
@@ -157,9 +147,7 @@ nodes:
     type: Operation
     schema: e
     operation: |
-      query getReviews_123456789101112_8(
-        $__fusion_5_id: ID!
-      ) {
+      query getReviews_123456789101112_8($__fusion_5_id: ID!) {
         productById(id: $__fusion_5_id) {
           weight
           dimension {

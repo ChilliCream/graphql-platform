@@ -24,8 +24,8 @@ sourceSchemas:
         query: Query
       }
 
-      interface Votable @key(fields: "id") {
-        id: ID!
+      type Query {
+        votable: Votable
       }
 
       type Comment implements Votable @key(fields: "id") {
@@ -36,11 +36,12 @@ sourceSchemas:
         id: ID!
       }
 
-      type Query {
-        votable: Votable
+      interface Votable @key(fields: "id") {
+        id: ID!
       }
     interactions:
       - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
             query Op_1bcbe788_1 {
               votable {
@@ -65,9 +66,9 @@ sourceSchemas:
         query: Query
       }
 
-      interface Votable {
-        id: ID!
-        viewerCanVote: Boolean!
+      type Query {
+        discussionById(id: ID!): Discussion @lookup @shareable
+        commentById(id: ID!): Comment @lookup @shareable
       }
 
       type Comment implements Votable {
@@ -80,9 +81,9 @@ sourceSchemas:
         viewerCanVote: Boolean!
       }
 
-      type Query {
-        discussionById(id: ID!): Discussion @lookup @shareable
-        commentById(id: ID!): Comment @lookup @shareable
+      interface Votable {
+        id: ID!
+        viewerCanVote: Boolean!
       }
   - name: C
     schema: |
@@ -90,9 +91,9 @@ sourceSchemas:
         query: Query
       }
 
-      interface Votable {
-        id: ID!
-        totalVotes: Int!
+      type Query {
+        discussionById(id: ID!): Discussion @lookup @shareable
+        commentById(id: ID!): Comment @lookup @shareable
       }
 
       type Comment implements Votable {
@@ -105,18 +106,16 @@ sourceSchemas:
         totalVotes: Int!
       }
 
-      type Query {
-        discussionById(id: ID!): Discussion @lookup @shareable
-        commentById(id: ID!): Comment @lookup @shareable
+      interface Votable {
+        id: ID!
+        totalVotes: Int!
       }
     interactions:
       - request:
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
           document: |
-            query Op_1bcbe788_2(
-              $__fusion_1_id: ID!
-            ) {
+            query Op_1bcbe788_2($__fusion_1_id: ID!) {
               discussionById(id: $__fusion_1_id) {
-                __typename
                 totalVotes
               }
             }
@@ -130,7 +129,6 @@ sourceSchemas:
               {
                 "data": {
                   "discussionById": {
-                    "__typename": "Discussion",
                     "totalVotes": 123
                   }
                 }
@@ -164,11 +162,8 @@ operationPlan:
       type: Operation
       schema: C
       operation: |
-        query Op_1bcbe788_2(
-          $__fusion_1_id: ID!
-        ) {
+        query Op_1bcbe788_2($__fusion_1_id: ID!) {
           discussionById(id: $__fusion_1_id) {
-            __typename
             totalVotes
           }
         }
@@ -185,11 +180,8 @@ operationPlan:
       type: Operation
       schema: C
       operation: |
-        query Op_1bcbe788_3(
-          $__fusion_2_id: ID!
-        ) {
+        query Op_1bcbe788_3($__fusion_2_id: ID!) {
           commentById(id: $__fusion_2_id) {
-            __typename
             totalVotes
           }
         }

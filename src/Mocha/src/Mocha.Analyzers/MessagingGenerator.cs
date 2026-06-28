@@ -230,10 +230,10 @@ public sealed class MessagingGenerator : IIncrementalGenerator
             ValidateAotJsonContext(context, syntaxInfos, callSiteInfos, moduleInfo, isAotPublish, jsonContextInfo);
 
             // Validate call-site types against JsonSerializerContext (MO0018)
-            ValidateCallSiteJsonContext(context, callSiteInfos, moduleInfo, isAotPublish, jsonContextInfo);
+            ValidateCallSiteJsonContext(context, callSiteInfos, isAotPublish, jsonContextInfo);
 
             // Extract context-only message types from JsonSerializerContext (types without handlers).
-            var augmentedInfos = ExtractContextOnlyTypes(syntaxInfos, moduleInfo, jsonContextInfo);
+            var augmentedInfos = ExtractContextOnlyTypes(syntaxInfos, jsonContextInfo);
             augmentedInfos = augmentedInfos.Add(new AotPublishInfo(isAotPublish));
 
             // Pass the full set of JsonContext-serializable type names so the DI generator
@@ -541,7 +541,6 @@ public sealed class MessagingGenerator : IIncrementalGenerator
     private static void ValidateCallSiteJsonContext(
         SourceProductionContext context,
         ImmutableArray<SyntaxInfo> callSiteInfos,
-        MessagingModuleInfo moduleInfo,
         bool isAotPublish,
         JsonContextInfo jsonContextInfo)
     {
@@ -618,7 +617,6 @@ public sealed class MessagingGenerator : IIncrementalGenerator
 
     private static ImmutableArray<SyntaxInfo> ExtractContextOnlyTypes(
         ImmutableArray<SyntaxInfo> syntaxInfos,
-        MessagingModuleInfo moduleInfo,
         JsonContextInfo jsonContextInfo)
     {
         if (jsonContextInfo.JsonContextTypeName is null || jsonContextInfo.SerializableTypes.Count == 0)

@@ -7,5 +7,5 @@ public static class TypeExtensions
 {
     public static bool IsTypeExtension(this IType type)
         => type is IFeatureProvider featureProvider
-            && featureProvider.Features.Get<TypeMetadata>() is { IsExtension: true };
+            && featureProvider.Features.Get<TypeExtensionMarker>() is not null;
 }

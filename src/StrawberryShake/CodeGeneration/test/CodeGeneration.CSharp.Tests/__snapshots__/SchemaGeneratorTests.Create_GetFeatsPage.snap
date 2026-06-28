@@ -343,10 +343,7 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the GetFeatsPage GraphQL operation
     /// <code>
-    /// query GetFeatsPage(
-    ///   $skip: Int
-    ///     $take: Int
-    /// ) {
+    /// query GetFeatsPage($skip: Int, $take: Int) {
     ///   feats(skip: $skip, take: $take) {
     ///     __typename
     ///     items {
@@ -395,10 +392,7 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the GetFeatsPage GraphQL operation
     /// <code>
-    /// query GetFeatsPage(
-    ///   $skip: Int
-    ///     $take: Int
-    /// ) {
+    /// query GetFeatsPage($skip: Int, $take: Int) {
     ///   feats(skip: $skip, take: $take) {
     ///     __typename
     ///     items {
@@ -521,10 +515,7 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the GetFeatsPage GraphQL operation
     /// <code>
-    /// query GetFeatsPage(
-    ///   $skip: Int
-    ///     $take: Int
-    /// ) {
+    /// query GetFeatsPage($skip: Int, $take: Int) {
     ///   feats(skip: $skip, take: $take) {
     ///     __typename
     ///     items {

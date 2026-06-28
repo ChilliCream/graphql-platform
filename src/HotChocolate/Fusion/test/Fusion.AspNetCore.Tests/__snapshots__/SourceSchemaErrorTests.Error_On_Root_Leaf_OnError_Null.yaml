@@ -32,16 +32,17 @@ sourceSchemas:
         query: Query
       }
 
-      type Product {
-        name: String
-        id: Int!
-      }
-
       type Query {
         productById(id: Int!): Product @lookup
       }
+
+      type Product @key(fields: "id") {
+        name: String
+        id: Int!
+      }
     interactions:
       - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
             query Op_97fd38fc_1 {
               productById(id: 1) {

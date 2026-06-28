@@ -1,6 +1,7 @@
 using System.Collections.Immutable;
 using HotChocolate.Types.Analyzers.Helpers;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace HotChocolate.Types.Analyzers.Models;
@@ -23,6 +24,7 @@ public sealed class RootTypeInfo
         RegistrationKey = schemaType.ToAssemblyQualified();
         Namespace = schemaType.ContainingNamespace.ToDisplayString();
         IsPublic = schemaType.DeclaredAccessibility == Accessibility.Public;
+        IsStatic = classDeclarationSyntax.Modifiers.Any(m => m.IsKind(SyntaxKind.StaticKeyword));
         ClassDeclaration = classDeclarationSyntax;
         Resolvers = resolvers;
         Description = compilation.GetDescription(schemaType);
@@ -44,6 +46,8 @@ public sealed class RootTypeInfo
     public string? Description { get; }
 
     public bool IsPublic { get; }
+
+    public bool IsStatic { get; }
 
     public OperationType OperationType { get; }
 

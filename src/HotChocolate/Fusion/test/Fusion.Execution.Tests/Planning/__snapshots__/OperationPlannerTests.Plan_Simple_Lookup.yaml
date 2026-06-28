@@ -27,9 +27,7 @@ nodes:
     type: Operation
     schema: b
     operation: |
-      query GetTopProducts_123456789101112_2(
-        $__fusion_1_id: ID!
-      ) {
+      query GetTopProducts_123456789101112_2($__fusion_1_id: ID!) {
         productById(id: $__fusion_1_id) {
           price
         }

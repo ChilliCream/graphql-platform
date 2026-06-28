@@ -1,10 +1,7 @@
 title: Forward_Nested_Variables
 request:
   document: |
-    query ProductReviews(
-      $id: ID!
-        $first: Int!
-    ) {
+    query ProductReviews($id: ID!, $first: Int!) {
       productById(id: $id) {
         id
         repeat(num: $first)
@@ -32,16 +29,12 @@ sourceSchemas:
         query: Query
       }
 
-      interface Node {
-        id: ID!
-      }
-
       type Query {
         node(id: ID!): Node @lookup @shareable
         nodes(ids: [ID!]!): [Node]! @shareable
         userById(id: ID!): User!
         users: [User!]!
-        testWithTwoArgumentsDifferingNullability(first: Int! second: Int): String!
+        testWithTwoArgumentsDifferingNullability(first: Int!, second: Int): String!
       }
 
       type User implements Node {
@@ -50,26 +43,26 @@ sourceSchemas:
         username: String!
         birthdate: String!
       }
+
+      interface Node {
+        id: ID!
+      }
   - name: B
     schema: |
       schema {
         query: Query
       }
 
-      interface Node {
-        id: ID!
+      type Query {
+        node(id: ID!): Node @lookup @shareable
+        nodes(ids: [ID!]!): [Node]! @shareable
+        reviews: [Review!]!
       }
 
       type Product implements Node {
         id: ID!
         reviews: [Review!]!
         reviewCount: Int!
-      }
-
-      type Query {
-        node(id: ID!): Node @lookup @shareable
-        nodes(ids: [ID!]!): [Node]! @shareable
-        reviews: [Review!]!
       }
 
       type Review implements Node {
@@ -84,14 +77,21 @@ sourceSchemas:
         reviews: [Review!]!
         errorField: String @error
       }
+
+      interface Node {
+        id: ID!
+      }
   - name: C
     schema: |
       schema {
         query: Query
       }
 
-      interface Node {
-        id: ID!
+      type Query {
+        node(id: ID!): Node @lookup @shareable
+        nodes(ids: [ID!]!): [Node]! @shareable
+        productById(id: ID!): Product @lookup @shareable
+        topProducts(first: Int!): [Product!]!
       }
 
       type Product implements Node {
@@ -103,19 +103,16 @@ sourceSchemas:
         repeatData(data: RepeatDataInput!): RepeatDataPayload!
       }
 
-      type Query {
-        node(id: ID!): Node @lookup @shareable
-        nodes(ids: [ID!]!): [Node]! @shareable
-        productById(id: ID!): Product @lookup @shareable
-        topProducts(first: Int!): [Product!]!
-      }
-
       type RepeatDataData {
         num: Int!
       }
 
       type RepeatDataPayload {
         data: RepeatDataData!
+      }
+
+      interface Node {
+        id: ID!
       }
 
       input RepeatDataDataInput {
@@ -127,11 +124,9 @@ sourceSchemas:
       }
     interactions:
       - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
-            query ProductReviews_f7aec035_1(
-              $id: ID!
-                $first: Int!
-            ) {
+            query ProductReviews_f7aec035_1($id: ID!, $first: Int!) {
               productById(id: $id) {
                 id
                 repeat(num: $first)
@@ -156,10 +151,7 @@ sourceSchemas:
 operationPlan:
   operation:
     - document: |
-        query ProductReviews(
-          $id: ID!
-            $first: Int!
-        ) {
+        query ProductReviews($id: ID!, $first: Int!) {
           productById(id: $id) {
             id
             repeat(num: $first)
@@ -174,10 +166,7 @@ operationPlan:
       type: Operation
       schema: C
       operation: |
-        query ProductReviews_f7aec035_1(
-          $id: ID!
-            $first: Int!
-        ) {
+        query ProductReviews_f7aec035_1($id: ID!, $first: Int!) {
           productById(id: $id) {
             id
             repeat(num: $first)

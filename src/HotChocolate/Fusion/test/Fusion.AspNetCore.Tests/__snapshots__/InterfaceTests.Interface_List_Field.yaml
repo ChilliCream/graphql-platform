@@ -30,8 +30,8 @@ sourceSchemas:
         query: Query
       }
 
-      interface Votable {
-        viewerCanVote: Boolean!
+      type Query {
+        votables: [Votable]
       }
 
       type Comment implements Votable {
@@ -45,11 +45,12 @@ sourceSchemas:
         viewerRating: Float!
       }
 
-      type Query {
-        votables: [Votable]
+      interface Votable {
+        viewerCanVote: Boolean!
       }
     interactions:
       - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
             query testQuery_1284c0cb_1 {
               votables {

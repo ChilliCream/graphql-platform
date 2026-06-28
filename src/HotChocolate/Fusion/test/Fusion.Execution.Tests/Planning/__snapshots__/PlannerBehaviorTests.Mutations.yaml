@@ -29,10 +29,7 @@ nodes:
     type: Operation
     schema: b
     operation: |
-      query Op_123456789101112_2(
-        $__fusion_1_id: ID!
-          $__fusion_2_price: Float!
-      ) {
+      query Op_123456789101112_2($__fusion_1_id: ID!, $__fusion_2_price: Float!) {
         productById(id: $__fusion_1_id) {
           isAvailable
           isExpensive(price: $__fusion_2_price)

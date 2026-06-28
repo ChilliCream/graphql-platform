@@ -37,6 +37,10 @@ sourceSchemas:
         query: Query
       }
 
+      type Query {
+        product: Product
+      }
+
       type Brand @key(fields: "id") {
         id: ID!
       }
@@ -45,12 +49,9 @@ sourceSchemas:
         id: ID!
         brand: Brand
       }
-
-      type Query {
-        product: Product
-      }
     interactions:
       - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
             query Op_e358ecef_1 {
               product {
@@ -79,20 +80,19 @@ sourceSchemas:
         query: Query
       }
 
+      type Query {
+        brandById(id: ID!): Brand @lookup
+      }
+
       type Brand {
         id: ID!
         name: String! @error
       }
-
-      type Query {
-        brandById(id: ID!): Brand @lookup
-      }
     interactions:
       - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
-            query Op_e358ecef_2(
-              $__fusion_1_id: ID!
-            ) {
+            query Op_e358ecef_2($__fusion_1_id: ID!) {
               brandById(id: $__fusion_1_id) {
                 name
               }
@@ -151,9 +151,7 @@ operationPlan:
       type: Operation
       schema: B
       operation: |
-        query Op_e358ecef_2(
-          $__fusion_1_id: ID!
-        ) {
+        query Op_e358ecef_2($__fusion_1_id: ID!) {
           brandById(id: $__fusion_1_id) {
             name
           }

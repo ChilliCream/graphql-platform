@@ -1,4 +1,4 @@
-namespace ChilliCream.Nitro.CommandLine.Options;
+namespace ChilliCream.Nitro.CommandLine;
 
 internal sealed class OptionalApiKeyStageConditionOption : Option<string>
 {
@@ -6,7 +6,7 @@ internal sealed class OptionalApiKeyStageConditionOption : Option<string>
         : base("--stage-condition")
     {
         Description =
-            "**PREVIEW** Limit the API key to a specific stage name. If not provided, the API key will be valid for all stages.";
-        IsRequired = false;
+            "[Preview] Limit the API key to a specific stage name (if not set, the key is valid for all stages)";
+        Required = false;
     }
 }

@@ -4,6 +4,9 @@
 "🌶️ hot chocolate":
   - changed-files:
     - any-glob-to-any-file: "src/HotChocolate/**"
+"🌶️ mocha":
+  - changed-files:
+    - any-glob-to-any-file: "src/Mocha/**"
 "🌶️ strawberry shake":
   - changed-files:
     - any-glob-to-any-file: "src/StrawberryShake/**"

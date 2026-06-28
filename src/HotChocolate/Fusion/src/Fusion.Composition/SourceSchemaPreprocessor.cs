@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using System.Text.RegularExpressions;
+using HotChocolate.Fusion.ApolloFederation;
 using HotChocolate.Fusion.Errors;
 using HotChocolate.Fusion.Extensions;
 using HotChocolate.Fusion.Language;
@@ -12,6 +13,7 @@ using HotChocolate.Types;
 using HotChocolate.Types.Mutable;
 using static HotChocolate.Fusion.WellKnownDirectiveNames;
 using ArgumentNames = HotChocolate.Fusion.WellKnownArgumentNames;
+using StringValueNode = HotChocolate.Language.StringValueNode;
 
 namespace HotChocolate.Fusion;
 
@@ -30,6 +32,17 @@ internal sealed partial class SourceSchemaPreprocessor(
     public CompositionResult Preprocess()
     {
         var fusionV1CompatibilityMode = sourceSchemaVersion?.Major == 1;
+
+        if (FederationSchemaTransformer.IsFederationSchema(schema)
+            && FederationSchemaAnalyzer.Validate(schema, log))
+        {
+            RemoveFederationInfrastructure.Apply(schema);
+            GenerateLookupFields.Apply(schema);
+            RewriteKeyDirectives.Apply(schema);
+            TransformRequiresToRequire.Apply(schema);
+            RemoveExternalFields.Apply(schema);
+            StampConnectorKind.Apply(schema);
+        }
 
         if (_options.ExcludeByTag is { } excludeByTag)
         {
@@ -53,7 +66,7 @@ internal sealed partial class SourceSchemaPreprocessor(
         }
 
         // We need to run this after keys have been inferred, so we do not attempt to mark them as @shareable.
-        if (fusionV1CompatibilityMode)
+        if (fusionV1CompatibilityMode || _options.InferShareable)
         {
             ApplyShareableDirectives();
         }
@@ -210,6 +223,11 @@ internal sealed partial class SourceSchemaPreprocessor(
         {
             foreach (var type in schema.Types.OfType<MutableObjectTypeDefinition>())
             {
+                if (type == schema.SubscriptionType)
+                {
+                    continue;
+                }
+
                 if (!sourceSchema.Types.TryGetType<MutableObjectTypeDefinition>(type.Name, out var otherType))
                 {
                     continue;
@@ -388,7 +406,15 @@ internal sealed partial class SourceSchemaPreprocessor(
         var lookupFieldDefinitions =
             schema.Types
                 .OfType<MutableComplexTypeDefinition>()
-                .SelectMany(t => t.Fields.AsEnumerable().Where(f => f.Directives.ContainsName(Lookup)));
+                .SelectMany(t => t.Fields.AsEnumerable().Where(f =>
+                {
+                    if (f.Arguments.Count == 0 || f.Type.IsNonNullType() || f.Type.IsListType())
+                    {
+                        return false;
+                    }
+
+                    return f.Directives.ContainsName(Lookup);
+                }));
 
         foreach (var lookupFieldDefinition in lookupFieldDefinitions)
         {

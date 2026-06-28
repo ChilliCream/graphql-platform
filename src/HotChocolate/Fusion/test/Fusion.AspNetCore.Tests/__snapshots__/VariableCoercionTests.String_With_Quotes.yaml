@@ -1,9 +1,7 @@
 title: String_With_Quotes
 request:
   document: |
-    query testQuery(
-      $input: String!
-    ) {
+    query testQuery($input: String!) {
       field(input: $input)
     }
   variables: |
@@ -29,10 +27,9 @@ sourceSchemas:
       }
     interactions:
       - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
-            query testQuery_9dd2f586_1(
-              $input: String!
-            ) {
+            query testQuery_9dd2f586_1($input: String!) {
               field(input: $input)
             }
           variables: |
@@ -50,9 +47,7 @@ sourceSchemas:
 operationPlan:
   operation:
     - document: |
-        query testQuery(
-          $input: String!
-        ) {
+        query testQuery($input: String!) {
           field(input: $input)
         }
       name: testQuery
@@ -64,9 +59,7 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query testQuery_9dd2f586_1(
-          $input: String!
-        ) {
+        query testQuery_9dd2f586_1($input: String!) {
           field(input: $input)
         }
       forwardedVariables:

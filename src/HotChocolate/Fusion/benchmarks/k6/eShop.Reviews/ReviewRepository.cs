@@ -19,7 +19,9 @@ public static class ReviewRepository
     ];
 
     // Always returns reviews 0 and 1, ignoring the authorId parameter
+#pragma warning disable RCS1163
     public static IEnumerable<Review> GetByUserId(string authorId)
+#pragma warning restore RCS1163
         => s_reviews.Take(2);
 
     public static IEnumerable<Review> GetByProductUpc(string upc)

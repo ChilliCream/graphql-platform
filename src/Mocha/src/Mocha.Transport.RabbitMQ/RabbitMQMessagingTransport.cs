@@ -165,7 +165,8 @@ public sealed class RabbitMQMessagingTransport : MessagingTransport
                         ["type"] = exchange.Type,
                         ["durable"] = exchange.Durable,
                         ["autoDelete"] = exchange.AutoDelete,
-                        ["autoProvision"] = exchange.AutoProvision ?? autoProvision
+                        ["autoProvision"] = exchange.AutoProvision ?? autoProvision,
+                        ["origin"] = exchange.Origin
                     }));
         }
 
@@ -182,7 +183,8 @@ public sealed class RabbitMQMessagingTransport : MessagingTransport
                         ["durable"] = queue.Durable,
                         ["exclusive"] = queue.Exclusive,
                         ["autoDelete"] = queue.AutoDelete,
-                        ["autoProvision"] = queue.AutoProvision ?? autoProvision
+                        ["autoProvision"] = queue.AutoProvision ?? autoProvision,
+                        ["origin"] = queue.Origin
                     }));
         }
 
@@ -203,7 +205,8 @@ public sealed class RabbitMQMessagingTransport : MessagingTransport
                     new Dictionary<string, object?>
                     {
                         ["routingKey"] = string.IsNullOrEmpty(binding.RoutingKey) ? null : binding.RoutingKey,
-                        ["autoProvision"] = binding.AutoProvision ?? autoProvision
+                        ["autoProvision"] = binding.AutoProvision ?? autoProvision,
+                        ["origin"] = binding.Origin
                     }));
         }
 
@@ -222,10 +225,20 @@ public sealed class RabbitMQMessagingTransport : MessagingTransport
     /// <inheritdoc />
     public override bool TryGetDispatchEndpoint(Uri address, [NotNullWhen(true)] out DispatchEndpoint? endpoint)
     {
+        if (TryGetReplyDispatchEndpoint(address, out endpoint))
+        {
+            return true;
+        }
+
         if (address.Scheme == Schema)
         {
             foreach (var candidate in DispatchEndpoints)
             {
+                if (!candidate.IsCompleted)
+                {
+                    continue;
+                }
+
                 if (candidate.Address == address)
                 {
                     endpoint = candidate;
@@ -238,6 +251,11 @@ public sealed class RabbitMQMessagingTransport : MessagingTransport
         {
             foreach (var candidate in DispatchEndpoints)
             {
+                if (!candidate.IsCompleted)
+                {
+                    continue;
+                }
+
                 if (candidate.Destination.Address == address)
                 {
                     endpoint = candidate;
@@ -246,10 +264,15 @@ public sealed class RabbitMQMessagingTransport : MessagingTransport
             }
         }
 
-        if (address is { Scheme: "queue", Segments: [var queueName] })
+        if (TryGetResourceName(address, "queue", out var queueName))
         {
             foreach (var candidate in DispatchEndpoints)
             {
+                if (!candidate.IsCompleted)
+                {
+                    continue;
+                }
+
                 if (candidate.Destination is RabbitMQQueue queue && queue.Name == queueName)
                 {
                     endpoint = candidate;
@@ -258,10 +281,15 @@ public sealed class RabbitMQMessagingTransport : MessagingTransport
             }
         }
 
-        if (address is { Scheme: "exchange", Segments: [var exchangeName] })
+        if (TryGetResourceName(address, "exchange", out var exchangeName))
         {
             foreach (var candidate in DispatchEndpoints)
             {
+                if (!candidate.IsCompleted)
+                {
+                    continue;
+                }
+
                 if (candidate.Destination is RabbitMQExchange exchange
                     && exchange.Name == exchangeName)
                 {
@@ -335,162 +363,6 @@ public sealed class RabbitMQMessagingTransport : MessagingTransport
     protected override DispatchEndpoint CreateDispatchEndpoint()
     {
         return new RabbitMQDispatchEndpoint(this);
-    }
-
-    /// <inheritdoc />
-    public override DispatchEndpointConfiguration? CreateEndpointConfiguration(
-        IMessagingConfigurationContext context,
-        OutboundRoute route)
-    {
-        RabbitMQDispatchEndpointConfiguration? configuration = null;
-        if (route.Kind == OutboundRouteKind.Send)
-        {
-            var exchangeName = context.Naming.GetSendEndpointName(route.MessageType.RuntimeType);
-            configuration = new RabbitMQDispatchEndpointConfiguration
-            {
-                ExchangeName = exchangeName,
-                Name = "e/" + exchangeName
-            };
-        }
-        else if (route.Kind == OutboundRouteKind.Publish)
-        {
-            var exchangeName = context.Naming.GetPublishEndpointName(route.MessageType.RuntimeType);
-            configuration = new RabbitMQDispatchEndpointConfiguration
-            {
-                ExchangeName = exchangeName,
-                Name = "e/" + exchangeName
-            };
-        }
-
-        return configuration;
-    }
-
-    /// <inheritdoc />
-    public override DispatchEndpointConfiguration? CreateEndpointConfiguration(
-        IMessagingConfigurationContext context,
-        Uri address)
-    {
-        RabbitMQDispatchEndpointConfiguration? configuration = null;
-
-        var path = address.AbsolutePath.AsSpan();
-        Span<Range> ranges = stackalloc Range[2];
-        var segmentCount = path.Split(ranges, '/', RemoveEmptyEntries | TrimEntries);
-
-        if (address.Scheme == Schema && address.Host is "")
-        {
-            if (segmentCount == 1 && path[ranges[0]] is "replies")
-            {
-                var instanceEndpointName = context.Naming.GetInstanceEndpoint(context.Host.InstanceId);
-                configuration = new RabbitMQDispatchEndpointConfiguration
-                {
-                    Kind = DispatchEndpointKind.Reply,
-                    // TODO the idea of the reply endpoint is to be able to dispatch to ANY queue.
-                    // so this is technically not correct but it's the easiest way to make the endpoint
-                    // complete
-                    QueueName = instanceEndpointName,
-                    Name = "Replies"
-                };
-            }
-
-            if (segmentCount == 2)
-            {
-                var kind = path[ranges[0]];
-                var name = path[ranges[1]];
-
-                if (kind is "e" && name is var exchangeName)
-                {
-                    configuration = new RabbitMQDispatchEndpointConfiguration
-                    {
-                        ExchangeName = new string(exchangeName),
-                        Name = "e/" + new string(exchangeName)
-                    };
-                }
-
-                if (kind is "q" && name is var queueName)
-                {
-                    configuration = new RabbitMQDispatchEndpointConfiguration
-                    {
-                        QueueName = new string(queueName),
-                        Name = "q/" + new string(queueName)
-                    };
-                }
-            }
-        }
-
-        if (configuration is null && _topology.Address.IsBaseOf(address) && segmentCount == 2)
-        {
-            var kind = path[ranges[0]];
-            var name = path[ranges[1]];
-
-            if (kind is "e" && name is var exchangeName)
-            {
-                configuration = new RabbitMQDispatchEndpointConfiguration
-                {
-                    ExchangeName = new string(exchangeName),
-                    Name = "e/" + new string(exchangeName)
-                };
-            }
-
-            if (kind is "q" && name is var queueName)
-            {
-                configuration = new RabbitMQDispatchEndpointConfiguration
-                {
-                    QueueName = new string(queueName),
-                    Name = "q/" + new string(queueName)
-                };
-            }
-        }
-
-        if (configuration is null && address is { Scheme: "queue" } && segmentCount == 1)
-        {
-            var name = path[ranges[0]];
-            configuration = new RabbitMQDispatchEndpointConfiguration
-            {
-                QueueName = new string(name),
-                Name = "q/" + new string(name)
-            };
-        }
-
-        if (configuration is null && address is { Scheme: "exchange" } && segmentCount == 1)
-        {
-            var name = path[ranges[0]];
-
-            configuration = new RabbitMQDispatchEndpointConfiguration
-            {
-                ExchangeName = new string(name),
-                Name = "e/" + new string(name)
-            };
-        }
-
-        return configuration;
-    }
-
-    /// <inheritdoc />
-    public override ReceiveEndpointConfiguration CreateEndpointConfiguration(
-        IMessagingConfigurationContext context,
-        InboundRoute route)
-    {
-        RabbitMQReceiveEndpointConfiguration configuration;
-        if (route.Kind == InboundRouteKind.Reply)
-        {
-            var instanceEndpointName = context.Naming.GetInstanceEndpoint(context.Host.InstanceId);
-            configuration = new RabbitMQReceiveEndpointConfiguration
-            {
-                Name = "Replies",
-                QueueName = instanceEndpointName,
-                IsTemporary = true,
-                Kind = ReceiveEndpointKind.Reply,
-                AutoProvision = true,
-                ReceiveMiddlewares = [ReplyReceiveMiddleware.Create()]
-            };
-        }
-        else
-        {
-            var queueName = context.Naming.GetReceiveEndpointName(route, ReceiveEndpointKind.Default);
-            configuration = new RabbitMQReceiveEndpointConfiguration { Name = queueName, QueueName = queueName };
-        }
-
-        return configuration;
     }
 
     /// <inheritdoc />

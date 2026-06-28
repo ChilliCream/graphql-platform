@@ -24,8 +24,9 @@ sourceSchemas:
         query: Query
       }
 
-      interface Node {
-        id: ID!
+      type Query {
+        node(id: ID!): Node @lookup @shareable
+        discussionById(discussionId: ID! @is(field: "id")): Discussion @lookup
       }
 
       type Discussion implements Node {
@@ -33,12 +34,12 @@ sourceSchemas:
         title: String!
       }
 
-      type Query {
-        node(id: ID!): Node @lookup @shareable
-        discussionById(discussionId: ID! @is(field: "id")): Discussion @lookup
+      interface Node {
+        id: ID!
       }
     interactions:
       - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
             query Op_72167d7d_3 {
               node: discussionById(discussionId: "RGlzY3Vzc2lvbjox") {
@@ -61,8 +62,9 @@ sourceSchemas:
         query: Query
       }
 
-      interface Node {
-        id: ID!
+      type Query {
+        node(id: ID!): Node @lookup @shareable
+        discussionById(id: ID!): Discussion @lookup @internal
       }
 
       type Discussion implements Node {
@@ -70,9 +72,8 @@ sourceSchemas:
         commentCount: Int!
       }
 
-      type Query {
-        node(id: ID!): Node @lookup @shareable
-        discussionById(id: ID!): Discussion @lookup @internal
+      interface Node {
+        id: ID!
       }
 operationPlan:
   operation:

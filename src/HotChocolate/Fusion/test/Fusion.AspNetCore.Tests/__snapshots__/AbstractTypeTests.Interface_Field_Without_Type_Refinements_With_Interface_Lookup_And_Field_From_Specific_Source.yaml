@@ -24,19 +24,20 @@ sourceSchemas:
         query: Query
       }
 
-      interface Votable @key(fields: "id") {
-        id: ID!
+      type Query {
+        votable: Votable
       }
 
       type Discussion implements Votable @key(fields: "id") {
         id: ID!
       }
 
-      type Query {
-        votable: Votable
+      interface Votable @key(fields: "id") {
+        id: ID!
       }
     interactions:
       - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
             query Op_1bcbe788_1 {
               votable {
@@ -61,9 +62,8 @@ sourceSchemas:
         query: Query
       }
 
-      interface Votable {
-        id: ID!
-        viewerCanVote: Boolean!
+      type Query {
+        votableById(id: ID!): Votable @lookup @shareable
       }
 
       type Discussion implements Votable {
@@ -71,8 +71,9 @@ sourceSchemas:
         viewerCanVote: Boolean!
       }
 
-      type Query {
-        votableById(id: ID!): Votable @lookup @shareable
+      interface Votable {
+        id: ID!
+        viewerCanVote: Boolean!
       }
   - name: C
     schema: |
@@ -80,9 +81,8 @@ sourceSchemas:
         query: Query
       }
 
-      interface Votable {
-        id: ID!
-        totalVotes: Int!
+      type Query {
+        votableById(id: ID!): Votable @lookup @shareable
       }
 
       type Discussion implements Votable {
@@ -90,19 +90,18 @@ sourceSchemas:
         totalVotes: Int!
       }
 
-      type Query {
-        votableById(id: ID!): Votable @lookup @shareable
+      interface Votable {
+        id: ID!
+        totalVotes: Int!
       }
     interactions:
       - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
-            query Op_1bcbe788_2(
-              $__fusion_1_id: ID!
-            ) {
+            query Op_1bcbe788_2($__fusion_1_id: ID!) {
               votableById(id: $__fusion_1_id) {
                 __typename
                 ... on Discussion {
-                  __typename
                   totalVotes
                 }
               }
@@ -151,13 +150,10 @@ operationPlan:
       type: Operation
       schema: C
       operation: |
-        query Op_1bcbe788_2(
-          $__fusion_1_id: ID!
-        ) {
+        query Op_1bcbe788_2($__fusion_1_id: ID!) {
           votableById(id: $__fusion_1_id) {
             __typename
             ... on Discussion {
-              __typename
               totalVotes
             }
           }

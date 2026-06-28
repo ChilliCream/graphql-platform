@@ -382,9 +382,7 @@ public class VariableCoercionHelperTests
                 Assert.False(Assert.IsType<SomeInput>(t.Value.RuntimeValue).OptionalField.HasValue);
                 t.Value.ValueLiteral.MatchInlineSnapshot(
                     """
-                    {
-                      field: true
-                    }
+                    { field: true }
                     """);
             });
     }
@@ -609,10 +607,51 @@ public class VariableCoercionHelperTests
 
         entry.Value.ValueLiteral.MatchInlineSnapshot(
             """
-            [
-              "xyz"
-            ]
+            ["xyz"]
             """);
+    }
+
+    [Fact]
+    public void Error_When_Single_Value_Type_Does_Not_Match_List_Element_Type()
+    {
+        // arrange
+        var schema = SchemaBuilder.New().AddStarWarsTypes().Create();
+
+        var variableDefinitions = new List<VariableDefinitionNode>
+        {
+            new(null,
+                new VariableNode("abc"),
+                description: null,
+                new ListTypeNode(new NamedTypeNode("Int")),
+                null,
+                Array.Empty<DirectiveNode>())
+        };
+
+        var variableValues = JsonDocument.Parse("""{"abc": "xyz"}""");
+        var coercedValues = new Dictionary<string, VariableValue>();
+        var featureProvider = new MockFeatureProvider();
+        var helper = new VariableCoercionHelper(new());
+
+        // act
+        void Action() => helper.CoerceVariableValues(
+            schema, variableDefinitions, variableValues.RootElement, coercedValues, featureProvider);
+
+        // assert
+        Assert.Throws<LeafCoercionException>(Action)
+            .Errors.Select(t => t.WithException(null))
+            .ToList()
+            .MatchInlineSnapshot(
+                """
+                "errors": [
+                  {
+                    "message": "Int cannot coerce the given value JSON element of type `String` to a runtime value.",
+                    "path": [
+                      "abc",
+                      0
+                    ]
+                  }
+                ]
+                """);
     }
 
     [Fact]
@@ -667,11 +706,7 @@ public class VariableCoercionHelperTests
         Assert.Equal("abc", entry.Key);
         entry.Value.ValueLiteral.MatchInlineSnapshot(
             """
-            [
-              {
-                enum: Foo
-              }
-            ]
+            [{ enum: Foo }]
             """);
     }
 
@@ -730,14 +765,7 @@ public class VariableCoercionHelperTests
         Assert.Equal("abc", entry.Key);
         entry.Value.ValueLiteral.MatchInlineSnapshot(
             """
-            [
-              {
-                enum: Foo
-              },
-              {
-                enum: Bar
-              }
-            ]
+            [{ enum: Foo }, { enum: Bar }]
             """);
     }
 
@@ -796,14 +824,7 @@ public class VariableCoercionHelperTests
         Assert.Equal("abc", entry.Key);
         entry.Value.ValueLiteral.MatchInlineSnapshot(
             """
-            [
-              {
-                enum: Foo
-              },
-              {
-                enum: Bar
-              }
-            ]
+            [{ enum: Foo }, { enum: Bar }]
             """);
     }
 
@@ -860,10 +881,7 @@ public class VariableCoercionHelperTests
         Assert.Equal("abc", entry.Key);
         entry.Value.ValueLiteral.MatchInlineSnapshot(
             """
-            {
-              enum: Foo,
-              enum2: Bar
-            }
+            { enum: Foo, enum2: Bar }
             """);
     }
 
@@ -920,10 +938,7 @@ public class VariableCoercionHelperTests
         Assert.Equal("abc", entry.Key);
         entry.Value.ValueLiteral.MatchInlineSnapshot(
             """
-            {
-              enum: Foo,
-              enum2: Bar
-            }
+            { enum: Foo, enum2: Bar }
             """);
     }
 
@@ -980,10 +995,7 @@ public class VariableCoercionHelperTests
         Assert.Equal("abc", entry.Key);
         entry.Value.ValueLiteral.MatchInlineSnapshot(
             """
-            {
-              value_a: "Foo",
-              value_b: Bar
-            }
+            { value_a: "Foo", value_b: Bar }
             """);
     }
 
@@ -1052,14 +1064,7 @@ public class VariableCoercionHelperTests
         Assert.Equal("abc", entry.Key);
         entry.Value.ValueLiteral.MatchInlineSnapshot(
             """
-            [
-              {
-                value_a: "Foo"
-              },
-              {
-                value_b: Bar
-              }
-            ]
+            [{ value_a: "Foo" }, { value_b: Bar }]
             """);
     }
 

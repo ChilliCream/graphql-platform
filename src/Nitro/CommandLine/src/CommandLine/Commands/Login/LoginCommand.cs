@@ -1,8 +1,7 @@
-using ChilliCream.Nitro.CommandLine.Client;
-using ChilliCream.Nitro.CommandLine.Commands.Workspaces;
-using ChilliCream.Nitro.CommandLine.Configuration;
+using ChilliCream.Nitro.Client;
+using ChilliCream.Nitro.Client.Workspaces;
 using ChilliCream.Nitro.CommandLine.Helpers;
-using ChilliCream.Nitro.CommandLine.Options;
+using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Login;
@@ -14,44 +13,119 @@ internal sealed class LoginCommand : Command
         Description =
             "Log in interactively through your default browser";
 
-        AddOption(Opt<IdentityCloudUrlOption>.Instance);
-        AddArgument(Opt<IdentityCloudUrlArgument>.Instance);
+        Options.Add(Opt<IdentityCloudUrlOption>.Instance);
+        Arguments.Add(Opt<IdentityCloudUrlArgument>.Instance);
 
-        this.SetHandler(
-            ExecuteAsync,
-            Opt<IdentityCloudUrlOption>.Instance,
-            Opt<IdentityCloudUrlArgument>.Instance,
-            Bind.FromServiceProvider<IAnsiConsole>(),
-            Bind.FromServiceProvider<IApiClient>(),
-            Bind.FromServiceProvider<ISessionService>(),
-            Bind.FromServiceProvider<CancellationToken>());
+        this.AddExamples("login");
+
+        this.SetActionWithExceptionHandling(ExecuteAsync);
     }
 
     private static async Task<int> ExecuteAsync(
-        string cloudUrl,
-        string? url,
-        IAnsiConsole console,
-        IApiClient client,
-        ISessionService sessionService,
+        ICommandServices services,
+        ParseResult parseResult,
         CancellationToken cancellationToken)
     {
-        url ??= cloudUrl;
+        var console = services.GetRequiredService<INitroConsole>();
+        var client = services.GetRequiredService<IWorkspacesClient>();
+        var sessionService = services.GetRequiredService<ISessionService>();
+        var clientContext = services.GetRequiredService<NitroClientContext>();
 
-        var session = await console
-            .DefaultStatus()
-            .StartAsync(
-                $"A web browser has been opened at [blue underline]{url}[/]. Please continue the login in the web browser.",
-                async _ => await sessionService.LoginAsync(url, cancellationToken));
-
-        if (session is null)
+        if (!console.IsInteractive)
         {
-            throw new ExitException("There was a failure and Nitro could not log you in.");
+            throw new ExitException(
+                "`nitro login` requires an interactive console. "
+                + $"Use '{OptionalApiKeyOption.OptionName}' to authenticate command invocations in non-interactive environments.");
         }
 
-        console.OkLine(
-            $"Logged in as [bold]{session.Email}[/] ({session.Tenant} on {session.IdentityServer})");
+        var cloudUrl = parseResult.GetValue(Opt<IdentityCloudUrlOption>.Instance);
+        var url = parseResult.GetValue(Opt<IdentityCloudUrlArgument>.Instance);
 
-        return await SetDefaultWorkspaceCommand
-            .ExecuteAsync(forceSelection: false, console, client, sessionService, cancellationToken);
+        url ??= cloudUrl;
+        url = NormalizeIdentityUrl(url);
+
+        await using (var activity = console.StartActivity("Logging in via browser", "Failed to log in."))
+        {
+            activity.Update($"Browser opened at {url.EscapeMarkup()}. Continue login there.");
+
+            var session = await sessionService.LoginAsync(url, cancellationToken);
+            if (session is null)
+            {
+                throw new ExitException("There was a failure and Nitro could not log you in.");
+            }
+
+            clientContext.Configure(
+                session.ApiUrl,
+                new NitroClientAccessTokenAuthorization(session.Tokens!.AccessToken));
+
+            var page = await client.SelectWorkspacesAsync(null, 5, cancellationToken);
+            var email = session.Email.EscapeMarkup();
+
+            if (page.Items.Count == 0)
+            {
+                activity.Update(
+                    "You do not have any workspaces. Run `nitro launch` and create one.",
+                    ActivityUpdateKind.Warning);
+                activity.Success($"Logged in as [green]{email}[/]");
+                return ExitCodes.Success;
+            }
+
+            if (page.Items.Count == 1)
+            {
+                var only = page.Items[0];
+                await sessionService.SelectWorkspaceAsync(
+                    new Workspace(only.Id, only.Name),
+                    cancellationToken);
+                activity.Success(
+                    $"Logged in as [green]{email}[/] (Workspace: [green]{only.Name.EscapeMarkup()}[/])");
+                return ExitCodes.Success;
+            }
+
+            activity.Success($"Logged in as [green]{email}[/]");
+        }
+
+        var paginationContainer = PaginationContainer.CreateConnectionData(client.SelectWorkspacesAsync);
+        var selected = await PagedSelectionPrompt
+            .New(paginationContainer)
+            .Title(Prompts.SelectDefaultWorkspace.AsQuestion())
+            .UseConverter(x => x.Name)
+            .RenderAsync(console, cancellationToken);
+
+        if (selected is null)
+        {
+            throw new ExitException("No workspace was selected as default.");
+        }
+
+        await sessionService.SelectWorkspaceAsync(
+            new Workspace(selected.Id, selected.Name),
+            cancellationToken);
+
+        console.OkQuestion(Prompts.SelectDefaultWorkspace, selected.Name);
+
+        return ExitCodes.Success;
+    }
+
+    private static string? NormalizeIdentityUrl(string? url)
+    {
+        if (string.IsNullOrWhiteSpace(url))
+        {
+            return url;
+        }
+
+        if (!url.StartsWith("https://") && !url.StartsWith("http://"))
+        {
+            url = $"https://{url}";
+        }
+
+        var uriBuilder = new UriBuilder(url)
+        {
+            Path = string.Empty,
+            Query = string.Empty,
+            Fragment = string.Empty,
+            UserName = string.Empty,
+            Password = string.Empty
+        };
+
+        return uriBuilder.Uri.GetLeftPart(UriPartial.Authority);
     }
 }

@@ -279,7 +279,7 @@ public class GraphQLWebSocketProtocolTests
 
         // act
         await protocol.InitializeAsync(CancellationToken.None);
-        await semaphoreSlim.WaitAsync();
+        await semaphoreSlim.WaitAsync(TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal("123", id);
@@ -309,7 +309,7 @@ public class GraphQLWebSocketProtocolTests
 
         // act
         await protocol.InitializeAsync(CancellationToken.None);
-        await semaphoreSlim.WaitAsync();
+        await semaphoreSlim.WaitAsync(TestContext.Current.CancellationToken);
 
         // assert
         Assert.True(received);
@@ -348,7 +348,7 @@ public class GraphQLWebSocketProtocolTests
 
         // act
         await protocol.InitializeAsync(CancellationToken.None);
-        await semaphoreSlim.WaitAsync();
+        await semaphoreSlim.WaitAsync(TestContext.Current.CancellationToken);
 
         // assert
         error.MatchSnapshot();
@@ -377,7 +377,7 @@ public class GraphQLWebSocketProtocolTests
 
         // act
         await protocol.InitializeAsync(CancellationToken.None);
-        await semaphoreSlim.WaitAsync();
+        await semaphoreSlim.WaitAsync(TestContext.Current.CancellationToken);
 
         // assert
         error.MatchSnapshot();

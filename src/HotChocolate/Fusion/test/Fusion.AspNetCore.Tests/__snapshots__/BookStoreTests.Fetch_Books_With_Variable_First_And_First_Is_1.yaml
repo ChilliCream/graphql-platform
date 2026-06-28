@@ -1,9 +1,7 @@
 title: Fetch_Books_With_Variable_First_And_First_Is_1
 request:
   document: |
-    query GetBooks(
-      $first: Int
-    ) {
+    query GetBooks($first: Int) {
       books(first: $first) {
         nodes {
           id
@@ -42,11 +40,26 @@ sourceSchemas:
         query: Query
       }
 
+      type Query {
+        bookById(id: Int!): Book @lookup
+        books(
+          "Returns the first _n_ elements from the list."
+          first: Int
+          "Returns the elements in the list that come after the specified cursor."
+          after: String
+          "Returns the last _n_ elements from the list."
+          last: Int
+          "Returns the elements in the list that come before the specified cursor."
+          before: String
+        ): BooksConnection
+        formatTitle(title: String!): String!
+      }
+
       type Author @key(fields: "id") {
         id: Int!
       }
 
-      type Book {
+      type Book @key(fields: "id") {
         id: Int!
         title: String!
         author: Author! @shareable
@@ -81,18 +94,11 @@ sourceSchemas:
         "When paginating forwards, the cursor to continue."
         endCursor: String
       }
-
-      type Query {
-        bookById(id: Int!): Book! @lookup
-        books("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): BooksConnection
-        formatTitle(title: String!): String!
-      }
     interactions:
       - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
-            query GetBooks_f1bed549_1(
-              $first: Int
-            ) {
+            query GetBooks_f1bed549_1($first: Int) {
               books(first: $first) {
                 nodes {
                   id
@@ -131,7 +137,22 @@ sourceSchemas:
         query: Query
       }
 
-      type Author {
+      type Query {
+        bookById(id: Int!): Book @internal @lookup
+        authorById(id: Int!): Author @internal @lookup
+        authors(
+          "Returns the first _n_ elements from the list."
+          first: Int
+          "Returns the elements in the list that come after the specified cursor."
+          after: String
+          "Returns the last _n_ elements from the list."
+          last: Int
+          "Returns the elements in the list that come before the specified cursor."
+          before: String
+        ): AuthorsConnection
+      }
+
+      type Author @key(fields: "id") {
         books: [Book!]!
         id: Int!
         name: String!
@@ -155,7 +176,7 @@ sourceSchemas:
         node: Author!
       }
 
-      type Book {
+      type Book @key(fields: "id") {
         idAndTitle(title: String! @require(field: "title")): String!
         id: Int!
         author: Author! @shareable
@@ -172,18 +193,11 @@ sourceSchemas:
         "When paginating forwards, the cursor to continue."
         endCursor: String
       }
-
-      type Query {
-        bookById(id: Int!): Book! @internal @lookup
-        authorById(id: Int!): Author! @internal @lookup
-        authors("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): AuthorsConnection
-      }
     interactions:
       - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
-            query GetBooks_f1bed549_2(
-              $__fusion_1_id: Int!
-            ) {
+            query GetBooks_f1bed549_2($__fusion_1_id: Int!) {
               authorById(id: $__fusion_1_id) {
                 name
               }
@@ -205,9 +219,7 @@ sourceSchemas:
 operationPlan:
   operation:
     - document: |
-        query GetBooks(
-          $first: Int
-        ) {
+        query GetBooks($first: Int) {
           books(first: $first) {
             nodes {
               id
@@ -228,9 +240,7 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query GetBooks_f1bed549_1(
-          $first: Int
-        ) {
+        query GetBooks_f1bed549_1($first: Int) {
           books(first: $first) {
             nodes {
               id
@@ -247,9 +257,7 @@ operationPlan:
       type: Operation
       schema: B
       operation: |
-        query GetBooks_f1bed549_2(
-          $__fusion_1_id: Int!
-        ) {
+        query GetBooks_f1bed549_2($__fusion_1_id: Int!) {
           authorById(id: $__fusion_1_id) {
             name
           }

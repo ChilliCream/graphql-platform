@@ -26,7 +26,7 @@ public class MessagingDiagnosticTests
                     => new("b");
             }
             """
-        ]).MatchMarkdownAsync();
+        ]).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -46,7 +46,7 @@ public class MessagingDiagnosticTests
                 public abstract ValueTask HandleAsync(OrderPlacedEvent message, CancellationToken cancellationToken);
             }
             """
-        ]).MatchMarkdownAsync();
+        ]).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -65,7 +65,7 @@ public class MessagingDiagnosticTests
                     => default;
             }
             """
-        ]).MatchMarkdownAsync();
+        ]).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -87,7 +87,7 @@ public class MessagingDiagnosticTests
                 protected override void Configure(ISagaDescriptor<OrderState> descriptor) { }
             }
             """
-        ]).MatchMarkdownAsync();
+        ]).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]

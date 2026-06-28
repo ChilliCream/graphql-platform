@@ -28,15 +28,16 @@ sourceSchemas:
         query: Query
       }
 
-      type Product @key(fields: "id") {
-        id: ID!
-      }
-
       type Query {
         productBySlug: Product
       }
+
+      type Product @key(fields: "id") {
+        id: ID!
+      }
     interactions:
       - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
             query Op_40bd37df_1 {
               productBySlug {
@@ -59,6 +60,10 @@ sourceSchemas:
         query: Query
       }
 
+      type Query {
+        productById(id: ID!): Product @lookup @shareable
+      }
+
       type Author {
         name: String! @shareable
       }
@@ -67,14 +72,14 @@ sourceSchemas:
         id: ID!
         author: Author @shareable
       }
-
-      type Query {
-        productById(id: ID!): Product @lookup @shareable
-      }
   - name: C
     schema: |
       schema {
         query: Query
+      }
+
+      type Query {
+        productById(id: ID!): Product @lookup @shareable
       }
 
       type Author {
@@ -86,16 +91,11 @@ sourceSchemas:
         id: ID!
         author: Author @shareable
       }
-
-      type Query {
-        productById(id: ID!): Product @lookup @shareable
-      }
     interactions:
       - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
-            query Op_40bd37df_2(
-              $__fusion_1_id: ID!
-            ) {
+            query Op_40bd37df_2($__fusion_1_id: ID!) {
               productById(id: $__fusion_1_id) {
                 author {
                   name
@@ -149,9 +149,7 @@ operationPlan:
       type: Operation
       schema: C
       operation: |
-        query Op_40bd37df_2(
-          $__fusion_1_id: ID!
-        ) {
+        query Op_40bd37df_2($__fusion_1_id: ID!) {
           productById(id: $__fusion_1_id) {
             author {
               name

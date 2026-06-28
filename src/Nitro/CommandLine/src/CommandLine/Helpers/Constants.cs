@@ -2,8 +2,7 @@ namespace ChilliCream.Nitro.CommandLine.Helpers;
 
 internal static class Constants
 {
-    // 5 Minutes
-    public const int DefaultTimeoutSec = 60 * 5;
+    public const int DefaultPrintWidth = 1_000;
 
     public const string NitroWebUrl = "https://nitro.chillicream.com";
 

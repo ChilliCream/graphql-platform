@@ -17,4 +17,7 @@ using System.Runtime.CompilerServices;
 [assembly: InternalsVisibleTo("Mocha.EntityFrameworkCore")]
 [assembly: InternalsVisibleTo("Mocha.EntityFrameworkCore.Postgres")]
 [assembly: InternalsVisibleTo("Mocha.Transport.RabbitMQ.Tests")]
+[assembly: InternalsVisibleTo("Mocha.Transport.InMemory.Tests")]
+[assembly: InternalsVisibleTo("Mocha.Transport.Postgres.Tests")]
 [assembly: InternalsVisibleTo("Mocha.EntityFrameworkCore.Postgres.Tests")]
+[assembly: InternalsVisibleTo("Mocha.Hosting.Tests")]

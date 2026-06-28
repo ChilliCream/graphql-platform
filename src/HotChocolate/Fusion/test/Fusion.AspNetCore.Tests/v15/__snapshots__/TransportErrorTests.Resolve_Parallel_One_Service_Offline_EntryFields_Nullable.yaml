@@ -43,6 +43,7 @@ sourceSchemas:
       }
     interactions:
       - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
             query Op_6b55933b_1 {
               viewer {
@@ -57,15 +58,16 @@ sourceSchemas:
         query: Query
       }
 
-      type Other {
-        userId: ID!
-      }
-
       type Query {
         other: Other
       }
+
+      type Other {
+        userId: ID!
+      }
     interactions:
       - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
             query Op_6b55933b_2 {
               other {

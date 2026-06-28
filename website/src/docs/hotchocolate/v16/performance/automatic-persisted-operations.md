@@ -49,8 +49,8 @@ Configure your GraphQL server to handle automatic persisted operation requests. 
 1. Configure the GraphQL server to use the automatic persisted operation pipeline.
 
 ```csharp
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddQueryType<Query>()
     .UseAutomaticPersistedOperationPipeline();
 ```
@@ -58,8 +58,8 @@ builder.Services
 2. Register the in-memory operation document storage.
 
 ```csharp
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddQueryType<Query>()
     .UseAutomaticPersistedOperationPipeline()
     .AddInMemoryOperationDocumentStorage();
@@ -68,12 +68,10 @@ builder.Services
 3. Add the Microsoft Memory Cache, which the in-memory operation document storage uses as the key-value store.
 
 ```csharp
-builder.Services
-    // Global Services
-    .AddMemoryCache()
+builder.Services.AddMemoryCache();
 
-    // GraphQL server configuration
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddQueryType<Query>()
     .UseAutomaticPersistedOperationPipeline()
     .AddInMemoryOperationDocumentStorage();
@@ -161,12 +159,10 @@ Hot Chocolate is configured to use the MD5 hashing algorithm by default, seriali
 1. Add the SHA256 document hash provider to your GraphQL server configuration.
 
 ```csharp
-builder.Services
-    // Global Services
-    .AddMemoryCache()
+builder.Services.AddMemoryCache();
 
-    // GraphQL server configuration
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddSha256DocumentHashProvider(HashFormat.Hex)
     .AddQueryType<Query>()
     .UseAutomaticPersistedOperationPipeline()
@@ -218,12 +214,10 @@ docker run --name redis-stitching -p 7000:6379 -d redis
 3. Configure the server to use Redis as operation document storage.
 
 ```csharp
-builder.Services
-    // Global Services
-    .AddMemoryCache()
+builder.Services.AddMemoryCache();
 
-    // GraphQL server configuration
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddSha256DocumentHashProvider(HashFormat.Hex)
     .AddQueryType<Query>()
     .UseAutomaticPersistedOperationPipeline()

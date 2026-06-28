@@ -55,7 +55,8 @@ internal readonly struct Backlog(ImmutableStack<WorkItem> items, BacklogCost cos
     public Backlog PushUnresolvable(
         ImmutableStack<ConditionedSelectionSet> unresolvable,
         string fromSchema,
-        int parentDepth)
+        int parentDepth,
+        bool allowSourceSchemaReentry = false)
     {
         if (unresolvable.IsEmpty)
         {
@@ -75,7 +76,8 @@ internal readonly struct Backlog(ImmutableStack<WorkItem> items, BacklogCost cos
                 FromSchema: fromSchema)
             {
                 ParentDepth = parentDepth,
-                Conditions = entry.Conditions
+                Conditions = entry.Conditions,
+                AllowSourceSchemaReentry = allowSourceSchemaReentry
             };
             backlog = backlog.Push(workItem);
         }
@@ -89,7 +91,7 @@ internal readonly struct Backlog(ImmutableStack<WorkItem> items, BacklogCost cos
     /// </summary>
     public Backlog PushRequirements(
         ImmutableStack<ConditionedFieldSelection> fieldsWithRequirements,
-        int stepId,
+        RequirementConsumer consumer,
         int parentDepth)
     {
         if (fieldsWithRequirements.IsEmpty)
@@ -101,7 +103,7 @@ internal readonly struct Backlog(ImmutableStack<WorkItem> items, BacklogCost cos
 
         foreach (var entry in fieldsWithRequirements.Reverse())
         {
-            var workItem = new FieldRequirementWorkItem(entry.FieldSelection, stepId)
+            var workItem = new FieldRequirementWorkItem(entry.FieldSelection, consumer)
             {
                 ParentDepth = parentDepth,
                 Conditions = entry.Conditions

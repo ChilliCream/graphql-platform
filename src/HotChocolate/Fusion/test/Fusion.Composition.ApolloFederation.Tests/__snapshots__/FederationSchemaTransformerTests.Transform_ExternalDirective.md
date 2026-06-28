@@ -1,0 +1,54 @@
+# Transform_ExternalDirective
+
+## Apollo Federation SDL
+
+```graphql
+schema @link(url: "https://specs.apollo.dev/federation/v2.6", import: ["@key", "@external"]) {
+  query: Query
+}
+
+type Product @key(fields: "id") {
+  id: ID!
+  price: Float @external
+}
+
+type Query {
+  products: [Product]
+  _service: _Service!
+  _entities(representations: [_Any!]!): [_Entity]!
+}
+
+type _Service { sdl: String! }
+
+union _Entity = Product
+
+scalar FieldSet
+scalar _Any
+
+directive @key(fields: FieldSet! resolvable: Boolean = true) repeatable on OBJECT | INTERFACE
+directive @external on FIELD_DEFINITION
+directive @link(url: String! import: [String!]) repeatable on SCHEMA
+```
+
+## Transformed SDL
+
+```graphql
+schema @fusion__connector(kind: "Apollo") {
+  query: Query
+}
+
+type Query {
+  productById(id: ID!): Product @internal @lookup
+  products: [Product]
+}
+
+type Product @key(fields: "id") {
+  id: ID!
+}
+
+"The @fusion__connector directive declares which connector kind handles this source schema."
+directive @fusion__connector(
+  "The kind of connector that backs this source schema."
+  kind: String!
+) on SCHEMA
+```

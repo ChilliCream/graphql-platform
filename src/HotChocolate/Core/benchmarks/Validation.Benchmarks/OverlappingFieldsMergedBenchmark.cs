@@ -149,7 +149,7 @@ public class OverlappingFieldsMergedBenchmark
     private DocumentValidatorContext CreateContext(DocumentNode document)
     {
         var context = new DocumentValidatorContext();
-        context.Initialize(_schema, default, document, 100, 100, null);
+        context.Initialize(_schema, default, document, 100, 100, 1_000, null);
         return context;
     }
 

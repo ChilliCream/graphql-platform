@@ -1,8 +1,6 @@
-using System.CommandLine.Invocation;
-using ChilliCream.Nitro.CommandLine.Client;
-using ChilliCream.Nitro.CommandLine.Configuration;
+using ChilliCream.Nitro.Client.FusionConfiguration;
 using ChilliCream.Nitro.CommandLine.Helpers;
-using ChilliCream.Nitro.CommandLine.Options;
+using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Fusion.PublishCommand;
@@ -12,36 +10,43 @@ internal sealed class FusionConfigurationPublishStartCommand : Command
     public FusionConfigurationPublishStartCommand() : base("start")
     {
         Description = "Start a Fusion configuration publish.";
-        AddOption(Opt<OptionalRequestIdOption>.Instance);
 
-        this.SetHandler(
-            ExecuteAsync,
-            Bind.FromServiceProvider<InvocationContext>(),
-            Bind.FromServiceProvider<IAnsiConsole>(),
-            Bind.FromServiceProvider<IApiClient>(),
-            Bind.FromServiceProvider<ISessionService>(),
-            Bind.FromServiceProvider<CancellationToken>());
+        Options.Add(Opt<OptionalRequestIdOption>.Instance);
+
+        this.AddGlobalNitroOptions();
+
+        this.AddExamples("fusion publish start");
+
+        this.SetActionWithExceptionHandling(ExecuteAsync);
     }
 
     private static async Task<int> ExecuteAsync(
-        InvocationContext context,
-        IAnsiConsole console,
-        IApiClient client,
-        ISessionService sessionService,
+        ICommandServices services,
+        ParseResult parseResult,
         CancellationToken cancellationToken)
     {
+        var console = services.GetRequiredService<INitroConsole>();
+        var fusionConfigurationClient = services.GetRequiredService<IFusionConfigurationClient>();
+        var sessionService = services.GetRequiredService<ISessionService>();
+        var fileSystem = services.GetRequiredService<IFileSystem>();
+
+        parseResult.AssertHasAuthentication(sessionService);
+
         var requestId =
-            context.ParseResult.GetValueForOption(Opt<OptionalRequestIdOption>.Instance) ??
-            await FusionConfigurationPublishingState.GetRequestId(cancellationToken) ??
+            parseResult.GetValue(Opt<OptionalRequestIdOption>.Instance) ??
+            await FusionConfigurationPublishingState.GetRequestId(fileSystem, cancellationToken) ??
             throw new ExitException(
-                "No request ID was provided and no request ID was found in the cache. Please provide a request ID.");
+                Messages.NoFusionRequestId);
 
-        console.Title("Start the composition of a Fusion configuration");
+        await using (var activity = console.StartActivity(
+            "Starting composition",
+            "Failed to start the composition."))
+        {
+            await fusionConfigurationClient.ClaimDeploymentSlotAsync(requestId, cancellationToken);
 
-        await FusionPublishHelpers.ClaimDeploymentSlot(requestId, console, client, cancellationToken);
+            activity.Success($"Started composition for request '{requestId.EscapeMarkup()}'.");
 
-        console.MarkupLine("Started composition of Fusion configuration.");
-
-        return ExitCodes.Success;
+            return ExitCodes.Success;
+        }
     }
 }

@@ -26,8 +26,8 @@ public class HttpRequestInterceptor : DefaultHttpRequestInterceptor
 Register your custom `HttpRequestInterceptor`:
 
 ```csharp
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddHttpRequestInterceptor<HttpRequestInterceptor>();
 ```
 
@@ -38,8 +38,8 @@ If needed, you can inject services into your custom `HttpRequestInterceptor` usi
 For lightweight interception logic, you can register a delegate instead of creating a class. The delegate receives the `HttpContext`, the `IRequestExecutor`, the `OperationRequestBuilder`, and a `CancellationToken`:
 
 ```csharp
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddHttpRequestInterceptor(
         async (context, executor, builder, ct) =>
         {
@@ -142,8 +142,8 @@ public class SocketSessionInterceptor : DefaultSocketSessionInterceptor
 Register your custom `SocketSessionInterceptor`:
 
 ```csharp
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddSocketSessionInterceptor<SocketSessionInterceptor>();
 ```
 
@@ -176,9 +176,11 @@ public override ValueTask<ConnectionStatus> OnConnectAsync(
     ISocketSession session, IOperationMessagePayload connectionInitMessage,
     CancellationToken cancellationToken)
 {
-    if (connectionInitMessage.As<Dictionary<string, object?>>()
-        ?.TryGetValue("authToken", out var token) == true)
+    if (connectionInitMessage.Payload is { ValueKind: JsonValueKind.Object } payload
+        && payload.TryGetProperty("authToken", out var token)
+        && token.ValueKind == JsonValueKind.String)
     {
+        var authToken = token.GetString();
         // Validate token ...
     }
 
@@ -343,5 +345,5 @@ requestBuilder.AllowIntrospection();
 # Next Steps
 
 - [Global State](/docs/hotchocolate/v16/server/global-state) for sharing per-request data between resolvers.
-- [Dependency Injection](/docs/hotchocolate/v16/resolvers-and-data/dependency-injection) for details on service injection and switching providers.
-- [Introspection](/docs/hotchocolate/v16/securing-your-api/introspection) for controlling introspection on a per-request basis.
+- [Dependency Injection](/docs/hotchocolate/v16/resolvers/dependency-injection) for details on service injection and switching providers.
+- [Introspection](/docs/hotchocolate/v16/security/introspection) for controlling introspection on a per-request basis.

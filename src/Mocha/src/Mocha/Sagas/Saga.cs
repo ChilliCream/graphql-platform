@@ -70,7 +70,7 @@ public abstract partial class Saga : IFeatureProvider
     public abstract Task<bool> HandleEvent(IConsumeContext context);
 
     /// <summary>
-    /// Builds a structural description of this saga, including all states, transitions, published and sent events.
+    /// Returns a description of the saga's state machine, including its states, transitions, and events.
     /// </summary>
     /// <remarks>
     /// This is used for visualization, diagnostics, and tooling support to introspect the saga topology at runtime.
@@ -92,7 +92,6 @@ public abstract partial class Saga : IFeatureProvider
                         eventType.FullName,
                         transition.TransitionTo,
                         transition.TransitionKind,
-                        transition.AutoProvision,
                         transition.Publish.IsEmpty
                             ? null
                             : transition
@@ -566,6 +565,9 @@ public abstract partial class Saga<TState> : Saga where TState : SagaStateBase
             var requestType = context.Runtime.GetMessageType(message.GetType());
             var endpoint = context.Runtime.GetSendEndpoint(requestType);
 
+            // Route the reply to the shared reply endpoint, where the saga's OnReply/OnAnyReply route
+            // is bound. The reply is delivered to the saga consumer there and correlated by the saga
+            // header, so no correlation id is required.
             options = options with { ReplyEndpoint = endpoint.Transport.ReplyReceiveEndpoint?.Source.Address };
 
             options.Headers.Set(SagaContextData.SagaId, state.Id.ToString("D"));

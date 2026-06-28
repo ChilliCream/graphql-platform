@@ -115,7 +115,7 @@ public static class FusionRequestContextExtensions
             return errorHandlingMode;
         }
 
-        return context.Schema.GetOptions().DefaultErrorHandlingMode;
+        return requestOptions.DefaultErrorHandlingMode;
     }
 
     internal static bool AllowErrorHandlingModeOverride(
@@ -123,6 +123,19 @@ public static class FusionRequestContextExtensions
     {
         ArgumentNullException.ThrowIfNull(context);
         return context.Schema.GetRequestOptions().AllowErrorHandlingModeOverride;
+    }
+
+    internal static bool AllowOperationPlanRequests(
+        this RequestContext context)
+    {
+        ArgumentNullException.ThrowIfNull(context);
+
+        if (context.Features.Get<OperationPlanRequestOverrides>()?.IsAllowed == true)
+        {
+            return true;
+        }
+
+        return context.Schema.GetRequestOptions().AllowOperationPlanRequests;
     }
 
     internal static ISourceSchemaClientScope CreateClientScope(

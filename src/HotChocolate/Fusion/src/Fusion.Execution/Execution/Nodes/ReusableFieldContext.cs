@@ -10,7 +10,8 @@ internal sealed class ReusableFieldContext(
     ISchemaDefinition schema,
     IVariableValueCollection variableValues,
     ulong includeFlags,
-    PooledArrayWriter memory)
+    PooledArrayWriter memory,
+    CancellationToken cancellationToken)
     : FieldContext
 {
     private readonly Dictionary<string, IValueNode> _arguments = [];
@@ -30,6 +31,8 @@ internal sealed class ReusableFieldContext(
     public List<object?> RuntimeResults => _runtimeResults;
 
     public override ulong IncludeFlags => includeFlags;
+
+    public override CancellationToken RequestAborted => cancellationToken;
 
     public override T Parent<T>() => (T)_parent!;
 

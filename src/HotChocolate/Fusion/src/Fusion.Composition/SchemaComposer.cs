@@ -78,6 +78,18 @@ public sealed class SchemaComposer
             return enrichmentResult.Errors;
         }
 
+        // Prune unreachable definitions from each source schema before validation, so types
+        // stripped by @excludeByTag (or otherwise unreferenced) are not validated or merged.
+        if (_schemaComposerOptions.Merger.RemoveUnreferencedDefinitions)
+        {
+            var preservedTypeNames = MutableSchemaDefinitionExtensions.GetPreservedTypeNames(schemas);
+
+            foreach (var schema in schemas)
+            {
+                schema.RemoveUnreferencedDefinitions(preservedTypeNames);
+            }
+        }
+
         // Validate Source Schemas
         var validationResult =
             new SourceSchemaValidator(schemas, s_sourceSchemaRules, _log).Validate();
@@ -136,15 +148,17 @@ public sealed class SchemaComposer
         new ExternalProvidesCollisionRule(),
         new ExternalRequireCollisionRule(),
         new ExternalUnusedRule(),
+        new EventCursorMarkerRule(),
         new InvalidShareableUsageRule(),
         new IsInvalidFieldTypeRule(),
         new IsInvalidSyntaxRule(),
         new IsInvalidUsageRule(),
         new KeyDirectiveInFieldsArgumentRule(),
-        new KeyFieldsHasArgumentsRule(),
         new KeyFieldsSelectInvalidTypeRule(),
+        new KeyInvalidArgumentsRule(),
         new KeyInvalidFieldsTypeRule(),
         new KeyInvalidSyntaxRule(),
+        new LookupMustHaveArgumentsRule(),
         new LookupReturnsListRule(),
         new LookupReturnsNonNullableTypeRule(),
         new OverrideFromSelfRule(),
@@ -161,7 +175,9 @@ public sealed class SchemaComposer
         new RequireInvalidSyntaxRule(),
         new RootMutationUsedRule(),
         new RootQueryUsedRule(),
-        new RootSubscriptionUsedRule()
+        new RootSubscriptionUsedRule(),
+        new EventStreamMessageInvalidFieldsRule(),
+        new EventStreamTopicsEmptyRule()
     ];
 
     private static readonly ImmutableArray<object> s_preMergeRules =
@@ -179,6 +195,7 @@ public sealed class SchemaComposer
         new InputWithMissingRequiredFieldsRule(),
         new InputWithMissingOneOfRule(),
         new InvalidFieldSharingRule(),
+        new MultipleEventStreamSourcesRule(),
         new OutputFieldTypesMergeableRule(),
         new SpecifiedByUrlMismatchRule(),
         new TypeKindMismatchRule()
@@ -192,6 +209,7 @@ public sealed class SchemaComposer
         new EmptyMergedObjectTypeRule(),
         new EmptyMergedUnionTypeRule(),
         new EnumTypeDefaultValueInaccessibleRule(),
+        new EventStreamMessageAbstractTypeRequiresTypeNameRule(),
         new ImplementedByInaccessibleRule(),
         new InterfaceFieldNoImplementationRule(),
         new IsInvalidFieldsRule(),

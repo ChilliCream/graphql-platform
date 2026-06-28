@@ -10,7 +10,7 @@ namespace HotChocolate.Fusion.Rewriters;
 public sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStaticallyExcludedSelections = false)
 {
     private static readonly FieldNode s_typeNameField =
-        new FieldNode(
+        new(
             null,
             new NameNode(IntrospectionFieldNames.TypeName),
             null,
@@ -46,15 +46,13 @@ public sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStatic
         ITypeDefinition type,
         Dictionary<string, FragmentDefinitionNode>? fragmentLookup)
     {
-        var context = new Context(null, null, type, null, fragmentLookup ?? []);
+        var context = new Context(null, null, null, type, null, null, fragmentLookup ?? []);
 
         CollectSelections(selectionSetNode, context);
 
         var newSelections = RewriteSelections(context) ?? [s_typeNameField];
 
-        var newSelectionSetNode = new SelectionSetNode(newSelections);
-
-        return newSelectionSetNode;
+        return new SelectionSetNode(newSelections);
     }
 
     #region Collecting
@@ -87,7 +85,7 @@ public sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStatic
 
     private void CollectField(FieldNode fieldNode, Context context)
     {
-        var (conditional, directives) = DivideDirectives(
+        var (conditional, _, directives) = DivideDirectives(
             fieldNode,
             Types.DirectiveLocation.Field);
 
@@ -135,7 +133,7 @@ public sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStatic
             ? schema.Types[inlineFragment.TypeCondition.Name.Value]
             : context.Type;
 
-        var (conditional, directives) = DivideDirectives(
+        var (conditional, defer, directives) = DivideDirectives(
             inlineFragment,
             Types.DirectiveLocation.InlineFragment);
 
@@ -143,6 +141,7 @@ public sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStatic
             inlineFragment.SelectionSet,
             typeCondition,
             conditional,
+            defer,
             directives,
             context);
     }
@@ -152,7 +151,7 @@ public sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStatic
         var fragmentDefinition = context.GetFragmentDefinition(fragmentSpread.Name.Value);
         var typeCondition = schema.Types[fragmentDefinition.TypeCondition.Name.Value];
 
-        var (conditional, directives) = DivideDirectives(
+        var (conditional, defer, directives) = DivideDirectives(
             fragmentSpread,
             Types.DirectiveLocation.InlineFragment);
 
@@ -160,6 +159,7 @@ public sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStatic
             fragmentDefinition.SelectionSet,
             typeCondition,
             conditional,
+            defer,
             directives,
             context);
     }
@@ -168,6 +168,7 @@ public sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStatic
         SelectionSetNode selectionSet,
         ITypeDefinition typeCondition,
         Conditional? conditional,
+        Defer? defer,
         IReadOnlyList<DirectiveNode>? otherDirectives,
         Context context)
     {
@@ -182,6 +183,11 @@ public sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStatic
             {
                 context = context.GetOrAddConditionalContext(conditional);
             }
+        }
+
+        if (defer is not null)
+        {
+            context = context.AddDeferContext(defer);
         }
 
         var isTypeRefinement = !typeCondition.IsAssignableFrom(context.Type);
@@ -205,6 +211,51 @@ public sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStatic
 
     private static Context? GetOrAddContextForField(Context context, FieldNode fieldNode, ITypeDefinition? fieldType)
     {
+        if (context.IsDeferContext)
+        {
+            // Walk the full ancestor chain (through defer/conditional scopes, up to and
+            // including the nearest non-scope ancestor) and check whether any of them
+            // already contains the field.
+            var ancestor = context.Parent;
+            while (ancestor is not null)
+            {
+                if (ancestor.HasField(fieldNode, out var ancestorFieldContext))
+                {
+                    if (fieldNode.SelectionSet is null)
+                    {
+                        return null;
+                    }
+
+                    if (ancestorFieldContext is null)
+                    {
+                        throw new InvalidOperationException("Expected to have a field context");
+                    }
+
+                    var deferredContextBelowAncestorFieldContext =
+                        RecreateScopeHierarchy(ancestorFieldContext, context, ancestor);
+
+                    return deferredContextBelowAncestorFieldContext;
+                }
+
+                if (!ancestor.IsConditionalContext && !ancestor.IsDeferContext)
+                {
+                    // The non-scope boundary has been checked. Stop walking.
+                    break;
+                }
+
+                ancestor = ancestor.Parent;
+            }
+
+            if (!context.HasField(fieldNode, out var fieldContext))
+            {
+                fieldContext = context.AddField(fieldNode, fieldType);
+
+                context.NonDeferredContext.RecordReferenceInDeferContext(fieldNode, context);
+            }
+
+            return fieldContext;
+        }
+
         if (context.IsConditionalContext)
         {
             var unconditionalContext = context.UnconditionalContext;
@@ -222,7 +273,7 @@ public sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStatic
                 }
 
                 var conditionalContextBelowUnconditionalFieldContext =
-                    RecreateConditionalContextHierarchy(unconditionalFieldContext, context);
+                    RecreateScopeHierarchy(unconditionalFieldContext, context, unconditionalContext);
 
                 return conditionalContextBelowUnconditionalFieldContext;
             }
@@ -232,6 +283,28 @@ public sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStatic
                 fieldContext = context.AddField(fieldNode, fieldType);
 
                 unconditionalContext.RecordReferenceInConditionalContext(fieldNode, context);
+            }
+
+            // Even though this is a conditional context, defer back-refs may have been
+            // registered here when a nested defer's NonDeferredContext was this conditional.
+            if (context.TryGetDeferContextsWithReferences(fieldNode, out var deferContextsInConditional))
+            {
+                foreach (var deferContext in deferContextsInConditional)
+                {
+                    if (fieldContext is not null
+                        && deferContext.HasField(fieldNode, out var deferFieldContext)
+                        && deferFieldContext is not null)
+                    {
+                        var deferContextBelowField =
+                            RecreateScopeHierarchy(fieldContext, deferContext, context);
+
+                        MergeContexts(deferFieldContext, deferContextBelowField);
+                    }
+
+                    deferContext.RemoveField(fieldNode);
+                }
+
+                context.RemoveReferenceToDeferContext(fieldNode);
             }
 
             return fieldContext;
@@ -252,7 +325,7 @@ public sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStatic
                         && conditionalFieldContext is not null)
                     {
                         var conditionalContextBelowUnconditionalField =
-                            RecreateConditionalContextHierarchy(fieldContext, conditionalContext);
+                            RecreateScopeHierarchy(fieldContext, conditionalContext, context);
 
                         MergeContexts(conditionalFieldContext, conditionalContextBelowUnconditionalField);
                     }
@@ -261,6 +334,26 @@ public sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStatic
                 }
 
                 context.RemoveReferenceToConditionalContext(fieldNode);
+            }
+
+            if (context.TryGetDeferContextsWithReferences(fieldNode, out var deferContexts))
+            {
+                foreach (var deferContext in deferContexts)
+                {
+                    if (fieldContext is not null
+                        && deferContext.HasField(fieldNode, out var deferFieldContext)
+                        && deferFieldContext is not null)
+                    {
+                        var deferContextBelowField =
+                            RecreateScopeHierarchy(fieldContext, deferContext, context);
+
+                        MergeContexts(deferFieldContext, deferContextBelowField);
+                    }
+
+                    deferContext.RemoveField(fieldNode);
+                }
+
+                context.RemoveReferenceToDeferContext(fieldNode);
             }
 
             return fieldContext;
@@ -272,6 +365,37 @@ public sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStatic
         InlineFragmentNode inlineFragmentNode,
         ITypeDefinition typeCondition)
     {
+        if (context.IsDeferContext)
+        {
+            var ancestor = context.Parent;
+            while (ancestor is not null)
+            {
+                if (ancestor.HasFragment(inlineFragmentNode, out var ancestorFragmentContext))
+                {
+                    var deferredContextBelowAncestorFragmentContext =
+                        RecreateScopeHierarchy(ancestorFragmentContext, context, ancestor);
+
+                    return deferredContextBelowAncestorFragmentContext;
+                }
+
+                if (!ancestor.IsConditionalContext && !ancestor.IsDeferContext)
+                {
+                    break;
+                }
+
+                ancestor = ancestor.Parent;
+            }
+
+            if (!context.HasFragment(inlineFragmentNode, out var fragmentContext))
+            {
+                fragmentContext = context.AddFragment(inlineFragmentNode, typeCondition);
+
+                context.NonDeferredContext.RecordReferenceInDeferContext(inlineFragmentNode, context);
+            }
+
+            return fragmentContext;
+        }
+
         if (context.IsConditionalContext)
         {
             var unconditionalContext = context.UnconditionalContext;
@@ -279,7 +403,7 @@ public sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStatic
             if (unconditionalContext.HasFragment(inlineFragmentNode, out var unconditionalFragmentContext))
             {
                 var conditionalContextBelowUnconditionalFragmentContext =
-                    RecreateConditionalContextHierarchy(unconditionalFragmentContext, context);
+                    RecreateScopeHierarchy(unconditionalFragmentContext, context, unconditionalContext);
 
                 return conditionalContextBelowUnconditionalFragmentContext;
             }
@@ -289,6 +413,27 @@ public sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStatic
                 fragmentContext = context.AddFragment(inlineFragmentNode, typeCondition);
 
                 unconditionalContext.RecordReferenceInConditionalContext(inlineFragmentNode, context);
+            }
+
+            // Even though this is a conditional context, defer back-refs may have been
+            // registered here when a nested defer's NonDeferredContext was this conditional.
+            if (context.TryGetDeferContextsWithReferences(inlineFragmentNode, out var deferContextsInConditional))
+            {
+                foreach (var deferContext in deferContextsInConditional)
+                {
+                    if (deferContext.HasFragment(inlineFragmentNode,
+                        out var deferFragmentContext))
+                    {
+                        var deferContextBelowFragment =
+                            RecreateScopeHierarchy(fragmentContext, deferContext, context);
+
+                        MergeContexts(deferFragmentContext, deferContextBelowFragment);
+                    }
+
+                    deferContext.RemoveFragment(inlineFragmentNode);
+                }
+
+                context.RemoveReferenceToDeferContext(inlineFragmentNode);
             }
 
             return fragmentContext;
@@ -308,7 +453,7 @@ public sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStatic
                         out var conditionalFragmentContext))
                     {
                         var conditionalContextBelowUnconditionalFragment =
-                            RecreateConditionalContextHierarchy(fragmentContext, conditionalContext);
+                            RecreateScopeHierarchy(fragmentContext, conditionalContext, context);
 
                         MergeContexts(conditionalFragmentContext, conditionalContextBelowUnconditionalFragment);
                     }
@@ -319,28 +464,59 @@ public sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStatic
                 context.RemoveReferenceToConditionalContext(inlineFragmentNode);
             }
 
+            if (context.TryGetDeferContextsWithReferences(inlineFragmentNode, out var deferContexts))
+            {
+                foreach (var deferContext in deferContexts)
+                {
+                    if (deferContext.HasFragment(inlineFragmentNode,
+                        out var deferFragmentContext))
+                    {
+                        var deferContextBelowFragment =
+                            RecreateScopeHierarchy(fragmentContext, deferContext, context);
+
+                        MergeContexts(deferFragmentContext, deferContextBelowFragment);
+                    }
+
+                    deferContext.RemoveFragment(inlineFragmentNode);
+                }
+
+                context.RemoveReferenceToDeferContext(inlineFragmentNode);
+            }
+
             return fragmentContext;
         }
     }
 
     /// <summary>
-    /// Rebuilds the conditional directive hierarchy of <paramref name="sourceContext"/> into
-    /// <paramref name="targetContext"/>, returning the innermost, rebuilt conditional context.
+    /// Rebuilds the conditional and defer scope hierarchy of <paramref name="sourceContext"/>
+    /// up to (but not including) <paramref name="boundary"/> into <paramref name="targetContext"/>,
+    /// returning the innermost rebuilt scope context. Each defer layer becomes a fresh defer
+    /// context (defers do not merge); each conditional layer is reused or created via the
+    /// existing conditional dictionary on the target.
     /// </summary>
-    private static Context RecreateConditionalContextHierarchy(Context targetContext, Context sourceContext)
+    private static Context RecreateScopeHierarchy(Context targetContext, Context sourceContext, Context boundary)
     {
-        var conditionalStack = new Stack<Context>();
+        var stack = new Stack<Context>();
         var current = sourceContext;
 
-        while (current?.IsConditionalContext == true)
+        while (current is not null
+            && !ReferenceEquals(current, boundary)
+            && (current.IsConditionalContext || current.IsDeferContext))
         {
-            conditionalStack.Push(current);
+            stack.Push(current);
             current = current.Parent;
         }
 
-        while (conditionalStack.TryPop(out var conditionalContext))
+        while (stack.TryPop(out var scopeContext))
         {
-            targetContext = targetContext.GetOrAddConditionalContext(conditionalContext.Conditional!);
+            if (scopeContext.IsConditionalContext)
+            {
+                targetContext = targetContext.GetOrAddConditionalContext(scopeContext.Conditional);
+            }
+            else if (scopeContext.IsDeferContext)
+            {
+                targetContext = targetContext.AddDeferContext(scopeContext.Defer);
+            }
         }
 
         return targetContext;
@@ -355,6 +531,16 @@ public sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStatic
                 var targetConditionalContext = target.GetOrAddConditionalContext(conditional);
 
                 MergeContexts(conditionalContext, targetConditionalContext);
+            }
+        }
+
+        if (source.Defers is not null)
+        {
+            foreach (var deferContext in source.Defers)
+            {
+                var targetDeferContext = target.AddDeferContext(deferContext.Defer!);
+
+                MergeContexts(deferContext, targetDeferContext);
             }
         }
 
@@ -397,16 +583,17 @@ public sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStatic
         }
     }
 
-    private (Conditional? Conditional, IReadOnlyList<DirectiveNode>? Directives) DivideDirectives(
+    private (Conditional? Conditional, Defer? Defer, IReadOnlyList<DirectiveNode>? Directives) DivideDirectives(
         IHasDirectives directiveProvider,
         Types.DirectiveLocation targetLocation)
     {
         if (directiveProvider.Directives.Count == 0)
         {
-            return (null, null);
+            return (null, null, null);
         }
 
         Conditional? conditional = null;
+        Defer? defer = null;
         List<DirectiveNode>? directives = null;
 
         foreach (var directive in directiveProvider.Directives)
@@ -447,20 +634,51 @@ public sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStatic
 
             if (directive.Name.Value.Equals(DirectiveNames.Defer.Name, StringComparison.Ordinal))
             {
-                var ifArgument = directive.Arguments
-                    .FirstOrDefault(a => a.Name.Value.Equals("if", StringComparison.Ordinal));
+                StringValueNode? label = null;
+                IValueNode? ifValue = null;
+                var dropDirective = false;
 
-                if (ifArgument?.Value is BooleanValueNode { Value: false })
+                foreach (var argument in directive.Arguments)
+                {
+                    if (argument.Name.Value.Equals(DirectiveNames.Defer.Arguments.If, StringComparison.Ordinal))
+                    {
+                        if (argument.Value is BooleanValueNode { Value: false })
+                        {
+                            dropDirective = true;
+                            break;
+                        }
+
+                        if (argument.Value is BooleanValueNode { Value: true })
+                        {
+                            // Canonicalize: @defer(if: true) keeps its identity but the
+                            // redundant `if` argument is dropped from the emitted directive.
+                            continue;
+                        }
+
+                        ifValue = argument.Value;
+                    }
+                    else if (argument.Name.Value.Equals(DirectiveNames.Defer.Arguments.Label, StringComparison.Ordinal)
+                        && argument.Value is StringValueNode labelValue)
+                    {
+                        label = labelValue;
+                    }
+                }
+
+                if (dropDirective)
                 {
                     continue;
                 }
+
+                defer = new Defer { Label = label, If = ifValue };
+
+                continue;
             }
 
             directives ??= [];
             directives.Add(rewrittenDirective);
         }
 
-        return (conditional, directives);
+        return (conditional, defer, directives);
     }
 
     /// <summary>
@@ -651,6 +869,22 @@ public sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStatic
             }
         }
 
+        if (context.Defers is not null)
+        {
+            foreach (var deferContext in context.Defers)
+            {
+                var deferSelection = RewriteDeferred(deferContext);
+
+                if (deferSelection is null)
+                {
+                    continue;
+                }
+
+                selections ??= [];
+                selections.Add(deferSelection);
+            }
+        }
+
         return selections;
     }
 
@@ -682,6 +916,32 @@ public sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStatic
                 conditionalDirectives.ToArray(),
                 new SelectionSetNode(conditionalSelections))
         };
+    }
+
+    private InlineFragmentNode? RewriteDeferred(Context deferContext)
+    {
+        var deferSelections = RewriteSelections(deferContext);
+
+        if (deferSelections is null)
+        {
+            return null;
+        }
+
+        var deferDirective = deferContext.Defer!.ToDirective();
+
+        // If we only have a single type-refining inline fragment without other directives,
+        // we can push the @defer directive down onto it. @defer is only valid on fragments,
+        // so we never push it onto a FieldNode.
+        if (deferSelections is [InlineFragmentNode { Directives.Count: 0 } inlineFragmentNode])
+        {
+            return inlineFragmentNode.WithDirectives([deferDirective]);
+        }
+
+        return new InlineFragmentNode(
+            null,
+            null,
+            [deferDirective],
+            new SelectionSetNode(deferSelections));
     }
 
     private FieldNode? RewriteField(
@@ -782,12 +1042,15 @@ public sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStatic
     #endregion
 
     [DebuggerDisplay(
-        "{Type.Name}, Fields: {Fields?.Count}, Fragments: {Fragments?.Count}, Conditionals: {Conditionals?.Count}")]
+        "{Type.Name}, Fields: {Fields?.Count}, Fragments: {Fragments?.Count}, "
+        + "Conditionals: {Conditionals?.Count}, Defers: {Defers?.Count}")]
     private sealed class Context(
         Context? parent,
         Context? unconditionalContext,
+        Context? nonDeferredContext,
         ITypeDefinition type,
         Conditional? conditional,
+        Defer? defer,
         Dictionary<string, FragmentDefinitionNode> fragmentLookup)
     {
         /// <summary>
@@ -826,6 +1089,32 @@ public sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStatic
         /// </summary>
         private Dictionary<ISelectionNode, List<Context>>? ReferencesInConditionalContexts { get; set; }
 
+        [MemberNotNullWhen(true, nameof(Defer))]
+        [MemberNotNullWhen(true, nameof(NonDeferredContext))]
+        public bool IsDeferContext { get; } = defer is not null;
+
+        /// <summary>
+        /// Contains the defer, if this context is a defer context.
+        /// </summary>
+        public Defer? Defer { get; } = defer;
+
+        /// <summary>
+        /// If this context is a defer context, this points to the nearest enclosing
+        /// context that is not itself a defer (the transitive non-defer ancestor).
+        /// </summary>
+        public Context? NonDeferredContext { get; } = nonDeferredContext;
+
+        /// <summary>
+        /// The contexts for each <see cref="DocumentRewriter.Defer"/> occurrence.
+        /// Each occurrence produces a distinct entry; defers are never merged by identity.
+        /// </summary>
+        public List<Context>? Defers { get; private set; }
+
+        /// <summary>
+        /// Provides a way to find all defer contexts a given selection node is referenced in.
+        /// </summary>
+        private Dictionary<ISelectionNode, List<Context>>? ReferencesInDeferContexts { get; set; }
+
         /// <summary>
         /// Provides a fast way to get all FieldNodes for the same response name.
         /// The key is the response name.
@@ -851,8 +1140,10 @@ public sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStatic
                 conditionalContext = new Context(
                     this,
                     GetUnconditionalContext(),
+                    GetNonDeferredContext(),
                     Type,
                     conditional,
+                    null,
                     fragmentLookup);
 
                 Conditionals[conditional] = conditionalContext;
@@ -861,14 +1152,30 @@ public sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStatic
             return conditionalContext;
         }
 
+        public Context AddDeferContext(Defer defer)
+        {
+            var deferContext = new Context(
+                this,
+                GetUnconditionalContext(),
+                GetNonDeferredContext(),
+                Type,
+                null,
+                defer,
+                fragmentLookup);
+
+            Defers ??= [];
+            Defers.Add(deferContext);
+
+            return deferContext;
+        }
+
         /// <summary>
         /// Records that <paramref name="selectionNode"/> is referenced in <paramref name="conditionalContext"/>,
         /// so we can later quickly jump there.
         /// </summary>
         public void RecordReferenceInConditionalContext(ISelectionNode selectionNode, Context conditionalContext)
         {
-            ReferencesInConditionalContexts ??=
-                new Dictionary<ISelectionNode, List<Context>>(SyntaxNodeComparer.Instance);
+            ReferencesInConditionalContexts ??= new(SyntaxNodeComparer.Instance);
 
             if (!ReferencesInConditionalContexts.TryGetValue(selectionNode, out var conditionalContexts))
             {
@@ -895,12 +1202,43 @@ public sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStatic
 
         public void RemoveReferenceToConditionalContext(ISelectionNode selectionNode)
         {
-            if (ReferencesInConditionalContexts is null)
+            ReferencesInConditionalContexts?.Remove(selectionNode);
+        }
+
+        /// <summary>
+        /// Records that <paramref name="selectionNode"/> is referenced in <paramref name="deferContext"/>,
+        /// so we can later quickly jump there.
+        /// </summary>
+        public void RecordReferenceInDeferContext(ISelectionNode selectionNode, Context deferContext)
+        {
+            ReferencesInDeferContexts ??= new(SyntaxNodeComparer.Instance);
+
+            if (!ReferencesInDeferContexts.TryGetValue(selectionNode, out var deferContexts))
             {
-                return;
+                deferContexts = [];
+                ReferencesInDeferContexts[selectionNode] = deferContexts;
             }
 
-            ReferencesInConditionalContexts.Remove(selectionNode);
+            deferContexts.Add(deferContext);
+        }
+
+        public bool TryGetDeferContextsWithReferences(
+            ISelectionNode selectionNode,
+            [NotNullWhen(true)] out List<Context>? deferContexts)
+        {
+            deferContexts = null;
+
+            if (ReferencesInDeferContexts is null)
+            {
+                return false;
+            }
+
+            return ReferencesInDeferContexts.TryGetValue(selectionNode, out deferContexts);
+        }
+
+        public void RemoveReferenceToDeferContext(ISelectionNode selectionNode)
+        {
+            ReferencesInDeferContexts?.Remove(selectionNode);
         }
 
         public bool HasField(FieldNode fieldNode, out Context? fieldContext)
@@ -931,7 +1269,9 @@ public sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStatic
                 fieldContext = new Context(
                     this,
                     GetUnconditionalContext(),
+                    GetNonDeferredContext(),
                     fieldType,
+                    null,
                     null,
                     fragmentLookup);
             }
@@ -949,7 +1289,7 @@ public sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStatic
 
             if (!Fields.TryGetValue(responseName, out var existingFieldContextLookup))
             {
-                existingFieldContextLookup = new Dictionary<FieldNode, Context?>(FieldNodeComparer.Instance);
+                existingFieldContextLookup = new(FieldNodeComparer.Instance);
                 Fields[responseName] = existingFieldContextLookup;
             }
 
@@ -999,7 +1339,9 @@ public sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStatic
             var fragmentContext = new Context(
                 this,
                 GetUnconditionalContext(),
+                GetNonDeferredContext(),
                 typeCondition,
+                null,
                 null,
                 fragmentLookup);
 
@@ -1016,8 +1358,7 @@ public sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStatic
 
             if (!Fragments.TryGetValue(typeName, out var existingFragmentContextLookup))
             {
-                existingFragmentContextLookup =
-                    new Dictionary<InlineFragmentNode, Context>(InlineFragmentNodeComparer.Instance);
+                existingFragmentContextLookup = new(InlineFragmentNodeComparer.Instance);
                 Fragments[typeName] = existingFragmentContextLookup;
             }
 
@@ -1046,6 +1387,16 @@ public sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStatic
             if (IsConditionalContext)
             {
                 return UnconditionalContext;
+            }
+
+            return this;
+        }
+
+        private Context GetNonDeferredContext()
+        {
+            if (IsDeferContext)
+            {
+                return NonDeferredContext;
             }
 
             return this;
@@ -1120,6 +1471,40 @@ public sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStatic
         }
     }
 
+    /// <summary>
+    /// Represents a single occurrence of <c>@defer</c>. Defer instances are identity-bearing
+    /// data carriers without structural equality; sibling defers are never merged.
+    /// </summary>
+    private sealed class Defer
+    {
+        public StringValueNode? Label { get; init; }
+
+        /// <summary>
+        /// The <c>if</c> argument of the directive, or <c>null</c> when the defer is
+        /// unconditional. <c>@defer(if: true)</c> is canonicalized to <c>null</c>.
+        /// </summary>
+        public IValueNode? If { get; init; }
+
+        public DirectiveNode ToDirective()
+        {
+            List<ArgumentNode>? arguments = null;
+
+            if (If is not null)
+            {
+                arguments ??= [];
+                arguments.Add(new ArgumentNode(DirectiveNames.Defer.Arguments.If, If));
+            }
+
+            if (Label is not null)
+            {
+                arguments ??= [];
+                arguments.Add(new ArgumentNode(DirectiveNames.Defer.Arguments.Label, Label));
+            }
+
+            return new DirectiveNode(DirectiveNames.Defer.Name, arguments?.ToArray() ?? []);
+        }
+    }
+
     #region Comparers
 
     private sealed class SyntaxNodeComparer : IEqualityComparer<ISyntaxNode>
@@ -1180,7 +1565,7 @@ public sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStatic
                 && Equals(x.Directives, y.Directives);
         }
 
-        private bool Equals(IReadOnlyList<ISyntaxNode> a, IReadOnlyList<ISyntaxNode> b)
+        private static bool Equals(IReadOnlyList<ISyntaxNode> a, IReadOnlyList<ISyntaxNode> b)
         {
             if (a.Count == 0 && b.Count == 0)
             {
@@ -1235,7 +1620,7 @@ public sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStatic
                 && Equals(x.Arguments, y.Arguments);
         }
 
-        private bool Equals(IReadOnlyList<ISyntaxNode> a, IReadOnlyList<ISyntaxNode> b)
+        private static bool Equals(IReadOnlyList<ISyntaxNode> a, IReadOnlyList<ISyntaxNode> b)
         {
             if (a.Count == 0 && b.Count == 0)
             {

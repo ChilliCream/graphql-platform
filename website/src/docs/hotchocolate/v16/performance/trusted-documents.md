@@ -37,8 +37,8 @@ The server can be configured to [only execute persisted operations](#blocking-re
 Instruct your server to handle persisted operations by calling `UsePersistedOperationPipeline()` on the `IRequestExecutorBuilder`:
 
 ```csharp
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddQueryType<Query>()
     .UsePersistedOperationPipeline();
 ```
@@ -64,8 +64,8 @@ To load persisted operation documents from the filesystem, add the following pac
 Specify where the persisted operation documents are located. The argument to `AddFileSystemOperationDocumentStorage()` specifies the directory containing the operation documents.
 
 ```csharp
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddQueryType<Query>()
     .UsePersistedOperationPipeline()
     .AddFileSystemOperationDocumentStorage("./persisted_operations");
@@ -88,8 +88,8 @@ To load persisted operation documents from Redis, add the following package:
 Specify where the persisted operation documents are located. Using `AddRedisOperationDocumentStorage()`, point to a specific Redis database containing the operation documents.
 
 ```csharp
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddQueryType<Query>()
     .UsePersistedOperationPipeline()
     .AddRedisOperationDocumentStorage(services =>
@@ -109,8 +109,8 @@ Specify where the persisted operation documents are located. Using `AddAzureBlob
 > Important: The Azure Blob Storage container must already exist when Hot Chocolate uses it for the first time.
 
 ```csharp
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddQueryType<Query>()
     .UsePersistedOperationPipeline()
     .AddAzureBlobStorageOperationDocumentStorage(services =>
@@ -149,8 +149,8 @@ Unlike Redis, a Blob Storage client has no built-in way to set the expiration of
 By default, Hot Chocolate uses the MD5 hashing algorithm. You can override this default by specifying a `DocumentHashProvider`:
 
 ```csharp
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddQueryType<Query>()
     // choose one of the following providers
     .AddMD5DocumentHashProvider()
@@ -174,8 +174,8 @@ AddSha256DocumentHashProvider(HashFormat.Base64)
 If you want to disallow any dynamic operations, enable `OnlyAllowPersistedDocuments`:
 
 ```csharp
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     // Omitted for brevity
     .ModifyRequestOptions(
         options => options
@@ -188,8 +188,8 @@ This blocks any dynamic operations that do not contain the `id` of a persisted o
 You might still want to allow the execution of dynamic operations in certain circumstances. Override the `OnlyAllowPersistedDocuments` rule on a per-request basis using the `AllowNonPersistedOperation` method on the `OperationRequestBuilder`. Implement a custom [IHttpRequestInterceptor](/docs/hotchocolate/v16/server/interceptors#ihttprequestinterceptor) and call `AllowNonPersistedOperation` if a certain condition is met:
 
 ```csharp
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     // Omitted for brevity
     .AddHttpRequestInterceptor<CustomHttpRequestInterceptor>()
     .ModifyRequestOptions(

@@ -33,7 +33,6 @@ public partial class SchemaBuilder : ISchemaBuilder
         typeInterceptors.TryAdd(new IntrospectionTypeInterceptor());
         typeInterceptors.TryAdd(new InterfaceCompletionTypeInterceptor());
         typeInterceptors.TryAdd(new MiddlewareValidationTypeInterceptor());
-        typeInterceptors.TryAdd(new SemanticNonNullTypeInterceptor());
         typeInterceptors.TryAdd(new StoreGlobalPagingOptionsTypeInterceptor());
         typeInterceptors.TryAdd(new StoreGlobalSchemaOptionsTypeInterceptor());
         typeInterceptors.TryAdd(new OptInFeaturesTypeInterceptor());

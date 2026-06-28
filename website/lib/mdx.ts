@@ -15,6 +15,7 @@ import rehypeRaw from "rehype-raw";
 const BLOCK_COMPONENTS = [
   "video",
   "packageinstallation",
+  "photogrid",
   "surveyprompt",
   "exampletabs",
   "inputchoicetabs",
@@ -239,7 +240,7 @@ const rehypePlugins = [
     rehypeExternalLinks,
     {
       target: "_blank",
-      rel: ["noopener", "noreferrer"],
+      rel: ["noopener", "noreferrer", "nofollow"],
     },
   ],
 ] as any;
@@ -257,6 +258,8 @@ const DOTTED_COMPONENT_MAP: Record<string, string> = {
   "InputChoiceTabs.VisualStudio": "InputChoiceTabs-VisualStudio",
   "ApiChoiceTabs.MinimalApis": "ApiChoiceTabs-MinimalApis",
   "ApiChoiceTabs.Regular": "ApiChoiceTabs-Regular",
+  "PipelineChoiceTabs.GitHubAction": "PipelineChoiceTabs-GitHubAction",
+  "PipelineChoiceTabs.CLI": "PipelineChoiceTabs-CLI",
 };
 
 // Convert self-closing custom component tags to explicit open+close pairs.
@@ -354,8 +357,13 @@ export function extractHeadings(
 }
 
 // Resolve relative image paths in markdown to absolute URLs.
-// Images in src/docs/ are copied to public/docs/, images in src/images/ are in public/images/.
-function resolveImagePaths(source: string, originPath: string): string {
+// Images in src/docs/ are copied to public/docs/, images in src/blog/ are copied
+// to public/images/blog/, and images in src/images/ are served from public/images/.
+function resolveImagePaths(
+  source: string,
+  originPath: string,
+  baseUrl = "/docs/"
+): string {
   const docDir = path.dirname(originPath); // e.g. "hotchocolate/v15"
 
   return source.replace(
@@ -365,31 +373,36 @@ function resolveImagePaths(source: string, originPath: string): string {
         return prefix + imgPath + suffix;
       }
 
-      // Resolve relative path against the doc file's directory within src/docs/
+      // Resolve relative path against the source file's directory
       const resolved = path.normalize(path.join(docDir, imgPath));
 
-      // Check if path escapes out of docs directory (e.g. ../../../images/foo.webp)
+      // Check if path escapes out of the source directory (e.g. ../../../images/foo.webp)
       if (resolved.startsWith("..")) {
-        // Goes above src/docs/ - these are in src/images/ which maps to public/images/
+        // Goes above source dir - these are in src/images/ which maps to public/images/
         // Strip leading "../" segments to get the path relative to src/
         const cleaned = resolved.replace(/^(\.\.\/?)+/, "");
         return prefix + "/" + cleaned + suffix;
       }
 
-      // Path stays within docs directory - served from public/docs/
-      return prefix + "/docs/" + resolved + suffix;
+      // Path stays within source directory - served from the matching public folder
+      return prefix + baseUrl + resolved + suffix;
     }
   );
 }
 
-export async function compileMdxContent(source: string, originPath = "") {
+export async function compileMdxContent(
+  source: string,
+  originPath = "",
+  imageBaseUrl?: string
+) {
   const cleaned = resolveImagePaths(
     fixJsxAttributes(
       expandSelfClosingTags(
         renameCodeComponent(replaceDottedComponents(stripImports(source)))
       )
     ),
-    originPath
+    originPath,
+    imageBaseUrl
   );
 
   try {

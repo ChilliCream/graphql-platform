@@ -2,6 +2,7 @@ using System.Buffers;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.InteropServices;
 using HotChocolate.Buffers;
 using HotChocolate.Execution;
 using HotChocolate.Features;
@@ -23,6 +24,7 @@ namespace HotChocolate.Fusion.Execution;
 public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDisposable
 {
     private static readonly JsonOperationPlanFormatter s_planFormatter = new();
+    private static readonly TimeSpan s_clientScopeMaxAge = TimeSpan.FromHours(4);
     private NodeCompletionSet?[] _nodesToComplete = [];
     private int _dependentBitsetWordCount;
     private string?[] _schemaNames = [];
@@ -32,6 +34,8 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
     private List<IOperationPlanNode>?[] _skippedDefinitions = [];
     private readonly IFusionExecutionDiagnosticEvents _diagnosticEvents;
     private readonly FetchResultStore _resultStore;
+    private ImmutableArray<VariableValues> _requirementValues;
+    private HashSet<string>? _requirementKeys;
     private readonly ExecutionState _executionState;
     private readonly INodeIdParser _nodeIdParser;
     private readonly IErrorHandler _errorHandler;
@@ -39,14 +43,18 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
     private ISourceSchemaClientScope _clientScope = default!;
     private string? _traceId;
     private long _start;
-    private bool _disposed;
+    private long _clientScopeCreatedAt;
+    private int _disposed;
     private int _nodeSlotCapacity;
+    private MemoryArena? _memory;
+    private readonly FixedMemoryArenaSource _memorySource = new();
+    private IMemoryArenaSource _currentMemorySource = default!;
     internal OperationPlanContextPool? _pool;
 
     /// <summary>
     /// Gets the operation plan being executed.
     /// </summary>
-    public OperationPlan OperationPlan { get; private set; } = default!;
+    public IOperationPlan OperationPlan { get; private set; } = default!;
 
     /// <summary>
     /// Gets the coerced variable values for the current request.
@@ -68,6 +76,57 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
     /// </summary>
     public ISourceSchemaClientScope ClientScope => _clientScope;
 
+    /// <summary>
+    /// Gets the memory arena that backs the documents produced during this operation plan execution.
+    /// </summary>
+    internal MemoryArena Memory
+    {
+        get
+        {
+            if (_memory is null)
+            {
+                throw new InvalidOperationException(
+                    "The operation plan context is not associated with a memory arena.");
+            }
+
+            return _memory;
+        }
+    }
+
+    /// <summary>
+    /// Gets the memory arena source for the request-scoped streams produced during this execution.
+    /// The source returns the arena that backs the documents produced during this operation plan
+    /// execution.
+    /// </summary>
+    internal IMemoryArenaSource MemorySource
+    {
+        get
+        {
+            if (_currentMemorySource is null)
+            {
+                throw new InvalidOperationException(
+                    "The operation plan context is not associated with a memory arena.");
+            }
+
+            return _currentMemorySource;
+        }
+    }
+
+    internal void SetActiveEventArena(IMemoryArena eventArena)
+    {
+        ArgumentNullException.ThrowIfNull(eventArena);
+        var memory = _memory = (MemoryArena)eventArena;
+        _memorySource.Set(memory);
+        _resultStore.Reset(memory);
+        _currentMemorySource = _memorySource;
+    }
+
+    internal void SetActiveEventArenaSource(IMemoryArenaSource eventArenaSource)
+    {
+        ArgumentNullException.ThrowIfNull(eventArenaSource);
+        _currentMemorySource = eventArenaSource;
+    }
+
     internal ExecutionState ExecutionState => _executionState;
 
     internal bool IsNodeSkipped(int nodeId)
@@ -77,6 +136,11 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
     /// Gets the evaluated include flags derived from <c>@skip</c> and <c>@include</c> directives.
     /// </summary>
     public ulong IncludeFlags { get; private set; }
+
+    /// <summary>
+    /// Gets the evaluated defer flags derived from <c>@defer</c> directives.
+    /// </summary>
+    public ulong DeferFlags { get; private set; }
 
     /// <summary>
     /// Gets a value indicating whether operation plan telemetry is being collected for this request.
@@ -121,7 +185,7 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
     internal ImmutableArray<ExecutionNode> GetDependentsToExecute(ExecutionNode node)
     {
         var nodeCompletionSet = _nodesToComplete[node.Id];
-        return nodeCompletionSet?.GetSnapshot() ?? [];
+        return nodeCompletionSet?.GetSnapshot() ?? default;
     }
 
     internal void TrackSkippedDefinition(ExecutionNode node, IOperationPlanNode skippedDefinition)
@@ -141,7 +205,20 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
     internal ImmutableArray<IOperationPlanNode> GetSkippedDefinitions(ExecutionNode node)
     {
         var list = _skippedDefinitions[node.Id];
-        return list is null or { Count: 0 } ? [] : [.. list];
+
+        if (list is null or { Count: 0 })
+        {
+            return [];
+        }
+
+        var array = new IOperationPlanNode[list.Count];
+
+        for (var i = 0; i < list.Count; i++)
+        {
+            array[i] = list[i];
+        }
+
+        return ImmutableCollectionsMarshal.AsImmutableArray(array);
     }
 
     internal void SetDynamicSchemaName(ExecutionNode node, string schemaName)
@@ -193,15 +270,15 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
         return variableValueSets.IsDefault ? [] : variableValueSets;
     }
 
-    internal void TrackSourceSchemaClientResponse(ExecutionNode node, SourceSchemaClientResponse result)
+    internal void TrackTransport(ExecutionNode node, Uri? uri, string? contentType)
     {
         if (!CollectTelemetry)
         {
             return;
         }
 
-        _transportUris[node.Id] = result.Uri;
-        _transportContentTypes[node.Id] = result.ContentType;
+        _transportUris[node.Id] = uri;
+        _transportContentTypes[node.Id] = contentType;
     }
 
     internal (Uri? Uri, string? ContentType) GetTransportDetails(ExecutionNode node)
@@ -216,6 +293,9 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
 
     internal void CompleteNode(ExecutionNodeResult result)
         => _executionState.EnqueueForCompletion(result);
+
+    internal void EnqueuePendingMerge(PendingMerge merge)
+        => _executionState.EnqueueMerge(merge);
 
     internal ImmutableArray<VariableValues> CreateVariableValueSets(
         SelectionPath selectionSet,
@@ -241,8 +321,34 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
         }
         else
         {
-            var variableValues = GetPathThroughVariables(forwardedVariables);
-            return _resultStore.CreateVariableValueSets(selectionSet, variableValues, requirements);
+            var importedMatchCount = CountImportedRequirementKeys(requirements);
+
+            if (importedMatchCount == 0)
+            {
+                var variableValues = GetPathThroughVariables(forwardedVariables);
+                return _resultStore.CreateVariableValueSets(selectionSet, variableValues, requirements);
+            }
+
+            if (importedMatchCount != requirements.Length)
+            {
+                // Planner-invariant guard. CollectParentScopeRequirements makes _requirementKeys
+                // the union of every parent-dependent node's full requirement list, so a single
+                // node's requirements are either all imported or none imported. A partial overlap
+                // means the planner produced a shape this routing layer is not built to handle.
+                throw CreateMixedScopeException(requirements);
+            }
+
+            if (forwardedVariables.Length == 0 && requirements.Length == _requirementKeys!.Count)
+            {
+                return _requirementValues;
+            }
+
+            var variableValuesFromSnapshot = GetPathThroughVariables(forwardedVariables);
+            return _resultStore.CreateVariableValueSetsFromSnapshot(
+                _requirementValues,
+                _requirementKeys!,
+                variableValuesFromSnapshot,
+                requirements);
         }
     }
 
@@ -263,9 +369,124 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
         }
         else
         {
-            var variableValues = GetPathThroughVariables(forwardedVariables);
-            return _resultStore.CreateVariableValueSets(selectionSets, variableValues, requiredData);
+            var importedMatchCount = CountImportedRequirementKeys(requiredData);
+
+            if (importedMatchCount == 0)
+            {
+                var variableValues = GetPathThroughVariables(forwardedVariables);
+                return _resultStore.CreateVariableValueSets(selectionSets, variableValues, requiredData);
+            }
+
+            if (importedMatchCount != requiredData.Length)
+            {
+                // Planner-invariant guard. CollectParentScopeRequirements makes _requirementKeys
+                // the union of every parent-dependent node's full requirement list, so a single
+                // node's requirements are either all imported or none imported. A partial overlap
+                // means the planner produced a shape this routing layer is not built to handle.
+                throw CreateMixedScopeException(requiredData);
+            }
+
+            if (forwardedVariables.Length == 0 && requiredData.Length == _requirementKeys!.Count)
+            {
+                return _requirementValues;
+            }
+
+            var variableValuesFromSnapshot = GetPathThroughVariables(forwardedVariables);
+            return _resultStore.CreateVariableValueSetsFromSnapshot(
+                _requirementValues,
+                _requirementKeys!,
+                variableValuesFromSnapshot,
+                requiredData);
         }
+    }
+
+    private InvalidOperationException CreateMixedScopeException(
+        ReadOnlySpan<OperationRequirement> requirements)
+    {
+        var imported = new List<string>();
+        var local = new List<string>();
+
+        foreach (var requirement in requirements)
+        {
+            if (_requirementKeys!.Contains(requirement.Key))
+            {
+                imported.Add(requirement.Key);
+            }
+            else
+            {
+                local.Add(requirement.Key);
+            }
+        }
+
+        return new InvalidOperationException(
+            "A deferred incremental plan fetch references a mix of imported parent-sourced and local "
+            + "requirement keys. The planner is expected to keep these scopes separate so that "
+            + "each fetch sources its requirements from a single scope. Imported parent keys: ["
+            + string.Join(", ", imported)
+            + "]. Local requested keys: ["
+            + string.Join(", ", local)
+            + "].");
+    }
+
+    private int CountImportedRequirementKeys(ReadOnlySpan<OperationRequirement> requirements)
+    {
+        if (_requirementKeys is null || _requirementValues.IsDefaultOrEmpty)
+        {
+            return 0;
+        }
+
+        var count = 0;
+
+        foreach (var requirement in requirements)
+        {
+            if (_requirementKeys.Contains(requirement.Key))
+            {
+                count++;
+            }
+        }
+
+        return count;
+    }
+
+    /// <summary>
+    /// Sets parent-scope requirement values for this context. Values are copied
+    /// into this context and can be resolved without accessing the enclosing
+    /// plan scope.
+    /// </summary>
+    internal void SetRequirements(
+        ImmutableArray<VariableValues> parentValues,
+        HashSet<string> keys)
+    {
+        ArgumentNullException.ThrowIfNull(keys);
+
+        if (parentValues.IsDefaultOrEmpty || keys.Count == 0)
+        {
+            return;
+        }
+
+        _requirementValues = _resultStore.ImportVariableValues(parentValues);
+        _requirementKeys = keys;
+    }
+
+    /// <summary>
+    /// Gets the result store used to resolve requirements for child
+    /// incremental plans.
+    /// </summary>
+    internal FetchResultStore GetResultStoreForChildDefer() => _resultStore;
+
+    /// <summary>
+    /// Transfers retained result resources to the supplied
+    /// <see cref="OperationResult"/>.
+    /// </summary>
+    internal void TransferRetainedMemoryTo(OperationResult operationResult)
+    {
+        var memoryOwners = _resultStore.MemoryOwners;
+        foreach (var disposable in memoryOwners)
+        {
+            operationResult.RegisterForCleanup(disposable);
+        }
+
+        memoryOwners.Clear();
     }
 
     private CompactPath ToResultPath(SelectionPath selectionSet)
@@ -399,7 +620,7 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
         }
     }
 
-    internal OperationResult Complete(bool reusable = false)
+    internal OperationResult Complete(bool reusable = false, bool retainMemoryForDefer = false)
     {
         _resultStore.FinalizePocketedErrors();
 
@@ -417,31 +638,47 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
             : null;
 
         var resultDocument = _resultStore.Result;
+
+        // Deferred responses keep result resources available for incremental
+        // plans. If no delivery groups remain active, ownership is transferred
+        // to the completed result.
         var operationResult = new OperationResult(
             new OperationResultData(
                 resultDocument,
                 resultDocument.Data.IsNullOrInvalidated,
                 resultDocument,
-                resultDocument),
+                retainMemoryForDefer ? null : resultDocument),
             _resultStore.Errors?.ToImmutableList());
 
-        // we take over the memory owners from the result context
-        // and store them on the response so that the server can
-        // dispose them when it disposes of the result itself.
-        var memoryOwners = _resultStore.MemoryOwners;
-        foreach (var disposable in memoryOwners)
+        if (!retainMemoryForDefer)
         {
-            operationResult.RegisterForCleanup(disposable);
-        }
+            // Seal only arenas owned by this completion, like a subscription event arena.
+            // Shared request arenas are sealed once at the response boundary.
+            if (_memory is { } memory && !ReferenceEquals(memory, RequestContext.Memory))
+            {
+                memory.Seal();
+            }
 
-        memoryOwners.Clear();
+            // we take over the memory owners from the result context
+            // and store them on the response so that the server can
+            // dispose them when it disposes of the result itself.
+            var memoryOwners = _resultStore.MemoryOwners;
+            foreach (var disposable in memoryOwners)
+            {
+                operationResult.RegisterForCleanup(disposable);
+            }
+
+            memoryOwners.Clear();
+        }
 
         operationResult.Features.Set(OperationPlan);
 
-        if (RequestContext.ContextData.ContainsKey(ExecutionContextData.IncludeOperationPlan))
+        if (OperationPlan is OperationPlan rootPlan
+            && RequestContext.ContextData.ContainsKey(ExecutionContextData.IncludeOperationPlan)
+            && RequestContext.AllowOperationPlanRequests())
         {
             var writer = new PooledArrayWriter();
-            s_planFormatter.Format(writer, OperationPlan, trace);
+            s_planFormatter.Format(writer, rootPlan, trace);
             var value = new RawJsonValue(writer.WrittenMemory);
             operationResult.Extensions = operationResult.Extensions.SetItem(
                 "fusion",
@@ -459,50 +696,48 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
                 || operationResult.Errors.Count > 0,
             "Expected to either valid data or errors");
 
-        // resets the store and client scope for another execution.
-        if (reusable)
+        // Reuse the child-fetch scope until it ages out; dispose the retired scope with
+        // the last result it served.
+        if (reusable && Stopwatch.GetElapsedTime(_clientScopeCreatedAt) >= s_clientScopeMaxAge)
         {
+            operationResult.RegisterForCleanup(_clientScope);
             _clientScope = RequestContext.CreateClientScope();
-            _resultStore.Reset();
+            _clientScopeCreatedAt = Stopwatch.GetTimestamp();
         }
 
         return operationResult;
     }
 
-    private IReadOnlyList<ObjectFieldNode> GetPathThroughVariables(
+    private ObjectFieldNode[] GetPathThroughVariables(
         ReadOnlySpan<string> forwardedVariables)
     {
         if (Variables.IsEmpty || forwardedVariables.Length == 0)
         {
-            return Array.Empty<ObjectFieldNode>();
+            return [];
         }
 
-        var variables = new List<ObjectFieldNode>(forwardedVariables.Length);
+        var buffer = new ObjectFieldNode[forwardedVariables.Length];
+        var count = 0;
 
         foreach (var variableName in forwardedVariables)
         {
-            // we pass through the required pass through variables,
-            // if they were not omitted.
-            //
-            // it is valid for the GraphQL request to omit nullable variables.
-            //
-            // if they were not nullable we would not get here as the
-            // GraphQL validation would reject such a request.
-            //
-            // but even if the validation failed we do not need to
-            // guard against it and can just pass this to the
-            // source schema which would in any case validate
-            // any request and would reject it if a required
-            // variable was missing.
             if (Variables.TryGetValue<IValueNode>(variableName, out var variableValue))
             {
-                variables.Add(new ObjectFieldNode(variableName, variableValue));
+                buffer[count++] = new ObjectFieldNode(variableName, variableValue);
             }
         }
 
-        return variables.Count == 0
-            ? Array.Empty<ObjectFieldNode>()
-            : variables;
+        if (count == 0)
+        {
+            return [];
+        }
+
+        if (count == buffer.Length)
+        {
+            return buffer;
+        }
+
+        return buffer.AsMemory(0, count).ToArray();
     }
 
     /// <summary>
