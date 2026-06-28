@@ -14,15 +14,12 @@ namespace HotChocolate.Fusion.Suites;
 /// </summary>
 public sealed class RequiresWithFragmentsTests : ComplianceTestBase
 {
-    private const string SkipReason =
-        "Composition rejects interface field implementations as inaccessible in the composed schema.";
-
     protected override Task<FusionGateway> BuildGatewayAsync()
         => FusionGatewayBuilder.ComposeAsync(
             (ASubgraph.Name, ASubgraph.BuildAsync),
             (BSubgraph.Name, BSubgraph.BuildAsync));
 
-    [Fact(Skip = SkipReason)]
+    [Fact]
     public Task B_And_Bb_Data_Typename() => RunAsync(
         query: """
             {
@@ -45,7 +42,7 @@ public sealed class RequiresWithFragmentsTests : ComplianceTestBase
             }
             """);
 
-    [Fact(Skip = SkipReason)]
+    [Fact]
     public Task A_Requirer() => RunAsync(
         query: """
             {
@@ -60,7 +57,7 @@ public sealed class RequiresWithFragmentsTests : ComplianceTestBase
             }
             """);
 
-    [Fact(Skip = SkipReason)]
+    [Fact]
     public Task A_Data_Typename_And_Requirer() => RunAsync(
         query: """
             {
@@ -78,7 +75,7 @@ public sealed class RequiresWithFragmentsTests : ComplianceTestBase
             }
             """);
 
-    [Fact(Skip = SkipReason)]
+    [Fact]
     public Task Bb_Data_Typename_And_Requirer() => RunAsync(
         query: """
             {
@@ -96,7 +93,7 @@ public sealed class RequiresWithFragmentsTests : ComplianceTestBase
             }
             """);
 
-    [Fact(Skip = SkipReason)]
+    [Fact]
     public Task B_Data_Typename_And_Requirer() => RunAsync(
         query: """
             {
@@ -114,7 +111,7 @@ public sealed class RequiresWithFragmentsTests : ComplianceTestBase
             }
             """);
 
-    [Fact(Skip = SkipReason)]
+    [Fact]
     public Task Bb_Data_Typename_And_Requirer2() => RunAsync(
         query: """
             {

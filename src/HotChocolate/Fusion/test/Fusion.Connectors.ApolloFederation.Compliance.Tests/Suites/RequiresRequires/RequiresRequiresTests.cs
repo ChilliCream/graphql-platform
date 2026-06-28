@@ -28,7 +28,7 @@ public sealed class RequiresRequiresTests : ComplianceTestBase
     /// Chained requires: <c>d.canAfford</c> requires <c>c.isExpensive</c>
     /// which itself requires <c>a.price</c>.
     /// </summary>
-    [Fact(Skip = "Planner returns null for canAfford when queried alone; chained @requires across three subgraphs (a -> c -> d) not fully resolved.")]
+    [Fact]
     public Task Product_CanAfford_Chains_Through_IsExpensive_And_Price() => RunAsync(
         query: """
             query {
@@ -114,7 +114,7 @@ public sealed class RequiresRequiresTests : ComplianceTestBase
     /// Both chained requires paths side by side: <c>canAfford</c>
     /// (price chain) and <c>canAffordWithDiscount</c> (discount chain).
     /// </summary>
-    [Fact(Skip = "Planner returns null for canAfford when queried alongside canAffordWithDiscount; chained @requires across three subgraphs (a -> c -> d) not fully resolved.")]
+    [Fact]
     public Task Product_CanAfford_And_CanAffordWithDiscount_Together() => RunAsync(
         query: """
             query {

@@ -5,16 +5,12 @@ namespace HotChocolate.Fusion.Suites;
 
 public sealed class RequiresWithArgumentConflictTests : ComplianceTestBase
 {
-    private const string SkipReason =
-        "Planner does not yet split conflicting argument-bearing @requires fields "
-        + "into separate subgraph fetches.";
-
     protected override Task<FusionGateway> BuildGatewayAsync()
         => FusionGatewayBuilder.ComposeAsync(
             (ASubgraph.Name, ASubgraph.BuildAsync),
             (BSubgraph.Name, BSubgraph.BuildAsync));
 
-    [Fact(Skip = SkipReason)]
+    [Fact]
     public Task Products_ShippingEstimate_EUR_And_IsExpensiveCategory() => RunAsync(
         query: """
             query {

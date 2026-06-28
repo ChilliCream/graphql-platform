@@ -28,7 +28,7 @@ public sealed class NestedProvidesTests : ComplianceTestBase
             (CategorySubgraph.Name, CategorySubgraph.BuildAsync),
             (SubcategoriesSubgraph.Name, SubcategoriesSubgraph.BuildAsync));
 
-    [Fact(Skip = "SelectionSetValidator does not unwrap list types in @provides field selections (PROVIDES_INVALID_FIELDS).")]
+    [Fact]
     public Task Products_Categories_With_Names() => RunAsync(
         query: """
             query {
@@ -62,7 +62,7 @@ public sealed class NestedProvidesTests : ComplianceTestBase
             }
             """);
 
-    [Fact(Skip = "SelectionSetValidator does not unwrap list types in @provides field selections (PROVIDES_INVALID_FIELDS).")]
+    [Fact]
     public Task Products_Categories_With_Names_And_SubCategories() => RunAsync(
         query: """
             query {

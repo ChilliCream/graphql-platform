@@ -18,7 +18,7 @@ public sealed class UnionInterfaceDistributedTests : ComplianceTestBase
             (SubgraphASubgraph.Name, SubgraphASubgraph.BuildAsync),
             (SubgraphBSubgraph.Name, SubgraphBSubgraph.BuildAsync));
 
-    [Fact(Skip = "Gateway does not resolve cross-subgraph interface implementations on union members.")]
+    [Fact]
     public Task Products_As_Node_Id() => RunAsync(
         query: """
             {
@@ -40,7 +40,7 @@ public sealed class UnionInterfaceDistributedTests : ComplianceTestBase
             }
             """);
 
-    [Fact(Skip = "Gateway composition drops query fields returning interface types.")]
+    [Fact]
     public Task Nodes_Toaster_Warranty_And_Oven_Id() => RunAsync(
         query: """
             {
@@ -63,7 +63,7 @@ public sealed class UnionInterfaceDistributedTests : ComplianceTestBase
             }
             """);
 
-    [Fact(Skip = "Gateway composition drops query fields returning interface types.")]
+    [Fact]
     public Task Nodes_Id() => RunAsync(
         query: """
             {
@@ -81,7 +81,7 @@ public sealed class UnionInterfaceDistributedTests : ComplianceTestBase
             }
             """);
 
-    [Fact(Skip = "Gateway composition drops query fields returning interface types.")]
+    [Fact]
     public Task Nodes_As_Node_Id() => RunAsync(
         query: """
             {
@@ -101,7 +101,7 @@ public sealed class UnionInterfaceDistributedTests : ComplianceTestBase
             }
             """);
 
-    [Fact(Skip = "Gateway composition drops query fields returning interface types.")]
+    [Fact]
     public Task Nodes_As_Node_WithWarranty() => RunAsync(
         query: """
             {
@@ -123,7 +123,7 @@ public sealed class UnionInterfaceDistributedTests : ComplianceTestBase
             }
             """);
 
-    [Fact(Skip = "Gateway composition drops query fields returning interface types.")]
+    [Fact]
     public Task Nodes_Nested_Node_WithWarranty() => RunAsync(
         query: """
             {
@@ -171,7 +171,7 @@ public sealed class UnionInterfaceDistributedTests : ComplianceTestBase
             }
             """);
 
-    [Fact(Skip = "Gateway composition drops query fields returning interface types.")]
+    [Fact]
     public Task Node_Oven_Warranty() => RunAsync(
         query: """
             {
@@ -189,7 +189,7 @@ public sealed class UnionInterfaceDistributedTests : ComplianceTestBase
             """,
         expectsErrors: true);
 
-    [Fact(Skip = "Gateway composition drops query fields returning interface types.")]
+    [Fact]
     public Task Node_Oven_As_Toaster_Warranty() => RunAsync(
         query: """
             {
@@ -207,7 +207,7 @@ public sealed class UnionInterfaceDistributedTests : ComplianceTestBase
             """,
         expectsErrors: true);
 
-    [Fact(Skip = "Gateway composition drops query fields returning interface types.")]
+    [Fact]
     public Task Node_Toaster_Warranty() => RunAsync(
         query: """
             {

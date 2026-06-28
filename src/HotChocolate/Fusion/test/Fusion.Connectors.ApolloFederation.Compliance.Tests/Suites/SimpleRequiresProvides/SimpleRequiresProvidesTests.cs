@@ -351,7 +351,7 @@ public sealed class SimpleRequiresProvidesTests : ComplianceTestBase
     /// fields side by side. The planner should fetch the dependencies once
     /// and serve both downstream resolvers from the same representation.
     /// </summary>
-    [Fact(Skip = "Planner returns null for shippingEstimate when a sibling @requires field (shippingEstimateTag) sharing the same dependencies is selected alongside it.")]
+    [Fact]
     public Task Me_Reviews_Product_ShippingEstimate_And_Tag() => RunAsync(
         query: """
             query {

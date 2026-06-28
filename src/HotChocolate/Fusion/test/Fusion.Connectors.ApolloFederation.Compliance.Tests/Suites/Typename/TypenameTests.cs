@@ -21,18 +21,11 @@ public sealed class TypenameTests : ComplianceTestBase
             (ASubgraph.Name, ASubgraph.BuildAsync),
             (BSubgraph.Name, BSubgraph.BuildAsync));
 
-    private const string InterfaceObjectGapSkipReason =
-        "Composer rejects @interfaceObject as an unsupported directive. "
-        + "See framework gap typename in /workspaces/repo/.work/implement/framework-gaps.md "
-        + "(Fusion.Composition/ApolloFederation/FederationSchemaAnalyzer.cs:23 / "
-        + "RemoveFederationInfrastructure.cs:22). Phase E feature work, intentionally out "
-        + "of scope for the test enablement pass.";
-
     /// <summary>
     /// Reads <c>__typename</c> twice (raw and aliased) from the union root.
     /// Subgraph <c>a</c> resolves the union to an <see cref="Oven"/>.
     /// </summary>
-    [Fact(Skip = InterfaceObjectGapSkipReason)]
+    [Fact]
     public Task Union_Reports_Typename_Twice() => RunAsync(
         query: """
             query {
@@ -53,7 +46,7 @@ public sealed class TypenameTests : ComplianceTestBase
     /// <c>__typename</c> from the interface root. Subgraph <c>a</c>
     /// resolves the interface to a <see cref="Toaster"/>.
     /// </summary>
-    [Fact(Skip = InterfaceObjectGapSkipReason)]
+    [Fact]
     public Task Interface_Reports_Id_And_Typename_Aliases() => RunAsync(
         query: """
             query {
@@ -75,7 +68,7 @@ public sealed class TypenameTests : ComplianceTestBase
     /// Reads <c>__typename</c> via inline fragments on each member of the
     /// union. Only the matching fragment contributes its alias.
     /// </summary>
-    [Fact(Skip = InterfaceObjectGapSkipReason)]
+    [Fact]
     public Task Union_Reports_Typename_Through_Inline_Fragments() => RunAsync(
         query: """
             query {
@@ -95,7 +88,7 @@ public sealed class TypenameTests : ComplianceTestBase
     /// <summary>
     /// Reads <c>__typename</c> via inline fragments on the interface root.
     /// </summary>
-    [Fact(Skip = InterfaceObjectGapSkipReason)]
+    [Fact]
     public Task Interface_Reports_Typename_Through_Inline_Fragments() => RunAsync(
         query: """
             query {
@@ -117,7 +110,7 @@ public sealed class TypenameTests : ComplianceTestBase
     /// <c>b</c>. The query never escapes the <c>@interfaceObject</c>, so
     /// no entity calls are required.
     /// </summary>
-    [Fact(Skip = InterfaceObjectGapSkipReason)]
+    [Fact]
     public Task Users_Returns_Ids_From_InterfaceObject_Subgraph() => RunAsync(
         query: """
             query {
@@ -136,7 +129,7 @@ public sealed class TypenameTests : ComplianceTestBase
     /// subgraph <c>a</c> (which owns the concrete type) so the response
     /// reads <c>"Admin"</c>.
     /// </summary>
-    [Fact(Skip = InterfaceObjectGapSkipReason)]
+    [Fact]
     public Task Users_Returns_Concrete_Typename_From_InterfaceObject() => RunAsync(
         query: """
             query {

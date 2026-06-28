@@ -32,7 +32,7 @@ public sealed class ParentEntityCallTests : ComplianceTestBase
     /// and is only reachable via the parent <c>Product.category</c>
     /// entity call.
     /// </summary>
-    [Fact(Skip = "Composer satisfiability validator cycles on Category.id between subgraphs that both declare Category @key(\"id\") with no non-lookup path. See framework gap parent-entity-call in /workspaces/repo/.work/implement/framework-gaps.md (Fusion.Composition/SatisfiabilityValidator.cs:116).")]
+    [Fact]
     public Task Products_Resolves_Category_Details_From_Parent_Entity_Call() => RunAsync(
         query: """
             query {

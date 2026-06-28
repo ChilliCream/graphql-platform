@@ -28,7 +28,7 @@ public sealed class OverrideTypeInterfaceTests : ComplianceTestBase
     /// must come from subgraph <c>b</c> instead of the hardcoded
     /// <c>"NEVER"</c> resolver in subgraph <c>a</c>.
     /// </summary>
-    [Fact(Skip = "Planner does not honor @override when the originating subgraph reaches the entity through a different interface than the override owner. Subgraph a's feed returns Post; subgraph b's ImagePost implements AnotherPost (not Post), and the planner keeps a's createdAt resolver instead of routing through b.")]
+    [Fact]
     public Task Feed_Id_CreatedAt_Through_Override_Owner() => RunAsync(
         query: """
             query {

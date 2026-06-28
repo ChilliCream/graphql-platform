@@ -103,7 +103,7 @@ public sealed class SimpleInaccessibleTests : ComplianceTestBase
     /// <c>FAMILY</c> value returned by the source resolver. The supergraph
     /// must null the value because <c>FAMILY</c> is hidden.
     /// </summary>
-    [Fact(Skip = "Gateway forwards inaccessible enum values from the source subgraph instead of nulling them in the response. Same gap as EnumIntersection; see framework-gaps.md 'enum-intersection (partial)'.")]
+    [Fact]
     public Task UsersInFriends_Friends_Id_Type_Returns_Null_For_Inaccessible_Value() => RunAsync(
         query: """
             query {

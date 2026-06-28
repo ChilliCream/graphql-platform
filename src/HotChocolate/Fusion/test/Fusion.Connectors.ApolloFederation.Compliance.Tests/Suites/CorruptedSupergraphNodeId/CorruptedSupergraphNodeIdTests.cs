@@ -28,7 +28,7 @@ public sealed class CorruptedSupergraphNodeIdTests : ComplianceTestBase
             """,
         expectsErrors: true);
 
-    [Fact(Skip = "Gateway composition drops shareable query fields returning interface types.")]
+    [Fact]
     public Task Node_Account_And_Chat_Typename() => RunAsync(
         query: """
             {
@@ -51,7 +51,7 @@ public sealed class CorruptedSupergraphNodeIdTests : ComplianceTestBase
             }
             """);
 
-    [Fact(Skip = "Gateway composition drops shareable query fields returning interface types.")]
+    [Fact]
     public Task Node_Account_And_Chat_Full_Fragments() => RunAsync(
         query: """
             {
@@ -82,7 +82,7 @@ public sealed class CorruptedSupergraphNodeIdTests : ComplianceTestBase
             }
             """);
 
-    [Fact(Skip = "Gateway composition drops shareable query fields returning interface types.")]
+    [Fact]
     public Task Node_Account_As_Chat_And_Chat_As_Account() => RunAsync(
         query: """
             {
@@ -105,7 +105,7 @@ public sealed class CorruptedSupergraphNodeIdTests : ComplianceTestBase
             }
             """);
 
-    [Fact(Skip = "Gateway composition drops shareable query fields returning interface types.")]
+    [Fact]
     public Task Node_Mismatched_Fragments_With_Typename() => RunAsync(
         query: """
             {

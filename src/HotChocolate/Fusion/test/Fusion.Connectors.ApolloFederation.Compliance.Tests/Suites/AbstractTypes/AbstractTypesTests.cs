@@ -10,14 +10,6 @@ namespace HotChocolate.Fusion.Suites;
 
 public sealed class AbstractTypesTests : ComplianceTestBase
 {
-    private const string SkipAbstractFieldResolution =
-        "Planner cannot resolve fields on concrete types through abstract type references across subgraphs.";
-
-    private const string SkipDirectivesOnFragments =
-        "Planner does not correctly handle @skip/@include directives on inline fragments with abstract types.";
-
-    private const string SkipUnionTypeFields =
-        "Union type fields on interface implementations are not exposed through the composed schema.";
     protected override Task<FusionGateway> BuildGatewayAsync()
         => FusionGatewayBuilder.ComposeAsync(
             (AgencySubgraph.Name, AgencySubgraph.BuildAsync),
@@ -67,7 +59,7 @@ public sealed class AbstractTypesTests : ComplianceTestBase
             }
             """);
 
-    [Fact(Skip = SkipAbstractFieldResolution)]
+    [Fact]
     public Task Similar_Books_And_Magazines_With_Delivery() => RunAsync(
         query: """
             {
@@ -159,7 +151,7 @@ public sealed class AbstractTypesTests : ComplianceTestBase
             }
             """);
 
-    [Fact(Skip = SkipAbstractFieldResolution)]
+    [Fact]
     public Task Products_Reviews_With_Nested_Product_Info() => RunAsync(
         query: """
             {
@@ -230,7 +222,7 @@ public sealed class AbstractTypesTests : ComplianceTestBase
             }
             """);
 
-    [Fact(Skip = SkipDirectivesOnFragments)]
+    [Fact]
     public Task Products_Reviews_Include_Book_Title_False() => RunAsync(
         query: """
             query ($title: Boolean = false) {
@@ -276,7 +268,7 @@ public sealed class AbstractTypesTests : ComplianceTestBase
             }
             """);
 
-    [Fact(Skip = SkipDirectivesOnFragments)]
+    [Fact]
     public Task Products_Reviews_Skip_Book_Title_True() => RunAsync(
         query: """
             query ($title: Boolean = true) {
@@ -299,7 +291,7 @@ public sealed class AbstractTypesTests : ComplianceTestBase
             }
             """);
 
-    [Fact(Skip = SkipDirectivesOnFragments)]
+    [Fact]
     public Task Products_Reviews_Skip_Book_Title_True_With_Sku() => RunAsync(
         query: """
             query ($title: Boolean = true) {
@@ -323,7 +315,7 @@ public sealed class AbstractTypesTests : ComplianceTestBase
             }
             """);
 
-    [Fact(Skip = SkipDirectivesOnFragments)]
+    [Fact]
     public Task Products_Reviews_Skip_Book_Title_False_With_Sku() => RunAsync(
         query: """
             query ($title: Boolean = false) {
@@ -399,7 +391,7 @@ public sealed class AbstractTypesTests : ComplianceTestBase
             }
             """);
 
-    [Fact(Skip = SkipUnionTypeFields)]
+    [Fact]
     public Task Products_Reviews_PublisherType_Agency_Self() => RunAsync(
         query: """
             {
@@ -423,7 +415,7 @@ public sealed class AbstractTypesTests : ComplianceTestBase
             }
             """);
 
-    [Fact(Skip = SkipUnionTypeFields)]
+    [Fact]
     public Task Products_Reviews_PublisherType_With_Group() => RunAsync(
         query: """
             {
@@ -448,7 +440,7 @@ public sealed class AbstractTypesTests : ComplianceTestBase
             }
             """);
 
-    [Fact(Skip = SkipUnionTypeFields)]
+    [Fact]
     public Task Products_Reviews_PublisherType_Email_Aliases() => RunAsync(
         query: """
             {

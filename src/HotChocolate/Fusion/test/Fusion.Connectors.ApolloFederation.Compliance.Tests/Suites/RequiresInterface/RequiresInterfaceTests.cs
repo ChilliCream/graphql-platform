@@ -18,7 +18,7 @@ public sealed class RequiresInterfaceTests : ComplianceTestBase
             (ASubgraph.Name, ASubgraph.BuildAsync),
             (BSubgraph.Name, BSubgraph.BuildAsync));
 
-    [Fact(Skip = "Planner does not yet satisfy input-object @require arguments for nested field selections.")]
+    [Fact]
     public Task A_City_Requires_Address_Id() => RunAsync(
         query: """
             {
@@ -33,7 +33,7 @@ public sealed class RequiresInterfaceTests : ComplianceTestBase
             }
             """);
 
-    [Fact(Skip = "Planner does not yet satisfy input-object @require arguments for nested field selections.")]
+    [Fact]
     public Task B_City_Requires_Address_Id_From_Other_Subgraph() => RunAsync(
         query: """
             {

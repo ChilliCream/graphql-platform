@@ -7,10 +7,6 @@ namespace HotChocolate.Fusion.Suites;
 
 public sealed class RequiresWithArgumentTests : ComplianceTestBase
 {
-    private const string SkipReason =
-        "Planner does not yet satisfy argument-bearing @requires selections that "
-        + "include list fields and nested lookups.";
-
     protected override Task<FusionGateway> BuildGatewayAsync()
         => FusionGatewayBuilder.ComposeAsync(
             (ASubgraph.Name, ASubgraph.BuildAsync),
@@ -49,7 +45,7 @@ public sealed class RequiresWithArgumentTests : ComplianceTestBase
             }
             """);
 
-    [Fact(Skip = SkipReason)]
+    [Fact]
     public Task Feed_With_Author_Ids() => RunAsync(
         query: """
             {
@@ -77,7 +73,7 @@ public sealed class RequiresWithArgumentTests : ComplianceTestBase
             }
             """);
 
-    [Fact(Skip = SkipReason)]
+    [Fact]
     public Task Feed_With_Author_And_Limited_Comments() => RunAsync(
         query: """
             query {
@@ -118,7 +114,7 @@ public sealed class RequiresWithArgumentTests : ComplianceTestBase
             }
             """);
 
-    [Fact(Skip = SkipReason)]
+    [Fact]
     public Task Feed_With_Author_And_Limited_Comments_Variable() => RunAsync(
         query: """
             query ($limit: Int = 1) {
@@ -159,7 +155,7 @@ public sealed class RequiresWithArgumentTests : ComplianceTestBase
             }
             """);
 
-    [Fact(Skip = SkipReason)]
+    [Fact]
     public Task Feed_With_Author_And_Comments_Fragments() => RunAsync(
         query: """
             query ($limit: Int = 1) {
