@@ -226,78 +226,6 @@ public class SchedulingMiddlewareIntegrationTests
         Assert.False(secondCancel);
     }
 
-    [Fact]
-    public async Task SchedulePublishAsync_Should_ReturnNonCancellable_When_NoStoreRegistered()
-    {
-        // arrange
-        var timeProvider = new FakeTimeProvider();
-
-        var services = new ServiceCollection();
-        services.AddSingleton<TimeProvider>(timeProvider);
-
-        var builder = services.AddMessageBus();
-        builder.UseSchedulerCore();
-        builder.AddInMemory();
-
-        var provider = services.BuildServiceProvider();
-        var runtime = (MessagingRuntime)provider.GetRequiredService<IMessagingRuntime>();
-        await runtime.StartAsync(CancellationToken.None);
-
-        await using (provider)
-        {
-            using var scope = provider.CreateScope();
-            var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
-
-            var scheduledTime = timeProvider.GetUtcNow().AddMinutes(10);
-
-            // act
-            var result = await bus.SchedulePublishAsync(
-                new SchedulingTestEvent { Payload = "no-store" },
-                scheduledTime,
-                CancellationToken.None);
-
-            // assert
-            Assert.False(result.IsCancellable);
-            Assert.Null(result.Token);
-        }
-    }
-
-    [Fact]
-    public async Task Scheduling_Should_PassThrough_When_NoStoreRegistered()
-    {
-        // arrange
-        var timeProvider = new FakeTimeProvider();
-        var recorder = new MessageRecorder();
-
-        var services = new ServiceCollection();
-        services.AddSingleton(recorder);
-        services.AddSingleton<TimeProvider>(timeProvider);
-
-        var builder = services.AddMessageBus();
-        builder.UseSchedulerCore();
-        builder.AddEventHandler<SchedulingTestEventHandler>();
-        builder.AddInMemory();
-
-        var provider = services.BuildServiceProvider();
-        var runtime = (MessagingRuntime)provider.GetRequiredService<IMessagingRuntime>();
-        await runtime.StartAsync(CancellationToken.None);
-
-        await using (provider)
-        {
-            using var scope = provider.CreateScope();
-            var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
-
-            // act - publish with ScheduledTime but no store registered
-            await bus.PublishAsync(
-                new SchedulingTestEvent { Payload = "no-store" },
-                new PublishOptions { ScheduledTime = timeProvider.GetUtcNow().AddSeconds(-1) },
-                CancellationToken.None);
-
-            // assert - message delivered to handler since middleware was skipped (no store)
-            Assert.True(await recorder.WaitAsync(s_timeout), "Message should be delivered to handler");
-        }
-    }
-
     private static async Task WaitUntilAsync(Func<bool> condition, TimeSpan timeout)
     {
         using var cts = new CancellationTokenSource(timeout);
@@ -306,20 +234,6 @@ public class SchedulingMiddlewareIntegrationTests
             await Task.Delay(50, cts.Token);
         }
     }
-
-    /// <summary>
-    /// Creates a middleware configuration that always inserts the scheduling middleware,
-    /// bypassing the factory-time IScheduledMessageStore check (which requires bus-internal DI).
-    /// The middleware itself resolves the store at dispatch time from the scoped host DI.
-    /// </summary>
-    private static DispatchMiddlewareConfiguration CreateSchedulingMiddleware()
-        => new(
-            static (_, next) =>
-            {
-                var middleware = new DispatchSchedulingMiddleware();
-                return ctx => middleware.InvokeAsync(ctx, next);
-            },
-            "Scheduling");
 
     private static async Task<ServiceProvider> CreateBusWithSchedulingAsync(
         InMemoryScheduledMessageStore store,
@@ -337,11 +251,10 @@ public class SchedulingMiddlewareIntegrationTests
 
         var builder = services.AddMessageBus();
 
-        // Register middleware directly (bypassing factory-time DI check)
-        builder.ConfigureMessageBus(x => x.UseDispatch(CreateSchedulingMiddleware()));
-
-        configure(builder);
+        // AddInMemory must come before configure so that the "Scheduling" middleware modifier
+        // is registered before any configure-supplied modifiers that reference it (e.g. before: "Scheduling").
         builder.AddInMemory();
+        configure(builder);
 
         var provider = services.BuildServiceProvider();
         var runtime = (MessagingRuntime)provider.GetRequiredService<IMessagingRuntime>();
@@ -365,11 +278,10 @@ public class SchedulingMiddlewareIntegrationTests
 
         var builder = services.AddMessageBus();
 
-        // Register middleware directly (bypassing factory-time DI check)
-        builder.ConfigureMessageBus(x => x.UseDispatch(CreateSchedulingMiddleware()));
-
-        configure(builder);
+        // AddInMemory must come before configure so that the "Scheduling" middleware modifier
+        // is registered before any configure-supplied modifiers that reference it (e.g. before: "Scheduling").
         builder.AddInMemory();
+        configure(builder);
 
         var provider = services.BuildServiceProvider();
         var runtime = (MessagingRuntime)provider.GetRequiredService<IMessagingRuntime>();
