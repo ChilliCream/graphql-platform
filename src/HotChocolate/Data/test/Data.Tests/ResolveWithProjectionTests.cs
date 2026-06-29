@@ -98,11 +98,77 @@ public class ResolveWithProjectionTests
             """);
     }
 
+    [Fact]
+    public async Task AsSelector_Should_Project_When_Type_Has_Only_Private_Constructors()
+    {
+        // arrange
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<PrivateCtorQuery>()
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            {
+              items {
+                id
+                name
+              }
+            }
+            """,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "items": [
+                  {
+                    "id": 1,
+                    "name": "Foo"
+                  }
+                ]
+              }
+            }
+            """);
+    }
+
     public class Query
     {
         [UseProjection]
         public IQueryable<Tenant> GetTenants()
             => CreateTenants().AsQueryable();
+    }
+
+    public class PrivateCtorQuery
+    {
+        public IQueryable<PrivateCtorEntity> GetItems(ISelection selection)
+            =>
+            new[] { PrivateCtorEntity.Create(1, "Foo") }
+                .AsQueryable()
+                .Select(selection.AsSelector<PrivateCtorEntity>());
+    }
+
+    public class PrivateCtorEntity
+    {
+        private PrivateCtorEntity()
+        {
+        }
+
+        private PrivateCtorEntity(int id, string name)
+        {
+            Id = id;
+            Name = name;
+        }
+
+        public int Id { get; private set; }
+
+        public string Name { get; private set; } = default!;
+
+        public static PrivateCtorEntity Create(int id, string name)
+            => new(id, name);
     }
 
     public class AsSelectorQuery

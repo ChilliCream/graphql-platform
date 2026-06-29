@@ -305,8 +305,12 @@ internal sealed class SelectionExpressionBuilder
             return Expression.New(bestMatchingConstructor.Constructor, arguments);
         }
 
-        throw new InvalidOperationException(
-            $"No writable properties or suitable constructor found for type '{context.ParentType.Name}'.");
+        // The type cannot be reconstructed via a parameterless constructor or a matching
+        // constructor, so we reuse the source instance as a last resort (the same expression
+        // the reuse-first branch returns). Projection only optimizes data fetching; the
+        // GraphQL execution layer still shapes the response to the selection set, so reuse
+        // is always valid (it may fetch more columns than strictly required).
+        return context.Parent;
     }
 
     private void CollectSelection(
