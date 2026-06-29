@@ -17,7 +17,7 @@ export function FromOurBlog({ limit = 3, className }: FromOurBlogProps) {
   return (
     <section className={className}>
       <div className="mb-6 flex items-baseline justify-between gap-4">
-        <h2 className="text-cc-ink m-0 text-2xl font-semibold">
+        <h2 className="text-cc-heading m-0 text-2xl font-semibold">
           From our blog
         </h2>
         <Link

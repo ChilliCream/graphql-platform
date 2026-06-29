@@ -39,7 +39,7 @@ export function TableHead({
   className = "",
   ...props
 }: ComponentPropsWithoutRef<"thead">) {
-  return <thead className={`text-cc-ink ${className}`.trim()} {...props} />;
+  return <thead className={`text-cc-prose ${className}`.trim()} {...props} />;
 }
 
 export function TableBody(props: ComponentPropsWithoutRef<"tbody">) {
@@ -65,7 +65,7 @@ export function TableHeaderCell({
 }: ComponentPropsWithoutRef<"th"> & { align?: Align }) {
   return (
     <th
-      className={`text-cc-ink px-4 py-3 font-semibold ${ALIGN_CLASS[align]} ${className}`.trim()}
+      className={`text-cc-prose px-4 py-3 font-semibold ${ALIGN_CLASS[align]} ${className}`.trim()}
       {...props}
     />
   );
@@ -78,7 +78,7 @@ export function TableCell({
 }: ComponentPropsWithoutRef<"td"> & { align?: Align }) {
   return (
     <td
-      className={`text-cc-ink px-4 py-3 ${ALIGN_CLASS[align]} ${className}`.trim()}
+      className={`text-cc-prose px-4 py-3 ${ALIGN_CLASS[align]} ${className}`.trim()}
       {...props}
     />
   );

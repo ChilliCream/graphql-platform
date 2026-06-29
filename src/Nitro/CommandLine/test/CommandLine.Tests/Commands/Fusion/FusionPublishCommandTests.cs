@@ -384,10 +384,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             ArchiveFile);
 
         // assert
-        result.StdErr.MatchInlineSnapshot(
-            $"""
-             {expectedErrorMessage}
-             """);
+        result.StdErr.MatchInlineSnapshot(expectedErrorMessage);
         result.StdOut.MatchInlineSnapshot(
             """
             Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
@@ -460,10 +457,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             ArchiveFile);
 
         // assert
-        result.StdErr.MatchInlineSnapshot(
-            $"""
-             {expectedErrorMessage}
-             """);
+        result.StdErr.MatchInlineSnapshot(expectedErrorMessage);
         result.StdOut.MatchInlineSnapshot(
             """
             Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
@@ -546,10 +540,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             ArchiveFile);
 
         // assert
-        result.StdErr.MatchInlineSnapshot(
-            $"""
-             {expectedErrorMessage}
-             """);
+        result.StdErr.MatchInlineSnapshot(expectedErrorMessage);
         result.StdOut.MatchInlineSnapshot(
             """
             Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
@@ -946,10 +937,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             ArchiveFile);
 
         // assert
-        result.StdErr.MatchInlineSnapshot(
-            $"""
-             {expectedErrorMessage}
-             """);
+        result.StdErr.MatchInlineSnapshot(expectedErrorMessage);
         result.StdOut.MatchInlineSnapshot(
             """
             Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
@@ -1145,11 +1133,11 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         // assert
         result.StdErr.MatchInlineSnapshot(
             $"""
-             Encountered the following errors while trying to release the deployment slot after an error during the publishing process:
-             {expectedErrorMessage}
-             This is the error that caused the publishing process to fail in the first place:
-             There was an unexpected error: Something unexpected happened.
-             """);
+            Encountered the following errors while trying to release the deployment slot after an error during the publishing process:
+            {expectedErrorMessage}
+            This is the error that caused the publishing process to fail in the first place:
+            There was an unexpected error: Something unexpected happened.
+            """);
         result.StdOut.MatchInlineSnapshot(
             """
             Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
@@ -1796,10 +1784,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             SourceSchemaFile);
 
         // assert
-        result.StdErr.MatchInlineSnapshot(
-            $"""
-             {expectedErrorMessage}
-             """);
+        result.StdErr.MatchInlineSnapshot(expectedErrorMessage);
         result.StdOut.MatchInlineSnapshot(
             """
             Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
@@ -1872,10 +1857,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             SourceSchemaFile);
 
         // assert
-        result.StdErr.MatchInlineSnapshot(
-            $"""
-             {expectedErrorMessage}
-             """);
+        result.StdErr.MatchInlineSnapshot(expectedErrorMessage);
         result.StdOut.MatchInlineSnapshot(
             """
             Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
@@ -2053,10 +2035,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             SourceSchemaFile);
 
         // assert
-        result.StdErr.MatchInlineSnapshot(
-            $"""
-             {expectedErrorMessage}
-             """);
+        result.StdErr.MatchInlineSnapshot(expectedErrorMessage);
         result.StdOut.MatchInlineSnapshot(
             """
             Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
@@ -2488,10 +2467,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             SourceSchemaFile);
 
         // assert
-        result.StdErr.MatchInlineSnapshot(
-            $"""
-             {expectedErrorMessage}
-             """);
+        result.StdErr.MatchInlineSnapshot(expectedErrorMessage);
         result.StdOut.MatchInlineSnapshot(
             """
             Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
@@ -2701,11 +2677,11 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         // assert
         result.StdErr.MatchInlineSnapshot(
             $"""
-             Encountered the following errors while trying to release the deployment slot after an error during the publishing process:
-             {expectedErrorMessage}
-             This is the error that caused the publishing process to fail in the first place:
-             There was an unexpected error: Something unexpected happened.
-             """);
+            Encountered the following errors while trying to release the deployment slot after an error during the publishing process:
+            {expectedErrorMessage}
+            This is the error that caused the publishing process to fail in the first place:
+            There was an unexpected error: Something unexpected happened.
+            """);
         result.StdOut.MatchInlineSnapshot(
             """
             Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
@@ -3459,10 +3435,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             SourceSchema);
 
         // assert
-        result.StdErr.MatchInlineSnapshot(
-            $"""
-             {expectedErrorMessage}
-             """);
+        result.StdErr.MatchInlineSnapshot(expectedErrorMessage);
         result.StdOut.MatchInlineSnapshot(
             """
             Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
@@ -3539,10 +3512,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             SourceSchema);
 
         // assert
-        result.StdErr.MatchInlineSnapshot(
-            $"""
-             {expectedErrorMessage}
-             """);
+        result.StdErr.MatchInlineSnapshot(expectedErrorMessage);
         result.StdOut.MatchInlineSnapshot(
             """
             Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
@@ -3728,10 +3698,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             SourceSchema);
 
         // assert
-        result.StdErr.MatchInlineSnapshot(
-            $"""
-             {expectedErrorMessage}
-             """);
+        result.StdErr.MatchInlineSnapshot(expectedErrorMessage);
         result.StdOut.MatchInlineSnapshot(
             """
             Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
@@ -4178,10 +4145,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             SourceSchema);
 
         // assert
-        result.StdErr.MatchInlineSnapshot(
-            $"""
-             {expectedErrorMessage}
-             """);
+        result.StdErr.MatchInlineSnapshot(expectedErrorMessage);
         result.StdOut.MatchInlineSnapshot(
             """
             Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
@@ -4399,11 +4363,11 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         // assert
         result.StdErr.MatchInlineSnapshot(
             $"""
-             Encountered the following errors while trying to release the deployment slot after an error during the publishing process:
-             {expectedErrorMessage}
-             This is the error that caused the publishing process to fail in the first place:
-             There was an unexpected error: Something unexpected happened.
-             """);
+            Encountered the following errors while trying to release the deployment slot after an error during the publishing process:
+            {expectedErrorMessage}
+            This is the error that caused the publishing process to fail in the first place:
+            There was an unexpected error: Something unexpected happened.
+            """);
         result.StdOut.MatchInlineSnapshot(
             """
             Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'

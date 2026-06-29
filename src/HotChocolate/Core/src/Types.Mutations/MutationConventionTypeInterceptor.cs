@@ -584,12 +584,12 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
         var options = context.Features.GetOrSet<MutationConventionOptions>();
 
         return new Options(
-             options.InputTypeNamePattern,
-             options.InputArgumentName,
-             options.PayloadTypeNamePattern,
-             options.PayloadErrorTypeNamePattern,
-             options.PayloadErrorsFieldName,
-             options.ApplyToAllMutations);
+            options.InputTypeNamePattern,
+            options.InputArgumentName,
+            options.PayloadTypeNamePattern,
+            options.PayloadErrorTypeNamePattern,
+            options.PayloadErrorsFieldName,
+            options.ApplyToAllMutations);
     }
 
     private static Options CreateOptions(

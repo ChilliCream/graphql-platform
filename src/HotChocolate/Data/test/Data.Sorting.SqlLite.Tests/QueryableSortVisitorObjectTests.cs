@@ -479,7 +479,7 @@ public class QueryableSortVisitorObjectTests(SchemaCache cache) : IClassFixture<
             OperationRequestBuilder.New()
                 .SetDocument(
                     @"
-                         query testSort($order: [BarSortInput!]) {
+                        query testSort($order: [BarSortInput!]) {
                             root(order: $order) {
                                 foo {
                                     barBool
@@ -511,7 +511,7 @@ public class QueryableSortVisitorObjectTests(SchemaCache cache) : IClassFixture<
             OperationRequestBuilder.New()
                 .SetDocument(
                     @"
-                         query testSort($order: [BarSortInput!]) {
+                        query testSort($order: [BarSortInput!]) {
                             root(order: $order) {
                                 foo {
                                     barBool
@@ -547,7 +547,7 @@ public class QueryableSortVisitorObjectTests(SchemaCache cache) : IClassFixture<
             OperationRequestBuilder.New()
                 .SetDocument(
                     @"
-                         query testSort($order: [BarSortInput!]) {
+                        query testSort($order: [BarSortInput!]) {
                             root(order: $order) {
                                 foo {
                                     barBool
@@ -579,7 +579,7 @@ public class QueryableSortVisitorObjectTests(SchemaCache cache) : IClassFixture<
             OperationRequestBuilder.New()
                 .SetDocument(
                     @"
-                         query testSort($order: [BarSortInput!]) {
+                        query testSort($order: [BarSortInput!]) {
                             root(order: $order) {
                                 foo {
                                     barBool

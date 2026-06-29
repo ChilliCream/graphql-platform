@@ -191,8 +191,8 @@ public class ScalarGeneratorTests
                   }
                 }
                 fragment Offer on Offer {
-                   numberFloat
-                   numberInt
+                  numberFloat
+                  numberInt
                 }",
             @"
                 schema {

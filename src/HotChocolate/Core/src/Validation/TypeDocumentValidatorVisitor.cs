@@ -71,8 +71,8 @@ public class TypeDocumentValidatorVisitor : DocumentValidatorVisitor
     }
 
     protected override ISyntaxVisitorAction Leave(
-       OperationDefinitionNode node,
-       DocumentValidatorContext context)
+        OperationDefinitionNode node,
+        DocumentValidatorContext context)
     {
         context.Types.Pop();
         context.Variables.Clear();

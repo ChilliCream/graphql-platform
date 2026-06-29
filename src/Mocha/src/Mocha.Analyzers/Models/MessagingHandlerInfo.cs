@@ -1,3 +1,5 @@
+using Mocha.Analyzers.Utils;
+
 namespace Mocha.Analyzers;
 
 /// <summary>
@@ -10,6 +12,10 @@ namespace Mocha.Analyzers;
 /// The fully qualified type name of the response, or <see langword="null"/> if the handler returns no response.
 /// </param>
 /// <param name="Kind">The kind of messaging handler.</param>
+/// <param name="MessageTypeHierarchy">
+/// The unfiltered type hierarchy of the message type (base types excluding <c>object</c>, plus all interfaces),
+/// as fully qualified display strings. Filtering to registered types happens in the generator phase.
+/// </param>
 /// <param name="Location">
 /// The equatable source location of the handler type declaration, or <see langword="null"/> if unavailable.
 /// </param>
@@ -19,6 +25,7 @@ public sealed record MessagingHandlerInfo(
     string MessageTypeName,
     string? ResponseTypeName,
     MessagingHandlerKind Kind,
+    ImmutableEquatableArray<string> MessageTypeHierarchy,
     LocationInfo? Location) : SyntaxInfo
 {
     /// <inheritdoc />

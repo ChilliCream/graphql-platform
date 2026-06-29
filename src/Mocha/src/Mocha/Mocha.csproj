@@ -3,6 +3,7 @@
     <AssemblyName>Mocha</AssemblyName>
     <RootNamespace>Mocha</RootNamespace>
     <ImplicitUsings>enable</ImplicitUsings>
+    <IsAotCompatible>true</IsAotCompatible>
   </PropertyGroup>
 
   <ItemGroup>

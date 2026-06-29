@@ -511,7 +511,7 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
             fragment Test on Book {
                 title
                 author {
-                   name
+                    name
                 }
             }
             """,
@@ -554,7 +554,7 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
             fragment Test on Book {
                 title
                 author {
-                   name
+                    name
                 }
             }
             """,

@@ -47,9 +47,9 @@ public static class ReflectionUtils
         this Expression<Action<T>> memberExpression,
         bool allowStatic = false)
         => ExtractMember(memberExpression, allowStatic) as MethodInfo ??
-           throw new ArgumentException(
-               TypeResources.ReflectionUtils_ExtractMethod_MethodExpected,
-               nameof(memberExpression));
+            throw new ArgumentException(
+                TypeResources.ReflectionUtils_ExtractMethod_MethodExpected,
+                nameof(memberExpression));
 
     public static MemberInfo ExtractMember<T>(
         this Expression<Action<T>> memberExpression,

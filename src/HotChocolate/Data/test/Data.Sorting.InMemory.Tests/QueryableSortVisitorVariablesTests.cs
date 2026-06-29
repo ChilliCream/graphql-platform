@@ -128,6 +128,62 @@ public class QueryableSortVisitorVariablesTests : IClassFixture<SchemaCache>
             .MatchAsync(TestContext.Current.CancellationToken);
     }
 
+    [Fact]
+    public async Task Sort_By_Computed_Expression_Field_Via_Variable()
+    {
+        // arrange
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddSorting()
+            .AddQueryType(d =>
+            {
+                d.Name("Query");
+                d.Field("items")
+                    .Type<ListType<ObjectType<Item>>>()
+                    .Resolve(s_items)
+                    .UseSorting<ItemSortType>();
+            })
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // act
+        var result = await executor.ExecuteAsync(
+            OperationRequestBuilder.New()
+                .SetDocument(
+                    """
+                    query($order: [ItemSortInput!]) {
+                      items(order: $order) {
+                        name
+                      }
+                    }
+                    """)
+                .SetVariableValues("""{ "order": [ { "flagged": "DESC" } ] }""")
+                .Build(),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "items": [
+                  {
+                    "name": "b"
+                  },
+                  {
+                    "name": "a"
+                  }
+                ]
+              }
+            }
+            """);
+    }
+
+    private static readonly Item[] s_items =
+    [
+        new() { Name = "a" },
+        new() { Name = "b" }
+    ];
+
     private TestServer CreateServer<TEntity, T>(TEntity?[] entities)
         where TEntity : class
         where T : SortInputType<TEntity>
@@ -193,4 +249,18 @@ public class QueryableSortVisitorVariablesTests : IClassFixture<SchemaCache>
     }
 
     public class FooSortType : SortInputType<Foo>;
+
+    public class Item
+    {
+        public string Name { get; set; } = string.Empty;
+    }
+
+    public class ItemSortType : SortInputType<Item>
+    {
+        protected override void Configure(ISortInputTypeDescriptor<Item> descriptor)
+        {
+            descriptor.BindFieldsExplicitly();
+            descriptor.Field(x => x.Name == "b").Name("flagged");
+        }
+    }
 }
