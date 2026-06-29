@@ -95,7 +95,7 @@ function ProtocolTag({ label }: { readonly label: string }) {
  */
 export function ProtocolCards() {
   return (
-    <section className="mx-auto max-w-6xl px-5 pb-16 sm:px-12 sm:pb-20">
+    <section className="mx-auto max-w-7xl px-5 pb-16 sm:px-12 sm:pb-20">
       {/* Protocol chip box. The gradient runs left→right so the centered connector
           line coming down from the Fusion section meets the midpoint color
           (#66be77) for a seamless join. */}
