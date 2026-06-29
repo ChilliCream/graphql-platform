@@ -426,11 +426,11 @@
   <data name="LogEntryHelper_OverrideOnInterface" xml:space="preserve">
     <value>The interface field '{0}' in schema '{1}' must not be annotated with the @override directive.</value>
   </data>
-  <data name="LogEntryHelper_PropagateNullDirectiveNotRepeatable" xml:space="preserve">
-    <value>The field '{0}' in schema '{1}' includes multiple @propagateNull directives, but @propagateNull is not repeatable.</value>
-  </data>
   <data name="LogEntryHelper_PropagateNullOnNonLookupField" xml:space="preserve">
     <value>The field '{0}' in schema '{1}' includes a @propagateNull directive, but is not a lookup field.</value>
+  </data>
+  <data name="LogEntryHelper_PropagateNullDirectiveNotRepeatable" xml:space="preserve">
+    <value>The field '{0}' in schema '{1}' includes multiple @propagateNull directives, but @propagateNull is not repeatable.</value>
   </data>
   <data name="LogEntryHelper_ProvidesDirectiveInFieldsArgument" xml:space="preserve">
     <value>The @provides directive on field '{0}' in schema '{1}' references field '{2}', which must not include directive applications.</value>

@@ -331,6 +331,20 @@ internal sealed class ValueCompletion
         return !didPropagateToRoot;
     }
 
+    /// <summary>
+    /// Records a <c>@propagateNull</c> lookup error at the entity coordinate when the entity
+    /// has already been invalidated by an earlier <c>@propagateNull</c> lookup on the same
+    /// coordinate.
+    /// </summary>
+    public void AddPropagatedNullError(
+        CompactPath entityPath,
+        ErrorTrie errorTrie,
+        Operation operation)
+    {
+        var hasErrors = false;
+        AddErrorsAtPath(errorTrie, entityPath.ToPath(operation), ref hasErrors);
+    }
+
     private void AddErrorsAtPath(ErrorTrie errorTrie, Path targetPath, ref bool hasErrors)
     {
         if (errorTrie.Error is { } error)

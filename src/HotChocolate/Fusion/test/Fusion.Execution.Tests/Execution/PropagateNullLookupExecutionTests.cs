@@ -184,7 +184,7 @@ public sealed class PropagateNullLookupExecutionTests
     }
 
     [Fact]
-    public async Task Execute_Should_SkipKeyOnlyDownstreamLookup_When_PropagateNullLookupInvalidatesEntity()
+    public async Task Execute_Should_NotApplyKeyOnlyDownstreamResult_When_PropagateNullLookupInvalidatesEntity()
     {
         // arrange
         var clients = new TestSourceSchemaClients(
@@ -213,6 +213,40 @@ public sealed class PropagateNullLookupExecutionTests
         // assert
         Assert.Single(clients.RequestsBySchema("A"));
         Assert.Single(clients.RequestsBySchema("B"));
+        Assert.Single(clients.RequestsBySchema("C"));
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "product": null
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task Execute_Should_SuppressNonNullContributedFieldViolation_When_PropagateNullLookupReturnsCleanNull()
+    {
+        // arrange
+        var clients = new TestSourceSchemaClients(
+            ("A", """{"data":{"product":{"id":"1","name":"Chair"}}}"""),
+            ("B", """{"data":{"productById":null}}"""));
+        var executor = await CreateExecutorAsync(clients, nullableProduct: true, listProduct: false);
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            query {
+              product {
+                name
+                description
+              }
+            }
+            """,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Single(clients.RequestsBySchema("B"));
         Assert.Empty(clients.RequestsBySchema("C"));
         result.MatchInlineSnapshot(
             """
@@ -224,11 +258,371 @@ public sealed class PropagateNullLookupExecutionTests
             """);
     }
 
+    [Fact]
+    public async Task Execute_Should_LiftLookupErrorToEntityAndBubble_When_PropagateNullLookupErrorsOnNonNullEntity()
+    {
+        // arrange
+        var clients = new TestSourceSchemaClients(
+            ("A", """{"data":{"product":{"id":"1","name":"Chair"}}}"""),
+            ("B", """{"data":{"productById":null},"errors":[{"message":"Product missing.","path":["productById"]}]}"""));
+        var executor = await CreateExecutorAsync(clients, nullableProduct: false, listProduct: false);
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            query {
+              product {
+                name
+                description
+              }
+            }
+            """,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Single(clients.RequestsBySchema("B"));
+        result.MatchInlineSnapshot(
+            """
+            {
+              "errors": [
+                {
+                  "message": "Product missing.",
+                  "path": [
+                    "product"
+                  ]
+                }
+              ],
+              "data": null
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task Execute_Should_RecordBothEntityErrors_When_BothPropagateNullLookupsError()
+    {
+        // arrange
+        var clients = new TestSourceSchemaClients(
+            ("A", """{"data":{"product":{"id":"1","name":"Chair"}}}"""),
+            ("B", """{"data":{"productById":null},"errors":[{"message":"Product unavailable.","path":["productById"]}]}"""),
+            ("C", """{"data":{"productDetailsById":null},"errors":[{"message":"Product unavailable.","path":["productDetailsById"]}]}"""));
+        var executor = await CreateExecutorAsync(
+            clients,
+            nullableProduct: true,
+            listProduct: false,
+            propagateNullDownstream: true);
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            query {
+              product {
+                description
+                detail
+              }
+            }
+            """,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Single(clients.RequestsBySchema("B"));
+        Assert.Single(clients.RequestsBySchema("C"));
+        result.MatchInlineSnapshot(
+            """
+            {
+              "errors": [
+                {
+                  "message": "Product unavailable.",
+                  "path": [
+                    "product"
+                  ]
+                },
+                {
+                  "message": "Product unavailable.",
+                  "path": [
+                    "product"
+                  ]
+                }
+              ],
+              "data": {
+                "product": null
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task Execute_Should_RecordSingleEntityError_When_FirstLookupErrorsAndSecondReturnsCleanNull()
+    {
+        // arrange
+        var clients = new TestSourceSchemaClients(
+            ("A", """{"data":{"product":{"id":"1","name":"Chair"}}}"""),
+            ("B", """{"data":{"productById":null},"errors":[{"message":"Product unavailable.","path":["productById"]}]}"""),
+            ("C", """{"data":{"productDetailsById":null}}"""));
+        var executor = await CreateExecutorAsync(
+            clients,
+            nullableProduct: true,
+            listProduct: false,
+            propagateNullDownstream: true);
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            query {
+              product {
+                description
+                detail
+              }
+            }
+            """,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Single(clients.RequestsBySchema("B"));
+        Assert.Single(clients.RequestsBySchema("C"));
+        result.MatchInlineSnapshot(
+            """
+            {
+              "errors": [
+                {
+                  "message": "Product unavailable.",
+                  "path": [
+                    "product"
+                  ]
+                }
+              ],
+              "data": {
+                "product": null
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task Execute_Should_RecordSingleEntityError_When_FirstLookupReturnsCleanNullAndSecondErrors()
+    {
+        // arrange
+        var clients = new TestSourceSchemaClients(
+            ("A", """{"data":{"product":{"id":"1","name":"Chair"}}}"""),
+            ("B", """{"data":{"productById":null}}"""),
+            ("C", """{"data":{"productDetailsById":null},"errors":[{"message":"Detail unavailable.","path":["productDetailsById"]}]}"""));
+        var executor = await CreateExecutorAsync(
+            clients,
+            nullableProduct: true,
+            listProduct: false,
+            propagateNullDownstream: true);
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            query {
+              product {
+                description
+                detail
+              }
+            }
+            """,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Single(clients.RequestsBySchema("B"));
+        Assert.Single(clients.RequestsBySchema("C"));
+        result.MatchInlineSnapshot(
+            """
+            {
+              "errors": [
+                {
+                  "message": "Detail unavailable.",
+                  "path": [
+                    "product"
+                  ]
+                }
+              ],
+              "data": {
+                "product": null
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task Execute_Should_RecordNoError_When_BothPropagateNullLookupsReturnCleanNull()
+    {
+        // arrange
+        var clients = new TestSourceSchemaClients(
+            ("A", """{"data":{"product":{"id":"1","name":"Chair"}}}"""),
+            ("B", """{"data":{"productById":null}}"""),
+            ("C", """{"data":{"productDetailsById":null}}"""));
+        var executor = await CreateExecutorAsync(
+            clients,
+            nullableProduct: true,
+            listProduct: false,
+            propagateNullDownstream: true);
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            query {
+              product {
+                description
+                detail
+              }
+            }
+            """,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Single(clients.RequestsBySchema("B"));
+        Assert.Single(clients.RequestsBySchema("C"));
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "product": null
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task Execute_Should_RecordBothEntityErrors_When_BothLookupsErrorOnNonNullListElement()
+    {
+        // arrange
+        var clients = new TestSourceSchemaClients(
+            ("A", """{"data":{"products":[{"id":"1","name":"Chair"}]}}"""),
+            ("B", """{"data":{"productById":null},"errors":[{"message":"Product unavailable.","path":["productById"]}]}"""),
+            ("C", """{"data":{"productDetailsById":null},"errors":[{"message":"Product unavailable.","path":["productDetailsById"]}]}"""));
+        var executor = await CreateExecutorAsync(
+            clients,
+            nullableProduct: true,
+            listProduct: true,
+            propagateNullDownstream: true,
+            nonNullListElement: true);
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            query {
+              products {
+                description
+                detail
+              }
+            }
+            """,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Single(clients.RequestsBySchema("B"));
+        Assert.Single(clients.RequestsBySchema("C"));
+        result.MatchInlineSnapshot(
+            """
+            {
+              "errors": [
+                {
+                  "message": "Product unavailable.",
+                  "path": [
+                    "products",
+                    0
+                  ]
+                },
+                {
+                  "message": "Product unavailable.",
+                  "path": [
+                    "products",
+                    0
+                  ]
+                }
+              ],
+              "data": {
+                "products": null
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task Execute_Should_NullOnlyContributedField_When_LookupHasNoPropagateNull()
+    {
+        // arrange
+        var clients = new TestSourceSchemaClients(
+            ("A", """{"data":{"product":{"id":"1","name":"Chair"}}}"""),
+            ("B", """{"data":{"productById":null}}"""));
+        var executor = await CreateExecutorAsync(
+            clients,
+            nullableProduct: true,
+            listProduct: false,
+            propagateNullLookup: false,
+            nonNullDescription: false);
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            query {
+              product {
+                name
+                description
+              }
+            }
+            """,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Single(clients.RequestsBySchema("B"));
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "product": {
+                  "name": "Chair",
+                  "description": null
+                }
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task Execute_Should_NotRequestLookup_When_PropagateNullFieldsNotSelected()
+    {
+        // arrange
+        var clients = new TestSourceSchemaClients(
+            ("A", """{"data":{"product":{"id":"1","name":"Chair"}}}"""));
+        var executor = await CreateExecutorAsync(clients, nullableProduct: true, listProduct: false);
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            query {
+              product {
+                name
+              }
+            }
+            """,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Single(clients.RequestsBySchema("A"));
+        Assert.Empty(clients.RequestsBySchema("B"));
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "product": {
+                  "name": "Chair"
+                }
+              }
+            }
+            """);
+    }
+
     private static async Task<IRequestExecutor> CreateExecutorAsync(
         TestSourceSchemaClients clients,
         bool nullableProduct,
         bool listProduct,
-        bool downstreamLookupUsesEntityKey = false)
+        bool downstreamLookupUsesEntityKey = false,
+        bool propagateNullLookup = true,
+        bool propagateNullDownstream = false,
+        bool nonNullDescription = true,
+        bool nonNullListElement = false)
     {
         var services = new ServiceCollection();
         services.AddHttpClient();
@@ -239,7 +633,11 @@ public sealed class PropagateNullLookupExecutionTests
                 CreateExecutionSchemaDocument(
                     nullableProduct,
                     listProduct,
-                    downstreamLookupUsesEntityKey));
+                    downstreamLookupUsesEntityKey,
+                    propagateNullLookup,
+                    propagateNullDownstream,
+                    nonNullDescription,
+                    nonNullListElement));
 
         builder.Services.AddSingleton<ISourceSchemaClientFactory>(
             new TestSourceSchemaClientFactory(clients));
@@ -259,21 +657,33 @@ public sealed class PropagateNullLookupExecutionTests
     private static DocumentNode CreateExecutionSchemaDocument(
         bool nullableProduct,
         bool listProduct,
-        bool downstreamLookupUsesEntityKey)
+        bool downstreamLookupUsesEntityKey,
+        bool propagateNullLookup,
+        bool propagateNullDownstream,
+        bool nonNullDescription,
+        bool nonNullListElement)
     {
         var productFieldType = listProduct
-            ? "[Product]"
+            ? nonNullListElement ? "[Product!]" : "[Product]"
             : nullableProduct
                 ? "Product"
                 : "Product!";
 
         var productFieldName = listProduct ? "products" : "product";
-        var downstreamLookupFieldDefinition = downstreamLookupUsesEntityKey
+
+        // A second @propagateNull lookup is modeled by making the downstream lookup C
+        // resolve from the entity key (id) so it runs independently of lookup B.
+        var downstreamUsesEntityKey = downstreamLookupUsesEntityKey || propagateNullDownstream;
+        var downstreamLookupFieldDefinition = downstreamUsesEntityKey
             ? "productDetailsById(id: ID!): Product"
             : "productByDescription(description: String!): Product";
-        var downstreamLookupMap = downstreamLookupUsesEntityKey
+        var downstreamLookupMap = downstreamUsesEntityKey
             ? "id"
             : "description";
+
+        var lookupPropagateNull = propagateNullLookup ? "true" : "false";
+        var downstreamPropagateNull = propagateNullDownstream ? "true" : "false";
+        var descriptionType = nonNullDescription ? "String!" : "String";
 
         return Utf8GraphQLParser.Parse(
             $$"""
@@ -298,7 +708,7 @@ public sealed class PropagateNullLookupExecutionTests
                 key: "{ id }"
                 field: "productById(id: ID!): Product"
                 map: ["id"]
-                propagateNull: true
+                propagateNull: {{lookupPropagateNull}}
                 internal: false
               )
               @fusion__lookup(
@@ -306,13 +716,14 @@ public sealed class PropagateNullLookupExecutionTests
                 key: "{ {{downstreamLookupMap}} }"
                 field: "{{downstreamLookupFieldDefinition}}"
                 map: ["{{downstreamLookupMap}}"]
+                propagateNull: {{downstreamPropagateNull}}
                 internal: false
               ) {
               id: ID!
                 @fusion__field(schema: A)
               name: String
                 @fusion__field(schema: A)
-              description: String!
+              description: {{descriptionType}}
                 @fusion__field(schema: B)
               detail: String
                 @fusion__field(schema: C)

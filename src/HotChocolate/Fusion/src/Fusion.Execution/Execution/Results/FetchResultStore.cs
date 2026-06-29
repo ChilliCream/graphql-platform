@@ -731,12 +731,11 @@ AddErrors_Next:
                 && errorTrie is not null
                 && dataElement.ValueKind is JsonValueKind.Null)
             {
-                return _valueCompletion.BuildResult(
-                    dataElement,
-                    element,
-                    errorTrie,
-                    resultSelectionSet,
-                    propagateNull);
+                // The entity (or one of its nullable ancestors) was already invalidated by
+                // an earlier @propagateNull lookup on this coordinate. The live element here
+                // may be a short-circuited ancestor, so the error is lifted to the entity
+                // coordinate computed from the lookup's target path.
+                _valueCompletion.AddPropagatedNullError(path, errorTrie, _operation);
             }
 
             return true;
@@ -916,12 +915,12 @@ AddErrors_Next:
                         continue;
                     }
 
-                    if (value.IsNullOrInvalidated || value.ValueKind is JsonValueKind.Undefined)
+                    var valueKind = value.ValueKind;
+
+                    if (valueKind is JsonValueKind.Null or JsonValueKind.Undefined || value.IsInvalidated)
                     {
                         continue;
                     }
-
-                    var valueKind = value.ValueKind;
 
                     if (valueKind is JsonValueKind.Array)
                     {

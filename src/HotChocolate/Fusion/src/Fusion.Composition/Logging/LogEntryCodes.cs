@@ -58,8 +58,7 @@ public static class LogEntryCodes
     public const string OutputFieldTypesNotMergeable = "OUTPUT_FIELD_TYPES_NOT_MERGEABLE";
     public const string OverrideFromSelf = "OVERRIDE_FROM_SELF";
     public const string OverrideOnInterface = "OVERRIDE_ON_INTERFACE";
-    public const string PropagateNullDirectiveNotRepeatable =
-        "PROPAGATE_NULL_DIRECTIVE_NOT_REPEATABLE";
+    public const string PropagateNullDirectiveNotRepeatable = "PROPAGATE_NULL_DIRECTIVE_NOT_REPEATABLE";
     public const string PropagateNullOnNonLookupField = "PROPAGATE_NULL_ON_NON_LOOKUP_FIELD";
     public const string ProvidesDirectiveInFieldsArgument = "PROVIDES_DIRECTIVE_IN_FIELDS_ARGUMENT";
     public const string ProvidesFieldsHasArguments = "PROVIDES_FIELDS_HAS_ARGUMENTS";

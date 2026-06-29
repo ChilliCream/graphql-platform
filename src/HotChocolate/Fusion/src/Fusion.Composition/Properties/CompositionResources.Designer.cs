@@ -1295,20 +1295,20 @@ namespace HotChocolate.Fusion.Properties {
         }
 
         /// <summary>
-        ///   Looks up a localized string similar to The field &apos;{0}&apos; in schema &apos;{1}&apos; includes multiple @propagateNull directives, but @propagateNull is not repeatable..
-        /// </summary>
-        internal static string LogEntryHelper_PropagateNullDirectiveNotRepeatable {
-            get {
-                return ResourceManager.GetString("LogEntryHelper_PropagateNullDirectiveNotRepeatable", resourceCulture);
-            }
-        }
-
-        /// <summary>
         ///   Looks up a localized string similar to The field &apos;{0}&apos; in schema &apos;{1}&apos; includes a @propagateNull directive, but is not a lookup field..
         /// </summary>
         internal static string LogEntryHelper_PropagateNullOnNonLookupField {
             get {
                 return ResourceManager.GetString("LogEntryHelper_PropagateNullOnNonLookupField", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The field &apos;{0}&apos; in schema &apos;{1}&apos; includes multiple @propagateNull directives, but @propagateNull is not repeatable..
+        /// </summary>
+        internal static string LogEntryHelper_PropagateNullDirectiveNotRepeatable {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_PropagateNullDirectiveNotRepeatable", resourceCulture);
             }
         }
 

@@ -1166,22 +1166,6 @@ internal static class LogEntryHelper
             .Build();
     }
 
-    public static LogEntry PropagateNullDirectiveNotRepeatable(
-        MutableOutputFieldDefinition field,
-        MutableSchemaDefinition schema)
-    {
-        return LogEntryBuilder.New()
-            .SetMessage(
-                LogEntryHelper_PropagateNullDirectiveNotRepeatable,
-                field.Coordinate.ToString(),
-                schema.Name)
-            .SetCode(LogEntryCodes.PropagateNullDirectiveNotRepeatable)
-            .SetSeverity(LogSeverity.Error)
-            .SetTypeSystemMember(field)
-            .SetSchema(schema)
-            .Build();
-    }
-
     public static LogEntry PropagateNullOnNonLookupField(
         MutableOutputFieldDefinition field,
         MutableSchemaDefinition schema)
@@ -1192,6 +1176,22 @@ internal static class LogEntryHelper
                 field.Coordinate.ToString(),
                 schema.Name)
             .SetCode(LogEntryCodes.PropagateNullOnNonLookupField)
+            .SetSeverity(LogSeverity.Error)
+            .SetTypeSystemMember(field)
+            .SetSchema(schema)
+            .Build();
+    }
+
+    public static LogEntry PropagateNullDirectiveNotRepeatable(
+        MutableOutputFieldDefinition field,
+        MutableSchemaDefinition schema)
+    {
+        return LogEntryBuilder.New()
+            .SetMessage(
+                LogEntryHelper_PropagateNullDirectiveNotRepeatable,
+                field.Coordinate.ToString(),
+                schema.Name)
+            .SetCode(LogEntryCodes.PropagateNullDirectiveNotRepeatable)
             .SetSeverity(LogSeverity.Error)
             .SetTypeSystemMember(field)
             .SetSchema(schema)

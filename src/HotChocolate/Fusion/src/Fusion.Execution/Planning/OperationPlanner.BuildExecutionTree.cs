@@ -450,44 +450,6 @@ public sealed partial class OperationPlanner
                 ctx.FallbackByNodeId.Add(nodePlanStep.Id, nodePlanStep.FallbackQuery.Id);
             }
         }
-
-        AddPropagateNullLookupDependencies(planSteps, ctx);
-    }
-
-    private static void AddPropagateNullLookupDependencies(
-        ImmutableList<PlanStep> planSteps,
-        ExecutionPlanBuildContext ctx)
-    {
-        var operationSteps = planSteps.OfType<OperationPlanStep>().ToArray();
-
-        foreach (var propagateNullStep in operationSteps)
-        {
-            if (propagateNullStep.Lookup is not { PropagateNull: true })
-            {
-                continue;
-            }
-
-            foreach (var candidate in operationSteps)
-            {
-                if (candidate.Id == propagateNullStep.Id
-                    || candidate.Lookup is null or { PropagateNull: true }
-                    || !candidate.Target.Equals(propagateNullStep.Target)
-                    || !candidate.Type.Name.Equals(propagateNullStep.Type.Name, StringComparison.Ordinal)
-                    || propagateNullStep.DependsOn(candidate, planSteps)
-                    || candidate.DependsOn(propagateNullStep, planSteps))
-                {
-                    continue;
-                }
-
-                if (!ctx.DependenciesByStepId.TryGetValue(candidate.Id, out var dependencies))
-                {
-                    dependencies = [];
-                    ctx.DependenciesByStepId[candidate.Id] = dependencies;
-                }
-
-                dependencies.Add(propagateNullStep.Id);
-            }
-        }
     }
 
     private static void BuildExecutionNodes(
