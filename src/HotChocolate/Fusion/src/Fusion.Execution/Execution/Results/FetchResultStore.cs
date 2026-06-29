@@ -38,18 +38,20 @@ internal sealed partial class FetchResultStore : IDisposable
     private readonly object _lock = new();
 #endif
     private readonly List<IDisposable> _memory = [];
-    private readonly ChunkedArrayWriter _variableWriter = new();
-    private readonly JsonWriter _jsonWriter;
-    private readonly VariableDedupTable _variableDedupTable;
+    private ArenaBufferWriter _variableWriter = default!;
+    private JsonWriter _jsonWriter = default!;
+    private readonly VariableDedupTable _variableDedupTable = new();
     private ISchemaDefinition _schema = default!;
     private IErrorHandler _errorHandler = default!;
     private Operation _operation = default!;
     private ErrorHandlingMode _errorHandlingMode;
     private ulong _includeFlags;
     private ulong _deferFlags;
-    private CompositeResultElement[] _collectTargetA = ArrayPool<CompositeResultElement>.Shared.Rent(64);
-    private CompositeResultElement[] _collectTargetB = ArrayPool<CompositeResultElement>.Shared.Rent(64);
-    private CompositeResultElement[] _collectTargetCombined = ArrayPool<CompositeResultElement>.Shared.Rent(64);
+    private CollectedTargetElement[] _collectTargetA = ArrayPool<CollectedTargetElement>.Shared.Rent(64);
+    private CollectedTargetElement[] _collectTargetB = ArrayPool<CollectedTargetElement>.Shared.Rent(64);
+    private CollectedTargetElement[] _collectTargetCombined = ArrayPool<CollectedTargetElement>.Shared.Rent(64);
+    private CollectedPathSegment[] _collectTargetPathSegments = ArrayPool<CollectedPathSegment>.Shared.Rent(64);
+    private int _collectTargetPathSegmentCount;
     private PathSegmentLocalPool _pathPool = default!;
     private IMemoryArena _arena = default!;
     private HashSet<int[]> _seenPaths = new(ReferenceEqualityComparer.Instance);
@@ -59,11 +61,7 @@ internal sealed partial class FetchResultStore : IDisposable
     private Dictionary<Path, IError>? _pocketedErrors;
     private bool _disposed;
 
-    internal FetchResultStore()
-    {
-        _jsonWriter = new JsonWriter(_variableWriter, new JsonWriterOptions { Indented = false });
-        _variableDedupTable = new VariableDedupTable(_variableWriter);
-    }
+    internal FetchResultStore() { }
 
     public CompositeResultDocument Result => _result;
 
@@ -686,6 +684,8 @@ AddErrors_Next:
 
         lock (_lock)
         {
+            _collectTargetPathSegmentCount = 0;
+
             var elements = CollectTargetElements(selectionSet);
 
             if (elements.IsEmpty)
@@ -720,6 +720,8 @@ AddErrors_Next:
 
         lock (_lock)
         {
+            _collectTargetPathSegmentCount = 0;
+
             var combinedCount = 0;
 
             foreach (var selectionSet in selectionSets)
@@ -787,29 +789,35 @@ AddErrors_Next:
     }
 
     // Caller must hold _lock for reading.
-    private ReadOnlySpan<CompositeResultElement> CollectTargetElements(SelectionPath selectionSet)
+    private ReadOnlySpan<CollectedTargetElement> CollectTargetElements(SelectionPath selectionSet)
     {
         var current = _collectTargetA;
         var currentCount = 0;
         var next = _collectTargetB;
         var nextCount = 0;
 
-        current[currentCount++] = _result.Data;
+        current[currentCount++] = new CollectedTargetElement(_result.Data, pathSegmentIndex: -1);
 
         for (var i = 0; i < selectionSet.Length; i++)
         {
             var segment = selectionSet[i];
 
+            if (segment.Kind is SelectionPathSegmentKind.Root)
+            {
+                continue;
+            }
+
             if (segment.Kind is SelectionPathSegmentKind.InlineFragment)
             {
                 for (var j = 0; j < currentCount; j++)
                 {
-                    var element = current[j];
+                    var target = current[j];
+                    var element = target.Element;
                     if (element.TryGetProperty(IntrospectionFieldNames.TypeNameSpan, out var value)
                         && value.ValueKind is JsonValueKind.String
                         && value.TextEqualsHelper(segment.Name, isPropertyName: false))
                     {
-                        AddToBuffer(ref next, ref nextCount, element);
+                        AddToBuffer(ref next, ref nextCount, target);
                     }
                 }
             }
@@ -817,7 +825,8 @@ AddErrors_Next:
             {
                 for (var j = 0; j < currentCount; j++)
                 {
-                    var element = current[j];
+                    var target = current[j];
+                    var element = target.Element;
                     if (!element.TryGetProperty(segment.Name, out var value))
                     {
                         continue;
@@ -832,13 +841,18 @@ AddErrors_Next:
 
                     if (valueKind is JsonValueKind.Array)
                     {
-                        AppendUnrolledLists(value, ref next, ref nextCount);
+                        var fieldPath = AppendFieldPath(target.PathSegmentIndex, value);
+                        AppendUnrolledLists(value, fieldPath, ref next, ref nextCount);
                         continue;
                     }
 
                     if (valueKind is JsonValueKind.Object)
                     {
-                        AddToBuffer(ref next, ref nextCount, value);
+                        var fieldPath = AppendFieldPath(target.PathSegmentIndex, value);
+                        AddToBuffer(
+                            ref next,
+                            ref nextCount,
+                            new CollectedTargetElement(value, fieldPath));
                         continue;
                     }
 
@@ -926,7 +940,7 @@ AddErrors_Next:
     }
 
     private ImmutableArray<VariableValues> BuildVariableValueSets(
-        ReadOnlySpan<CompositeResultElement> elements,
+        ReadOnlySpan<CollectedTargetElement> elements,
         IReadOnlyList<ObjectFieldNode> requestVariables,
         ReadOnlySpan<OperationRequirement> requiredData)
     {
@@ -972,8 +986,9 @@ AddErrors_Next:
         var additionalPaths = new AdditionalPathAccumulator();
         var nextIndex = 0;
 
-        foreach (var result in elements)
+        foreach (var target in elements)
         {
+            var result = target.Element;
             variableValueSets ??= s_variableValuePool.Rent(elements.Length);
 
             _jsonWriter.Reset(_variableWriter);
@@ -1011,7 +1026,7 @@ AddErrors_Next:
             _jsonWriter.WriteEndObject();
 
             var entry = TryCreateVariableValues(
-                result.CompactPath, startPosition, ref additionalPaths, nextIndex);
+                target, startPosition, ref additionalPaths, nextIndex);
 
             if (entry is null)
             {
@@ -1034,7 +1049,7 @@ AddErrors_Next:
     }
 
     private ImmutableArray<VariableValues> BuildVariableValueSetsSingleRequirement(
-        ReadOnlySpan<CompositeResultElement> elements,
+        ReadOnlySpan<CollectedTargetElement> elements,
         OperationRequirement requirement)
     {
         if (TryGetSimpleRequirementFieldName(requirement.Map, out var fieldName))
@@ -1046,7 +1061,7 @@ AddErrors_Next:
     }
 
     private ImmutableArray<VariableValues> BuildVariableValueSetsSingleRequirementFastPath(
-        ReadOnlySpan<CompositeResultElement> elements,
+        ReadOnlySpan<CollectedTargetElement> elements,
         OperationRequirement requirement,
         string fieldName)
     {
@@ -1057,7 +1072,8 @@ AddErrors_Next:
 
         for (var i = 0; i < elements.Length; i++)
         {
-            var result = elements[i];
+            var target = elements[i];
+            var result = target.Element;
 
             if (!result.TryGetProperty(fieldName, out var value))
             {
@@ -1089,7 +1105,7 @@ AddErrors_Next:
 
             // we try to create a VariableValues object,
             // if that fails the variables already were created and we move on.
-            var entry = TryCreateVariableValues(result.CompactPath, startPosition, ref additionalPaths, nextIndex);
+            var entry = TryCreateVariableValues(target, startPosition, ref additionalPaths, nextIndex);
 
             if (entry is null)
             {
@@ -1104,15 +1120,16 @@ AddErrors_Next:
     }
 
     private ImmutableArray<VariableValues> BuildVariableValueSetsSingleRequirementSlowPath(
-        ReadOnlySpan<CompositeResultElement> elements,
+        ReadOnlySpan<CollectedTargetElement> elements,
         OperationRequirement requirement)
     {
         VariableValues[]? variableValueSets = null;
         var additionalPaths = new AdditionalPathAccumulator();
         var nextIndex = 0;
 
-        foreach (var result in elements)
+        foreach (var target in elements)
         {
+            var result = target.Element;
             variableValueSets ??= s_variableValuePool.Rent(elements.Length);
 
             _jsonWriter.Reset(_variableWriter);
@@ -1129,7 +1146,7 @@ AddErrors_Next:
             _jsonWriter.WriteEndObject();
 
             var entry = TryCreateVariableValues(
-                result.CompactPath, startPosition, ref additionalPaths, nextIndex);
+                target, startPosition, ref additionalPaths, nextIndex);
 
             if (entry is null)
             {
@@ -1144,7 +1161,7 @@ AddErrors_Next:
     }
 
     private ImmutableArray<VariableValues> BuildVariableValueSetsTwoRequirements(
-        ReadOnlySpan<CompositeResultElement> elements,
+        ReadOnlySpan<CollectedTargetElement> elements,
         OperationRequirement requirement1,
         OperationRequirement requirement2)
     {
@@ -1166,7 +1183,7 @@ AddErrors_Next:
     }
 
     private ImmutableArray<VariableValues> BuildVariableValueSetsTwoRequirementsFastPath(
-        ReadOnlySpan<CompositeResultElement> elements,
+        ReadOnlySpan<CollectedTargetElement> elements,
         OperationRequirement requirement1,
         string fieldName1,
         OperationRequirement requirement2,
@@ -1176,8 +1193,9 @@ AddErrors_Next:
         var additionalPaths = new AdditionalPathAccumulator();
         var nextIndex = 0;
 
-        foreach (var result in elements)
+        foreach (var target in elements)
         {
+            var result = target.Element;
             if (!result.TryGetProperty(fieldName1, out var value1)
                 || value1.ValueKind is JsonValueKind.Undefined
                 || (value1.ValueKind is JsonValueKind.Null
@@ -1206,7 +1224,7 @@ AddErrors_Next:
             _jsonWriter.WriteEndObject();
 
             var entry = TryCreateVariableValues(
-                result.CompactPath, startPosition, ref additionalPaths, nextIndex);
+                target, startPosition, ref additionalPaths, nextIndex);
 
             if (entry is null)
             {
@@ -1221,7 +1239,7 @@ AddErrors_Next:
     }
 
     private ImmutableArray<VariableValues> BuildVariableValueSetsTwoRequirementsSlowPath(
-        ReadOnlySpan<CompositeResultElement> elements,
+        ReadOnlySpan<CollectedTargetElement> elements,
         OperationRequirement requirement1,
         OperationRequirement requirement2)
     {
@@ -1229,8 +1247,9 @@ AddErrors_Next:
         var additionalPaths = new AdditionalPathAccumulator();
         var nextIndex = 0;
 
-        foreach (var result in elements)
+        foreach (var target in elements)
         {
+            var result = target.Element;
             variableValueSets ??= s_variableValuePool.Rent(elements.Length);
 
             _jsonWriter.Reset(_variableWriter);
@@ -1255,7 +1274,7 @@ AddErrors_Next:
 
             _jsonWriter.WriteEndObject();
 
-            var entry = TryCreateVariableValues(result.CompactPath, startPosition, ref additionalPaths, nextIndex);
+            var entry = TryCreateVariableValues(target, startPosition, ref additionalPaths, nextIndex);
 
             if (entry is null)
             {
@@ -1270,7 +1289,7 @@ AddErrors_Next:
     }
 
     private ImmutableArray<VariableValues> BuildVariableValueSetsThreeRequirements(
-        ReadOnlySpan<CompositeResultElement> elements,
+        ReadOnlySpan<CollectedTargetElement> elements,
         OperationRequirement requirement1,
         OperationRequirement requirement2,
         OperationRequirement requirement3)
@@ -1297,7 +1316,7 @@ AddErrors_Next:
     }
 
     private ImmutableArray<VariableValues> BuildVariableValueSetsThreeRequirementsFastPath(
-        ReadOnlySpan<CompositeResultElement> elements,
+        ReadOnlySpan<CollectedTargetElement> elements,
         OperationRequirement requirement1,
         string fieldName1,
         OperationRequirement requirement2,
@@ -1309,8 +1328,9 @@ AddErrors_Next:
         var additionalPaths = new AdditionalPathAccumulator();
         var nextIndex = 0;
 
-        foreach (var result in elements)
+        foreach (var target in elements)
         {
+            var result = target.Element;
             if (!result.TryGetProperty(fieldName1, out var value1)
                 || value1.ValueKind is JsonValueKind.Undefined
                 || (value1.ValueKind is JsonValueKind.Null
@@ -1348,7 +1368,7 @@ AddErrors_Next:
             WriteCompositeResultValue(value3);
             _jsonWriter.WriteEndObject();
 
-            var entry = TryCreateVariableValues(result.CompactPath, startPosition, ref additionalPaths, nextIndex);
+            var entry = TryCreateVariableValues(target, startPosition, ref additionalPaths, nextIndex);
 
             if (entry is null)
             {
@@ -1363,7 +1383,7 @@ AddErrors_Next:
     }
 
     private ImmutableArray<VariableValues> BuildVariableValueSetsThreeRequirementsSlowPath(
-        ReadOnlySpan<CompositeResultElement> elements,
+        ReadOnlySpan<CollectedTargetElement> elements,
         OperationRequirement requirement1,
         OperationRequirement requirement2,
         OperationRequirement requirement3)
@@ -1372,8 +1392,9 @@ AddErrors_Next:
         var additionalPaths = new AdditionalPathAccumulator();
         var nextIndex = 0;
 
-        foreach (var result in elements)
+        foreach (var target in elements)
         {
+            var result = target.Element;
             variableValueSets ??= s_variableValuePool.Rent(elements.Length);
 
             _jsonWriter.Reset(_variableWriter);
@@ -1406,7 +1427,7 @@ AddErrors_Next:
 
             _jsonWriter.WriteEndObject();
 
-            var entry = TryCreateVariableValues(result.CompactPath, startPosition, ref additionalPaths, nextIndex);
+            var entry = TryCreateVariableValues(target, startPosition, ref additionalPaths, nextIndex);
 
             if (entry is null)
             {
@@ -1441,6 +1462,17 @@ AddErrors_Next:
         fieldName = null;
         return false;
     }
+
+    private VariableValues? TryCreateVariableValues(
+        CollectedTargetElement target,
+        int startPosition,
+        ref AdditionalPathAccumulator additionalPaths,
+        int nextIndex)
+        => TryCreateVariableValues(
+            CreateCollectedCompactPath(target.PathSegmentIndex),
+            startPosition,
+            ref additionalPaths,
+            nextIndex);
 
     private VariableValues? TryCreateVariableValues(
         CompactPath path,
@@ -1729,36 +1761,125 @@ AddErrors_Next:
         return new CompactPathSegment(copy, 0, copy.Length);
     }
 
-    private static void AppendUnrolledLists(
+    private int AppendFieldPath(
+        int parentPathSegmentIndex,
+        CompositeResultElement fieldValue)
+    {
+        var selection = fieldValue.Selection
+            ?? throw new InvalidOperationException(
+                "Cannot collect a target path for a field without selection metadata.");
+
+        return AppendCollectedPathSegment(parentPathSegmentIndex, selection.Id);
+    }
+
+    private int AppendCollectedPathSegment(int parentPathSegmentIndex, int segment)
+    {
+        EnsureCapacity(
+            ref _collectTargetPathSegments,
+            _collectTargetPathSegmentCount + 1,
+            _collectTargetPathSegmentCount);
+
+        var index = _collectTargetPathSegmentCount++;
+        _collectTargetPathSegments[index] = new CollectedPathSegment(parentPathSegmentIndex, segment);
+        return index;
+    }
+
+    private CompactPath CreateCollectedCompactPath(int pathSegmentIndex)
+    {
+        if (pathSegmentIndex < 0)
+        {
+            return CompactPath.Root;
+        }
+
+        Span<int> segments = stackalloc int[32];
+        int[]? rented = null;
+        var count = 0;
+
+        try
+        {
+            var current = pathSegmentIndex;
+
+            while (current >= 0)
+            {
+                if (count == segments.Length)
+                {
+                    var newSegments = ArrayPool<int>.Shared.Rent(segments.Length * 2);
+                    segments[..count].CopyTo(newSegments);
+
+                    if (rented is not null)
+                    {
+                        ArrayPool<int>.Shared.Return(rented);
+                    }
+
+                    rented = newSegments;
+                    segments = newSegments;
+                }
+
+                var node = _collectTargetPathSegments[current];
+                segments[count++] = node.Segment;
+                current = node.ParentIndex;
+            }
+
+            Span<int> buffer = stackalloc int[32];
+            var builder = new CompactPathBuilder(buffer, _pathPool);
+
+            for (var i = count - 1; i >= 0; i--)
+            {
+                builder.Append(segments[i]);
+            }
+
+            return builder.ToPath();
+        }
+        finally
+        {
+            if (rented is not null)
+            {
+                ArrayPool<int>.Shared.Return(rented);
+            }
+        }
+    }
+
+    private void AppendUnrolledLists(
         CompositeResultElement list,
-        ref CompositeResultElement[] destination,
+        int listPathSegmentIndex,
+        ref CollectedTargetElement[] destination,
         ref int destinationCount)
     {
+        var index = 0;
+
         foreach (var element in list.EnumerateArray())
         {
             var elementValueKind = element.ValueKind;
 
             if (elementValueKind is JsonValueKind.Null or JsonValueKind.Undefined)
             {
+                index++;
                 continue;
             }
 
+            var elementPathSegmentIndex = AppendCollectedPathSegment(listPathSegmentIndex, ~index);
+
             if (elementValueKind is JsonValueKind.Array)
             {
-                AppendUnrolledLists(element, ref destination, ref destinationCount);
+                AppendUnrolledLists(element, elementPathSegmentIndex, ref destination, ref destinationCount);
+                index++;
+                continue;
             }
-            else
-            {
-                AddToBuffer(ref destination, ref destinationCount, element);
-            }
+
+            AddToBuffer(
+                ref destination,
+                ref destinationCount,
+                new CollectedTargetElement(element, elementPathSegmentIndex));
+
+            index++;
         }
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static void AddToBuffer(
-        ref CompositeResultElement[] buffer,
+        ref CollectedTargetElement[] buffer,
         ref int count,
-        CompositeResultElement value)
+        CollectedTargetElement value)
     {
         if (count == buffer.Length)
         {
@@ -1769,25 +1890,25 @@ AddErrors_Next:
     }
 
     private static void GrowBuffer(
-        ref CompositeResultElement[] buffer,
+        ref CollectedTargetElement[] buffer,
         int count)
     {
-        var newBuffer = ArrayPool<CompositeResultElement>.Shared.Rent(buffer.Length * 2);
+        var newBuffer = ArrayPool<CollectedTargetElement>.Shared.Rent(buffer.Length * 2);
         buffer.AsSpan(0, count).CopyTo(newBuffer);
-        ArrayPool<CompositeResultElement>.Shared.Return(buffer, clearArray: true);
+        ArrayPool<CollectedTargetElement>.Shared.Return(buffer, clearArray: true);
         buffer = newBuffer;
     }
 
-    private static void EnsureCapacity(
-        ref CompositeResultElement[] buffer,
+    private static void EnsureCapacity<T>(
+        ref T[] buffer,
         int required,
         int count)
     {
         if (required > buffer.Length)
         {
-            var newBuffer = ArrayPool<CompositeResultElement>.Shared.Rent(required);
+            var newBuffer = ArrayPool<T>.Shared.Rent(required);
             buffer.AsSpan(0, count).CopyTo(newBuffer);
-            ArrayPool<CompositeResultElement>.Shared.Return(buffer, clearArray: true);
+            ArrayPool<T>.Shared.Return(buffer, clearArray: true);
             buffer = newBuffer;
         }
     }
@@ -2132,9 +2253,10 @@ AddErrors_Next:
 
         _disposed = true;
 
-        ArrayPool<CompositeResultElement>.Shared.Return(_collectTargetA, clearArray: true);
-        ArrayPool<CompositeResultElement>.Shared.Return(_collectTargetB, clearArray: true);
-        ArrayPool<CompositeResultElement>.Shared.Return(_collectTargetCombined, clearArray: true);
+        ArrayPool<CollectedTargetElement>.Shared.Return(_collectTargetA, clearArray: true);
+        ArrayPool<CollectedTargetElement>.Shared.Return(_collectTargetB, clearArray: true);
+        ArrayPool<CollectedTargetElement>.Shared.Return(_collectTargetCombined, clearArray: true);
+        ArrayPool<CollectedPathSegment>.Shared.Return(_collectTargetPathSegments, clearArray: true);
 
         foreach (var memory in _memory)
         {
@@ -2143,7 +2265,8 @@ AddErrors_Next:
 
         _memory.Clear();
 
-        _variableWriter.Dispose();
+        _variableWriter?.Dispose();
+        _variableDedupTable.Dispose();
         _pathPool?.Dispose();
     }
 
@@ -2210,15 +2333,43 @@ AddErrors_Next:
         return ImmutableCollectionsMarshal.AsImmutableArray(result);
     }
 
-    private sealed class VariableDedupTable(ChunkedArrayWriter writer) : IDisposable
+    private readonly struct CollectedTargetElement(
+        CompositeResultElement element,
+        int pathSegmentIndex)
+    {
+        public CompositeResultElement Element { get; } = element;
+
+        public int PathSegmentIndex { get; } = pathSegmentIndex;
+    }
+
+    private readonly struct CollectedPathSegment(
+        int parentIndex,
+        int segment)
+    {
+        public int ParentIndex { get; } = parentIndex;
+
+        public int Segment { get; } = segment;
+    }
+
+    private sealed class VariableDedupTable : IDisposable
     {
         private const int DefaultBucketSize = 4;
         private const int DefaultBucketCount = 16;
 
-        private readonly ChunkedArrayWriter _writer = writer;
+        private ArenaBufferWriter _writer = default!;
         private Entry[] _table = ArrayPool<Entry>.Shared.Rent(DefaultBucketCount * DefaultBucketSize);
         private int _bucketCount = DefaultBucketCount;
         private readonly int _bucketSize = DefaultBucketSize;
+
+        public void SetWriter(ArenaBufferWriter writer)
+        {
+            _writer = writer;
+        }
+
+        public void ClearWriter()
+        {
+            _writer = default!;
+        }
 
         public void Initialize(int capacity)
         {
@@ -2298,6 +2449,7 @@ AddErrors_Next:
         {
             ArrayPool<Entry>.Shared.Return(_table);
             _table = [];
+            _writer = default!;
         }
 
         private void Grow()

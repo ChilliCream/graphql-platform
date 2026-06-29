@@ -44,6 +44,65 @@ public class ArenaBufferWriterTests
         Assert.Equal(Encoding.UTF8.GetString(json), document.Root.GetRawText());
     }
 
+    [Fact]
+    public void GetHashCode_Should_MatchScalar_When_UsingSimdAndGeometricChunks()
+    {
+        // Arrange
+        var lengths = new[]
+        {
+            0,
+            1,
+            63,
+            64,
+            65,
+            512,
+            SourceResultDocument.GetDataChunkSize(0) + 17
+        };
+        var mismatches = new List<string>();
+
+        // Act
+        foreach (var length in lengths)
+        {
+            var data = new byte[length];
+            var rng = new Random(length);
+            rng.NextBytes(data);
+
+            using var arena = new MemoryArena();
+            using var writer = CreateWriterWithData(arena, data);
+            var expected = ScalarHash(data);
+            var actual = writer.GetHashCode(0, data.Length);
+
+            if (actual != expected)
+            {
+                mismatches.Add($"{length}: expected {expected}, actual {actual}");
+            }
+        }
+
+        // Assert
+        Assert.Empty(mismatches);
+    }
+
+    private static ArenaBufferWriter CreateWriterWithData(MemoryArena arena, byte[] data)
+    {
+        var writer = new ArenaBufferWriter(arena);
+        var span = writer.GetSpan(data.Length);
+        data.CopyTo(span);
+        writer.Advance(data.Length);
+        return writer;
+    }
+
+    private static int ScalarHash(byte[] data)
+    {
+        var hash = 0u;
+
+        foreach (var b in data)
+        {
+            hash = (hash * 31) + b;
+        }
+
+        return (int)(hash & 0x7FFFFFFF);
+    }
+
     private static string CreateAsciiPattern(int length)
     {
         var chars = new char[length];

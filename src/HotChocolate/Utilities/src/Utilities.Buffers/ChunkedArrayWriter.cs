@@ -13,7 +13,7 @@ namespace HotChocolate.Buffers;
 /// Uses cursor-based addressing where a single <see cref="int"/> location maps to a chunk index
 /// and offset via shift and mask operations on <see cref="JsonMemory.BufferSize"/>.
 /// </summary>
-internal sealed class ChunkedArrayWriter : IBufferWriter<byte>, IDisposable
+internal sealed class ChunkedArrayWriter : IBufferWriter<byte>, IJsonSegmentSource, IDisposable
 {
     private const int BufferSize = JsonMemory.BufferSize;
     private const int BufferMask = BufferSize - 1;
