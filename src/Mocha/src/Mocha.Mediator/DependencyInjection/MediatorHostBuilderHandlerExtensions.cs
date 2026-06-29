@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
@@ -20,6 +21,8 @@ public static class MediatorHostBuilderHandlerExtensions
     /// <typeparam name="THandler">The handler implementation type.</typeparam>
     /// <param name="builder">The mediator host builder.</param>
     /// <param name="configure">An optional action to configure the handler descriptor.</param>
+    [RequiresDynamicCode("Use source-generated AddHandlerConfiguration for AOT compatibility.")]
+    [RequiresUnreferencedCode("Use source-generated AddHandlerConfiguration for AOT compatibility.")]
     public static IMediatorHostBuilder AddHandler<THandler>(
         this IMediatorHostBuilder builder,
         Action<IMediatorHandlerDescriptor>? configure = null)
@@ -43,7 +46,8 @@ public static class MediatorHostBuilderHandlerExtensions
     /// <param name="builder">The mediator host builder.</param>
     /// <param name="configuration">The pre-built handler configuration.</param>
     [EditorBrowsable(EditorBrowsableState.Never)]
-    public static IMediatorHostBuilder AddHandlerConfiguration<THandler>(
+    public static IMediatorHostBuilder AddHandlerConfiguration<
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] THandler>(
         this IMediatorHostBuilder builder,
         MediatorHandlerConfiguration configuration)
         where THandler : class

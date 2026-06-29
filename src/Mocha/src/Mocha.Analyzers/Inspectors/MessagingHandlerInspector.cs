@@ -88,9 +88,22 @@ public sealed class MessagingHandlerInspector : ISyntaxInspector
 
             var handlerFullName = namedTypeSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
             var handlerNamespace = namedTypeSymbol.ContainingNamespace?.ToDisplayString() ?? string.Empty;
-            var messageTypeName = implemented.TypeArguments[descriptor.MessageTypeArgIndex]
-                .ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+            var messageSymbol = (INamedTypeSymbol)implemented.TypeArguments[descriptor.MessageTypeArgIndex];
+            var messageTypeName = messageSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
             var locationInfo = typeDeclaration.Identifier.GetLocation().ToLocationInfo();
+
+            // Walk the full type hierarchy (base types + interfaces) for AOT enclosed type computation.
+            var hierarchy = new List<string>();
+            var currentBase = messageSymbol.BaseType;
+            while (currentBase is not null && currentBase.SpecialType != SpecialType.System_Object)
+            {
+                hierarchy.Add(currentBase.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat));
+                currentBase = currentBase.BaseType;
+            }
+            foreach (var iface in messageSymbol.AllInterfaces)
+            {
+                hierarchy.Add(iface.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat));
+            }
 
             syntaxInfo = new MessagingHandlerInfo(
                 handlerFullName,
@@ -100,6 +113,7 @@ public sealed class MessagingHandlerInspector : ISyntaxInspector
                     ? implemented.TypeArguments[1].ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)
                     : null,
                 descriptor.Kind,
+                new ImmutableEquatableArray<string>(hierarchy),
                 locationInfo);
             return true;
         }
