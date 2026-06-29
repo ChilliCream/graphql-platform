@@ -74,7 +74,7 @@ export default function Footer() {
               ))}
             </LinkColumn>
             <LinkColumn title="Company">
-              <NavLink href="mailto:contact@chillicream.com">Contact</NavLink>
+              <NavLink href="/services/support/contact">Contact</NavLink>
               <NavLink href={tools.shop}>Shop</NavLink>
               {basicPages.map((page) => (
                 <NavLink key={page.path} href={`/${page.path}`}>

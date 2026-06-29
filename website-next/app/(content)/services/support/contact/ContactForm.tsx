@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { SolidButton } from "@/src/design-system/Button";
 import { Dropdown, DropdownItem } from "@/src/design-system/Dropdown";
 import { Input } from "@/src/design-system/Input";
@@ -29,18 +29,38 @@ interface FormData {
 
 type FormErrors = Partial<Record<"name" | "email" | "company", string>>;
 
+// Subject starts empty so the prerendered HTML and the first client render
+// agree (no hydration mismatch). It is populated from the URL after mount.
 const INITIAL: FormData = {
   name: "",
   email: "",
   company: "",
-  subject: SUBJECTS[0],
+  subject: "",
   message: "",
 };
+
+function resolveSubject(subject: string | null): string {
+  if (!subject) {
+    return SUBJECTS[0];
+  }
+
+  const match = SUBJECTS.find((s) => s.toLowerCase() === subject.toLowerCase());
+
+  return match ?? SUBJECTS[0];
+}
 
 export function ContactForm() {
   const [data, setData] = useState<FormData>(INITIAL);
   const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Resolve the subject from the `subject` query param once mounted. Reading it
+  // during render would diverge from the static HTML and break hydration.
+  useEffect(() => {
+    const subject = new URLSearchParams(window.location.search).get("subject");
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- syncing from a browser-only value on mount
+    setData((prev) => ({ ...prev, subject: resolveSubject(subject) }));
+  }, []);
 
   function update<K extends keyof FormData>(field: K, value: FormData[K]) {
     setData((prev) => ({ ...prev, [field]: value }));
@@ -147,7 +167,13 @@ export function ContactForm() {
         label="Subject"
         className={isSubmitting ? "pointer-events-none opacity-60" : undefined}
         panelClassName="p-1"
-        trigger={<span className="text-cc-ink text-sm">{data.subject}</span>}
+        trigger={
+          <span className="text-cc-ink text-sm">
+            {/* Blank until the subject is resolved from the URL after mount, so
+                no placeholder text flashes before the real value appears. */}
+            {data.subject || "\u00A0"}
+          </span>
+        }
       >
         <ul className="m-0 flex list-none flex-col p-0">
           {SUBJECTS.map((s) => (

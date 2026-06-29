@@ -10,7 +10,7 @@ export const metadata = {
 
 const COMPANY_LINKS = [
   {
-    href: "mailto:contact@chillicream.com",
+    href: "/services/support/contact",
     title: "Contact",
     description: "Get in touch with the team.",
   },
