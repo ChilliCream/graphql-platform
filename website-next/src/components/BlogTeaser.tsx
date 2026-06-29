@@ -45,7 +45,7 @@ export function BlogTeaser({ post }: BlogTeaserProps) {
               {formatDate(post.date, { month: "short", year: "numeric" })}
             </time>
           </div>
-          <h3 className="text-cc-ink m-0 mt-5 mb-3 text-xl leading-tight font-medium tracking-[-0.015em]">
+          <h3 className="text-cc-heading m-0 mt-5 mb-3 text-xl leading-tight font-medium tracking-[-0.015em]">
             {post.title}
           </h3>
           {post.description ? (

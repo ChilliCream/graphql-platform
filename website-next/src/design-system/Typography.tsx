@@ -9,8 +9,6 @@ export type TypographyVariant =
   | "h5"
   | "h6"
   | "body"
-  | "lead"
-  | "caption"
   | "strong"
   | "em"
   | "del";
@@ -21,38 +19,35 @@ const variantConfig: Record<
 > = {
   h1: {
     tag: "h1",
-    className: "mt-10 mb-4 text-4xl font-bold tracking-tight text-cc-ink",
+    className: "mt-10 mb-4 text-4xl font-bold tracking-tight text-cc-prose",
   },
   h2: {
     tag: "h2",
     className:
-      "mt-12 mb-4 pb-2 text-3xl font-semibold tracking-tight text-cc-ink border-b border-cc-card-border",
+      "mt-12 mb-4 pb-2 text-3xl font-semibold tracking-tight text-cc-prose border-b border-cc-card-border",
   },
   h3: {
     tag: "h3",
-    className: "mt-8 mb-3 text-2xl font-semibold tracking-tight text-cc-ink",
+    className: "mt-8 mb-3 text-2xl font-semibold tracking-tight text-cc-prose",
   },
   h4: {
     tag: "h4",
-    className: "mt-6 mb-2 text-xl font-semibold text-cc-ink",
+    className: "mt-6 mb-2 text-xl font-semibold text-cc-prose",
   },
   h5: {
     tag: "h5",
-    className: "mt-5 mb-2 text-lg font-semibold text-cc-ink",
+    className: "mt-5 mb-2 text-lg font-semibold text-cc-prose",
   },
   h6: {
     tag: "h6",
-    className:
-      "mt-4 mb-2 text-sm font-semibold uppercase tracking-wider text-cc-ink-dim",
+    className: "mt-4 mb-2 text-base font-semibold text-cc-prose",
   },
   body: { tag: "p", className: "my-4 text-base leading-7 text-cc-prose" },
-  lead: { tag: "p", className: "my-4 text-lg leading-8 text-cc-ink" },
-  caption: { tag: "span", className: "text-sm text-cc-ink-dim" },
   strong: {
     tag: "strong",
-    className: "font-semibold text-cc-ink",
+    className: "font-semibold text-cc-prose",
   },
-  em: { tag: "em", className: "italic" },
+  em: { tag: "em", className: "italic text-cc-prose" },
   del: {
     tag: "del",
     className: "line-through text-cc-prose",

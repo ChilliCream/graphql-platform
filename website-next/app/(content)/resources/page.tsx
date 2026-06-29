@@ -65,7 +65,7 @@ export default function ResourcesPage() {
                 : {})}
               className="group border-cc-card-border bg-cc-card-bg hover:border-cc-accent flex flex-col rounded-xl border p-6 no-underline backdrop-blur-sm transition-colors"
             >
-              <h2 className="text-cc-ink group-hover:text-cc-accent text-lg font-semibold">
+              <h2 className="text-cc-heading text-lg font-semibold">
                 {link.title}
               </h2>
               <p className="text-cc-ink-dim mt-2 text-sm">{link.description}</p>

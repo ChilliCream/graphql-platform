@@ -15,8 +15,6 @@ const meta = {
         "h5",
         "h6",
         "body",
-        "lead",
-        "caption",
         "strong",
         "em",
         "del",
@@ -46,18 +44,6 @@ export const Body: Story = {
     children:
       "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
   },
-};
-
-export const Lead: Story = {
-  args: {
-    variant: "lead",
-    children:
-      "A larger paragraph used to lead into article content with more visual weight than a regular body paragraph.",
-  },
-};
-
-export const Caption: Story = {
-  args: { variant: "caption", children: "Figure 1. A small caption." },
 };
 
 export const AllHeadings: Story = {
