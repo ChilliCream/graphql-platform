@@ -11,7 +11,6 @@ internal static class FusionBuiltIns
     public const string Schema = "fusion__Schema";
 
     public const string Type = "fusion__type";
-    public const string Connector = "fusion__connector";
     public const string Field = "fusion__field";
     public const string InputField = "fusion__inputField";
     public const string Requires = "fusion__requires";

@@ -144,8 +144,8 @@ public sealed class FusionSchemaDefinition : ISchemaDefinition, IAsyncDisposable
     /// </summary>
     /// <param name="sourceSchemaName">The source schema name.</param>
     /// <returns>
-    /// The connector kind (for example <c>"Apollo"</c>) declared via
-    /// <c>@fusion__connector(kind:)</c> on the corresponding <c>fusion__Schema</c>
+    /// The connector kind (for example <c>"ApolloFederation"</c>) declared via
+    /// <c>@fusion__schema_metadata(kind:)</c> on the corresponding <c>fusion__Schema</c>
     /// enum value, or <see langword="null"/> if the source schema has no
     /// connector kind associated with it. Callers that want to default
     /// treat <see langword="null"/> as <c>"GraphQL"</c>.

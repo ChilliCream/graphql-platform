@@ -3,7 +3,6 @@ using System.Text;
 using System.Text.Json;
 using HotChocolate.Buffers;
 using HotChocolate.Execution;
-using HotChocolate.Fusion.ApolloFederation;
 using HotChocolate.Fusion.Logging;
 using HotChocolate.Fusion.Options;
 using HotChocolate.Language;
@@ -22,7 +21,7 @@ namespace HotChocolate.Fusion;
 /// </summary>
 internal static class FusionGatewayBuilder
 {
-    private const string DefaultBaseAddress = "http://localhost/graphql";
+    private static Uri SubgraphAddress(string name) => new($"http://{name}/graphql");
 
     /// <summary>
     /// Composes a Fusion gateway around the supplied Apollo Federation subgraphs.
@@ -81,7 +80,6 @@ internal static class FusionGatewayBuilder
 
             gatewayServices
                 .AddGraphQLGateway()
-                .AddApolloFederationSupport()
                 .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
                 .AddInMemoryConfiguration(schemaDocument, settings);
 
@@ -107,22 +105,17 @@ internal static class FusionGatewayBuilder
 
     private static async Task<SubgraphInfo> BuildSubgraphInfoAsync(SubgraphHost host)
     {
+        // The raw Apollo Federation SDL is composed directly: the composer's source-schema
+        // preprocessor detects the federation '@link', applies the federation transforms, and
+        // records the connector kind on the schema's feature collection in-process. Because the
+        // connector kind is carried as a (non-serialized) feature, the source schema must reach
+        // the composer as the original federation SDL rather than a pre-transformed document.
         var federationSdl = await FetchSubgraphSdlAsync(host).ConfigureAwait(false);
-        var transformResult = FederationSchemaTransformer.Transform(federationSdl);
-
-        if (!transformResult.IsSuccess)
-        {
-            var messages = string.Join(
-                ", ",
-                transformResult.Errors.Select(static e => e.Message));
-            throw new XunitException(
-                $"Apollo Federation transform failed for subgraph '{host.Name}': {messages}");
-        }
 
         return new SubgraphInfo(
             host.Name,
-            transformResult.Value,
-            new Uri(DefaultBaseAddress));
+            federationSdl,
+            SubgraphAddress(host.Name));
     }
 
     private static async Task<string> FetchSubgraphSdlAsync(SubgraphHost host)
@@ -265,24 +258,48 @@ internal static class FusionGatewayBuilder
         string SourceSchemaSdl,
         Uri BaseAddress);
 
+    // The gateway resolves an HttpClient by the configured client name and then
+    // overwrites its BaseAddress from the source-schema configuration, so the
+    // client name does not select the endpoint: the request URL does. Every
+    // subgraph here is addressed as 'http://{name}/graphql', so requests are
+    // dispatched to the matching in-process TestServer by host.
     private sealed class TestSubgraphHttpClientFactory : IHttpClientFactory
     {
-        private readonly Dictionary<string, SubgraphHost> _subgraphs;
+        private readonly HostDispatchingHandler _handler;
 
         public TestSubgraphHttpClientFactory(IReadOnlyList<SubgraphHost> subgraphs)
         {
-            _subgraphs = subgraphs.ToDictionary(static s => s.Name, StringComparer.Ordinal);
+            _handler = new HostDispatchingHandler(subgraphs);
         }
 
-        public HttpClient CreateClient(string name)
+        public HttpClient CreateClient(string name) => new(_handler, disposeHandler: false);
+    }
+
+    private sealed class HostDispatchingHandler : HttpMessageHandler
+    {
+        private readonly Dictionary<string, HttpMessageInvoker> _byHost;
+
+        public HostDispatchingHandler(IReadOnlyList<SubgraphHost> subgraphs)
         {
-            if (!_subgraphs.TryGetValue(name, out var subgraph))
+            _byHost = subgraphs.ToDictionary(
+                static s => s.Name,
+                static s => new HttpMessageInvoker(s.Server.CreateHandler(), disposeHandler: false),
+                StringComparer.OrdinalIgnoreCase);
+        }
+
+        protected override Task<HttpResponseMessage> SendAsync(
+            HttpRequestMessage request,
+            CancellationToken cancellationToken)
+        {
+            var host = request.RequestUri?.Host;
+
+            if (host is null || !_byHost.TryGetValue(host, out var invoker))
             {
                 throw new InvalidOperationException(
-                    $"No subgraph host registered for Apollo Federation subgraph '{name}'.");
+                    $"No subgraph host registered for '{host}'.");
             }
 
-            return subgraph.CreateClient();
+            return invoker.SendAsync(request, cancellationToken);
         }
     }
 

@@ -71,13 +71,10 @@ public sealed partial class SyntaxSerializer
         else
         {
             writer.Write('(');
+            writer.WriteLine();
             writer.Indent();
 
-            foreach (var variableDefinition in variableDefinitions)
-            {
-                writer.WriteLine();
-                VisitVariableDefinition(variableDefinition, writer);
-            }
+            writer.WriteMany(variableDefinitions, VisitVariableDefinition, Environment.NewLine);
 
             writer.WriteLine();
             writer.Unindent();

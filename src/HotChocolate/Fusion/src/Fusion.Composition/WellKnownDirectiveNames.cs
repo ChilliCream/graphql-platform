@@ -9,7 +9,6 @@ internal static class WellKnownDirectiveNames
     public const string Cost = DirectiveNames.Cost.Name;
     public const string EventCursor = DirectiveNames.EventCursor.Name;
     public const string External = DirectiveNames.External.Name;
-    public const string FusionConnector = "fusion__connector";
     public const string FusionCost = "fusion__cost";
     public const string FusionEnumValue = "fusion__enumValue";
     public const string FusionField = "fusion__field";

@@ -211,6 +211,75 @@ internal ref struct FieldSelectionMapReader
         throw new FieldSelectionMapSyntaxException(this, UnexpectedCharacter, code);
     }
 
+    public string ReadBalancedParentheses()
+    {
+        if (TokenKind != TokenKind.LeftParenthesis)
+        {
+            throw new FieldSelectionMapSyntaxException(
+                this,
+                InvalidToken,
+                TokenKind.LeftParenthesis,
+                TokenKind);
+        }
+
+        var start = Start;
+        var position = Start;
+        var depth = 0;
+        var inString = false;
+        var escaped = false;
+
+        while (position < _length)
+        {
+            var code = _sourceText[position];
+
+            if (inString)
+            {
+                if (escaped)
+                {
+                    escaped = false;
+                }
+                else if (code == '\\')
+                {
+                    escaped = true;
+                }
+                else if (code == '"')
+                {
+                    inString = false;
+                }
+
+                position++;
+                continue;
+            }
+
+            switch (code)
+            {
+                case '"':
+                    inString = true;
+                    break;
+
+                case CharConstants.LeftParenthesis:
+                    depth++;
+                    break;
+
+                case CharConstants.RightParenthesis:
+                    depth--;
+                    if (depth == 0)
+                    {
+                        position++;
+                        var sourceText = _sourceText[start..position].ToString();
+                        Position = position;
+                        Read();
+                        return sourceText;
+                    }
+                    break;
+            }
+
+            position++;
+        }
+
+        throw new FieldSelectionMapSyntaxException(this, "Unterminated argument list.");
+    }
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool Skip(TokenKind tokenKind)
     {
