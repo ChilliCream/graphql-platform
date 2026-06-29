@@ -43,9 +43,7 @@ export function CompareTable() {
                     scope="col"
                     className="text-cc-heading font-heading px-5 py-4 text-sm font-semibold"
                   >
-                    <span className={tier.popular ? "text-cc-accent" : ""}>
-                      {tier.name}
-                    </span>
+                    {tier.name}
                   </th>
                 ))}
               </tr>

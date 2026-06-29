@@ -2,7 +2,7 @@ import type { PricingFaq as FaqEntry } from "@/src/components/pricing/pricingDat
 import { FAQ } from "@/src/components/pricing/pricingData";
 
 /**
- * The pricing FAQ as a two-column grid of disclosure items. The padding lives
+ * The pricing FAQ as a single-column list of disclosure items. The padding lives
  * on the `<summary>`, so the entire header row (not just the text or the plus)
  * is the click target that toggles the answer.
  */
@@ -25,7 +25,7 @@ export function PricingFaq() {
         </h2>
       </div>
 
-      <div className="mt-10 grid gap-4 md:grid-cols-2">
+      <div className="mx-auto mt-10 flex max-w-3xl flex-col gap-4">
         {FAQ.map((faq) => (
           <FaqItem key={faq.question} faq={faq} />
         ))}
