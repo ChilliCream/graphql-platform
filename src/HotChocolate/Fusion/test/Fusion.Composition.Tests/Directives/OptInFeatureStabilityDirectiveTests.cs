@@ -31,6 +31,9 @@ public sealed class OptInFeatureStabilityDirectiveTests
             }
 
             type Query { field: String }
+
+            directive @optInFeatureStability(feature: String!, stability: String!) repeatable on
+                | SCHEMA
             """);
         var log = new CompositionLog();
         var parser = new SourceSchemaParser(sourceSchemaText, log);

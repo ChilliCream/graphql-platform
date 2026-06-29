@@ -81,6 +81,10 @@ internal sealed class SourceSchemaMerger
                     new OneOfDirectiveMerger(DirectiveMergeBehavior.Include)
                 },
                 {
+                    DirectiveNames.OptInFeatureStability,
+                    new OptInFeatureStabilityDirectiveMerger(DirectiveMergeBehavior.Include)
+                },
+                {
                     DirectiveNames.RequiresOptIn,
                     new RequiresOptInDirectiveMerger(DirectiveMergeBehavior.Include)
                 },
@@ -113,6 +117,8 @@ internal sealed class SourceSchemaMerger
         // Merge directives.
         var memberDefinitions = _schemas.Select(s => new DirectivesProviderInfo(s, s)).ToImmutableArray();
         _directiveMergers[DirectiveNames.Tag].MergeDirectives(mergedSchema, memberDefinitions, mergedSchema);
+        _directiveMergers[DirectiveNames.OptInFeatureStability]
+            .MergeDirectives(mergedSchema, memberDefinitions, mergedSchema);
 
         // Remove unreferenced definitions.
         if (_options.RemoveUnreferencedDefinitions)

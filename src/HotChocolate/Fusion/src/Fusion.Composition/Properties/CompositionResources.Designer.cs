@@ -1259,6 +1259,15 @@ namespace HotChocolate.Fusion.Properties {
         }
 
         /// <summary>
+        ///   Looks up a localized string similar to The opt-in feature &apos;{0}&apos; has a different stability in schema &apos;{1}&apos; ({2}) than it does in schema &apos;{3}&apos; ({4})..
+        /// </summary>
+        internal static string LogEntryHelper_OptInFeatureStabilityMismatch {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_OptInFeatureStabilityMismatch", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to The output field &apos;{0}&apos; has a different type shape in schema &apos;{1}&apos; than it does in schema &apos;{2}&apos;..
         /// </summary>
         internal static string LogEntryHelper_OutputFieldTypesNotMergeable {

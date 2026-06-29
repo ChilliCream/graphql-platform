@@ -29,6 +29,13 @@ public sealed class RequiresOptInDirectiveTests
             type Query {
                 experimentalField: String @requiresOptIn(feature: "experimental")
             }
+
+            directive @requiresOptIn(feature: String!) repeatable on
+                | FIELD_DEFINITION
+                | ARGUMENT_DEFINITION
+                | ENUM_VALUE
+                | INPUT_FIELD_DEFINITION
+                | DIRECTIVE_DEFINITION
             """);
         var log = new CompositionLog();
         var parser = new SourceSchemaParser(sourceSchemaText, log);

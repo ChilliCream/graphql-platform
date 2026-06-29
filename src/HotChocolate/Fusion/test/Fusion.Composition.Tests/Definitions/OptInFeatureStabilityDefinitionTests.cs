@@ -1,36 +1,25 @@
-using HotChocolate.Features;
-using HotChocolate.Fusion.Logging;
 using HotChocolate.Types.Mutable;
 
 namespace HotChocolate.Fusion.Definitions;
 
 public sealed class OptInFeatureStabilityDefinitionTests
 {
+    // The @optInFeatureStability directive is repeatable, accepts two required String
+    // arguments named "feature" and "stability", and is valid on schema definitions.
     [Fact]
-    public void SourceSchema_With_OptInFeatureStability_Parses()
+    public void Create_ReturnsCorrectDefinition()
     {
         // arrange
-        var sourceSchemaText = new SourceSchemaText(
-            "A",
-            // lang=graphql
-            """
-            schema @optInFeatureStability(feature: "experimental", stability: "EXPERIMENTAL") {
-                query: Query
-            }
-
-            type Query { field: String }
-            """);
-        var log = new CompositionLog();
-        var parser = new SourceSchemaParser(sourceSchemaText, log);
+        var schema = new MutableSchemaDefinition();
 
         // act
-        var result = parser.Parse();
+        var definition = OptInFeatureStabilityMutableDirectiveDefinition.Create(schema);
 
         // assert
-        Assert.True(result.IsSuccess);
-        var directive = Assert.Single((IEnumerable<Directive>)result.Value.Directives);
-        Assert.Equal("optInFeatureStability", directive.Name);
-        var incomplete = directive.Definition.Features.Get<IncompleteDirectiveDefinitionFeature>();
-        Assert.Null(incomplete);
+        definition.ToString().MatchInlineSnapshot(
+            """
+            directive @optInFeatureStability(feature: String!, stability: String!) repeatable on
+              | SCHEMA
+            """);
     }
 }

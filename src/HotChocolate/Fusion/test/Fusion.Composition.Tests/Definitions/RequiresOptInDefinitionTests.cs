@@ -1,32 +1,30 @@
-using HotChocolate.Fusion.Logging;
 using HotChocolate.Types.Mutable;
 
 namespace HotChocolate.Fusion.Definitions;
 
 public sealed class RequiresOptInDefinitionTests
 {
+    // The @requiresOptIn directive is repeatable, accepts a single required String
+    // argument named "feature", and is valid on field definitions, argument definitions,
+    // enum values, input field definitions, and directive definitions.
     [Fact]
-    public void SourceSchema_With_RequiresOptIn_Parses()
+    public void Create_ReturnsCorrectDefinition()
     {
         // arrange
-        var sourceSchemaText = new SourceSchemaText(
-            "A",
-            // lang=graphql
-            """
-            type Query {
-                experimentalField: String @requiresOptIn(feature: "experimental")
-            }
-            """);
-        var log = new CompositionLog();
-        var parser = new SourceSchemaParser(sourceSchemaText, log);
+        var schema = new MutableSchemaDefinition();
 
         // act
-        var result = parser.Parse();
+        var definition = RequiresOptInMutableDirectiveDefinition.Create(schema);
 
         // assert
-        Assert.True(result.IsSuccess);
-        var directives = result.Value.QueryType!.Fields["experimentalField"].Directives;
-        var directive = Assert.Single((IEnumerable<Directive>)directives);
-        Assert.Equal("requiresOptIn", directive.Name);
+        definition.ToString().MatchInlineSnapshot(
+            """
+            directive @requiresOptIn(feature: String!) repeatable on
+              | FIELD_DEFINITION
+              | ARGUMENT_DEFINITION
+              | ENUM_VALUE
+              | INPUT_FIELD_DEFINITION
+              | DIRECTIVE_DEFINITION
+            """);
     }
 }
