@@ -1,23 +1,8 @@
-import type { ComponentType } from "react";
-
 import { Offering } from "@/src/components/Offering";
 import { OfferingGrid } from "@/src/components/OfferingGrid";
-import type { Tier, TierId } from "@/src/components/pricing/pricingData";
+import type { Tier } from "@/src/components/pricing/pricingData";
 import { TIERS } from "@/src/components/pricing/pricingData";
 import { OutlineButton } from "@/src/design-system/Button";
-import { DripBrewer } from "@/src/icons/DripBrewer";
-import { FrenchPress } from "@/src/icons/FrenchPress";
-import { PourOver } from "@/src/icons/PourOver";
-
-// Coffee-brew icon per cloud tier, lightest brew to strongest, matching the
-// "Brew it your Way" selector on the landing page.
-const ICONS: Partial<
-  Record<TierId, ComponentType<{ readonly className?: string }>>
-> = {
-  free: FrenchPress,
-  payg: DripBrewer,
-  dedicated: PourOver,
-};
 
 const CLOUD_TIERS = TIERS.filter((tier) => tier.id !== "self");
 const SELF_HOSTED = TIERS.find((tier) => tier.id === "self");
@@ -37,7 +22,6 @@ export function PlanSelector() {
         {CLOUD_TIERS.map((tier) => (
           <Offering
             key={tier.id}
-            Icon={ICONS[tier.id]}
             title={tier.name}
             description={tier.tagline}
             price={tier.price}
