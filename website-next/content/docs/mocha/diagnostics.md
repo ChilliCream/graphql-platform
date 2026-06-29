@@ -312,7 +312,7 @@ public class MyNotificationHandler : INotificationHandler<MyNotification>
 }
 ```
 
-Or, if the open generic is intentional (for example, a reusable handler body parameterised on a secondary type), register the closed form manually and suppress MO0006 on the declaration:
+Or, if the open generic is intentional (for example, a reusable handler body parameterized on a secondary type), register the closed form manually and suppress MO0006 on the declaration:
 
 ```csharp
 using Mocha.Mediator;
