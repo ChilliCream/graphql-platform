@@ -6,25 +6,39 @@ namespace HotChocolate.Fusion.Execution.Types;
 
 public sealed class FusionSchemaDefinitionConnectorKindTests
 {
+    private const string FederationSubgraphSdl =
+        """
+        schema @link(url: "https://specs.apollo.dev/federation/v2.6", import: ["@key"]) {
+          query: Query
+        }
+
+        type Product @key(fields: "id") {
+          id: ID!
+          name: String
+        }
+
+        type Query {
+          product(id: ID!): Product
+          _service: _Service!
+          _entities(representations: [_Any!]!): [_Entity]!
+        }
+
+        type _Service { sdl: String! }
+
+        union _Entity = Product
+
+        scalar FieldSet
+        scalar _Any
+
+        directive @key(fields: FieldSet! resolvable: Boolean = true) repeatable on OBJECT | INTERFACE
+        directive @link(url: String! import: [String!]) repeatable on SCHEMA
+        """;
+
     [Fact]
-    public void GetSourceSchemaConnectorKind_Should_ReturnApolloFederation_When_MetadataKindIsStamped()
+    public void GetSourceSchemaConnectorKind_Should_ReturnApolloFederation_When_SourceIsFederation()
     {
         // arrange
-        var schema = ComposeSchema(
-            ("Products",
-             """
-             schema @fusion__connector(kind: "ApolloFederation") {
-               query: Query
-             }
-
-             type Query {
-               productById(id: ID!): Product @lookup
-             }
-
-             type Product @key(fields: "id") {
-               id: ID!
-             }
-             """));
+        var schema = ComposeSchema(("Products", FederationSubgraphSdl));
 
         // act
         var kind = schema.GetSourceSchemaConnectorKind("Products");
@@ -34,35 +48,12 @@ public sealed class FusionSchemaDefinitionConnectorKindTests
     }
 
     [Fact]
-    public void GetSourceSchemaConnectorKind_Should_ReturnNull_When_DirectiveAbsent()
+    public void GetSourceSchemaConnectorKind_Should_ReturnNull_When_SourceIsPlainGraphQL()
     {
         // arrange
         var schema = ComposeSchema(
             ("Catalog",
              """
-             type Query {
-               ping: String
-             }
-             """));
-
-        // act
-        var kind = schema.GetSourceSchemaConnectorKind("Catalog");
-
-        // assert
-        Assert.Null(kind);
-    }
-
-    [Fact]
-    public void GetSourceSchemaConnectorKind_Should_ReturnNull_When_DirectiveStampedAsGraphQL()
-    {
-        // arrange
-        var schema = ComposeSchema(
-            ("Catalog",
-             """
-             schema @fusion__connector(kind: "GraphQL") {
-               query: Query
-             }
-
              type Query {
                ping: String
              }
@@ -79,21 +70,7 @@ public sealed class FusionSchemaDefinitionConnectorKindTests
     public void GetSourceSchemaConnectorKind_Should_ReturnNull_When_NameIsNotASourceSchema()
     {
         // arrange
-        var schema = ComposeSchema(
-            ("Products",
-             """
-             schema @fusion__connector(kind: "ApolloFederation") {
-               query: Query
-             }
-
-             type Query {
-               productById(id: ID!): Product @lookup
-             }
-
-             type Product @key(fields: "id") {
-               id: ID!
-             }
-             """));
+        var schema = ComposeSchema(("Products", FederationSubgraphSdl));
 
         // act
         var kind = schema.GetSourceSchemaConnectorKind("Unknown");
@@ -107,6 +84,18 @@ public sealed class FusionSchemaDefinitionConnectorKindTests
         var sourceTexts = sources.Select(s => new SourceSchemaText(s.Name, s.Sdl)).ToArray();
         var compositionLog = new CompositionLog();
         var composerOptions = new SchemaComposerOptions();
+
+        foreach (var (name, _) in sources)
+        {
+            composerOptions.SourceSchemas[name] = new SourceSchemaOptions
+            {
+                Preprocessor = new SourceSchemaPreprocessorOptions
+                {
+                    InferKeysFromLookups = false
+                }
+            };
+        }
+
         var composer = new SchemaComposer(sourceTexts, composerOptions, compositionLog);
 
         var result = composer.Compose();

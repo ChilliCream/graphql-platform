@@ -1,49 +1,24 @@
-using HotChocolate.Fusion.Definitions;
-using HotChocolate.Language;
-using HotChocolate.Types;
 using HotChocolate.Types.Mutable;
 
 namespace HotChocolate.Fusion.ApolloFederation;
 
 /// <summary>
-/// Stamps the Apollo Federation connector kind onto the source schema so the composer can
-/// lift it into <c>@fusion__schema_metadata(kind:)</c> in the merged execution schema.
+/// Records the Apollo Federation connector kind on the source schema so the composer can
+/// surface it in <c>@fusion__schema_metadata(kind:)</c> in the merged execution schema.
 /// </summary>
 internal static class StampConnectorKind
 {
     private const string ApolloKind = "ApolloFederation";
 
     /// <summary>
-    /// Applies the connector kind stamp to the schema. Idempotent: the directive
-    /// definition is registered only when missing, and a duplicate
-    /// <c>@fusion__connector(kind: "ApolloFederation")</c> instance is not added when one
-    /// is already present.
+    /// Stamps the connector kind onto the schema's feature collection. Idempotent: a
+    /// subsequent call replaces the previously recorded kind.
     /// </summary>
     /// <param name="schema">
     /// The mutable schema definition to stamp in place.
     /// </param>
     public static void Apply(MutableSchemaDefinition schema)
     {
-        if (!schema.DirectiveDefinitions.TryGetDirective(
-            WellKnownDirectiveNames.FusionConnector,
-            out var connectorDefinition))
-        {
-            connectorDefinition = new ConnectorMutableDirectiveDefinition(BuiltIns.String.Create());
-            schema.DirectiveDefinitions.Add(connectorDefinition);
-        }
-
-        foreach (var existing in schema.Directives[WellKnownDirectiveNames.FusionConnector])
-        {
-            if (existing.Arguments.TryGetValue(WellKnownArgumentNames.Kind, out var kindValue)
-                && kindValue is StringValueNode { Value: ApolloKind })
-            {
-                return;
-            }
-        }
-
-        schema.Directives.Add(
-            new Directive(
-                connectorDefinition,
-                new ArgumentAssignment(WellKnownArgumentNames.Kind, ApolloKind)));
+        schema.Features.Set(new ConnectorKindMetadata(ApolloKind));
     }
 }

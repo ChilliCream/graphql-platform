@@ -1,4 +1,6 @@
 using System.Collections.Immutable;
+using HotChocolate.Features;
+using HotChocolate.Fusion.ApolloFederation;
 using HotChocolate.Fusion.Comparers;
 using HotChocolate.Fusion.Logging;
 using HotChocolate.Language;
@@ -6,20 +8,16 @@ using HotChocolate.Types.Mutable;
 
 namespace HotChocolate.Fusion;
 
-public sealed class SourceSchemaMergerConnectorDirectiveTests
+public sealed class SourceSchemaMergerConnectorKindTests
 {
     [Fact]
-    public void Merge_Should_LiftConnectorKind_OntoSchemaMetadata_When_DirectivePresent()
+    public void Merge_Should_LiftConnectorKind_OntoSchemaMetadata_When_FeaturePresent()
     {
         // arrange
         var sourceSchemaText =
             new SourceSchemaText(
                 "Products",
                 """
-                schema @fusion__connector(kind: "ApolloFederation") {
-                  query: Query
-                }
-
                 type Query {
                   productById(id: ID!): Product @lookup
                 }
@@ -31,6 +29,7 @@ public sealed class SourceSchemaMergerConnectorDirectiveTests
         var compositionLog = new CompositionLog();
         var sourceSchemaParser = new SourceSchemaParser(sourceSchemaText, compositionLog);
         var schema = sourceSchemaParser.Parse().Value;
+        schema.Features.Set(new ConnectorKindMetadata("ApolloFederation"));
         var schemas = ImmutableSortedSet.Create(
             new SchemaByNameComparer<MutableSchemaDefinition>(), schema);
         new SourceSchemaEnricher(schema, schemas).Enrich();
@@ -45,7 +44,7 @@ public sealed class SourceSchemaMergerConnectorDirectiveTests
     }
 
     [Fact]
-    public void Merge_Should_OmitMetadataKind_When_DirectiveAbsent()
+    public void Merge_Should_OmitMetadataKind_When_FeatureAbsent()
     {
         // arrange
         var sourceSchemaText =
@@ -79,10 +78,6 @@ public sealed class SourceSchemaMergerConnectorDirectiveTests
         var apolloSource = new SourceSchemaText(
             "Reviews",
             """
-            schema @fusion__connector(kind: "ApolloFederation") {
-              query: Query
-            }
-
             type Query {
               reviewById(id: ID!): Review @lookup
             }
@@ -100,6 +95,7 @@ public sealed class SourceSchemaMergerConnectorDirectiveTests
             """);
         var compositionLog = new CompositionLog();
         var schemaA = new SourceSchemaParser(apolloSource, compositionLog).Parse().Value;
+        schemaA.Features.Set(new ConnectorKindMetadata("ApolloFederation"));
         var schemaB = new SourceSchemaParser(graphqlSource, compositionLog).Parse().Value;
         var schemas = ImmutableSortedSet.Create(
             new SchemaByNameComparer<MutableSchemaDefinition>(), schemaA, schemaB);

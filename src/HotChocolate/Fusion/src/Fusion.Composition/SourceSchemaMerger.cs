@@ -1,6 +1,7 @@
 using System.Collections.Frozen;
 using System.Collections.Immutable;
 using System.Text;
+using HotChocolate.Fusion.ApolloFederation;
 using HotChocolate.Fusion.Definitions;
 using HotChocolate.Fusion.DirectiveMergers;
 using HotChocolate.Fusion.Extensions;
@@ -1890,10 +1891,7 @@ internal sealed class SourceSchemaMerger
 
         foreach (var schema in _schemas)
         {
-            if (schema.Directives.FirstOrDefault(DirectiveNames.FusionConnector) is not { } connector
-                || !connector.Arguments.TryGetValue(ArgumentNames.Kind, out var kindValue)
-                || kindValue is not StringValueNode kindString
-                || kindString.Value == "GraphQL")
+            if (schema.Features.Get<ConnectorKindMetadata>() is not { } connectorKind)
             {
                 continue;
             }
@@ -1910,7 +1908,7 @@ internal sealed class SourceSchemaMerger
 
                 if (arguments.All(static t => t.Name != ArgumentNames.Kind))
                 {
-                    arguments.Add(new ArgumentAssignment(ArgumentNames.Kind, kindString.Value));
+                    arguments.Add(new ArgumentAssignment(ArgumentNames.Kind, connectorKind.Kind));
                 }
 
                 var newMetadata = new Directive(metadataDirective, arguments);

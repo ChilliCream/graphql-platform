@@ -97,7 +97,6 @@ public static class FederationSchemaTransformer
         RewriteKeyDirectives.Apply(schema);
         TransformRequiresToRequire.Apply(schema);
         RemoveExternalFields.Apply(schema);
-        StampConnectorKind.Apply(schema);
 
         return SchemaFormatter.FormatAsString(schema);
     }

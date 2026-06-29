@@ -3,7 +3,6 @@ using System.Text;
 using System.Text.Json;
 using HotChocolate.Buffers;
 using HotChocolate.Execution;
-using HotChocolate.Fusion.ApolloFederation;
 using HotChocolate.Fusion.Logging;
 using HotChocolate.Fusion.Options;
 using HotChocolate.Language;
@@ -106,21 +105,16 @@ internal static class FusionGatewayBuilder
 
     private static async Task<SubgraphInfo> BuildSubgraphInfoAsync(SubgraphHost host)
     {
+        // The raw Apollo Federation SDL is composed directly: the composer's source-schema
+        // preprocessor detects the federation '@link', applies the federation transforms, and
+        // records the connector kind on the schema's feature collection in-process. Because the
+        // connector kind is carried as a (non-serialized) feature, the source schema must reach
+        // the composer as the original federation SDL rather than a pre-transformed document.
         var federationSdl = await FetchSubgraphSdlAsync(host).ConfigureAwait(false);
-        var transformResult = FederationSchemaTransformer.Transform(federationSdl);
-
-        if (!transformResult.IsSuccess)
-        {
-            var messages = string.Join(
-                ", ",
-                transformResult.Errors.Select(static e => e.Message));
-            throw new XunitException(
-                $"Apollo Federation transform failed for subgraph '{host.Name}': {messages}");
-        }
 
         return new SubgraphInfo(
             host.Name,
-            transformResult.Value,
+            federationSdl,
             SubgraphAddress(host.Name));
     }
 
