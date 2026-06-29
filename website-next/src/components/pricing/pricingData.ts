@@ -42,7 +42,7 @@ export const TIERS: readonly Tier[] = [
       "Community support",
     ],
     cta: "Start for Free",
-    ctaHref: "/get-started",
+    ctaHref: "https://nitro.chillicream.com",
   },
   {
     id: "payg",
@@ -58,7 +58,7 @@ export const TIERS: readonly Tier[] = [
       "Email support",
     ],
     cta: "Start for Free",
-    ctaHref: "/get-started",
+    ctaHref: "https://nitro.chillicream.com",
   },
   {
     id: "dedicated",

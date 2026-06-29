@@ -56,7 +56,9 @@ function Hero() {
         isolation, or self-host on your own infrastructure.
       </p>
       <div className="mt-9 flex flex-wrap items-center justify-center gap-3">
-        <SolidButton href="/get-started">Start for Free</SolidButton>
+        <SolidButton href="https://nitro.chillicream.com">
+          Start for Free
+        </SolidButton>
         <OutlineButton href="/services/support/contact">
           Talk to Sales
         </OutlineButton>

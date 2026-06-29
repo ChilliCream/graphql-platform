@@ -33,7 +33,9 @@ export function ClosingCta() {
           outgrow it.
         </p>
         <div className="relative mt-8 flex flex-wrap items-center justify-center gap-3">
-          <SolidButton href="/get-started">Start for free</SolidButton>
+          <SolidButton href="https://nitro.chillicream.com">
+            Start for free
+          </SolidButton>
           <OutlineButton href="/docs">Read the docs</OutlineButton>
         </div>
         <p className="text-cc-nav-label relative mt-6 font-mono text-xs">
