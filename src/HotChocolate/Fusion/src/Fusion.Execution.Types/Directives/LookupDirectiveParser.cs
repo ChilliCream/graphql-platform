@@ -16,6 +16,7 @@ internal static class LookupDirectiveParser
         FieldDefinitionNode? field = null;
         ImmutableArray<string>? map = null;
         ImmutableArray<string>? path = null;
+        bool? propagateNull = null;
         bool? @internal = null;
 
         foreach (var argument in directive.Arguments)
@@ -52,6 +53,10 @@ internal static class LookupDirectiveParser
                     }
                     break;
 
+                case "propagateNull":
+                    propagateNull = ((BooleanValueNode)argument.Value).Value;
+                    break;
+
                 case "internal":
                     @internal = ((BooleanValueNode)argument.Value).Value;
                     break;
@@ -86,7 +91,14 @@ internal static class LookupDirectiveParser
                 "The `map` argument is required on the @lookup directive.");
         }
 
-        return new LookupDirective(new SchemaKey(schemaKey), key, field, map.Value, path ?? [], @internal ?? false);
+        return new LookupDirective(
+            new SchemaKey(schemaKey),
+            key,
+            field,
+            map.Value,
+            path ?? [],
+            propagateNull ?? false,
+            @internal ?? false);
     }
 
     private static ImmutableArray<string> ParseMap(IValueNode value)

@@ -93,4 +93,19 @@
   <data name="JsonOperationPlanParser_SingleOperationRequired" xml:space="preserve">
     <value>There must be exactly one operation definition in the operation document of the operation plan.</value>
   </data>
+  <data name="ErrorHelper_RequestTimeout_Message" xml:space="preserve">
+    <value>The request exceeded the configured timeout of `{0}`.</value>
+  </data>
+  <data name="ErrorHelper_StateInvalidForOperationPlanCache_Message" xml:space="preserve">
+    <value>The operation plan cache requires a operation document hash.</value>
+  </data>
+  <data name="ErrorHelper_StateInvalidForVariableCoercion_Message" xml:space="preserve">
+    <value>The variable coercion requires an operation execution plan.</value>
+  </data>
+  <data name="ErrorHelper_UnexpectedExecutionError_Message" xml:space="preserve">
+    <value>Unexpected Execution Error</value>
+  </data>
+  <data name="ErrorHelper_NonNullOutputFieldViolation_Message" xml:space="preserve">
+    <value>Cannot return null for non-nullable field.</value>
+  </data>
 </root>

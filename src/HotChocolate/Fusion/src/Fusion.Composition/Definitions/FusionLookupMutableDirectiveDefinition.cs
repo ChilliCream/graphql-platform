@@ -69,6 +69,12 @@ internal sealed class FusionLookupMutableDirectiveDefinition : MutableDirectiveD
             Description = FusionLookupMutableDirectiveDefinition_Argument_Internal_Description
         });
 
+        Arguments.Add(new MutableInputFieldDefinition(ArgumentNames.PropagateNull, new NonNullType(booleanType))
+        {
+            DefaultValue = new BooleanValueNode(false),
+            Description = FusionLookupMutableDirectiveDefinition_Argument_PropagateNull_Description
+        });
+
         IsRepeatable = true;
 
         Locations =

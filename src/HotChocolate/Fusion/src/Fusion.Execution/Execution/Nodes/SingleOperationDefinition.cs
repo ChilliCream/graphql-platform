@@ -14,7 +14,8 @@ internal sealed class SingleOperationDefinition : OperationDefinition
         string[] forwardedVariables,
         ResultSelectionSet resultSelectionSet,
         ExecutionNodeCondition[] conditions,
-        bool requiresFileUpload)
+        bool requiresFileUpload,
+        bool propagateNull)
         : base(
             id,
             operation,
@@ -24,7 +25,8 @@ internal sealed class SingleOperationDefinition : OperationDefinition
             forwardedVariables,
             resultSelectionSet,
             conditions,
-            requiresFileUpload)
+            requiresFileUpload,
+            propagateNull)
     {
         Target = target;
     }

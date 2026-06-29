@@ -88,6 +88,7 @@ internal sealed class SourceSchemaEnricher(
         sourceMetadata.HasEventCursorDirective = outputField.Directives.ContainsName(EventCursor);
         sourceMetadata.HasInternalDirective = outputField.Directives.ContainsName(WellKnownDirectiveNames.Internal);
         sourceMetadata.HasOverrideDirective = outputField.Directives.ContainsName(Override);
+        sourceMetadata.HasPropagateNullDirective = outputField.Directives.ContainsName(PropagateNull);
         sourceMetadata.HasProvidesDirective = outputField.Directives.ContainsName(Provides);
         sourceMetadata.HasShareableDirective = outputField.Directives.ContainsName(Shareable);
 

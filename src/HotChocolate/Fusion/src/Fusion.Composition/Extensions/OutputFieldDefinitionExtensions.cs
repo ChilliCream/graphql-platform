@@ -42,6 +42,9 @@ internal static class OutputFieldDefinitionExtensions
         public bool HasProvidesDirective
             => outputField.Features.GetRequired<SourceOutputFieldMetadata>().HasProvidesDirective;
 
+        public bool HasPropagateNullDirective
+            => outputField.Features.GetRequired<SourceOutputFieldMetadata>().HasPropagateNullDirective;
+
         public bool HasShareableDirective
             => outputField.Features.GetRequired<SourceOutputFieldMetadata>().HasShareableDirective;
 

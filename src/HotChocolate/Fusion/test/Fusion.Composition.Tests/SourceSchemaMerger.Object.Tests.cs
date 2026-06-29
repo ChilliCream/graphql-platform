@@ -253,6 +253,50 @@ public sealed class SourceSchemaMergerObjectTests : SourceSchemaMergerTestBase
             """);
     }
 
+    [Fact]
+    public void Merge_ObjectWithPropagateNullLookup_MatchesSnapshot()
+    {
+        AssertMatches(
+            [
+                """
+                # Schema A
+                type Query {
+                    productById(id: ID!): Product @lookup @propagateNull
+                }
+
+                type Product @key(fields: "id") {
+                    id: ID!
+                    name: String!
+                }
+                """
+            ],
+            """
+            schema {
+              query: Query
+            }
+
+            type Query @fusion__type(schema: A) {
+              productById(id: ID! @fusion__inputField(schema: A)): Product
+                @fusion__field(schema: A)
+            }
+
+            type Product
+              @fusion__type(schema: A)
+              @fusion__lookup(
+                schema: A
+                key: "id"
+                field: "productById(id: ID!): Product"
+                map: ["id"]
+                path: null
+                internal: false
+                propagateNull: true
+              ) {
+              id: ID! @fusion__field(schema: A)
+              name: String! @fusion__field(schema: A)
+            }
+            """);
+    }
+
     // Nested @lookup
     [Fact]
     public void Merge_ObjectWithNestedLookup_MatchesSnapshot()

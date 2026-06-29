@@ -23,7 +23,8 @@ internal readonly struct PendingMerge
         PendingMergeKind kind,
         SourceSchemaResult? result,
         SourceSchemaResult[]? buffer,
-        int count)
+        int count,
+        bool propagateNull)
     {
         Node = node;
         SchemaName = schemaName;
@@ -31,6 +32,7 @@ internal readonly struct PendingMerge
         ResultSelectionSet = resultSelectionSet;
         VariableValueSets = variableValueSets;
         ContainsErrors = containsErrors;
+        PropagateNull = propagateNull;
         _kind = kind;
         _result = result;
         _buffer = buffer;
@@ -49,6 +51,8 @@ internal readonly struct PendingMerge
 
     public bool ContainsErrors { get; }
 
+    public bool PropagateNull { get; }
+
     public static PendingMerge Single(
         ExecutionNode node,
         string schemaName,
@@ -56,7 +60,8 @@ internal readonly struct PendingMerge
         ResultSelectionSet resultSelectionSet,
         ImmutableArray<VariableValues> variableValueSets,
         SourceSchemaResult result,
-        bool containsErrors)
+        bool containsErrors,
+        bool propagateNull)
         => new(
             node,
             schemaName,
@@ -67,7 +72,8 @@ internal readonly struct PendingMerge
             PendingMergeKind.Single,
             result,
             buffer: null,
-            count: 1);
+            count: 1,
+            propagateNull);
 
     public static PendingMerge Multiple(
         ExecutionNode node,
@@ -77,7 +83,8 @@ internal readonly struct PendingMerge
         ImmutableArray<VariableValues> variableValueSets,
         SourceSchemaResult[] buffer,
         int count,
-        bool containsErrors)
+        bool containsErrors,
+        bool propagateNull)
         => new(
             node,
             schemaName,
@@ -88,14 +95,20 @@ internal readonly struct PendingMerge
             PendingMergeKind.Multiple,
             result: null,
             buffer,
-            count);
+            count,
+            propagateNull);
 
     public void Apply(OperationPlanContext context)
     {
         switch (_kind)
         {
             case PendingMergeKind.Single:
-                context.AddPartialResult(SourcePath, _result!, ResultSelectionSet, ContainsErrors);
+                context.AddPartialResult(
+                    SourcePath,
+                    _result!,
+                    ResultSelectionSet,
+                    ContainsErrors,
+                    PropagateNull);
                 break;
 
             case PendingMergeKind.Multiple:
@@ -106,7 +119,8 @@ internal readonly struct PendingMerge
                         SourcePath,
                         buffer.AsSpan(0, _count),
                         ResultSelectionSet,
-                        ContainsErrors);
+                        ContainsErrors,
+                        PropagateNull);
                 }
                 finally
                 {

@@ -496,7 +496,7 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
     {
         var (schemaName, opSource, source, requirements, forwardedVariables,
             resultSelectionSet, dependencies, parentDependencies, batchingGroupId, conditions,
-            requiresFileUpload) = ParseCommonOperationFields(nodeElement, schema);
+            requiresFileUpload, propagateNull) = ParseCommonOperationFields(nodeElement, schema);
 
         SelectionPath? target = null;
 
@@ -520,6 +520,7 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
             BatchingGroupId = batchingGroupId,
             Conditions = conditions,
             RequiresFileUpload = requiresFileUpload,
+            PropagateNull = propagateNull,
             Schema = schema
         };
     }
@@ -612,7 +613,7 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
     {
         var (schemaName, opSource, source, requirements, forwardedVariables,
             resultSelectionSet, dependencies, parentDependencies, batchingGroupId, conditions,
-            requiresFileUpload) = ParseCommonOperationFields(nodeElement, schema);
+            requiresFileUpload, propagateNull) = ParseCommonOperationFields(nodeElement, schema);
 
         var targets = nodeElement.TryGetProperty("targets", out var targetsElement)
             ? targetsElement.EnumerateArray().Select(e => SelectionPath.Parse(e.GetString()!)).ToArray()
@@ -633,6 +634,7 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
             BatchingGroupId = batchingGroupId,
             Conditions = conditions,
             RequiresFileUpload = requiresFileUpload,
+            PropagateNull = propagateNull,
             Schema = schema
         };
     }
@@ -640,7 +642,7 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
     private static (string? schemaName, OperationSourceText opSource, SelectionPath? source,
         List<OperationRequirement>? requirements, string[]? forwardedVariables,
         SelectionSetNode? resultSelectionSet, int[]? dependencies, int[]? parentDependencies,
-        int? batchingGroupId, ExecutionNodeCondition[] conditions, bool requiresFileUpload)
+        int? batchingGroupId, ExecutionNodeCondition[] conditions, bool requiresFileUpload, bool propagateNull)
         ParseCommonOperationFields(JsonElement nodeElement, ISchemaDefinition _)
     {
         string? schemaName = null;
@@ -720,8 +722,11 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
         var requiresFileUpload = nodeElement.TryGetProperty("requiresFileUpload", out var requiresFileUploadElement)
             && requiresFileUploadElement.ValueKind == JsonValueKind.True;
 
+        var propagateNull = nodeElement.TryGetProperty("propagateNull", out var propagateNullElement)
+            && propagateNullElement.ValueKind == JsonValueKind.True;
+
         return (schemaName, opSource, source, requirements, forwardedVariables,
-            resultSelectionSet, dependencies, parentDependencies, batchingGroupId, conditions, requiresFileUpload);
+            resultSelectionSet, dependencies, parentDependencies, batchingGroupId, conditions, requiresFileUpload, propagateNull);
     }
 
     private static int[]? TryParseDependencies(
@@ -896,6 +901,7 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
         public int[]? ParentDependencies { get; init; }
         public ExecutionNodeCondition[] Conditions { get; init; } = [];
         public bool RequiresFileUpload { get; init; }
+        public bool PropagateNull { get; init; }
         public required ISchemaDefinition Schema { get; init; }
 
         public abstract OperationDefinition ToOperationDefinition();
@@ -917,7 +923,8 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
                 ForwardedVariables,
                 ResultSelectionSet,
                 Conditions,
-                RequiresFileUpload);
+                RequiresFileUpload,
+                PropagateNull);
 
             if (ParentDependencies is not null)
             {
@@ -942,7 +949,8 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
                 ForwardedVariables,
                 ResultSelectionSet,
                 Conditions,
-                RequiresFileUpload);
+                RequiresFileUpload,
+                PropagateNull);
 
             if (ParentDependencies is not null)
             {
@@ -1014,7 +1022,8 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
                 ForwardedVariables,
                 ResultSelectionSet,
                 Conditions,
-                RequiresFileUpload);
+                RequiresFileUpload,
+                PropagateNull);
 
             if (ParentDependencies is not null)
             {

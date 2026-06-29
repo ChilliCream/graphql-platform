@@ -63,7 +63,8 @@ public sealed class FetchResultStoreTests : FusionTestBase
                 SelectionPath.Root,
                 results,
                 node.ResultSelectionSet,
-                containsErrors));
+                containsErrors,
+                propagateNull: false));
 
         // assert
         Assert.Contains("Expected StartArray but found StartObject.", exception.Message);

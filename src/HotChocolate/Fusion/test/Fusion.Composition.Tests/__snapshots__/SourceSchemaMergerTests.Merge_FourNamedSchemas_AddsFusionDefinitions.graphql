@@ -122,6 +122,8 @@ directive @fusion__lookup(
   map: [fusion__FieldSelectionMap!]!
   "The path to the lookup field relative to the Query type."
   path: fusion__FieldSelectionPath
+  "Specifies whether a null result from this lookup invalidates the resolved entity."
+  propagateNull: Boolean! = false
   "The name of the source schema where the annotated entity type can be looked up from."
   schema: fusion__Schema!
 ) repeatable on OBJECT | INTERFACE | UNION

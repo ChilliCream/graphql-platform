@@ -163,6 +163,8 @@ public sealed class SchemaComposer
         new LookupReturnsNonNullableTypeRule(),
         new OverrideFromSelfRule(),
         new OverrideOnInterfaceRule(),
+        new PropagateNullNotRepeatableRule(),
+        new PropagateNullOnNonLookupFieldRule(),
         new ProvidesDirectiveInFieldsArgumentRule(),
         new ProvidesFieldsHasArgumentsRule(),
         new ProvidesFieldsMissingExternalRule(),

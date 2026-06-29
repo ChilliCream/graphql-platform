@@ -1,5 +1,6 @@
 using HotChocolate.Collections.Immutable;
 using HotChocolate.Execution;
+using static HotChocolate.Fusion.Properties.FusionExecutionResources;
 
 namespace HotChocolate.Fusion.Execution;
 
@@ -9,20 +10,32 @@ internal static class ErrorHelper
         OperationResult.FromError(
             new Error
             {
-                Message = string.Format("The request exceeded the configured timeout of `{0}`.", timeout),
+                Message = string.Format(ErrorHelper_RequestTimeout_Message, timeout),
                 Extensions = ImmutableOrderedDictionary<string, object?>.Empty.Add("code", ErrorCodes.Execution.Timeout)
             });
 
     public static OperationResult StateInvalidForOperationPlanCache()
         => OperationResult.FromError(
             ErrorBuilder.New()
-                .SetMessage("The operation plan cache requires a operation document hash.")
+                .SetMessage(ErrorHelper_StateInvalidForOperationPlanCache_Message)
                 .SetCode(ErrorCodes.Execution.OperationDocumentNotFound)
                 .Build());
 
     public static OperationResult StateInvalidForVariableCoercion()
         => OperationResult.FromError(
             ErrorBuilder.New()
-                .SetMessage("The variable coercion requires an operation execution plan.")
+                .SetMessage(ErrorHelper_StateInvalidForVariableCoercion_Message)
                 .Build());
+
+    public static IError UnexpectedExecutionError()
+        => ErrorBuilder.New()
+            .SetMessage(ErrorHelper_UnexpectedExecutionError_Message)
+            .Build();
+
+    public static IError NonNullOutputFieldViolation(Path path)
+        => ErrorBuilder.New()
+            .SetMessage(ErrorHelper_NonNullOutputFieldViolation_Message)
+            .SetCode(ErrorCodes.Execution.NonNullViolation)
+            .SetPath(path)
+            .Build();
 }

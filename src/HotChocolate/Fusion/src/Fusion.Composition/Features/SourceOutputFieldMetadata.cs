@@ -16,6 +16,8 @@ internal sealed class SourceOutputFieldMetadata
 
     public bool HasProvidesDirective { get; set; }
 
+    public bool HasPropagateNullDirective { get; set; }
+
     public bool HasShareableDirective { get; set; }
 
     public bool IsExternal => HasExternalDirective;

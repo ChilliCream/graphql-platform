@@ -278,6 +278,11 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
             writer.WriteLine("requiresFileUpload: true");
         }
 
+        if (node.PropagateNull)
+        {
+            writer.WriteLine("propagateNull: true");
+        }
+
         if (node.Dependencies.Length > 0 || node.ParentDependencies.Length > 0)
         {
             writer.WriteLine("dependencies:");
@@ -431,6 +436,11 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
             writer.WriteLine("requiresFileUpload: true");
         }
 
+        if (opDef.PropagateNull)
+        {
+            writer.WriteLine("propagateNull: true");
+        }
+
         WriteDependencies(opDef.Dependencies, opDef.ParentDependencies, writer);
         TryWriteNodeTrace(writer, trace);
 
@@ -489,6 +499,11 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
         if (opDef.RequiresFileUpload)
         {
             writer.WriteLine("requiresFileUpload: true");
+        }
+
+        if (opDef.PropagateNull)
+        {
+            writer.WriteLine("propagateNull: true");
         }
 
         WriteDependencies(opDef.Dependencies, opDef.ParentDependencies, writer);

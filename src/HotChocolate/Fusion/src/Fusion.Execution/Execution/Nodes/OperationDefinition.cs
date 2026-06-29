@@ -24,7 +24,8 @@ internal abstract class OperationDefinition : IOperationPlanNode
         string[] forwardedVariables,
         ResultSelectionSet resultSelectionSet,
         ExecutionNodeCondition[] conditions,
-        bool requiresFileUpload)
+        bool requiresFileUpload,
+        bool propagateNull)
     {
         Id = id;
         Operation = operation;
@@ -36,6 +37,7 @@ internal abstract class OperationDefinition : IOperationPlanNode
         ResultSelectionSet = resultSelectionSet;
         _conditions = conditions;
         RequiresFileUpload = requiresFileUpload;
+        PropagateNull = propagateNull;
     }
 
     /// <summary>
@@ -94,6 +96,11 @@ internal abstract class OperationDefinition : IOperationPlanNode
     /// the Upload scalar.
     /// </summary>
     public bool RequiresFileUpload { get; }
+
+    /// <summary>
+    /// Gets whether a null source result from this operation invalidates the target entity.
+    /// </summary>
+    public bool PropagateNull { get; }
 
     /// <summary>
     /// Gets the identifiers of steps in the parent plan scope that must
