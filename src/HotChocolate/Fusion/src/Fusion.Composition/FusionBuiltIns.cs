@@ -29,6 +29,7 @@ internal static class FusionBuiltIns
             new OverrideMutableDirectiveDefinition(s_stringType),
             new ProvidesMutableDirectiveDefinition(s_fieldSelectionSetType),
             new RequireMutableDirectiveDefinition(s_fieldSelectionMapType),
+            new RequiresOptInMutableDirectiveDefinition(s_stringType),
             new ShareableMutableDirectiveDefinition(),
             new EventStreamMutableDirectiveDefinition(s_fieldSelectionSetType, s_stringType)
         ]).ToFrozenDictionary(d => d.Name);
