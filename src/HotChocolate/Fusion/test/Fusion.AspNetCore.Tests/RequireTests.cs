@@ -300,7 +300,7 @@ public class RequireTests : FusionTestBase
                   nodes {
                     title
                     genres {
-                     name
+                      name
                     }
                   }
                 }

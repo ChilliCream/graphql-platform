@@ -884,7 +884,7 @@ public class GlobalObjectIdentificationTests : FusionTestBase
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
         var request = new OperationRequest(
-             """
+            """
             query testQuery($id: ID!) {
               node(id: $id) {
                 ... on Discussion {

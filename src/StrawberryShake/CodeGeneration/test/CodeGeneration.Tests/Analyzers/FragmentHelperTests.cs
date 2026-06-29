@@ -202,8 +202,7 @@ public class FragmentHelperTests
             returnTypeFragment,
             fieldSelection.Path));
 
-        foreach (var selectionSet in
-                 selectionSetVariants.Variants.OrderBy(t => t.Type.Name))
+        foreach (var selectionSet in selectionSetVariants.Variants.OrderBy(t => t.Type.Name))
         {
             returnTypeFragment = FragmentHelper.CreateFragmentNode(
                 selectionSet,
@@ -333,8 +332,7 @@ public class FragmentHelperTests
             returnTypeFragment,
             fieldSelection.Path));
 
-        foreach (var selectionSet in
-                 selectionSetVariants.Variants.OrderBy(t => t.Type.Name))
+        foreach (var selectionSet in selectionSetVariants.Variants.OrderBy(t => t.Type.Name))
         {
             returnTypeFragment = FragmentHelper.CreateFragmentNode(
                 selectionSet,
@@ -480,8 +478,7 @@ public class FragmentHelperTests
             returnTypeFragment!,
             fieldSelection.Path));
 
-        foreach (var selectionSet in
-                 selectionSetVariants.Variants.OrderBy(t => t.Type.Name))
+        foreach (var selectionSet in selectionSetVariants.Variants.OrderBy(t => t.Type.Name))
         {
             returnTypeFragment = FragmentHelper.CreateFragmentNode(
                 selectionSet,

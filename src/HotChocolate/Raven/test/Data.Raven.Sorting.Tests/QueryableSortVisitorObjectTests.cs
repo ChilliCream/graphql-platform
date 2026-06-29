@@ -476,7 +476,7 @@ public class QueryableSortVisitorObjectTests
             OperationRequestBuilder.New()
                 .SetDocument(
                     @"
-                         query testSort($order: [BarSortInput!]) {
+                        query testSort($order: [BarSortInput!]) {
                             root(order: $order) {
                                 foo {
                                     barBool
@@ -508,7 +508,7 @@ public class QueryableSortVisitorObjectTests
             OperationRequestBuilder.New()
                 .SetDocument(
                     @"
-                         query testSort($order: [BarSortInput!]) {
+                        query testSort($order: [BarSortInput!]) {
                             root(order: $order) {
                                 foo {
                                     barBool
@@ -542,7 +542,7 @@ public class QueryableSortVisitorObjectTests
             OperationRequestBuilder.New()
                 .SetDocument(
                     @"
-                         query testSort($order: [BarSortInput!]) {
+                        query testSort($order: [BarSortInput!]) {
                             root(order: $order) {
                                 foo {
                                     barBool
@@ -574,7 +574,7 @@ public class QueryableSortVisitorObjectTests
             OperationRequestBuilder.New()
                 .SetDocument(
                     @"
-                         query testSort($order: [BarSortInput!]) {
+                        query testSort($order: [BarSortInput!]) {
                             root(order: $order) {
                                 foo {
                                     barBool

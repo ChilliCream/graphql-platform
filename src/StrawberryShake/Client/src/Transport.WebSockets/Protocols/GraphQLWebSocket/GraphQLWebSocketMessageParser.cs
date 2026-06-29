@@ -183,8 +183,7 @@ internal ref struct GraphQLWebSocketMessageParser
 
                 break;
             case C when typeName[11] is T:
-                if (typeName.SequenceEqual(GraphQLWebSocketMessageTypeSpans.ConnectionTerminate)
-                   )
+                if (typeName.SequenceEqual(GraphQLWebSocketMessageTypeSpans.ConnectionTerminate))
                 {
                     return GraphQLWebSocketMessageType.ConnectionTerminate;
                 }

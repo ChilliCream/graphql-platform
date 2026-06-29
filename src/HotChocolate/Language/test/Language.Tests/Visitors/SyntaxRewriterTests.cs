@@ -81,7 +81,7 @@ public class SyntaxRewriterTests
         // arrange
         var schema = Parse(@"
             type Foo {
-               abc : String
+                abc : String
             }
             ");
 

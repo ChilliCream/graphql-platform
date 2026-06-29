@@ -96,10 +96,7 @@ public sealed class FusionConfigurationPublishValidateCommandTests(NitroCommandF
             "fusion", "publish", "validate", "--archive", ArchiveFile, "--request-id", RequestId);
 
         // assert
-        result.StdErr.MatchInlineSnapshot(
-            $"""
-             {expectedErrorMessage}
-             """);
+        result.StdErr.MatchInlineSnapshot(expectedErrorMessage);
         result.StdOut.MatchInlineSnapshot(
             """
             Validating Fusion configuration

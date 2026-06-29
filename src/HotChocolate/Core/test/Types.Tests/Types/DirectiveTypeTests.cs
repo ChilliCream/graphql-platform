@@ -784,7 +784,7 @@ public class DirectiveTypeTests : TypeTestBase
         var sourceText =
             $$"""
             type Query {
-               foo: String @a(d: {{long.MaxValue}})
+                foo: String @a(d: {{long.MaxValue}})
             }
 
             directive @a(c:Int d:Int! e:Int) on FIELD_DEFINITION

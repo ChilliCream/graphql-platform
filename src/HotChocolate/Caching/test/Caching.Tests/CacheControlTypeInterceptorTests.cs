@@ -16,8 +16,8 @@ public class CacheControlTypeInterceptorTests
             .AddDocumentFromString(
                 """
                 type Query {
-                   field1: String
-                   field2: String @cacheControl(maxAge: 200)
+                    field1: String
+                    field2: String @cacheControl(maxAge: 200)
                 }
                 """)
             .UseField(_ => _)

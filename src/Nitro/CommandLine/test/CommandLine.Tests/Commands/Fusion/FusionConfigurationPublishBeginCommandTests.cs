@@ -118,10 +118,7 @@ public sealed class FusionConfigurationPublishBeginCommandTests(NitroCommandFixt
             "--api-id", ApiId, "--stage", Stage, "--tag", Tag);
 
         // assert
-        result.StdErr.MatchInlineSnapshot(
-            $"""
-             {expectedErrorMessage}
-             """);
+        result.StdErr.MatchInlineSnapshot(expectedErrorMessage);
         result.StdOut.MatchInlineSnapshot(
             """
             Requesting deployment slot for stage 'dev' of API 'api-1'
