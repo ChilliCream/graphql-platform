@@ -26,6 +26,7 @@ internal static class FusionBuiltIns
             new IsMutableDirectiveDefinition(s_fieldSelectionMapType),
             new KeyMutableDirectiveDefinition(s_fieldSelectionSetType),
             new LookupMutableDirectiveDefinition(),
+            new OptInFeatureStabilityMutableDirectiveDefinition(s_stringType),
             new OverrideMutableDirectiveDefinition(s_stringType),
             new ProvidesMutableDirectiveDefinition(s_fieldSelectionSetType),
             new RequireMutableDirectiveDefinition(s_fieldSelectionMapType),
