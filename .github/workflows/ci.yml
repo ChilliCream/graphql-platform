@@ -368,9 +368,11 @@ jobs:
           "./output/download/**/*.cobertura.xml"
 
       - name: Compute changed lines
+        # HEAD is the PR merge commit; diff its base parent (^1) against its head parent (^2)
+        # so the result matches GitHub's "Files changed" even when the branch is behind main.
         run: >
           git diff --unified=0 --diff-filter=d
-          "${{ github.event.pull_request.base.sha }}...HEAD"
+          "HEAD^1...HEAD^2"
           -- '*.cs' > ./output/pr.diff
 
       - name: Generate patch coverage report
