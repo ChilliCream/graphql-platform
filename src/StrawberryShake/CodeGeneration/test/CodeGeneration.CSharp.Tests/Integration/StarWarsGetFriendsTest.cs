@@ -95,6 +95,7 @@ public class StarWarsGetFriendsTest : ServerTestBase
             item => Assert.Equal("Luke Skywalker", item?.Name),
             item => Assert.Equal("Han Solo", item?.Name),
             item => Assert.Equal("Leia Organa", item?.Name));
+        Assert.Throws<ObjectDisposedException>(() => httpClient.CancelPendingRequests());
     }
 
     [Fact]
