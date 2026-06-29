@@ -1,24 +1,24 @@
 /**
- * DiagnoseScreen — Tab 3: "From a monitoring error to the root cause, like an error-tracking
+ * DiagnoseScreen - Tab 3: "From a monitoring error to the root cause, like an error-tracking
  * tool (Sentry / an ELK stack)."
  *
  * This is a multi-PAGE flow (real page transitions, not scrolls), each page a by-eye clone of a
  * Nitro surface:
  *
- *   PAGE 0 — MONITORING OVERVIEW (same visual language as the Observe/TraceScreen overview): the
- *     gateway chrome with **Monitoring** active, a "Production Stage" sub-header, and a tile grid —
+ *   PAGE 0 - MONITORING OVERVIEW (same visual language as the Observe/TraceScreen overview): the
+ *     gateway chrome with **Monitoring** active, a "Production Stage" sub-header, and a tile grid -
  *     Latency (full-width line) · Throughput (area) + Clients (request bars) · Failed Operations
  *     (red line) + **Errors** (a list of recent errors) · Insights (the operations table). The
  *     cursor scans the Errors tile and clicks one ERROR entry (data-testid="error-entry").
  *
- *   PAGE 1 — ERROR SCREEN (Sentry-style; this view does NOT exist in the real app — designed
+ *   PAGE 1 - ERROR SCREEN (Sentry-style; this view does NOT exist in the real app - designed
  *     faithful to Nitro's visual language): a header with the exception type + message + a
  *     createOrder badge + INTERNAL_SERVER_ERROR code; an OCCURRENCES-OVER-TIME bar chart (a spike);
  *     stat tiles (total events / first seen / last seen / affected clients); "WHERE IT OCCURS"
  *     (operation · subgraph · top stack frame); EXAMPLE TRACES (recent trace samples); and the
  *     server STACK TRACE with the root-cause frame highlighted. The cursor clicks "View logs".
  *
- *   PAGE 2 — LOGS VIEW (faithful to the real Nitro Logs view): a **Log Distribution BAR chart** (a
+ *   PAGE 2 - LOGS VIEW (faithful to the real Nitro Logs view): a **Log Distribution BAR chart** (a
  *     histogram of log volume over time, bars STACKED by severity) above a structured log list
  *     (severity icon · ISO timestamp · message, like the real LogList → DefaultLogEntry). The
  *     cursor DRAG-SELECTS a time range on the distribution chart (press → drag → release a brush
@@ -28,7 +28,7 @@
  *     trace, and we dwell on the root cause.
  *
  * Page transitions are crossfade + slide bridged by a short load spinner (like TraceScreen). All
- * motion derives from a STAGE-BASED timeline (`src/lib/timeline.ts`) via `progress`/useTransform —
+ * motion derives from a STAGE-BASED timeline (`src/lib/timeline.ts`) via `progress`/useTransform -
  * no internal clocks. At progress=1 (reduced-motion freeze) the frame is the fully-resolved payoff:
  * Logs brushed to the burst, flyout open, stack trace readable, root frame lit. Data new to this
  * screen is LOCAL to this file (nothing added to src/lib/data/tabs.ts).
@@ -92,7 +92,7 @@ const TILE_GAP = 14;
  * Three pages, two page transitions. Generous moves/dwells: cursor glides are slow, UI
  * reveals/loads are short, clicks 200ms, and each page's payoff gets time to read. */
 const TL = timeline([
-  // PAGE 0 — Monitoring overview
+  // PAGE 0 - Monitoring overview
   { name: "establish", ms: 1000 }, // settle on the Monitoring overview (calm gateway)
   { name: "overviewDwell", ms: 1400 }, // read Latency / Throughput / Clients / Failed Ops
   { name: "moveToError", ms: 1300 }, // glide to the Errors tile, hover the createOrder error
@@ -100,9 +100,9 @@ const TL = timeline([
   { name: "errorClick", ms: 110 }, // click the error entry
   // PAGE 0 → PAGE 1 transition
   { name: "p1Out", ms: 420 }, // overview fades/slides away
-  { name: "p1Load", ms: 650 }, // short spinner — loading the error screen
+  { name: "p1Load", ms: 650 }, // short spinner - loading the error screen
   { name: "p1In", ms: 480 }, // error screen slides/fades in
-  // PAGE 1 — Error screen
+  // PAGE 1 - Error screen
   { name: "errHeader", ms: 1200 }, // read the exception header + code badge
   { name: "errChart", ms: 1300 }, // the occurrences bar chart + stat tiles read in
   { name: "errWhere", ms: 1500 }, // "Where it occurs" + example traces read in
@@ -112,16 +112,16 @@ const TL = timeline([
   { name: "viewLogsClick", ms: 110 }, // click View logs
   // PAGE 1 → PAGE 2 transition
   { name: "p2Out", ms: 420 }, // error screen fades/slides away
-  { name: "p2Load", ms: 650 }, // short spinner — loading the logs view
+  { name: "p2Load", ms: 650 }, // short spinner - loading the logs view
   { name: "p2In", ms: 480 }, // logs view slides/fades in
-  // PAGE 2 — Logs view
+  // PAGE 2 - Logs view
   { name: "logsReveal", ms: 900 }, // the distribution bars + log list stream in
   { name: "logsDwell", ms: 800 }, // read the streamed log list
   { name: "moveToDrag", ms: 1100 }, // glide to the left edge of the error burst on the chart
   { name: "dragPress", ms: 260 }, // press down to start the time-range brush
-  { name: "dragSelect", ms: 1100 }, // DRAG across the burst — the brush rectangle grows
+  { name: "dragSelect", ms: 1100 }, // DRAG across the burst - the brush rectangle grows
   { name: "dragRelease", ms: 220 }, // release the brush
-  { name: "brushLoad", ms: 650 }, // refetch — the list narrows to the burst window
+  { name: "brushLoad", ms: 650 }, // refetch - the list narrows to the burst window
   { name: "brushDwell", ms: 600 }, // read the narrowed error list
   { name: "moveToRow", ms: 1100 }, // glide to the failing error log row
   { name: "rowHover", ms: 600 }, // rest on the failing row
@@ -134,7 +134,7 @@ const TL = timeline([
   { name: "dwell", ms: 2400 }, // rest on the root cause
 ]);
 
-/** DERIVED total duration in ms — feed to SoloScreen / the reel tab. */
+/** DERIVED total duration in ms - feed to SoloScreen / the reel tab. */
 export const DIAGNOSE_MS = TL.total;
 export const DIAGNOSE_TL = TL;
 
@@ -144,7 +144,7 @@ const FAILING_OP = "createOrder";
 const SPAN_NAME = "Orders.createOrder";
 const FAILING_TS = "2024-03-18T14:32:07.214Z";
 
-// deterministic smooth series (local — avoids importing tabs.ts data helpers)
+// deterministic smooth series (local - avoids importing tabs.ts data helpers)
 function series(seed: number, n: number, base: number, amp: number): number[] {
   const out: number[] = [];
   let s = seed;
@@ -180,7 +180,7 @@ const CLIENTS = [
 ];
 const CLIENTS_MAX = Math.max(...CLIENTS.map((c) => c.value));
 
-// PAGE 0 Errors tile — recent errors; the cursor clicks the createOrder one.
+// PAGE 0 Errors tile - recent errors; the cursor clicks the createOrder one.
 interface ErrorEntry {
   time: string;
   op: string;
@@ -305,7 +305,7 @@ const TRACES: TraceSample[] = [
   },
 ];
 
-// PAGE 2 Logs — the structured log stream.
+// PAGE 2 Logs - the structured log stream.
 type Severity = "error" | "warn" | "info";
 interface LogRow {
   ts: string;
@@ -338,7 +338,7 @@ const LOG_ROWS: LogRow[] = [
     ts: FAILING_TS,
     severity: "error",
     message:
-      "Unhandled exception while executing request — Sequence contains no elements",
+      "Unhandled exception while executing request - Sequence contains no elements",
     burst: true,
   },
   {
@@ -351,14 +351,14 @@ const LOG_ROWS: LogRow[] = [
     ts: "2024-03-18T14:32:09.341Z",
     severity: "error",
     message:
-      "Unhandled exception while executing request — Sequence contains no elements",
+      "Unhandled exception while executing request - Sequence contains no elements",
     burst: true,
   },
   {
     ts: "2024-03-18T14:32:10.118Z",
     severity: "error",
     message:
-      "Unhandled exception while executing request — Sequence contains no elements",
+      "Unhandled exception while executing request - Sequence contains no elements",
     burst: true,
   },
   {
@@ -374,7 +374,7 @@ const LOG_ROWS: LogRow[] = [
 ];
 const BURST_ROWS = LOG_ROWS.filter((r) => r.burst);
 
-// PAGE 2 Log Distribution — stacked-BAR histogram of log volume by severity (info baseline + a
+// PAGE 2 Log Distribution - stacked-BAR histogram of log volume by severity (info baseline + a
 // warn/error burst), 28 buckets.
 const DIST = {
   info: [
@@ -397,7 +397,7 @@ const DIST_PEAK =
 const BRUSH_FROM = 15.5 / DIST_N;
 const BRUSH_TO = 26.5 / DIST_N;
 
-// PAGE 2 flyout payoff — request context + GraphQL error + the .NET exception stack trace.
+// PAGE 2 flyout payoff - request context + GraphQL error + the .NET exception stack trace.
 const GQL_ERROR = {
   message: "Unexpected Execution Error",
   code: "INTERNAL_SERVER_ERROR",
@@ -435,7 +435,7 @@ const FAIL_ROW_H = 150;
 const ERRORS_ROW0_Y =
   HEADER_H + OV_PAD_TOP + LAT_TILE_H + TILE_GAP + TP_ROW_H + TILE_GAP + 36 + 15;
 
-// PAGE 1 "View logs" button — top-right of the error header.
+// PAGE 1 "View logs" button - top-right of the error header.
 const VIEW_LOGS_X = W - PANEL_PAD_X - 60;
 const VIEW_LOGS_Y = HEADER_H + OV_PAD_TOP + 30;
 
@@ -479,7 +479,7 @@ export function DiagnoseScreen({ progress }: DiagnoseScreenProps) {
   const [page, setPage] = useState(() => pageAt(progress.get()));
   useMotionValueEvent(progress, "change", (p) => setPage(pageAt(p)));
 
-  // ── PAGE TRANSITIONS — crossfade + slide, bridged by a short load spinner.
+  // ── PAGE TRANSITIONS - crossfade + slide, bridged by a short load spinner.
   const p0Opacity = useTransform(
     progress,
     [TL.start("p1Out"), TL.end("p1Out")],
@@ -631,7 +631,7 @@ export function DiagnoseScreen({ progress }: DiagnoseScreenProps) {
       height={H}
       fit="fill"
       chrome={false}
-      ariaLabel="Nitro — from the gateway monitoring overview, clicking a production error to open an error-tracking screen with its occurrences, where-it-occurs and server stack trace, then opening the logs view, drag-selecting the error burst on the log distribution chart, and drilling the failing log into a root-cause stack trace"
+      ariaLabel="Nitro - from the gateway monitoring overview, clicking a production error to open an error-tracking screen with its occurrences, where-it-occurs and server stack trace, then opening the logs view, drag-selecting the error burst on the log distribution chart, and drilling the failing log into a root-cause stack trace"
       overlay={
         <Cursor
           x={cx}
@@ -661,12 +661,12 @@ export function DiagnoseScreen({ progress }: DiagnoseScreenProps) {
             flexDirection: "column",
           }}
         >
-          {/* gateway chrome — the "EShops Gateway" doc-tab strip + view-nav (Monitoring/Logs active,
+          {/* gateway chrome - the "EShops Gateway" doc-tab strip + view-nav (Monitoring/Logs active,
               matching the other tabs), then the "Production Stage" sub-header. */}
           <GatewayChrome activeView={page === 2 ? "Logs" : "Monitoring"} />
           <ProductionStageHeader />
 
-          {/* the page viewport — holds the three crossfading pages */}
+          {/* the page viewport - holds the three crossfading pages */}
           <div
             style={{
               flex: 1,
@@ -675,7 +675,7 @@ export function DiagnoseScreen({ progress }: DiagnoseScreenProps) {
               overflow: "hidden",
             }}
           >
-            {/* PAGE 0 — Monitoring overview */}
+            {/* PAGE 0 - Monitoring overview */}
             <motion.div
               style={{
                 position: "absolute",
@@ -689,7 +689,7 @@ export function DiagnoseScreen({ progress }: DiagnoseScreenProps) {
               <MonitoringOverview progress={progress} />
             </motion.div>
 
-            {/* PAGE 1 — Error screen */}
+            {/* PAGE 1 - Error screen */}
             <motion.div
               style={{
                 position: "absolute",
@@ -703,7 +703,7 @@ export function DiagnoseScreen({ progress }: DiagnoseScreenProps) {
               <ErrorScreen progress={progress} />
             </motion.div>
 
-            {/* PAGE 2 — Logs view */}
+            {/* PAGE 2 - Logs view */}
             <motion.div
               style={{
                 position: "absolute",
@@ -723,7 +723,7 @@ export function DiagnoseScreen({ progress }: DiagnoseScreenProps) {
           </div>
         </div>
 
-        {/* Log Detail flyout — slides in on the failing-row click; General tab carries the payoff. */}
+        {/* Log Detail flyout - slides in on the failing-row click; General tab carries the payoff. */}
         <Flyout
           progress={progress}
           show={TL.start("flyoutLoad")}
@@ -882,7 +882,7 @@ function MetricBadge({ value, sub }: { value: string; sub: string }) {
   );
 }
 
-/* ── PAGE 0 — Monitoring overview ───────────────────────────────────────────────────── */
+/* ── PAGE 0 - Monitoring overview ───────────────────────────────────────────────────── */
 
 function MonitoringOverview({ progress }: { progress: MotionValue<number> }) {
   return (
@@ -897,7 +897,7 @@ function MonitoringOverview({ progress }: { progress: MotionValue<number> }) {
         overflow: "hidden",
       }}
     >
-      {/* Row 1 — Latency, FULL WIDTH */}
+      {/* Row 1 - Latency, FULL WIDTH */}
       <Tile
         title="Latency"
         height={LAT_TILE_H}
@@ -916,7 +916,7 @@ function MonitoringOverview({ progress }: { progress: MotionValue<number> }) {
         />
       </Tile>
 
-      {/* Row 2 — Throughput (area) + Clients (request bars) */}
+      {/* Row 2 - Throughput (area) + Clients (request bars) */}
       <div style={{ display: "flex", gap: TILE_GAP, height: TP_ROW_H }}>
         <div style={{ flex: "0 0 61%", minWidth: 0, display: "flex" }}>
           <Tile
@@ -943,7 +943,7 @@ function MonitoringOverview({ progress }: { progress: MotionValue<number> }) {
         </div>
       </div>
 
-      {/* Row 3 — Failed Operations (red line) + Errors (recent error list) */}
+      {/* Row 3 - Failed Operations (red line) + Errors (recent error list) */}
       <div style={{ display: "flex", gap: TILE_GAP, height: FAIL_ROW_H }}>
         <div style={{ flex: "0 0 61%", minWidth: 0, display: "flex" }}>
           <Tile title="Failed Operations">
@@ -968,7 +968,7 @@ function MonitoringOverview({ progress }: { progress: MotionValue<number> }) {
         </div>
       </div>
 
-      {/* Row 4 — Insights, FULL WIDTH */}
+      {/* Row 4 - Insights, FULL WIDTH */}
       <InsightsTable />
     </div>
   );
@@ -1230,7 +1230,7 @@ function ClientsBars() {
   );
 }
 
-/** The Errors tile — recent errors. The cursor clicks the createOrder error (data-testid). */
+/** The Errors tile - recent errors. The cursor clicks the createOrder error (data-testid). */
 function ErrorList({ progress }: { progress: MotionValue<number> }) {
   return (
     <div
@@ -1466,7 +1466,7 @@ function InsightsTable() {
   );
 }
 
-/* ── PAGE 1 — Error screen (Sentry / ELK style) ─────────────────────────────────────── */
+/* ── PAGE 1 - Error screen (Sentry / ELK style) ─────────────────────────────────────── */
 
 function ErrorScreen({ progress }: { progress: MotionValue<number> }) {
   const chartOp = useTransform(
@@ -1500,7 +1500,7 @@ function ErrorScreen({ progress }: { progress: MotionValue<number> }) {
         overflow: "hidden",
       }}
     >
-      {/* header — exception type + message + createOrder badge + INTERNAL_SERVER_ERROR code + View logs */}
+      {/* header - exception type + message + createOrder badge + INTERNAL_SERVER_ERROR code + View logs */}
       <div
         style={{
           flex: "0 0 auto",
@@ -1538,7 +1538,7 @@ function ErrorScreen({ progress }: { progress: MotionValue<number> }) {
             {EXCEPTION.message}
           </div>
         </div>
-        {/* View logs action — the cursor clicks this */}
+        {/* View logs action - the cursor clicks this */}
         <ViewLogsButton progress={progress} />
       </div>
 
@@ -1753,7 +1753,7 @@ function StatTile({
   );
 }
 
-/** Occurrences-over-time histogram — calm baseline then a sharp spike, bars sweeping in. */
+/** Occurrences-over-time histogram - calm baseline then a sharp spike, bars sweeping in. */
 function OccurrenceBars({ progress }: { progress: MotionValue<number> }) {
   const grow = useTransform(
     progress,
@@ -1795,9 +1795,9 @@ function OccurrenceBars({ progress }: { progress: MotionValue<number> }) {
 
 function WhereItOccurs() {
   const rows: [React.ReactNode, string, string][] = [
-    [<IconMutation size={13} />, "Operation", SPAN_NAME],
-    [<IconServer size={13} />, "Subgraph", `${EXCEPTION.subgraph} service`],
-    [<IconDatabase size={13} />, "Top frame", EXCEPTION.topFrame],
+    [<IconMutation key="op" size={13} />, "Operation", SPAN_NAME],
+    [<IconServer key="sub" size={13} />, "Subgraph", `${EXCEPTION.subgraph} service`],
+    [<IconDatabase key="frame" size={13} />, "Top frame", EXCEPTION.topFrame],
   ];
   return (
     <div
@@ -1998,7 +1998,7 @@ function ErrorStackTrace({ progress }: { progress: MotionValue<number> }) {
   );
 }
 
-/* ── PAGE 2 — Logs view (real Nitro Logs view) ──────────────────────────────────────── */
+/* ── PAGE 2 - Logs view (real Nitro Logs view) ──────────────────────────────────────── */
 
 function LogsView({ progress }: { progress: MotionValue<number> }) {
   const contentOpacity = useTransform(
@@ -2077,7 +2077,7 @@ function LogsView({ progress }: { progress: MotionValue<number> }) {
           <DistributionBars progress={progress} />
         </div>
 
-        {/* log list card — real structure: no toolbar, no headers, just the rows */}
+        {/* log list card - real structure: no toolbar, no headers, just the rows */}
         <div
           style={{
             flex: 1,
@@ -2126,7 +2126,7 @@ function Legend({ color, label }: { color: string; label: string }) {
 }
 
 /**
- * Log Distribution — a stacked-BAR histogram of log volume over time (info baseline + warn + the
+ * Log Distribution - a stacked-BAR histogram of log volume over time (info baseline + warn + the
  * error burst), like the real LogDistributionChart but rendered as discrete bars per the brief. A
  * brush rectangle is DRAWN by the cursor's drag-select: its left edge sits at DRAG_FROM and its
  * width grows over the dragSelect stage to DRAG_TO (then it stays as the active time range).
@@ -2140,7 +2140,7 @@ function DistributionBars({ progress }: { progress: MotionValue<number> }) {
     { clamp: true },
   );
 
-  // brush rectangle — left fixed at BRUSH_FROM; width grows 0 → full over dragSelect, then holds.
+  // brush rectangle - left fixed at BRUSH_FROM; width grows 0 → full over dragSelect, then holds.
   const brushLeftPct = BRUSH_FROM * 100;
   const brushFullPct = (BRUSH_TO - BRUSH_FROM) * 100;
   const brushOpacity = useTransform(
@@ -2420,7 +2420,7 @@ function LogDetail({ progress }: { progress: MotionValue<number> }) {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
-      {/* FlyoutContentHeader — severity icon + severity text + full datetime */}
+      {/* FlyoutContentHeader - severity icon + severity text + full datetime */}
       <div
         style={{
           display: "flex",
@@ -2465,7 +2465,7 @@ function LogDetail({ progress }: { progress: MotionValue<number> }) {
       </div>
 
       <motion.div style={{ position: "relative", flex: 1, minHeight: 0 }}>
-        {/* raw log body — visible until the rich context reveals */}
+        {/* raw log body - visible until the rich context reveals */}
         <motion.div
           style={{ position: "absolute", inset: 0, opacity: bodyOpacity }}
         >
@@ -2491,7 +2491,7 @@ function LogDetail({ progress }: { progress: MotionValue<number> }) {
               whiteSpace: "pre-wrap",
             }}
           >
-            Unhandled exception while executing request — Sequence contains no
+            Unhandled exception while executing request - Sequence contains no
             elements
           </div>
         </motion.div>

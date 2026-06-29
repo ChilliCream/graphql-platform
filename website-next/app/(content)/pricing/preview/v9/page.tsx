@@ -5,7 +5,7 @@ import { ClientPage } from "./ClientPage";
 export const metadata: Metadata = {
   title: "Nitro GraphQL pricing, tier cascade view",
   description:
-    "Nitro GraphQL pricing that cascades from free shared cloud to dedicated single-tenant with 99.95% SLA and SSO, to self-hosted on your own infrastructure.",
+    "Nitro GraphQL pricing that cascades from a free shared cloud tier (1M operations a month) to usage-based Pay as you go at $20/mo, to a dedicated single-tenant instance priced by volume, to self-hosted on your own infrastructure.",
   keywords: [
     "Nitro GraphQL pricing",
     "ChilliCream pricing",
@@ -18,7 +18,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Nitro GraphQL pricing, tier cascade view",
     description:
-      "Plans for the Nitro GraphQL platform: shared cloud free tier, dedicated cloud at $400/mo with SLA and SSO, or self-hosted on your own infra.",
+      "Plans for the Nitro GraphQL platform: free shared cloud, usage-based Pay as you go at $20/mo, a dedicated single-tenant instance from $400/mo, or self-hosted on your own infrastructure.",
   },
   robots: { index: false, follow: false },
 };

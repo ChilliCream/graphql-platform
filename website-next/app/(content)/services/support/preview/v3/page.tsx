@@ -168,38 +168,34 @@ export default function SupportPreviewV3Page() {
 }
 
 // ---------------------------------------------------------------------------
-// Hero: the 3-step "what getting help looks like" path.
+// Hero: three ways support actually plays out.
 // ---------------------------------------------------------------------------
 
-interface FunnelStep {
-  readonly num: string;
+interface SupportScenario {
   readonly label: string;
   readonly title: string;
   readonly copy: string;
   readonly Icon: () => React.ReactElement;
 }
 
-const FUNNEL_STEPS: readonly FunnelStep[] = [
+const SCENARIOS: readonly SupportScenario[] = [
   {
-    num: "01",
-    label: "You are stuck",
-    title: "Production hiccup or a tricky design question",
-    copy: "A query plan that fell over, a schema decision you don't want to make alone, an upgrade that needs a second pair of eyes.",
-    Icon: StuckIcon,
-  },
-  {
-    num: "02",
-    label: "You open a channel",
-    title: "Private Slack or a ticket on your tracker",
-    copy: "One thread. You drop the schema, the trace, the repro. No back and forth on which form to fill out, no support portal maze.",
+    label: "A quick question",
+    title: "Message us, hear back in minutes",
+    copy: "A query plan that fell over, a schema call you'd rather not make alone, an upgrade that needs a second pair of eyes. Drop it in your private channel and, more often than not, a core engineer answers within minutes.",
     Icon: ChannelIcon,
   },
   {
-    num: "03",
-    label: "An expert responds",
-    title: "Within the response window for your plan",
-    copy: "A core engineer who works on Hot Chocolate, Fusion or Nitro picks it up and walks the fix with you to resolution.",
-    Icon: ExpertIcon,
+    label: "Production is down",
+    title: "We get on a call until you're back",
+    copy: "Something critical breaks. You email us and open a ticket, and a core team member jumps on a call, staying with you until production is running again.",
+    Icon: CallIcon,
+  },
+  {
+    label: "A second opinion",
+    title: "Book time with the team",
+    copy: "Planning a migration, reviewing a schema, sizing a rollout? Schedule a session and we'll work through it together, live, with the people who build the platform.",
+    Icon: CalendarIcon,
   },
 ];
 
@@ -210,23 +206,19 @@ function FunnelHero() {
         ChilliCream Support
       </div>
       <h1 className="text-cc-heading mx-auto max-w-3xl text-center text-5xl leading-tight font-semibold tracking-tight sm:text-6xl lg:text-7xl">
-        Help that arrives, in writing, with a name attached.
+        Support from the people who build the platform.
       </h1>
       <p className="text-cc-ink-dim mx-auto mt-6 max-w-2xl text-center text-base sm:text-lg">
-        Every ChilliCream support plan boils down to the same three steps: you
-        get stuck, you open a private channel, an expert who actually works on
-        Hot Chocolate, Fusion and Nitro replies within your SLA.
+        However you reach us, you&rsquo;re working with the core engineers who
+        build Hot Chocolate, Fusion and Nitro, not a first-line queue. Here is
+        what that looks like in practice.
       </p>
 
-      <ol className="mt-14 grid gap-4 md:grid-cols-3 md:gap-0">
-        {FUNNEL_STEPS.map((step, index) => (
-          <FunnelStepCard
-            key={step.num}
-            step={step}
-            isLast={index === FUNNEL_STEPS.length - 1}
-          />
+      <ul className="mt-14 grid gap-4 md:grid-cols-3">
+        {SCENARIOS.map((scenario) => (
+          <ScenarioCard key={scenario.label} scenario={scenario} />
         ))}
-      </ol>
+      </ul>
 
       <div className="mt-12 flex flex-wrap items-center justify-center gap-3">
         <SolidButton href="#plans">See the four plans</SolidButton>
@@ -241,39 +233,20 @@ function FunnelHero() {
   );
 }
 
-function FunnelStepCard({
-  step,
-  isLast,
-}: {
-  readonly step: FunnelStep;
-  readonly isLast: boolean;
-}) {
-  const { Icon } = step;
+function ScenarioCard({ scenario }: { readonly scenario: SupportScenario }) {
+  const { Icon } = scenario;
   return (
-    <li className="border-cc-card-border bg-cc-card-bg/60 relative flex flex-col gap-4 rounded-3xl border p-6 sm:p-7 md:rounded-none md:border-r-0 md:first:rounded-l-3xl md:last:rounded-r-3xl md:last:border-r">
-      {!isLast && (
-        <span
-          aria-hidden="true"
-          className="border-cc-card-border bg-cc-surface absolute top-1/2 right-0 z-10 hidden h-8 w-8 translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border md:flex"
-        >
-          <ArrowRightIcon />
-        </span>
-      )}
-      <div className="flex items-start justify-between gap-4">
-        <span className="text-cc-accent font-mono text-xs font-semibold tracking-[0.2em]">
-          {step.num}
-        </span>
-        <span className="text-cc-ink-dim font-mono text-[0.65rem] tracking-[0.18em] uppercase">
-          {step.label}
-        </span>
+    <li className="border-cc-card-border bg-cc-card-bg/60 flex flex-col gap-4 rounded-3xl border p-6 sm:p-7">
+      <div className="text-cc-ink-dim font-mono text-[0.65rem] tracking-[0.18em] uppercase">
+        {scenario.label}
       </div>
       <div className="text-cc-accent">
         <Icon />
       </div>
       <h2 className="font-heading text-cc-heading text-xl font-semibold">
-        {step.title}
+        {scenario.title}
       </h2>
-      <p className="text-cc-ink text-sm leading-relaxed">{step.copy}</p>
+      <p className="text-cc-ink text-sm leading-relaxed">{scenario.copy}</p>
     </li>
   );
 }
@@ -761,7 +734,7 @@ function ClosingCta() {
 // Inline SVG icons (decorative, currentColor).
 // ---------------------------------------------------------------------------
 
-function StuckIcon() {
+function CallIcon() {
   return (
     <svg
       width="44"
@@ -770,28 +743,38 @@ function StuckIcon() {
       fill="none"
       aria-hidden="true"
     >
-      <circle
-        cx="22"
-        cy="22"
-        r="14"
+      <path
+        d="M12 25v-3a10 10 0 0 1 20 0v3"
         stroke="currentColor"
         strokeWidth="1.5"
-        opacity="0.4"
-      />
-      <path
-        d="M22 13v10"
-        stroke="currentColor"
-        strokeWidth="1.8"
         strokeLinecap="round"
       />
-      <circle cx="22" cy="29" r="1.4" fill="currentColor" />
+      <rect
+        x="8"
+        y="23"
+        width="6"
+        height="9"
+        rx="2"
+        stroke="currentColor"
+        strokeWidth="1.5"
+      />
+      <rect
+        x="30"
+        y="23"
+        width="6"
+        height="9"
+        rx="2"
+        stroke="currentColor"
+        strokeWidth="1.5"
+      />
       <path
-        d="M11 11l3 3M33 11l-3 3M11 33l3-3M33 33l-3-3"
+        d="M33 32v1.5a4 4 0 0 1-4 4h-5"
         stroke="currentColor"
         strokeWidth="1.5"
         strokeLinecap="round"
         opacity="0.6"
       />
+      <circle cx="24" cy="37.5" r="1.4" fill="currentColor" />
     </svg>
   );
 }
@@ -833,7 +816,7 @@ function ChannelIcon() {
   );
 }
 
-function ExpertIcon() {
+function CalendarIcon() {
   return (
     <svg
       width="44"
@@ -842,40 +825,35 @@ function ExpertIcon() {
       fill="none"
       aria-hidden="true"
     >
-      <circle cx="22" cy="17" r="6" stroke="currentColor" strokeWidth="1.5" />
-      <path
-        d="M10 35c1.5-6 6.5-9 12-9s10.5 3 12 9"
+      <rect
+        x="8"
+        y="11"
+        width="28"
+        height="25"
+        rx="4"
         stroke="currentColor"
         strokeWidth="1.5"
-        strokeLinecap="round"
       />
       <path
-        d="M28 11l2 2 4-4"
+        d="M8 18h28"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        opacity="0.6"
+      />
+      <path
+        d="M15 8v6M29 8v6"
         stroke="currentColor"
         strokeWidth="1.8"
         strokeLinecap="round"
-        strokeLinejoin="round"
       />
-    </svg>
-  );
-}
-
-function ArrowRightIcon() {
-  return (
-    <svg
-      width="14"
-      height="14"
-      viewBox="0 0 14 14"
-      fill="none"
-      aria-hidden="true"
-      className="text-cc-accent"
-    >
-      <path
-        d="M3 7h8M8 4l3 3-3 3"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
+      <rect
+        x="14"
+        y="23"
+        width="6"
+        height="6"
+        rx="1.2"
+        fill="currentColor"
+        opacity="0.8"
       />
     </svg>
   );

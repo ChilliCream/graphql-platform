@@ -13,6 +13,20 @@ import type { ReactNode } from "react";
 import { useEffect, useRef } from "react";
 
 import { CheckIcon } from "@/src/components/CheckIcon";
+import type {
+  Cell,
+  ComparisonGroup,
+  PricingFaq,
+  Tier,
+  Unlock,
+} from "@/src/components/pricing/pricingData";
+import {
+  COMPARISON,
+  FAQ,
+  TIERS,
+  UNLOCKS,
+  UNLOCKS_NOTE,
+} from "@/src/components/pricing/pricingData";
 import { OutlineButton, SolidButton } from "@/src/design-system/Button";
 
 // Note: This page is a "use client" file because the centerpiece animation
@@ -22,438 +36,25 @@ import { OutlineButton, SolidButton } from "@/src/design-system/Button";
 // the parent route configuration. The page is at /pricing/preview/v7/ which
 // is an internal preview path and not surfaced in production navigation.
 // Primary keyword: Nitro GraphQL pricing.
+//
+// All pricing data (tiers, comparison rows, unlocks, FAQ) is imported from the
+// shared module in src/components/pricing/pricingData. This page never inlines
+// pricing numbers; it only renders that single source of truth.
 
-interface Plan {
-  readonly id: "shared" | "dedicated" | "self";
-  readonly name: string;
-  readonly tagline: string;
-  readonly price: string;
-  readonly priceNote: string;
-  readonly features: readonly string[];
-  readonly cta: string;
-  readonly ctaHref: string;
-  readonly popular?: boolean;
-  readonly priceNumeric?: number;
-}
-
-const PLANS: readonly Plan[] = [
-  {
-    id: "shared",
-    name: "Shared Instance",
-    tagline: "Shared resources, fully managed.",
-    price: "Free",
-    priceNote: "pay-as-you-go",
-    features: [
-      "Multi-tenant cloud region",
-      "1 Schema · 3 Environments",
-      "Up to 5M ops / month included",
-      "Community Slack support",
-      "Pay only for what you use after",
-    ],
-    cta: "Start for Free",
-    ctaHref: "/get-started",
-  },
-  {
-    id: "dedicated",
-    name: "Dedicated Instance",
-    tagline: "Dedicated resources, fully managed.",
-    price: "$400",
-    priceNote: "per month",
-    features: [
-      "Single-tenant cloud region",
-      "Unlimited schemas",
-      "BYOC region · private networking",
-      "99.95% SLA · email + private chat",
-      "SSO, audit log, role-based access",
-    ],
-    cta: "Start for Free",
-    ctaHref: "/get-started",
-    popular: true,
-    priceNumeric: 400,
-  },
-  {
-    id: "self",
-    name: "Self-Hosted",
-    tagline: "Self managed, on your infrastructure.",
-    price: "Custom",
-    priceNote: "talk to us",
-    features: [
-      "Run on your own infrastructure",
-      "Air-gapped & on-prem supported",
-      "Priority engineering support",
-      "Long-term release channel",
-      "Custom training & onboarding",
-    ],
-    cta: "Talk to Us",
-    ctaHref: "/services/support/contact",
-  },
-];
-
-type CellValue = boolean | string;
-
-interface ComparisonRow {
-  readonly label: string;
-  readonly shared: CellValue;
-  readonly dedicated: CellValue;
-  readonly self: CellValue;
-}
-
-interface ComparisonGroup {
-  readonly title: string;
-  readonly rows: readonly ComparisonRow[];
-}
-
-const COMPARISON: readonly ComparisonGroup[] = [
-  {
-    title: "Hosting & isolation",
-    rows: [
-      {
-        label: "Deployment model",
-        shared: "Multi-tenant cloud",
-        dedicated: "Single-tenant cloud or BYOC",
-        self: "Your infrastructure, air-gap supported",
-      },
-      {
-        label: "Included APIs / schemas",
-        shared: "1 schema",
-        dedicated: "Unlimited",
-        self: "Unlimited",
-      },
-      {
-        label: "Environments per API",
-        shared: "3 (dev / QA / prod)",
-        dedicated: "Unlimited, branchable stages",
-        self: "Unlimited, branchable stages",
-      },
-      {
-        label: "Included operations / month",
-        shared: "5M, pay-as-you-go after",
-        dedicated: "Custom volume",
-        self: "Unmetered on your infra",
-      },
-      {
-        label: "Log & trace retention",
-        shared: "1 day",
-        dedicated: "Configurable",
-        self: "Your retention policy",
-      },
-      {
-        label: "Fusion gateway runtime",
-        shared: "Your ASP.NET Core app",
-        dedicated: "Your ASP.NET Core app",
-        self: "Your ASP.NET Core app, fully offline",
-      },
-    ],
-  },
-  {
-    title: "Schema lifecycle",
-    rows: [
-      {
-        label: "Schema registry with history & rollback",
-        shared: true,
-        dedicated: true,
-        self: true,
-      },
-      {
-        label:
-          "Client registry · know which published clients are affected by a change",
-        shared: true,
-        dedicated: true,
-        self: true,
-      },
-      {
-        label: "Breaking-change classification (safe / dangerous / breaking)",
-        shared: true,
-        dedicated: true,
-        self: true,
-      },
-      {
-        label: "CI schema & client checks (validate / upload / publish)",
-        shared: true,
-        dedicated: true,
-        self: true,
-      },
-      {
-        label: "Stage promotion with approval gates",
-        shared: true,
-        dedicated: true,
-        self: true,
-      },
-      {
-        label:
-          "Fusion composition lifecycle (begin / validate / commit / rollback)",
-        shared: true,
-        dedicated: true,
-        self: true,
-      },
-      {
-        label: ".NET Aspire integration (compose live subgraphs at build)",
-        shared: true,
-        dedicated: true,
-        self: true,
-      },
-    ],
-  },
-  {
-    title: "Observability",
-    rows: [
-      {
-        label:
-          "OpenTelemetry-native traces, metrics, logs (requires Nitro configuration in the server)",
-        shared: true,
-        dedicated: true,
-        self: true,
-      },
-      {
-        label:
-          "Operation insights (p95/p99, throughput, error rate, impact score)",
-        shared: true,
-        dedicated: true,
-        self: true,
-      },
-      {
-        label: "Per-client tracking (GraphQL-Client-Id / Version)",
-        shared: true,
-        dedicated: true,
-        self: true,
-      },
-      {
-        label: "Resolver-level insights & sample traces",
-        shared: true,
-        dedicated: true,
-        self: true,
-      },
-      {
-        label: "Distributed tracing across Fusion subgraphs",
-        shared: true,
-        dedicated: true,
-        self: true,
-      },
-      {
-        label: "Service monitoring for any .NET service (REST, gRPC, jobs)",
-        shared: true,
-        dedicated: true,
-        self: true,
-      },
-      {
-        label: "Operation reporting (executed + available, persisted + ad-hoc)",
-        shared: true,
-        dedicated: true,
-        self: true,
-      },
-    ],
-  },
-  {
-    title: "Operations & delivery",
-    rows: [
-      {
-        label: "Persisted / trusted operations enforcement",
-        shared: true,
-        dedicated: true,
-        self: true,
-      },
-      {
-        label: "Query cost analysis (@cost / @listSize, IBM spec)",
-        shared: true,
-        dedicated: true,
-        self: true,
-      },
-      {
-        label: "Request limits (depth, breadth, recursion, timeouts)",
-        shared: true,
-        dedicated: true,
-        self: true,
-      },
-      {
-        label: "Deployment audit log (every publish)",
-        shared: true,
-        dedicated: true,
-        self: true,
-      },
-      {
-        label: "Rollback by republishing an earlier tag",
-        shared: true,
-        dedicated: true,
-        self: true,
-      },
-      {
-        label:
-          "Persisted-op distribution cache (filesystem / Azure Blob / custom)",
-        shared: true,
-        dedicated: true,
-        self: true,
-      },
-    ],
-  },
-  {
-    title: "Security & access",
-    rows: [
-      {
-        label:
-          "Roles (Owner / Admin / Collaborator) + stage-scoped publish permissions",
-        shared: true,
-        dedicated: true,
-        self: true,
-      },
-      {
-        label: "SSO (SAML / OIDC)",
-        shared: false,
-        dedicated: true,
-        self: "Via your IdP",
-      },
-      {
-        label: "Audit log for admin actions",
-        shared: false,
-        dedicated: true,
-        self: "Your retention policy",
-      },
-      {
-        label: "API keys (CI/CD) and PATs (user-bound)",
-        shared: true,
-        dedicated: true,
-        self: true,
-      },
-      {
-        label: "OAuth redirect-URL allowlist (anti token-leak)",
-        shared: true,
-        dedicated: true,
-        self: true,
-      },
-      {
-        label: "ASP.NET Core auth (JWT, cookie, OIDC, mTLS) at the gateway",
-        shared: true,
-        dedicated: true,
-        self: true,
-      },
-      {
-        label: "Authorization (@authorize, roles, policies, OPA)",
-        shared: true,
-        dedicated: true,
-        self: true,
-      },
-    ],
-  },
-  {
-    title: "Developer experience",
-    rows: [
-      {
-        label: "Built-in GraphQL IDE",
-        shared: "Served from your endpoint",
-        dedicated: "Served from your endpoint",
-        self: "Served from your endpoint",
-      },
-      {
-        label: "MCP server endpoint over Streamable HTTP",
-        shared: true,
-        dedicated: true,
-        self: true,
-      },
-      {
-        label: "MCP feature collections (.graphql + .json + .html)",
-        shared: true,
-        dedicated: true,
-        self: true,
-      },
-      {
-        label: "MCP per-tool telemetry (latency, ops/min, error rate, impact)",
-        shared: true,
-        dedicated: true,
-        self: true,
-      },
-      {
-        label:
-          "OpenAPI adapter (@http exposes GraphQL ops as REST + OpenAPI doc)",
-        shared: true,
-        dedicated: true,
-        self: true,
-      },
-      {
-        label:
-          "CLI distribution (.NET tool, npm, Homebrew, self-contained binaries)",
-        shared: true,
-        dedicated: true,
-        self: true,
-      },
-      {
-        label: "Mock servers via CLI",
-        shared: true,
-        dedicated: true,
-        self: true,
-      },
-    ],
-  },
-  {
-    title: "Support & SLAs",
-    rows: [
-      {
-        label: "Support channel",
-        shared: "Community Slack",
-        dedicated: "Email + private chat",
-        self: "Priority engineering",
-      },
-      {
-        label: "Uptime SLA",
-        shared: "Best-effort",
-        dedicated: "99.95%",
-        self: "You operate it",
-      },
-      {
-        label: "Release channel",
-        shared: "Continuous",
-        dedicated: "Continuous",
-        self: "Long-term release channel",
-      },
-      {
-        label: "Onboarding & training",
-        shared: "Docs & community",
-        dedicated: "Guided onboarding",
-        self: "Custom training",
-      },
-    ],
-  },
-];
-
-interface FaqItem {
-  readonly question: string;
-  readonly answer: string;
-}
-
-const FAQ: readonly FaqItem[] = [
-  {
-    question: "Is the Shared Instance really free?",
-    answer:
-      "Yes. The Shared Instance includes one schema, three environments, and up to 5M operations per month at no cost. Beyond that, you pay only for what you use, billed by metered operations.",
-  },
-  {
-    question: "What does the 99.95% SLA on the Dedicated Instance cover?",
-    answer:
-      "The 99.95% uptime SLA covers the Nitro control plane on your dedicated instance: schema and client registry, CI checks, the GraphQL IDE that serves from your endpoint, and telemetry ingestion once Nitro is configured. Your own gateway and subgraphs are not part of the SLA.",
-  },
-  {
-    question: "Do you support SSO and audit logs?",
-    answer:
-      "SSO via OIDC and SAML, role-based access control, and audit log are included on the Dedicated Instance and Self-Hosted plans. The Shared Instance ships basic access control only.",
-  },
-  {
-    question: "Can I bring my own cloud region?",
-    answer:
-      "Yes. Dedicated Instance customers choose the cloud region the instance runs in (BYOC) and can connect over private networking. Self-Hosted runs wherever you run it, including air-gapped environments.",
-  },
-  {
-    question: "How does a schema change affect my clients?",
-    answer:
-      "Nitro CI checks compare a new schema against the client registry and report which published clients are affected by a breaking change before you deploy. You decide whether to ship, deprecate, or hold.",
-  },
-  {
-    question: "Can I move between plans later?",
-    answer:
-      "Yes. You can upgrade from Shared to Dedicated at any time and your schema, environments, and telemetry move with you. Talk to us if you need to migrate to Self-Hosted.",
-  },
-];
+// The three cloud tiers (Free, Pay as you go, Dedicated) are shown as cards;
+// Self-Hosted is presented as a slim strip below them.
+const CLOUD_TIERS = TIERS.filter((tier) => tier.id !== "self");
+const SELF_HOSTED = TIERS.find((tier) => tier.id === "self");
 
 const EASE_OUT_QUART: readonly [number, number, number, number] = [
   0.22, 1, 0.36, 1,
 ];
+
+/** Parse a clean "$<number>" price for the animated counter on the popular card. */
+function parsePrice(price: string): number | undefined {
+  const match = price.match(/^\$(\d+)$/);
+  return match ? Number(match[1]) : undefined;
+}
 
 export default function PricingPreviewV7Page() {
   return (
@@ -462,8 +63,9 @@ export default function PricingPreviewV7Page() {
       <PlanGrid />
       <UpgradePathStrip />
       <ComparisonMatrix />
+      <UnlockBand />
       <Faq />
-      <EnterpriseBand />
+      <CustomBand />
       <ClosingCta />
     </MotionConfig>
   );
@@ -494,9 +96,10 @@ function Hero() {
         transition={{ duration: 0.6, ease: EASE_OUT_QUART, delay: 0.16 }}
         className="text-cc-ink mx-auto mt-6 max-w-2xl text-base text-pretty sm:text-lg"
       >
-        Start free on shared cloud. Move to a dedicated instance when you need
-        SLA, SSO, and your own region. Self-host on your own infrastructure when
-        the workload, or the policy, demands it.
+        Start free on shared cloud with 1M operations a month. Move to Pay as
+        you go at $20 a month when you need more, then to a dedicated,
+        single-tenant instance priced by volume. Self-host on your own
+        infrastructure when the workload, or the policy, demands it.
       </motion.p>
       <motion.div
         initial={{ opacity: 0, y: 8 }}
@@ -532,10 +135,12 @@ function PlanGrid() {
         animate={inView ? "show" : "hidden"}
         className="grid gap-6 lg:grid-cols-3 lg:items-stretch"
       >
-        {PLANS.map((plan) => (
-          <PlanCard key={plan.id} plan={plan} parentInView={inView} />
+        {CLOUD_TIERS.map((tier) => (
+          <PlanCard key={tier.id} plan={tier} parentInView={inView} />
         ))}
       </motion.div>
+
+      {SELF_HOSTED && <SelfHostedStrip tier={SELF_HOSTED} />}
     </section>
   );
 }
@@ -544,7 +149,7 @@ function PlanCard({
   plan,
   parentInView,
 }: {
-  readonly plan: Plan;
+  readonly plan: Tier;
   readonly parentInView: boolean;
 }) {
   const cardVariants = {
@@ -567,7 +172,7 @@ function PlanCard({
         }}
       >
         <PopularPill />
-        <DedicatedGradientFrame active={parentInView} />
+        <PopularGradientFrame active={parentInView} />
         <div className="bg-cc-surface relative flex h-full flex-col rounded-[calc(1.5rem-1.5px)] p-7 sm:p-8">
           <PlanCardBody plan={plan} active={parentInView} />
         </div>
@@ -585,7 +190,7 @@ function PlanCard({
   );
 }
 
-function DedicatedGradientFrame({ active }: { readonly active: boolean }) {
+function PopularGradientFrame({ active }: { readonly active: boolean }) {
   const reduce = useReducedMotion();
   return (
     <svg
@@ -595,7 +200,7 @@ function DedicatedGradientFrame({ active }: { readonly active: boolean }) {
       viewBox="0 0 100 100"
     >
       <defs>
-        <linearGradient id="dedicatedGradient-v7" x1="0" y1="0" x2="1" y2="1">
+        <linearGradient id="popularGradient-v7" x1="0" y1="0" x2="1" y2="1">
           <stop offset="0%" stopColor="#16b9e4" />
           <stop offset="50%" stopColor="#7c92c6" />
           <stop offset="100%" stopColor="#f0786a" />
@@ -609,7 +214,7 @@ function DedicatedGradientFrame({ active }: { readonly active: boolean }) {
         rx="5"
         ry="5"
         fill="none"
-        stroke="url(#dedicatedGradient-v7)"
+        stroke="url(#popularGradient-v7)"
         strokeWidth="0.6"
         vectorEffect="non-scaling-stroke"
         initial={reduce ? { pathLength: 1 } : { pathLength: 0 }}
@@ -624,10 +229,11 @@ function PlanCardBody({
   plan,
   active,
 }: {
-  readonly plan: Plan;
+  readonly plan: Tier;
   readonly active: boolean;
 }) {
   const CallToAction = plan.popular ? SolidButton : OutlineButton;
+  const numeric = plan.popular ? parsePrice(plan.price) : undefined;
   return (
     <>
       <h3 className="font-heading text-cc-heading text-h5 font-semibold">
@@ -636,8 +242,8 @@ function PlanCardBody({
       <p className="text-cc-ink-dim mt-2 text-sm">{plan.tagline}</p>
       <div className="mt-6 flex items-baseline gap-2">
         <span className="font-heading text-cc-heading text-h3 font-semibold">
-          {plan.priceNumeric !== undefined ? (
-            <AnimatedPrice target={plan.priceNumeric} active={active} />
+          {numeric !== undefined ? (
+            <AnimatedPrice target={numeric} active={active} />
           ) : (
             plan.price
           )}
@@ -693,6 +299,35 @@ function PlanCardBody({
   );
 }
 
+function SelfHostedStrip({ tier }: { readonly tier: Tier }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 16 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, amount: 0.4 }}
+      transition={{ duration: 0.5, ease: EASE_OUT_QUART }}
+      className="border-cc-card-border bg-cc-card-bg/60 mt-6 flex flex-col gap-5 rounded-3xl border p-6 sm:flex-row sm:items-center sm:justify-between sm:p-8"
+    >
+      <div>
+        <p className="text-cc-nav-label font-mono text-xs tracking-[0.18em] uppercase">
+          {tier.price}
+        </p>
+        <h3 className="font-heading text-cc-heading text-h6 mt-2 font-semibold">
+          {tier.name}
+        </h3>
+        <p className="text-cc-ink mt-2 max-w-2xl text-sm text-pretty">
+          {tier.tagline} Run on your own infrastructure, air-gapped or on-prem,
+          with configurable retention, priority engineering support, and a
+          long-term release channel.
+        </p>
+      </div>
+      <OutlineButton href={tier.ctaHref} className="shrink-0 sm:w-auto">
+        {tier.cta}
+      </OutlineButton>
+    </motion.div>
+  );
+}
+
 function AnimatedPrice({
   target,
   active,
@@ -740,8 +375,9 @@ function UpgradePathStrip() {
     readonly label: string;
     readonly position: string;
   }[] = [
-    { label: "Shared", position: "0%" },
-    { label: "Dedicated", position: "50%" },
+    { label: "Free", position: "0%" },
+    { label: "Pay as you go", position: "33%" },
+    { label: "Dedicated", position: "66%" },
     { label: "Self-Hosted", position: "100%" },
   ];
 
@@ -813,33 +449,33 @@ function ComparisonMatrix() {
           Every capability, side by side.
         </h2>
         <p className="text-cc-ink mx-auto mt-4 max-w-2xl text-base">
-          The same Nitro platform across all three plans. What changes is where
-          it runs, who you share it with, and what you get from us.
+          The same Nitro platform across every plan. What changes is where it
+          runs, who you share it with, and what you get from us.
         </p>
       </div>
 
       <div className="mt-10 overflow-x-auto">
-        <table className="w-full min-w-[42rem] border-separate border-spacing-0 text-left text-sm">
+        <table className="w-full min-w-[52rem] border-separate border-spacing-0 text-left text-sm">
           <thead>
             <tr>
-              <th scope="col" className="w-2/5 pb-4 pl-2">
+              <th scope="col" className="w-1/3 pb-4 pl-2">
                 <span className="sr-only">Capability</span>
               </th>
-              {PLANS.map((plan) => (
+              {TIERS.map((tier) => (
                 <th
-                  key={plan.id}
+                  key={tier.id}
                   scope="col"
                   className="pb-4 text-center align-bottom"
                 >
                   <div
                     className={`font-heading text-cc-heading text-base font-semibold ${
-                      plan.popular ? "text-cc-accent" : ""
+                      tier.popular ? "text-cc-accent" : ""
                     }`}
                   >
-                    {plan.name}
+                    {tier.name}
                   </div>
                   <div className="text-cc-nav-label mt-1 font-mono text-[0.65rem] tracking-[0.15em] uppercase">
-                    {plan.price} · {plan.priceNote}
+                    {tier.price} · {tier.priceNote}
                   </div>
                 </th>
               ))}
@@ -877,7 +513,7 @@ function ComparisonGroupRows({
       >
         <th
           scope="colgroup"
-          colSpan={4}
+          colSpan={5}
           className="border-cc-ink-faint text-cc-nav-label border-t pt-6 pb-3 pl-2 text-left font-mono text-xs tracking-[0.15em] uppercase"
         >
           {group.title}
@@ -901,12 +537,13 @@ function ComparisonGroupRows({
           >
             {row.label}
           </th>
-          <ComparisonCell value={row.shared} />
+          <ComparisonCell value={row.free} />
           <ComparisonCell
-            value={row.dedicated}
+            value={row.payg}
             highlight
             pulse={rowIndex === 0 && groupIndex === 0}
           />
+          <ComparisonCell value={row.dedicated} />
           <ComparisonCell value={row.self} />
         </motion.tr>
       ))}
@@ -919,7 +556,7 @@ function ComparisonCell({
   highlight = false,
   pulse = false,
 }: {
-  readonly value: CellValue;
+  readonly value: Cell;
   readonly highlight?: boolean;
   readonly pulse?: boolean;
 }) {
@@ -972,6 +609,144 @@ function ComparisonCell({
   );
 }
 
+function UnlockBand() {
+  const ref = useRef<HTMLOListElement>(null);
+  const inView = useInView(ref, { once: true, amount: 0.3 });
+
+  return (
+    <section aria-labelledby="unlock-heading" className="mt-20 sm:mt-28">
+      <div className="mx-auto max-w-2xl text-center">
+        <h2
+          id="unlock-heading"
+          className="font-heading text-cc-heading text-h4 sm:text-h3 font-semibold"
+        >
+          Unlock more as you grow
+        </h2>
+        <p className="text-cc-ink mx-auto mt-4 text-base text-pretty">
+          Commit to a minimum monthly spend to unlock more, up to your spend.
+        </p>
+      </div>
+
+      <motion.ol
+        ref={ref}
+        variants={{
+          hidden: {},
+          show: { transition: { staggerChildren: 0.12, delayChildren: 0.05 } },
+        }}
+        initial="hidden"
+        animate={inView ? "show" : "hidden"}
+        className="mx-auto mt-10 flex max-w-3xl flex-col gap-3"
+      >
+        {UNLOCKS.map((unlock, index) => (
+          <UnlockRow key={unlock.title} unlock={unlock} index={index} />
+        ))}
+      </motion.ol>
+      <p className="text-cc-nav-label mt-5 text-center font-mono text-[0.7rem]">
+        {UNLOCKS_NOTE}
+      </p>
+    </section>
+  );
+}
+
+function UnlockRow({
+  unlock,
+  index,
+}: {
+  readonly unlock: Unlock;
+  readonly index: number;
+}) {
+  const Glyph = UNLOCK_ICONS[index] ?? SupportGlyph;
+  return (
+    <motion.li
+      variants={{
+        hidden: { opacity: 0, y: 18 },
+        show: {
+          opacity: 1,
+          y: 0,
+          transition: { duration: 0.45, ease: EASE_OUT_QUART },
+        },
+      }}
+      className="border-cc-card-border bg-cc-card-bg flex items-center gap-4 rounded-2xl border p-5 sm:gap-5 sm:p-6"
+    >
+      <span className="border-cc-card-border bg-cc-surface text-cc-accent flex size-11 shrink-0 items-center justify-center rounded-xl border">
+        <Glyph className="size-5" />
+      </span>
+      <div className="min-w-0 flex-1">
+        <h3 className="font-heading text-cc-heading text-base font-semibold">
+          {unlock.title}
+        </h3>
+        <p className="text-cc-ink-dim mt-1 text-sm text-pretty">
+          {unlock.description}
+        </p>
+      </div>
+      <span className="text-cc-accent shrink-0 font-mono text-base font-semibold sm:text-lg">
+        {unlock.spend}
+      </span>
+    </motion.li>
+  );
+}
+
+interface GlyphProps {
+  readonly className?: string;
+}
+
+/** Lifebuoy, for the Business Support unlock. */
+function SupportGlyph({ className }: GlyphProps) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.6}
+      aria-hidden="true"
+      className={className}
+    >
+      <circle cx="12" cy="12" r="9" />
+      <circle cx="12" cy="12" r="3.4" />
+      <path d="M5.2 5.2l4.4 4.4M18.8 5.2l-4.4 4.4M5.2 18.8l4.4-4.4M18.8 18.8l-4.4-4.4" />
+    </svg>
+  );
+}
+
+/** Shield with a check, for the priority support unlock. */
+function ShieldGlyph({ className }: GlyphProps) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.6}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      className={className}
+    >
+      <path d="M12 3l7 3v5c0 4-3 6.6-7 8-4-1.4-7-4-7-8V6z" />
+      <path d="M9 12l2 2 4-4" />
+    </svg>
+  );
+}
+
+/** Cloud, for the BYOC unlock. */
+function CloudGlyph({ className }: GlyphProps) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.6}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      className={className}
+    >
+      <path d="M7 18h10a4 4 0 0 0 .5-7.97A5.5 5.5 0 0 0 6.5 9 4 4 0 0 0 7 18z" />
+    </svg>
+  );
+}
+
+const UNLOCK_ICONS = [SupportGlyph, ShieldGlyph, CloudGlyph];
+
 function Faq() {
   return (
     <section aria-labelledby="faq-heading" className="mt-20 sm:mt-28">
@@ -1000,7 +775,7 @@ function FaqEntry({
   item,
   index,
 }: {
-  readonly item: FaqItem;
+  readonly item: PricingFaq;
   readonly index: number;
 }) {
   return (
@@ -1025,7 +800,7 @@ function FaqEntry({
   );
 }
 
-function EnterpriseBand() {
+function CustomBand() {
   return (
     <Section className="mt-20 sm:mt-28">
       <motion.div
@@ -1037,7 +812,7 @@ function EnterpriseBand() {
       >
         <div>
           <p className="text-cc-nav-label font-mono text-xs tracking-[0.18em] uppercase">
-            Enterprise
+            Custom
           </p>
           <h2 className="font-heading text-cc-heading text-h4 mt-3 font-semibold">
             Custom volume, procurement, or air-gapped?
@@ -1048,10 +823,10 @@ function EnterpriseBand() {
             GraphQL gateways. Engineers, not gatekeepers, run the call.
           </p>
           <ul className="text-cc-ink mt-6 grid gap-3 text-sm sm:grid-cols-2">
-            <EnterpriseCheck>Dedicated solution architect</EnterpriseCheck>
-            <EnterpriseCheck>Annual contracts & POs</EnterpriseCheck>
-            <EnterpriseCheck>Security & DPA review</EnterpriseCheck>
-            <EnterpriseCheck>Migration playbooks</EnterpriseCheck>
+            <CustomCheck>Dedicated solution architect</CustomCheck>
+            <CustomCheck>Annual contracts &amp; POs</CustomCheck>
+            <CustomCheck>Security &amp; DPA review</CustomCheck>
+            <CustomCheck>Migration playbooks</CustomCheck>
           </ul>
         </div>
         <div className="flex flex-col gap-3 md:items-end">
@@ -1065,7 +840,7 @@ function EnterpriseBand() {
   );
 }
 
-function EnterpriseCheck({ children }: { readonly children: ReactNode }) {
+function CustomCheck({ children }: { readonly children: ReactNode }) {
   return (
     <li className="flex items-start gap-3">
       <span className="text-cc-accent mt-[5px] flex-none">
@@ -1095,8 +870,9 @@ function ClosingCta() {
         transition={{ duration: 0.5, ease: EASE_OUT_QUART, delay: 0.08 }}
         className="text-cc-ink mx-auto mt-5 max-w-2xl text-base"
       >
-        Start on the free Shared Instance in minutes. Upgrade when you need a
-        dedicated region, SLA, or SSO. The docs walk you through every step.
+        Start free in minutes. Move to Pay as you go when you outgrow it, or to
+        a dedicated, single-tenant instance with your own region, SSO, and
+        configurable retention. The docs walk you through every step.
       </motion.p>
       <motion.div
         initial={{ opacity: 0, scale: 0.96 }}

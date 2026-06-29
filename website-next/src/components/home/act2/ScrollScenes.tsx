@@ -467,7 +467,7 @@ function ProofStrip() {
  */
 export function ScrollScenes() {
   return (
-    <section className="mx-auto max-w-6xl px-5 py-16 sm:px-12 sm:py-24">
+    <section className="mx-auto max-w-7xl px-5 py-16 sm:px-12 sm:py-24">
       <div className="mx-auto max-w-3xl text-center">
         <p className="text-cc-nav-label font-mono text-xs tracking-[0.2em] uppercase">
           API platform

@@ -129,7 +129,7 @@ function TopicRow({
  */
 export function PlatformSectionV1() {
   return (
-    <section className="mx-auto max-w-6xl px-5 pt-16 sm:px-12 sm:pt-24">
+    <section className="mx-auto max-w-7xl px-5 pt-16 sm:px-12 sm:pt-24">
       <RevealOnScroll className="mx-auto max-w-3xl text-center">
         <p className="text-cc-nav-label font-mono text-xs tracking-[0.2em] uppercase">
           The platform

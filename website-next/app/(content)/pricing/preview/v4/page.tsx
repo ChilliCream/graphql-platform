@@ -1,12 +1,20 @@
 import type { Metadata } from "next";
-import type { ReactNode } from "react";
+import { Fragment, type ReactNode } from "react";
 
+import type { Cell, Tier, TierId } from "@/src/components/pricing/pricingData";
+import {
+  COMPARISON,
+  FAQ,
+  TIERS,
+  UNLOCKS,
+  UNLOCKS_NOTE,
+} from "@/src/components/pricing/pricingData";
 import { OutlineButton, SolidButton } from "@/src/design-system/Button";
 
 export const metadata: Metadata = {
   title: "Pricing for Nitro by ChilliCream",
   description:
-    "Nitro GraphQL pricing as a config file: start free on shared cloud, run a dedicated instance at $400/mo with SLA and SSO, or self-host your own infra.",
+    "Nitro GraphQL pricing as a config file: start free on shared cloud, pay as you go at $20/mo, run a dedicated single-tenant instance from $400/mo with SSO, or self-host your own infra.",
   keywords: [
     "Nitro GraphQL pricing",
     "ChilliCream pricing",
@@ -19,432 +27,37 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Pricing for Nitro by ChilliCream",
     description:
-      "Nitro GraphQL pricing: shared cloud free tier, dedicated cloud at $400/mo with SLA and SSO, or self-hosted on your own infra.",
+      "Nitro GraphQL pricing: free shared cloud, pay as you go at $20/mo, dedicated single-tenant from $400/mo with SSO, or self-hosted on your own infra.",
   },
   robots: { index: false, follow: false },
 };
 
-interface Plan {
-  readonly id: "shared" | "dedicated" | "self";
-  readonly name: string;
-  readonly tagline: string;
-  readonly price: string;
-  readonly priceNote: string;
-  readonly filename: string;
-  readonly features: readonly string[];
-  readonly cta: string;
-  readonly ctaHref: string;
-  readonly popular?: boolean;
+// The three cloud tiers are presented as config panels; self-hosted sits below.
+const CLOUD_TIERS = TIERS.filter((tier) => tier.id !== "self");
+const SELF_HOSTED = TIERS.find((tier) => tier.id === "self");
+
+// Config-file name shown in the terminal tab for each tier panel.
+const TIER_FILENAME: Record<TierId, string> = {
+  free: "free.toml",
+  payg: "pay-as-you-go.toml",
+  dedicated: "dedicated.toml",
+  self: "self-hosted.toml",
+};
+
+// Terminal label + accent color for each tier in the hero `plans list` output.
+const TIER_META: Record<
+  TierId,
+  { readonly label: string; readonly color: string }
+> = {
+  free: { label: "free", color: "#16b9e4" },
+  payg: { label: "pay-as-you-go", color: "#7c92c6" },
+  dedicated: { label: "dedicated", color: "#c792ea" },
+  self: { label: "self-hosted", color: "#f0786a" },
+};
+
+function heroPrice(tier: Tier): string {
+  return tier.priceNote === "per month" ? `${tier.price}/mo` : tier.price;
 }
-
-const PLANS: readonly Plan[] = [
-  {
-    id: "shared",
-    name: "Shared Instance",
-    tagline: "Shared resources, fully managed.",
-    price: "Free",
-    priceNote: "pay-as-you-go",
-    filename: "shared.toml",
-    features: [
-      "Multi-tenant cloud region",
-      "1 Schema, 3 Environments",
-      "Up to 5M ops / month included",
-      "Community Slack support",
-      "Pay only for what you use after",
-    ],
-    cta: "Start for Free",
-    ctaHref: "/get-started",
-  },
-  {
-    id: "dedicated",
-    name: "Dedicated Instance",
-    tagline: "Dedicated resources, fully managed.",
-    price: "$400",
-    priceNote: "per month",
-    filename: "dedicated.toml",
-    features: [
-      "Single-tenant cloud region",
-      "Unlimited schemas",
-      "BYOC region, private networking",
-      "99.95% SLA, email + private chat",
-      "SSO, audit log, role-based access",
-    ],
-    cta: "Start for Free",
-    ctaHref: "/get-started",
-    popular: true,
-  },
-  {
-    id: "self",
-    name: "Self-Hosted",
-    tagline: "Self managed, on your infrastructure.",
-    price: "Custom",
-    priceNote: "talk to us",
-    filename: "self-hosted.toml",
-    features: [
-      "Run on your own infrastructure",
-      "Air-gapped and on-prem supported",
-      "Priority engineering support",
-      "Long-term release channel",
-      "Custom training and onboarding",
-    ],
-    cta: "Talk to Us",
-    ctaHref: "/services/support/contact",
-  },
-];
-
-type CellValue = boolean | string;
-
-interface ComparisonRow {
-  readonly label: string;
-  readonly shared: CellValue;
-  readonly dedicated: CellValue;
-  readonly self: CellValue;
-}
-
-interface ComparisonGroup {
-  readonly title: string;
-  readonly rows: readonly ComparisonRow[];
-}
-
-const COMPARISON: readonly ComparisonGroup[] = [
-  {
-    title: "Hosting & isolation",
-    rows: [
-      {
-        label: "Deployment model",
-        shared: "Multi-tenant cloud",
-        dedicated: "Single-tenant or BYOC",
-        self: "Your infra, air-gap ok",
-      },
-      {
-        label: "Included APIs / schemas",
-        shared: "1 schema",
-        dedicated: "Unlimited",
-        self: "Unlimited",
-      },
-      {
-        label: "Environments per API",
-        shared: "3 (dev/QA/prod)",
-        dedicated: "Unlimited",
-        self: "Unlimited",
-      },
-      {
-        label: "Included ops / month",
-        shared: "5M, then PAYG",
-        dedicated: "Custom volume",
-        self: "Unmetered",
-      },
-      {
-        label: "Log & trace retention",
-        shared: "1 day",
-        dedicated: "Configurable",
-        self: "Your policy",
-      },
-      {
-        label: "Fusion gateway runtime",
-        shared: "Your ASP.NET Core",
-        dedicated: "Your ASP.NET Core",
-        self: "ASP.NET, offline",
-      },
-    ],
-  },
-  {
-    title: "Schema lifecycle",
-    rows: [
-      {
-        label: "Schema registry with history & rollback",
-        shared: true,
-        dedicated: true,
-        self: true,
-      },
-      {
-        label: "Client registry, published clients affected",
-        shared: true,
-        dedicated: true,
-        self: true,
-      },
-      {
-        label: "Breaking-change classification",
-        shared: true,
-        dedicated: true,
-        self: true,
-      },
-      {
-        label: "CI schema & client checks",
-        shared: true,
-        dedicated: true,
-        self: true,
-      },
-      {
-        label: "Stage promotion with approval gates",
-        shared: true,
-        dedicated: true,
-        self: true,
-      },
-      {
-        label: "Fusion composition lifecycle",
-        shared: true,
-        dedicated: true,
-        self: true,
-      },
-      {
-        label: ".NET Aspire integration",
-        shared: true,
-        dedicated: true,
-        self: true,
-      },
-    ],
-  },
-  {
-    title: "Observability",
-    rows: [
-      {
-        label: "OpenTelemetry traces, metrics, logs",
-        shared: true,
-        dedicated: true,
-        self: true,
-      },
-      {
-        label: "Operation insights (p95/p99, throughput)",
-        shared: true,
-        dedicated: true,
-        self: true,
-      },
-      {
-        label: "Per-client tracking",
-        shared: true,
-        dedicated: true,
-        self: true,
-      },
-      {
-        label: "Resolver-level insights",
-        shared: true,
-        dedicated: true,
-        self: true,
-      },
-      {
-        label: "Distributed tracing across subgraphs",
-        shared: true,
-        dedicated: true,
-        self: true,
-      },
-      {
-        label: "Service monitoring for any .NET service",
-        shared: true,
-        dedicated: true,
-        self: true,
-      },
-      {
-        label: "Operation reporting (executed + available)",
-        shared: true,
-        dedicated: true,
-        self: true,
-      },
-    ],
-  },
-  {
-    title: "Operations & delivery",
-    rows: [
-      {
-        label: "Persisted / trusted operations",
-        shared: true,
-        dedicated: true,
-        self: true,
-      },
-      {
-        label: "Query cost analysis (@cost / @listSize)",
-        shared: true,
-        dedicated: true,
-        self: true,
-      },
-      {
-        label: "Request limits (depth, breadth, timeouts)",
-        shared: true,
-        dedicated: true,
-        self: true,
-      },
-      {
-        label: "Deployment audit log",
-        shared: true,
-        dedicated: true,
-        self: true,
-      },
-      {
-        label: "Rollback by republishing a tag",
-        shared: true,
-        dedicated: true,
-        self: true,
-      },
-      {
-        label: "Persisted-op distribution cache",
-        shared: true,
-        dedicated: true,
-        self: true,
-      },
-    ],
-  },
-  {
-    title: "Security & access",
-    rows: [
-      {
-        label: "Roles + stage-scoped publish perms",
-        shared: true,
-        dedicated: true,
-        self: true,
-      },
-      {
-        label: "SSO (SAML / OIDC)",
-        shared: false,
-        dedicated: true,
-        self: "Via your IdP",
-      },
-      {
-        label: "Audit log for admin actions",
-        shared: false,
-        dedicated: true,
-        self: "Your policy",
-      },
-      {
-        label: "API keys (CI/CD) and PATs",
-        shared: true,
-        dedicated: true,
-        self: true,
-      },
-      {
-        label: "OAuth redirect-URL allowlist",
-        shared: true,
-        dedicated: true,
-        self: true,
-      },
-      {
-        label: "ASP.NET Core auth at the gateway",
-        shared: true,
-        dedicated: true,
-        self: true,
-      },
-      {
-        label: "Authorization (@authorize, roles, OPA)",
-        shared: true,
-        dedicated: true,
-        self: true,
-      },
-    ],
-  },
-  {
-    title: "Developer experience",
-    rows: [
-      {
-        label: "Built-in GraphQL IDE",
-        shared: "From your endpoint",
-        dedicated: "From your endpoint",
-        self: "From your endpoint",
-      },
-      {
-        label: "MCP server over Streamable HTTP",
-        shared: true,
-        dedicated: true,
-        self: true,
-      },
-      {
-        label: "MCP feature collections",
-        shared: true,
-        dedicated: true,
-        self: true,
-      },
-      {
-        label: "MCP per-tool telemetry",
-        shared: true,
-        dedicated: true,
-        self: true,
-      },
-      {
-        label: "OpenAPI adapter (@http)",
-        shared: true,
-        dedicated: true,
-        self: true,
-      },
-      {
-        label: "CLI distribution (.NET, npm, brew)",
-        shared: true,
-        dedicated: true,
-        self: true,
-      },
-      {
-        label: "Mock servers via CLI",
-        shared: true,
-        dedicated: true,
-        self: true,
-      },
-    ],
-  },
-  {
-    title: "Support & SLAs",
-    rows: [
-      {
-        label: "Support channel",
-        shared: "Community Slack",
-        dedicated: "Email + chat",
-        self: "Priority eng.",
-      },
-      {
-        label: "Uptime SLA",
-        shared: "Best-effort",
-        dedicated: "99.95%",
-        self: "You operate it",
-      },
-      {
-        label: "Release channel",
-        shared: "Continuous",
-        dedicated: "Continuous",
-        self: "Long-term",
-      },
-      {
-        label: "Onboarding & training",
-        shared: "Docs & community",
-        dedicated: "Guided onboarding",
-        self: "Custom training",
-      },
-    ],
-  },
-];
-
-interface FaqItem {
-  readonly question: string;
-  readonly answer: string;
-}
-
-const FAQ: readonly FaqItem[] = [
-  {
-    question: "Is the Shared Instance really free?",
-    answer:
-      "Yes. The Shared Instance includes one schema, three environments, and up to 5M operations per month at no cost. Beyond that, you pay only for what you use, billed by metered operations.",
-  },
-  {
-    question: "What does the 99.95% SLA on the Dedicated Instance cover?",
-    answer:
-      "The 99.95% uptime SLA covers the Nitro control plane on your dedicated instance: schema and client registry, CI checks, the GraphQL IDE that serves from your endpoint, and telemetry ingestion once Nitro is configured. Your own gateway and subgraphs are not part of the SLA.",
-  },
-  {
-    question: "Do you support SSO and audit logs?",
-    answer:
-      "SSO via OIDC and SAML, role-based access control, and audit log are included on the Dedicated Instance and Self-Hosted plans. The Shared Instance ships basic access control only.",
-  },
-  {
-    question: "Can I bring my own cloud region?",
-    answer:
-      "Yes. Dedicated Instance customers choose the cloud region the instance runs in (BYOC) and can connect over private networking. Self-Hosted runs wherever you run it, including air-gapped environments.",
-  },
-  {
-    question: "How does a schema change affect my clients?",
-    answer:
-      "Nitro CI checks compare a new schema against the client registry and report which published clients are affected by a breaking change before you deploy. You decide whether to ship, deprecate, or hold.",
-  },
-  {
-    question: "Can I move between plans later?",
-    answer:
-      "Yes. You can upgrade from Shared to Dedicated at any time and your schema, environments, and telemetry move with you. Talk to us if you need to migrate to Self-Hosted.",
-  },
-];
 
 export default function PricingPreviewV4Page() {
   return (
@@ -453,7 +66,8 @@ export default function PricingPreviewV4Page() {
       <PlanTriad />
       <WhyTeams />
       <CompareMatrix />
-      <EnterpriseBand />
+      <ProcurementBand />
+      <UnlockBand />
       <FaqPanel />
       <ClosingCta />
     </div>
@@ -535,9 +149,10 @@ function Hero() {
         Pricing, as a config file.
       </h1>
       <p className="text-cc-ink text-lead mt-6 max-w-2xl text-pretty">
-        Start free on shared cloud. Move to a dedicated instance when you need
-        SLA, SSO, and your own region. Self-host on your own infrastructure when
-        the workload, or the policy, demands it.
+        Start free on shared cloud. Move to pay as you go when you outgrow the
+        free limits. Run a dedicated single-tenant instance for SSO and your own
+        region, or self-host on your own infrastructure when the policy demands
+        it.
       </p>
       <div className="mt-8 flex flex-wrap items-center gap-3">
         <SolidButton href="/get-started">Start for Free</SolidButton>
@@ -554,32 +169,29 @@ function Hero() {
                 <Prompt /> <span className="text-cc-ink">nitro plans list</span>
               </span>
               {"\n\n"}
-              <Comment># 3 plans available</Comment>
+              <Comment># 4 plans available</Comment>
               {"\n"}
               <span className="text-cc-ink">NAME</span>
-              {"                 "}
+              {"             "}
               <span className="text-cc-ink">PRICE</span>
-              {"        "}
+              {"          "}
               <span className="text-cc-ink">TAGLINE</span>
               {"\n"}
-              <span style={{ color: "#16b9e4" }}>shared</span>
-              {"               "}
-              <span className="text-cc-accent">Free</span>
-              {"         "}
-              <Comment>Shared resources, fully managed.</Comment>
+              {TIERS.map((tier) => {
+                const meta = TIER_META[tier.id];
+                const price = heroPrice(tier);
+                return (
+                  <span key={tier.id}>
+                    <span style={{ color: meta.color }}>{meta.label}</span>
+                    {" ".repeat(Math.max(1, 17 - meta.label.length))}
+                    <span className="text-cc-accent">{price}</span>
+                    {" ".repeat(Math.max(1, 15 - price.length))}
+                    <Comment>{tier.tagline}</Comment>
+                    {"\n"}
+                  </span>
+                );
+              })}
               {"\n"}
-              <span style={{ color: "#7c92c6" }}>dedicated</span>
-              {"            "}
-              <span className="text-cc-accent">$400</span>
-              {"/mo     "}
-              <Comment>Dedicated resources, fully managed.</Comment>
-              {"\n"}
-              <span style={{ color: "#f0786a" }}>self-hosted</span>
-              {"          "}
-              <span className="text-cc-accent">Custom</span>
-              {"       "}
-              <Comment>Self managed, on your infrastructure.</Comment>
-              {"\n\n"}
               <Comment>
                 # use `nitro plans show &lt;name&gt;` for the full config.
               </Comment>
@@ -607,31 +219,33 @@ function PlanTriad() {
           id="plans-heading"
           className="font-heading text-cc-heading text-h3 mt-3 font-semibold"
         >
-          Three configs. Pick the one that fits.
+          Three cloud configs. Pick the one that fits.
         </h2>
         <p className="text-cc-ink mt-4 text-base">
           Each plan ships as a small config you can read in under a minute. The
-          values below match what we provision when you sign up.
+          values match what we provision when you sign up. Need your own
+          infrastructure? The self-hosted config sits below.
         </p>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3 lg:items-stretch">
-        {PLANS.map((plan) => (
-          <PlanConfigPanel key={plan.id} plan={plan} />
+        {CLOUD_TIERS.map((tier) => (
+          <PlanConfigPanel key={tier.id} tier={tier} />
         ))}
       </div>
+
+      {SELF_HOSTED ? <SelfHostedStrip tier={SELF_HOSTED} /> : null}
     </section>
   );
 }
 
-function PlanConfigPanel({ plan }: { readonly plan: Plan }) {
-  const slug = plan.id;
+function PlanConfigPanel({ tier }: { readonly tier: Tier }) {
   return (
     <div className="flex flex-col">
       <TerminalPanel
-        filename={plan.filename}
-        accent={plan.popular}
-        tabComment={plan.popular ? "# most-popular" : undefined}
+        filename={TIER_FILENAME[tier.id]}
+        accent={tier.popular}
+        tabComment={tier.popular ? "# most-popular" : undefined}
       >
         <pre className="text-cc-ink font-mono text-sm leading-relaxed">
           <code>
@@ -639,15 +253,15 @@ function PlanConfigPanel({ plan }: { readonly plan: Plan }) {
             {"\n"}
             <span style={{ color: "#16b9e4" }}>name</span>
             {"     = "}
-            <span className="text-cc-accent">{`"${plan.name}"`}</span>
+            <span className="text-cc-accent">{`"${tier.name}"`}</span>
             {"\n"}
             <span style={{ color: "#16b9e4" }}>id</span>
             {"       = "}
-            <span className="text-cc-accent">{`"${slug}"`}</span>
+            <span className="text-cc-accent">{`"${tier.id}"`}</span>
             {"\n"}
             <span style={{ color: "#16b9e4" }}>tagline</span>
             {"  = "}
-            <span className="text-cc-accent">{`"${plan.tagline}"`}</span>
+            <span className="text-cc-accent">{`"${tier.tagline}"`}</span>
             {"\n\n"}
             <span className="text-cc-ink-dim">[price]</span>
             {"\n"}
@@ -655,17 +269,17 @@ function PlanConfigPanel({ plan }: { readonly plan: Plan }) {
             {"   = "}
           </code>
           <span className="font-heading text-cc-heading text-h4 align-baseline font-semibold">
-            {plan.price}
+            {tier.price}
           </span>
           <code>
             {"\n"}
             <span style={{ color: "#7c92c6" }}>unit</span>
             {"     = "}
-            <span className="text-cc-accent">{`"${plan.priceNote}"`}</span>
+            <span className="text-cc-accent">{`"${tier.priceNote}"`}</span>
             {"\n\n"}
             <span className="text-cc-ink-dim">[features]</span>
             {"\n"}
-            {plan.features.map((feature, i) => (
+            {tier.features.map((feature, i) => (
               <span key={feature}>
                 <span style={{ color: "#f0786a" }}>{`f${i + 1}`}</span>
                 {"       = "}
@@ -676,15 +290,42 @@ function PlanConfigPanel({ plan }: { readonly plan: Plan }) {
           </code>
         </pre>
       </TerminalPanel>
-      {plan.popular ? (
-        <SolidButton href={plan.ctaHref} className="mt-5 w-full">
-          {plan.cta}
+      {tier.popular ? (
+        <SolidButton href={tier.ctaHref} className="mt-5 w-full">
+          {tier.cta}
         </SolidButton>
       ) : (
-        <OutlineButton href={plan.ctaHref} className="mt-5 w-full">
-          {plan.cta}
+        <OutlineButton href={tier.ctaHref} className="mt-5 w-full">
+          {tier.cta}
         </OutlineButton>
       )}
+    </div>
+  );
+}
+
+function SelfHostedStrip({ tier }: { readonly tier: Tier }) {
+  return (
+    <div className="mt-6">
+      <TerminalPanel filename={TIER_FILENAME[tier.id]}>
+        <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="text-cc-nav-label text-caption font-mono">
+              {"// self-hosted"}
+            </p>
+            <h3 className="font-heading text-cc-heading text-h5 mt-2 font-semibold">
+              {tier.name}
+            </h3>
+            <p className="text-cc-ink mt-2 max-w-2xl text-sm text-pretty">
+              {tier.tagline} Run on your own infrastructure, air-gapped or
+              on-prem, with configurable retention, priority engineering
+              support, and a long-term release channel.
+            </p>
+          </div>
+          <OutlineButton href={tier.ctaHref} className="shrink-0 sm:w-auto">
+            {tier.cta}
+          </OutlineButton>
+        </div>
+      </TerminalPanel>
     </div>
   );
 }
@@ -701,7 +342,7 @@ const BLURBS: readonly Blurb[] = [
   {
     tag: "// hosting",
     title: "Same Nitro, different runway.",
-    body: "Shared, dedicated, or your own infra. The control plane, registry, and telemetry are the same. What changes is where it runs and who you share it with.",
+    body: "Free, pay as you go, dedicated, or your own infra. The control plane, registry, and telemetry are the same. What changes is where it runs and who you share it with.",
   },
   {
     tag: "// lifecycle",
@@ -750,7 +391,7 @@ function WhyTeams() {
   );
 }
 
-// --- Compare plans (ASCII diff) ---------------------------------------------
+// --- Compare plans (terminal diff) ------------------------------------------
 
 function CompareMatrix() {
   return (
@@ -769,112 +410,93 @@ function CompareMatrix() {
           Every capability, side by side.
         </h2>
         <p className="text-cc-ink mt-4 text-base">
-          A single diff across the three configs. Same Nitro platform, different
-          deployment and support shape.
+          A single diff across all four tiers. Same Nitro platform, different
+          deployment, usage, and support shape.
         </p>
       </div>
 
       <TerminalPanel filename="plans-diff.txt">
+        <p className="text-cc-ink-dim mb-4 font-mono text-xs">
+          # nitro plans diff --all
+        </p>
         <div className="overflow-x-auto">
-          <pre className="text-cc-ink font-mono text-[0.78rem] leading-relaxed sm:text-xs">
-            <code>
-              <span className="text-cc-ink-dim">
-                {"# nitro plans diff --all"}
-                {"\n"}
-              </span>
-              <DiffHeaderRow />
-              <DiffRule />
-              {COMPARISON.map((group, gi) => (
-                <DiffGroup key={group.title} group={group} first={gi === 0} />
+          <table className="w-full min-w-[760px] border-collapse text-left font-mono text-[0.78rem] leading-relaxed sm:text-xs">
+            <thead>
+              <tr>
+                <th
+                  scope="col"
+                  className="text-cc-heading py-2 pr-4 font-normal"
+                >
+                  capability
+                </th>
+                {TIERS.map((tier) => (
+                  <th
+                    key={tier.id}
+                    scope="col"
+                    className="text-cc-heading px-3 py-2 align-bottom font-normal"
+                  >
+                    {tier.name.toLowerCase()}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {COMPARISON.map((group) => (
+                <Fragment key={group.title}>
+                  <tr>
+                    <th
+                      scope="colgroup"
+                      colSpan={TIERS.length + 1}
+                      className="text-cc-nav-label pt-6 pb-2 font-normal"
+                    >
+                      {`## ${group.title}`}
+                    </th>
+                  </tr>
+                  {group.rows.map((row) => (
+                    <tr
+                      key={row.label}
+                      className="border-cc-ink-faint border-t border-dashed"
+                    >
+                      <th
+                        scope="row"
+                        className="text-cc-ink max-w-[22rem] py-2 pr-4 align-top font-normal"
+                      >
+                        {row.label}
+                      </th>
+                      {TIERS.map((tier) => (
+                        <CompareCell key={tier.id} value={row[tier.id]} />
+                      ))}
+                    </tr>
+                  ))}
+                </Fragment>
               ))}
-            </code>
-          </pre>
+            </tbody>
+          </table>
         </div>
       </TerminalPanel>
     </section>
   );
 }
 
-const COL_LABEL = 42;
-const COL_PLAN = 22;
-
-function padCell(value: string, width: number) {
-  if (value.length >= width) return value.slice(0, width - 1) + " ";
-  return value + " ".repeat(width - value.length);
-}
-
-function DiffHeaderRow() {
-  return (
-    <span className="text-cc-heading">
-      {padCell("capability", COL_LABEL)}
-      {padCell("shared", COL_PLAN)}
-      {padCell("dedicated", COL_PLAN)}
-      {padCell("self-hosted", COL_PLAN)}
-      {"\n"}
-    </span>
-  );
-}
-
-function DiffRule() {
-  return (
-    <span className="text-cc-ink-faint">
-      {"-".repeat(COL_LABEL + COL_PLAN * 3)}
-      {"\n"}
-    </span>
-  );
-}
-
-function DiffGroup({
-  group,
-  first,
-}: {
-  readonly group: ComparisonGroup;
-  readonly first: boolean;
-}) {
-  return (
-    <>
-      {!first ? "\n" : null}
-      <span className="text-cc-nav-label">
-        {`## ${group.title}`}
-        {"\n"}
-      </span>
-      {group.rows.map((row) => (
-        <DiffRow key={row.label} row={row} />
-      ))}
-    </>
-  );
-}
-
-function DiffRow({ row }: { readonly row: ComparisonRow }) {
-  return (
-    <span>
-      <span className="text-cc-ink">{padCell(row.label, COL_LABEL)}</span>
-      <DiffCell value={row.shared} />
-      <DiffCell value={row.dedicated} />
-      <DiffCell value={row.self} />
-      {"\n"}
-    </span>
-  );
-}
-
-function DiffCell({ value }: { readonly value: CellValue }) {
+function CompareCell({ value }: { readonly value: Cell }) {
   if (typeof value === "boolean") {
-    if (value) {
-      return <span className="text-cc-accent">{padCell("[x]", COL_PLAN)}</span>;
-    }
     return (
-      <span className="text-cc-ink-faint">{padCell("[ ]", COL_PLAN)}</span>
+      <td
+        className={`px-3 py-2 align-top ${value ? "text-cc-accent" : "text-cc-ink-faint"}`}
+      >
+        {value ? "[x]" : "[ ]"}
+      </td>
     );
   }
-  return <span className="text-cc-ink-dim">{padCell(value, COL_PLAN)}</span>;
+  return <td className="text-cc-ink-dim px-3 py-2 align-top">{value}</td>;
 }
 
-// --- Enterprise band --------------------------------------------------------
+// --- Procurement band -------------------------------------------------------
 
-function EnterpriseBand() {
+function ProcurementBand() {
   return (
     <section
-      aria-labelledby="enterprise-heading"
+      aria-labelledby="procurement-heading"
       className="mx-auto max-w-5xl pb-16 sm:pb-24"
     >
       <TerminalPanel
@@ -894,9 +516,9 @@ function EnterpriseBand() {
         }
       >
         <div className="text-cc-ink font-mono text-sm leading-relaxed">
-          <p className="text-cc-nav-label">{"### Enterprise"}</p>
+          <p className="text-cc-nav-label">{"### procurement"}</p>
           <h2
-            id="enterprise-heading"
+            id="procurement-heading"
             className="font-heading text-cc-heading text-h4 mt-3 font-semibold"
           >
             Custom volume, procurement, or air-gapped?
@@ -911,6 +533,7 @@ function EnterpriseBand() {
             <ChecklistItem>Annual contracts and POs</ChecklistItem>
             <ChecklistItem>Security and DPA review</ChecklistItem>
             <ChecklistItem>Migration playbooks</ChecklistItem>
+            <ChecklistItem>BYOC and on-prem rollouts</ChecklistItem>
           </ul>
         </div>
       </TerminalPanel>
@@ -926,6 +549,130 @@ function ChecklistItem({ children }: { readonly children: ReactNode }) {
     </li>
   );
 }
+
+// --- Unlock more as you grow ------------------------------------------------
+
+function UnlockBand() {
+  return (
+    <section
+      aria-labelledby="unlock-heading"
+      className="mx-auto max-w-5xl pb-16 sm:pb-24"
+    >
+      <div className="mx-auto mb-10 max-w-2xl text-center">
+        <p className="text-cc-nav-label text-caption font-mono tracking-[0.18em] uppercase">
+          # growth
+        </p>
+        <h2
+          id="unlock-heading"
+          className="font-heading text-cc-heading text-h3 mt-3 font-semibold"
+        >
+          Unlock more as you grow
+        </h2>
+        <p className="text-cc-ink mt-4 text-base text-pretty">
+          Commit to a minimum monthly spend to unlock more, up to your spend.
+        </p>
+      </div>
+
+      <TerminalPanel filename="growth.toml">
+        <p className="text-cc-ink-dim mb-2 font-mono text-xs">
+          # nitro plans unlocks
+        </p>
+        <ul className="flex flex-col">
+          {UNLOCKS.map((unlock, i) => {
+            const Glyph = UNLOCK_ICONS[i] ?? SupportGlyph;
+            return (
+              <li
+                key={unlock.title}
+                className={`flex items-center gap-4 py-4 sm:gap-5 ${
+                  i > 0 ? "border-cc-ink-faint border-t border-dashed" : ""
+                }`}
+              >
+                <span className="border-cc-card-border bg-cc-code-header text-cc-accent flex size-10 shrink-0 items-center justify-center rounded-lg border">
+                  <Glyph className="size-5" />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <h3 className="font-heading text-cc-heading text-base font-semibold">
+                    {unlock.title}
+                  </h3>
+                  <p className="text-cc-ink-dim mt-1 font-mono text-xs text-pretty">
+                    {unlock.description}
+                  </p>
+                </div>
+                <span className="text-cc-accent shrink-0 font-mono text-sm font-semibold sm:text-base">
+                  {unlock.spend}
+                </span>
+              </li>
+            );
+          })}
+        </ul>
+      </TerminalPanel>
+      <p className="text-cc-nav-label mt-4 font-mono text-[0.72rem]">
+        {UNLOCKS_NOTE}
+      </p>
+    </section>
+  );
+}
+
+interface GlyphProps {
+  readonly className?: string;
+}
+
+/** Lifebuoy, for the Business Support unlock. */
+function SupportGlyph({ className }: GlyphProps) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.6}
+      aria-hidden="true"
+      className={className}
+    >
+      <circle cx="12" cy="12" r="9" />
+      <circle cx="12" cy="12" r="3.4" />
+      <path d="M5.2 5.2l4.4 4.4M18.8 5.2l-4.4 4.4M5.2 18.8l4.4-4.4M18.8 18.8l-4.4-4.4" />
+    </svg>
+  );
+}
+
+/** Shield with a check, for the priority support unlock. */
+function ShieldGlyph({ className }: GlyphProps) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.6}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      className={className}
+    >
+      <path d="M12 3l7 3v5c0 4-3 6.6-7 8-4-1.4-7-4-7-8V6z" />
+      <path d="M9 12l2 2 4-4" />
+    </svg>
+  );
+}
+
+/** Cloud, for the BYOC unlock. */
+function CloudGlyph({ className }: GlyphProps) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.6}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      className={className}
+    >
+      <path d="M7 18h10a4 4 0 0 0 .5-7.97A5.5 5.5 0 0 0 6.5 9 4 4 0 0 0 7 18z" />
+    </svg>
+  );
+}
+
+const UNLOCK_ICONS = [SupportGlyph, ShieldGlyph, CloudGlyph];
 
 // --- FAQ --------------------------------------------------------------------
 
@@ -984,8 +731,9 @@ function ClosingCta() {
           Ship your GraphQL platform with Nitro.
         </h2>
         <p className="text-cc-ink mt-4 text-base">
-          Start on the free Shared Instance in minutes. Upgrade when you need a
-          dedicated region, SLA, or SSO. The docs walk you through every step.
+          Start on the free tier in minutes. Move to pay as you go when you
+          outgrow the limits, or a dedicated region when you need SSO and
+          isolation. The docs walk you through every step.
         </p>
       </div>
 
@@ -995,7 +743,7 @@ function ClosingCta() {
             <Comment># pick a plan, then run:</Comment>
             {"\n"}
             <Prompt />{" "}
-            <span className="text-cc-ink">nitro start --plan shared</span>
+            <span className="text-cc-ink">nitro start --plan free</span>
             <span
               aria-hidden="true"
               className="bg-cc-accent ml-1 inline-block h-[1.1em] w-[0.55em] translate-y-[2px] animate-pulse"

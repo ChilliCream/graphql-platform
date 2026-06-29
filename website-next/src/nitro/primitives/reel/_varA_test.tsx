@@ -1,10 +1,10 @@
 /**
- * TabReel, a railway.com-style auto-advancing tab reel. A row of tabs sits above a stage;
+ * TabReel — a railway.com-style auto-advancing tab reel. A row of tabs sits above a stage;
  * the ACTIVE tab's background is a progress bar that fills L→R over that tab's duration. When
  * it completes, the reel advances to the next tab and crossfades to that tab's screen. Loops.
  *
  * One master clock runs 0→1 over Σ(tab durations). From it we derive the active tab index
- * (React state) and, per rendered screen, a LOCAL progress 0→1 scoped to that tab's window,
+ * (React state) and, per rendered screen, a LOCAL progress 0→1 scoped to that tab's window —
  * so a screen that is crossfading out holds its own final frame instead of snapping back.
  *
  * Verification hooks: `staticTab` + `staticProgress` freeze a specific tab at a specific local
@@ -84,10 +84,6 @@ export function TabReel({
   );
 
   const staticMode = staticTab != null;
-  // Destructure the clock into its own locals. Passing the whole `clock` object's
-  // `ref` to a JSX `ref=` attribute makes the React Compiler treat every member of
-  // that object as a ref value, which then flags `clock.progress` reads during
-  // render. Separate identifiers keep the ref and the motion value distinct.
   const { ref: clockRef, progress: clockProgress } = useMasterClock({
     durationMs: total,
     amount: 0.25,
@@ -118,7 +114,7 @@ export function TabReel({
         gap: 12,
       }}
     >
-      {/* ── benefit headline (marketing chrome, communicates the value of the active tab) ── */}
+      {/* ── benefit headline (marketing chrome — communicates the value of the active tab) ── */}
       {tabs.some((t) => t.headline) && (
         <div style={{ position: "relative", height: 64, textAlign: "center" }}>
           <AnimatePresence>

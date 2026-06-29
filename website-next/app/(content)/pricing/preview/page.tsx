@@ -76,7 +76,7 @@ const VARIANTS: readonly Variant[] = [
     eyebrow: "V8",
     name: "Counters at the Switch",
     summary:
-      "A countup-ticker stance where the headline numbers (ops, SLA, environments) animate up to their values as each plan comes into view.",
+      "A countup-ticker stance where the headline numbers (ops, uptime, environments) animate up to their values as each plan comes into view.",
     accent: "var(--color-cc-accent)",
   },
   {

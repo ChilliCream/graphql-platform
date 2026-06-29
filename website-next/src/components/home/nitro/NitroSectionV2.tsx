@@ -88,7 +88,7 @@ function SurfaceCard({ caption, children }: SurfaceCardProps) {
  */
 export function NitroSectionV2() {
   return (
-    <section className="mx-auto max-w-6xl px-5 pt-16 sm:px-12 sm:pt-24">
+    <section className="mx-auto max-w-7xl px-5 pt-16 sm:px-12 sm:pt-24">
       <RevealOnScroll>
         <div className="flex max-w-3xl flex-col gap-5">
           <span className="text-cc-nav-label font-mono text-xs tracking-[0.2em] uppercase">

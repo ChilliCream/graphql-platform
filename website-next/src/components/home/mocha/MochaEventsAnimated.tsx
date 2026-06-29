@@ -13,7 +13,7 @@ import { RevealOnScroll } from "@/src/components/RevealOnScroll";
  */
 export function MochaEventsAnimated() {
   return (
-    <section className="mx-auto max-w-6xl px-5 pt-16 sm:px-12 sm:pt-24">
+    <section className="mx-auto max-w-7xl px-5 pt-16 sm:px-12 sm:pt-24">
       <RevealOnScroll>
         {/* frame: the section heading block */}
         <div className="max-w-3xl">

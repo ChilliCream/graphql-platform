@@ -41,14 +41,24 @@ export function Offering({
   // must match the number of section cells rendered.
   const rowCount = 2 + (Icon ? 1 : 0) + (description ? 1 : 0) + (price ? 1 : 0);
 
+  // The popular card gets a rainbow gradient border (the gradient paints the
+  // border-box layer, the opaque surface fill paints the padding-box layer on
+  // top), so the rainbow shows only on the edge and the interior stays solid.
+  const cardStyle: CSSProperties = popular
+    ? {
+        gridRow: `span ${rowCount}`,
+        border: "1.5px solid transparent",
+        background:
+          "linear-gradient(var(--color-cc-surface), var(--color-cc-surface)) padding-box, linear-gradient(140deg, #16b9e4 0%, #7c92c6 50%, #f0786a 100%) border-box",
+      }
+    : { gridRow: `span ${rowCount}` };
+
   return (
     <div
-      className={`relative grid h-full grid-rows-subgrid gap-0 rounded-3xl border p-6 sm:p-7 ${
-        popular
-          ? "bg-cc-card-bg border-cc-accent"
-          : "border-cc-card-border bg-cc-card-bg/60"
+      className={`relative grid h-full grid-rows-subgrid gap-0 rounded-3xl p-6 sm:p-7 ${
+        popular ? "" : "border-cc-card-border bg-cc-card-bg/60 border"
       }`}
-      style={{ gridRow: `span ${rowCount}` }}
+      style={cardStyle}
     >
       {popular && <PopularBadge />}
 

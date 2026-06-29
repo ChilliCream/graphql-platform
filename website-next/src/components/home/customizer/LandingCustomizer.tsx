@@ -206,7 +206,7 @@ export function LandingCustomizer() {
       <ProtocolCards />
 
       {enabled.length === 0 ? (
-        <div className="mx-auto max-w-6xl px-5 py-24 text-center sm:px-12">
+        <div className="mx-auto max-w-7xl px-5 py-24 text-center sm:px-12">
           <p className="text-cc-ink-dim text-sm">
             No sections enabled. Open the customizer (bottom right) to add and
             order sections.

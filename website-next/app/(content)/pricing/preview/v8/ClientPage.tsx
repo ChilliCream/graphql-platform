@@ -5,251 +5,47 @@ import type { CSSProperties } from "react";
 import { useEffect, useRef, useState } from "react";
 
 import { CheckIcon } from "@/src/components/CheckIcon";
+import type {
+  Cell,
+  ComparisonGroup,
+  PricingFaq,
+  Tier,
+  TierId,
+} from "@/src/components/pricing/pricingData";
+import {
+  COMPARISON,
+  FAQ,
+  TIERS,
+  UNLOCKS,
+  UNLOCKS_NOTE,
+} from "@/src/components/pricing/pricingData";
 import { OutlineButton, SolidButton } from "@/src/design-system/Button";
 
 // Concept: "Counters at the Switch". Pricing presented as a control-room
-// readout where each metric (5M ops, 99.95% SLA, etc.) counts up once when
-// scrolled into view via useInView({ once: true }). No scroll-coupled motion.
+// readout where each metric (1M free ops, $20 Pay as you go, 60-day retention,
+// etc.) counts up once when scrolled into view via useInView({ once: true }).
+// No scroll-coupled motion. All tier, comparison, unlock, and FAQ data comes
+// from the shared pricing module so the numbers stay in one place.
 
-interface Plan {
-  readonly id: "shared" | "dedicated" | "self";
-  readonly name: string;
-  readonly tagline: string;
-  readonly price: string;
-  readonly priceNote: string;
-  readonly priceTarget: number | null;
-  readonly priceFormatted: (n: number) => string;
-  readonly features: readonly string[];
-  readonly cta: string;
-  readonly ctaHref: string;
-  readonly popular?: boolean;
-}
+const CLOUD_TIERS = TIERS.filter((tier) => tier.id !== "self");
+const SELF_TIER = TIERS.find((tier) => tier.id === "self");
 
-const PLANS: readonly Plan[] = [
+// How each tier's headline price renders in the count-up ticker. `target` null
+// means the price is a static word (Custom). `lead` prints a small qualifier in
+// front of the big number (e.g. "from" for Dedicated).
+const PRICE_TICKER: Record<
+  TierId,
   {
-    id: "shared",
-    name: "Shared Instance",
-    tagline: "Shared resources, fully managed.",
-    price: "Free",
-    priceNote: "pay-as-you-go",
-    priceTarget: 0,
-    priceFormatted: (n) => (n === 0 ? "$0" : `$${n}`),
-    features: [
-      "Multi-tenant cloud region",
-      "1 Schema · 3 Environments",
-      "Up to 5M ops / month included",
-      "Community Slack support",
-      "Pay only for what you use after",
-    ],
-    cta: "Start for Free",
-    ctaHref: "/get-started",
-  },
-  {
-    id: "dedicated",
-    name: "Dedicated Instance",
-    tagline: "Dedicated resources, fully managed.",
-    price: "$400",
-    priceNote: "per month",
-    priceTarget: 400,
-    priceFormatted: (n) => `$${n.toLocaleString("en-US")}`,
-    features: [
-      "Single-tenant cloud region",
-      "Unlimited schemas",
-      "BYOC region · private networking",
-      "99.95% SLA · email + private chat",
-      "SSO, audit log, role-based access",
-    ],
-    cta: "Start for Free",
-    ctaHref: "/get-started",
-    popular: true,
-  },
-  {
-    id: "self",
-    name: "Self-Hosted",
-    tagline: "Self managed, on your infrastructure.",
-    price: "Custom",
-    priceNote: "talk to us",
-    priceTarget: null,
-    priceFormatted: () => "Custom",
-    features: [
-      "Run on your own infrastructure",
-      "Air-gapped & on-prem supported",
-      "Priority engineering support",
-      "Long-term release channel",
-      "Custom training & onboarding",
-    ],
-    cta: "Talk to Us",
-    ctaHref: "/services/support/contact",
-  },
-];
-
-// Numeric-first comparison cells. A `value` of `true` means "included with no
-// quantity" and renders a CheckIcon; a string means an explicit quantity or
-// qualifier. Rows are scoped to four essential groups per the spec.
-type CellValue = boolean | string;
-
-interface ComparisonRow {
-  readonly label: string;
-  readonly shared: CellValue;
-  readonly dedicated: CellValue;
-  readonly self: CellValue;
-}
-
-interface ComparisonGroup {
-  readonly title: string;
-  readonly rows: readonly ComparisonRow[];
-}
-
-const COMPARISON: readonly ComparisonGroup[] = [
-  {
-    title: "Hosting & isolation",
-    rows: [
-      {
-        label: "Deployment model",
-        shared: "Multi-tenant cloud",
-        dedicated: "Single-tenant or BYOC",
-        self: "Your infra, air-gap ok",
-      },
-      {
-        label: "Included schemas",
-        shared: "1",
-        dedicated: "Unlimited",
-        self: "Unlimited",
-      },
-      {
-        label: "Environments per API",
-        shared: "3",
-        dedicated: "Unlimited",
-        self: "Unlimited",
-      },
-      {
-        label: "Included operations / month",
-        shared: "5M",
-        dedicated: "Custom volume",
-        self: "Unmetered on your infra",
-      },
-    ],
-  },
-  {
-    title: "Schema lifecycle",
-    rows: [
-      {
-        label: "Schema registry with history & rollback",
-        shared: true,
-        dedicated: true,
-        self: true,
-      },
-      {
-        label: "Client registry · published clients affected",
-        shared: true,
-        dedicated: true,
-        self: true,
-      },
-      {
-        label: "CI schema & client checks",
-        shared: true,
-        dedicated: true,
-        self: true,
-      },
-      {
-        label: "Stage promotion with approval gates",
-        shared: true,
-        dedicated: true,
-        self: true,
-      },
-    ],
-  },
-  {
-    title: "Security & access",
-    rows: [
-      {
-        label: "SSO (SAML / OIDC)",
-        shared: false,
-        dedicated: true,
-        self: "Via your IdP",
-      },
-      {
-        label: "Audit log for admin actions",
-        shared: false,
-        dedicated: true,
-        self: "Your retention policy",
-      },
-      {
-        label: "Uptime SLA",
-        shared: "Best-effort",
-        dedicated: "99.95%",
-        self: "You operate it",
-      },
-      {
-        label: "Log & trace retention",
-        shared: "1 day",
-        dedicated: "Configurable",
-        self: "Your retention policy",
-      },
-    ],
-  },
-  {
-    title: "Support",
-    rows: [
-      {
-        label: "Support channel",
-        shared: "Community Slack",
-        dedicated: "Email + private chat",
-        self: "Priority engineering",
-      },
-      {
-        label: "Release channel",
-        shared: "Continuous",
-        dedicated: "Continuous",
-        self: "Long-term",
-      },
-      {
-        label: "Onboarding & training",
-        shared: "Docs & community",
-        dedicated: "Guided onboarding",
-        self: "Custom training",
-      },
-    ],
-  },
-];
-
-interface FaqItem {
-  readonly question: string;
-  readonly answer: string;
-}
-
-const FAQ: readonly FaqItem[] = [
-  {
-    question: "Is the Shared Instance really free?",
-    answer:
-      "Yes. The Shared Instance includes one schema, three environments, and up to 5M operations per month at no cost. Beyond that, you pay only for what you use, billed by metered operations.",
-  },
-  {
-    question: "What does the 99.95% SLA on the Dedicated Instance cover?",
-    answer:
-      "The 99.95% uptime SLA covers the Nitro control plane on your dedicated instance: schema and client registry, CI checks, the GraphQL IDE that serves from your endpoint, and telemetry ingestion once Nitro is configured. Your own gateway and subgraphs are not part of the SLA.",
-  },
-  {
-    question: "Do you support SSO and audit logs?",
-    answer:
-      "SSO via OIDC and SAML, role-based access control, and audit log are included on the Dedicated Instance and Self-Hosted plans. The Shared Instance ships basic access control only.",
-  },
-  {
-    question: "Can I bring my own cloud region?",
-    answer:
-      "Yes. Dedicated Instance customers choose the cloud region the instance runs in (BYOC) and can connect over private networking. Self-Hosted runs wherever you run it, including air-gapped environments.",
-  },
-  {
-    question: "How does a schema change affect my clients?",
-    answer:
-      "Nitro CI checks compare a new schema against the client registry and report which published clients are affected by a breaking change before you deploy. You decide whether to ship, deprecate, or hold.",
-  },
-  {
-    question: "Can I move between plans later?",
-    answer:
-      "Yes. You can upgrade from Shared to Dedicated at any time and your schema, environments, and telemetry move with you. Talk to us if you need to migrate to Self-Hosted.",
-  },
-];
+    readonly target: number | null;
+    readonly prefix: string;
+    readonly lead?: string;
+  }
+> = {
+  free: { target: 0, prefix: "$" },
+  payg: { target: 20, prefix: "$" },
+  dedicated: { target: 400, prefix: "$", lead: "from" },
+  self: { target: null, prefix: "" },
+};
 
 // The faint dotted grid behind the hero and the numbers band. Pure inline
 // background so we do not touch global page styles; cc-bg shows everywhere
@@ -270,6 +66,7 @@ export function ClientPage() {
       <CompressedComparison />
       <FinePrint />
       <Faq />
+      <UnlockAsYouGrow />
       <ClosingCta />
     </>
   );
@@ -292,9 +89,9 @@ function Hero() {
         Pricing is the dial. Watch the numbers move.
       </h1>
       <p className="text-cc-ink mx-auto mt-6 max-w-2xl text-base text-pretty sm:text-lg">
-        Start free on shared cloud. Move to a dedicated instance when you need
-        SLA, SSO, and your own region. Self-host on your own infrastructure when
-        the workload, or the policy, demands it.
+        Start free on shared cloud. Move to Pay as you go when you outgrow the
+        free limits, a Dedicated instance when you need your own region, SSO,
+        and volume-based pricing, or self-host on your own infrastructure.
       </p>
       <div className="mt-9 flex flex-wrap items-center justify-center gap-3">
         <SolidButton href="/get-started">Start for Free</SolidButton>
@@ -322,26 +119,24 @@ interface MetricSpec {
 
 const HERO_METRICS: readonly MetricSpec[] = [
   {
-    eyebrow: "Ops / month",
-    target: 5_000_000,
-    suffix: "",
-    caption: "Included on Shared, no card required.",
+    eyebrow: "Free ops / month",
+    target: 1_000_000,
+    caption: "Free forever, no card required.",
     format: "compact",
   },
   {
-    eyebrow: "Uptime SLA",
-    target: 99.95,
-    suffix: "%",
-    decimals: 2,
-    caption: "Dedicated control plane.",
+    eyebrow: "Pay as you go",
+    target: 20,
+    prefix: "$",
+    caption: "Per month, 5M operations included.",
   },
   {
-    eyebrow: "Environments",
-    target: 3,
-    caption: "Dev, QA, prod on Shared. Unlimited on the others.",
+    eyebrow: "Retention (days)",
+    target: 60,
+    caption: "On Pay as you go. 3 days on Free.",
   },
   {
-    eyebrow: "Setup cost",
+    eyebrow: "To start",
     target: 0,
     prefix: "$",
     caption: "Bring a schema, get a URL.",
@@ -473,7 +268,7 @@ function PlanTriptych() {
           id="plans-heading"
           className="font-heading text-cc-heading text-h4 sm:text-h3 mt-3 font-semibold"
         >
-          Three positions. One Nitro.
+          Four positions. One Nitro.
         </h2>
         <div className="mt-7 inline-flex">
           <SegmentedSwitch />
@@ -481,21 +276,26 @@ function PlanTriptych() {
       </div>
 
       <div className="mt-10 grid gap-6 lg:grid-cols-3 lg:items-stretch">
-        {PLANS.map((plan) => (
-          <PlanCard key={plan.id} plan={plan} />
+        {CLOUD_TIERS.map((tier) => (
+          <PlanCard key={tier.id} tier={tier} />
         ))}
       </div>
+
+      {SELF_TIER && <SelfHostedStrip tier={SELF_TIER} />}
     </section>
   );
 }
 
-// Decorative segmented control showing the three plan positions. Purely
-// visual; the cards below are the real interaction surface.
+// Decorative segmented control showing the four plan positions. Purely visual;
+// the cards below are the real interaction surface.
 function SegmentedSwitch() {
   return (
-    <div className="border-cc-card-border bg-cc-card-bg/60 inline-flex rounded-full border p-1 font-mono text-[0.7rem] tracking-[0.16em] uppercase">
-      <span className="text-cc-ink-dim rounded-full px-3 py-1.5">Shared</span>
+    <div className="border-cc-card-border bg-cc-card-bg/60 inline-flex flex-wrap justify-center rounded-full border p-1 font-mono text-[0.7rem] tracking-[0.16em] uppercase">
+      <span className="text-cc-ink-dim rounded-full px-3 py-1.5">Free</span>
       <span className="bg-cc-accent/15 text-cc-accent border-cc-accent/40 rounded-full border px-3 py-1.5">
+        Pay as you go
+      </span>
+      <span className="text-cc-ink-dim rounded-full px-3 py-1.5">
         Dedicated
       </span>
       <span className="text-cc-ink-dim rounded-full px-3 py-1.5">Self</span>
@@ -503,11 +303,11 @@ function SegmentedSwitch() {
   );
 }
 
-function PlanCard({ plan }: { readonly plan: Plan }) {
+function PlanCard({ tier }: { readonly tier: Tier }) {
   const ref = useRef<HTMLDivElement | null>(null);
   const inView = useInView(ref, { once: true, amount: 0.3 });
 
-  if (plan.popular) {
+  if (tier.popular) {
     return (
       <div
         ref={ref}
@@ -519,7 +319,7 @@ function PlanCard({ plan }: { readonly plan: Plan }) {
       >
         <PopularPill />
         <div className="bg-cc-surface flex h-full flex-col rounded-[calc(1.5rem-1.5px)] p-7 sm:p-8">
-          <PlanCardBody plan={plan} active={inView} />
+          <PlanCardBody tier={tier} active={inView} />
         </div>
       </div>
     );
@@ -530,31 +330,35 @@ function PlanCard({ plan }: { readonly plan: Plan }) {
       ref={ref}
       className="bg-cc-card-bg border-cc-card-border hover:border-cc-card-border-hover flex h-full flex-col rounded-3xl border p-7 transition-colors sm:p-8"
     >
-      <PlanCardBody plan={plan} active={inView} />
+      <PlanCardBody tier={tier} active={inView} />
     </div>
   );
 }
 
 function PlanCardBody({
-  plan,
+  tier,
   active,
 }: {
-  readonly plan: Plan;
+  readonly tier: Tier;
   readonly active: boolean;
 }) {
-  const CallToAction = plan.popular ? SolidButton : OutlineButton;
+  const CallToAction = tier.popular ? SolidButton : OutlineButton;
+  const ticker = PRICE_TICKER[tier.id];
   return (
     <>
       <h3 className="font-heading text-cc-heading text-h5 font-semibold">
-        {plan.name}
+        {tier.name}
       </h3>
-      <p className="text-cc-ink-dim mt-2 text-sm">{plan.tagline}</p>
+      <p className="text-cc-ink-dim mt-2 text-sm">{tier.tagline}</p>
       <div className="mt-6 flex items-baseline gap-2">
+        {ticker.lead && (
+          <span className="text-cc-ink-dim text-sm">{ticker.lead}</span>
+        )}
         <span className="font-heading text-cc-heading text-h2 font-semibold tabular-nums">
-          <PlanPrice plan={plan} active={active} />
+          <PlanPrice tier={tier} active={active} />
         </span>
         <span className="text-cc-nav-label font-mono text-xs">
-          {plan.priceNote}
+          {tier.priceNote}
         </span>
       </div>
       <div
@@ -562,7 +366,7 @@ function PlanCardBody({
         className="border-cc-ink-faint my-6 border-t border-dashed"
       />
       <ul className="flex flex-1 flex-col gap-3">
-        {plan.features.map((feature) => (
+        {tier.features.map((feature) => (
           <li key={feature} className="flex items-start gap-3">
             <span className="text-cc-accent mt-[5px] flex-none">
               <CheckIcon />
@@ -571,33 +375,30 @@ function PlanCardBody({
           </li>
         ))}
       </ul>
-      <CallToAction href={plan.ctaHref} className="mt-8 w-full">
-        {plan.cta}
+      <CallToAction href={tier.ctaHref} className="mt-8 w-full">
+        {tier.cta}
       </CallToAction>
     </>
   );
 }
 
 function PlanPrice({
-  plan,
+  tier,
   active,
 }: {
-  readonly plan: Plan;
+  readonly tier: Tier;
   readonly active: boolean;
 }) {
-  if (plan.priceTarget === null) {
+  const ticker = PRICE_TICKER[tier.id];
+  if (ticker.target === null) {
     // Custom is shown as a static glyph (per spec).
-    return <span aria-label="Custom price">{plan.price}</span>;
-  }
-  if (plan.id === "shared") {
-    // Shared price is "Free" in copy; render the word, not a ticker.
-    return <span>{plan.price}</span>;
+    return <span aria-label={`${tier.name} price`}>{tier.price}</span>;
   }
   return (
     <CountUp
       active={active}
-      target={plan.priceTarget}
-      prefix="$"
+      target={ticker.target}
+      prefix={ticker.prefix}
       durationMs={1100}
     />
   );
@@ -611,39 +412,67 @@ function PopularPill() {
   );
 }
 
+// Self-Hosted is the fourth tier. It sits below the three cloud cards as a slim
+// strip, the way this preview keeps everything on one switchboard.
+function SelfHostedStrip({ tier }: { readonly tier: Tier }) {
+  return (
+    <div className="border-cc-card-border bg-cc-card-bg/60 mt-6 flex flex-col gap-5 rounded-3xl border p-6 sm:flex-row sm:items-center sm:justify-between sm:p-8">
+      <div>
+        <div className="flex items-center gap-3">
+          <h3 className="font-heading text-cc-heading text-h6 font-semibold">
+            {tier.name}
+          </h3>
+          <span className="text-cc-nav-label font-mono text-[0.65rem] tracking-[0.16em] uppercase">
+            {tier.price} · {tier.priceNote}
+          </span>
+        </div>
+        <p className="text-cc-ink mt-2 max-w-2xl text-sm text-pretty">
+          {tier.tagline} Run on your own infrastructure, air-gapped or on-prem,
+          with configurable retention, priority engineering support, and a
+          long-term release channel.
+        </p>
+      </div>
+      <OutlineButton href={tier.ctaHref} className="shrink-0 sm:w-auto">
+        {tier.cta}
+      </OutlineButton>
+    </div>
+  );
+}
+
 const NUMBERS_BAND: readonly MetricSpec[] = [
   {
-    eyebrow: "Operations / month",
-    target: 5_000_000,
-    caption: "Included on Shared.",
+    eyebrow: "Free ops / month",
+    target: 1_000_000,
+    caption: "On Free, no card required.",
     format: "compact",
   },
   {
-    eyebrow: "Schemas",
-    target: 1,
-    caption: "On Shared. Unlimited on Dedicated and Self.",
+    eyebrow: "Pay as you go ops",
+    target: 5_000_000,
+    caption: "Included, then $2 / million.",
+    format: "compact",
   },
   {
-    eyebrow: "Environments",
-    target: 3,
-    caption: "Dev, QA, prod on Shared.",
-  },
-  {
-    eyebrow: "BYOC region",
-    target: 1,
-    caption: "Pick yours on Dedicated.",
+    eyebrow: "Ingest (GB)",
+    target: 2,
+    caption: "On Free, and per 1M ops on Pay as you go.",
   },
   {
     eyebrow: "Retention (days)",
-    target: 1,
-    caption: "On Shared. Configurable on Dedicated.",
+    target: 60,
+    caption: "On Pay as you go. 3 days on Free.",
   },
   {
-    eyebrow: "Uptime SLA",
-    target: 99.95,
-    suffix: "%",
-    decimals: 2,
-    caption: "On the Dedicated control plane.",
+    eyebrow: "Dedicated from",
+    target: 400,
+    prefix: "$",
+    caption: "Per month, priced by volume.",
+  },
+  {
+    eyebrow: "Per extra million",
+    target: 2,
+    prefix: "$",
+    caption: "Beyond 5M on Pay as you go.",
   },
 ];
 
@@ -702,32 +531,33 @@ function CompressedComparison() {
           Quantities first. Checks where no number applies.
         </h2>
         <p className="text-cc-ink mx-auto mt-4 max-w-2xl text-base">
-          Four essential groups. Every cell that can be a number, is.
+          The full platform across all four tiers. Every cell that can be a
+          number, is.
         </p>
       </div>
 
       <div className="mt-10 overflow-x-auto">
-        <table className="w-full min-w-[42rem] border-separate border-spacing-0 text-left text-sm">
+        <table className="w-full min-w-[56rem] border-separate border-spacing-0 text-left text-sm">
           <thead>
             <tr>
-              <th scope="col" className="w-2/5 pb-4 pl-2">
+              <th scope="col" className="w-1/3 pb-4 pl-2">
                 <span className="sr-only">Capability</span>
               </th>
-              {PLANS.map((plan) => (
+              {TIERS.map((tier) => (
                 <th
-                  key={plan.id}
+                  key={tier.id}
                   scope="col"
                   className="pb-4 text-center align-bottom"
                 >
                   <div
                     className={`font-heading text-cc-heading text-base font-semibold ${
-                      plan.popular ? "text-cc-accent" : ""
+                      tier.popular ? "text-cc-accent" : ""
                     }`}
                   >
-                    {plan.name}
+                    {tier.name}
                   </div>
                   <div className="text-cc-nav-label mt-1 font-mono text-[0.65rem] tracking-[0.15em] uppercase">
-                    {plan.price} · {plan.priceNote}
+                    {tier.price} · {tier.priceNote}
                   </div>
                 </th>
               ))}
@@ -750,7 +580,7 @@ function ComparisonGroupRows({ group }: { readonly group: ComparisonGroup }) {
       <tr>
         <th
           scope="colgroup"
-          colSpan={4}
+          colSpan={5}
           className="border-cc-ink-faint text-cc-nav-label border-t pt-6 pb-3 pl-2 text-left font-mono text-xs tracking-[0.15em] uppercase"
         >
           {group.title}
@@ -764,8 +594,9 @@ function ComparisonGroupRows({ group }: { readonly group: ComparisonGroup }) {
           >
             {row.label}
           </th>
-          <ComparisonCell value={row.shared} />
-          <ComparisonCell value={row.dedicated} highlight />
+          <ComparisonCell value={row.free} />
+          <ComparisonCell value={row.payg} highlight />
+          <ComparisonCell value={row.dedicated} />
           <ComparisonCell value={row.self} />
         </tr>
       ))}
@@ -777,7 +608,7 @@ function ComparisonCell({
   value,
   highlight = false,
 }: {
-  readonly value: CellValue;
+  readonly value: Cell;
   readonly highlight?: boolean;
 }) {
   return (
@@ -830,11 +661,11 @@ function FinePrint() {
         What the numbers do not say.
       </h2>
       <p className="text-cc-ink-dim mt-4 font-mono text-xs leading-relaxed sm:text-sm">
-        Telemetry requires Nitro configuration in your server before any ops
-        appear on the dashboard. The built-in GraphQL IDE is served from your
-        endpoint on every plan, not from us. The Fusion gateway is always your
-        ASP.NET Core app, on Shared, Dedicated, or Self-Hosted. SLA covers the
-        Nitro control plane, not your subgraphs.
+        Telemetry requires Nitro configuration in your server before any
+        operations appear on the dashboard. The built-in GraphQL IDE is served
+        from your endpoint on every plan, not from us. The Fusion gateway is
+        always your ASP.NET Core app, on Free, Pay as you go, Dedicated, or
+        Self-Hosted.
       </p>
     </section>
   );
@@ -864,7 +695,7 @@ function Faq() {
   );
 }
 
-function FaqEntry({ item }: { readonly item: FaqItem }) {
+function FaqEntry({ item }: { readonly item: PricingFaq }) {
   return (
     <div className="border-cc-card-border bg-cc-card-bg/60 hover:border-cc-card-border-hover rounded-2xl border p-6 transition-colors">
       <dt className="font-heading text-cc-heading text-base font-semibold">
@@ -876,6 +707,122 @@ function FaqEntry({ item }: { readonly item: FaqItem }) {
     </div>
   );
 }
+
+// The spend-based progression: commit to a minimum monthly spend to unlock
+// more, up to your spend. A vertical list of unlock rows in this preview's
+// control-room voice, each with a switch glyph on the left, the unlock in the
+// middle, and the monthly spend ticking up on the right.
+function UnlockAsYouGrow() {
+  return (
+    <section aria-labelledby="unlock-heading" className="mt-20 sm:mt-28">
+      <div className="text-center">
+        <p className="text-cc-nav-label font-mono text-xs tracking-[0.18em] uppercase">
+          Spend tiers
+        </p>
+        <h2
+          id="unlock-heading"
+          className="font-heading text-cc-heading text-h4 sm:text-h3 mt-3 font-semibold"
+        >
+          Unlock more as you grow
+        </h2>
+        <p className="text-cc-ink mx-auto mt-4 max-w-2xl text-base">
+          Commit to a minimum monthly spend to unlock more, up to your spend.
+        </p>
+      </div>
+
+      <ul className="mx-auto mt-10 flex max-w-3xl flex-col gap-3">
+        {UNLOCKS.map((unlock, index) => {
+          const Glyph = UNLOCK_ICONS[index] ?? SupportGlyph;
+          return (
+            <li
+              key={unlock.title}
+              className="border-cc-card-border bg-cc-card-bg/60 hover:border-cc-card-border-hover flex items-center gap-4 rounded-2xl border p-5 transition-colors sm:gap-5 sm:p-6"
+            >
+              <span className="border-cc-card-border bg-cc-surface text-cc-accent flex size-11 shrink-0 items-center justify-center rounded-xl border">
+                <Glyph className="size-5" />
+              </span>
+              <div className="min-w-0 flex-1">
+                <h3 className="font-heading text-cc-heading text-base font-semibold">
+                  {unlock.title}
+                </h3>
+                <p className="text-cc-ink-dim mt-1 text-sm text-pretty">
+                  {unlock.description}
+                </p>
+              </div>
+              <span className="text-cc-accent shrink-0 font-mono text-sm font-semibold tabular-nums sm:text-base">
+                {unlock.spend}
+              </span>
+            </li>
+          );
+        })}
+      </ul>
+      <p className="text-cc-nav-label mt-5 text-center font-mono text-[0.7rem]">
+        {UNLOCKS_NOTE}
+      </p>
+    </section>
+  );
+}
+
+interface GlyphProps {
+  readonly className?: string;
+}
+
+/** Lifebuoy glyph for the first spend tier. */
+function SupportGlyph({ className }: GlyphProps) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.6}
+      aria-hidden="true"
+      className={className}
+    >
+      <circle cx="12" cy="12" r="9" />
+      <circle cx="12" cy="12" r="3.4" />
+      <path d="M5.2 5.2l4.4 4.4M18.8 5.2l-4.4 4.4M5.2 18.8l4.4-4.4M18.8 18.8l-4.4-4.4" />
+    </svg>
+  );
+}
+
+/** Shield-with-check glyph for the second spend tier. */
+function ShieldGlyph({ className }: GlyphProps) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.6}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      className={className}
+    >
+      <path d="M12 3l7 3v5c0 4-3 6.6-7 8-4-1.4-7-4-7-8V6z" />
+      <path d="M9 12l2 2 4-4" />
+    </svg>
+  );
+}
+
+/** Cloud glyph for the BYOC spend tier. */
+function CloudGlyph({ className }: GlyphProps) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.6}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      className={className}
+    >
+      <path d="M7 18h10a4 4 0 0 0 .5-7.97A5.5 5.5 0 0 0 6.5 9 4 4 0 0 0 7 18z" />
+    </svg>
+  );
+}
+
+const UNLOCK_ICONS = [SupportGlyph, ShieldGlyph, CloudGlyph];
 
 function ClosingCta() {
   const ref = useRef<HTMLDivElement | null>(null);
@@ -897,8 +844,9 @@ function ClosingCta() {
         Ship your GraphQL platform with Nitro.
       </h2>
       <p className="text-cc-ink mx-auto mt-5 max-w-2xl text-base">
-        Start on the free Shared Instance in minutes. Upgrade when you need a
-        dedicated region, SLA, or SSO. The docs walk you through every step.
+        Start free in minutes. Move to Pay as you go when you grow, a Dedicated
+        instance when you need your own region and SSO. The docs walk you
+        through every step.
       </p>
       <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
         <SolidButton href="/get-started">Start for Free</SolidButton>

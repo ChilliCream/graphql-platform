@@ -108,7 +108,7 @@ function MobileShipping() {
  */
 export function MochaSectionV7() {
   return (
-    <section className="mx-auto max-w-6xl px-5 pt-16 sm:px-12 sm:pt-24">
+    <section className="mx-auto max-w-7xl px-5 pt-16 sm:px-12 sm:pt-24">
       <RevealOnScroll>
         <div className="grid grid-cols-1 gap-10 lg:grid-cols-[minmax(0,24rem)_minmax(0,1fr)] lg:items-center lg:gap-12">
           {/* heading block */}

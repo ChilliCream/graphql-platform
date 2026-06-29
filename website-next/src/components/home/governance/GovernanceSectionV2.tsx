@@ -176,7 +176,7 @@ function LintCard() {
  */
 export function GovernanceSectionV2() {
   return (
-    <section className="mx-auto max-w-6xl px-5 pt-16 sm:px-12 sm:pt-24">
+    <section className="mx-auto max-w-7xl px-5 pt-16 sm:px-12 sm:pt-24">
       <RevealOnScroll className="grid items-center gap-10 lg:grid-cols-2 lg:gap-16">
         <div>
           <p className="text-cc-nav-label font-mono text-xs tracking-[0.2em] uppercase">

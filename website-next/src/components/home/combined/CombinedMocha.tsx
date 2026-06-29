@@ -19,7 +19,7 @@ import { RevealOnScroll } from "@/src/components/RevealOnScroll";
  */
 export function CombinedMocha() {
   return (
-    <section className="mx-auto max-w-6xl px-5 pt-16 sm:px-12 sm:pt-24">
+    <section className="mx-auto max-w-7xl px-5 pt-16 sm:px-12 sm:pt-24">
       <RevealOnScroll>
         {/* one shared header for all three facets */}
         <div className="max-w-3xl">

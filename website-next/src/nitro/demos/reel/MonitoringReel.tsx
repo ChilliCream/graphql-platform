@@ -1,5 +1,5 @@
 /**
- * MonitoringReel — a scripted product "reel" (no narrative text): a camera + cursor tour
+ * MonitoringReel: a scripted product "reel" (no narrative text): a camera + cursor tour
  * that demonstrates the monitoring workflow by USING it. The screens are reused as static
  * sets (forced reduced-motion); the reel drives the camera (pan/zoom/scroll), a simulated
  * cursor, the product's own hover popouts + crosshair/row highlight, and a click→view
@@ -10,8 +10,8 @@
  * row (popout) → click → cross-fade to the operation detail → hover the slow tail (popout).
  *
  * Coordinates are MEASURED canvas coords (see anchors below) in the 1240×780 design canvas.
- * `camFrame(fx,fy,k,vx,vy)` frames canvas point (fx,fy) at viewport (vx,vy) at scale k —
- * the cursor/popouts then sit at predictable viewport positions.
+ * `camFrame(fx,fy,k,vx,vy)` frames canvas point (fx,fy) at viewport (vx,vy) at scale k.
+ * The cursor/popouts then sit at predictable viewport positions.
  */
 import { useEffect, useMemo } from "react";
 import { motion, useTransform, useMotionValue } from "motion/react";
@@ -72,14 +72,16 @@ export function MonitoringReel({
   const trace = useMemo(() => makeTrace(seed), [seed]);
   const slowSpan = trace.spans.find((s) => s.name === "HTTP POST products")!;
   const slowPct = Math.round((slowSpan.durationMs / trace.totalMs) * 100);
-  const clock = useMasterClock({ durationMs, amount: 0.2 });
+  const {
+    ref,
+    progress: clockProgress,
+    reduced,
+  } = useMasterClock({ durationMs, amount: 0.2 });
   const frozen = useMotionValue(staticProgress ?? 0);
   useEffect(() => {
     if (staticProgress != null) frozen.set(staticProgress);
   }, [staticProgress, frozen]);
-  const ref = clock.ref;
-  const reduced = clock.reduced;
-  const progress = staticProgress != null ? frozen : clock.progress;
+  const progress = staticProgress != null ? frozen : clockProgress;
 
   // ---- camera timeline ----
   // Each hover beat frames its target at a viewport point; the cursor goes to that SAME
@@ -207,7 +209,7 @@ export function MonitoringReel({
   // whole-reel seam envelope (frozen to 1 under reduced motion)
   const envelope = useTransform(progress, [0, 0.02, 0.98, 1], [0, 1, 1, 0]);
 
-  const hot = data.insights[1]; // hot subgraph (products) — matches the slow trace span
+  const hot = data.insights[1]; // hot subgraph (products), matches the slow trace span
 
   const screens = (
     <>
@@ -404,7 +406,7 @@ export function MonitoringReel({
         height={H}
         camera={{ x: camX, y: camY, scale: camScale }}
         overlay={overlay}
-        ariaLabel="Nitro monitoring — guided product tour"
+        ariaLabel="Nitro monitoring, guided product tour"
       >
         {screens}
       </Stage>

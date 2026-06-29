@@ -257,7 +257,7 @@ function TrafficViz() {
  */
 export function MochaSectionV8() {
   return (
-    <section className="mx-auto max-w-6xl px-5 pt-16 sm:px-12 sm:pt-24">
+    <section className="mx-auto max-w-7xl px-5 pt-16 sm:px-12 sm:pt-24">
       <RevealOnScroll>
         {/* frame: eyebrow, headline, lead, jump-off */}
         <div className="max-w-3xl">
