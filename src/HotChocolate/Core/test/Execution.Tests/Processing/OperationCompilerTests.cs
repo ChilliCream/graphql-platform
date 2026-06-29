@@ -103,7 +103,7 @@ public class OperationCompilerTests
                         homePlanet
                     }
                 }
-             }");
+            }");
 
         // act
         var operation = OperationCompiler.Compile(
@@ -139,7 +139,7 @@ public class OperationCompilerTests
               fragment def on Human {
                   homePlanet
               }
-             ");
+            ");
 
         // act
         var operation = OperationCompiler.Compile(

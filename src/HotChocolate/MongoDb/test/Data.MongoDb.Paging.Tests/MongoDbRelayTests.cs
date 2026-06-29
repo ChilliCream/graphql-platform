@@ -26,7 +26,7 @@ public class MongoDbRelayTests
             """
             {
                 foo {
-                   id
+                    id
                 }
             }
             """,
@@ -57,7 +57,7 @@ public class MongoDbRelayTests
             """
             {
                 foo {
-                   id
+                    id
                 }
             }
             """,
@@ -88,7 +88,7 @@ public class MongoDbRelayTests
             """
             {
                 node(id:"Rm9vOlB/GR6BDBlynehg6g==") {
-                   id
+                    id
                 }
             }
             """,
@@ -119,7 +119,7 @@ public class MongoDbRelayTests
             """
             {
                 node(id:"Rm9vOjUwN2YxOTFlODEwYzE5NzI5ZGU4NjBlYQ==") {
-                   id
+                    id
                 }
             }
             """,
