@@ -9,8 +9,7 @@ on:
       - "src/**"
 
 concurrency:
-  group: main-coverage
-  cancel-in-progress: true
+  group: main-coverage-${{ github.ref }}
 
 permissions:
   contents: read
