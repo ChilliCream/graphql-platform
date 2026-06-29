@@ -34,6 +34,7 @@ internal static class WellKnownDirectiveNames
     public const string Override = DirectiveNames.Override.Name;
     public const string Provides = DirectiveNames.Provides.Name;
     public const string Require = DirectiveNames.Require.Name;
+    public const string RequiresOptIn = DirectiveNames.RequiresOptIn.Name;
     public const string SerializeAs = DirectiveNames.SerializeAs.Name;
     public const string Shareable = DirectiveNames.Shareable.Name;
     public const string SpecifiedBy = DirectiveNames.SpecifiedBy.Name;
