@@ -109,7 +109,8 @@ public sealed class OperationBatchExecutionNode : ExecutionNode
                         operation.ResultSelectionSet,
                         variables,
                         result,
-                        hasErrors);
+                        hasErrors,
+                        operation.PropagateNull);
                     hasPendingMerge = true;
                     context.EnqueuePendingMerge(pendingMerge);
                 }
@@ -206,7 +207,8 @@ public sealed class OperationBatchExecutionNode : ExecutionNode
                         op.ResultSelectionSet,
                         variablesByIndex[requestIndex],
                         result,
-                        hasErrors);
+                        hasErrors,
+                        op.PropagateNull);
                     hasPendingMerge = true;
                     context.EnqueuePendingMerge(pendingMerge);
                 }

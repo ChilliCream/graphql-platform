@@ -302,7 +302,8 @@ public sealed class EventStreamExecutionNode : ExecutionNode
                         _node._source,
                         _resultBuffer,
                         _node._resultSelectionSet,
-                        containsErrors: true);
+                        containsErrors: true,
+                        propagateNull: false);
 
                     sourceResult = null;
                 }

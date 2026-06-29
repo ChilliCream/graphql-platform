@@ -547,10 +547,16 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
         SelectionPath sourcePath,
         SourceSchemaResult result,
         ResultSelectionSet resultSelectionSet,
-        bool containsErrors)
+        bool containsErrors,
+        bool propagateNull)
     {
         var canExecutionContinue =
-            _resultStore.AddPartialResult(sourcePath, result, resultSelectionSet, containsErrors);
+            _resultStore.AddPartialResult(
+                sourcePath,
+                result,
+                resultSelectionSet,
+                containsErrors,
+                propagateNull);
 
         if (!canExecutionContinue)
         {
@@ -562,10 +568,16 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
         SelectionPath sourcePath,
         ReadOnlySpan<SourceSchemaResult> results,
         ResultSelectionSet resultSelectionSet,
-        bool containsErrors)
+        bool containsErrors,
+        bool propagateNull)
     {
         var canExecutionContinue =
-            _resultStore.AddPartialResults(sourcePath, results, resultSelectionSet, containsErrors);
+            _resultStore.AddPartialResults(
+                sourcePath,
+                results,
+                resultSelectionSet,
+                containsErrors,
+                propagateNull);
 
         if (!canExecutionContinue)
         {

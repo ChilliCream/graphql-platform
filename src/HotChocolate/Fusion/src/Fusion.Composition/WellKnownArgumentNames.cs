@@ -28,6 +28,7 @@ internal static class WellKnownArgumentNames
     public const string Path = "path";
     public const string Pattern = "pattern";
     public const string Policy = "policy";
+    public const string PropagateNull = "propagateNull";
     public const string Provides = "provides";
     public const string Requirements = "requirements";
     public const string RequireOneSlicingArgument = "requireOneSlicingArgument";

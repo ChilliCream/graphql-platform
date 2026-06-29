@@ -399,6 +399,12 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
             jsonWriter.WriteBooleanValue(true);
         }
 
+        if (node.PropagateNull)
+        {
+            jsonWriter.WritePropertyName("propagateNull");
+            jsonWriter.WriteBooleanValue(true);
+        }
+
         if (node.Dependencies.Length > 0 || node.ParentDependencies.Length > 0)
         {
             jsonWriter.WritePropertyName("dependencies");
@@ -661,6 +667,12 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
             jsonWriter.WriteBooleanValue(true);
         }
 
+        if (operationDef.PropagateNull)
+        {
+            jsonWriter.WritePropertyName("propagateNull");
+            jsonWriter.WriteBooleanValue(true);
+        }
+
         if (operationDef.Dependencies.Length > 0 || operationDef.ParentDependencies.Length > 0)
         {
             jsonWriter.WritePropertyName("dependencies");
@@ -778,6 +790,12 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
         if (operationDef.RequiresFileUpload)
         {
             jsonWriter.WritePropertyName("requiresFileUpload");
+            jsonWriter.WriteBooleanValue(true);
+        }
+
+        if (operationDef.PropagateNull)
+        {
+            jsonWriter.WritePropertyName("propagateNull");
             jsonWriter.WriteBooleanValue(true);
         }
 

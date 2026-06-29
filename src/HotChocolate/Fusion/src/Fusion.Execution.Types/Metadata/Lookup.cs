@@ -24,6 +24,7 @@ public sealed class Lookup : INeedsCompletion
     /// <param name="fieldName">The name of the lookup field.</param>
     /// <param name="fieldType">The type the lookup field returns.</param>
     /// <param name="isInternal">Whether the lookup is internal or not.</param>
+    /// <param name="propagateNull">Whether a null lookup result invalidates the target entity.</param>
     /// <param name="arguments">The arguments that represent field requirements.</param>
     /// <param name="fields">The paths to the field that are required.</param>
     /// <param name="path">
@@ -42,6 +43,7 @@ public sealed class Lookup : INeedsCompletion
         string fieldName,
         string fieldType,
         bool isInternal,
+        bool propagateNull,
         ImmutableArray<LookupArgument> arguments,
         ImmutableArray<IValueSelectionNode> fields,
         ImmutableArray<string> path)
@@ -66,6 +68,7 @@ public sealed class Lookup : INeedsCompletion
         SchemaName = schemaName;
         FieldName = fieldName;
         IsInternal = isInternal;
+        PropagateNull = propagateNull;
         Arguments = arguments;
         Fields = fields;
         Path = path;
@@ -90,6 +93,11 @@ public sealed class Lookup : INeedsCompletion
     /// Gets whether the lookup is internal or not.
     /// </summary>
     public bool IsInternal { get; }
+
+    /// <summary>
+    /// Gets whether a null lookup result invalidates the target entity.
+    /// </summary>
+    public bool PropagateNull { get; }
 
     /// <summary>
     /// Gets the arguments that represent field requirements.

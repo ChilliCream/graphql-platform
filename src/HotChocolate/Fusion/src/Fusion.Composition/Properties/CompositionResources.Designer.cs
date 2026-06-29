@@ -512,6 +512,15 @@ namespace HotChocolate.Fusion.Properties {
         }
 
         /// <summary>
+        ///   Looks up a localized string similar to Specifies whether a null result from this lookup invalidates the resolved entity..
+        /// </summary>
+        internal static string FusionLookupMutableDirectiveDefinition_Argument_PropagateNull_Description {
+            get {
+                return ResourceManager.GetString("FusionLookupMutableDirectiveDefinition_Argument_PropagateNull_Description", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to The name of the source schema where the annotated entity type can be looked up from..
         /// </summary>
         internal static string FusionLookupMutableDirectiveDefinition_Argument_Schema_Description {
@@ -1286,6 +1295,24 @@ namespace HotChocolate.Fusion.Properties {
         }
 
         /// <summary>
+        ///   Looks up a localized string similar to The field &apos;{0}&apos; in schema &apos;{1}&apos; includes multiple @propagateNull directives, but @propagateNull is not repeatable..
+        /// </summary>
+        internal static string LogEntryHelper_PropagateNullDirectiveNotRepeatable {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_PropagateNullDirectiveNotRepeatable", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The field &apos;{0}&apos; in schema &apos;{1}&apos; includes a @propagateNull directive, but is not a lookup field..
+        /// </summary>
+        internal static string LogEntryHelper_PropagateNullOnNonLookupField {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_PropagateNullOnNonLookupField", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to The @provides directive on field &apos;{0}&apos; in schema &apos;{1}&apos; references field &apos;{2}&apos;, which must not include directive applications..
         /// </summary>
         internal static string LogEntryHelper_ProvidesDirectiveInFieldsArgument {
@@ -1480,6 +1507,15 @@ namespace HotChocolate.Fusion.Properties {
         internal static string LookupMutableDirectiveDefinition_Description {
             get {
                 return ResourceManager.GetString("LookupMutableDirectiveDefinition_Description", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The @propagateNull directive marks a lookup field whose null result invalidates the resolved entity..
+        /// </summary>
+        internal static string PropagateNullMutableDirectiveDefinition_Description {
+            get {
+                return ResourceManager.GetString("PropagateNullMutableDirectiveDefinition_Description", resourceCulture);
             }
         }
 

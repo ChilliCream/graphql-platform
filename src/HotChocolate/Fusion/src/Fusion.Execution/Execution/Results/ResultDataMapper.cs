@@ -18,7 +18,7 @@ internal static class ResultDataMapper
         IValueSelectionNode valueSelection,
         ISchemaDefinition schema,
         JsonWriter writer)
-        => Visit(valueSelection, result, schema, writer);
+        => !result.IsNullOrInvalidated && Visit(valueSelection, result, schema, writer);
 
     private static bool Visit(
         IValueSelectionNode node,
@@ -224,6 +224,11 @@ internal static class ResultDataMapper
 
         foreach (var item in result.EnumerateArray())
         {
+            if (item.IsInvalidated)
+            {
+                return false;
+            }
+
             if (item.ValueKind is JsonValueKind.Null)
             {
                 writer.WriteNullValue();
@@ -245,6 +250,11 @@ internal static class ResultDataMapper
         CompositeResultElement result,
         PathNode path)
     {
+        if (result.IsNullOrInvalidated)
+        {
+            return default;
+        }
+
         if (result.ValueKind is not JsonValueKind.Object)
         {
             throw new InvalidOperationException("Only object results are supported.");
@@ -266,7 +276,17 @@ internal static class ResultDataMapper
 
         while (currentSegment is not null && currentValueKind is not JsonValueKind.Null and not JsonValueKind.Undefined)
         {
+            if (currentResult.IsNullOrInvalidated)
+            {
+                return default;
+            }
+
             if (!currentResult.TryGetProperty(currentSegment.FieldName.Value, out var fieldResult))
+            {
+                return default;
+            }
+
+            if (fieldResult.IsInvalidated)
             {
                 return default;
             }

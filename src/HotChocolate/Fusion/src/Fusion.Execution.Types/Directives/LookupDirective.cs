@@ -10,6 +10,7 @@ directive @fusion__lookup(
      field: fusion__FieldDefinition!
      map: [fusion__FieldSelectionMap!]!
      path: fusion__FieldSelectionPath
+     propagateNull: Boolean! = false
      internal: Boolean! = false
    ) repeatable on OBJECT | INTERFACE | UNION
 */
@@ -19,6 +20,7 @@ internal sealed class LookupDirective(
     FieldDefinitionNode field,
     ImmutableArray<string> map,
     ImmutableArray<string> path,
+    bool propagateNull,
     bool @internal = false)
 {
     public SchemaKey SchemaKey { get; } = schemaKey;
@@ -30,6 +32,8 @@ internal sealed class LookupDirective(
     public ImmutableArray<string> Map { get; } = map;
 
     public ImmutableArray<string> Path { get; } = path;
+
+    public bool PropagateNull { get; } = propagateNull;
 
     public bool Internal { get; } = @internal;
 }

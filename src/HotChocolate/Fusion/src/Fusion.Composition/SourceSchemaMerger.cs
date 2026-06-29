@@ -243,15 +243,25 @@ internal sealed class SourceSchemaMerger
                                 valueSelectionGroup.ConvertAll(
                                     a => new StringValueNode(a.ToString(indented: false))));
 
+                        var argumentAssignments = new List<ArgumentAssignment>
+                        {
+                            new(ArgumentNames.Schema, schemaArgument),
+                            new(ArgumentNames.Key, keyArgument),
+                            new(ArgumentNames.Field, fieldArgument),
+                            new(ArgumentNames.Map, mapArgument),
+                            new(ArgumentNames.Path, pathArgument),
+                            new(ArgumentNames.Internal, @internal)
+                        };
+
+                        if (sourceField.HasPropagateNullDirective)
+                        {
+                            argumentAssignments.Add(new ArgumentAssignment(ArgumentNames.PropagateNull, true));
+                        }
+
                         mergedType.Directives.Add(
                             new Directive(
                                 _fusionDirectiveDefinitions[DirectiveNames.FusionLookup],
-                                new ArgumentAssignment(ArgumentNames.Schema, schemaArgument),
-                                new ArgumentAssignment(ArgumentNames.Key, keyArgument),
-                                new ArgumentAssignment(ArgumentNames.Field, fieldArgument),
-                                new ArgumentAssignment(ArgumentNames.Map, mapArgument),
-                                new ArgumentAssignment(ArgumentNames.Path, pathArgument),
-                                new ArgumentAssignment(ArgumentNames.Internal, @internal)));
+                                argumentAssignments));
                     }
                 }
             }

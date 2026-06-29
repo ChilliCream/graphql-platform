@@ -450,6 +450,44 @@ public sealed partial class OperationPlanner
                 ctx.FallbackByNodeId.Add(nodePlanStep.Id, nodePlanStep.FallbackQuery.Id);
             }
         }
+
+        AddPropagateNullLookupDependencies(planSteps, ctx);
+    }
+
+    private static void AddPropagateNullLookupDependencies(
+        ImmutableList<PlanStep> planSteps,
+        ExecutionPlanBuildContext ctx)
+    {
+        var operationSteps = planSteps.OfType<OperationPlanStep>().ToArray();
+
+        foreach (var propagateNullStep in operationSteps)
+        {
+            if (propagateNullStep.Lookup is not { PropagateNull: true })
+            {
+                continue;
+            }
+
+            foreach (var candidate in operationSteps)
+            {
+                if (candidate.Id == propagateNullStep.Id
+                    || candidate.Lookup is null or { PropagateNull: true }
+                    || !candidate.Target.Equals(propagateNullStep.Target)
+                    || !candidate.Type.Name.Equals(propagateNullStep.Type.Name, StringComparison.Ordinal)
+                    || propagateNullStep.DependsOn(candidate, planSteps)
+                    || candidate.DependsOn(propagateNullStep, planSteps))
+                {
+                    continue;
+                }
+
+                if (!ctx.DependenciesByStepId.TryGetValue(candidate.Id, out var dependencies))
+                {
+                    dependencies = [];
+                    ctx.DependenciesByStepId[candidate.Id] = dependencies;
+                }
+
+                dependencies.Add(propagateNullStep.Id);
+            }
+        }
     }
 
     private static void BuildExecutionNodes(
@@ -564,7 +602,8 @@ public sealed partial class OperationPlanner
             forwardedVariables,
             resultSelectionSet,
             operationStep.Conditions,
-            requiresFileUpload);
+            requiresFileUpload,
+            operationStep.Lookup?.PropagateNull ?? false);
 
         foreach (var parentDependency in operationStep.ParentDependencies)
         {
@@ -995,7 +1034,8 @@ public sealed partial class OperationPlanner
             primary.ForwardedVariables.ToArray(),
             primary.ResultSelectionSet,
             primary.Conditions.ToArray(),
-            primary.RequiresFileUpload);
+            primary.RequiresFileUpload,
+            primary.PropagateNull);
 
         foreach (var parentDependency in primary.BufferedParentDependencies)
         {
@@ -1017,7 +1057,8 @@ public sealed partial class OperationPlanner
             member.ForwardedVariables.ToArray(),
             member.ResultSelectionSet,
             member.Conditions.ToArray(),
-            member.RequiresFileUpload);
+            member.RequiresFileUpload,
+            member.PropagateNull);
 
         foreach (var parentDependency in member.BufferedParentDependencies)
         {
@@ -1375,7 +1416,7 @@ public sealed partial class OperationPlanner
             .OrderBy(c => c.VariableName)
             .Select(c => $"{c.VariableName}:{c.PassingValue}"));
 
-        return $"{node.SchemaName}|{node.Source}|{conditions}|{bodyText}";
+        return $"{node.SchemaName}|{node.Source}|{node.PropagateNull}|{conditions}|{bodyText}";
     }
 
     private static (OperationSourceText operation, OperationRequirement[] requirements) CanonicalizeOperation(

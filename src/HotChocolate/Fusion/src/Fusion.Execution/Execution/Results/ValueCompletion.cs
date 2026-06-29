@@ -9,6 +9,7 @@ using HotChocolate.Fusion.Types;
 using HotChocolate.Fusion.Text.Json;
 using HotChocolate.Language;
 using HotChocolate.Types;
+using FusionErrorHelper = HotChocolate.Fusion.Execution.ErrorHelper;
 
 namespace HotChocolate.Fusion.Execution.Results;
 
@@ -50,20 +51,21 @@ internal sealed class ValueCompletion
         SourceResultElement source,
         CompositeResultElement target,
         ErrorTrie? errorTrie,
-        ResultSelectionSet resultSelectionSet)
+        ResultSelectionSet resultSelectionSet,
+        bool propagateNull)
     {
         var sourceValueKind = source.ValueKind;
 
         if (sourceValueKind is not JsonValueKind.Object)
         {
-            var error = errorTrie?.FindFirstError();
             var canExecutionContinue =
                 BuildResultForInvalidSource(
                     source,
                     sourceValueKind,
                     target,
                     resultSelectionSet,
-                    error);
+                    errorTrie,
+                    propagateNull);
 
             if (!canExecutionContinue)
             {
@@ -262,8 +264,11 @@ internal sealed class ValueCompletion
         JsonValueKind sourceValueKind,
         CompositeResultElement target,
         ResultSelectionSet resultSelectionSet,
-        IError? error)
+        ErrorTrie? errorTrie,
+        bool propagateNull)
     {
+        var error = errorTrie?.FindFirstError();
+
         if (sourceValueKind is JsonValueKind.Null && IsValueType(target.Type))
         {
             if (error is not null)
@@ -272,6 +277,11 @@ internal sealed class ValueCompletion
             }
 
             return true;
+        }
+
+        if (sourceValueKind is JsonValueKind.Null && propagateNull)
+        {
+            return CompletePropagatedNullSource(target, errorTrie);
         }
 
         // A clean null source without an associated error is a legitimate
@@ -283,10 +293,7 @@ internal sealed class ValueCompletion
             return CompleteNullSource(source, target, resultSelectionSet);
         }
 
-        var fallbackError = error ??
-            ErrorBuilder.New()
-                .SetMessage("Unexpected Execution Error")
-                .Build();
+        var fallbackError = error ?? FusionErrorHelper.UnexpectedExecutionError();
 
         if (target.ValueKind is JsonValueKind.Undefined
             && !TryInitializeTargetObject(target))
@@ -299,6 +306,47 @@ internal sealed class ValueCompletion
         }
 
         return BuildErrorResult(target, resultSelectionSet, fallbackError, target.CompactPath);
+    }
+
+    private bool CompletePropagatedNullSource(
+        CompositeResultElement target,
+        ErrorTrie? errorTrie)
+    {
+        var targetPath = target.Path;
+        var hasErrors = false;
+
+        if (errorTrie is not null)
+        {
+            AddErrorsAtPath(errorTrie, targetPath, ref hasErrors);
+        }
+
+        if (!hasErrors && !target.IsNullable)
+        {
+            var error = FusionErrorHelper.NonNullOutputFieldViolation(targetPath);
+
+            _store.AddError(_errorHandler.Handle(error));
+        }
+
+        var didPropagateToRoot = PropagateNullValues(target);
+        return !didPropagateToRoot;
+    }
+
+    private void AddErrorsAtPath(ErrorTrie errorTrie, Path targetPath, ref bool hasErrors)
+    {
+        if (errorTrie.Error is { } error)
+        {
+            var errorWithPath = ErrorBuilder.FromError(error)
+                .SetPath(targetPath)
+                .Build();
+
+            _store.AddError(_errorHandler.Handle(errorWithPath));
+            hasErrors = true;
+        }
+
+        foreach (var child in errorTrie.Values)
+        {
+            AddErrorsAtPath(child, targetPath, ref hasErrors);
+        }
     }
 
     /// <summary>
@@ -559,11 +607,7 @@ internal sealed class ValueCompletion
                 else
                 {
                     var path = target.CompactPath.ToPath(target.Operation);
-                    error = ErrorBuilder.New()
-                        .SetMessage("Cannot return null for non-nullable field.")
-                        .SetCode(ErrorCodes.Execution.NonNullViolation)
-                        .SetPath(path)
-                        .Build();
+                    error = FusionErrorHelper.NonNullOutputFieldViolation(path);
                 }
 
                 error = _errorHandler.Handle(error);

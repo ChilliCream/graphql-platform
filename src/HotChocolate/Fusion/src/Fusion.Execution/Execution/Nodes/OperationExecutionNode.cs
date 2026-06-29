@@ -21,6 +21,7 @@ public sealed class OperationExecutionNode : ExecutionNode
     private readonly string? _schemaName;
     private readonly SelectionPath _target;
     private readonly SelectionPath _source;
+    private readonly bool _propagateNull;
 
     internal OperationExecutionNode(
         int id,
@@ -32,7 +33,8 @@ public sealed class OperationExecutionNode : ExecutionNode
         string[] forwardedVariables,
         ResultSelectionSet resultSelectionSet,
         ExecutionNodeCondition[] conditions,
-        bool requiresFileUpload)
+        bool requiresFileUpload,
+        bool propagateNull)
     {
         Id = id;
         _operation = operation;
@@ -45,6 +47,7 @@ public sealed class OperationExecutionNode : ExecutionNode
         _resultSelectionSet = resultSelectionSet;
         _conditions = conditions;
         _requiresFileUpload = requiresFileUpload;
+        _propagateNull = propagateNull;
     }
 
     /// <inheritdoc />
@@ -98,6 +101,11 @@ public sealed class OperationExecutionNode : ExecutionNode
     /// that contain the Upload scalar.
     /// </summary>
     public bool RequiresFileUpload => _requiresFileUpload;
+
+    /// <summary>
+    /// Gets whether a null source result from this operation invalidates the target entity.
+    /// </summary>
+    public bool PropagateNull => _propagateNull;
 
     protected override async ValueTask<ExecutionStatus> OnExecuteAsync(
         OperationPlanContext context,
@@ -217,7 +225,8 @@ public sealed class OperationExecutionNode : ExecutionNode
                     variables,
                     buffer,
                     index,
-                    hasSomeErrors);
+                    hasSomeErrors,
+                    _propagateNull);
                 hasPendingMerge = true;
             }
             else if (singleResult is not null)
@@ -229,7 +238,8 @@ public sealed class OperationExecutionNode : ExecutionNode
                     _resultSelectionSet,
                     variables,
                     singleResult,
-                    hasSomeErrors);
+                    hasSomeErrors,
+                    _propagateNull);
                 hasPendingMerge = true;
             }
 
@@ -440,7 +450,12 @@ public sealed class OperationExecutionNode : ExecutionNode
                     // instead of leaving it to the finalizer.
                     _context.SetActiveEventArena(_eventArenaSource.Arena);
 
-                    _context.AddPartialResults(_node._source, _resultBuffer, _node._resultSelectionSet, containsErrors: true);
+                    _context.AddPartialResults(
+                        _node._source,
+                        _resultBuffer,
+                        _node._resultSelectionSet,
+                        containsErrors: true,
+                        _node._propagateNull);
 
                     Current = new EventMessageResult(
                         _node.Id,

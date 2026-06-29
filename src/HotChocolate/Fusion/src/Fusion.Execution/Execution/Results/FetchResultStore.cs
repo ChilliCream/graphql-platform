@@ -75,21 +75,23 @@ internal sealed partial class FetchResultStore : IDisposable
         SelectionPath sourcePath,
         SourceSchemaResult result,
         ResultSelectionSet resultSelectionSet,
-        bool containsErrors)
+        bool containsErrors,
+        bool propagateNull)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
         ArgumentNullException.ThrowIfNull(sourcePath);
 
         return containsErrors
-            ? AddSinglePartialResult(sourcePath, result, resultSelectionSet)
-            : AddSinglePartialResultNoErrors(sourcePath, result, resultSelectionSet);
+            ? AddSinglePartialResult(sourcePath, result, resultSelectionSet, propagateNull)
+            : AddSinglePartialResultNoErrors(sourcePath, result, resultSelectionSet, propagateNull);
     }
 
     public bool AddPartialResults(
         SelectionPath sourcePath,
         ReadOnlySpan<SourceSchemaResult> results,
         ResultSelectionSet resultSelectionSet,
-        bool containsErrors)
+        bool containsErrors,
+        bool propagateNull)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
         ArgumentNullException.ThrowIfNull(sourcePath);
@@ -104,13 +106,13 @@ internal sealed partial class FetchResultStore : IDisposable
         if (!containsErrors)
         {
             return results.Length == 1
-                ? AddSinglePartialResultNoErrors(sourcePath, results[0], resultSelectionSet)
-                : AddPartialResultsNoErrors(sourcePath, results, resultSelectionSet);
+                ? AddSinglePartialResultNoErrors(sourcePath, results[0], resultSelectionSet, propagateNull)
+                : AddPartialResultsNoErrors(sourcePath, results, resultSelectionSet, propagateNull);
         }
 
         if (results.Length == 1)
         {
-            return AddSinglePartialResult(sourcePath, results[0], resultSelectionSet);
+            return AddSinglePartialResult(sourcePath, results[0], resultSelectionSet, propagateNull);
         }
 
         var dataElements = ArrayPool<SourceResultElement>.Shared.Rent(results.Length);
@@ -160,7 +162,8 @@ internal sealed partial class FetchResultStore : IDisposable
                                 result.AdditionalPaths.AsSpan(),
                                 dataElementsSpan[i],
                                 errorTriesSpan[i],
-                                resultSelectionSet))
+                                resultSelectionSet,
+                                propagateNull))
                         {
                             RegisterRemainingResults(_memory, results, i);
                             return false;
@@ -208,7 +211,8 @@ internal sealed partial class FetchResultStore : IDisposable
     private bool AddPartialResultsNoErrors(
         SelectionPath sourcePath,
         ReadOnlySpan<SourceSchemaResult> results,
-        ResultSelectionSet resultSelectionSet)
+        ResultSelectionSet resultSelectionSet,
+        bool propagateNull)
     {
         var dataElements = ArrayPool<SourceResultElement>.Shared.Rent(results.Length);
         var dataElementsSpan = dataElements.AsSpan(0, results.Length);
@@ -239,7 +243,8 @@ internal sealed partial class FetchResultStore : IDisposable
                                 result.AdditionalPaths.AsSpan(),
                                 dataElementsSpan[i],
                                 errorTrie: null,
-                                resultSelectionSet))
+                                resultSelectionSet,
+                                propagateNull))
                         {
                             RegisterRemainingResults(_memory, results, i);
                             return false;
@@ -285,7 +290,8 @@ internal sealed partial class FetchResultStore : IDisposable
     private bool AddSinglePartialResult(
         SelectionPath sourcePath,
         SourceSchemaResult result,
-        ResultSelectionSet resultSelectionSet)
+        ResultSelectionSet resultSelectionSet,
+        bool propagateNull)
     {
         var errors = result.Errors;
         var dataElement = GetDataElement(sourcePath, result.Data);
@@ -309,7 +315,8 @@ internal sealed partial class FetchResultStore : IDisposable
                     result.AdditionalPaths.AsSpan(),
                     dataElement,
                     errorTrie,
-                    resultSelectionSet);
+                    resultSelectionSet,
+                    propagateNull);
             }
             finally
             {
@@ -321,7 +328,8 @@ internal sealed partial class FetchResultStore : IDisposable
     private bool AddSinglePartialResultNoErrors(
         SelectionPath sourcePath,
         SourceSchemaResult result,
-        ResultSelectionSet resultSelectionSet)
+        ResultSelectionSet resultSelectionSet,
+        bool propagateNull)
     {
         var dataElement = GetDataElement(sourcePath, result.Data);
 
@@ -337,7 +345,8 @@ internal sealed partial class FetchResultStore : IDisposable
                     result.AdditionalPaths.AsSpan(),
                     dataElement,
                     errorTrie: null,
-                    resultSelectionSet);
+                    resultSelectionSet,
+                    propagateNull);
             }
             finally
             {
@@ -375,7 +384,8 @@ internal sealed partial class FetchResultStore : IDisposable
                 partial,
                 data,
                 errorTrie: null,
-                resultSelectionSet: resultSelectionSet);
+                resultSelectionSet: resultSelectionSet,
+                propagateNull: false);
         }
     }
 
@@ -589,9 +599,10 @@ AddErrors_Next:
         ReadOnlySpan<CompactPath> additionalPaths,
         SourceResultElement dataElement,
         ErrorTrie? errorTrie,
-        ResultSelectionSet resultSelectionSet)
+        ResultSelectionSet resultSelectionSet,
+        bool propagateNull)
     {
-        if (!SaveSafeResult(resultData, path, dataElement, errorTrie, resultSelectionSet))
+        if (!SaveSafeResult(resultData, path, dataElement, errorTrie, resultSelectionSet, propagateNull))
         {
             return false;
         }
@@ -602,27 +613,93 @@ AddErrors_Next:
                 return true;
 
             case 1:
-                return SaveSafeResult(resultData, additionalPaths[0], dataElement, errorTrie, resultSelectionSet);
+                return SaveSafeResult(
+                    resultData,
+                    additionalPaths[0],
+                    dataElement,
+                    errorTrie,
+                    resultSelectionSet,
+                    propagateNull);
 
             case 2:
-                return SaveSafeResult(resultData, additionalPaths[0], dataElement, errorTrie, resultSelectionSet)
-                    && SaveSafeResult(resultData, additionalPaths[1], dataElement, errorTrie, resultSelectionSet);
+                return SaveSafeResult(
+                        resultData,
+                        additionalPaths[0],
+                        dataElement,
+                        errorTrie,
+                        resultSelectionSet,
+                        propagateNull)
+                    && SaveSafeResult(
+                        resultData,
+                        additionalPaths[1],
+                        dataElement,
+                        errorTrie,
+                        resultSelectionSet,
+                        propagateNull);
 
             case 3:
-                return SaveSafeResult(resultData, additionalPaths[0], dataElement, errorTrie, resultSelectionSet)
-                    && SaveSafeResult(resultData, additionalPaths[1], dataElement, errorTrie, resultSelectionSet)
-                    && SaveSafeResult(resultData, additionalPaths[2], dataElement, errorTrie, resultSelectionSet);
+                return SaveSafeResult(
+                        resultData,
+                        additionalPaths[0],
+                        dataElement,
+                        errorTrie,
+                        resultSelectionSet,
+                        propagateNull)
+                    && SaveSafeResult(
+                        resultData,
+                        additionalPaths[1],
+                        dataElement,
+                        errorTrie,
+                        resultSelectionSet,
+                        propagateNull)
+                    && SaveSafeResult(
+                        resultData,
+                        additionalPaths[2],
+                        dataElement,
+                        errorTrie,
+                        resultSelectionSet,
+                        propagateNull);
 
             case 4:
-                return SaveSafeResult(resultData, additionalPaths[0], dataElement, errorTrie, resultSelectionSet)
-                    && SaveSafeResult(resultData, additionalPaths[1], dataElement, errorTrie, resultSelectionSet)
-                    && SaveSafeResult(resultData, additionalPaths[2], dataElement, errorTrie, resultSelectionSet)
-                    && SaveSafeResult(resultData, additionalPaths[3], dataElement, errorTrie, resultSelectionSet);
+                return SaveSafeResult(
+                        resultData,
+                        additionalPaths[0],
+                        dataElement,
+                        errorTrie,
+                        resultSelectionSet,
+                        propagateNull)
+                    && SaveSafeResult(
+                        resultData,
+                        additionalPaths[1],
+                        dataElement,
+                        errorTrie,
+                        resultSelectionSet,
+                        propagateNull)
+                    && SaveSafeResult(
+                        resultData,
+                        additionalPaths[2],
+                        dataElement,
+                        errorTrie,
+                        resultSelectionSet,
+                        propagateNull)
+                    && SaveSafeResult(
+                        resultData,
+                        additionalPaths[3],
+                        dataElement,
+                        errorTrie,
+                        resultSelectionSet,
+                        propagateNull);
 
             default:
                 for (var i = 0; i < additionalPaths.Length; i++)
                 {
-                    if (!SaveSafeResult(resultData, additionalPaths[i], dataElement, errorTrie, resultSelectionSet))
+                    if (!SaveSafeResult(
+                            resultData,
+                            additionalPaths[i],
+                            dataElement,
+                            errorTrie,
+                            resultSelectionSet,
+                            propagateNull))
                     {
                         return false;
                     }
@@ -637,7 +714,8 @@ AddErrors_Next:
         CompactPath path,
         SourceResultElement dataElement,
         ErrorTrie? errorTrie,
-        ResultSelectionSet resultSelectionSet)
+        ResultSelectionSet resultSelectionSet,
+        bool propagateNull)
     {
         if (resultData.IsNullOrInvalidated)
         {
@@ -649,6 +727,18 @@ AddErrors_Next:
 
         if (element.IsNullOrInvalidated)
         {
+            if (propagateNull
+                && errorTrie is not null
+                && dataElement.ValueKind is JsonValueKind.Null)
+            {
+                return _valueCompletion.BuildResult(
+                    dataElement,
+                    element,
+                    errorTrie,
+                    resultSelectionSet,
+                    propagateNull);
+            }
+
             return true;
         }
 
@@ -657,7 +747,8 @@ AddErrors_Next:
                 dataElement,
                 element,
                 errorTrie,
-                resultSelectionSet);
+                resultSelectionSet,
+                propagateNull);
 
         if (canExecutionContinue)
         {
@@ -805,7 +896,8 @@ AddErrors_Next:
                 for (var j = 0; j < currentCount; j++)
                 {
                     var element = current[j];
-                    if (element.TryGetProperty(IntrospectionFieldNames.TypeNameSpan, out var value)
+                    if (!element.IsNullOrInvalidated
+                        && element.TryGetProperty(IntrospectionFieldNames.TypeNameSpan, out var value)
                         && value.ValueKind is JsonValueKind.String
                         && value.TextEqualsHelper(segment.Name, isPropertyName: false))
                     {
@@ -818,17 +910,18 @@ AddErrors_Next:
                 for (var j = 0; j < currentCount; j++)
                 {
                     var element = current[j];
-                    if (!element.TryGetProperty(segment.Name, out var value))
+                    if (element.IsNullOrInvalidated
+                        || !element.TryGetProperty(segment.Name, out var value))
+                    {
+                        continue;
+                    }
+
+                    if (value.IsNullOrInvalidated || value.ValueKind is JsonValueKind.Undefined)
                     {
                         continue;
                     }
 
                     var valueKind = value.ValueKind;
-
-                    if (valueKind is JsonValueKind.Null or JsonValueKind.Undefined)
-                    {
-                        continue;
-                    }
 
                     if (valueKind is JsonValueKind.Array)
                     {
@@ -1736,9 +1829,14 @@ AddErrors_Next:
     {
         foreach (var element in list.EnumerateArray())
         {
+            if (element.IsNullOrInvalidated)
+            {
+                continue;
+            }
+
             var elementValueKind = element.ValueKind;
 
-            if (elementValueKind is JsonValueKind.Null or JsonValueKind.Undefined)
+            if (elementValueKind is JsonValueKind.Undefined)
             {
                 continue;
             }

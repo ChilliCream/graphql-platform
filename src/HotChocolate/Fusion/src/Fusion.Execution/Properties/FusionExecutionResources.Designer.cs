@@ -194,5 +194,35 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("JsonOperationPlanParser_SingleOperationRequired", resourceCulture);
             }
         }
+
+        internal static string ErrorHelper_RequestTimeout_Message {
+            get {
+                return ResourceManager.GetString("ErrorHelper_RequestTimeout_Message", resourceCulture);
+            }
+        }
+
+        internal static string ErrorHelper_StateInvalidForOperationPlanCache_Message {
+            get {
+                return ResourceManager.GetString("ErrorHelper_StateInvalidForOperationPlanCache_Message", resourceCulture);
+            }
+        }
+
+        internal static string ErrorHelper_StateInvalidForVariableCoercion_Message {
+            get {
+                return ResourceManager.GetString("ErrorHelper_StateInvalidForVariableCoercion_Message", resourceCulture);
+            }
+        }
+
+        internal static string ErrorHelper_UnexpectedExecutionError_Message {
+            get {
+                return ResourceManager.GetString("ErrorHelper_UnexpectedExecutionError_Message", resourceCulture);
+            }
+        }
+
+        internal static string ErrorHelper_NonNullOutputFieldViolation_Message {
+            get {
+                return ResourceManager.GetString("ErrorHelper_NonNullOutputFieldViolation_Message", resourceCulture);
+            }
+        }
     }
 }
