@@ -74,7 +74,7 @@ export const TIERS: readonly Tier[] = [
       "SSO, audit log, role-based access",
     ],
     cta: "Talk to Us",
-    ctaHref: "/services/support/contact",
+    ctaHref: "/services/support/contact?subject=Sales",
     popular: true,
   },
   {
@@ -91,7 +91,7 @@ export const TIERS: readonly Tier[] = [
       "Long-term release channel",
     ],
     cta: "Talk to Us",
-    ctaHref: "/services/support/contact",
+    ctaHref: "/services/support/contact?subject=Sales",
   },
 ];
 

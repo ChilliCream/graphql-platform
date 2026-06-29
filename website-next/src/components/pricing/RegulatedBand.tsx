@@ -34,7 +34,7 @@ export function RegulatedBand() {
             come back with an architecture.
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
-            <SolidButton href="/services/support/contact">
+            <SolidButton href="/services/support/contact?subject=Sales">
               Talk to Sales
             </SolidButton>
             <OutlineButton href="/platform">See the platform</OutlineButton>

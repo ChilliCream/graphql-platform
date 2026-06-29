@@ -59,7 +59,7 @@ function Hero() {
         <SolidButton href="https://nitro.chillicream.com">
           Start for Free
         </SolidButton>
-        <OutlineButton href="/services/support/contact">
+        <OutlineButton href="/services/support/contact?subject=Sales">
           Talk to Sales
         </OutlineButton>
       </div>

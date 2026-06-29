@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type FormEvent } from "react";
+import { useState, useSyncExternalStore, type FormEvent } from "react";
 import { SolidButton } from "@/src/design-system/Button";
 import { Dropdown, DropdownItem } from "@/src/design-system/Dropdown";
 import { Input } from "@/src/design-system/Input";
@@ -23,19 +23,15 @@ interface FormData {
   name: string;
   email: string;
   company: string;
-  subject: string;
   message: string;
 }
 
 type FormErrors = Partial<Record<"name" | "email" | "company", string>>;
 
-// Subject starts empty so the prerendered HTML and the first client render
-// agree (no hydration mismatch). It is populated from the URL after mount.
 const INITIAL: FormData = {
   name: "",
   email: "",
   company: "",
-  subject: "",
   message: "",
 };
 
@@ -49,18 +45,23 @@ function resolveSubject(subject: string | null): string {
   return match ?? SUBJECTS[0];
 }
 
+const subscribe = () => () => {};
+const getSubjectFromUrl = () =>
+  resolveSubject(new URLSearchParams(window.location.search).get("subject"));
+const getServerSubject = () => "";
+
 export function ContactForm() {
   const [data, setData] = useState<FormData>(INITIAL);
   const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Resolve the subject from the `subject` query param once mounted. Reading it
-  // during render would diverge from the static HTML and break hydration.
-  useEffect(() => {
-    const subject = new URLSearchParams(window.location.search).get("subject");
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- syncing from a browser-only value on mount
-    setData((prev) => ({ ...prev, subject: resolveSubject(subject) }));
-  }, []);
+  const urlSubject = useSyncExternalStore(
+    subscribe,
+    getSubjectFromUrl,
+    getServerSubject,
+  );
+  const [selectedSubject, setSelectedSubject] = useState<string | null>(null);
+  const subject = selectedSubject ?? urlSubject;
 
   function update<K extends keyof FormData>(field: K, value: FormData[K]) {
     setData((prev) => ({ ...prev, [field]: value }));
@@ -105,7 +106,7 @@ export function ContactForm() {
           Name: data.name,
           Email: data.email,
           Company: data.company,
-          SupportPlan: data.subject,
+          SupportPlan: subject,
           Message: data.message,
         }),
       });
@@ -115,7 +116,7 @@ export function ContactForm() {
       }
 
       window.gtag?.("event", "contact_form_submit", {
-        event_label: data.subject,
+        event_label: subject,
         page_path: window.location.pathname,
       });
 
@@ -168,19 +169,15 @@ export function ContactForm() {
         className={isSubmitting ? "pointer-events-none opacity-60" : undefined}
         panelClassName="p-1"
         trigger={
-          <span className="text-cc-ink text-sm">
-            {/* Blank until the subject is resolved from the URL after mount, so
-                no placeholder text flashes before the real value appears. */}
-            {data.subject || "\u00A0"}
-          </span>
+          <span className="text-cc-ink text-sm">{subject || "\u00A0"}</span>
         }
       >
         <ul className="m-0 flex list-none flex-col p-0">
           {SUBJECTS.map((s) => (
             <DropdownItem
               key={s}
-              active={s === data.subject}
-              onClick={() => update("subject", s)}
+              active={s === subject}
+              onClick={() => setSelectedSubject(s)}
             >
               {s}
             </DropdownItem>
