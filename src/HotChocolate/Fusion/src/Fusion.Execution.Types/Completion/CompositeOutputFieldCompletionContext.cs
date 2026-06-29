@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using HotChocolate.Features;
 using HotChocolate.Fusion.Types.Collections;
 using HotChocolate.Types;
@@ -9,6 +10,7 @@ internal readonly ref struct CompositeOutputFieldCompletionContext(
     FusionDirectiveCollection directives,
     IOutputType type,
     SourceObjectFieldCollection sources,
+    ImmutableArray<PolicyApplication> policyApplications,
     IFeatureCollection features)
 {
     public FusionComplexTypeDefinition DeclaringType { get; } = declaringType;
@@ -18,6 +20,8 @@ internal readonly ref struct CompositeOutputFieldCompletionContext(
     public IOutputType Type { get; } = type;
 
     public SourceObjectFieldCollection Sources { get; } = sources;
+
+    public ImmutableArray<PolicyApplication> PolicyApplications { get; } = policyApplications;
 
     public IFeatureCollection Features { get; } = features;
 }

@@ -688,12 +688,14 @@ internal static class CompositeSchemaBuilder
         var directives = CompletionTools.CreateDirectiveCollection(typeDef.Directives, context);
         var interfaces = CompletionTools.CreateInterfaceTypeCollection(typeDef.Interfaces, context);
         var sources = CompletionTools.CreateSourceObjectTypeCollection(typeDef, context);
+        var policyApplications = ParseFusionPolicyDirectives(typeDef.Directives);
 
         type.Complete(
             new CompositeObjectTypeCompletionContext(
                 directives,
                 interfaces,
                 sources,
+                policyApplications,
                 FeatureCollection.Empty));
     }
 
@@ -756,6 +758,7 @@ internal static class CompositeSchemaBuilder
         var directives = CompletionTools.CreateDirectiveCollection(fieldDef.Directives, context);
         var type = context.GetType(fieldDef.Type).ExpectOutputType();
         var sources = BuildSourceOutputFieldCollection(declaringType.Name, fieldDefinition, fieldDef, context);
+        var policyApplications = ParseFusionPolicyDirectives(fieldDef.Directives);
         var features = FeatureCollection.Empty;
 
         context.Interceptor.OnCompleteOutputField(
@@ -771,7 +774,86 @@ internal static class CompositeSchemaBuilder
                 directives,
                 type,
                 sources,
+                policyApplications,
                 features));
+    }
+
+    private static ImmutableArray<PolicyApplication> ParseFusionPolicyDirectives(
+        IReadOnlyList<DirectiveNode> directives)
+    {
+        ImmutableArray<PolicyApplication>.Builder? applications = null;
+
+        foreach (var directive in directives)
+        {
+            if (!directive.Name.Value.Equals(FusionBuiltIns.Policy, StringComparison.Ordinal))
+            {
+                continue;
+            }
+
+            applications ??= ImmutableArray.CreateBuilder<PolicyApplication>();
+            applications.Add(ParseFusionPolicyDirective(directive));
+        }
+
+        if (applications is null)
+        {
+            return default;
+        }
+
+        return applications.ToImmutable();
+    }
+
+    private static PolicyApplication ParseFusionPolicyDirective(DirectiveNode directive)
+    {
+        string? name = null;
+        var onDenied = PolicyDenialBehavior.Null;
+
+        foreach (var argument in directive.Arguments)
+        {
+            switch (argument.Name.Value)
+            {
+                case "name":
+                    name = argument.Value is StringValueNode stringValue
+                        ? stringValue.Value
+                        : throw new InvalidOperationException(
+                            "The `name` argument on @fusion__policy must be a string.");
+                    break;
+
+                case "onDenied":
+                    onDenied = argument.Value is EnumValueNode enumValue
+                        ? ParsePolicyDenialBehavior(enumValue.Value)
+                        : throw new InvalidOperationException(
+                            "The `onDenied` argument on @fusion__policy must be an enum value.");
+                    break;
+
+                default:
+                    throw new InvalidOperationException(
+                        $"The argument `{argument.Name.Value}` is not supported on @fusion__policy.");
+            }
+        }
+
+        if (name is null)
+        {
+            throw new InvalidOperationException(
+                "The `name` argument is required on the @fusion__policy directive.");
+        }
+
+        return new PolicyApplication
+        {
+            Name = name,
+            OnDenied = onDenied
+        };
+    }
+
+    private static PolicyDenialBehavior ParsePolicyDenialBehavior(string value)
+    {
+        return value switch
+        {
+            "NULL" => PolicyDenialBehavior.Null,
+            "ERROR" => PolicyDenialBehavior.Error,
+            "ABORT" => PolicyDenialBehavior.Abort,
+            _ => throw new InvalidOperationException(
+                $"The value `{value}` is not supported by @fusion__policy onDenied.")
+        };
     }
 
     private static SourceObjectFieldCollection BuildSourceOutputFieldCollection(

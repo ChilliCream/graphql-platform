@@ -16,6 +16,7 @@ internal static class FusionBuiltIns
     public const string InputField = "fusion__inputField";
     public const string Requires = "fusion__requires";
     public const string Lookup = "fusion__lookup";
+    public const string Policy = "fusion__policy";
     public const string Implements = "fusion__implements";
     public const string UnionMember = "fusion__unionMember";
     public const string EnumValue = "fusion__enumValue";
