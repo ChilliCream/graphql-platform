@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useState, useSyncExternalStore, type FormEvent } from "react";
 import { SolidButton } from "@/src/design-system/Button";
 import { Dropdown, DropdownItem } from "@/src/design-system/Dropdown";
 import { Input } from "@/src/design-system/Input";
@@ -23,7 +23,6 @@ interface FormData {
   name: string;
   email: string;
   company: string;
-  subject: string;
   message: string;
 }
 
@@ -33,14 +32,36 @@ const INITIAL: FormData = {
   name: "",
   email: "",
   company: "",
-  subject: SUBJECTS[0],
   message: "",
 };
+
+function resolveSubject(subject: string | null): string {
+  if (!subject) {
+    return SUBJECTS[0];
+  }
+
+  const match = SUBJECTS.find((s) => s.toLowerCase() === subject.toLowerCase());
+
+  return match ?? SUBJECTS[0];
+}
+
+const subscribe = () => () => {};
+const getSubjectFromUrl = () =>
+  resolveSubject(new URLSearchParams(window.location.search).get("subject"));
+const getServerSubject = () => "";
 
 export function ContactForm() {
   const [data, setData] = useState<FormData>(INITIAL);
   const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const urlSubject = useSyncExternalStore(
+    subscribe,
+    getSubjectFromUrl,
+    getServerSubject,
+  );
+  const [selectedSubject, setSelectedSubject] = useState<string | null>(null);
+  const subject = selectedSubject ?? urlSubject;
 
   function update<K extends keyof FormData>(field: K, value: FormData[K]) {
     setData((prev) => ({ ...prev, [field]: value }));
@@ -85,7 +106,7 @@ export function ContactForm() {
           Name: data.name,
           Email: data.email,
           Company: data.company,
-          SupportPlan: data.subject,
+          SupportPlan: subject,
           Message: data.message,
         }),
       });
@@ -95,7 +116,7 @@ export function ContactForm() {
       }
 
       window.gtag?.("event", "contact_form_submit", {
-        event_label: data.subject,
+        event_label: subject,
         page_path: window.location.pathname,
       });
 
@@ -147,14 +168,16 @@ export function ContactForm() {
         label="Subject"
         className={isSubmitting ? "pointer-events-none opacity-60" : undefined}
         panelClassName="p-1"
-        trigger={<span className="text-cc-ink text-sm">{data.subject}</span>}
+        trigger={
+          <span className="text-cc-ink text-sm">{subject || "\u00A0"}</span>
+        }
       >
         <ul className="m-0 flex list-none flex-col p-0">
           {SUBJECTS.map((s) => (
             <DropdownItem
               key={s}
-              active={s === data.subject}
-              onClick={() => update("subject", s)}
+              active={s === subject}
+              onClick={() => setSelectedSubject(s)}
             >
               {s}
             </DropdownItem>

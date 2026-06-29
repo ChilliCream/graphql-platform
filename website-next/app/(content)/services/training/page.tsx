@@ -61,7 +61,7 @@ export default function TrainingPage() {
               perks={service.perks}
               callToAction={{
                 title: "Talk to us",
-                link: `mailto:contact@chillicream.com?subject=${service.kind}`,
+                link: "/services/support/contact?subject=Sales",
               }}
             />
           ))}

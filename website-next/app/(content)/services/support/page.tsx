@@ -40,7 +40,7 @@ const SUPPORT_PLANS = [
     perks: ["Private Slack Channel", "2 critical incidents"],
     callToAction: {
       title: "Contact Us",
-      link: "/services/support/contact?plan=Startup",
+      link: "/services/support/contact?subject=Pricing+%26+Plans",
     },
   },
   {
@@ -56,7 +56,7 @@ const SUPPORT_PLANS = [
     ],
     callToAction: {
       title: "Contact Us",
-      link: "/services/support/contact?plan=Business",
+      link: "/services/support/contact?subject=Pricing+%26+Plans",
     },
   },
   {
@@ -74,7 +74,7 @@ const SUPPORT_PLANS = [
     ],
     callToAction: {
       title: "Contact Us",
-      link: "/services/support/contact?plan=Enterprise",
+      link: "/services/support/contact?subject=Pricing+%26+Plans",
     },
   },
 ];

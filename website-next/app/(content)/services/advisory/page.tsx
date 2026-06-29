@@ -31,7 +31,7 @@ const PLANS: InquiryPlan[] = [
       "Best practices education",
     ],
     ctaText: "Talk to an Expert",
-    ctaLink: "mailto:contact@chillicream.com?subject=Consulting",
+    ctaLink: "/services/support/contact?subject=Technical+Support",
   },
   {
     title: "Contracting",
@@ -39,7 +39,7 @@ const PLANS: InquiryPlan[] = [
       "Options for teams who don't have the time, bandwidth, and/or expertise to implement their own GraphQL solutions.",
     features: ["Proof of concept", "Implementation"],
     ctaText: "Talk to an Expert",
-    ctaLink: "mailto:contact@chillicream.com?subject=Contracting",
+    ctaLink: "/services/support/contact?subject=Technical+Support",
   },
 ];
 
