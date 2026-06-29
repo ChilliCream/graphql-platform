@@ -489,6 +489,9 @@
   <data name="LookupMutableDirectiveDefinition_Description" xml:space="preserve">
     <value>The @lookup directive is used within a source schema to specify output fields that can be used by the distributed GraphQL executor to resolve an entity by a stable key.</value>
   </data>
+  <data name="OptInFeatureStabilityDirective_Arguments_Invalid" xml:space="preserve">
+    <value>The @optInFeatureStability directive must have a 'feature' argument and a 'stability' argument, both of type String.</value>
+  </data>
   <data name="OverrideMutableDirectiveDefinition_Argument_From_Description" xml:space="preserve">
     <value>The name of the source schema that originally provided this field.</value>
   </data>
@@ -536,6 +539,9 @@
   </data>
   <data name="RequireMutableDirectiveDefinition_Description" xml:space="preserve">
     <value>The @require directive is used to express data requirements with other source schemas.</value>
+  </data>
+  <data name="RequiresOptInDirective_FeatureArgument_Invalid" xml:space="preserve">
+    <value>The @requiresOptIn directive must have a 'feature' argument of type String.</value>
   </data>
   <data name="SatisfiabilityValidator_CycleDetected" xml:space="preserve">
     <value>Cycle detected: {0} -&gt; {1}.</value>

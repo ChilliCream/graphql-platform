@@ -1484,6 +1484,15 @@ namespace HotChocolate.Fusion.Properties {
         }
 
         /// <summary>
+        ///   Looks up a localized string similar to The @optInFeatureStability directive must have a &apos;feature&apos; argument and a &apos;stability&apos; argument, both of type String..
+        /// </summary>
+        internal static string OptInFeatureStabilityDirective_Arguments_Invalid {
+            get {
+                return ResourceManager.GetString("OptInFeatureStabilityDirective_Arguments_Invalid", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to The name of the source schema that originally provided this field..
         /// </summary>
         internal static string OverrideMutableDirectiveDefinition_Argument_From_Description {
@@ -1624,6 +1633,15 @@ namespace HotChocolate.Fusion.Properties {
         internal static string RequireMutableDirectiveDefinition_Description {
             get {
                 return ResourceManager.GetString("RequireMutableDirectiveDefinition_Description", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The @requiresOptIn directive must have a &apos;feature&apos; argument of type String..
+        /// </summary>
+        internal static string RequiresOptInDirective_FeatureArgument_Invalid {
+            get {
+                return ResourceManager.GetString("RequiresOptInDirective_FeatureArgument_Invalid", resourceCulture);
             }
         }
 
