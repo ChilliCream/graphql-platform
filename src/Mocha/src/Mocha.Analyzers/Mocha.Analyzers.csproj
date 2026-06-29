@@ -29,4 +29,8 @@
       <TfmSpecificPackageFile Include="$(OutputPath)*.dll" PackagePath="analyzers/dotnet/cs" />
     </ItemGroup>
   </Target>
+
+  <ItemGroup>
+    <None Include="buildTransitive\Mocha.Analyzers.props" Pack="true" PackagePath="buildTransitive" Visible="false" />
+  </ItemGroup>
 </Project>

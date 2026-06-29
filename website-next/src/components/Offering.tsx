@@ -3,6 +3,11 @@ import type { ComponentType, CSSProperties } from "react";
 import { OutlineButton, SolidButton } from "@/src/design-system/Button";
 
 import { CheckIcon } from "./CheckIcon";
+import { PopularBadge } from "./PopularBadge";
+
+// Rainbow accent gradient for the popular card's border.
+const RING_GRADIENT =
+  "linear-gradient(140deg, #16b9e4 0%, #7c92c6 50%, #f0786a 100%)";
 
 interface OfferingProps {
   readonly title: string;
@@ -41,14 +46,23 @@ export function Offering({
   // must match the number of section cells rendered.
   const rowCount = 2 + (Icon ? 1 : 0) + (description ? 1 : 0) + (price ? 1 : 0);
 
+  // The popular card gets a rainbow gradient border (the gradient paints the
+  // border-box layer, the opaque surface fill paints the padding-box layer on
+  // top), so the rainbow shows only on the edge and the interior stays solid.
+  const cardStyle: CSSProperties = popular
+    ? {
+        gridRow: `span ${rowCount}`,
+        border: "1.5px solid transparent",
+        background: `linear-gradient(var(--color-cc-surface), var(--color-cc-surface)) padding-box, ${RING_GRADIENT} border-box`,
+      }
+    : { gridRow: `span ${rowCount}` };
+
   return (
     <div
-      className={`relative grid h-full grid-rows-subgrid gap-0 rounded-3xl border p-6 sm:p-7 ${
-        popular
-          ? "bg-cc-card-bg border-cc-accent"
-          : "border-cc-card-border bg-cc-card-bg/60"
+      className={`relative grid h-full grid-rows-subgrid gap-0 rounded-3xl p-6 sm:p-7 ${
+        popular ? "" : "border-cc-card-border bg-cc-card-bg/60 border"
       }`}
-      style={{ gridRow: `span ${rowCount}` }}
+      style={cardStyle}
     >
       {popular && <PopularBadge />}
 
@@ -110,45 +124,5 @@ function Dots({ className = "" }: { readonly className?: string }) {
       aria-hidden="true"
       className={`border-cc-ink-faint my-5 border-t border-dashed ${className}`}
     />
-  );
-}
-
-const RING_COLOR = "var(--color-cc-accent)";
-
-const HEX_CLIP =
-  "polygon(0 50%, var(--t) 0, calc(100% - var(--t)) 0, 100% 50%, calc(100% - var(--t)) 100%, var(--t) 100%)";
-
-const hairline = (dir: string) =>
-  `linear-gradient(to ${dir}, transparent calc(50% - 0.6px), ${RING_COLOR} calc(50% - 0.6px), ${RING_COLOR} calc(50% + 0.6px), transparent calc(50% + 0.6px))`;
-
-const BADGE_OUTLINE = [
-  `linear-gradient(${RING_COLOR}, ${RING_COLOR}) center top / calc(100% - var(--t) * 2) 1px no-repeat`,
-  `linear-gradient(${RING_COLOR}, ${RING_COLOR}) center bottom / calc(100% - var(--t) * 2) 1px no-repeat`,
-  `${hairline("top left")} left top / var(--t) 50% no-repeat`,
-  `${hairline("bottom left")} left bottom / var(--t) 50% no-repeat`,
-  `${hairline("top right")} right top / var(--t) 50% no-repeat`,
-  `${hairline("bottom right")} right bottom / var(--t) 50% no-repeat`,
-].join(", ");
-
-function PopularBadge() {
-  return (
-    <span
-      className="absolute top-0 left-1/2 inline-grid -translate-x-1/2 -translate-y-1/2"
-      style={{ "--t": "13px" } as CSSProperties}
-    >
-      <span
-        aria-hidden="true"
-        className="bg-cc-surface relative z-0 [grid-area:1/1]"
-        style={{ clipPath: HEX_CLIP }}
-      />
-      <span
-        aria-hidden="true"
-        className="relative z-10 [grid-area:1/1]"
-        style={{ background: BADGE_OUTLINE }}
-      />
-      <span className="text-cc-heading relative z-20 px-7 py-2 font-mono text-[0.65rem] tracking-[0.15em] whitespace-nowrap uppercase [grid-area:1/1]">
-        Most Popular
-      </span>
-    </span>
   );
 }
