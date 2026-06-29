@@ -1,5 +1,5 @@
 ---
-title: client
+title: client Command
 ---
 
 The `nitro client` commands manage clients of an API. A client is a registered consumer of a GraphQL API (for example a web app, a mobile app, or another service) along with the set of operations it sends.
@@ -254,10 +254,12 @@ nitro client list versions --client-id "<client-id>"
 
 # `nitro client list published-versions`
 
-List only the versions of a client that are currently published to at least one stage.
+List the versions of a client that are currently published to a given stage.
 
 ```shell
-nitro client list published-versions --client-id "<client-id>"
+nitro client list published-versions \
+  --client-id "<client-id>" \
+  --stage "dev"
 ```
 
 ## Options
@@ -265,6 +267,7 @@ nitro client list published-versions --client-id "<client-id>"
 | Option                    | Env               | Description                                                          |
 | ------------------------- | ----------------- | -------------------------------------------------------------------- |
 | `--client-id <client-id>` | `NITRO_CLIENT_ID` | ID of the client. Required when running non-interactively.           |
+| `--stage <stage>`         | `NITRO_STAGE`     | Name of the stage to list published versions for. Required.          |
 | `--cursor <cursor>`       | `NITRO_CURSOR`    | Pagination cursor to resume from. Useful for non-interactive paging. |
 
 # `nitro client show`

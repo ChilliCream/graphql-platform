@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using Microsoft.AspNetCore.Http;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Language.Utilities;
@@ -37,12 +38,15 @@ internal abstract class ExecuteRequestSpanBase(
             Activity.SetTag(GraphQL.Processing.Type, GraphQL.Processing.TypeValues.Request);
         }
 
+        EnrichServerAttributes();
+
         string? operationTypeValue = null;
-        string? operationName = null;
-        if (TryGetOperationInfo(out var operationType, out operationName))
+        if (TryGetOperationInfo(out var operationType, out var operationName))
         {
             operationTypeValue = GraphQL.Operation.TypeValues[operationType];
-            Activity.DisplayName = operationTypeValue;
+            Activity.DisplayName = options.IncludeOperationNameInSpanName && !string.IsNullOrEmpty(operationName)
+                ? $"{operationTypeValue} {operationName}"
+                : operationTypeValue;
             Activity.EnrichOperation(operationType, operationName);
         }
 
@@ -62,7 +66,7 @@ internal abstract class ExecuteRequestSpanBase(
                 Activity.SetTag(GraphQL.Error.Count, result.Errors.Count);
             }
 
-            EmitErrorEvents(result.Errors, operationTypeValue, operationName);
+            EmitErrorEvents(result.Errors, operationTypeValue, operationName, documentInfo);
         }
 
         if (Context.Result is null or OperationResult { Errors: [_, ..] })
@@ -86,10 +90,41 @@ internal abstract class ExecuteRequestSpanBase(
         enricher.EnrichExecuteRequest(Context, Activity);
     }
 
+    private void EnrichServerAttributes()
+    {
+        if (!Context.Features.TryGet<HttpContext>(out var httpContext))
+        {
+            return;
+        }
+
+        var request = httpContext.Request;
+        if (!request.Host.HasValue)
+        {
+            return;
+        }
+
+        if (!string.IsNullOrEmpty(request.Host.Host)
+            && Activity.GetTagItem(Server.Address) is null)
+        {
+            Activity.SetTag(Server.Address, request.Host.Host);
+        }
+
+        if (request.Host.Port is { } port
+            && Activity.GetTagItem(Server.Port) is null)
+        {
+            var defaultPort = request.IsHttps ? 443 : 80;
+            if (port != defaultPort)
+            {
+                Activity.SetTag(Server.Port, port);
+            }
+        }
+    }
+
     private void EmitErrorEvents(
         IReadOnlyList<IError> errors,
         string? operationType,
-        string? operationName)
+        string? operationName,
+        OperationDocumentInfo documentInfo)
     {
         var maxEvents = options.MaxErrorEvents;
         if (maxEvents <= 0 || errors.Count == 0)
@@ -100,7 +135,11 @@ internal abstract class ExecuteRequestSpanBase(
         var limit = errors.Count < maxEvents ? errors.Count : maxEvents;
         for (var i = 0; i < limit; i++)
         {
-            Activity.AddGraphQLErrorEvent(errors[i], operationType, operationName);
+            Activity.AddGraphQLErrorEvent(
+                errors[i],
+                operationType,
+                operationName,
+                documentInfo: documentInfo);
         }
     }
 }

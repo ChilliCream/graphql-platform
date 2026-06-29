@@ -45,7 +45,7 @@ internal sealed class DeleteStageCommand : Command
         parseResult.AssertHasAuthentication(sessionService);
 
         var apiId = await console.GetOrPromptForApiIdAsync(
-            "For which API do you want to force delete a stage?",
+            Prompts.SelectApiForForceDeleteStage,
             parseResult,
             apisClient,
             sessionService,
@@ -57,7 +57,7 @@ internal sealed class DeleteStageCommand : Command
         if (!force)
         {
             var confirmed = await console.ConfirmAsync(
-                $"Do you really want to force delete stage {stageName.AsHighlight()}",
+                Prompts.ConfirmDeleteStage(stageName.AsHighlight()),
                 cancellationToken);
 
             if (!confirmed)

@@ -125,7 +125,7 @@
               "tags": [
                 {
                   "Key": "graphql.processing.type",
-                  "Value": "execute"
+                  "Value": "subscription_event"
                 },
                 {
                   "Key": "graphql.operation.type",
@@ -173,6 +173,10 @@
                       "Value": "OnFailingMessageSubscription"
                     },
                     {
+                      "Key": "graphql.document.hash",
+                      "Value": "md5:1f38a1bfe720ad0cb6083bf8b309d3aa"
+                    },
+                    {
                       "Key": "exception.type",
                       "Value": "System.InvalidOperationException"
                     },
@@ -182,7 +186,7 @@
                     },
                     {
                       "Key": "exception.stacktrace",
-                      "Value": "System.InvalidOperationException: Subscription event failed.\n   at HotChocolate.Diagnostics.ActivityExecutionDiagnosticListenerTests.SimpleSubscription.OnFailingMessage(String message) in ActivityExecutionDiagnosticListenerTests.cs\n   at lambda_method(Closure, IResolverContext)\n   at HotChocolate.Types.Helpers.FieldMiddlewareCompiler.<>c__DisplayClass9_0.<<CreateResolverMiddleware>b__0>d.MoveNext() in FieldMiddlewareCompiler.cs\n--- End of stack trace from previous location ---\n   at HotChocolate.Execution.Processing.Tasks.ResolverTask.ExecuteResolverPipelineAsync(CancellationToken cancellationToken) in ResolverTask.Execute.cs\n   at HotChocolate.Execution.Processing.Tasks.ResolverTask.TryExecuteAsync(CancellationToken cancellationToken) in ResolverTask.Execute.cs"
+                      "Value": "System.InvalidOperationException: Subscription event failed.\n   at HotChocolate.Diagnostics.ActivityExecutionDiagnosticListenerTests.SimpleSubscription.OnFailingMessage(String message) in ActivityExecutionDiagnosticListenerTests.cs\n   at lambda_method(Closure, IResolverContext)\n   at HotChocolate.Types.Helpers.FieldMiddlewareCompiler.<>c__DisplayClass9_0.<<CreateResolverMiddleware>b__0>d.MoveNext() in FieldMiddlewareCompiler.cs\n   at HotChocolate.Execution.Processing.Tasks.ResolverTask.ExecuteResolverPipelineAsync(CancellationToken cancellationToken) in ResolverTask.Execute.cs\n   at HotChocolate.Execution.Processing.Tasks.ResolverTask.TryExecuteAsync(CancellationToken cancellationToken) in ResolverTask.Execute.cs"
                     }
                   ]
                 }

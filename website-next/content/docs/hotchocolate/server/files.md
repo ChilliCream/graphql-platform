@@ -1,5 +1,6 @@
 ---
 title: Files
+description: "Approaches for handling file uploads and downloads in Hot Chocolate: the Upload scalar with multipart requests, presigned upload URLs, and serving files."
 ---
 
 Handling files is traditionally not a concern of a GraphQL server, which is also why the [GraphQL over HTTP](https://github.com/graphql/graphql-over-http/blob/main/spec/GraphQLOverHTTP.md) specification does not mention it.
@@ -23,7 +24,7 @@ This has a couple of downsides:
 
 Hot Chocolate implements the [GraphQL multipart request specification](https://github.com/jaydenseric/graphql-multipart-request-spec) which adds a new `Upload` scalar and lets your GraphQL server handle file upload streams.
 
-https://youtu.be/XeF3IuGDq4A
+[Watch the video on YouTube](https://www.youtube.com/watch?v=XeF3IuGDq4A)
 
 > [!WARNING]
 > Files cannot yet be uploaded through a gateway to stitched services using the `Upload` scalar.
@@ -97,7 +98,7 @@ Take a look at the implementation-first or code-first example.
 </Schema>
 </ExampleTabs>
 
-[Learn more about arguments](../building-a-schema/arguments.md)
+[Learn more about arguments](../defining-a-schema/arguments.md)
 
 In input object types you can use it as follows:
 
@@ -138,15 +139,15 @@ Take a look at the implementation-first or code-first example.
 </Schema>
 </ExampleTabs>
 
-[Learn more about input object types](../building-a-schema/input-object-types.md)
+[Learn more about input object types](../defining-a-schema/input-object-types.md)
 
 If you need to upload a list of files, use a `List<IFile>` or `ListType<UploadType>`.
 
-[Learn more about lists](../building-a-schema/lists.md)
+[Learn more about lists](../defining-a-schema/lists.md)
 
 ### UploadValueNode
 
-In v16, the upload literal node was renamed from `FileValueNode` to `UploadValueNode`. If you reference this type in custom scalar logic or tests, update your code:
+The upload literal node is called `UploadValueNode`. If you reference this type in custom scalar logic or tests, use the following pattern:
 
 ```csharp
 if (valueLiteral is UploadValueNode uploadValue)
@@ -187,9 +188,11 @@ curl localhost:5000/graphql \
 
 ```
 
-> Note 1: The `$file` variable is intentionally `null`. Hot Chocolate fills it in on the server.
+> [!NOTE]
+> The `$file` variable is intentionally `null`. Hot Chocolate fills it in on the server.
 
-> Note 2: The `GraphQL-preflight: 1` HTTP header is required since version 13.2 for security reasons.
+> [!NOTE]
+> The `GraphQL-preflight: 1` HTTP header is required since version 13.2 for security reasons.
 
 [More examples can be found here](https://github.com/jaydenseric/graphql-multipart-request-spec#examples)
 
@@ -326,6 +329,6 @@ If you are using a cloud provider for file storage, you are likely already acces
 
 # Next Steps
 
-- [Arguments](../building-a-schema/arguments.md) for details on defining input arguments.
-- [Input Object Types](../building-a-schema/input-object-types.md) for defining complex input types.
+- [Arguments](../defining-a-schema/arguments.md) for details on defining input arguments.
+- [Input Object Types](../defining-a-schema/input-object-types.md) for defining complex input types.
 - [Migrate from v15 to v16](../migrating/migrate-from-15-to-16.md#filevaluenode-renamed-to-uploadvaluenode) for the `FileValueNode` rename details.

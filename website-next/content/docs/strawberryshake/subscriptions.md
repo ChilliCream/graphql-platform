@@ -1,5 +1,6 @@
 ---
 title: "Subscriptions"
+description: "Use GraphQL subscriptions in Strawberry Shake over WebSockets: configure `ConfigureWebSocketClient` and consume real-time results with `Watch()`."
 ---
 
 > We are still working on the documentation for Strawberry Shake, so help us by finding typos, missing things, or write some additional docs with us.
@@ -91,7 +92,6 @@ An example implementation of this approach can be found in the [Hot Chocolate Ex
    Request a token from your `/token` endpoint. This endpoint should return a valid JWT that is trusted by your API.
 
 3. **Configure Nitro**
-
    - In Nitro, open the **Settings** of your document / api.
    - Under **Authentication**, choose **Bearer Token** and paste your JWT.
    - Nitro will automatically include the token in the `connection_init` message under an `authorization` parameter when opening a WebSocket connection.

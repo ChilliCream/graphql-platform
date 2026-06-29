@@ -1,6 +1,7 @@
 using System.Text;
 using HotChocolate.Fusion.Logging;
 using HotChocolate.Fusion.Options;
+using HotChocolate.Fusion.Results;
 using static HotChocolate.Fusion.CompositionTestHelper;
 
 namespace HotChocolate.Fusion;
@@ -62,6 +63,7 @@ public sealed class SatisfiabilityValidatorTests
 
         // assert
         Assert.True(result.IsFailure);
+        Assert.All(log, e => Assert.Equal(LogEntryCodes.UnsatisfiableQueryPath, e.Code));
         string.Join("\n\n", log.Select(e => e.Message)).MatchInlineSnapshot(
             """
             Unable to access the field 'User.membershipStatus' on path 'A:Query.profileById<Profile> -> A:Profile.user<User>'.
@@ -119,6 +121,7 @@ public sealed class SatisfiabilityValidatorTests
 
         // assert
         Assert.True(result.IsFailure);
+        Assert.All(log, e => Assert.Equal(LogEntryCodes.UnsatisfiableQueryPath, e.Code));
         string.Join("\n\n", log.Select(e => e.Message)).MatchInlineSnapshot(
             """
             Unable to access the field 'Product.sku' on path 'B:Query.productById<Product>'.
@@ -179,6 +182,7 @@ public sealed class SatisfiabilityValidatorTests
 
         // assert
         Assert.True(result.IsFailure);
+        Assert.All(log, e => Assert.Equal(LogEntryCodes.UnsatisfiableQueryPath, e.Code));
         string.Join("\n\n", log.Select(e => e.Message)).MatchInlineSnapshot(
             """
             Unable to access the field 'Product.sku' on path 'A:Query.productById<Product>'.
@@ -267,6 +271,393 @@ public sealed class SatisfiabilityValidatorTests
     }
 
     [Fact]
+    public void Validate_Should_Fail_When_EventStreamMessageOmitsLookupKey()
+    {
+        // arrange
+        var (result, log) = ValidateSatisfiability(
+        [
+            """
+            # Schema Events
+            type Subscription {
+                bookChanged: Book
+                    @eventStream(topics: ["book.changed"], message: "{ __typename }")
+            }
+
+            type Book {
+                id: ID! @shareable
+            }
+            """,
+            """
+            # Schema Books
+            type Query {
+                bookById(id: ID!): Book @lookup
+            }
+
+            type Book {
+                id: ID! @shareable
+                title: String!
+            }
+            """
+        ]);
+
+        // assert
+        Assert.True(result.IsFailure);
+        Assert.All(log, e => Assert.Equal(LogEntryCodes.UnsatisfiableQueryPath, e.Code));
+        string.Join("\n\n", log.Select(e => e.Message)).MatchInlineSnapshot(
+            """
+            Unable to access the field 'Book.id' on path 'A:Subscription.bookChanged<Book>'.
+              Unable to transition between schemas 'A' and 'B' for access to field 'B:Book.id<ID>'.
+                Unable to satisfy the requirement '{ id }' for lookup 'bookById' in schema 'B'.
+                  Unable to satisfy the requirement 'id'.
+                    Unable to access the required field 'Book.id' on path 'A:Subscription.bookChanged<Book>'.
+                      No other schemas contain the field 'Book.id'.
+
+            Unable to access the field 'Book.title' on path 'A:Subscription.bookChanged<Book>'.
+              Unable to transition between schemas 'A' and 'B' for access to field 'B:Book.title<String>'.
+                Unable to satisfy the requirement '{ id }' for lookup 'bookById' in schema 'B'.
+                  Unable to satisfy the requirement 'id'.
+                    Unable to access the required field 'Book.id' on path 'A:Subscription.bookChanged<Book>'.
+                      No other schemas contain the field 'Book.id'.
+            """);
+    }
+
+    [Fact]
+    public void Validate_Should_Succeed_When_EventStreamMessageProvidesLookupKey()
+    {
+        // arrange
+        var (result, log) = ValidateSatisfiability(
+        [
+            """
+            # Schema Events
+            type Subscription {
+                bookChanged: Book
+                    @eventStream(topics: ["book.changed"], message: "{ id }")
+            }
+
+            type Book {
+                id: ID! @shareable
+            }
+            """,
+            """
+            # Schema Books
+            type Query {
+                bookById(id: ID!): Book @lookup
+            }
+
+            type Book {
+                id: ID! @shareable
+                title: String!
+            }
+            """
+        ]);
+
+        // assert
+        Assert.True(result.IsSuccess);
+        Assert.True(log.IsEmpty);
+    }
+
+    [Fact]
+    public void Validate_Should_Succeed_When_CursorFieldProvidedByEventCursor()
+    {
+        // arrange
+        var (result, log) = ValidateSatisfiability(
+        [
+            """
+            # Schema Events
+            type Query {
+                version: String
+            }
+
+            type Subscription {
+                bookChanged: BookChangedEvent
+                    @eventStream(topics: ["book.changed"], message: "{ id title }")
+            }
+
+            type BookChangedEvent {
+                id: ID!
+                title: String!
+                cursor: String @eventCursor
+            }
+            """
+        ]);
+
+        // assert
+        Assert.True(result.IsSuccess);
+        Assert.True(log.IsEmpty);
+    }
+
+    [Fact]
+    public void Validate_Should_Fail_When_EventStreamMessageOmitsNestedLookupKey()
+    {
+        // arrange
+        var (result, log) = ValidateSatisfiability(
+        [
+            """
+            # Schema Events
+            type Subscription {
+                reviewChanged: Review
+                    @eventStream(
+                        topics: ["review.changed"]
+                        message: "{ product { __typename } }"
+                    )
+            }
+
+            type Review {
+                product: Product!
+            }
+
+            type Product {
+                id: ID! @shareable
+            }
+            """,
+            """
+            # Schema Products
+            type Query {
+                productById(id: ID!): Product @lookup
+            }
+
+            type Product {
+                id: ID! @shareable
+                title: String!
+            }
+            """
+        ]);
+
+        // assert
+        Assert.True(result.IsFailure);
+        Assert.All(log, e => Assert.Equal(LogEntryCodes.UnsatisfiableQueryPath, e.Code));
+        string.Join("\n\n", log.Select(e => e.Message)).MatchInlineSnapshot(
+            """
+            Unable to access the field 'Product.id' on path 'A:Subscription.reviewChanged<Review> -> A:Review.product<Product>'.
+              Unable to transition between schemas 'A' and 'B' for access to field 'B:Product.id<ID>'.
+                Unable to satisfy the requirement '{ id }' for lookup 'productById' in schema 'B'.
+                  Unable to satisfy the requirement 'id'.
+                    Unable to access the required field 'Product.id' on path 'A:Review.product<Product>'.
+                      No other schemas contain the field 'Product.id'.
+
+            Unable to access the field 'Product.title' on path 'A:Subscription.reviewChanged<Review> -> A:Review.product<Product>'.
+              Unable to transition between schemas 'A' and 'B' for access to field 'B:Product.title<String>'.
+                Unable to satisfy the requirement '{ id }' for lookup 'productById' in schema 'B'.
+                  Unable to satisfy the requirement 'id'.
+                    Unable to access the required field 'Product.id' on path 'A:Review.product<Product>'.
+                      No other schemas contain the field 'Product.id'.
+            """);
+    }
+
+    [Fact]
+    public void Validate_Should_Succeed_When_EventStreamMessageProvidesNestedLookupKey()
+    {
+        // arrange
+        var (result, log) = ValidateSatisfiability(
+        [
+            """
+            # Schema Events
+            type Subscription {
+                reviewChanged: Review
+                    @eventStream(
+                        topics: ["review.changed"]
+                        message: "{ product { id } }"
+                    )
+            }
+
+            type Review {
+                product: Product!
+            }
+
+            type Product {
+                id: ID! @shareable
+            }
+            """,
+            """
+            # Schema Products
+            type Query {
+                productById(id: ID!): Product @lookup
+            }
+
+            type Product {
+                id: ID! @shareable
+                title: String!
+            }
+            """
+        ]);
+
+        // assert
+        Assert.True(result.IsSuccess);
+        Assert.True(log.IsEmpty);
+    }
+
+    [Fact]
+    public void Validate_Should_Succeed_When_EventStreamMessageProvidesInterfaceLookupKey()
+    {
+        // arrange
+        var (result, log) = ValidateSatisfiability(
+        [
+            """
+            # Schema Events
+            type Subscription {
+                nodeChanged: Node
+                    @eventStream(topics: ["node.changed"], message: "{ id }")
+            }
+
+            interface Node {
+                id: ID!
+            }
+
+            type Book implements Node {
+                id: ID! @shareable
+            }
+            """,
+            """
+            # Schema Books
+            type Query {
+                bookById(id: ID!): Book @lookup
+            }
+
+            interface Node {
+                id: ID!
+            }
+
+            type Book implements Node {
+                id: ID! @shareable
+                title: String!
+            }
+            """
+        ]);
+
+        // assert
+        Assert.True(result.IsSuccess);
+        Assert.True(log.IsEmpty);
+    }
+
+    [Fact]
+    public void Validate_Should_Succeed_When_EventStreamMessageNarrowsAbstractBranch()
+    {
+        // arrange
+        var (result, log) = ValidateSatisfiability(
+        [
+            """
+            # Schema Events
+            type Subscription {
+                nodeChanged: Node
+                    @eventStream(
+                        topics: ["node.changed"]
+                        message: "{ __typename ... on Book { id } }"
+                    )
+            }
+
+            interface Node {
+                id: ID!
+            }
+
+            type Book implements Node {
+                id: ID! @shareable
+            }
+
+            type Author implements Node {
+                id: ID! @shareable
+            }
+            """,
+            """
+            # Schema Catalog
+            type Query {
+                bookById(id: ID!): Book @lookup
+                authorById(id: ID!): Author @lookup
+            }
+
+            interface Node {
+                id: ID!
+            }
+
+            type Book implements Node {
+                id: ID! @shareable
+                title: String!
+            }
+
+            type Author implements Node {
+                id: ID! @shareable
+                name: String!
+            }
+            """
+        ]);
+
+        // assert
+        Assert.True(result.IsSuccess);
+        Assert.True(log.IsEmpty);
+    }
+
+    [Fact]
+    public void Validate_Should_Fail_When_EventStreamMessageNarrowedBranchOmitsLookupKey()
+    {
+        // arrange
+        var (result, log) = ValidateSatisfiability(
+        [
+            """
+            # Schema Events
+            type Subscription {
+                nodeChanged: Node
+                    @eventStream(
+                        topics: ["node.changed"]
+                        message: "{ __typename ... on Book { __typename } }"
+                    )
+            }
+
+            interface Node {
+                id: ID!
+            }
+
+            type Book implements Node {
+                id: ID! @shareable
+            }
+
+            type Author implements Node {
+                id: ID! @shareable
+            }
+            """,
+            """
+            # Schema Catalog
+            type Query {
+                bookById(id: ID!): Book @lookup
+                authorById(id: ID!): Author @lookup
+            }
+
+            interface Node {
+                id: ID!
+            }
+
+            type Book implements Node {
+                id: ID! @shareable
+                title: String!
+            }
+
+            type Author implements Node {
+                id: ID! @shareable
+                name: String!
+            }
+            """
+        ]);
+
+        // assert
+        Assert.True(result.IsFailure);
+        Assert.All(log, e => Assert.Equal(LogEntryCodes.UnsatisfiableQueryPath, e.Code));
+        string.Join("\n\n", log.Select(e => e.Message)).MatchInlineSnapshot(
+            """
+            Unable to access the field 'Book.id' on path 'A:Subscription.nodeChanged<Node>'.
+              Unable to transition between schemas 'A' and 'B' for access to field 'B:Book.id<ID>'.
+                Unable to satisfy the requirement '{ id }' for lookup 'bookById' in schema 'B'.
+                  Unable to satisfy the requirement 'id'.
+                    Unable to access the required field 'Book.id' on path 'A:Subscription.nodeChanged<Node>'.
+                      No other schemas contain the field 'Book.id'.
+
+            Unable to access the field 'Book.title' on path 'A:Subscription.nodeChanged<Node>'.
+              Unable to transition between schemas 'A' and 'B' for access to field 'B:Book.title<String>'.
+                Unable to satisfy the requirement '{ id }' for lookup 'bookById' in schema 'B'.
+                  Unable to satisfy the requirement 'id'.
+                    Unable to access the required field 'Book.id' on path 'A:Subscription.nodeChanged<Node>'.
+                      No other schemas contain the field 'Book.id'.
+            """);
+    }
+
+    [Fact]
     public void MissingFieldInASharedValueType()
     {
         // arrange
@@ -319,6 +710,7 @@ public sealed class SatisfiabilityValidatorTests
 
         // assert
         Assert.True(result.IsFailure);
+        Assert.All(log, e => Assert.Equal(LogEntryCodes.UnsatisfiableQueryPath, e.Code));
         string.Join("\n\n", log.Select(e => e.Message)).MatchInlineSnapshot(
             """
             Unable to access the field 'Address.country' on path 'A:Query.userById<User> -> A:User.address<Address>'.
@@ -375,6 +767,7 @@ public sealed class SatisfiabilityValidatorTests
 
         // assert
         Assert.True(result.IsFailure);
+        Assert.All(log, e => Assert.Equal(LogEntryCodes.UnsatisfiableQueryPath, e.Code));
         string.Join("\n\n", log.Select(e => e.Message)).MatchInlineSnapshot(
             """
             Unable to access the field 'Category.name' on path 'B:Query.categoryById<Category>'.
@@ -1065,6 +1458,121 @@ public sealed class SatisfiabilityValidatorTests
     }
 
     [Fact]
+    // https://github.com/graphql-hive/federation-gateway-audit/tree/main/src/test-suites/mysterious-external
+    public void MysteriousExternal()
+    {
+        // arrange
+        var merger = new SourceSchemaMerger(
+            CreateSchemaDefinitions(
+            [
+                """
+                # Schema A
+                type Query {
+                    cheapestProduct: Product
+                    # Federation supplies an implicit reference resolver for the @key;
+                    # the composite schemas spec has no implicit resolution, so the
+                    # equivalent entry point is declared explicitly.
+                    productById(id: ID!): Product @lookup @inaccessible # Added
+                }
+
+                type Product @key(fields: "id") {
+                    id: ID! @external
+                    price: Float
+                }
+                """,
+                """
+                # Schema B
+                type Query {
+                    products: [Product!]!
+                    productById(id: ID!): Product @lookup @inaccessible # Added
+                }
+
+                type Product @key(fields: "id") {
+                    id: ID!
+                    name: String!
+                }
+                """
+            ]),
+            new SourceSchemaMergerOptions { AddFusionDefinitions = false });
+
+        var schema = merger.Merge().Value;
+        var log = new CompositionLog();
+        var satisfiabilityValidator = new SatisfiabilityValidator(schema, log);
+
+        // act
+        var result = satisfiabilityValidator.Validate();
+
+        // assert
+        Assert.True(result.IsSuccess);
+    }
+
+    [Fact]
+    // https://github.com/graphql-hive/federation-gateway-audit/tree/main/src/test-suites/nested-provides
+    public void NestedProvides()
+    {
+        // arrange
+        var merger = new SourceSchemaMerger(
+            CreateSchemaDefinitions(
+            [
+                """
+                # Schema A
+                type Product @key(fields: "id") {
+                    id: ID!
+                }
+                """,
+                """
+                # Schema B
+                type Query {
+                    products: [Product]
+                        @shareable
+                        @provides(fields: "categories { id name subCategories { id name } }")
+                    productById(id: ID!): Product @lookup @inaccessible # Added
+                    categoryById(id: ID!): Category @lookup @inaccessible # Added
+                }
+
+                type Product @key(fields: "id") {
+                    id: ID!
+                    categories: [Category] @external
+                }
+
+                type Category @key(fields: "id") {
+                    id: ID!
+                    name: String
+                    subCategories: [Category] @external
+                }
+                """,
+                """
+                # Schema C
+                type Query {
+                    productById(id: ID!): Product @lookup @inaccessible # Added
+                    categoryById(id: ID!): Category @lookup @inaccessible # Added
+                }
+
+                type Product @key(fields: "id") {
+                    id: ID!
+                    categories: [Category] @shareable
+                }
+
+                type Category @key(fields: "id") {
+                    id: ID!
+                    subCategories: [Category] @shareable
+                }
+                """
+            ]),
+            new SourceSchemaMergerOptions { AddFusionDefinitions = false });
+
+        var schema = merger.Merge().Value;
+        var log = new CompositionLog();
+        var satisfiabilityValidator = new SatisfiabilityValidator(schema, log);
+
+        // act
+        var result = satisfiabilityValidator.Validate();
+
+        // assert
+        Assert.True(result.IsSuccess);
+    }
+
+    [Fact]
     // https://github.com/graphql-hive/federation-gateway-audit/tree/main/src/test-suites/node
     public void Node()
     {
@@ -1110,6 +1618,611 @@ public sealed class SatisfiabilityValidatorTests
                 type Category implements Node @key(fields: "id") {
                     id: ID!
                     name: String!
+                }
+                """
+            ]),
+            new SourceSchemaMergerOptions { AddFusionDefinitions = false });
+
+        var schema = merger.Merge().Value;
+        var log = new CompositionLog();
+        var satisfiabilityValidator = new SatisfiabilityValidator(schema, log);
+
+        // act
+        var result = satisfiabilityValidator.Validate();
+
+        // assert
+        Assert.True(result.IsSuccess);
+    }
+
+    [Fact]
+    // https://github.com/graphql-hive/federation-gateway-audit/tree/main/src/test-suites/null-keys
+    public void NullKeys()
+    {
+        // arrange
+        var merger = new SourceSchemaMerger(
+            CreateSchemaDefinitions(
+            [
+                """
+                # Schema A
+                type Query {
+                    bookContainers: [BookContainer]
+                    bookByUpc(upc: ID!): Book @lookup @inaccessible # Added
+                }
+
+                type BookContainer {
+                    book: Book
+                }
+
+                type Book @key(fields: "upc") {
+                    upc: ID!
+                }
+                """,
+                """
+                # Schema B
+                type Query {
+                    bookById(id: ID!): Book @lookup @inaccessible # Added
+                    bookByUpc(upc: ID!): Book @lookup @inaccessible # Added
+                }
+
+                type Book @key(fields: "id") @key(fields: "upc") {
+                    id: ID!
+                    upc: ID!
+                }
+                """,
+                """
+                # Schema C
+                type Query {
+                    bookById(id: ID!): Book @lookup @inaccessible # Added
+                }
+
+                type Book @key(fields: "id") {
+                    id: ID!
+                    author: Author
+                }
+
+                type Author {
+                    id: ID!
+                    name: String
+                }
+                """
+            ]),
+            new SourceSchemaMergerOptions { AddFusionDefinitions = false });
+
+        var schema = merger.Merge().Value;
+        var log = new CompositionLog();
+        var satisfiabilityValidator = new SatisfiabilityValidator(schema, log);
+
+        // act
+        var result = satisfiabilityValidator.Validate();
+
+        // assert
+        Assert.True(result.IsSuccess);
+    }
+
+    [Fact]
+    // https://github.com/graphql-hive/federation-gateway-audit/tree/main/src/test-suites/override-type-interface
+    public void OverrideTypeInterface()
+    {
+        // arrange
+        var merger = new SourceSchemaMerger(
+            CreateSchemaDefinitions(
+            [
+                """
+                # Schema A
+                type Query {
+                    feed: [Post]
+                    imagePostById(id: ID!): ImagePost @lookup @inaccessible # Added
+                }
+
+                interface Post {
+                    id: ID!
+                    createdAt: String!
+                }
+
+                type ImagePost implements Post @key(fields: "id") {
+                    id: ID!
+                    createdAt: String!
+                }
+                """,
+                """
+                # Schema B
+                type Query {
+                    anotherFeed: [AnotherPost]
+                    imagePostById(id: ID!): ImagePost @lookup @inaccessible # Added
+                    textPostById(id: ID!): TextPost @lookup @inaccessible # Added
+                }
+
+                interface Post {
+                    id: ID!
+                    createdAt: String!
+                }
+
+                type TextPost implements Post @key(fields: "id") {
+                    id: ID!
+                    createdAt: String!
+                    body: String!
+                }
+
+                interface AnotherPost {
+                    id: ID!
+                    createdAt: String!
+                }
+
+                type ImagePost implements AnotherPost @key(fields: "id") {
+                    id: ID!
+                    createdAt: String! @override(from: "A")
+                }
+                """
+            ]),
+            new SourceSchemaMergerOptions { AddFusionDefinitions = false });
+
+        var schema = merger.Merge().Value;
+        var log = new CompositionLog();
+        var satisfiabilityValidator = new SatisfiabilityValidator(schema, log);
+
+        // act
+        var result = satisfiabilityValidator.Validate();
+
+        // assert
+        Assert.True(result.IsSuccess);
+    }
+
+    [Fact]
+    // https://github.com/graphql-hive/federation-gateway-audit/tree/main/src/test-suites/override-with-requires
+    public void OverrideWithRequires()
+    {
+        // arrange
+        var merger = new SourceSchemaMerger(
+            CreateSchemaDefinitions(
+            [
+                """
+                # Schema A
+                type Query {
+                    userInA: User
+                    userById(id: ID!): User @lookup @inaccessible # Added
+                }
+
+                type User @key(fields: "id") {
+                    id: ID!
+                    name: String! @external
+                    aName(name: String! @require(field: "name")): String!
+                }
+                """,
+                """
+                # Schema B
+                type Query {
+                    userInB: User
+                    userById(id: ID!): User @lookup @inaccessible # Added
+                }
+
+                type User @key(fields: "id") {
+                    id: ID!
+                    name: String! @override(from: "C")
+                }
+                """,
+                """
+                # Schema C
+                type Query {
+                    userInC: User
+                    userById(id: ID!): User @lookup @inaccessible # Added
+                }
+
+                type User @key(fields: "id") {
+                    id: ID!
+                    name: String! @external
+                    cName(name: String! @require(field: "name")): String!
+                }
+                """
+            ]),
+            new SourceSchemaMergerOptions { AddFusionDefinitions = false });
+
+        var schema = merger.Merge().Value;
+        var log = new CompositionLog();
+        var satisfiabilityValidator = new SatisfiabilityValidator(schema, log);
+
+        // act
+        var result = satisfiabilityValidator.Validate();
+
+        // assert
+        Assert.True(result.IsSuccess);
+    }
+
+    [Fact]
+    // https://github.com/graphql-hive/federation-gateway-audit/tree/main/src/test-suites/parent-entity-call
+    public void ParentEntityCall()
+    {
+        // arrange
+        var merger = new SourceSchemaMerger(
+            CreateSchemaDefinitions(
+            [
+                """
+                # Schema A
+                type Query {
+                    products: [Product!]!
+                    productById(id: ID!): Product @lookup @inaccessible # Added
+                    productByIdAndPid(id: ID!, pid: ID!): Product @lookup @inaccessible # Added
+                    categoryById(id: ID!): Category @lookup @inaccessible # Added
+                }
+
+                type Product @key(fields: "id") @key(fields: "id pid") {
+                    id: ID!
+                    pid: ID!
+                    category: Category @shareable
+                }
+
+                type Category @key(fields: "id") {
+                    id: ID!
+                    name: String! @shareable
+                }
+                """,
+                """
+                # Schema B
+                type Query {
+                    productByIdAndPid(id: ID!, pid: ID!): Product @lookup @inaccessible # Added
+                    categoryById(id: ID!): Category @lookup @inaccessible # Added
+                }
+
+                type Product @key(fields: "id pid") {
+                    id: ID!
+                    pid: ID!
+                    category: Category @shareable
+                }
+
+                type Category @key(fields: "id") {
+                    id: ID!
+                    name: String! @shareable
+                }
+                """,
+                """
+                # Schema C
+                type Query {
+                    productByIdAndPid(id: ID!, pid: ID!): Product @lookup @inaccessible # Added
+                }
+
+                type Category {
+                    details: CategoryDetails
+                }
+
+                type Product @key(fields: "id pid") {
+                    id: ID!
+                    pid: ID!
+                    category: Category @shareable
+                }
+
+                type CategoryDetails {
+                    products: Int
+                }
+                """
+            ]),
+            new SourceSchemaMergerOptions { AddFusionDefinitions = false });
+
+        var schema = merger.Merge().Value;
+        var log = new CompositionLog();
+        var satisfiabilityValidator = new SatisfiabilityValidator(schema, log);
+
+        // act
+        var result = satisfiabilityValidator.Validate();
+
+        // assert
+        Assert.True(result.IsSuccess);
+    }
+
+    [Fact]
+    // https://github.com/graphql-hive/federation-gateway-audit/tree/main/src/test-suites/parent-entity-call-complex
+    public void ParentEntityCallComplex()
+    {
+        // arrange
+        var merger = new SourceSchemaMerger(
+            CreateSchemaDefinitions(
+            [
+                """
+                # Schema A
+                type Query {
+                    productById(id: ID!): Product @lookup @inaccessible # Added
+                }
+
+                type Product @key(fields: "id") {
+                    id: ID @external
+                    category: Category @shareable
+                }
+
+                type Category {
+                    details: String
+                }
+                """,
+                """
+                # Schema B
+                type Query {
+                    productById(id: ID!): Product @lookup @inaccessible # Added
+                }
+
+                type Product @key(fields: "id") {
+                    id: ID @external
+                    category: Category @shareable
+                }
+
+                type Category {
+                    id: ID @shareable
+                }
+                """,
+                """
+                # Schema C
+                type Query {
+                    categoryById(id: ID!): Category @lookup @inaccessible # Added
+                }
+
+                type Category @key(fields: "id") {
+                    id: ID
+                    name: String
+                }
+                """,
+                """
+                # Schema D
+                type Query {
+                    productFromD(id: ID!): Product
+                    productById(id: ID!): Product @lookup @inaccessible # Added
+                }
+
+                type Product @key(fields: "id") {
+                    id: ID
+                    name: String
+                }
+                """
+            ]),
+            new SourceSchemaMergerOptions { AddFusionDefinitions = false });
+
+        var schema = merger.Merge().Value;
+        var log = new CompositionLog();
+        var satisfiabilityValidator = new SatisfiabilityValidator(schema, log);
+
+        // act
+        var result = satisfiabilityValidator.Validate();
+
+        // assert
+        Assert.True(result.IsSuccess);
+    }
+
+    [Fact]
+    // https://github.com/graphql-hive/federation-gateway-audit/tree/main/src/test-suites/provides-on-interface
+    public void ProvidesOnInterface()
+    {
+        // arrange
+        var merger = new SourceSchemaMerger(
+            CreateSchemaDefinitions(
+            [
+                """
+                # Schema A
+                type Query {
+                    media: Media @shareable
+                    book: Book @provides(fields: "animals { ... on Dog { name } }")
+                    bookById(id: ID!): Book @lookup @inaccessible # Added
+                    dogById(id: ID!): Dog @lookup @inaccessible # Added
+                    catById(id: ID!): Cat @lookup @inaccessible # Added
+                }
+
+                interface Media {
+                    id: ID!
+                }
+
+                interface Animal {
+                    id: ID!
+                }
+
+                type Book implements Media @key(fields: "id") {
+                    id: ID!
+                    animals: [Animal] @shareable
+                }
+
+                type Dog implements Animal @key(fields: "id") {
+                    id: ID! @external
+                    name: String @external
+                }
+
+                type Cat implements Animal @key(fields: "id") {
+                    id: ID! @external
+                }
+                """,
+                """
+                # Schema B
+                type Query {
+                    media: Media @shareable @provides(fields: "animals { id name }")
+                }
+
+                interface Media {
+                    id: ID!
+                    animals: [Animal]
+                }
+
+                interface Animal {
+                    id: ID!
+                    name: String
+                }
+
+                type Book implements Media {
+                    id: ID! @shareable
+                    animals: [Animal] @external
+                }
+
+                type Dog implements Animal {
+                    id: ID! @external
+                    name: String @external
+                }
+
+                type Cat implements Animal {
+                    id: ID! @external
+                    name: String @external
+                }
+                """,
+                """
+                # Schema C
+                type Query {
+                    bookById(id: ID!): Book @lookup @inaccessible # Added
+                    dogById(id: ID!): Dog @lookup @inaccessible # Added
+                    catById(id: ID!): Cat @lookup @inaccessible # Added
+                }
+
+                interface Media {
+                    id: ID!
+                    animals: [Animal]
+                }
+
+                interface Animal {
+                    id: ID!
+                    name: String
+                }
+
+                type Book implements Media @key(fields: "id") {
+                    id: ID!
+                    animals: [Animal] @shareable
+                }
+
+                type Dog implements Animal @key(fields: "id") {
+                    id: ID!
+                    name: String @shareable
+                    age: Int
+                }
+
+                type Cat implements Animal @key(fields: "id") {
+                    id: ID!
+                    name: String @shareable
+                    age: Int
+                }
+                """
+            ]),
+            new SourceSchemaMergerOptions { AddFusionDefinitions = false });
+
+        var schema = merger.Merge().Value;
+        var log = new CompositionLog();
+        var satisfiabilityValidator = new SatisfiabilityValidator(schema, log);
+
+        // act
+        var result = satisfiabilityValidator.Validate();
+
+        // assert
+        Assert.True(result.IsSuccess);
+    }
+
+    [Fact]
+    // https://github.com/graphql-hive/federation-gateway-audit/tree/main/src/test-suites/provides-on-union
+    public void ProvidesOnUnion()
+    {
+        // arrange
+        var merger = new SourceSchemaMerger(
+            CreateSchemaDefinitions(
+            [
+                """
+                # Schema A
+                type Query {
+                    media: [Media] @shareable
+                    bookById(id: ID!): Book @lookup @inaccessible # Added
+                    movieById(id: ID!): Movie @lookup @inaccessible # Added
+                }
+
+                union Media = Book | Movie
+
+                type Book @key(fields: "id") {
+                    id: ID!
+                }
+
+                type Movie @key(fields: "id") {
+                    id: ID!
+                }
+                """,
+                """
+                # Schema B
+                type Query {
+                    media: [Media] @shareable @provides(fields: "... on Book { title }")
+                    bookById(id: ID!): Book @lookup @inaccessible # Added
+                    movieById(id: ID!): Movie @lookup @inaccessible # Added
+                }
+
+                union Media = Book | Movie
+
+                type Book @key(fields: "id") {
+                    id: ID!
+                    title: String @external
+                }
+
+                type Movie @key(fields: "id") {
+                    id: ID!
+                }
+                """,
+                """
+                # Schema C
+                type Query {
+                    bookById(id: ID!): Book @lookup @inaccessible # Added
+                    movieById(id: ID!): Movie @lookup @inaccessible # Added
+                }
+
+                type Book @key(fields: "id") {
+                    id: ID!
+                    title: String @shareable
+                }
+
+                type Movie @key(fields: "id") {
+                    id: ID!
+                    title: String @shareable
+                }
+                """
+            ]),
+            new SourceSchemaMergerOptions { AddFusionDefinitions = false });
+
+        var schema = merger.Merge().Value;
+        var log = new CompositionLog();
+        var satisfiabilityValidator = new SatisfiabilityValidator(schema, log);
+
+        // act
+        var result = satisfiabilityValidator.Validate();
+
+        // assert
+        Assert.True(result.IsSuccess);
+    }
+
+    [Fact]
+    // https://github.com/graphql-hive/federation-gateway-audit/tree/main/src/test-suites/requires-circular
+    public void RequiresCircular()
+    {
+        // arrange
+        var merger = new SourceSchemaMerger(
+            CreateSchemaDefinitions(
+            [
+                """
+                # Schema A
+                type Query {
+                    feed: [Post]
+                    postById(id: ID!): Post @lookup @inaccessible # Added
+                    authorById(id: ID!): Author @lookup @inaccessible # Added
+                }
+
+                type Post @key(fields: "id") {
+                    id: ID!
+                    byNovice: Boolean! @external
+                    byExpert(byNovice: Boolean! @require(field: "byNovice")): Boolean!
+                }
+
+                type Author @key(fields: "id") {
+                    id: ID!
+                    name: String!
+                    yearsOfExperience: Int!
+                }
+                """,
+                """
+                # Schema B
+                type Query {
+                    postById(id: ID!): Post @lookup @inaccessible # Added
+                }
+
+                type Post @key(fields: "id") {
+                    id: ID!
+                    author: Author!
+                    byNovice(
+                        yearsOfExperience: Int! @require(field: "author.yearsOfExperience")
+                    ): Boolean!
+                }
+
+                type Author @key(fields: "id") {
+                    id: ID!
+                    yearsOfExperience: Int! @external
                 }
                 """
             ]),
@@ -1287,6 +2400,178 @@ public sealed class SatisfiabilityValidatorTests
     }
 
     [Fact]
+    // https://github.com/graphql-hive/federation-gateway-audit/tree/main/src/test-suites/requires-with-fragments
+    public void RequiresWithFragments()
+    {
+        // arrange
+        var merger = new SourceSchemaMerger(
+            CreateSchemaDefinitions(
+            [
+                """
+                # Schema A
+                type Query {
+                    a: Entity @shareable
+                    entityById(id: ID!): Entity @lookup @inaccessible # Added
+                }
+
+                type Entity @key(fields: "id") {
+                    id: ID!
+                    data: Foo
+                }
+
+                interface Foo {
+                    foo: String!
+                }
+
+                interface Bar implements Foo {
+                    foo: String!
+                    bar: String!
+                }
+
+                type Baz implements Foo & Bar @shareable {
+                    foo: String!
+                    bar: String!
+                    baz: String!
+                }
+
+                type Qux implements Foo & Bar @shareable {
+                    foo: String!
+                    bar: String!
+                    qux: String!
+                }
+                """,
+                """
+                # Schema B
+                type Query {
+                    b: Entity @shareable
+                    bb: Entity @shareable
+                    entityById(id: ID!): Entity @lookup @inaccessible # Added
+                }
+
+                type Entity @key(fields: "id") {
+                    id: ID!
+                    data: Foo @external
+                    requirer(
+                        foo: String! @require(field: "data.foo")
+                        bazBar: String @require(field: "data<Baz>.bar")
+                        baz: String @require(field: "data<Baz>.baz")
+                        quxBar: String @require(field: "data<Qux>.bar")
+                        qux: String @require(field: "data<Qux>.qux")
+                    ): String!
+                    requirer2(foo: String! @require(field: "data.foo")): String!
+                }
+
+                interface Foo {
+                    foo: String!
+                }
+
+                interface Bar implements Foo {
+                    foo: String!
+                    bar: String!
+                }
+
+                type Baz implements Foo & Bar @shareable @inaccessible {
+                    foo: String!
+                    bar: String!
+                    baz: String!
+                }
+
+                type Qux implements Foo & Bar @shareable {
+                    foo: String!
+                    bar: String!
+                    qux: String!
+                }
+                """
+            ]),
+            new SourceSchemaMergerOptions { AddFusionDefinitions = false });
+
+        var schema = merger.Merge().Value;
+        var log = new CompositionLog();
+        var satisfiabilityValidator = new SatisfiabilityValidator(schema, log);
+
+        // act
+        var result = satisfiabilityValidator.Validate();
+
+        // assert
+        Assert.True(result.IsSuccess);
+    }
+
+    [Fact]
+    // https://github.com/graphql-hive/federation-gateway-audit/tree/main/src/test-suites/shared-root
+    public void SharedRoot()
+    {
+        // arrange
+        var merger = new SourceSchemaMerger(
+            CreateSchemaDefinitions(
+            [
+                """
+                # Schema A
+                type Query {
+                    product: Product! @shareable
+                    products: [Product!]! @shareable
+                }
+
+                type Product {
+                    id: ID! @shareable
+                    category: Category!
+                }
+
+                type Category {
+                    id: ID!
+                    name: String!
+                }
+                """,
+                """
+                # Schema B
+                type Query {
+                    product: Product! @shareable
+                    products: [Product!]! @shareable
+                }
+
+                type Product {
+                    id: ID! @shareable
+                    name: Name!
+                }
+
+                type Name {
+                    id: ID!
+                    brand: String!
+                    model: String!
+                }
+                """,
+                """
+                # Schema C
+                type Query {
+                    product: Product! @shareable
+                    products: [Product!]! @shareable
+                }
+
+                type Product {
+                    id: ID! @shareable
+                    price: Price!
+                }
+
+                type Price {
+                    id: ID!
+                    amount: Int!
+                    currency: String!
+                }
+                """
+            ]),
+            new SourceSchemaMergerOptions { AddFusionDefinitions = false });
+
+        var schema = merger.Merge().Value;
+        var log = new CompositionLog();
+        var satisfiabilityValidator = new SatisfiabilityValidator(schema, log);
+
+        // act
+        var result = satisfiabilityValidator.Validate();
+
+        // assert
+        Assert.True(result.IsSuccess);
+    }
+
+    [Fact]
     // https://github.com/graphql-hive/federation-gateway-audit/blob/main/src/test-suites/simple-entity-call
     public void SimpleEntityCall()
     {
@@ -1315,6 +2600,202 @@ public sealed class SatisfiabilityValidatorTests
                 type User @key(fields: "email") {
                     email: String! @external
                     nickname: String!
+                }
+                """
+            ]),
+            new SourceSchemaMergerOptions { AddFusionDefinitions = false });
+
+        var schema = merger.Merge().Value;
+        var log = new CompositionLog();
+        var satisfiabilityValidator = new SatisfiabilityValidator(schema, log);
+
+        // act
+        var result = satisfiabilityValidator.Validate();
+
+        // assert
+        Assert.True(result.IsSuccess);
+    }
+
+    [Fact]
+    // https://github.com/graphql-hive/federation-gateway-audit/tree/main/src/test-suites/simple-inaccessible
+    public void SimpleInaccessible()
+    {
+        // arrange
+        var merger = new SourceSchemaMerger(
+            CreateSchemaDefinitions(
+            [
+                """
+                # Schema A
+                type Query {
+                    usersInAge: [User!]! @shareable
+                    userById(id: ID!): User @lookup @inaccessible # Added
+                }
+
+                type User @key(fields: "id") {
+                    id: ID
+                    age: Int
+                }
+                """,
+                """
+                # Schema B
+                type Query {
+                    usersInFriends: [User!]!
+                    userById(id: ID!): User @lookup @inaccessible # Added
+                }
+
+                type User @key(fields: "id") {
+                    id: ID
+                    friends(type: FriendType = FAMILY @inaccessible): [User!]!
+                    type: FriendType
+                }
+
+                enum FriendType {
+                    FAMILY @inaccessible
+                    FRIEND
+                }
+                """
+            ]),
+            new SourceSchemaMergerOptions { AddFusionDefinitions = false });
+
+        var schema = merger.Merge().Value;
+        var log = new CompositionLog();
+        var satisfiabilityValidator = new SatisfiabilityValidator(schema, log);
+
+        // act
+        var result = satisfiabilityValidator.Validate();
+
+        // assert
+        Assert.True(result.IsSuccess);
+    }
+
+    [Fact]
+    // https://github.com/graphql-hive/federation-gateway-audit/tree/main/src/test-suites/simple-override
+    public void SimpleOverride()
+    {
+        // arrange
+        var merger = new SourceSchemaMerger(
+            CreateSchemaDefinitions(
+            [
+                """
+                # Schema A
+                type Query {
+                    feed: [Post] @shareable
+                    aFeed: [Post]
+                    postById(id: ID!): Post @lookup @inaccessible # Added
+                }
+
+                type Post @key(fields: "id") {
+                    id: ID!
+                    createdAt: String! @shareable
+                }
+                """,
+                """
+                # Schema B
+                type Query {
+                    feed: [Post] @shareable
+                    bFeed: [Post]
+                    postById(id: ID!): Post @lookup @inaccessible # Added
+                }
+
+                type Post @key(fields: "id") {
+                    id: ID!
+                    createdAt: String! @override(from: "A") @shareable
+                }
+                """
+            ]),
+            new SourceSchemaMergerOptions { AddFusionDefinitions = false });
+
+        var schema = merger.Merge().Value;
+        var log = new CompositionLog();
+        var satisfiabilityValidator = new SatisfiabilityValidator(schema, log);
+
+        // act
+        var result = satisfiabilityValidator.Validate();
+
+        // assert
+        Assert.True(result.IsSuccess);
+    }
+
+    [Fact]
+    // https://github.com/graphql-hive/federation-gateway-audit/tree/main/src/test-suites/simple-requires-provides
+    public void SimpleRequiresProvides()
+    {
+        // arrange
+        var merger = new SourceSchemaMerger(
+            CreateSchemaDefinitions(
+            [
+                """
+                # Schema A
+                type Query {
+                    me: User
+                    userById(id: ID!): User @lookup @inaccessible # Added
+                }
+
+                type User @key(fields: "id") {
+                    id: ID!
+                    name: String
+                    username: String @shareable
+                }
+                """,
+                """
+                # Schema B
+                type Query {
+                    productByUpc(upc: String!): Product @lookup @inaccessible # Added
+                }
+
+                type Product @key(fields: "upc") {
+                    upc: String!
+                    weight: Int @external
+                    price: Int @external
+                    inStock: Boolean
+                    shippingEstimate(
+                        price: Int! @require(field: "price")
+                        weight: Int! @require(field: "weight")
+                    ): Int
+                    shippingEstimateTag(
+                        price: Int! @require(field: "price")
+                        weight: Int! @require(field: "weight")
+                    ): String
+                }
+                """,
+                """
+                # Schema C
+                type Query {
+                    products: [Product]
+                    productByUpc(upc: String!): Product @lookup @inaccessible # Added
+                }
+
+                type Product @key(fields: "upc") {
+                    upc: String!
+                    name: String
+                    price: Int
+                    weight: Int
+                }
+                """,
+                """
+                # Schema D
+                type Query {
+                    reviewById(id: ID!): Review @lookup @inaccessible # Added
+                    userById(id: ID!): User @lookup @inaccessible # Added
+                    productByUpc(upc: String!): Product @lookup @inaccessible # Added
+                }
+
+                type Review @key(fields: "id") {
+                    id: ID!
+                    body: String
+                    author: User @provides(fields: "username")
+                    product: Product
+                }
+
+                type User @key(fields: "id") {
+                    id: ID!
+                    username: String @external
+                    reviews: [Review]
+                }
+
+                type Product @key(fields: "upc") {
+                    upc: String!
+                    reviews: [Review]
                 }
                 """
             ]),
@@ -1376,6 +2857,94 @@ public sealed class SatisfiabilityValidatorTests
                 type Oven implements Node @key(fields: "id") {
                     id: ID!
                     warranty: Int
+                }
+                """
+            ]),
+            new SourceSchemaMergerOptions { AddFusionDefinitions = false });
+
+        var schema = merger.Merge().Value;
+        var log = new CompositionLog();
+        var satisfiabilityValidator = new SatisfiabilityValidator(schema, log);
+
+        // act
+        var result = satisfiabilityValidator.Validate();
+
+        // assert
+        Assert.True(result.IsSuccess);
+    }
+
+    [Fact]
+    // https://github.com/graphql-hive/federation-gateway-audit/tree/main/src/test-suites/union-intersection
+    public void UnionIntersection()
+    {
+        // arrange
+        var merger = new SourceSchemaMerger(
+            CreateSchemaDefinitions(
+            [
+                """
+                # Schema A
+                type Query {
+                    media: Media @shareable
+                    aMedia: Media @shareable
+                    book: Book @shareable
+                    song: Media @shareable
+                    viewer: Viewer @shareable
+                    bookById(id: ID!): Book @lookup @inaccessible # Added
+                    songById(id: ID!): Song @lookup @inaccessible # Added
+                }
+
+                union Media = Book | Song
+                union ViewerMedia = Book | Song
+
+                type Book @key(fields: "id") {
+                    id: ID!
+                    title: String! @shareable
+                    aTitle: String!
+                }
+
+                type Song @key(fields: "id") {
+                    id: ID!
+                    title: String! @shareable
+                    aTitle: String!
+                }
+
+                type Viewer {
+                    media: ViewerMedia @shareable
+                    aMedia: ViewerMedia
+                    book: Book @shareable
+                    song: ViewerMedia @shareable
+                }
+                """,
+                """
+                # Schema B
+                type Query {
+                    media: Media @shareable
+                    bMedia: Media @shareable
+                    book: Media @shareable
+                    viewer: Viewer @shareable
+                    movieById(id: ID!): Movie @lookup @inaccessible # Added
+                    bookById(id: ID!): Book @lookup @inaccessible # Added
+                }
+
+                union Media = Book | Movie
+                union ViewerMedia = Book | Movie
+
+                type Movie @key(fields: "id") {
+                    id: ID!
+                    title: String! @shareable
+                    bTitle: String!
+                }
+
+                type Book @key(fields: "id") {
+                    id: ID!
+                    title: String! @shareable
+                    bTitle: String!
+                }
+
+                type Viewer {
+                    media: ViewerMedia @shareable
+                    bMedia: ViewerMedia
+                    book: ViewerMedia @shareable
                 }
                 """
             ]),
@@ -1470,6 +3039,7 @@ public sealed class SatisfiabilityValidatorTests
 
         // assert
         Assert.True(result.IsFailure);
+        Assert.All(log, e => Assert.Equal(LogEntryCodes.UnsatisfiableQueryPath, e.Code));
         string.Join("\n\n", log.Select(e => e.Message)).MatchInlineSnapshot(
             """
             Unable to access the field 'Product.sku' on path 'A:Query.productById<Product>'.
@@ -1632,6 +3202,7 @@ public sealed class SatisfiabilityValidatorTests
 
         // assert
         Assert.False(result.IsSuccess);
+        Assert.All(log, e => Assert.Equal(LogEntryCodes.UnsatisfiableQueryPath, e.Code));
         string.Join("\n\n", log.Select(e => e.Message))
             .MatchInlineSnapshot(
                 """
@@ -1980,6 +3551,7 @@ public sealed class SatisfiabilityValidatorTests
 
         // assert
         Assert.False(result.IsSuccess);
+        Assert.All(log, e => Assert.Equal(LogEntryCodes.UnsatisfiableQueryPath, e.Code));
         string.Join("\n\n", log.Select(e => e.Message))
             .MatchInlineSnapshot(
                 """
@@ -2032,6 +3604,7 @@ public sealed class SatisfiabilityValidatorTests
 
         // assert
         Assert.True(result.IsFailure);
+        Assert.All(log, e => Assert.Equal(LogEntryCodes.UnsatisfiableQueryPath, e.Code));
         string.Join("\n\n", log.Select(e => e.Message)).MatchInlineSnapshot(
             """
             Unable to access the field 'Product.title' on path 'A:Query.productById<Product>'.
@@ -2120,6 +3693,7 @@ public sealed class SatisfiabilityValidatorTests
 
         // assert
         Assert.True(result.IsFailure);
+        Assert.All(log, e => Assert.Equal(LogEntryCodes.UnsatisfiableQueryPath, e.Code));
         string.Join("\n\n", log.Select(e => e.Message)).MatchInlineSnapshot(
             """
             Unable to access the field 'Product.title' on path 'A:Query.productById<Product>'.
@@ -2300,6 +3874,7 @@ public sealed class SatisfiabilityValidatorTests
 
         // assert
         Assert.True(result.IsFailure);
+        Assert.All(log, e => Assert.Equal(LogEntryCodes.UnsatisfiableQueryPath, e.Code));
         string.Join("\n\n", log.Select(e => e.Message)).MatchInlineSnapshot(
             """
             Unable to access the field 'Viewer.lastName' on path 'A:Query.viewer<Viewer>'.
@@ -2360,6 +3935,7 @@ public sealed class SatisfiabilityValidatorTests
 
         // assert
         Assert.True(result.IsFailure);
+        Assert.All(log, e => Assert.Equal(LogEntryCodes.UnsatisfiableQueryPath, e.Code));
         string.Join("\n\n", log.Select(e => e.Message)).MatchInlineSnapshot(
             """
             Unable to access the field 'Viewer.fullName' on path 'A:Query.viewer<Viewer>'.
@@ -2529,6 +4105,7 @@ public sealed class SatisfiabilityValidatorTests
 
         // assert
         Assert.True(result.IsFailure);
+        Assert.All(log, e => Assert.Equal(LogEntryCodes.UnsatisfiableQueryPath, e.Code));
         string.Join("\n\n", log.Select(e => e.Message)).MatchInlineSnapshot(
             """
             Unable to access the field 'Category.name' on path 'A:Query.productById<Product> -> B:Product.category<Category>'.
@@ -2643,6 +4220,20 @@ public sealed class SatisfiabilityValidatorTests
         {
             string.Join("\n\n", log.Select(e => e.Message)).MatchInlineSnapshot(logs!);
         }
+    }
+
+    private static (CompositionResult Result, CompositionLog Log) ValidateSatisfiability(string[] sdl)
+    {
+        var merger = new SourceSchemaMerger(
+            CreateSchemaDefinitions(sdl),
+            new SourceSchemaMergerOptions { AddFusionDefinitions = false });
+
+        var schema = merger.Merge().Value;
+        var log = new CompositionLog();
+        var options = new SatisfiabilityOptions { IncludeSatisfiabilityPaths = true };
+        var satisfiabilityValidator = new SatisfiabilityValidator(schema, log, options);
+
+        return (satisfiabilityValidator.Validate(), log);
     }
 
     public static TheoryData<string[], bool, string?> GlobalObjectIdentificationExamplesData()

@@ -1,8 +1,9 @@
 ---
 title: "Schema Definition"
+description: "View and download the raw SDL of your GraphQL server with Nitro's Schema Definition feature, including an editor for examining types, fields, and structure."
 ---
 
-![Nitro - Schema Definition](./images/definition-0.webp)
+![Nitro - Schema Definition](../../../../public/images/nitro-docs/documents/definition-0.webp)
 
 The Schema Definition feature in Nitro provides you with access to the raw Schema Definition Language (SDL) of your GraphQL server. This section explains how to view and download the SDL using Nitro.
 

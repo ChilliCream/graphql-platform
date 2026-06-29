@@ -1,12 +1,13 @@
 ---
 title: "Aspire Integration"
+description: "Integrate Fusion composition into a .NET Aspire AppHost with `HotChocolate.Fusion.Aspire`: one build step composes subgraph schemas into a gateway archive."
 ---
 
 Nitro gives you full control over composition, but during active development you want a tighter loop. Every time you change a type, add a field, or adjust a resolver, you need to re-export the schema, re-compose, and restart the gateway. That friction adds up.
 
 The `HotChocolate.Fusion.Aspire` package integrates composition into the .NET Aspire AppHost. When you build the AppHost, the orchestrator starts your subgraphs, extracts their source schemas, composes them into a Fusion archive, and writes it to the gateway project directory. One build step replaces the manual export-compose-restart cycle. You can also mix live subgraphs with pre-exported schema files, letting you develop against a full composite schema even when you only run a subset of services locally.
 
-## Prerequisites
+# Prerequisites
 
 You need a .NET Aspire AppHost project. If you do not have one yet, create it with:
 
@@ -18,18 +19,20 @@ Add the Fusion Aspire package to the AppHost project:
 
 ```bash
 cd AppHost
-dotnet add package HotChocolate.Fusion.Aspire --version 16.0.0-p.11.36
+dotnet add package HotChocolate.Fusion.Aspire
 ```
 
 Your subgraph projects need the `HotChocolate.AspNetCore.CommandLine` package so the orchestrator can extract their schemas. If you followed the [Getting Started](./getting-started.md) tutorial, your subgraphs already have this.
 
-## Setting Up the AppHost
+# Setting Up the AppHost
 
 The AppHost wires together your subgraphs and gateway. Three extension methods configure the composition pipeline.
 
 **C# configuration**
 
-```csharp filename="AppHost/Program.cs"
+```csharp
+// AppHost/Program.cs
+
 var builder = DistributedApplication.CreateBuilder(args);
 
 builder.AddGraphQLOrchestrator();
@@ -60,7 +63,7 @@ Four things to notice:
 
 When you build and run the AppHost, the orchestrator handles the entire composition pipeline automatically. No manual `nitro fusion compose` step needed.
 
-## Live Schema Extraction
+# Live Schema Extraction
 
 By default, `WithGraphQLSchemaEndpoint()` fetches the source schema from `/graphql/schema.graphql` on each subgraph. Hot Chocolate subgraphs expose this endpoint automatically when they include the `HotChocolate.AspNetCore.CommandLine` package.
 
@@ -79,11 +82,13 @@ var productsApi = builder
 
 All three parameters have sensible defaults. The `sourceSchemaName` defaults to the resource name (`"products-api"` in this example). Override it when you want the source schema name to differ from the Aspire resource name.
 
-## Working with Partial Graphs
+# Working with Partial Graphs
 
 You do not need to run every subgraph locally. When your system has many subgraphs but you only develop on a few, use `WithGraphQLSchemaFile()` to include pre-exported schema files for the subgraphs you are not running.
 
-```csharp filename="AppHost/Program.cs"
+```csharp
+// AppHost/Program.cs
+
 var builder = DistributedApplication.CreateBuilder(args);
 
 builder.AddGraphQLOrchestrator();
@@ -131,7 +136,7 @@ var shippingApi = builder
         sourceSchemaName: "Shipping");
 ```
 
-## Composition Settings
+# Composition Settings
 
 `WithGraphQLSchemaComposition()` accepts a settings parameter that controls composition behavior.
 
@@ -161,7 +166,7 @@ builder
     .WithReference(reviewsApi);
 ```
 
-## How Composition Fits the Dev Loop
+# How Composition Fits the Dev Loop
 
 With Aspire, your inner dev loop looks like this:
 
@@ -173,7 +178,7 @@ With Aspire, your inner dev loop looks like this:
 
 If composition fails (for example, a field conflict or a missing lookup), the orchestrator logs the error and stops the AppHost. Fix the issue and rebuild. You get the same composition validation as the Nitro CLI, integrated into your build step.
 
-## Next Steps
+# Next Steps
 
 - **Need to compose without Aspire?** See the Nitro CLI composition workflow in [Adding a Subgraph](./adding-a-subgraph.md).
 - **Need entity resolution patterns?** See [Entities and Lookups](./entities-and-lookups.md) for public vs. internal lookups, composite keys, and the node pattern.

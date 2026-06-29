@@ -1,5 +1,6 @@
 ---
 title: Configuration
+description: "Configure the Strawberry Shake code generator through `.graphqlrc.json`: client name, namespace, schema URL, transport profiles, and generator settings."
 ---
 
 Strawberry Shake is configured by altering the `.graphqlrc.json` at the root of your project.

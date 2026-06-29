@@ -8,8 +8,6 @@ items:
     title: Subscriptions
   - path: tooling
     title: Tooling / CLI
-  - path: configuration
-    title: Configuration
   - path: caching
     title: Caching
   - path: performance

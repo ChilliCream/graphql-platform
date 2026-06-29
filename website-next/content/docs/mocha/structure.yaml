@@ -18,10 +18,6 @@ items:
     title: Middleware and Pipelines
   - path: reliability
     title: Reliability
-  - path: exception-policies
-    title: Exception Policies
-  - path: scheduling
-    title: Scheduling
   - path: observability
     title: Observability
   - path: sagas

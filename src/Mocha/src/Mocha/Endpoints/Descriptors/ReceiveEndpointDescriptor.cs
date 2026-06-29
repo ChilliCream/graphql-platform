@@ -40,7 +40,37 @@ public abstract class ReceiveEndpointDescriptor<T>(IMessagingConfigurationContex
     /// <returns>The descriptor instance for method chaining.</returns>
     public IReceiveEndpointDescriptor<T> Consumer(Type consumerType)
     {
+        ArgumentNullException.ThrowIfNull(consumerType);
         Configuration.ConsumerIdentities.Add(consumerType);
+        return this;
+    }
+
+    /// <inheritdoc />
+    public IReceiveEndpointDescriptor<T> Receives<TMessage>()
+    {
+        Configuration.ReceivedMessageTypes.Add(typeof(TMessage));
+        return this;
+    }
+
+    /// <inheritdoc />
+    public IReceiveEndpointDescriptor<T> Receives(Type messageType)
+    {
+        ArgumentNullException.ThrowIfNull(messageType);
+        Configuration.ReceivedMessageTypes.Add(messageType);
+        return this;
+    }
+
+    /// <inheritdoc />
+    public IReceiveEndpointDescriptor<T> BindImplicitly()
+    {
+        Configuration.BindMode = MessagingBindMode.Implicit;
+        return this;
+    }
+
+    /// <inheritdoc />
+    public IReceiveEndpointDescriptor<T> BindExplicitly()
+    {
+        Configuration.BindMode = MessagingBindMode.Explicit;
         return this;
     }
 
@@ -53,18 +83,6 @@ public abstract class ReceiveEndpointDescriptor<T>(IMessagingConfigurationContex
     public IReceiveEndpointDescriptor<T> MaxConcurrency(int maxConcurrency)
     {
         Configuration.MaxConcurrency = maxConcurrency;
-        return this;
-    }
-
-    public IReceiveEndpointDescriptor<T> FaultEndpoint(string address)
-    {
-        Configuration.ErrorEndpoint = new Uri(address);
-        return this;
-    }
-
-    public IReceiveEndpointDescriptor<T> SkippedEndpoint(string address)
-    {
-        Configuration.SkippedEndpoint = new Uri(address);
         return this;
     }
 

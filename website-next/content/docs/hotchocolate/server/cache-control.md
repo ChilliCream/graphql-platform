@@ -213,9 +213,8 @@ builder
     .AddHttpRequestInterceptor<NoCacheHeaderInterceptor>();
 ```
 
-:::note
-You can only register a single HttpRequestInterceptor per schema.
-:::
+> [!NOTE]
+> You can only register a single HttpRequestInterceptor per schema.
 
 # Putting It Together
 
@@ -230,4 +229,4 @@ In day-to-day terms, the flow is simple:
 
 - [HTTP Transport](./http-transport.md) for request and response behavior.
 - [Interceptors](./interceptors.md) for request-level control.
-- [Configuration Options](../api-reference/options.md) for the full options reference.
+- [Configuration Options](./options.md) for the full options reference.

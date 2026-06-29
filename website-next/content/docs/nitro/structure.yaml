@@ -23,10 +23,14 @@ items:
   - path: cli
     title: CLI
   - path: subscriptions
-    title: Subscriptions & Billing
+    title: "Subscriptions & Billing"
   - path: integrations
     title: Integrations
   - path: adapters
     title: Adapters
+  - path: analyzers
+    title: Analyzers
   - path: settings
     title: Settings
+  - path: migration
+    title: Migration

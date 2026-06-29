@@ -1,5 +1,6 @@
 ---
-title: api
+title: api Command
+description: "Manage Nitro APIs from the CLI with the `nitro api` commands: create service, gateway, or collection APIs in a workspace, list them, and inspect details."
 ---
 
 The `nitro api` commands manage APIs in a workspace.

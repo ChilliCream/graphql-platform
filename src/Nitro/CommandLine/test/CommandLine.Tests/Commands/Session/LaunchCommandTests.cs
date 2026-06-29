@@ -41,7 +41,7 @@ public sealed class LaunchCommandTests(NitroCommandFixture fixture) : SessionCom
 
         // assert
         Assert.Equal(0, result.ExitCode);
-        BrowserLauncherMock.Verify(x => x.Open(Constants.NitroWebUrl), Times.Once);
+        _browserLauncherMock.Verify(x => x.Open(Constants.NitroWebUrl), Times.Once);
     }
 
     [Fact]
@@ -56,7 +56,7 @@ public sealed class LaunchCommandTests(NitroCommandFixture fixture) : SessionCom
 
         // assert
         Assert.Equal(0, result.ExitCode);
-        BrowserLauncherMock.Verify(x => x.Open(Constants.NitroWebUrl), Times.Once);
+        _browserLauncherMock.Verify(x => x.Open(Constants.NitroWebUrl), Times.Once);
     }
 
     [Fact]
@@ -73,7 +73,7 @@ public sealed class LaunchCommandTests(NitroCommandFixture fixture) : SessionCom
 
         // assert
         Assert.Equal(0, result.ExitCode);
-        BrowserLauncherMock.Verify(x => x.Open("https://api.custom.com/ui"), Times.Once);
+        _browserLauncherMock.Verify(x => x.Open("https://api.custom.com/ui"), Times.Once);
     }
 
     [Fact]
@@ -90,6 +90,6 @@ public sealed class LaunchCommandTests(NitroCommandFixture fixture) : SessionCom
 
         // assert
         Assert.Equal(0, result.ExitCode);
-        BrowserLauncherMock.Verify(x => x.Open("https://api.custom.com/ui"), Times.Once);
+        _browserLauncherMock.Verify(x => x.Open("https://api.custom.com/ui"), Times.Once);
     }
 }

@@ -34,6 +34,9 @@ public class SchemaOptions : IReadOnlySchemaOptions
     /// <inheritdoc cref="IReadOnlySchemaOptions.SortFieldsByName"/>
     public bool SortFieldsByName { get; set; }
 
+    /// <inheritdoc cref="IReadOnlySchemaOptions.SortEnumValuesByName"/>
+    public bool SortEnumValuesByName { get; set; }
+
     /// <inheritdoc cref="IReadOnlySchemaOptions.RemoveUnreachableTypes"/>
     public bool RemoveUnreachableTypes { get; set; }
 
@@ -192,6 +195,9 @@ public class SchemaOptions : IReadOnlySchemaOptions
     /// <inheritdoc cref="IReadOnlySchemaOptions.ApplySerializeAsToScalars"/>
     public bool ApplySerializeAsToScalars { get; set; }
 
+    /// <inheritdoc cref="IReadOnlySchemaOptions.InferKeysFromLookups"/>
+    public bool InferKeysFromLookups { get; set; }
+
     /// <summary>
     /// Creates a mutable options object from a read-only options object.
     /// </summary>
@@ -217,6 +223,7 @@ public class SchemaOptions : IReadOnlySchemaOptions
             RemoveUnreachableTypes = options.RemoveUnreachableTypes,
             RemoveUnusedTypeSystemDirectives = options.RemoveUnusedTypeSystemDirectives,
             SortFieldsByName = options.SortFieldsByName,
+            SortEnumValuesByName = options.SortEnumValuesByName,
             DefaultIsOfTypeCheck = options.DefaultIsOfTypeCheck,
             EnableFlagEnums = options.EnableFlagEnums,
             EnableDefer = options.EnableDefer,
@@ -234,6 +241,7 @@ public class SchemaOptions : IReadOnlySchemaOptions
             ApplyShareableToPageInfo = options.ApplyShareableToPageInfo,
             ApplyShareableToConnections = options.ApplyShareableToConnections,
             ApplyShareableToNodeFields = options.ApplyShareableToNodeFields,
-            ApplySerializeAsToScalars = options.ApplySerializeAsToScalars
+            ApplySerializeAsToScalars = options.ApplySerializeAsToScalars,
+            InferKeysFromLookups = options.InferKeysFromLookups
         };
 }

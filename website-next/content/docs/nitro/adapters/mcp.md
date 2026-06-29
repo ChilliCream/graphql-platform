@@ -1,7 +1,7 @@
 ---
 title: "MCP"
+description: "Publish MCP feature collections with Nitro: author GraphQL tools and prompts, version and validate them, and serve them at the `/graphql/mcp` endpoint."
 ---
-<!-- spell-checker:ignore: ontoolresult onhostcontextchanged onteardown -->
 
 The [Model Context Protocol](https://modelcontextprotocol.io/) (MCP) is an open standard that connects AI applications to external systems through a single uniform interface. The host (Claude, ChatGPT, a VS Code agent) speaks the protocol once, and any MCP-compatible server plugs in without bespoke glue code per product.
 
@@ -214,6 +214,8 @@ You can also add a `view` block to the tool's settings to tweak how the host fra
 </html>
 ```
 
+<!-- spell-checker:ignore: ontoolresult onhostcontextchanged onteardown -->
+
 > The example imports `@modelcontextprotocol/ext-apps` from jsDelivr to keep the HTML self-contained and easy to read. For larger views you would typically bundle the SDK with a tool like Vite and emit a single HTML file as the build output.
 
 The script creates an `App` whose `name` matches the tool, registers handlers for incoming tool results, host theme changes, and teardown, then opens the bridge to the host with `app.connect()`. The `getHostContext()` replay at the end covers the case where the host's theme is already available before the handler is wired up.
@@ -386,7 +388,7 @@ You only need to do this once per machine. CI environments authenticate with `--
 
 ## 2. Create a feature collection
 
-A collection is the named container for all your tools and prompts. Create one per API.
+A collection is a named container for your tools and prompts. Create one for your API.
 
 ```shell
 nitro mcp create \

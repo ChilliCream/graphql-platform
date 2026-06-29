@@ -1,6 +1,6 @@
 ---
 title: "Handler Registration"
-description: "How Mocha discovers message bus handlers at compile time using a Roslyn source generator, and how to customize module naming, mix auto and manual registration, and resolve analyzer diagnostics."
+description: "How Mocha discovers message bus handlers at compile time with a Roslyn source generator, and how to customize or mix in manual registration."
 ---
 
 ```csharp
@@ -8,8 +8,6 @@ builder.Services
     .AddMessageBus()
     .AddOrderService(); // source-generated from your assembly name
 ```
-
-# Handler registration
 
 That registers the message bus, discovers your handlers and sagas at compile time, and wires up the registration. `.AddOrderService()` is a source-generated extension method - it knows your handler types at compile time and produces direct registration calls with no reflection.
 

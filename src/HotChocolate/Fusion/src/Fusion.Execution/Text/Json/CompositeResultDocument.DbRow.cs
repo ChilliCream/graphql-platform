@@ -13,14 +13,14 @@ public sealed partial class CompositeResultDocument
         public const int UnknownSize = -1;
 
         // Byte offsets used by MetaDb's direct-read fast paths.
-        internal const int TypeAndParentOffset = 0;
+        internal const int ParentOffset = 0;
         internal const int SelectionAndFlagsOffset = 4;
         internal const int SizeOffset = 8;
         internal const int LocationOrRowsOffset = 12;
-        internal const int SourceOffset = 16;
+        internal const int SourceAndTypeOffset = 16;
 
-        // 4 bits TokenType + 28 bits ParentRow
-        private readonly int _typeAndParent;
+        // 29 bits parent cursor value + 3 reserved
+        private readonly int _parent;
 
         // 15 bits OperationReferenceId + 2 bits OperationReferenceType + 6 bits Flags + 9 reserved
         private readonly int _selectionAndFlags;
@@ -28,11 +28,11 @@ public sealed partial class CompositeResultDocument
         // 1 bit HasComplexChildren (sign) + 31 bits SizeOrLength
         private readonly int _sizeOrLengthUnion;
 
-        // 27 bits — either Location or NumberOfRows, depending on TokenType/Flags
+        // 29 bits, either Location or NumberOfRows, depending on TokenType/Flags
         private readonly int _locationOrRows;
 
-        // 15 bits SourceDocumentId + 17 reserved
-        private readonly int _source;
+        // 15 bits SourceDocumentId + 4 bits TokenType + 13 reserved
+        private readonly int _sourceAndType;
 
         public DbRow(
             ElementTokenType tokenType,
@@ -46,25 +46,25 @@ public sealed partial class CompositeResultDocument
             ElementFlags flags = ElementFlags.None)
         {
             Debug.Assert((byte)tokenType < 16);
-            Debug.Assert(location is >= 0 and <= 0x07FFFFFF); // 27 bits
+            Debug.Assert(location is >= 0 and <= 0x1FFFFFFF); // 29 bits
             Debug.Assert(sizeOrLength >= UnknownSize);
             Debug.Assert(sourceDocumentId is >= 0 and <= 0x7FFF); // 15 bits
-            Debug.Assert(parentRow is >= 0 and <= 0x0FFFFFFF); // 28 bits
+            Debug.Assert(parentRow is >= 0 and <= 0x1FFFFFFF); // 29 bits (cursor value)
             Debug.Assert(operationReferenceId is >= 0 and <= 0x7FFF); // 15 bits
-            Debug.Assert(numberOfRows is >= 0 and <= 0x07FFFFFF); // 27 bits
+            Debug.Assert(numberOfRows is >= 0 and <= 0x1FFFFFFF); // 29 bits
             Debug.Assert((byte)flags <= 63); // 6 bits (0x3F)
             Debug.Assert((byte)operationReferenceType <= 3); // 2 bits
             Debug.Assert(Unsafe.SizeOf<DbRow>() == Size);
 
             var locationOrRows = location != 0 ? location : numberOfRows;
 
-            _typeAndParent = ((int)tokenType & 0x0F) | (parentRow << 4);
+            _parent = parentRow & 0x1FFFFFFF;
             _selectionAndFlags = operationReferenceId
                 | ((int)operationReferenceType << 15)
                 | ((int)flags << 17);
             _sizeOrLengthUnion = sizeOrLength;
-            _locationOrRows = locationOrRows & 0x07FFFFFF;
-            _source = sourceDocumentId & 0x7FFF;
+            _locationOrRows = locationOrRows & 0x1FFFFFFF;
+            _sourceAndType = (sourceDocumentId & 0x7FFF) | (((int)tokenType & 0x0F) << 15);
         }
 
         /// <summary>
@@ -73,7 +73,7 @@ public sealed partial class CompositeResultDocument
         /// <remarks>
         /// 4 bits = 16 possible values
         /// </remarks>
-        public ElementTokenType TokenType => (ElementTokenType)(_typeAndParent & 0x0F);
+        public ElementTokenType TokenType => (ElementTokenType)((_sourceAndType >>> 15) & 0x0F);
 
         /// <summary>
         /// Operation reference type indicating the type of GraphQL operation element.
@@ -85,12 +85,12 @@ public sealed partial class CompositeResultDocument
             => (OperationReferenceType)((_selectionAndFlags >> 15) & 0x03);
 
         /// <summary>
-        /// Byte offset in source data or metaDb row index for references.
+        /// Byte offset in source data, or the packed cursor value of the target row for references.
         /// </summary>
         /// <remarks>
-        /// 27 bits = 134M limit
+        /// 29 bits
         /// </remarks>
-        public int Location => _locationOrRows & 0x07FFFFFF;
+        public int Location => _locationOrRows & 0x1FFFFFFF;
 
         /// <summary>
         /// Length of data in JSON payload, number of elements if array or number of properties in an object.
@@ -114,9 +114,9 @@ public sealed partial class CompositeResultDocument
         /// Number of metadb rows this element spans.
         /// </summary>
         /// <remarks>
-        /// 27 bits = 134M rows
+        /// 29 bits
         /// </remarks>
-        public int NumberOfRows => _locationOrRows & 0x07FFFFFF;
+        public int NumberOfRows => _locationOrRows & 0x1FFFFFFF;
 
         /// <summary>
         /// Which source JSON document contains the data.
@@ -124,15 +124,15 @@ public sealed partial class CompositeResultDocument
         /// <remarks>
         /// 15 bits = 32K documents
         /// </remarks>
-        public int SourceDocumentId => _source & 0x7FFF;
+        public int SourceDocumentId => _sourceAndType & 0x7FFF;
 
         /// <summary>
-        /// Index of parent element in metadb for navigation and null propagation.
+        /// Packed cursor value of the parent element, used for navigation and null propagation.
         /// </summary>
         /// <remarks>
-        /// 28 bits = 268M rows
+        /// 29 bits
         /// </remarks>
-        public int ParentRow => (int)((uint)_typeAndParent >> 4);
+        public int Parent => _parent & 0x1FFFFFFF;
 
         /// <summary>
         /// Reference to GraphQL selection set or selection metadata.

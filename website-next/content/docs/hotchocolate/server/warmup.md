@@ -1,5 +1,6 @@
 ---
 title: Warmup
+description: "Pre-populate Hot Chocolate caches before serving traffic with `AddWarmupTask()`: run warmup requests at startup and on schema rebuilds to avoid cold starts."
 ---
 
 By default, Hot Chocolate constructs the schema eagerly during server startup. This means the schema and request executor are fully initialized before Kestrel begins accepting requests, ensuring initial requests perform optimally without any cold-start penalty.
@@ -25,7 +26,7 @@ builder
 
 The warmup process is blocking. The server does not start answering requests until both the schema creation and all warmup tasks have finished.
 
-By default, warmup tasks run both at server startup and whenever the schema is rebuilt at runtime (for example, when using [dynamic schemas](../building-a-schema/dynamic-schemas.md)). When the request executor changes, warmup tasks execute in the background while requests continue to be handled by the old request executor. Once warmup completes, requests are served by the new and already warmed-up request executor.
+By default, warmup tasks run both at server startup and whenever the schema is rebuilt at runtime (for example, when using [dynamic schemas](../defining-a-schema/dynamic-schemas.md)). When the request executor changes, warmup tasks execute in the background while requests continue to be handled by the old request executor. Once warmup completes, requests are served by the new and already warmed-up request executor.
 
 Since the execution of an operation could have side-effects, you might want to warm up the executor but skip the actual execution of the request. Mark an operation as a warmup request for this purpose:
 
@@ -106,6 +107,7 @@ builder
 
 This writes the schema SDL to the specified file path during server initialization.
 
+<!--
 ### Accessing services
 
 You can inject services into your custom warmup task through constructor injection. This includes both Hot Chocolate's built-in schema services like `IDocumentCache` or `IPreparedOperationCache`, as well as any application services you've registered:
@@ -139,6 +141,7 @@ public class MyExecutionEventListener : ExecutionDiagnosticEventListener
     }
 }
 ```
+-->
 
 # Opting into Lazy Initialization
 
@@ -155,5 +158,5 @@ With lazy initialization enabled, the schema is constructed when it is first nee
 # Next Steps
 
 - [Instrumentation](./instrumentation.md) for monitoring request execution and tracing.
-- [Dynamic Schemas](../building-a-schema/dynamic-schemas.md) for schemas that change at runtime.
+- [Dynamic Schemas](../defining-a-schema/dynamic-schemas.md) for schemas that change at runtime.
 - [Migrate from v15 to v16](../migrating/migrate-from-15-to-16.md#eager-initialization-by-default) for migration details on the `InitializeOnStartup` removal.

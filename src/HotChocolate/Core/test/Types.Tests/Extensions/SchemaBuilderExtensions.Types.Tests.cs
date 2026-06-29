@@ -606,7 +606,7 @@ public class SchemaBuilderExtensionsTypeTests
 
         // act
         Action action = () =>
-            SchemaBuilderExtensions.AddDirectiveType(builder, null!);
+            SchemaBuilderExtensions.AddDirectiveType(builder, (Type)null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(action);
@@ -655,6 +655,28 @@ public class SchemaBuilderExtensionsTypeTests
 
         // assert
         builder.Create().ToString().MatchSnapshot();
+    }
+
+    [Fact]
+    public void AddDirectiveType_ConfigureDelegate_AddsDirectiveWithArgument()
+    {
+        // arrange
+        var builder = SchemaBuilder.New()
+            .AddQueryType(d => d
+                .Name("Query")
+                .Field("field")
+                .Type<IntType>()
+                .Resolve(() => 1));
+
+        // act
+        builder.AddDirectiveType(d => d
+            .Name("exampleDirective")
+            .Location(Types.DirectiveLocation.Field)
+            .Argument("arg", a => a.Type<IntType>()));
+
+        // assert
+        var directive = builder.Create().DirectiveTypes["exampleDirective"];
+        Assert.True(directive.Arguments.ContainsField("arg"));
     }
 
     [Fact]

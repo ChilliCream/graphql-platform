@@ -1,3 +1,164 @@
-export default function Page() {
-  return <h1>Support</h1>;
+import type { Metadata } from "next";
+
+import { Offering } from "@/src/components/Offering";
+import { OfferingGrid } from "@/src/components/OfferingGrid";
+import { PageHero } from "@/src/components/PageHero";
+import { Section } from "@/src/components/Section";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeaderCell,
+  TableRow,
+} from "@/src/design-system/Table";
+import { CheckIcon } from "@/src/components/CheckIcon";
+
+export const metadata: Metadata = {
+  title: "Support",
+  description:
+    "Get GraphQL support from ChilliCream experts: plans from a free community Slack to enterprise SLAs with dedicated account managers and phone support.",
+};
+
+const SUPPORT_PLANS = [
+  {
+    title: "Community",
+    price: "Free",
+    description: "For personal or non-commercial projects, to start hacking.",
+    perks: ["Public Slack Channel"],
+    callToAction: {
+      title: "Join Slack",
+      link: "https://slack.chillicream.com/",
+    },
+  },
+  {
+    title: "Startup",
+    price: "$450",
+    priceNote: "per month",
+    description:
+      "For small teams with moderate bandwidth and projects of low to medium complexity.",
+    perks: ["Private Slack Channel", "2 critical incidents"],
+    callToAction: {
+      title: "Contact Us",
+      link: "/services/support/contact?plan=Startup",
+    },
+  },
+  {
+    title: "Business",
+    price: "$1,300",
+    priceNote: "per month",
+    description: "For larger teams with business-critical projects.",
+    perks: [
+      "Private Slack Channel",
+      "5 critical incidents",
+      "2 non-critical incidents",
+      "Email support",
+    ],
+    callToAction: {
+      title: "Contact Us",
+      link: "/services/support/contact?plan=Business",
+    },
+  },
+  {
+    title: "Enterprise",
+    price: "Custom",
+    description:
+      "For the whole organization, all your teams and business units, and with tailor made SLAs.",
+    perks: [
+      "Private Slack Channel",
+      "Unlimited critical incidents",
+      "10 non-critical incidents",
+      "Phone support",
+      "Dedicated account manager",
+      "Status reviews",
+    ],
+    callToAction: {
+      title: "Contact Us",
+      link: "/services/support/contact?plan=Enterprise",
+    },
+  },
+];
+
+interface FeatureValue {
+  title: string;
+  values: (boolean | string)[];
+}
+
+const COMPARISON: FeatureValue[] = [
+  {
+    title: "Critical Incidents",
+    values: [
+      false,
+      "2 (next business day)",
+      "5 (next business day)",
+      "∞ (24 hours)",
+    ],
+  },
+  {
+    title: "Non-critical Incidents",
+    values: [false, false, "5 (3 business days)", "10 (next business day)"],
+  },
+  { title: "Public Slack Channel", values: [true, true, true, true] },
+  { title: "Private Slack Channel", values: [false, true, true, true] },
+  { title: "Private Issue Tracking Board", values: [false, false, true, true] },
+  { title: "Email Support", values: [false, false, true, true] },
+  { title: "Phone Support", values: [false, false, false, true] },
+  { title: "Dedicated Account Manager", values: [false, false, false, true] },
+  { title: "Status Reviews", values: [false, false, false, true] },
+];
+
+const PLAN_NAMES = ["Community", "Startup", "Business", "Enterprise"];
+
+export default function SupportPage() {
+  return (
+    <>
+      <PageHero
+        title="Expert Help When You Need It"
+        teaser="At ChilliCream, we want you to be successful. Our Support plans are designed to give you peace of mind on every project."
+      />
+
+      <Section title="Support Plans">
+        <OfferingGrid columns="md:grid-cols-2 lg:grid-cols-3">
+          {SUPPORT_PLANS.map((plan) => (
+            <Offering key={plan.title} {...plan} />
+          ))}
+        </OfferingGrid>
+      </Section>
+
+      <Section title="Compare our Support Plans">
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableHeaderCell>Support</TableHeaderCell>
+              {PLAN_NAMES.map((name) => (
+                <TableHeaderCell key={name} align="center">
+                  {name}
+                </TableHeaderCell>
+              ))}
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {COMPARISON.map((row) => (
+              <TableRow key={row.title}>
+                <TableCell>{row.title}</TableCell>
+                {row.values.map((v, i) => (
+                  <TableCell key={i} align="center">
+                    {v === true ? (
+                      <span className="text-cc-accent inline-flex items-center justify-center">
+                        <CheckIcon />
+                      </span>
+                    ) : v === false ? (
+                      <span className="text-cc-prose">—</span>
+                    ) : (
+                      v
+                    )}
+                  </TableCell>
+                ))}
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </Section>
+    </>
+  );
 }

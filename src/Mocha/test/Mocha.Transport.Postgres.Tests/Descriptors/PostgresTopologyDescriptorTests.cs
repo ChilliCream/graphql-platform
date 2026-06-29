@@ -108,14 +108,14 @@ public class PostgresTopologyDescriptorTests
         var runtime = PostgresBusFixture.CreateRuntime(t =>
         {
             t.DeclareQueue("ep-queue");
-            t.Endpoint("my-ep").Queue("ep-queue");
+            t.Endpoint("ep-queue");
         });
         var transport = runtime.Transports.OfType<PostgresMessagingTransport>().Single();
 
         // assert
         var endpoint = transport.ReceiveEndpoints
             .OfType<PostgresReceiveEndpoint>()
-            .Single(e => e.Name == "my-ep");
+            .Single(e => e.Queue.Name == "ep-queue");
         Assert.NotNull(endpoint);
         Assert.Equal("ep-queue", endpoint.Queue.Name);
     }

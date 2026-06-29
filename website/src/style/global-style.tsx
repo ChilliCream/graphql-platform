@@ -267,6 +267,7 @@ export const GlobalStyle = createGlobalStyle`
     margin-bottom: 24px;
     border-collapse: collapse;
     width: 100%;
+    table-layout: fixed;
   }
 
   thead {
@@ -290,6 +291,7 @@ export const GlobalStyle = createGlobalStyle`
     font-feature-settings: "tnum";
     font-size: var(--font-size);
     line-height: 1.6em;
+    overflow-wrap: anywhere;
   }
 
   th {

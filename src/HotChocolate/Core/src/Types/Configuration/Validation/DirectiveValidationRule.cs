@@ -1,5 +1,6 @@
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
+using HotChocolate.Utilities;
 using static HotChocolate.Configuration.Validation.TypeValidationHelper;
 using static HotChocolate.Utilities.ErrorHelper;
 
@@ -25,6 +26,7 @@ internal sealed class DirectiveValidationRule : ISchemaValidationRule
                 EnsureDirectiveNameIsValid(directiveDefinition, errors);
                 EnsureArgumentNamesAreValid(directiveDefinition, errors);
                 EnsureArgumentDeprecationIsValid(directiveDefinition, errors);
+                EnsureNoSelfApplication(directiveDefinition, errors);
             }
         }
     }
@@ -41,6 +43,32 @@ internal sealed class DirectiveValidationRule : ISchemaValidationRule
                 && firstTwoLetters[1] == PrefixCharacter)
             {
                 errors.Add(TwoUnderscoresNotAllowedOnDirectiveName(type));
+            }
+        }
+    }
+
+    private static void EnsureNoSelfApplication(
+        IDirectiveDefinition directiveDefinition,
+        ICollection<ISchemaError> errors)
+    {
+        foreach (var directive in directiveDefinition.Directives)
+        {
+            if (directive.Definition.Name.EqualsOrdinal(directiveDefinition.Name))
+            {
+                errors.Add(DirectiveDefinitionSelfApplication(directiveDefinition));
+                return;
+            }
+        }
+
+        foreach (var argument in directiveDefinition.Arguments)
+        {
+            foreach (var directive in argument.Directives)
+            {
+                if (directive.Definition.Name.EqualsOrdinal(directiveDefinition.Name))
+                {
+                    errors.Add(DirectiveDefinitionSelfApplication(directiveDefinition));
+                    return;
+                }
             }
         }
     }

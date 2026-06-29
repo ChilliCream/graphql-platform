@@ -63,7 +63,8 @@ public class QueryableFilterVisitorContainsTests : SchemaCache
                                 id
                             }
                         }")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
@@ -81,7 +82,8 @@ public class QueryableFilterVisitorContainsTests : SchemaCache
                                 id
                             }
                         }")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
@@ -91,7 +93,7 @@ public class QueryableFilterVisitorContainsTests : SchemaCache
                     : null)
             .AddResult(res1, "1")
             .AddResult(res2, "2")
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -118,7 +120,8 @@ public class QueryableFilterVisitorContainsTests : SchemaCache
                             id
                         }
                     }")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
@@ -137,7 +140,8 @@ public class QueryableFilterVisitorContainsTests : SchemaCache
                             id
                         }
                     }")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
@@ -147,7 +151,7 @@ public class QueryableFilterVisitorContainsTests : SchemaCache
                     : null)
             .AddResult(res1, "2")
             .AddResult(res2, "1")
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     public class Foo

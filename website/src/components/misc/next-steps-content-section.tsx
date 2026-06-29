@@ -13,8 +13,10 @@ export interface NextStepsContentSectionProps {
   readonly text: ReactNode;
   readonly primaryLink: string;
   readonly primaryLinkText: string;
+  readonly primaryTrack?: string;
   readonly secondaryLink?: string;
   readonly secondaryLinkText?: string;
+  readonly secondaryTrack?: string;
   readonly dense?: boolean;
 }
 
@@ -23,8 +25,10 @@ export function NextStepsContentSection({
   text,
   primaryLink,
   primaryLinkText,
+  primaryTrack,
   secondaryLink,
   secondaryLinkText,
+  secondaryTrack,
   dense,
 }: NextStepsContentSectionProps): ReactElement {
   return (
@@ -35,9 +39,11 @@ export function NextStepsContentSection({
           <Text>{text}</Text>
         </Content>
         <Actions>
-          <LinkButton to={primaryLink}>{primaryLinkText}</LinkButton>
+          <LinkButton to={primaryLink} data-track={primaryTrack}>
+            {primaryLinkText}
+          </LinkButton>
           {secondaryLink && secondaryLinkText && (
-            <LinkTextButton to={secondaryLink}>
+            <LinkTextButton to={secondaryLink} data-track={secondaryTrack}>
               {secondaryLinkText}
               <IconContainer $size={16}>
                 <Icon {...ArrowRightIconSvg} />

@@ -1,9 +1,7 @@
 ---
 title: "Messages"
-description: "Understand the message envelope, naming conventions, correlation, and message type identity in Mocha. Learn how to define POCO message types, attach custom headers, and access envelope metadata in handlers."
+description: "Understand the message envelope, naming conventions, correlation, and message type identity in Mocha, and learn how to define message types."
 ---
-
-# Messages
 
 A message is any C# class, record, or struct. No base class, no marker interface, no framework attributes. You define a type that holds your business data, and Mocha handles everything else - routing, serialization, correlation, and delivery. Records are used throughout the examples because they naturally fit message semantics, but they are not required. Mocha serializes message bodies as JSON by default.
 
@@ -29,7 +27,8 @@ This section walks through defining a message, attaching custom headers when pub
 
 Messages can be any class, record, or struct. Records with `{ get; init; }` properties are a natural fit:
 
-```csharp filename="OrderPlaced.cs"
+```csharp
+// OrderPlaced.cs
 namespace MyApp;
 
 public sealed record OrderPlaced
@@ -79,7 +78,8 @@ The bus merges your headers into the envelope's header collection before dispatc
 
 `IEventHandler<T>` receives the deserialized message and a cancellation token - that is all. To read message IDs, correlation IDs, timestamps, or custom headers, implement `IConsumer<T>` instead. The `IConsumeContext<T>` parameter gives you both the deserialized message and all envelope fields:
 
-```csharp filename="OrderAuditConsumer.cs"
+```csharp
+// OrderAuditConsumer.cs
 using Mocha;
 
 namespace MyApp;

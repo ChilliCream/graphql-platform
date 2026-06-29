@@ -47,10 +47,10 @@ public abstract class ComplianceTestBase : IAsyncLifetime
     }
 
     /// <inheritdoc />
-    public Task InitializeAsync() => Task.CompletedTask;
+    public ValueTask InitializeAsync() => ValueTask.CompletedTask;
 
     /// <inheritdoc />
-    public async Task DisposeAsync()
+    public async ValueTask DisposeAsync()
     {
         if (_gateway is not null)
         {

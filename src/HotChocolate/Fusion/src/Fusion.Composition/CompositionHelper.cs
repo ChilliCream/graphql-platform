@@ -53,8 +53,7 @@ internal static class CompositionHelper
                         .SetSeverity(LogSeverity.Error)
                         .Build());
 
-                ImmutableArray<CompositionError> errors = [new("❌ Composition failed")];
-                return errors;
+                return (ImmutableArray<CompositionError>)[new("❌ Composition failed")];
             }
         }
 

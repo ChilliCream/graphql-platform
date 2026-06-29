@@ -1,8 +1,9 @@
 ---
 title: Settings - Overview
+description: "Overview of the Settings section in Nitro, reached via the cog icon, covering customization options like Themes and where to find organization settings."
 ---
 
-![Image](images/settings-0.webp)
+![Image](../../../../public/images/nitro-docs/settings/settings-0.webp)
 
 The Settings section provides users with various customization options. To access the settings, click on the cog icon located in the navigation bar on the left.
 

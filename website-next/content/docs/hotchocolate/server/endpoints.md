@@ -1,5 +1,6 @@
 ---
 title: Endpoints
+description: "Map Hot Chocolate endpoints in ASP.NET Core: MapGraphQL for HTTP and WebSockets, MapGraphQLSchema for SDL downloads, and MapNitroApp for the Nitro GraphQL IDE."
 ---
 
 Hot Chocolate provides a set of ASP.NET Core middleware for making the GraphQL server available via HTTP and WebSockets. There are also middleware for hosting the [Nitro](/products/nitro) GraphQL IDE and an endpoint for downloading the schema in its SDL representation.
@@ -461,4 +462,4 @@ Per-endpoint `WithOptions` overrides take precedence over schema-level defaults.
 - [HTTP Transport](./http-transport.md) for details on request formats, response formats, WebSocket transport, and SSE.
 - [Interceptors](./interceptors.md) for hooking into request processing.
 - [Trusted Documents](../performance/trusted-documents.md) for the full persisted operations workflow.
-- [Cost Analysis](../securing-your-api/cost-analysis.md) for understanding the default security cost analyzer.
+- [Cost Analysis](../security/cost-analysis.md) for understanding the default security cost analyzer.

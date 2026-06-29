@@ -7,6 +7,9 @@ interface GenerateMetadataOptions {
   description?: string;
   imageUrl?: string;
   isArticle?: boolean;
+  canonicalUrl?: string;
+  pageUrl?: string;
+  noIndex?: boolean;
 }
 
 export function createMetadata({
@@ -14,6 +17,9 @@ export function createMetadata({
   description,
   imageUrl,
   isArticle,
+  canonicalUrl,
+  pageUrl,
+  noIndex,
 }: GenerateMetadataOptions): Metadata {
   const metaDescription = description || siteMetadata.description;
   const metaAuthor = `@${siteMetadata.author}`;
@@ -21,12 +27,19 @@ export function createMetadata({
     ? `${siteMetadata.siteUrl}${imageUrl}`
     : `${siteMetadata.siteUrl}/favicon-32x32.png`;
   const metaType = isArticle ? "article" : "website";
+  const resolvedUrl = pageUrl || siteMetadata.siteUrl;
 
   return {
     title,
     description: metaDescription,
+    ...(canonicalUrl && {
+      alternates: { canonical: canonicalUrl },
+    }),
+    ...(noIndex && {
+      robots: { index: false, follow: true },
+    }),
     openGraph: {
-      url: siteMetadata.siteUrl,
+      url: resolvedUrl,
       title,
       description: metaDescription,
       type: metaType as "website" | "article",

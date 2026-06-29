@@ -89,6 +89,18 @@ internal partial class MiddlewareContext : IMiddlewareContext
     {
         ArgumentNullException.ThrowIfNull(error);
 
+        // Internal selections are added by the execution engine (for example by the
+        // projection optimizers) and are never part of the client-facing result. Their
+        // data is already excluded from the response, so their errors must not be
+        // surfaced either.
+        // NOTE: we could also reconsider and track them as internal errors in the future,
+        // and allow error propagate, but make sure that an internal propagation terminates,
+        // in the mist parent internal field.
+        if (_selection.IsInternal)
+        {
+            return;
+        }
+
         if (error is AggregateError aggregateError)
         {
             foreach (var innerError in aggregateError.Errors)

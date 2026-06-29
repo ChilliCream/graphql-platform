@@ -1,5 +1,6 @@
 ---
 title: Migrate Strawberry Shake from 14 to 15
+description: "Upgrade Strawberry Shake from 14 to 15: the `Date` scalar runtime type changes from `DateTime` to `DateOnly`, plus other breaking changes to address."
 ---
 
 This guide will walk you through the manual migration steps to update your Strawberry Shake GraphQL client to version 15.

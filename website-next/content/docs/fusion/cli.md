@@ -1,5 +1,6 @@
 ---
 title: "Nitro CLI Reference"
+description: "Reference for the `nitro fusion` CLI commands: compose, validate, publish, download, and run Fusion gateway configurations locally or with Nitro Cloud."
 ---
 
 The Nitro CLI provides the `nitro fusion` command group for composing, validating, publishing, and running Fusion gateway configurations. Use these commands for local development workflows and for publishing configurations to Nitro Cloud.
@@ -567,6 +568,12 @@ Per-environment variable substitutions. The active environment is selected via t
 ```
 
 When composing with `--environment staging`, all `{{API_URL}}` placeholders resolve to the staging URL.
+
+### `preprocessor.inferShareable`
+
+**Type:** `boolean` (optional, defaults to `false`)
+
+When `true`, composition automatically marks every field on this source schema that is resolvable by multiple source schemas as `@shareable`, skipping `INVALID_FIELD_SHARING` validation. Fields that are part of a `@key`, marked `@internal` or `@inaccessible`, or defined on the subscription type are not marked automatically.
 
 # Environment Variables
 

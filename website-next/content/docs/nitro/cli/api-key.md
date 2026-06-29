@@ -1,5 +1,6 @@
 ---
-title: api-key
+title: api-key Command
+description: "Create, list, and delete API keys with the `nitro api-key` commands: API- or workspace-scoped credentials for CI/CD pipelines and telemetry reporting."
 ---
 
 The `nitro api-key` commands manage API keys. API keys authenticate non-interactive use of the CLI and the Nitro server, and are intended for CI/CD pipelines, deployments, and telemetry reporting from your GraphQL server.

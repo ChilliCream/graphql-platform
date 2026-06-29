@@ -1,8 +1,9 @@
 ---
 title: "Client Registry"
+description: "Manage GraphQL clients and persisted operations with the Nitro client registry: validate operations against the schema and distribute them to your server."
 ---
 
-![Image](images/client-registry-0.webp)
+![Image](../../../../public/images/nitro-docs/apis/client-registry-0.webp)
 
 The client registries is an important tool for managing your GraphQL Clients. It provides a centralized location for clients and queries.
 
@@ -18,7 +19,7 @@ A persisted operation is a GraphQL operation that has been sent to the server, s
 
 Persisted operations also add an extra layer of security as the server can be configured to only execute operations that have been previously stored, which prevents malicious queries. This is the cheapest and most effective way to secure your GraphQL API from potential attacks.
 
-![Image](images/client-registry-1.webp)
+![Image](../../../../public/images/nitro-docs/apis/client-registry-1.webp)
 
 Persisted operations can be inspected in the `Operations` tab.
 
@@ -60,7 +61,7 @@ The operations file typically adopts the JSON format as used by Relay. It compri
 
 Several GraphQL clients have built-in support for this Relay-style operations file format. This compatibility allows for a standardized way of handling persisted operations across different clients. For more details on how various clients implement and work with persisted operations, consider referring to their respective documentation:
 
-- [StrawberryShake](https://chillicream.com/docs/strawberryshake/v14/performance/persisted-operations)
+- [StrawberryShake](../../strawberryshake/performance/persisted-operations.md)
 - [URQL](https://nearform.com/open-source/urql/docs/advanced/persistence-and-uploads/)
 - [Relay](https://relay.dev/docs/guides/persisted-queries/)
 

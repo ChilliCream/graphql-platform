@@ -108,12 +108,12 @@ public class AutoProvisionIntegrationTests
             .AddRabbitMQ(t =>
             {
                 t.AutoProvision(false);
-                t.BindHandlersExplicitly();
+                t.BindExplicitly();
                 t.DeclareExchange("ap-ex").AutoProvision(true);
                 t.DeclareQueue("ap-q").AutoProvision(true);
                 t.DeclareBinding("ap-ex", "ap-q").AutoProvision(true);
 
-                t.Endpoint("ap-ep").Consumer<OrderSpyConsumer>().Queue("ap-q");
+                t.Queue("ap-q").Consumer<OrderSpyConsumer>();
                 t.DispatchEndpoint("ap-dispatch").ToExchange("ap-ex").Publish<OrderCreated>();
             })
             .BuildTestBusAsync();
@@ -138,12 +138,27 @@ public class AutoProvisionIntegrationTests
         await using var vhost = await _fixture.CreateVhostAsync();
 
         // Pre-provision resources on the broker
-        await using (var connection = await vhost.ConnectionFactory.CreateConnectionAsync())
-        await using (var channel = await connection.CreateChannelAsync())
+        await using (var connection = await vhost.ConnectionFactory.CreateConnectionAsync(
+            TestContext.Current.CancellationToken))
+        await using (var channel = await connection.CreateChannelAsync(
+            cancellationToken: TestContext.Current.CancellationToken))
         {
-            await channel.ExchangeDeclareAsync("pre-ex", "fanout", durable: true);
-            await channel.QueueDeclareAsync("pre-q", durable: true, exclusive: false, autoDelete: false);
-            await channel.QueueBindAsync("pre-q", "pre-ex", "");
+            await channel.ExchangeDeclareAsync(
+                "pre-ex",
+                "fanout",
+                durable: true,
+                cancellationToken: TestContext.Current.CancellationToken);
+            await channel.QueueDeclareAsync(
+                "pre-q",
+                durable: true,
+                exclusive: false,
+                autoDelete: false,
+                cancellationToken: TestContext.Current.CancellationToken);
+            await channel.QueueBindAsync(
+                "pre-q",
+                "pre-ex",
+                "",
+                cancellationToken: TestContext.Current.CancellationToken);
         }
 
         await using var bus = await new ServiceCollection()
@@ -154,12 +169,12 @@ public class AutoProvisionIntegrationTests
             .AddRabbitMQ(t =>
             {
                 t.AutoProvision(false);
-                t.BindHandlersExplicitly();
+                t.BindExplicitly();
                 t.DeclareExchange("pre-ex");
                 t.DeclareQueue("pre-q");
                 t.DeclareBinding("pre-ex", "pre-q");
 
-                t.Endpoint("pre-ep").Consumer<OrderSpyConsumer>().Queue("pre-q");
+                t.Queue("pre-q").Consumer<OrderSpyConsumer>();
                 t.DispatchEndpoint("pre-dispatch").ToExchange("pre-ex").Publish<OrderCreated>();
             })
             .BuildTestBusAsync();
@@ -184,10 +199,16 @@ public class AutoProvisionIntegrationTests
         await using var vhost = await _fixture.CreateVhostAsync();
 
         // Pre-provision only the exchange (with auto-provision disabled for it)
-        await using (var connection = await vhost.ConnectionFactory.CreateConnectionAsync())
-        await using (var channel = await connection.CreateChannelAsync())
+        await using (var connection = await vhost.ConnectionFactory.CreateConnectionAsync(
+            TestContext.Current.CancellationToken))
+        await using (var channel = await connection.CreateChannelAsync(
+            cancellationToken: TestContext.Current.CancellationToken))
         {
-            await channel.ExchangeDeclareAsync("mixed-ex", "fanout", durable: true);
+            await channel.ExchangeDeclareAsync(
+                "mixed-ex",
+                "fanout",
+                durable: true,
+                cancellationToken: TestContext.Current.CancellationToken);
         }
 
         await using var bus = await new ServiceCollection()
@@ -198,12 +219,12 @@ public class AutoProvisionIntegrationTests
             .AddRabbitMQ(t =>
             {
                 t.AutoProvision(true);
-                t.BindHandlersExplicitly();
+                t.BindExplicitly();
                 t.DeclareExchange("mixed-ex").AutoProvision(false); // already exists
                 t.DeclareQueue("mixed-q"); // will be auto-provisioned (inherits true)
                 t.DeclareBinding("mixed-ex", "mixed-q"); // will be auto-provisioned
 
-                t.Endpoint("mixed-ep").Consumer<OrderSpyConsumer>().Queue("mixed-q");
+                t.Queue("mixed-q").Consumer<OrderSpyConsumer>();
                 t.DispatchEndpoint("mixed-dispatch").ToExchange("mixed-ex").Publish<OrderCreated>();
             })
             .BuildTestBusAsync();

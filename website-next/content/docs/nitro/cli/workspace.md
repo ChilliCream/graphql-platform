@@ -1,5 +1,6 @@
 ---
-title: workspace
+title: workspace Command
+description: "Manage Nitro workspaces with the `nitro workspace` commands: create workspaces, list them, set a session default, and check the current selection."
 ---
 
 The `nitro workspace` commands manage workspaces. A workspace is the top-level container in Nitro, every API, environment, and API key belongs to exactly one workspace.

@@ -19,7 +19,7 @@ builder.Services
     .AddRabbitMQ();
 ```
 
-{/* TopologyVisualization placeholder */}
+<MochaTopologyVisualization data='{"services":[{"host":{"serviceName":"MyService","assemblyName":"MyService.dll","instanceId":"my-svc-1"},"messageTypes":[{"identity":"msg:OrderPlacedEvent","runtimeType":"OrderPlacedEvent","runtimeTypeFullName":"MyApp.Messages.OrderPlacedEvent","isInterface":false,"isInternal":false},{"identity":"msg:GetOrderStatusRequest","runtimeType":"GetOrderStatusRequest","runtimeTypeFullName":"MyApp.Messages.GetOrderStatusRequest","isInterface":false,"isInternal":false}],"consumers":[{"name":"OrderPlacedHandler","identityType":"OrderPlacedHandler","identityTypeFullName":"MyApp.Handlers.OrderPlacedHandler"},{"name":"GetOrderStatusHandler","identityType":"GetOrderStatusHandler","identityTypeFullName":"MyApp.Handlers.GetOrderStatusHandler"}],"routes":{"inbound":[{"kind":"subscribe","messageTypeIdentity":"msg:OrderPlacedEvent","consumerName":"OrderPlacedHandler","endpoint":{"name":"my-service.order-placed","address":"rabbitmq://localhost/my-service.order-placed","transportName":"RabbitMQ"}},{"kind":"request","messageTypeIdentity":"msg:GetOrderStatusRequest","consumerName":"GetOrderStatusHandler","endpoint":{"name":"get-order-status","address":"rabbitmq://localhost/get-order-status","transportName":"RabbitMQ"}}],"outbound":[{"kind":"publish","messageTypeIdentity":"msg:OrderPlacedEvent","endpoint":{"name":"order-placed","address":"rabbitmq://localhost/order-placed","transportName":"RabbitMQ"}},{"kind":"send","messageTypeIdentity":"msg:GetOrderStatusRequest","endpoint":{"name":"get-order-status","address":"rabbitmq://localhost/get-order-status","transportName":"RabbitMQ"}}]},"sagas":[]}],"transports":[{"identifier":"rabbitmq://localhost:5672/","name":"RabbitMQ","schema":"rabbitmq","transportType":"RabbitMQMessagingTransport","receiveEndpoints":[{"name":"my-service.order-placed","kind":"default","address":"rabbitmq://localhost/my-service.order-placed","source":{"address":"rabbitmq://localhost:5672/q/my-service.order-placed"}},{"name":"get-order-status","kind":"default","address":"rabbitmq://localhost/get-order-status","source":{"address":"rabbitmq://localhost:5672/q/get-order-status"}}],"dispatchEndpoints":[{"name":"order-placed","kind":"default","address":"rabbitmq://localhost/order-placed","destination":{"address":"rabbitmq://localhost:5672/e/order-placed"}},{"name":"get-order-status","kind":"default","address":"rabbitmq://localhost/get-order-status","destination":{"address":"rabbitmq://localhost:5672/q/get-order-status"}}],"topology":{"address":"rabbitmq://localhost:5672/","entities":[{"kind":"exchange","name":"order-placed","address":"rabbitmq://localhost:5672/e/order-placed","flow":"inbound","properties":{"type":"fanout","durable":true,"autoDelete":false,"autoProvision":true}},{"kind":"exchange","name":"my-service.order-placed","address":"rabbitmq://localhost:5672/e/my-service.order-placed","flow":"inbound","properties":{"type":"fanout","durable":true,"autoDelete":false,"autoProvision":true}},{"kind":"queue","name":"my-service.order-placed","address":"rabbitmq://localhost:5672/q/my-service.order-placed","flow":"outbound","properties":{"durable":true,"exclusive":false,"autoDelete":false,"autoProvision":true}},{"kind":"queue","name":"get-order-status","address":"rabbitmq://localhost:5672/q/get-order-status","flow":"outbound","properties":{"durable":true,"exclusive":false,"autoDelete":false,"autoProvision":true}}],"links":[{"kind":"bind","address":"rabbitmq://localhost:5672/b/e/order-placed/e/my-service.order-placed","source":"rabbitmq://localhost:5672/e/order-placed","target":"rabbitmq://localhost:5672/e/my-service.order-placed","direction":"forward","properties":{"routingKey":null,"autoProvision":true}},{"kind":"bind","address":"rabbitmq://localhost:5672/b/e/my-service.order-placed/q/my-service.order-placed","source":"rabbitmq://localhost:5672/e/my-service.order-placed","target":"rabbitmq://localhost:5672/q/my-service.order-placed","direction":"forward","properties":{"routingKey":null,"autoProvision":true}}]}}]}' />
 
 That registration produces:
 
@@ -213,23 +213,11 @@ new SendOptions
 cancellationToken);
 ```
 
-# Bind consumers to endpoints
+# Customize queues and binding
 
-## Implicit binding (default)
+Use `transport.Queue("name")` as the primary API when you need to customize receive topology. The queue builder starts with the queue as the unit of configuration. It can declare the queue, bind handlers or consumers, opt into convention bindings, and configure receive settings in one place.
 
-By default, the transport uses implicit binding. Every registered handler is automatically bound to a receive endpoint named by convention:
-
-```csharp
-builder.Services
-    .AddMessageBus()
-    .AddEventHandler<OrderPlacedHandler>()     // -> receive endpoint: my-service.order-placed
-    .AddEventHandler<PaymentReceivedHandler>()  // -> receive endpoint: my-service.payment-received
-    .AddRabbitMQ();
-```
-
-## Configure handler endpoints
-
-When you want convention-based endpoint naming but need to customize specific handler endpoints, use `transport.Handler<T>()`. This claims the handler for the transport and gives you access to the endpoint descriptor through `ConfigureEndpoint()`:
+Calling `Queue("name")` by itself creates an infrastructure queue. Adding `Handler<T>()`, `Consumer<T>()`, or `Receives<T>()` materializes a receive endpoint for that queue.
 
 ```csharp
 builder.Services
@@ -238,21 +226,129 @@ builder.Services
     .AddEventHandler<PaymentReceivedHandler>()
     .AddRabbitMQ(transport =>
     {
-        // Claim OrderPlacedHandler and configure its convention-named endpoint
-        transport.Handler<OrderPlacedHandler>()
-            .ConfigureEndpoint(ep => ep.MaxConcurrency(10))
-            .ConfigureEndpoint(ep => ep.FaultEndpoint("order-errors"));
+        transport.BindExplicitly();
+
+        transport.Queue("combined-orders")
+            .BindImplicitly()
+            .MaxConcurrency(5)
+            .FaultEndpoint("order-errors")
+            .SkippedEndpoint("order-skipped")
+            .Handler<OrderPlacedHandler>()
+            .Handler<PaymentReceivedHandler>();
     });
 ```
 
-`PaymentReceivedHandler` still gets an auto-discovered endpoint with default settings. `OrderPlacedHandler` gets the same convention-derived endpoint name, but with concurrency capped at 10 and a custom fault endpoint.
+Both handlers now consume from the same `combined-orders` queue. Without explicit transport binding, they would each get their own convention-derived endpoint.
 
-Multiple `ConfigureEndpoint()` calls on the same handler compose in declaration order.
+## Bind handlers or message types
+
+Use `.Handler<T>()` or `.Consumer<T>()` when you know the concrete handler or consumer types that should run on the queue:
+
+```csharp
+transport.Queue("combined-orders")
+    .BindImplicitly()
+    .Handler<OrderPlacedHandler>()
+    .Handler<PaymentReceivedHandler>();
+
+transport.Queue("audit-orders")
+    .BindImplicitly()
+    .Consumer<OrderAuditConsumer>();
+```
+
+Use `.Receives<T>()` when the queue should receive a message type and Mocha should connect all registered handlers for that message type:
+
+```csharp
+builder.Services
+    .AddMessageBus()
+    .AddEventHandler<OrderPlacedHandler>()
+    .AddEventHandler<OrderAuditHandler>()
+    .AddRabbitMQ(transport =>
+    {
+        transport.BindExplicitly();
+
+        transport.Queue("all-orders")
+            .BindImplicitly()
+            .Receives<OrderPlaced>();
+    });
+```
+
+Both `OrderPlacedHandler` and `OrderAuditHandler` now receive from the `all-orders` queue. This is topology-first design: you declare what messages a queue handles, and Mocha wires up all registered handlers.
+
+Use `.Handler<T>()` when you know which handler types to bind. Use `.Receives<T>()` when you care about the message type and want all handlers for that type automatically connected. The same queue can use both approaches:
+
+```csharp
+transport.Queue("orders")
+    .BindImplicitly()
+    .Receives<OrderPlaced>()
+    .Handler<OrderAuditHandler>();
+```
+
+If a message type is declared with `.Receives<T>()` but no handler is registered, Mocha throws an exception at startup.
+
+## Understand implicit and explicit binding
+
+Binding has two scopes: transport and queue.
+
+At the transport scope, `BindImplicitly()` is the default. The transport auto-discovers registered handlers, creates convention-named queues, and adds the convention-derived exchange, topic, or subscription bindings for the messages each handler consumes.
+
+```csharp
+builder.Services
+    .AddMessageBus()
+    .AddEventHandler<OrderPlacedHandler>()      // -> my-service.order-placed
+    .AddEventHandler<PaymentReceivedHandler>()  // -> my-service.payment-received
+    .AddRabbitMQ(transport =>
+    {
+        transport.BindImplicitly(); // default
+    });
+```
+
+`BindExplicitly()` at the transport scope turns off that auto-discovery. Use it when the queues you define with `Queue("name")` should be the complete receive topology for that transport.
+
+At the queue scope, `BindImplicitly()` keeps convention-derived source bindings for the message types handled by that queue. This is the common combination for custom queue names:
+
+```csharp
+transport.BindExplicitly();
+
+transport.Queue("order-processing")
+    .BindImplicitly()
+    .Receives<OrderPlaced>();
+```
+
+`BindExplicitly()` at the queue scope suppresses convention-derived source bindings for that queue. Use it when you bind the queue to a specific source yourself, for example with `BindFrom(...)` or a transport-specific topology declaration.
+
+```csharp
+transport.BindExplicitly();
+
+transport.Queue("regional-orders")
+    .BindExplicitly()
+    .BindFrom(new Uri("exchange:region-events"), "eu.*")
+    .Handler<OrderPlacedHandler>();
+```
+
+## Configure convention endpoints
+
+Use `transport.Handler<T>()` or `transport.Consumer<T>()` at the end of the transport configuration when you want to keep the convention-derived queue name and only tune the endpoint for one handler or consumer.
+
+This is useful for small endpoint changes, but `Queue("name")` is the preferred surface when the queue name, queue topology, or multiple handler bindings are part of the customization.
+
+```csharp
+builder.Services
+    .AddMessageBus()
+    .AddEventHandler<OrderPlacedHandler>()
+    .AddRabbitMQ(rabbit =>
+    {
+        rabbit.Handler<OrderPlacedHandler>()
+            .ConfigureEndpoint(ep => ep
+                .MaxConcurrency(5)
+                .FaultEndpoint("order-errors")
+                .SkippedEndpoint("order-skipped"));
+    });
+```
 
 The same pattern works for consumers:
 
 ```csharp
-transport.Consumer<OrderAuditConsumer>()
+rabbit.Consumer<OrderAuditConsumer>()
     .ConfigureEndpoint(ep => ep.MaxConcurrency(3));
 ```
 
@@ -262,9 +358,9 @@ Inside `ConfigureEndpoint()`, you have access to transport-specific settings. To
 builder.Services
     .AddMessageBus()
     .AddEventHandler<OrderPlacedHandler>()
-    .AddRabbitMQ(transport =>
+    .AddRabbitMQ(rabbit =>
     {
-        transport.Handler<OrderPlacedHandler>()
+        rabbit.Handler<OrderPlacedHandler>()
             .ConfigureEndpoint(ep => ep.MaxPrefetch(50));
     });
 ```
@@ -282,67 +378,7 @@ builder.Services
     });
 ```
 
-This approach sits between implicit and explicit binding: you keep automatic endpoint naming but gain per-handler configuration. See the [RabbitMQ](./transports/rabbitmq.md), [PostgreSQL](./transports/postgres.md), and [InMemory](./transports/in-memory.md) transport pages for the full set of transport-specific endpoint settings.
-
-## Explicit binding
-
-Switch to explicit binding when you need full control over which handlers run on which endpoints. With explicit binding, the transport does not auto-discover endpoints - you must declare each one:
-
-```csharp
-builder.Services
-    .AddMessageBus()
-    .AddEventHandler<OrderPlacedHandler>()
-    .AddEventHandler<PaymentReceivedHandler>()
-    .AddRabbitMQ(transport =>
-    {
-        transport.BindHandlersExplicitly();
-
-        // Bind both handlers to the same endpoint
-        transport.Endpoint("combined-orders")
-            .Handler<OrderPlacedHandler>()
-            .Handler<PaymentReceivedHandler>();
-    });
-```
-
-Both handlers now consume from the same `combined-orders` queue. Without explicit binding, they would each get their own endpoint.
-
-## Named endpoints vs. handler claims
-
-You can configure per-endpoint settings in two ways: through a named endpoint, or through `transport.Handler<T>()` which derives the endpoint name from conventions.
-
-To configure a named endpoint directly:
-
-```csharp
-builder.Services
-    .AddMessageBus()
-    .AddEventHandler<OrderPlacedHandler>()
-    .AddRabbitMQ(rabbit =>
-    {
-        rabbit.Endpoint("order-processing")
-            .Handler<OrderPlacedHandler>()
-            .MaxConcurrency(5)
-            .FaultEndpoint("order-errors")
-            .SkippedEndpoint("order-skipped");
-    });
-```
-
-To configure through a handler claim, which derives the endpoint name from conventions:
-
-```csharp
-builder.Services
-    .AddMessageBus()
-    .AddEventHandler<OrderPlacedHandler>()
-    .AddRabbitMQ(rabbit =>
-    {
-        rabbit.Handler<OrderPlacedHandler>()
-            .ConfigureEndpoint(ep => ep
-                .MaxConcurrency(5)
-                .FaultEndpoint("order-errors")
-                .SkippedEndpoint("order-skipped"));
-    });
-```
-
-Use `transport.Endpoint("name")` when you need to control the endpoint name or bind multiple handlers to the same endpoint. Use `transport.Handler<T>()` when you want the convention-derived name and are configuring a single handler's endpoint.
+See the [RabbitMQ](./transports/rabbitmq.md), [PostgreSQL](./transports/postgres.md), and [InMemory](./transports/in-memory.md) transport pages for the full set of transport-specific queue and endpoint settings.
 
 ## Multi-transport handler routing
 
@@ -359,9 +395,9 @@ builder.Services
 // AuditHandler → InMemory (claimed)
 ```
 
-A claimed handler is bound to the claiming transport regardless of which transport is the default. Unclaimed handlers fall through to the default transport. This is the recommended pattern for multi-transport routing - it avoids `BindHandlersExplicitly()` and keeps the configuration minimal.
+A claimed handler is bound to the claiming transport regardless of which transport is the default. Unclaimed handlers fall through to the default transport. This is the recommended pattern for multi-transport routing - it avoids `BindExplicitly()` and keeps the configuration minimal.
 
-For outbound endpoints:
+For outbound endpoints, use `DispatchEndpoint("name")`:
 
 ```csharp
 builder.Services

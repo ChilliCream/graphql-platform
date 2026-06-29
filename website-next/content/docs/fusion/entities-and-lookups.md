@@ -1,12 +1,13 @@
 ---
 title: "Entities and Lookups"
+description: "How entities work in Hot Chocolate Fusion: define key-based identity and use @lookup fields so the gateway can resolve types across subgraphs."
 ---
 
 Entities are the mechanism that makes distributed GraphQL work. They are types with stable keys that can be referenced and resolved across subgraphs. For example, the Products subgraph defines the `Product` type, and the Reviews subgraph contributes the `reviews` field to `Product`. The Accounts subgraph defines the `User` type, and other subgraphs can contribute additional fields to `User`. Without entities, each subgraph would be an isolated API. With entities, those subgraphs compose into one unified API.
 
 This page explains entity resolution in more detail: how entities are defined and how lookups resolve them across subgraphs. If you completed the [Getting Started](./getting-started.md) tutorial, you already used these concepts. Here, you will focus on the mechanics and patterns behind them.
 
-## What Makes a Type an Entity
+# What Makes a Type an Entity
 
 A type is not an entity because it appears in multiple subgraphs. It is an entity because it has stable key-based identity. An entity is a type with one or more key fields that uniquely identify an instance across multiple subgraphs. Those key fields form the contract between subgraphs: one subgraph can return an entity reference by key, and another subgraph can use that key to resolve additional fields for the same instance.
 
@@ -43,11 +44,11 @@ type Query {
 
 In these examples, `id` is the key and `@lookup` defines how `Product` is resolved by that key. The Reviews lookup is internal, so clients cannot call it directly, but the gateway can use it to enter the Reviews subgraph and resolve `reviews`.
 
-## Lookups
+# Lookups
 
 A lookup is a query field that resolves an entity by its key. The gateway uses lookups to fetch additional fields for entities. Depending on the requested fields and available routes, it can use any subgraph that provides those fields and a compatible lookup path. Without a lookup, the gateway has no way to enter a subgraph and resolve an entity.
 
-### Public Lookups
+## Public Lookups
 
 A public lookup serves two purposes: clients can call it directly as a query field, and the gateway uses it for entity resolution behind the scenes.
 
@@ -103,7 +104,7 @@ public static partial class ProductQueries
 }
 ```
 
-### Internal Lookups
+## Internal Lookups
 
 An internal lookup is hidden from the composite schema. Clients cannot call it directly. It exists only for the gateway to use during entity resolution.
 
@@ -164,9 +165,9 @@ public partial class InternalLookups
 
 In this pattern, clients cannot access `internalLookups` from the composite schema, but the gateway can still use nested `@lookup` fields for internal transitions.
 
-### When to Use Internal vs. Public Lookups
+## When to Use Internal vs. Public Lookups
 
-![Public vs internal lookup visibility: clients can call public lookups, only the gateway can call internal lookups](../../shared/fusion/entities-public-vs-internal-lookup.png)
+![Public vs internal lookup visibility: clients can call public lookups, only the gateway can call internal lookups](../../../public/images/fusion-docs/entities-public-vs-internal-lookup.png)
 
 Use a **public lookup** when:
 
@@ -182,7 +183,7 @@ Use an **internal lookup** when:
 
 For cross-subgraph resolution to work, a subgraph that contributes fields to an entity must expose a compatible lookup path for that entity. This can be a direct lookup field or a nested lookup under an internal root object. If no lookup path exists, transitions into that subgraph are unsatisfiable.
 
-### Multiple Lookups Per Entity
+## Multiple Lookups Per Entity
 
 An entity can have multiple lookups, even in the same subgraph. This is useful when an entity can be identified by different keys. It is especially helpful when different subgraphs reference the same entity through different keys, for example `User.id` in one place and `User.username` in another. By providing both lookups, the gateway can transition into the target subgraph from either reference shape.
 
@@ -234,7 +235,7 @@ input UserByInput @oneOf {
 
 In this case we use the `@is` directive with the choice operator `|` to signal to Fusion that it can use this lookup either with the `id` or the `username` as a key.
 
-### Composite Keys
+## Composite Keys
 
 Some entities are identified by a combination of fields instead of a single field. In that case, the lookup arguments together form the key.
 
@@ -321,7 +322,7 @@ Both variants describe the same composite key. The first maps each argument expl
 
 > The FieldSelectionMap syntax from the Composite Schemas specification supports more advanced argument-to-field mappings for lookups. For the full grammar and examples, see the [Composite Schemas specification](https://graphql.github.io/composite-schemas-spec/draft/#sec-Appendix-A-Specification-of-FieldSelectionMap-Scalar).
 
-## Explicit Key Declaration
+# Explicit Key Declaration
 
 In most cases, you do not need to declare entity keys explicitly. The composition engine infers keys from your lookup fields.
 
@@ -377,7 +378,7 @@ type Tenant {
 }
 ```
 
-## GraphQL Global Object Identification
+# GraphQL Global Object Identification
 
 If your subgraphs implement GraphQL Global Object Identification, with a `node` field on `Query` and a `Node` interface, you already have a strong entity identity contract. You can build on this by using `node` as a lookup and treating types that implement `Node` as entities.
 
@@ -405,7 +406,7 @@ builder
 
 > If GraphQL Global Object Identification is enabled at the gateway level, every entity resolvable through the `node` field becomes a public entry point. Use explicit internal lookups for entities you do not want exposed as public entry points.
 
-## Next Steps
+# Next Steps
 
 - **Need field ownership contracts?** See [Field Ownership](./field-ownership-and-sharing.md).
 - **Need argument mapping and cross-subgraph dependencies?** See [Data Requirements](./data-requirements-and-mapping.md) for `@is`, `@require`, and FieldSelectionMap patterns.

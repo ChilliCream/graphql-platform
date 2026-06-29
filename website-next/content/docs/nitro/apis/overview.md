@@ -1,8 +1,9 @@
 ---
 title: APIs
+description: "APIs in Nitro represent your GraphQL servers and group documents, settings, registries, and telemetry. Compare Collection, Service, and Gateway API types."
 ---
 
-![Image](images/apis-0.webp)
+![Image](../../../../public/images/nitro-docs/apis/apis-0.webp)
 An API within the context of Nitro, refers to a representation of your GraphQL Servers.
 This representation is more than a mere conceptual framework — it serves as a practical tool that allows you to group your documents and share common settings like connection and authorization parameters among them.
 
@@ -11,27 +12,27 @@ the [Client Registry](./client-registry.md) and the [Telemetry](../open-telemetr
 
 # API Types
 
-![Image](images/apis-1.webp)
+![Image](../../../../public/images/nitro-docs/apis/apis-1.webp)
 
 ## API Collection
 
-![Image](images/apis-2.webp)
+![Image](../../../../public/images/nitro-docs/apis/apis-2.webp)
 
 A compilation of GraphQL Documents with shared connection settings, enabling the grouping of documents for sharing with your team.
 
 ## API Service
 
-![Image](images/apis-3.webp)
+![Image](../../../../public/images/nitro-docs/apis/apis-3.webp)
 Incorporates all features of an API Collection and adds the capability to register your schema and clients in the schema registry. It also includes the use of telemetry for service monitoring. This type is ideal for representing a single deployment service or a subgraph.
 
 ## API Gateway
 
-![Image](images/apis-4.webp)
+![Image](../../../../public/images/nitro-docs/apis/apis-4.webp)
 Encompasses all the features of the API Service, along with the ability to publish and manage fusion configuration. Additionally, it supports distributed telemetry for comprehensive monitoring of your Gateway.
 
 # Creating an API
 
-![Image](images/apis-5.webp)
+![Image](../../../../public/images/nitro-docs/apis/apis-5.webp)
 
 Creating an API in Nitro is a user-friendly process. There are three methods available:
 

@@ -6,6 +6,7 @@ using HotChocolate.Data.Filters;
 using HotChocolate.Data.TestContext;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using static CookieCrumble.TestEnvironment;
 
 namespace HotChocolate.Data.Predicates;
 
@@ -35,13 +36,11 @@ public sealed class DataLoaderTests
                         name
                     }
                 }
-                """);
+                """,
+                cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
         Snapshot
-            .Create(
-                postFix: TestEnvironment.TargetFramework == "NET10_0"
-                    ? TestEnvironment.TargetFramework
-                    : null)
+            .Create(Postfix([NET8_0, NET9_0]))
             .AddSql(queries)
             .AddResult(result)
             .MatchMarkdownSnapshot();
@@ -71,13 +70,11 @@ public sealed class DataLoaderTests
                         name
                     }
                 }
-                """);
+                """,
+                cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
         Snapshot
-            .Create(
-                postFix: TestEnvironment.TargetFramework == "NET10_0"
-                    ? TestEnvironment.TargetFramework
-                    : null)
+            .Create(Postfix([NET8_0], [NET9_0]))
             .AddSql(queries)
             .AddResult(result)
             .MatchMarkdownSnapshot();
@@ -107,13 +104,11 @@ public sealed class DataLoaderTests
                         name
                     }
                 }
-                """);
+                """,
+                cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
         Snapshot
-            .Create(
-                postFix: TestEnvironment.TargetFramework == "NET10_0"
-                    ? TestEnvironment.TargetFramework
-                    : null)
+            .Create(Postfix([NET8_0, NET9_0]))
             .AddSql(queries)
             .AddResult(result)
             .MatchMarkdownSnapshot();
@@ -146,13 +141,11 @@ public sealed class DataLoaderTests
                         name
                     }
                 }
-                """);
+                """,
+                cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
         Snapshot
-            .Create(
-                postFix: TestEnvironment.TargetFramework == "NET10_0"
-                    ? TestEnvironment.TargetFramework
-                    : null)
+            .Create(Postfix([NET8_0, NET9_0]))
             .AddSql(queries)
             .AddResult(result)
             .MatchMarkdownSnapshot();
@@ -182,13 +175,11 @@ public sealed class DataLoaderTests
                         name
                     }
                 }
-                """);
+                """,
+                cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
         Snapshot
-            .Create(
-                postFix: TestEnvironment.TargetFramework == "NET10_0"
-                    ? TestEnvironment.TargetFramework
-                    : null)
+            .Create(Postfix([NET8_0, NET9_0]))
             .AddSql(queries)
             .AddResult(result)
             .MatchMarkdownSnapshot();

@@ -469,7 +469,9 @@ public class SubscriptionTypeTests : TypeTestBase
                 .AddQueryType(c => c.Name("Query").Field("a").Resolve("b"))
                 .AddSubscriptionType<MySubscription>());
 
-        var result = await executor.ExecuteAsync("subscription { onArguments(arg: \"abc\") }");
+        var result = await executor.ExecuteAsync(
+            "subscription { onArguments(arg: \"abc\") }",
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchInlineSnapshot(
@@ -500,14 +502,15 @@ public class SubscriptionTypeTests : TypeTestBase
                 """)
             .BindRuntimeType<SubscriptionWithDirective>("Subscription")
             .ModifyOptions(o => o.StrictValidation = false)
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var result = await executor.ExecuteAsync(
             """
             subscription test @bug(test: 123) {
               bookAdded
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchInlineSnapshot(

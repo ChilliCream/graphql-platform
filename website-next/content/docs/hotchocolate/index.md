@@ -1,5 +1,6 @@
 ---
-title: "Overview"
+title: "Introduction"
+description: "Hot Chocolate is an open-source GraphQL server for .NET that turns your C# classes into a spec-compliant schema and handles parsing, validation, and execution."
 ---
 
 Hot Chocolate is an open-source [GraphQL](https://graphql.org/) server for .NET. You define your API shape using C# classes and methods, and Hot Chocolate translates that into a spec-compliant GraphQL schema. It handles parsing, validation, execution, and transport so you can focus on your domain logic.
@@ -14,11 +15,11 @@ Hot Chocolate implements the [GraphQL 2025 specification](https://spec.graphql.o
 
 Hot Chocolate supports two approaches to building a GraphQL schema. Both produce the same result: a fully typed, spec-compliant GraphQL schema. They differ in how you express it in C#.
 
-## Implementation-first (recommended)
+## Implementation-First
 
-You write standard C# classes and decorate them with attributes like `[QueryType]`. A source generator inspects your code at build time and produces the GraphQL schema automatically. This is the recommended approach and the one used throughout this documentation.
+With implementation-first, your C# implementation is the single source of truth for your GraphQL schema. Define your API using familiar C# classes and attributes like `[QueryType]`. At build time, a source generator analyzes your code and creates the GraphQL types for you. You focus on your business logic, since your implementation is your schema. You don’t need to manually keep your code and schema in sync, deal with GraphQL-specific boilerplate, or write large type definitions in C#.
 
-```csharp filename="Types/ProductQueries.cs"
+```csharp
 [QueryType]
 public static partial class ProductQueries
 {
@@ -30,15 +31,13 @@ public static partial class ProductQueries
 }
 ```
 
-The source generator creates a `book` field on the Query type, infers argument types from the method parameters, and registers everything with the schema. You do not write GraphQL SDL or configure type descriptors.
+This approach is similar to how Meta built their GraphQL server. Your schema stays close to your domain code, while the tooling handles the translation.
 
-This approach matches how Meta originally built GraphQL and how many large-scale GraphQL servers are built today. It keeps your schema definition close to your domain code and lets the tooling handle the translation.
+## Code-First
 
-## Code-first
+The code-first approach lets you define your GraphQL types and schema structure directly in C# using Hot Chocolate’s fluent type descriptor API.
 
-You create classes that inherit from `ObjectType<T>`, `InputObjectType<T>`, and other base types. You configure each type explicitly using a descriptor API. This approach gives you full control over every aspect of the schema.
-
-```csharp filename="Types/ProductType.cs"
+```csharp
 public class ProductType : ObjectType<Product>
 {
     protected override void Configure(IObjectTypeDescriptor<Product> descriptor)
@@ -58,30 +57,37 @@ Code-first is useful when you need to decouple the GraphQL schema shape from you
 
 Both approaches can be mixed in the same project. You can use implementation-first for most types and drop into code-first for specific cases that need more control.
 
-# Public and Private GraphQL
+# GraphQL API Security Strategies
 
-Most GraphQL APIs fall into one of two categories, and the choice shapes how you configure Hot Chocolate.
+GraphQL APIs are typically designed for one of two usage models.
 
-## Public GraphQL
+Either your API is exclusively consumed by applications you control (first-party), such as your own web, mobile, or internal services, where you define and manage every client operation.
 
-A public API is consumed by third-party developers or external clients. GitHub's GraphQL API is the canonical example. You publish a schema, and external teams build applications against it. Because you do not control the clients, they can send any operation they want.
+Or your API is open to external developers or partners (third-party), and you have no control over the GraphQL operations they send.
 
-Hot Chocolate provides **cost analysis** for this scenario. You assign weights to fields and connections, and the server rejects operations that exceed the budget before execution begins.
+This distinction shapes how you configure Hot Chocolate and operate your GraphQL server.
 
-- [Cost analysis](./securing-your-api/cost-analysis.md) explains field weights, type costs, and budget configuration.
-- [Authorization](./securing-your-api/authorization.md) limits access to types and fields based on roles or policies.
-- [Controlling introspection](./securing-your-api/introspection.md) lets you restrict schema visibility in production.
+## First-party GraphQL
 
-## Private GraphQL
+A first-party API is consumed exclusively by your own applications. This is how Meta built and operates GraphQL internally. Because you control both the server and every client, you know every operation at build time. This enables you to maintain a precise schema usage history and strictly allow only approved GraphQL operations.
 
-A private API is consumed by your own applications. This is how Meta built and operates GraphQL internally. You control both the server and every client. You know every operation at build time.
-
-Hot Chocolate provides **trusted documents** for this scenario. You extract all operations from your client applications during their build process, register them with the server, and the server only accepts pre-registered operations.
+Hot Chocolate supports this scenario with **trusted documents**. You extract all operations from your client applications during their build process, register them with the server, and the server only accepts pre-registered operations.
 
 - [Trusted documents](./performance/trusted-documents.md) covers the full workflow: extraction, registration, and enforcement.
 - [Strawberry Shake](../strawberryshake/index.md) and [Relay](https://relay.dev/docs/guides/persisted-queries/) both support build-time operation extraction.
 
-These two approaches complement each other. A common setup is trusted documents for your own frontend applications and cost analysis for partner integrations.
+When in the future you want to change or phase out parts of your schema you know the impact this change will have to your system before you apply it. This is a super power for API evolution.
+
+## Third-party GraphQL
+
+A third-party API is consumed by external developers or clients outside your organization. GitHub’s GraphQL API is a canonical example. You publish a schema, and external teams build applications against it. Because you do not control the clients, they can send any operation they want.
+
+Hot Chocolate provides **cost analysis** for this scenario. You assign weights to fields and connections, and the server rejects operations that exceed the performance budget before execution begins.
+
+- [Cost analysis](./security/cost-analysis.md) explains field weights, type costs, and budget configuration.
+- [Controlling introspection](./security/introspection.md) lets you restrict schema visibility in production.
+
+These two approaches complement each other. A common setup is to host both a public and an internal GraphQL API. The internal API uses trusted documents to strictly control operations, while the public API relies on cost analysis and other safeguards to manage external traffic and protect against abuse.
 
 # Key Terminology
 
@@ -91,7 +97,8 @@ These two approaches complement each other. A common setup is trusted documents 
 | **Query type**        | The root type for read operations. Clients enter the graph through fields on this type.                                                                                                                                            |
 | **Mutation type**     | The root type for write operations. Mutations execute serially and are expected to cause side effects.                                                                                                                             |
 | **Subscription type** | The root type for real-time operations. Clients subscribe to events and receive updates as they occur.                                                                                                                             |
-| **Resolver**          | A function that fetches data for a single field. In implementation-first, each public method on a `[QueryType]` class is a resolver.                                                                                               |
+| **Resolver**          | A function that fetches data for a single field. In implementation-first, each public method on a `[QueryType]` class is a resolver for third-party or first-party APIs.                                                           |
+| **Batch resolver**    | A resolver that fetches data for multiple parent objects in a single call, improving performance by reducing the number of backend requests. Useful for solving the N+1 problem and optimizing data access patterns.               |
 | **DataLoader**        | A batching and caching layer that groups multiple individual data requests into a single batch call, eliminating the N+1 problem.                                                                                                  |
 | **Source generator**  | A Roslyn source generator that inspects your C# code at build time and generates the schema registration, resolver pipelines, and DataLoader infrastructure.                                                                       |
 | **Cost analysis**     | A static analysis pass that calculates the cost of a query before execution and rejects queries that exceed configured limits. Based on the [IBM Cost Analysis specification](https://ibm.github.io/graphql-specs/cost-spec.html). |
@@ -109,11 +116,11 @@ Where you go from here depends on what you need:
 
 - **"I want to build something."** Start with the [Getting Started](./get-started-with-graphql-in-net-core.md) tutorial. You will create a running GraphQL server in under five minutes.
 
-- **"I want to understand the schema system."** Read [Building a Schema](./building-a-schema/index.md). It covers queries, mutations, subscriptions, and all the GraphQL types.
+- **"I want to understand the schema system."** Read [Defining a Schema](./defining-a-schema/index.md). It covers queries, mutations, subscriptions, and all the GraphQL types.
 
-- **"I need to fetch data efficiently."** Go to [DataLoader](./resolvers-and-data/dataloader.md) for batching and caching, or [Resolvers](./resolvers-and-data/resolvers.md) for the full resolver API.
+- **"I need to fetch data efficiently."** Go to [DataLoader](./fetching-data/batching/dataloader.md) for batching and caching, or [Resolvers](./resolvers/index.md) for the full resolver API.
 
-- **"I need to secure my API."** See [Securing Your API](./securing-your-api/index.md) for authentication, authorization, cost analysis, and trusted documents.
+- **"I need to secure my API."** See [Securing Your API](./security/index.md) for authentication, authorization, cost analysis, and trusted documents.
 
 - **"I'm migrating from an older version."** Read the [migration guide from v15 to v16](./migrating/migrate-from-15-to-16.md).
 

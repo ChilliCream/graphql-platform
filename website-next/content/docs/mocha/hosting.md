@@ -3,8 +3,6 @@ title: "Hosting"
 description: "Integrate Mocha with ASP.NET Core using the Mocha.Hosting package for health checks."
 ---
 
-# Hosting
-
 The `Mocha.Hosting` package provides ASP.NET Core integrations for the message bus: health checks that verify end-to-end connectivity through serialization, transport, routing, and handler execution.
 
 ```bash

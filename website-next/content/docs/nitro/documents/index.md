@@ -1,10 +1,11 @@
 ---
 title: Documents
+description: "Tour of the Document View in Nitro, the workspace for running GraphQL queries, mutations, and subscriptions and exploring the schema reference and SDL."
 ---
 
 The Document View is a feature that allows users to work with documents and API documents within the application. It provides functionality for executing queries, mutations, and subscriptions. This section describes the various components and functionalities available in the Document View.
 
-![Image](images/document-0.webp)
+![Image](../../../../public/images/nitro-docs/documents/document-0.webp)
 
 # 1. Operation
 

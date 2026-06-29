@@ -1,5 +1,6 @@
 ---
-title: "Overview"
+title: "Introduction"
+description: "Fusion is ChilliCream's GraphQL gateway for composing multiple services into one API, implementing the GraphQL Composite Schemas spec with build-time validation."
 ---
 
 Fusion lets you split one GraphQL API into multiple smaller services, without changing how clients consume it. Clients still send queries to one endpoint, and Fusion combines data from all services into one response. Teams can deploy independently, and contract conflicts are caught during build time.
@@ -10,7 +11,7 @@ Fusion is ChilliCream's API gateway for exposing one GraphQL API over multiple u
 
 The architecture has three parts:
 
-![Fusion Architecture Overview](../../shared/fusion/fusion-overview.png)
+![Fusion Architecture Overview](../../../public/images/fusion-docs/fusion-overview.png)
 
 **Subgraphs** are the upstream services behind the Fusion gateway: GraphQL services, OpenAPI-based REST services, and gRPC services. Each subgraph owns part of the API surface and implementation logic, and can be developed and deployed independently.
 
@@ -26,6 +27,7 @@ The result: clients send one request to one endpoint and receive one unified res
 
 The following query touches three services, but the client doesn't know or care about this implementation detail.
 
+<!-- prettier-ignore-start -->
 ```graphql
 query {
   products(first: 5) {
@@ -42,6 +44,7 @@ query {
   }
 }
 ```
+<!-- prettier-ignore-end -->
 
 # Key Terminology
 

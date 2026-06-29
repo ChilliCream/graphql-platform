@@ -7,7 +7,7 @@ Persisted operations (also known as trusted documents) let you pre-register all 
 
 Extracting operations is supported by client libraries like [Relay](https://relay.dev/docs/guides/persisted-queries/) and in the case of [Strawberry Shake](/products/strawberryshake) no additional work is needed.
 
-https://youtu.be/ZZ5PF3_P_r4
+[Watch the video on YouTube](https://www.youtube.com/watch?v=ZZ5PF3_P_r4)
 
 # How It Works
 
@@ -108,7 +108,7 @@ To load persisted operation documents from Azure Blob Storage, add the following
 
 Specify where the persisted operation documents are located. Using `AddAzureBlobStorageOperationDocumentStorage()`, point to a specific Azure Blob Storage container. The blob's name is the hash of the query, and its content is the corresponding GraphQL query.
 
-> [!IMPORTANT]
+> [!CAUTION]
 > The Azure Blob Storage container must already exist when Hot Chocolate uses it for the first time.
 
 ```csharp

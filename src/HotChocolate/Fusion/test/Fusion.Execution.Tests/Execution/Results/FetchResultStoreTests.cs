@@ -1,16 +1,121 @@
-using System.Collections.Immutable;
 using System.Text.Json;
+using HotChocolate.Buffers;
 using HotChocolate.Execution;
+using HotChocolate.Execution.Errors;
+using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Language;
 using HotChocolate.Fusion.Text.Json;
 using HotChocolate.Language;
 using FusionNameNode = HotChocolate.Fusion.Language.NameNode;
+using IntValueNode = HotChocolate.Language.IntValueNode;
+using StringValueNode = HotChocolate.Language.StringValueNode;
+using ListValueNode = HotChocolate.Language.ListValueNode;
+using ObjectValueNode = HotChocolate.Language.ObjectValueNode;
+using ObjectFieldNode = HotChocolate.Language.ObjectFieldNode;
+using IValueNode = HotChocolate.Language.IValueNode;
 
 namespace HotChocolate.Fusion.Execution.Results;
 
-public sealed class FetchResultStoreTests
+public sealed class FetchResultStoreTests : FusionTestBase
 {
+    private static readonly byte[] s_fieldPayload = """{"data":{"field":"value"}}"""u8.ToArray();
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void AddPartialResults_Should_RegisterAllResults_When_MergeThrows(bool containsErrors)
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: test
+            type Query {
+              field: String
+            }
+            """);
+        var plan = PlanOperation(schema, "{ field }");
+        var node = Assert.IsType<OperationExecutionNode>(Assert.Single(plan.RootNodes));
+
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+        using var store = new FetchResultStore();
+        store.Initialize(
+            resultArena,
+            schema,
+            DefaultErrorHandler.Default,
+            plan.Operation,
+            ErrorHandlingMode.Propagate,
+            includeFlags: 0,
+            deferFlags: 0,
+            pathSegmentLocalPoolCapacity: 16);
+
+        var results = new[]
+        {
+            CreateSourceSchemaResult(sourceArena, CompactPath.Root),
+            CreateSourceSchemaResult(sourceArena, Path(~0)),
+            CreateSourceSchemaResult(sourceArena, CompactPath.Root)
+        };
+
+        // act
+        var exception = Assert.Throws<ArgumentOutOfRangeException>(
+            () => store.AddPartialResults(
+                SelectionPath.Root,
+                results,
+                node.ResultSelectionSet,
+                containsErrors));
+
+        // assert
+        Assert.Contains("Expected StartArray but found StartObject.", exception.Message);
+        Assert.Contains(results[0], store.MemoryOwners);
+        Assert.Contains(results[1], store.MemoryOwners);
+        Assert.Contains(results[2], store.MemoryOwners);
+    }
+
+    [Fact]
+    public void Reset_Should_ClearAccumulatedErrors_When_ReusedForNextEvent()
+    {
+        // arrange
+        var schema = CreateCompositeSchema();
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+                productBySlug(slug: "1") {
+                    id
+                }
+            }
+            """);
+
+        using var initialArena = new MemoryArena();
+        using var store = new FetchResultStore();
+        store.Initialize(
+            initialArena,
+            schema,
+            DefaultErrorHandler.Default,
+            plan.Operation,
+            ErrorHandlingMode.Propagate,
+            includeFlags: 0,
+            deferFlags: 0,
+            pathSegmentLocalPoolCapacity: 16);
+
+        store.AddError(ErrorBuilder.New().SetMessage("event 1").Build());
+        Assert.Collection(
+            store.Errors!,
+            static error => Assert.Equal("event 1", error.Message));
+
+        // act
+        store.Reset(new MemoryArena());
+
+        // assert
+        Assert.Empty(store.Errors!);
+
+        store.AddError(ErrorBuilder.New().SetMessage("event 2").Build());
+        Assert.Collection(
+            store.Errors!,
+            static error => Assert.Equal("event 2", error.Message));
+    }
+
     [Fact]
     public void CreateVariableValueSetsFromSnapshot_Should_MergeForwardedVariables_When_RequirementsAreImported()
     {
@@ -282,7 +387,7 @@ public sealed class FetchResultStoreTests
 
         // act
         var result = target.CreateVariableValueSetsFromSnapshot(
-            ImmutableArray<VariableValues>.Empty,
+            [],
             ImportedKeys("__fusion_1_id"),
             [],
             [Requirement("__fusion_1_id")]);
@@ -352,6 +457,14 @@ public sealed class FetchResultStoreTests
         buffer[0] = segments.Length;
         segments.CopyTo(buffer.AsSpan(1));
         return new CompactPath(buffer);
+    }
+
+    private static SourceSchemaResult CreateSourceSchemaResult(
+        IMemoryArena arena,
+        CompactPath path)
+    {
+        var document = SourceResultDocument.Parse(arena, s_fieldPayload, s_fieldPayload.Length);
+        return new SourceSchemaResult(path, document);
     }
 
     private static string Normalize(JsonSegment segment)

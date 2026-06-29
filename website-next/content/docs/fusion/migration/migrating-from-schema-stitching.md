@@ -1,5 +1,6 @@
 ---
 title: "Migrating from Schema Stitching"
+description: "Migrate from Hot Chocolate Schema Stitching to Fusion: replace @delegate resolvers with [Lookup] fields and build-time composition using `nitro fusion compose`."
 ---
 
 # Migrating from Schema Stitching to Fusion

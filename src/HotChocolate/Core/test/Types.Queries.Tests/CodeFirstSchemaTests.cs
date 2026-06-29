@@ -13,7 +13,7 @@ public class CodeFirstSchemaTests
                 .AddGraphQL()
                 .AddQueryType<QueryWithFieldResultType>()
                 .AddQueryConventions()
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         schema.MatchSnapshot();
     }
@@ -33,7 +33,8 @@ public class CodeFirstSchemaTests
                         __typename
                       }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchSnapshot();
     }
@@ -53,7 +54,8 @@ public class CodeFirstSchemaTests
                         __typename
                       }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchSnapshot();
     }
@@ -66,7 +68,7 @@ public class CodeFirstSchemaTests
                 .AddGraphQL()
                 .AddQueryType<QueryWithExceptionType>()
                 .AddQueryConventions()
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         schema.MatchSnapshot();
     }
@@ -86,7 +88,8 @@ public class CodeFirstSchemaTests
                         __typename
                       }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchSnapshot();
     }
@@ -106,7 +109,8 @@ public class CodeFirstSchemaTests
                         __typename
                       }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchSnapshot();
     }
@@ -119,7 +123,7 @@ public class CodeFirstSchemaTests
                 .AddGraphQL()
                 .AddQueryType<QueryWithFieldResultAndExceptionType>()
                 .AddQueryConventions()
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         schema.MatchSnapshot();
     }
@@ -139,7 +143,8 @@ public class CodeFirstSchemaTests
                         __typename
                       }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchSnapshot();
     }
@@ -159,7 +164,8 @@ public class CodeFirstSchemaTests
                         __typename
                       }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchSnapshot();
     }
@@ -179,7 +185,8 @@ public class CodeFirstSchemaTests
                         __typename
                       }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchSnapshot();
     }
@@ -199,7 +206,8 @@ public class CodeFirstSchemaTests
                         __typename
                       }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchSnapshot();
     }
@@ -214,7 +222,7 @@ public class CodeFirstSchemaTests
                 .AddQueryConventions()
                 .AddFiltering()
                 .AddSorting()
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         schema.MatchSnapshot();
     }
@@ -243,7 +251,8 @@ public class CodeFirstSchemaTests
                         }
                       }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchSnapshot();
     }
@@ -273,7 +282,8 @@ public class CodeFirstSchemaTests
                         }
                       }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchSnapshot();
     }
@@ -302,7 +312,8 @@ public class CodeFirstSchemaTests
                         }
                       }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchSnapshot();
     }
@@ -331,7 +342,8 @@ public class CodeFirstSchemaTests
                         }
                       }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchSnapshot();
     }
@@ -418,7 +430,7 @@ public class CodeFirstSchemaTests
                 .AddGraphQL()
                 .AddQueryConventions()
                 .AddQueryType<ValidQueryValueTask>()
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         schema.MatchSnapshot();
     }

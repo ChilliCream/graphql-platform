@@ -1,5 +1,6 @@
 ---
 title: Interceptors
+description: "Hook into transport events in Hot Chocolate with IHttpRequestInterceptor and ISocketSessionInterceptor to customize HTTP requests and WebSocket sessions."
 ---
 
 Interceptors let you hook into protocol-specific events. You can intercept an incoming HTTP request or handle a client connecting to or disconnecting from a WebSocket session.
@@ -177,9 +178,11 @@ public override ValueTask<ConnectionStatus> OnConnectAsync(
     ISocketSession session, IOperationMessagePayload connectionInitMessage,
     CancellationToken cancellationToken)
 {
-    if (connectionInitMessage.As<Dictionary<string, object?>>()
-        ?.TryGetValue("authToken", out var token) == true)
+    if (connectionInitMessage.Payload is { ValueKind: JsonValueKind.Object } payload
+        && payload.TryGetProperty("authToken", out var token)
+        && token.ValueKind == JsonValueKind.String)
     {
+        var authToken = token.GetString();
         // Validate token ...
     }
 
@@ -347,5 +350,5 @@ requestBuilder.AllowIntrospection();
 # Next Steps
 
 - [Global State](./global-state.md) for sharing per-request data between resolvers.
-- [Dependency Injection](../resolvers-and-data/dependency-injection.md) for details on service injection and switching providers.
-- [Introspection](../securing-your-api/introspection.md) for controlling introspection on a per-request basis.
+- [Dependency Injection](../resolvers/dependency-injection.md) for details on service injection and switching providers.
+- [Introspection](../security/introspection.md) for controlling introspection on a per-request basis.

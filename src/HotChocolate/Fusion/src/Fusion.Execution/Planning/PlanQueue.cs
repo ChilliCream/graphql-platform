@@ -138,7 +138,8 @@ internal sealed class PlanQueue(FusionSchemaDefinition schema)
         // for every candidate.
         foreach (var (toSchema, resolutionCost) in schema.GetPossibleSchemas(workItem.SelectionSet))
         {
-            if (toSchema.Equals(workItem.FromSchema, StringComparison.Ordinal))
+            if (!workItem.AllowSourceSchemaReentry
+                && toSchema.Equals(workItem.FromSchema, StringComparison.Ordinal))
             {
                 continue;
             }
@@ -225,7 +226,8 @@ internal sealed class PlanQueue(FusionSchemaDefinition schema)
         // this would allow us to batch all requests to these into a single GraphQL batch request.
         foreach (var (toSchema, resolutionCost) in schema.GetPossibleSchemas(workItem.SelectionSet))
         {
-            if (toSchema.Equals(workItem.FromSchema, StringComparison.Ordinal))
+            if (!workItem.AllowSourceSchemaReentry
+                && toSchema.Equals(workItem.FromSchema, StringComparison.Ordinal))
             {
                 continue;
             }
@@ -324,7 +326,8 @@ internal sealed class PlanQueue(FusionSchemaDefinition schema)
             // scan candidate schemas for the best lookup for this concrete type.
             foreach (var (candidateSchema, candidateCost) in schema.GetPossibleSchemas(selectionSet))
             {
-                if (candidateSchema.Equals(workItem.FromSchema, StringComparison.Ordinal))
+                if (!workItem.AllowSourceSchemaReentry
+                    && candidateSchema.Equals(workItem.FromSchema, StringComparison.Ordinal))
                 {
                     continue;
                 }

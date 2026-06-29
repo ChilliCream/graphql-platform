@@ -1,5 +1,6 @@
 ---
 title: Global State
+description: "Share per-request data across all Hot Chocolate resolvers and middleware with Global State, initialized at request start and accessed via [GlobalState]."
 ---
 
 Global State lets you define properties on a per-request basis and makes them available to all resolvers and middleware.
@@ -127,4 +128,4 @@ Take a look at the implementation-first or code-first example.
 # Next Steps
 
 - [Interceptors](./interceptors.md) for initializing state before request execution.
-- [Dependency Injection](../resolvers-and-data/dependency-injection.md) for injecting services into resolvers.
+- [Dependency Injection](../resolvers/dependency-injection.md) for injecting services into resolvers.

@@ -113,6 +113,15 @@ public class LocalDateType : ScalarType<DateOnly, StringValueNode>
             value = date;
             return true;
         }
+        else if (DateTimeOffset.TryParse(
+            serialized,
+            CultureInfo.InvariantCulture,
+            DateTimeStyles.None,
+            out var dateTimeOffset))
+        {
+            value = DateOnly.FromDateTime(dateTimeOffset.DateTime);
+            return true;
+        }
 
         value = default;
         return false;

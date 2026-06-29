@@ -242,8 +242,10 @@ public sealed class Operation : IOperation
         {
             if (includeCondition.IsIncluded(variables))
             {
-                includeFlags |= 1ul << index++;
+                includeFlags |= 1ul << index;
             }
+
+            index++;
         }
 
         return includeFlags;

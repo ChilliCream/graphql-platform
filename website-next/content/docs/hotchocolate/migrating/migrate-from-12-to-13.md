@@ -1,5 +1,6 @@
 ---
 title: Migrate Hot Chocolate from 12 to 13
+description: "Upgrade your Hot Chocolate GraphQL server from version 12 to 13 with this migration guide covering package updates and the breaking changes you need to address."
 ---
 
 This guide will walk you through the manual migration steps to update your Hot Chocolate GraphQL server to version 13.
@@ -76,11 +77,16 @@ type User {
 
 The ‘apply‘ argument defines when an authorization rule is applied. In the above case, the validation ensures that the GraphQL request documents authorization rules are fulfilled. We do that by collecting all authorization directives with ‘apply‘ set to ‘Validation‘ and running them before we start the execution.
 
+<!--
+TODO: mention effect on root types
+TODO: mention change in errors due to non-null fields
+-->
+
 ## RegisterDbContext
 
-We changed the default [DbContextKind](https://chillicream.com/docs/hotchocolate/v13/integrations/entity-framework#dbcontextkind) from [DbContextKind.Synchronized](https://chillicream.com/docs/hotchocolate/v13/integrations/entity-framework#dbcontextkindsynchronized) to [DbContextKind.Resolver](https://chillicream.com/docs/hotchocolate/v13/integrations/entity-framework#dbcontextkindresolver). If the instance of your `DbContext` doesn't need to be the same for each executed resolver during a request, this should lead to a performance improvement.
+We changed the default [DbContextKind](../fetching-data/integrations/entity-framework.md) from [DbContextKind.Synchronized](../fetching-data/integrations/entity-framework.md) to [DbContextKind.Resolver](../fetching-data/integrations/entity-framework.md). If the instance of your `DbContext` doesn't need to be the same for each executed resolver during a request, this should lead to a performance improvement.
 
-To restore the v12 default behavior, pass the [DbContextKind.Synchronized](https://chillicream.com/docs/hotchocolate/v13/integrations/entity-framework#dbcontextkindsynchronized) to the `RegisterDbContext<T>` call.
+To restore the v12 default behavior, pass the [DbContextKind.Synchronized](../fetching-data/integrations/entity-framework.md) to the `RegisterDbContext<T>` call.
 
 **Before**
 
@@ -118,12 +124,12 @@ services.AddHttpResultSerializer(batchSerialization: HttpResultSerialization.Jso
 
 This option has been removed in this release and batch results are now always being delivered through `multipart/mixed` responses. This allows us to send the batch results back to the client as soon as they are ready, without having to hold on to the result and performing a JSON array aggregation on the server. If you need an aggregated batch result, you should do the aggregation on the client instead.
 
-[Learn more about the batching](https://chillicream.com/docs/hotchocolate/v13/server/batching)
+[Learn more about the batching](../server/batching.md)
 
 ## Nodes batch size
 
 The number of nodes that can be requested through the `nodes` field is limited to 10 by default.
-See [Nodes batch size](https://chillicream.com/docs/hotchocolate/v13/security#nodes-batch-size) for the details.
+See [Nodes batch size](../security/request-limits.md#nodes-batch-size) for the details.
 
 You can change this default to suite the needs of your application as shown below:
 
@@ -206,7 +212,7 @@ IPAddress --> ipAddress
 PLZ --> plz
 ```
 
-If you need to retain the old naming behavior or the inferred field name doesn't match your expectation, you can still [explicitly override the name of the fields in question](https://chillicream.com/docs/hotchocolate/v13/defining-a-schema/object-types#naming).
+If you need to retain the old naming behavior or the inferred field name doesn't match your expectation, you can still [explicitly override the name of the fields in question](../defining-a-schema/object-types.md#renaming-fields).
 
 ## IHttpResultSerializer
 
@@ -280,11 +286,11 @@ builder.Services.AddHttpResponseFormatter(new HttpResponseFormatterOptions {
 
 An `Accept` header with the value `application/json` will opt you out of the [GraphQL over HTTP](https://github.com/graphql/graphql-over-http/blob/a1e6d8ca248c9a19eb59a2eedd988c204909ee3f/spec/GraphQLOverHTTP.md) specification. The response `Content-Type` will now be `application/json` and a status code of 200 will be returned for every request, even if it had validation errors or a valid response could not be produced.
 
-[Learn more about the HTTP transport](https://chillicream.com/docs/hotchocolate/v13/server/http-transport)
+[Learn more about the HTTP transport](../server/http-transport.md)
 
 ## DataLoaderAttribute
 
-Previously you might have annotated [DataLoaders](https://chillicream.com/docs/hotchocolate/v13/fetching-data/dataloader) in your resolver method signature with the `[DataLoader]` attribute. This attribute has been removed in v13 and can be safely removed from your code.
+Previously you might have annotated [DataLoaders](../fetching-data/batching/dataloader.md) in your resolver method signature with the `[DataLoader]` attribute. This attribute has been removed in v13 and can be safely removed from your code.
 
 **Before**
 
@@ -421,7 +427,7 @@ Things that will continue to function this release, but we encourage you to move
 
 In this release, we are deprecating the `[ScopedService]` attribute and encourage you to use `RegisterDbContext<T>(DbContextKind.Pooled)` instead.
 
-Checkout [this part of our Entity Framework documentation](https://chillicream.com/docs/hotchocolate/v13/integrations/entity-framework#registerdbcontext) to learn how to register your `DbContext` with `DbContextKind.Pooled`.
+Checkout [this part of our Entity Framework documentation](../fetching-data/integrations/entity-framework.md) to learn how to register your `DbContext` with `DbContextKind.Pooled`.
 
 Afterward you just need to update your resolvers:
 
@@ -505,3 +511,7 @@ We aligned the naming of state related APIs:
 - `OperationRequestBuilder.AddProperty` --> `OperationRequestBuilder.AddGlobalState`
 - `OperationRequestBuilder.TryAddProperty` --> `OperationRequestBuilder.TryAddGlobalState`
 - `OperationRequestBuilder.TryRemoveProperty` --> `OperationRequestBuilder.RemoveGlobalState`
+
+<!--
+TODO: Link to new docs once done
+-->

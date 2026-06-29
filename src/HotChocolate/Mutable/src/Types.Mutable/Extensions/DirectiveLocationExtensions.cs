@@ -81,6 +81,10 @@ internal static class DirectiveLocationExtensions
            {
                DirectiveLocation.InputFieldDefinition,
                Language.DirectiveLocation.InputFieldDefinition
+           },
+           {
+               DirectiveLocation.DirectiveDefinition,
+               Language.DirectiveLocation.DirectiveDefinition
            }
        };
 
@@ -162,6 +166,10 @@ internal static class DirectiveLocationExtensions
             {
                 Language.DirectiveLocation.InputFieldDefinition,
                 DirectiveLocation.InputFieldDefinition
+            },
+            {
+                Language.DirectiveLocation.DirectiveDefinition,
+                DirectiveLocation.DirectiveDefinition
             }
         };
 
@@ -269,6 +277,12 @@ internal static class DirectiveLocationExtensions
             == DirectiveLocation.InputFieldDefinition)
         {
             yield return DirectiveLocation.InputFieldDefinition;
+        }
+
+        if ((locations & DirectiveLocation.DirectiveDefinition)
+            == DirectiveLocation.DirectiveDefinition)
+        {
+            yield return DirectiveLocation.DirectiveDefinition;
         }
     }
 

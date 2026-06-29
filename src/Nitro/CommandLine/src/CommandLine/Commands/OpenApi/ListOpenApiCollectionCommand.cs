@@ -61,7 +61,7 @@ internal sealed class ListOpenApiCollectionCommand : Command
         string? cursor,
         CancellationToken ct)
     {
-        var apiId = await console.GetOrPromptForApiIdAsync("For which API do you want to list the OpenAPI collections?", parseResult, apisClient, sessionService, ct);
+        var apiId = await console.GetOrPromptForApiIdAsync(Prompts.SelectApiForListOpenApiCollections, parseResult, apisClient, sessionService, ct);
 
         var container = PaginationContainer
             .CreateConnectionData(async (after, first, token) =>

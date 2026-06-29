@@ -17,6 +17,14 @@ public sealed class InstrumentationOptions : InstrumentationOptionsBase
     /// </summary>
     public bool IncludeDataLoaderKeys { get; set; }
 
+    /// <summary>
+    /// Specifies whether the diagnostic listener participates in field resolver
+    /// instrumentation. When set to <c>false</c>, the GraphQL execution engine
+    /// skips the resolver instrumentation hook entirely, avoiding any per-field
+    /// overhead. The default is <c>true</c>.
+    /// </summary>
+    public bool EnableResolveFieldValue { get; set; } = true;
+
     internal bool SkipExecuteHttpRequest => (Scopes & ExecuteHttpRequest) != ExecuteHttpRequest;
 
     internal bool SkipParseHttpRequest => (Scopes & ParseHttpRequest) != ParseHttpRequest;

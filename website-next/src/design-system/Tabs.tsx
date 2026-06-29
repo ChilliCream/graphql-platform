@@ -42,7 +42,10 @@ export function Tabs({ children, defaultIndex = 0 }: TabsProps) {
   // <Tab> elements that were created by the MDX runtime.
   const tabs = Children.toArray(children).filter(hasLabelProp);
 
-  const safeDefault = Math.min(Math.max(defaultIndex, 0), Math.max(tabs.length - 1, 0));
+  const safeDefault = Math.min(
+    Math.max(defaultIndex, 0),
+    Math.max(tabs.length - 1, 0),
+  );
   const [active, setActive] = useState(safeDefault);
 
   if (tabs.length === 0) {
@@ -52,10 +55,10 @@ export function Tabs({ children, defaultIndex = 0 }: TabsProps) {
   const current = tabs[active] ?? tabs[0];
 
   return (
-    <div className="my-6 overflow-hidden rounded-md ring-1 ring-slate-200">
+    <div className="ring-cc-card-border my-6 overflow-hidden rounded-md ring-1">
       <div
         role="tablist"
-        className="flex flex-wrap border-b border-slate-200 bg-slate-50"
+        className="border-cc-card-border bg-cc-ink-faint flex flex-wrap border-b"
       >
         {tabs.map((tab, i) => {
           const selected = i === active;
@@ -67,10 +70,10 @@ export function Tabs({ children, defaultIndex = 0 }: TabsProps) {
               aria-selected={selected}
               tabIndex={selected ? 0 : -1}
               onClick={() => setActive(i)}
-              className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors -mb-px ${
+              className={`-mb-px cursor-pointer border-b-2 px-4 py-2 text-sm font-medium transition-colors ${
                 selected
-                  ? "border-emerald-600 text-emerald-700"
-                  : "border-transparent text-slate-600 hover:text-slate-900"
+                  ? "border-cc-accent text-cc-accent"
+                  : "text-cc-ink-dim hover:text-cc-ink border-transparent"
               }`}
             >
               {tab.props.label}

@@ -1,5 +1,6 @@
 ---
 title: Overview
+description: "Overview of configuring and operating a Hot Chocolate GraphQL server: endpoints, HTTP transport, interceptors, dependency injection, and instrumentation."
 ---
 
 This section covers how you configure and operate a Hot Chocolate GraphQL server. You will find details on transport protocols, middleware, dependency injection, and runtime behavior.
@@ -12,7 +13,7 @@ Hot Chocolate provides ASP.NET Core endpoint middleware for accepting HTTP and W
 
 # HTTP Transport
 
-Hot Chocolate implements the GraphQL over HTTP specification. In v16, the default incremental delivery format changed from v0.1 to v0.2, and clients can select the format through the `Accept` header.
+Hot Chocolate implements the GraphQL over HTTP specification. The default incremental delivery format is v0.2, and clients can select the format through the `Accept` header.
 
 [Learn more about the HTTP transport](./http-transport.md)
 
@@ -32,9 +33,9 @@ For WebSockets, the interceptor also handles lifecycle events such as when a cli
 
 # Dependency Injection
 
-Hot Chocolate recognizes services registered in your DI container and injects them into resolvers automatically. In v16, services are resolved implicitly without requiring the `[Service]` attribute.
+Hot Chocolate recognizes services registered in your DI container and injects them into resolvers automatically. Services are resolved implicitly without requiring the `[Service]` attribute.
 
-[Learn more about dependency injection](../resolvers-and-data/dependency-injection.md)
+[Learn more about dependency injection](../resolvers/dependency-injection.md)
 
 # Warmup
 
@@ -52,7 +53,7 @@ Global State lets you define properties on a per-request basis and makes them av
 
 Introspection lets you query the type system of your GraphQL server using regular GraphQL queries. While this powers developer tooling, it can also be an attack vector. You can control who is allowed to issue introspection queries.
 
-[Learn more about introspection](../securing-your-api/introspection.md)
+[Learn more about introspection](../security/introspection.md)
 
 # Files
 
@@ -68,7 +69,7 @@ Hot Chocolate exposes diagnostic events across the server, execution engine, and
 
 # Batching
 
-Batching lets you send and execute multiple GraphQL operations in a single request. In v16, batching is disabled by default and you enable it through the `AllowedBatching` flags enum.
+Batching lets you send and execute multiple GraphQL operations in a single request. Batching is disabled by default and you enable it through the `AllowedBatching` flags enum.
 
 [Learn more about batching](./batching.md)
 

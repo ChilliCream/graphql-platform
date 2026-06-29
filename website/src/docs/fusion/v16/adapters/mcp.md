@@ -2,7 +2,7 @@
 title: "MCP Adapter"
 ---
 
-The [Model Context Protocol (MCP)](https://modelcontextprotocol.io) is an open standard that lets AI assistants connect to external systems through a uniform tool and prompt interface. The `HotChocolate.Fusion.Adapters.Mcp` package turns a Fusion gateway into an MCP server. You author tools based on GraphQL operation documents, and prompts with a JSON configuration file, publish them, and the gateway handles loading, execution, transport, and live updates.
+The [Model Context Protocol (MCP)](https://modelcontextprotocol.io) is an open standard that lets AI assistants connect to external systems through a uniform tool and prompt interface. The `HotChocolate.Fusion.Adapters.Mcp` package turns a Fusion gateway into an MCP server. You supply tool and prompt definitions through an `IMcpStorage`, and the adapter handles execution, transport, and live updates. Definitions can come from Nitro (file-based authoring with a publish workflow) or from a custom `IMcpStorage` you build (programmatic, database-backed, or any source you choose).
 
 You wire MCP onto an existing Fusion gateway with two calls: `AddMcp()` during service registration and `MapGraphQLMcp()` during endpoint mapping. The adapter exposes the MCP server over Streamable HTTP at `/graphql/mcp` by default, so any MCP client (Claude Desktop, an editor extension, an agent runtime) can connect directly to the gateway.
 
@@ -78,6 +78,26 @@ builder
             // Register additional MCP server features here.
         });
 ```
+
+Tools registered through `configureServer` appear alongside the GraphQL-derived tools, so you can mix native MCP tools with operation tools in the same gateway.
+
+## Input Schema References
+
+An operation's variables become a tool's input schema (JSON Schema). When a variable's type is an input object, the adapter emits that type once under `$defs` and references it with `$ref`. References are how a self-referencing input type is represented in a finite schema, for example a filter input whose `and` and `or` fields are lists of the same type.
+
+References are the default and are understood by current MCP clients and agents. Some clients have limited support for JSON Schema references (recursive `$ref` in particular). For those, turn references off with `ModifyMcpToolOptions()`:
+
+```csharp
+builder
+    .AddGraphQLGateway()
+    .AddMcp()
+    .ModifyMcpToolOptions(options =>
+    {
+        options.UseJsonSchemaReferences = false;
+    });
+```
+
+With references disabled, input object types are inlined. Where a type refers to itself, that point is collapsed to a generic object (`{ "type": "object" }`) and the rest of the schema keeps its full structure. Leave references enabled unless a target client cannot resolve `$ref`.
 
 ## Mapping the MCP Endpoint
 
@@ -182,6 +202,10 @@ Storage is registered but returned no definitions. With Nitro, ensure a publishe
 ### Nitro logs `MCP integration is disabled because Nitro is not properly configured.`
 
 `NitroServiceOptions` is missing one or more of `ApiId`, `ApiKey`, or `Stage`. Set them through the `AddNitro()` configuration delegate or via the `NITRO_API_ID`, `NITRO_API_KEY`, and `NITRO_STAGE` environment variables.
+
+### MCP client rejects or cannot render a tool's input schema
+
+The client may not support JSON Schema references (`$ref`/`$defs`), which the adapter uses for input object types by default. Disable them with `.ModifyMcpToolOptions(options => options.UseJsonSchemaReferences = false)` to inline the schema instead. See [Input Schema References](#input-schema-references).
 
 ## Next Steps
 

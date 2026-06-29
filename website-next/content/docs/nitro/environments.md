@@ -1,5 +1,6 @@
 ---
 title: Environments
+description: "Define environment variables in Nitro to reuse URLs, tokens, and credentials across documents and switch between development, testing, and production values."
 ---
 
 Environment variable provide a mechanism for reusing specific values across multiple documents. These variables are defined as key-value pairs.
@@ -18,7 +19,7 @@ Similarly, identifiers such as client ID and client secret can be defined as env
 
 # Creating Environments
 
-![Screenshot showing the environment](images/env-0.webp)
+![Screenshot showing the environment](../../../public/images/nitro-docs/env-0.webp)
 To create a new environment, follow these steps:
 
 1. Click on the environment icon on the left side of your screen.
@@ -27,12 +28,12 @@ To create a new environment, follow these steps:
 
 # Rename Environments
 
-![Screenshot showing the environment](images/env-1.webp)
+![Screenshot showing the environment](../../../public/images/nitro-docs/env-1.webp)
 You can rename by right-clicking on the environment and selecting the 'Rename' option.
 
 # Specifying Variables
 
-![Screenshot showing the environment](images/env-2.webp)
+![Screenshot showing the environment](../../../public/images/nitro-docs/env-2.webp)
 
 To open the environment variable editor, click on the environment you would like to edit.
 
@@ -44,12 +45,12 @@ To open the environment variable editor, click on the environment you would like
 
 # Switching Environments
 
-![Screenshot showing the environment](images/env-3.webp)
+![Screenshot showing the environment](../../../public/images/nitro-docs/env-3.webp)
 To switch environments, click on the environment name in the status bar. A dropdown menu will appear, listing all available environments.
 After selecting an environment, the environment variables of the selected environment will be active and applied to all documents.
 
 # Using Variables
 
-![Screenshot showing the environment](images/env-4.webp)
+![Screenshot showing the environment](../../../public/images/nitro-docs/env-4.webp)
 Once you have defined an environment variable, you can reference it in your documents by using the following syntax: `{{variable_name}}`.
 Environment variable can be employed in a variety of places within Nitro, such as URLs, GraphQL Variables, and Connection Settings. When a request is executed, any referenced environment variable will be substituted with their respective values.

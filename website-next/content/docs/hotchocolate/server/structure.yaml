@@ -22,3 +22,5 @@ items:
     title: Batching
   - path: command-line
     title: CLI Commands
+  - path: options
+    title: Configuration Options

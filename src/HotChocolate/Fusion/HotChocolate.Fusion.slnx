@@ -1,6 +1,6 @@
 <Solution>
   <Folder Name="/benchmarks/">
-    <Project Path="benchmarks/Fusion.Execution.Benchmarks/Fusion.Execution.Benchmarks.csproj" />
+    <Project Path="benchmarks/Fusion.Execution.Benchmarks/HotChocolate.Fusion.Execution.Benchmarks.csproj" />
   </Folder>
   <Folder Name="/src/">
     <Project Path="src/Fusion.Aspire/HotChocolate.Fusion.Aspire.csproj" />
@@ -15,6 +15,11 @@
     <Project Path="src/Fusion.Packaging/HotChocolate.Fusion.Packaging.csproj" />
     <Project Path="src/Fusion.SourceSchema.Packaging/HotChocolate.Fusion.SourceSchema.Packaging.csproj" />
     <Project Path="src/Fusion.Connectors.InMemory/HotChocolate.Fusion.Connectors.InMemory.csproj" />
+    <Project Path="src/Fusion.Subscriptions.AmazonSqs/HotChocolate.Fusion.Subscriptions.AmazonSqs.csproj" />
+    <Project Path="src/Fusion.Subscriptions.AzureEventHubs/HotChocolate.Fusion.Subscriptions.AzureEventHubs.csproj" />
+    <Project Path="src/Fusion.Subscriptions.Kafka/HotChocolate.Fusion.Subscriptions.Kafka.csproj" />
+    <Project Path="src/Fusion.Subscriptions.Redis/HotChocolate.Fusion.Subscriptions.Redis.csproj" />
+    <Project Path="src/Fusion.Subscriptions.NATS/HotChocolate.Fusion.Subscriptions.NATS.csproj" />
     <Project Path="src/Fusion.Utilities/HotChocolate.Fusion.Utilities.csproj" />
   </Folder>
   <Folder Name="/test/">
@@ -25,12 +30,16 @@
     <Project Path="test/Fusion.Connectors.ApolloFederation.Tests/HotChocolate.Fusion.Connectors.ApolloFederation.Tests.csproj" />
     <Project Path="test/Fusion.Caching.Tests/HotChocolate.Fusion.Caching.Tests.csproj" />
     <Project Path="test/Fusion.Diagnostics.Tests/HotChocolate.Fusion.Diagnostics.Tests.csproj" />
-    <Project Path="test/Fusion.EventSources.Tests/HotChocolate.Fusion.EventSources.Tests.csproj" />
     <Project Path="test/Fusion.Execution.Tests/HotChocolate.Fusion.Execution.Tests.csproj" />
     <Project Path="test/Fusion.Language.Tests/HotChocolate.Fusion.Language.Tests.csproj" />
     <Project Path="test/Fusion.Packaging.Tests/HotChocolate.Fusion.Packaging.Tests.csproj" />
     <Project Path="test/Fusion.SourceSchema.Packaging.Tests/HotChocolate.Fusion.SourceSchema.Packaging.Tests.csproj" />
     <Project Path="test/Fusion.Connectors.InMemory.Tests/HotChocolate.Fusion.Connectors.InMemory.Tests.csproj" />
+    <Project Path="test/Fusion.Subscriptions.AmazonSqs.Tests/HotChocolate.Fusion.Subscriptions.AmazonSqs.Tests.csproj" />
+    <Project Path="test/Fusion.Subscriptions.AzureEventHubs.Tests/HotChocolate.Fusion.Subscriptions.AzureEventHubs.Tests.csproj" />
+    <Project Path="test/Fusion.Subscriptions.Kafka.Tests/HotChocolate.Fusion.Subscriptions.Kafka.Tests.csproj" />
+    <Project Path="test/Fusion.Subscriptions.Redis.Tests/HotChocolate.Fusion.Subscriptions.Redis.Tests.csproj" />
+    <Project Path="test/Fusion.Subscriptions.NATS.Tests/HotChocolate.Fusion.Subscriptions.NATS.Tests.csproj" />
     <Project Path="test/Fusion.Utilities.Tests/HotChocolate.Fusion.Utilities.Tests.csproj" />
     <Project Path="test/Fusion.Tests.Shared/HotChocolate.Fusion.Tests.Shared.csproj" />
   </Folder>

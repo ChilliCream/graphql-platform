@@ -8,7 +8,7 @@ export function Link({
   ...props
 }: ComponentPropsWithoutRef<"a">) {
   const styles =
-    "text-emerald-700 underline decoration-emerald-700/30 underline-offset-2 hover:decoration-emerald-700";
+    "text-cc-accent underline decoration-cc-accent/30 underline-offset-2 hover:decoration-cc-accent";
   const merged = `${styles} ${className}`.trim();
 
   if (href.startsWith("/")) {
@@ -19,7 +19,11 @@ export function Link({
     );
   }
 
-  if (href.startsWith("#")) {
+  if (
+    href.startsWith("#") ||
+    href.startsWith("mailto:") ||
+    href.startsWith("tel:")
+  ) {
     return (
       <a href={href} className={merged} {...props}>
         {children}

@@ -3,6 +3,8 @@ title: "Getting started with GraphQL in .NET Core"
 description: "In this tutorial, you will walk through the basics of creating a GraphQL server with Hot Chocolate."
 ---
 
+import { InputChoiceTabs } from "../../../components/mdx/input-choice-tabs"
+
 By the end of this guide, you will have a running GraphQL server that responds to queries. You will use the Hot Chocolate project template, explore the generated code, and execute your first query in the Nitro GraphQL IDE.
 
 **Prerequisites:** [.NET 8 SDK](https://dotnet.microsoft.com/download) or later.
@@ -42,11 +44,11 @@ Create a new project from within Visual Studio using the **GraphQL Server** temp
 
 The `Types` directory contains two record types that represent the domain model.
 
-```csharp filename="Types/Author.cs"
+```csharp
 public record Author(string Name);
 ```
 
-```csharp filename="Types/Book.cs"
+```csharp
 public record Book(string Title, Author Author);
 ```
 
@@ -56,7 +58,7 @@ These are regular C# types. Hot Chocolate infers the GraphQL schema from them.
 
 The `Query` class defines the root type for read operations. Each public method becomes a field that clients can query.
 
-```csharp filename="Types/Query.cs"
+```csharp
 [QueryType]
 public static partial class Query
 {
@@ -122,15 +124,15 @@ Now listening on: http://localhost:5095
 
 Open [http://localhost:5095/graphql](http://localhost:5095/graphql) in your browser. You should see the Nitro GraphQL IDE.
 
-![GraphQL IDE](../../../images/getting-started-nitro.webp)
+![GraphQL IDE](../../../public/images/hotchocolate-docs/getting-started-nitro.webp)
 
 Click **Create Document**, verify the HTTP Endpoint matches your server URL, and click **Apply**.
 
-![GraphQL IDE: Setup](../../../images/getting-started-nitro-setup.webp)
+![GraphQL IDE: Setup](../../../public/images/hotchocolate-docs/getting-started-nitro-setup.webp)
 
 You should see the editor with **Schema available** at the bottom right.
 
-![GraphQL IDE: Editor](../../../images/getting-started-nitro-editor.webp)
+![GraphQL IDE: Editor](../../../public/images/hotchocolate-docs/getting-started-nitro-editor.webp)
 
 # Execute a Query
 
@@ -162,19 +164,19 @@ Click **Run**. The **Response** pane should show:
 }
 ```
 
-![GraphQL IDE: Executing a query](../../../images/getting-started-nitro-query.webp)
+![GraphQL IDE: Executing a query](../../../public/images/hotchocolate-docs/getting-started-nitro-query.webp)
 
 You can browse the schema by clicking the **Schema** tab next to **Operation**. The **Schema Definition** tab shows the raw SDL.
 
-![GraphQL IDE: Schema](../../../images/getting-started-nitro-schema.webp)
+![GraphQL IDE: Schema](../../../public/images/hotchocolate-docs/getting-started-nitro-schema.webp)
 
 Your GraphQL server is running and responding to queries.
 
 # Next Steps
 
-- **"I want to learn about the type system."** See [Building a Schema](./building-a-schema/index.md) for queries, mutations, subscriptions, and all the GraphQL types.
+- **"I want to learn about the type system."** See [Defining a Schema](./defining-a-schema/index.md) for queries, mutations, subscriptions, and all the GraphQL types.
 
-- **"I want to fetch data from a database."** See [DataLoader](./resolvers-and-data/dataloader.md) for batched data fetching, or [Entity Framework](./integrations/entity-framework.md) for EF Core integration.
+- **"I want to fetch data from a database."** See [DataLoader](./fetching-data/batching/dataloader.md) for batched data fetching, or [Entity Framework](./fetching-data/integrations/entity-framework.md) for EF Core integration.
 
 - **"I want a deeper tutorial."** Check out the [GraphQL Workshop](https://github.com/ChilliCream/graphql-workshop) for a hands-on walkthrough covering types, resolvers, DataLoaders, filtering, and more.
 

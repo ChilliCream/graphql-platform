@@ -22,7 +22,7 @@ public class SchemaTransformationIntegrationTests
             .AddQueryType<Query>()
             .AddType<Product>()
             .AddType<User>()
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var federationSdl = schema.ToString();
 
@@ -62,7 +62,7 @@ public class SchemaTransformationIntegrationTests
             .AddApolloFederation()
             .AddQueryType<Query>()
             .AddType<Product>()
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var federationSdl = schema.ToString();
         var result = FederationSchemaTransformer.Transform(federationSdl);
@@ -117,7 +117,7 @@ public class SchemaTransformationIntegrationTests
             .AddApolloFederation()
             .AddQueryType<Query>()
             .AddType<Product>()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // This is the query our connector would generate after rewriting
         var request = OperationRequestBuilder
@@ -146,7 +146,7 @@ public class SchemaTransformationIntegrationTests
             .Build();
 
         // act
-        var result = await executor.ExecuteAsync(request);
+        var result = await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
 
         // assert
         result.ToJson().MatchSnapshot(extension: ".json");
@@ -162,7 +162,7 @@ public class SchemaTransformationIntegrationTests
             .AddQueryType<Query>()
             .AddType<Product>()
             .AddType<User>()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // 2. Get and transform the SDL
         var federationSdl = executor.Schema.ToString();
@@ -215,7 +215,7 @@ public class SchemaTransformationIntegrationTests
                 """)
             .Build();
 
-        var result = await executor.ExecuteAsync(request);
+        var result = await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
 
         // 6. Verify we got the entity back
         var json = result.ToJson();
@@ -233,7 +233,7 @@ public class SchemaTransformationIntegrationTests
             .AddQueryType<Query>()
             .AddType<Product>()
             .AddType<User>()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // Build a combined aliased query like the connector would
         const string batchedQuery = """
@@ -265,7 +265,7 @@ public class SchemaTransformationIntegrationTests
             .Build();
 
         // act
-        var result = await executor.ExecuteAsync(request);
+        var result = await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
 
         // assert
         var json = result.ToJson();

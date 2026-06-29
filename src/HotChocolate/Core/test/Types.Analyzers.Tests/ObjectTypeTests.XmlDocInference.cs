@@ -563,7 +563,7 @@ public partial class ObjectTypeXmlDocInferenceTests
                 /// <inheritdoc cref="Foo.GetBar(int)"/>
                 public static string? Overloaded(int id) => null;
             }
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]

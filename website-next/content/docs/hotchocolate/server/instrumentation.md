@@ -1,5 +1,6 @@
 ---
 title: Instrumentation
+description: "Tap into Hot Chocolate execution events with AddDiagnosticEventListener or enable the built-in OpenTelemetry integration to trace GraphQL requests end to end."
 ---
 
 Hot Chocolate lets you create diagnostic event listeners that tap into internal instrumentation events. You can use any logging or tracing infrastructure you prefer. Hot Chocolate also ships with a built-in OpenTelemetry integration aligned with the [proposed GraphQL semantic conventions](https://github.com/graphql/otel-wg/blob/main/spec).
@@ -217,7 +218,7 @@ OpenTelemetry is an open-source, vendor-neutral standard for collecting telemetr
 
 Hot Chocolate provides an OpenTelemetry integration that aligns with the [proposed GraphQL semantic conventions](https://github.com/graphql/otel-wg/blob/main/spec).
 
-https://youtu.be/nCLSfJMihsg
+[Watch the video on YouTube](https://www.youtube.com/watch?v=nCLSfJMihsg)
 
 ## Setup
 
@@ -303,7 +304,7 @@ app.Run();
 
 When running GraphQL requests, you can inspect in your tracing backend how each request performed and examine the various parts of the execution telemetry.
 
-![Jaeger](../../../shared/jaeger1.png)
+![Jaeger](../../../../public/images/hotchocolate-docs/jaeger1.png)
 
 ## Span Attributes
 
@@ -350,7 +351,7 @@ builder
 > [!WARNING]
 > Adding more instrumentation scopes is not free and adds performance overhead.
 
-![Jaeger](../../../shared/jaeger2.png)
+![Jaeger](../../../../public/images/hotchocolate-docs/jaeger2.png)
 
 You can also include the operation details in the root activity:
 
@@ -364,13 +365,13 @@ builder
     });
 ```
 
-![Jaeger](../../../shared/jaeger3.png)
+![Jaeger](../../../../public/images/hotchocolate-docs/jaeger3.png)
 
 ## Enriching Activities
 
 You can inherit from `ActivityEnricher` and override enrich methods to add custom data or remove default data from activities.
 
-In v16, the `ActivityEnricher` constructor no longer requires an `ObjectPool<StringBuilder>`:
+The `ActivityEnricher` constructor does not require an `ObjectPool<StringBuilder>`:
 
 ```csharp
 public class CustomActivityEnricher : ActivityEnricher
@@ -419,7 +420,7 @@ The following enricher methods are available:
 > [!NOTE]
 > Overriding enricher methods without calling `base` no longer prevents the standard span attributes from being emitted. The semantic convention attributes are applied by the instrumentation itself. Custom enrichers only add extra information.
 
-![Jaeger](../../../shared/jaeger4.png)
+![Jaeger](../../../../public/images/hotchocolate-docs/jaeger4.png)
 
 # Next Steps
 

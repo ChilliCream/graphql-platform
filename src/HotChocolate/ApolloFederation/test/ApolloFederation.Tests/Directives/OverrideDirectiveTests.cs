@@ -18,7 +18,7 @@ public class OverrideDirectiveTests
             .AddApolloFederation(FederationVersion.Federation20)
             .AddQueryType()
             .AddType<Foo>()
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var entityType = schema.Types.GetType<ObjectType>(FederationTypeNames.ServiceType_Name);
         var sdlResolver = entityType.Fields[WellKnownFieldNames.Sdl].Resolver!;
@@ -37,7 +37,7 @@ public class OverrideDirectiveTests
             .AddApolloFederation(FederationVersion.Federation27)
             .AddQueryType()
             .AddType<Foo>()
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var entityType = schema.Types.GetType<ObjectType>(FederationTypeNames.ServiceType_Name);
         var sdlResolver = entityType.Fields[WellKnownFieldNames.Sdl].Resolver!;

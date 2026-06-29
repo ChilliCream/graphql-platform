@@ -13,6 +13,7 @@ using HotChocolate.Types;
 using HotChocolate.Types.Mutable;
 using static HotChocolate.Fusion.WellKnownDirectiveNames;
 using ArgumentNames = HotChocolate.Fusion.WellKnownArgumentNames;
+using StringValueNode = HotChocolate.Language.StringValueNode;
 
 namespace HotChocolate.Fusion;
 
@@ -65,7 +66,7 @@ internal sealed partial class SourceSchemaPreprocessor(
         }
 
         // We need to run this after keys have been inferred, so we do not attempt to mark them as @shareable.
-        if (fusionV1CompatibilityMode)
+        if (fusionV1CompatibilityMode || _options.InferShareable)
         {
             ApplyShareableDirectives();
         }
@@ -222,6 +223,11 @@ internal sealed partial class SourceSchemaPreprocessor(
         {
             foreach (var type in schema.Types.OfType<MutableObjectTypeDefinition>())
             {
+                if (type == schema.SubscriptionType)
+                {
+                    continue;
+                }
+
                 if (!sourceSchema.Types.TryGetType<MutableObjectTypeDefinition>(type.Name, out var otherType))
                 {
                     continue;

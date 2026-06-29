@@ -26,7 +26,7 @@ internal sealed class ChunkedArrayWriter : IBufferWriter<byte>, IDisposable
     private int _chunkCount;
     private int _currentChunk;
     private int _currentChunkOffset;
-    private byte[] _scratch;
+    private byte[] _scratch = [];
     private bool _advanceFromScratch;
     private bool _disposed;
 
@@ -36,7 +36,6 @@ internal sealed class ChunkedArrayWriter : IBufferWriter<byte>, IDisposable
         _chunks = ArrayPool<byte[]>.Shared.Rent(4);
         _chunks[0] = JsonMemory.Rent(memoryKind);
         _chunkCount = 1;
-        _scratch = new byte[DefaultScratchSize];
     }
 
     /// <summary>
@@ -77,11 +76,12 @@ internal sealed class ChunkedArrayWriter : IBufferWriter<byte>, IDisposable
         // Return a scratch buffer; on Advance we copy into chunks.
         if (size > _scratch.Length)
         {
-            _scratch = new byte[size];
+            ReturnScratch();
+            _scratch = ArrayPool<byte>.Shared.Rent(size);
         }
 
         _advanceFromScratch = true;
-        return _scratch;
+        return _scratch.AsSpan(0, size);
     }
 
     /// <inheritdoc />
@@ -106,11 +106,12 @@ internal sealed class ChunkedArrayWriter : IBufferWriter<byte>, IDisposable
 
         if (size > _scratch.Length)
         {
-            _scratch = new byte[size];
+            ReturnScratch();
+            _scratch = ArrayPool<byte>.Shared.Rent(size);
         }
 
         _advanceFromScratch = true;
-        return _scratch;
+        return _scratch.AsMemory(0, size);
     }
 
     /// <inheritdoc />
@@ -640,6 +641,8 @@ internal sealed class ChunkedArrayWriter : IBufferWriter<byte>, IDisposable
         _chunkCount = 0;
         _currentChunk = 0;
         _currentChunkOffset = 0;
+        _advanceFromScratch = false;
+        ReturnScratch();
         _disposed = true;
 
         return (chunks, usedChunks, lastLength);
@@ -680,7 +683,18 @@ internal sealed class ChunkedArrayWriter : IBufferWriter<byte>, IDisposable
             _chunkCount = 0;
             _currentChunk = 0;
             _currentChunkOffset = 0;
+            _advanceFromScratch = false;
+            ReturnScratch();
             _disposed = true;
+        }
+    }
+
+    private void ReturnScratch()
+    {
+        if (_scratch.Length > 0)
+        {
+            ArrayPool<byte>.Shared.Return(_scratch);
+            _scratch = [];
         }
     }
 

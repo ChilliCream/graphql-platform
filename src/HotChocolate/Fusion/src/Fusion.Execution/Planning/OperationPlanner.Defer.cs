@@ -240,10 +240,7 @@ public sealed partial class OperationPlanner
                 return enclosingState;
             }
 
-            if (rootScopeState is null)
-            {
-                rootScopeState = new ScopeState(scope.ParentSteps, scope.ParentInternalOperation);
-            }
+            rootScopeState ??= new ScopeState(scope.ParentSteps, scope.ParentInternalOperation);
             return rootScopeState;
         }
 
@@ -578,8 +575,8 @@ public sealed partial class OperationPlanner
         var promotedStep = providerStep with
         {
             Id = newParentStepId,
-            Dependents = ImmutableHashSet<int>.Empty,
-            ParentDependencies = ImmutableHashSet<ParentStepRef>.Empty,
+            Dependents = [],
+            ParentDependencies = [],
             SelectionSets = SelectionSetIndexer.CreateIdSet(providerStep.Definition.SelectionSet, index),
             RootSelectionSetId = index.GetId(providerStep.Definition.SelectionSet)
         };

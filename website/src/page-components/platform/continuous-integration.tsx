@@ -153,8 +153,9 @@ const ContinuousIntegrationPage: FC<ContinuousIntegrationPageProps> = ({
           and precision. Ensure your project is ready for a smooth rollout
           and impactful launch.
         "
-        primaryLink="mailto:contact@chillicream.com?subject=Demo"
+        primaryLink="/services/support/contact?subject=Schedule+a+Demo"
         primaryLinkText="Book a Demo"
+        primaryTrack="book_demo_click"
       />
       <NewsletterSection />
       <MostRecentBlogPostsSection posts={recentPosts} />

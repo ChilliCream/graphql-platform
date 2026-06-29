@@ -1,11 +1,11 @@
 ---
 title: Connect your API
+description: "Connect your Hot Chocolate server to Nitro to fetch persisted operations from the client registry and report telemetry, using the ChilliCream.Nitro packages."
 ---
-<!-- spell-checker:ignore Ghpcy, Bpcy, ZWFs -->
 
 Nitro can be smoothly integrated into your HotChocolate server, enabling utilization of the Persisted Operation Storage found within the client registry, to report operations and collect open telemetry. Your server will establish a connection with Nitro, retrieving persisted operations based on their unique hashes. Additional information on the client registry can be found [here](./apis/client-registry.md).
 
-## Getting Started
+# Getting Started
 
 To get started, follow these steps:
 
@@ -15,6 +15,7 @@ To get started, follow these steps:
 
 ```bash
 dotnet add package ChilliCream.Nitro
+dotnet add package ChilliCream.Nitro.HotChocolate
 ```
 
 3. Configure your services as shown in the following code snippet:
@@ -22,16 +23,18 @@ dotnet add package ChilliCream.Nitro
 ```csharp
 var builder = WebApplication.CreateBuilder(args);
 
-builder
-    .AddGraphQL()
-    .AddQueryType<Query>()
-    .AddInstrumentation() // if you want to use telemetry
+builder.Services
     .AddNitro(x =>
     {
         x.ApiId = "VGhpcyBpcyBub3QgYSByZWFsIGFwaSBpZA==";
         x.ApiKey = "Tm9wZSwgdGhpcyBpcyBhbHNvIG5vIHJlYWwga2V5IDspIA==";
         x.Stage = "dev";
-    })
+    });
+
+builder
+    .AddGraphQL()
+    .AddQueryType<Query>()
+    .AddInstrumentation() // if you want to use telemetry
     .UseOnlyPersistedOperationAllowed() // optional
     .UsePersistedOperationPipeline(); // if you want to use persisted operations
 
@@ -45,3 +48,5 @@ app.Run();
 4. Retrieve the API id and API key from Nitro using the `nitro api list` and `nitro api-key create` commands respectively. Instructions for these commands can be found [here](./cli/installation.md).
 
 Congratulations! You have successfully integrated Nitro into your HotChocolate server. You can now publish new versions of your clients and your server will automatically retrieve the latest persisted operations.
+
+<!-- spell-checker:ignore Ghpcy, Bpcy, ZWFs -->

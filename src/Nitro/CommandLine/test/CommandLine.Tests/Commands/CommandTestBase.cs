@@ -25,7 +25,7 @@ using Spectre.Console.Testing;
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands;
 
 public abstract class CommandTestBase
-    : IClassFixture<NitroCommandFixture>, IAsyncDisposable
+    : IClassFixture<NitroCommandFixture>, IAsyncLifetime
 {
     protected const string ApiId = "api-1";
     protected const string Stage = "dev";
@@ -48,7 +48,7 @@ public abstract class CommandTestBase
     protected readonly Mock<IEnvironmentsClient> EnvironmentsClientMock = new(MockBehavior.Strict);
     protected readonly Mock<IStagesClient> StagesClientMock = new(MockBehavior.Strict);
     internal readonly Mock<Services.Sessions.ISessionService> _sessionServiceMock = new();
-    internal readonly Mock<IBrowserLauncher> BrowserLauncherMock = new();
+    internal readonly Mock<IBrowserLauncher> _browserLauncherMock = new();
     protected readonly Mock<IWorkspacesClient> WorkspacesClientMock = new(MockBehavior.Strict);
     private InteractionMode _interactionMode = InteractionMode.NonInteractive;
     private bool _authenticated = true;
@@ -107,6 +107,9 @@ public abstract class CommandTestBase
 
         if (_interactionMode is InteractionMode.JsonOutput)
         {
+            // Simulate a real terminal (TTY): '--output json' must force
+            // non-interactive behavior even when the console is interactive.
+            outConsole.Profile.Capabilities.Interactive = true;
             arguments.AddRange(["--output", "json"]);
         }
         else if (_interactionMode is InteractionMode.NonInteractive)
@@ -226,7 +229,7 @@ public abstract class CommandTestBase
         services.Replace(ServiceDescriptor.Singleton(_fileSystemMock.Object));
         services.Replace(ServiceDescriptor.Singleton(_environmentVariableProviderMock.Object));
         services.Replace(ServiceDescriptor.Singleton(_sessionServiceMock.Object));
-        services.Replace(ServiceDescriptor.Singleton(BrowserLauncherMock.Object));
+        services.Replace(ServiceDescriptor.Singleton(_browserLauncherMock.Object));
         services.Replace(ServiceDescriptor.Singleton(WorkspacesClientMock.Object));
         services.Replace(ServiceDescriptor.Singleton(SchemasClientMock.Object));
         services.Replace(ServiceDescriptor.Singleton(FusionConfigurationClientMock.Object));
@@ -397,6 +400,8 @@ public abstract class CommandTestBase
                 It.IsAny<CancellationToken>()),
             Times.Never);
     }
+
+    public ValueTask InitializeAsync() => ValueTask.CompletedTask;
 
     public async ValueTask DisposeAsync()
     {

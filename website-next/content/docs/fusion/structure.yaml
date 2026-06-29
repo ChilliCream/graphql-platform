@@ -1,11 +1,13 @@
 title: Fusion
 items:
   - path: index
-    title: Overview
+    title: Introduction
   - path: getting-started
     title: Getting Started
   - path: adding-a-subgraph
     title: Adding a Subgraph
+  - path: source-schema-extensions
+    title: Source Schema Extensions
   - path: guides
     title: Guides
   - path: entities-and-lookups
@@ -24,6 +26,8 @@ items:
     title: Request Limits
   - path: cache-control
     title: Cache Control
+  - path: subscriptions
+    title: Subscriptions
   - path: performance-tuning
     title: Performance Tuning
   - path: aspire-integration

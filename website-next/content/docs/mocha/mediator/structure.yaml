@@ -3,4 +3,4 @@ items:
   - path: index
     title: Overview
   - path: pipeline-and-middleware
-    title: Pipeline & Middleware
+    title: "Pipeline & Middleware"

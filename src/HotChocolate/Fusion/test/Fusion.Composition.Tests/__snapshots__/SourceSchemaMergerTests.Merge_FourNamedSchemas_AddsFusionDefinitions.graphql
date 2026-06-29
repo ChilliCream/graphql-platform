@@ -2,8 +2,8 @@
 enum fusion__Schema {
   EXAMPLE_FOUR_FIVE @fusion__schema_metadata(name: "ExampleFourFive")
   EXAMPLE_ONE @fusion__schema_metadata(name: "ExampleOne")
-  EXAMPLE_THREE @fusion__schema_metadata(name: "Example__Three")
   EXAMPLE_TWO @fusion__schema_metadata(name: "Example_Two")
+  EXAMPLE_THREE @fusion__schema_metadata(name: "Example__Three")
 }
 
 "The fusion__FieldDefinition scalar is used to represent a GraphQL field definition specified in the GraphQL spec."
@@ -43,6 +43,15 @@ directive @fusion__enumValue(
   "The name of the source schema that provides the specified enum value."
   schema: fusion__Schema!
 ) repeatable on ENUM_VALUE
+
+directive @fusion__eventStream(
+  broker: String
+  cursorArgument: String
+  cursorField: String
+  message: fusion__FieldSelectionSet!
+  schema: fusion__Schema!
+  topics: [String!]
+) on FIELD_DEFINITION
 
 "The @fusion__field directive specifies which source schema provides a field in a composite type and what execution behavior it has."
 directive @fusion__field(

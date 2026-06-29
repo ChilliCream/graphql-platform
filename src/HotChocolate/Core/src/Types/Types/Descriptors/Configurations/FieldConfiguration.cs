@@ -127,8 +127,15 @@ public abstract class FieldConfiguration
 
     public void SetConnectionTotalCountFieldFlags() => Flags |= CoreFieldFlags.TotalCount;
 
-    public void SetFieldRequirements(string requirements, Type entityType)
+    public void SetFieldRequirements(string? requirements, Type? entityType)
     {
+        if (string.IsNullOrEmpty(requirements) || entityType is null)
+        {
+            Flags &= ~CoreFieldFlags.WithRequirements;
+            Features.Set<FieldRequirementFeature>(null);
+            return;
+        }
+
         Flags |= CoreFieldFlags.WithRequirements;
         Features.Set(new FieldRequirementFeature(requirements, entityType));
     }

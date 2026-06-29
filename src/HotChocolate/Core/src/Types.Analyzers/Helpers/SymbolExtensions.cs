@@ -783,6 +783,19 @@ public static class SymbolExtensions
     public static bool IsSelection(this IParameterSymbol parameter)
         => parameter.Type.ToDisplayString() == WellKnownTypes.ISelection;
 
+    public static bool IsOptional(this ITypeSymbol type, [NotNullWhen(true)] out ITypeSymbol? innerType)
+    {
+        if (type is INamedTypeSymbol { IsGenericType: true, TypeArguments.Length: 1 } namedType
+            && namedType.ToDisplayString().StartsWith(WellKnownTypes.OptionalGeneric, StringComparison.Ordinal))
+        {
+            innerType = namedType.TypeArguments[0];
+            return true;
+        }
+
+        innerType = null;
+        return false;
+    }
+
     public static bool IsIsSelected(this IParameterSymbol parameter)
     {
         foreach (var attribute in parameter.GetAttributes())

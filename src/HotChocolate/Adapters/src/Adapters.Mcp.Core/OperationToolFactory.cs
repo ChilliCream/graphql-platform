@@ -1,6 +1,7 @@
 using System.Collections.Frozen;
 using System.Text;
 using System.Text.Json.Nodes;
+using HotChocolate.Adapters.Mcp.Configuration;
 using HotChocolate.Adapters.Mcp.Extensions;
 using HotChocolate.Adapters.Mcp.Storage;
 using HotChocolate.Language;
@@ -13,10 +14,16 @@ using static HotChocolate.Adapters.Mcp.WellKnownFieldNames;
 
 namespace HotChocolate.Adapters.Mcp;
 
-internal sealed class OperationToolFactory(ISchemaDefinition schema)
+internal sealed class OperationToolFactory(ISchemaDefinition schema, McpToolOptions options)
 {
     private static readonly Walker s_walker = new();
 
+    /// <summary>
+    /// Builds an <see cref="OperationTool"/> for a document that has been verified against the
+    /// schema. Calling this with an invalid document throws -- the schema walker will fail on
+    /// the first unresolved field or type reference. For invalid documents, use
+    /// <see cref="CreateInvalidTool"/>.
+    /// </summary>
     public OperationTool CreateTool(OperationToolDefinition toolDefinition)
     {
         var operationNode = toolDefinition.Document.Definitions.OfType<OperationDefinitionNode>().Single();
@@ -71,15 +78,72 @@ internal sealed class OperationToolFactory(ISchemaDefinition schema)
         };
     }
 
+    /// <summary>
+    /// Builds an <see cref="OperationTool"/> shell for a document that failed schema validation.
+    /// The tool is surfaced through <c>tools/list</c> so consumers see it exists, but
+    /// <c>tools/call</c> must reject it because the input/output schemas are permissive
+    /// placeholders rather than schema-derived contracts.
+    /// </summary>
+    public static OperationTool CreateInvalidTool(OperationToolDefinition toolDefinition)
+    {
+        var operationNode = toolDefinition.Document.Definitions.OfType<OperationDefinitionNode>().Single();
+
+        JsonObject? meta = null;
+        Resource? viewResource = null;
+
+        if (toolDefinition.View is { } view)
+        {
+            meta = [];
+            AddViewMetadata(meta, toolDefinition);
+            viewResource = CreateViewResource(view, toolDefinition);
+        }
+
+        var tool = new Tool
+        {
+            Name = toolDefinition.Name,
+            Title = toolDefinition.Title
+                ?? operationNode.Name?.Value.InsertSpaceBeforeUpperCase()
+                ?? toolDefinition.Name,
+            Description = operationNode.Description?.Value,
+            InputSchema = s_permissiveObjectSchema.ToJsonElement(),
+            OutputSchema = s_permissiveObjectSchema.ToJsonElement(),
+            Meta = meta
+        };
+
+        if (toolDefinition.Icons is { } icons)
+        {
+            tool.Icons =
+                icons.Select(
+                    icon => new Icon
+                    {
+                        Source = icon.Source.OriginalString,
+                        MimeType = icon.MimeType,
+                        Sizes = icon.Sizes,
+                        Theme = icon.Theme
+                    }).ToList();
+        }
+
+        return new OperationTool(toolDefinition.Document, tool)
+        {
+            HasValidDocument = false,
+            ViewResource = viewResource,
+            ViewHtml = toolDefinition.View?.Html
+        };
+    }
+
+    private static readonly JsonSchema s_permissiveObjectSchema =
+        new JsonSchemaBuilder().Type(SchemaValueType.Object).Build();
+
     private JsonSchema CreateInputSchema(OperationDefinitionNode operation)
     {
         var properties = new Dictionary<string, JsonSchema>();
         var requiredProperties = new List<string>();
+        var context = new JsonSchemaContext { UseReferences = options.UseJsonSchemaReferences };
 
         foreach (var variableNode in operation.VariableDefinitions)
         {
             var type = variableNode.Type.ToType(schema);
-            var propertyBuilder = type.ToJsonSchemaBuilder();
+            var propertyBuilder = type.ToJsonSchemaBuilder(context: context);
             var variableName = variableNode.Variable.Name.Value;
 
             // Description.
@@ -103,12 +167,22 @@ internal sealed class OperationToolFactory(ISchemaDefinition schema)
             properties.Add(variableName, propertyBuilder);
         }
 
-        return
+        var schemaBuilder =
             new JsonSchemaBuilder()
                 .Type(SchemaValueType.Object)
                 .Properties(properties)
-                .Required(requiredProperties)
-                .Build();
+                .Required(requiredProperties);
+
+        // Definitions, emitted in a stable order so the schema is deterministic.
+        if (context.Defs.Count > 0)
+        {
+            schemaBuilder.Defs(
+                context.Defs
+                    .OrderBy(definition => definition.Key, StringComparer.Ordinal)
+                    .ToDictionary());
+        }
+
+        return schemaBuilder.Build();
     }
 
     private static JsonSchema CreateOutputSchema(JsonSchema dataSchema)

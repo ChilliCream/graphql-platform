@@ -3,8 +3,6 @@ title: "Diagnostics"
 description: "Reference for all compile-time diagnostics emitted by the Mocha source generator, including causes, examples, and fixes for each warning and error."
 ---
 
-# Diagnostics
-
 Mocha uses a Roslyn source generator to validate your message handlers, consumers, and sagas at compile time. When the generator detects a problem - a missing handler, a duplicate registration, an invalid type - it emits a diagnostic that appears as a compiler warning or error in your IDE and build output. You can fix these issues before your code ever runs.
 
 # Quick reference

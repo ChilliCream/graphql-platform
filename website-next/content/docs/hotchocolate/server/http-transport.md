@@ -1,7 +1,7 @@
 ---
 title: HTTP Transport
+description: "How Hot Chocolate implements the GraphQL over HTTP specification: content negotiation, status codes, incremental delivery, and streaming transports like SSE."
 ---
-<!-- spell-checker:ignore Bname, Buser -->
 
 Hot Chocolate implements the latest version of the [GraphQL over HTTP specification](https://github.com/graphql/graphql-over-http/blob/a1e6d8ca248c9a19eb59a2eedd988c204909ee3f/spec/GraphQLOverHTTP.md).
 
@@ -103,7 +103,7 @@ Content-Type: application/json
 ```
 
 > [!NOTE]
-> `{query}` and `{operationName}` parameters are encoded as raw strings in the query component. Therefore if the query string contained operationName=null then it should be interpreted as the `{operationName}` being the string "null". If a literal null is desired, the parameter (e.g. `{operationName}`) should be omitted.
+> \{query\} and \{operationName\} parameters are encoded as raw strings in the query component. Therefore if the query string contained operationName=null then it should be interpreted as the \{operationName\} being the string "null". If a literal null is desired, the parameter (e.g. \{operationName\}) should be omitted.
 
 The GraphQL HTTP GET request is specified [here](https://github.com/graphql/graphql-over-http/blob/master/spec/GraphQLOverHTTP.md#get).
 
@@ -229,7 +229,7 @@ If no streaming `Accept` header is provided, the default is `multipart/mixed`.
 
 There are two wire formats for how incremental results are represented in the response payload.
 
-**v0.2 (default in v16)** uses `pending`, `incremental` with `id`, and `completed` to track deferred fragments:
+**v0.2 (default)** uses `pending`, `incremental` with `id`, and `completed` to track deferred fragments:
 
 ```json
 {"data":{"product":{"name":"Abc"}},"pending":[{"id":"2","path":["product"]}],"hasNext":true}
@@ -243,7 +243,7 @@ There are two wire formats for how incremental results are represented in the re
 {"incremental":[{"data":{"description":"Abc desc"},"path":["product"]}],"hasNext":false}
 ```
 
-In v16, the default changed from v0.1 to v0.2. If your clients depend on the legacy format, you have two options: client-driven format selection or changing the server default.
+The default format is v0.2. If your clients depend on the legacy format, you have two options: client-driven format selection or changing the server default.
 
 ### Client-Driven Format Selection
 
@@ -361,7 +361,7 @@ The client selects its preferred sub-protocol via the standard WebSocket `Sec-We
 
 You must register the ASP.NET Core WebSocket middleware before calling `MapGraphQL()`. Without this, WebSocket upgrade requests are not handled.
 
-```csharp filename="Program.cs"
+```csharp
 var builder = WebApplication.CreateBuilder(args);
 
 builder
@@ -491,6 +491,8 @@ If a request is rejected because it lacks the required preflight header, the ser
 
 - [Endpoints](./endpoints.md) for configuring the GraphQL middleware and per-endpoint options.
 - [Batching](./batching.md) for details on variable batching and request batching.
-- [Subscriptions](../building-a-schema/subscriptions.md) for defining subscription types and event publishing.
+- [Subscriptions](../defining-a-schema/subscriptions.md) for defining subscription types and event publishing.
 - [Interceptors](./interceptors.md) for hooking into WebSocket and HTTP request processing.
 - [Migrate from v15 to v16](../migrating/migrate-from-15-to-16.md#new-default-incremental-delivery-format-for-defer-and-stream) for the incremental delivery migration details.
+
+<!-- spell-checker:ignore Bname, Buser -->

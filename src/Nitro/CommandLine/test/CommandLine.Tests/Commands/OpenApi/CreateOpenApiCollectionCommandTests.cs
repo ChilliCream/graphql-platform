@@ -25,8 +25,8 @@ public sealed class CreateOpenApiCollectionCommandTests(NitroCommandFixture fixt
             Options:
                             --api-id <api-id>        The ID of the API [env: NITRO_API_ID]
                             --name <name>            The name of the OpenAPI collection [env: NITRO_OPENAPI_COLLECTION_NAME]
-                            --cloud-url <cloud-url>  The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL] [default: api.chillicream.com]
-                            --api-key <api-key>      The API key used for authentication [env: NITRO_API_KEY]
+                            --cloud-url <cloud-url>  The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL]
+                            --api-key <api-key>      The API key or PAT used for authentication [env: NITRO_API_KEY]
                             --output <json>          The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
                             -?, -h, --help           Show help and usage information
 
@@ -124,7 +124,7 @@ public sealed class CreateOpenApiCollectionCommandTests(NitroCommandFixture fixt
 
         command.SelectOption(0); // API
         command.Input(OpenApiCollectionName); // Name
-        var result = await command.RunToCompletionAsync();
+        var result = await command.RunToCompletionAsync(TestContext.Current.CancellationToken);
 
         // assert
         result.AssertSuccess();

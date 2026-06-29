@@ -11,27 +11,37 @@ public abstract class RabbitMQBinding : TopologyResource<RabbitMQBindingConfigur
     /// <summary>
     /// Gets the source exchange from which messages are routed through this binding.
     /// </summary>
-    public RabbitMQExchange Source { get; protected set; } = null!;
+    public RabbitMQExchange Source { get; private set; } = null!;
 
     /// <summary>
     /// Gets a value indicating whether this binding is automatically provisioned during topology setup.
     /// When <c>null</c>, the transport-level default is used.
     /// </summary>
-    public bool? AutoProvision { get; protected set; }
+    public bool? AutoProvision { get; private protected set; }
 
     /// <summary>
     /// Gets the routing key pattern used to filter messages passing through this binding.
     /// </summary>
-    public string RoutingKey { get; protected set; } = null!;
+    public string RoutingKey { get; private protected set; } = null!;
 
     /// <summary>
     /// Gets the additional binding arguments used for advanced routing (e.g., headers exchange matching).
     /// </summary>
-    public ImmutableDictionary<string, object?> Arguments { get; protected set; } = ImmutableDictionary<string, object?>.Empty;
+    public ImmutableDictionary<string, object?> Arguments { get; private protected set; } = ImmutableDictionary<string, object?>.Empty;
 
     internal void SetSource(RabbitMQExchange source)
     {
         Source = source;
+    }
+
+    /// <summary>
+    /// Builds the query component of a bind address.
+    /// </summary>
+    private protected static string BuildQuery(string routingKey)
+    {
+        return string.IsNullOrEmpty(routingKey)
+            ? string.Empty
+            : "rk=" + Uri.EscapeDataString(routingKey);
     }
 
     /// <summary>
@@ -63,6 +73,7 @@ public sealed class RabbitMQExchangeBinding : RabbitMQBinding
     {
         var builder = new UriBuilder(Topology.Address);
         builder.Path = Topology.Address.AbsolutePath.TrimEnd('/') + "/b/e/" + Source.Name + "/e/" + Destination.Name;
+        builder.Query = BuildQuery(RoutingKey);
         Address = builder.Uri;
     }
 
@@ -104,6 +115,7 @@ public sealed class RabbitMQQueueBinding : RabbitMQBinding
     {
         var builder = new UriBuilder(Topology.Address);
         builder.Path = Topology.Address.AbsolutePath.TrimEnd('/') + "/b/e/" + Source.Name + "/q/" + Destination.Name;
+        builder.Query = BuildQuery(RoutingKey);
         Address = builder.Uri;
     }
 

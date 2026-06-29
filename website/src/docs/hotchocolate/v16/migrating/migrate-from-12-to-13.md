@@ -83,9 +83,9 @@ TODO: mention change in errors due to non-null fields
 
 ## RegisterDbContext
 
-We changed the default [DbContextKind](/docs/hotchocolate/v13/integrations/entity-framework#dbcontextkind) from [DbContextKind.Synchronized](/docs/hotchocolate/v13/integrations/entity-framework#dbcontextkindsynchronized) to [DbContextKind.Resolver](/docs/hotchocolate/v13/integrations/entity-framework#dbcontextkindresolver). If the instance of your `DbContext` doesn't need to be the same for each executed resolver during a request, this should lead to a performance improvement.
+We changed the default [DbContextKind](/docs/hotchocolate/v13/fetching-data/entity-framework#dbcontextkind) from [DbContextKind.Synchronized](/docs/hotchocolate/v13/fetching-data/entity-framework#dbcontextkindsynchronized) to [DbContextKind.Resolver](/docs/hotchocolate/v13/fetching-data/entity-framework#dbcontextkindresolver). If the instance of your `DbContext` doesn't need to be the same for each executed resolver during a request, this should lead to a performance improvement.
 
-To restore the v12 default behavior, pass the [DbContextKind.Synchronized](/docs/hotchocolate/v13/integrations/entity-framework#dbcontextkindsynchronized) to the `RegisterDbContext<T>` call.
+To restore the v12 default behavior, pass the [DbContextKind.Synchronized](/docs/hotchocolate/v13/fetching-data/entity-framework#dbcontextkindsynchronized) to the `RegisterDbContext<T>` call.
 
 **Before**
 
@@ -424,7 +424,7 @@ Things that will continue to function this release, but we encourage you to move
 
 In this release, we are deprecating the `[ScopedService]` attribute and encourage you to use `RegisterDbContext<T>(DbContextKind.Pooled)` instead.
 
-Checkout [this part of our Entity Framework documentation](/docs/hotchocolate/v13/integrations/entity-framework#registerdbcontext) to learn how to register your `DbContext` with `DbContextKind.Pooled`.
+Checkout [this part of our Entity Framework documentation](/docs/hotchocolate/v13/fetching-data/entity-framework#registerdbcontext) to learn how to register your `DbContext` with `DbContextKind.Pooled`.
 
 Afterward you just need to update your resolvers:
 

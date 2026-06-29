@@ -6,7 +6,6 @@ import {
 } from "react";
 import { codeToHtml } from "shiki";
 import { LANGUAGES, STEP_PALETTE } from "./languages";
-import { MermaidDiagram } from "./MermaidDiagram";
 import { parseCodeBlockMeta } from "@/src/helpers/parseCodeBlockMeta";
 
 const THEME = "github-dark";
@@ -46,10 +45,6 @@ export async function CodeBlock({ children, className = "" }: CodeBlockProps) {
   }
 
   const { code, language, meta } = extracted;
-
-  if (language === "mermaid") {
-    return <MermaidDiagram source={code} />;
-  }
 
   const parsed = parseCodeBlockMeta(meta);
   const descriptor = LANGUAGES[language];
@@ -129,12 +124,12 @@ export async function CodeBlock({ children, className = "" }: CodeBlockProps) {
   }
 
   return (
-    <figure className="my-6 overflow-hidden rounded-lg ring-1 ring-slate-700 bg-[#0d1117] shadow-md">
+    <figure className="ring-cc-card-border bg-cc-code-bg my-6 overflow-hidden rounded-lg shadow-md ring-1">
       {(descriptor || parsed.filename) && (
-        <figcaption className="flex items-center gap-3 border-b border-slate-700/60 bg-[#161b22] px-4 py-2 text-xs">
+        <figcaption className="border-cc-card-border bg-cc-code-header flex items-center gap-3 border-b px-4 py-2 text-xs">
           {descriptor ? (
             <span
-              className="rounded px-2 py-0.5 font-semibold uppercase tracking-wider"
+              className="rounded px-2 py-0.5 font-semibold tracking-wider uppercase"
               style={{
                 color: descriptor.color,
                 backgroundColor: `${descriptor.color}1f`,
@@ -143,10 +138,10 @@ export async function CodeBlock({ children, className = "" }: CodeBlockProps) {
               {descriptor.label}
             </span>
           ) : (
-            <span className="font-mono text-slate-500">{language}</span>
+            <span className="text-cc-ink-dim font-mono">{language}</span>
           )}
           {parsed.filename ? (
-            <span className="font-mono text-slate-300">{parsed.filename}</span>
+            <span className="text-cc-ink-dim font-mono">{parsed.filename}</span>
           ) : null}
         </figcaption>
       )}

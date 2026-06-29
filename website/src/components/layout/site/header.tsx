@@ -921,12 +921,14 @@ const DemoAndLaunch: FC<DemoAndLaunchProps> = ({ tools }) => {
   return (
     <>
       <RequestDemoLink
-        to="mailto:contact@chillicream.com?subject=Demo"
-        prefetch={false}
+        to="/services/support/contact"
+        data-track="contact_us_click"
       >
-        Request a Demo
+        Contact Us
       </RequestDemoLink>
-      <LaunchLink to={tools.nitro}>Launch</LaunchLink>
+      <LaunchLink to={tools.nitro} data-track="launch_click">
+        Launch
+      </LaunchLink>
     </>
   );
 };
