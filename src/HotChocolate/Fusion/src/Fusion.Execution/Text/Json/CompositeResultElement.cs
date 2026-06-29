@@ -432,6 +432,13 @@ public readonly partial struct CompositeResultElement
         return _parent.TryGetNamedPropertyValue(_cursor, utf8PropertyName, out value);
     }
 
+    internal bool TryGetObjectScope(out CompositeResultObjectScope scope)
+    {
+        CheckValidInstance();
+
+        return _parent.TryGetObjectScope(_cursor, out scope);
+    }
+
     internal CompositeResultElement GetPropertyBySelectionId(int selectionId)
     {
         CheckValidInstance();

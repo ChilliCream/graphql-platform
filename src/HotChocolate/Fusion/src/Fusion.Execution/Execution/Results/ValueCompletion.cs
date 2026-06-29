@@ -78,9 +78,19 @@ internal sealed class ValueCompletion
             InitializeTargetObject(source, target);
         }
 
+        var hasObjectScope = target.TryGetObjectScope(out var objectScope);
+
         foreach (var property in source.EnumerateObject())
         {
-            if (!target.TryGetProperty(property.NameSpan, out var resultField))
+            CompositeResultElement resultField;
+            if (hasObjectScope)
+            {
+                if (!objectScope.TryGetProperty(property.NameSpan, out resultField))
+                {
+                    continue;
+                }
+            }
+            else if (!target.TryGetProperty(property.NameSpan, out resultField))
             {
                 continue;
             }
@@ -812,9 +822,19 @@ TryCompleteList_MoveNext:
             target.SetObjectValue(objectSelectionSet);
         }
 
+        var hasObjectScope = target.TryGetObjectScope(out var objectScope);
+
         foreach (var property in source.EnumerateObject())
         {
-            if (!target.TryGetProperty(property.NameSpan, out var targetProperty))
+            CompositeResultElement targetProperty;
+            if (hasObjectScope)
+            {
+                if (!objectScope.TryGetProperty(property.NameSpan, out targetProperty))
+                {
+                    continue;
+                }
+            }
+            else if (!target.TryGetProperty(property.NameSpan, out targetProperty))
             {
                 continue;
             }
