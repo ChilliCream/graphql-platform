@@ -251,11 +251,15 @@ internal sealed class SelectionExpressionBuilder
         }
 
         // Preferred path for mutable types.
-        var parameterlessConstructor = context.ParentType.GetConstructor(Type.EmptyTypes);
+        var parameterlessConstructor = context.ParentType.GetConstructor(
+            BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic,
+            binder: null,
+            Type.EmptyTypes,
+            modifiers: null);
         if (parameterlessConstructor is not null)
         {
             var allWritable = assignmentList.All(a =>
-                a.Member is PropertyInfo { CanWrite: true, SetMethod.IsPublic: true });
+                a.Member is PropertyInfo { CanWrite: true });
 
             if (allWritable)
             {
@@ -266,7 +270,9 @@ internal sealed class SelectionExpressionBuilder
         }
 
         // Fallback path for record-like types without a parameterless constructor.
-        var bestMatchingConstructor = context.ParentType.GetConstructors()
+        var bestMatchingConstructor = context.ParentType
+            .GetConstructors(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
+            .Where(c => !IsRecordCopyConstructor(c, context.ParentType))
             .Select(c => (Constructor: c, Parameters: c.GetParameters()))
             .OrderBy(c => c.Parameters.Length)
             .FirstOrDefault(c =>
@@ -305,8 +311,11 @@ internal sealed class SelectionExpressionBuilder
             return Expression.New(bestMatchingConstructor.Constructor, arguments);
         }
 
-        // The type cannot be reconstructed via a parameterless constructor or a matching
-        // constructor, so we reuse the source instance as a last resort (the same expression
+        // Real projection (member-init or a covering constructor) is now attempted first even
+        // for non-public construction surfaces (a non-public parameterless constructor with
+        // non-public setters, or a non-public covering constructor), so this reuse is only
+        // reached for EF DI/proxy entities and for types that can neither be constructed nor
+        // partially bound. We reuse the source instance as a last resort (the same expression
         // the reuse-first branch returns). Projection only optimizes data fetching; the
         // GraphQL execution layer still shapes the response to the selection set, so reuse
         // is always valid (it may fetch more columns than strictly required).
