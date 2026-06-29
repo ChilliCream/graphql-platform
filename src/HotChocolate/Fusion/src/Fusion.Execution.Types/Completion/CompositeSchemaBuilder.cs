@@ -1140,9 +1140,10 @@ internal static class CompositeSchemaBuilder
 
         static string? GetConnectorKind(EnumValueDefinitionNode sourceSchema)
         {
-            var directive = sourceSchema.Directives.FirstOrDefault(t =>
-                t.Name.Value.Equals(FusionBuiltIns.Connector, StringComparison.Ordinal));
-            var kindArg = directive?.Arguments.FirstOrDefault(t => t.Name.Value.Equals("kind"));
+            var metadataDirective = sourceSchema.Directives.FirstOrDefault(t =>
+                t.Name.Value.Equals(FusionBuiltIns.SchemaMetadata, StringComparison.Ordinal));
+            var kindArg = metadataDirective?.Arguments.FirstOrDefault(t => t.Name.Value.Equals("kind"));
+
             return kindArg?.Value is StringValueNode kindValue ? kindValue.Value : null;
         }
     }
