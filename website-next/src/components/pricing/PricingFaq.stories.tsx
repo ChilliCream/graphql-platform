@@ -3,7 +3,7 @@ import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 import { PricingFaq } from "./PricingFaq";
 
 const meta = {
-  title: "Components/Pricing/PricingFaq",
+  title: "Pages/Pricing/PricingFaq",
   component: PricingFaq,
   parameters: { layout: "fullscreen" },
   decorators: [

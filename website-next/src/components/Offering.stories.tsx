@@ -10,10 +10,38 @@ import { OfferingGrid } from "./OfferingGrid";
 const meta = {
   title: "Components/Offering",
   component: Offering,
-  // Stories compose multiple `Offering`s via `render`, so per-card props are set
-  // inline. These satisfy the component's required args at the meta level.
-  args: { title: "", perks: [] },
   parameters: { layout: "fullscreen" },
+  argTypes: {
+    title: { control: "text" },
+    description: { control: "text" },
+    price: { control: "text" },
+    priceNote: { control: "text" },
+    perks: { control: "object" },
+    popular: { control: "boolean" },
+    headingLevel: { control: "select", options: ["h2", "h3"] },
+    callToAction: { control: "object" },
+    // Component prop (`ComponentType`), not a value the Controls panel can edit.
+    Icon: { control: false },
+  },
+  // Realistic single-card defaults so the Controls panel renders a meaningful
+  // card. The grid stories below compose their own `Offering`s and ignore these.
+  args: {
+    Icon: DripBrewer,
+    title: "Dedicated Instance",
+    description: "Dedicated resources, fully managed",
+    price: "$400",
+    priceNote: "per month",
+    perks: [
+      "Single-tenant cloud region",
+      "Unlimited schemas",
+      "BYOC region · private networking",
+      "99.95% SLA · email + private chat",
+      "SSO, audit log, role-based access",
+    ],
+    callToAction: { title: "Start for Free", link: "/get-started" },
+    popular: false,
+    headingLevel: "h3",
+  },
   decorators: [
     (Story) => (
       <div className="cc-content-dark p-10">
@@ -27,6 +55,25 @@ const meta = {
 
 export default meta;
 type Story = StoryObj<typeof meta>;
+
+// Single card driven entirely by the Controls panel.
+export const Default: Story = {
+  render: (args) => (
+    <div className="mx-auto max-w-sm">
+      <Offering {...args} />
+    </div>
+  ),
+};
+
+// The highlighted variant: accent ring, "Most Popular" badge, solid CTA.
+export const Popular: Story = {
+  args: { popular: true },
+  render: (args) => (
+    <div className="mx-auto max-w-sm">
+      <Offering {...args} />
+    </div>
+  ),
+};
 
 // Pricing layout (as on the home page): three plans with icons and prices,
 // the middle one highlighted as "Most Popular".

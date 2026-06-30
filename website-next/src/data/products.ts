@@ -8,7 +8,7 @@ export const PRODUCTS: readonly Product[] = [
   {
     slug: "nitro",
     title: "Nitro",
-    description: "GraphQL API Management",
+    description: "Observability and governance for APIs",
   },
   {
     slug: "hotchocolate",

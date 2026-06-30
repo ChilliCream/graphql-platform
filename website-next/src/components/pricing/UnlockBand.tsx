@@ -1,5 +1,29 @@
-import type { Unlock } from "@/src/components/pricing/pricingData";
-import { UNLOCKS } from "@/src/components/pricing/pricingData";
+import { SectionHeading } from "@/src/components/SectionHeading";
+import { CloudGlyph } from "@/src/icons/CloudGlyph";
+import { ShieldGlyph } from "@/src/icons/ShieldGlyph";
+import { SupportGlyph } from "@/src/icons/SupportGlyph";
+
+/**
+ * As monthly consumption grows, more unlocks. Thresholds are indicative and
+ * still being finalized.
+ */
+const UNLOCKS = [
+  {
+    spend: "$2,000 / mo",
+    title: "Business Support",
+    description: "Faster response times and a named support contact.",
+  },
+  {
+    spend: "$4,000 / mo",
+    title: "Enterprise Support",
+    description: "Priority engineering and a dedicated solution architect.",
+  },
+  {
+    spend: "$6,000 / mo",
+    title: "BYOC",
+    description: "Bring your own cloud, run Nitro in your own account.",
+  },
+];
 
 /**
  * "Unlock more as you grow": a vertical list of spend thresholds, each unlocking
@@ -12,17 +36,13 @@ export function UnlockBand() {
       className="mt-24 scroll-mt-24 sm:mt-28"
       id="unlock"
     >
-      <div className="mx-auto max-w-2xl text-center">
-        <h2
-          id="unlock-heading"
-          className="font-heading text-cc-heading text-h4 sm:text-h3 font-semibold"
-        >
-          Unlock more as you grow
-        </h2>
-        <p className="text-cc-ink mt-4 text-base text-pretty">
-          Commit to a minimum monthly spend to unlock more support and
-          deployment options, up to your spend.
-        </p>
+      <div className="mx-auto max-w-2xl">
+        <SectionHeading
+          align="center"
+          title="Unlock more as you grow"
+          titleId="unlock-heading"
+          description="Commit to a minimum monthly spend to unlock more support and deployment options, up to your spend."
+        />
       </div>
 
       <ul className="mx-auto mt-10 flex max-w-3xl flex-col gap-3">
@@ -38,7 +58,7 @@ function UnlockRow({
   unlock,
   index,
 }: {
-  readonly unlock: Unlock;
+  readonly unlock: (typeof UNLOCKS)[number];
   readonly index: number;
 }) {
   const Glyph = UNLOCK_ICONS[index] ?? SupportGlyph;
@@ -59,65 +79,6 @@ function UnlockRow({
         {unlock.spend}
       </span>
     </li>
-  );
-}
-
-interface GlyphProps {
-  readonly className?: string;
-}
-
-/** Lifebuoy, for the Business Support unlock. */
-function SupportGlyph({ className }: GlyphProps) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={1.6}
-      aria-hidden="true"
-      className={className}
-    >
-      <circle cx="12" cy="12" r="9" />
-      <circle cx="12" cy="12" r="3.4" />
-      <path d="M5.2 5.2l4.4 4.4M18.8 5.2l-4.4 4.4M5.2 18.8l4.4-4.4M18.8 18.8l-4.4-4.4" />
-    </svg>
-  );
-}
-
-/** Shield with a check, for the Enterprise Support unlock. */
-function ShieldGlyph({ className }: GlyphProps) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={1.6}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-      className={className}
-    >
-      <path d="M12 3l7 3v5c0 4-3 6.6-7 8-4-1.4-7-4-7-8V6z" />
-      <path d="M9 12l2 2 4-4" />
-    </svg>
-  );
-}
-
-/** Cloud, for the BYOC unlock. */
-function CloudGlyph({ className }: GlyphProps) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={1.6}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-      className={className}
-    >
-      <path d="M7 18h10a4 4 0 0 0 .5-7.97A5.5 5.5 0 0 0 6.5 9 4 4 0 0 0 7 18z" />
-    </svg>
   );
 }
 
