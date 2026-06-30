@@ -19,18 +19,6 @@ export const metadata: Metadata = {
     "enterprise GraphQL",
     "incident response",
   ],
-  openGraph: {
-    type: "website",
-    title: "GraphQL Support Plans",
-    description:
-      "Response times you can hold us to. Next business day on Startup and Business, 24 hours for Enterprise criticals, plus a direct line to the core team.",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "GraphQL Support Plans",
-    description:
-      "Response times you can hold us to. Next business day on Startup and Business, 24 hours for Enterprise criticals, plus a direct line to the core team.",
-  },
 };
 
 export default function SupportPage() {

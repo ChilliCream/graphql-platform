@@ -40,13 +40,11 @@ export const metadata: Metadata = {
     type: "website",
     siteName: "ChilliCream",
     url: SITE_URL,
-    title: TITLE,
     description: DESCRIPTION,
   },
   twitter: {
     card: "summary_large_image",
     site: "@Chilli_Cream",
-    title: TITLE,
     description: DESCRIPTION,
   },
   alternates: {

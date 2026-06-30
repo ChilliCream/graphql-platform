@@ -13,7 +13,7 @@ const META_DESCRIPTION =
   "Book GraphQL training for your team. Hot Chocolate, ASP.NET Core, React, and Relay curriculum that flexes for beginner, mixed, and advanced engineering teams.";
 
 export const metadata: Metadata = {
-  title: "GraphQL Training for Your Team | ChilliCream",
+  title: "GraphQL Training for Your Team",
   description: META_DESCRIPTION,
   keywords: [
     "GraphQL training",
@@ -23,12 +23,6 @@ export const metadata: Metadata = {
     "Relay training",
     "ASP.NET Core GraphQL training",
   ],
-  openGraph: {
-    type: "website",
-    siteName: "ChilliCream",
-    title: "GraphQL Training for Your Team | ChilliCream",
-    description: META_DESCRIPTION,
-  },
 };
 
 export default function TrainingPage() {
