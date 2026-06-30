@@ -15,7 +15,11 @@ const HEX_POINTS = "0,20 11,0 89,0 100,20 89,40 11,40";
  * slice of the border gradient so it reads as part of the border, with a solid
  * fill behind the label.
  */
-export function PopularBadge() {
+interface PopularBadgeProps {
+  readonly label?: string;
+}
+
+export function PopularBadge({ label = "Most Popular" }: PopularBadgeProps) {
   return (
     <span className="absolute -top-[0.75px] left-1/2 -translate-x-1/2 -translate-y-1/2">
       <svg
@@ -39,7 +43,7 @@ export function PopularBadge() {
         />
       </svg>
       <span className="text-cc-heading relative block px-7 py-3 indent-[0.15em] font-mono text-[0.65rem] leading-none tracking-[0.15em] whitespace-nowrap uppercase">
-        Most Popular
+        {label}
       </span>
     </span>
   );

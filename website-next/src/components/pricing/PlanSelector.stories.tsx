@@ -3,7 +3,7 @@ import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 import { PlanSelector } from "./PlanSelector";
 
 const meta = {
-  title: "Components/Pricing/PlanSelector",
+  title: "Pages/Pricing/PlanSelector",
   component: PlanSelector,
   parameters: { layout: "fullscreen" },
   decorators: [

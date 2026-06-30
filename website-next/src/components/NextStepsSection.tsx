@@ -1,5 +1,8 @@
 import type { ReactNode } from "react";
 
+import { Band } from "@/src/components/Band";
+import { ButtonRow } from "@/src/components/ButtonRow";
+import { SectionHeading } from "@/src/components/SectionHeading";
 import { OutlineButton, SolidButton } from "@/src/design-system/Button";
 
 interface NextStepsProps {
@@ -9,6 +12,8 @@ interface NextStepsProps {
   primaryLinkText: string;
   secondaryLink: string;
   secondaryLinkText: string;
+  /** Optional fine-print line under the buttons (e.g. a contact address). */
+  note?: ReactNode;
 }
 
 export function NextStepsSection({
@@ -18,19 +23,16 @@ export function NextStepsSection({
   primaryLinkText,
   secondaryLink,
   secondaryLinkText,
+  note,
 }: NextStepsProps) {
   return (
-    <section className="py-20 text-center">
-      <h2 className="text-cc-ink text-3xl font-semibold tracking-tight sm:text-4xl">
-        {title}
-      </h2>
-      <div className="text-cc-ink-dim mx-auto mt-4 max-w-2xl text-base sm:text-lg">
-        {text}
-      </div>
-      <div className="mt-8 flex flex-wrap justify-center gap-4">
+    <Band skin="bare" layout="centered" className="py-20">
+      <SectionHeading align="center" title={title} description={text} />
+      <ButtonRow align="center" className="mt-8">
         <SolidButton href={primaryLink}>{primaryLinkText}</SolidButton>
         <OutlineButton href={secondaryLink}>{secondaryLinkText}</OutlineButton>
-      </div>
-    </section>
+      </ButtonRow>
+      {note && <p className="text-cc-ink-dim mt-6 font-mono text-xs">{note}</p>}
+    </Band>
   );
 }

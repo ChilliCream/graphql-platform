@@ -3,7 +3,7 @@ import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 import { RegulatedBand } from "./RegulatedBand";
 
 const meta = {
-  title: "Components/Pricing/RegulatedBand",
+  title: "Pages/Pricing/RegulatedBand",
   component: RegulatedBand,
   parameters: { layout: "fullscreen" },
   decorators: [

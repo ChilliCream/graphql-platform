@@ -3,7 +3,7 @@ import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 import { UnlockBand } from "./UnlockBand";
 
 const meta = {
-  title: "Components/Pricing/UnlockBand",
+  title: "Pages/Pricing/UnlockBand",
   component: UnlockBand,
   parameters: { layout: "fullscreen" },
   decorators: [

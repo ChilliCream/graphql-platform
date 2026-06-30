@@ -3,7 +3,7 @@ import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 import { ClosingCta } from "./ClosingCta";
 
 const meta = {
-  title: "Components/Pricing/ClosingCta",
+  title: "Pages/Pricing/ClosingCta",
   component: ClosingCta,
   parameters: { layout: "fullscreen" },
   decorators: [

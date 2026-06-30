@@ -3,11 +3,8 @@ import type { ComponentType, CSSProperties } from "react";
 import { OutlineButton, SolidButton } from "@/src/design-system/Button";
 
 import { CheckIcon } from "./CheckIcon";
+import { popularBorderStyle } from "./popularRing";
 import { PopularBadge } from "./PopularBadge";
-
-// Rainbow accent gradient for the popular card's border.
-const RING_GRADIENT =
-  "linear-gradient(140deg, #16b9e4 0%, #7c92c6 50%, #f0786a 100%)";
 
 interface OfferingProps {
   readonly title: string;
@@ -50,11 +47,7 @@ export function Offering({
   // border-box layer, the opaque surface fill paints the padding-box layer on
   // top), so the rainbow shows only on the edge and the interior stays solid.
   const cardStyle: CSSProperties = popular
-    ? {
-        gridRow: `span ${rowCount}`,
-        border: "1.5px solid transparent",
-        background: `linear-gradient(var(--color-cc-surface), var(--color-cc-surface)) padding-box, ${RING_GRADIENT} border-box`,
-      }
+    ? { gridRow: `span ${rowCount}`, ...popularBorderStyle }
     : { gridRow: `span ${rowCount}` };
 
   return (
