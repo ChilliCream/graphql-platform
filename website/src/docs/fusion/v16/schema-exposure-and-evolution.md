@@ -258,9 +258,9 @@ public decimal? DynamicPrice { get; set; }
 
 ### Enabling Opt-In Support
 
-Opt-in features are disabled by default. Enable them in your schema configuration.
+Opt-in features are disabled by default. You must enable them separately on each subgraph and on the Fusion gateway.
 
-**C# configuration**
+**Subgraph configuration**
 
 ```csharp
 // Products/Program.cs
@@ -270,6 +270,19 @@ builder
     .AddTypes()
     .ModifyOptions(o => o.EnableOptInFeatures = true);
 ```
+
+**Gateway configuration**
+
+```csharp
+// Gateway/Program.cs
+
+builder
+    .AddGraphQLGateway()
+    .AddFileSystemConfiguration("./gateway.far")
+    .ModifyOptions(o => o.EnableOptInFeatures = true);
+```
+
+When `EnableOptInFeatures` is enabled on the gateway, the introspection schema exposes the `includeOptIn` argument and `__schema.optInFeatures` / `optInFeatureStability` fields. Members marked `@requiresOptIn` are hidden from introspection unless the client opts into their feature via `includeOptIn`. Opt-in affects introspection visibility only: hidden members remain fully executable, and the gateway never rejects a request that selects an opt-in field.
 
 ### Discovering Opt-In Fields
 
@@ -334,6 +347,19 @@ Like `@deprecated`, you cannot apply `@requiresOptIn` to non-null arguments or i
 ### Opt-In Across Subgraphs
 
 If a shareable field is marked `@requiresOptIn` in at least one subgraph, it requires opt-in in the composite schema. To make the field generally available again, every subgraph that defines it must remove the `@requiresOptIn` directive. This is the inverse of `@deprecated`, where a single subgraph can deprecate a field for all clients. With `@requiresOptIn`, a single subgraph can gate a shared field behind opt-in, and it stays gated until all owners agree to remove the restriction.
+
+### End-to-End Flow
+
+The full lifecycle of an opt-in feature across a Fusion deployment is:
+
+1. A subgraph marks a field (or enum value, or argument) with `@requiresOptIn(feature: "featureName")` and enables opt-in support with `ModifyOptions(o => o.EnableOptInFeatures = true)`.
+2. Composition merges `@requiresOptIn` by union: if a shareable member is opt-in in any source schema, it is opt-in in the execution schema.
+3. The gateway, configured with `EnableOptInFeatures` enabled, hides opt-in members from introspection by default. Clients that pass `includeOptIn: ["featureName"]` in their introspection query see those members.
+4. Opt-in members are fully executable regardless of whether the client opted in at the introspection level. The gateway does not reject execution-time requests for opt-in fields.
+
+### Stability Mismatch Across Subgraphs
+
+When multiple subgraphs declare stability for the same opt-in feature, they must agree. If two source schemas declare different stability values for the same feature name, composition fails with `OPT_IN_FEATURE_STABILITY_MISMATCH`. Align the `OptInFeatureStability` call for that feature across all subgraphs that declare it.
 
 ## Migrating Field Ownership Between Subgraphs
 
