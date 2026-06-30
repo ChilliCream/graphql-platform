@@ -31,8 +31,7 @@ The InMemory transport keeps everything in-process - no broker to install, no in
 
 A message is a plain C# record. Create a file called `OrderPlaced.cs`:
 
-```csharp
-// OrderPlaced.cs
+```csharp filename="OrderPlaced.cs"
 namespace MochaQuickStart;
 
 public sealed record OrderPlaced(
@@ -76,8 +75,7 @@ The bus calls `HandleAsync` every time an `OrderPlaced` event is published. The 
 
 Open `Program.cs` and replace its contents:
 
-```csharp
-// Program.cs
+```csharp filename="Program.cs"
 using Mocha;
 using Mocha.Transport.InMemory;
 using MochaQuickStart;
