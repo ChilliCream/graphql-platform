@@ -14,6 +14,8 @@ interface IconFeatureCardProps {
   readonly layout?: "stacked" | "inline";
   /** Card prominence: `md` (default), or `lg` for hero-level cards. */
   readonly size?: "md" | "lg";
+  /** Content alignment for the stacked layout: `start` (default) or `center`. */
+  readonly align?: "start" | "center";
 }
 
 const STACKED_ICON_SIZE: Record<"md" | "lg", string> = {
@@ -36,6 +38,7 @@ export function IconFeatureCard({
   footnote,
   layout = "stacked",
   size = "md",
+  align = "start",
 }: IconFeatureCardProps) {
   if (layout === "inline") {
     return (
@@ -68,7 +71,11 @@ export function IconFeatureCard({
   const Heading = size === "lg" ? "h2" : "h3";
 
   return (
-    <article className="border-cc-card-border bg-cc-card-bg/60 flex h-full flex-col gap-4 rounded-3xl border p-6 sm:p-7">
+    <article
+      className={`border-cc-card-border bg-cc-card-bg/60 flex h-full flex-col gap-4 rounded-3xl border p-6 sm:p-7 ${
+        align === "center" ? "items-center text-center" : ""
+      }`}
+    >
       {eyebrow && (
         <div className="text-cc-ink-dim font-mono text-[0.65rem] tracking-[0.18em] uppercase">
           {eyebrow}

@@ -61,6 +61,7 @@ export function SupportHero() {
             title={scenario.title}
             copy={scenario.copy}
             size="lg"
+            align="center"
           />
         ))}
       </div>
