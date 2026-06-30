@@ -1,25 +1,39 @@
-import React from "react";
+import { Pagination } from "@/src/design-system/Pagination";
+import { BlogTeaserGrid } from "@/src/components/BlogTeaserGrid";
+import { Typography } from "@/src/design-system/Typography";
+import { paginate } from "@/src/helpers/blogPaging";
+import { listBlogPostSummaries } from "@/src/helpers/blogPosts";
 
-import { getPaginatedPosts } from "@/lib/blog";
-import { BlogListPage } from "@/lib/blog-list-page";
-import { createMetadata } from "@/lib/metadata";
-import { siteMetadata } from "@/lib/site-config";
-
-export const metadata = createMetadata({
+export const metadata = {
   title: "Blog",
-  pageUrl: `${siteMetadata.siteUrl}/blog/`,
-  canonicalUrl: `${siteMetadata.siteUrl}/blog/`,
-});
+  description: "The ChilliCream blog: announcements, deep dives, and how-tos.",
+};
 
-export default function BlogPage() {
-  const { posts, totalPages } = getPaginatedPosts(1);
+export default function BlogsIndex() {
+  const posts = listBlogPostSummaries();
+  const slice = paginate(posts, 1);
+  if (slice === null) {
+    return (
+      <div className="px-5 py-8 sm:px-12">
+        <div className="mx-auto flex max-w-6xl flex-col gap-6">
+          <Typography variant="h1">Blog</Typography>
+          <BlogTeaserGrid posts={[]} />
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <BlogListPage
-      posts={posts}
-      currentPage={1}
-      totalPages={totalPages}
-      linkPrefix="/blog"
-    />
+    <div className="px-5 py-8 sm:px-12">
+      <div className="mx-auto flex max-w-6xl flex-col gap-6">
+        <Typography variant="h1">Blog</Typography>
+        <BlogTeaserGrid posts={slice.posts} />
+        <Pagination
+          currentPage={slice.currentPage}
+          totalPages={slice.totalPages}
+          hrefForPage={(p) => (p === 1 ? "/blog" : `/blog/${p}`)}
+        />
+      </div>
+    </div>
   );
 }

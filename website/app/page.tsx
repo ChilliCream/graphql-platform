@@ -1,28 +1,27 @@
-import React from "react";
+import { FromOurBlog } from "@/src/components/FromOurBlog";
+import { BuildYourWay } from "@/src/components/home/BuildYourWay";
+import { FusionFlow } from "@/src/components/home/FusionFlow";
+import { GrabADrink } from "@/src/components/home/GrabADrink";
+import { HomeHero } from "@/src/components/home/HomeHero";
+import { LogoCloud } from "@/src/components/home/LogoCloud";
+import { NitroPricing } from "@/src/components/home/NitroPricing";
+import { ProtocolCards } from "@/src/components/home/ProtocolCards";
 
-import { getRecentBlogPostTeasers } from "@/lib/blog";
-import { createOrganizationJsonLd } from "@/lib/jsonld";
-import { createMetadata } from "@/lib/metadata";
-import { siteMetadata } from "@/lib/site-config";
-import IndexPage from "@/page-components/index";
-
-export const metadata = createMetadata({
-  title: "Home",
-  pageUrl: `${siteMetadata.siteUrl}/`,
-  canonicalUrl: `${siteMetadata.siteUrl}/`,
-});
-
-export default function HomePage() {
-  const recentPosts = getRecentBlogPostTeasers();
-  const jsonLd = createOrganizationJsonLd();
-
+export default function Home() {
   return (
     <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
-      <IndexPage recentPosts={recentPosts} />
+      <HomeHero />
+      <LogoCloud />
+      <BuildYourWay />
+      <FusionFlow />
+      <ProtocolCards />
+      <NitroPricing />
+      <GrabADrink />
+      <div className="px-5 py-8 sm:px-12">
+        <div className="mx-auto flex max-w-7xl flex-col gap-12">
+          <FromOurBlog />
+        </div>
+      </div>
     </>
   );
 }
