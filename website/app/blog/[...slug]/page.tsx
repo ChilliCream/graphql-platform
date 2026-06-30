@@ -28,6 +28,7 @@ import {
 import { compileDoc } from "@/src/helpers/compileDoc";
 import { readFrontmatter } from "@/src/helpers/readFrontmatter";
 import { estimateReadingTime } from "@/src/helpers/readingTime";
+import { SITE_NAME, TWITTER_HANDLE } from "@/src/helpers/site";
 import { getShareImageSrc } from "@/src/image-optimization/manifest";
 import { toAbsoluteUrl } from "@/src/helpers/siteUrl";
 
@@ -113,6 +114,7 @@ export async function generateMetadata({
     },
     openGraph: {
       type: "article",
+      siteName: SITE_NAME,
       title,
       description,
       images,
@@ -127,6 +129,7 @@ export async function generateMetadata({
     },
     twitter: {
       card: "summary_large_image",
+      site: TWITTER_HANDLE,
       title,
       description,
       images,

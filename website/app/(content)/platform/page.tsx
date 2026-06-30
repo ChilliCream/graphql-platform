@@ -1,14 +1,15 @@
-import type { Metadata } from "next";
 import Link from "next/link";
 
 import { PageHero } from "@/src/components/PageHero";
 import { Section } from "@/src/components/Section";
+import { pageMetadata } from "@/src/helpers/pageMetadata";
 
-export const metadata: Metadata = {
+export const metadata = pageMetadata({
   title: "Platform",
   description:
     "Discover the ChilliCream GraphQL Platform: one place for analytics, continuous integration, and a trusted ecosystem for every API in your organization.",
-};
+  path: "/platform",
+});
 
 const PLATFORM_SECTIONS = [
   {

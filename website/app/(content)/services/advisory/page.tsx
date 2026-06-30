@@ -6,11 +6,15 @@ import { ContactBand } from "@/src/components/advisory/ContactBand";
 import { EngagementStrip } from "@/src/components/advisory/EngagementStrip";
 import { TeamSection } from "@/src/components/advisory/TeamSection";
 import { TierGrid } from "@/src/components/advisory/TierGrid";
+import { pageMetadata } from "@/src/helpers/pageMetadata";
 
 export const metadata: Metadata = {
-  title: "GraphQL Advisory",
-  description:
-    "GraphQL consulting in packages of hours, or full contracting, from the team behind Hot Chocolate, Fusion, and Nitro. Talk to an expert about your project.",
+  ...pageMetadata({
+    title: "GraphQL Advisory",
+    description:
+      "GraphQL consulting in packages of hours, or full contracting, from the team behind Hot Chocolate, Fusion, and Nitro. Talk to an expert about your project.",
+    path: "/services/advisory",
+  }),
   keywords: [
     "GraphQL advisory",
     "GraphQL consulting",

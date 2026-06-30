@@ -20,6 +20,7 @@ const nextConfig: NextConfig = {
     "playwright",
     "playwright-core",
   ],
+  allowedDevOrigins: ["192.168.1.10"],
 };
 
 const withMDX = createMDX({

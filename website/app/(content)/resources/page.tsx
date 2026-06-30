@@ -2,11 +2,13 @@ import Link from "next/link";
 
 import { PageHero } from "@/src/components/PageHero";
 import { Section } from "@/src/components/Section";
+import { pageMetadata } from "@/src/helpers/pageMetadata";
 
-export const metadata = {
+export const metadata = pageMetadata({
   title: "Resources",
   description: "ChilliCream brand resources and downloads.",
-};
+  path: "/resources",
+});
 
 const COMPANY_LINKS = [
   {

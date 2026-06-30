@@ -8,13 +8,17 @@ import { OutcomesSection } from "@/src/components/training/OutcomesSection";
 import { TrainingClosingCta } from "@/src/components/training/TrainingClosingCta";
 import { TrainingFaq } from "@/src/components/training/TrainingFaq";
 import { TrainingHero } from "@/src/components/training/TrainingHero";
+import { pageMetadata } from "@/src/helpers/pageMetadata";
 
 const META_DESCRIPTION =
   "Book GraphQL training for your team. Hot Chocolate, ASP.NET Core, React, and Relay curriculum that flexes for beginner, mixed, and advanced engineering teams.";
 
 export const metadata: Metadata = {
-  title: "GraphQL Training for Your Team",
-  description: META_DESCRIPTION,
+  ...pageMetadata({
+    title: "GraphQL Training for Your Team",
+    description: META_DESCRIPTION,
+    path: "/services/training",
+  }),
   keywords: [
     "GraphQL training",
     "Hot Chocolate training",

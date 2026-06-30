@@ -1,14 +1,14 @@
-import type { Metadata } from "next";
-
 import { Offering } from "@/src/components/Offering";
 import { OfferingGrid } from "@/src/components/OfferingGrid";
 import { Section } from "@/src/components/Section";
+import { pageMetadata } from "@/src/helpers/pageMetadata";
 
-export const metadata: Metadata = {
+export const metadata = pageMetadata({
   title: "Help",
   description:
     "Need urgent GraphQL help? Join the ChilliCream community Slack, book a session with an expert, or choose a support plan that fits your team.",
-};
+  path: "/help",
+});
 
 const PLANS = [
   {
