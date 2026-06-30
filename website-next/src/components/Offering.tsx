@@ -77,9 +77,7 @@ export function Offering({
         {title}
       </Heading>
       {description && (
-        <p className="text-cc-ink-dim mt-1 font-mono text-xs">
-          {description}
-        </p>
+        <p className="text-cc-ink-dim mt-1 font-mono text-xs">{description}</p>
       )}
 
       {price && (
