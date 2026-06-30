@@ -33,6 +33,6 @@ export const PRODUCTS: readonly Product[] = [
   {
     slug: "skillz",
     title: "Skillz",
-    description: "Skills for the ChilliCream GraphQL Platform",
+    description: "Agent Skills CLI for .NET",
   },
 ];
