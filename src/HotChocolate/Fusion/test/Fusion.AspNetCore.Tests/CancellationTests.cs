@@ -141,38 +141,41 @@ public class CancellationTests : FusionTestBase
         // sibling `b` (which is slow). The follow-up `{ a b }` must come back intact.
         var trigger = new OperationRequest("{ c b }");
         var normal = new OperationRequest("{ a b }");
-        var poisonedRounds = new List<int>();
+        var poisonedRounds = new List<string>();
 
         // act
         for (var round = 0; round < 20; round++)
         {
-            using (var triggerResult = await client.PostAsync(
-                trigger,
-                uri,
-                TestContext.Current.CancellationToken))
+            using (await client.PostAsync(trigger, uri, TestContext.Current.CancellationToken))
             {
-                _ = await triggerResult.HttpResponseMessage.Content.ReadAsStringAsync(
-                    TestContext.Current.CancellationToken);
             }
 
-            using var normalResult = await client.PostAsync(
+            using var normalResponse = await client.PostAsync(
                 normal,
                 uri,
                 TestContext.Current.CancellationToken);
-
-            var json = await normalResult.HttpResponseMessage.Content.ReadAsStringAsync(
+            using var result = await normalResponse.ReadAsResultAsync(
                 TestContext.Current.CancellationToken);
 
-            if (json.Contains("null") || json.Contains("\"errors\""))
+            if (result.Errors.ValueKind == JsonValueKind.Array && result.Errors.GetArrayLength() > 0)
             {
-                poisonedRounds.Add(round);
+                poisonedRounds.Add($"round {round}: unexpected errors");
+                continue;
+            }
+
+            var a = result.Data.TryGetProperty("a", out var aValue) ? aValue.GetString() : null;
+            var b = result.Data.TryGetProperty("b", out var bValue) ? bValue.GetString() : null;
+
+            if (a != "A" || b != "B")
+            {
+                poisonedRounds.Add($"round {round}: a='{a}', b='{b}'");
             }
         }
 
         // assert
         Assert.True(
             poisonedRounds.Count == 0,
-            $"The follow-up request was poisoned in rounds: {string.Join(", ", poisonedRounds)}.");
+            $"The follow-up request was poisoned: {string.Join("; ", poisonedRounds)}.");
     }
 
     public sealed class NullBubbleSchemaA
