@@ -10,11 +10,11 @@ namespace Fusion.Execution.Benchmarks;
 [MarkdownExporter]
 public class InlineFragmentOperationRewriterBenchmark : FusionBenchmarkBase
 {
-    private InlineFragmentOperationRewriter _rewriter = null!;
+    private InlineFragmentOperationRewriter _rewriter;
 
-    private DocumentNode _simpleQueryWithRequirements = null!;
-    private DocumentNode _complexQuery = null!;
-    private DocumentNode _conditionalRedundancyQuery = null!;
+    private DocumentNode _simpleQueryWithRequirements;
+    private DocumentNode _complexQuery;
+    private DocumentNode _conditionalRedundancyQuery;
 
     [GlobalSetup]
     public void GlobalSetup()

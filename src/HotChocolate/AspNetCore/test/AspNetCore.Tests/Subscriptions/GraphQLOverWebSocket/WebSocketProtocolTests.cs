@@ -62,7 +62,7 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory, ITestOutput
                 // assert
                 await webSocket.ReceiveServerMessageAsync(ct);
                 Assert.True(webSocket.CloseStatus.HasValue);
-                Assert.Equal(CloseReasons.TooManyInitAttempts, (int)webSocket.CloseStatus!.Value);
+                Assert.Equal(CloseReasons.TooManyInitAttempts, (int)webSocket.CloseStatus.Value);
             });
 
     [Fact]
@@ -122,7 +122,7 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory, ITestOutput
                 Assert.True(webSocket.CloseStatus.HasValue, "Connection is closed.");
                 Assert.Equal(
                     CloseReasons.ConnectionInitWaitTimeout,
-                    (int)webSocket.CloseStatus!.Value);
+                    (int)webSocket.CloseStatus.Value);
             });
 
     [Fact]
@@ -168,7 +168,7 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory, ITestOutput
                 // assert
                 await webSocket.ReceiveServerMessageAsync(ct);
                 Assert.True(webSocket.CloseStatus.HasValue, "Connection is closed.");
-                Assert.Equal(CloseReasons.Unauthorized, (int)webSocket.CloseStatus!.Value);
+                Assert.Equal(CloseReasons.Unauthorized, (int)webSocket.CloseStatus.Value);
             });
 
     [Fact]
@@ -229,7 +229,7 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory, ITestOutput
                 // assert
                 await socket.ReceiveServerMessageAsync(ct);
                 Assert.True(socket.CloseStatus.HasValue);
-                Assert.Equal(ProtocolError, socket.CloseStatus!.Value);
+                Assert.Equal(ProtocolError, socket.CloseStatus.Value);
             });
 
     [Fact]
@@ -375,7 +375,7 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory, ITestOutput
                 // assert
                 await webSocket.ReceiveServerMessageAsync(ct);
                 Assert.True(webSocket.CloseStatus.HasValue);
-                Assert.Equal(CloseReasons.SubscriberNotUnique, (int)webSocket.CloseStatus!.Value);
+                Assert.Equal(CloseReasons.SubscriberNotUnique, (int)webSocket.CloseStatus.Value);
             });
     }
 
@@ -398,7 +398,7 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory, ITestOutput
                 // assert
                 await webSocket.ReceiveServerMessageAsync(ct);
                 Assert.True(webSocket.CloseStatus.HasValue);
-                Assert.Equal(CloseReasons.Unauthorized, (int)webSocket.CloseStatus!.Value);
+                Assert.Equal(CloseReasons.Unauthorized, (int)webSocket.CloseStatus.Value);
             });
 
     [Fact]
@@ -418,7 +418,7 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory, ITestOutput
                 // assert
                 await webSocket.ReceiveServerMessageAsync(ct);
                 Assert.True(webSocket.CloseStatus.HasValue);
-                Assert.Equal(CloseReasons.ProtocolError, (int)webSocket.CloseStatus!.Value);
+                Assert.Equal(CloseReasons.ProtocolError, (int)webSocket.CloseStatus.Value);
             });
 
     [Fact]
@@ -438,7 +438,7 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory, ITestOutput
                 // assert
                 await webSocket.ReceiveServerMessageAsync(ct);
                 Assert.True(webSocket.CloseStatus.HasValue);
-                Assert.Equal(CloseReasons.ProtocolError, (int)webSocket.CloseStatus!.Value);
+                Assert.Equal(CloseReasons.ProtocolError, (int)webSocket.CloseStatus.Value);
             });
 
     [Fact]
@@ -821,7 +821,7 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory, ITestOutput
                 // assert
                 await webSocket.ReceiveServerMessageAsync(ct);
                 Assert.True(webSocket.CloseStatus.HasValue, "Connection is closed.");
-                Assert.Equal(InternalServerError, webSocket.CloseStatus!.Value);
+                Assert.Equal(InternalServerError, webSocket.CloseStatus.Value);
             });
 
     [Fact]
@@ -840,7 +840,7 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory, ITestOutput
                 // assert
                 await webSocket.ReceiveServerMessageAsync(ct);
                 Assert.True(webSocket.CloseStatus.HasValue, "Connection is closed.");
-                Assert.Equal(CloseReasons.ProtocolError, (int)webSocket.CloseStatus!.Value);
+                Assert.Equal(CloseReasons.ProtocolError, (int)webSocket.CloseStatus.Value);
             });
 
     [Fact]
@@ -859,7 +859,7 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory, ITestOutput
                 // assert
                 await webSocket.ReceiveServerMessageAsync(ct);
                 Assert.True(webSocket.CloseStatus.HasValue, "Connection is closed.");
-                Assert.Equal(CloseReasons.ProtocolError, (int)webSocket.CloseStatus!.Value);
+                Assert.Equal(CloseReasons.ProtocolError, (int)webSocket.CloseStatus.Value);
             });
 
     [Fact]
@@ -878,7 +878,7 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory, ITestOutput
                 // assert
                 await webSocket.ReceiveServerMessageAsync(ct);
                 Assert.True(webSocket.CloseStatus.HasValue, "Connection is closed.");
-                Assert.Equal(CloseReasons.ProtocolError, (int)webSocket.CloseStatus!.Value);
+                Assert.Equal(CloseReasons.ProtocolError, (int)webSocket.CloseStatus.Value);
             });
 
     [Fact]

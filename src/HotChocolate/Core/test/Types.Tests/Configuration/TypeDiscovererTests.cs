@@ -406,7 +406,7 @@ public class TypeDiscovererTests
 
         // assert
         // both renderings share the same truncation, so the part count is identical.
-        var shortParts = path!.Value.Short.Split(" -> ");
+        var shortParts = path.Value.Short.Split(" -> ");
         var expandedParts = path.Value.Expanded.Split(" -> ");
         Assert.Equal(5, shortParts.Length);
         Assert.Equal("...", shortParts[0]);
@@ -421,27 +421,27 @@ public class TypeDiscovererTests
 
     public class DeepLevel1
     {
-        public DeepLevel2 Level2 { get; } = null!;
+        public DeepLevel2 Level2 { get; }
     }
 
     public class DeepLevel2
     {
-        public DeepLevel3 Level3 { get; } = null!;
+        public DeepLevel3 Level3 { get; }
     }
 
     public class DeepLevel3
     {
-        public DeepLevel4 Level4 { get; } = null!;
+        public DeepLevel4 Level4 { get; }
     }
 
     public class DeepLevel4
     {
-        public DeepLevel5 Level5 { get; } = null!;
+        public DeepLevel5 Level5 { get; }
     }
 
     public class DeepLevel5
     {
-        public DeepLevel6 Level6 { get; } = null!;
+        public DeepLevel6 Level6 { get; }
     }
 
     public class DeepLevel6
@@ -456,7 +456,7 @@ public class TypeDiscovererTests
 
     public class FooWithBar
     {
-        public BarWithBaz Bar { get; } = null!;
+        public BarWithBaz Bar { get; }
     }
 
     public class BarWithBaz

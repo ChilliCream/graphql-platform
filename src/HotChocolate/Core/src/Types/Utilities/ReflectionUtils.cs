@@ -201,7 +201,7 @@ public static class ReflectionUtils
     {
         if (type.IsNested)
         {
-            return $"{GetNamespace(type.DeclaringType)}.{type.DeclaringType!.Name}";
+            return $"{GetNamespace(type.DeclaringType)}.{type.DeclaringType.Name}";
         }
         return type.Namespace;
     }

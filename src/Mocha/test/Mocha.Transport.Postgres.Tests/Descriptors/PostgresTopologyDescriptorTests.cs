@@ -79,7 +79,7 @@ public class PostgresTopologyDescriptorTests
         // assert
         var subscription = Assert.Single(topology.Subscriptions);
         Assert.NotNull(subscription.Address);
-        Assert.Contains("/b/t/addr-src/q/addr-dst", subscription.Address!.AbsolutePath);
+        Assert.Contains("/b/t/addr-src/q/addr-dst", subscription.Address.AbsolutePath);
     }
 
     [Fact]
