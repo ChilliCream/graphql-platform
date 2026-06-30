@@ -20,5 +20,5 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-// Grouped comparison of all four plans, Business column highlighted.
+// Grouped comparison of all four plans.
 export const Default: Story = {};
