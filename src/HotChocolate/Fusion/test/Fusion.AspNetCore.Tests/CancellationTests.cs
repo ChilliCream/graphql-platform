@@ -104,16 +104,25 @@ public class CancellationTests : FusionTestBase
     }
 
     [Fact]
-    public async Task Null_Bubble_Cancellation_Does_Not_Poison_Subsequent_Request()
+    public async Task Null_Bubble_Request_Waits_For_In_Flight_Sibling_Before_Completing()
     {
         // arrange
+        // `c` on A null-bubbles to the root and cancels the request while `b` on B is
+        // still in flight. The gating handler holds B's first HTTP call open (ignoring the
+        // cancellation token) so the sibling fetch is genuinely unsettled at that point.
+        var siblingStarted = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var releaseSibling = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var gate = new GatingHandler(siblingStarted, releaseSibling);
+
         using var serverA = CreateSourceSchema(
             "A",
             b => b.AddQueryType<NullBubbleSchemaA.Query>());
 
         using var serverB = CreateSourceSchema(
             "B",
-            b => b.AddQueryType<NullBubbleSchemaB.Query>());
+            b => b.AddQueryType<NullBubbleSchemaB.Query>(),
+            httpClient: new HttpClient(gate));
+        gate.InnerHandler = serverB.CreateHandler();
 
         using var gateway = await CreateCompositeSchemaAsync(
             [
@@ -121,61 +130,158 @@ public class CancellationTests : FusionTestBase
                 ("B", serverB)
             ],
             configureGatewayBuilder: builder =>
-                builder.ModifyRequestOptions(o => o.ExecutionTimeout = TimeSpan.FromSeconds(5)));
+                builder.ModifyRequestOptions(o => o.ExecutionTimeout = TimeSpan.FromSeconds(30)));
 
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
         var uri = new Uri("http://localhost:5000/graphql");
-
-        // Warm up the gateway so the executor build and request-pipeline JIT happen
-        // outside the loop below.
-        using (await client.PostAsync(
-            new OperationRequest("{ __typename }"),
-            uri,
-            TestContext.Current.CancellationToken))
-        {
-        }
-
-        gateway.Interactions.Clear();
-
-        // `c` always errors and null-bubbles to the root, cancelling the in-flight
-        // sibling `b` (which is slow). The follow-up `{ a b }` must come back intact.
-        var trigger = new OperationRequest("{ c b }");
-        var normal = new OperationRequest("{ a b }");
-        var poisonedRounds = new List<string>();
+        var ct = TestContext.Current.CancellationToken;
 
         // act
-        for (var round = 0; round < 20; round++)
-        {
-            using (await client.PostAsync(trigger, uri, TestContext.Current.CancellationToken))
-            {
-            }
+        var requestTask = client.PostAsync(new OperationRequest("{ c b }"), uri, ct);
 
-            using var normalResponse = await client.PostAsync(
-                normal,
-                uri,
-                TestContext.Current.CancellationToken);
-            using var result = await normalResponse.ReadAsResultAsync(
-                TestContext.Current.CancellationToken);
+        // B's sibling fetch is now in flight under the gate while `c` null-bubbles.
+        await siblingStarted.Task;
 
-            if (result.Errors.ValueKind == JsonValueKind.Array && result.Errors.GetArrayLength() > 0)
-            {
-                poisonedRounds.Add($"round {round}: unexpected errors");
-                continue;
-            }
+        var completedBeforeRelease =
+            await Task.WhenAny(requestTask, Task.Delay(TimeSpan.FromSeconds(1), ct)) == requestTask;
 
-            var a = result.Data.TryGetProperty("a", out var aValue) ? aValue.GetString() : null;
-            var b = result.Data.TryGetProperty("b", out var bValue) ? bValue.GetString() : null;
+        releaseSibling.SetResult();
 
-            if (a != "A" || b != "B")
-            {
-                poisonedRounds.Add($"round {round}: a='{a}', b='{b}'");
-            }
-        }
+        using var response = await requestTask;
+        using var result = await response.ReadAsResultAsync(ct);
 
         // assert
+        Assert.False(
+            completedBeforeRelease,
+            "The request returned before its in-flight sibling subgraph fetch settled.");
+        Assert.Equal(JsonValueKind.Null, result.Data.ValueKind);
         Assert.True(
-            poisonedRounds.Count == 0,
-            $"The follow-up request was poisoned: {string.Join("; ", poisonedRounds)}.");
+            result.Errors.ValueKind == JsonValueKind.Array && result.Errors.GetArrayLength() == 1,
+            "Expected exactly one error from the null-bubbled `c` field.");
+    }
+
+    [Fact]
+    public async Task Null_Bubble_Event_Waits_For_In_Flight_Sibling_Before_Emitting()
+    {
+        // arrange
+        // The first event's `trigger` (on C) null-bubbles to the root while its `title`
+        // fetch (on B) is held in flight by the gating handler, so the event must not be
+        // emitted until the sibling settles. The next event must arrive intact.
+        var siblingStarted = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var releaseSibling = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var gate = new GatingHandler(siblingStarted, releaseSibling);
+
+        using var streamServer = CreateSourceSchema(
+            "A",
+            b => b
+                .AddQueryType<NullBubbleStream.Query>()
+                .AddSubscriptionType<NullBubbleStream.Subscription>());
+
+        using var titleServer = CreateSourceSchema(
+            "B",
+            b => b.AddQueryType<NullBubbleTitle.Query>(),
+            httpClient: new HttpClient(gate));
+        gate.InnerHandler = titleServer.CreateHandler();
+
+        using var triggerServer = CreateSourceSchema(
+            "C",
+            b => b.AddQueryType<NullBubbleTrigger.Query>());
+
+        using var gateway = await CreateCompositeSchemaAsync(
+            [
+                ("A", streamServer),
+                ("B", titleServer),
+                ("C", triggerServer)
+            ],
+            configureGatewayBuilder: builder =>
+                builder.ModifyRequestOptions(o => o.ExecutionTimeout = TimeSpan.FromSeconds(30)));
+
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+        var ct = TestContext.Current.CancellationToken;
+
+        var request = new OperationRequest(
+            """
+            subscription {
+              onBookCreated {
+                id
+                title
+                trigger
+              }
+            }
+            """);
+
+        using var response = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            ct);
+
+        await using var enumerator =
+            response.ReadAsResultStreamAsync().GetAsyncEnumerator(ct);
+
+        // act
+        var firstMove = enumerator.MoveNextAsync();
+        var firstMoveTask = firstMove.AsTask();
+
+        // Event 1's `title` fetch is now in flight under the gate while `trigger` null-bubbles.
+        await siblingStarted.Task;
+
+        var emittedBeforeRelease =
+            await Task.WhenAny(firstMoveTask, Task.Delay(TimeSpan.FromSeconds(1), ct)) == firstMoveTask;
+
+        releaseSibling.SetResult();
+
+        // assert
+        Assert.False(
+            emittedBeforeRelease,
+            "The subscription event was emitted before its in-flight sibling subgraph fetch settled.");
+
+        Assert.True(await firstMoveTask, "Expected the first (null-bubbled) event to be emitted.");
+        using (var firstEvent = enumerator.Current)
+        {
+            Assert.Equal(JsonValueKind.Null, firstEvent.Data.ValueKind);
+        }
+
+        Assert.True(await enumerator.MoveNextAsync(), "Expected a second event to be emitted.");
+        using var secondEvent = enumerator.Current;
+        var book = secondEvent.Data.GetProperty("onBookCreated");
+        var title = book.GetProperty("title").GetString();
+        var trigger = book.GetProperty("trigger").GetString();
+
+        Assert.True(
+            secondEvent.Errors.ValueKind != JsonValueKind.Array && title == "Title 2" && trigger == "ok",
+            $"The follow-up event was poisoned: title='{title}', trigger='{trigger}'.");
+    }
+
+    private sealed class GatingHandler : DelegatingHandler
+    {
+        private readonly TaskCompletionSource _started;
+        private readonly TaskCompletionSource _release;
+        private int _callCount;
+
+        public GatingHandler(TaskCompletionSource started, TaskCompletionSource release)
+        {
+            _started = started;
+            _release = release;
+        }
+
+        protected override async Task<HttpResponseMessage> SendAsync(
+            HttpRequestMessage request,
+            CancellationToken cancellationToken)
+        {
+            // Hold only the first subgraph call open, ignoring the cancellation token, so the
+            // gateway's node for it stays genuinely in flight after the null-bubble cancels.
+            if (Interlocked.Increment(ref _callCount) == 1)
+            {
+                _started.TrySetResult();
+                await _release.Task;
+
+                // The execution token is cancelled by now; forward without it so the gated
+                // response still comes back cleanly (its data is discarded by the null-bubble).
+                return await base.SendAsync(request, CancellationToken.None);
+            }
+
+            return await base.SendAsync(request, cancellationToken);
+        }
     }
 
     public sealed class NullBubbleSchemaA
@@ -196,128 +302,8 @@ public class CancellationTests : FusionTestBase
     {
         public class Query
         {
-            public async Task<string> B(CancellationToken cancellationToken)
-            {
-                await Task.Delay(TimeSpan.FromMilliseconds(300), cancellationToken);
-                return "B";
-            }
+            public string B() => "B";
         }
-    }
-
-    private const int NullBubbleEventCount = 12;
-
-    [Fact]
-    public async Task Null_Bubble_In_One_Event_Does_Not_Poison_Next_Event()
-    {
-        // arrange
-        using var streamServer = CreateSourceSchema(
-            "A",
-            b => b
-                .AddQueryType<NullBubbleStream.Query>()
-                .AddSubscriptionType<NullBubbleStream.Subscription>());
-
-        using var titleServer = CreateSourceSchema(
-            "B",
-            b => b.AddQueryType<NullBubbleTitle.Query>());
-
-        using var triggerServer = CreateSourceSchema(
-            "C",
-            b => b.AddQueryType<NullBubbleTrigger.Query>());
-
-        using var gateway = await CreateCompositeSchemaAsync(
-            [
-                ("A", streamServer),
-                ("B", titleServer),
-                ("C", triggerServer)
-            ],
-            configureGatewayBuilder: builder =>
-                builder.ModifyRequestOptions(o => o.ExecutionTimeout = TimeSpan.FromSeconds(30)));
-
-        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
-        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(60));
-
-        var request = new OperationRequest(
-            """
-            subscription {
-              onBookCreated {
-                id
-                title
-                trigger
-              }
-            }
-            """);
-
-        // act
-        // Each event fans out to a slow `title` fetch on B and a fast `trigger` fetch on C.
-        // For even ids `trigger` (non-null) errors and null-bubbles to the root, cancelling
-        // the still-in-flight B fetch. The following odd event must resolve `title` intact.
-        using var response = await client.PostAsync(
-            request,
-            new Uri("http://localhost:5000/graphql"),
-            cts.Token);
-
-        var results = new List<OperationResult>();
-        await foreach (var result in response.ReadAsResultStreamAsync().WithCancellation(cts.Token))
-        {
-            results.Add(result);
-
-            if (results.Count == NullBubbleEventCount)
-            {
-                break;
-            }
-        }
-
-        // assert
-        // Events arrive in source order, so result[i] corresponds to id i + 1. Even ids are
-        // expected to null-bubble; odd ids must carry their complete cross-subgraph data.
-        var poisoned = new List<string>();
-
-        for (var i = 0; i < results.Count; i++)
-        {
-            var id = i + 1;
-
-            if (id % 2 == 0)
-            {
-                continue;
-            }
-
-            var result = results[i];
-
-            if (result.Errors.ValueKind == JsonValueKind.Array && result.Errors.GetArrayLength() > 0)
-            {
-                poisoned.Add($"event {id}: unexpected errors");
-                continue;
-            }
-
-            if (result.Data.ValueKind != JsonValueKind.Object
-                || !result.Data.TryGetProperty("onBookCreated", out var book)
-                || book.ValueKind != JsonValueKind.Object)
-            {
-                poisoned.Add($"event {id}: missing data");
-                continue;
-            }
-
-            var title = book.GetProperty("title").GetString();
-            var trigger = book.GetProperty("trigger").GetString();
-
-            if (title != $"Title {id}" || trigger != "ok")
-            {
-                poisoned.Add($"event {id}: title='{title}', trigger='{trigger}'");
-            }
-        }
-
-        foreach (var result in results)
-        {
-            result.Dispose();
-        }
-
-        Assert.True(
-            results.Count == NullBubbleEventCount,
-            $"Expected {NullBubbleEventCount} events but received {results.Count} "
-            + "(a poisoned event can stall the stream).");
-        Assert.True(
-            poisoned.Count == 0,
-            $"The follow-up event(s) were poisoned: {string.Join("; ", poisoned)}.");
     }
 
     public static class NullBubbleStream
@@ -335,9 +321,10 @@ public class CancellationTests : FusionTestBase
             public async IAsyncEnumerable<Book> OnBookCreatedStream(
                 [EnumeratorCancellation] CancellationToken cancellationToken)
             {
-                for (var id = 1; id <= NullBubbleEventCount; id++)
+                for (var id = 1; id <= 2; id++)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
+                    await Task.Yield();
                     yield return new Book(id);
                 }
             }
@@ -354,11 +341,7 @@ public class CancellationTests : FusionTestBase
         public class Query
         {
             [Internal, Lookup]
-            public async Task<Book?> GetBookById(int id, CancellationToken cancellationToken)
-            {
-                await Task.Delay(TimeSpan.FromMilliseconds(300), cancellationToken);
-                return new Book(id, $"Title {id}");
-            }
+            public Book? GetBookById(int id) => new(id, $"Title {id}");
         }
     }
 
@@ -371,7 +354,7 @@ public class CancellationTests : FusionTestBase
             [Internal, Lookup]
             public Book? GetBookById(int id, IResolverContext context)
             {
-                if (id % 2 == 0)
+                if (id == 1)
                 {
                     throw new GraphQLException(ErrorBuilder.New()
                         .SetMessage("Could not resolve trigger")
