@@ -6,6 +6,7 @@ import { AnalyticsScripts } from "@/src/components/AnalyticsScripts";
 import { EnableSmoothScroll } from "@/src/components/EnableSmoothScroll";
 import Footer from "@/src/components/Footer";
 import Header from "@/src/components/Header";
+import { StructuredData } from "@/src/components/StructuredData";
 import {
   SITE_NAME,
   SITE_TITLE,
@@ -75,6 +76,7 @@ export default function RootLayout({
         <link rel="preconnect" href="https://consent.cookiebot.com" />
         <link rel="preconnect" href="https://consentcdn.cookiebot.com" />
         <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
+        <StructuredData />
       </head>
       <body>
         <AnalyticsScripts />
