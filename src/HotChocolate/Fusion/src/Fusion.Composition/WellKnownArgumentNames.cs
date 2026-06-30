@@ -24,6 +24,7 @@ internal static class WellKnownArgumentNames
     public const string Message = "message";
     public const string Name = "name";
     public const string OpenWorldHint = "openWorldHint";
+    public const string OnDenied = "onDenied";
     public const string Partial = "partial";
     public const string Path = "path";
     public const string Pattern = "pattern";

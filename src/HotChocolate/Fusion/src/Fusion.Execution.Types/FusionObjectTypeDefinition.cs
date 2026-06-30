@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
 using HotChocolate.Fusion.Types.Collections;
 using HotChocolate.Fusion.Types.Completion;
@@ -37,6 +38,11 @@ public sealed class FusionObjectTypeDefinition(
     public new ISourceComplexTypeCollection<SourceObjectType> Sources
         => Unsafe.As<ISourceComplexTypeCollection<SourceObjectType>>(base.Sources);
 
+    /// <summary>
+    /// Gets the authorization policy applications for this object type.
+    /// </summary>
+    public ImmutableArray<PolicyApplication> PolicyApplications { get; private set; }
+
     internal void Complete(CompositeObjectTypeCompletionContext context)
     {
         if (context.Directives is null
@@ -50,6 +56,7 @@ public sealed class FusionObjectTypeDefinition(
         Directives = context.Directives;
         Implements = context.Interfaces;
         base.Sources = context.Sources;
+        PolicyApplications = context.PolicyApplications;
         Features = context.Features;
         SetFlags(context.Sources);
 

@@ -140,6 +140,11 @@ public sealed class FusionSchemaDefinition : ISchemaDefinition, IAsyncDisposable
     public IFeatureCollection Features => _features;
 
     /// <summary>
+    /// Gets a value indicating whether the schema contains authorization policies.
+    /// </summary>
+    public bool HasPolicies { get; private set; }
+
+    /// <summary>
     /// Gets the connector kind declared by the specified source schema.
     /// </summary>
     /// <param name="sourceSchemaName">The source schema name.</param>
@@ -510,6 +515,10 @@ public sealed class FusionSchemaDefinition : ISchemaDefinition, IAsyncDisposable
         _sealed = true;
         _features = _features.ToReadOnly();
         _unionTypes = [.. Types.AsEnumerable().OfType<FusionUnionTypeDefinition>()];
+        HasPolicies = Types.AsEnumerable()
+            .OfType<FusionObjectTypeDefinition>()
+            .Any(t => !t.PolicyApplications.IsDefaultOrEmpty
+                || t.Fields.AsEnumerable().Any(f => !f.PolicyApplications.IsDefaultOrEmpty));
     }
 
     [MemberNotNull(nameof(_plannerTopologyCache))]

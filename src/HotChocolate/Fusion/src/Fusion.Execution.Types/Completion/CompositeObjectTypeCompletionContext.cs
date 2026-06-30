@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using HotChocolate.Features;
 using HotChocolate.Fusion.Types.Collections;
 
@@ -7,6 +8,7 @@ internal readonly ref struct CompositeObjectTypeCompletionContext(
     FusionDirectiveCollection directives,
     FusionInterfaceTypeDefinitionCollection interfaces,
     SourceObjectTypeCollection sources,
+    ImmutableArray<PolicyApplication> policyApplications,
     IFeatureCollection features)
 {
     public FusionDirectiveCollection Directives { get; } = directives;
@@ -14,6 +16,8 @@ internal readonly ref struct CompositeObjectTypeCompletionContext(
     public FusionInterfaceTypeDefinitionCollection Interfaces { get; } = interfaces;
 
     public SourceObjectTypeCollection Sources { get; } = sources;
+
+    public ImmutableArray<PolicyApplication> PolicyApplications { get; } = policyApplications;
 
     public IFeatureCollection Features { get; } = features;
 }
