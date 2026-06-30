@@ -2,12 +2,12 @@ using HotChocolate.Execution;
 using HotChocolate.Fusion.Types;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace HotChocolate.Fusion.DependencyInjection;
+namespace HotChocolate.Fusion.Execution;
 
-public class CoreFusionGatewayBuilderExtensionsOptInFeaturesTests : FusionTestBase
+public class FusionOptionsTests : FusionTestBase
 {
     /// <summary>
-    /// Verifies that calling <c>EnableOptInFeatures()</c> on the builder results in
+    /// Verifies that setting <c>EnableOptInFeatures</c> via <c>ModifyOptions</c> results in
     /// <see cref="IFusionSchemaOptions.EnableOptInFeatures"/> being <c>true</c> on the
     /// built schema's feature collection.
     /// </summary>
@@ -18,7 +18,7 @@ public class CoreFusionGatewayBuilderExtensionsOptInFeaturesTests : FusionTestBa
         var services = new ServiceCollection();
         services
             .AddGraphQLGateway()
-            .EnableOptInFeatures()
+            .ModifyOptions(o => o.EnableOptInFeatures = true)
             .AddInMemoryConfiguration(
                 ComposeSchemaDocument(
                     """

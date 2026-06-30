@@ -15,7 +15,7 @@ public sealed class OptInFeaturesIntrospectionTests : FusionTestBase
         services.AddHttpClient();
         services
             .AddGraphQLGateway()
-            .EnableOptInFeatures()
+            .ModifyOptions(o => o.EnableOptInFeatures = true)
             .AddInMemoryConfiguration(
                 ComposeSchemaDocument(
                     """
@@ -80,7 +80,7 @@ public sealed class OptInFeaturesIntrospectionTests : FusionTestBase
         services.AddHttpClient();
         services
             .AddGraphQLGateway()
-            .EnableOptInFeatures()
+            .ModifyOptions(o => o.EnableOptInFeatures = true)
             .AddInMemoryConfiguration(
                 ComposeSchemaDocument(
                     """
@@ -148,7 +148,7 @@ public sealed class OptInFeaturesIntrospectionTests : FusionTestBase
         services.AddHttpClient();
         services
             .AddGraphQLGateway()
-            .EnableOptInFeatures()
+            .ModifyOptions(o => o.EnableOptInFeatures = true)
             .AddInMemoryConfiguration(
                 ComposeSchemaDocument(
                     """
@@ -333,7 +333,7 @@ public sealed class OptInFeaturesIntrospectionTests : FusionTestBase
         services.AddHttpClient();
         services
             .AddGraphQLGateway()
-            .EnableOptInFeatures()
+            .ModifyOptions(o => o.EnableOptInFeatures = true)
             .AddInMemoryConfiguration(
                 ComposeSchemaDocument(
                     """
@@ -385,7 +385,7 @@ public sealed class OptInFeaturesIntrospectionTests : FusionTestBase
         services.AddHttpClient();
         services
             .AddGraphQLGateway()
-            .EnableOptInFeatures()
+            .ModifyOptions(o => o.EnableOptInFeatures = true)
             .AddInMemoryConfiguration(
                 ComposeSchemaDocument(
                     """
