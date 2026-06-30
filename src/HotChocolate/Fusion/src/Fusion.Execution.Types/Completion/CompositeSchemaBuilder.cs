@@ -4,6 +4,7 @@ using HotChocolate.Fusion.Language;
 using HotChocolate.Fusion.Rewriters;
 using HotChocolate.Fusion.Types.Collections;
 using HotChocolate.Fusion.Types.Directives;
+using HotChocolate.Fusion.Types.Introspection;
 using HotChocolate.Fusion.Types.Metadata;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -76,10 +77,14 @@ internal static class CompositeSchemaBuilder
             }
         }
 
+        var baseIntrospectionDocument = options.EnableOptInFeatures
+            ? IntrospectionSchema.OptInDocument
+            : IntrospectionSchema.Document;
+
         var introspectionDefinitions = options.EnableSemanticIntrospection
-            ? IntrospectionSchema.Document.Definitions
+            ? baseIntrospectionDocument.Definitions
                 .Concat(SemanticIntrospectionSchema.Document.Definitions)
-            : IntrospectionSchema.Document.Definitions.AsEnumerable();
+            : baseIntrospectionDocument.Definitions.AsEnumerable();
 
         foreach (var definition in introspectionDefinitions.Concat(schemaDocument.Definitions))
         {
@@ -591,6 +596,11 @@ internal static class CompositeSchemaBuilder
 
         var directives = CompletionTools.CreateDirectiveCollection(context.Directives, context);
         var features = context.Features;
+
+        if (options.EnableOptInFeatures)
+        {
+            features.Set(CollectOptInFeatures(context));
+        }
 
         context.Interceptor.OnBeforeCompleteSchema(context, ref features);
         features.Set<ValueSelectionToSelectionSetRewriter>(null);
@@ -1144,6 +1154,68 @@ internal static class CompositeSchemaBuilder
                 t.Name.Value.Equals(FusionBuiltIns.Connector, StringComparison.Ordinal));
             var kindArg = directive?.Arguments.FirstOrDefault(t => t.Name.Value.Equals("kind"));
             return kindArg?.Value is StringValueNode kindValue ? kindValue.Value : null;
+        }
+    }
+
+    private static FusionOptInFeatures CollectOptInFeatures(CompositeSchemaBuilderContext context)
+    {
+        var result = new FusionOptInFeatures();
+
+        foreach (var type in context.TypeDefinitions)
+        {
+            switch (type)
+            {
+                case IComplexTypeDefinition complexType:
+                    foreach (var field in complexType.Fields)
+                    {
+                        CollectFromDirectives(field.Directives, result);
+
+                        foreach (var argument in field.Arguments)
+                        {
+                            CollectFromDirectives(argument.Directives, result);
+                        }
+                    }
+
+                    break;
+
+                case IInputObjectTypeDefinition inputObjectType:
+                    foreach (var field in inputObjectType.Fields)
+                    {
+                        CollectFromDirectives(field.Directives, result);
+                    }
+
+                    break;
+
+                case IEnumTypeDefinition enumType:
+                    foreach (var value in enumType.Values)
+                    {
+                        CollectFromDirectives(value.Directives, result);
+                    }
+
+                    break;
+            }
+        }
+
+        return result;
+
+        static void CollectFromDirectives(
+            IReadOnlyDirectiveCollection directives,
+            FusionOptInFeatures features)
+        {
+            foreach (var directive in directives)
+            {
+                if (!directive.Name.Equals(RequiresOptIn.Name, StringComparison.Ordinal))
+                {
+                    continue;
+                }
+
+                if (directive is FusionDirective fusionDirective
+                    && fusionDirective.Arguments.TryGetValue(RequiresOptIn.Arguments.Feature, out var argValue)
+                    && argValue is StringValueNode feature)
+                {
+                    features.Add(feature.Value);
+                }
+            }
         }
     }
 

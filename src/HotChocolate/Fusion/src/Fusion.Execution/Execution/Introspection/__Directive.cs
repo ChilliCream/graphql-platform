@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using HotChocolate.Features;
 using HotChocolate.Fusion.Execution.Nodes;
+using HotChocolate.Fusion.Types.Introspection;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using DirectiveLocation = HotChocolate.Types.DirectiveLocation;
@@ -10,6 +11,13 @@ namespace HotChocolate.Fusion.Execution.Introspection;
 // ReSharper disable once InconsistentNaming
 internal sealed class __Directive : ITypeResolverInterceptor
 {
+    private readonly bool _enableOptInFeatures;
+
+    public __Directive(bool enableOptInFeatures = false)
+    {
+        _enableOptInFeatures = enableOptInFeatures;
+    }
+
     public void OnApplyResolver(string fieldName, IFeatureCollection features)
     {
         switch (fieldName)
@@ -27,7 +35,17 @@ internal sealed class __Directive : ITypeResolverInterceptor
                 features.Set(new ResolveFieldValue(Locations));
                 break;
             case "args":
-                features.Set(new ResolveFieldValue(Arguments));
+                if (_enableOptInFeatures)
+                {
+                    features.Set(new ResolveFieldValue(ArgumentsWithOptIn));
+                }
+                else
+                {
+                    features.Set(new ResolveFieldValue(Arguments));
+                }
+                break;
+            case "requiresOptIn" when _enableOptInFeatures:
+                features.Set(new ResolveFieldValue(RequiresOptIn));
                 break;
         }
     }
@@ -151,5 +169,44 @@ internal sealed class __Directive : ITypeResolverInterceptor
             context.AddRuntimeResult(argument);
             element.CreateObjectValue(context.Selection, context.IncludeFlags);
         }
+    }
+
+    public static void ArgumentsWithOptIn(FieldContext context)
+    {
+        var directiveDef = context.Parent<IDirectiveDefinition>();
+        var includeDeprecated = context.ArgumentValue<BooleanValueNode>("includeDeprecated").Value;
+        var includeOptIn = __Schema.ReadIncludeOptIn(context);
+        var count = directiveDef.Arguments.Count(
+            a => (includeDeprecated || !a.IsDeprecated)
+                && OptInIntrospectionHelper.IsIncluded(a.Directives, includeOptIn));
+        using var list = context.FieldResult.CreateListValue(count).EnumerateArray().GetEnumerator();
+
+        foreach (var argument in directiveDef.Arguments)
+        {
+            if (!includeDeprecated && argument.IsDeprecated)
+            {
+                continue;
+            }
+
+            if (!OptInIntrospectionHelper.IsIncluded(argument.Directives, includeOptIn))
+            {
+                continue;
+            }
+
+            if (!list.MoveNext())
+            {
+                Debug.Fail("Expected enumerator of list value to be able to advance");
+                break;
+            }
+
+            context.AddRuntimeResult(argument);
+            list.Current.CreateObjectValue(context.Selection, context.IncludeFlags);
+        }
+    }
+
+    public static void RequiresOptIn(FieldContext context)
+    {
+        var directiveDef = context.Parent<IDirectiveDefinition>();
+        __Field.WriteRequiresOptIn(context, directiveDef.Directives);
     }
 }
