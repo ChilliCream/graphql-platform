@@ -4,6 +4,7 @@ import { Picture } from "@/src/design-system/Picture";
 
 import { getLatestBlogPost } from "@/src/helpers/blogPosts";
 import { getGitHubStarCount } from "@/src/helpers/githubStars";
+import { ChilliCreamText } from "@/src/icons/ChilliCreamText";
 import { ChilliCreamWinking } from "@/src/icons/ChilliCreamWinking";
 import { GitHubIcon } from "@/src/icons/GitHub";
 
@@ -40,9 +41,10 @@ export default async function Header() {
           href="/"
           prefetch={false}
           aria-label="ChilliCream Home"
-          className="text-cc-heading flex h-full flex-none items-center"
+          className="text-cc-heading flex h-full flex-none items-center gap-2.5"
         >
           <ChilliCreamWinking className="h-8 w-8 fill-current" />
+          <ChilliCreamText className="h-6 w-auto fill-current min-[1060px]:hidden" />
         </Link>
 
         <HeaderNav latestBlog={latestBlog} blogImage={blogImage} />

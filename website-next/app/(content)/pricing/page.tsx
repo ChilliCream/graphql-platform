@@ -44,7 +44,7 @@ export default function PricingPage() {
 function Hero() {
   return (
     <section className="pt-10 pb-14 text-center sm:pt-16 sm:pb-20">
-      <p className="text-cc-nav-label font-mono text-xs tracking-[0.18em] uppercase">
+      <p className="text-cc-ink-dim font-mono text-xs tracking-[0.18em] uppercase">
         Nitro pricing
       </p>
       <h1 className="font-heading text-cc-heading sm:text-h2 mt-5 text-4xl font-semibold text-balance">
