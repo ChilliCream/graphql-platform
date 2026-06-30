@@ -19,7 +19,8 @@
       "onAutoForward": "silent"
     }
   },
-  "postCreateCommand": "cd website && yarn install --immutable && yarn playwright install chromium",
+  "workspaceFolder": "/workspaces/graphql-platform/website",
+  "postCreateCommand": "yarn install --immutable && yarn playwright install chromium",
   "containerEnv": {
     "NEXT_TELEMETRY_DISABLED": "1"
   },
