@@ -3,7 +3,7 @@ import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 import { CompareTable } from "./CompareTable";
 
 const meta = {
-  title: "Components/Pricing/CompareTable",
+  title: "Pages/Pricing/CompareTable",
   component: CompareTable,
   parameters: { layout: "fullscreen" },
   decorators: [

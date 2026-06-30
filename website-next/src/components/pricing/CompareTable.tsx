@@ -1,115 +1,197 @@
-import { CheckIcon } from "@/src/components/CheckIcon";
-import type { Cell } from "@/src/components/pricing/pricingData";
-import { COMPARISON, TIERS } from "@/src/components/pricing/pricingData";
+import { FeatureComparison } from "@/src/components/FeatureComparison";
+import { TIERS } from "@/src/components/pricing/pricingData";
 
-/**
- * The full feature comparison: every tier as a column, capabilities grouped
- * into labelled sections. A boolean cell renders a check or a dash, a string
- * cell renders the value. The table scrolls horizontally on narrow screens.
- */
-export function CompareTable() {
-  return (
-    <section
-      aria-labelledby="compare-heading"
-      className="mt-24 scroll-mt-24 sm:mt-28"
-      id="compare"
-    >
-      <div className="text-center">
-        <p className="text-cc-nav-label font-mono text-xs tracking-[0.18em] uppercase">
-          Compare plans
-        </p>
-        <h2
-          id="compare-heading"
-          className="font-heading text-cc-heading text-h4 sm:text-h3 mt-3 font-semibold"
-        >
-          Feature comparison
-        </h2>
-      </div>
-
-      <div className="border-cc-card-border bg-cc-card-bg/40 mt-10 overflow-hidden rounded-3xl border">
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[820px] border-collapse text-left text-sm">
-            <thead>
-              <tr className="border-cc-card-border border-b">
-                <th
-                  scope="col"
-                  className="text-cc-nav-label px-5 py-4 font-mono text-[0.65rem] tracking-[0.15em] uppercase"
-                >
-                  Capability
-                </th>
-                {TIERS.map((tier) => (
-                  <th
-                    key={tier.id}
-                    scope="col"
-                    className="text-cc-heading font-heading px-5 py-4 text-sm font-semibold"
-                  >
-                    {tier.name}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            {COMPARISON.map((group, groupIndex) => (
-              <tbody key={group.title}>
-                <tr
-                  className={`bg-cc-card-bg/60 ${
-                    groupIndex === 0 ? "" : "border-cc-card-border border-t"
-                  }`}
-                >
-                  <th
-                    scope="colgroup"
-                    colSpan={TIERS.length + 1}
-                    className="text-cc-nav-label px-5 py-3 text-left font-mono text-[0.65rem] tracking-[0.15em] uppercase"
-                  >
-                    {group.title}
-                  </th>
-                </tr>
-                {group.rows.map((row) => (
-                  <tr
-                    key={row.label}
-                    className="border-cc-ink-faint border-b last:border-0"
-                  >
-                    <th
-                      scope="row"
-                      className="text-cc-ink px-5 py-3 align-top text-sm font-medium"
-                    >
-                      {row.label}
-                    </th>
-                    {TIERS.map((tier) => (
-                      <CompareCell key={tier.id} value={row[tier.id]} />
-                    ))}
-                  </tr>
-                ))}
-              </tbody>
-            ))}
-          </table>
-        </div>
-      </div>
-    </section>
-  );
+/** Shorthand for a row where every tier includes the capability. */
+function all(label: string) {
+  return { label, free: true, payg: true, dedicated: true, self: true };
 }
 
-function CompareCell({ value }: { readonly value: Cell }) {
-  if (value === true) {
-    return (
-      <td className="px-5 py-3 align-top">
-        <span className="text-cc-accent inline-flex">
-          <CheckIcon />
-        </span>
-        <span className="sr-only">Included</span>
-      </td>
-    );
-  }
-  if (value === false) {
-    return (
-      <td className="text-cc-ink-faint px-5 py-3 align-top">
-        <span aria-hidden="true">-</span>
-        <span className="sr-only">Not included</span>
-      </td>
-    );
-  }
+const COMPARISON = [
+  {
+    title: "Plans & usage",
+    rows: [
+      {
+        label: "Monthly price",
+        free: "$0",
+        payg: "$20 / month",
+        dedicated: "from $400 / month",
+        self: "Custom",
+      },
+      {
+        label: "Deployment model",
+        free: "Multi-tenant cloud",
+        payg: "Multi-tenant cloud",
+        dedicated: "Single-tenant cloud or BYOC",
+        self: "Your infrastructure",
+      },
+      {
+        label: "Included operations / month",
+        free: "1M",
+        payg: "5M, then $2 / million",
+        dedicated: "Volume based",
+        self: "Unmetered",
+      },
+      {
+        label: "Included ingest",
+        free: "2 GB",
+        payg: "2 GB per 1M ops, then $1.15 / GB",
+        dedicated: "Volume based",
+        self: "Unmetered",
+      },
+      {
+        label: "Data retention",
+        free: "3 days",
+        payg: "60 days",
+        dedicated: "Configurable",
+        self: "Configurable",
+      },
+      {
+        label: "Pricing model",
+        free: "Free, capped",
+        payg: "Usage based",
+        dedicated: "Volume based",
+        self: "Your infrastructure",
+      },
+    ],
+  },
+  {
+    title: "Gateway & server",
+    rows: [
+      all("OAuth 2.0 & OpenID Connect"),
+      all("Authorization policies & roles"),
+      all("Rate limiting"),
+      all("Response caching"),
+      all("Realtime subscriptions"),
+      all("GraphQL Federation"),
+      all("Custom middleware & plugins"),
+    ],
+  },
+  {
+    title: "Schema lifecycle",
+    rows: [
+      all("Schema registry with history & rollback"),
+      all("Client registry"),
+      all("Breaking-change classification"),
+      all("CI schema & client checks"),
+      all("Stage promotion with approval gates"),
+      all("Fusion deployment orchestration"),
+      all(".NET Aspire integration"),
+    ],
+  },
+  {
+    title: "Observability",
+    rows: [
+      all("OpenTelemetry-native traces, metrics, logs"),
+      all("Operation insights"),
+      all("Per-client tracking"),
+      all("Resolver-level insights"),
+      all("Distributed tracing across Fusion subgraphs"),
+      all("Service monitoring for any .NET service"),
+      all("Operation reporting"),
+    ],
+  },
+  {
+    title: "Operations & delivery",
+    rows: [
+      all("Persisted / trusted operations enforcement"),
+      all("Query cost analysis"),
+      all("Request limits"),
+      all("Deployment audit log"),
+      all("Rollback by republishing an earlier tag"),
+      all("Persisted-op distribution cache"),
+    ],
+  },
+  {
+    title: "Security & access",
+    rows: [
+      {
+        label: "Roles & stage-scoped publish permissions",
+        free: false,
+        payg: false,
+        dedicated: true,
+        self: true,
+      },
+      {
+        label: "SSO",
+        free: false,
+        payg: false,
+        dedicated: true,
+        self: true,
+      },
+      {
+        label: "Audit log",
+        free: false,
+        payg: false,
+        dedicated: true,
+        self: true,
+      },
+      all("API keys and PATs"),
+    ],
+  },
+  {
+    title: "Developer experience",
+    rows: [
+      {
+        label: "Built-in GraphQL IDE",
+        free: "Served from your endpoint",
+        payg: "Served from your endpoint",
+        dedicated: "Served from your endpoint",
+        self: "Served from your endpoint",
+      },
+      all("MCP adapter"),
+      all("OpenAPI adapter"),
+    ],
+  },
+  {
+    title: "Support",
+    rows: [
+      {
+        label: "Support channel",
+        free: "Community",
+        payg: "Email",
+        dedicated: "Email + private chat",
+        self: "Priority engineering",
+      },
+      {
+        label: "Release channel",
+        free: "Continuous",
+        payg: "Continuous",
+        dedicated: "Continuous",
+        self: "Long-term release channel",
+      },
+      {
+        label: "Onboarding & training",
+        free: "Docs & community",
+        payg: "Docs & community",
+        dedicated: "Guided onboarding",
+        self: "Custom training",
+      },
+    ],
+  },
+];
+
+/**
+ * The pricing feature comparison: maps the tier-keyed comparison data onto the
+ * shared `FeatureComparison` table.
+ */
+export function CompareTable() {
+  const columns = TIERS.map((tier) => tier.name);
+  const groups = COMPARISON.map((group) => ({
+    title: group.title,
+    rows: group.rows.map((row) => ({
+      label: row.label,
+      cells: TIERS.map((tier) => row[tier.id]),
+    })),
+  }));
+
   return (
-    <td className="text-cc-ink px-5 py-3 align-top font-mono text-xs">
-      {value}
-    </td>
+    <FeatureComparison
+      id="compare"
+      className="mt-24 scroll-mt-24 sm:mt-28"
+      eyebrow="Compare plans"
+      heading="Feature comparison"
+      columns={columns}
+      groups={groups}
+    />
   );
 }

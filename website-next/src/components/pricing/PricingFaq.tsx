@@ -1,54 +1,49 @@
-import type { PricingFaq as FaqEntry } from "@/src/components/pricing/pricingData";
-import { FAQ } from "@/src/components/pricing/pricingData";
+import { FaqSection } from "@/src/components/FaqSection";
+
+const FAQ = [
+  {
+    question: "Is the Free tier really free?",
+    answer:
+      "Yes. The Free tier runs on shared cloud and includes schemas and environments, 1M operations and 2 GB of ingest per month, and 3-day retention, at no cost. When you need more, move to Pay as you go.",
+  },
+  {
+    question: "How does Pay as you go billing work?",
+    answer:
+      "Pay as you go is $20 per month and includes 5M operations and 2 GB of ingest per million operations, with 60-day retention. Beyond the included volume you pay $2 per additional million operations and $1.15 per additional gigabyte of ingest.",
+  },
+  {
+    question: "How is the Dedicated instance priced?",
+    answer:
+      "A Dedicated instance is single-tenant and priced by volume, the compute, storage, and nodes it runs on, starting from $400 per month. Retention is configurable, and you can run it in your own cloud (BYOC).",
+  },
+  {
+    question: "What support do I get, and how does it grow?",
+    answer:
+      "Free includes community support and Pay as you go adds email support. As your monthly consumption grows you unlock Business support at $2,000 a month and Enterprise support at $4,000 a month, with priority engineering and a dedicated solution architect. Talk to us about the right plan.",
+  },
+  {
+    question: "Do you support SSO and audit logs?",
+    answer:
+      "SSO via OIDC, role-based access control, and an admin audit log are included on the Dedicated and Self-Hosted plans. The Free and Pay as you go tiers ship role-based access control.",
+  },
+  {
+    question: "Can I move between tiers later?",
+    answer:
+      "You can move between Free and Pay as you go yourself at any time, and your schemas, environments, and telemetry come with you. Moving to a Dedicated instance or self-hosting is a conversation, talk to us and we'll help you migrate.",
+  },
+];
 
 /**
- * The pricing FAQ as a single-column list of disclosure items. The padding lives
- * on the `<summary>`, so the entire header row (not just the text or the plus)
- * is the click target that toggles the answer.
+ * The pricing FAQ, rendered with the shared `FaqSection` disclosure list.
  */
 export function PricingFaq() {
   return (
-    <section
-      aria-labelledby="faq-heading"
-      className="mt-24 scroll-mt-24 sm:mt-28"
+    <FaqSection
       id="faq"
-    >
-      <div className="text-center">
-        <p className="text-cc-nav-label font-mono text-xs tracking-[0.18em] uppercase">
-          FAQ
-        </p>
-        <h2
-          id="faq-heading"
-          className="font-heading text-cc-heading text-h4 sm:text-h3 mt-3 font-semibold"
-        >
-          Common questions
-        </h2>
-      </div>
-
-      <div className="mx-auto mt-10 flex max-w-3xl flex-col gap-4">
-        {FAQ.map((faq) => (
-          <FaqItem key={faq.question} faq={faq} />
-        ))}
-      </div>
-    </section>
-  );
-}
-
-function FaqItem({ faq }: { readonly faq: FaqEntry }) {
-  return (
-    <details className="group border-cc-card-border hover:border-cc-card-border-hover bg-cc-card-bg/60 rounded-2xl border transition-colors">
-      <summary className="text-cc-heading font-heading flex cursor-pointer list-none items-start justify-between gap-4 p-5 text-base font-semibold">
-        <span>{faq.question}</span>
-        <span
-          aria-hidden="true"
-          className="text-cc-accent mt-1 flex-none font-mono text-sm transition-transform group-open:rotate-45"
-        >
-          +
-        </span>
-      </summary>
-      <div className="text-cc-ink px-5 pb-5 text-sm leading-relaxed">
-        {faq.answer}
-      </div>
-    </details>
+      className="mt-24 scroll-mt-24 sm:mt-28"
+      eyebrow="FAQ"
+      heading="Common questions"
+      items={FAQ}
+    />
   );
 }

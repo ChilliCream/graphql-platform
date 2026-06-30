@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 
+import { ButtonRow } from "@/src/components/ButtonRow";
+import { MarketingHero } from "@/src/components/MarketingHero";
 import { ClosingCta } from "@/src/components/pricing/ClosingCta";
 import { CompareTable } from "@/src/components/pricing/CompareTable";
 import { PlanSelector } from "@/src/components/pricing/PlanSelector";
@@ -43,26 +45,20 @@ export default function PricingPage() {
 
 function Hero() {
   return (
-    <section className="pt-10 pb-14 text-center sm:pt-16 sm:pb-20">
-      <p className="text-cc-nav-label font-mono text-xs tracking-[0.18em] uppercase">
-        Nitro pricing
-      </p>
-      <h1 className="font-heading text-cc-heading sm:text-h2 mt-5 text-4xl font-semibold text-balance">
-        Pricing that scales with your platform.
-      </h1>
-      <p className="text-cc-ink mx-auto mt-6 max-w-2xl text-base text-pretty sm:text-lg">
-        Start free on the shared cloud. Pay as you go as traffic grows, run a
-        dedicated single-tenant instance when you need your own region and
-        isolation, or self-host on your own infrastructure.
-      </p>
-      <div className="mt-9 flex flex-wrap items-center justify-center gap-3">
-        <SolidButton href="https://nitro.chillicream.com">
-          Start for Free
-        </SolidButton>
-        <OutlineButton href="/services/support/contact?subject=Sales">
-          Talk to Sales
-        </OutlineButton>
-      </div>
-    </section>
+    <MarketingHero
+      eyebrow="Nitro pricing"
+      title="Pricing that scales with your platform."
+      lead="Start free on the shared cloud. Pay as you go as traffic grows, run a dedicated single-tenant instance when you need your own region and isolation, or self-host on your own infrastructure."
+      actions={
+        <ButtonRow align="center">
+          <SolidButton href="https://nitro.chillicream.com">
+            Start for Free
+          </SolidButton>
+          <OutlineButton href="/services/support/contact?subject=Sales">
+            Talk to Sales
+          </OutlineButton>
+        </ButtonRow>
+      }
+    />
   );
 }
