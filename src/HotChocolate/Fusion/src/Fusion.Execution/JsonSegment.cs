@@ -1,16 +1,17 @@
 using System.Buffers;
 using HotChocolate.Buffers;
+using HotChocolate.Fusion.Text.Json;
 using HotChocolate.Text.Json;
 
 namespace HotChocolate.Fusion;
 
 public readonly struct JsonSegment : IEquatable<JsonSegment>
 {
-    private readonly ChunkedArrayWriter _memory;
+    private readonly IJsonSegmentSource? _memory;
     private readonly int _location;
     private readonly int _length;
 
-    private JsonSegment(ChunkedArrayWriter memory, int location, int length)
+    private JsonSegment(IJsonSegmentSource memory, int location, int length)
     {
         _memory = memory;
         _location = location;
@@ -32,21 +33,21 @@ public readonly struct JsonSegment : IEquatable<JsonSegment>
 
         var start = _location;
         var length = _length;
-        var first = _memory.Read(ref start, ref length);
+        var first = Read(ref start, ref length);
 
         if (length == 0)
         {
-            // Single chunk — common case, no allocation for segment chain.
+            // Single chunk, common case with no allocation for segment chain.
             return new ReadOnlySequence<byte>(first.ToArray());
         }
 
-        // Multi-chunk — build a ReadOnlySequence from linked segments.
+        // Multi-chunk, build a ReadOnlySequence from linked segments.
         var firstSegment = new MemorySegment(first.ToArray());
         var lastSegment = firstSegment;
 
         do
         {
-            lastSegment = lastSegment.Append(_memory.Read(ref start, ref length));
+            lastSegment = lastSegment.Append(Read(ref start, ref length));
         }
         while (length > 0);
 
@@ -62,21 +63,21 @@ public readonly struct JsonSegment : IEquatable<JsonSegment>
 
         var start = _location;
         var length = _length;
-        var first = _memory.Read(ref start, ref length);
+        var first = Read(ref start, ref length);
 
         if (length == 0)
         {
-            // Single chunk — common case.
+            // Single chunk, common case.
             writer.WriteRawValue(first);
             return;
         }
 
-        // Multi-chunk — write start, continuations, then set separator flag.
+        // Multi-chunk, write start, continuations, then set separator flag.
         writer.WriteRawValueStart(first);
 
         do
         {
-            writer.WriteRawValueContinuation(_memory.Read(ref start, ref length));
+            writer.WriteRawValueContinuation(Read(ref start, ref length));
         }
         while (length > 0);
 
@@ -90,24 +91,33 @@ public readonly struct JsonSegment : IEquatable<JsonSegment>
             return other.IsEmpty;
         }
 
-        if (other.IsEmpty || !ReferenceEquals(_memory, other._memory))
+        if (other.IsEmpty)
         {
             return false;
         }
 
-        return _memory.SequenceEqual(_location, other._location, _length);
+        return ReferenceEquals(_memory, other._memory)
+            && _memory!.SequenceEqual(_location, other._location, _length);
     }
 
     public override bool Equals(object? obj)
         => obj is JsonSegment other && Equals(other);
 
     public override int GetHashCode()
-        => IsEmpty ? 0 : _memory.GetHashCode(_location, _length);
+        => IsEmpty
+            ? 0
+            : _memory!.GetHashCode(_location, _length);
 
     public static JsonSegment Empty => default;
 
     internal static JsonSegment Create(ChunkedArrayWriter memory, int location, int length)
         => new(memory, location, length);
+
+    internal static JsonSegment Create(ArenaBufferWriter memory, int location, int length)
+        => new(memory, location, length);
+
+    private ReadOnlySpan<byte> Read(ref int start, ref int length)
+        => _memory!.Read(ref start, ref length);
 
     private sealed class MemorySegment : ReadOnlySequenceSegment<byte>
     {

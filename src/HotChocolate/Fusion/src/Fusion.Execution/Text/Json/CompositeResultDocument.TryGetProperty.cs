@@ -1,5 +1,7 @@
 using System.Buffers;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
+using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Text.Json;
 
 namespace HotChocolate.Fusion.Text.Json;
@@ -162,6 +164,28 @@ public sealed partial class CompositeResultDocument
             out value);
     }
 
+    internal bool TryGetObjectScope(
+        Cursor startCursor,
+        out CompositeResultObjectScope scope)
+    {
+        ObjectDisposedException.ThrowIf(_disposed != 0, this);
+
+        var row = _metaDb.GetValue(ref startCursor);
+        CheckExpectedType(ElementTokenType.StartObject, row.TokenType);
+
+        if (row.OperationReferenceType is OperationReferenceType.SelectionSet)
+        {
+            var selectionSetId = row.OperationReferenceId;
+            var selectionSet = _operation.GetSelectionSetById(selectionSetId);
+
+            scope = new CompositeResultObjectScope(this, startCursor, selectionSet, selectionSetId);
+            return true;
+        }
+
+        scope = default;
+        return false;
+    }
+
     private bool TryGetNamedPropertyValue(
         Cursor startCursor,
         Cursor endCursor,
@@ -272,5 +296,42 @@ public sealed partial class CompositeResultDocument
     {
         ObjectDisposedException.ThrowIf(_disposed != 0, this);
         return cursor + _metaDb.GetNumberOfRows(cursor);
+    }
+}
+
+internal readonly ref struct CompositeResultObjectScope
+{
+    private readonly CompositeResultDocument _document;
+    private readonly CompositeResultDocument.Cursor _startObject;
+    private readonly SelectionSet _selectionSet;
+    private readonly int _selectionSetId;
+
+    internal CompositeResultObjectScope(
+        CompositeResultDocument document,
+        CompositeResultDocument.Cursor startObject,
+        SelectionSet selectionSet,
+        int selectionSetId)
+    {
+        _document = document;
+        _startObject = startObject;
+        _selectionSet = selectionSet;
+        _selectionSetId = selectionSetId;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public bool TryGetProperty(
+        ReadOnlySpan<byte> name,
+        out CompositeResultElement value)
+    {
+        if (_selectionSet.TryGetSelection(name, out var selection))
+        {
+            var propertyIndex = selection.Id - _selectionSetId - 1;
+            var cursor = _startObject + (propertyIndex * 2) + 2;
+            value = new CompositeResultElement(_document, cursor);
+            return true;
+        }
+
+        value = default;
+        return false;
     }
 }

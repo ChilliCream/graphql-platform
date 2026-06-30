@@ -1,10 +1,12 @@
 using System.Buffers;
 using System.Diagnostics;
+using System.Text.Json;
 using HotChocolate.Buffers;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Text.Json;
 using HotChocolate.Language;
+using HotChocolate.Text.Json;
 
 namespace HotChocolate.Fusion.Execution.Results;
 
@@ -35,6 +37,11 @@ internal sealed partial class FetchResultStore
         _includeFlags = includeFlags;
         _deferFlags = deferFlags;
         _disposed = false;
+
+        _variableWriter?.Dispose();
+        _variableWriter = new ArenaBufferWriter(arena);
+        _jsonWriter = new JsonWriter(_variableWriter, new JsonWriterOptions { Indented = false });
+        _variableDedupTable.SetWriter(_variableWriter);
 
         _pathPool ??= new PathSegmentLocalPool(pathSegmentLocalPoolCapacity);
         _result = new CompositeResultDocument(arena, operation, includeFlags, deferFlags, _pathPool);
@@ -73,6 +80,11 @@ internal sealed partial class FetchResultStore
         }
 
         _arena = arena;
+
+        _variableWriter.Dispose();
+        _variableWriter = new ArenaBufferWriter(arena);
+        _jsonWriter.Reset(_variableWriter);
+        _variableDedupTable.SetWriter(_variableWriter);
 
         _result = new CompositeResultDocument(
             _arena,
@@ -116,18 +128,22 @@ internal sealed partial class FetchResultStore
         _errors?.Clear();
         _pocketedErrors?.Clear();
 
-        // reset variable writer (returns excess chunks, keeps the first)
-        _variableWriter.Clean();
+        _variableWriter?.Dispose();
+        _variableWriter = default!;
+        _jsonWriter = default!;
 
         // clear collect target arrays to unroot CompositeResultDocument references;
         // if they grew too large during a burst, swap them for smaller ones.
         TrimOrClearBuffer(ref _collectTargetA, maxCollectTargetRetainLength);
         TrimOrClearBuffer(ref _collectTargetB, maxCollectTargetRetainLength);
         TrimOrClearBuffer(ref _collectTargetCombined, maxCollectTargetRetainLength);
+        TrimOrClearBuffer(ref _collectTargetPathSegments, maxCollectTargetRetainLength);
+        _collectTargetPathSegmentCount = 0;
 
         // clear dictionaries/hashsets; drop oversized ones.
         TrimOrClear(ref _seenPaths, maxDictionaryRetainCapacity, ReferenceEqualityComparer.Instance);
         _variableDedupTable.Clear();
+        _variableDedupTable.ClearWriter();
 
         // null out per-request references
         _result = default!;
@@ -138,12 +154,12 @@ internal sealed partial class FetchResultStore
         _arena = default!;
     }
 
-    private static void TrimOrClearBuffer(ref CompositeResultElement[] buffer, int maxRetainLength)
+    private static void TrimOrClearBuffer<T>(ref T[] buffer, int maxRetainLength)
     {
         if (buffer.Length > maxRetainLength)
         {
-            ArrayPool<CompositeResultElement>.Shared.Return(buffer, clearArray: true);
-            buffer = ArrayPool<CompositeResultElement>.Shared.Rent(64);
+            ArrayPool<T>.Shared.Return(buffer, clearArray: true);
+            buffer = ArrayPool<T>.Shared.Rent(64);
         }
         else
         {
@@ -174,9 +190,7 @@ internal sealed partial class FetchResultStore
     {
         if (dict.Count > maxRetainCapacity)
         {
-            dict = comparer is null
-                ? new Dictionary<TKey, TValue>()
-                : new Dictionary<TKey, TValue>(comparer);
+            dict = comparer is null ? [] : [with(comparer)];
         }
         else
         {
