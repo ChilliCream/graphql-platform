@@ -8,11 +8,15 @@ import { PlanSelector } from "@/src/components/pricing/PlanSelector";
 import { PricingFaq } from "@/src/components/pricing/PricingFaq";
 import { RegulatedBand } from "@/src/components/pricing/RegulatedBand";
 import { OutlineButton, SolidButton } from "@/src/design-system/Button";
+import { pageMetadata } from "@/src/helpers/pageMetadata";
 
 export const metadata: Metadata = {
-  title: "Pricing",
-  description:
-    "Nitro pricing: start free on the shared cloud, pay as you go at $20/mo, run a dedicated single-tenant instance from $400, or self-host. Compare every plan.",
+  ...pageMetadata({
+    title: "Pricing",
+    description:
+      "Nitro pricing: start free on the shared cloud, pay as you go at $20/mo, run a dedicated single-tenant instance from $400, or self-host. Compare every plan.",
+    path: "/pricing",
+  }),
   keywords: [
     "ChilliCream pricing",
     "Nitro pricing",
@@ -23,11 +27,6 @@ export const metadata: Metadata = {
     "schema registry pricing",
     "GraphQL observability pricing",
   ],
-  openGraph: {
-    title: "Nitro Pricing",
-    description:
-      "Start free on the shared cloud, pay as you go at $20/mo, run a dedicated single-tenant instance from $400, or self-host on your own infrastructure.",
-  },
 };
 
 export default function PricingPage() {

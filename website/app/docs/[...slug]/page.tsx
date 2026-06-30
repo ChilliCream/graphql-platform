@@ -18,8 +18,9 @@ import {
 } from "@/src/helpers/docsParams";
 import { getGitMetadata } from "@/src/helpers/gitMetadata";
 import { githubEditUrl } from "@/src/helpers/githubEditUrl";
+import { SITE_NAME, TWITTER_HANDLE } from "@/src/helpers/site";
 import { readFrontmatter } from "@/src/helpers/readFrontmatter";
-import { toAbsoluteUrl } from "@/src/helpers/siteUrl";
+import { SITE_URL, toAbsoluteUrl } from "@/src/helpers/siteUrl";
 
 type Params = {
   slug: string[];
@@ -71,7 +72,12 @@ export async function generateMetadata({
   if (rel === null) {
     return {};
   }
-  const { title, description } = readFrontmatter(path.join(CONTENT_ROOT, rel));
+  const { title, description, tags } = readFrontmatter(
+    path.join(CONTENT_ROOT, rel),
+  );
+  const docTags = Array.isArray(tags)
+    ? tags.filter((t): t is string => typeof t === "string" && t.length > 0)
+    : [];
   const gitMeta = await getGitMetadata(path.join(CONTENT_ROOT, rel));
 
   // Surface the product in the title tag ("OpenAPI Adapter - Hot Chocolate"),
@@ -102,14 +108,17 @@ export async function generateMetadata({
     },
     openGraph: {
       type: "article",
+      siteName: SITE_NAME,
       title: pageTitle,
       description,
       images: [ogImage],
       url: canonical,
       modifiedTime: gitMeta.isoDate,
+      tags: docTags.length > 0 ? docTags : undefined,
     },
     twitter: {
       card: "summary_large_image",
+      site: TWITTER_HANDLE,
       title: pageTitle,
       description,
       images: [ogImage],
@@ -157,6 +166,7 @@ export default async function DocPage({ params }: PageProps) {
         ? { description: frontmatter.description }
         : {}),
       dateModified: gitMeta.isoDate,
+      publisher: { "@id": `${SITE_URL}/#organization` },
       mainEntityOfPage: toAbsoluteUrl(`/docs/${slug.join("/")}`),
     },
     {

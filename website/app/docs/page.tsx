@@ -8,11 +8,13 @@ import { Mocha } from "@/src/icons/Mocha";
 import { Nitro } from "@/src/icons/Nitro";
 import { Skillz } from "@/src/icons/Skillz";
 import { StrawberryShake } from "@/src/icons/StrawberryShake";
+import { pageMetadata } from "@/src/helpers/pageMetadata";
 
-export const metadata = {
+export const metadata = pageMetadata({
   title: "Documentation",
   description: "Documentation for the ChilliCream GraphQL Platform.",
-};
+  path: "/docs",
+});
 
 type ProductIcon = ComponentType<{ className?: string }>;
 

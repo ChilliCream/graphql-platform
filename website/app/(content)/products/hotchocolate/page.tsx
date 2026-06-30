@@ -1,15 +1,15 @@
-import type { Metadata } from "next";
-
 import { ContentSection } from "@/src/components/ContentSection";
 import { PageHero } from "@/src/components/PageHero";
 import { Section } from "@/src/components/Section";
 import { OutlineButton, SolidButton } from "@/src/design-system/Button";
+import { pageMetadata } from "@/src/helpers/pageMetadata";
 
-export const metadata: Metadata = {
+export const metadata = pageMetadata({
   title: "Hot Chocolate",
   description:
     "Hot Chocolate is the GraphQL server for .NET: build type-safe APIs with DataLoader batching, subscriptions, OpenTelemetry, and federation via Fusion.",
-};
+  path: "/products/hotchocolate",
+});
 
 const FEATURES = [
   {
