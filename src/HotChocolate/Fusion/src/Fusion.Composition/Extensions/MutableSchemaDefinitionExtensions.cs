@@ -186,6 +186,10 @@ internal static class MutableSchemaDefinitionExtensions
                     InspectDirectiveDefinition(directiveDefinition, backlog);
                     break;
 
+                case IEnumTypeDefinition enumType:
+                    InspectEnumType(enumType, backlog);
+                    break;
+
                 case IInputObjectTypeDefinition inputObjectType:
                     InspectInputObjectType(inputObjectType, backlog);
                     break;
@@ -339,6 +343,24 @@ internal static class MutableSchemaDefinitionExtensions
         foreach (var argument in directiveDefinition.Arguments)
         {
             backlog.Push(argument.Type.AsTypeDefinition());
+        }
+    }
+
+    private static void InspectEnumType(
+        IEnumTypeDefinition enumType,
+        Stack<ITypeSystemMember> backlog)
+    {
+        foreach (var directive in enumType.Directives)
+        {
+            backlog.Push(directive.Definition);
+        }
+
+        foreach (var value in enumType.Values)
+        {
+            foreach (var directive in value.Directives)
+            {
+                backlog.Push(directive.Definition);
+            }
         }
     }
 

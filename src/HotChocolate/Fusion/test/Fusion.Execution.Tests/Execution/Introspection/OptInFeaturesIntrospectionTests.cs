@@ -468,4 +468,229 @@ public sealed class OptInFeaturesIntrospectionTests : FusionTestBase
             }
             """);
     }
+
+    // __Type.enumValues filters @requiresOptIn enum values: a value whose feature is passed
+    // in includeOptIn is included, one whose feature is not passed is omitted.
+    [Fact]
+    public async Task EnumValues_OptInValues_FilteredByIncludeOptIn()
+    {
+        // arrange
+        var services = new ServiceCollection();
+        services.AddHttpClient();
+        services
+            .AddGraphQLGateway()
+            .ModifyOptions(o => o.EnableOptInFeatures = true)
+            .AddInMemoryConfiguration(
+                ComposeSchemaDocument(
+                    """
+                    type Query {
+                        hero: Episode
+                    }
+
+                    enum Episode {
+                        NEWHOPE
+                        EMPIRE @requiresOptIn(feature: "experimental")
+                        JEDI @requiresOptIn(feature: "beta")
+                    }
+
+                    directive @requiresOptIn(feature: String!) repeatable on
+                        | FIELD_DEFINITION
+                        | ARGUMENT_DEFINITION
+                        | ENUM_VALUE
+                        | INPUT_FIELD_DEFINITION
+                        | DIRECTIVE_DEFINITION
+                    """))
+            .UseDefaultPipeline();
+
+        var executor = await services
+            .BuildServiceProvider()
+            .GetRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // act
+        var result = await executor.ExecuteAsync(
+            OperationRequestBuilder.New()
+                .SetDocument(
+                    """
+                    {
+                        __type(name: "Episode") {
+                            enumValues(includeOptIn: ["experimental"]) {
+                                name
+                            }
+                        }
+                    }
+                    """)
+                .Build(),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "__type": {
+                  "enumValues": [
+                    {
+                      "name": "NEWHOPE"
+                    },
+                    {
+                      "name": "EMPIRE"
+                    }
+                  ]
+                }
+              }
+            }
+            """);
+    }
+
+    // __Type.inputFields filters @requiresOptIn input fields: a field whose feature is passed
+    // in includeOptIn is included, one whose feature is not passed is omitted.
+    [Fact]
+    public async Task InputFields_OptInFields_FilteredByIncludeOptIn()
+    {
+        // arrange
+        var services = new ServiceCollection();
+        services.AddHttpClient();
+        services
+            .AddGraphQLGateway()
+            .ModifyOptions(o => o.EnableOptInFeatures = true)
+            .AddInMemoryConfiguration(
+                ComposeSchemaDocument(
+                    """
+                    type Query {
+                        field(input: ExampleInput): String
+                    }
+
+                    input ExampleInput {
+                        name: String
+                        experimental: String @requiresOptIn(feature: "experimental")
+                        beta: String @requiresOptIn(feature: "beta")
+                    }
+
+                    directive @requiresOptIn(feature: String!) repeatable on
+                        | FIELD_DEFINITION
+                        | ARGUMENT_DEFINITION
+                        | ENUM_VALUE
+                        | INPUT_FIELD_DEFINITION
+                        | DIRECTIVE_DEFINITION
+                    """))
+            .UseDefaultPipeline();
+
+        var executor = await services
+            .BuildServiceProvider()
+            .GetRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // act
+        var result = await executor.ExecuteAsync(
+            OperationRequestBuilder.New()
+                .SetDocument(
+                    """
+                    {
+                        __type(name: "ExampleInput") {
+                            inputFields(includeOptIn: ["experimental"]) {
+                                name
+                            }
+                        }
+                    }
+                    """)
+                .Build(),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "__type": {
+                  "inputFields": [
+                    {
+                      "name": "experimental"
+                    },
+                    {
+                      "name": "name"
+                    }
+                  ]
+                }
+              }
+            }
+            """);
+    }
+
+    // __Field.args filters @requiresOptIn field arguments: an argument whose feature is passed
+    // in includeOptIn is included, one whose feature is not passed is omitted.
+    [Fact]
+    public async Task FieldArguments_OptInArgs_FilteredByIncludeOptIn()
+    {
+        // arrange
+        var services = new ServiceCollection();
+        services.AddHttpClient();
+        services
+            .AddGraphQLGateway()
+            .ModifyOptions(o => o.EnableOptInFeatures = true)
+            .AddInMemoryConfiguration(
+                ComposeSchemaDocument(
+                    """
+                    type Query {
+                        field(
+                            normal: String
+                            experimental: String @requiresOptIn(feature: "experimental")
+                            beta: String @requiresOptIn(feature: "beta")
+                        ): String
+                    }
+
+                    directive @requiresOptIn(feature: String!) repeatable on
+                        | FIELD_DEFINITION
+                        | ARGUMENT_DEFINITION
+                        | ENUM_VALUE
+                        | INPUT_FIELD_DEFINITION
+                        | DIRECTIVE_DEFINITION
+                    """))
+            .UseDefaultPipeline();
+
+        var executor = await services
+            .BuildServiceProvider()
+            .GetRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // act
+        var result = await executor.ExecuteAsync(
+            OperationRequestBuilder.New()
+                .SetDocument(
+                    """
+                    {
+                        __type(name: "Query") {
+                            fields {
+                                name
+                                args(includeOptIn: ["experimental"]) {
+                                    name
+                                }
+                            }
+                        }
+                    }
+                    """)
+                .Build(),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "__type": {
+                  "fields": [
+                    {
+                      "name": "field",
+                      "args": [
+                        {
+                          "name": "experimental"
+                        },
+                        {
+                          "name": "normal"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+            """);
+    }
 }
