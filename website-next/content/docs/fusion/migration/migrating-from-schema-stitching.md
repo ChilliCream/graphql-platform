@@ -199,8 +199,7 @@ In stitching, when you want to add fields from one service to a type owned by an
 
 **Before (Stitching -- SDL extension file in the gateway or domain service):**
 
-```graphql
-# Stitching.graphql
+```graphql filename="Stitching.graphql"
 extend type Product {
   inStock: Boolean
     @delegate(
