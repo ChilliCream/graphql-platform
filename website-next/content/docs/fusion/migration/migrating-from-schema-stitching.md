@@ -39,8 +39,7 @@ In Fusion, the gateway has **no custom code**. It loads a pre-composed configura
 
 In stitching, it was common to define type extensions and delegating resolvers in the gateway using `.graphql` extension files:
 
-```graphql
-# Stitching.graphql (in the gateway project)
+```graphql filename="Gateway/Stitching.graphql"
 extend type Product {
   inStock: Boolean
     @delegate(
@@ -77,8 +76,7 @@ In stitching, your remote schemas are HotChocolate servers that may or may not p
 
 **Before (Stitching remote schema):**
 
-```csharp
-// Products service - Program.cs
+```csharp filename="Products/Program.cs"
 var builder = WebApplication.CreateBuilder(args);
 
 builder
@@ -90,8 +88,7 @@ app.MapGraphQL();
 app.Run();
 ```
 
-```csharp
-// Products service - ProductQueries.cs
+```csharp filename="Products/ProductQueries.cs"
 public class ProductQueries
 {
     public Product GetProductByUpc(int upc)
@@ -104,8 +101,7 @@ public class ProductQueries
 
 **After (Fusion subgraph):**
 
-```csharp
-// Products subgraph - Program.cs
+```csharp filename="Products/Program.cs"
 var builder = WebApplication.CreateBuilder(args);
 
 builder
@@ -120,8 +116,7 @@ app.MapGraphQL();
 app.RunWithGraphQLCommands(args);
 ```
 
-```csharp
-// Products subgraph - Types/ProductQueries.cs
+```csharp filename="Products/Types/ProductQueries.cs"
 [QueryType]
 public static partial class ProductQueries
 {
@@ -218,8 +213,7 @@ extend type Product {
 
 First, create an entity stub for `Product` in the Inventory subgraph. This is a lightweight C# type that declares "I know `Product` exists, identified by `upc`, and I want to add fields to it":
 
-```csharp
-// Inventory subgraph - Types/Product.cs
+```csharp filename="Inventory/Types/Product.cs"
 [EntityKey("upc")]
 public sealed record Product(int Upc)
 {
@@ -240,8 +234,7 @@ public sealed record Product(int Upc)
 }
 ```
 
-```csharp
-// Inventory subgraph - Types/ShippingInput.cs
+```csharp filename="Inventory/Types/ShippingInput.cs"
 public sealed class ShippingInput
 {
     public int Weight { get; init; }
@@ -251,8 +244,7 @@ public sealed class ShippingInput
 
 Then add an internal lookup so the gateway can resolve `Product` references within this subgraph:
 
-```csharp
-// Inventory subgraph - Types/InventoryQueries.cs
+```csharp filename="Inventory/Types/InventoryQueries.cs"
 [QueryType]
 public static partial class InventoryQueries
 {
@@ -275,8 +267,7 @@ The Fusion gateway is dramatically simpler than a stitching gateway because it h
 
 **Before (Stitching gateway):**
 
-```csharp
-// Gateway - Program.cs
+```csharp filename="Gateway/Program.cs"
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services
@@ -299,8 +290,7 @@ app.Run();
 
 **After (Fusion gateway):**
 
-```csharp
-// Gateway - Program.cs
+```csharp filename="Gateway/Program.cs"
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services
