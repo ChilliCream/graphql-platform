@@ -255,10 +255,31 @@ public sealed class OptInFeaturesIntrospectionTests : FusionTestBase
             TestContext.Current.CancellationToken);
 
         // assert
-        var operationResult = result.ExpectOperationResult();
-        Assert.Null(operationResult.Data);
-        Assert.NotNull(operationResult.Errors);
-        Assert.True(operationResult.Errors.Count > 0);
+        result.MatchInlineSnapshot(
+            """
+            {
+              "errors": [
+                {
+                  "message": "The argument `includeOptIn` does not exist.",
+                  "locations": [
+                    {
+                      "line": 3,
+                      "column": 16
+                    }
+                  ],
+                  "path": [
+                    "__type"
+                  ],
+                  "extensions": {
+                    "type": "__Type",
+                    "field": "fields",
+                    "argument": "includeOptIn",
+                    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Required-Arguments"
+                  }
+                }
+              ]
+            }
+            """);
     }
 
     // When EnableOptInFeatures is NOT active, the optInFeatures field does not exist

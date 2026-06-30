@@ -1196,6 +1196,16 @@ internal static class CompositeSchemaBuilder
             }
         }
 
+        foreach (IDirectiveDefinition directiveDefinition in context.DirectiveDefinitions)
+        {
+            CollectFromDirectives(directiveDefinition.Directives, result);
+
+            foreach (var argument in directiveDefinition.Arguments)
+            {
+                CollectFromDirectives(argument.Directives, result);
+            }
+        }
+
         return result;
 
         static void CollectFromDirectives(
