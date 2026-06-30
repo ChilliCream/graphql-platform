@@ -99,7 +99,7 @@ internal static class TransformRequiresToRequire
                 var nestedPath = new List<string>(parentPath) { fieldName };
 
                 ExtractRequireArguments(
-                    fieldNode.SelectionSet!,
+                    fieldNode.SelectionSet,
                     nestedPath,
                     nestedType,
                     schema,

@@ -166,7 +166,7 @@ public sealed partial class AsSelectorEncapsulatedProjectionTests(PostgreSqlReso
         params string[] expectedMembers)
     {
         Assert.NotNull(selector);
-        var body = UnwrapConvert(selector!.Body);
+        var body = UnwrapConvert(selector.Body);
 
         // a real projection materializes a new instance via member-init. The reuse path
         // (x => x) returns the parameter itself, so this also proves it is not identity reuse.
@@ -184,7 +184,7 @@ public sealed partial class AsSelectorEncapsulatedProjectionTests(PostgreSqlReso
     {
         Assert.NotNull(sql);
 
-        var selectIndex = sql!.IndexOf("SELECT", StringComparison.Ordinal);
+        var selectIndex = sql.IndexOf("SELECT", StringComparison.Ordinal);
         var fromIndex = sql.IndexOf("FROM", selectIndex, StringComparison.Ordinal);
         var selectClause = sql[selectIndex..fromIndex];
 

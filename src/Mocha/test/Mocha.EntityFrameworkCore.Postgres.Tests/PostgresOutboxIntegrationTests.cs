@@ -133,7 +133,7 @@ public sealed class PostgresOutboxIntegrationTests(PostgresFixture fixture) : IC
         using (var scope = provider.CreateScope())
         {
             var db = scope.ServiceProvider.GetRequiredService<TestDbContext>();
-            var messages = await db.Set<OutboxMessage>()!.ToListAsync(TestContext.Current.CancellationToken);
+            var messages = await db.Set<OutboxMessage>().ToListAsync(TestContext.Current.CancellationToken);
             Assert.Equal(count, messages.Count);
         }
 

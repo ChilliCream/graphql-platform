@@ -85,8 +85,8 @@ public class RabbitMQExplicitTopologyTests
         // assert
         var bindings = topology.Bindings.Where(b => b.Source.Name == "ex").ToList();
         Assert.Equal(3, bindings.Count);
-        Assert.Equal(3, bindings.Select(b => b.Address!.ToString()).Distinct().Count());
-        Assert.All(bindings, b => Assert.Contains("rk=", b.Address!.ToString()));
+        Assert.Equal(3, bindings.Select(b => b.Address.ToString()).Distinct().Count());
+        Assert.All(bindings, b => Assert.Contains("rk=", b.Address.ToString()));
     }
 
     [Fact]
@@ -234,7 +234,7 @@ public class RabbitMQExplicitTopologyTests
         // assert
         var bindings = topology.Bindings.Where(b => b.Source.Name == "src").ToList();
         Assert.Equal(2, bindings.Count);
-        Assert.Equal(2, bindings.Select(b => b.Address!.ToString()).Distinct().Count());
+        Assert.Equal(2, bindings.Select(b => b.Address.ToString()).Distinct().Count());
         Assert.All(bindings, b => Assert.IsType<RabbitMQExchangeBinding>(b));
     }
 

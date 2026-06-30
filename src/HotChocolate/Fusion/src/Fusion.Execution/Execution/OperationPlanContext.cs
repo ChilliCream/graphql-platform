@@ -40,7 +40,7 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
     private readonly INodeIdParser _nodeIdParser;
     private readonly IErrorHandler _errorHandler;
     private bool _collectTelemetry;
-    private ISourceSchemaClientScope _clientScope = default!;
+    private ISourceSchemaClientScope _clientScope;
     private string? _traceId;
     private long _start;
     private long _clientScopeCreatedAt;
@@ -48,18 +48,18 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
     private int _nodeSlotCapacity;
     private MemoryArena? _memory;
     private readonly FixedMemoryArenaSource _memorySource = new();
-    private IMemoryArenaSource _currentMemorySource = default!;
+    private IMemoryArenaSource _currentMemorySource;
     internal OperationPlanContextPool? _pool;
 
     /// <summary>
     /// Gets the operation plan being executed.
     /// </summary>
-    public IOperationPlan OperationPlan { get; private set; } = default!;
+    public IOperationPlan OperationPlan { get; private set; }
 
     /// <summary>
     /// Gets the coerced variable values for the current request.
     /// </summary>
-    public IVariableValueCollection Variables { get; private set; } = default!;
+    public IVariableValueCollection Variables { get; private set; }
 
     /// <summary>
     /// Gets the schema definition associated with this execution.
@@ -69,7 +69,7 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
     /// <summary>
     /// Gets the request context for the current request.
     /// </summary>
-    public RequestContext RequestContext { get; private set; } = default!;
+    public RequestContext RequestContext { get; private set; }
 
     /// <summary>
     /// Gets the source schema client scope used to obtain HTTP clients for downstream subgraphs.

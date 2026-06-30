@@ -591,7 +591,7 @@ public class CodeFirstSchemaTests
 
     public class InvalidQuery
     {
-        public FieldResult<Foo> Foo() => default!;
+        public FieldResult<Foo> Foo() => default;
     }
 
     public class InvalidQueryTask

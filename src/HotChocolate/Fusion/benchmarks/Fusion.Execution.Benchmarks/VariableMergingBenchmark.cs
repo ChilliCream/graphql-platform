@@ -41,8 +41,8 @@ public class VariableMergingBenchmark
     private static readonly HashSet<string> s_twoImportedKeys =
         new(["__fusion_1_id", "__fusion_2_sku"], StringComparer.Ordinal);
 
-    private FetchResultStore _baselineStore = null!;
-    private FetchResultStore _snapshotStore = null!;
+    private FetchResultStore _baselineStore;
+    private FetchResultStore _snapshotStore;
 
     private ImmutableArray<VariableValues> _singleEntrySnapshot;
     private ImmutableArray<VariableValues> _subsetEntrySnapshot;

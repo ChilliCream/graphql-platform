@@ -120,7 +120,7 @@ public static class HotChocolateFusionServiceCollectionExtensions
             static (sp, schemaName) =>
             {
                 var optionsMonitor = sp.GetRequiredService<IOptionsMonitor<FusionGatewaySetup>>();
-                var setup = optionsMonitor.Get((string)schemaName!);
+                var setup = optionsMonitor.Get((string)schemaName);
 
                 var options = FusionRequestExecutorManager.CreateOptions(setup);
 
