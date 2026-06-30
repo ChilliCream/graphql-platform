@@ -48,7 +48,7 @@ public class Issue7110ReproTests : IClassFixture<SchemaCache>
                           }
                         }
                         """)
-                    .SetVariableValues(new Dictionary<string, object?> { ["id"] = relayId! })
+                    .SetVariableValues(new Dictionary<string, object?> { ["id"] = relayId })
                     .Build(),
                 TestContext.Current.CancellationToken);
 

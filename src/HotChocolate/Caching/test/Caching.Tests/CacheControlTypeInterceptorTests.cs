@@ -336,7 +336,7 @@ public class CacheControlTypeInterceptorTests
 
         public Task<string> TaskField() => null!;
 
-        public ValueTask<string> ValueTaskField() => default!;
+        public ValueTask<string> ValueTaskField() => default;
 
         public IExecutable<string> ExecutableField() => null!;
 
@@ -355,7 +355,7 @@ public class CacheControlTypeInterceptorTests
         public Task<string> TaskFieldWithCacheControl() => null!;
 
         [CacheControl(200)]
-        public ValueTask<string> ValueTaskFieldWithCacheControl() => default!;
+        public ValueTask<string> ValueTaskFieldWithCacheControl() => default;
 
         [CacheControl(200)]
         public IExecutable<string> ExecutableFieldWithCacheControl() => null!;

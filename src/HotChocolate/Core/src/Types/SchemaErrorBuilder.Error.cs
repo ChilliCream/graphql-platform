@@ -78,7 +78,7 @@ public partial class SchemaErrorBuilder
                 writer.WritePropertyName("path");
                 writer.WriteStartArray();
 
-                foreach (var segment in Path.Select(t => t.ToString()!))
+                foreach (var segment in Path.Select(t => t.ToString()))
                 {
                     writer.WriteStringValue(segment);
                 }

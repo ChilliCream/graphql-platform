@@ -19,7 +19,7 @@ export function RegulatedBand() {
     >
       <div className="grid items-center gap-8 md:grid-cols-[1.4fr_1fr]">
         <div>
-          <p className="text-cc-nav-label font-mono text-xs tracking-[0.18em] uppercase">
+          <p className="text-cc-ink-dim font-mono text-xs tracking-[0.18em] uppercase">
             Regulated &amp; on-prem
           </p>
           <h2

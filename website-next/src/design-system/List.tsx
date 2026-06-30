@@ -4,8 +4,8 @@ type ListProps = ComponentPropsWithoutRef<"ul"> & { ordered?: boolean };
 
 export function List({ ordered, className = "", ...props }: ListProps) {
   const styles = ordered
-    ? "my-4 ml-6 list-decimal marker:text-cc-ink-dim space-y-1"
-    : "my-4 ml-6 list-disc marker:text-cc-ink-dim space-y-1";
+    ? "my-4 ml-6 list-decimal marker:text-cc-prose space-y-1"
+    : "my-4 ml-6 list-disc marker:text-cc-prose space-y-1";
 
   if (ordered) {
     return <ol className={`${styles} ${className}`.trim()} {...props} />;

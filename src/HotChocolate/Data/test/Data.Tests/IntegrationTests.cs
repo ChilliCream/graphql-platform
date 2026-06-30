@@ -248,7 +248,7 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                 o =>
                     o.ImplementsNode()
                         .IdField(f => f.Id)
-                        .ResolveNode(_ => default!))
+                        .ResolveNode(_ => default))
             .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
@@ -288,7 +288,7 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                 o =>
                     o.ImplementsNode()
                         .IdField(f => f.Id)
-                        .ResolveNode(_ => default!))
+                        .ResolveNode(_ => default))
             .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
@@ -328,7 +328,7 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                 o =>
                     o.ImplementsNode()
                         .IdField(f => f.Id)
-                        .ResolveNode(_ => default!))
+                        .ResolveNode(_ => default))
             .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
@@ -370,7 +370,7 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                 o =>
                     o.ImplementsNode()
                         .IdField(f => f.Id)
-                        .ResolveNode(_ => default!))
+                        .ResolveNode(_ => default))
             .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
@@ -410,7 +410,7 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                 o =>
                     o.ImplementsNode()
                         .IdField(f => f.Id)
-                        .ResolveNode(_ => default!))
+                        .ResolveNode(_ => default))
             .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
@@ -453,7 +453,7 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                 o =>
                     o.ImplementsNode()
                         .IdField(f => f.Id)
-                        .ResolveNode(_ => default!))
+                        .ResolveNode(_ => default))
             .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
@@ -494,7 +494,7 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                 o =>
                     o.ImplementsNode()
                         .IdField(f => f.Id)
-                        .ResolveNode(_ => default!))
+                        .ResolveNode(_ => default))
             .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
@@ -537,7 +537,7 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                 o =>
                     o.ImplementsNode()
                         .IdField(f => f.Id)
-                        .ResolveNode(_ => default!))
+                        .ResolveNode(_ => default))
             .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
@@ -584,7 +584,7 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                 o =>
                     o.ImplementsNode()
                         .IdField(f => f.Id)
-                        .ResolveNode(_ => default!))
+                        .ResolveNode(_ => default))
             .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act

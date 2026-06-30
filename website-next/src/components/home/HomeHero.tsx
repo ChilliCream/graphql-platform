@@ -44,7 +44,7 @@ export function HomeHero() {
         {HERO_SWIRLS_MOBILE.map(({ left, top, heroSize, rotate }) => (
           <Swirl
             key={left + top}
-            className="text-cc-nav-label/60 absolute"
+            className="text-cc-ink-dim/60 absolute"
             style={position(left, top, {
               width: heroSize,
               height: heroSize,
@@ -67,7 +67,7 @@ export function HomeHero() {
         {HERO_SWIRLS.map(({ left, top, heroSize, rotate }) => (
           <Swirl
             key={left + top}
-            className="text-cc-nav-label/60 absolute"
+            className="text-cc-ink-dim/60 absolute"
             style={position(left, top, {
               width: heroSize,
               height: heroSize,

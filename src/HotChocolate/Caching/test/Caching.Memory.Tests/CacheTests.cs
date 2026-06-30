@@ -173,8 +173,8 @@ public class CacheTests
         Assert.NotNull(diag.SizeGauge);
         Assert.NotNull(diag.CapacityGauge);
 
-        Assert.Equal(2, diag.SizeGauge!());
-        Assert.Equal(4, diag.CapacityGauge!());
+        Assert.Equal(2, diag.SizeGauge());
+        Assert.Equal(4, diag.CapacityGauge());
     }
 
     [Fact]

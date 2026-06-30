@@ -48,7 +48,7 @@ public class QueryableFilterVisitorListTests
         {
             FooNested =
             [
-                new() { Bar = null! },
+                new() { Bar = null },
                 new() { Bar = "d" },
                 new() { Bar = "b" }
             ]

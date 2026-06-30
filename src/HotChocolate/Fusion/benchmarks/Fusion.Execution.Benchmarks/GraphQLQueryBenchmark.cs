@@ -25,15 +25,15 @@ namespace Fusion.Execution.Benchmarks;
 public class GraphQLQueryBenchmark
 {
     private readonly Uri _requestUri = new Uri("http://localhost:5000/graphql");
-    private TestServer _server = null!;
-    private WebApplication _app = null!;
-    private HttpClient _client = null!;
-    private FusionClient _fusionClient = null!;
-    private FusionGraphQLHttpRequest _fusionItemsRequest = null!;
-    private FusionGraphQLHttpRequest _fusionFewItemsRequest = null!;
-    private TransportClient _transportClient = null!;
-    private TransportGraphQLHttpRequest _transportItemsRequest = null!;
-    private TransportGraphQLHttpRequest _transportFewItemsRequest = null!;
+    private TestServer _server;
+    private WebApplication _app;
+    private HttpClient _client;
+    private FusionClient _fusionClient;
+    private FusionGraphQLHttpRequest _fusionItemsRequest;
+    private FusionGraphQLHttpRequest _fusionFewItemsRequest;
+    private TransportClient _transportClient;
+    private TransportGraphQLHttpRequest _transportItemsRequest;
+    private TransportGraphQLHttpRequest _transportFewItemsRequest;
 
     private sealed class PercentilesConfig : ManualConfig
     {

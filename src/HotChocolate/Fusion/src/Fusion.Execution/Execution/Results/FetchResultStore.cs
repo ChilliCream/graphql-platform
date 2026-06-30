@@ -466,7 +466,7 @@ AddErrors_Next:
                 }
 
 AddErrors_Next:
-                path = ref Unsafe.Add(ref path, 1)!;
+                path = ref Unsafe.Add(ref path, 1);
             }
         }
 

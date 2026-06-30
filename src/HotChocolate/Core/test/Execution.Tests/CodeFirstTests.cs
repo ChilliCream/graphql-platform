@@ -61,7 +61,7 @@ public class CodeFirstTests
 
         // assert
         Assert.Collection(
-            Assert.IsType<OperationResult>(result).Errors!,
+            Assert.IsType<OperationResult>(result).Errors,
             e => Assert.Equal("Document contains more than 5 tokens. Parsing aborted.", e.Message));
     }
 
@@ -99,7 +99,7 @@ public class CodeFirstTests
 
         // assert
         Assert.Collection(
-            Assert.IsType<OperationResult>(result).Errors!,
+            Assert.IsType<OperationResult>(result).Errors,
             e => Assert.Equal("Document contains more than 6 nodes. Parsing aborted.", e.Message));
     }
 

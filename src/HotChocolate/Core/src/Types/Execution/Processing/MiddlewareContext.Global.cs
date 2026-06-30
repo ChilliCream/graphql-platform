@@ -10,9 +10,11 @@ internal partial class MiddlewareContext : IMiddlewareContext
 {
     private readonly OperationResultBuilderFacade _operationResultBuilder = new();
     private readonly List<Func<ValueTask>> _cleanupTasks = [];
+#pragma warning disable IDE0370 // Remove unnecessary suppression
     private OperationContext _operationContext = null!;
     private IServiceProvider _services = null!;
     private InputParser _parser = null!;
+#pragma warning restore IDE0370 // Remove unnecessary suppression
     private object? _resolverResult;
     private bool _hasResolverResult;
 
