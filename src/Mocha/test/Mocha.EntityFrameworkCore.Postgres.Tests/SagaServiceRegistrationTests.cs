@@ -66,7 +66,7 @@ public sealed class SagaServiceRegistrationTests
 
         // Act
         var optionsMonitor = provider.GetRequiredService<IOptionsMonitor<PostgresSagaStoreOptions>>();
-        var contextName = typeof(TestDbContext).FullName!;
+        var contextName = typeof(TestDbContext).FullName;
         var options = optionsMonitor.Get(contextName);
 
         // Assert

@@ -169,7 +169,7 @@ Migrate one subgraph repository at a time. Throughout this stage your gateway st
 > [!NOTE]
 > In Fusion v15 a subgraph pipeline composes a Fusion gateway package (`.fgp`) and publishes it to Nitro as the latest archive. In Fusion v16 the equivalent artifact is the Fusion archive (`.far`).
 
-The change to each subgraph pipeline is small: keep the v15 compose step that produces the `.fgp`, but instead of publishing the `.fgp` directly, publish a `.far` with that `.fgp` embedded via `--legacy-v1-archive`. This keeps the `.fgp` fresh for the running v15 gateway and makes the `.far` available for the v16 cut-over.
+The change to each subgraph pipeline is small: keep the v15 compose step that produces the `.fgp`, but instead of publishing the `.fgp` directly, publish a `.far` with that `.fgp` embedded via the legacy archive option. This keeps the `.fgp` fresh for the running v15 gateway and makes the `.far` available for the v16 cut-over.
 
 Two pipelines in a typical subgraph repository need this change:
 
@@ -237,6 +237,21 @@ Add a step to the build job that uploads the exported source schema to Nitro. Th
 ```
 
 </PipelineChoiceTabs.GitHubAction>
+<PipelineChoiceTabs.AzureDevOps>
+
+```yaml
+- task: NitroFusionUpload@16
+  inputs:
+    # Authentication depends on the method you configured.
+    # This example uses a Nitro service connection.
+    nitroServiceConnection: <service-connection>
+    apiId: <api-id>
+    tag: <tag>
+    sourceSchemaFiles: |
+      ./src/SubgraphA/schema.graphql
+```
+
+</PipelineChoiceTabs.AzureDevOps>
 <PipelineChoiceTabs.CLI>
 
 ```bash
@@ -286,6 +301,23 @@ Replace it with `dotnet nitro fusion publish`, passing the freshly composed `gat
 ```
 
 </PipelineChoiceTabs.GitHubAction>
+<PipelineChoiceTabs.AzureDevOps>
+
+```yaml
+- task: NitroFusionPublish@16
+  inputs:
+    # Authentication depends on the method you configured.
+    # This example uses a Nitro service connection.
+    nitroServiceConnection: <service-connection>
+    apiId: <api-id>
+    tag: <tag>
+    stage: <stage>
+    legacyV1Archive: ./gateway.fgp
+    sourceSchemas: |
+      subgraph-a
+```
+
+</PipelineChoiceTabs.AzureDevOps>
 <PipelineChoiceTabs.CLI>
 
 ```bash
@@ -305,7 +337,7 @@ dotnet nitro fusion publish \
 > `dotnet nitro fusion publish` should run **after** the subgraph application has been deployed. Once it succeeds, the new archive becomes the latest in Nitro and the gateway will start routing traffic against the new schema, so the subgraph must already be reachable at that URL.
 
 > [!NOTE]
-> `--legacy-v1-archive` is only required during the transition. Once every subgraph has been migrated to v16 and the gateway has been cut over to consume `.far` directly, the v15 compose step and the `--legacy-v1-archive` option can be removed (see [Cleanup](#cleanup)).
+> The legacy archive is only required during the transition. Once every subgraph has been migrated to v16 and the gateway has been cut over to consume `.far` directly, the v15 compose step and the legacy archive option can be removed (see [Cleanup](#cleanup)).
 
 ### PR validation pipeline
 
@@ -355,6 +387,22 @@ As with the deployment pipeline, the v15 download and compose steps stay in plac
 ```
 
 </PipelineChoiceTabs.GitHubAction>
+<PipelineChoiceTabs.AzureDevOps>
+
+```yaml
+- task: NitroFusionValidate@16
+  inputs:
+    # Authentication depends on the method you configured.
+    # This example uses a Nitro service connection.
+    nitroServiceConnection: <service-connection>
+    apiId: <api-id>
+    stage: <stage>
+    legacyV1Archive: ./gateway.fgp
+    sourceSchemaFiles: |
+      ./src/SubgraphA/schema.graphql
+```
+
+</PipelineChoiceTabs.AzureDevOps>
 <PipelineChoiceTabs.CLI>
 
 ```bash

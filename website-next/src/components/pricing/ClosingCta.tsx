@@ -22,7 +22,7 @@ export function ClosingCta() {
         </SolidButton>
         <OutlineButton href="/docs">Read the docs</OutlineButton>
       </ButtonRow>
-      <p className="text-cc-nav-label mt-6 font-mono text-xs">
+      <p className="text-cc-ink-dim mt-6 font-mono text-xs">
         No credit card. Free on the shared cloud.
       </p>
     </Band>

@@ -67,6 +67,21 @@ After the export, upload the file. The `tag` you pass here is the handle the pub
 ```
 
 </PipelineChoiceTabs.GitHubAction>
+<PipelineChoiceTabs.AzureDevOps>
+
+```yaml
+- task: NitroFusionUpload@16
+  inputs:
+    # Authentication depends on the method you configured.
+    # This example uses a Nitro service connection.
+    nitroServiceConnection: nitro-prod
+    apiId: $(NITRO_API_ID)
+    tag: $(Build.SourceVersion)
+    sourceSchemaFiles: |
+      ./src/SubgraphA/schema.graphql
+```
+
+</PipelineChoiceTabs.AzureDevOps>
 <PipelineChoiceTabs.CLI>
 
 ```bash
@@ -153,6 +168,22 @@ The deploy job publishes a new Fusion configuration that references the source s
 ```
 
 </PipelineChoiceTabs.GitHubAction>
+<PipelineChoiceTabs.AzureDevOps>
+
+```yaml
+- task: NitroFusionPublish@16
+  inputs:
+    # Authentication depends on the method you configured.
+    # This example uses a Nitro service connection.
+    nitroServiceConnection: nitro-prod
+    apiId: $(NITRO_API_ID)
+    tag: $(Build.SourceVersion)
+    stage: production
+    sourceSchemas: |
+      subgraph-a@$(Build.SourceVersion)
+```
+
+</PipelineChoiceTabs.AzureDevOps>
 <PipelineChoiceTabs.CLI>
 
 ```bash
@@ -199,6 +230,21 @@ Before merging a change to a subgraph schema, the PR validation workflow asks Ni
 ```
 
 </PipelineChoiceTabs.GitHubAction>
+<PipelineChoiceTabs.AzureDevOps>
+
+```yaml
+- task: NitroFusionValidate@16
+  inputs:
+    # Authentication depends on the method you configured.
+    # This example uses a Nitro service connection.
+    nitroServiceConnection: nitro-prod
+    apiId: $(NITRO_API_ID)
+    stage: production
+    sourceSchemaFiles: |
+      ./src/SubgraphA/schema.graphql
+```
+
+</PipelineChoiceTabs.AzureDevOps>
 <PipelineChoiceTabs.CLI>
 
 ```bash

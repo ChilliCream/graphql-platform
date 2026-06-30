@@ -30,7 +30,7 @@ public class DateTypeTests
         var expectedDate = new DateOnly(2018, 6, 29);
 
         // act
-        var date = (DateOnly)type.CoerceInputLiteral(literal)!;
+        var date = (DateOnly)type.CoerceInputLiteral(literal);
 
         // assert
         Assert.Equal(expectedDate, date);
@@ -53,7 +53,7 @@ public class DateTypeTests
         var expectedDate = new DateOnly(2018, 6, 29);
 
         // act
-        var date = (DateOnly)type.CoerceInputLiteral(literal)!;
+        var date = (DateOnly)type.CoerceInputLiteral(literal);
 
         // assert
         Assert.Equal(expectedDate, date);

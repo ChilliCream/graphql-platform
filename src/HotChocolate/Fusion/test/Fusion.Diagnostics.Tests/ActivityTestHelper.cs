@@ -34,7 +34,7 @@ public static partial class ActivityTestHelper
             // Registered after the exporter so the exporter's OnEnd appends the span before
             // this processor signals idle.
             .AddProcessor(quiescence)
-            .Build()!;
+            .Build();
 
         var capture = new Capture(tracerProvider, exported, quiescence);
         activities = capture;

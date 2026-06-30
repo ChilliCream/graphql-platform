@@ -36,7 +36,7 @@ public sealed class EventMessage : IDisposable
         {
             var message = _message;
             ObjectDisposedException.ThrowIf(message is null, this);
-            return message!.Memory.Span.Slice(_bodyStart, _bodyLength);
+            return message.Memory.Span.Slice(_bodyStart, _bodyLength);
         }
     }
 
@@ -53,7 +53,7 @@ public sealed class EventMessage : IDisposable
         {
             var message = _message;
             ObjectDisposedException.ThrowIf(message is null, this);
-            return message!.Memory.Span.Slice(_cursorStart, _cursorLength);
+            return message.Memory.Span.Slice(_cursorStart, _cursorLength);
         }
     }
 

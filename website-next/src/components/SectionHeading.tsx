@@ -41,7 +41,7 @@ export function SectionHeading({
   return (
     <div className={centered ? "text-center" : undefined}>
       {eyebrow && (
-        <p className="text-cc-nav-label font-mono text-xs tracking-[0.18em] uppercase">
+        <p className="text-cc-ink-dim font-mono text-xs tracking-[0.18em] uppercase">
           {eyebrow}
         </p>
       )}

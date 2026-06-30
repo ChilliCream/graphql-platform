@@ -30,7 +30,7 @@ export function MarketingHero({
   return (
     <section className="pt-16 pb-12 text-center sm:pt-24 sm:pb-16">
       {eyebrow && (
-        <p className="text-cc-nav-label font-mono text-xs tracking-[0.18em] uppercase">
+        <p className="text-cc-ink-dim font-mono text-xs tracking-[0.18em] uppercase">
           {eyebrow}
         </p>
       )}
@@ -45,7 +45,7 @@ export function MarketingHero({
       {children}
       {actions && <div className="mt-9">{actions}</div>}
       {footnote && (
-        <p className="text-cc-nav-label mt-5 font-mono text-[0.65rem] tracking-[0.18em] uppercase">
+        <p className="text-cc-ink-dim mt-5 font-mono text-[0.65rem] tracking-[0.18em] uppercase">
           {footnote}
         </p>
       )}

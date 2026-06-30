@@ -152,7 +152,7 @@ internal sealed class DownloadClientCommand : Command
 
 internal sealed class PersistedQueryStreamResult
 {
-    public Guid ApiId { get; init; } = default!;
+    public Guid ApiId { get; init; }
 
     public string[] DocumentIds { get; init; } = default!;
 

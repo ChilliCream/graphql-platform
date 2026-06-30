@@ -27,8 +27,7 @@ By the end of this section, you will have a working event handler that logs publ
 
 ## Define the message
 
-```csharp
-// OrderPlaced.cs
+```csharp filename="OrderPlaced.cs"
 namespace MyApp.Messages;
 
 public sealed record OrderPlaced
@@ -43,8 +42,7 @@ Messages are plain C# records. No base class or marker interface required for pu
 
 ## Implement the handler
 
-```csharp
-// OrderPlacedHandler.cs
+```csharp filename="OrderPlacedHandler.cs"
 using Mocha;
 using MyApp.Messages;
 
@@ -72,8 +70,7 @@ public class OrderPlacedHandler(ILogger<OrderPlacedHandler> logger)
 
 ## Register and run
 
-```csharp
-// Program.cs
+```csharp filename="Program.cs"
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services
@@ -120,8 +117,7 @@ A request handler processes a request and returns a typed response. The caller a
 
 The request record must implement `IEventRequest<TResponse>`. This marker interface tells Mocha the expected response type and enables type-safe `RequestAsync` calls.
 
-```csharp
-// GetProductRequest.cs
+```csharp filename="GetProductRequest.cs"
 using Mocha;
 
 namespace MyApp.Messages;
@@ -142,8 +138,7 @@ public sealed record GetProductResponse
 
 ## Implement the handler
 
-```csharp
-// GetProductRequestHandler.cs
+```csharp filename="GetProductRequestHandler.cs"
 using Mocha;
 using MyApp.Messages;
 
@@ -201,8 +196,7 @@ A send handler processes a one-way instruction. There is no typed response. The 
 
 Send messages do not implement `IEventRequest<T>` because there is no typed response.
 
-```csharp
-// ReserveInventoryCommand.cs
+```csharp filename="ReserveInventoryCommand.cs"
 namespace MyApp.Messages;
 
 public sealed record ReserveInventoryCommand
@@ -217,8 +211,7 @@ public sealed record ReserveInventoryCommand
 
 Use `IEventRequestHandler<TRequest>` - the single type parameter variant, with no response type:
 
-```csharp
-// ReserveInventoryCommandHandler.cs
+```csharp filename="ReserveInventoryCommandHandler.cs"
 using Mocha;
 using MyApp.Messages;
 
@@ -288,8 +281,7 @@ A batch handler receives groups of messages at once instead of one at a time. Us
 
 ## Implement the handler
 
-```csharp
-// OrderPlacedBatchHandler.cs
+```csharp filename="OrderPlacedBatchHandler.cs"
 using Mocha;
 using MyApp.Messages;
 
@@ -382,8 +374,7 @@ info: MyApp.Handlers.OrderPlacedBatchHandler[0]
 
 For cases where you need the full consume context - message headers, correlation IDs, source addresses - implement `IConsumer<T>` instead of a handler interface.
 
-```csharp
-// OrderAuditConsumer.cs
+```csharp filename="OrderAuditConsumer.cs"
 using Mocha;
 using MyApp.Messages;
 

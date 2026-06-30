@@ -444,7 +444,7 @@ public class LongitudeTypeTests : ScalarTypeTestBase
         int precision = 8)
     {
         return Math.Round(
-            (double)scalar.CoerceInputLiteral(valueSyntax)!,
+            (double)scalar.CoerceInputLiteral(valueSyntax),
             precision,
             MidpointRounding.AwayFromZero);
     }

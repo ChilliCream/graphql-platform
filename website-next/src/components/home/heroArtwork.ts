@@ -258,8 +258,8 @@ export const HERO_SWIRLS: readonly HeroSwirl[] = [
  */
 export const HERO_SWIRLS_MOBILE: readonly HeroSwirl[] = [
   {
-    left: "11%",
-    top: "38%",
+    left: "9%",
+    top: "31%",
     rotate: "-12deg",
     heroSize: "1.3rem",
     cardSize: 21,

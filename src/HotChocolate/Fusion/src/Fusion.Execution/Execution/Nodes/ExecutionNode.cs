@@ -77,13 +77,15 @@ public abstract class ExecutionNode : IOperationPlanNode, IEquatable<ExecutionNo
         CancellationToken cancellationToken = default)
     {
         var start = Stopwatch.GetTimestamp();
-        var scope = CreateScope(context);
         var activity = Activity.Current;
-        ExecutionStatus status;
+        IDisposable? scope = null;
+        var status = ExecutionStatus.Failed;
         Exception? error = null;
 
         try
         {
+            scope = CreateScope(context);
+
             if (IsSkipped(context))
             {
                 status = ExecutionStatus.Skipped;
@@ -95,27 +97,31 @@ public abstract class ExecutionNode : IOperationPlanNode, IEquatable<ExecutionNo
         }
         catch (Exception ex)
         {
-            OnError(context, scope, ex);
             error = ex;
             status = ExecutionStatus.Failed;
+            OnError(context, scope, ex);
         }
         finally
         {
             scope?.Dispose();
+
+            // A started node must always report exactly one completion so the
+            // execution state's active-node count stays balanced. Otherwise the
+            // executor (and its drain) would wait forever for a node that never
+            // reports back.
+            var result = new ExecutionNodeResult(
+                Id,
+                activity,
+                status,
+                Stopwatch.GetElapsedTime(start),
+                error,
+                context.GetDependentsToExecute(this),
+                context.GetSkippedDefinitions(this),
+                context.GetVariableValueSets(this),
+                context.GetTransportDetails(this));
+
+            context.CompleteNode(result);
         }
-
-        var result = new ExecutionNodeResult(
-            Id,
-            activity,
-            status,
-            Stopwatch.GetElapsedTime(start),
-            error,
-            context.GetDependentsToExecute(this),
-            context.GetSkippedDefinitions(this),
-            context.GetVariableValueSets(this),
-            context.GetTransportDetails(this));
-
-        context.CompleteNode(result);
     }
 
     protected abstract ValueTask<ExecutionStatus> OnExecuteAsync(
