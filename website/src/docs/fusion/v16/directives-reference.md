@@ -8,20 +8,21 @@ In HotChocolate, these directives are expressed using C# attributes. See the ind
 
 # Quick Reference
 
-| Directive                        | Locations                                 | Repeatable | Purpose                                           |
-| -------------------------------- | ----------------------------------------- | :--------: | ------------------------------------------------- |
-| [`@key`](#key)                   | `OBJECT`, `INTERFACE`                     |    Yes     | Define entity identity                            |
-| [`@lookup`](#lookup)             | `FIELD_DEFINITION`                        |     No     | Mark entity lookup resolvers                      |
-| [`@is`](#is)                     | `ARGUMENT_DEFINITION`                     |     No     | Map lookup arguments to entity fields             |
-| [`@require`](#require)           | `ARGUMENT_DEFINITION`                     |     No     | Declare cross-subgraph data dependencies          |
-| [`@shareable`](#shareable)       | `OBJECT`, `FIELD_DEFINITION`              |    Yes     | Allow multiple subgraphs to define the same field |
-| [`@provides`](#provides)         | `FIELD_DEFINITION`                        |     No     | Declare locally-resolvable subfields              |
-| [`@external`](#external)         | `FIELD_DEFINITION`                        |     No     | Mark field as owned by another subgraph           |
-| [`@override`](#override)         | `FIELD_DEFINITION`                        |     No     | Migrate field ownership between subgraphs         |
-| [`@internal`](#internal)         | `OBJECT`, `FIELD_DEFINITION`              |     No     | Hide from composite schema and merge process      |
-| [`@inaccessible`](#inaccessible) | 10 locations                              |     No     | Hide from client-facing composite schema          |
-| [`@eventStream`](#eventstream)   | `FIELD_DEFINITION`                        |     No     | Back a subscription field with a message broker   |
-| [`@eventCursor`](#eventcursor)   | `ARGUMENT_DEFINITION`, `FIELD_DEFINITION` |     No     | Mark the resume cursor for resumable streams      |
+| Directive                          | Locations                                 | Repeatable | Purpose                                           |
+| ---------------------------------- | ----------------------------------------- | :--------: | ------------------------------------------------- |
+| [`@key`](#key)                     | `OBJECT`, `INTERFACE`                     |    Yes     | Define entity identity                            |
+| [`@lookup`](#lookup)               | `FIELD_DEFINITION`                        |     No     | Mark entity lookup resolvers                      |
+| [`@propagateNull`](#propagatenull) | `FIELD_DEFINITION`                        |     No     | Invalidate entity when its lookup returns null    |
+| [`@is`](#is)                       | `ARGUMENT_DEFINITION`                     |     No     | Map lookup arguments to entity fields             |
+| [`@require`](#require)             | `ARGUMENT_DEFINITION`                     |     No     | Declare cross-subgraph data dependencies          |
+| [`@shareable`](#shareable)         | `OBJECT`, `FIELD_DEFINITION`              |    Yes     | Allow multiple subgraphs to define the same field |
+| [`@provides`](#provides)           | `FIELD_DEFINITION`                        |     No     | Declare locally-resolvable subfields              |
+| [`@external`](#external)           | `FIELD_DEFINITION`                        |     No     | Mark field as owned by another subgraph           |
+| [`@override`](#override)           | `FIELD_DEFINITION`                        |     No     | Migrate field ownership between subgraphs         |
+| [`@internal`](#internal)           | `OBJECT`, `FIELD_DEFINITION`              |     No     | Hide from composite schema and merge process      |
+| [`@inaccessible`](#inaccessible)   | 10 locations                              |     No     | Hide from client-facing composite schema          |
+| [`@eventStream`](#eventstream)     | `FIELD_DEFINITION`                        |     No     | Back a subscription field with a message broker   |
+| [`@eventCursor`](#eventcursor)     | `ARGUMENT_DEFINITION`, `FIELD_DEFINITION` |     No     | Mark the resume cursor for resumable streams      |
 
 ---
 
@@ -128,6 +129,54 @@ type Product {
 ```
 
 > **In C#:** `[Lookup]` attribute. See [Entities and Lookups](/docs/fusion/v16/entities-and-lookups).
+
+---
+
+## `@propagateNull`
+
+Marks a lookup field whose `null` result invalidates the entire entity it resolves, instead of only the fields that lookup contributes.
+
+```graphql
+directive @propagateNull on FIELD_DEFINITION
+```
+
+`@propagateNull` may only be applied to a field that is also a lookup (`@lookup`). Applying it to a non-lookup field fails composition with `PROPAGATE_NULL_ON_NON_LOOKUP_FIELD`, and the directive is not repeatable, so applying it more than once on the same field fails with `PROPAGATE_NULL_DIRECTIVE_NOT_REPEATABLE`.
+
+By default, when a lookup returns `null` for an entity the gateway treats it as "this source has nothing to contribute": the entity is kept and only the fields that lookup would have provided are set to `null`. With `@propagateNull`, a `null` lookup result instead means "this entity does not exist", so the gateway invalidates the whole entity node that the lookup resolved:
+
+- The entity is set to `null`. If it sits in a non-null position, the `null` propagates up the response following the standard GraphQL null-propagation rules.
+- Dependent lookups that draw their input from the invalidated lookup are skipped, avoiding those subgraph requests. A dependent lookup keyed on the entity's already-known key may still be sent, but its result is discarded.
+- If the lookup returned `null` together with an error, that error is re-pathed to the entity's location in the response. An entity may be resolved by more than one `@propagateNull` lookup, and each one that errors records its own error at that location.
+- Inside a list, only the element backed by the `null` lookup is set to `null`; sibling elements continue to resolve.
+- The invalidation only happens when the lookup actually runs. If the client selects no field backed by that lookup, the gateway never sends it and the entity is not invalidated, so `@propagateNull` is not an unconditional existence check.
+
+**Example:**
+
+```graphql
+# Source schema
+type Query {
+  productById(id: ID!): Product @lookup @propagateNull
+}
+
+type Product @key(fields: "id") {
+  id: ID!
+  name: String!
+}
+```
+
+```graphql
+# Composed schema
+type Query {
+  productById(id: ID!): Product
+}
+
+type Product {
+  id: ID!
+  name: String!
+}
+```
+
+> **In C#:** No dedicated attribute is available; apply `@propagateNull` in the source schema SDL on the lookup field. See [Entities and Lookups](/docs/fusion/v16/entities-and-lookups).
 
 ---
 
