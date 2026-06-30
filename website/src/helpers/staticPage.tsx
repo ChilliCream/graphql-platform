@@ -21,6 +21,14 @@ export function createStaticPage(relPath: string) {
 
   async function generateMetadata(): Promise<Metadata> {
     const { title, description } = readFrontmatter(absPath);
+    if (!title || !description) {
+      const missing = [!title && "title", !description && "description"]
+        .filter(Boolean)
+        .join(", ");
+      throw new Error(
+        `Static page "${relPath}" is missing required frontmatter: ${missing}.`,
+      );
+    }
     return pageMetadata({ title, description, path: pagePath });
   }
 

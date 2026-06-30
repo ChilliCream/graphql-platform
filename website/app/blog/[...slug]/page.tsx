@@ -180,7 +180,7 @@ export default async function BlogSlugPage({ params }: PageProps) {
           "@type": "BlogPosting",
           headline: current.title,
           ...(current.description ? { description: current.description } : {}),
-          datePublished: current.date,
+          datePublished: toSchemaDate(current.date),
           ...(current.featuredImage
             ? { image: toAbsoluteUrl(current.featuredImage) }
             : {}),
@@ -280,6 +280,10 @@ export default async function BlogSlugPage({ params }: PageProps) {
       </div>
     </div>
   );
+}
+
+function toSchemaDate(date: string): string {
+  return /^\d{4}-\d{2}-\d{2}$/.test(date) ? `${date}T00:00:00.000Z` : date;
 }
 
 function isPaginationSlug(slug: string[]): boolean {
