@@ -652,8 +652,7 @@ builder
         options.Url = "nats://localhost:4222";
         options.JetStream = new NatsJetStreamOptions
         {
-            Stream = "products",
-            DurableConsumer = "gateway"
+            Stream = "products"
         };
     });
 ```

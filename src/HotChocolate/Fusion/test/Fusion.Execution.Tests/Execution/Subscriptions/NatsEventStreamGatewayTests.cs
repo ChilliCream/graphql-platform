@@ -35,12 +35,11 @@ public sealed class NatsEventStreamGatewayTests
         // arrange
         await using var nats = await JetStreamNatsFixture.StartAsync();
         var stream = "S" + Guid.NewGuid().ToString("N");
-        var durable = "D" + Guid.NewGuid().ToString("N");
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(60));
 
         await CreateStreamAsync(nats.Url, stream, Topic, cts.Token);
 
-        var executor = await BuildGatewayAsync(nats.Url, stream, durable);
+        var executor = await BuildGatewayAsync(nats.Url, stream);
 
         // act
         // Drive the initial subscription, publish two events to the single NATS subject, and receive
@@ -139,8 +138,7 @@ public sealed class NatsEventStreamGatewayTests
 
     private static async Task<IRequestExecutor> BuildGatewayAsync(
         string natsUrl,
-        string stream,
-        string durable)
+        string stream)
     {
         var sourceSchemaSdl = await PrintSourceSchemaSdlAsync(
             b => b.AddSubscriptionType<AttributeSubscriptions>());
@@ -155,8 +153,7 @@ public sealed class NatsEventStreamGatewayTests
             o.Url = natsUrl;
             o.JetStream = new NatsJetStreamOptions
             {
-                Stream = stream,
-                DurableConsumer = durable
+                Stream = stream
             };
         });
 

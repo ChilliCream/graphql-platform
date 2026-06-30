@@ -37,7 +37,6 @@ public class NatsEventStreamOverHttpTests : FusionTestBase
         // arrange
         await using var nats = await JetStreamNatsFixture.StartAsync();
         var stream = "S" + Guid.NewGuid().ToString("N");
-        var durable = "D" + Guid.NewGuid().ToString("N");
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(60));
 
         await CreateStreamAsync(nats.Url, stream, Topic, cts.Token);
@@ -56,7 +55,7 @@ public class NatsEventStreamOverHttpTests : FusionTestBase
                 o =>
                 {
                     o.Url = nats.Url;
-                    o.JetStream = new NatsJetStreamOptions { Stream = stream, DurableConsumer = durable };
+                    o.JetStream = new NatsJetStreamOptions { Stream = stream };
                 }),
             configureGatewayBuilder: b => b.ModifyRequestOptions(o => o.AllowOperationPlanRequests = false));
 
@@ -108,7 +107,6 @@ public class NatsEventStreamOverHttpTests : FusionTestBase
         // arrange
         await using var nats = await JetStreamNatsFixture.StartAsync();
         var stream = "S" + Guid.NewGuid().ToString("N");
-        var durable = "D" + Guid.NewGuid().ToString("N");
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(60));
 
         await CreateStreamAsync(nats.Url, stream, Topic, cts.Token);
@@ -127,7 +125,7 @@ public class NatsEventStreamOverHttpTests : FusionTestBase
                 o =>
                 {
                     o.Url = nats.Url;
-                    o.JetStream = new NatsJetStreamOptions { Stream = stream, DurableConsumer = durable };
+                    o.JetStream = new NatsJetStreamOptions { Stream = stream };
                 }),
             configureGatewayBuilder: b => b.ModifyRequestOptions(o => o.AllowOperationPlanRequests = false));
 
@@ -185,7 +183,6 @@ public class NatsEventStreamOverHttpTests : FusionTestBase
         // arrange
         await using var nats = await JetStreamNatsFixture.StartAsync();
         var stream = "S" + Guid.NewGuid().ToString("N");
-        var durable = "D" + Guid.NewGuid().ToString("N");
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(60));
 
         await CreateStreamAsync(nats.Url, stream, Topic, cts.Token);
@@ -211,7 +208,7 @@ public class NatsEventStreamOverHttpTests : FusionTestBase
                 o =>
                 {
                     o.Url = nats.Url;
-                    o.JetStream = new NatsJetStreamOptions { Stream = stream, DurableConsumer = durable };
+                    o.JetStream = new NatsJetStreamOptions { Stream = stream };
                 }),
             configureGatewayBuilder: b => b.ModifyRequestOptions(o => o.AllowOperationPlanRequests = false));
 
@@ -267,7 +264,6 @@ public class NatsEventStreamOverHttpTests : FusionTestBase
         // arrange
         await using var nats = await JetStreamNatsFixture.StartAsync();
         var stream = "S" + Guid.NewGuid().ToString("N");
-        var durable = "D" + Guid.NewGuid().ToString("N");
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(60));
 
         await CreateStreamAsync(nats.Url, stream, Topic, cts.Token);
@@ -298,7 +294,7 @@ public class NatsEventStreamOverHttpTests : FusionTestBase
                 o =>
                 {
                     o.Url = nats.Url;
-                    o.JetStream = new NatsJetStreamOptions { Stream = stream, DurableConsumer = durable };
+                    o.JetStream = new NatsJetStreamOptions { Stream = stream };
                 }),
             configureGatewayBuilder: b => b.ModifyRequestOptions(o => o.AllowOperationPlanRequests = false));
 
@@ -386,7 +382,6 @@ public class NatsEventStreamOverHttpTests : FusionTestBase
         // arrange
         await using var nats = await JetStreamNatsFixture.StartAsync();
         var stream = "S" + Guid.NewGuid().ToString("N");
-        var durable = "D" + Guid.NewGuid().ToString("N");
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(60));
 
         await CreateStreamAsync(nats.Url, stream, Topic, cts.Token);
@@ -417,7 +412,7 @@ public class NatsEventStreamOverHttpTests : FusionTestBase
                 o =>
                 {
                     o.Url = nats.Url;
-                    o.JetStream = new NatsJetStreamOptions { Stream = stream, DurableConsumer = durable };
+                    o.JetStream = new NatsJetStreamOptions { Stream = stream };
                 }),
             configureGatewayBuilder: b => b.ModifyRequestOptions(o => o.AllowOperationPlanRequests = false));
 
@@ -491,7 +486,6 @@ public class NatsEventStreamOverHttpTests : FusionTestBase
         // arrange
         await using var nats = await JetStreamNatsFixture.StartAsync();
         var stream = "S" + Guid.NewGuid().ToString("N");
-        var durable = "D" + Guid.NewGuid().ToString("N");
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(60));
 
         await CreateStreamAsync(nats.Url, stream, Topic, cts.Token);
@@ -512,7 +506,7 @@ public class NatsEventStreamOverHttpTests : FusionTestBase
                 o =>
                 {
                     o.Url = nats.Url;
-                    o.JetStream = new NatsJetStreamOptions { Stream = stream, DurableConsumer = durable };
+                    o.JetStream = new NatsJetStreamOptions { Stream = stream };
                 }));
 
         var httpClient = gateway.CreateClient();
@@ -557,7 +551,6 @@ public class NatsEventStreamOverHttpTests : FusionTestBase
         // arrange
         await using var nats = await JetStreamNatsFixture.StartAsync();
         var stream = "S" + Guid.NewGuid().ToString("N");
-        var durable = "D" + Guid.NewGuid().ToString("N");
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(60));
 
         await CreateStreamAsync(nats.Url, stream, Topic, cts.Token);
@@ -576,7 +569,7 @@ public class NatsEventStreamOverHttpTests : FusionTestBase
                 o =>
                 {
                     o.Url = nats.Url;
-                    o.JetStream = new NatsJetStreamOptions { Stream = stream, DurableConsumer = durable };
+                    o.JetStream = new NatsJetStreamOptions { Stream = stream };
                 }),
             configureGatewayBuilder: b => b.ModifyRequestOptions(o => o.AllowOperationPlanRequests = false));
 
