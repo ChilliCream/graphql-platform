@@ -30,9 +30,7 @@ export default function DocsIndex() {
     <div className="px-5 py-8 sm:px-12">
       <div className="mx-auto max-w-5xl">
         <Typography variant="h1">Documentation</Typography>
-        <p className="text-cc-ink-dim">
-          Pick a product to get started. More content is on its way.
-        </p>
+
         <ul className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2">
           {PRODUCTS.map((product) => {
             const Icon = PRODUCT_ICONS[product.slug];
