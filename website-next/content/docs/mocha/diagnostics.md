@@ -14,10 +14,15 @@ Mocha uses a Roslyn source generator to validate your message handlers, consumer
 | [MO0003](#mo0003) | Handler is abstract                                      | Warning  |
 | [MO0004](#mo0004) | Open generic message type cannot be dispatched           | Info     |
 | [MO0005](#mo0005) | Handler implements multiple mediator handler interfaces  | Error    |
+| [MO0006](#mo0006) | Open generic handler cannot be auto-registered           | Info     |
 | [MO0011](#mo0011) | Duplicate handler for request type                       | Error    |
 | [MO0012](#mo0012) | Open generic messaging handler cannot be auto-registered | Info     |
 | [MO0013](#mo0013) | Messaging handler is abstract                            | Warning  |
 | [MO0014](#mo0014) | Saga must have a public parameterless constructor        | Error    |
+| [MO0015](#mo0015) | Missing JsonSerializerContext for AOT                    | Error    |
+| [MO0016](#mo0016) | Missing JsonSerializable attribute                       | Error    |
+| [MO0018](#mo0018) | Type not in JsonSerializerContext                        | Warning  |
+| [MO0020](#mo0020) | Command/query sent but no handler found                  | Warning  |
 
 # Mediator diagnostics
 
@@ -255,6 +260,79 @@ public class GetOrderHandler : IQueryHandler<GetOrder, Order>
 }
 ```
 
+## MO0006
+
+**Open generic handler cannot be auto-registered**
+
+|              |                                                                                                                                                                                       |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Severity** | Info                                                                                                                                                                                  |
+| **Message**  | `Handler '{0}' has unbound type parameters; source-generated registration is skipped. Register the closed form manually (e.g. AddHandler<ConcreteHandler<MyType>>()) if intentional.` |
+
+### Cause
+
+A mediator handler (`ICommandHandler<T>`, `ICommandHandler<T, TResponse>`, `IQueryHandler<T, TResponse>`, or `INotificationHandler<T>`) is declared with unbound type parameters. This diagnostic fires on the handler _declaration_ - the source generator cannot produce a registration for an open generic because there is no closed type to register.
+
+Under AOT, this matters because every dispatched message must correspond to a statically-known handler type; the runtime cannot close the generic for you.
+
+### Example
+
+```csharp
+using Mocha.Mediator;
+
+public record MyNotification : INotification;
+
+// Open generic handler - triggers MO0006
+public class GenericNotificationHandler<T> : INotificationHandler<MyNotification>
+{
+    public ValueTask HandleAsync(
+        MyNotification notification,
+        CancellationToken ct)
+        => ValueTask.CompletedTask;
+}
+```
+
+### Fix
+
+Either close the generic by declaring a concrete handler, or register the closed form manually and suppress the diagnostic on the declaration.
+
+Close the generic at the handler declaration:
+
+```csharp
+using Mocha.Mediator;
+
+public record MyNotification : INotification;
+
+public class MyNotificationHandler : INotificationHandler<MyNotification>
+{
+    public ValueTask HandleAsync(
+        MyNotification notification,
+        CancellationToken ct)
+        => ValueTask.CompletedTask;
+}
+```
+
+Or, if the open generic is intentional (for example, a reusable handler body parameterized on a secondary type), register the closed form manually and suppress MO0006 on the declaration:
+
+```csharp
+using Mocha.Mediator;
+
+public record MyNotification : INotification;
+
+#pragma warning disable MO0006
+public class GenericNotificationHandler<T> : INotificationHandler<MyNotification>
+{
+    public ValueTask HandleAsync(
+        MyNotification notification,
+        CancellationToken ct)
+        => ValueTask.CompletedTask;
+}
+#pragma warning restore MO0006
+
+// Register the closed form explicitly:
+// services.AddMediator(m => m.AddHandler<GenericNotificationHandler<MyConcreteType>>());
+```
+
 # Messaging diagnostics
 
 These diagnostics apply to the [message bus](./handlers-and-consumers.md) - event handlers, request handlers, batch handlers, consumers, and sagas that communicate across service boundaries.
@@ -461,6 +539,216 @@ public class RefundSaga : Saga<RefundSagaState>
 {
     public RefundSaga()
     {
+    }
+}
+```
+
+## MO0015
+
+**Missing JsonSerializerContext for AOT**
+
+|              |                                                                                                                                                       |
+| ------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Severity** | Error                                                                                                                                                 |
+| **Message**  | `MessagingModule '{0}' must specify JsonContext when publishing for AOT. Add JsonContext = typeof(YourJsonContext) to the MessagingModule attribute.` |
+
+### Cause
+
+The project has `PublishAot` set to `true` but the `[assembly: MessagingModule]` attribute does not include a `JsonContext` property. AOT publishing requires a `JsonSerializerContext` so the source generator can produce trim-safe serialization code for all message types.
+
+### Example
+
+```csharp
+using Mocha;
+
+// No JsonContext specified while targeting AOT - triggers MO0015
+[assembly: MessagingModule("OrderService")]
+```
+
+### Fix
+
+Create a `JsonSerializerContext` that includes all your message types and reference it from the `MessagingModule` attribute.
+
+```csharp
+using System.Text.Json.Serialization;
+using Mocha;
+
+[assembly: MessagingModule("OrderService", JsonContext = typeof(OrderServiceJsonContext))]
+
+public record OrderPlaced(Guid OrderId);
+
+[JsonSerializable(typeof(OrderPlaced))]
+public partial class OrderServiceJsonContext : JsonSerializerContext;
+```
+
+## MO0016
+
+**Missing JsonSerializable attribute**
+
+|              |                                                                                                                                                |
+| ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Severity** | Error                                                                                                                                          |
+| **Message**  | `Type '{0}' is used as a message type but is not included in JsonSerializerContext '{1}'. Add [JsonSerializable(typeof({0}))] to the context.` |
+
+### Cause
+
+A type is used as a message, request, response, or saga state through a handler registration, but it is not declared via `[JsonSerializable(typeof(...))]` on the `JsonSerializerContext` specified in the `MessagingModule` attribute. Without this declaration, the AOT compiler cannot generate serialization code for the type.
+
+### Example
+
+```csharp
+using System.Text.Json.Serialization;
+using Mocha;
+
+[assembly: MessagingModule("OrderService", JsonContext = typeof(OrderServiceJsonContext))]
+
+public record OrderPlaced(Guid OrderId);
+
+public class OrderPlacedHandler : IEventHandler<OrderPlaced>
+{
+    public ValueTask HandleAsync(
+        OrderPlaced message,
+        CancellationToken ct)
+        => ValueTask.CompletedTask;
+}
+
+// OrderPlaced is missing from the context - triggers MO0016
+[JsonSerializable(typeof(string))]
+public partial class OrderServiceJsonContext : JsonSerializerContext;
+```
+
+### Fix
+
+Add a `[JsonSerializable]` attribute for every message type used by your handlers.
+
+```csharp
+using System.Text.Json.Serialization;
+using Mocha;
+
+[assembly: MessagingModule("OrderService", JsonContext = typeof(OrderServiceJsonContext))]
+
+public record OrderPlaced(Guid OrderId);
+
+public class OrderPlacedHandler : IEventHandler<OrderPlaced>
+{
+    public ValueTask HandleAsync(
+        OrderPlaced message,
+        CancellationToken ct)
+        => ValueTask.CompletedTask;
+}
+
+[JsonSerializable(typeof(OrderPlaced))]
+public partial class OrderServiceJsonContext : JsonSerializerContext;
+```
+
+## MO0018
+
+**Type not in JsonSerializerContext**
+
+|              |                                                                                                                                            |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Severity** | Warning                                                                                                                                    |
+| **Message**  | `Type '{0}' is used in a {1} call but is not included in JsonSerializerContext '{2}'. Add [JsonSerializable(typeof({0}))] to the context.` |
+
+### Cause
+
+Emitted only when `PublishAot` is enabled and a call site publishes a type not covered by the declared `JsonContext`. For example, `bus.PublishAsync<T>()` is called with a type that has no matching `[JsonSerializable(typeof(T))]` on the `JsonSerializerContext` referenced by `[assembly: MessagingModule(..., JsonContext = typeof(...))]`. This is similar to [MO0016](#mo0016), but applies to types discovered at call sites rather than handler registrations. Without the declaration, the message cannot be serialized at runtime in an AOT environment.
+
+This diagnostic does not fire when `PublishAot` is unset, even if `JsonContext` is declared on the module - opting into a source-generated context for non-AOT reasons does not require every call-site type to appear in it.
+
+### Example
+
+```csharp
+using System.Text.Json.Serialization;
+using Mocha;
+
+[assembly: MessagingModule("OrderService", JsonContext = typeof(OrderServiceJsonContext))]
+
+public record OrderPlaced(Guid OrderId);
+public record OrderShipped(Guid OrderId);
+
+// OrderShipped is published but missing from the context - triggers MO0018
+public class OrderService(IMessageBus bus)
+{
+    public async Task ShipOrderAsync(Guid orderId, CancellationToken ct)
+    {
+        await bus.PublishAsync(new OrderShipped(orderId), ct);
+    }
+}
+
+[JsonSerializable(typeof(OrderPlaced))]
+public partial class OrderServiceJsonContext : JsonSerializerContext;
+```
+
+### Fix
+
+Add a `[JsonSerializable]` attribute for every type used at a call site.
+
+```csharp
+using System.Text.Json.Serialization;
+using Mocha;
+
+[assembly: MessagingModule("OrderService", JsonContext = typeof(OrderServiceJsonContext))]
+
+public record OrderPlaced(Guid OrderId);
+public record OrderShipped(Guid OrderId);
+
+[JsonSerializable(typeof(OrderPlaced))]
+[JsonSerializable(typeof(OrderShipped))]
+public partial class OrderServiceJsonContext : JsonSerializerContext;
+```
+
+# Mediator call-site diagnostics
+
+These diagnostics are reported when the source generator inspects call sites that use `ISender` to dispatch commands or queries.
+
+## MO0020
+
+**Command/query sent but no handler found**
+
+|              |                                                                                                         |
+| ------------ | ------------------------------------------------------------------------------------------------------- |
+| **Severity** | Warning                                                                                                 |
+| **Message**  | `Type '{0}' is sent via {1} but no handler was found in this assembly. Ensure a handler is registered.` |
+
+### Cause
+
+A command or query type is dispatched via `ISender.SendAsync` or `ISender.QueryAsync`, but no corresponding handler implementation exists in the assembly. This catches cases where a call site references a message type that was never wired up with a handler.
+
+### Example
+
+```csharp
+using Mocha.Mediator;
+
+public record PlaceOrder(Guid OrderId, decimal Total) : ICommand;
+
+// PlaceOrder is sent but no handler exists - triggers MO0020
+public class OrderController(ISender sender)
+{
+    public async Task CreateOrderAsync(Guid orderId, CancellationToken ct)
+    {
+        await sender.SendAsync(new PlaceOrder(orderId, 99.99m), ct);
+    }
+}
+```
+
+### Fix
+
+Implement a handler for the message type, or remove the call site if the handler is intentionally in another assembly.
+
+```csharp
+using Mocha.Mediator;
+
+public record PlaceOrder(Guid OrderId, decimal Total) : ICommand;
+
+public class PlaceOrderHandler : ICommandHandler<PlaceOrder>
+{
+    public ValueTask HandleAsync(
+        PlaceOrder command,
+        CancellationToken cancellationToken)
+    {
+        // process the order
+        return ValueTask.CompletedTask;
     }
 }
 ```

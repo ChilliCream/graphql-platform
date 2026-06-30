@@ -65,7 +65,7 @@ public sealed class InboxServiceRegistrationTests
 
         // Act
         var optionsMonitor = provider.GetRequiredService<IOptionsMonitor<PostgresMessageInboxOptions>>();
-        var contextName = typeof(TestDbContext).FullName!;
+        var contextName = typeof(TestDbContext).FullName;
         var options = optionsMonitor.Get(contextName);
 
         // Assert

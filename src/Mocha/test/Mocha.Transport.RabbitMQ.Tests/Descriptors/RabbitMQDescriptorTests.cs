@@ -56,7 +56,7 @@ public class RabbitMQDescriptorTests
         Assert.IsType<RabbitMQQueue>(endpoint.Destination);
         Assert.Equal("my-q", ((RabbitMQQueue)endpoint.Destination).Name);
         Assert.NotNull(endpoint.Queue);
-        Assert.Equal("my-q", endpoint.Queue!.Name);
+        Assert.Equal("my-q", endpoint.Queue.Name);
     }
 
     [Fact]
@@ -75,7 +75,7 @@ public class RabbitMQDescriptorTests
         Assert.IsType<RabbitMQExchange>(endpoint.Destination);
         Assert.Equal("my-ex", ((RabbitMQExchange)endpoint.Destination).Name);
         Assert.NotNull(endpoint.Exchange);
-        Assert.Equal("my-ex", endpoint.Exchange!.Name);
+        Assert.Equal("my-ex", endpoint.Exchange.Name);
     }
 
     [Fact]
@@ -285,9 +285,9 @@ public class RabbitMQDescriptorTests
         var faultFeature = endpoint.Configuration.Features.Get<ReceiveFaultEndpointFeature>();
         var skippedFeature = endpoint.Configuration.Features.Get<ReceiveSkippedEndpointFeature>();
         Assert.NotNull(faultFeature?.Address);
-        Assert.Empty(faultFeature!.Address!.Query);
+        Assert.Empty(faultFeature.Address.Query);
         Assert.NotNull(skippedFeature?.Address);
-        Assert.Empty(skippedFeature!.Address!.Query);
+        Assert.Empty(skippedFeature.Address.Query);
     }
 
     [Fact]

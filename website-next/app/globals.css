@@ -45,7 +45,7 @@
   /* --color-cc-ink: #f5f1ea; */
   /* Long-form body prose: lighter than `cc-ink-dim` so paragraphs stay readable. */
   --color-cc-prose: rgba(245, 241, 234, 0.8);
-  --color-cc-ink-dim: rgba(245, 241, 234, 0.62);
+  --color-cc-ink-dim: #94a3b8;
   --color-cc-ink-faint: rgba(245, 241, 234, 0.16);
   /* Faint light wash for hover/active surfaces (nav links, sidebar items). */
   --color-cc-hover: rgba(245, 241, 234, 0.05);
@@ -53,8 +53,8 @@
   --color-cc-card-bg: rgba(12, 19, 34, 0.55);
   --color-cc-card-border: rgba(245, 241, 234, 0.12);
   --color-cc-card-border-hover: rgba(245, 241, 234, 0.32);
-  --color-cc-accent: #5eead4;
-  --color-cc-accent-hover: #99f6e4;
+  --color-cc-accent: #16b9e4;
+  --color-cc-accent-hover: #4cc9ee;
 
   /* Secondary brand CTA (the "Launch" button). */
   --color-cc-cta: oklch(51.8% 0.253 323.949);
@@ -85,9 +85,8 @@
   --color-cc-youtube: #ff0000;
   --color-cc-youtube-hover: #cc0000;
 
-  /* Docs sidebar: cool-slate nav text + a dimmer muted section-label tone. */
+  /* Docs sidebar: cool-slate nav text. */
   --color-cc-nav-text: #cad5e2;
-  --color-cc-nav-label: #62748e;
 }
 
 @layer base {
@@ -477,10 +476,9 @@ svg[role="graphics-document"][id^="mermaid-"] {
     --color-cc-card-border: rgba(17, 24, 39, 0.25);
     --color-cc-card-border-hover: rgba(17, 24, 39, 0.25);
     --color-cc-surface: #fff;
-    --color-cc-accent: #0f766e;
-    --color-cc-accent-hover: #0f766e;
+    --color-cc-accent: #0e7490;
+    --color-cc-accent-hover: #0e7490;
     --color-cc-nav-text: #1f2937;
-    --color-cc-nav-label: #4b5563;
     --cc-dark-surface: none;
   }
 

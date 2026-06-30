@@ -1747,7 +1747,7 @@ public class GraphQLHttpClientTests : ServerTestBase
         Assert.DoesNotContain("\\u0027", handler.LastBody, StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("\\u2019", handler.LastBody, StringComparison.OrdinalIgnoreCase);
 
-        using var body = JsonDocument.Parse(handler.LastBody!);
+        using var body = JsonDocument.Parse(handler.LastBody);
         var serializedDescription = body.RootElement
             .GetProperty("variables")
             .GetProperty("description")

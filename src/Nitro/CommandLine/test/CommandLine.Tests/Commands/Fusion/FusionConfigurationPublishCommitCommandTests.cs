@@ -152,10 +152,7 @@ public sealed class FusionConfigurationPublishCommitCommandTests(NitroCommandFix
             "--request-id", RequestId, "--archive", ArchiveFile);
 
         // assert
-        result.StdErr.MatchInlineSnapshot(
-            $"""
-             {expectedErrorMessage}
-             """);
+        result.StdErr.MatchInlineSnapshot(expectedErrorMessage);
         result.StdOut.MatchInlineSnapshot(
             """
             Publishing Fusion configuration

@@ -43,7 +43,7 @@ export default function ServicesPage() {
               href={section.href}
               className="group border-cc-card-border bg-cc-card-bg hover:border-cc-accent flex flex-col rounded-xl border p-8 no-underline backdrop-blur-sm transition-colors"
             >
-              <h2 className="text-cc-ink group-hover:text-cc-accent text-xl font-semibold">
+              <h2 className="text-cc-heading text-xl font-semibold">
                 {section.title}
               </h2>
               <p className="text-cc-ink-dim mt-3 text-sm">

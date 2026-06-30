@@ -30,7 +30,7 @@ export function BlogMetadata({
       {author ? (
         <a
           href={authorUrl || "#"}
-          className="text-cc-ink hover:text-cc-accent flex items-center no-underline"
+          className="text-cc-ink-dim hover:text-cc-accent flex items-center no-underline"
           target={authorUrl?.startsWith("http") ? "_blank" : undefined}
           rel={
             authorUrl?.startsWith("http") ? "noopener noreferrer" : undefined

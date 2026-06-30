@@ -18,7 +18,7 @@ export default function Home() {
       <NitroPricing />
       <GrabADrink />
       <div className="px-5 py-8 sm:px-12">
-        <div className="mx-auto flex max-w-6xl flex-col gap-12">
+        <div className="mx-auto flex max-w-7xl flex-col gap-12">
           <FromOurBlog />
         </div>
       </div>

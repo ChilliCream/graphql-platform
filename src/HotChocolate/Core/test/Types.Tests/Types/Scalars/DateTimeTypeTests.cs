@@ -31,7 +31,7 @@ public class DateTimeTypeTests
             new TimeSpan(4, 0, 0));
 
         // act
-        var dateTime = (DateTimeOffset)type.CoerceInputLiteral(literal)!;
+        var dateTime = (DateTimeOffset)type.CoerceInputLiteral(literal);
 
         // assert
         Assert.Equal(expectedDateTime, dateTime);
@@ -88,7 +88,7 @@ public class DateTimeTypeTests
             new TimeSpan(4, 0, 0));
 
         // act
-        var dateTime = (DateTimeOffset)type.CoerceInputLiteral(literal)!;
+        var dateTime = (DateTimeOffset)type.CoerceInputLiteral(literal);
 
         // assert
         Assert.Equal(expectedDateTime, dateTime);

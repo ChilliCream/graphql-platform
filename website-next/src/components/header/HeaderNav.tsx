@@ -61,7 +61,7 @@ function NavSimple({ item }: { item: NavItem }) {
       <Link
         href={item.href}
         prefetch={false}
-        className="text-cc-ink-dim hover:text-cc-ink flex items-center px-4 text-sm font-medium no-underline transition-colors"
+        className="text-cc-heading flex items-center px-4 text-sm font-medium no-underline"
       >
         {item.label}
       </Link>
@@ -95,7 +95,7 @@ function NavWithSubmenu({
         href={item.href}
         prefetch={false}
         onClick={handleNavigate}
-        className="text-cc-ink-dim hover:text-cc-ink group-hover/nav:text-cc-ink flex items-center gap-1.5 px-4 text-sm font-medium no-underline transition-colors"
+        className="text-cc-heading flex items-center gap-1.5 px-4 text-sm font-medium no-underline"
       >
         {item.label}
         <ChevronDownIcon className="h-3 w-3 fill-current" />

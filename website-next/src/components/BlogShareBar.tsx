@@ -46,7 +46,7 @@ function ShareLink({
       target="_blank"
       rel="noopener noreferrer"
       aria-label={label}
-      className="text-cc-ink-dim hover:text-cc-ink inline-flex items-center justify-center transition-colors"
+      className="text-cc-ink-dim hover:text-cc-heading inline-flex items-center justify-center transition-colors"
     >
       {children}
       <span className="sr-only">{label}</span>

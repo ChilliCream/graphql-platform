@@ -156,7 +156,7 @@ function StackRow({ title, diagram, reverse }: StackRowProps) {
  */
 export function StackDiagrams() {
   return (
-    <section className="mx-auto flex max-w-6xl flex-col gap-20 px-5 py-16 sm:px-12 sm:py-24 lg:gap-28">
+    <section className="mx-auto flex max-w-7xl flex-col gap-20 px-5 py-16 sm:px-12 sm:py-24 lg:gap-28">
       <StackRow title="Platform" diagram={<Hub className="h-auto w-full" />} />
       <StackRow
         title="Agentic Era"

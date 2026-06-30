@@ -1,3 +1,5 @@
+using System.Collections.Immutable;
+
 namespace Mocha;
 
 /// <summary>
@@ -34,4 +36,12 @@ public class MessageTypeConfiguration : MessagingConfiguration
     /// Gets or sets a value indicating whether this message type is internal (not exposed for external routing).
     /// </summary>
     public bool IsInternal { get; set; }
+
+    /// <summary>
+    /// Gets or sets the pre-computed enclosed types from the source generator. Contains both
+    /// concrete registered types and framework base types (for example, <see cref="IEventRequest"/>
+    /// and <see cref="IEventRequest{T}"/>). <see cref="ImmutableArray{T}.IsDefaultOrEmpty"/>
+    /// indicates the source generator did not supply this information.
+    /// </summary>
+    public ImmutableArray<Type> EnclosedTypes { get; set; }
 }

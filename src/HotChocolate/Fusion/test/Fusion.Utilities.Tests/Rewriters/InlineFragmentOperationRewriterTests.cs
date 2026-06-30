@@ -524,14 +524,14 @@ public class InlineFragmentOperationRewriterTests
             """
             query($slug: String!) {
                 productBySlug(slug: $slug) {
-                   ... {
-                       a: name
-                   }
-                   a: name
-                   name
-                   ... {
-                       name
-                   }
+                    ... {
+                        a: name
+                    }
+                    a: name
+                    name
+                    ... {
+                        name
+                    }
                 }
             }
             """);

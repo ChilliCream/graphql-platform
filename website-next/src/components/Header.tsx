@@ -4,6 +4,7 @@ import { Picture } from "@/src/design-system/Picture";
 
 import { getLatestBlogPost } from "@/src/helpers/blogPosts";
 import { getGitHubStarCount } from "@/src/helpers/githubStars";
+import { ChilliCreamText } from "@/src/icons/ChilliCreamText";
 import { ChilliCreamWinking } from "@/src/icons/ChilliCreamWinking";
 import { GitHubIcon } from "@/src/icons/GitHub";
 
@@ -40,23 +41,24 @@ export default async function Header() {
           href="/"
           prefetch={false}
           aria-label="ChilliCream Home"
-          className="text-cc-ink flex h-full flex-none items-center"
+          className="text-cc-heading flex h-full flex-none items-center gap-2.5"
         >
           <ChilliCreamWinking className="h-8 w-8 fill-current" />
+          <ChilliCreamText className="h-6 w-auto fill-current min-[1060px]:hidden" />
         </Link>
 
         <HeaderNav latestBlog={latestBlog} blogImage={blogImage} />
 
         <div className="hidden flex-none items-center gap-5 min-[1060px]:flex">
-          <span className="border-cc-card-border bg-cc-hover text-cc-ink-dim inline-flex items-stretch overflow-hidden rounded-md border text-xs font-medium">
+          <span className="border-cc-card-border bg-cc-hover text-cc-heading inline-flex items-stretch overflow-hidden rounded-md border text-xs font-medium">
             <a
               href={GITHUB_REPO_URL}
               target="_blank"
               rel="noopener noreferrer"
-              className="hover:bg-cc-ink-faint hover:text-cc-ink inline-flex items-center gap-1.5 px-2 py-1 no-underline transition-colors"
+              className="hover:bg-cc-ink-faint inline-flex items-center gap-1.5 px-2 py-1 no-underline transition-colors"
               aria-label="Star ChilliCream on GitHub"
             >
-              <GitHubIcon className="text-cc-ink h-3.5 w-3.5 fill-current" />
+              <GitHubIcon className="text-cc-heading h-3.5 w-3.5 fill-current" />
               Star
             </a>
             {starCount !== null && (
@@ -64,7 +66,7 @@ export default async function Header() {
                 href={GITHUB_STARGAZERS_URL}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="border-cc-card-border text-cc-ink-dim hover:bg-cc-ink-faint hover:text-cc-ink inline-flex items-center border-l px-2 py-1 tabular-nums no-underline transition-colors"
+                className="border-cc-card-border text-cc-heading hover:bg-cc-ink-faint inline-flex items-center border-l px-2 py-1 tabular-nums no-underline transition-colors"
                 aria-label={`${starCount.toLocaleString("en-US")} stargazers on GitHub`}
               >
                 {starCount.toLocaleString("en-US")}
@@ -74,7 +76,7 @@ export default async function Header() {
           <Link
             href={CONTACT_HREF}
             prefetch={false}
-            className="text-cc-ink-dim hover:text-cc-ink text-sm font-medium no-underline transition-colors"
+            className="text-cc-heading text-sm font-medium no-underline"
           >
             Contact Us
           </Link>
@@ -83,7 +85,7 @@ export default async function Header() {
           </SolidButton>
           <Search
             ariaLabel="Search"
-            className="text-cc-ink-dim hover:text-cc-ink flex h-full cursor-pointer items-center transition-colors"
+            className="text-cc-heading flex h-full cursor-pointer items-center"
           />
         </div>
 

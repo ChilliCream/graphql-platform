@@ -176,7 +176,7 @@ export const NAV_ITEMS: NavItem[] = [
         title: "Company",
         links: [
           {
-            href: "mailto:contact@chillicream.com",
+            href: "/services/support/contact",
             label: "Contact",
             icon: NewspaperIcon,
           },

@@ -56,8 +56,8 @@ const PRODUCTS = [
  */
 export function BuildYourWay() {
   return (
-    <section className="mx-auto max-w-6xl px-5 py-8 sm:px-12">
-      <div className="mx-auto max-w-6xl overflow-hidden rounded-3xl shadow-[0_24px_50px_rgba(0,0,0,0.4)]">
+    <section className="mx-auto max-w-7xl px-5 py-8 sm:px-12">
+      <div className="mx-auto max-w-7xl overflow-hidden rounded-3xl shadow-[0_24px_50px_rgba(0,0,0,0.4)]">
         {/* Pitch region (top of the card). */}
         <div
           className="px-8 pt-12 pb-12 text-[#0b1018] sm:px-12 sm:pt-14 lg:px-16"
@@ -85,7 +85,7 @@ export function BuildYourWay() {
         <div className="bg-cc-surface px-5 pt-5 pb-5 sm:px-8 sm:pt-6 sm:pb-6">
           <div className="flex items-center gap-3 px-1">
             <span className="bg-cc-ink-faint h-px flex-1" />
-            <span className="text-cc-nav-label font-mono text-[0.65rem] tracking-[0.15em] uppercase">
+            <span className="text-cc-ink-dim font-mono text-[0.65rem] tracking-[0.15em] uppercase">
               Products
             </span>
             <span className="bg-cc-ink-faint h-px flex-1" />

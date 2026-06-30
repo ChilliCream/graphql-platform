@@ -1874,7 +1874,7 @@ public class ObjectTypeTests : TypeTestBase
                 d =>
                 {
                     d.Name("Query");
-                    d.Field("Foo").Type("String").Resolve(_ => null!);
+                    d.Field("Foo").Type("String").Resolve(_ => Task.FromResult<object?>(null));
                 })
             .Create()
             .ToString()
@@ -1892,7 +1892,7 @@ public class ObjectTypeTests : TypeTestBase
                     d.Field("Foo")
                         .Argument("a", t => t.Type("Int"))
                         .Type("String")
-                        .Resolve(_ => null!);
+                        .Resolve(_ => Task.FromResult<object?>(null));
                 })
             .Create()
             .ToString()

@@ -130,7 +130,7 @@ public abstract class Consumer
         Name = Configuration.Name ?? throw ThrowHelper.ConsumerNameRequired();
         Identity ??= GetType();
 
-        foreach (var route in Configuration!.Routes)
+        foreach (var route in Configuration.Routes)
         {
             route.Consumer = this;
 

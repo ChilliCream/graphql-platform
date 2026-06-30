@@ -2,82 +2,33 @@ import type { ComponentType } from "react";
 
 import { Offering } from "@/src/components/Offering";
 import { OfferingGrid } from "@/src/components/OfferingGrid";
+import type { TierId } from "@/src/components/pricing/pricingData";
+import { TIERS } from "@/src/components/pricing/pricingData";
+import { OutlineButton } from "@/src/design-system/Button";
 import { DripBrewer } from "@/src/icons/DripBrewer";
 import { FrenchPress } from "@/src/icons/FrenchPress";
 import { PourOver } from "@/src/icons/PourOver";
 
-interface Plan {
-  readonly Icon: ComponentType<{ readonly className?: string }>;
-  readonly name: string;
-  readonly description: string;
-  readonly price: string;
-  readonly priceNote: string;
-  readonly features: readonly string[];
-  readonly cta: string;
-  readonly ctaHref: string;
-  readonly popular?: boolean;
-}
+// Coffee-brew icon per cloud tier, lightest brew to strongest.
+const ICONS: Partial<
+  Record<TierId, ComponentType<{ readonly className?: string }>>
+> = {
+  free: FrenchPress,
+  payg: DripBrewer,
+  dedicated: PourOver,
+};
 
-const PLANS: readonly Plan[] = [
-  {
-    Icon: FrenchPress,
-    name: "Shared Instance",
-    description: "Shared resources, fully managed",
-    price: "Free",
-    priceNote: "pay-as-you-go",
-    features: [
-      "Multi-tenant cloud region",
-      "1 Schema · 3 Environments",
-      "Up to 5M ops / month included",
-      "Community Slack support",
-      "Pay only for what you use after",
-    ],
-    cta: "Start for Free",
-    ctaHref: "https://nitro.chillicream.com",
-  },
-  {
-    Icon: DripBrewer,
-    name: "Dedicated Instance",
-    description: "Dedicated resources, fully managed",
-    price: "$400",
-    priceNote: "per month",
-    features: [
-      "Single-tenant cloud region",
-      "Unlimited schemas",
-      "BYOC region · private networking",
-      "99.95% SLA · email + private chat",
-      "SSO, audit log, role-based access",
-    ],
-    cta: "Talk to Us",
-    ctaHref: "/services/support/contact",
-    popular: true,
-  },
-  {
-    Icon: PourOver,
-    name: "Self-Hosted",
-    description: "Self managed",
-    price: "Custom",
-    priceNote: "talk to us",
-    features: [
-      "Run on your own infrastructure",
-      "Air-gapped & on-prem supported",
-      "Priority engineering support",
-      "Long-term release channel",
-      "Custom training & onboarding",
-    ],
-    cta: "Talk to Us",
-    ctaHref: "/services/support/contact",
-  },
-];
+const CLOUD_TIERS = TIERS.filter((tier) => tier.id !== "self");
+const SELF_HOSTED = TIERS.find((tier) => tier.id === "self");
 
 /**
- * Nitro pricing: three plans framed as coffee brews (French Press, Drip
- * Brewer, Pour-Over). The middle plan is highlighted as the popular pick. Cards
- * stack on small screens and sit side by side from large up.
+ * Nitro pricing: the three cloud tiers (Free, Pay as you go, Dedicated) framed
+ * as coffee brews, with Dedicated highlighted as the popular pick, and a
+ * self-hosted option below. All data comes from the shared pricing module.
  */
 export function NitroPricing() {
   return (
-    <section className="mx-auto max-w-6xl px-5 py-16 sm:px-12 sm:py-24">
+    <section className="mx-auto max-w-7xl px-5 py-16 sm:px-12 sm:py-24">
       <h2 className="font-heading text-cc-heading text-h4 sm:text-h3 text-center font-semibold">
         Brew it your Way
       </h2>
@@ -88,20 +39,40 @@ export function NitroPricing() {
       </p>
 
       <OfferingGrid columns="mt-14 md:grid-cols-3">
-        {PLANS.map((plan) => (
+        {CLOUD_TIERS.map((tier) => (
           <Offering
-            key={plan.name}
-            Icon={plan.Icon}
-            title={plan.name}
-            description={plan.description}
-            price={plan.price}
-            priceNote={plan.priceNote}
-            perks={plan.features}
-            popular={plan.popular}
-            callToAction={{ title: plan.cta, link: plan.ctaHref }}
+            key={tier.id}
+            Icon={ICONS[tier.id]}
+            title={tier.name}
+            description={tier.tagline}
+            price={tier.price}
+            priceNote={tier.priceNote}
+            perks={tier.features}
+            popular={tier.popular}
+            callToAction={{ title: tier.cta, link: tier.ctaHref }}
           />
         ))}
       </OfferingGrid>
+
+      {SELF_HOSTED && (
+        <div className="border-cc-card-border bg-cc-card-bg/60 mt-6 flex flex-col gap-5 rounded-3xl border p-6 sm:flex-row sm:items-center sm:justify-between sm:p-8">
+          <div>
+            <h3 className="font-heading text-cc-heading text-h6 font-semibold">
+              {SELF_HOSTED.name}
+            </h3>
+            <p className="text-cc-ink mt-2 text-sm text-pretty">
+              {SELF_HOSTED.tagline} Run on your own infrastructure, air-gapped
+              or on-prem, with configurable retention and priority support.
+            </p>
+          </div>
+          <OutlineButton
+            href={SELF_HOSTED.ctaHref}
+            className="shrink-0 sm:w-auto"
+          >
+            {SELF_HOSTED.cta}
+          </OutlineButton>
+        </div>
+      )}
     </section>
   );
 }

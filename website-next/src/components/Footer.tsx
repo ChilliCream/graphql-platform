@@ -41,7 +41,7 @@ export default function Footer() {
       <div className="mx-auto flex max-w-7xl flex-col gap-12 lg:gap-8">
         <Section>
           <div className="flex flex-1 flex-col gap-6">
-            <span className="text-cc-ink inline-flex leading-none">
+            <span className="text-cc-heading inline-flex leading-none">
               <ChilliCreamText className="h-8 w-auto fill-current" />
             </span>
             <address className="not-italic">
@@ -74,7 +74,7 @@ export default function Footer() {
               ))}
             </LinkColumn>
             <LinkColumn title="Company">
-              <NavLink href="mailto:contact@chillicream.com">Contact</NavLink>
+              <NavLink href="/services/support/contact">Contact</NavLink>
               <NavLink href={tools.shop}>Shop</NavLink>
               {basicPages.map((page) => (
                 <NavLink key={page.path} href={`/${page.path}`}>
@@ -133,7 +133,7 @@ function LinkColumn({
 }) {
   return (
     <div className="flex min-w-36 flex-col gap-6">
-      <h3 className="text-cc-ink flex h-8 items-end text-base font-semibold">
+      <h3 className="text-cc-heading flex h-8 items-end text-base font-semibold">
         {title}
       </h3>
       <nav className="flex flex-col gap-2.5">{children}</nav>

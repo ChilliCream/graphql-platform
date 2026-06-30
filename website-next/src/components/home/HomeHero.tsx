@@ -27,7 +27,7 @@ function position(
  */
 export function HomeHero() {
   return (
-    <section className="relative isolate mx-auto flex min-h-[34rem] max-w-6xl flex-col items-center justify-center px-5 py-20 text-center sm:min-h-[40rem] sm:px-12 lg:min-h-[46rem]">
+    <section className="relative isolate mx-auto flex min-h-[34rem] max-w-7xl flex-col items-center justify-center px-5 py-20 text-center sm:min-h-[40rem] sm:px-12 lg:min-h-[46rem]">
       {/* Decorative scatter, behind the headline. Trimmed corner composition on
           phones, full scatter from the `sm` breakpoint up. */}
       <div
@@ -44,7 +44,7 @@ export function HomeHero() {
         {HERO_SWIRLS_MOBILE.map(({ left, top, heroSize, rotate }) => (
           <Swirl
             key={left + top}
-            className="text-cc-nav-label/60 absolute"
+            className="text-cc-ink-dim/60 absolute"
             style={position(left, top, {
               width: heroSize,
               height: heroSize,
@@ -67,7 +67,7 @@ export function HomeHero() {
         {HERO_SWIRLS.map(({ left, top, heroSize, rotate }) => (
           <Swirl
             key={left + top}
-            className="text-cc-nav-label/60 absolute"
+            className="text-cc-ink-dim/60 absolute"
             style={position(left, top, {
               width: heroSize,
               height: heroSize,

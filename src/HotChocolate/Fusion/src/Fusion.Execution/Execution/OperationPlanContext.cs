@@ -40,7 +40,9 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
     private readonly INodeIdParser _nodeIdParser;
     private readonly IErrorHandler _errorHandler;
     private bool _collectTelemetry;
+#pragma warning disable IDE0370 // Remove unnecessary suppression
     private ISourceSchemaClientScope _clientScope = default!;
+#pragma warning restore IDE0370 // Remove unnecessary suppression
     private string? _traceId;
     private long _start;
     private long _clientScopeCreatedAt;
@@ -48,18 +50,24 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
     private int _nodeSlotCapacity;
     private MemoryArena? _memory;
     private readonly FixedMemoryArenaSource _memorySource = new();
+#pragma warning disable IDE0370 // Remove unnecessary suppression
     private IMemoryArenaSource _currentMemorySource = default!;
+#pragma warning restore IDE0370 // Remove unnecessary suppression
     internal OperationPlanContextPool? _pool;
 
     /// <summary>
     /// Gets the operation plan being executed.
     /// </summary>
+#pragma warning disable IDE0370 // Remove unnecessary suppression
     public IOperationPlan OperationPlan { get; private set; } = default!;
+#pragma warning restore IDE0370 // Remove unnecessary suppression
 
     /// <summary>
     /// Gets the coerced variable values for the current request.
     /// </summary>
+#pragma warning disable IDE0370 // Remove unnecessary suppression
     public IVariableValueCollection Variables { get; private set; } = default!;
+#pragma warning restore IDE0370 // Remove unnecessary suppression
 
     /// <summary>
     /// Gets the schema definition associated with this execution.
@@ -69,7 +77,9 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
     /// <summary>
     /// Gets the request context for the current request.
     /// </summary>
+#pragma warning disable IDE0370 // Remove unnecessary suppression
     public RequestContext RequestContext { get; private set; } = default!;
+#pragma warning restore IDE0370 // Remove unnecessary suppression
 
     /// <summary>
     /// Gets the source schema client scope used to obtain HTTP clients for downstream subgraphs.

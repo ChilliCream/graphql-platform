@@ -9,6 +9,11 @@ namespace Mocha.Sagas;
 /// <param name="saga">The saga definition that this consumer handles.</param>
 public sealed class SagaConsumer(Saga saga) : Consumer
 {
+    /// <summary>
+    /// Gets the saga definition that this consumer handles.
+    /// </summary>
+    public Saga Saga => saga;
+
     /// <inheritdoc />
     protected override void Configure(IConsumerDescriptor descriptor)
     {

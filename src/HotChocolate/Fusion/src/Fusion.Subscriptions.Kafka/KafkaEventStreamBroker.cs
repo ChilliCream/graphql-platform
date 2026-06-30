@@ -102,7 +102,7 @@ internal sealed class KafkaEventStreamBroker(KafkaEventStreamOptions options)
                     break;
                 }
 
-                yield return message!;
+                yield return message;
             }
         }
         finally
