@@ -120,7 +120,13 @@ public static class HotChocolateFusionServiceCollectionExtensions
             static (sp, schemaName) =>
             {
                 var optionsMonitor = sp.GetRequiredService<IOptionsMonitor<FusionGatewaySetup>>();
+                // The keyed-service key is non-nullable 'object' on net11.0 but nullable
+                // 'object?' on net8.0-net10.0, where the cast still needs the suppression.
+#if NET11_0_OR_GREATER
                 var setup = optionsMonitor.Get((string)schemaName);
+#else
+                var setup = optionsMonitor.Get((string)schemaName!);
+#endif
 
                 var options = FusionRequestExecutorManager.CreateOptions(setup);
 
