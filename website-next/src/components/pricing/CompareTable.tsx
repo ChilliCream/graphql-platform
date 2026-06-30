@@ -15,7 +15,7 @@ export function CompareTable() {
       id="compare"
     >
       <div className="text-center">
-        <p className="text-cc-nav-label font-mono text-xs tracking-[0.18em] uppercase">
+        <p className="text-cc-ink-dim font-mono text-xs tracking-[0.18em] uppercase">
           Compare plans
         </p>
         <h2
@@ -33,7 +33,7 @@ export function CompareTable() {
               <tr className="border-cc-card-border border-b">
                 <th
                   scope="col"
-                  className="text-cc-nav-label px-5 py-4 font-mono text-[0.65rem] tracking-[0.15em] uppercase"
+                  className="text-cc-ink-dim px-5 py-4 font-mono text-[0.65rem] tracking-[0.15em] uppercase"
                 >
                   Capability
                 </th>
@@ -58,7 +58,7 @@ export function CompareTable() {
                   <th
                     scope="colgroup"
                     colSpan={TIERS.length + 1}
-                    className="text-cc-nav-label px-5 py-3 text-left font-mono text-[0.65rem] tracking-[0.15em] uppercase"
+                    className="text-cc-ink-dim px-5 py-3 text-left font-mono text-[0.65rem] tracking-[0.15em] uppercase"
                   >
                     {group.title}
                   </th>

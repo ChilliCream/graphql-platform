@@ -77,7 +77,7 @@ export function Offering({
         {title}
       </Heading>
       {description && (
-        <p className="text-cc-nav-label mt-1 font-mono text-xs">
+        <p className="text-cc-ink-dim mt-1 font-mono text-xs">
           {description}
         </p>
       )}
@@ -88,7 +88,7 @@ export function Offering({
             {price}
           </span>
           {priceNote && (
-            <span className="text-cc-nav-label font-mono text-xs">
+            <span className="text-cc-ink-dim font-mono text-xs">
               {priceNote}
             </span>
           )}

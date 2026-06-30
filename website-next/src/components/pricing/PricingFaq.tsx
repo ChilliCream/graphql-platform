@@ -14,7 +14,7 @@ export function PricingFaq() {
       id="faq"
     >
       <div className="text-center">
-        <p className="text-cc-nav-label font-mono text-xs tracking-[0.18em] uppercase">
+        <p className="text-cc-ink-dim font-mono text-xs tracking-[0.18em] uppercase">
           FAQ
         </p>
         <h2

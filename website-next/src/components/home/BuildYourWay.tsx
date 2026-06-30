@@ -85,7 +85,7 @@ export function BuildYourWay() {
         <div className="bg-cc-surface px-5 pt-5 pb-5 sm:px-8 sm:pt-6 sm:pb-6">
           <div className="flex items-center gap-3 px-1">
             <span className="bg-cc-ink-faint h-px flex-1" />
-            <span className="text-cc-nav-label font-mono text-[0.65rem] tracking-[0.15em] uppercase">
+            <span className="text-cc-ink-dim font-mono text-[0.65rem] tracking-[0.15em] uppercase">
               Products
             </span>
             <span className="bg-cc-ink-faint h-px flex-1" />

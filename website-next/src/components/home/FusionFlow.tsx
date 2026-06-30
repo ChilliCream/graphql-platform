@@ -242,7 +242,7 @@ export function FusionFlow() {
               on larger screens the text aligns with the copy and the line fills
               the gap to the glow. */}
           <div className="flex w-1/2 items-center justify-end gap-2 pr-6 sm:justify-start sm:gap-4 sm:pr-10">
-            <span className="text-cc-nav-label font-mono text-[0.5rem] tracking-[0.15em] whitespace-nowrap uppercase sm:text-sm sm:tracking-[0.2em]">
+            <span className="text-cc-ink-dim font-mono text-[0.5rem] tracking-[0.15em] whitespace-nowrap uppercase sm:text-sm sm:tracking-[0.2em]">
               Fusion Composition
             </span>
             <span className="h-px w-10 flex-none border-t border-dashed border-[rgba(245,241,234,0.3)] sm:w-auto sm:flex-1" />
