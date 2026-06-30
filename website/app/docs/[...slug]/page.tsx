@@ -20,7 +20,7 @@ import { getGitMetadata } from "@/src/helpers/gitMetadata";
 import { githubEditUrl } from "@/src/helpers/githubEditUrl";
 import { SITE_NAME, TWITTER_HANDLE } from "@/src/helpers/site";
 import { readFrontmatter } from "@/src/helpers/readFrontmatter";
-import { toAbsoluteUrl } from "@/src/helpers/siteUrl";
+import { SITE_URL, toAbsoluteUrl } from "@/src/helpers/siteUrl";
 
 type Params = {
   slug: string[];
@@ -166,6 +166,7 @@ export default async function DocPage({ params }: PageProps) {
         ? { description: frontmatter.description }
         : {}),
       dateModified: gitMeta.isoDate,
+      publisher: { "@id": `${SITE_URL}/#organization` },
       mainEntityOfPage: toAbsoluteUrl(`/docs/${slug.join("/")}`),
     },
     {

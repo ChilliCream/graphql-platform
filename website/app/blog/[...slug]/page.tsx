@@ -30,7 +30,7 @@ import { readFrontmatter } from "@/src/helpers/readFrontmatter";
 import { estimateReadingTime } from "@/src/helpers/readingTime";
 import { SITE_NAME, TWITTER_HANDLE } from "@/src/helpers/site";
 import { getShareImageSrc } from "@/src/image-optimization/manifest";
-import { toAbsoluteUrl } from "@/src/helpers/siteUrl";
+import { SITE_URL, toAbsoluteUrl } from "@/src/helpers/siteUrl";
 
 type BlogFrontmatter = {
   title?: string;
@@ -174,26 +174,47 @@ export default async function BlogSlugPage({ params }: PageProps) {
   const currentHref = current?.href ?? `/blog/${stem}`;
 
   const jsonLd = current
-    ? {
-        "@context": "https://schema.org",
-        "@type": "BlogPosting",
-        headline: current.title,
-        ...(current.description ? { description: current.description } : {}),
-        datePublished: current.date,
-        ...(current.featuredImage
-          ? { image: toAbsoluteUrl(current.featuredImage) }
-          : {}),
-        ...(current.author
-          ? {
-              author: {
-                "@type": "Person",
-                name: current.author,
-                ...(current.authorUrl ? { url: current.authorUrl } : {}),
-              },
-            }
-          : {}),
-        mainEntityOfPage: toAbsoluteUrl(current.href),
-      }
+    ? [
+        {
+          "@context": "https://schema.org",
+          "@type": "BlogPosting",
+          headline: current.title,
+          ...(current.description ? { description: current.description } : {}),
+          datePublished: current.date,
+          ...(current.featuredImage
+            ? { image: toAbsoluteUrl(current.featuredImage) }
+            : {}),
+          ...(current.author
+            ? {
+                author: {
+                  "@type": "Person",
+                  name: current.author,
+                  ...(current.authorUrl ? { url: current.authorUrl } : {}),
+                },
+              }
+            : {}),
+          ...(current.tags.length > 0 ? { keywords: current.tags } : {}),
+          publisher: { "@id": `${SITE_URL}/#organization` },
+          mainEntityOfPage: toAbsoluteUrl(current.href),
+        },
+        {
+          "@context": "https://schema.org",
+          "@type": "BreadcrumbList",
+          itemListElement: [
+            {
+              "@type": "ListItem",
+              position: 1,
+              name: "Blog",
+              item: toAbsoluteUrl("/blog"),
+            },
+            {
+              "@type": "ListItem",
+              position: 2,
+              name: current.title,
+            },
+          ],
+        },
+      ]
     : null;
 
   return (
