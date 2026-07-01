@@ -77,20 +77,23 @@ internal sealed class __Field : ITypeResolverInterceptor
         var count = includeDeprecated
             ? field.Arguments.Count
             : field.Arguments.Count(t => !t.IsDeprecated);
-        var list = context.FieldResult.CreateListValue(count);
+        using var list = context.FieldResult.CreateListValue(count).EnumerateArray().GetEnumerator();
 
-        var index = 0;
-        foreach (var element in list.EnumerateArray())
+        foreach (var argument in field.Arguments)
         {
-            var argument = field.Arguments[index++];
-
             if (!includeDeprecated && argument.IsDeprecated)
             {
                 continue;
             }
 
+            if (!list.MoveNext())
+            {
+                Debug.Fail("Expected enumerator of list value to be able to advance");
+                break;
+            }
+
             context.AddRuntimeResult(argument);
-            element.CreateObjectValue(context.Selection, context.IncludeFlags);
+            list.Current.CreateObjectValue(context.Selection, context.IncludeFlags);
         }
     }
 
