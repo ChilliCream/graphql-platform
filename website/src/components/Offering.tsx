@@ -20,6 +20,8 @@ interface OfferingProps {
   readonly callToAction?: { readonly title: string; readonly link: string };
   /** Highlights the card with the accent ring and "Most Popular" badge. */
   readonly popular?: boolean;
+  /** Overrides the popular badge label (defaults to "Most Popular"). */
+  readonly popularLabel?: string;
   readonly headingLevel?: "h2" | "h3";
 }
 
@@ -32,6 +34,7 @@ export function Offering({
   perks,
   callToAction,
   popular = false,
+  popularLabel,
   headingLevel: Heading = "h3",
 }: OfferingProps) {
   const CallToActionButton = popular ? SolidButton : OutlineButton;
@@ -57,7 +60,7 @@ export function Offering({
       }`}
       style={cardStyle}
     >
-      {popular && <PopularBadge />}
+      {popular && <PopularBadge label={popularLabel} />}
 
       {Icon && (
         <div className="flex flex-col items-center text-center">
