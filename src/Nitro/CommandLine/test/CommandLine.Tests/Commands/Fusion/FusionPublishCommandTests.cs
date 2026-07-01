@@ -35,8 +35,8 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
               --force                                        Skip confirmation prompts for deletes and overwrites
               --wait-for-approval                            Wait for the deployment to be approved before completing [env: NITRO_WAIT_FOR_APPROVAL]
               -w, --working-directory <working-directory>    Set the working directory for the command
-              --cloud-url <cloud-url>                        The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL] [default: api.chillicream.com]
-              --api-key <api-key>                            The API key used for authentication [env: NITRO_API_KEY]
+              --cloud-url <cloud-url>                        The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL]
+              --api-key <api-key>                            The API key or PAT used for authentication [env: NITRO_API_KEY]
               --output <json>                                The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
               -?, -h, --help                                 Show help and usage information
 
@@ -384,10 +384,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             ArchiveFile);
 
         // assert
-        result.StdErr.MatchInlineSnapshot(
-            $"""
-             {expectedErrorMessage}
-             """);
+        result.StdErr.MatchInlineSnapshot(expectedErrorMessage);
         result.StdOut.MatchInlineSnapshot(
             """
             Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
@@ -460,10 +457,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             ArchiveFile);
 
         // assert
-        result.StdErr.MatchInlineSnapshot(
-            $"""
-             {expectedErrorMessage}
-             """);
+        result.StdErr.MatchInlineSnapshot(expectedErrorMessage);
         result.StdOut.MatchInlineSnapshot(
             """
             Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
@@ -546,10 +540,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             ArchiveFile);
 
         // assert
-        result.StdErr.MatchInlineSnapshot(
-            $"""
-             {expectedErrorMessage}
-             """);
+        result.StdErr.MatchInlineSnapshot(expectedErrorMessage);
         result.StdOut.MatchInlineSnapshot(
             """
             Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
@@ -617,7 +608,6 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         SetupRequestDeploymentSlotMutation(waitForApproval: true);
         SetupRequestDeploymentSlotSubscription();
         SetupClaimDeploymentSlotMutation();
-        SetupReleaseDeploymentSlotMutation();
         var capturedStream = SetupFusionConfigurationUploadMutation();
         SetupFusionConfigurationUploadSubscription();
 
@@ -664,7 +654,6 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         SetupFusionConfigurationValidationSubscription(
             CreateValidationInProgressEvent(),
             CreateValidationFailedEventWithErrors());
-        SetupReleaseDeploymentSlotMutation();
 
         // act
         var result = await ExecuteCommandAsync(
@@ -948,10 +937,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             ArchiveFile);
 
         // assert
-        result.StdErr.MatchInlineSnapshot(
-            $"""
-             {expectedErrorMessage}
-             """);
+        result.StdErr.MatchInlineSnapshot(expectedErrorMessage);
         result.StdOut.MatchInlineSnapshot(
             """
             Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
@@ -1147,11 +1133,11 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         // assert
         result.StdErr.MatchInlineSnapshot(
             $"""
-             Encountered the following errors while trying to release the deployment slot after an error during the publishing process:
-             {expectedErrorMessage}
-             This is the error that caused the publishing process to fail in the first place:
-             There was an unexpected error: Something unexpected happened.
-             """);
+            Encountered the following errors while trying to release the deployment slot after an error during the publishing process:
+            {expectedErrorMessage}
+            This is the error that caused the publishing process to fail in the first place:
+            There was an unexpected error: Something unexpected happened.
+            """);
         result.StdOut.MatchInlineSnapshot(
             """
             Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
@@ -1390,7 +1376,6 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         SetupRequestDeploymentSlotSubscription();
         SetupClaimDeploymentSlotMutation();
         SetupMissingFusionConfigurationDownload();
-        SetupLegacyFusionConfigurationDownload();
         SetupFusionConfigurationValidationMutation();
         SetupFusionConfigurationValidationSubscription();
         var capturedStream = SetupFusionConfigurationUploadMutation();
@@ -1448,7 +1433,6 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         SetupRequestDeploymentSlotSubscription();
         SetupClaimDeploymentSlotMutation();
         SetupMissingFusionConfigurationDownload();
-        SetupLegacyFusionConfigurationDownload();
         SetupFusionConfigurationValidationMutation();
         SetupFusionConfigurationValidationSubscription();
         var capturedStream = SetupFusionConfigurationUploadMutation();
@@ -1503,7 +1487,6 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         SetupRequestDeploymentSlotSubscription();
         SetupClaimDeploymentSlotMutation();
         SetupMissingFusionConfigurationDownload();
-        SetupMissingLegacyFusionConfigurationDownload();
         SetupFusionConfigurationValidationMutation();
         SetupFusionConfigurationValidationSubscription();
         var capturedStream = SetupFusionConfigurationUploadMutation();
@@ -1561,7 +1544,6 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         SetupRequestDeploymentSlotSubscription();
         SetupClaimDeploymentSlotMutation();
         SetupMissingFusionConfigurationDownload();
-        SetupMissingLegacyFusionConfigurationDownload();
         SetupFusionConfigurationValidationMutation();
         SetupFusionConfigurationValidationSubscription();
         var capturedStream = SetupFusionConfigurationUploadMutation();
@@ -1618,7 +1600,6 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         SetupSourceSchemaFile();
         SetupLegacyArchiveFile();
         SetupMissingFusionConfigurationDownload();
-        SetupMissingLegacyFusionConfigurationDownload();
         SetupFusionConfigurationValidationMutation();
         SetupFusionConfigurationValidationSubscription();
         var capturedStream = SetupFusionConfigurationUploadMutation();
@@ -1803,10 +1784,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             SourceSchemaFile);
 
         // assert
-        result.StdErr.MatchInlineSnapshot(
-            $"""
-             {expectedErrorMessage}
-             """);
+        result.StdErr.MatchInlineSnapshot(expectedErrorMessage);
         result.StdOut.MatchInlineSnapshot(
             """
             Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
@@ -1879,10 +1857,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             SourceSchemaFile);
 
         // assert
-        result.StdErr.MatchInlineSnapshot(
-            $"""
-             {expectedErrorMessage}
-             """);
+        result.StdErr.MatchInlineSnapshot(expectedErrorMessage);
         result.StdOut.MatchInlineSnapshot(
             """
             Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
@@ -2060,10 +2035,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             SourceSchemaFile);
 
         // assert
-        result.StdErr.MatchInlineSnapshot(
-            $"""
-             {expectedErrorMessage}
-             """);
+        result.StdErr.MatchInlineSnapshot(expectedErrorMessage);
         result.StdOut.MatchInlineSnapshot(
             """
             Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
@@ -2145,7 +2117,6 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         SetupFusionConfigurationValidationSubscription(
             CreateValidationInProgressEvent(),
             CreateValidationFailedEventWithErrors());
-        SetupReleaseDeploymentSlotMutation();
 
         // act
         var result = await ExecuteCommandAsync(
@@ -2159,7 +2130,6 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             Tag,
             "--source-schema-file",
             SourceSchemaFile);
-        ;
 
         // assert
         result.StdErr.MatchInlineSnapshot(
@@ -2298,7 +2268,6 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         SetupRequestDeploymentSlotSubscription();
         SetupClaimDeploymentSlotMutation();
         SetupFusionConfigurationDownload();
-        SetupReleaseDeploymentSlotMutation();
         var capturedStream = SetupFusionConfigurationUploadMutation();
         SetupFusionConfigurationUploadSubscription();
 
@@ -2498,10 +2467,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             SourceSchemaFile);
 
         // assert
-        result.StdErr.MatchInlineSnapshot(
-            $"""
-             {expectedErrorMessage}
-             """);
+        result.StdErr.MatchInlineSnapshot(expectedErrorMessage);
         result.StdOut.MatchInlineSnapshot(
             """
             Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
@@ -2711,11 +2677,11 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         // assert
         result.StdErr.MatchInlineSnapshot(
             $"""
-             Encountered the following errors while trying to release the deployment slot after an error during the publishing process:
-             {expectedErrorMessage}
-             This is the error that caused the publishing process to fail in the first place:
-             There was an unexpected error: Something unexpected happened.
-             """);
+            Encountered the following errors while trying to release the deployment slot after an error during the publishing process:
+            {expectedErrorMessage}
+            This is the error that caused the publishing process to fail in the first place:
+            There was an unexpected error: Something unexpected happened.
+            """);
         result.StdOut.MatchInlineSnapshot(
             """
             Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
@@ -2998,7 +2964,6 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         SetupRequestDeploymentSlotSubscription();
         SetupClaimDeploymentSlotMutation();
         SetupMissingFusionConfigurationDownload();
-        SetupLegacyFusionConfigurationDownload();
         SetupFusionConfigurationValidationMutation();
         SetupFusionConfigurationValidationSubscription();
         var capturedStream = SetupFusionConfigurationUploadMutation();
@@ -3055,7 +3020,6 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         SetupRequestDeploymentSlotSubscription();
         SetupClaimDeploymentSlotMutation();
         SetupMissingFusionConfigurationDownload();
-        SetupLegacyFusionConfigurationDownload();
         SetupFusionConfigurationValidationMutation();
         SetupFusionConfigurationValidationSubscription();
         var capturedStream = SetupFusionConfigurationUploadMutation();
@@ -3112,7 +3076,6 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         SetupRequestDeploymentSlotSubscription();
         SetupClaimDeploymentSlotMutation();
         SetupMissingFusionConfigurationDownload();
-        SetupMissingLegacyFusionConfigurationDownload();
         SetupFusionConfigurationValidationMutation();
         SetupFusionConfigurationValidationSubscription();
         var capturedStream = SetupFusionConfigurationUploadMutation();
@@ -3169,7 +3132,6 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         SetupRequestDeploymentSlotSubscription();
         SetupClaimDeploymentSlotMutation();
         SetupMissingFusionConfigurationDownload();
-        SetupMissingLegacyFusionConfigurationDownload();
         SetupFusionConfigurationValidationMutation();
         SetupFusionConfigurationValidationSubscription();
         var capturedStream = SetupFusionConfigurationUploadMutation();
@@ -3228,7 +3190,6 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         SetupSourceSchemaDownload();
         SetupLegacyArchiveFile();
         SetupMissingFusionConfigurationDownload();
-        SetupMissingLegacyFusionConfigurationDownload();
         SetupFusionConfigurationValidationMutation();
         SetupFusionConfigurationValidationSubscription();
         var capturedStream = SetupFusionConfigurationUploadMutation();
@@ -3474,10 +3435,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             SourceSchema);
 
         // assert
-        result.StdErr.MatchInlineSnapshot(
-            $"""
-             {expectedErrorMessage}
-             """);
+        result.StdErr.MatchInlineSnapshot(expectedErrorMessage);
         result.StdOut.MatchInlineSnapshot(
             """
             Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
@@ -3554,10 +3512,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             SourceSchema);
 
         // assert
-        result.StdErr.MatchInlineSnapshot(
-            $"""
-             {expectedErrorMessage}
-             """);
+        result.StdErr.MatchInlineSnapshot(expectedErrorMessage);
         result.StdOut.MatchInlineSnapshot(
             """
             Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
@@ -3743,10 +3698,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             SourceSchema);
 
         // assert
-        result.StdErr.MatchInlineSnapshot(
-            $"""
-             {expectedErrorMessage}
-             """);
+        result.StdErr.MatchInlineSnapshot(expectedErrorMessage);
         result.StdOut.MatchInlineSnapshot(
             """
             Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
@@ -3833,7 +3785,6 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         SetupFusionConfigurationValidationSubscription(
             CreateValidationInProgressEvent(),
             CreateValidationFailedEventWithErrors());
-        SetupReleaseDeploymentSlotMutation();
 
         // act
         var result = await ExecuteCommandAsync(
@@ -3989,7 +3940,6 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         SetupRequestDeploymentSlotSubscription();
         SetupClaimDeploymentSlotMutation();
         SetupFusionConfigurationDownload();
-        SetupReleaseDeploymentSlotMutation();
         var capturedStream = SetupFusionConfigurationUploadMutation();
         SetupFusionConfigurationUploadSubscription();
 
@@ -4195,10 +4145,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             SourceSchema);
 
         // assert
-        result.StdErr.MatchInlineSnapshot(
-            $"""
-             {expectedErrorMessage}
-             """);
+        result.StdErr.MatchInlineSnapshot(expectedErrorMessage);
         result.StdOut.MatchInlineSnapshot(
             """
             Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
@@ -4416,11 +4363,11 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         // assert
         result.StdErr.MatchInlineSnapshot(
             $"""
-             Encountered the following errors while trying to release the deployment slot after an error during the publishing process:
-             {expectedErrorMessage}
-             This is the error that caused the publishing process to fail in the first place:
-             There was an unexpected error: Something unexpected happened.
-             """);
+            Encountered the following errors while trying to release the deployment slot after an error during the publishing process:
+            {expectedErrorMessage}
+            This is the error that caused the publishing process to fail in the first place:
+            There was an unexpected error: Something unexpected happened.
+            """);
         result.StdOut.MatchInlineSnapshot(
             """
             Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
@@ -4583,6 +4530,15 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
               "The name of the source schema that provides the specified enum value."
               schema: fusion__Schema!
             ) repeatable on ENUM_VALUE
+
+            directive @fusion__eventStream(
+              broker: String
+              cursorArgument: String
+              cursorField: String
+              message: fusion__FieldSelectionSet!
+              schema: fusion__Schema!
+              topics: [String!]
+            ) on FIELD_DEFINITION
 
             "The @fusion__field directive specifies which source schema provides a field in a composite type and what execution behavior it has."
             directive @fusion__field(
@@ -4780,10 +4736,10 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             }
 
             enum CacheControlScope @fusion__type(schema: REVIEWS) {
-              "The value to cache is specific to a single user."
-              PRIVATE @fusion__enumValue(schema: REVIEWS)
               "The value to cache is not tied to a single user."
               PUBLIC @fusion__enumValue(schema: REVIEWS)
+              "The value to cache is specific to a single user."
+              PRIVATE @fusion__enumValue(schema: REVIEWS)
             }
 
             "The fusion__Schema enum is a generated type used within an execution schema document to refer to a source schema in a type-safe manner."
@@ -4837,6 +4793,15 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
               "The name of the source schema that provides the specified enum value."
               schema: fusion__Schema!
             ) repeatable on ENUM_VALUE
+
+            directive @fusion__eventStream(
+              broker: String
+              cursorArgument: String
+              cursorField: String
+              message: fusion__FieldSelectionSet!
+              schema: fusion__Schema!
+              topics: [String!]
+            ) on FIELD_DEFINITION
 
             "The @fusion__field directive specifies which source schema provides a field in a composite type and what execution behavior it has."
             directive @fusion__field(

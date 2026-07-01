@@ -11,6 +11,7 @@ using HotChocolate.Types.Mutable;
 using static HotChocolate.Fusion.WellKnownDirectiveNames;
 using static HotChocolate.Language.Utf8GraphQLParser.Syntax;
 using ArgumentNames = HotChocolate.Fusion.WellKnownArgumentNames;
+using StringValueNode = HotChocolate.Language.StringValueNode;
 
 namespace HotChocolate.Fusion;
 
@@ -84,6 +85,7 @@ internal sealed class SourceSchemaEnricher(
             || declaringType.Directives.ContainsName(WellKnownDirectiveNames.Internal);
         sourceMetadata.IsLookup = outputField.Directives.ContainsName(Lookup);
         sourceMetadata.HasExternalDirective = outputField.Directives.ContainsName(External);
+        sourceMetadata.HasEventCursorDirective = outputField.Directives.ContainsName(EventCursor);
         sourceMetadata.HasInternalDirective = outputField.Directives.ContainsName(WellKnownDirectiveNames.Internal);
         sourceMetadata.HasOverrideDirective = outputField.Directives.ContainsName(Override);
         sourceMetadata.HasProvidesDirective = outputField.Directives.ContainsName(Provides);
@@ -120,6 +122,7 @@ internal sealed class SourceSchemaEnricher(
         var sourceMetadata = inputField.Features.GetOrSet<SourceInputFieldMetadata>();
 
         sourceMetadata.HasIsDirective = inputField.Directives.ContainsName(Is);
+        sourceMetadata.HasEventCursorDirective = inputField.Directives.ContainsName(EventCursor);
         sourceMetadata.HasRequireDirective = inputField.Directives.ContainsName(Require);
         sourceMetadata.IsInaccessible =
             inputField.Directives.ContainsName(Inaccessible)

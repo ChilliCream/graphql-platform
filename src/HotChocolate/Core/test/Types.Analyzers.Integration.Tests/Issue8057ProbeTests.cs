@@ -13,7 +13,7 @@ public class Issue8057ProbeTests
                 .AddGraphQLServer(disableDefaultSecurity: true)
                 .AddIntegrationTestTypes()
                 .AddGlobalObjectIdentification()
-                .BuildSchemaAsync());
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken));
 
         Assert.Null(exception);
     }

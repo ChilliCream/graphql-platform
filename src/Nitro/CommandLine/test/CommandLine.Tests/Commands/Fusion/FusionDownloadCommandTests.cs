@@ -27,8 +27,8 @@ public sealed class FusionDownloadCommandTests(NitroCommandFixture fixture) : Fu
               --stage <stage> (REQUIRED)    The name of the stage [env: NITRO_STAGE]
               --version <version>           The version of the archive to download [default: 2.0.0]
               --output-file <output-file>   The file path to write the output to [env: NITRO_OUTPUT_FILE]
-              --cloud-url <cloud-url>       The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL] [default: api.chillicream.com]
-              --api-key <api-key>           The API key used for authentication [env: NITRO_API_KEY]
+              --cloud-url <cloud-url>       The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL]
+              --api-key <api-key>           The API key or PAT used for authentication [env: NITRO_API_KEY]
               --output <json>               The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
               -?, -h, --help                Show help and usage information
 

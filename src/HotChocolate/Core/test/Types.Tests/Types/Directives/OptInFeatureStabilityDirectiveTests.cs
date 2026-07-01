@@ -52,7 +52,7 @@ public sealed class OptInFeatureStabilityDirectiveTests
                     .OptInFeatureStability("feature2", "stability2"))
                 .AddQueryType(d => d.Field("field").Type<IntType>())
                 .UseField(_ => _ => default)
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         schema.MatchSnapshot();
@@ -79,7 +79,7 @@ public sealed class OptInFeatureStabilityDirectiveTests
                     }
                     """)
                 .UseField(_ => _ => default)
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         schema.MatchSnapshot();

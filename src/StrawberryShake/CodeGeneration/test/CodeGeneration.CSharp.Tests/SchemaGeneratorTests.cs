@@ -1,4 +1,3 @@
-using ChilliCream.Testing;
 using static StrawberryShake.CodeGeneration.CSharp.GeneratorTestHelper;
 
 namespace StrawberryShake.CodeGeneration.CSharp;
@@ -427,13 +426,13 @@ public class SchemaGeneratorTests
                   }
                 }
                 fragment Offer on Offer {
-                   amenities1
-                   amenities2
-                   amenities3
-                   amenities4
-                   amenities5
-                   amenities6
-                   amenities7
+                  amenities1
+                  amenities2
+                  amenities3
+                  amenities4
+                  amenities5
+                  amenities6
+                  amenities7
                 }
                 ",
             @"
@@ -554,7 +553,7 @@ public class SchemaGeneratorTests
     {
         AssertResult(
             @"
-                     mutation insertPeople($people: [people_insert_input!]!) {
+                    mutation insertPeople($people: [people_insert_input!]!) {
                         insert_people(objects: $people)
                         {
                             affected_rows

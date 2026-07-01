@@ -1,6 +1,4 @@
 using HotChocolate.AspNetCore.Tests.Utilities;
-using HotChocolate.Execution;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.AspNetCore;
 
@@ -10,67 +8,58 @@ public class EvictSchemaTests(TestServerFactory serverFactory) : ServerTestBase(
     public async Task Evict_Default_Schema()
     {
         // arrange
-        var newExecutorCreatedResetEvent = new ManualResetEventSlim(false);
-        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
         var server = CreateStarWarsServer();
 
-        var time1 = await server.GetAsync(new ClientQueryRequest { Query = "{ time }" });
-
-        var events = server.Services.GetRequiredService<IRequestExecutorEvents>();
-        events.Subscribe(
-            new RequestExecutorEventObserver(
-                @event =>
-                {
-                    if (@event.Type == RequestExecutorEventType.Created)
-                    {
-                        newExecutorCreatedResetEvent.Set();
-                    }
-                }));
+        var time1 = (long)(await server.GetAsync(
+            new ClientQueryRequest { Query = "{ time }" })).Data!["time"]!;
 
         // act
-        await Task.Delay(1000, cts.Token);
         await server.GetAsync(new ClientQueryRequest { Query = "{ evict }" });
-        await Task.Delay(2000, cts.Token);
-        newExecutorCreatedResetEvent.Wait(cts.Token);
 
         // assert
-        var time2 = await server.GetAsync(new ClientQueryRequest { Query = "{ time }" });
-        Assert.False(((long)time1.Data!["time"]!).Equals((long)time2.Data!["time"]!));
+        // Eviction re-creates and swaps in a new executor asynchronously, and there is no event
+        // for "the endpoint now serves the new schema", so poll until the reported schema
+        // creation time changes.
+        long time2;
+        do
+        {
+            await Task.Delay(25, cts.Token);
+            time2 = (long)(await server.GetAsync(
+                new ClientQueryRequest { Query = "{ time }" })).Data!["time"]!;
+        }
+        while (time2 == time1);
+
+        Assert.NotEqual(time1, time2);
     }
 
     [Fact]
     public async Task Evict_Named_Schema()
     {
         // arrange
-        var newExecutorCreatedResetEvent = new ManualResetEventSlim(false);
-        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
         var server = CreateStarWarsServer();
 
-        var time1 = await server.GetAsync(
+        var time1 = (long)(await server.GetAsync(
             new ClientQueryRequest { Query = "{ time }" },
-            "/evict");
-
-        var events = server.Services.GetRequiredService<IRequestExecutorEvents>();
-        events.Subscribe(new RequestExecutorEventObserver(@event =>
-        {
-            if (@event.Type == RequestExecutorEventType.Created)
-            {
-                newExecutorCreatedResetEvent.Set();
-            }
-        }));
+            "/evict")).Data!["time"]!;
 
         // act
-        await Task.Delay(1000, cts.Token);
         await server.GetAsync(
             new ClientQueryRequest { Query = "{ evict }" },
             "/evict");
-        await Task.Delay(2000, cts.Token);
-        newExecutorCreatedResetEvent.Wait(cts.Token);
 
         // assert
-        var time2 = await server.GetAsync(
-            new ClientQueryRequest { Query = "{ time }" },
-            "/evict");
-        Assert.False(((long)time1.Data!["time"]!).Equals((long)time2.Data!["time"]!));
+        long time2;
+        do
+        {
+            await Task.Delay(25, cts.Token);
+            time2 = (long)(await server.GetAsync(
+                new ClientQueryRequest { Query = "{ time }" },
+                "/evict")).Data!["time"]!;
+        }
+        while (time2 == time1);
+
+        Assert.NotEqual(time1, time2);
     }
 }

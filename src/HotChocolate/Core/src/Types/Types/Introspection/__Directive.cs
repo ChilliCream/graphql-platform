@@ -16,11 +16,14 @@ internal sealed class __Directive : ObjectType<DirectiveType>
     {
         var stringType = Create(ScalarNames.String);
         var nonNullStringType = Parse($"{ScalarNames.String}!");
+        var nonNullStringListType = Parse($"[{ScalarNames.String}!]");
         var nonNullBooleanType = Parse($"{ScalarNames.Boolean}!");
         var argumentListType = Parse($"[{nameof(__InputValue)}!]!");
         var locationListType = Parse($"[{nameof(__DirectiveLocation)}!]!");
 
-        return new ObjectTypeConfiguration(
+        var optInFeaturesEnabled = context.DescriptorContext.Options.EnableOptInFeatures;
+
+        var def = new ObjectTypeConfiguration(
             Names.__Directive,
             TypeResources.Directive_Description,
             typeof(DirectiveType))
@@ -30,7 +33,12 @@ internal sealed class __Directive : ObjectType<DirectiveType>
                 new(Names.Name, type: nonNullStringType, pureResolver: Resolvers.Name),
                 new(Names.Description, type: stringType, pureResolver: Resolvers.Description),
                 new(Names.Locations, type: locationListType, pureResolver: Resolvers.Locations),
-                new(Names.Args, type: argumentListType, pureResolver: Resolvers.Arguments)
+                new(
+                    Names.Args,
+                    type: argumentListType,
+                    pureResolver: optInFeaturesEnabled
+                        ? Resolvers.ArgumentsWithOptIn
+                        : Resolvers.Arguments)
                 {
                     Arguments =
                     {
@@ -44,6 +52,12 @@ internal sealed class __Directive : ObjectType<DirectiveType>
                 new(Names.IsRepeatable,
                     type: nonNullBooleanType,
                     pureResolver: Resolvers.IsRepeatable),
+                new(Names.IsDeprecated,
+                    type: nonNullBooleanType,
+                    pureResolver: Resolvers.IsDeprecated),
+                new(Names.DeprecationReason,
+                    type: stringType,
+                    pureResolver: Resolvers.DeprecationReason),
                 new(Names.OnOperation,
                     type: nonNullBooleanType,
                     pureResolver: Resolvers.OnOperation)
@@ -64,6 +78,19 @@ internal sealed class __Directive : ObjectType<DirectiveType>
                 }
             }
         };
+
+        if (optInFeaturesEnabled)
+        {
+            def.Fields.Single(f => f.Name == Names.Args)
+                .Arguments
+                .Add(new(Names.IncludeOptIn, type: nonNullStringListType));
+
+            def.Fields.Add(new(Names.RequiresOptIn,
+                type: nonNullStringListType,
+                pureResolver: Resolvers.RequiresOptIn));
+        }
+
+        return def;
     }
 
     private static class Resolvers
@@ -77,19 +104,39 @@ internal sealed class __Directive : ObjectType<DirectiveType>
         public static object IsRepeatable(IResolverContext context)
             => context.Parent<DirectiveType>().IsRepeatable;
 
+        public static object IsDeprecated(IResolverContext context)
+            => context.Parent<DirectiveType>().IsDeprecated;
+
+        public static object? DeprecationReason(IResolverContext context)
+            => context.Parent<DirectiveType>().DeprecationReason;
+
         public static object Locations(IResolverContext context)
         {
             var locations = context.Parent<DirectiveType>().Locations;
             return DirectiveLocationUtils.AsEnumerable(locations);
         }
 
-        public static object Arguments(IResolverContext context)
+        public static IEnumerable<IInputValueDefinition> ArgumentsWithOptIn(IResolverContext context)
+        {
+            var includeOptIn = context.ArgumentValue<string[]?>(Names.IncludeOptIn) ?? [];
+
+            return Arguments(context).Where(
+                a => OptInIntrospectionHelper.IsIncluded(a.Directives, includeOptIn));
+        }
+
+        public static IEnumerable<IInputValueDefinition> Arguments(IResolverContext context)
         {
             var directive = context.Parent<DirectiveType>();
             return context.ArgumentValue<bool>(Names.IncludeDeprecated)
                 ? directive.Arguments
                 : directive.Arguments.Where(t => !t.IsDeprecated);
         }
+
+        public static object RequiresOptIn(IResolverContext context) =>
+            ((IDirectivesProvider)context.Parent<DirectiveType>())
+                .Directives
+                .Where(t => t.Definition is RequiresOptInDirectiveType)
+                .Select(d => d.ToValue<RequiresOptIn>().Feature);
 
         public static object OnOperation(IResolverContext context)
         {
@@ -117,7 +164,11 @@ internal sealed class __Directive : ObjectType<DirectiveType>
         public const string Name = "name";
         public const string Description = "description";
         public const string IsRepeatable = "isRepeatable";
+        public const string IsDeprecated = "isDeprecated";
+        public const string DeprecationReason = "deprecationReason";
         public const string IncludeDeprecated = "includeDeprecated";
+        public const string IncludeOptIn = "includeOptIn";
+        public const string RequiresOptIn = "requiresOptIn";
         public const string Locations = "locations";
         public const string Args = "args";
         public const string OnOperation = "onOperation";

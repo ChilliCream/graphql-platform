@@ -10,6 +10,7 @@ using ModelContextProtocol.Client;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Linq;
+using static CookieCrumble.TestEnvironment;
 using static HotChocolate.Fusion.Diagnostics.ActivityTestHelper;
 
 namespace HotChocolate.Fusion.Diagnostics;
@@ -23,15 +24,15 @@ public partial class FusionMcpAdapterActivityTests : FusionTestBase
         // arrange
         using var server = await CreateGatewayAsync("query GetBook { book { title } }");
         var mcpClient = await CreateMcpClientAsync(server.CreateClient());
-        await mcpClient.ListToolsAsync();
+        await mcpClient.ListToolsAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         using (CaptureActivities(out var activities))
         {
             // act
-            await mcpClient.CallToolAsync("get_book");
+            await mcpClient.CallToolAsync("get_book", cancellationToken: TestContext.Current.CancellationToken);
 
             // assert
-            MatchActivitySnapshot(activities);
+            MatchActivitySnapshot(activities, Postfix([NET11_0]));
         }
     }
 
@@ -41,12 +42,14 @@ public partial class FusionMcpAdapterActivityTests : FusionTestBase
         // arrange
         using var server = await CreateGatewayAsync("query InvalidGraphqlQuery { doesNotExist }");
         var mcpClient = await CreateMcpClientAsync(server.CreateClient());
-        await mcpClient.ListToolsAsync();
+        await mcpClient.ListToolsAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         using (CaptureActivities(out var activities))
         {
             // act
-            await mcpClient.CallToolAsync("invalid_graphql_query");
+            await mcpClient.CallToolAsync(
+                "invalid_graphql_query",
+                cancellationToken: TestContext.Current.CancellationToken);
 
             // assert
             MatchActivitySnapshot(activities);
@@ -59,12 +62,12 @@ public partial class FusionMcpAdapterActivityTests : FusionTestBase
         // arrange
         using var server = await CreateGatewayAsync("query GetBook { book { title } }");
         var mcpClient = await CreateMcpClientAsync(server.CreateClient());
-        await mcpClient.ListToolsAsync();
+        await mcpClient.ListToolsAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         using (CaptureActivities(out var activities))
         {
             // act
-            await mcpClient.CallToolAsync("does_not_exist");
+            await mcpClient.CallToolAsync("does_not_exist", cancellationToken: TestContext.Current.CancellationToken);
 
             // assert
             MatchActivitySnapshot(activities);
@@ -77,15 +80,15 @@ public partial class FusionMcpAdapterActivityTests : FusionTestBase
         // arrange
         using var server = await CreateGatewayAsync("query GetFaultyBook { faultyBook { title } }");
         var mcpClient = await CreateMcpClientAsync(server.CreateClient());
-        await mcpClient.ListToolsAsync();
+        await mcpClient.ListToolsAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         using (CaptureActivities(out var activities))
         {
             // act
-            await mcpClient.CallToolAsync("get_faulty_book");
+            await mcpClient.CallToolAsync("get_faulty_book", cancellationToken: TestContext.Current.CancellationToken);
 
             // assert
-            MatchActivitySnapshot(activities);
+            MatchActivitySnapshot(activities, Postfix([NET11_0]));
         }
     }
 
@@ -95,12 +98,12 @@ public partial class FusionMcpAdapterActivityTests : FusionTestBase
         // arrange
         using var server = await CreateGatewayAsync(prompt: CreateGreetingPrompt());
         var mcpClient = await CreateMcpClientAsync(server.CreateClient());
-        await mcpClient.ListPromptsAsync();
+        await mcpClient.ListPromptsAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         using (CaptureActivities(out var activities))
         {
             // act
-            await mcpClient.GetPromptAsync("greeting");
+            await mcpClient.GetPromptAsync("greeting", cancellationToken: TestContext.Current.CancellationToken);
 
             // assert
             MatchActivitySnapshot(activities);
@@ -110,7 +113,7 @@ public partial class FusionMcpAdapterActivityTests : FusionTestBase
     [GeneratedRegex("""("Key": "mcp\.session\.id",\s*"Value": ")[^"]*(")""")]
     private static partial Regex SessionIdRegex();
 
-    private static void MatchActivitySnapshot(object activities)
+    private static void MatchActivitySnapshot(object activities, string? postfix = null)
     {
         var serializer = JsonSerializer.Create(
             new JsonSerializerSettings { Converters = { new StringEnumConverter() } });
@@ -119,8 +122,11 @@ public partial class FusionMcpAdapterActivityTests : FusionTestBase
         // The MCP client keeps a streamable-HTTP session open and processes
         // notifications fire-and-forget, so the top-level AspNetCore request spans
         // for the MCP transport endpoint complete on a non-deterministic schedule
-        // relative to the capture window. They carry no MCP/GraphQL information, so
-        // drop them; the meaningful subgraph HTTP spans are nested and unaffected.
+        // relative to the capture window, and their terminal status and tags vary
+        // with whether the connection has been torn down. They carry no MCP or
+        // GraphQL information, so drop them; only these top-level transport spans are
+        // removed and every other captured span is unaffected.
+        // Keep in sync with HotChocolate.Diagnostics.McpAdapterActivityTests.
         if (capture["activities"] is JArray roots)
         {
             foreach (var root in roots
@@ -136,7 +142,7 @@ public partial class FusionMcpAdapterActivityTests : FusionTestBase
 
         // The MCP session id is randomly generated per run, scrub it so the snapshot is stable.
         json = SessionIdRegex().Replace(json, "$1<scrubbed>$2");
-        json.MatchSnapshot();
+        json.MatchSnapshot(postfix);
     }
 
     private static PromptDefinition CreateGreetingPrompt()

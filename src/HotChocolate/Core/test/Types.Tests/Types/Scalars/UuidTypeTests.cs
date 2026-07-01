@@ -98,8 +98,8 @@ public class UuidTypeTests
         var literalP = new StringValueNode(expected.ToString("P"));
 
         // act
-        var runtimeValueN = (Guid)type.CoerceInputLiteral(literalN)!;
-        var runtimeValueP = (Guid)type.CoerceInputLiteral(literalP)!;
+        var runtimeValueN = (Guid)type.CoerceInputLiteral(literalN);
+        var runtimeValueP = (Guid)type.CoerceInputLiteral(literalP);
 
         // assert
         Assert.Equal(expected, runtimeValueN);
@@ -205,7 +205,7 @@ public class UuidTypeTests
 
         // act
         var operation = CommonTestExtensions.CreateOperation();
-        var resultDocument = new ResultDocument(operation, 0);
+        var resultDocument = new ResultDocument(CommonTestExtensions.CreateArena(), operation, 0);
         var resultValue = resultDocument.Data.GetProperty("first");
         type.CoerceOutputValue(guid, resultValue);
 
@@ -222,7 +222,7 @@ public class UuidTypeTests
 
         // act
         var operation = CommonTestExtensions.CreateOperation();
-        var resultDocument = new ResultDocument(operation, 0);
+        var resultDocument = new ResultDocument(CommonTestExtensions.CreateArena(), operation, 0);
         var resultValue = resultDocument.Data.GetProperty("first");
         void Action() => type.CoerceOutputValue(value, resultValue);
 
@@ -338,7 +338,7 @@ public class UuidTypeTests
         var type = new UuidType(defaultFormat: 'D', enforceFormat: enforceFormat);
 
         // act
-        var guid = (Guid)type.CoerceInputLiteral(input)!;
+        var guid = (Guid)type.CoerceInputLiteral(input);
 
         // assert
         Assert.Equal(input.Value, guid.ToString("D"));

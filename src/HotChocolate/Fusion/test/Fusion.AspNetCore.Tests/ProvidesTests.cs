@@ -74,7 +74,8 @@ public class ProvidesTests : FusionTestBase
 
         using var result = await client.PostAsync(
             request,
-            new Uri("http://localhost:5000/graphql"));
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
 
         // assert
         Assert.False(gateway.Interactions.ContainsKey("users"));
@@ -151,7 +152,8 @@ public class ProvidesTests : FusionTestBase
 
         using var result = await client.PostAsync(
             request,
-            new Uri("http://localhost:5000/graphql"));
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
 
         // assert
         await MatchSnapshotAsync(gateway, request, result);
@@ -248,7 +250,8 @@ public class ProvidesTests : FusionTestBase
 
         using var result = await client.PostAsync(
             request,
-            new Uri("http://localhost:5000/graphql"));
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
 
         // assert
         await MatchSnapshotAsync(gateway, request, result);
@@ -328,7 +331,8 @@ public class ProvidesTests : FusionTestBase
 
         using var result = await client.PostAsync(
             request,
-            new Uri("http://localhost:5000/graphql"));
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
 
         // assert
         await MatchSnapshotAsync(gateway, request, result);
@@ -426,7 +430,8 @@ public class ProvidesTests : FusionTestBase
 
         using var result = await client.PostAsync(
             request,
-            new Uri("http://localhost:5000/graphql"));
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
 
         // assert
         await MatchSnapshotAsync(gateway, request, result);
@@ -506,7 +511,8 @@ public class ProvidesTests : FusionTestBase
 
         using var result = await client.PostAsync(
             request,
-            new Uri("http://localhost:5000/graphql"));
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
 
         // assert
         // Every interaction with the 'reviews' source must fetch product { id } only,
@@ -515,12 +521,12 @@ public class ProvidesTests : FusionTestBase
         // 'products' source must be a productById lookup that returns 'name'.
         var reviewsInteractions = gateway.Interactions.GetValueOrDefault("reviews");
         Assert.NotNull(reviewsInteractions);
-        foreach (var interaction in reviewsInteractions!.Values)
+        foreach (var interaction in reviewsInteractions.Values)
         {
             Assert.NotNull(interaction.Request);
-            interaction.Request!.Body.Position = 0;
+            interaction.Request.Body.Position = 0;
             using var body = JsonDocument.Parse(interaction.Request.Body);
-            var query = body.RootElement.GetProperty("query").GetString()!;
+            var query = body.RootElement.GetProperty("query").GetString();
             Assert.DoesNotContain("name", query);
             Assert.Contains("product", query);
             interaction.Request.Body.Position = 0;
@@ -528,12 +534,12 @@ public class ProvidesTests : FusionTestBase
 
         var productsInteractions = gateway.Interactions.GetValueOrDefault("products");
         Assert.NotNull(productsInteractions);
-        foreach (var interaction in productsInteractions!.Values)
+        foreach (var interaction in productsInteractions.Values)
         {
             Assert.NotNull(interaction.Request);
-            interaction.Request!.Body.Position = 0;
+            interaction.Request.Body.Position = 0;
             using var body = JsonDocument.Parse(interaction.Request.Body);
-            var query = body.RootElement.GetProperty("query").GetString()!;
+            var query = body.RootElement.GetProperty("query").GetString();
             Assert.Contains("productById", query);
             Assert.Contains("name", query);
             interaction.Request.Body.Position = 0;

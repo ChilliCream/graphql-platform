@@ -17,7 +17,8 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
         {
             SchemaName = input.SchemaName,
             RootPath = input.SelectionSet.Path,
-            SelectionSetIndex = input.SelectionSetIndex
+            SelectionSetIndex = input.SelectionSetIndex,
+            PruneUnprovidedAbstractBranches = input.PruneUnprovidedAbstractBranches
         };
 
         var (resolvable, _) =
@@ -25,7 +26,14 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
                 context,
                 input.SelectionSet.Type,
                 input.SelectionSet.Node,
-                null);
+                input.ProvidedSelectionSet,
+                // An incoming provided set is the complete data an event stream message already
+                // delivers, so fields it does not cover are spilled. A @provides scope, in
+                // contrast, is partial: it is layered on native ownership and is introduced
+                // further down during recursion, never here at the entry point.
+                input.ProvidedSelectionSet is not null
+                    ? ProvidedCoverage.Complete
+                    : ProvidedCoverage.Partial);
 
         return new SelectionSetPartitionerResult(
             resolvable,
@@ -69,7 +77,8 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
         Context context,
         ITypeDefinition type,
         SelectionSetNode selectionSetNode,
-        SelectionSetNode? providedSelectionSetNode)
+        SelectionSetNode? providedSelectionSetNode,
+        ProvidedCoverage coverage)
     {
         var complexType = type as FusionComplexTypeDefinition;
         List<ISelectionNode>? resolvableSelections = null;
@@ -112,7 +121,8 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
                                 context,
                                 complexType!,
                                 fieldNode,
-                                GetProvidedField(fieldNode, providedSelectionSetNode));
+                                GetProvidedField(fieldNode, providedSelectionSetNode),
+                                coverage);
 
                         context.PopConditions(savedCount);
 
@@ -132,7 +142,8 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
                                 context,
                                 type,
                                 inlineFragmentNode,
-                                providedSelectionSetNode);
+                                providedSelectionSetNode,
+                                coverage);
 
                         CompleteSelection(inlineFragmentNode, resolvable, unresolvable, i);
                     }
@@ -448,18 +459,71 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
         Context context,
         FusionComplexTypeDefinition complexType,
         FieldNode fieldNode,
-        FieldNode? providedFieldNode)
+        FieldNode? providedFieldNode,
+        ProvidedCoverage coverage)
     {
         var field = complexType.Fields.GetField(fieldNode.Name.Value, allowInaccessibleFields: true);
         field.Sources.TryGetMember(context.SchemaName, out var source);
 
-        // The field is resolvable from the current schema when either the parent's provides
-        // scope covers it, or the schema declares a non-external source for it.
-        var isResolvable = providedFieldNode is not null || source is { IsExternal: false };
+        // With complete coverage (an event stream message shape), the provided set is all the
+        // data we already have here, so a field is only resolvable when the set covers it.
+        // Native ownership is ignored, which spills selections the message does not carry.
+        // With partial coverage (a @provides scope), the provided set only adds fields, so an
+        // uncovered field falls back to native ownership and a non-external source resolves it.
+        var isResolvable = providedFieldNode is not null
+            || (coverage is ProvidedCoverage.Partial && source is { IsExternal: false });
 
         if (!isResolvable)
         {
             return (null, fieldNode);
+        }
+
+        if (source?.SourceTypeName is { } narrowedTypeName
+            && field.Type.NamedType().IsAbstractType())
+        {
+            if (!schema.Types.TryGetType(narrowedTypeName, out var narrowedType))
+            {
+                throw new InvalidOperationException(
+                    $"The narrowed source type '{narrowedTypeName}' for field "
+                    + $"'{complexType.Name}.{field.Name}' in source schema '{context.SchemaName}' "
+                    + "does not exist in the composite schema.");
+            }
+
+            if (narrowedType is not FusionObjectTypeDefinition narrowedObject)
+            {
+                throw new NotSupportedException(
+                    $"Supertype narrowing of field '{complexType.Name}.{field.Name}' in source schema "
+                    + $"'{context.SchemaName}' to the abstract type '{narrowedTypeName}' "
+                    + "is not yet supported. Only narrowing to a concrete object type is currently supported.");
+            }
+
+            var coverageSelectionSet = GetCoverageSelectionSet(context.SelectionSetIndex, fieldNode.SelectionSet);
+            var fieldNodeForSpill = coverageSelectionSet is not null
+                && !ReferenceEquals(coverageSelectionSet, fieldNode.SelectionSet)
+                    ? fieldNode.WithSelectionSet(coverageSelectionSet)
+                    : fieldNode;
+
+            if (!narrowedObject.Sources.TryGetMember(context.SchemaName, out var narrowedObjectSource))
+            {
+                throw new InvalidOperationException(
+                    $"The narrowed source type '{narrowedTypeName}' for field "
+                    + $"'{complexType.Name}.{field.Name}' is not declared in source schema "
+                    + $"'{context.SchemaName}'.");
+            }
+
+            foreach (var typeCondition in GetTopLevelTypeConditions(coverageSelectionSet))
+            {
+                var conditionName = typeCondition.Name.Value;
+                var covered =
+                    string.Equals(conditionName, narrowedTypeName, StringComparison.Ordinal)
+                    || narrowedObjectSource.Implements.Contains(conditionName)
+                    || narrowedObjectSource.MemberOf.Contains(conditionName);
+
+                if (!covered)
+                {
+                    return (null, fieldNodeForSpill);
+                }
+            }
         }
 
         if (providedFieldNode is null && source?.Requirements is not null)
@@ -486,7 +550,15 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
                 context,
                 field.Type.AsTypeDefinition(),
                 selectionSet,
-                MergeProvidedSelectionSets(providedFieldNode?.SelectionSet, source?.Provides));
+                MergeProvidedSelectionSets(providedFieldNode?.SelectionSet, source?.Provides),
+                // Complete coverage propagates only into a subtree the provided set covers (a
+                // matched providedFieldNode). Uncovered fields revert to partial and fall back
+                // to native resolvability. The set is the merged message and @provides shape, so
+                // within an already complete event stream scope a field covered only by
+                // @provides also stays complete (at worst an extra lookup).
+                coverage is ProvidedCoverage.Complete && providedFieldNode is not null
+                    ? ProvidedCoverage.Complete
+                    : ProvidedCoverage.Partial);
 
             context.Nodes.Pop();
 
@@ -501,6 +573,51 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
         }
 
         return (fieldNode, null);
+
+        static SelectionSetNode? GetCoverageSelectionSet(
+            ISelectionSetIndex index,
+            SelectionSetNode? selectionSet)
+        {
+            if (selectionSet is null || !index.IsRegistered(selectionSet))
+            {
+                return selectionSet;
+            }
+
+            var selectionSetId = index.GetId(selectionSet);
+
+            if (index.TryGetOriginalIdFromCloned(selectionSetId, out var originalId))
+            {
+                selectionSetId = originalId;
+            }
+
+            return index.TryGetSelectionSet(selectionSetId, out var original)
+                ? original
+                : selectionSet;
+        }
+
+        static IEnumerable<NamedTypeNode> GetTopLevelTypeConditions(SelectionSetNode? selectionSet)
+        {
+            if (selectionSet is null)
+            {
+                yield break;
+            }
+
+            foreach (var selection in selectionSet.Selections)
+            {
+                if (selection is InlineFragmentNode { TypeCondition: { } typeCondition })
+                {
+                    yield return typeCondition;
+                }
+                else if (selection is InlineFragmentNode conditionlessFragment)
+                {
+                    foreach (var nestedTypeCondition in GetTopLevelTypeConditions(
+                        conditionlessFragment.SelectionSet))
+                    {
+                        yield return nestedTypeCondition;
+                    }
+                }
+            }
+        }
     }
 
     private static SelectionSetNode? MergeProvidedSelectionSets(
@@ -527,7 +644,8 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
         Context context,
         ITypeDefinition type,
         InlineFragmentNode inlineFragmentNode,
-        SelectionSetNode? providedFieldNode)
+        SelectionSetNode? providedFieldNode,
+        ProvidedCoverage coverage)
     {
         // TODO: we need to implement proper type routing here later.
         var typeCondition = type;
@@ -535,6 +653,14 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
         if (inlineFragmentNode.TypeCondition is not null)
         {
             typeCondition = schema.Types[inlineFragmentNode.TypeCondition.Name.Value];
+        }
+
+        if (context.PruneUnprovidedAbstractBranches
+            && inlineFragmentNode.TypeCondition is not null
+            && providedFieldNode is not null
+            && !CanMessageShapeProvideType(typeCondition, providedFieldNode))
+        {
+            return (null, null);
         }
 
         if (!typeCondition.ExistsInSchema(context.SchemaName))
@@ -549,7 +675,8 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
                 context,
                 typeCondition,
                 inlineFragmentNode.SelectionSet,
-                providedFieldNode);
+                providedFieldNode,
+                coverage);
 
         context.Nodes.Pop();
 
@@ -572,6 +699,8 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
         public required SelectionPath RootPath { get; init; }
 
         public required ISelectionSetIndex SelectionSetIndex { get; set; } = null!;
+
+        public bool PruneUnprovidedAbstractBranches { get; init; }
 
         [field: AllowNull, MaybeNull]
         public SelectionSetIndexBuilder SelectionSetIndexBuilder
@@ -661,5 +790,52 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
 
             SelectionSetIndexBuilder.Register(original, branch);
         }
+    }
+
+    private bool CanMessageShapeProvideType(
+        ITypeDefinition typeCondition,
+        SelectionSetNode providedSelectionSet)
+    {
+        var hasTypedShape = false;
+        return HasApplicableType(typeCondition, providedSelectionSet, ref hasTypedShape) || !hasTypedShape;
+    }
+
+    private bool HasApplicableType(
+        ITypeDefinition typeCondition,
+        SelectionSetNode providedSelectionSet,
+        ref bool hasTypedShape)
+    {
+        foreach (var selection in providedSelectionSet.Selections)
+        {
+            if (selection is not InlineFragmentNode fragment)
+            {
+                continue;
+            }
+
+            if (fragment.TypeCondition is null)
+            {
+                if (HasApplicableType(typeCondition, fragment.SelectionSet, ref hasTypedShape))
+                {
+                    return true;
+                }
+
+                continue;
+            }
+
+            if (!schema.Types.TryGetType(fragment.TypeCondition.Name.Value, out var providedType))
+            {
+                continue;
+            }
+
+            hasTypedShape = true;
+
+            if (typeCondition.IsAssignableFrom(providedType)
+                || providedType.IsAssignableFrom(typeCondition))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

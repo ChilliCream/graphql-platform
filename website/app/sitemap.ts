@@ -1,207 +1,134 @@
-import { execSync } from "child_process";
-import fs from "fs";
-import path from "path";
+import fs from "node:fs";
+import path from "node:path";
 import type { MetadataRoute } from "next";
-
-import { getAllBlogPosts, getAllTags, getPostsPerPage } from "@/lib/blog";
 import {
-  getContentDir,
-  getFilesRecursively,
-  readMarkdownFile,
-} from "@/lib/content";
-import { getAllDocPages } from "@/lib/docs";
-import { siteMetadata } from "@/lib/site-config";
+  BLOG_ROOT,
+  blogUrlForStem,
+  listBlogPosts,
+} from "@/src/helpers/blogPaths";
+import { getLastModifiedFromGit } from "@/src/helpers/gitMetadata";
+import { readFrontmatter } from "@/src/helpers/readFrontmatter";
+import { SITE_URL } from "@/src/helpers/siteUrl";
 
 export const dynamic = "force-static";
 
-const BASE_URL = siteMetadata.siteUrl;
-const WEBSITE_DIR = path.resolve(process.cwd());
+// Marketing / legal / product pages live in the `(content)` route group, so
+// their on-disk folder names map 1:1 to URL paths (the group itself is elided).
+const CONTENT_PAGES_ROOT = path.join(process.cwd(), "app", "(content)");
+const DOCS_CONTENT_ROOT = path.join(process.cwd(), "content", "docs");
 
-const STATIC_ROUTES: { route: string; pageFile: string }[] = [
-  { route: "/", pageFile: "app/page.tsx" },
-  { route: "/blog/", pageFile: "app/blog/page.tsx" },
-  { route: "/docs/", pageFile: "app/docs/page.tsx" },
-  { route: "/help/", pageFile: "app/help/page.tsx" },
-  { route: "/pricing/", pageFile: "app/pricing/page.tsx" },
-  {
-    route: "/platform/analytics/",
-    pageFile: "app/platform/analytics/page.tsx",
-  },
-  {
-    route: "/platform/continuous-integration/",
-    pageFile: "app/platform/continuous-integration/page.tsx",
-  },
-  {
-    route: "/platform/ecosystem/",
-    pageFile: "app/platform/ecosystem/page.tsx",
-  },
-  {
-    route: "/products/hotchocolate/",
-    pageFile: "app/products/hotchocolate/page.tsx",
-  },
-  { route: "/products/nitro/", pageFile: "app/products/nitro/page.tsx" },
-  {
-    route: "/products/strawberryshake/",
-    pageFile: "app/products/strawberryshake/page.tsx",
-  },
-  { route: "/services/advisory/", pageFile: "app/services/advisory/page.tsx" },
-  { route: "/services/support/", pageFile: "app/services/support/page.tsx" },
-  {
-    route: "/services/support/contact/",
-    pageFile: "app/services/support/contact/page.tsx",
-  },
-  {
-    route: "/services/support/thank-you/",
-    pageFile: "app/services/support/thank-you/page.tsx",
-  },
-  { route: "/services/training/", pageFile: "app/services/training/page.tsx" },
-];
+// Pages that exist for a user flow but should not be indexed.
+const EXCLUDED_PATHS = new Set(["/services/support/thank-you"]);
 
-const DOCS_DISALLOWED = [
-  /^\/docs\/hotchocolate\/v10(\/|$)/,
-  /^\/docs\/hotchocolate\/v11(\/|$)/,
-];
-
-const mtimeCache = new Map<string, Date | undefined>();
-
-function gitMTime(filePath: string): Date | undefined {
-  if (process.env.NODE_ENV === "development") return undefined;
-  if (mtimeCache.has(filePath)) return mtimeCache.get(filePath);
-
-  let result: Date | undefined;
-  try {
-    const out = execSync(`git log -1 --format=%aI -- "${filePath}"`, {
-      encoding: "utf-8",
-      timeout: 5000,
-    }).trim();
-    if (out) {
-      const d = new Date(out);
-      if (!Number.isNaN(d.getTime())) result = d;
-    }
-  } catch {
-    // git unavailable, leave undefined
-  }
-  mtimeCache.set(filePath, result);
-  return result;
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  return [
+    ...(await rootPages()),
+    ...(await staticPages()),
+    ...(await docsPages()),
+    ...(await blogPosts()),
+  ];
 }
 
-function readBasicSlugs(subdir: string): string[] {
-  const dir = getContentDir("basic", subdir);
-  if (!fs.existsSync(dir)) return [];
-  return fs
-    .readdirSync(dir)
-    .filter((f) => f.endsWith(".md"))
-    .map((f) => f.replace(/\.md$/, ""));
-}
-
-function getBlogPostFilePaths(): Map<string, string> {
-  const map = new Map<string, string>();
-  const blogDir = getContentDir("blog");
-  for (const file of getFilesRecursively(blogDir, ".md")) {
-    const { frontmatter } = readMarkdownFile(file);
-    if (
-      typeof frontmatter.path === "string" &&
-      frontmatter.path.startsWith("/blog/")
-    ) {
-      map.set(frontmatter.path, file);
-    }
-  }
-  return map;
-}
-
-function parseIso(value: string | undefined): Date | undefined {
-  if (!value) return undefined;
-  const d = new Date(value);
-  return Number.isNaN(d.getTime()) ? undefined : d;
-}
-
-export default function sitemap(): MetadataRoute.Sitemap {
-  const fallback = new Date();
-  const entries: MetadataRoute.Sitemap = [];
-
-  for (const { route, pageFile } of STATIC_ROUTES) {
-    entries.push({
-      url: `${BASE_URL}${route}`,
-      lastModified: gitMTime(path.join(WEBSITE_DIR, pageFile)) ?? fallback,
-    });
-  }
-
-  for (const slug of readBasicSlugs("legal")) {
-    entries.push({
-      url: `${BASE_URL}/legal/${slug}/`,
+// Pages that live outside the `(content)` route group: the homepage and the
+// docs/blog hub pages. These are the highest-value URLs on the site and must
+// be listed explicitly since `staticPages()` only walks `(content)`.
+async function rootPages(): Promise<MetadataRoute.Sitemap> {
+  const pages = [
+    { file: path.join(process.cwd(), "app", "page.tsx"), urlPath: "/" },
+    {
+      file: path.join(process.cwd(), "app", "docs", "page.tsx"),
+      urlPath: "/docs",
+    },
+    {
+      file: path.join(process.cwd(), "app", "blog", "page.tsx"),
+      urlPath: "/blog",
+    },
+  ];
+  return Promise.all(
+    pages.map(async ({ file, urlPath }) => ({
+      url: urlPath === "/" ? `${SITE_URL}/` : `${SITE_URL}${urlPath}`,
       lastModified:
-        gitMTime(path.join(getContentDir("basic", "legal"), `${slug}.md`)) ??
-        fallback,
-    });
+        (await getLastModifiedFromGit(file)) ?? fs.statSync(file).mtime,
+      changeFrequency: "weekly" as const,
+      priority: urlPath === "/" ? 1 : 0.8,
+    })),
+  );
+}
+
+async function staticPages(): Promise<MetadataRoute.Sitemap> {
+  return Promise.all(
+    walk(CONTENT_PAGES_ROOT)
+      .filter((file) => path.basename(file) === "page.tsx")
+      .map((file) => {
+        const rel = path.relative(CONTENT_PAGES_ROOT, path.dirname(file));
+        const urlPath = rel === "" ? "/" : `/${rel.split(path.sep).join("/")}`;
+        return { file, urlPath };
+      })
+      .filter(({ urlPath }) => !EXCLUDED_PATHS.has(urlPath))
+      .map(async ({ file, urlPath }) => ({
+        url: `${SITE_URL}${urlPath}`,
+        lastModified:
+          (await getLastModifiedFromGit(file)) ?? fs.statSync(file).mtime,
+        changeFrequency: "monthly" as const,
+        priority: urlPath === "/" ? 1 : 0.7,
+      })),
+  );
+}
+
+async function docsPages(): Promise<MetadataRoute.Sitemap> {
+  const files = walk(DOCS_CONTENT_ROOT).filter((f) => /\.mdx?$/.test(f));
+  return Promise.all(
+    files
+      .map((file) => {
+        const parts = path
+          .relative(DOCS_CONTENT_ROOT, file)
+          .replace(/\.mdx?$/, "")
+          .split(path.sep);
+        const slug =
+          parts[parts.length - 1] === "index" ? parts.slice(0, -1) : parts;
+        return { file, slug };
+      })
+      .filter(({ slug }) => slug.length > 0)
+      .map(async ({ file, slug }) => ({
+        url: `${SITE_URL}/docs/${slug.join("/")}`,
+        lastModified:
+          (await getLastModifiedFromGit(file)) ?? fs.statSync(file).mtime,
+        changeFrequency: "weekly" as const,
+        priority: 0.5,
+      })),
+  );
+}
+
+async function blogPosts(): Promise<MetadataRoute.Sitemap> {
+  return Promise.all(
+    listBlogPosts().map(async ({ parsed, rel }) => {
+      const file = path.join(BLOG_ROOT, rel);
+      const fm = readFrontmatter(file) as Record<string, unknown>;
+      // An explicit `updated` frontmatter field wins; otherwise the last git
+      // commit touching the post, with file mtime as the no-git fallback.
+      const updated =
+        typeof fm.updated === "string" && fm.updated.length > 0
+          ? new Date(fm.updated)
+          : null;
+      return {
+        url: `${SITE_URL}${blogUrlForStem(parsed)}`,
+        lastModified:
+          updated ??
+          (await getLastModifiedFromGit(file)) ??
+          fs.statSync(file).mtime,
+        changeFrequency: "yearly" as const,
+        priority: 0.5,
+      };
+    }),
+  );
+}
+
+function walk(dir: string): string[] {
+  if (!fs.existsSync(dir)) {
+    return [];
   }
-  for (const slug of readBasicSlugs("licensing")) {
-    entries.push({
-      url: `${BASE_URL}/licensing/${slug}/`,
-      lastModified:
-        gitMTime(
-          path.join(getContentDir("basic", "licensing"), `${slug}.md`)
-        ) ?? fallback,
-    });
-  }
-
-  const posts = getAllBlogPosts();
-  const blogFilePaths = getBlogPostFilePaths();
-  const postMTimes = new Map<string, Date>();
-  let latestPostDate: Date | undefined;
-  for (const post of posts) {
-    const filePath = blogFilePaths.get(post.slug);
-    const mtime =
-      (filePath ? gitMTime(filePath) : undefined) ??
-      parseIso(post.date) ??
-      fallback;
-    postMTimes.set(post.slug, mtime);
-    if (!latestPostDate || mtime > latestPostDate) latestPostDate = mtime;
-  }
-
-  // /blog/ index lastModified reflects the newest post
-  const blogIndex = entries.find((e) => e.url === `${BASE_URL}/blog/`);
-  if (blogIndex && latestPostDate) blogIndex.lastModified = latestPostDate;
-
-  const postsPerPage = getPostsPerPage();
-  const totalPages = Math.max(1, Math.ceil(posts.length / postsPerPage));
-  for (let page = 2; page <= totalPages; page++) {
-    entries.push({
-      url: `${BASE_URL}/blog/${page}/`,
-      lastModified: latestPostDate ?? fallback,
-    });
-  }
-
-  for (const post of posts) {
-    const postPath = post.slug.endsWith("/") ? post.slug : `${post.slug}/`;
-    entries.push({
-      url: `${BASE_URL}${postPath}`,
-      lastModified: postMTimes.get(post.slug) ?? fallback,
-    });
-  }
-
-  for (const tag of getAllTags()) {
-    let tagLatest: Date | undefined;
-    for (const post of posts) {
-      if (!post.tags.includes(tag)) continue;
-      const mtime = postMTimes.get(post.slug);
-      if (mtime && (!tagLatest || mtime > tagLatest)) tagLatest = mtime;
-    }
-    entries.push({
-      url: `${BASE_URL}/blog/tags/${tag}/`,
-      lastModified: tagLatest ?? fallback,
-    });
-  }
-
-  const docPages = getAllDocPages();
-  for (const page of docPages) {
-    const docPath = page.slug.endsWith("/") ? page.slug : `${page.slug}/`;
-    if (DOCS_DISALLOWED.some((re) => re.test(docPath))) continue;
-
-    entries.push({
-      url: `${BASE_URL}${docPath}`,
-      lastModified: parseIso(page.lastUpdatedIso) ?? fallback,
-    });
-  }
-
-  return entries;
+  return fs.readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
+    const full = path.join(dir, entry.name);
+    return entry.isDirectory() ? walk(full) : [full];
+  });
 }

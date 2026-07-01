@@ -47,8 +47,9 @@ public sealed class FusionComposeCommandTests(NitroCommandFixture fixture)
               --watch                                        Watch for file changes and recompose automatically
               -w, --working-directory <working-directory>    Set the working directory for the command
               --exclude-by-tag <exclude-by-tag>              One or more tags to exclude from the composition
-              --cloud-url <cloud-url>                        The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL] [default: api.chillicream.com]
-              --api-key <api-key>                            The API key used for authentication [env: NITRO_API_KEY]
+              --remove-source-schema <remove-source-schema>  One or more source schemas to remove from the archive before composing.
+              --cloud-url <cloud-url>                        The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL]
+              --api-key <api-key>                            The API key or PAT used for authentication [env: NITRO_API_KEY]
               --output <json>                                The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
               -?, -h, --help                                 Show help and usage information
 
@@ -59,6 +60,173 @@ public sealed class FusionComposeCommandTests(NitroCommandFixture fixture)
                 --archive ./gateway.far \
                 --env "dev"
             """);
+    }
+
+    [Fact]
+    public async Task Compose_RemoveSourceSchema_RecomposesArchive()
+    {
+        // arrange
+        var archiveFileName = await BuildArchiveAsync(
+            "valid-example-1/source-schema-1.graphqls",
+            "valid-example-1/source-schema-2.graphqls");
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "compose",
+            "--archive",
+            archiveFileName,
+            "--remove-source-schema",
+            "Schema2");
+
+        // assert
+        Assert.Equal(0, result.ExitCode);
+
+        using var archive = FusionArchive.Open(archiveFileName);
+        var names = await archive.GetSourceSchemaNamesAsync(TestContext.Current.CancellationToken);
+        var schema = await GetFusionSchemaAsync(archive);
+        Assert.Equal(["Schema1"], names);
+        Assert.Contains("schema1Field", schema);
+        Assert.DoesNotContain("schema2Field", schema);
+    }
+
+    [Fact]
+    public async Task Compose_RenameReplaceSourceSchema_RecomposesArchive()
+    {
+        // arrange
+        var archiveFileName = await BuildArchiveAsync(
+            "valid-example-1/source-schema-1.graphqls",
+            "valid-example-1/source-schema-2.graphqls");
+        SetupReplacementSchema();
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "compose",
+            "--archive",
+            archiveFileName,
+            "--remove-source-schema",
+            "Schema2",
+            "--source-schema-file",
+            "replacement/schema.graphqls");
+
+        // assert
+        Assert.Equal(0, result.ExitCode);
+
+        using var archive = FusionArchive.Open(archiveFileName);
+        var names = await archive.GetSourceSchemaNamesAsync(TestContext.Current.CancellationToken);
+        var schema = await GetFusionSchemaAsync(archive);
+        Assert.Equal(["Schema1", "Schema3"], names);
+        Assert.Contains("schema1Field", schema);
+        Assert.Contains("schema3Field", schema);
+        Assert.DoesNotContain("schema2Field", schema);
+    }
+
+    [Fact]
+    public async Task Compose_RemoveMissingSourceSchema_ReturnsError()
+    {
+        // arrange
+        var archiveFileName = await BuildArchiveAsync(
+            "valid-example-1/source-schema-1.graphqls",
+            "valid-example-1/source-schema-2.graphqls");
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "compose",
+            "--archive",
+            archiveFileName,
+            "--remove-source-schema",
+            "DoesNotExist");
+
+        // assert
+        result.AssertError(
+            $"Source schema 'DoesNotExist' does not exist in the Fusion archive '{archiveFileName}'.");
+    }
+
+    [Fact]
+    public async Task Compose_RemoveMissingSourceSchema_LeavesArchiveUnchanged()
+    {
+        // arrange
+        var archiveFileName = await BuildArchiveAsync(
+            "valid-example-1/source-schema-1.graphqls",
+            "valid-example-1/source-schema-2.graphqls");
+        var before = await File.ReadAllBytesAsync(
+            archiveFileName,
+            TestContext.Current.CancellationToken);
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "compose",
+            "--archive",
+            archiveFileName,
+            "--remove-source-schema",
+            "DoesNotExist");
+
+        // assert
+        var after = await File.ReadAllBytesAsync(
+            archiveFileName,
+            TestContext.Current.CancellationToken);
+        Assert.Equal(1, result.ExitCode);
+        Assert.Equal(before, after);
+    }
+
+    [Fact]
+    public async Task Compose_RemoveOnly_DoesNotAutoDiscoverWorkingDirectorySchemas()
+    {
+        // arrange
+        var archiveFileName = await BuildArchiveAsync(
+            "valid-example-1/source-schema-1.graphqls",
+            "valid-example-1/source-schema-2.graphqls");
+        var workDir = Path.Combine(s_resourcesDir, "valid-example-1");
+        SetupWorkingDirectoryWithSchemas(
+            workDir,
+            "source-schema-1.graphqls",
+            "source-schema-2.graphqls");
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "compose",
+            "--archive",
+            archiveFileName,
+            "--working-directory",
+            workDir,
+            "--remove-source-schema",
+            "Schema2");
+
+        // assert
+        Assert.Equal(0, result.ExitCode);
+
+        using var archive = FusionArchive.Open(archiveFileName);
+        var names = await archive.GetSourceSchemaNamesAsync(TestContext.Current.CancellationToken);
+        Assert.Equal(["Schema1"], names);
+    }
+
+    [Fact]
+    public async Task Compose_RemoveSourceSchemaWithWatch_ReturnsError()
+    {
+        // arrange
+        var archiveFileName = await BuildArchiveAsync(
+            "valid-example-1/source-schema-1.graphqls",
+            "valid-example-1/source-schema-2.graphqls");
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "compose",
+            "--archive",
+            archiveFileName,
+            "--remove-source-schema",
+            "Schema2",
+            "--watch");
+
+        // assert
+        Assert.Equal(1, result.ExitCode);
+        Assert.Contains(
+            "The '--remove-source-schema' and '--watch' options cannot be combined.",
+            result.StdErr);
     }
 
     [Fact]
@@ -84,7 +252,9 @@ public sealed class FusionComposeCommandTests(NitroCommandFixture fixture)
         Assert.Equal(0, result.ExitCode);
 
         using var archive = FusionArchive.Open(archiveFileName);
-        var config = await archive.TryGetGatewayConfigurationAsync(WellKnownVersions.LatestGatewayFormatVersion);
+        var config = await archive.TryGetGatewayConfigurationAsync(
+            WellKnownVersions.LatestGatewayFormatVersion,
+            TestContext.Current.CancellationToken);
         Assert.NotNull(config);
         var sourceText = await ReadSchemaAsync(config);
         sourceText.ReplaceLineEndings("\n").MatchInlineSnapshot(s_validExample1CompositeSchema);
@@ -113,7 +283,9 @@ public sealed class FusionComposeCommandTests(NitroCommandFixture fixture)
         Assert.Equal(0, result.ExitCode);
 
         using var archive = FusionArchive.Open(archiveFileName);
-        var config = await archive.TryGetGatewayConfigurationAsync(WellKnownVersions.LatestGatewayFormatVersion);
+        var config = await archive.TryGetGatewayConfigurationAsync(
+            WellKnownVersions.LatestGatewayFormatVersion,
+            TestContext.Current.CancellationToken);
         Assert.NotNull(config);
         var sourceText = await ReadSchemaAsync(config);
         sourceText.ReplaceLineEndings("\n").MatchInlineSnapshot(s_validExample1CompositeSchema);
@@ -143,7 +315,9 @@ public sealed class FusionComposeCommandTests(NitroCommandFixture fixture)
         Assert.True(File.Exists(archiveFileName));
 
         using var archive = FusionArchive.Open(archiveFileName);
-        var config = await archive.TryGetGatewayConfigurationAsync(WellKnownVersions.LatestGatewayFormatVersion);
+        var config = await archive.TryGetGatewayConfigurationAsync(
+            WellKnownVersions.LatestGatewayFormatVersion,
+            TestContext.Current.CancellationToken);
         Assert.NotNull(config);
         var sourceText = await ReadSchemaAsync(config);
         sourceText.ReplaceLineEndings("\n").MatchInlineSnapshot(s_validExample1CompositeSchema);
@@ -173,7 +347,9 @@ public sealed class FusionComposeCommandTests(NitroCommandFixture fixture)
         Assert.True(File.Exists(archiveFileName));
 
         using var archive = FusionArchive.Open(archiveFileName);
-        var config = await archive.TryGetGatewayConfigurationAsync(WellKnownVersions.LatestGatewayFormatVersion);
+        var config = await archive.TryGetGatewayConfigurationAsync(
+            WellKnownVersions.LatestGatewayFormatVersion,
+            TestContext.Current.CancellationToken);
         Assert.NotNull(config);
         var sourceText = await ReadSchemaAsync(config);
         sourceText.ReplaceLineEndings("\n").MatchInlineSnapshot(s_validExample1CompositeSchema);
@@ -203,7 +379,9 @@ public sealed class FusionComposeCommandTests(NitroCommandFixture fixture)
         Assert.True(File.Exists(archiveFileName));
 
         using var archive = FusionArchive.Open(archiveFileName);
-        var config = await archive.TryGetGatewayConfigurationAsync(WellKnownVersions.LatestGatewayFormatVersion);
+        var config = await archive.TryGetGatewayConfigurationAsync(
+            WellKnownVersions.LatestGatewayFormatVersion,
+            TestContext.Current.CancellationToken);
         Assert.NotNull(config);
         var sourceText = await ReadSchemaAsync(config);
         sourceText.ReplaceLineEndings("\n").MatchInlineSnapshot(s_validExample1CompositeSchema);
@@ -233,7 +411,9 @@ public sealed class FusionComposeCommandTests(NitroCommandFixture fixture)
         Assert.True(File.Exists(archiveFileName));
 
         using var archive = FusionArchive.Open(archiveFileName);
-        var config = await archive.TryGetGatewayConfigurationAsync(WellKnownVersions.LatestGatewayFormatVersion);
+        var config = await archive.TryGetGatewayConfigurationAsync(
+            WellKnownVersions.LatestGatewayFormatVersion,
+            TestContext.Current.CancellationToken);
         Assert.NotNull(config);
         var sourceText = await ReadSchemaAsync(config);
         sourceText.ReplaceLineEndings("\n").MatchInlineSnapshot(s_validExample1CompositeSchema);
@@ -263,7 +443,9 @@ public sealed class FusionComposeCommandTests(NitroCommandFixture fixture)
         Assert.True(File.Exists(archiveFileName));
 
         using var archive = FusionArchive.Open(archiveFileName);
-        var config = await archive.TryGetGatewayConfigurationAsync(WellKnownVersions.LatestGatewayFormatVersion);
+        var config = await archive.TryGetGatewayConfigurationAsync(
+            WellKnownVersions.LatestGatewayFormatVersion,
+            TestContext.Current.CancellationToken);
         Assert.NotNull(config);
         var sourceText = await ReadSchemaAsync(config);
         sourceText.ReplaceLineEndings("\n").MatchInlineSnapshot(s_validExample1CompositeSchema);
@@ -459,7 +641,9 @@ public sealed class FusionComposeCommandTests(NitroCommandFixture fixture)
         Assert.Equal(0, result.ExitCode);
 
         using var archive = FusionArchive.Open(archiveFileName);
-        var config = await archive.TryGetGatewayConfigurationAsync(WellKnownVersions.LatestGatewayFormatVersion);
+        var config = await archive.TryGetGatewayConfigurationAsync(
+            WellKnownVersions.LatestGatewayFormatVersion,
+            TestContext.Current.CancellationToken);
         Assert.NotNull(config);
         var sourceText = await ReadSchemaAsync(config);
         sourceText.ReplaceLineEndings("\n").MatchInlineSnapshot(s_validExcludeByTagCompositeSchema);
@@ -485,7 +669,9 @@ public sealed class FusionComposeCommandTests(NitroCommandFixture fixture)
         Assert.Equal(0, result.ExitCode);
 
         using var archive = FusionArchive.Open(archiveFileName);
-        var config = await archive.TryGetGatewayConfigurationAsync(WellKnownVersions.LatestGatewayFormatVersion);
+        var config = await archive.TryGetGatewayConfigurationAsync(
+            WellKnownVersions.LatestGatewayFormatVersion,
+            TestContext.Current.CancellationToken);
         Assert.NotNull(config);
         var sourceText = await ReadSchemaAsync(config);
         sourceText
@@ -510,9 +696,15 @@ public sealed class FusionComposeCommandTests(NitroCommandFixture fixture)
         var settingsFile = Path.Combine(workDir, "source-schema-1-settings.json");
         var extensionsFile = Path.Combine(workDir, "source-schema-1-extensions.graphqls");
 
-        SetupFile(schemaFile, (await File.ReadAllTextAsync(schemaFile)).TrimEnd());
-        SetupFile(settingsFile, new MemoryStream(await File.ReadAllBytesAsync(settingsFile)));
-        SetupFile(extensionsFile, new MemoryStream(await File.ReadAllBytesAsync(extensionsFile)));
+        SetupFile(schemaFile, (await File.ReadAllTextAsync(
+            schemaFile,
+            TestContext.Current.CancellationToken)).TrimEnd());
+        SetupFile(settingsFile, new MemoryStream(await File.ReadAllBytesAsync(
+            settingsFile,
+            TestContext.Current.CancellationToken)));
+        SetupFile(extensionsFile, new MemoryStream(await File.ReadAllBytesAsync(
+            extensionsFile,
+            TestContext.Current.CancellationToken)));
 
         // act
         var result = await ExecuteCommandAsync(
@@ -527,7 +719,9 @@ public sealed class FusionComposeCommandTests(NitroCommandFixture fixture)
         Assert.Equal(0, result.ExitCode);
 
         using var archive = FusionArchive.Open(archiveFileName);
-        var config = await archive.TryGetGatewayConfigurationAsync(WellKnownVersions.LatestGatewayFormatVersion);
+        var config = await archive.TryGetGatewayConfigurationAsync(
+            WellKnownVersions.LatestGatewayFormatVersion,
+            TestContext.Current.CancellationToken);
         Assert.NotNull(config);
         var sourceText = await ReadSchemaAsync(config);
         sourceText
@@ -543,7 +737,9 @@ public sealed class FusionComposeCommandTests(NitroCommandFixture fixture)
         var sidecarPath = Path.Combine(
             s_resourcesDir, "valid-extensions", "source-schema-1-extensions.graphqls");
 
-        SetupFile(sidecarPath, new MemoryStream(await File.ReadAllBytesAsync(sidecarPath)));
+        SetupFile(sidecarPath, new MemoryStream(await File.ReadAllBytesAsync(
+            sidecarPath,
+            TestContext.Current.CancellationToken)));
 
         // act
         var result = await ExecuteCommandAsync(
@@ -683,7 +879,9 @@ public sealed class FusionComposeCommandTests(NitroCommandFixture fixture)
         Assert.True(File.Exists(archiveFileName));
 
         using var archive = FusionArchive.Open(archiveFileName);
-        var config = await archive.TryGetGatewayConfigurationAsync(WellKnownVersions.LatestGatewayFormatVersion);
+        var config = await archive.TryGetGatewayConfigurationAsync(
+            WellKnownVersions.LatestGatewayFormatVersion,
+            TestContext.Current.CancellationToken);
         Assert.NotNull(config);
         var sourceText = await ReadSchemaAsync(config);
         sourceText.ReplaceLineEndings("\n").MatchInlineSnapshot(s_validExample1CompositeSchema);
@@ -701,6 +899,52 @@ public sealed class FusionComposeCommandTests(NitroCommandFixture fixture)
         var tempFile = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
         _tempFiles.Add(tempFile);
         return tempFile;
+    }
+
+    /// <summary>
+    /// Composes the given valid-example-1 source schemas into a fresh temp archive and
+    /// returns its path. Used as the starting point for remove/replace compose runs.
+    /// </summary>
+    private async Task<string> BuildArchiveAsync(params string[] relativeSchemaPaths)
+    {
+        var archiveFileName = CreateTempFile();
+
+        foreach (var relativeSchemaPath in relativeSchemaPaths)
+        {
+            SetupSourceSchemaFromResources(relativeSchemaPath);
+        }
+
+        var args = new List<string> { "fusion", "compose" };
+
+        foreach (var relativeSchemaPath in relativeSchemaPaths)
+        {
+            args.Add("--source-schema-file");
+            args.Add(Path.Combine(s_resourcesDir, relativeSchemaPath));
+        }
+
+        args.Add("--archive");
+        args.Add(archiveFileName);
+
+        var result = await ExecuteCommandAsync(args.ToArray());
+        Assert.Equal(0, result.ExitCode);
+
+        // Register the built archive on the mock file system so a follow-up compose run
+        // opens it (and carries its source schemas forward) instead of recreating it empty.
+        SetupFile(
+            archiveFileName,
+            new MemoryStream(await File.ReadAllBytesAsync(
+                archiveFileName,
+                TestContext.Current.CancellationToken)));
+
+        return archiveFileName;
+    }
+
+    private void SetupReplacementSchema()
+    {
+        SetupFile("replacement/schema.graphqls", "type Query { schema3Field: Int! }");
+        SetupFile(
+            "replacement/schema-settings.json",
+            "{ \"name\": \"Schema3\", \"transports\": { \"http\": { \"url\": \"http://localhost/graphql\" } } }");
     }
 
     /// <summary>

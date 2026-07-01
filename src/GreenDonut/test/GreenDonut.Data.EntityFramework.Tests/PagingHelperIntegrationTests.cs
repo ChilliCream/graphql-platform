@@ -25,7 +25,9 @@ public class PagingHelperIntegrationTests(PostgreSqlResource resource)
         await using var context = new CatalogContext(connectionString);
 
         var pagingArgs = new PagingArguments();
-        var result = await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(pagingArgs);
+        var result = await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(
+            pagingArgs,
+            Xunit.TestContext.Current.CancellationToken);
 
         // Assert
         await Snapshot
@@ -42,7 +44,7 @@ public class PagingHelperIntegrationTests(PostgreSqlResource resource)
                     LastCursor = result.CreateEndCursor()
                 })
             .Add(result.ToArray())
-            .MatchMarkdownAsync();
+            .MatchMarkdownAsync(Xunit.TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -57,7 +59,9 @@ public class PagingHelperIntegrationTests(PostgreSqlResource resource)
         await using var context = new CatalogContext(connectionString);
 
         var pagingArgs = new PagingArguments { First = 5 };
-        var result = await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(pagingArgs);
+        var result = await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(
+            pagingArgs,
+            Xunit.TestContext.Current.CancellationToken);
 
         // Assert
         await Snapshot
@@ -74,7 +78,7 @@ public class PagingHelperIntegrationTests(PostgreSqlResource resource)
                     LastCursor = result.CreateEndCursor()
                 })
             .Add(result.ToArray())
-            .MatchMarkdownAsync();
+            .MatchMarkdownAsync(Xunit.TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -93,7 +97,9 @@ public class PagingHelperIntegrationTests(PostgreSqlResource resource)
             First = 5,
             After = "QnJhbmQxMjoxMw=="
         };
-        var result = await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(pagingArgs);
+        var result = await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(
+            pagingArgs,
+            Xunit.TestContext.Current.CancellationToken);
 
         // Assert
         await Snapshot
@@ -110,7 +116,7 @@ public class PagingHelperIntegrationTests(PostgreSqlResource resource)
                     LastCursor = result.CreateEndCursor()
                 })
             .Add(result.ToArray())
-            .MatchMarkdownAsync();
+            .MatchMarkdownAsync(Xunit.TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -125,7 +131,9 @@ public class PagingHelperIntegrationTests(PostgreSqlResource resource)
         await using var context = new CatalogContext(connectionString);
 
         var pagingArgs = new PagingArguments { Last = 5 };
-        var result = await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(pagingArgs);
+        var result = await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(
+            pagingArgs,
+            Xunit.TestContext.Current.CancellationToken);
 
         // Assert
         await Snapshot
@@ -144,7 +152,7 @@ public class PagingHelperIntegrationTests(PostgreSqlResource resource)
                     LastCursor = result.CreateEndCursor()
                 })
             .Add(result.ToArray())
-            .MatchMarkdownAsync();
+            .MatchMarkdownAsync(Xunit.TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -163,7 +171,9 @@ public class PagingHelperIntegrationTests(PostgreSqlResource resource)
             Last = 5,
             Before = "QnJhbmQ5NTo5Ng=="
         };
-        var result = await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(pagingArgs);
+        var result = await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(
+            pagingArgs,
+            Xunit.TestContext.Current.CancellationToken);
 
         // Assert
         await Snapshot
@@ -180,7 +190,7 @@ public class PagingHelperIntegrationTests(PostgreSqlResource resource)
                     LastCursor = result.CreateEndCursor()
                 })
             .Add(result.ToArray())
-            .MatchMarkdownAsync();
+            .MatchMarkdownAsync(Xunit.TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -203,7 +213,7 @@ public class PagingHelperIntegrationTests(PostgreSqlResource resource)
             .Select(BrandWithProductsDto.Projection)
             .OrderBy(t => t.Name)
             .ThenBy(t => t.Id)
-            .ToPageAsync(pagingArgs);
+            .ToPageAsync(pagingArgs, Xunit.TestContext.Current.CancellationToken);
 
         // Assert
         await Snapshot
@@ -220,7 +230,7 @@ public class PagingHelperIntegrationTests(PostgreSqlResource resource)
                     LastCursor = result.CreateEndCursor()
                 })
             .Add(result.ToArray())
-            .MatchMarkdownAsync();
+            .MatchMarkdownAsync(Xunit.TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -247,7 +257,7 @@ public class PagingHelperIntegrationTests(PostgreSqlResource resource)
             .Where(t => t.BrandId == 1 || t.BrandId == 2 || t.BrandId == 3)
             .OrderBy(p => p.Name)
             .ThenBy(p => p.Id)
-            .ToBatchPageAsync(k => k.BrandId, pagingArgs);
+            .ToBatchPageAsync(k => k.BrandId, pagingArgs, Xunit.TestContext.Current.CancellationToken);
 
         // Assert
         foreach (var page in results)
@@ -289,7 +299,7 @@ public class PagingHelperIntegrationTests(PostgreSqlResource resource)
         var results = await context.Products
             .Where(t => t.BrandId == 1 || t.BrandId == 2 || t.BrandId == 3)
             .OrderBy(p => p.Id)
-            .ToBatchPageAsync(k => k.BrandId, pagingArgs);
+            .ToBatchPageAsync(k => k.BrandId, pagingArgs, Xunit.TestContext.Current.CancellationToken);
 
         // Assert
         foreach (var page in results)
@@ -331,7 +341,7 @@ public class PagingHelperIntegrationTests(PostgreSqlResource resource)
         var results = await context.Products
             .Where(t => t.BrandId == 1 || t.BrandId == 2 || t.BrandId == 3)
             .OrderBy(p => p.Id)
-            .ToBatchPageAsync(k => k.BrandId, pagingArgs);
+            .ToBatchPageAsync(k => k.BrandId, pagingArgs, Xunit.TestContext.Current.CancellationToken);
 
         // Assert
         foreach (var page in results)

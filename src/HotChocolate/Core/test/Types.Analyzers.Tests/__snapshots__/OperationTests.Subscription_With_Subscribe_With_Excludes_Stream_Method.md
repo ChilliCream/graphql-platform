@@ -67,7 +67,7 @@ namespace TestNamespace
             HotChocolate.Internal.ConfigurationHelper.ApplyConfiguration(
                 extension.Context,
                 descriptor,
-                null,
+                typeof(global::TestNamespace.Subscription),
                 new global::HotChocolate.Types.SubscriptionTypeAttribute());
             configuration.ConfigurationsAreApplied = true;
 
@@ -88,6 +88,7 @@ namespace TestNamespace
                     configuration.SubscribeWith = "SubscribeToOnProductAdded";
                     configuration.SourceType = context.ThisType;
                     configuration.ResultType = typeof(int);
+                    configuration.DeclaringType = context.ThisType;
 
                     configuration.SetSourceGeneratorFlags();
 

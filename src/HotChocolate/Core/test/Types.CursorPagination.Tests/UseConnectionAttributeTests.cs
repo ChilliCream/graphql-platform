@@ -18,7 +18,8 @@ public class UseConnectionAttributeTests
                 {
                   foos(first: 3)
                 }
-                """);
+                """,
+                cancellationToken: TestContext.Current.CancellationToken);
 
         AssertErrorCode(result, ErrorCodes.Paging.MaxPaginationItems);
     }
@@ -34,7 +35,8 @@ public class UseConnectionAttributeTests
                 {
                   foos
                 }
-                """);
+                """,
+                cancellationToken: TestContext.Current.CancellationToken);
 
         AssertErrorCode(result, ErrorCodes.Paging.NoPagingBoundaries);
     }
@@ -50,7 +52,8 @@ public class UseConnectionAttributeTests
                 {
                   foosNoBackward
                 }
-                """);
+                """,
+                cancellationToken: TestContext.Current.CancellationToken);
 
         AssertErrorCode(result, ErrorCodes.Paging.FirstValueNotSet);
     }
@@ -66,7 +69,8 @@ public class UseConnectionAttributeTests
                 {
                   foosClampedDefault
                 }
-                """);
+                """,
+                cancellationToken: TestContext.Current.CancellationToken);
 
         var operationResult = result.ExpectOperationResult();
 
@@ -126,7 +130,7 @@ public class UseConnectionAttributeTests
         string code)
     {
         var operationResult = executionResult.ExpectOperationResult();
-        var error = Assert.Single(operationResult.Errors!);
+        var error = Assert.Single(operationResult.Errors);
 
         Assert.True(
             error.Code == code,

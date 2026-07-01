@@ -16,7 +16,7 @@ public class AnnotationBasedSchemaTests
                 .AddGraphQL()
                 .AddQueryType<QueryWithFieldResult>()
                 .AddQueryConventions()
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         schema.MatchSnapshot();
     }
@@ -36,7 +36,8 @@ public class AnnotationBasedSchemaTests
                         __typename
                       }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchSnapshot();
     }
@@ -56,7 +57,8 @@ public class AnnotationBasedSchemaTests
                         __typename
                       }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchSnapshot();
     }
@@ -76,7 +78,8 @@ public class AnnotationBasedSchemaTests
                         __typename
                       }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchSnapshot();
     }
@@ -96,7 +99,8 @@ public class AnnotationBasedSchemaTests
                         __typename
                       }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchSnapshot();
     }
@@ -109,7 +113,7 @@ public class AnnotationBasedSchemaTests
                 .AddGraphQL()
                 .AddQueryType<QueryWithException>()
                 .AddQueryConventions()
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         schema.MatchSnapshot();
     }
@@ -129,7 +133,8 @@ public class AnnotationBasedSchemaTests
                         __typename
                       }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchSnapshot();
     }
@@ -149,7 +154,8 @@ public class AnnotationBasedSchemaTests
                         __typename
                       }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchSnapshot();
     }
@@ -162,7 +168,7 @@ public class AnnotationBasedSchemaTests
                 .AddGraphQL()
                 .AddQueryType<QueryWithFieldResultAndException>()
                 .AddQueryConventions()
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         schema.MatchSnapshot();
     }
@@ -182,7 +188,8 @@ public class AnnotationBasedSchemaTests
                         __typename
                       }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchSnapshot();
     }
@@ -202,7 +209,8 @@ public class AnnotationBasedSchemaTests
                         __typename
                       }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchSnapshot();
     }
@@ -222,7 +230,8 @@ public class AnnotationBasedSchemaTests
                         __typename
                       }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchSnapshot();
     }
@@ -242,7 +251,8 @@ public class AnnotationBasedSchemaTests
                         __typename
                       }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchSnapshot();
     }
@@ -257,7 +267,7 @@ public class AnnotationBasedSchemaTests
                 .AddQueryConventions()
                 .AddFiltering()
                 .AddSorting()
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         schema.MatchSnapshot();
     }
@@ -286,7 +296,8 @@ public class AnnotationBasedSchemaTests
                         }
                       }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchSnapshot();
     }
@@ -316,7 +327,8 @@ public class AnnotationBasedSchemaTests
                         }
                       }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchSnapshot();
     }
@@ -345,7 +357,8 @@ public class AnnotationBasedSchemaTests
                         }
                       }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchSnapshot();
     }
@@ -374,7 +387,8 @@ public class AnnotationBasedSchemaTests
                         }
                       }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchSnapshot();
     }

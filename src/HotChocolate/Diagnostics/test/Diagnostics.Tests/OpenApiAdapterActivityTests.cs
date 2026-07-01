@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
+using static CookieCrumble.TestEnvironment;
 using static HotChocolate.Diagnostics.ActivityTestHelper;
 
 namespace HotChocolate.Diagnostics;
@@ -31,11 +32,11 @@ public class OpenApiAdapterActivityTests
             using var client = server.CreateClient();
 
             // act
-            using var response = await client.GetAsync("/book");
-            await response.Content.ReadAsStringAsync();
+            using var response = await client.GetAsync("/book", TestContext.Current.CancellationToken);
+            await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
 
             // assert
-            activities.MatchSnapshot();
+            activities.MatchSnapshot(Postfix([NET11_0]));
         }
     }
 
@@ -54,11 +55,11 @@ public class OpenApiAdapterActivityTests
             using var client = server.CreateClient();
 
             // act
-            using var response = await client.GetAsync("/invalid-graphql-query");
-            await response.Content.ReadAsStringAsync();
+            using var response = await client.GetAsync("/invalid-graphql-query", TestContext.Current.CancellationToken);
+            await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
 
             // assert
-            activities.MatchSnapshot();
+            activities.MatchSnapshot(Postfix([NET11_0]));
         }
     }
 
@@ -79,12 +80,12 @@ public class OpenApiAdapterActivityTests
             using var client = server.CreateClient();
 
             // act
-            using var response = await client.GetAsync("/does-not-exist");
-            await response.Content.ReadAsStringAsync();
+            using var response = await client.GetAsync("/does-not-exist", TestContext.Current.CancellationToken);
+            await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
 
             // assert
             Assert.Equal(System.Net.HttpStatusCode.NotFound, response.StatusCode);
-            activities.MatchSnapshot();
+            activities.MatchSnapshot(Postfix([NET11_0]));
         }
     }
 
@@ -105,11 +106,11 @@ public class OpenApiAdapterActivityTests
             using var client = server.CreateClient();
 
             // act
-            using var response = await client.GetAsync("/faulty-book");
-            await response.Content.ReadAsStringAsync();
+            using var response = await client.GetAsync("/faulty-book", TestContext.Current.CancellationToken);
+            await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
 
             // assert
-            activities.MatchSnapshot();
+            activities.MatchSnapshot(Postfix([NET11_0]));
         }
     }
 

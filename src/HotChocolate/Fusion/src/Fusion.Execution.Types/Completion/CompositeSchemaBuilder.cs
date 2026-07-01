@@ -10,6 +10,11 @@ using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 using static System.Runtime.InteropServices.ImmutableCollectionsMarshal;
 using static HotChocolate.Types.DirectiveNames;
+using IntValueNode = HotChocolate.Language.IntValueNode;
+using StringValueNode = HotChocolate.Language.StringValueNode;
+using BooleanValueNode = HotChocolate.Language.BooleanValueNode;
+using EnumValueNode = HotChocolate.Language.EnumValueNode;
+using ListValueNode = HotChocolate.Language.ListValueNode;
 
 namespace HotChocolate.Fusion.Types.Completion;
 
@@ -162,6 +167,7 @@ internal static class CompositeSchemaBuilder
                         null,
                         [])
                 },
+                [],
                 new HotChocolate.Language.NameNode[] { new("INLINE_FRAGMENT"), new("FRAGMENT_SPREAD") });
 
             directiveTypes.Add(CreateDirectiveType(deferDirectiveNode));
@@ -776,6 +782,7 @@ internal static class CompositeSchemaBuilder
     {
         var fieldDirectives = FieldDirectiveParser.Parse(fieldDef.Directives);
         var requireDirectives = RequiredDirectiveParser.Parse(fieldDef.Directives);
+        var eventStreamDirective = ParseEventStreamDirective(fieldDef.Directives);
         var temp = ImmutableArray.CreateBuilder<SourceOutputField>();
 
         foreach (var fieldDirective in fieldDirectives)
@@ -791,6 +798,16 @@ internal static class CompositeSchemaBuilder
                 context.RegisterForCompletion(requirements);
             }
 
+            var compositeNamedTypeName = fieldDef.Type.NamedType().Name.Value;
+            var sourceNamedTypeName = fieldDirective.SourceType?.NamedType().Name.Value;
+            var sourceTypeName =
+                sourceNamedTypeName is not null
+                && !string.Equals(sourceNamedTypeName, compositeNamedTypeName, StringComparison.Ordinal)
+                    ? sourceNamedTypeName
+                    : null;
+            var sourceEventStreamDirective =
+                GetEventStreamDirective(eventStreamDirective, fieldDirective.SchemaKey, fieldDefinition.Name);
+
             temp.Add(
                 new SourceOutputField(
                     fieldDirective.SourceName ?? fieldDefinition.Name,
@@ -798,7 +815,9 @@ internal static class CompositeSchemaBuilder
                     requirements,
                     CompleteType(fieldDef.Type, fieldDirective.SourceType, context),
                     fieldDirective.IsExternal,
-                    fieldDirective.Provides));
+                    fieldDirective.Provides,
+                    sourceTypeName,
+                    sourceEventStreamDirective));
         }
 
         return new SourceObjectFieldCollection(temp.ToImmutable());
@@ -852,6 +871,44 @@ internal static class CompositeSchemaBuilder
             return sourceType is null
                 ? context.GetType(type)
                 : context.GetType(sourceType, type.NamedType().Name.Value);
+        }
+
+        static EventStreamDirective? ParseEventStreamDirective(
+            IReadOnlyList<DirectiveNode> directives)
+        {
+            for (var i = 0; i < directives.Count; i++)
+            {
+                var directive = directives[i];
+                if (EventStreamDirectiveParser.CanParse(directive))
+                {
+                    return EventStreamDirectiveParser.Parse(directive);
+                }
+            }
+
+            return null;
+        }
+
+        static EventStreamDirective? GetEventStreamDirective(
+            EventStreamDirective? directive,
+            SchemaKey schemaKey,
+            string fieldName)
+        {
+            if (directive?.SchemaKey.Equals(schemaKey) == true)
+            {
+                return new EventStreamDirective(
+                    directive.Topics.IsDefaultOrEmpty
+                        ? [fieldName]
+                        : directive.Topics,
+                    directive.Broker,
+                    directive.Message,
+                    directive.CursorField,
+                    directive.CursorArgument)
+                {
+                    SchemaKey = directive.SchemaKey
+                };
+            }
+
+            return null;
         }
     }
 

@@ -289,6 +289,11 @@ public sealed class DocumentValidatorContext : IFeatureProvider
             return false;
         }
 
+        // Removes the fragment name from _visited so that sibling spreads of the same
+        // fragment can re-enter and re-walk the body. Callers that want per-spread
+        // re-walks (e.g. CostAnalyzer) call this on leave. The base validation walker
+        // intentionally does NOT call Leave so each fragment is walked at most once per
+        // operation by default, which is what most validation rules want.
         public void Leave(FragmentSpreadNode spread)
             => _visited.Remove(spread.Name.Value);
 

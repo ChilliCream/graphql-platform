@@ -25,4 +25,12 @@ public interface IInboundRouteDescriptor : IMessagingDescriptor<InboundRouteConf
     /// <param name="kind">The inbound route kind.</param>
     /// <returns>This descriptor for method chaining.</returns>
     IInboundRouteDescriptor Kind(InboundRouteKind kind);
+
+    /// <summary>
+    /// Sets the condition that decides whether this route selects its consumer for a received message,
+    /// overriding the default condition derived from the message type.
+    /// </summary>
+    /// <param name="condition">The route condition.</param>
+    /// <returns>This descriptor for method chaining.</returns>
+    IInboundRouteDescriptor Condition(RouteCondition condition);
 }

@@ -48,6 +48,12 @@ public interface IReadOnlySchemaOptions
     bool SortFieldsByName { get; }
 
     /// <summary>
+    /// Defines if enum values shall be sorted by name.
+    /// Default: <c>false</c>
+    /// </summary>
+    bool SortEnumValuesByName { get; }
+
+    /// <summary>
     /// Defines if types shall be removed from the schema that are
     /// unreachable from the root types.
     /// </summary>
@@ -238,4 +244,10 @@ public interface IReadOnlySchemaOptions
     /// Applies the @serializeAs directive to scalar types that specify a serialization format.
     /// </summary>
     bool ApplySerializeAsToScalars { get; }
+
+    /// <summary>
+    /// Infers @key directives from the arguments of @lookup fields so that the published
+    /// source schema describes the entity keys that the lookups resolve.
+    /// </summary>
+    bool InferKeysFromLookups { get; }
 }

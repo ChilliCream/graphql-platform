@@ -1,45 +1,67 @@
-import React from "react";
+import { notFound } from "next/navigation";
+import { Pagination } from "@/src/design-system/Pagination";
+import { BlogTeaserGrid } from "@/src/components/BlogTeaserGrid";
+import { Typography } from "@/src/design-system/Typography";
+import {
+  listTags,
+  paginate,
+  POSTS_PER_PAGE,
+  postsForTag,
+} from "@/src/helpers/blogPaging";
+import { listBlogPostSummaries } from "@/src/helpers/blogPosts";
 
-import { getAllTags, getPostsByTag, getPostsPerPage } from "@/lib/blog";
-import { BlogListPage } from "@/lib/blog-list-page";
-import { createMetadata } from "@/lib/metadata";
+type Params = { tag: string; page: string };
+type PageProps = { params: Promise<Params> };
 
-interface PageProps {
-  params: Promise<{ tag: string; page: string }>;
-}
+export const dynamicParams = false;
 
-export async function generateStaticParams() {
-  const tags = getAllTags();
-  const postsPerPage = getPostsPerPage();
-  const params: { tag: string; page: string }[] = [];
-
+export function generateStaticParams(): Params[] {
+  const posts = listBlogPostSummaries();
+  const tags = listTags(posts);
+  const params: Params[] = [];
   for (const tag of tags) {
-    const { totalPages } = getPostsByTag(tag, 1);
-    for (let i = 2; i <= totalPages; i++) {
-      params.push({ tag, page: String(i) });
+    const count = postsForTag(posts, tag).length;
+    const totalPages = Math.max(1, Math.ceil(count / POSTS_PER_PAGE));
+    for (let p = 2; p <= totalPages; p++) {
+      params.push({ tag, page: String(p) });
     }
   }
-
-  return params;
+  return params.length > 0 ? params : [{ tag: "__empty__", page: "__empty__" }];
 }
 
 export async function generateMetadata({ params }: PageProps) {
-  const { tag, page } = await params;
-  return createMetadata({ title: `Blog - ${tag} - Page ${page}` });
+  const { tag } = await params;
+  return { title: `${tag} · Blog` };
 }
 
-export default async function BlogTagPaginatedPage({ params }: PageProps) {
+export default async function TagPageN({ params }: PageProps) {
   const { tag, page } = await params;
-  const pageNum = parseInt(page, 10);
-  const { posts, totalPages } = getPostsByTag(tag, pageNum);
+  const pageNum = Number(page);
+  if (!Number.isInteger(pageNum) || pageNum < 2) {
+    notFound();
+  }
+  const tagged = postsForTag(listBlogPostSummaries(), tag);
+  if (tagged.length === 0) {
+    notFound();
+  }
+  const slice = paginate(tagged, pageNum);
+  if (slice === null) {
+    notFound();
+  }
 
   return (
-    <BlogListPage
-      posts={posts}
-      currentPage={pageNum}
-      totalPages={totalPages}
-      linkPrefix={`/blog/tags/${tag}`}
-      tag={tag}
-    />
+    <div className="px-5 py-8 sm:px-12">
+      <div className="mx-auto flex max-w-6xl flex-col gap-6">
+        <Typography variant="h1">#{tag}</Typography>
+        <BlogTeaserGrid posts={slice.posts} />
+        <Pagination
+          currentPage={slice.currentPage}
+          totalPages={slice.totalPages}
+          hrefForPage={(p) =>
+            p === 1 ? `/blog/tags/${tag}` : `/blog/tags/${tag}/${p}`
+          }
+        />
+      </div>
+    </div>
   );
 }

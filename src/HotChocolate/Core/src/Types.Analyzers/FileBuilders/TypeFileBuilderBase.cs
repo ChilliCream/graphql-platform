@@ -48,6 +48,21 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
         Writer.IncreaseIndent();
     }
 
+    /// <summary>
+    /// Builds the C# expression that yields the receiver for an instance resolver call.
+    /// </summary>
+    /// <param name="fullyQualifiedTypeName">
+    /// The fully qualified type name of the resolver class (already prefixed with <c>global::</c>).
+    /// </param>
+    /// <param name="contextExpression">
+    /// The C# expression that yields the resolver context (e.g. <c>"context"</c> for
+    /// single resolvers, <c>"contexts[0]"</c> for batch resolvers).
+    /// </param>
+    protected virtual string GetInstanceReceiver(
+        string fullyQualifiedTypeName,
+        string contextExpression = "context")
+        => $"{contextExpression}.Parent<{fullyQualifiedTypeName}>()";
+
     public void WriteEndClass()
     {
         Writer.DecreaseIndent();
@@ -95,7 +110,7 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
             {
                 Writer.WriteIndentedLine("extension.Context,");
                 Writer.WriteIndentedLine("descriptor,");
-                Writer.WriteIndentedLine("null,");
+                Writer.WriteIndentedLine("typeof(global::{0}),", schemaFullTypeName);
 
                 var first = true;
                 foreach (var attribute in attributes)
@@ -318,6 +333,8 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
                 "configuration.ResultType = typeof({0});",
                 resolver.ReturnType.ToClassNonNullableFullyQualifiedWithNullRefQualifier());
         }
+
+        Writer.WriteIndentedLine("configuration.DeclaringType = context.ThisType;");
 
         WriteFieldFlags(resolver);
 
@@ -920,13 +937,14 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
         {
             WriteResolverArguments(resolver, resolverMethod, typeLookup);
 
+            var typeName = resolver.Member.ContainingType.ToFullyQualified();
+            var receiver = resolver.IsStatic ? typeName : GetInstanceReceiver(typeName);
+
             if (async)
             {
                 Writer.WriteIndentedLine(
-                    resolver.IsStatic
-                        ? "var result = await {0}.{1}({2});"
-                        : "var result = await context.Parent<{0}>().{1}({2});",
-                    resolver.Member.ContainingType.ToFullyQualified(),
+                    "var result = await {0}.{1}({2});",
+                    receiver,
                     resolver.Member.Name,
                     GetResolverArgumentAssignments(resolver.Parameters.Length));
 
@@ -935,10 +953,8 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
             else
             {
                 Writer.WriteIndentedLine(
-                    resolver.IsStatic
-                        ? "var result = {0}.{1}({2});"
-                        : "var result = context.Parent<{0}>().{1}({2});",
-                    resolver.Member.ContainingType.ToFullyQualified(),
+                    "var result = {0}.{1}({2});",
+                    receiver,
                     resolver.Member.Name,
                     GetResolverArgumentAssignments(resolver.Parameters.Length));
 
@@ -1022,11 +1038,12 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
         {
             WriteResolverArguments(resolver, resolverMethod, typeLookup);
 
+            var typeName = resolver.Member.ContainingType.ToFullyQualified();
+            var receiver = resolver.IsStatic ? typeName : GetInstanceReceiver(typeName);
+
             Writer.WriteIndentedLine(
-                resolver.IsStatic
-                    ? "var result = {0}.{1}({2});"
-                    : "var result = context.Parent<{0}>().{1}({2});",
-                resolver.Member.ContainingType.ToFullyQualified(),
+                "var result = {0}.{1}({2});",
+                receiver,
                 resolver.Member.Name,
                 GetResolverArgumentAssignments(resolver.Parameters.Length));
 
@@ -1253,12 +1270,17 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
 
             Writer.WriteLine();
 
-            // Call the user's batch resolver method
+            // Call the user's batch resolver method.
+            var batchTypeName = resolver.Member.ContainingType.ToFullyQualified();
+            var batchReceiver = resolver.IsStatic
+                ? batchTypeName
+                : GetInstanceReceiver(batchTypeName, "contexts[0]");
+
             if (isAsync)
             {
                 Writer.WriteIndentedLine(
                     "var result = await {0}.{1}({2});",
-                    resolver.Member.ContainingType.ToFullyQualified(),
+                    batchReceiver,
                     resolver.Member.Name,
                     GetResolverArgumentAssignments(resolver.Parameters.Length));
 
@@ -1283,7 +1305,7 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
             {
                 Writer.WriteIndentedLine(
                     "var result = {0}.{1}({2});",
-                    resolver.Member.ContainingType.ToFullyQualified(),
+                    batchReceiver,
                     resolver.Member.Name,
                     GetResolverArgumentAssignments(resolver.Parameters.Length));
 
@@ -1347,11 +1369,12 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
         Writer.WriteIndentedLine("{");
         using (Writer.IncreaseIndent())
         {
+            var typeName = resolver.Member.ContainingType.ToFullyQualified();
+            var receiver = resolver.IsStatic ? typeName : GetInstanceReceiver(typeName);
+
             Writer.WriteIndentedLine(
-                resolver.IsStatic
-                    ? "var result = {0}.{1};"
-                    : "var result = context.Parent<{0}>().{1};",
-                resolver.Member.ContainingType.ToFullyQualified(),
+                "var result = {0}.{1};",
+                receiver,
                 resolver.Member.Name);
 
             Writer.WriteIndentedLine("return result;");
@@ -1380,6 +1403,20 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
                     + "global::HotChocolate.WellKnownContextData.InternalId);",
                     i,
                     parameter.Type.ToFullyQualified());
+                continue;
+            }
+
+            // Optional<T> arguments bind through ArgumentOptional<T>, which coerces the inner T
+            // and preserves whether the argument was supplied. This mirrors the reflection-based
+            // binding in ArgumentParameterExpressionBuilder.
+            if (parameter.Kind is ResolverParameterKind.Argument or ResolverParameterKind.Unknown
+                && parameter.Type.IsOptional(out var optionalInnerType))
+            {
+                Writer.WriteIndentedLine(
+                    "var args{0} = context.ArgumentOptional<{1}>(\"{2}\");",
+                    i,
+                    ToFullyQualifiedString(optionalInnerType, resolverMethod, typeLookup),
+                    parameter.Key ?? parameter.Name);
                 continue;
             }
 
@@ -1978,8 +2015,7 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
                 return FormatPrimitive(constant.Value);
 
             case TypedConstantKind.Enum:
-                var enumType = constant.Type?.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
-                return $"{enumType}.{constant.Value}";
+                return FormatEnumConstant(constant);
 
             case TypedConstantKind.Type:
                 var typeArg = ((ITypeSymbol)constant.Value!).ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
@@ -2021,6 +2057,30 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
             ulong ul => $"{ul}UL",
             _ => value.ToString() ?? "null"
         };
+    }
+
+    private static string FormatEnumConstant(TypedConstant constant)
+    {
+        if (constant.Type is not INamedTypeSymbol enumSymbol)
+        {
+            return FormatPrimitive(constant.Value);
+        }
+
+        var enumType = enumSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+
+        if (constant.Value is not null)
+        {
+            foreach (var member in enumSymbol.GetMembers())
+            {
+                if (member is IFieldSymbol { HasConstantValue: true } field
+                    && Equals(field.ConstantValue, constant.Value))
+                {
+                    return $"{enumType}.{field.Name}";
+                }
+            }
+        }
+
+        return $"({enumType}){constant.Value}";
     }
 
     private static string EscapeString(string s)

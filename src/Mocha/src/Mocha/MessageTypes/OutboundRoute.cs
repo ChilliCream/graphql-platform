@@ -16,6 +16,12 @@ public sealed class OutboundRoute
     public bool IsCompleted { get; private set; }
 
     /// <summary>
+    /// Gets a value indicating whether the route's destination was explicitly configured, as
+    /// opposed to backfilled from the endpoint address.
+    /// </summary>
+    public bool HasExplicitDestination { get; private set; }
+
+    /// <summary>
     /// Gets the kind of outbound route (send or publish).
     /// </summary>
     public OutboundRouteKind Kind { get; private set; }
@@ -61,6 +67,7 @@ public sealed class OutboundRoute
             throw ThrowHelper.RouteRequiresMessageType();
         }
 
+        HasExplicitDestination = configuration.Destination is not null;
         Destination = configuration.Destination;
 
         MarkInitialized();
@@ -97,7 +104,7 @@ public sealed class OutboundRoute
 
         if (Endpoint is null)
         {
-            throw ThrowHelper.RouteEndpointNotConnected();
+            throw ThrowHelper.RouteEndpointNotConnected(this);
         }
 
         Destination ??= Endpoint.Address;

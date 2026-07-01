@@ -130,7 +130,7 @@ public class RabbitMQDispatcherTests
         var connectionMock = CreateOpenConnection(channelMock);
         await using var dispatcher = CreateDispatcher(connectionMock);
 
-        var rented = await dispatcher.RentChannelAsync(default);
+        var rented = await dispatcher.RentChannelAsync(TestContext.Current.CancellationToken);
         channelMock.SetupGet(c => c.IsOpen).Returns(false);
 
         // act

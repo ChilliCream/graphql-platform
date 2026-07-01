@@ -35,7 +35,7 @@ sourceSchemas:
         productById(id: Int!): Product @lookup @internal
       }
 
-      type Product {
+      type Product @key(fields: "id") {
         id: Int!
         price: Float!
       }
@@ -70,7 +70,7 @@ sourceSchemas:
         productById(id: Int!): Product @lookup
       }
 
-      type Product {
+      type Product @key(fields: "id") {
         name: String!
         id: Int!
       }

@@ -11,9 +11,31 @@ namespace Microsoft.Extensions.DependencyInjection
     [global::System.CodeDom.Compiler.GeneratedCode("Mocha.Analyzers", "1.0.0")]
     public static class TestsMessageBusBuilderExtensions
     {
+        [global::Mocha.MessagingModuleInfo(
+            SagaTypes = new global::System.Type[]
+            {
+                typeof(global::TestApp.OrderFulfillmentSaga),
+            },
+            HandlerTypes = new global::System.Type[]
+            {
+                typeof(global::TestApp.AuditLogConsumer),
+                typeof(global::TestApp.BulkOrderHandler),
+                typeof(global::TestApp.GetOrderStatusHandler),
+                typeof(global::TestApp.OrderPlacedHandler),
+            }
+        )]
         public static global::Mocha.IMessageBusHostBuilder AddTests(
             this global::Mocha.IMessageBusHostBuilder builder)
         {
+
+            // --- Saga Configuration ---
+            global::Mocha.MessageBusHostBuilderExtensions.AddSagaConfiguration<
+                global::TestApp.OrderFulfillmentSaga>(
+                builder,
+                new global::Mocha.MessagingSagaConfiguration
+                {
+                    SagaType = typeof(global::TestApp.OrderFulfillmentSaga),
+                });
 
             // --- Batch Handlers ---
             global::Mocha.MessageBusHostBuilderExtensions.AddHandlerConfiguration<global::TestApp.BulkOrderHandler>(builder,
@@ -46,10 +68,6 @@ namespace Microsoft.Extensions.DependencyInjection
                     HandlerType = typeof(global::TestApp.OrderPlacedHandler),
                     Factory = global::Mocha.ConsumerFactory.Subscribe<global::TestApp.OrderPlacedHandler, global::TestApp.OrderPlacedEvent>()
                 });
-
-            // --- Sagas ---
-            global::Mocha.MessageBusHostBuilderExtensions.AddSaga<
-                global::TestApp.OrderFulfillmentSaga>(builder);
 
             return builder;
         }

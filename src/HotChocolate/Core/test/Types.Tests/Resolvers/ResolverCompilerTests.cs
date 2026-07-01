@@ -1385,7 +1385,7 @@ public class ResolverCompilerTests
             .AddGraphQL()
             .AddQueryType<Resolvers>()
             .ModifyOptions(o => o.SortFieldsByName = true)
-            .BuildSchemaAsync()
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -1397,7 +1397,9 @@ public class ResolverCompilerTests
             .AddGraphQL()
             .AddQueryType<QueryWithScopedExpressionBuilder>()
             .ModifyOptions(o => o.SortFieldsByName = true)
-            .ExecuteRequestAsync("{ bar }")
+            .ExecuteRequestAsync(
+                "{ bar }",
+                cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -1409,7 +1411,7 @@ public class ResolverCompilerTests
             .AddGraphQL()
             .AddQueryType<QueryWithScopedExpressionBuilder>()
             .ModifyOptions(o => o.SortFieldsByName = true)
-            .BuildSchemaAsync()
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -1448,53 +1450,53 @@ public class ResolverCompilerTests
             "cancel";
 
         public bool GetClaimsPrincipal(ClaimsPrincipal claims)
-            => claims != null!;
+            => claims != null;
 
         public bool GetNullableClaimsPrincipal(ClaimsPrincipal? claims)
-            => claims != null!;
+            => claims != null;
 
         public bool GetPath(Path path)
-            => path != null!;
+            => path != null;
 
         public bool ResolverWithResolverContext(
             IResolverContext context) =>
-            context != null!;
+            context != null;
 
         public bool ResolverWithFieldSelection(
             ISelection fieldSelection) =>
-            fieldSelection != null!;
+            fieldSelection != null;
 
         public bool ResolverWithSelection(
             ISelection fieldSelection) =>
-            fieldSelection != null!;
+            fieldSelection != null;
 
         public bool ResolverWithObjectType(
             ObjectType objectType) =>
-            objectType != null!;
+            objectType != null;
 
         public bool ResolverWithOperationDefinition(
             OperationDefinitionNode operationDefinition) =>
-            operationDefinition != null!;
+            operationDefinition != null;
 
         public bool ResolverWithObjectField(
             ObjectField objectField) =>
-            objectField != null!;
+            objectField != null;
 
         public bool ResolverWithOutputField(
             IOutputFieldDefinition outputField) =>
-            outputField != null!;
+            outputField != null;
 
         public bool ResolverWithDocument(
             DocumentNode document) =>
-            document != null!;
+            document != null;
 
         public bool ResolverWithSchema(
             ISchemaDefinition schema) =>
-            schema != null!;
+            schema != null;
 
         public bool ResolverWithService(
             [Service] MyService service) =>
-            service != null!;
+            service != null;
 
         public string GetGlobalStateWithKey(
             [GlobalState("foo")]

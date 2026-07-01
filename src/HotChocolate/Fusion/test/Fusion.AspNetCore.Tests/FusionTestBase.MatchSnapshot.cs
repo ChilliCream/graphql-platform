@@ -580,7 +580,7 @@ public abstract partial class FusionTestBase
     {
         var streamReader = new StreamReader(body);
         var rawRequestString = streamReader.ReadToEnd();
-        var contentTypeString = contentType.MediaType!;
+        var contentTypeString = contentType.MediaType;
 
         var boundary = contentType.Parameters
             .FirstOrDefault(

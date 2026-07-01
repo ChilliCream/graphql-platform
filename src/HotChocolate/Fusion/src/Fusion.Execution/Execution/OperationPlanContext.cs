@@ -24,6 +24,7 @@ namespace HotChocolate.Fusion.Execution;
 public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDisposable
 {
     private static readonly JsonOperationPlanFormatter s_planFormatter = new();
+    private static readonly TimeSpan s_clientScopeMaxAge = TimeSpan.FromHours(4);
     private NodeCompletionSet?[] _nodesToComplete = [];
     private int _dependentBitsetWordCount;
     private string?[] _schemaNames = [];
@@ -39,22 +40,34 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
     private readonly INodeIdParser _nodeIdParser;
     private readonly IErrorHandler _errorHandler;
     private bool _collectTelemetry;
+#pragma warning disable IDE0370 // Remove unnecessary suppression
     private ISourceSchemaClientScope _clientScope = default!;
+#pragma warning restore IDE0370 // Remove unnecessary suppression
     private string? _traceId;
     private long _start;
+    private long _clientScopeCreatedAt;
     private int _disposed;
     private int _nodeSlotCapacity;
+    private MemoryArena? _memory;
+    private readonly FixedMemoryArenaSource _memorySource = new();
+#pragma warning disable IDE0370 // Remove unnecessary suppression
+    private IMemoryArenaSource _currentMemorySource = default!;
+#pragma warning restore IDE0370 // Remove unnecessary suppression
     internal OperationPlanContextPool? _pool;
 
     /// <summary>
     /// Gets the operation plan being executed.
     /// </summary>
+#pragma warning disable IDE0370 // Remove unnecessary suppression
     public IOperationPlan OperationPlan { get; private set; } = default!;
+#pragma warning restore IDE0370 // Remove unnecessary suppression
 
     /// <summary>
     /// Gets the coerced variable values for the current request.
     /// </summary>
+#pragma warning disable IDE0370 // Remove unnecessary suppression
     public IVariableValueCollection Variables { get; private set; } = default!;
+#pragma warning restore IDE0370 // Remove unnecessary suppression
 
     /// <summary>
     /// Gets the schema definition associated with this execution.
@@ -64,12 +77,65 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
     /// <summary>
     /// Gets the request context for the current request.
     /// </summary>
+#pragma warning disable IDE0370 // Remove unnecessary suppression
     public RequestContext RequestContext { get; private set; } = default!;
+#pragma warning restore IDE0370 // Remove unnecessary suppression
 
     /// <summary>
     /// Gets the source schema client scope used to obtain HTTP clients for downstream subgraphs.
     /// </summary>
     public ISourceSchemaClientScope ClientScope => _clientScope;
+
+    /// <summary>
+    /// Gets the memory arena that backs the documents produced during this operation plan execution.
+    /// </summary>
+    internal MemoryArena Memory
+    {
+        get
+        {
+            if (_memory is null)
+            {
+                throw new InvalidOperationException(
+                    "The operation plan context is not associated with a memory arena.");
+            }
+
+            return _memory;
+        }
+    }
+
+    /// <summary>
+    /// Gets the memory arena source for the request-scoped streams produced during this execution.
+    /// The source returns the arena that backs the documents produced during this operation plan
+    /// execution.
+    /// </summary>
+    internal IMemoryArenaSource MemorySource
+    {
+        get
+        {
+            if (_currentMemorySource is null)
+            {
+                throw new InvalidOperationException(
+                    "The operation plan context is not associated with a memory arena.");
+            }
+
+            return _currentMemorySource;
+        }
+    }
+
+    internal void SetActiveEventArena(IMemoryArena eventArena)
+    {
+        ArgumentNullException.ThrowIfNull(eventArena);
+        var memory = _memory = (MemoryArena)eventArena;
+        _memorySource.Set(memory);
+        _resultStore.Reset(memory);
+        _currentMemorySource = _memorySource;
+    }
+
+    internal void SetActiveEventArenaSource(IMemoryArenaSource eventArenaSource)
+    {
+        ArgumentNullException.ThrowIfNull(eventArenaSource);
+        _currentMemorySource = eventArenaSource;
+    }
 
     internal ExecutionState ExecutionState => _executionState;
 
@@ -129,7 +195,7 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
     internal ImmutableArray<ExecutionNode> GetDependentsToExecute(ExecutionNode node)
     {
         var nodeCompletionSet = _nodesToComplete[node.Id];
-        return nodeCompletionSet?.GetSnapshot() ?? [];
+        return nodeCompletionSet?.GetSnapshot() ?? default;
     }
 
     internal void TrackSkippedDefinition(ExecutionNode node, IOperationPlanNode skippedDefinition)
@@ -214,15 +280,15 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
         return variableValueSets.IsDefault ? [] : variableValueSets;
     }
 
-    internal void TrackSourceSchemaClientResponse(ExecutionNode node, SourceSchemaClientResponse result)
+    internal void TrackTransport(ExecutionNode node, Uri? uri, string? contentType)
     {
         if (!CollectTelemetry)
         {
             return;
         }
 
-        _transportUris[node.Id] = result.Uri;
-        _transportContentTypes[node.Id] = result.ContentType;
+        _transportUris[node.Id] = uri;
+        _transportContentTypes[node.Id] = contentType;
     }
 
     internal (Uri? Uri, string? ContentType) GetTransportDetails(ExecutionNode node)
@@ -237,6 +303,9 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
 
     internal void CompleteNode(ExecutionNodeResult result)
         => _executionState.EnqueueForCompletion(result);
+
+    internal void EnqueuePendingMerge(PendingMerge merge)
+        => _executionState.EnqueueMerge(merge);
 
     internal ImmutableArray<VariableValues> CreateVariableValueSets(
         SelectionPath selectionSet,
@@ -593,6 +662,13 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
 
         if (!retainMemoryForDefer)
         {
+            // Seal only arenas owned by this completion, like a subscription event arena.
+            // Shared request arenas are sealed once at the response boundary.
+            if (_memory is { } memory && !ReferenceEquals(memory, RequestContext.Memory))
+            {
+                memory.Seal();
+            }
+
             // we take over the memory owners from the result context
             // and store them on the response so that the server can
             // dispose them when it disposes of the result itself.
@@ -630,22 +706,24 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
                 || operationResult.Errors.Count > 0,
             "Expected to either valid data or errors");
 
-        // resets the store and client scope for another execution.
-        if (reusable)
+        // Reuse the child-fetch scope until it ages out; dispose the retired scope with
+        // the last result it served.
+        if (reusable && Stopwatch.GetElapsedTime(_clientScopeCreatedAt) >= s_clientScopeMaxAge)
         {
+            operationResult.RegisterForCleanup(_clientScope);
             _clientScope = RequestContext.CreateClientScope();
-            _resultStore.Reset();
+            _clientScopeCreatedAt = Stopwatch.GetTimestamp();
         }
 
         return operationResult;
     }
 
-    private IReadOnlyList<ObjectFieldNode> GetPathThroughVariables(
+    private ObjectFieldNode[] GetPathThroughVariables(
         ReadOnlySpan<string> forwardedVariables)
     {
         if (Variables.IsEmpty || forwardedVariables.Length == 0)
         {
-            return Array.Empty<ObjectFieldNode>();
+            return [];
         }
 
         var buffer = new ObjectFieldNode[forwardedVariables.Length];
@@ -661,7 +739,7 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
 
         if (count == 0)
         {
-            return Array.Empty<ObjectFieldNode>();
+            return [];
         }
 
         if (count == buffer.Length)

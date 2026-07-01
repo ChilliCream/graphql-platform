@@ -1,5 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Test.props', '$(MSBuildThisFileDirectory)'))" />
+
   <PropertyGroup>
     <AssemblyName>GreenDonut.Data.Tests</AssemblyName>
     <RootNamespace>GreenDonut.Data</RootNamespace>
@@ -18,6 +20,8 @@
     <PackageReference Include="Squadron.PostgreSql" />
     <PackageReference Include="Squadron.SqlServer" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
+    <!-- Dependency of Microsoft.EntityFrameworkCore.Sqlite. Pinned to secure version. -->
+    <PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" />
   </ItemGroup>
 
 </Project>

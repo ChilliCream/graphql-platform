@@ -476,8 +476,15 @@ public sealed partial class OperationPlanner
 
                 if (step is OperationPlanStep operationStep)
                 {
-                    ctx.ExecutionNodes.Add(step.Id,
-                        CreateOperationExecutionNode(operationStep, schema, requiresUpload, variableBuffer));
+                    ctx.ExecutionNodes.Add(
+                        step.Id,
+                        operationStep.EventStreamPlan is null
+                            ? CreateOperationExecutionNode(
+                                operationStep,
+                                schema,
+                                requiresUpload,
+                                variableBuffer)
+                            : CreateEventStreamExecutionNode(operationStep, schema));
                 }
                 else if (step is NodeFieldPlanStep nodeStep)
                 {
@@ -560,6 +567,35 @@ public sealed partial class OperationPlanner
             requiresFileUpload);
 
         foreach (var parentDependency in operationStep.ParentDependencies.OrderBy(static t => t.StepId))
+        {
+            node.AddParentDependency(parentDependency.StepId);
+        }
+
+        return node;
+    }
+
+    private static EventStreamExecutionNode CreateEventStreamExecutionNode(
+        OperationPlanStep operationStep,
+        ISchemaDefinition schema)
+    {
+        var eventStreamPlan = operationStep.EventStreamPlan
+            ?? throw new InvalidOperationException("The operation step does not carry event-stream metadata.");
+
+        var selectionSetNode = GetSelectionSetNodeFromPath(operationStep.Definition, operationStep.Source);
+        selectionSetNode = PruneNonValueTypeChildren(selectionSetNode, operationStep.Type, schema);
+        var resultSelectionSet = ResultSelectionSet.Create(selectionSetNode, schema);
+
+        var node = new EventStreamExecutionNode(
+            operationStep.Id,
+            eventStreamPlan.FieldName,
+            operationStep.Target,
+            operationStep.Source,
+            resultSelectionSet,
+            eventStreamPlan.Source,
+            eventStreamPlan.Message,
+            operationStep.Conditions);
+
+        foreach (var parentDependency in operationStep.ParentDependencies)
         {
             node.AddParentDependency(parentDependency.StepId);
         }
@@ -685,6 +721,7 @@ public sealed partial class OperationPlanner
             var otherId = group[i].Id;
             absorbedIds.Add(otherId);
             ctx.ExecutionNodes.Remove(otherId);
+            ctx.RedirectedStepIds[otherId] = primaryId;
 
             if (ctx.DependenciesByStepId.TryGetValue(otherId, out var otherDependencies))
             {
@@ -910,6 +947,7 @@ public sealed partial class OperationPlanner
         {
             memberIds.Add(member.Id);
             ctx.ExecutionNodes.Remove(member.Id);
+            ctx.RedirectedStepIds[member.Id] = batchNodeId;
 
             if (ctx.DependenciesByStepId.TryGetValue(member.Id, out var memberDependencies))
             {
@@ -930,6 +968,19 @@ public sealed partial class OperationPlanner
         }
 
         RedirectDependencyReferences(ctx.DependenciesByStepId, memberIds, batchNodeId);
+    }
+
+    private static int ResolveRedirectedStepId(int id, Dictionary<int, int> redirectedStepIds)
+    {
+        var current = id;
+        var visited = new HashSet<int>();
+
+        while (redirectedStepIds.TryGetValue(current, out var next) && visited.Add(current))
+        {
+            current = next;
+        }
+
+        return current;
     }
 
     private static BatchOperationDefinition CreateBatchOperationDefinition(MergeResult merge)
@@ -1092,7 +1143,11 @@ public sealed partial class OperationPlanner
             foreach (var dependencyId in stepDependencies.Order())
             {
                 if (!ctx.ExecutionNodes.TryGetValue(dependencyId, out var childEntry)
-                    || childEntry is not (OperationExecutionNode or OperationBatchExecutionNode or NodeFieldExecutionNode))
+                    || childEntry is not (
+                        OperationExecutionNode
+                        or OperationBatchExecutionNode
+                        or NodeFieldExecutionNode
+                        or EventStreamExecutionNode))
                 {
                     continue;
                 }
@@ -1946,6 +2001,7 @@ public sealed partial class OperationPlanner
         public Dictionary<int, HashSet<int>> DependenciesByStepId { get; } = [];
         public Dictionary<int, Dictionary<string, int>> BranchesByNodeId { get; } = [];
         public Dictionary<int, int> FallbackByNodeId { get; } = [];
+        public Dictionary<int, int> RedirectedStepIds { get; } = [];
     }
 
     private sealed class ConditionalSelectionSetRewriterContext

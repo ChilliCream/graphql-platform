@@ -60,7 +60,7 @@ public class DurationType : ScalarType<Duration, StringValueNode>
     /// <inheritdoc />
     protected override Duration OnCoerceInputValue(JsonElement inputValue, IFeatureProvider context)
     {
-        if (Iso8601DurationParser.TryParse(inputValue.GetString()!.AsSpan(), out var value))
+        if (Iso8601DurationParser.TryParse(inputValue.GetString().AsSpan(), out var value))
         {
             return value;
         }

@@ -30,8 +30,8 @@ public sealed class FusionConfigurationPublishBeginCommandTests(NitroCommandFixt
               --stage <stage> (REQUIRED)    The name of the stage [env: NITRO_STAGE]
               --api-id <api-id> (REQUIRED)  The ID of the API [env: NITRO_API_ID]
               --wait-for-approval           Wait for the deployment to be approved before completing [env: NITRO_WAIT_FOR_APPROVAL]
-              --cloud-url <cloud-url>       The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL] [default: api.chillicream.com]
-              --api-key <api-key>           The API key used for authentication [env: NITRO_API_KEY]
+              --cloud-url <cloud-url>       The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL]
+              --api-key <api-key>           The API key or PAT used for authentication [env: NITRO_API_KEY]
               --output <json>               The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
               -?, -h, --help                Show help and usage information
 
@@ -118,10 +118,7 @@ public sealed class FusionConfigurationPublishBeginCommandTests(NitroCommandFixt
             "--api-id", ApiId, "--stage", Stage, "--tag", Tag);
 
         // assert
-        result.StdErr.MatchInlineSnapshot(
-            $"""
-             {expectedErrorMessage}
-             """);
+        result.StdErr.MatchInlineSnapshot(expectedErrorMessage);
         result.StdOut.MatchInlineSnapshot(
             """
             Requesting deployment slot for stage 'dev' of API 'api-1'
