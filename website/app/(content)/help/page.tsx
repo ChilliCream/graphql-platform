@@ -1,12 +1,11 @@
-import type { Metadata } from "next";
-
 import { HelpClosing } from "@/src/components/help/HelpClosing";
 import { HelpFaq } from "@/src/components/help/HelpFaq";
 import { HelpHero } from "@/src/components/help/HelpHero";
 import { HelpTiers } from "@/src/components/help/HelpTiers";
 import { SelfServeGrid } from "@/src/components/help/SelfServeGrid";
+import { pageMetadata } from "@/src/helpers/pageMetadata";
 
-export const metadata: Metadata = {
+export const metadata = pageMetadata({
   title: "Get GraphQL help fast",
   description:
     "Stuck on GraphQL? Get help from the ChilliCream community, book an expert consultancy session, or pick a support plan. Pick the path that fits the urgency.",
@@ -17,12 +16,8 @@ export const metadata: Metadata = {
     "GraphQL Slack community",
     "GraphQL support plan",
   ],
-  openGraph: {
-    title: "Get GraphQL help fast",
-    description:
-      "Stuck on GraphQL? Get help from the ChilliCream community, book an expert consultancy session, or pick a support plan. Pick the path that fits the urgency.",
-  },
-};
+  path: "/help",
+});
 
 export default function HelpPage() {
   return (

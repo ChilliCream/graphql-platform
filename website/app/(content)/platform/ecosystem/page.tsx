@@ -1,15 +1,15 @@
-import type { Metadata } from "next";
-
 import { ContentSection } from "@/src/components/ContentSection";
 import { NextStepsSection } from "@/src/components/NextStepsSection";
 import { PageHero } from "@/src/components/PageHero";
 import { Section } from "@/src/components/Section";
+import { pageMetadata } from "@/src/helpers/pageMetadata";
 
-export const metadata: Metadata = {
+export const metadata = pageMetadata({
   title: "Ecosystem",
   description:
     "Explore the ChilliCream ecosystem: GraphQL tooling with authentication flows, document sync, subscriptions, and a fast IDE built for your API journey.",
-};
+  path: "/platform/ecosystem",
+});
 
 interface FeatureCard {
   title: string;
