@@ -1,9 +1,8 @@
 ---
-title: "Introduction"
+title: Nitro
+metaTitle: "Nitro: Observability and Governance for APIs"
 description: "Introduction to Nitro, the GraphQL IDE from ChilliCream with team collaboration, schema and client registries, and OpenTelemetry monitoring for your APIs."
 ---
-
-> Explore, engage and share your thoughts via [slack](http://slack.chillicream.com/) in the **#nitro** channel.
 
 Nitro is a tool for developers, simplifying API creation, debugging, and collaboration. It enables effortless execution of GraphQL queries and mutations, with visual schema exploration. The platform emphasizes collaboration through seamless team sharing and synchronization. Nitro supports you during the entire API lifecycle with features like the schema and client registry for confident API evolution.
 
