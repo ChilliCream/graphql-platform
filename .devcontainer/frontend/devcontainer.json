@@ -22,7 +22,8 @@
   "workspaceFolder": "/workspaces/graphql-platform/website",
   "postCreateCommand": "yarn install --immutable && yarn playwright install chromium",
   "containerEnv": {
-    "NEXT_TELEMETRY_DISABLED": "1"
+    "NEXT_TELEMETRY_DISABLED": "1",
+    "CHILLICREAM_FRONTEND_ENV": "devcontainer"
   },
   "customizations": {
     "vscode": {

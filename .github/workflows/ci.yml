@@ -141,6 +141,8 @@ jobs:
       - name: Install Packages
         run: yarn --immutable --network-timeout 100000
         working-directory: website
+        env:
+          CHILLICREAM_FRONTEND_ENV: ci
 
       - name: Install Playwright Chromium
         run: yarn playwright install --with-deps chromium
