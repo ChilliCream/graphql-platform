@@ -196,6 +196,7 @@ public sealed class SchemaComposer
         new InputWithMissingOneOfRule(),
         new InvalidFieldSharingRule(),
         new MultipleEventStreamSourcesRule(),
+        new OptInFeatureStabilityMismatchRule(),
         new OutputFieldTypesMergeableRule(),
         new SpecifiedByUrlMismatchRule(),
         new TypeKindMismatchRule()
