@@ -467,6 +467,8 @@ public sealed class NatsEventStreamBrokerTests : IClassFixture<NatsResource>
 
         public IReadOnlyDictionary<string, IValueNode> Arguments { get; } =
             new Dictionary<string, IValueNode>();
+
+        public bool RequiresCursor => true;
     }
 
     private sealed class JetStreamNatsFixture : IAsyncDisposable
