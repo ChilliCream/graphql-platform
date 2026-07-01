@@ -1,5 +1,6 @@
 ---
-title: "Introduction"
+title: Skillz
+metaTitle: "Skillz: Agent Skills CLI for .NET"
 description: "skillz is a .NET CLI that installs, updates, and authors Agent Skills: portable SKILL.md files you can share across Claude Code, Cursor, and 50+ agents."
 ---
 

@@ -73,9 +73,9 @@ public class BookQueriesType : ObjectType
 
 # Opt-In Features
 
-While `@deprecated` marks fields that are going away, `@requiresOptIn` marks fields that are not yet stable. This is useful for rolling out experimental features, expensive operations, or anything where consumers should make a deliberate choice to use it.
+While `@deprecated` marks schema elements that are going away, `@requiresOptIn` marks schema elements that are not yet stable. This is useful for rolling out experimental features, expensive operations, or anything where consumers should make a deliberate choice to use it.
 
-Fields marked with `@requiresOptIn` are hidden from introspection by default. Consumers opt in by specifying the feature name.
+Schema elements marked with `@requiresOptIn` are hidden from introspection by default. Consumers opt in by specifying the feature name.
 
 ## Enabling Opt-In Features
 
@@ -87,9 +87,9 @@ builder
     .ModifyOptions(o => o.EnableOptInFeatures = true);
 ```
 
-## Marking Fields as Opt-In
+## Marking Schema Elements as Opt-In
 
-Apply `@requiresOptIn` to output fields, input fields, arguments, and enum values. The directive is repeatable, so a single field can require multiple features.
+Apply `@requiresOptIn` to output fields, input fields, arguments, enum values, and directive definitions. The directive is repeatable, so a single element can require multiple features.
 
 <ExampleTabs>
 <Implementation>
@@ -148,7 +148,7 @@ Consumers discover opt-in fields by passing the `includeOptIn` argument:
 }
 ```
 
-The `includeOptIn` argument is available on `fields`, `args`, `inputFields`, and `enumValues` in introspection queries.
+The `includeOptIn` argument is available on `fields`, `args`, `inputFields`, `enumValues`, and `directives` in introspection queries. A directive definition exposes its own required features via `__Directive.requiresOptIn`, mirroring the `requiresOptIn` field on other introspection types.
 
 To discover all opt-in features in the schema:
 
