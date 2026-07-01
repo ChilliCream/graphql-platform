@@ -1040,4 +1040,61 @@ public class DataLoaderTests
             }
             """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
+
+    [Fact]
+    public async Task GenerateSource_BatchDataLoader_With_MaxBatchSize_MatchesSnapshot()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            """
+            using System.Collections.Generic;
+            using System.Threading;
+            using System.Threading.Tasks;
+            using HotChocolate;
+            using GreenDonut;
+
+            namespace TestNamespace;
+
+            internal static class TestClass
+            {
+                [DataLoader(MaxBatchSize = 2)]
+                public static Task<IReadOnlyDictionary<int, Entity>> GetEntityByIdAsync(
+                    IReadOnlyList<int> entityIds,
+                    CancellationToken cancellationToken)
+                    => default!;
+            }
+
+            public class Entity
+            {
+                public int Id { get; set; }
+            }
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
+    }
+
+    [Fact]
+    public async Task GenerateSource_CacheDataLoader_With_MaxBatchSize_MatchesSnapshot()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            """
+            using System.Threading;
+            using System.Threading.Tasks;
+            using HotChocolate;
+            using GreenDonut;
+
+            namespace TestNamespace;
+
+            internal static class TestClass
+            {
+                [DataLoader(MaxBatchSize = 2)]
+                public static Task<Entity> GetEntityByIdAsync(
+                    int entityId,
+                    CancellationToken cancellationToken)
+                    => default!;
+            }
+
+            public class Entity
+            {
+                public int Id { get; set; }
+            }
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
+    }
 }
