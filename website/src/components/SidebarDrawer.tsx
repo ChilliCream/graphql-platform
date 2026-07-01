@@ -122,11 +122,11 @@ export function SidebarDrawer({
         </div>
       </div>
 
-      <aside className="hidden lg:block" aria-hidden="true" />
-
-      <div className="cc-content-dark border-cc-card-border fixed top-18 left-0 z-30 -mt-px hidden h-[calc(100vh-4.5rem-var(--docs-rail-bottom,0px))] w-80 flex-col border-r lg:flex">
-        {children}
-      </div>
+      <aside className="cc-content-dark border-cc-card-border hidden border-r lg:block">
+        <div className="sticky top-18 flex max-h-[calc(100vh-4.5rem-var(--docs-rail-bottom,0px))] flex-col">
+          {children}
+        </div>
+      </aside>
     </>
   );
 }
