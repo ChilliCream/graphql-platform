@@ -46,6 +46,15 @@ namespace HotChocolate.Fusion.SourceSchemaValidationRules;
 ///   users(after: String @eventCursor): [User!]!
 /// }
 ///
+/// type Subscription {
+///   onCount(after: String @eventCursor): CountEvent
+///     @eventStream(message: "{ total }")
+/// }
+///
+/// type CountEvent {
+///   total: Int!
+/// }
+///
 /// type UserChangedEvent {
 ///   cursor: [String] @eventCursor
 ///   position: String @eventCursor
