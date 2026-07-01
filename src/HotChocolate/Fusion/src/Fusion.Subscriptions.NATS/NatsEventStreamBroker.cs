@@ -203,7 +203,7 @@ internal sealed class NatsEventStreamBroker(NatsEventStreamOptions options)
         var consumer = await js
             .CreateOrUpdateConsumerAsync(
                 jetStreamOptions.Stream,
-                CreateConsumerConfig(topics, jetStreamOptions, startSequence),
+                CreateConsumerConfig(topics, startSequence),
                 session.Token)
             .ConfigureAwait(false);
 
@@ -280,13 +280,14 @@ internal sealed class NatsEventStreamBroker(NatsEventStreamOptions options)
 
     private static ConsumerConfig CreateConsumerConfig(
         string[] topics,
-        NatsJetStreamOptions jetStreamOptions,
         ulong? startSequence)
     {
         if (startSequence is null)
         {
-            return new ConsumerConfig(jetStreamOptions.DurableConsumer)
+            return new ConsumerConfig
             {
+                AckPolicy = ConsumerConfigAckPolicy.Explicit,
+                DeliverPolicy = ConsumerConfigDeliverPolicy.New,
                 FilterSubjects = topics
             };
         }

@@ -31,7 +31,7 @@ Federated event streams decouple the event source from the GraphQL schema. Your
 services publish events to a message broker; the gateway subscribes to the relevant
 topics and turns each event into a fully resolved GraphQL result.
 
-![Federated Event Streams architecture: clients open a long-lived subscription to the Fusion gateway, the gateway subscribes to a topic on the message broker, your services publish events, and on each event the gateway performs stateless HTTP fetches against the owning subgraphs to resolve the selection set](../../../public/images/fusion-docs/fusion-subscriptions-architecture.png)
+<FusionSubscriptionsDiagram />
 
 The flow has four moving parts:
 
@@ -652,8 +652,7 @@ builder
         options.Url = "nats://localhost:4222";
         options.JetStream = new NatsJetStreamOptions
         {
-            Stream = "products",
-            DurableConsumer = "gateway"
+            Stream = "products"
         };
     });
 ```
