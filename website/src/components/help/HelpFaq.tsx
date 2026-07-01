@@ -3,11 +3,11 @@ import { FaqSection } from "@/src/components/FaqSection";
 const FAQ = [
   {
     q: "Which option gets me unblocked fastest?",
-    a: "For a defined problem with a deadline, Consultancy is the most reliable path. You book a session with a ChilliCream expert and walk in with a question. For lighter or open-ended questions, Slack is faster than you might expect because the community is large and active.",
+    a: "For a defined problem with a deadline, Consultancy is the most reliable path. You bring a defined question to a ChilliCream engineer and work through it together. For lighter or open-ended questions, Slack is faster than you might expect because the community is large and active.",
   },
   {
     q: "What response time can I expect on Slack?",
-    a: "Slack is best effort. Answers are usually quick during European working hours, but there is no guarantee. If your team has a hard deadline, do not rely on Slack alone. Book a Consultancy session or move to a Support plan with a contractual SLA.",
+    a: "Slack is best effort. Answers are usually quick during European working hours, but there is no guarantee. If your team has a hard deadline, do not rely on Slack alone. Take the Consultancy route or move to a Support plan with a contractual SLA.",
   },
   {
     q: "When should we move from Consultancy to a Support plan?",
@@ -15,7 +15,7 @@ const FAQ = [
   },
   {
     q: "How do I escalate something urgent in production?",
-    a: "Customers on a Support plan escalate through their dedicated account manager and private Slack channel, following the SLA in their plan. Without a Support plan, the fastest path is to book the next available Consultancy session and post a clear repro in the public Slack in parallel.",
+    a: "Customers on a Support plan escalate through their dedicated account manager and private Slack channel, following the SLA in their plan. Without a Support plan, the fastest path is to take the Consultancy route and post a clear repro in the public Slack in parallel.",
   },
   {
     q: "Can ChilliCream help us design a schema or migration?",

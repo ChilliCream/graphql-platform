@@ -1,4 +1,4 @@
-import { CALENDLY, SLACK } from "@/src/components/help/helpLinks";
+import { SLACK } from "@/src/components/help/helpLinks";
 import { Offering } from "@/src/components/Offering";
 import { OfferingGrid } from "@/src/components/OfferingGrid";
 import { SectionHeading } from "@/src/components/SectionHeading";
@@ -38,7 +38,7 @@ const TIERS: readonly Tier[] = [
       "Architecture and review",
       "No long term contract",
     ],
-    callToAction: { title: "Book a session", link: CALENDLY },
+    callToAction: { title: "Explore advisory", link: "/services/advisory" },
   },
   {
     title: "Support",
