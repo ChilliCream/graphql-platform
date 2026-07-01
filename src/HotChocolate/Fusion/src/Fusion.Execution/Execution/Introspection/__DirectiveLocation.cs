@@ -22,4 +22,5 @@ internal static class __DirectiveLocation
     public static ReadOnlySpan<byte> EnumValue => "ENUM_VALUE"u8;
     public static ReadOnlySpan<byte> InputObject => "INPUT_OBJECT"u8;
     public static ReadOnlySpan<byte> InputFieldDefinition => "INPUT_FIELD_DEFINITION"u8;
+    public static ReadOnlySpan<byte> DirectiveDefinition => "DIRECTIVE_DEFINITION"u8;
 }

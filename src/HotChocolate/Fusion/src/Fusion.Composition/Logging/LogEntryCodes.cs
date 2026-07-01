@@ -55,6 +55,7 @@ public static class LogEntryCodes
     public const string MultipleEventStreamSources = "MULTIPLE_EVENT_STREAM_SOURCES";
     public const string NonNullInputFieldIsInaccessible = "NON_NULL_INPUT_FIELD_IS_INACCESSIBLE";
     public const string NoQueries = "NO_QUERIES";
+    public const string OptInFeatureStabilityMismatch = "OPT_IN_FEATURE_STABILITY_MISMATCH";
     public const string OutputFieldTypesNotMergeable = "OUTPUT_FIELD_TYPES_NOT_MERGEABLE";
     public const string OverrideFromSelf = "OVERRIDE_FROM_SELF";
     public const string OverrideOnInterface = "OVERRIDE_ON_INTERFACE";

@@ -30,16 +30,17 @@ export function TableOfContents({ items }: TableOfContentsProps) {
 
   return (
     <>
-      <aside className="hidden max-w-84 2xl:block" aria-hidden="true" />
-      <div className="cc-content-dark fixed top-18 right-0 z-30 -mt-px hidden max-h-[calc(100vh-72px-var(--docs-rail-bottom,0px))] min-h-[var(--docs-rail-min,0px)] w-80 flex-col px-5 pt-8 2xl:flex">
-        <TocHeader />
-        <div
-          data-toc-scroll
-          className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto pb-8"
-        >
-          <TocNav sections={sections} />
+      <aside className="cc-content-dark hidden 2xl:block">
+        <div className="sticky top-18 flex max-h-[calc(100vh-4.5rem-var(--docs-rail-bottom,0px))] flex-col px-5 pt-8">
+          <TocHeader />
+          <div
+            data-toc-scroll
+            className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto pb-8"
+          >
+            <TocNav sections={sections} />
+          </div>
         </div>
-      </div>
+      </aside>
       <TocDrawer>
         <TocHeader />
         <TocNav sections={sections} />
