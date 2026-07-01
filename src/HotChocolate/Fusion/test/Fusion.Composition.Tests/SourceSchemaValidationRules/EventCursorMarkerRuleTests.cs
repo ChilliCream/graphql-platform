@@ -77,6 +77,90 @@ public sealed class EventCursorMarkerRuleTests : RuleTestBase
     }
 
     [Fact]
+    public void Validate_CursorArgumentWithCursorField_Succeeds()
+    {
+        AssertValid(
+        [
+            """
+            type Query {
+                version: String
+            }
+
+            type Subscription {
+                onUserChanged(after: String @eventCursor): UserChangedEvent
+                    @eventStream(message: "{ id changeType }")
+            }
+
+            type UserChangedEvent {
+                id: ID!
+                changeType: String!
+                cursor: String @eventCursor
+            }
+            """
+        ]);
+    }
+
+    [Fact]
+    public void Validate_CursorFieldWithoutArgument_Succeeds()
+    {
+        AssertValid(
+        [
+            """
+            type Query {
+                version: String
+            }
+
+            type Subscription {
+                onUserChanged: UserChangedEvent
+                    @eventStream(message: "{ id changeType }")
+            }
+
+            type UserChangedEvent {
+                id: ID!
+                changeType: String!
+                cursor: String @eventCursor
+            }
+            """
+        ]);
+    }
+
+    [Fact]
+    public void Validate_CursorArgumentWithoutCursorField_Fails()
+    {
+        AssertInvalid(
+        [
+            """
+            type Query {
+                version: String
+            }
+
+            type Subscription {
+                onUserChanged(after: String @eventCursor): UserChangedEvent
+                    @eventStream(message: "{ id changeType }")
+            }
+
+            type UserChangedEvent {
+                id: ID!
+                changeType: String!
+            }
+            """
+        ],
+        [
+            """
+            {
+                "message": "The @eventCursor argument on field 'Subscription.onUserChanged' in schema 'A' requires an @eventCursor field on the event payload type.",
+                "code": "CURSOR_ARGUMENT_REQUIRES_CURSOR_FIELD",
+                "severity": "Error",
+                "coordinate": "Subscription.onUserChanged",
+                "member": "onUserChanged",
+                "schema": "A",
+                "extensions": {}
+            }
+            """
+        ]);
+    }
+
+    [Fact]
     public void Validate_MultipleCursorFields_Fails()
     {
         AssertInvalid(
@@ -140,6 +224,17 @@ public sealed class EventCursorMarkerRuleTests : RuleTestBase
             {
                 "message": "The @eventStream field 'Subscription.onUserChanged' in schema 'A' must not declare more than one @eventCursor argument.",
                 "code": "MULTIPLE_CURSOR_ARGUMENTS",
+                "severity": "Error",
+                "coordinate": "Subscription.onUserChanged",
+                "member": "onUserChanged",
+                "schema": "A",
+                "extensions": {}
+            }
+            """,
+            """
+            {
+                "message": "The @eventCursor argument on field 'Subscription.onUserChanged' in schema 'A' requires an @eventCursor field on the event payload type.",
+                "code": "CURSOR_ARGUMENT_REQUIRES_CURSOR_FIELD",
                 "severity": "Error",
                 "coordinate": "Subscription.onUserChanged",
                 "member": "onUserChanged",

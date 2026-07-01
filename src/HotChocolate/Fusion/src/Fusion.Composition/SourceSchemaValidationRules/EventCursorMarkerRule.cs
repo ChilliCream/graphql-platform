@@ -19,6 +19,11 @@ namespace HotChocolate.Fusion.SourceSchemaValidationRules;
 /// cursor field.
 /// </para>
 /// <para>
+/// A cursor argument requires a cursor field on the event payload type: the argument resumes the
+/// stream from a position that the payload must be able to report. A cursor field without an
+/// argument is valid, because the cursor can still be consumed as a message identifier.
+/// </para>
+/// <para>
 /// Valid:
 /// </para>
 /// <code><![CDATA[
@@ -58,8 +63,13 @@ internal sealed class EventCursorMarkerRule : IEventHandler<OutputFieldEvent>
 
         if (isSubscriptionRootField)
         {
-            ValidateCursorArguments(field, schema, context);
-            ValidateCursorFields(field, schema, context);
+            var cursorArgumentCount = ValidateCursorArguments(field, schema, context);
+            var cursorFieldCount = ValidateCursorFields(field, schema, context);
+
+            if (cursorArgumentCount > 0 && cursorFieldCount == 0)
+            {
+                context.Log.Write(EventCursorArgumentRequiresCursorField(field, schema));
+            }
         }
         else
         {
@@ -79,7 +89,7 @@ internal sealed class EventCursorMarkerRule : IEventHandler<OutputFieldEvent>
         }
     }
 
-    private static void ValidateCursorArguments(
+    private static int ValidateCursorArguments(
         MutableOutputFieldDefinition field,
         MutableSchemaDefinition schema,
         CompositionContext context)
@@ -105,16 +115,18 @@ internal sealed class EventCursorMarkerRule : IEventHandler<OutputFieldEvent>
         {
             context.Log.Write(MultipleCursorArguments(field, schema));
         }
+
+        return cursorArgumentCount;
     }
 
-    private static void ValidateCursorFields(
+    private static int ValidateCursorFields(
         MutableOutputFieldDefinition field,
         MutableSchemaDefinition schema,
         CompositionContext context)
     {
         if (field.Type.AsTypeDefinition() is not MutableComplexTypeDefinition returnType)
         {
-            return;
+            return 0;
         }
 
         var cursorFieldCount = 0;
@@ -138,6 +150,8 @@ internal sealed class EventCursorMarkerRule : IEventHandler<OutputFieldEvent>
         {
             context.Log.Write(MultipleCursorFields(field, schema));
         }
+
+        return cursorFieldCount;
     }
 
     private static bool IsReachableCursorField(
