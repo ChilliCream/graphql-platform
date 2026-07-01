@@ -31,7 +31,7 @@ export function TableOfContents({ items }: TableOfContentsProps) {
   return (
     <>
       <aside className="hidden max-w-84 2xl:block" aria-hidden="true" />
-      <div className="cc-content-dark fixed top-18 right-0 z-30 -mt-px hidden max-h-[calc(100vh-72px-var(--docs-rail-bottom,0px))] min-h-[var(--docs-rail-min,0px)] w-80 flex-col px-5 pt-8 2xl:flex">
+      <div className="cc-content-dark fixed top-18 right-0 z-30 -mt-px hidden h-[calc(100vh-72px-var(--docs-rail-bottom,0px))] w-80 flex-col px-5 pt-8 2xl:flex">
         <TocHeader />
         <div
           data-toc-scroll

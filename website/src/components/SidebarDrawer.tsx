@@ -29,23 +29,23 @@ export function SidebarDrawer({
     return () => window.removeEventListener(SIDEBAR_OPEN_EVENT, handler);
   }, []);
 
+  // Pin the rail below the header and let it shrink from the bottom exactly as
+  // the footer scrolls into view, so the top (product selector + nav) stays
+  // visible while the rail never overlaps the footer.
   useEffect(() => {
     const root = document.documentElement;
-    const HEADER = 72;
     let frame = 0;
     const update = () => {
       frame = 0;
-      const footer = document.querySelector("footer");
+      // Target the site footer only. Doc pages also render a small "last
+      // updated" <footer> inside the article, which would otherwise shrink the
+      // rail prematurely.
+      const footer = document.querySelector("body > footer");
       const footerTop = footer
         ? footer.getBoundingClientRect().top
         : Number.POSITIVE_INFINITY;
       const intrusion = Math.max(0, window.innerHeight - footerTop);
-      // Only extend once the footer is actually on screen; while reading the
-      // rails stay shrunk to content (min-height 0).
-      const min =
-        footerTop < window.innerHeight ? Math.max(0, footerTop - HEADER) : 0;
       root.style.setProperty("--docs-rail-bottom", `${intrusion}px`);
-      root.style.setProperty("--docs-rail-min", `${min}px`);
     };
     const schedule = () => {
       if (!frame) {
@@ -62,7 +62,6 @@ export function SidebarDrawer({
         cancelAnimationFrame(frame);
       }
       root.style.removeProperty("--docs-rail-bottom");
-      root.style.removeProperty("--docs-rail-min");
     };
   }, []);
 
@@ -125,7 +124,7 @@ export function SidebarDrawer({
 
       <aside className="hidden lg:block" aria-hidden="true" />
 
-      <div className="cc-content-dark border-cc-card-border fixed top-18 left-0 z-30 -mt-px hidden max-h-[calc(100vh-4.5rem-var(--docs-rail-bottom,0px))] min-h-[var(--docs-rail-min,0px)] w-80 flex-col border-r lg:flex">
+      <div className="cc-content-dark border-cc-card-border fixed top-18 left-0 z-30 -mt-px hidden h-[calc(100vh-4.5rem-var(--docs-rail-bottom,0px))] w-80 flex-col border-r lg:flex">
         {children}
       </div>
     </>
