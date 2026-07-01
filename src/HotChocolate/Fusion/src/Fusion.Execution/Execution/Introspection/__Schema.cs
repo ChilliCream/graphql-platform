@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using HotChocolate.Features;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Types.Introspection;
@@ -119,6 +120,7 @@ internal sealed class __Schema : ITypeResolverInterceptor
 
             if (!list.MoveNext())
             {
+                Debug.Fail("Expected enumerator of list value to be able to advance");
                 break;
             }
 
@@ -151,6 +153,7 @@ internal sealed class __Schema : ITypeResolverInterceptor
 
             if (!list.MoveNext())
             {
+                Debug.Fail("Expected enumerator of list value to be able to advance");
                 break;
             }
 
