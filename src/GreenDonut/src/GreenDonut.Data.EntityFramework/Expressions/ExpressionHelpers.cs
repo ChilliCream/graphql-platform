@@ -765,11 +765,10 @@ internal static class ExpressionHelpers
         public ReadOnlySpan<string> OrderMethods => CollectionsMarshal.AsSpan(orderMethods);
     }
 
-    private sealed class OrderByRemovalRewriter : ExpressionVisitor
+    private sealed class OrderByRemovalRewriter : QueryChainVisitor
     {
         private readonly List<LambdaExpression> _orderExpressions = [];
         private readonly List<string> _orderMethods = [];
-        private bool _insideSelectProjection;
 
         public (Expression, List<LambdaExpression>, List<string>) Rewrite(Expression expression)
         {
@@ -783,27 +782,11 @@ internal static class ExpressionHelpers
 
         protected override Expression VisitMethodCall(MethodCallExpression node)
         {
-            // we are not interested in nested order by calls
-            if (node.Method.DeclaringType == typeof(Queryable) && node.Method.Name == nameof(Queryable.Select))
-            {
-                // We first visit our parent. When we visit an expression
-                // like "OrderBy().Select()", we want to visit the OrderBy first.
-                var source = Visit(node.Arguments[0]);
-
-                var previousState = _insideSelectProjection;
-                _insideSelectProjection = true;
-                var projection = Visit(node.Arguments[1]);
-                _insideSelectProjection = previousState;
-
-                return node.Update(null, [source, projection]);
-            }
-
             if (node.Method.DeclaringType == typeof(Queryable)
                 && (node.Method.Name == nameof(Queryable.OrderBy)
                     || node.Method.Name == nameof(Queryable.OrderByDescending)
                     || node.Method.Name == nameof(Queryable.ThenBy)
-                    || node.Method.Name == nameof(Queryable.ThenByDescending))
-                && !_insideSelectProjection)
+                    || node.Method.Name == nameof(Queryable.ThenByDescending)))
             {
                 var lambda = (LambdaExpression)StripQuotes(node.Arguments[1]);
                 _orderExpressions.Add(lambda);

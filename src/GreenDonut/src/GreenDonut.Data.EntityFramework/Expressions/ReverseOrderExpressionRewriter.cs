@@ -3,7 +3,7 @@ using System.Reflection;
 
 namespace GreenDonut.Data.Expressions;
 
-public class ReverseOrderExpressionRewriter : ExpressionVisitor
+public class ReverseOrderExpressionRewriter : QueryChainVisitor
 {
     private static readonly MethodInfo s_orderByMethod = typeof(Queryable).GetMethods()
         .First(m => m.Name == nameof(Queryable.OrderBy) && m.GetParameters().Length == 2);

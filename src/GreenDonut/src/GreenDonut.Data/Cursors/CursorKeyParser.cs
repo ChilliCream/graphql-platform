@@ -1,12 +1,13 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
+using GreenDonut.Data.Expressions;
 
 namespace GreenDonut.Data.Cursors;
 
 /// <summary>
 /// This expression visitor will collect the cursor keys from a query expression.
 /// </summary>
-public sealed class CursorKeyParser : ExpressionVisitor
+public sealed class CursorKeyParser : QueryChainVisitor
 {
     private readonly List<CursorKey> _keys = [];
 
