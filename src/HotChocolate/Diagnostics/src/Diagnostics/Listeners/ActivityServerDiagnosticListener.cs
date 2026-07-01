@@ -105,6 +105,15 @@ internal sealed class ActivityServerDiagnosticListener(
 
     public override IDisposable FormatHttpResponse(HttpContext context, OperationResult result)
     {
+        // A response that carries GraphQL errors (request error, total execution failure,
+        // or partial success) marks the HTTP request span as Error, mirroring how the
+        // operation spans are classified. Streamed responses do not flow through here, so
+        // per-event subscription errors are recorded on their own event spans instead.
+        if (context.Features.Get<ExecuteHttpRequestSpan>() is { } executeSpan)
+        {
+            executeSpan.RecordResultErrors(result);
+        }
+
         if (options.SkipFormatHttpResponse)
         {
             return EmptyScope;

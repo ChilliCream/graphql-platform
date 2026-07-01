@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using Microsoft.AspNetCore.Http;
 using HotChocolate.AspNetCore.Instrumentation;
+using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Language.Utilities;
 using static HotChocolate.Diagnostics.SemanticConventions;
@@ -226,10 +227,32 @@ internal sealed class ExecuteHttpRequestSpan(
     {
         if (Activity.Status != ActivityStatusCode.Error)
         {
-            Activity.SetStatus(ActivityStatusCode.Ok);
+            if (httpContext.RequestAborted.IsCancellationRequested)
+            {
+                // An intentional caller cancellation (browser tab closed, connection
+                // dropped) is not an error: per the OpenTelemetry semantic conventions
+                // the span is left Unset and no error.type is reported.
+            }
+            else
+            {
+                Activity.SetStatus(ActivityStatusCode.Ok);
+            }
         }
 
         enricher.EnrichExecuteHttpRequest(httpContext, kind, Activity);
+    }
+
+    public void RecordResultErrors(OperationResult result)
+    {
+        // The GraphQL response contains errors (request error, total execution failure,
+        // or partial success). Per the GraphQL OpenTelemetry semantic conventions the
+        // server span status is set to Error in this case. The individual errors and the
+        // error.type are already recorded on the operation and field spans, so only the
+        // status is set here.
+        if (result.Errors is { Count: > 0 })
+        {
+            Activity.SetStatus(ActivityStatusCode.Error);
+        }
     }
 
     public void RecordError(IError error)
