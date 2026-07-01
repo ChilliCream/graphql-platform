@@ -72,7 +72,7 @@ export async function generateMetadata({
   if (rel === null) {
     return {};
   }
-  const { title, description, tags } = readFrontmatter(
+  const { title, metaTitle, description, tags } = readFrontmatter(
     path.join(CONTENT_ROOT, rel),
   );
   const docTags = Array.isArray(tags)
@@ -82,10 +82,13 @@ export async function generateMetadata({
 
   // Surface the product in the title tag ("OpenAPI Adapter - Hot Chocolate"),
   // since searches almost always include the product name. Skip the suffix on
-  // product index pages, where the title already is the product name.
+  // product index pages, where the title already is the product name. A page
+  // may set `metaTitle` to override the tag verbatim (no product suffix) while
+  // keeping a terse on-page heading.
   const product = docBreadcrumbs(slug.slice(0, 1))[0]?.name;
   const pageTitle =
-    title && product && title !== product ? `${title} - ${product}` : title;
+    metaTitle ??
+    (title && product && title !== product ? `${title} - ${product}` : title);
 
   const canonical = `/docs/${slug.join("/")}`;
 

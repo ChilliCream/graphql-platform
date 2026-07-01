@@ -1,5 +1,5 @@
 ---
-title: Introduction
+title: Resolvers
 description: "Introduction to resolvers in Hot Chocolate: how the resolver tree executes a query, defining resolver methods, accessing arguments, and injecting services."
 ---
 

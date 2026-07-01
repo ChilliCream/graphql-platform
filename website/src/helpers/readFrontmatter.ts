@@ -3,6 +3,12 @@ import matter from "gray-matter";
 
 export type DocFrontmatter = {
   title?: string;
+  /**
+   * Overrides the browser tab / SEO `<title>` (and Open Graph title) without
+   * changing the on-page `<h1>`, which still uses `title`. Use for terse
+   * headings that need a richer, keyword-bearing title tag.
+   */
+  metaTitle?: string;
   description?: string;
   [key: string]: unknown;
 };

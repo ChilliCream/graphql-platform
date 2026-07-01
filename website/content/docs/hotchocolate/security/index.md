@@ -1,5 +1,5 @@
 ---
-title: "Overview"
+title: Securing Your API
 description: "Overview of securing a Hot Chocolate GraphQL API: cost analysis for public APIs, trusted documents for private ones, plus authorization and request limits."
 ---
 

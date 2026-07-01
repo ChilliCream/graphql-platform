@@ -1,5 +1,5 @@
 ---
-title: Executable
+title: Integrations
 description: Learn how to use the IExecutable interface to abstract data sources in Hot Chocolate.
 ---
 

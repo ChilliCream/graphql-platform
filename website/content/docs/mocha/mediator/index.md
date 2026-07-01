@@ -1,5 +1,5 @@
 ---
-title: "Overview"
+title: Mediator
 description: "Use the Mocha Mediator to dispatch commands, queries, and notifications within a single process using zero-reflection, source-generated dispatch."
 ---
 
