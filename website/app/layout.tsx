@@ -78,11 +78,11 @@ export default function RootLayout({
         <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
         <StructuredData />
       </head>
-      <body>
+      <body className="flex min-h-screen flex-col">
         <AnalyticsScripts />
         <EnableSmoothScroll />
         <Header />
-        <main>{children}</main>
+        <main className="flex-1">{children}</main>
         <Footer />
         <Analytics />
       </body>
