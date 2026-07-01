@@ -1,5 +1,6 @@
 ---
 title: Hot Chocolate
+metaTitle: "Hot Chocolate: GraphQL Server for .NET"
 description: "Hot Chocolate is an open-source GraphQL server for .NET that turns your C# classes into a spec-compliant schema and handles parsing, validation, and execution."
 ---
 

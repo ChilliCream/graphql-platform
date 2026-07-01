@@ -1,5 +1,6 @@
 ---
 title: Nitro
+metaTitle: "Nitro: Observability and Governance for APIs"
 description: "Introduction to Nitro, the GraphQL IDE from ChilliCream with team collaboration, schema and client registries, and OpenTelemetry monitoring for your APIs."
 ---
 
