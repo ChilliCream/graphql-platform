@@ -20,13 +20,13 @@ export const metadata: Metadata = {
     type: "website",
     title: "GraphQL Support Plans",
     description:
-      "Response windows you can hold us to. Next business day on Startup and Business, 24 hours for Enterprise criticals, plus a direct line to the core team.",
+      "Response times you can hold us to. Next business day on Startup and Business, 24 hours for Enterprise criticals, plus a direct line to the core team.",
   },
   twitter: {
     card: "summary_large_image",
     title: "GraphQL Support Plans",
     description:
-      "Response windows you can hold us to. Next business day on Startup and Business, 24 hours for Enterprise criticals, plus a direct line to the core team.",
+      "Response times you can hold us to. Next business day on Startup and Business, 24 hours for Enterprise criticals, plus a direct line to the core team.",
   },
 };
 
@@ -45,7 +45,7 @@ const SCENARIOS: readonly SupportScenario[] = [
   {
     label: "A quick question",
     title: "Message us, hear back in minutes",
-    copy: "A query plan that fell over, a schema call you'd rather not make alone, an upgrade that needs a second pair of eyes. Drop it in your private channel and, more often than not, a core engineer answers within minutes.",
+    copy: "You hit an exception you've never seen before. Instead of debugging for hours, you send us a message and get an answer in no time.",
     Icon: ChannelIcon,
   },
   {
@@ -57,7 +57,7 @@ const SCENARIOS: readonly SupportScenario[] = [
   {
     label: "A second opinion",
     title: "Book time with the team",
-    copy: "Planning a migration, reviewing a schema, sizing a rollout? Schedule a session and we'll work through it together, live, with the people who build the platform.",
+    copy: "Planning a migration or reviewing a schema? Schedule a session and we'll work through it together, live, with the people who build the platform.",
     Icon: CalendarIcon,
   },
 ];
@@ -240,11 +240,11 @@ const FAQ: readonly FaqItem[] = [
   },
   {
     q: "Do you support self-hosted Nitro and on-prem deployments?",
-    a: "Yes. Business and Enterprise both support self-hosted Nitro, Fusion gateways, and Hot Chocolate services running in your own cloud or on-prem. Enterprise adds tailored response windows and a named account manager who knows your topology.",
+    a: "Yes. Business and Enterprise both support self-hosted Nitro, Fusion gateways, and Hot Chocolate services running in your own cloud or on-prem. Enterprise adds tailored response times and a named account manager who knows your topology.",
   },
   {
     q: "Can we change plans later?",
-    a: "Yes. You can upgrade at any time and the new response window takes effect immediately. Downgrades take effect at the start of the next billing month so an in-flight incident never falls between plans.",
+    a: "Yes. You can upgrade at any time and the new response time takes effect immediately. Downgrades take effect at the start of the next billing month so an in-flight incident never falls between plans.",
   },
 ];
 
@@ -586,17 +586,18 @@ function EnterpriseBand() {
               Enterprise
             </div>
             <h2 className="text-cc-heading text-3xl font-semibold tracking-tight sm:text-4xl">
-              Your response windows, your teams, your platform.
+              Your coverage, your teams, your platform.
             </h2>
             <p className="text-cc-ink mt-4 max-w-xl text-base leading-relaxed">
-              Multiple business units on Hot Chocolate, Fusion or Nitro?
-              Regulated workload that needs a 24 hour critical response window,
-              phone cover, and status reviews? We will tailor the contract, the
-              response windows, and the named contacts to fit.
+              Enterprise is for organizations running Hot Chocolate, Fusion, or
+              Nitro across many teams and business units. When you need a
+              24-hour critical response time, phone support, and regular status
+              reviews, we tailor the contract, the response times, and your
+              named contacts to fit how you operate.
             </p>
             <ul className="text-cc-ink mt-6 grid gap-2 text-sm sm:grid-cols-2">
               {[
-                "Tailored response windows",
+                "Tailored response times",
                 "Dedicated account manager",
                 "Phone support",
                 "Status reviews",
@@ -622,9 +623,6 @@ function EnterpriseBand() {
             <OutlineButton href="/services/advisory" className="w-full">
               See advisory engagements
             </OutlineButton>
-            <p className="text-cc-ink-dim mt-2 font-mono text-xs">
-              Typical response on enterprise enquiries: one business day.
-            </p>
           </div>
         </div>
       </div>
