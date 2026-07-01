@@ -220,7 +220,7 @@ export default async function BlogSlugPage({ params }: PageProps) {
   return (
     <div
       data-docs-layout
-      className="cc-content-dark grid grid-cols-1 lg:grid-cols-[20rem_1fr]"
+      className="cc-content-dark grid h-full grid-cols-1 lg:grid-cols-[20rem_1fr]"
     >
       <SidebarDrawer closeLabel="Close latest posts">
         <BlogSidebar posts={sidebarPosts} currentHref={currentHref} />
