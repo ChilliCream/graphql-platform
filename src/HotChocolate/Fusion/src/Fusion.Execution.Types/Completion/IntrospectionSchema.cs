@@ -15,7 +15,7 @@ internal static class IntrospectionSchema
           queryType: __Type!
           mutationType: __Type
           subscriptionType: __Type
-          directives: [__Directive!]!
+          directives(includeDeprecated: Boolean! = false): [__Directive!]!
         }
 
         type __Type {
@@ -82,6 +82,8 @@ internal static class IntrospectionSchema
           isRepeatable: Boolean!
           locations: [__DirectiveLocation!]!
           args(includeDeprecated: Boolean! = false): [__InputValue!]!
+          isDeprecated: Boolean!
+          deprecationReason: String
         }
 
         enum __DirectiveLocation {
@@ -104,6 +106,7 @@ internal static class IntrospectionSchema
           ENUM_VALUE
           INPUT_OBJECT
           INPUT_FIELD_DEFINITION
+          DIRECTIVE_DEFINITION
         }
         """u8;
 
@@ -115,7 +118,7 @@ internal static class IntrospectionSchema
           queryType: __Type!
           mutationType: __Type
           subscriptionType: __Type
-          directives(includeOptIn: [String!]): [__Directive!]!
+          directives(includeDeprecated: Boolean! = false, includeOptIn: [String!]): [__Directive!]!
           optInFeatures: [String!]
           optInFeatureStability: [__OptInFeatureStability!]!
         }
@@ -188,6 +191,8 @@ internal static class IntrospectionSchema
           locations: [__DirectiveLocation!]!
           args(includeDeprecated: Boolean! = false, includeOptIn: [String!]): [__InputValue!]!
           requiresOptIn: [String!]
+          isDeprecated: Boolean!
+          deprecationReason: String
         }
 
         enum __DirectiveLocation {
@@ -210,6 +215,7 @@ internal static class IntrospectionSchema
           ENUM_VALUE
           INPUT_OBJECT
           INPUT_FIELD_DEFINITION
+          DIRECTIVE_DEFINITION
         }
 
         type __OptInFeatureStability {

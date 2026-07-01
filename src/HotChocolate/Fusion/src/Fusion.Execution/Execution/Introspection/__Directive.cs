@@ -31,6 +31,12 @@ internal sealed class __Directive : ITypeResolverInterceptor
             case "isRepeatable":
                 features.Set(new ResolveFieldValue(IsRepeatable));
                 break;
+            case "isDeprecated":
+                features.Set(new ResolveFieldValue(IsDeprecated));
+                break;
+            case "deprecationReason":
+                features.Set(new ResolveFieldValue(DeprecationReason));
+                break;
             case "locations":
                 features.Set(new ResolveFieldValue(Locations));
                 break;
@@ -66,6 +72,18 @@ internal sealed class __Directive : ITypeResolverInterceptor
     {
         var directiveDef = context.Parent<IDirectiveDefinition>();
         context.WriteValue(directiveDef.IsRepeatable);
+    }
+
+    public static void IsDeprecated(FieldContext context)
+    {
+        var directiveDef = context.Parent<IDirectiveDefinition>();
+        context.WriteValue(directiveDef.IsDeprecated);
+    }
+
+    public static void DeprecationReason(FieldContext context)
+    {
+        var directiveDef = context.Parent<IDirectiveDefinition>();
+        context.WriteValue(directiveDef.DeprecationReason);
     }
 
     public static void Locations(FieldContext context)
@@ -140,6 +158,9 @@ internal sealed class __Directive : ITypeResolverInterceptor
                     break;
                 case DirectiveLocation.InputFieldDefinition:
                     list.Current.SetStringValue(__DirectiveLocation.InputFieldDefinition);
+                    break;
+                case DirectiveLocation.DirectiveDefinition:
+                    list.Current.SetStringValue(__DirectiveLocation.DirectiveDefinition);
                     break;
                 default:
                     throw new NotSupportedException($"Directive location {directiveDef.Locations} is not supported.");

@@ -288,9 +288,13 @@ internal static class CompositeSchemaBuilder
     private static FusionDirectiveDefinition CreateDirectiveType(
         DirectiveDefinitionNode definition)
     {
+        var isDeprecated = DeprecatedDirectiveParser.TryParse(definition.Directives, out var deprecated);
+
         return new FusionDirectiveDefinition(
             definition.Name.Value,
             definition.Description?.Value,
+            isDeprecated,
+            deprecated?.Reason,
             definition.IsRepeatable,
             CreateInputFields(definition.Arguments),
             DirectiveLocationUtils.Parse(definition.Locations));
