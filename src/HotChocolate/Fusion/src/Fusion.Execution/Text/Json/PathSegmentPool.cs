@@ -11,7 +11,12 @@ internal sealed class PathSegmentPool : IDisposable
     private readonly int _numberOfArrays;
     private readonly Bucket _bucket;
 
-    public PathSegmentPool(int segmentArraySize, int[] levels, TimeSpan trimInterval, bool preAllocate)
+    public PathSegmentPool(
+        int segmentArraySize,
+        int[] levels,
+        TimeSpan trimDueTime,
+        TimeSpan trimInterval,
+        bool preAllocate)
     {
         Debug.Assert(segmentArraySize >= 32);
         Debug.Assert(
@@ -24,7 +29,7 @@ internal sealed class PathSegmentPool : IDisposable
         _segmentArraySize = segmentArraySize;
         _poolId = Interlocked.Increment(ref s_nextPoolId);
         _numberOfArrays = levels[levels.Length - 1];
-        _bucket = new Bucket(_poolId, segmentArraySize, levels, trimInterval, preAllocate);
+        _bucket = new Bucket(_poolId, segmentArraySize, levels, trimDueTime, trimInterval, preAllocate);
 
         var log = Log;
         if (log.IsEnabled())
@@ -81,6 +86,55 @@ internal sealed class PathSegmentPool : IDisposable
         }
     }
 
+    /// <summary>
+    /// Returns a batch of arrays with a single lock acquisition. Null and wrong-length entries are
+    /// skipped; arrays beyond the pool's remaining capacity are dropped.
+    /// </summary>
+    public void Return(ReadOnlySpan<int[]?> arrays)
+    {
+        if (arrays.IsEmpty)
+        {
+            return;
+        }
+
+        var stored = _bucket.Return(arrays, out var validCount);
+
+        var log = Log;
+        if (validCount == 0 || !log.IsEnabled())
+        {
+            return;
+        }
+
+        // Fire diagnostics after the lock is released, matching the never-log-under-lock pattern.
+        // Every valid array reports SegmentReturned, mirroring the single-array Return; the arrays
+        // beyond the stored prefix additionally report SegmentDropped since they did not land.
+        var inUse = _bucket.InUse;
+        var seen = 0;
+
+        for (var i = 0; i < arrays.Length; i++)
+        {
+            var array = arrays[i];
+
+            if (array is null || array.Length != _segmentArraySize)
+            {
+                continue;
+            }
+
+            log.SegmentReturned(array.GetHashCode(), array.Length, _poolId, inUse);
+
+            if (seen >= stored)
+            {
+                log.SegmentDropped(array.GetHashCode(), array.Length, _poolId);
+            }
+
+            seen++;
+        }
+    }
+
+    internal int InUse => _bucket.InUse;
+
+    internal void Trim() => _bucket.Trim();
+
     public void Dispose() => _bucket.Dispose();
 
     private sealed class Bucket : IDisposable
@@ -99,6 +153,7 @@ internal sealed class PathSegmentPool : IDisposable
             int poolId,
             int segmentArraySize,
             int[] levels,
+            TimeSpan trimDueTime,
             TimeSpan trimInterval,
             bool preAllocate)
         {
@@ -123,7 +178,7 @@ internal sealed class PathSegmentPool : IDisposable
             _index = 0;
             _inUse = 0;
 
-            _trimTimer = new Timer(static b => ((Bucket)b!).Trim(), this, trimInterval, trimInterval);
+            _trimTimer = new Timer(static b => ((Bucket)b!).Trim(), this, trimDueTime, trimInterval);
         }
 
         internal int InUse => _inUse;
@@ -209,31 +264,99 @@ internal sealed class PathSegmentPool : IDisposable
             return returned;
         }
 
-        private void Trim()
+        internal int Return(ReadOnlySpan<int[]?> arrays, out int validCount)
         {
-            var currentLevel = _currentLevel;
-
-            if (currentLevel == 0)
+            // Count valid (non-null, correct length) arrays up front so the in-use accounting is
+            // adjusted exactly once for the whole batch.
+            var valid = 0;
+            for (var i = 0; i < arrays.Length; i++)
             {
-                return;
+                var array = arrays[i];
+                if (array is not null && array.Length == _segmentArraySize)
+                {
+                    valid++;
+                }
             }
 
-            var previousLevel = currentLevel - 1;
-            var previousLimit = _levels[previousLevel];
+            validCount = valid;
 
-            if (_inUse > previousLimit)
+            if (valid == 0)
             {
-                return;
+                return 0;
             }
 
-            var trimmed = 0;
+            Interlocked.Add(ref _inUse, -valid);
+
+            var stored = 0;
             var lockTaken = false;
 
             try
             {
-                var currentLimit = _levels[currentLevel];
-
                 _lock.Enter(ref lockTaken);
+
+                for (var i = 0; i < arrays.Length; i++)
+                {
+                    if (_index == 0)
+                    {
+                        break;
+                    }
+
+                    var array = arrays[i];
+                    if (array is null || array.Length != _segmentArraySize)
+                    {
+                        continue;
+                    }
+
+                    _buffers[--_index] = array;
+                    stored++;
+                }
+            }
+            finally
+            {
+                if (lockTaken)
+                {
+                    _lock.Exit(false);
+                }
+            }
+
+            return stored;
+        }
+
+        internal void Trim()
+        {
+            // Cheap opportunistic pre-check only; the authoritative window is re-derived under the
+            // lock so a delayed timer thread cannot act on a stale level/in-use snapshot and force
+            // the level down while cached arrays are stranded above the trimmed window.
+            if (_currentLevel == 0)
+            {
+                return;
+            }
+
+            var previousLimit = 0;
+            var trimmed = 0;
+            var didTrim = false;
+            var lockTaken = false;
+
+            try
+            {
+                _lock.Enter(ref lockTaken);
+
+                var currentLevel = _currentLevel;
+
+                if (currentLevel == 0)
+                {
+                    return;
+                }
+
+                var previousLevel = currentLevel - 1;
+                previousLimit = _levels[previousLevel];
+
+                if (_inUse > previousLimit)
+                {
+                    return;
+                }
+
+                var currentLimit = _levels[currentLevel];
 
                 for (var i = previousLimit; i < currentLimit; i++)
                 {
@@ -248,6 +371,9 @@ internal sealed class PathSegmentPool : IDisposable
                 {
                     _index = previousLimit;
                 }
+
+                _currentLevel = previousLevel;
+                didTrim = true;
             }
             finally
             {
@@ -257,7 +383,10 @@ internal sealed class PathSegmentPool : IDisposable
                 }
             }
 
-            _currentLevel = previousLevel;
+            if (!didTrim)
+            {
+                return;
+            }
 
             var log = Log;
             if (log.IsEnabled())
