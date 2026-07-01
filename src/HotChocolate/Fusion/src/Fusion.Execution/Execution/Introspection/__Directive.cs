@@ -154,20 +154,23 @@ internal sealed class __Directive : ITypeResolverInterceptor
         var count = includeDeprecated
             ? directiveDef.Arguments.Count
             : directiveDef.Arguments.Count(t => !t.IsDeprecated);
-        var list = context.FieldResult.CreateListValue(count);
+        using var list = context.FieldResult.CreateListValue(count).EnumerateArray().GetEnumerator();
 
-        var index = 0;
-        foreach (var element in list.EnumerateArray())
+        foreach (var argument in directiveDef.Arguments)
         {
-            var argument = directiveDef.Arguments[index++];
-
             if (!includeDeprecated && argument.IsDeprecated)
             {
                 continue;
             }
 
+            if (!list.MoveNext())
+            {
+                Debug.Fail("Expected enumerator of list value to be able to advance");
+                break;
+            }
+
             context.AddRuntimeResult(argument);
-            element.CreateObjectValue(context.Selection, context.IncludeFlags);
+            list.Current.CreateObjectValue(context.Selection, context.IncludeFlags);
         }
     }
 
