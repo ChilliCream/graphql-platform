@@ -20,6 +20,7 @@ import {
   Schema,
 } from "@/src/components/ExampleTabs";
 import { MochaTopologyVisualization } from "@/src/components/MochaTopologyVisualization";
+import { FusionSubscriptionsDiagram } from "@/src/components/FusionSubscriptionsDiagram";
 import { PackageInstallation } from "@/src/components/PackageInstallation";
 import { PhotoGrid } from "@/src/components/PhotoGrid";
 import { YouTubeVideo } from "@/src/components/YouTubeVideo";
@@ -84,6 +85,7 @@ const components: MDXComponents = {
   Tab,
   YouTubeVideo,
   MochaTopologyVisualization,
+  FusionSubscriptionsDiagram,
   PhotoGrid,
 
   // TODO: Replace these with proper components

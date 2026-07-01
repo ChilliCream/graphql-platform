@@ -37,7 +37,6 @@ public class NatsEventStreamOverHttpTests : FusionTestBase
         // arrange
         await using var nats = await JetStreamNatsFixture.StartAsync();
         var stream = "S" + Guid.NewGuid().ToString("N");
-        var durable = "D" + Guid.NewGuid().ToString("N");
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(60));
 
         await CreateStreamAsync(nats.Url, stream, Topic, cts.Token);
@@ -56,7 +55,7 @@ public class NatsEventStreamOverHttpTests : FusionTestBase
                 o =>
                 {
                     o.Url = nats.Url;
-                    o.JetStream = new NatsJetStreamOptions { Stream = stream, DurableConsumer = durable };
+                    o.JetStream = new NatsJetStreamOptions { Stream = stream };
                 }),
             configureGatewayBuilder: b => b.ModifyRequestOptions(o => o.AllowOperationPlanRequests = false));
 
@@ -76,6 +75,7 @@ public class NatsEventStreamOverHttpTests : FusionTestBase
         // Open the SSE response first so the gateway has subscribed to NATS, then publish a single
         // event. The first stream sequence is 1, whose base64 cursor is deterministically "MQ==".
         using var response = await client.PostAsync(request, new Uri(GatewayUrl), cts.Token);
+        await WaitForConsumerAsync(nats.Url, stream, expectedCount: 1, cts.Token);
         await PublishAsync(nats.Url, Topic, """{"user":{"id":"u1"}}""", cts.Token);
 
         // assert
@@ -108,7 +108,6 @@ public class NatsEventStreamOverHttpTests : FusionTestBase
         // arrange
         await using var nats = await JetStreamNatsFixture.StartAsync();
         var stream = "S" + Guid.NewGuid().ToString("N");
-        var durable = "D" + Guid.NewGuid().ToString("N");
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(60));
 
         await CreateStreamAsync(nats.Url, stream, Topic, cts.Token);
@@ -127,7 +126,7 @@ public class NatsEventStreamOverHttpTests : FusionTestBase
                 o =>
                 {
                     o.Url = nats.Url;
-                    o.JetStream = new NatsJetStreamOptions { Stream = stream, DurableConsumer = durable };
+                    o.JetStream = new NatsJetStreamOptions { Stream = stream };
                 }),
             configureGatewayBuilder: b => b.ModifyRequestOptions(o => o.AllowOperationPlanRequests = false));
 
@@ -151,6 +150,7 @@ public class NatsEventStreamOverHttpTests : FusionTestBase
         // The published payload carries no __typename, so the concrete type names below are
         // synthesized by the gateway at every nesting level rather than echoed from the broker.
         using var response = await client.PostAsync(request, new Uri(GatewayUrl), cts.Token);
+        await WaitForConsumerAsync(nats.Url, stream, expectedCount: 1, cts.Token);
         await PublishAsync(nats.Url, Topic, """{"user":{"id":"u1"}}""", cts.Token);
 
         // assert
@@ -185,7 +185,6 @@ public class NatsEventStreamOverHttpTests : FusionTestBase
         // arrange
         await using var nats = await JetStreamNatsFixture.StartAsync();
         var stream = "S" + Guid.NewGuid().ToString("N");
-        var durable = "D" + Guid.NewGuid().ToString("N");
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(60));
 
         await CreateStreamAsync(nats.Url, stream, Topic, cts.Token);
@@ -211,7 +210,7 @@ public class NatsEventStreamOverHttpTests : FusionTestBase
                 o =>
                 {
                     o.Url = nats.Url;
-                    o.JetStream = new NatsJetStreamOptions { Stream = stream, DurableConsumer = durable };
+                    o.JetStream = new NatsJetStreamOptions { Stream = stream };
                 }),
             configureGatewayBuilder: b => b.ModifyRequestOptions(o => o.AllowOperationPlanRequests = false));
 
@@ -234,6 +233,7 @@ public class NatsEventStreamOverHttpTests : FusionTestBase
         // EVENTS emits only the entity key (id); the gateway fetches name from ACCOUNTS by lookup
         // for each event, so name must resolve non-null over the wire.
         using var response = await client.PostAsync(request, new Uri(GatewayUrl), cts.Token);
+        await WaitForConsumerAsync(nats.Url, stream, expectedCount: 1, cts.Token);
         await PublishAsync(nats.Url, Topic, """{"user":{"id":"u1"}}""", cts.Token);
 
         // assert
@@ -267,7 +267,6 @@ public class NatsEventStreamOverHttpTests : FusionTestBase
         // arrange
         await using var nats = await JetStreamNatsFixture.StartAsync();
         var stream = "S" + Guid.NewGuid().ToString("N");
-        var durable = "D" + Guid.NewGuid().ToString("N");
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(60));
 
         await CreateStreamAsync(nats.Url, stream, Topic, cts.Token);
@@ -298,7 +297,7 @@ public class NatsEventStreamOverHttpTests : FusionTestBase
                 o =>
                 {
                     o.Url = nats.Url;
-                    o.JetStream = new NatsJetStreamOptions { Stream = stream, DurableConsumer = durable };
+                    o.JetStream = new NatsJetStreamOptions { Stream = stream };
                 }),
             configureGatewayBuilder: b => b.ModifyRequestOptions(o => o.AllowOperationPlanRequests = false));
 
@@ -324,6 +323,7 @@ public class NatsEventStreamOverHttpTests : FusionTestBase
         // and the gateway must fire the per-concrete-type lookup against CONTENT to fetch the
         // type-owned field (headline/caption) at the nested level.
         using var response = await client.PostAsync(request, new Uri(GatewayUrl), cts.Token);
+        await WaitForConsumerAsync(nats.Url, stream, expectedCount: 1, cts.Token);
         await PublishAsync(nats.Url, Topic, """{"item":{"__typename":"Article","id":"a1"}}""", cts.Token);
         await PublishAsync(nats.Url, Topic, """{"item":{"__typename":"Video","id":"v1"}}""", cts.Token);
 
@@ -386,7 +386,6 @@ public class NatsEventStreamOverHttpTests : FusionTestBase
         // arrange
         await using var nats = await JetStreamNatsFixture.StartAsync();
         var stream = "S" + Guid.NewGuid().ToString("N");
-        var durable = "D" + Guid.NewGuid().ToString("N");
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(60));
 
         await CreateStreamAsync(nats.Url, stream, Topic, cts.Token);
@@ -417,7 +416,7 @@ public class NatsEventStreamOverHttpTests : FusionTestBase
                 o =>
                 {
                     o.Url = nats.Url;
-                    o.JetStream = new NatsJetStreamOptions { Stream = stream, DurableConsumer = durable };
+                    o.JetStream = new NatsJetStreamOptions { Stream = stream };
                 }),
             configureGatewayBuilder: b => b.ModifyRequestOptions(o => o.AllowOperationPlanRequests = false));
 
@@ -439,6 +438,7 @@ public class NatsEventStreamOverHttpTests : FusionTestBase
         // Each event resolves to a different concrete entity (Author then Book), and the gateway must
         // fire that type's lookup against DETAILS to fetch the type-owned field (name/title).
         using var response = await client.PostAsync(request, new Uri(GatewayUrl), cts.Token);
+        await WaitForConsumerAsync(nats.Url, stream, expectedCount: 1, cts.Token);
         await PublishAsync(nats.Url, Topic, """{"__typename":"Author","id":"a1"}""", cts.Token);
         await PublishAsync(nats.Url, Topic, """{"__typename":"Book","id":"b1"}""", cts.Token);
 
@@ -491,7 +491,6 @@ public class NatsEventStreamOverHttpTests : FusionTestBase
         // arrange
         await using var nats = await JetStreamNatsFixture.StartAsync();
         var stream = "S" + Guid.NewGuid().ToString("N");
-        var durable = "D" + Guid.NewGuid().ToString("N");
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(60));
 
         await CreateStreamAsync(nats.Url, stream, Topic, cts.Token);
@@ -512,7 +511,7 @@ public class NatsEventStreamOverHttpTests : FusionTestBase
                 o =>
                 {
                     o.Url = nats.Url;
-                    o.JetStream = new NatsJetStreamOptions { Stream = stream, DurableConsumer = durable };
+                    o.JetStream = new NatsJetStreamOptions { Stream = stream };
                 }));
 
         var httpClient = gateway.CreateClient();
@@ -531,6 +530,7 @@ public class NatsEventStreamOverHttpTests : FusionTestBase
 
         // act
         using var response = await client.PostAsync(request, new Uri(GatewayUrl), cts.Token);
+        await WaitForConsumerAsync(nats.Url, stream, expectedCount: 1, cts.Token);
         await PublishAsync(nats.Url, Topic, """{"user":{"id":"u1"}}""", cts.Token);
 
         // assert
@@ -557,7 +557,6 @@ public class NatsEventStreamOverHttpTests : FusionTestBase
         // arrange
         await using var nats = await JetStreamNatsFixture.StartAsync();
         var stream = "S" + Guid.NewGuid().ToString("N");
-        var durable = "D" + Guid.NewGuid().ToString("N");
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(60));
 
         await CreateStreamAsync(nats.Url, stream, Topic, cts.Token);
@@ -576,7 +575,7 @@ public class NatsEventStreamOverHttpTests : FusionTestBase
                 o =>
                 {
                     o.Url = nats.Url;
-                    o.JetStream = new NatsJetStreamOptions { Stream = stream, DurableConsumer = durable };
+                    o.JetStream = new NatsJetStreamOptions { Stream = stream };
                 }),
             configureGatewayBuilder: b => b.ModifyRequestOptions(o => o.AllowOperationPlanRequests = false));
 
@@ -598,6 +597,7 @@ public class NatsEventStreamOverHttpTests : FusionTestBase
         // The Fusion-Operation-Plan header is sent, but the schema disallows operation-plan
         // requests, so the plan must not appear regardless of the header.
         using var response = await client.PostAsync(request, new Uri(GatewayUrl), cts.Token);
+        await WaitForConsumerAsync(nats.Url, stream, expectedCount: 1, cts.Token);
         await PublishAsync(nats.Url, Topic, """{"user":{"id":"u1"}}""", cts.Token);
 
         // assert
@@ -643,6 +643,34 @@ public class NatsEventStreamOverHttpTests : FusionTestBase
             subject,
             Encoding.UTF8.GetBytes(body),
             cancellationToken: cancellationToken);
+    }
+
+    // A fresh JetStream subscription uses DeliverPolicy.New, so it only observes events published
+    // after its ephemeral consumer exists on the server. Waiting until the stream reports the
+    // expected consumer count makes "subscribe then publish" deterministic instead of racing a
+    // fixed delay. The consumer name is server-generated, so we poll by count, not by name.
+    private static async Task WaitForConsumerAsync(
+        string url,
+        string stream,
+        int expectedCount,
+        CancellationToken cancellationToken)
+    {
+        await using var connection = new NatsConnection(new NatsOpts { Url = url });
+        var js = new NatsJSContext(connection);
+
+        while (true)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var info = await js.GetStreamAsync(stream, cancellationToken: cancellationToken);
+
+            if (info.Info.State.ConsumerCount >= expectedCount)
+            {
+                return;
+            }
+
+            await Task.Delay(25, cancellationToken);
+        }
     }
 
     public static class Events

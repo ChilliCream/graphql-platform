@@ -1,5 +1,6 @@
 ---
-title: "Introduction"
+title: Mocha
+metaTitle: "Mocha: Messaging Bus for .NET"
 description: "Mocha is a messaging framework for .NET with a message bus for inter-service communication and a source-generated mediator for in-process CQRS."
 ---
 

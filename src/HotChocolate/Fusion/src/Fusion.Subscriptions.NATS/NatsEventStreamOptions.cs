@@ -28,7 +28,8 @@ public sealed class NatsEventStreamOptions
     public Func<NatsOpts, NatsOpts>? ConfigureConnection { get; set; }
 
     /// <summary>
-    /// Gets or sets the JetStream options for durable event consumption.
+    /// Gets or sets the JetStream options for consuming events from a retained (replayable)
+    /// JetStream stream.
     /// </summary>
     /// <remarks>
     /// When this property is <c>null</c>, the broker uses core NATS pub/sub.
@@ -72,15 +73,16 @@ public sealed class NatsEventStreamOptions
 /// <summary>
 /// Configures JetStream consumption for a NATS event stream broker.
 /// </summary>
+/// <remarks>
+/// Each subscription receives its own JetStream consumer over the configured stream, so concurrent
+/// subscribers all observe every published event. A fresh subscription only delivers events
+/// published after it is established. Resuming from a previously delivered event is driven by the
+/// cursor carried on each event, not by reattaching to a shared consumer.
+/// </remarks>
 public sealed class NatsJetStreamOptions
 {
     /// <summary>
-    /// Gets or sets the JetStream stream name.
+    /// Gets or sets the JetStream stream name that retains the events to consume.
     /// </summary>
     public required string Stream { get; set; }
-
-    /// <summary>
-    /// Gets or sets the durable consumer name.
-    /// </summary>
-    public required string DurableConsumer { get; set; }
 }
