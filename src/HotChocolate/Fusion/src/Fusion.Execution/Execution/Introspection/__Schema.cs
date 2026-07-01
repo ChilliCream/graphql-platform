@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using HotChocolate.Features;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Types.Introspection;
@@ -103,27 +104,48 @@ internal sealed class __Schema : ITypeResolverInterceptor
 
     public static void Directives(FieldContext context)
     {
-        var list = context.FieldResult.CreateListValue(context.Schema.DirectiveDefinitions.Count);
+        var includeDeprecated = context.ArgumentValue<BooleanValueNode>("includeDeprecated").Value;
+        var directiveDefinitions = context.Schema.DirectiveDefinitions;
+        var count = includeDeprecated
+            ? directiveDefinitions.Count
+            : directiveDefinitions.Count(d => !d.IsDeprecated);
+        using var list = context.FieldResult.CreateListValue(count).EnumerateArray().GetEnumerator();
 
-        var i = 0;
-        foreach (var element in list.EnumerateArray())
+        foreach (var directiveDef in directiveDefinitions)
         {
-            var type = context.Schema.DirectiveDefinitions[i++];
-            context.AddRuntimeResult(type);
-            element.CreateObjectValue(context.Selection, context.IncludeFlags);
+            if (!includeDeprecated && directiveDef.IsDeprecated)
+            {
+                continue;
+            }
+
+            if (!list.MoveNext())
+            {
+                Debug.Fail("Expected enumerator of list value to be able to advance");
+                break;
+            }
+
+            context.AddRuntimeResult(directiveDef);
+            list.Current.CreateObjectValue(context.Selection, context.IncludeFlags);
         }
     }
 
     public static void DirectivesWithOptIn(FieldContext context)
     {
+        var includeDeprecated = context.ArgumentValue<BooleanValueNode>("includeDeprecated").Value;
         var includeOptIn = ReadIncludeOptIn(context);
         var schema = context.Schema;
         var count = schema.DirectiveDefinitions.Count(
-            d => OptInIntrospectionHelper.IsIncluded(d.Directives, includeOptIn));
+            d => (includeDeprecated || !d.IsDeprecated)
+                && OptInIntrospectionHelper.IsIncluded(d.Directives, includeOptIn));
         using var list = context.FieldResult.CreateListValue(count).EnumerateArray().GetEnumerator();
 
         foreach (var directiveDef in schema.DirectiveDefinitions)
         {
+            if (!includeDeprecated && directiveDef.IsDeprecated)
+            {
+                continue;
+            }
+
             if (!OptInIntrospectionHelper.IsIncluded(directiveDef.Directives, includeOptIn))
             {
                 continue;
@@ -131,6 +153,7 @@ internal sealed class __Schema : ITypeResolverInterceptor
 
             if (!list.MoveNext())
             {
+                Debug.Fail("Expected enumerator of list value to be able to advance");
                 break;
             }
 
