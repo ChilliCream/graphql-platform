@@ -88,4 +88,4 @@ file static class Extensions
     }
 }
 
-internal sealed class OptInFeatures : SortedSet<string>;
+internal sealed class OptInFeatures() : SortedSet<string>(StringComparer.Ordinal);
