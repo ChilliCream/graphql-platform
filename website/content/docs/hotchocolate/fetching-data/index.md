@@ -1,5 +1,5 @@
 ---
-title: Overview
+title: Fetching Data
 description: "Overview of data middleware in Hot Chocolate: pagination, filtering, sorting, projections, and DataLoader batching applied to IQueryable data sources."
 ---
 

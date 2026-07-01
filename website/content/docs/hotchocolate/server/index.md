@@ -1,5 +1,5 @@
 ---
-title: Overview
+title: Server
 description: "Overview of configuring and operating a Hot Chocolate GraphQL server: endpoints, HTTP transport, interceptors, dependency injection, and instrumentation."
 ---
 
