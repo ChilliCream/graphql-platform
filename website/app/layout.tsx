@@ -6,6 +6,13 @@ import { AnalyticsScripts } from "@/src/components/AnalyticsScripts";
 import { EnableSmoothScroll } from "@/src/components/EnableSmoothScroll";
 import Footer from "@/src/components/Footer";
 import Header from "@/src/components/Header";
+import { StructuredData } from "@/src/components/StructuredData";
+import {
+  SITE_NAME,
+  SITE_TITLE,
+  TITLE_TEMPLATE,
+  TWITTER_HANDLE,
+} from "@/src/helpers/site";
 import { SITE_URL } from "@/src/helpers/siteUrl";
 
 const inter = Inter({
@@ -20,7 +27,6 @@ const josefinSans = Josefin_Sans({
   variable: "--font-josefin-sans",
 });
 
-const TITLE = "ChilliCream GraphQL Platform";
 const DESCRIPTION =
   "The ChilliCream GraphQL Platform: build, connect, and observe GraphQL APIs with Hot Chocolate, Fusion, Strawberry Shake, and Nitro.";
 
@@ -31,22 +37,20 @@ export const metadata: Metadata = {
     ? { robots: { index: false, follow: false } }
     : {}),
   title: {
-    default: TITLE,
-    template: "%s - ChilliCream",
+    default: SITE_TITLE,
+    template: TITLE_TEMPLATE,
   },
   description: DESCRIPTION,
-  applicationName: "ChilliCream",
+  applicationName: SITE_NAME,
   openGraph: {
     type: "website",
-    siteName: "ChilliCream",
+    siteName: SITE_NAME,
     url: SITE_URL,
-    title: TITLE,
     description: DESCRIPTION,
   },
   twitter: {
     card: "summary_large_image",
-    site: "@Chilli_Cream",
-    title: TITLE,
+    site: TWITTER_HANDLE,
     description: DESCRIPTION,
   },
   alternates: {
@@ -72,6 +76,7 @@ export default function RootLayout({
         <link rel="preconnect" href="https://consent.cookiebot.com" />
         <link rel="preconnect" href="https://consentcdn.cookiebot.com" />
         <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
+        <StructuredData />
       </head>
       <body>
         <AnalyticsScripts />

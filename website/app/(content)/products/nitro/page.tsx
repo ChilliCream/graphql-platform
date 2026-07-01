@@ -1,18 +1,18 @@
-import type { Metadata } from "next";
-
 import { ContentSection } from "@/src/components/ContentSection";
 import { PageHero } from "@/src/components/PageHero";
 import { Section } from "@/src/components/Section";
 import { OutlineButton } from "@/src/design-system/Button";
 import { Picture } from "@/src/design-system/Picture";
+import { pageMetadata } from "@/src/helpers/pageMetadata";
 
 import { NitroDownload } from "./NitroDownload";
 
-export const metadata: Metadata = {
+export const metadata = pageMetadata({
   title: "Nitro",
   description:
     "Nitro is ChilliCream's GraphQL IDE: explore any GraphQL API with authentication flows, document sync, and subscriptions over SSE and WebSockets.",
-};
+  path: "/products/nitro",
+});
 
 const FEATURES: { title: string; description: string }[] = [
   {

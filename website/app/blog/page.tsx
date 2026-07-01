@@ -3,11 +3,13 @@ import { BlogTeaserGrid } from "@/src/components/BlogTeaserGrid";
 import { Typography } from "@/src/design-system/Typography";
 import { paginate } from "@/src/helpers/blogPaging";
 import { listBlogPostSummaries } from "@/src/helpers/blogPosts";
+import { pageMetadata } from "@/src/helpers/pageMetadata";
 
-export const metadata = {
+export const metadata = pageMetadata({
   title: "Blog",
   description: "The ChilliCream blog: announcements, deep dives, and how-tos.",
-};
+  path: "/blog",
+});
 
 export default function BlogsIndex() {
   const posts = listBlogPostSummaries();

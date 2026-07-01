@@ -28,8 +28,9 @@ import {
 import { compileDoc } from "@/src/helpers/compileDoc";
 import { readFrontmatter } from "@/src/helpers/readFrontmatter";
 import { estimateReadingTime } from "@/src/helpers/readingTime";
+import { SITE_NAME, TWITTER_HANDLE } from "@/src/helpers/site";
 import { getShareImageSrc } from "@/src/image-optimization/manifest";
-import { toAbsoluteUrl } from "@/src/helpers/siteUrl";
+import { SITE_URL, toAbsoluteUrl } from "@/src/helpers/siteUrl";
 
 type BlogFrontmatter = {
   title?: string;
@@ -113,6 +114,7 @@ export async function generateMetadata({
     },
     openGraph: {
       type: "article",
+      siteName: SITE_NAME,
       title,
       description,
       images,
@@ -127,6 +129,7 @@ export async function generateMetadata({
     },
     twitter: {
       card: "summary_large_image",
+      site: TWITTER_HANDLE,
       title,
       description,
       images,
@@ -171,26 +174,47 @@ export default async function BlogSlugPage({ params }: PageProps) {
   const currentHref = current?.href ?? `/blog/${stem}`;
 
   const jsonLd = current
-    ? {
-        "@context": "https://schema.org",
-        "@type": "BlogPosting",
-        headline: current.title,
-        ...(current.description ? { description: current.description } : {}),
-        datePublished: current.date,
-        ...(current.featuredImage
-          ? { image: toAbsoluteUrl(current.featuredImage) }
-          : {}),
-        ...(current.author
-          ? {
-              author: {
-                "@type": "Person",
-                name: current.author,
-                ...(current.authorUrl ? { url: current.authorUrl } : {}),
-              },
-            }
-          : {}),
-        mainEntityOfPage: toAbsoluteUrl(current.href),
-      }
+    ? [
+        {
+          "@context": "https://schema.org",
+          "@type": "BlogPosting",
+          headline: current.title,
+          ...(current.description ? { description: current.description } : {}),
+          datePublished: toSchemaDate(current.date),
+          ...(current.featuredImage
+            ? { image: toAbsoluteUrl(current.featuredImage) }
+            : {}),
+          ...(current.author
+            ? {
+                author: {
+                  "@type": "Person",
+                  name: current.author,
+                  ...(current.authorUrl ? { url: current.authorUrl } : {}),
+                },
+              }
+            : {}),
+          ...(current.tags.length > 0 ? { keywords: current.tags } : {}),
+          publisher: { "@id": `${SITE_URL}/#organization` },
+          mainEntityOfPage: toAbsoluteUrl(current.href),
+        },
+        {
+          "@context": "https://schema.org",
+          "@type": "BreadcrumbList",
+          itemListElement: [
+            {
+              "@type": "ListItem",
+              position: 1,
+              name: "Blog",
+              item: toAbsoluteUrl("/blog"),
+            },
+            {
+              "@type": "ListItem",
+              position: 2,
+              name: current.title,
+            },
+          ],
+        },
+      ]
     : null;
 
   return (
@@ -256,6 +280,10 @@ export default async function BlogSlugPage({ params }: PageProps) {
       </div>
     </div>
   );
+}
+
+function toSchemaDate(date: string): string {
+  return /^\d{4}-\d{2}-\d{2}$/.test(date) ? `${date}T00:00:00.000Z` : date;
 }
 
 function isPaginationSlug(slug: string[]): boolean {
