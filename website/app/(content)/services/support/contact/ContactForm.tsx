@@ -129,31 +129,29 @@ export function ContactForm() {
   }
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      noValidate
-      className="border-cc-card-border bg-cc-card-bg flex flex-col gap-5 rounded-xl border p-8 backdrop-blur-sm"
-    >
-      <Input
-        label="Name"
-        name="name"
-        type="text"
-        required
-        value={data.name}
-        error={errors.name}
-        disabled={isSubmitting}
-        onChange={(e) => update("name", e.target.value)}
-      />
-      <Input
-        label="Email"
-        name="email"
-        type="email"
-        required
-        value={data.email}
-        error={errors.email}
-        disabled={isSubmitting}
-        onChange={(e) => update("email", e.target.value)}
-      />
+    <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-5">
+      <div className="grid gap-5 sm:grid-cols-2">
+        <Input
+          label="Name"
+          name="name"
+          type="text"
+          required
+          value={data.name}
+          error={errors.name}
+          disabled={isSubmitting}
+          onChange={(e) => update("name", e.target.value)}
+        />
+        <Input
+          label="Email"
+          name="email"
+          type="email"
+          required
+          value={data.email}
+          error={errors.email}
+          disabled={isSubmitting}
+          onChange={(e) => update("email", e.target.value)}
+        />
+      </div>
       <Input
         label="Company"
         name="company"
@@ -188,12 +186,13 @@ export function ContactForm() {
         label="Message"
         name="message"
         rows={5}
+        placeholder="What are you building?"
         value={data.message}
         disabled={isSubmitting}
         onChange={(e) => update("message", e.target.value)}
       />
-      <SolidButton type="submit" disabled={isSubmitting} className="self-start">
-        {isSubmitting ? "Sending..." : "Send"}
+      <SolidButton type="submit" disabled={isSubmitting} className="w-full">
+        {isSubmitting ? "Sending..." : "Talk to us"}
       </SolidButton>
     </form>
   );

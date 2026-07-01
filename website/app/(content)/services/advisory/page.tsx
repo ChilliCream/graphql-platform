@@ -1,5 +1,3 @@
-import type { Metadata } from "next";
-
 import { AdvisoryFaq } from "@/src/components/advisory/AdvisoryFaq";
 import { AdvisoryHero } from "@/src/components/advisory/AdvisoryHero";
 import { ContactBand } from "@/src/components/advisory/ContactBand";
@@ -8,13 +6,11 @@ import { TeamSection } from "@/src/components/advisory/TeamSection";
 import { TierGrid } from "@/src/components/advisory/TierGrid";
 import { pageMetadata } from "@/src/helpers/pageMetadata";
 
-export const metadata: Metadata = {
-  ...pageMetadata({
-    title: "GraphQL Advisory",
-    description:
-      "GraphQL consulting in packages of hours, or full contracting, from the team behind Hot Chocolate, Fusion, and Nitro. Talk to an expert about your project.",
-    path: "/services/advisory",
-  }),
+export const metadata = pageMetadata({
+  title: "GraphQL Advisory",
+  description:
+    "GraphQL consulting in packages of hours, or full contracting, from the team behind Hot Chocolate, Fusion, and Nitro. Talk to an expert about your project.",
+  path: "/services/advisory",
   keywords: [
     "GraphQL advisory",
     "GraphQL consulting",
@@ -24,7 +20,7 @@ export const metadata: Metadata = {
     "Nitro consulting",
     "ChilliCream advisory",
   ],
-};
+});
 
 export default function AdvisoryPage() {
   return (

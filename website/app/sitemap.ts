@@ -1,4 +1,3 @@
-import fs from "node:fs";
 import path from "node:path";
 import type { MetadataRoute } from "next";
 import {
@@ -11,6 +10,8 @@ import { readFrontmatter } from "@/src/helpers/readFrontmatter";
 import { SITE_URL } from "@/src/helpers/siteUrl";
 
 export const dynamic = "force-static";
+
+const fs = process.getBuiltinModule("node:fs");
 
 // Marketing / legal / product pages live in the `(content)` route group, so
 // their on-disk folder names map 1:1 to URL paths (the group itself is elided).
