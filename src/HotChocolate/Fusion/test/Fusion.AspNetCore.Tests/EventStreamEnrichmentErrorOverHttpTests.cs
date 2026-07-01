@@ -85,6 +85,7 @@ public class EventStreamEnrichmentErrorOverHttpTests : FusionTestBase
         // The first event carries the raw database key (not a valid global id), so the node lookup
         // that fetches `body` fails. The second event carries the encoded global id and resolves.
         using var response = await client.PostAsync(request, new Uri(GatewayUrl), cts.Token);
+        await WaitForConsumerAsync(nats.Url, stream, expectedCount: 1, cts.Token);
         await PublishAsync(nats.Url, Topic, """{"review":{"id":1}}""", cts.Token);
         await PublishAsync(nats.Url, Topic, "{\"review\":{\"id\":\"" + validId + "\"}}", cts.Token);
 
@@ -156,6 +157,34 @@ public class EventStreamEnrichmentErrorOverHttpTests : FusionTestBase
         await using var connection = new NatsConnection(new NatsOpts { Url = url });
         var js = new NatsJSContext(connection);
         await js.PublishAsync(subject, Encoding.UTF8.GetBytes(body), cancellationToken: ct);
+    }
+
+    // A fresh JetStream subscription uses DeliverPolicy.New, so it only observes events published
+    // after its ephemeral consumer exists on the server. Waiting until the stream reports the
+    // expected consumer count makes "subscribe then publish" deterministic instead of racing a
+    // fixed delay. The consumer name is server-generated, so we poll by count, not by name.
+    private static async Task WaitForConsumerAsync(
+        string url,
+        string stream,
+        int expectedCount,
+        CancellationToken cancellationToken)
+    {
+        await using var connection = new NatsConnection(new NatsOpts { Url = url });
+        var js = new NatsJSContext(connection);
+
+        while (true)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var info = await js.GetStreamAsync(stream, cancellationToken: cancellationToken);
+
+            if (info.Info.State.ConsumerCount >= expectedCount)
+            {
+                return;
+            }
+
+            await Task.Delay(25, cancellationToken);
+        }
     }
 
     public static class ReviewsApi

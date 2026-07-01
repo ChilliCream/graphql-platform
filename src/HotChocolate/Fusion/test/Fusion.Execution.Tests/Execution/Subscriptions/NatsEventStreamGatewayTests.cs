@@ -58,6 +58,7 @@ public sealed class NatsEventStreamGatewayTests
             count: 2,
             async () =>
             {
+                await WaitForConsumerAsync(nats.Url, stream, expectedCount: 1, cts.Token);
                 await PublishAsync(nats.Url, Topic, """{"user":{"id":"u1"}}""", cts.Token);
                 await PublishAsync(nats.Url, Topic, """{"user":{"id":"u2"}}""", cts.Token);
             },
@@ -276,6 +277,34 @@ public sealed class NatsEventStreamGatewayTests
             subject,
             System.Text.Encoding.UTF8.GetBytes(body),
             cancellationToken: cancellationToken);
+    }
+
+    // A fresh JetStream subscription uses DeliverPolicy.New, so it only observes events published
+    // after its ephemeral consumer exists on the server. Waiting until the stream reports the
+    // expected consumer count makes "subscribe then publish" deterministic instead of racing a
+    // fixed delay. The consumer name is server-generated, so we poll by count, not by name.
+    private static async Task WaitForConsumerAsync(
+        string url,
+        string stream,
+        int expectedCount,
+        CancellationToken cancellationToken)
+    {
+        await using var connection = new NatsConnection(new NatsOpts { Url = url });
+        var js = new NatsJSContext(connection);
+
+        while (true)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var info = await js.GetStreamAsync(stream, cancellationToken: cancellationToken);
+
+            if (info.Info.State.ConsumerCount >= expectedCount)
+            {
+                return;
+            }
+
+            await Task.Delay(25, cancellationToken);
+        }
     }
 
     private static string ReadCursor(string operationResultJson)
