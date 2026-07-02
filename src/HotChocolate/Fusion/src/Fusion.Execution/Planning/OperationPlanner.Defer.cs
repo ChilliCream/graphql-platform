@@ -202,7 +202,7 @@ public sealed partial class OperationPlanner
 
         // Collect steps that depend directly on the initial requirement step.
         var downstreamByStepId = new Dictionary<int, OperationPlanStep>();
-        foreach (var dependentStepId in selfFetch.Dependents)
+        foreach (var dependentStepId in selfFetch.Dependents.Order())
         {
             if (incrementalPlanSteps.ById(dependentStepId) is OperationPlanStep dependentStep)
             {

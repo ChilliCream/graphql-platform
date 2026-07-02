@@ -81,7 +81,7 @@ internal sealed class PlannerTopologyCache
         out TypeScatterInfo scatter)
         => _typeScatter.TryGetValue(typeName, out scatter);
 
-    private static HashSet<string> CollectSchemaNames(
+    private static ImmutableArray<string> CollectSchemaNames(
         IEnumerable<FusionComplexTypeDefinition> complexTypes)
     {
         var schemaNames = new HashSet<string>(StringComparer.Ordinal);
@@ -94,7 +94,7 @@ internal sealed class PlannerTopologyCache
             }
         }
 
-        return schemaNames;
+        return [.. schemaNames.OrderBy(static t => t, StringComparer.Ordinal)];
     }
 
     private static Dictionary<FieldKey, FieldResolutionInfo> BuildFieldResolutions(

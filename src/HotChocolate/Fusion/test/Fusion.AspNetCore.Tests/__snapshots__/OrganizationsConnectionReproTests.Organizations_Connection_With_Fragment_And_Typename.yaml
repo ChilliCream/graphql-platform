@@ -1,0 +1,222 @@
+title: Organizations_Connection_With_Fragment_And_Typename
+request:
+  document: |
+    query Organizations($cursor: String) {
+      organizations(first: 100, after: $cursor) {
+        pageInfo {
+          hasNextPage
+          endCursor
+          __typename
+        }
+        edges {
+          node {
+            ...Organization
+            __typename
+          }
+          __typename
+        }
+        __typename
+      }
+    }
+
+    fragment Organization on Organization {
+      id
+      Number
+      displayName
+      __typename
+    }
+response:
+  body: |
+    {
+      "data": {
+        "organizations": {
+          "pageInfo": {
+            "hasNextPage": true,
+            "endCursor": "PageInfo: UGFnZUluZm86Mg==",
+            "__typename": "PageInfo"
+          },
+          "edges": [
+            {
+              "node": {
+                "id": "T3JnYW5pemF0aW9uOjY=",
+                "Number": 123,
+                "displayName": "Organization: T3JnYW5pemF0aW9uOjY=",
+                "__typename": "Organization"
+              },
+              "__typename": "OrganizationEdge"
+            },
+            {
+              "node": {
+                "id": "T3JnYW5pemF0aW9uOjc=",
+                "Number": 123,
+                "displayName": "Organization: T3JnYW5pemF0aW9uOjc=",
+                "__typename": "Organization"
+              },
+              "__typename": "OrganizationEdge"
+            },
+            {
+              "node": {
+                "id": "T3JnYW5pemF0aW9uOjg=",
+                "Number": 123,
+                "displayName": "Organization: T3JnYW5pemF0aW9uOjg=",
+                "__typename": "Organization"
+              },
+              "__typename": "OrganizationEdge"
+            }
+          ],
+          "__typename": "OrganizationConnection"
+        }
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        organizations(first: Int, after: String): OrganizationConnection
+      }
+
+      type Organization {
+        id: ID!
+        Number: Int!
+        displayName: String!
+      }
+
+      type OrganizationConnection {
+        pageInfo: PageInfo!
+        edges: [OrganizationEdge!]
+      }
+
+      type OrganizationEdge {
+        cursor: String!
+        node: Organization!
+      }
+
+      type PageInfo {
+        hasNextPage: Boolean!
+        endCursor: String
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Organizations_680a78e9_1($cursor: String) {
+              organizations(first: 100, after: $cursor) {
+                pageInfo {
+                  hasNextPage
+                  endCursor
+                  __typename
+                }
+                edges {
+                  node {
+                    id
+                    Number
+                    displayName
+                    __typename
+                  }
+                  __typename
+                }
+                __typename
+              }
+            }
+          variables: |
+            {}
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "organizations": {
+                    "pageInfo": {
+                      "hasNextPage": true,
+                      "endCursor": "PageInfo: UGFnZUluZm86Mg==",
+                      "__typename": "PageInfo"
+                    },
+                    "edges": [
+                      {
+                        "node": {
+                          "id": "T3JnYW5pemF0aW9uOjY=",
+                          "Number": 123,
+                          "displayName": "Organization: T3JnYW5pemF0aW9uOjY=",
+                          "__typename": "Organization"
+                        },
+                        "__typename": "OrganizationEdge"
+                      },
+                      {
+                        "node": {
+                          "id": "T3JnYW5pemF0aW9uOjc=",
+                          "Number": 123,
+                          "displayName": "Organization: T3JnYW5pemF0aW9uOjc=",
+                          "__typename": "Organization"
+                        },
+                        "__typename": "OrganizationEdge"
+                      },
+                      {
+                        "node": {
+                          "id": "T3JnYW5pemF0aW9uOjg=",
+                          "Number": 123,
+                          "displayName": "Organization: T3JnYW5pemF0aW9uOjg=",
+                          "__typename": "Organization"
+                        },
+                        "__typename": "OrganizationEdge"
+                      }
+                    ],
+                    "__typename": "OrganizationConnection"
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        query Organizations($cursor: String) {
+          organizations(first: 100, after: $cursor) {
+            pageInfo {
+              hasNextPage
+              endCursor
+              __typename
+            }
+            edges {
+              node {
+                id
+                Number
+                displayName
+                __typename
+              }
+              __typename
+            }
+            __typename
+          }
+        }
+      name: Organizations
+      hash: 680a78e9d72d8e2a033d38e6d6df4025
+      searchSpace: 1
+      expandedNodes: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        query Organizations_680a78e9_1($cursor: String) {
+          organizations(first: 100, after: $cursor) {
+            pageInfo {
+              hasNextPage
+              endCursor
+              __typename
+            }
+            edges {
+              node {
+                id
+                Number
+                displayName
+                __typename
+              }
+              __typename
+            }
+            __typename
+          }
+        }
+      forwardedVariables:
+        - cursor
