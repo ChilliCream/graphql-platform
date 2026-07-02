@@ -384,13 +384,29 @@ internal sealed class DeferOperationRewriter
             var childParentPath = parentPath.Add(segment);
             var nestedSelectionSet = BuildSelectionSetFromPathNode(childNode, childSelectionSet, childParentPath);
 
-            selections.Add(new FieldNode(
+            var childField = new FieldNode(
                 null,
                 wrappingField.Name,
                 wrappingField.Alias,
                 wrappingField.Directives,
                 wrappingField.Arguments,
-                nestedSelectionSet));
+                nestedSelectionSet);
+
+            // A composite field selected under a type condition is re-wrapped in
+            // an `... on Type` inline fragment so the reconstructed operation stays
+            // valid when its enclosing field returns an abstract type.
+            if (segment.TypeCondition is { } typeConditionName)
+            {
+                selections.Add(new InlineFragmentNode(
+                    null,
+                    new NamedTypeNode(typeConditionName),
+                    [],
+                    new SelectionSetNode([childField])));
+            }
+            else
+            {
+                selections.Add(childField);
+            }
         }
 
         if (selections.Count == 0)

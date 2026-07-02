@@ -1,7 +1,6 @@
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
-using HotChocolate.Features;
 using HotChocolate.Language;
 using static HotChocolate.Types.Mutable.Properties.MutableResources;
 
@@ -1096,15 +1095,7 @@ public static class SchemaParser
                 break;
 
             default:
-                directiveType = new MutableDirectiveDefinition(directiveNode.Name.Value)
-                {
-                    IsRepeatable = true,
-                    Locations = DirectiveLocation.TypeSystem
-                };
-
-                directiveType.Features.Set(
-                    new IncompleteDirectiveDefinitionFeature { IsIncomplete = true });
-
+                directiveType = new MissingDirectiveDefinition(directiveNode.Name.Value);
                 break;
         }
 

@@ -960,4 +960,124 @@ public class DeferTests : FusionTestBase
         // outbound variable set carries the forwarded $limit alongside the parent key.
         await MatchSnapshotAsync(gateway, request, result, stableStream: true);
     }
+
+    [Fact]
+    public async Task Defer_Composite_Field_Under_Type_Condition_On_Abstract_Parent_Is_Wrapped()
+    {
+        // arrange
+        // Connector is a Node entity split across two schemas. The non-deferred selection and
+        // one @defer resolve from schema A, while the second @defer requires an entity lookup
+        // into schema B for the `devices` connection.
+        using var server1 = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+                node(id: ID!): Node @lookup @shareable
+                connectorById(id: ID!): Connector @lookup @internal
+            }
+
+            interface Node {
+                id: ID!
+            }
+
+            type Connector implements Node {
+                id: ID!
+                system: String!
+                version: String!
+                vendor: String!
+                description: String
+            }
+            """);
+
+        using var server2 = CreateSourceSchema(
+            "B",
+            """
+            type Query {
+                node(id: ID!): Node @lookup @shareable
+                connectorById(id: ID!): Connector @lookup @internal
+            }
+
+            interface Node {
+                id: ID!
+            }
+
+            type Connector implements Node {
+                id: ID!
+                devices(first: Int): ConnectorDeviceConnection!
+            }
+
+            type ConnectorDevice implements Node {
+                id: ID!
+                name: String!
+            }
+
+            type ConnectorDeviceConnection {
+                edges: [ConnectorDeviceEdge!]
+                nodes: [ConnectorDevice!]
+                totalCount: Int!
+            }
+
+            type ConnectorDeviceEdge {
+                node: ConnectorDevice!
+                cursor: String!
+            }
+            """);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1),
+            ("B", server2)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            query: """
+            query ConnectorDetailsQuery($id: ID!) {
+                node(id: $id) {
+                    __typename
+                    id
+                    ... on Connector @defer(label: "Yrs") {
+                        system
+                        description
+                    }
+                    ...ConnectorDetailsHeaderFragment
+                    ...ConnectorDevicesFragment @defer(label: "testing")
+                }
+            }
+
+            fragment ConnectorDetailsHeaderFragment on Connector {
+                system
+                version
+                vendor
+            }
+
+            fragment ConnectorDevicesFragment on Connector {
+                id
+                devices(first: 10) {
+                    edges {
+                        node {
+                            ... on ConnectorDevice {
+                                id
+                                name
+                                __typename
+                            }
+                        }
+                        cursor
+                    }
+                    totalCount
+                }
+            }
+            """,
+            variables: new Dictionary<string, object?> { ["id"] = "Q29ubmVjdG9yOjE=" });
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result, stableStream: true);
+    }
 }
