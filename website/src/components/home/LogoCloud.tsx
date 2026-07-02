@@ -1,77 +1,49 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import {
-  ALL_COMPANIES,
-  FEATURED_COMPANIES,
-  OTHER_COMPANIES,
-  type Company,
-} from "./companies";
+import { FEATURED_COMPANIES, OTHER_COMPANIES, type Company } from "./companies";
 
-const ROTATE_INTERVAL_MS = 2600;
+const ROTATE_INTERVAL_MS = 3500;
 // Let the featured three lead the rotation with a longer first hold, without
 // leaving the band static for too long on load.
 const INITIAL_HOLD_MS = 4500;
+/** The animation delay between each item in the rotation */
+const ITEM_ANIMATION_OFFSET_MS = 250;
+
+function wrapIndex(index: number, length: number) {
+  return ((index % length) + length) % length;
+}
+
+function getItem<T>(index: number, array: T[]) {
+  return array[wrapIndex(index, array.length)];
+}
+
+const NUM_SLOTS = FEATURED_COMPANIES.length;
 
 export function LogoCloud() {
+  const companyQueue = useRef([
+    ...shuffle(OTHER_COMPANIES),
+    ...FEATURED_COMPANIES,
+  ]);
+  const currentCompanyIndex = useRef(0);
   const [slots, setSlots] = useState<Company[]>(() => [...FEATURED_COMPANIES]);
-
-  // Mirror the latest slots so the interval can read them without re-subscribing.
-  const slotsRef = useRef(slots);
-  useEffect(() => {
-    slotsRef.current = slots;
-  }, [slots]);
 
   useEffect(() => {
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
       return;
     }
 
-    // Shuffle bag: every customer is drawn once before any repeats. Seed it
-    // with the companies not already on screen (the featured three).
-    let deck = shuffle(OTHER_COMPANIES);
-
-    // Age of the logo in each slot; the oldest is always evicted first. Seed the
-    // featured three with a random order so which one leaves first is random.
-    const placedAt = shuffle([0, 1, 2]);
-    let sequence = placedAt.length - 1;
-
     const swap = () => {
-      const current = slotsRef.current;
-      const visible = new Set(current.map((company) => company.name));
+      const index = currentCompanyIndex.current;
+      const updatedSlots = new Array(NUM_SLOTS)
+        .fill(0)
+        .map((_, i) => getItem(index + i, companyQueue.current));
+      setSlots(updatedSlots);
 
-      if (deck.length === 0) {
-        // Whole roster shown; start a fresh cycle over everyone off screen.
-        deck = shuffle(
-          ALL_COMPANIES.filter((company) => !visible.has(company.name)),
-        );
-      }
-
-      let next: Company | undefined;
-      while (deck.length > 0) {
-        const candidate = deck.shift();
-        if (candidate && !visible.has(candidate.name)) {
-          next = candidate;
-          break;
-        }
-      }
-      if (!next) {
-        return;
-      }
-
-      // Evict the slot whose logo has been on screen the longest.
-      let slot = 0;
-      for (let index = 1; index < placedAt.length; index++) {
-        if (placedAt[index] < placedAt[slot]) {
-          slot = index;
-        }
-      }
-      sequence += 1;
-      placedAt[slot] = sequence;
-
-      const updated = [...current];
-      updated[slot] = next;
-      setSlots(updated);
+      currentCompanyIndex.current = wrapIndex(
+        currentCompanyIndex.current + NUM_SLOTS,
+        companyQueue.current.length,
+      );
     };
 
     // Hold the featured three, then rotate at a steady cadence.
@@ -94,14 +66,18 @@ export function LogoCloud() {
       </p>
       <div className="text-cc-heading mt-10 grid grid-cols-1 place-items-center gap-y-10 sm:mt-14 sm:grid-cols-3 sm:gap-x-8">
         {slots.map((company, index) => (
-          <LogoSlot key={index} company={company} />
+          <LogoSlot
+            key={index}
+            company={company}
+            delay={index * ITEM_ANIMATION_OFFSET_MS}
+          />
         ))}
       </div>
     </section>
   );
 }
 
-function LogoSlot({ company }: { company: Company }) {
+function LogoSlot({ company, delay }: { company: Company; delay: number }) {
   const [displayed, setDisplayed] = useState(company);
   const [previous, setPrevious] = useState<Company | null>(null);
 
@@ -123,12 +99,14 @@ function LogoSlot({ company }: { company: Company }) {
           animationClassName="animate-logo-out"
           onAnimationEnd={() => setPrevious(null)}
           hidden
+          delay={delay}
         />
       )}
       <CompanyLink
         key={displayed.name}
         company={displayed}
         animationClassName={previous ? "animate-logo-in" : undefined}
+        delay={delay}
       />
     </div>
   );
@@ -139,11 +117,13 @@ function CompanyLink({
   animationClassName,
   onAnimationEnd,
   hidden = false,
+  delay,
 }: {
   company: Company;
   animationClassName?: string;
   onAnimationEnd?: () => void;
   hidden?: boolean;
+  delay: number;
 }) {
   const { Logo } = company;
   return (
@@ -158,6 +138,7 @@ function CompanyLink({
       className={`absolute inset-0 flex items-center justify-center transition-opacity ${
         animationClassName ?? ""
       }`}
+      style={{ animationDelay: delay + "ms" }}
     >
       <Logo
         className={`max-w-full ${company.maxHeightClassName ?? "max-h-11"}`}
