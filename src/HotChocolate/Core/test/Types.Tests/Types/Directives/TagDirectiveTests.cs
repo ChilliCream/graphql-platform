@@ -143,9 +143,8 @@ public class TagDirectiveTests
     {
         // The SCHEMA position is intentionally omitted here: HotChocolate does not
         // apply class-level descriptor attributes to Schema subclasses, so a [Tag]
-        // on a Schema class has no effect. Attribute-driven registration therefore
-        // covers 12 of the 13 positions; the schema-first and code-first modes
-        // cover all 13.
+        // on a Schema class has no effect. The schema-first and code-first modes
+        // cover the SCHEMA position instead.
 
         // arrange & act
         var schema =

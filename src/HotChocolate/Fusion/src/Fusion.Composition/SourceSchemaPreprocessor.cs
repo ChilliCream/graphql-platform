@@ -87,9 +87,9 @@ internal sealed partial class SourceSchemaPreprocessor(
     }
 
     /// <summary>
-    /// Removes types, fields, arguments, enum values, and directive definitions that are tagged
-    /// with any of the specified tags. Removing a directive definition also removes every
-    /// application of that directive across the schema.
+    /// Removes types, fields, arguments, and enum values that are tagged with any of the
+    /// specified tags. Also removes directive definitions tagged for exclusion and cascades
+    /// the removal to their applications.
     /// </summary>
     private void RemoveTaggedMembers(HashSet<string> excludeByTag)
     {

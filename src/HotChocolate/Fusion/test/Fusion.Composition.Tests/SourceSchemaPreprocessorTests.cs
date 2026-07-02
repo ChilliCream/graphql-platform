@@ -254,77 +254,48 @@ public sealed class SourceSchemaPreprocessorTests
     }
 
     [Fact]
-    public void Preprocess_ExcludeByTag_RemovesTaggedDirectiveDefinitionAndItsApplications()
+    public void Preprocess_ExcludeByTag_RemovesTaggedDirectiveDefinitionAndCascadesToAllApplicationSites()
     {
         // arrange
-        // @drop is excluded by tag and is also applied on Query.field. Removing the
-        // definition cascades to its applications, so the field no longer carries @drop
-        // and the result is a consistent filtered schema.
+        // @drop is tagged for exclusion and applied at every kind of application site: the
+        // schema, object/enum/input types, an object field, a field argument, an enum value, an
+        // input field, the surviving @keep directive definition itself, and a @keep argument.
+        // Removing @drop cascades to all of them, so the preprocessed schema contains no @drop
+        // definition and no @drop application anywhere, while the untagged @keep survives.
         var sourceSchemaText =
             new SourceSchemaText(
                 "A",
                 // lang=graphql
                 """
-                type Query {
-                    field: ID! @drop
+                schema @drop {
+                    query: Query
                 }
 
-                directive @drop @tag(name: "remove") on FIELD_DEFINITION
-
-                directive @tag(name: String!) repeatable on
-                    | SCHEMA
-                    | SCALAR
-                    | OBJECT
-                    | FIELD_DEFINITION
-                    | ARGUMENT_DEFINITION
-                    | INTERFACE
-                    | UNION
-                    | ENUM
-                    | ENUM_VALUE
-                    | INPUT_OBJECT
-                    | INPUT_FIELD_DEFINITION
-                    | DIRECTIVE_DEFINITION
-                """);
-        var compositionLog = new CompositionLog();
-        var sourceSchemaParser = new SourceSchemaParser(sourceSchemaText, compositionLog);
-        var schema = sourceSchemaParser.Parse().Value;
-        var preprocessor =
-            new SourceSchemaPreprocessor(
-                schema,
-                [],
-                compositionLog,
-                options: new SourceSchemaPreprocessorOptions { ExcludeByTag = ["remove"] });
-
-        // act
-        var result = preprocessor.Preprocess();
-
-        // assert
-        Assert.True(result.IsSuccess);
-        Assert.False(schema.DirectiveDefinitions.ContainsName("drop"));
-        var field = schema.QueryType!.Fields["field"];
-        Assert.False(field.Directives.ContainsName("drop"));
-    }
-
-    [Fact]
-    public void Preprocess_ExcludeByTag_CascadesToApplicationOnSurvivingDirectiveDefinition()
-    {
-        // arrange
-        // @drop is excluded by tag and is applied on the surviving @keep directive
-        // definition itself. Removing @drop cascades to that application, so @keep
-        // survives without @drop.
-        var sourceSchemaText =
-            new SourceSchemaText(
-                "A",
-                // lang=graphql
-                """
-                type Query {
-                    field: ID!
+                type Query @drop {
+                    field(argument: Int @drop): Int @drop
                 }
 
-                directive @keep @drop on FIELD_DEFINITION
+                enum Enum1 @drop {
+                    VALUE1
+                    VALUE2 @drop
+                }
+
+                input Input1 @drop {
+                    field1: ID!
+                    field2: Int @drop
+                }
+
+                directive @keep(argument: Int @drop) @drop on FIELD_DEFINITION
 
                 directive @drop @tag(name: "remove") on
+                    | SCHEMA
+                    | OBJECT
                     | FIELD_DEFINITION
+                    | ARGUMENT_DEFINITION
+                    | ENUM
+                    | ENUM_VALUE
+                    | INPUT_OBJECT
+                    | INPUT_FIELD_DEFINITION
                     | DIRECTIVE_DEFINITION
 
                 directive @tag(name: String!) repeatable on
@@ -353,12 +324,19 @@ public sealed class SourceSchemaPreprocessorTests
 
         // act
         var result = preprocessor.Preprocess();
+        // Trim the Fusion built-in types and directive definitions the parser injects, so the
+        // snapshot only shows the user-defined @keep and @tag definitions (and proves @drop is
+        // gone). @keep and @tag are user-defined and therefore retained.
+        schema.Types.Remove("FieldSelectionMap");
+        schema.Types.Remove("FieldSelectionSet");
+        foreach (var builtInDirectiveName in FusionBuiltIns.SourceSchemaDirectives.Keys)
+        {
+            schema.DirectiveDefinitions.Remove(builtInDirectiveName);
+        }
 
         // assert
         Assert.True(result.IsSuccess);
-        Assert.False(schema.DirectiveDefinitions.ContainsName("drop"));
-        Assert.True(schema.DirectiveDefinitions.ContainsName("keep"));
-        Assert.False(schema.DirectiveDefinitions["keep"].Directives.ContainsName("drop"));
+        schema.ToString().MatchSnapshot(extension: ".graphql");
     }
 
     [Fact]
