@@ -133,7 +133,16 @@ public static partial class Mutation
     // which must coerce the inner type and honor whether the argument was provided.
     public static string SetOptionalValue(Optional<string?> value)
         => value.HasValue ? value.Value ?? "null" : "unset";
+
+    // When the CurrentUser parameter is supplied through AddParameterExpressionBuilder,
+    // the source-generated binding must resolve it from that custom builder rather than
+    // exposing it as a GraphQL input argument. Without a custom builder registered the
+    // parameter legitimately becomes an implicit argument of type CurrentUserInput.
+    public static string CreateExport(CurrentUser currentUser, string name)
+        => $"{currentUser.Name}:{name}";
 }
+
+public sealed record CurrentUser(string Name);
 
 public class IsSelectedNode
 {

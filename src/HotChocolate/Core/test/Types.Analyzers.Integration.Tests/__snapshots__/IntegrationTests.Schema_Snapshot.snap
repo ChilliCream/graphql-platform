@@ -154,6 +154,7 @@ type Query {
 type Mutation {
   saveShapes(shapes: [ShapeInput!]!): Boolean!
   setOptionalValue(value: String): String!
+  createExport(currentUser: CurrentUserInput!, name: String!): String!
 }
 
 type Subscription {
@@ -399,6 +400,10 @@ interface Node {
 interface Product {
   kind: String!
   id: String!
+}
+
+input CurrentUserInput {
+  name: String!
 }
 
 input ShapeInput {
