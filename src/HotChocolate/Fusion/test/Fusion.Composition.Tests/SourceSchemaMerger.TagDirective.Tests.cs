@@ -30,6 +30,10 @@ public sealed class SourceSchemaMergerTagDirectiveTests : SourceSchemaMergerTest
     }
 
     // Merge @tag directives when the definitions match the canonical definition.
+    // The custom directive @foo, applied to FooObject.field and with @tag on its own
+    // definition, is included to show that a custom directive with no dedicated merger
+    // is dropped from the composed schema: its definition, its application on the field,
+    // and the @tag on its definition are all absent from the output.
     [Fact]
     public void Merge_TagDirectives_MatchesSnapshot()
     {
@@ -46,7 +50,7 @@ public sealed class SourceSchemaMergerTagDirectiveTests : SourceSchemaMergerTest
                 }
 
                 type FooObject @tag(name: "a") {
-                    field(arg: Int @tag(name: "a")): Int @tag(name: "a")
+                    field(arg: Int @tag(name: "a")): Int @tag(name: "a") @foo(arg: 1)
                 }
 
                 interface FooInterface @tag(name: "a") {
@@ -65,6 +69,8 @@ public sealed class SourceSchemaMergerTagDirectiveTests : SourceSchemaMergerTest
                     field: Int @tag(name: "a")
                 }
 
+                directive @foo(arg: Int) @tag(name: "a") on FIELD_DEFINITION
+
                 directive @tag("Some description" name: String!) repeatable on {{s_tagLocations}}
                 """,
                 $$"""
@@ -78,7 +84,7 @@ public sealed class SourceSchemaMergerTagDirectiveTests : SourceSchemaMergerTest
                 }
 
                 type FooObject @tag(name: "b") {
-                    field(arg: Int @tag(name: "b")): Int @tag(name: "b")
+                    field(arg: Int @tag(name: "b")): Int @tag(name: "b") @foo(arg: 2)
                 }
 
                 interface FooInterface @tag(name: "b") {
@@ -96,6 +102,8 @@ public sealed class SourceSchemaMergerTagDirectiveTests : SourceSchemaMergerTest
                 input FooInput @tag(name: "b") {
                     field: Int @tag(name: "b")
                 }
+
+                directive @foo(arg: Int) @tag(name: "b") on FIELD_DEFINITION
 
                 directive @tag("Some description" name: String!) repeatable on {{s_tagLocations}}
                 """
@@ -183,6 +191,7 @@ public sealed class SourceSchemaMergerTagDirectiveTests : SourceSchemaMergerTest
               | ENUM_VALUE
               | INPUT_OBJECT
               | INPUT_FIELD_DEFINITION
+              | DIRECTIVE_DEFINITION
             """,
             options => options.TagMergeBehavior = DirectiveMergeBehavior.Include);
     }
@@ -250,6 +259,7 @@ public sealed class SourceSchemaMergerTagDirectiveTests : SourceSchemaMergerTest
               | ENUM_VALUE
               | INPUT_OBJECT
               | INPUT_FIELD_DEFINITION
+              | DIRECTIVE_DEFINITION
             """,
             options => options.TagMergeBehavior = DirectiveMergeBehavior.IncludePrivate);
     }
@@ -288,6 +298,7 @@ public sealed class SourceSchemaMergerTagDirectiveTests : SourceSchemaMergerTest
               | ENUM_VALUE
               | INPUT_OBJECT
               | INPUT_FIELD_DEFINITION
+              | DIRECTIVE_DEFINITION
             """,
             options => options.TagMergeBehavior = DirectiveMergeBehavior.Include);
     }
@@ -305,5 +316,6 @@ public sealed class SourceSchemaMergerTagDirectiveTests : SourceSchemaMergerTest
         | ENUM_VALUE
         | INPUT_OBJECT
         | INPUT_FIELD_DEFINITION
+        | DIRECTIVE_DEFINITION
         """.ReplaceLineEndings(" ");
 }
