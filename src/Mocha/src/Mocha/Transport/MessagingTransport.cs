@@ -21,6 +21,11 @@ public abstract partial class MessagingTransport : IAsyncDisposable, IFeaturePro
     public string Schema { get; protected set; } = null!;
 
     /// <summary>
+    /// Gets the stable URN identity of this transport.
+    /// </summary>
+    public string Urn { get; private set; } = null!;
+
+    /// <summary>
     /// Read-only transport-level options such as concurrency limits and prefetch settings.
     /// </summary>
     public IReadOnlyTransportOptions Options { get; private set; } = null!;
@@ -136,6 +141,7 @@ public abstract partial class MessagingTransport : IAsyncDisposable, IFeaturePro
         {
             entities.Add(
                 new TopologyEntityDescription(
+                    MochaUrn.TopologyEntity(resource.Address?.ToString(), resource.GetType().Name.ToLowerInvariant(), null),
                     resource.GetType().Name.ToLowerInvariant(),
                     null,
                     resource.Address?.ToString(),
@@ -152,6 +158,7 @@ public abstract partial class MessagingTransport : IAsyncDisposable, IFeaturePro
 
             entities.Add(
                 new TopologyEntityDescription(
+                    MochaUrn.TopologyEntity(resource.Address?.ToString(), resource.GetType().Name.ToLowerInvariant(), null),
                     resource.GetType().Name.ToLowerInvariant(),
                     null,
                     resource.Address?.ToString(),
@@ -162,6 +169,7 @@ public abstract partial class MessagingTransport : IAsyncDisposable, IFeaturePro
         var topology = new TopologyDescription(Topology.Address.ToString(), entities, []);
 
         return new TransportDescription(
+            Urn,
             Topology.Address.ToString(),
             Name,
             Schema,

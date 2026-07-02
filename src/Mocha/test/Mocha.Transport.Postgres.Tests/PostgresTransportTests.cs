@@ -296,7 +296,7 @@ public class PostgresTransportTests
         // assert
         Assert.NotNull(description.Topology);
         Assert.Equal(topology.Address.ToString(), description.Topology!.Address);
-        Assert.Equal(topology.Address.ToString(), description.Identifier);
+        Assert.Equal(topology.Address.ToString(), description.Address);
     }
 
     [Fact]

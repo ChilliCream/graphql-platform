@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using Mocha.Features;
+using Mocha.Middlewares;
 using static Mocha.InboundRouteKind;
 
 namespace Mocha;
@@ -33,6 +34,7 @@ public abstract partial class MessagingTransport
         Routing.Initialize(this);
 
         _features = Configuration.Features;
+        Urn = MochaUrn.Transport(context.Host.EffectiveServiceName, Schema, Name);
         var busMiddlewares = context.Features.GetRequired<MiddlewareFeature>();
         var transportMiddlewares = new MiddlewareFeature(
             [.. busMiddlewares.DispatchMiddlewares, .. Configuration.DispatchMiddlewares],

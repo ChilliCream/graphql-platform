@@ -164,6 +164,34 @@ public class RabbitMQMessagingTopologyTests
     }
 
     [Fact]
+    public void Describe_Should_UseAddressBasedIds_When_TopologyHasEntitiesAndLinks()
+    {
+        // arrange
+        var (_, transport, topology) = CreateTopology(_ => { });
+
+        var exchange = topology.AddExchange(new RabbitMQExchangeConfiguration { Name = "source-exchange" });
+        var queue = topology.AddQueue(new RabbitMQQueueConfiguration { Name = "destination-queue" });
+        topology.AddBinding(new RabbitMQBindingConfiguration
+        {
+            Source = "source-exchange",
+            Destination = "destination-queue",
+            DestinationKind = RabbitMQDestinationKind.Queue
+        });
+        var binding = topology.Bindings.Single();
+
+        // act
+        var description = transport.Describe();
+
+        // assert
+        var describedExchange = description.Topology!.Entities.Single(e => e.Address == exchange.Address.ToString());
+        var describedQueue = description.Topology.Entities.Single(e => e.Address == queue.Address.ToString());
+        var describedBinding = description.Topology.Links.Single();
+        Assert.Equal($"urn:mocha:topology:{exchange.Address}", describedExchange.Id);
+        Assert.Equal($"urn:mocha:topology:{queue.Address}", describedQueue.Id);
+        Assert.Equal($"urn:mocha:link:{binding.Address}", describedBinding.Id);
+    }
+
+    [Fact]
     public void AddBinding_Should_ConnectExchangeToExchange_When_ExchangeDestination()
     {
         // arrange

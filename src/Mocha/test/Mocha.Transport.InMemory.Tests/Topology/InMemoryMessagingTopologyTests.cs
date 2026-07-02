@@ -117,6 +117,35 @@ public class InMemoryMessagingTopologyTests
     }
 
     [Fact]
+    public void Describe_Should_UseAddressBasedIds_When_TopologyHasEntitiesAndLinks()
+    {
+        // arrange
+        var runtime = new ServiceCollection().AddMessageBus().AddInMemory().BuildRuntime();
+        var transport = runtime.Transports.OfType<InMemoryMessagingTransport>().Single();
+        var topology = (InMemoryMessagingTopology)transport.Topology;
+
+        var topic = topology!.AddTopic(new InMemoryTopicConfiguration { Name = "source-topic" });
+        var queue = topology.AddQueue(new InMemoryQueueConfiguration { Name = "destination-queue" });
+        var binding = topology.AddBinding(new InMemoryBindingConfiguration
+        {
+            Source = "source-topic",
+            Destination = "destination-queue",
+            DestinationKind = InMemoryDestinationKind.Queue
+        });
+
+        // act
+        var description = transport.Describe();
+
+        // assert
+        var describedTopic = description.Topology!.Entities.Single(e => e.Address == topic.Address.ToString());
+        var describedQueue = description.Topology.Entities.Single(e => e.Address == queue.Address.ToString());
+        var describedBinding = description.Topology.Links.Single();
+        Assert.Equal($"urn:mocha:topology:{topic.Address}", describedTopic.Id);
+        Assert.Equal($"urn:mocha:topology:{queue.Address}", describedQueue.Id);
+        Assert.Equal($"urn:mocha:link:{binding.Address}", describedBinding.Id);
+    }
+
+    [Fact]
     public void AddBinding_Should_ConnectTopicToTopic_When_TopicDestination()
     {
         // arrange

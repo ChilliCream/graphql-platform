@@ -109,6 +109,11 @@ public abstract class DispatchEndpoint : IDispatchEndpoint
     public Uri Address { get; protected set; } = null!;
 
     /// <summary>
+    /// Gets the stable URN identity of this dispatch endpoint.
+    /// </summary>
+    public string Urn { get; private set; } = null!;
+
+    /// <summary>
     /// Gets the endpoint configuration that was applied during initialization.
     /// </summary>
     protected DispatchEndpointConfiguration Configuration { get; private set; } = null!;
@@ -133,6 +138,7 @@ public abstract class DispatchEndpoint : IDispatchEndpoint
         Configuration = configuration;
         Kind = configuration.Kind;
         Name = configuration.Name ?? throw ThrowHelper.EndpointNameRequired();
+        Urn = MochaUrn.DispatchEndpoint(context.Host.EffectiveServiceName, Transport.Schema, Transport.Name, Name);
 
         OnInitialize(context, configuration);
 
@@ -228,7 +234,7 @@ public abstract class DispatchEndpoint : IDispatchEndpoint
     /// </returns>
     public DispatchEndpointDescription Describe()
     {
-        return new DispatchEndpointDescription(Name, Kind, Address?.ToString(), Destination?.Address?.ToString());
+        return new DispatchEndpointDescription(Urn, Name, Kind, Address?.ToString(), Destination?.Address?.ToString());
     }
 
     /// <summary>

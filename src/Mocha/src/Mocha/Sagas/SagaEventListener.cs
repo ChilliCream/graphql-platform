@@ -74,6 +74,7 @@ public sealed class SagaConsumer(Saga saga) : Consumer
     public override ConsumerDescription Describe()
     {
         return new ConsumerDescription(
+            Urn,
             Name,
             DescriptionHelpers.GetTypeName(Identity),
             Identity.FullName,

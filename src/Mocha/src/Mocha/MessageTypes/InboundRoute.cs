@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using Mocha.Middlewares;
 
 namespace Mocha;
 
@@ -33,6 +34,11 @@ public sealed class InboundRoute
     /// Gets the kind of inbound route (subscribe, send, request, or reply).
     /// </summary>
     public InboundRouteKind Kind { get; private set; }
+
+    /// <summary>
+    /// Gets the stable URN identity of this inbound route.
+    /// </summary>
+    public string Urn { get; private set; } = null!;
 
     /// <summary>
     /// Gets the condition that decides whether this route selects its consumer for a received message.
@@ -82,6 +88,12 @@ public sealed class InboundRoute
                 : NoMatchCondition.Instance);
 
         Condition.Initialize(context);
+
+        Urn = MochaUrn.InboundRoute(
+            context.Host.EffectiveServiceName,
+            Kind.ToString().ToLowerInvariant(),
+            Consumer?.Name,
+            Condition.Describe());
 
         MarkInitialized();
     }
@@ -155,6 +167,7 @@ public sealed class InboundRoute
     public InboundRouteDescription Describe()
     {
         return new InboundRouteDescription(
+            Urn,
             Kind,
             MessageType?.Identity,
             Consumer?.Name,

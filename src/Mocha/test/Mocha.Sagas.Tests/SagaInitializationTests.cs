@@ -226,6 +226,69 @@ public class SagaInitializationTests
     }
 
     [Fact]
+    public void Initialize_Should_AssignStateAndTransitionUrns_When_DuringAnyTransitionsExist()
+    {
+        // Arrange
+        // Act
+        var saga = CreateInitializedSagaWithCancelTransitions();
+        var started = saga.States["Started"];
+        var processing = saga.States["Processing"];
+        var startedCancel = started.Transitions.Values.Single(t => t.EventType == typeof(CancelEvent));
+        var processingCancel = processing.Transitions.Values.Single(t => t.EventType == typeof(CancelEvent));
+
+        // Assert
+        Assert.Equal(MochaUrn.SagaState(saga.Urn, "Started"), started.Urn);
+        Assert.Equal(MochaUrn.SagaState(saga.Urn, "Processing"), processing.Urn);
+        Assert.Equal(
+            MochaUrn.SagaTransition(saga.Urn, "Started", nameof(CancelEvent)),
+            startedCancel.Urn);
+        Assert.Equal(
+            MochaUrn.SagaTransition(saga.Urn, "Processing", nameof(CancelEvent)),
+            processingCancel.Urn);
+        Assert.NotEqual(startedCancel.Urn, processingCancel.Urn);
+    }
+
+    [Fact]
+    public void Describe_Should_UseStateAndTransitionUrns_When_SagaInitialized()
+    {
+        // Arrange
+        // Act
+        var saga = CreateInitializedSagaWithCancelTransitions();
+        var started = saga.States["Started"];
+        var startedCancel = started.Transitions.Values.Single(t => t.EventType == typeof(CancelEvent));
+
+        var description = saga.Describe();
+        var startedDescription = description.States.Single(s => s.Name == "Started");
+        var startedCancelDescription = startedDescription.Transitions.Single(t => t.EventType == nameof(CancelEvent));
+
+        // Assert
+        Assert.Equal(started.Urn, startedDescription.Id);
+        Assert.Equal(startedCancel.Urn, startedCancelDescription.Id);
+    }
+
+    private Saga<TestState> CreateInitializedSagaWithCancelTransitions()
+    {
+        var saga =
+            Saga.Create<TestState>(descriptor =>
+            {
+                descriptor
+                    .Initially()
+                    .OnEvent<StartEvent>()
+                    .TransitionTo("Started")
+                    .StateFactory(s => new TestState(Guid.NewGuid(), "Started"));
+                descriptor.During("Started").OnEvent<TriggerEvent>().TransitionTo("Processing");
+                descriptor.During("Processing").OnEvent<TriggerEvent>().TransitionTo("Success");
+                descriptor.DuringAny().OnEvent<CancelEvent>().TransitionTo("Cancelled");
+                descriptor.Finally("Success");
+                descriptor.Finally("Cancelled");
+            });
+
+        saga.Initialize(_context);
+
+        return saga;
+    }
+
+    [Fact]
     public void Transition_Should_RequireTransitionTo()
     {
         // Arrange

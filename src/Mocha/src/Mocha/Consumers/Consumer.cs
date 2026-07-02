@@ -56,6 +56,11 @@ public abstract class Consumer
     /// </summary>
     public Type Identity { get; private set; } = null!;
 
+    /// <summary>
+    /// Gets the stable URN identity of this consumer.
+    /// </summary>
+    public string Urn { get; private set; } = null!;
+
     private protected ConsumerDelegate Pipeline { get; private set; } = null!;
 
     /// <summary>
@@ -129,6 +134,7 @@ public abstract class Consumer
         // TODO should we assign a default name in the Action? GetType().Name?
         Name = Configuration.Name ?? throw ThrowHelper.ConsumerNameRequired();
         Identity ??= GetType();
+        Urn = MochaUrn.Consumer(context.Host.EffectiveServiceName, Name);
 
         foreach (var route in Configuration!.Routes)
         {
@@ -204,7 +210,13 @@ public abstract class Consumer
     /// <returns>A <see cref="ConsumerDescription"/> containing the consumer's name, type, and optional saga association.</returns>
     public virtual ConsumerDescription Describe()
     {
-        return new ConsumerDescription(Name, DescriptionHelpers.GetTypeName(Identity), Identity.FullName, null, false);
+        return new ConsumerDescription(
+            Urn,
+            Name,
+            DescriptionHelpers.GetTypeName(Identity),
+            Identity.FullName,
+            null,
+            false);
     }
 
     /// <summary>

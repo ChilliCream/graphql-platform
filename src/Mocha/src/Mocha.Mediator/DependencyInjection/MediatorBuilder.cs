@@ -218,11 +218,28 @@ public sealed class MediatorBuilder : IMediatorBuilder
         var pipelines = new Dictionary<Type, MediatorDelegate>();
         var notificationTerminals = new Dictionary<Type, NotificationTerminals>();
 
+        var serviceName = _options.ServiceName
+            ?? Environment.GetEnvironmentVariable("SERVICE_NAME")
+            ?? Environment.GetEnvironmentVariable("OTEL_SERVICE_NAME")
+            ?? Assembly.GetEntryAssembly()?.GetName().Name
+            ?? "default";
+        var handlerDescriptions = new List<MediatorHandlerDescription>();
+
         foreach (var (handlerType, configureDelegate) in _handlerDescriptors)
         {
             var descriptor = new MediatorHandlerDescriptor(configContext, handlerType);
             configureDelegate(descriptor);
             var config = descriptor.CreateConfiguration();
+
+            var handlerName = MediatorDescriptionHelpers.GetTypeName(config.HandlerType!);
+            var messageName = MediatorDescriptionHelpers.GetTypeName(config.MessageType!);
+            handlerDescriptions.Add(new MediatorHandlerDescription(
+                MediatorUrn.Handler(serviceName, handlerName),
+                handlerName,
+                config.Kind,
+                MediatorUrn.Message(serviceName, messageName),
+                messageName,
+                config.ResponseType is { } responseType ? MediatorDescriptionHelpers.GetTypeName(responseType) : null));
 
             var terminal = config.Delegate ?? BuildPipelineViaReflection(config);
 
@@ -271,12 +288,18 @@ public sealed class MediatorBuilder : IMediatorBuilder
 
         var pools = applicationServices.GetRequiredService<IMediatorPools>();
 
+        var description = new MediatorDescription(
+            MediatorUrn.Mediator(serviceName),
+            serviceName,
+            handlerDescriptions.OrderBy(h => h.Id, StringComparer.Ordinal).ToArray());
+
         return new MediatorRuntime(
             pipelines.ToFrozenDictionary(),
             notificationPipelines.ToFrozenDictionary(),
             pools,
             features,
-            _options.NotificationPublishMode);
+            _options.NotificationPublishMode,
+            description);
     }
 
     [RequiresDynamicCode("Use source-generated AddHandlerConfiguration for AOT compatibility.")]

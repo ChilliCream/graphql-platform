@@ -6,6 +6,25 @@ namespace Mocha.Transport.InMemory.Tests;
 public class InMemoryTransportTests
 {
     [Fact]
+    public void TopologyAddress_Should_IncludeServiceName_When_ServiceNameConfigured()
+    {
+        // arrange & act
+        var builder = new ServiceCollection().AddMessageBus();
+        builder.Host(h => h.ServiceName("orders"));
+        var runtime = builder
+            .AddInMemory(t => t.DeclareQueue("order-created"))
+            .BuildRuntime();
+
+        var transport = runtime.Transports.OfType<InMemoryMessagingTransport>().Single();
+        var topology = (InMemoryMessagingTopology)transport.Topology;
+        var queue = Assert.Single(topology.Queues, q => q.Name == "order-created");
+
+        // assert
+        Assert.Equal("memory://orders/", topology.Address.ToString());
+        Assert.Equal("memory://orders/q/order-created", queue.Address?.ToString());
+    }
+
+    [Fact]
     public async Task TryGetDispatchEndpoint_Should_ResolveToQueue_When_QueueSchemeUsed()
     {
         // arrange
@@ -720,7 +739,7 @@ public class InMemoryTransportTests
         // assert
         Assert.NotNull(description.Topology);
         Assert.Equal(topology.Address.ToString(), description.Topology!.Address);
-        Assert.Equal(topology.Address.ToString(), description.Identifier);
+        Assert.Equal(topology.Address.ToString(), description.Address);
     }
 
     [Fact]
