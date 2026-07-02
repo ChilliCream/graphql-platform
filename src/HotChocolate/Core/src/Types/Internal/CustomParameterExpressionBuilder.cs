@@ -1,5 +1,7 @@
+using System.Diagnostics;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using HotChocolate.Resolvers;
 
 namespace HotChocolate.Internal;
@@ -222,6 +224,11 @@ public class CustomParameterExpressionBuilder<TArg> : CustomParameterExpressionB
         public bool IsPure => isPure;
 
         public T Execute<T>(IResolverContext context)
-            => (T)(object)compiled(context)!;
+        {
+            // the binding is only created for a parameter of type TArg, so T == TArg here
+            Debug.Assert(typeof(T) == typeof(TArg));
+            var value = compiled(context);
+            return Unsafe.As<TArg, T>(ref value);
+        }
     }
 }
