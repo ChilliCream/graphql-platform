@@ -1,5 +1,7 @@
+using System.Diagnostics;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using HotChocolate.Resolvers;
 
 namespace HotChocolate.Internal;
@@ -8,9 +10,11 @@ namespace HotChocolate.Internal;
 /// A custom parameter expression builder allows to implement custom resolver parameter
 /// injection logic.
 /// </summary>
-public abstract class CustomParameterExpressionBuilder : IParameterExpressionBuilder
+public abstract class CustomParameterExpressionBuilder
+    : IParameterExpressionBuilder
+    , IParameterBindingFactory
 {
-    private readonly bool _isPure;
+    private protected readonly bool _isPure;
 
     /// <summary>
     /// Initializes a new instance of <see cref="CustomParameterExpressionBuilder"/>
@@ -36,6 +40,12 @@ public abstract class CustomParameterExpressionBuilder : IParameterExpressionBui
 
     bool IParameterExpressionBuilder.IsDefaultHandler => false;
 
+    ArgumentKind IParameterBindingFactory.Kind => ArgumentKind.Custom;
+
+    bool IParameterBindingFactory.IsPure => _isPure;
+
+    bool IParameterBindingFactory.IsDefaultHandler => false;
+
     /// <summary>
     /// Checks if this expression builder can handle the following parameter.
     /// </summary>
@@ -47,6 +57,25 @@ public abstract class CustomParameterExpressionBuilder : IParameterExpressionBui
     /// otherwise <c>false</c>.
     /// </returns>
     public abstract bool CanHandle(ParameterInfo parameter);
+
+    /// <summary>
+    /// Checks if this expression builder can handle the parameter described by the
+    /// source generator (which has no <see cref="ParameterInfo"/>).
+    /// </summary>
+    public virtual bool CanHandle(ParameterDescriptor parameter) => false;
+
+    /// <summary>
+    /// Creates the runtime binding used by source-generated resolvers.
+    /// </summary>
+    public virtual IParameterBinding Create(ParameterDescriptor parameter)
+        => throw new NotSupportedException();
+
+    /// <summary>
+    /// Returns <c>true</c> when this builder targets the described parameter but can only
+    /// decide via a <see cref="ParameterInfo"/> predicate, which the source generator cannot
+    /// evaluate. Used to raise a clear error instead of silently misclassifying the parameter.
+    /// </summary>
+    internal virtual bool RequiresParameterInfo(ParameterDescriptor parameter) => false;
 
     /// <summary>
     /// Builds an expression that resolves a resolver parameter.
@@ -69,6 +98,8 @@ public class CustomParameterExpressionBuilder<TArg> : CustomParameterExpressionB
 {
     private readonly Func<ParameterInfo, bool> _canHandle;
     private readonly Expression<Func<IResolverContext, TArg>> _expression;
+    private readonly bool _usesDefaultTypePredicate;
+    private Func<IResolverContext, TArg>? _compiled;
 
     /// <summary>
     /// Initializes a new instance of <see cref="CustomParameterExpressionBuilder"/>.
@@ -82,6 +113,7 @@ public class CustomParameterExpressionBuilder<TArg> : CustomParameterExpressionB
     {
         _canHandle = p => p.ParameterType == typeof(TArg);
         _expression = expression;
+        _usesDefaultTypePredicate = true;
     }
 
     /// <summary>
@@ -100,6 +132,7 @@ public class CustomParameterExpressionBuilder<TArg> : CustomParameterExpressionB
     {
         _canHandle = p => p.ParameterType == typeof(TArg);
         _expression = expression;
+        _usesDefaultTypePredicate = true;
     }
 
     /// <summary>
@@ -118,6 +151,7 @@ public class CustomParameterExpressionBuilder<TArg> : CustomParameterExpressionB
     {
         _expression = expression;
         _canHandle = canHandle;
+        _usesDefaultTypePredicate = false;
     }
 
     /// <summary>
@@ -140,6 +174,7 @@ public class CustomParameterExpressionBuilder<TArg> : CustomParameterExpressionB
     {
         _expression = expression;
         _canHandle = canHandle;
+        _usesDefaultTypePredicate = false;
     }
 
     /// <summary>
@@ -167,4 +202,33 @@ public class CustomParameterExpressionBuilder<TArg> : CustomParameterExpressionB
     /// </returns>
     public override Expression Build(ParameterExpressionBuilderContext context)
         => Expression.Invoke(_expression, context.ResolverContext);
+
+    public override bool CanHandle(ParameterDescriptor parameter)
+        => _usesDefaultTypePredicate && parameter.Type == typeof(TArg);
+
+    internal override bool RequiresParameterInfo(ParameterDescriptor parameter)
+        // A custom ParameterInfo predicate can match any parameter a TArg value is assignable to
+        // (e.g. an interface or base type), not just an exact-TArg parameter. The source generator
+        // cannot evaluate the predicate, so flag those parameters to fail loudly rather than
+        // silently fall through to argument binding.
+        => !_usesDefaultTypePredicate && parameter.Type.IsAssignableFrom(typeof(TArg));
+
+    public override IParameterBinding Create(ParameterDescriptor parameter)
+        => new CustomBinding(_compiled ??= _expression.Compile(), _isPure);
+
+    private sealed class CustomBinding(
+        Func<IResolverContext, TArg> compiled,
+        bool isPure)
+        : IParameterBinding
+    {
+        public bool IsPure => isPure;
+
+        public T Execute<T>(IResolverContext context)
+        {
+            // the binding is only created for a parameter of type TArg, so T == TArg here
+            Debug.Assert(typeof(T) == typeof(TArg));
+            var value = compiled(context);
+            return Unsafe.As<TArg, T>(ref value);
+        }
+    }
 }

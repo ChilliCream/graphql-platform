@@ -13,10 +13,10 @@ internal sealed class PagingArgumentsParameterExpressionBuilder()
 {
     public bool IsDefaultHandler => false;
 
-    public bool CanHandle(ParameterDescriptor parameter)
+    public override bool CanHandle(ParameterDescriptor parameter)
         => parameter.Type == typeof(PagingArguments);
 
-    public IParameterBinding Create(ParameterDescriptor parameter)
+    public override IParameterBinding Create(ParameterDescriptor parameter)
         => this;
 
     public ArgumentKind Kind => ArgumentKind.Custom;

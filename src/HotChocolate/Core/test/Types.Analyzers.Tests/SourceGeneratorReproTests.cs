@@ -19,7 +19,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Types;
 
-public class SourceGeneratorOffsetPagingReproTests
+public class SourceGeneratorReproTests
 {
     [Fact]
     public async Task QueryType_SourceGenerator_Path_Works_Like_AddQueryType_Path()
@@ -312,6 +312,123 @@ public class SourceGeneratorOffsetPagingReproTests
             .Single(predicate);
     }
 
+    [Fact]
+    public async Task Module_SourceGen_CustomParameterExpressionBuilder_IsInjected_NotAnArgument()
+    {
+        var assembly = CompileCustomParameterReproAssembly();
+
+        var result = await ExecuteWithSourceGeneratorRegistrationAsync(
+            assembly,
+            registrationMethodName: "AddDemo",
+            query: "mutation { doThing(name: \"!\") }",
+            configureBuilder: static b =>
+                b.AddParameterExpressionBuilder(_ => new InjectedUser { Name = "injected" }));
+
+        // the custom parameter is not exposed as a GraphQL argument (only 'name' is)
+        Assert.Contains("doThing(name: String!): String!", result.Schema, StringComparison.Ordinal);
+
+        // the custom parameter value is injected into the resolver
+        using var json = JsonDocument.Parse(result.Result);
+        var value = json.RootElement.GetProperty("data").GetProperty("doThing").GetString();
+        Assert.Equal("injected!", value);
+    }
+
+    [Fact]
+    public async Task Module_SourceGen_CustomPredicateBuilder_AssignableInterfaceParameter_FailsLoud()
+    {
+        var assembly = CompileInterfaceParameterReproAssembly();
+
+        var builder = new ServiceCollection().AddGraphQLServer(disableDefaultSecurity: true);
+        var addModule = FindRegistrationMethod(
+            assembly,
+            m =>
+            {
+                var p = m.GetParameters();
+                return m.Name.Equals("AddDemo", StringComparison.Ordinal)
+                    && m.ReturnType == typeof(IRequestExecutorBuilder)
+                    && p.Length == 1
+                    && p[0].ParameterType == typeof(IRequestExecutorBuilder);
+            });
+        addModule.Invoke(null, [builder]);
+
+        // a custom ParameterInfo predicate whose value type (ConcreteInjectedUser) is assignable to
+        // the resolver parameter type (IInjectedUser). The source generator cannot evaluate the
+        // predicate, so the build must fail with a clear error instead of misbinding the parameter.
+        builder.AddParameterExpressionBuilder(
+            _ => new ConcreteInjectedUser(),
+            p => p.Name == "user");
+
+        var exception = await Record.ExceptionAsync(
+            async () => await builder.BuildSchemaAsync(
+                cancellationToken: TestContext.Current.CancellationToken));
+
+        Assert.IsType<SchemaException>(exception);
+        Assert.Contains(
+            "custom parameter expression builder",
+            exception.ToString(),
+            StringComparison.Ordinal);
+    }
+
+    private static Assembly CompileInterfaceParameterReproAssembly()
+    {
+        const string source = """
+            using HotChocolate;
+            using HotChocolate.Types;
+
+            [assembly: Module("Demo")]
+
+            namespace Repro;
+
+            [QueryType]
+            public static partial class SourceGeneratedQuery
+            {
+                public static string Ping() => "pong";
+            }
+
+            [MutationType]
+            public static partial class SourceGeneratedMutation
+            {
+                public static string DoThing(IInjectedUser user, string name)
+                    => user.Name + name;
+            }
+            """;
+
+        return CompileReproAssembly(
+            source,
+            "SourceGeneratorInterfaceParameterRepro",
+            [MetadataReference.CreateFromFile(typeof(IInjectedUser).Assembly.Location)]);
+    }
+
+    private static Assembly CompileCustomParameterReproAssembly()
+    {
+        const string source = """
+            using HotChocolate;
+            using HotChocolate.Types;
+
+            [assembly: Module("Demo")]
+
+            namespace Repro;
+
+            [QueryType]
+            public static partial class SourceGeneratedQuery
+            {
+                public static string Ping() => "pong";
+            }
+
+            [MutationType]
+            public static partial class SourceGeneratedMutation
+            {
+                public static string DoThing(InjectedUser user, string name)
+                    => user.Name + name;
+            }
+            """;
+
+        return CompileReproAssembly(
+            source,
+            "SourceGeneratorCustomParameterRepro",
+            [MetadataReference.CreateFromFile(typeof(InjectedUser).Assembly.Location)]);
+    }
+
     private static Assembly CompileOffsetPagingReproAssembly()
     {
         const string source = """
@@ -508,7 +625,10 @@ public class SourceGeneratorOffsetPagingReproTests
         return CompileReproAssembly(source, "SourceGeneratorAnyTypeEscapingRepro");
     }
 
-    private static Assembly CompileReproAssembly(string source, string assemblyName)
+    private static Assembly CompileReproAssembly(
+        string source,
+        string assemblyName,
+        IEnumerable<PortableExecutableReference>? extraReferences = null)
     {
         var parseOptions = CSharpParseOptions.Default;
         var syntaxTree = CSharpSyntaxTree.ParseText(source, parseOptions);
@@ -547,9 +667,11 @@ public class SourceGeneratorOffsetPagingReproTests
             MetadataReference.CreateFromFile(typeof(IFilterContext).Assembly.Location),
             MetadataReference.CreateFromFile(typeof(WebApplication).Assembly.Location),
             MetadataReference.CreateFromFile(typeof(IServiceCollection).Assembly.Location),
-            MetadataReference.CreateFromFile(typeof(Microsoft.AspNetCore.Authorization.AuthorizeAttribute).Assembly.Location),
+            MetadataReference.CreateFromFile(
+                typeof(Microsoft.AspNetCore.Authorization.AuthorizeAttribute).Assembly.Location),
             MetadataReference.CreateFromFile(typeof(Authorization.AuthorizeAttribute).Assembly.Location),
-            MetadataReference.CreateFromFile(typeof(UseOffsetPagingAttribute).Assembly.Location)
+            MetadataReference.CreateFromFile(typeof(UseOffsetPagingAttribute).Assembly.Location),
+            .. extraReferences ?? []
         ];
 
         var compilation = CSharpCompilation.Create(
@@ -594,4 +716,25 @@ public class SourceGeneratorOffsetPagingReproTests
     }
 
     private sealed record ExecutionResult(string Schema, string Result);
+}
+
+// Shared with the source-generated repro assembly (must be a compile-time type so the test can register
+// AddParameterExpressionBuilder<InjectedUser>). Supplied via a custom parameter expression builder,
+// never a GraphQL argument.
+public sealed class InjectedUser
+{
+    public string Name { get; set; } = string.Empty;
+}
+
+// Interface + implementation shared with the source-generated repro assembly. Used to verify that a
+// custom ParameterInfo predicate whose value type is assignable to an interface/base parameter type is
+// detected by the source-generator binding path.
+public interface IInjectedUser
+{
+    string Name { get; }
+}
+
+public sealed class ConcreteInjectedUser : IInjectedUser
+{
+    public string Name { get; set; } = string.Empty;
 }
