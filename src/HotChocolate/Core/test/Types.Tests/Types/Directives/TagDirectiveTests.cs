@@ -72,6 +72,29 @@ public class TagDirectiveTests
     }
 
     [Fact]
+    public async Task CodeFirst_Tag_OnDirectiveDefinition()
+    {
+        // arrange & act
+        var schema = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<Query>()
+            .AddObjectType<Foo>()
+            .AddDirectiveType(d =>
+            {
+                d.Name("customCodeFirst");
+                d.Location(DirectiveLocation.Object);
+                d.Tag("codeFirstTag");
+            })
+            .ModifyOptions(o => o.RemoveUnusedTypeSystemDirectives = false)
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // assert
+        var custom = schema.DirectiveTypes["customCodeFirst"];
+        var directive = Assert.Single(custom.Directives);
+        Assert.Equal("tag", directive.Name);
+    }
+
+    [Fact]
     public async Task ValidNames()
     {
         var exception = await Record.ExceptionAsync(
