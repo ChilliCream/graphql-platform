@@ -28,13 +28,30 @@ dotnet test src/HotChocolate/Fusion
 ## Orchestration
 
 - **You are the orchestrator, not the worker.** Keep the main context window clean for decision-making. Never do work yourself that a subagent could do.
+- **Delegate by default.** Any task with a clear spec and a checkable output goes to a subagent. Keep for yourself only: planning, ambiguous judgment, architecture decisions, and reviewing subagent output.
+- **Escalation valve.** Execute directly only when a task has no checkable output, or when a subagent has failed the same task twice.
+- **Write a spec before delegating.** Subagents run in a fresh context window and cannot see this conversation. For each delegated task, state: inputs, expected output, and acceptance criteria. Vague instructions cause weaker models to wander.
 - **Context window discipline**: When told "let it cook" or "don't inspect" — trust the subagent, don't re-read its output.
 - **Team composition**: Minimum for non-trivial work is lead developer + devil's advocate.
+
+## Team
+
+Delegate execution to the subagents defined in `.claude/agents/`. Route by complexity, not habit:
+
+- `implementer` (sonnet): writes and edits code against a clear spec.
+- `test-runner` (haiku): runs filtered tests, reports pass/fail plus failure detail.
+- `code-reviewer` (sonnet): quality, security, and convention review of a diff.
+- `devils-advocate` (inherit): stress-tests the plan and surfaces risks before work starts. This is high-value reasoning with no checkable output, so it runs on the top model, same tier as you.
+
+You (the orchestrator) keep: task decomposition, spec-writing, reviewing results against acceptance criteria, and final judgment. Run independent subagents in parallel. Always report which subagent handled which part.
+
+Adjust this list to match the agents you actually have; the orchestrator can only route to agents named here.
 
 ## Verification
 
 - "Done" means: compiles, tests pass, verified by running the relevant tests.
 - Never mark work complete without proving it works.
+- Verification is delegated to `test-runner`. Review its result against the acceptance criteria you set. Do not re-run or re-read work you were told to trust.
 - Run tests with `--filter` during iteration — never the full suite unnecessarily.
 
 ## Core Principles

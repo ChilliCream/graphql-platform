@@ -36,7 +36,7 @@ internal sealed partial class FetchResultStore
         _deferFlags = deferFlags;
         _disposed = false;
 
-        _pathPool ??= new PathSegmentLocalPool(PathSegmentMemory.GetPool(), pathSegmentLocalPoolCapacity);
+        _pathPool ??= new PathSegmentLocalPool(pathSegmentLocalPoolCapacity);
         _result = new CompositeResultDocument(arena, operation, includeFlags, deferFlags, _pathPool);
 
         _valueCompletion = new ValueCompletion(
