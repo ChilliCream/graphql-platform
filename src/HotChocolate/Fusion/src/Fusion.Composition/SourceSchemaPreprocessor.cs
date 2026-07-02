@@ -87,8 +87,9 @@ internal sealed partial class SourceSchemaPreprocessor(
     }
 
     /// <summary>
-    /// Removes types, fields, arguments, and enum values that are tagged with any of the specified
-    /// tags.
+    /// Removes types, fields, arguments, enum values, and directive definitions that are tagged
+    /// with any of the specified tags. Removing a directive definition also removes every
+    /// application of that directive across the schema.
     /// </summary>
     private void RemoveTaggedMembers(HashSet<string> excludeByTag)
     {
@@ -211,6 +212,114 @@ internal sealed partial class SourceSchemaPreprocessor(
         if (schema.SubscriptionType is { } subscriptionType && !schema.Types.Contains(subscriptionType))
         {
             schema.SubscriptionType = null;
+        }
+
+        var removedDirectiveNames = new HashSet<string>(StringComparer.Ordinal);
+
+        foreach (var directiveDefinition in schema.DirectiveDefinitions.AsEnumerable())
+        {
+            if (directiveDefinition.GetTags().Overlaps(excludeByTag))
+            {
+                removedDirectiveNames.Add(directiveDefinition.Name);
+            }
+        }
+
+        if (removedDirectiveNames.Count == 0)
+        {
+            return;
+        }
+
+        foreach (var directiveName in removedDirectiveNames)
+        {
+            schema.DirectiveDefinitions.Remove(directiveName);
+        }
+
+        RemoveDirectiveApplications(removedDirectiveNames);
+    }
+
+    /// <summary>
+    /// Removes every application of the specified directives from all directive-bearing members of
+    /// the schema, so that removing the directive definitions leaves a consistent schema without
+    /// dangling applications.
+    /// </summary>
+    private void RemoveDirectiveApplications(HashSet<string> directiveNames)
+    {
+        RemoveMatchingDirectives(schema.Directives, directiveNames);
+
+        foreach (var type in schema.Types)
+        {
+            if (type is IMutableTypeDefinition mutableType)
+            {
+                RemoveMatchingDirectives(mutableType.Directives, directiveNames);
+            }
+
+            switch (type)
+            {
+                case MutableComplexTypeDefinition complexType:
+                    foreach (var field in complexType.Fields.AsEnumerable())
+                    {
+                        RemoveMatchingDirectives(field.Directives, directiveNames);
+
+                        foreach (var argument in field.Arguments.AsEnumerable())
+                        {
+                            RemoveMatchingDirectives(argument.Directives, directiveNames);
+                        }
+                    }
+
+                    break;
+
+                case MutableInputObjectTypeDefinition inputObjectType:
+                    foreach (var field in inputObjectType.Fields.AsEnumerable())
+                    {
+                        RemoveMatchingDirectives(field.Directives, directiveNames);
+                    }
+
+                    break;
+
+                case MutableEnumTypeDefinition enumType:
+                    foreach (var value in enumType.Values.AsEnumerable())
+                    {
+                        RemoveMatchingDirectives(value.Directives, directiveNames);
+                    }
+
+                    break;
+            }
+        }
+
+        foreach (var directiveDefinition in schema.DirectiveDefinitions.AsEnumerable())
+        {
+            RemoveMatchingDirectives(directiveDefinition.Directives, directiveNames);
+
+            foreach (var argument in directiveDefinition.Arguments.AsEnumerable())
+            {
+                RemoveMatchingDirectives(argument.Directives, directiveNames);
+            }
+        }
+    }
+
+    private static void RemoveMatchingDirectives(
+        DirectiveCollection directives,
+        HashSet<string> directiveNames)
+    {
+        List<Directive>? directivesToRemove = null;
+
+        foreach (var directive in directives.AsEnumerable())
+        {
+            if (directiveNames.Contains(directive.Name))
+            {
+                directivesToRemove ??= [];
+                directivesToRemove.Add(directive);
+            }
+        }
+
+        if (directivesToRemove is null)
+        {
+            return;
+        }
+
+        foreach (var directive in directivesToRemove)
+        {
+            directives.Remove(directive);
         }
     }
 
