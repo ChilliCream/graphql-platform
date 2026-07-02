@@ -992,6 +992,27 @@ internal static class LogEntryHelper
             .Build();
     }
 
+    public static LogEntry OptInFeatureStabilityMismatch(
+        string feature,
+        MutableSchemaDefinition schemaA,
+        string stabilityA,
+        MutableSchemaDefinition schemaB,
+        string stabilityB)
+    {
+        return LogEntryBuilder.New()
+            .SetMessage(
+                LogEntryHelper_OptInFeatureStabilityMismatch,
+                feature,
+                schemaA.Name,
+                stabilityA,
+                schemaB.Name,
+                stabilityB)
+            .SetCode(LogEntryCodes.OptInFeatureStabilityMismatch)
+            .SetSeverity(LogSeverity.Error)
+            .SetSchema(schemaA)
+            .Build();
+    }
+
     public static LogEntry OutputFieldTypesNotMergeable(
         MutableOutputFieldDefinition field,
         MutableSchemaDefinition schemaA,

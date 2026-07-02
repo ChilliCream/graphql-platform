@@ -15,9 +15,30 @@ export function LogoCloud() {
         Trusted by Enterprises
       </p>
       <div className="text-cc-heading mt-10 flex flex-wrap items-center justify-center gap-x-16 gap-y-10 sm:mt-14 sm:gap-x-24 lg:grid lg:grid-cols-3 lg:place-items-center lg:gap-x-8">
-        <GalaxusLogo className="h-9 w-auto sm:h-11" />
-        <SwissLifeLogo className="h-18 w-auto sm:h-22" />
-        <MicrosoftLogo className="h-9 w-auto sm:h-11" />
+        <a
+          href="https://www.galaxus.ch"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Galaxus"
+        >
+          <GalaxusLogo className="h-9 w-auto sm:h-11" />
+        </a>
+        <a
+          href="https://www.swisslife.ch"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Swiss Life"
+        >
+          <SwissLifeLogo className="h-18 w-auto sm:h-22" />
+        </a>
+        <a
+          href="https://www.microsoft.com"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Microsoft"
+        >
+          <MicrosoftLogo className="h-9 w-auto sm:h-11" />
+        </a>
       </div>
     </section>
   );

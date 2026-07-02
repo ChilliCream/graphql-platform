@@ -18,6 +18,7 @@ const meta = {
     priceNote: { control: "text" },
     perks: { control: "object" },
     popular: { control: "boolean" },
+    popularLabel: { control: "text" },
     headingLevel: { control: "select", options: ["h2", "h3"] },
     callToAction: { control: "object" },
     // Component prop (`ComponentType`), not a value the Controls panel can edit.
@@ -68,6 +69,17 @@ export const Default: Story = {
 // The highlighted variant: accent ring, "Most Popular" badge, solid CTA.
 export const Popular: Story = {
   args: { popular: true },
+  render: (args) => (
+    <div className="mx-auto max-w-sm">
+      <Offering {...args} />
+    </div>
+  ),
+};
+
+// The highlighted variant with a custom badge label (as on the help tiers,
+// where Support reads "Best Value" instead of "Most Popular").
+export const PopularCustomLabel: Story = {
+  args: { popular: true, popularLabel: "Best Value" },
   render: (args) => (
     <div className="mx-auto max-w-sm">
       <Offering {...args} />

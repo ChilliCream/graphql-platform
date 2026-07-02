@@ -1,5 +1,6 @@
 ---
-title: "Introduction"
+title: Fusion
+metaTitle: "Fusion: Federated GraphQL Gateway"
 description: "Fusion is ChilliCream's GraphQL gateway for composing multiple services into one API, implementing the GraphQL Composite Schemas spec with build-time validation."
 ---
 

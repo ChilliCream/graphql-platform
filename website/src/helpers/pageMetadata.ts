@@ -11,6 +11,8 @@ interface PageMetadataInput {
   readonly description: string;
   /** Canonical path for the page, e.g. `"/blog"` or `"/"`. */
   readonly path: string;
+  /** Keywords describing the page, emitted as the `<meta name="keywords">` tag. */
+  readonly keywords?: readonly string[];
   /** Use the title verbatim instead of applying the `"%s - ChilliCream"` template. */
   readonly absoluteTitle?: boolean;
 }
@@ -28,6 +30,7 @@ export function pageMetadata({
   title,
   description,
   path,
+  keywords,
   absoluteTitle = false,
 }: PageMetadataInput): Metadata {
   const socialTitle = absoluteTitle ? title : `${title} - ${SITE_NAME}`;
@@ -35,6 +38,7 @@ export function pageMetadata({
   return {
     title: absoluteTitle ? { absolute: title } : title,
     description,
+    keywords: keywords?.slice(),
     alternates: { canonical: path },
     openGraph: {
       type: "website",
