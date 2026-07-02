@@ -4,20 +4,16 @@ namespace HotChocolate.Fusion.Text.Json;
 
 internal sealed class PathSegmentLocalPool : IDisposable
 {
-    private readonly PathSegmentPool _pool;
     private int[]?[] _buffers;
     private int _index;
     private int[]?[] _allRented;
     private int _allRentedCount;
     private bool _disposed;
 
-    public PathSegmentLocalPool(PathSegmentPool pool, int initialCapacity)
+    public PathSegmentLocalPool(int initialCapacity = 64)
     {
-        ArgumentNullException.ThrowIfNull(pool);
-
         var capacity = Math.Max(32, initialCapacity);
 
-        _pool = pool;
         _buffers = ArrayPool<int[]?>.Shared.Rent(capacity);
         _index = 0;
         _allRented = ArrayPool<int[]?>.Shared.Rent(capacity * 2);
@@ -33,14 +29,14 @@ internal sealed class PathSegmentLocalPool : IDisposable
             return array;
         }
 
-        var rented = _pool.Rent();
+        var rented = PathSegmentMemory.Rent();
         TrackRented(rented);
         return rented;
     }
 
     public void Return(int[] array)
     {
-        if (array.Length != _pool._segmentArraySize)
+        if (array.Length != PathSegmentMemory.SegmentArraySize)
         {
             return;
         }
@@ -88,7 +84,11 @@ internal sealed class PathSegmentLocalPool : IDisposable
 
         _disposed = true;
 
-        _pool.Return(_allRented.AsSpan(0, _allRentedCount));
+        for (var i = 0; i < _allRentedCount; i++)
+        {
+            PathSegmentMemory.Return(_allRented[i]!);
+            _allRented[i] = null;
+        }
 
         _allRentedCount = 0;
         _index = 0;
