@@ -1,4 +1,5 @@
 using HotChocolate.Execution;
+using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Types.Directives;
@@ -6,92 +7,159 @@ namespace HotChocolate.Types.Directives;
 public class TagDirectiveTests
 {
     [Fact]
-    public async Task EnsureAllLocationsAreApplied()
-    {
-        var schema =
-            await new ServiceCollection()
-                .AddGraphQL()
-                .AddQueryType<Query>()
-                .AddObjectType<Foo>()
-                .AddType<FooDirective>()
-                .SetSchema(d => d.Tag("OnSchema"))
-                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
-
-        schema.MatchSnapshot();
-    }
-
-    [Fact]
     public async Task SchemaFirst_Tag()
     {
+        // arrange & act
         var schema =
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddDocumentFromString(
                     """
-                    type Query {
-                        field: String @tag(name: "abc")
+                    schema @tag(name: "OnSchema") {
+                        query: Query
                     }
+
+                    type Query @tag(name: "OnObjectType") {
+                        foo(a: String! @tag(name: "OnObjectFieldArg")): IFoo!
+                            @tag(name: "OnObjectField")
+                        fooEnum(input: FooInput!): FooEnum!
+                        fooUnion: FooUnion!
+                    }
+
+                    type Foo implements IFoo {
+                        bar(baz: String!): String!
+                    }
+
+                    interface IFoo @tag(name: "OnInterface") {
+                        bar(baz: String! @tag(name: "OnInterfaceFieldArg")): String!
+                            @tag(name: "OnInterfaceField")
+                    }
+
+                    union FooUnion @tag(name: "OnUnion") = FooUnionA | FooUnionB
+
+                    type FooUnionA {
+                        id: String!
+                    }
+
+                    type FooUnionB {
+                        id: String!
+                    }
+
+                    input FooInput @tag(name: "OnInputObjectType") {
+                        bar: String! @tag(name: "OnInputObjectField")
+                    }
+
+                    enum FooEnum @tag(name: "OnEnum") {
+                        FOO @tag(name: "OnEnumValue")
+                        BAR
+                    }
+
+                    directive @foo(arg: String! @tag(name: "OnDirectiveArgument"))
+                        @tag(name: "OnDirectiveDefinition") on QUERY
 
                     directive @tag("The name of the tag." name: String!)
                         repeatable on SCHEMA | SCALAR | OBJECT | FIELD_DEFINITION |
                             ARGUMENT_DEFINITION | INTERFACE | UNION | ENUM | ENUM_VALUE |
-                            INPUT_OBJECT | INPUT_FIELD_DEFINITION
+                            INPUT_OBJECT | INPUT_FIELD_DEFINITION | DIRECTIVE_DEFINITION
                     """)
                 .UseField(_ => _ => default)
                 .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
+        // assert
         schema.MatchSnapshot();
     }
 
     [Fact]
-    public async Task SchemaFirst_Tag_OnDirectiveDefinition_IsBound()
+    public async Task CodeFirst_Tag()
     {
-        // arrange
-        // @custom is applied to Query so it survives default pruning; the built-in
-        // @tag is applied to @custom's own definition.
-        const string source =
-            """
-            type Query @custom {
-                field: String
-            }
-
-            directive @custom @tag(name: "internal") on OBJECT
-            """;
-
-        // act
-        var schema = await new ServiceCollection()
-            .AddGraphQL()
-            .AddDocumentFromString(source)
-            .UseField(next => next)
-            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
+        // arrange & act
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .SetSchema(d => d.Tag("OnSchema"))
+                .AddQueryType(d =>
+                {
+                    d.Tag("OnObjectType");
+                    d.Field("foo")
+                        .Type("IFoo!")
+                        .Argument("a", a => a.Type("String!").Tag("OnObjectFieldArg"))
+                        .Tag("OnObjectField");
+                    d.Field("fooEnum")
+                        .Type("FooEnum!")
+                        .Argument("input", a => a.Type("FooInput!"));
+                    d.Field("fooUnion").Type("FooUnion!");
+                })
+                .AddInterfaceType(d =>
+                {
+                    d.Name("IFoo");
+                    d.Tag("OnInterface");
+                    d.Field("bar")
+                        .Type("String!")
+                        .Argument("baz", a => a.Type("String!").Tag("OnInterfaceFieldArg"))
+                        .Tag("OnInterfaceField");
+                })
+                .AddObjectType(d => d
+                    .Name("Foo")
+                    .Implements("IFoo")
+                    .Field("bar")
+                    .Type("String!")
+                    .Argument("baz", a => a.Type("String!")))
+                .AddUnionType(d => d
+                    .Name("FooUnion")
+                    .Tag("OnUnion")
+                    .Type(new NamedTypeNode("FooUnionA"))
+                    .Type(new NamedTypeNode("FooUnionB")))
+                .AddObjectType(d => d.Name("FooUnionA").Field("id").Type("String!"))
+                .AddObjectType(d => d.Name("FooUnionB").Field("id").Type("String!"))
+                .AddInputObjectType(d =>
+                {
+                    d.Name("FooInput");
+                    d.Tag("OnInputObjectType");
+                    d.Field("bar").Type("String!").Tag("OnInputObjectField");
+                })
+                .AddEnumType(d =>
+                {
+                    d.Name("FooEnum");
+                    d.Tag("OnEnum");
+                    d.Value("FOO").Tag("OnEnumValue");
+                    d.Value("BAR");
+                })
+                .AddDirectiveType(d =>
+                {
+                    d.Name("foo");
+                    d.Location(DirectiveLocation.Query);
+                    d.Tag("OnDirectiveDefinition");
+                    d.Argument("arg", a => a.Type("String!").Tag("OnDirectiveArgument"));
+                })
+                .UseField(_ => _ => default)
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
-        var custom = schema.DirectiveTypes["custom"];
-        var directive = Assert.Single(custom.Directives);
-        Assert.Equal("tag", directive.Name);
+        schema.MatchSnapshot();
     }
 
     [Fact]
-    public async Task CodeFirst_Tag_OnDirectiveDefinition()
+    public async Task ImplementationFirst_Tag()
     {
+        // The SCHEMA position is intentionally omitted here: HotChocolate does not
+        // apply class-level descriptor attributes to Schema subclasses, so a [Tag]
+        // on a Schema class has no effect. Attribute-driven registration therefore
+        // covers 12 of the 13 positions; the schema-first and code-first modes
+        // cover all 13.
+
         // arrange & act
-        var schema = await new ServiceCollection()
-            .AddGraphQL()
-            .AddQueryType<Query>()
-            .AddObjectType<Foo>()
-            .AddDirectiveType(d =>
-            {
-                d.Name("customCodeFirst");
-                d.Location(DirectiveLocation.Object);
-                d.Tag("codeFirstTag");
-            })
-            .ModifyOptions(o => o.RemoveUnusedTypeSystemDirectives = false)
-            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<Query>()
+                .AddObjectType<Foo>()
+                .AddType<FooUnionA>()
+                .AddType<FooUnionB>()
+                .AddType<FooDirective>()
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
-        var custom = schema.DirectiveTypes["customCodeFirst"];
-        var directive = Assert.Single(custom.Directives);
-        Assert.Equal("tag", directive.Name);
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -160,6 +228,8 @@ public class TagDirectiveTests
         public IFoo GetFoo([Tag("OnObjectFieldArg")] string a) => new Foo();
 
         public FooEnum GetFooEnum(FooInput input) => FooEnum.Foo;
+
+        public IFooUnion GetFooUnion() => new FooUnionA();
     }
 
     [Tag("OnInterface")]
@@ -172,6 +242,20 @@ public class TagDirectiveTests
     public class Foo : IFoo
     {
         public string Bar(string baz) => "Bar" + baz;
+    }
+
+    [UnionType("FooUnion")]
+    [Tag("OnUnion")]
+    public interface IFooUnion;
+
+    public sealed class FooUnionA : IFooUnion
+    {
+        public string Id => "a";
+    }
+
+    public sealed class FooUnionB : IFooUnion
+    {
+        public string Id => "b";
     }
 
     [Tag("OnEnum")]
@@ -189,6 +273,7 @@ public class TagDirectiveTests
         public required string Bar { get; set; }
     }
 
+    [Tag("OnDirectiveDefinition")]
     [DirectiveType(DirectiveLocation.Query)]
     public class FooDirective
     {
