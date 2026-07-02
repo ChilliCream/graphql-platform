@@ -57,6 +57,16 @@ const TRACK_VERSION_COUNTS: Readonly<Record<string, number>> = {
   "/messaging-graphic": 8,
 };
 
+/**
+ * Tracks that expose an explicit, non-contiguous set of versions (others render
+ * a 1..count sequence). Nitro lists only the surviving stances after archiving.
+ */
+const TRACK_VERSIONS: Readonly<Record<string, readonly number[]>> = {
+  "/products/nitro/preview": [
+    3, 4, 5, 7, 10, 15, 16, 17, 18, 20, 22, 23, 26, 27, 28,
+  ],
+};
+
 interface PreviewSwitcherProps {
   readonly className?: string;
 }
@@ -84,7 +94,8 @@ export function PreviewSwitcher({ className }: PreviewSwitcherProps) {
   }
 
   const count = TRACK_VERSION_COUNTS[base] ?? MAX_VERSIONS;
-  const versions = Array.from({ length: count }, (_, i) => i + 1);
+  const versions =
+    TRACK_VERSIONS[base] ?? Array.from({ length: count }, (_, i) => i + 1);
 
   return (
     <div

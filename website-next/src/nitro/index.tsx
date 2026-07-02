@@ -36,11 +36,24 @@ interface NitroWrapperProps {
   readonly durationMs?: number;
 }
 
+interface NitroReelProps extends NitroWrapperProps {
+  /** Float the phase nav as a pill straddling the stage's bottom edge. */
+  readonly tabsOverlay?: boolean;
+}
+
 /** The full 5-tab Nitro product reel (Author / Observe / Diagnose / Schema / Fusion). */
-export function NitroReel({ className }: NitroWrapperProps) {
+export function NitroReel({ className, tabsOverlay }: NitroReelProps) {
   return (
-    <ThemeProvider theme="dark" reducedMotion="never" className={className}>
-      <NitroTabReel />
+    <ThemeProvider
+      theme="dark"
+      reducedMotion="never"
+      className={className}
+      // Frameless mode: the stage supplies its own window background, so the
+      // themed container must be transparent (no darker panel behind the
+      // per-tab headline).
+      style={tabsOverlay ? { background: "transparent" } : undefined}
+    >
+      <NitroTabReel tabsOverlay={tabsOverlay} />
     </ThemeProvider>
   );
 }

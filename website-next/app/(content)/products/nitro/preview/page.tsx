@@ -6,7 +6,7 @@ import { PageHero } from "@/src/components/PageHero";
 export const metadata: Metadata = {
   title: "Nitro Page Variations",
   description:
-    "Choose between nine design stances for the Nitro product page: Railway Classic, Immersive Story, Developer Deep-Dive, The Verdict Ledger, Operator's Console, Cold Brew Control Bar, Live Cockpit, Blueprint Cockpit, and nitro.manifest.",
+    "The surviving design stances for the Nitro product page. Older experiments are archived.",
   robots: { index: false, follow: false },
 };
 
@@ -18,20 +18,6 @@ interface Variation {
 }
 
 const VARIATIONS: readonly Variation[] = [
-  {
-    stop: "v1",
-    stance: "Railway Classic",
-    href: "/products/nitro/preview/v1",
-    description:
-      "A guided, station-by-station tour down a single track, the dependable marketing rail.",
-  },
-  {
-    stop: "v2",
-    stance: "Immersive Story",
-    href: "/products/nitro/preview/v2",
-    description:
-      "A cinematic, scene-driven narrative that pulls the reader through Nitro's world.",
-  },
   {
     stop: "v3",
     stance: "Developer Deep-Dive",
@@ -54,32 +40,11 @@ const VARIATIONS: readonly Variation[] = [
       "A code-walkthrough stance on the cc-accent rail, narrating Nitro from the operator's terminal outward.",
   },
   {
-    stop: "v6",
-    stance: "Cold Brew Control Bar",
-    href: "/products/nitro/preview/v6",
-    description:
-      "A barista-family stance on the cc-accent rail, pouring Nitro's controls into a single calm bar across the page.",
-  },
-  {
     stop: "v7",
     stance: "Live Cockpit",
     href: "/products/nitro/preview/v7",
     description:
       "A motion-showcase stance on the cc-accent rail, flying Nitro through a live cockpit of moving gauges and signals.",
-  },
-  {
-    stop: "v8",
-    stance: "Blueprint Cockpit",
-    href: "/products/nitro/preview/v8",
-    description:
-      "A floor-plan stance on the cc-accent rail, laying Nitro out as a top-down architectural blueprint of labeled rooms.",
-  },
-  {
-    stop: "v9",
-    stance: "nitro.manifest",
-    href: "/products/nitro/preview/v9",
-    description:
-      "A manifest-spec stance on the cc-accent rail, declaring every Nitro capability field by field as a machine-readable spec sheet.",
   },
 ];
 
@@ -89,7 +54,7 @@ export default function NitroPreviewIndexPage() {
       <PageHero
         eyebrow="Internal Preview / Not Indexed"
         title="Nitro Page Variations"
-        teaser="Nine stances for the Nitro product page, parked side by side on one line. Pick a stop to ride that variation end to end."
+        teaser="The surviving stances for the Nitro product page, parked side by side on one line. Pick a stop to ride that variation end to end."
       />
 
       {/* Railway: a single spine with three stations branching off. */}

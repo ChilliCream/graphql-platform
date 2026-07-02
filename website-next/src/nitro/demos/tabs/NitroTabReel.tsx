@@ -76,17 +76,20 @@ export const NITRO_TABS: TabReelTab[] = [
 export interface NitroTabReelProps {
   staticTab?: number;
   staticProgress?: number;
+  tabsOverlay?: boolean;
 }
 
 export function NitroTabReel({
   staticTab,
   staticProgress,
+  tabsOverlay,
 }: NitroTabReelProps = {}) {
   return (
     <TabReel
       tabs={NITRO_TABS}
       staticTab={staticTab}
       staticProgress={staticProgress}
+      tabsOverlay={tabsOverlay}
       ariaLabel="Nitro — 5 product capabilities"
     />
   );
