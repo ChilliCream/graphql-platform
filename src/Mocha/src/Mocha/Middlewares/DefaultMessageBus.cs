@@ -426,13 +426,8 @@ public sealed class DefaultMessageBus(
             return false;
         }
 
-        var store = services.GetService<IScheduledMessageStore>();
-        if (store is null)
-        {
-            return false;
-        }
-
-        return await store.CancelAsync(token, cancellationToken);
+        var resolver = services.GetRequiredService<ScheduledMessageStoreResolver>();
+        return await resolver.CancelAsync(token, cancellationToken);
     }
 
     private void PropagateCorrelationIds(DispatchContext context)

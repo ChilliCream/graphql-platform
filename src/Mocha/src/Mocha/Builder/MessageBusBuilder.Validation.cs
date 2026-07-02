@@ -1,9 +1,23 @@
+using System.Collections.Immutable;
 using System.Text;
 
 namespace Mocha;
 
 public partial class MessageBusBuilder
 {
+    private static void ValidateDefaultTransports(ImmutableArray<MessagingTransport> transports)
+    {
+        var defaultTransportNames = transports
+            .Where(t => t.IsDefaultTransport)
+            .Select(t => t.Name)
+            .ToArray();
+
+        if (defaultTransportNames.Length > 1)
+        {
+            throw ThrowHelper.MultipleDefaultTransports(defaultTransportNames);
+        }
+    }
+
     private static void ValidateInboundRoutesAreBound(IMessagingSetupContext context)
     {
         var unboundRoutes = context.Router.InboundRoutes

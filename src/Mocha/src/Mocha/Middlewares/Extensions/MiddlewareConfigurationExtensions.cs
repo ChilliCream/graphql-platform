@@ -89,6 +89,8 @@ public static class MiddlewareConfigurationExtensions
             {
                 modifier(dispatchList);
             }
+
+            middlewares = [.. dispatchList];
         }
 
         return middlewares.ToImmutableArray();
