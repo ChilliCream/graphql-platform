@@ -11,8 +11,7 @@ namespace Mocha.Scheduling;
 /// <remarks>
 /// Messages without a <see cref="IDispatchContext.ScheduledTime"/> and dispatches marked with
 /// <see cref="SchedulingMiddlewareFeature.SkipScheduler"/> pass through to the next middleware.
-/// When the transport registers <see cref="SchedulingTransportFeature"/>, this middleware is skipped
-/// entirely during pipeline construction.
+/// Scheduled messages are routed to the registered store for the current transport.
 /// </remarks>
 public sealed class DispatchSchedulingMiddleware
 {
@@ -45,8 +44,19 @@ public sealed class DispatchSchedulingMiddleware
             return;
         }
 
-        var store = context.Services.GetRequiredService<IScheduledMessageStore>();
-        var token = await store.PersistAsync(context.Envelope, scheduledTime, context.CancellationToken);
+        if (context.Envelope.ScheduledTime != scheduledTime)
+        {
+            context.Envelope = new MessageEnvelope(context.Envelope) { ScheduledTime = scheduledTime };
+        }
+
+        var resolver = context.Services.GetRequiredService<ScheduledMessageStoreResolver>();
+
+        if (!resolver.TryGetForDispatch(context, out var store))
+        {
+            throw ThrowHelper.ScheduledDispatchUnsupported(context.Transport.GetType());
+        }
+
+        var token = await store.PersistAsync(context, context.CancellationToken);
 
         context.Features.Configure<ScheduledMessageFeature>(f => f.Token = token);
     }
@@ -55,30 +65,13 @@ public sealed class DispatchSchedulingMiddleware
     /// Creates the middleware configuration that wires the scheduling middleware into the dispatch
     /// pipeline.
     /// </summary>
-    /// <remarks>
-    /// If the transport declares <see cref="SchedulingTransportFeature"/> with
-    /// <see cref="SchedulingTransportFeature.SupportsSchedulingNatively"/> set to <c>true</c>,
-    /// the middleware is not installed and the next delegate is returned directly.
-    /// </remarks>
     /// <returns>
     /// A <see cref="DispatchMiddlewareConfiguration"/> named "Scheduling" for pipeline registration.
     /// </returns>
     public static DispatchMiddlewareConfiguration Create()
         => new(
-            static (context, next) =>
+            static (_, next) =>
             {
-                if (context.Transport.Features.Get<SchedulingTransportFeature>()?.SupportsSchedulingNatively is true)
-                {
-                    return next;
-                }
-
-                var appServices = context.Services.GetApplicationServices();
-                var isService = appServices.GetService<IServiceProviderIsService>();
-                if (isService?.IsService(typeof(IScheduledMessageStore)) is not true)
-                {
-                    return next;
-                }
-
                 var middleware = new DispatchSchedulingMiddleware();
                 return ctx => middleware.InvokeAsync(ctx, next);
             },
