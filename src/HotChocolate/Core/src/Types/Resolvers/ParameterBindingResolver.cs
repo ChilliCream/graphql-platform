@@ -72,6 +72,7 @@ public sealed class ParameterBindingResolver
             }
         }
 
+        EnsureParameterInfoNotRequired(parameter);
         return _defaultBinding.Create(parameter);
     }
 
@@ -85,6 +86,28 @@ public sealed class ParameterBindingResolver
             }
         }
 
+        EnsureParameterInfoNotRequired(parameter);
         return (_defaultBinding.Kind, _defaultBinding.IsPure);
+    }
+
+    private void EnsureParameterInfoNotRequired(ParameterDescriptor parameter)
+    {
+        foreach (var binding in _bindings)
+        {
+            if (binding is CustomParameterExpressionBuilder customBuilder
+                && customBuilder.RequiresParameterInfo(parameter))
+            {
+                throw new SchemaException(
+                    SchemaErrorBuilder.New()
+                        .SetMessage(
+                            $"The parameter '{parameter.Name}' of type "
+                            + $"'{parameter.Type.FullName ?? parameter.Type.Name}' is handled by a "
+                            + "custom parameter expression builder that was registered with a "
+                            + "ParameterInfo predicate, which is not supported by the source "
+                            + "generator. Register it using the type-based "
+                            + $"AddParameterExpressionBuilder<{parameter.Type.Name}>(...) overload.")
+                        .Build());
+            }
+        }
     }
 }

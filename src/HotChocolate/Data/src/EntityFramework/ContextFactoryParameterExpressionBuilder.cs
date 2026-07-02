@@ -17,10 +17,10 @@ internal sealed class ContextFactoryParameterExpressionBuilder<TDbContext>()
 
     public bool IsDefaultHandler => false;
 
-    public bool CanHandle(ParameterDescriptor parameter)
+    public override bool CanHandle(ParameterDescriptor parameter)
         => parameter.Type == typeof(TDbContext);
 
-    public IParameterBinding Create(ParameterDescriptor parameter) => this;
+    public override IParameterBinding Create(ParameterDescriptor parameter) => this;
 
     public T Execute<T>(IResolverContext context)
     {
