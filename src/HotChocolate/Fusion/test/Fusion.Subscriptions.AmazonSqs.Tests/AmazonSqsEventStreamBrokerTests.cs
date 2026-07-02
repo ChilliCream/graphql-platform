@@ -264,5 +264,7 @@ public sealed class AmazonSqsEventStreamBrokerTests(AmazonSqsFixture fixture)
 
         public IReadOnlyDictionary<string, IValueNode> Arguments { get; } =
             new Dictionary<string, IValueNode>();
+
+        public bool RequiresCursor => true;
     }
 }

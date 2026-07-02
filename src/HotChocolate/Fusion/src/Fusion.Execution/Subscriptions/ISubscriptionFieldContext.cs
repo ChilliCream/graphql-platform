@@ -12,4 +12,11 @@ public interface ISubscriptionFieldContext
     /// argument name.
     /// </summary>
     IReadOnlyDictionary<string, IValueNode> Arguments { get; }
+
+    /// <summary>
+    /// Gets a value indicating whether the executing operation exposes the resume cursor on the
+    /// output side. When false, brokers may skip computing and tracking cursor state. This does
+    /// NOT affect honoring an inbound resume cursor.
+    /// </summary>
+    bool RequiresCursor { get; }
 }
