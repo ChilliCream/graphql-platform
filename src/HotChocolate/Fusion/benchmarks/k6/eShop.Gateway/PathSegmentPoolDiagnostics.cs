@@ -1,21 +1,18 @@
-using System.Collections.Concurrent;
 using System.Diagnostics.Tracing;
-using System.Text;
 
 namespace eShop.Gateway;
 
 /// <summary>
-/// Listens to PathSegmentPool ETW events and logs aggregated usage metrics across all stripes.
+/// Listens to PathSegmentPool ETW events and logs aggregated usage metrics.
 /// </summary>
 internal sealed class PathSegmentPoolDiagnostics : EventListener, IHostedService
 {
     private readonly Timer _timer;
-    private readonly ConcurrentDictionary<int, StripeCounters> _stripes = new();
 
-    private int _poolCount;
+    private int _poolId;
     private int _segmentSize;
-    private long _maxArraysTotal;
-    private long _maxBytesTotal;
+    private int _maxArrays;
+    private long _maxBytes;
 
     private long _rented;
     private long _returned;
@@ -25,7 +22,7 @@ internal sealed class PathSegmentPoolDiagnostics : EventListener, IHostedService
     private long _trimmedEvents;
     private int _lastTrimRemaining;
     private int _lastTrimInUse;
-    private int _peakInUsePerStripe;
+    private int _peakInUse;
 
     public PathSegmentPoolDiagnostics()
     {
@@ -55,19 +52,21 @@ internal sealed class PathSegmentPoolDiagnostics : EventListener, IHostedService
             case 1:
                 if (e.Payload is { Count: >= 4 })
                 {
-                    Interlocked.Increment(ref _poolCount);
-
+                    if (e.Payload[0] is int poolId)
+                    {
+                        _poolId = poolId;
+                    }
                     if (e.Payload[1] is int segmentSize)
                     {
                         _segmentSize = segmentSize;
                     }
                     if (e.Payload[2] is int maxArrays)
                     {
-                        Interlocked.Add(ref _maxArraysTotal, maxArrays);
+                        _maxArrays = maxArrays;
                     }
                     if (e.Payload[3] is long maxBytes)
                     {
-                        Interlocked.Add(ref _maxBytesTotal, maxBytes);
+                        _maxBytes = maxBytes;
                     }
                 }
                 break;
@@ -76,7 +75,7 @@ internal sealed class PathSegmentPoolDiagnostics : EventListener, IHostedService
                 Interlocked.Increment(ref _rented);
                 if (e.Payload is { Count: >= 4 } && e.Payload[3] is int inUseRent)
                 {
-                    UpdatePeakInUsePerStripe(inUseRent);
+                    UpdatePeakInUse(inUseRent);
                 }
                 break;
 
@@ -86,26 +85,14 @@ internal sealed class PathSegmentPoolDiagnostics : EventListener, IHostedService
 
             case 4:
                 Interlocked.Increment(ref _exhausted);
-                if (e.Payload is { Count: >= 1 } && e.Payload[0] is int exhaustedPoolId)
-                {
-                    Interlocked.Increment(ref GetStripe(exhaustedPoolId).Exhausted);
-                }
                 break;
 
             case 5:
                 Interlocked.Increment(ref _dropped);
-                if (e.Payload is { Count: >= 3 } && e.Payload[2] is int droppedPoolId)
-                {
-                    Interlocked.Increment(ref GetStripe(droppedPoolId).Dropped);
-                }
                 break;
 
             case 6:
                 Interlocked.Increment(ref _allocated);
-                if (e.Payload is { Count: >= 3 } && e.Payload[2] is int allocatedPoolId)
-                {
-                    Interlocked.Increment(ref GetStripe(allocatedPoolId).Allocated);
-                }
                 break;
 
             case 7:
@@ -125,21 +112,18 @@ internal sealed class PathSegmentPoolDiagnostics : EventListener, IHostedService
         }
     }
 
-    private StripeCounters GetStripe(int poolId)
-        => _stripes.GetOrAdd(poolId, static _ => new StripeCounters());
-
-    private void UpdatePeakInUsePerStripe(int inUse)
+    private void UpdatePeakInUse(int inUse)
     {
         int current;
         do
         {
-            current = _peakInUsePerStripe;
+            current = _peakInUse;
             if (inUse <= current)
             {
                 return;
             }
         }
-        while (Interlocked.CompareExchange(ref _peakInUsePerStripe, inUse, current) != current);
+        while (Interlocked.CompareExchange(ref _peakInUse, inUse, current) != current);
     }
 
     private void LogSnapshot(object? state)
@@ -150,51 +134,27 @@ internal sealed class PathSegmentPoolDiagnostics : EventListener, IHostedService
         var dropped = Interlocked.Read(ref _dropped);
         var allocated = Interlocked.Read(ref _allocated);
         var trimmedEvents = Interlocked.Read(ref _trimmedEvents);
-        var maxArraysTotal = Interlocked.Read(ref _maxArraysTotal);
-        var maxBytesTotal = Interlocked.Read(ref _maxBytesTotal);
         var outstanding = rented - returned;
 
         Console.WriteLine(
-            "[PathSegmentPool] Pools={0}, SegmentSize={1}, MaxArraysTotal={2}, MaxBytesTotal={3}, "
-            + "Rented={4}, Returned={5}, Outstanding={6}, PeakInUsePerStripe={7}, "
+            "[PathSegmentPool] PoolId={0}, SegmentSize={1}, MaxArrays={2}, MaxBytes={3}, "
+            + "Rented={4}, Returned={5}, Outstanding={6}, PeakInUse={7}, "
             + "Exhausted={8}, Allocated={9}, Dropped={10}, "
-            + "TrimmedEvents={11}, LastTrimRemaining(any stripe)={12}, LastTrimInUse(any stripe)={13}",
-            Volatile.Read(ref _poolCount),
+            + "TrimmedEvents={11}, LastTrimRemaining={12}, LastTrimInUse={13}",
+            _poolId,
             _segmentSize,
-            maxArraysTotal,
-            maxBytesTotal,
+            _maxArrays,
+            _maxBytes,
             rented,
             returned,
             outstanding,
-            _peakInUsePerStripe,
+            _peakInUse,
             exhausted,
             allocated,
             dropped,
             trimmedEvents,
             _lastTrimRemaining,
             _lastTrimInUse);
-
-        // Per-stripe Dropped and Allocated near zero at steady state is the acceptance criterion:
-        // it proves rents and returns are matched on each pool so pooling is not being defeated.
-        var spread = new StringBuilder("[PathSegmentPool] Per-stripe spread:");
-        var first = true;
-        foreach (var poolId in _stripes.Keys.OrderBy(static id => id))
-        {
-            var stripe = _stripes[poolId];
-            spread.Append(first ? " " : ", ");
-            spread.Append(
-                $"#{poolId}(Dropped={Interlocked.Read(ref stripe.Dropped)}, "
-                + $"Allocated={Interlocked.Read(ref stripe.Allocated)}, "
-                + $"Exhausted={Interlocked.Read(ref stripe.Exhausted)})");
-            first = false;
-        }
-
-        if (first)
-        {
-            spread.Append(" none");
-        }
-
-        Console.WriteLine(spread.ToString());
     }
 
     public Task StartAsync(CancellationToken cancellationToken)
@@ -216,12 +176,5 @@ internal sealed class PathSegmentPoolDiagnostics : EventListener, IHostedService
     {
         _timer.Dispose();
         base.Dispose();
-    }
-
-    private sealed class StripeCounters
-    {
-        public long Dropped;
-        public long Allocated;
-        public long Exhausted;
     }
 }

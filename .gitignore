@@ -42,4 +42,3 @@ src/Mocha/benchmarks/Mocha.Mediator.Benchmarks/Generated/
 Directory.Build.user.props
 appsettings.user.json
 .playwright-mcp/
-.perf
