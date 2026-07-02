@@ -373,7 +373,7 @@ internal sealed class DeferOperationRewriter
         // syntactically valid query against the root schema.
         foreach (var (segment, childNode) in node.Children)
         {
-            var wrappingField = ResolveWrappingField(originalSelectionSet, segment)
+            var wrappingField = ResolveWrappingField(originalSelectionSet, segment, activeTypeCondition: null)
                 ?? throw new InvalidOperationException(
                     $"Unable to resolve wrapping field for '{segment.ResponseName}' at path '{FormatPath(parentPath)}'.");
 
@@ -419,8 +419,15 @@ internal sealed class DeferOperationRewriter
 
     private static FieldNode? ResolveWrappingField(
         SelectionSetNode selectionSet,
-        FieldPathSegment segment)
+        FieldPathSegment segment,
+        string? activeTypeCondition)
     {
+        // The segment records the type condition that was active when the field
+        // was collected. Sibling type-condition branches can reuse the same
+        // response name for divergent composite selections, so the wrapping
+        // field is only a match when the type condition it sits under matches
+        // the one recorded on the segment. Matching by response name alone would
+        // resolve against the wrong branch and drop its nested selections.
         for (var i = 0; i < selectionSet.Selections.Count; i++)
         {
             var selection = selectionSet.Selections[i];
@@ -429,7 +436,8 @@ internal sealed class DeferOperationRewriter
             {
                 var responseName = field.Alias?.Value ?? field.Name.Value;
 
-                if (responseName.Equals(segment.ResponseName, StringComparison.Ordinal))
+                if (responseName.Equals(segment.ResponseName, StringComparison.Ordinal)
+                    && string.Equals(activeTypeCondition, segment.TypeCondition, StringComparison.Ordinal))
                 {
                     return field;
                 }
@@ -437,7 +445,8 @@ internal sealed class DeferOperationRewriter
 
             if (selection is InlineFragmentNode inline)
             {
-                var nested = ResolveWrappingField(inline.SelectionSet, segment);
+                var nestedTypeCondition = inline.TypeCondition?.Name.Value ?? activeTypeCondition;
+                var nested = ResolveWrappingField(inline.SelectionSet, segment, nestedTypeCondition);
 
                 if (nested is not null)
                 {
