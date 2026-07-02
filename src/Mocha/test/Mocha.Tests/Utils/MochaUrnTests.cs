@@ -1,6 +1,6 @@
 using CookieCrumble;
 
-namespace Mocha.Tests.Descriptions;
+namespace Mocha.Tests.Utils;
 
 public sealed class MochaUrnTests
 {
