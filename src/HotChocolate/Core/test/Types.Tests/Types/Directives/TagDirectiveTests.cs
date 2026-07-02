@@ -44,6 +44,34 @@ public class TagDirectiveTests
     }
 
     [Fact]
+    public async Task SchemaFirst_Tag_OnDirectiveDefinition_IsBound()
+    {
+        // arrange
+        // @custom is applied to Query so it survives default pruning; the built-in
+        // @tag is applied to @custom's own definition.
+        const string source =
+            """
+            type Query @custom {
+                field: String
+            }
+
+            directive @custom @tag(name: "internal") on OBJECT
+            """;
+
+        // act
+        var schema = await new ServiceCollection()
+            .AddGraphQL()
+            .AddDocumentFromString(source)
+            .UseField(next => next)
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // assert
+        var custom = schema.DirectiveTypes["custom"];
+        var directive = Assert.Single(custom.Directives);
+        Assert.Equal("tag", directive.Name);
+    }
+
+    [Fact]
     public async Task ValidNames()
     {
         var exception = await Record.ExceptionAsync(

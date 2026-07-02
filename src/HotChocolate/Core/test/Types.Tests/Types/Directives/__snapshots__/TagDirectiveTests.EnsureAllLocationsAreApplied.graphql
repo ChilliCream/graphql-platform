@@ -52,3 +52,4 @@ directive @tag("The name of the tag." name: String!) repeatable on
   | ENUM_VALUE
   | INPUT_OBJECT
   | INPUT_FIELD_DEFINITION
+  | DIRECTIVE_DEFINITION
