@@ -1080,4 +1080,233 @@ public class DeferTests : FusionTestBase
         // assert
         await MatchSnapshotAsync(gateway, request, result, stableStream: true);
     }
+
+    [Fact]
+    public async Task Defer_Nested_Composite_On_One_Of_Sibling_Type_Conditions()
+    {
+        // arrange
+        // The SensorWidgetInfo branch (without `file`) is listed first; ImageWidgetInfo is declared first.
+        using var server1 = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+                node(id: ID!): Node @lookup
+            }
+
+            interface Node {
+                id: ID!
+            }
+
+            type Dashboard implements Node {
+                id: ID!
+                name: String!
+                widget: WidgetInfo!
+            }
+
+            interface WidgetInfo {
+                id: ID!
+            }
+
+            type ImageWidgetInfo implements WidgetInfo {
+                id: ID!
+                entity: Entity!
+            }
+
+            type SensorWidgetInfo implements WidgetInfo {
+                id: ID!
+                entity: Entity!
+            }
+
+            type Entity {
+                id: ID!
+                feature: Feature!
+            }
+
+            union Feature = ImageFeature | Sensor
+
+            type ImageFeature {
+                file: File!
+            }
+
+            type Sensor {
+                value: String!
+            }
+
+            type File {
+                url: String!
+            }
+            """);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            query: """
+            query DashboardQuery($id: ID!) {
+                node(id: $id) {
+                    __typename
+                    id
+                    ...DashboardFragment @defer(label: "testing")
+                }
+            }
+
+            fragment DashboardFragment on Dashboard {
+                id
+                widget {
+                    __typename
+                    ... on SensorWidgetInfo {
+                        entity {
+                            feature {
+                                __typename
+                                ... on Sensor { value }
+                            }
+                        }
+                    }
+                    ... on ImageWidgetInfo {
+                        entity {
+                            feature {
+                                __typename
+                                ... on ImageFeature { file { url } }
+                            }
+                        }
+                    }
+                }
+            }
+            """,
+            variables: new Dictionary<string, object?> { ["id"] = "RGFzaGJvYXJkOjE=" });
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result, stableStream: true);
+    }
+
+    [Fact]
+    public async Task Defer_Nested_Composite_On_Both_Sibling_Type_Conditions()
+    {
+        // arrange
+        // Both branches select a nested composite `file`, but with a different deeper child
+        // (`meta` vs `clip`) absent in the sibling; VideoWidgetInfo/VideoFeature are declared first.
+        using var server1 = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+                node(id: ID!): Node @lookup
+            }
+
+            interface Node {
+                id: ID!
+            }
+
+            type Dashboard implements Node {
+                id: ID!
+                name: String!
+                widget: WidgetInfo!
+            }
+
+            interface WidgetInfo {
+                id: ID!
+            }
+
+            type VideoWidgetInfo implements WidgetInfo {
+                id: ID!
+                entity: Entity!
+            }
+
+            type ImageWidgetInfo implements WidgetInfo {
+                id: ID!
+                entity: Entity!
+            }
+
+            type Entity {
+                id: ID!
+                feature: Feature!
+            }
+
+            union Feature = VideoFeature | ImageFeature
+
+            type VideoFeature {
+                file: VideoFile!
+            }
+
+            type ImageFeature {
+                file: ImageFile!
+            }
+
+            type VideoFile {
+                clip: VideoClip!
+            }
+
+            type ImageFile {
+                meta: ImageMeta!
+            }
+
+            type VideoClip {
+                duration: String!
+            }
+
+            type ImageMeta {
+                url: String!
+            }
+            """);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            query: """
+            query DashboardQuery($id: ID!) {
+                node(id: $id) {
+                    __typename
+                    id
+                    ...DashboardFragment @defer(label: "testing")
+                }
+            }
+
+            fragment DashboardFragment on Dashboard {
+                id
+                widget {
+                    __typename
+                    ... on ImageWidgetInfo {
+                        entity {
+                            feature {
+                                __typename
+                                ... on ImageFeature { file { meta { url } } }
+                            }
+                        }
+                    }
+                    ... on VideoWidgetInfo {
+                        entity {
+                            feature {
+                                __typename
+                                ... on VideoFeature { file { clip { duration } } }
+                            }
+                        }
+                    }
+                }
+            }
+            """,
+            variables: new Dictionary<string, object?> { ["id"] = "RGFzaGJvYXJkOjE=" });
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result, stableStream: true);
+    }
 }
