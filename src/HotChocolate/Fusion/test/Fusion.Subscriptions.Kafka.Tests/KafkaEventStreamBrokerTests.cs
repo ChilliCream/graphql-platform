@@ -599,6 +599,68 @@ public sealed class KafkaEventStreamBrokerTests : IClassFixture<KafkaFixture>
             resumed.Order());
     }
 
+    [Fact]
+    public async Task Subscribe_Should_DeliverGrownPartitionFromBeginning_When_ResumedAfterPartitionIncrease()
+    {
+        // arrange
+        var topic = CreateTopic();
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(60));
+        await _fixture.CreateTopicAsync(topic, cts.Token);
+        var partition0 = new TopicPartition(topic, new Partition(0));
+        var partition1 = new TopicPartition(topic, new Partition(1));
+        var assignments = Channel.CreateUnbounded<IReadOnlyList<TopicPartition>>();
+        var services = CreateServices(assignments);
+        await using var provider = services.BuildServiceProvider();
+        var factory = provider.GetRequiredService<IEventStreamBrokerFactory>();
+
+        string cursor;
+
+        await using (var broker = factory.Create(null))
+        {
+            await using var enumerator = broker
+                .SubscribeAsync(EmptySubscriptionFieldContext.Instance, [topic], cursor: null, cts.Token)
+                .GetAsyncEnumerator(cts.Token);
+            var live = enumerator.MoveNextAsync().AsTask();
+            // The single partition must be assigned and seeded before the live event is produced, so
+            // the captured cursor sits exactly after it.
+            await WaitForPartitionCountAsync(assignments.Reader, count: 1, cts.Token);
+
+            await ProduceAsync(partition0, """{"id":"p0-live"}"""u8.ToArray(), cts.Token);
+
+            Assert.True(await live);
+            using var message = enumerator.Current;
+            Assert.Equal("""{"id":"p0-live"}""", Encoding.UTF8.GetString(message.Body));
+            cursor = Encoding.UTF8.GetString(message.Cursor);
+        }
+
+        // Grow the topic and publish a gap event to the brand new partition while disconnected.
+        await _fixture.IncreasePartitionsAsync(topic, newTotalCount: 2, cts.Token);
+        await ProduceAsync(partition1, """{"id":"p1-gap"}"""u8.ToArray(), cts.Token);
+
+        // act
+        string[] resumed;
+
+        await using (var broker = factory.Create(null))
+        {
+            await using var enumerator = broker
+                .SubscribeAsync(EmptySubscriptionFieldContext.Instance, [topic], cursor, cts.Token)
+                .GetAsyncEnumerator(cts.Token);
+            var gap = enumerator.MoveNextAsync().AsTask();
+            // On resume the topic has grown to two partitions, so the assignment barrier must cover
+            // both before the grown partition can be read from its beginning.
+            await WaitForPartitionCountAsync(assignments.Reader, count: 2, cts.Token);
+
+            Assert.True(await gap);
+            using var message = enumerator.Current;
+            resumed = [Encoding.UTF8.GetString(message.Body)];
+        }
+
+        // assert
+        // The grown partition is seeded from its beginning and delivers its gap event, while the
+        // tracked partition 0 resumes past the captured live event and redelivers nothing.
+        Assert.Equal(["""{"id":"p1-gap"}"""], resumed);
+    }
+
     private ServiceCollection CreateServices(
         Channel<IReadOnlyList<TopicPartition>> assignments,
         AutoOffsetReset autoOffsetReset = AutoOffsetReset.Latest)

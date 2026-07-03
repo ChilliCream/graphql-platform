@@ -74,6 +74,20 @@ public sealed class KafkaEventStreamOptions
     public AutoOffsetReset AutoOffsetReset { get; set; } = AutoOffsetReset.Latest;
 
     /// <summary>
+    /// Gets or sets the maximum time a single start-offset lookup may take while a cursor-tracking
+    /// subscription establishes its initial position for a partition.
+    /// </summary>
+    public TimeSpan SeedingQueryTimeout { get; set; } = TimeSpan.FromSeconds(2);
+
+    /// <summary>
+    /// Gets or sets the overall budget for establishing initial positions for every assigned
+    /// partition when a cursor-tracking subscription starts. Lookups are retried until the budget is
+    /// spent. If any partition still has no position the subscription fails rather than start from an
+    /// incomplete cursor. Keep this well below the consumer maximum poll interval.
+    /// </summary>
+    public TimeSpan SeedingDeadline { get; set; } = TimeSpan.FromSeconds(5);
+
+    /// <summary>
     /// Gets or sets the factory used to create the per-subscription message channel.
     /// </summary>
     /// <remarks>

@@ -1,17 +1,16 @@
 using System.Buffers.Binary;
+using System.Diagnostics;
 using Confluent.Kafka;
 
 namespace HotChocolate.Fusion.Subscriptions.Kafka;
 
 /// <summary>
-/// Reuses the invariant formatted prefix of a single (topic, partition) cursor across events so
-/// that only the changing offset is re-encoded. A subscription that observes exactly one partition
-/// keeps the same prefix for its whole lifetime.
+/// Reuses the invariant formatted prefix of a subscription that observes exactly one
+/// (topic, partition 0) so that only the changing offset is re-encoded.
 /// </summary>
 internal sealed class SingleEntryCursorCache
 {
     private string? _topic;
-    private int _partition;
     private byte[]? _prefix;
 
     /// <summary>
@@ -38,8 +37,9 @@ internal sealed class SingleEntryCursorCache
 
     private void EnsurePrefix(TopicPartition topicPartition)
     {
+        Debug.Assert(topicPartition.Partition.Value == 0);
+
         if (_prefix is not null
-            && _partition == topicPartition.Partition.Value
             && string.Equals(_topic, topicPartition.Topic, StringComparison.Ordinal))
         {
             return;
@@ -47,10 +47,9 @@ internal sealed class SingleEntryCursorCache
 
         var topic = topicPartition.Topic;
         var prefix = new byte[KafkaCompositeCursorFormatter.GetSinglePrefixLength(topic)];
-        KafkaCompositeCursorFormatter.WriteSinglePrefix(topic, topicPartition.Partition, prefix);
+        KafkaCompositeCursorFormatter.WriteSinglePrefix(topic, prefix);
 
         _topic = topic;
-        _partition = topicPartition.Partition.Value;
         _prefix = prefix;
     }
 }

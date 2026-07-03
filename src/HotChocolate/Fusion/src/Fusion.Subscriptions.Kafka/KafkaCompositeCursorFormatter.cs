@@ -1,5 +1,6 @@
 using System.Buffers;
 using System.Buffers.Binary;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using Confluent.Kafka;
@@ -14,23 +15,24 @@ namespace HotChocolate.Fusion.Subscriptions.Kafka;
 /// <remarks>
 /// The wire layout is a versioned, self describing binary blob (later base64 encoded):
 /// <code>
-/// [version : 1 byte  = 0x01]
-/// [count   : 4 bytes, big endian int32]
-/// repeated count times:
+/// [version    : 1 byte  = 0x02]
+/// [topicCount : 4 bytes, big endian int32]
+/// repeated topicCount times:
 ///   [topicByteLength : 4 bytes, big endian int32]
 ///   [topic           : topicByteLength bytes, UTF-8]
-///   [partition       : 4 bytes, big endian int32]
-///   [offset          : 8 bytes, big endian int64]
+///   [partitionCount  : 4 bytes, big endian int32]
+///   [offsets         : partitionCount values, each an 8-byte big endian int64]
 /// </code>
-/// The leading version byte makes the format unambiguous and lets future revisions be detected.
-/// The map (and therefore the encoded cursor) grows with the number of distinct
-/// (topic, partition) pairs the subscription has delivered from.
+/// A topic's offsets are positional: the offset at index <c>j</c> is the next offset to read for
+/// partition <c>j</c>. The partition count records how many partitions existed when the cursor was
+/// minted, allowing a later resume to detect when the live topic has fewer partitions.
 /// </remarks>
 internal static class KafkaCompositeCursorFormatter
 {
-    private const byte Version = 1;
+    private const byte Version = 2;
     private const int HeaderLength = 5;
-    private const int EntryFixedLength = 4 + 4 + 8;
+    private const int OffsetWidth = 8;
+    private const int MinimumTopicEntryLength = 4 + 1 + 4 + OffsetWidth;
 
     private static readonly Encoding s_strictUtf8 =
         new UTF8Encoding(
@@ -42,11 +44,12 @@ internal static class KafkaCompositeCursorFormatter
     /// </summary>
     public static int GetFormattedLength(Dictionary<TopicPartition, long> map)
     {
+        var groups = CreateTopicGroups(map);
         var length = HeaderLength;
 
-        foreach (var entry in map)
+        foreach (var (topic, count) in groups)
         {
-            length += EntryFixedLength + Encoding.UTF8.GetByteCount(entry.Key.Topic);
+            length += 4 + Encoding.UTF8.GetByteCount(topic) + 4 + count * OffsetWidth;
         }
 
         return length;
@@ -60,54 +63,60 @@ internal static class KafkaCompositeCursorFormatter
         Dictionary<TopicPartition, long> map,
         Span<byte> destination)
     {
+        var groups = CreateTopicGroups(map);
+
         destination[0] = Version;
-        BinaryPrimitives.WriteInt32BigEndian(destination[1..], map.Count);
+        BinaryPrimitives.WriteInt32BigEndian(destination[1..], groups.Count);
 
         var position = HeaderLength;
 
-        foreach (var entry in map)
+        foreach (var (topic, count) in groups)
         {
             var topicLength = Encoding.UTF8.GetBytes(
-                entry.Key.Topic.AsSpan(),
+                topic.AsSpan(),
                 destination[(position + 4)..]);
 
             BinaryPrimitives.WriteInt32BigEndian(destination[position..], topicLength);
             position += 4 + topicLength;
 
-            BinaryPrimitives.WriteInt32BigEndian(destination[position..], entry.Key.Partition.Value);
+            BinaryPrimitives.WriteInt32BigEndian(destination[position..], count);
             position += 4;
 
-            BinaryPrimitives.WriteInt64BigEndian(destination[position..], entry.Value);
-            position += 8;
+            for (var partition = 0; partition < count; partition++)
+            {
+                var topicPartition = new TopicPartition(topic, new Partition(partition));
+                var found = map.TryGetValue(topicPartition, out var offset);
+                Debug.Assert(found, "Kafka resume cursor maps must be dense per topic.");
+
+                BinaryPrimitives.WriteInt64BigEndian(destination[position..], offset);
+                position += OffsetWidth;
+            }
         }
     }
 
     /// <summary>
-    /// Computes the formatted (pre base64) byte length of a single (topic, partition) cursor.
+    /// Computes the formatted (pre base64) byte length of a single partition 0 cursor.
     /// </summary>
     public static int GetSingleFormattedLength(string topic)
-        => HeaderLength + EntryFixedLength + Encoding.UTF8.GetByteCount(topic);
+        => HeaderLength + 4 + Encoding.UTF8.GetByteCount(topic) + 4 + OffsetWidth;
 
     /// <summary>
-    /// Formats a single (topic, partition) cursor at <paramref name="offset"/> into
+    /// Formats a single partition 0 cursor at <paramref name="offset"/> into
     /// <paramref name="destination"/>. The output is byte-identical to <see cref="Format"/> for a
-    /// map that holds only this entry, so both encodings share one wire format and a resume cursor
-    /// interoperates between them.
+    /// map that holds only partition 0 for the same topic.
     /// </summary>
     public static void FormatSingle(
         string topic,
-        Partition partition,
         long offset,
         Span<byte> destination)
     {
-        var prefixLength = WriteSinglePrefix(topic, partition, destination);
+        var prefixLength = WriteSinglePrefix(topic, destination);
         BinaryPrimitives.WriteInt64BigEndian(destination[prefixLength..], offset);
     }
 
-    // Writes the invariant single-entry prefix (version, count = 1, topic length, topic, partition)
-    // and returns its length. The trailing 8-byte offset is written by the caller so that the prefix
-    // can be cached and reused across events that differ only by their offset.
-    internal static int WriteSinglePrefix(string topic, Partition partition, Span<byte> destination)
+    // Writes the invariant single-entry prefix and returns its length. The trailing 8-byte offset
+    // is written by the caller so the prefix can be cached and reused across events.
+    internal static int WriteSinglePrefix(string topic, Span<byte> destination)
     {
         destination[0] = Version;
         BinaryPrimitives.WriteInt32BigEndian(destination[1..], 1);
@@ -116,7 +125,7 @@ internal static class KafkaCompositeCursorFormatter
         BinaryPrimitives.WriteInt32BigEndian(destination[HeaderLength..], topicLength);
 
         var position = HeaderLength + 4 + topicLength;
-        BinaryPrimitives.WriteInt32BigEndian(destination[position..], partition.Value);
+        BinaryPrimitives.WriteInt32BigEndian(destination[position..], 1);
 
         return position + 4;
     }
@@ -126,11 +135,10 @@ internal static class KafkaCompositeCursorFormatter
         => HeaderLength + 4 + Encoding.UTF8.GetByteCount(topic) + 4;
 
     /// <summary>
-    /// Decodes a base64 cursor into a mutable map. Every topic in the cursor must be one of the
-    /// subscription's current <paramref name="topics"/>; a malformed cursor or a cross-subscription
-    /// topic results in an <see cref="InvalidEventMessageCursorException"/>.
+    /// Decodes a base64 cursor into a resume state. The cursor's topic set must exactly match the
+    /// subscription's current <paramref name="topics"/>.
     /// </summary>
-    public static Dictionary<TopicPartition, long> Parse(string cursor, string[] topics)
+    public static KafkaResumeState Parse(string cursor, string[] topics)
     {
         var maxDecodedLength = GetMaxBase64DecodedLength(cursor.Length);
         byte[]? rented = null;
@@ -156,7 +164,7 @@ internal static class KafkaCompositeCursorFormatter
         }
     }
 
-    private static Dictionary<TopicPartition, long> ParseDecoded(
+    internal static KafkaResumeState ParseDecoded(
         ReadOnlySpan<byte> cursor,
         string[] topics)
     {
@@ -165,21 +173,18 @@ internal static class KafkaCompositeCursorFormatter
             throw new InvalidEventMessageCursorException();
         }
 
-        var count = BinaryPrimitives.ReadInt32BigEndian(cursor[1..]);
+        var topicCount = BinaryPrimitives.ReadInt32BigEndian(cursor[1..]);
 
-        // The count is read from an untrusted cursor, so it must be validated against the buffer
-        // before it is used to size the map. The smallest possible entry is EntryFixedLength plus a
-        // single topic byte, so a buffer can never hold more than that many entries. Rejecting an
-        // impossible count here keeps a crafted cursor from forcing an oversized allocation.
-        if (count < 0 || count > (cursor.Length - HeaderLength) / (EntryFixedLength + 1))
+        if (topicCount < 0 || topicCount > (cursor.Length - HeaderLength) / MinimumTopicEntryLength)
         {
             throw new InvalidEventMessageCursorException();
         }
 
-        var map = new Dictionary<TopicPartition, long>(count);
+        var offsets = new Dictionary<TopicPartition, long>();
+        var mintedCounts = new Dictionary<string, int>(topicCount);
         var position = HeaderLength;
 
-        for (var i = 0; i < count; i++)
+        for (var i = 0; i < topicCount; i++)
         {
             if (cursor.Length - position < 4)
             {
@@ -189,11 +194,7 @@ internal static class KafkaCompositeCursorFormatter
             var topicLength = BinaryPrimitives.ReadInt32BigEndian(cursor[position..]);
             position += 4;
 
-            // The remaining bytes must cover the topic plus the fixed partition and offset fields.
-            // The comparison keeps the untrusted topicLength on the left and only small, in-bounds
-            // terms on the right, so a near int.MaxValue topicLength cannot overflow past the guard
-            // and surface as an ArgumentOutOfRangeException from the slice below.
-            if (topicLength <= 0 || topicLength > cursor.Length - position - (EntryFixedLength - 4))
+            if (topicLength <= 0 || topicLength > cursor.Length - position - 12)
             {
                 throw new InvalidEventMessageCursorException();
             }
@@ -206,26 +207,38 @@ internal static class KafkaCompositeCursorFormatter
                 throw new InvalidEventMessageCursorException();
             }
 
-            var partition = BinaryPrimitives.ReadInt32BigEndian(cursor[position..]);
+            if (mintedCounts.ContainsKey(topic))
+            {
+                throw new InvalidEventMessageCursorException();
+            }
+
+            if (cursor.Length - position < 4)
+            {
+                throw new InvalidEventMessageCursorException();
+            }
+
+            var mintedPartitionCount = BinaryPrimitives.ReadInt32BigEndian(cursor[position..]);
             position += 4;
 
-            if (partition < 0)
+            if (mintedPartitionCount <= 0 || mintedPartitionCount > (cursor.Length - position) / OffsetWidth)
             {
                 throw new InvalidEventMessageCursorException();
             }
 
-            var offset = BinaryPrimitives.ReadInt64BigEndian(cursor[position..]);
-            position += 8;
-
-            if (offset < 0 || offset == long.MaxValue)
+            for (var partition = 0; partition < mintedPartitionCount; partition++)
             {
-                throw new InvalidEventMessageCursorException();
+                var offset = BinaryPrimitives.ReadInt64BigEndian(cursor[position..]);
+                position += OffsetWidth;
+
+                if (offset < 0 || offset == long.MaxValue)
+                {
+                    throw new InvalidEventMessageCursorException();
+                }
+
+                offsets[new TopicPartition(topic, new Partition(partition))] = offset;
             }
 
-            if (!map.TryAdd(new TopicPartition(topic, new Partition(partition)), offset))
-            {
-                throw new InvalidEventMessageCursorException();
-            }
+            mintedCounts[topic] = mintedPartitionCount;
         }
 
         if (position != cursor.Length)
@@ -233,7 +246,30 @@ internal static class KafkaCompositeCursorFormatter
             throw new InvalidEventMessageCursorException();
         }
 
-        return map;
+        if (mintedCounts.Count != topics.Length)
+        {
+            throw new InvalidEventMessageCursorException();
+        }
+
+        return new KafkaResumeState
+        {
+            Offsets = offsets,
+            MintedPartitionCounts = mintedCounts
+        };
+    }
+
+    private static Dictionary<string, int> CreateTopicGroups(Dictionary<TopicPartition, long> map)
+    {
+        var groups = new Dictionary<string, int>();
+
+        foreach (var (topicPartition, _) in map)
+        {
+            var topic = topicPartition.Topic;
+            groups.TryGetValue(topic, out var count);
+            groups[topic] = count + 1;
+        }
+
+        return groups;
     }
 
     private static bool TryGetTopic(

@@ -1,5 +1,7 @@
+using System.Linq;
 using System.Text;
 using Confluent.Kafka;
+using HotChocolate.Fusion.Subscriptions;
 
 namespace HotChocolate.Fusion.Subscriptions.Kafka;
 
@@ -24,16 +26,14 @@ public sealed class KafkaEventStreamBrokerInternalsTests
 
         // assert
         Assert.Equal(KafkaEventStreamBroker.WriteOutcome.Delivered, outcome);
-        // A delivered write commits the advance to the next offset (5 -> 6).
         Assert.Equal(6L, cursorMap[partition]);
         Assert.True(channel.Reader.TryRead(out var delivered));
         using (delivered)
         {
             Assert.Equal("""{"id":1}""", Encoding.UTF8.GetString(delivered!.Body));
-            // The delivered message's own cursor resumes past itself (offset 5 -> next offset 6).
-            var cursor = KafkaCompositeCursorFormatter.Parse(
+            var state = KafkaCompositeCursorFormatter.Parse(
                 Encoding.UTF8.GetString(delivered.Cursor), ["topic-a"]);
-            Assert.Equal(6L, cursor[partition]);
+            Assert.Equal(6L, state.Offsets[partition]);
         }
     }
 
@@ -60,198 +60,6 @@ public sealed class KafkaEventStreamBrokerInternalsTests
     }
 
     [Fact]
-    public void TryResolveTrackedOffset_Should_ReturnTrackedOffsetWithoutWatermark_When_PartitionAlreadyTracked()
-    {
-        // arrange
-        // A partition already tracked in the cursor map (from an earlier assignment or a delivered
-        // message) must resume from its tracked next offset. TryResolveTrackedOffset takes no
-        // consumer, so it cannot query the watermark: resolving from the map alone is the seed-once
-        // guarantee that stops a rebalance from re-seeding a tracked partition forward and skipping
-        // events.
-        var partition = new TopicPartition("topic-a", new Partition(0));
-        var cursorMap = new Dictionary<TopicPartition, long> { [partition] = 42 };
-
-        // act
-        var resolved = KafkaEventStreamBroker.TryResolveTrackedOffset(
-            partition, resumeMap: null, cursorMap, AutoOffsetReset.Latest, out var offset);
-
-        // assert
-        Assert.True(resolved);
-        Assert.Equal(new Offset(42), offset);
-    }
-
-    [Fact]
-    public void TryResolveTrackedOffset_Should_PreferCursorMap_When_BothMapsContainPartition()
-    {
-        // arrange
-        // The cursor map holds the position reached this session and takes precedence over the
-        // inbound resume cursor, so a rebalance resumes from live progress rather than rewinding.
-        var partition = new TopicPartition("topic-a", new Partition(0));
-        var resumeMap = new Dictionary<TopicPartition, long> { [partition] = 7 };
-        var cursorMap = new Dictionary<TopicPartition, long> { [partition] = 42 };
-
-        // act
-        var resolved = KafkaEventStreamBroker.TryResolveTrackedOffset(
-            partition, resumeMap, cursorMap, AutoOffsetReset.Latest, out var offset);
-
-        // assert
-        Assert.True(resolved);
-        Assert.Equal(new Offset(42), offset);
-    }
-
-    [Fact]
-    public void TryResolveTrackedOffset_Should_HonorResumeMap_When_CursorMapNull()
-    {
-        // arrange
-        // An inbound-only resume (no output cursor tracked) seeks to the stored next offset directly.
-        var partition = new TopicPartition("topic-a", new Partition(0));
-        var resumeMap = new Dictionary<TopicPartition, long> { [partition] = 7 };
-
-        // act
-        var resolved = KafkaEventStreamBroker.TryResolveTrackedOffset(
-            partition, resumeMap, cursorMap: null, AutoOffsetReset.Latest, out var offset);
-
-        // assert
-        Assert.True(resolved);
-        Assert.Equal(new Offset(7), offset);
-    }
-
-    [Fact]
-    public void TryResolveTrackedOffset_Should_StartAtLiveEnd_When_PartitionAbsentFromResumeUnderLatest()
-    {
-        // arrange
-        // A (topic, partition) absent from the resume cursor was never baselined (a seed failure) or
-        // is genuinely new. Under Latest the reset mode starts it at the live end so a resume does
-        // not replay history, matching SeedFreshPartition's Latest-to-High seeding.
-        var partition = new TopicPartition("topic-a", new Partition(0));
-        var resumeMap = new Dictionary<TopicPartition, long>
-        {
-            [new TopicPartition("topic-b", new Partition(0))] = 7
-        };
-
-        // act
-        var resolved = KafkaEventStreamBroker.TryResolveTrackedOffset(
-            partition, resumeMap, cursorMap: null, AutoOffsetReset.Latest, out var offset);
-
-        // assert
-        Assert.True(resolved);
-        Assert.Equal(Offset.End, offset);
-    }
-
-    [Fact]
-    public void TryResolveTrackedOffset_Should_StartAtBeginning_When_PartitionAbsentFromResumeUnderEarliest()
-    {
-        // arrange
-        // Under Earliest an absent partition replays from the beginning, the lossless choice for a
-        // partition that was never baselined or is new relative to the resume cursor.
-        var partition = new TopicPartition("topic-a", new Partition(0));
-        var resumeMap = new Dictionary<TopicPartition, long>
-        {
-            [new TopicPartition("topic-b", new Partition(0))] = 7
-        };
-
-        // act
-        var resolved = KafkaEventStreamBroker.TryResolveTrackedOffset(
-            partition, resumeMap, cursorMap: null, AutoOffsetReset.Earliest, out var offset);
-
-        // assert
-        Assert.True(resolved);
-        Assert.Equal(Offset.Beginning, offset);
-    }
-
-    [Fact]
-    public void TryResolveTrackedOffset_Should_NotResolve_When_CursorMapMissesPartitionAndNoResume()
-    {
-        // arrange
-        // The partition is not yet in the cursor map and no resume cursor exists, so the caller must
-        // fall through to fresh watermark seeding rather than resolve a tracked offset.
-        var partition = new TopicPartition("topic-a", new Partition(0));
-        var cursorMap = new Dictionary<TopicPartition, long>
-        {
-            [new TopicPartition("topic-b", new Partition(0))] = 42
-        };
-
-        // act
-        var resolved = KafkaEventStreamBroker.TryResolveTrackedOffset(
-            partition, resumeMap: null, cursorMap, AutoOffsetReset.Latest, out var offset);
-
-        // assert
-        Assert.False(resolved);
-        Assert.Equal(Offset.Unset, offset);
-    }
-
-    [Fact]
-    public void TryResolveTrackedOffset_Should_NotResolve_When_BothMapsNull()
-    {
-        // arrange
-        // A fresh non-resumable subscription tracks nothing, so resolution falls through to the
-        // configured AutoOffsetReset at the transport.
-        var partition = new TopicPartition("topic-a", new Partition(0));
-
-        // act
-        var resolved = KafkaEventStreamBroker.TryResolveTrackedOffset(
-            partition, resumeMap: null, cursorMap: null, AutoOffsetReset.Latest, out var offset);
-
-        // assert
-        Assert.False(resolved);
-        Assert.Equal(Offset.Unset, offset);
-    }
-
-    [Fact]
-    public void CreateCursorMap_Should_ReturnNull_When_CursorNotRequiredAndNoResume()
-    {
-        // arrange & act
-        var map = KafkaEventStreamBroker.CreateCursorMap(requiresCursor: false, resumeMap: null);
-
-        // assert
-        // No output cursor and no inbound resume means the pump tracks nothing per message.
-        Assert.Null(map);
-    }
-
-    [Fact]
-    public void CreateCursorMap_Should_CopyResume_When_CursorNotRequiredButResumeSupplied()
-    {
-        // arrange
-        var partition = new TopicPartition("topic-a", new Partition(0));
-        var resumeMap = new Dictionary<TopicPartition, long> { [partition] = 7 };
-
-        // act
-        var map = KafkaEventStreamBroker.CreateCursorMap(requiresCursor: false, resumeMap);
-
-        // assert
-        // An inbound resume must survive rebalances even when the output cursor is suppressed, so the
-        // progress map is a distinct copy of the resume cursor.
-        Assert.NotSame(resumeMap, map);
-        Assert.Equal(resumeMap, map);
-    }
-
-    [Fact]
-    public void CreateCursorMap_Should_ReturnEmptyMap_When_CursorRequiredWithoutResume()
-    {
-        // arrange & act
-        var map = KafkaEventStreamBroker.CreateCursorMap(requiresCursor: true, resumeMap: null);
-
-        // assert
-        Assert.NotNull(map);
-        Assert.Empty(map);
-    }
-
-    [Fact]
-    public void CreateCursorMap_Should_CopyResume_When_CursorRequiredWithResume()
-    {
-        // arrange
-        var partition = new TopicPartition("topic-a", new Partition(0));
-        var resumeMap = new Dictionary<TopicPartition, long> { [partition] = 7 };
-
-        // act
-        var map = KafkaEventStreamBroker.CreateCursorMap(requiresCursor: true, resumeMap);
-
-        // assert
-        Assert.NotSame(resumeMap, map);
-        Assert.Equal(resumeMap, map);
-    }
-
-    [Fact]
     public async Task EmitMessageAsync_Should_AdvanceMapButSuppressCursor_When_CursorNotRequired()
     {
         // arrange
@@ -269,12 +77,301 @@ public sealed class KafkaEventStreamBrokerInternalsTests
 
         // assert
         Assert.Equal(KafkaEventStreamBroker.WriteOutcome.Delivered, outcome);
-        // The progress advance still fires (5 -> 6) so a later rebalance resumes past this message.
         Assert.Equal(6L, cursorMap[partition]);
         Assert.True(channel.Reader.TryRead(out var delivered));
         using (delivered)
         {
             Assert.True(delivered!.Cursor.IsEmpty);
         }
+    }
+
+    [Fact]
+    public void ResolveStartOffsets_Should_ResumeFromTrackedOffsetWithoutQuery_When_PartitionAlreadyTracked()
+    {
+        // arrange
+        // A partition already present in the live cursor map resumes from its stored next offset. The
+        // watermark source throws if queried, proving a tracked partition is never re-seeded forward.
+        var partition = new TopicPartition("topic-a", new Partition(0));
+        var cursorMap = new Dictionary<TopicPartition, long> { [partition] = 42 };
+
+        // act
+        var result = Resolve(
+            new ThrowingWatermarkSource(), [partition], resumeState: null, cursorMap,
+            AutoOffsetReset.Latest);
+
+        // assert
+        Assert.Equal(new Offset(42), result[partition]);
+    }
+
+    [Fact]
+    public void ResolveStartOffsets_Should_PreferLiveMap_When_BothResumeAndLiveMapContainPartition()
+    {
+        // arrange
+        // The live cursor map holds the position reached this session and takes precedence over the
+        // resume cursor, so a rebalance resumes from live progress rather than rewinding.
+        var partition = new TopicPartition("topic-a", new Partition(0));
+        var resumeState = new KafkaResumeState
+        {
+            Offsets = new Dictionary<TopicPartition, long> { [partition] = 7 },
+            MintedPartitionCounts = new Dictionary<string, int> { ["topic-a"] = 1 }
+        };
+        var cursorMap = new Dictionary<TopicPartition, long> { [partition] = 42 };
+
+        // act
+        var result = Resolve(
+            new ThrowingWatermarkSource(), [partition], resumeState, cursorMap,
+            AutoOffsetReset.Latest);
+
+        // assert
+        Assert.Equal(new Offset(42), result[partition]);
+    }
+
+    [Theory]
+    [InlineData(AutoOffsetReset.Latest)]
+    [InlineData(AutoOffsetReset.Earliest)]
+    public void ResolveStartOffsets_Should_StartGrownPartitionAtBeginning_When_ResumeMintedFewerPartitions(
+        AutoOffsetReset autoOffsetReset)
+    {
+        // arrange
+        // The resume cursor minted one partition; a second partition has since been added. The grown
+        // partition starts at the beginning regardless of the reset mode, and the tracked partition
+        // keeps its stored offset.
+        var p0 = new TopicPartition("topic-a", new Partition(0));
+        var p1 = new TopicPartition("topic-a", new Partition(1));
+        var resumeState = new KafkaResumeState
+        {
+            Offsets = new Dictionary<TopicPartition, long> { [p0] = 7 },
+            MintedPartitionCounts = new Dictionary<string, int> { ["topic-a"] = 1 }
+        };
+        var cursorMap = new Dictionary<TopicPartition, long>(resumeState.Offsets);
+
+        // act
+        var result = Resolve(
+            new ThrowingWatermarkSource(), [p0, p1], resumeState, cursorMap, autoOffsetReset);
+
+        // assert
+        Assert.Equal(new Offset(7), result[p0]);
+        Assert.Equal(Offset.Beginning, result[p1]);
+        Assert.Equal(0L, cursorMap[p1]);
+    }
+
+    [Theory]
+    [InlineData(AutoOffsetReset.Latest, 50L)]
+    [InlineData(AutoOffsetReset.Earliest, 10L)]
+    public void ResolveStartOffsets_Should_SeedFromWatermark_When_FreshCursorTrackedSubscribe(
+        AutoOffsetReset autoOffsetReset,
+        long expectedBaseline)
+    {
+        // arrange
+        // A fresh cursor-tracked subscribe with no resume seeds each partition from the broker
+        // watermark: the live end (High) under Latest, the earliest retained event (Low) under
+        // Earliest.
+        var partition = new TopicPartition("topic-a", new Partition(0));
+        var cursorMap = new Dictionary<TopicPartition, long>();
+        var watermarks = new StubWatermarkSource(new WatermarkOffsets(new Offset(10), new Offset(50)));
+
+        // act
+        var result = Resolve(watermarks, [partition], resumeState: null, cursorMap, autoOffsetReset);
+
+        // assert
+        Assert.Equal(new Offset(expectedBaseline), result[partition]);
+        Assert.Equal(expectedBaseline, cursorMap[partition]);
+    }
+
+    [Fact]
+    public void ResolveStartOffsets_Should_LeaveUnset_When_NonResumableSubscription()
+    {
+        // arrange
+        // A non-resumable subscription tracks nothing, so every partition falls back to the
+        // configured AutoOffsetReset at the transport.
+        var partition = new TopicPartition("topic-a", new Partition(0));
+
+        // act
+        var result = Resolve(
+            new ThrowingWatermarkSource(), [partition], resumeState: null, cursorMap: null,
+            AutoOffsetReset.Latest);
+
+        // assert
+        Assert.Equal(Offset.Unset, result[partition]);
+    }
+
+    [Fact]
+    public void ResolveStartOffsets_Should_Throw_When_SeedingDeadlineElapsesWithoutWatermark()
+    {
+        // arrange
+        // Every watermark query fails and the seeding deadline is tiny, so no partition can be
+        // baselined and the subscription fails rather than start from an incomplete cursor.
+        var partition = new TopicPartition("topic-a", new Partition(0));
+        var cursorMap = new Dictionary<TopicPartition, long>();
+
+        // act
+        void Act() => KafkaEventStreamBroker.ResolveStartOffsets(
+            new ThrowingWatermarkSource(), [partition], resumeState: null, cursorMap,
+            AutoOffsetReset.Latest, TimeSpan.FromMilliseconds(5), TimeSpan.FromMilliseconds(20))
+            .ToList();
+
+        // assert
+        Assert.Throws<EventStreamSeedingException>(Act);
+    }
+
+    [Fact]
+    public void ValidateNoPartitionShrink_Should_Throw_When_TopicLostPartitions()
+    {
+        // arrange
+        // The cursor minted three partitions but only two are live, so the positional cursor can no
+        // longer be honored.
+        var resumeState = new KafkaResumeState
+        {
+            Offsets = new Dictionary<TopicPartition, long>(),
+            MintedPartitionCounts = new Dictionary<string, int> { ["topic-a"] = 3 }
+        };
+        var assigned = new List<TopicPartition>
+        {
+            new("topic-a", new Partition(0)),
+            new("topic-a", new Partition(1))
+        };
+
+        // act
+        void Act() => KafkaEventStreamBroker.ValidateNoPartitionShrink(assigned, resumeState);
+
+        // assert
+        Assert.Throws<InvalidEventMessageCursorException>(Act);
+    }
+
+    [Fact]
+    public void ValidateNoPartitionShrink_Should_Throw_When_TopicDeleted()
+    {
+        // arrange
+        // The topic the cursor minted has no live partitions at all, meaning it was deleted.
+        var resumeState = new KafkaResumeState
+        {
+            Offsets = new Dictionary<TopicPartition, long>(),
+            MintedPartitionCounts = new Dictionary<string, int> { ["topic-a"] = 2 }
+        };
+        var assigned = new List<TopicPartition>
+        {
+            new("topic-b", new Partition(0)),
+            new("topic-b", new Partition(1))
+        };
+
+        // act
+        void Act() => KafkaEventStreamBroker.ValidateNoPartitionShrink(assigned, resumeState);
+
+        // assert
+        Assert.Throws<InvalidEventMessageCursorException>(Act);
+    }
+
+    [Fact]
+    public void ValidateNoPartitionShrink_Should_NotThrow_When_PartitionsGrew()
+    {
+        // arrange
+        // More live partitions than the cursor minted is a growth, which is honored, not rejected.
+        var resumeState = new KafkaResumeState
+        {
+            Offsets = new Dictionary<TopicPartition, long>(),
+            MintedPartitionCounts = new Dictionary<string, int> { ["topic-a"] = 1 }
+        };
+        var assigned = new List<TopicPartition>
+        {
+            new("topic-a", new Partition(0)),
+            new("topic-a", new Partition(1))
+        };
+
+        // act
+        var exception = Record.Exception(
+            () => KafkaEventStreamBroker.ValidateNoPartitionShrink(assigned, resumeState));
+
+        // assert
+        Assert.Null(exception);
+    }
+
+    [Fact]
+    public void CreateCursorMap_Should_ReturnNull_When_CursorNotRequiredAndNoResume()
+    {
+        // arrange
+
+        // act
+        var map = KafkaEventStreamBroker.CreateCursorMap(requiresCursor: false, resumeState: null);
+
+        // assert
+        // No output cursor and no inbound resume means the pump tracks nothing per message.
+        Assert.Null(map);
+    }
+
+    [Fact]
+    public void CreateCursorMap_Should_CopyResume_When_CursorNotRequiredButResumeSupplied()
+    {
+        // arrange
+        var resumeState = ResumeStateFor(new TopicPartition("topic-a", new Partition(0)), 7);
+
+        // act
+        var map = KafkaEventStreamBroker.CreateCursorMap(requiresCursor: false, resumeState);
+
+        // assert
+        // An inbound resume must survive rebalances even when the output cursor is suppressed, so the
+        // progress map is a distinct copy of the resume cursor's offsets.
+        Assert.NotSame(resumeState.Offsets, map);
+        Assert.Equal(resumeState.Offsets, map);
+    }
+
+    [Fact]
+    public void CreateCursorMap_Should_ReturnEmptyMap_When_CursorRequiredWithoutResume()
+    {
+        // arrange
+
+        // act
+        var map = KafkaEventStreamBroker.CreateCursorMap(requiresCursor: true, resumeState: null);
+
+        // assert
+        Assert.NotNull(map);
+        Assert.Empty(map);
+    }
+
+    [Fact]
+    public void CreateCursorMap_Should_CopyResume_When_CursorRequiredWithResume()
+    {
+        // arrange
+        var resumeState = ResumeStateFor(new TopicPartition("topic-a", new Partition(0)), 7);
+
+        // act
+        var map = KafkaEventStreamBroker.CreateCursorMap(requiresCursor: true, resumeState);
+
+        // assert
+        Assert.NotSame(resumeState.Offsets, map);
+        Assert.Equal(resumeState.Offsets, map);
+    }
+
+    private static Dictionary<TopicPartition, Offset> Resolve(
+        IPartitionWatermarkSource watermarks,
+        List<TopicPartition> assigned,
+        KafkaResumeState? resumeState,
+        Dictionary<TopicPartition, long>? cursorMap,
+        AutoOffsetReset autoOffsetReset)
+        => KafkaEventStreamBroker.ResolveStartOffsets(
+                watermarks,
+                assigned,
+                resumeState,
+                cursorMap,
+                autoOffsetReset,
+                TimeSpan.FromSeconds(1),
+                TimeSpan.FromSeconds(1))
+            .ToDictionary(x => x.TopicPartition, x => x.Offset);
+
+    private static KafkaResumeState ResumeStateFor(TopicPartition partition, long offset)
+        => new()
+        {
+            Offsets = new Dictionary<TopicPartition, long> { [partition] = offset },
+            MintedPartitionCounts = new Dictionary<string, int> { [partition.Topic] = 1 }
+        };
+
+    private sealed class ThrowingWatermarkSource : IPartitionWatermarkSource
+    {
+        public WatermarkOffsets Query(TopicPartition partition, TimeSpan timeout)
+            => throw new KafkaException(ErrorCode.Local_TimedOut);
+    }
+
+    private sealed class StubWatermarkSource(WatermarkOffsets watermark) : IPartitionWatermarkSource
+    {
+        public WatermarkOffsets Query(TopicPartition partition, TimeSpan timeout) => watermark;
     }
 }
