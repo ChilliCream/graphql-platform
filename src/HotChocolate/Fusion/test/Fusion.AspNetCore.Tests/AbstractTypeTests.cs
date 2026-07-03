@@ -1274,6 +1274,103 @@ public class AbstractTypeTests : FusionTestBase
         await MatchSnapshotAsync(gateway, request, result);
     }
 
+    [Fact]
+    public async Task Nested_Interface_Fragment_With_Field_Resolved_From_Other_Schema()
+    {
+        // arrange
+        using var serverA = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+              orders: [OrderBase!]!
+            }
+
+            interface OrderBase {
+              name: String!
+            }
+
+            interface MultiOrderBase implements OrderBase {
+              name: String!
+              items: [OrderItem!]!
+            }
+
+            type OrderA implements MultiOrderBase & OrderBase {
+              name: String!
+              items: [OrderItem!]!
+            }
+
+            type OrderB implements MultiOrderBase & OrderBase {
+              name: String!
+              items: [OrderItem!]!
+            }
+
+            type OrderItem {
+              product: Product!
+            }
+
+            type Product @key(fields: "id") {
+              id: ID!
+            }
+            """);
+
+        using var serverB = CreateSourceSchema(
+            "B",
+            """
+            type Query {
+              productById(id: ID!): Product @lookup
+            }
+
+            type Product @key(fields: "id") {
+              id: ID!
+              name: String!
+              description: String!
+            }
+            """);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", serverA),
+            ("B", serverB)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            query {
+              orders {
+                ...OrderBaseFragment
+              }
+            }
+
+            fragment OrderBaseFragment on OrderBase {
+              __typename
+              name
+              ...MultiOrderBaseFragment
+            }
+
+            fragment MultiOrderBaseFragment on MultiOrderBase {
+              __typename
+              items {
+                product {
+                  id
+                  name
+                  description
+                }
+              }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
     public static class SourceSchema1
     {
         public class Query
