@@ -50,7 +50,7 @@ public sealed class KafkaFixture : IAsyncLifetime
         await _container.DisposeAsync();
     }
 
-    public async Task CreateTopicAsync(string topic, CancellationToken cancellationToken)
+    public async Task CreateTopicAsync(string topic, CancellationToken cancellationToken, int partitions = 1)
     {
         using var admin = new AdminClientBuilder(
             new AdminClientConfig { BootstrapServers = BootstrapServers })
@@ -63,7 +63,7 @@ public sealed class KafkaFixture : IAsyncLifetime
                     new TopicSpecification
                     {
                         Name = topic,
-                        NumPartitions = 1,
+                        NumPartitions = partitions,
                         ReplicationFactor = 1
                     }
                 ],

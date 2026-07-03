@@ -14,9 +14,9 @@ public interface ISubscriptionFieldContext
     IReadOnlyDictionary<string, IValueNode> Arguments { get; }
 
     /// <summary>
-    /// Gets a value indicating whether the executing operation exposes the resume cursor on the
-    /// output side. When false, brokers may skip computing and tracking cursor state. This does
-    /// NOT affect honoring an inbound resume cursor.
+    /// Gets a value indicating whether the event payload exposes a resume cursor field. When false,
+    /// brokers can skip computing and tracking cursor state for the stream. This does not affect
+    /// honoring an inbound resume cursor.
     /// </summary>
     bool RequiresCursor { get; }
 }

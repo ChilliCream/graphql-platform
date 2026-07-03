@@ -1,8 +1,7 @@
 using System.Buffers;
 using System.Buffers.Text;
-using System.Diagnostics.CodeAnalysis;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
-using System.Text;
 using System.Threading.Channels;
 using Confluent.Kafka;
 
@@ -11,8 +10,11 @@ namespace HotChocolate.Fusion.Subscriptions.Kafka;
 internal sealed class KafkaEventStreamBroker(KafkaEventStreamOptions options)
     : IEventStreamBroker
 {
-    private static readonly Encoding s_strictUtf8 =
-        new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
+    // Seeding runs inside the partitions-assigned callback, so a slow broker must not stall the
+    // assignment. Each watermark query is bounded by this per-query timeout, and the whole seeding
+    // loop shares an overall budget so that many partitions cannot compound into a long stall.
+    private static readonly TimeSpan s_watermarkQueryTimeout = TimeSpan.FromSeconds(2);
+    private static readonly TimeSpan s_watermarkSeedingBudget = TimeSpan.FromSeconds(5);
 
     private readonly List<SubscriptionSession> _sessions = [];
     private bool _disposed;
@@ -33,8 +35,10 @@ internal sealed class KafkaEventStreamBroker(KafkaEventStreamOptions options)
             ArgumentException.ThrowIfNullOrEmpty(topics[i]);
         }
 
-        KafkaCursor? kafkaCursor = string.IsNullOrEmpty(cursor) ? null : ParseCursor(cursor, topics);
-        return SubscribeCoreAsync(topics, kafkaCursor, cancellationToken);
+        var resumeMap = string.IsNullOrEmpty(cursor)
+            ? null
+            : KafkaCompositeCursorFormatter.Parse(cursor, topics);
+        return SubscribeCoreAsync(topics, resumeMap, context.RequiresCursor, cancellationToken);
     }
 
     public async ValueTask DisposeAsync()
@@ -68,7 +72,8 @@ internal sealed class KafkaEventStreamBroker(KafkaEventStreamOptions options)
 
     private async IAsyncEnumerable<EventMessage> SubscribeCoreAsync(
         string[] topics,
-        KafkaCursor? cursor,
+        Dictionary<TopicPartition, long>? resumeMap,
+        bool requiresCursor,
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         var channel = options.CreateMessageChannel();
@@ -76,7 +81,7 @@ internal sealed class KafkaEventStreamBroker(KafkaEventStreamOptions options)
         var writer = channel.Writer;
         var consumerConfig = CreateConsumerConfig(options);
         var session = CreateSession(cancellationToken);
-        var pumpTask = StartPump(topics, cursor, consumerConfig, writer, session.Token);
+        var pumpTask = StartPump(topics, resumeMap, requiresCursor, consumerConfig, writer, session.Token);
         session.SetPumpTask(pumpTask);
 
         try
@@ -209,14 +214,17 @@ internal sealed class KafkaEventStreamBroker(KafkaEventStreamOptions options)
 
     private Task StartPump(
         string[] topics,
-        KafkaCursor? cursor,
+        Dictionary<TopicPartition, long>? resumeMap,
+        bool requiresCursor,
         ConsumerConfig consumerConfig,
         ChannelWriter<EventMessage> writer,
         CancellationToken cancellationToken)
     {
         var state = new PumpState(
             topics,
-            cursor,
+            resumeMap,
+            requiresCursor,
+            options.AutoOffsetReset,
             consumerConfig,
             writer,
             cancellationToken,
@@ -234,27 +242,40 @@ internal sealed class KafkaEventStreamBroker(KafkaEventStreamOptions options)
     {
         IConsumer<Ignore, byte[]>? consumer = null;
 
+        // The map tracks the next offset per (topic, partition) whenever the stream exposes a
+        // cursor or an inbound cursor was supplied. It starts as a copy of the inbound cursor so
+        // silent partitions keep their position and a rebalance resumes from tracked offsets
+        // rather than the inbound cursor. The cache exists only when cursors are emitted; an
+        // inbound-only resume seeks but emits none. The map is owned by this pump thread and
+        // needs no synchronization.
+        var cursorMap = CreateCursorMap(state.RequiresCursor, state.ResumeMap);
+        var cursorCache = state.RequiresCursor ? new SingleEntryCursorCache() : null;
+
         try
         {
             consumer = new ConsumerBuilder<Ignore, byte[]>(state.ConsumerConfig)
-                .SetPartitionsAssignedHandler((_, partitions) =>
-                    state.OnPartitionsAssigned?.Invoke(partitions))
+                .SetPartitionsAssignedHandler((assignedConsumer, partitions) =>
+                {
+                    // Compute the start offsets first, then signal readiness. The handler runs on
+                    // every rebalance, so the barrier a test waits on must mean "assigned and
+                    // seeded" rather than merely "assigned", which would let a produced event race
+                    // ahead of seeding.
+                    var offsets = ResolveStartOffsets(
+                        assignedConsumer,
+                        partitions,
+                        state.ResumeMap,
+                        cursorMap,
+                        state.AutoOffsetReset);
+                    state.OnPartitionsAssigned?.Invoke(partitions);
+                    return offsets;
+                })
                 .Build();
 
-            if (state.Cursor is { } cursor)
-            {
-                consumer.Assign(
-                    new TopicPartitionOffset(
-                        cursor.Topic,
-                        new Partition(cursor.Partition),
-                        new Offset(cursor.Offset + 1)));
-            }
-            else
-            {
-                // A unique group id per Subscribe call gives every GraphQL subscriber its own fan-out
-                // stream instead of Kafka's competing-consumer load balancing.
-                consumer.Subscribe(state.Topics);
-            }
+            // A unique group id per Subscribe call gives every GraphQL subscriber its own fan-out
+            // stream instead of Kafka's competing-consumer load balancing. Starting positions for
+            // every assigned partition are chosen in the partitions-assigned handler, which avoids a
+            // single-partition Assign and lets multi-topic and multi-partition subscriptions resume.
+            consumer.Subscribe(state.Topics);
 
             while (!state.CancellationToken.IsCancellationRequested)
             {
@@ -282,17 +303,18 @@ internal sealed class KafkaEventStreamBroker(KafkaEventStreamOptions options)
                     continue;
                 }
 
-                var eventMessage = CreateMessage(
-                    result.Message.Value ?? [],
-                    result.Topic,
-                    result.Partition.Value,
-                    result.Offset.Value);
-
-                if (!await WriteMessageAsync(
+                var outcome = await EmitMessageAsync(
                     state.Writer,
-                    eventMessage,
+                    cursorMap,
+                    cursorCache,
+                    state.RequiresCursor,
+                    result.TopicPartition,
+                    result.Offset.Value,
+                    result.Message.Value ?? [],
                     state.CancellationToken)
-                    .ConfigureAwait(false))
+                    .ConfigureAwait(false);
+
+                if (outcome is WriteOutcome.Closed)
                 {
                     break;
                 }
@@ -330,30 +352,84 @@ internal sealed class KafkaEventStreamBroker(KafkaEventStreamOptions options)
         }
     }
 
-    private static async ValueTask<bool> WriteMessageAsync(
+    /// <summary>
+    /// Creates the progress map that tracks the next offset to read per (topic, partition).
+    /// The map is seeded from <paramref name="resumeMap"/> when a resume cursor was supplied,
+    /// empty when the stream exposes a cursor without one, and null when neither applies,
+    /// in which case no progress is tracked.
+    /// </summary>
+    internal static Dictionary<TopicPartition, long>? CreateCursorMap(
+        bool requiresCursor,
+        IReadOnlyDictionary<TopicPartition, long>? resumeMap)
+    {
+        if (resumeMap is not null)
+        {
+            return [with(resumeMap)];
+        }
+
+        return requiresCursor ? [] : null;
+    }
+
+    internal static async ValueTask<WriteOutcome> EmitMessageAsync(
+        ChannelWriter<EventMessage> writer,
+        Dictionary<TopicPartition, long>? cursorMap,
+        SingleEntryCursorCache? cursorCache,
+        bool emitCursor,
+        TopicPartition topicPartition,
+        long offset,
+        byte[] body,
+        CancellationToken cancellationToken)
+    {
+        // When the stream exposes no cursor, suppress emission by formatting the body only, even
+        // though the progress map may still advance to honor an inbound resume across a rebalance.
+        // The explicit flag, not the cache, is the emission gate: the multi-partition codec emits
+        // cursors without consulting the cache, so only this flag suppresses emission on all paths.
+        var eventMessage = emitCursor
+            ? CreateMessage(body, topicPartition, offset, cursorMap, cursorCache)
+            : CreateMessage(body, topicPartition, offset, cursorMap: null, cursorCache: null);
+        var outcome = await WriteMessageAsync(writer, eventMessage, cancellationToken)
+            .ConfigureAwait(false);
+
+        if (outcome is WriteOutcome.Delivered && cursorMap is not null)
+        {
+            // A successful channel write is the sole signal that advances the committed cursor. It is
+            // committed here on the pump thread that exclusively owns the cursor map, and no shared,
+            // reader-mutated message state is inspected, so the classification cannot race the
+            // consumer draining the channel.
+            cursorMap[topicPartition] = offset + 1;
+        }
+
+        return outcome;
+    }
+
+    private static async ValueTask<WriteOutcome> WriteMessageAsync(
         ChannelWriter<EventMessage> writer,
         EventMessage eventMessage,
         CancellationToken cancellationToken)
     {
         try
         {
+            // A successful write is delivered: TryWrite returning true or WriteAsync completing both
+            // mean the channel accepted the message. Only a completed or closed channel is not
+            // delivered. A bounded Drop-mode channel may still discard the message after accepting it,
+            // which is the caller's opted-in at-most-once behavior, not a failure to deliver.
             if (writer.TryWrite(eventMessage))
             {
-                return true;
+                return WriteOutcome.Delivered;
             }
 
             await writer.WriteAsync(eventMessage, cancellationToken);
-            return true;
+            return WriteOutcome.Delivered;
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
             eventMessage.Dispose();
-            return false;
+            return WriteOutcome.Closed;
         }
         catch (ChannelClosedException)
         {
             eventMessage.Dispose();
-            return false;
+            return WriteOutcome.Closed;
         }
     }
 
@@ -371,255 +447,281 @@ internal sealed class KafkaEventStreamBroker(KafkaEventStreamOptions options)
         }
     }
 
+    private static IEnumerable<TopicPartitionOffset> ResolveStartOffsets(
+        IConsumer<Ignore, byte[]> consumer,
+        List<TopicPartition> partitions,
+        Dictionary<TopicPartition, long>? resumeMap,
+        Dictionary<TopicPartition, long>? cursorMap,
+        AutoOffsetReset autoOffsetReset)
+    {
+        var offsets = new List<TopicPartitionOffset>(partitions.Count);
+        var seedingStart = Stopwatch.GetTimestamp();
+
+        foreach (var partition in partitions)
+        {
+            offsets.Add(
+                new TopicPartitionOffset(
+                    partition,
+                    ResolveStartOffset(
+                        consumer,
+                        partition,
+                        resumeMap,
+                        cursorMap,
+                        autoOffsetReset,
+                        GetRemainingQueryTimeout(seedingStart))));
+        }
+
+        return offsets;
+    }
+
+    // Bounds a single watermark query by both the per-query timeout and the seeding loop's overall
+    // budget. Once the budget is spent the remaining partitions get a zero timeout, which skips the
+    // watermark query and falls back so that a slow broker cannot stall the assignment indefinitely.
+    private static TimeSpan GetRemainingQueryTimeout(long seedingStart)
+    {
+        var remaining = s_watermarkSeedingBudget - Stopwatch.GetElapsedTime(seedingStart);
+
+        if (remaining <= TimeSpan.Zero)
+        {
+            return TimeSpan.Zero;
+        }
+
+        return remaining < s_watermarkQueryTimeout ? remaining : s_watermarkQueryTimeout;
+    }
+
+    private static Offset ResolveStartOffset(
+        IConsumer<Ignore, byte[]> consumer,
+        TopicPartition partition,
+        Dictionary<TopicPartition, long>? resumeMap,
+        Dictionary<TopicPartition, long>? cursorMap,
+        AutoOffsetReset autoOffsetReset,
+        TimeSpan queryTimeout)
+    {
+        // A partition's start offset is resolved only the first time it is assigned. Once the cursor
+        // map tracks it (from the inbound cursor, an earlier assignment, or a delivered message), a
+        // later re-assignment during a rebalance resumes from the tracked next offset instead of
+        // re-querying the watermark and seeking forward, which would silently skip the events in
+        // between. That seed-once decision is TryResolveTrackedOffset, which takes no consumer, so a
+        // tracked or inbound-resume partition never touches the watermark.
+        if (TryResolveTrackedOffset(partition, resumeMap, cursorMap, autoOffsetReset, out var resolved))
+        {
+            return resolved;
+        }
+
+        if (cursorMap is not null)
+        {
+            // Fresh resumable subscription: seed the partition's baseline the first time it is
+            // assigned (not lazily on first message) so that a partition which then stays silent
+            // still resumes from its subscribe-time position and does not lose gap events.
+            return SeedFreshPartition(consumer, partition, autoOffsetReset, cursorMap, queryTimeout);
+        }
+
+        // Fresh subscription without cursor tracking: fall back to the configured AutoOffsetReset
+        // behavior.
+        return Offset.Unset;
+    }
+
+    /// <summary>
+    /// Resolves the start offset for a partition whose position is already known, either tracked
+    /// in the cursor map or carried by the inbound resume cursor. Returns <c>false</c> when the
+    /// partition is untracked and must be seeded fresh. The resolution never queries the broker,
+    /// so a tracked partition cannot be re-seeded past unread events on a rebalance.
+    /// </summary>
+    internal static bool TryResolveTrackedOffset(
+        TopicPartition partition,
+        IReadOnlyDictionary<TopicPartition, long>? resumeMap,
+        IReadOnlyDictionary<TopicPartition, long>? cursorMap,
+        AutoOffsetReset autoOffsetReset,
+        out Offset offset)
+    {
+        if (cursorMap is not null && cursorMap.TryGetValue(partition, out var tracked))
+        {
+            offset = new Offset(tracked);
+            return true;
+        }
+
+        if (resumeMap is not null)
+        {
+            // Inbound resume: honor the stored position independently of whether the output cursor is
+            // tracked. The map stores the next offset to read, so we seek to it directly. A
+            // (topic, partition) absent from the resume cursor was either never baselined (a seed
+            // failure left no numeric position) or is genuinely new relative to the cursor. In both
+            // cases the configured reset mode decides: Earliest replays from the beginning, Latest
+            // starts at the live end and may skip events, consistent with SeedFreshPartition's own
+            // Latest-to-High asymmetry. There is no numeric baseline to record, so the partition is
+            // left absent from the map, which is self-stable.
+            offset = resumeMap.TryGetValue(partition, out var next)
+                ? new Offset(next)
+                : autoOffsetReset == AutoOffsetReset.Earliest
+                    ? Offset.Beginning
+                    : Offset.End;
+            return true;
+        }
+
+        offset = Offset.Unset;
+        return false;
+    }
+
+    private static Offset SeedFreshPartition(
+        IConsumer<Ignore, byte[]> consumer,
+        TopicPartition partition,
+        AutoOffsetReset autoOffsetReset,
+        Dictionary<TopicPartition, long> cursorMap,
+        TimeSpan queryTimeout)
+    {
+        if (queryTimeout > TimeSpan.Zero)
+        {
+            try
+            {
+                var watermarks = consumer.QueryWatermarkOffsets(partition, queryTimeout);
+
+                // Latest starts at the live end (High is the offset the next produced record
+                // receives) so only future events are delivered. Earliest starts at the earliest
+                // retained event (Low) so a fresh subscribe replays history. Either way the seeded
+                // baseline is the offset the first delivered message will carry, so the emitted cursor
+                // resumes from the true start position.
+                var baseline = autoOffsetReset == AutoOffsetReset.Earliest
+                    ? watermarks.Low.Value
+                    : watermarks.High.Value;
+                cursorMap[partition] = baseline;
+                return new Offset(baseline);
+            }
+            catch (KafkaException)
+            {
+                // The watermark could not be queried within the budget. Fall through to the reset
+                // fallback below.
+            }
+        }
+
+        // The watermark is unavailable (the query failed or the seeding budget is spent). For
+        // Earliest, record a zero baseline and seek to the beginning so that a later rebalance
+        // resolves this partition through the tracked-offset branch and replays from the start
+        // instead of re-querying a watermark whose Low may have advanced past retained events: it
+        // over-delivers but never loses. Offset zero is a valid non-negative next-offset, so a silent
+        // partition folds cleanly into a composite cursor. For Latest there is no known numeric
+        // position to record, so the partition seeds itself on its first delivered message; a Latest
+        // partition that stays silent across a rebalance is re-seeded to the live end and may skip
+        // events produced during the gap, which matches Latest's future-only, best-effort semantics.
+        if (autoOffsetReset == AutoOffsetReset.Earliest)
+        {
+            cursorMap[partition] = 0;
+            return Offset.Beginning;
+        }
+
+        return Offset.End;
+    }
+
     private static EventMessage CreateMessage(
         ReadOnlySpan<byte> body,
-        string topic,
-        int partition,
-        long offset)
+        TopicPartition topicPartition,
+        long offset,
+        Dictionary<TopicPartition, long>? cursorMap,
+        SingleEntryCursorCache? cursorCache)
     {
-        // Kafka cursors are per partition, so the at-most-once path still emits the full
-        // coordinate as informational cursor data.
-        var topicLength = Encoding.UTF8.GetByteCount(topic);
-        var rawCursorMaxLength = topicLength + 1 + 11 + 1 + 20;
+        if (cursorMap is null)
+        {
+            // The operation does not expose the resume cursor, so deliver the body without cursor
+            // data, mirroring a non-resumable path.
+            var bodyOnlyOwner = MemoryPool<byte>.Shared.Rent(body.Length);
+            body.CopyTo(bodyOnlyOwner.Memory.Span);
+            return new EventMessage(bodyOnlyOwner, 0..body.Length, 0..0);
+        }
 
-        byte[]? rented = null;
-        var rawCursor = rawCursorMaxLength <= 256
-            ? stackalloc byte[rawCursorMaxLength]
-            : rented = ArrayPool<byte>.Shared.Rent(rawCursorMaxLength);
+        // Emit a snapshot of the full map with this partition advanced past the current message, so
+        // the client can resume every observed (topic, partition) pair from just after it. The
+        // advance is applied to the shared map only temporarily here and committed for real only
+        // after a successful channel write (see EmitMessageAsync), so a message the channel could not
+        // accept never folds its offset into the shared cursor.
+        var hadPrevious = cursorMap.TryGetValue(topicPartition, out var previous);
+        var nextOffset = offset + 1;
+        cursorMap[topicPartition] = nextOffset;
 
         try
         {
-            var written = Encoding.UTF8.GetBytes(topic.AsSpan(), rawCursor);
-            rawCursor[written++] = (byte)':';
-
-            if (!Utf8Formatter.TryFormat(partition, rawCursor[written..], out var partitionLength))
+            // Fast path: the subscription observes exactly one (topic, partition). Its cursor prefix
+            // (version, count, topic, partition) never changes, so it is cached once per session and
+            // only the 8-byte offset is written per event. The output is byte-identical to the
+            // general codec, so both paths share one wire format.
+            if (cursorCache is not null && cursorMap.Count == 1)
             {
-                throw new InvalidOperationException("The Kafka partition cursor could not be formatted.");
+                var singleLength = cursorCache.GetFormattedLength(topicPartition);
+
+                byte[]? singleRented = null;
+                var singleCursor = singleLength <= 256
+                    ? stackalloc byte[singleLength]
+                    : singleRented = ArrayPool<byte>.Shared.Rent(singleLength);
+
+                try
+                {
+                    cursorCache.Format(topicPartition, nextOffset, singleCursor[..singleLength]);
+                    return EncodeMessage(body, singleCursor[..singleLength]);
+                }
+                finally
+                {
+                    if (singleRented is not null)
+                    {
+                        ArrayPool<byte>.Shared.Return(singleRented);
+                    }
+                }
             }
 
-            written += partitionLength;
-            rawCursor[written++] = (byte)':';
+            var rawCursorLength = KafkaCompositeCursorFormatter.GetFormattedLength(cursorMap);
 
-            if (!Utf8Formatter.TryFormat(offset, rawCursor[written..], out var offsetLength))
+            byte[]? rented = null;
+            var rawCursor = rawCursorLength <= 256
+                ? stackalloc byte[rawCursorLength]
+                : rented = ArrayPool<byte>.Shared.Rent(rawCursorLength);
+
+            try
             {
-                throw new InvalidOperationException("The Kafka offset cursor could not be formatted.");
+                KafkaCompositeCursorFormatter.Format(cursorMap, rawCursor[..rawCursorLength]);
+                return EncodeMessage(body, rawCursor[..rawCursorLength]);
             }
-
-            written += offsetLength;
-
-            var cursorLength = GetBase64EncodedLength(written);
-            var owner = MemoryPool<byte>.Shared.Rent(body.Length + cursorLength);
-            body.CopyTo(owner.Memory.Span);
-
-            if (Base64.EncodeToUtf8(
-                    rawCursor[..written],
-                    owner.Memory.Span[body.Length..],
-                    out _,
-                    out var bytesWritten) is not OperationStatus.Done)
+            finally
             {
-                owner.Dispose();
-                throw new InvalidOperationException("The Kafka cursor could not be encoded.");
+                if (rented is not null)
+                {
+                    ArrayPool<byte>.Shared.Return(rented);
+                }
             }
-
-            return new EventMessage(
-                owner,
-                0..body.Length,
-                body.Length..(body.Length + bytesWritten));
         }
         finally
         {
-            if (rented is not null)
+            if (hadPrevious)
             {
-                ArrayPool<byte>.Shared.Return(rented);
+                cursorMap[topicPartition] = previous;
+            }
+            else
+            {
+                cursorMap.Remove(topicPartition);
             }
         }
     }
 
-    private static KafkaCursor ParseCursor(string cursor, string[] topics)
+    private static EventMessage EncodeMessage(ReadOnlySpan<byte> body, ReadOnlySpan<byte> rawCursor)
     {
-        var maxDecodedLength = GetMaxBase64DecodedLength(cursor.Length);
-        byte[]? rented = null;
-        var buffer = maxDecodedLength <= 256
-            ? stackalloc byte[maxDecodedLength]
-            : rented = ArrayPool<byte>.Shared.Rent(maxDecodedLength);
+        var cursorLength = GetBase64EncodedLength(rawCursor.Length);
+        var owner = MemoryPool<byte>.Shared.Rent(body.Length + cursorLength);
+        body.CopyTo(owner.Memory.Span);
 
-        try
+        if (Base64.EncodeToUtf8(
+                rawCursor,
+                owner.Memory.Span[body.Length..],
+                out _,
+                out var bytesWritten) is not OperationStatus.Done)
         {
-            if (!Convert.TryFromBase64Chars(cursor.AsSpan(), buffer, out var bytesWritten))
-            {
-                throw new InvalidEventMessageCursorException();
-            }
-
-            return ParseDecodedCursor(buffer[..bytesWritten], topics);
-        }
-        finally
-        {
-            if (rented is not null)
-            {
-                ArrayPool<byte>.Shared.Return(rented);
-            }
-        }
-    }
-
-    private static KafkaCursor ParseDecodedCursor(
-        ReadOnlySpan<byte> cursor,
-        string[] topics)
-    {
-        var offsetSeparator = cursor.LastIndexOf((byte)':');
-        var partitionSeparator = offsetSeparator > 0
-            ? cursor[..offsetSeparator].LastIndexOf((byte)':')
-            : -1;
-
-        if (partitionSeparator <= 0
-            || offsetSeparator <= partitionSeparator + 1
-            || offsetSeparator == cursor.Length - 1)
-        {
-            throw new InvalidEventMessageCursorException();
+            owner.Dispose();
+            throw new InvalidOperationException("The Kafka cursor could not be encoded.");
         }
 
-        if (!TryGetTopic(cursor[..partitionSeparator], topics, out var topic))
-        {
-            throw new InvalidEventMessageCursorException();
-        }
-
-        var partitionSpan = cursor[(partitionSeparator + 1)..offsetSeparator];
-        if (!Utf8Parser.TryParse(partitionSpan, out int partition, out var partitionBytesConsumed)
-            || partitionBytesConsumed != partitionSpan.Length
-            || partition < 0)
-        {
-            throw new InvalidEventMessageCursorException();
-        }
-
-        var offsetSpan = cursor[(offsetSeparator + 1)..];
-        if (!Utf8Parser.TryParse(offsetSpan, out long offset, out var offsetBytesConsumed)
-            || offsetBytesConsumed != offsetSpan.Length
-            || offset < 0
-            || offset == long.MaxValue)
-        {
-            throw new InvalidEventMessageCursorException();
-        }
-
-        return new KafkaCursor(topic, partition, offset);
-    }
-
-    private static bool TryGetTopic(
-        ReadOnlySpan<byte> cursorTopic,
-        string[] topics,
-        [NotNullWhen(true)] out string? topic)
-    {
-        if (topics.Length == 1)
-        {
-            topic = topics[0];
-            if (TopicEquals(cursorTopic, topic))
-            {
-                return true;
-            }
-
-            topic = null;
-            return false;
-        }
-
-        int charCount;
-
-        try
-        {
-            charCount = s_strictUtf8.GetCharCount(cursorTopic);
-        }
-        catch (DecoderFallbackException)
-        {
-            topic = null;
-            return false;
-        }
-
-        char[]? rented = null;
-        var buffer = charCount <= 256
-            ? stackalloc char[charCount]
-            : rented = ArrayPool<char>.Shared.Rent(charCount);
-
-        try
-        {
-            var written = s_strictUtf8.GetChars(cursorTopic, buffer);
-            var cursorTopicText = buffer[..written];
-
-            for (var i = 0; i < topics.Length; i++)
-            {
-                var candidate = topics[i];
-
-                if (cursorTopicText.SequenceEqual(candidate.AsSpan()))
-                {
-                    topic = candidate;
-                    return true;
-                }
-            }
-
-            topic = null;
-            return false;
-        }
-        finally
-        {
-            if (rented is not null)
-            {
-                ArrayPool<char>.Shared.Return(rented);
-            }
-        }
-    }
-
-    private static bool TopicEquals(ReadOnlySpan<byte> cursorTopic, string topic)
-    {
-        if (cursorTopic.Length == topic.Length)
-        {
-            for (var i = 0; i < cursorTopic.Length; i++)
-            {
-                var cursorByte = cursorTopic[i];
-                var topicChar = topic[i];
-
-                if (cursorByte > 0x7f || topicChar > 0x7f)
-                {
-                    break;
-                }
-
-                if (cursorByte != topicChar)
-                {
-                    return false;
-                }
-
-                if (i == cursorTopic.Length - 1)
-                {
-                    return true;
-                }
-            }
-        }
-
-        var byteCount = Encoding.UTF8.GetByteCount(topic);
-        if (byteCount != cursorTopic.Length)
-        {
-            return false;
-        }
-
-        byte[]? rented = null;
-        var buffer = byteCount <= 256
-            ? stackalloc byte[byteCount]
-            : rented = ArrayPool<byte>.Shared.Rent(byteCount);
-
-        try
-        {
-            var written = Encoding.UTF8.GetBytes(topic.AsSpan(), buffer);
-            return cursorTopic.SequenceEqual(buffer[..written]);
-        }
-        finally
-        {
-            if (rented is not null)
-            {
-                ArrayPool<byte>.Shared.Return(rented);
-            }
-        }
+        return new EventMessage(
+            owner,
+            0..body.Length,
+            body.Length..(body.Length + bytesWritten));
     }
 
     private static int GetBase64EncodedLength(int length)
         => (length + 2) / 3 * 4;
-
-    private static int GetMaxBase64DecodedLength(int length)
-        => (length + 3) / 4 * 3;
 
     private static void DisposeQueuedMessages(Channel<EventMessage> channel)
     {
@@ -663,16 +765,25 @@ internal sealed class KafkaEventStreamBroker(KafkaEventStreamOptions options)
         }
     }
 
+    internal enum WriteOutcome
+    {
+        // The channel accepted the message, so its offset advances the committed cursor on the pump
+        // thread. A bounded Drop-mode channel may still discard the message after accepting it, which
+        // yields at-most-once delivery where a resume skips the discarded offset.
+        Delivered,
+
+        // The channel was closed or the subscription was cancelled, so the pump must stop and the
+        // committed cursor must not advance.
+        Closed
+    }
+
     private sealed record PumpState(
         string[] Topics,
-        KafkaCursor? Cursor,
+        Dictionary<TopicPartition, long>? ResumeMap,
+        bool RequiresCursor,
+        AutoOffsetReset AutoOffsetReset,
         ConsumerConfig ConsumerConfig,
         ChannelWriter<EventMessage> Writer,
         CancellationToken CancellationToken,
         Action<IReadOnlyList<TopicPartition>>? OnPartitionsAssigned);
-
-    private readonly record struct KafkaCursor(
-        string Topic,
-        int Partition,
-        long Offset);
 }

@@ -161,6 +161,37 @@ public sealed class EventCursorMarkerRuleTests : RuleTestBase
     }
 
     [Fact]
+    public void Validate_CursorArgumentOnScalarReturnType_Fails()
+    {
+        AssertInvalid(
+        [
+            """
+            type Query {
+                version: String
+            }
+
+            type Subscription {
+                onCount(after: String @eventCursor): String
+                    @eventStream(message: "{ __typename }")
+            }
+            """
+        ],
+        [
+            """
+            {
+                "message": "The @eventCursor argument on field 'Subscription.onCount' in schema 'A' requires an @eventCursor field on the event payload type.",
+                "code": "CURSOR_ARGUMENT_REQUIRES_CURSOR_FIELD",
+                "severity": "Error",
+                "coordinate": "Subscription.onCount",
+                "member": "onCount",
+                "schema": "A",
+                "extensions": {}
+            }
+            """
+        ]);
+    }
+
+    [Fact]
     public void Validate_MultipleCursorFields_Fails()
     {
         AssertInvalid(
