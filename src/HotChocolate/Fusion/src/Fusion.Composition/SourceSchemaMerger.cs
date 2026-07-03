@@ -190,10 +190,11 @@ internal sealed class SourceSchemaMerger
             var canonicalDirectiveDefinition = directiveMerger.GetCanonicalDirectiveDefinition(mergedSchema);
             var canonicalDirectiveNode = canonicalDirectiveDefinition.ToSyntaxNode();
 
-            // Ensure that all directive definitions match the canonical definition.
+            // Ensure that all directive definitions are compatible with the canonical definition.
             if (!grouping.All(
-                d => DirectiveDefinitionNodeComparer.Instance
-                    .Equals(d.DirectiveDefinition.ToSyntaxNode(), canonicalDirectiveNode)))
+                d => DirectiveDefinitionCompatibility.IsSourceCompatibleWithCanonical(
+                    d.DirectiveDefinition.ToSyntaxNode(),
+                    canonicalDirectiveNode)))
             {
                 // Skip merging if there is a mismatch.
                 continue;
