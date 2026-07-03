@@ -218,350 +218,350 @@ public abstract class FusionBenchmarkBase
 
     protected static DocumentNode CreateComplexDocument()
     {
-       return Utf8GraphQLParser.Parse(
-           """
-           query($level1: Boolean!, $level2: Boolean!, $level3: Boolean!, $level4: Boolean!, $level5: Boolean!, $level6: Boolean!, $includeExpensive: Boolean!, $includeReviews: Boolean!, $includeMetadata: Boolean!) {
-               # Deep conditional nesting (6+ levels)
-               productById(id: "1") {
-                   id
-                   name
-                   ... @include(if: $level1) {
-                       description
-                       ... @skip(if: $level2) {
-                           price
-                           ... @include(if: $level3) {
-                               dimension {
-                                   height
-                                   width
-                               }
-                               ... @skip(if: $level4) {
-                                   # Level 4 nesting
-                                   ... @include(if: $level5) {
-                                       # Level 5 nesting
-                                       ... @skip(if: $level6) {
-                                           # Level 6 nesting - extreme depth
-                                           reviews(first: 10) {
-                                               pageInfo {
-                                                   hasNextPage
-                                                   ... @include(if: $includeMetadata) {
-                                                       hasPreviousPage
-                                                       startCursor
-                                                       endCursor
-                                                   }
-                                               }
-                                               edges {
-                                                   cursor
-                                                   node {
-                                                       id
-                                                       body
-                                                       stars
-                                                       ... @include(if: $includeReviews) {
-                                                           author {
-                                                               id
-                                                               displayName
-                                                               ... @skip(if: $level1) {
-                                                                   reviews(first: 5) {
-                                                                       nodes {
-                                                                           id
-                                                                           body
-                                                                           ... @include(if: $level2) {
-                                                                               stars
-                                                                               product {
-                                                                                   id
-                                                                                   name
-                                                                                   ... @skip(if: $level3) {
-                                                                                       price
-                                                                                       ... @include(if: $level4) {
-                                                                                           dimension {
-                                                                                               height
-                                                                                               width
-                                                                                           }
-                                                                                       }
-                                                                                   }
-                                                                               }
-                                                                           }
-                                                                       }
-                                                                   }
-                                                               }
-                                                           }
-                                                       }
-                                                   }
-                                               }
-                                           }
-                                       }
-                                   }
-                               }
-                           }
-                       }
-                   }
-               }
-               # Many fields with same response name but different conditionals
-               products(first: 3) {
-                   edges {
-                       node {
-                           # Multiple 'name' fields with different conditionals
-                           name
-                           name @include(if: $level1)
-                           name @skip(if: $level2)
-                           name @include(if: $level3) @skip(if: $level4)
-                           name @skip(if: $level5) @include(if: $level6)
-                           # Multiple 'description' fields with complex conditionals
-                           description
-                           description @include(if: $includeExpensive)
-                           description @skip(if: $level1) @include(if: $level2)
-                           description @include(if: $level3) @skip(if: $level4) @include(if: $level5)
-                           # Multiple 'price' fields with nested conditionals
-                           price
-                           price @include(if: $includeExpensive)
-                           price @skip(if: $level1)
-                           price @include(if: $level2) @skip(if: $level3)
-                           price @skip(if: $level4) @include(if: $level5) @skip(if: $level6)
-                           # Complex field merging with fragments
-                           ... ProductBasicFields
-                           ... @include(if: $level1) {
-                               ... ProductBasicFields
-                           }
-                           ... @skip(if: $level2) {
-                               ... ProductBasicFields
-                           }
-                           ... @include(if: $level3) @skip(if: $level4) {
-                               ... ProductBasicFields
-                           }
-                           # Interface type refinements with deep conditionals
-                           ... on Product {
-                               ... @include(if: $includeReviews) {
-                                   reviews(first: 5) {
-                                       nodes {
-                                           id
-                                           body
-                                           stars
-                                           ... @skip(if: $level1) {
-                                               author {
-                                                   id
-                                                   displayName
-                                                   ... @include(if: $level2) {
-                                                       reviews(first: 3) {
-                                                           nodes {
-                                                               id
-                                                               body
-                                                               ... @skip(if: $level3) {
-                                                                   stars
-                                                                   product {
-                                                                       id
-                                                                       name
-                                                                       ... @include(if: $level4) {
-                                                                           price
-                                                                           ... @skip(if: $level5) {
-                                                                               dimension {
-                                                                                   height
-                                                                                   width
-                                                                               }
-                                                                           }
-                                                                       }
-                                                                   }
-                                                               }
-                                                           }
-                                                       }
-                                                   }
-                                               }
-                                           }
-                                       }
-                                   }
-                               }
-                           }
-                       }
-                   }
-               }
-               # Complex conditional merging scenarios
-               searchContent(query: "extreme") {
-                   # Interface field with multiple conditionals
-                   id
-                   id @include(if: $level1)
-                   id @skip(if: $level2)
-                   title
-                   title @include(if: $includeExpensive)
-                   title @skip(if: $level3)
-                   description
-                   description @include(if: $level4)
-                   description @skip(if: $level5) @include(if: $level6)
-                   # Type refinements with extreme conditional complexity
-                   ... on Product {
-                       name
-                       name @include(if: $level1)
-                       name @skip(if: $level2) @include(if: $level3)
-                       price
-                       price @include(if: $includeExpensive)
-                       price @skip(if: $level4) @include(if: $level5) @skip(if: $level6)
-                       ... @include(if: $includeReviews) {
-                           reviews(first: 3) {
-                               nodes {
-                                   id
-                                   body
-                                   stars
-                                   ... @skip(if: $level1) {
-                                       author {
-                                           id
-                                           displayName
-                                           ... @include(if: $level2) {
-                                               reviews(first: 2) {
-                                                   nodes {
-                                                       id
-                                                       body
-                                                       ... @skip(if: $level3) {
-                                                           stars
-                                                           product {
-                                                               id
-                                                               name
-                                                               ... @include(if: $level4) {
-                                                                   price
-                                                                   ... @skip(if: $level5) {
-                                                                       dimension {
-                                                                           height
-                                                                           width
-                                                                       }
-                                                                       ... @include(if: $level6) {
-                                                                           # Extreme nesting level - move reviews to Product level
-                                                                           reviews(first: 1) {
-                                                                               nodes {
-                                                                                   id
-                                                                                   body
-                                                                                   stars
-                                                                               }
-                                                                           }
-                                                                       }
-                                                                   }
-                                                               }
-                                                           }
-                                                       }
-                                                   }
-                                               }
-                                           }
-                                       }
-                                   }
-                               }
-                           }
-                       }
-                   }
-                   ... on Article {
-                       content
-                       content @include(if: $includeExpensive)
-                       content @skip(if: $level1) @include(if: $level2)
-                       author {
-                           id
-                           displayName
-                           ... @include(if: $level3) {
-                               reviews(first: 2) {
-                                   nodes {
-                                       id
-                                       body
-                                       ... @skip(if: $level4) {
-                                           stars
-                                           product {
-                                               id
-                                               name
-                                               ... @include(if: $level5) {
-                                                   price
-                                                   ... @skip(if: $level6) {
-                                                       dimension {
-                                                           height
-                                                           width
-                                                       }
-                                                   }
-                                               }
-                                           }
-                                       }
-                                   }
-                               }
-                           }
-                       }
-                       publishedAt
-                       publishedAt @include(if: $includeMetadata)
-                       publishedAt @skip(if: $level1) @include(if: $level2) @skip(if: $level3)
-                       tags
-                       tags @include(if: $level4)
-                       tags @skip(if: $level5) @include(if: $level6)
-                   }
-               }
-               # Viewer with extreme conditional complexity
-               viewer {
-                   displayName
-                   displayName @include(if: $level1)
-                   displayName @skip(if: $level2) @include(if: $level3)
-                   ... @include(if: $includeReviews) {
-                       reviews(first: 5) {
-                           pageInfo {
-                               hasNextPage
-                               hasNextPage @include(if: $level4)
-                               hasNextPage @skip(if: $level5) @include(if: $level6)
-                               hasPreviousPage
-                               hasPreviousPage @include(if: $includeMetadata)
-                               hasPreviousPage @skip(if: $level1) @include(if: $level2)
-                               startCursor
-                               startCursor @include(if: $level3)
-                               startCursor @skip(if: $level4) @include(if: $level5)
-                               endCursor
-                               endCursor @include(if: $level6)
-                               endCursor @skip(if: $level1) @include(if: $level2) @skip(if: $level3)
-                           }
-                           edges {
-                               cursor
-                               cursor @include(if: $level4)
-                               cursor @skip(if: $level5) @include(if: $level6)
-                               node {
-                                   id
-                                   id @include(if: $level1)
-                                   id @skip(if: $level2) @include(if: $level3)
-                                   body
-                                   body @include(if: $includeExpensive)
-                                   body @skip(if: $level4) @include(if: $level5) @skip(if: $level6)
-                                   stars
-                                   stars @include(if: $level1)
-                                   stars @skip(if: $level2)
-                                   ... @include(if: $includeReviews) {
-                                       author {
-                                           id
-                                           displayName
-                                           ... @skip(if: $level3) {
-                                               reviews(first: 3) {
-                                                   nodes {
-                                                       id
-                                                       body
-                                                       stars
-                                                       ... @include(if: $level4) {
-                                                           product {
-                                                               id
-                                                               name
-                                                               ... @skip(if: $level5) {
-                                                                   price
-                                                                   ... @include(if: $level6) {
-                                                                       dimension {
-                                                                           height
-                                                                           width
-                                                                       }
-                                                                   }
-                                                               }
-                                                           }
-                                                       }
-                                                   }
-                                               }
-                                           }
-                                       }
-                                   }
-                               }
-                           }
-                       }
-                   }
-               }
-           }
+        return Utf8GraphQLParser.Parse(
+            """
+            query($level1: Boolean!, $level2: Boolean!, $level3: Boolean!, $level4: Boolean!, $level5: Boolean!, $level6: Boolean!, $includeExpensive: Boolean!, $includeReviews: Boolean!, $includeMetadata: Boolean!) {
+                # Deep conditional nesting (6+ levels)
+                productById(id: "1") {
+                    id
+                    name
+                    ... @include(if: $level1) {
+                        description
+                        ... @skip(if: $level2) {
+                            price
+                            ... @include(if: $level3) {
+                                dimension {
+                                    height
+                                    width
+                                }
+                                ... @skip(if: $level4) {
+                                    # Level 4 nesting
+                                    ... @include(if: $level5) {
+                                        # Level 5 nesting
+                                        ... @skip(if: $level6) {
+                                            # Level 6 nesting - extreme depth
+                                            reviews(first: 10) {
+                                                pageInfo {
+                                                    hasNextPage
+                                                    ... @include(if: $includeMetadata) {
+                                                        hasPreviousPage
+                                                        startCursor
+                                                        endCursor
+                                                    }
+                                                }
+                                                edges {
+                                                    cursor
+                                                    node {
+                                                        id
+                                                        body
+                                                        stars
+                                                        ... @include(if: $includeReviews) {
+                                                            author {
+                                                                id
+                                                                displayName
+                                                                ... @skip(if: $level1) {
+                                                                    reviews(first: 5) {
+                                                                        nodes {
+                                                                            id
+                                                                            body
+                                                                            ... @include(if: $level2) {
+                                                                                stars
+                                                                                product {
+                                                                                    id
+                                                                                    name
+                                                                                    ... @skip(if: $level3) {
+                                                                                        price
+                                                                                        ... @include(if: $level4) {
+                                                                                            dimension {
+                                                                                                height
+                                                                                                width
+                                                                                            }
+                                                                                        }
+                                                                                    }
+                                                                                }
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                # Many fields with same response name but different conditionals
+                products(first: 3) {
+                    edges {
+                        node {
+                            # Multiple 'name' fields with different conditionals
+                            name
+                            name @include(if: $level1)
+                            name @skip(if: $level2)
+                            name @include(if: $level3) @skip(if: $level4)
+                            name @skip(if: $level5) @include(if: $level6)
+                            # Multiple 'description' fields with complex conditionals
+                            description
+                            description @include(if: $includeExpensive)
+                            description @skip(if: $level1) @include(if: $level2)
+                            description @include(if: $level3) @skip(if: $level4) @include(if: $level5)
+                            # Multiple 'price' fields with nested conditionals
+                            price
+                            price @include(if: $includeExpensive)
+                            price @skip(if: $level1)
+                            price @include(if: $level2) @skip(if: $level3)
+                            price @skip(if: $level4) @include(if: $level5) @skip(if: $level6)
+                            # Complex field merging with fragments
+                            ... ProductBasicFields
+                            ... @include(if: $level1) {
+                                ... ProductBasicFields
+                            }
+                            ... @skip(if: $level2) {
+                                ... ProductBasicFields
+                            }
+                            ... @include(if: $level3) @skip(if: $level4) {
+                                ... ProductBasicFields
+                            }
+                            # Interface type refinements with deep conditionals
+                            ... on Product {
+                                ... @include(if: $includeReviews) {
+                                    reviews(first: 5) {
+                                        nodes {
+                                            id
+                                            body
+                                            stars
+                                            ... @skip(if: $level1) {
+                                                author {
+                                                    id
+                                                    displayName
+                                                    ... @include(if: $level2) {
+                                                        reviews(first: 3) {
+                                                            nodes {
+                                                                id
+                                                                body
+                                                                ... @skip(if: $level3) {
+                                                                    stars
+                                                                    product {
+                                                                        id
+                                                                        name
+                                                                        ... @include(if: $level4) {
+                                                                            price
+                                                                            ... @skip(if: $level5) {
+                                                                                dimension {
+                                                                                    height
+                                                                                    width
+                                                                                }
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                # Complex conditional merging scenarios
+                searchContent(query: "extreme") {
+                    # Interface field with multiple conditionals
+                    id
+                    id @include(if: $level1)
+                    id @skip(if: $level2)
+                    title
+                    title @include(if: $includeExpensive)
+                    title @skip(if: $level3)
+                    description
+                    description @include(if: $level4)
+                    description @skip(if: $level5) @include(if: $level6)
+                    # Type refinements with extreme conditional complexity
+                    ... on Product {
+                        name
+                        name @include(if: $level1)
+                        name @skip(if: $level2) @include(if: $level3)
+                        price
+                        price @include(if: $includeExpensive)
+                        price @skip(if: $level4) @include(if: $level5) @skip(if: $level6)
+                        ... @include(if: $includeReviews) {
+                            reviews(first: 3) {
+                                nodes {
+                                    id
+                                    body
+                                    stars
+                                    ... @skip(if: $level1) {
+                                        author {
+                                            id
+                                            displayName
+                                            ... @include(if: $level2) {
+                                                reviews(first: 2) {
+                                                    nodes {
+                                                        id
+                                                        body
+                                                        ... @skip(if: $level3) {
+                                                            stars
+                                                            product {
+                                                                id
+                                                                name
+                                                                ... @include(if: $level4) {
+                                                                    price
+                                                                    ... @skip(if: $level5) {
+                                                                        dimension {
+                                                                            height
+                                                                            width
+                                                                        }
+                                                                        ... @include(if: $level6) {
+                                                                            # Extreme nesting level - move reviews to Product level
+                                                                            reviews(first: 1) {
+                                                                                nodes {
+                                                                                    id
+                                                                                    body
+                                                                                    stars
+                                                                                }
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    ... on Article {
+                        content
+                        content @include(if: $includeExpensive)
+                        content @skip(if: $level1) @include(if: $level2)
+                        author {
+                            id
+                            displayName
+                            ... @include(if: $level3) {
+                                reviews(first: 2) {
+                                    nodes {
+                                        id
+                                        body
+                                        ... @skip(if: $level4) {
+                                            stars
+                                            product {
+                                                id
+                                                name
+                                                ... @include(if: $level5) {
+                                                    price
+                                                    ... @skip(if: $level6) {
+                                                        dimension {
+                                                            height
+                                                            width
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        publishedAt
+                        publishedAt @include(if: $includeMetadata)
+                        publishedAt @skip(if: $level1) @include(if: $level2) @skip(if: $level3)
+                        tags
+                        tags @include(if: $level4)
+                        tags @skip(if: $level5) @include(if: $level6)
+                    }
+                }
+                # Viewer with extreme conditional complexity
+                viewer {
+                    displayName
+                    displayName @include(if: $level1)
+                    displayName @skip(if: $level2) @include(if: $level3)
+                    ... @include(if: $includeReviews) {
+                        reviews(first: 5) {
+                            pageInfo {
+                                hasNextPage
+                                hasNextPage @include(if: $level4)
+                                hasNextPage @skip(if: $level5) @include(if: $level6)
+                                hasPreviousPage
+                                hasPreviousPage @include(if: $includeMetadata)
+                                hasPreviousPage @skip(if: $level1) @include(if: $level2)
+                                startCursor
+                                startCursor @include(if: $level3)
+                                startCursor @skip(if: $level4) @include(if: $level5)
+                                endCursor
+                                endCursor @include(if: $level6)
+                                endCursor @skip(if: $level1) @include(if: $level2) @skip(if: $level3)
+                            }
+                            edges {
+                                cursor
+                                cursor @include(if: $level4)
+                                cursor @skip(if: $level5) @include(if: $level6)
+                                node {
+                                    id
+                                    id @include(if: $level1)
+                                    id @skip(if: $level2) @include(if: $level3)
+                                    body
+                                    body @include(if: $includeExpensive)
+                                    body @skip(if: $level4) @include(if: $level5) @skip(if: $level6)
+                                    stars
+                                    stars @include(if: $level1)
+                                    stars @skip(if: $level2)
+                                    ... @include(if: $includeReviews) {
+                                        author {
+                                            id
+                                            displayName
+                                            ... @skip(if: $level3) {
+                                                reviews(first: 3) {
+                                                    nodes {
+                                                        id
+                                                        body
+                                                        stars
+                                                        ... @include(if: $level4) {
+                                                            product {
+                                                                id
+                                                                name
+                                                                ... @skip(if: $level5) {
+                                                                    price
+                                                                    ... @include(if: $level6) {
+                                                                        dimension {
+                                                                            height
+                                                                            width
+                                                                        }
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
 
-           fragment ProductBasicFields on Product {
-               id
-               name
-               description
-               price
-               averageRating
-           }
-           """);
+            fragment ProductBasicFields on Product {
+                id
+                name
+                description
+                price
+                averageRating
+            }
+            """);
     }
 
     protected static DocumentNode CreateConditionalRedundancyDocument()

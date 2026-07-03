@@ -624,7 +624,7 @@ public abstract class HttpEndpointIntegrationTestBase : OpenApiTestBase
             return response2.StatusCode == HttpStatusCode.OK;
         }, cts.Token);
 
-        response2!.MatchSnapshot();
+        response2.MatchSnapshot();
     }
 
     [Fact]
@@ -669,7 +669,7 @@ public abstract class HttpEndpointIntegrationTestBase : OpenApiTestBase
             return content != content1;
         }, cts.Token);
 
-        response2!.MatchSnapshot();
+        response2.MatchSnapshot();
     }
 
     [Fact]
@@ -718,7 +718,7 @@ public abstract class HttpEndpointIntegrationTestBase : OpenApiTestBase
 
         Assert.Equal(HttpStatusCode.NotFound, oldRouteResponse2.StatusCode);
 
-        newRouteResponse!.MatchSnapshot();
+        newRouteResponse.MatchSnapshot();
     }
 
     [Fact]

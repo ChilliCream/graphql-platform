@@ -20,7 +20,7 @@ public class PostgresHandlerClaimTests
             .SingleOrDefault(e => e.Name == "order-created");
 
         Assert.NotNull(endpoint);
-        Assert.Equal(ReceiveEndpointKind.Default, endpoint!.Kind);
+        Assert.Equal(ReceiveEndpointKind.Default, endpoint.Kind);
     }
 
     [Fact]
@@ -38,7 +38,7 @@ public class PostgresHandlerClaimTests
             .SingleOrDefault(e => e.Queue.Name == "custom-handler-queue");
 
         Assert.NotNull(endpoint);
-        Assert.Equal("custom-handler-queue", endpoint!.Queue.Name);
+        Assert.Equal("custom-handler-queue", endpoint.Queue.Name);
     }
 
     [Fact]
@@ -56,7 +56,7 @@ public class PostgresHandlerClaimTests
             .SingleOrDefault(e => e.Name == "order-spy");
 
         Assert.NotNull(endpoint);
-        Assert.Equal(ReceiveEndpointKind.Default, endpoint!.Kind);
+        Assert.Equal(ReceiveEndpointKind.Default, endpoint.Kind);
     }
 
     [Fact]

@@ -38,7 +38,7 @@ public static class HotChocolateExecutionSelectionExtensions
         if (selection is not Selection casted)
         {
             throw new ArgumentException(
-                $"Expected {typeof(Selection).FullName!}.",
+                $"Expected {typeof(Selection).FullName}.",
                 nameof(selection));
         }
 
@@ -56,7 +56,7 @@ public static class HotChocolateExecutionSelectionExtensions
         if (selection is not Selection casted)
         {
             throw new ArgumentException(
-                $"Expected {typeof(Selection).FullName!}.",
+                $"Expected {typeof(Selection).FullName}.",
                 nameof(selection));
         }
 

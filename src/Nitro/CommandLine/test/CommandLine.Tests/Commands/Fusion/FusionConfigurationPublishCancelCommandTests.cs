@@ -114,10 +114,7 @@ public sealed class FusionConfigurationPublishCancelCommandTests(NitroCommandFix
             "fusion", "publish", "cancel", "--request-id", RequestId);
 
         // assert
-        result.StdErr.MatchInlineSnapshot(
-            $"""
-             {expectedErrorMessage}
-             """);
+        result.StdErr.MatchInlineSnapshot(expectedErrorMessage);
         result.StdOut.MatchInlineSnapshot(
             """
             Canceling publication

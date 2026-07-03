@@ -109,7 +109,7 @@ internal sealed partial class OperationContext
 
         IncludeFlags = operation.CreateIncludeFlags(variables);
         DeferFlags = operation.CreateDeferFlags(variables);
-        Result.Data = new ResultDocument(_memory!, operation, IncludeFlags);
+        Result.Data = new ResultDocument(_memory, operation, IncludeFlags);
         Result.RequestIndex = _requestContext.RequestIndex;
         Result.VariableIndex = variableIndex;
 

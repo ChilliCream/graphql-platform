@@ -278,19 +278,19 @@ public partial class SyntaxWalker<TContext>
         DefaultAction;
 
     protected virtual ISyntaxVisitorAction Leave(
-       EnumTypeExtensionNode node,
-       TContext context) =>
-       DefaultAction;
+        EnumTypeExtensionNode node,
+        TContext context) =>
+        DefaultAction;
 
     protected virtual ISyntaxVisitorAction Leave(
-       InputObjectTypeExtensionNode node,
-       TContext context) =>
-       DefaultAction;
+        InputObjectTypeExtensionNode node,
+        TContext context) =>
+        DefaultAction;
 
     protected virtual ISyntaxVisitorAction Leave(
-       SchemaCoordinateNode node,
-       TContext context) =>
-       DefaultAction;
+        SchemaCoordinateNode node,
+        TContext context) =>
+        DefaultAction;
 
     protected virtual ISyntaxVisitorAction Leave(
         DirectiveExtensionNode node,

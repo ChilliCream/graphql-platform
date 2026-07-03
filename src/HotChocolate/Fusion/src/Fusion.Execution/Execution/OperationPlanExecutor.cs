@@ -967,6 +967,8 @@ internal static class OperationPlanExecutor
             await executionState.Signal;
         }
 
+        await DrainActiveNodesAsync(plan, executionState);
+
         if (context.CollectTelemetry)
         {
             context.Traces = executionState.Traces.ToImmutableDictionary();
@@ -1038,6 +1040,8 @@ internal static class OperationPlanExecutor
                 break;
             }
         }
+
+        await DrainActiveNodesAsync(plan, executionState);
 
         if (context.CollectTelemetry)
         {
@@ -1148,6 +1152,12 @@ internal static class OperationPlanExecutor
                         await executionState.Signal;
                     }
 
+                    // The context is shared across events and the next event resets the
+                    // execution state, so we must let this event's in-flight sibling nodes
+                    // finish and account for their completions before that reset. Otherwise
+                    // a late completion would poison the next event.
+                    await DrainActiveNodesAsync(plan, executionState);
+
                     // If the original CancellationToken of the request was cancelled,
                     // the Execution nodes and the PlanExecutor should have been gracefully cancelled,
                     // so we throw here to properly cancel the request execution.
@@ -1223,6 +1233,33 @@ internal static class OperationPlanExecutor
                 cts);
             executionState.SetCancellationSource(cts);
             return (cts, registration);
+        }
+    }
+
+    private static async ValueTask DrainActiveNodesAsync(
+        IOperationPlan plan,
+        ExecutionState executionState)
+    {
+        // When execution halts early (a field error null-bubbled to the root and
+        // cancelled the execution, or the request itself was cancelled) sibling node
+        // tasks may still be in flight. They close over the pooled context, so we
+        // must let them finish and account for their completions before the context
+        // returns to the pool. Otherwise a late completion would mutate the state of
+        // the next request that reuses this context.
+        while (executionState.HasActiveNodes())
+        {
+            while (executionState.TryDequeueCompletedResult(out var result))
+            {
+                var node = plan.GetNodeById(result.Id);
+                executionState.CompleteNode(plan, node, result);
+            }
+
+            if (!executionState.HasActiveNodes())
+            {
+                break;
+            }
+
+            await executionState.Signal;
         }
     }
 

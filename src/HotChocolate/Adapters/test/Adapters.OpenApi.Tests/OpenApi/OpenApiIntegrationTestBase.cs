@@ -567,7 +567,7 @@ public abstract class OpenApiIntegrationTestBase : OpenApiTestBase
             return openApiDocument2 != openApiDocument1;
         }, cts.Token);
 
-        openApiDocument2!.MatchSnapshot(postFix: TestEnvironment.TargetFramework, extension: ".json");
+        openApiDocument2.MatchSnapshot(postFix: TestEnvironment.TargetFramework, extension: ".json");
     }
 
     [Fact]
@@ -610,7 +610,7 @@ public abstract class OpenApiIntegrationTestBase : OpenApiTestBase
             return openApiDocument2 != openApiDocument1;
         }, cts.Token);
 
-        openApiDocument2!.MatchSnapshot(postFix: TestEnvironment.TargetFramework, extension: ".json");
+        openApiDocument2.MatchSnapshot(postFix: TestEnvironment.TargetFramework, extension: ".json");
     }
 
     [Fact]
@@ -653,7 +653,7 @@ public abstract class OpenApiIntegrationTestBase : OpenApiTestBase
             return openApiDocument2 != openApiDocument1;
         }, cts.Token);
 
-        openApiDocument2!.MatchSnapshot(postFix: TestEnvironment.TargetFramework, extension: ".json");
+        openApiDocument2.MatchSnapshot(postFix: TestEnvironment.TargetFramework, extension: ".json");
     }
 
     [Fact(Skip = "Need to determine what best behavior should be")]
@@ -722,7 +722,7 @@ public abstract class OpenApiIntegrationTestBase : OpenApiTestBase
             return openApiDocument2 != openApiDocument1;
         }, cts.Token);
 
-        openApiDocument2!.MatchSnapshot(postFix: TestEnvironment.TargetFramework, extension: ".json");
+        openApiDocument2.MatchSnapshot(postFix: TestEnvironment.TargetFramework, extension: ".json");
     }
 
     [Fact]
