@@ -1,0 +1,249 @@
+title: Union_Member_Fragment_With_Field_Resolved_From_Other_Schema
+request:
+  document: |
+    {
+      feed {
+        __typename
+        ...ArticleFragment
+        ...PhotoFragment
+      }
+    }
+
+    fragment ArticleFragment on Article {
+      id
+      headline
+    }
+
+    fragment PhotoFragment on Photo {
+      id
+      caption
+    }
+response:
+  body: |
+    {
+      "data": {
+        "feed": [
+          {
+            "__typename": "Article",
+            "id": "QXJ0aWNsZTox",
+            "headline": "Article: QXJ0aWNsZTox"
+          },
+          {
+            "__typename": "Photo",
+            "id": "UGhvdG86Mg==",
+            "caption": "Photo: UGhvdG86Mg=="
+          },
+          {
+            "__typename": "Article",
+            "id": "QXJ0aWNsZToz",
+            "headline": "Article: QXJ0aWNsZToz"
+          }
+        ]
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        feed: [FeedItem!]!
+      }
+
+      type Article @key(fields: "id") {
+        id: ID!
+      }
+
+      type Photo @key(fields: "id") {
+        id: ID!
+      }
+
+      union FeedItem = Article | Photo
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_f8edc1f1_1 {
+              feed {
+                __typename
+                ... on Article {
+                  id
+                }
+                ... on Photo {
+                  id
+                }
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "feed": [
+                    {
+                      "__typename": "Article",
+                      "id": "QXJ0aWNsZTox"
+                    },
+                    {
+                      "__typename": "Photo",
+                      "id": "UGhvdG86Mg=="
+                    },
+                    {
+                      "__typename": "Article",
+                      "id": "QXJ0aWNsZToz"
+                    }
+                  ]
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        articleById(id: ID!): Article @lookup
+        photoById(id: ID!): Photo @lookup
+      }
+
+      type Article @key(fields: "id") {
+        id: ID!
+        headline: String!
+      }
+
+      type Photo @key(fields: "id") {
+        id: ID!
+        caption: String!
+      }
+    interactions:
+      - request:
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
+          kind: OperationBatch
+          items:
+            - document: |
+                query Op_f8edc1f1_2($__fusion_1_id: ID!) {
+                  photoById(id: $__fusion_1_id) {
+                    caption
+                  }
+                }
+              variables: |
+                {
+                  "__fusion_1_id": "UGhvdG86Mg=="
+                }
+            - document: |
+                query Op_f8edc1f1_3($__fusion_2_id: ID!) {
+                  articleById(id: $__fusion_2_id) {
+                    headline
+                  }
+                }
+              variables: |
+                [
+                  {
+                    "__fusion_2_id": "QXJ0aWNsZTox"
+                  },
+                  {
+                    "__fusion_2_id": "QXJ0aWNsZToz"
+                  }
+                ]
+        response:
+          contentType: application/jsonl; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "articleById": {
+                    "headline": "Article: QXJ0aWNsZTox"
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "articleById": {
+                    "headline": "Article: QXJ0aWNsZToz"
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "photoById": {
+                    "caption": "Photo: UGhvdG86Mg=="
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        {
+          feed {
+            __typename
+            ... on Article {
+              id
+              id @fusion__requirement
+              headline
+            }
+            ... on Photo {
+              id
+              id @fusion__requirement
+              caption
+            }
+          }
+        }
+      hash: f8edc1f1dbfa7ef2b434256c881f4c35
+      searchSpace: 1
+      expandedNodes: 2
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        query Op_f8edc1f1_1 {
+          feed {
+            __typename
+            ... on Article {
+              id
+            }
+            ... on Photo {
+              id
+            }
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: B
+      operation: |
+        query Op_f8edc1f1_2($__fusion_1_id: ID!) {
+          photoById(id: $__fusion_1_id) {
+            caption
+          }
+        }
+      source: $.photoById
+      target: $.feed<Photo>
+      batchingGroupId: 2
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1
+    - id: 3
+      type: Operation
+      schema: B
+      operation: |
+        query Op_f8edc1f1_3($__fusion_2_id: ID!) {
+          articleById(id: $__fusion_2_id) {
+            headline
+          }
+        }
+      source: $.articleById
+      target: $.feed<Article>
+      batchingGroupId: 2
+      requirements:
+        - name: __fusion_2_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1

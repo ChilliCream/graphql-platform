@@ -30,14 +30,14 @@ public sealed class EventStreamExecutionNode : ExecutionNode
     private readonly string _message;
     private readonly ResultSelectionSet _resultSelectionSet;
     private readonly ExecutionNodeCondition[] _conditions;
-    private readonly SelectionPath _source;
-    private readonly SelectionPath _target;
+    private readonly ResolvedSelectionPath _source;
+    private readonly ResolvedSelectionPath _target;
 
     internal EventStreamExecutionNode(
         int id,
         string fieldName,
-        SelectionPath target,
-        SelectionPath source,
+        ResolvedSelectionPath target,
+        ResolvedSelectionPath source,
         ResultSelectionSet resultSelectionSet,
         EventStreamSource eventStreamSource,
         string message,
@@ -71,9 +71,9 @@ public sealed class EventStreamExecutionNode : ExecutionNode
 
     public string FieldName { get; }
 
-    public SelectionPath Target => _target;
+    public SelectionPath Target => _target.Path;
 
-    public SelectionPath Source => _source;
+    public SelectionPath Source => _source.Path;
 
     internal ResultSelectionSet ResultSelectionSet => _resultSelectionSet;
 
@@ -452,9 +452,10 @@ public sealed class EventStreamExecutionNode : ExecutionNode
             var builder = new StringBuilder();
             var lastField = default(string);
 
-            for (var i = 0; i < node._target.Length; i++)
+            var targetPath = node._target.Path;
+            for (var i = 0; i < targetPath.Length; i++)
             {
-                var segment = node._target[i];
+                var segment = targetPath[i];
                 if (segment.Kind is not SelectionPathSegmentKind.Field)
                 {
                     continue;

@@ -19,15 +19,15 @@ public sealed class OperationExecutionNode : ExecutionNode
     private readonly OperationSourceText _operation;
     private readonly ulong _operationHash;
     private readonly string? _schemaName;
-    private readonly SelectionPath _target;
-    private readonly SelectionPath _source;
+    private readonly ResolvedSelectionPath _target;
+    private readonly ResolvedSelectionPath _source;
 
     internal OperationExecutionNode(
         int id,
         OperationSourceText operation,
         string? schemaName,
-        SelectionPath target,
-        SelectionPath source,
+        ResolvedSelectionPath target,
+        ResolvedSelectionPath source,
         OperationRequirement[] requirements,
         string[] forwardedVariables,
         ResultSelectionSet resultSelectionSet,
@@ -72,13 +72,17 @@ public sealed class OperationExecutionNode : ExecutionNode
     /// <summary>
     /// Gets the path to the selection set for which this operation fetches data.
     /// </summary>
-    public SelectionPath Target => _target;
+    public SelectionPath Target => _target.Path;
 
     /// <summary>
     /// Gets the path to the local selection set (the selection set within the source schema request)
     /// to extract the data from.
     /// </summary>
-    public SelectionPath Source => _source;
+    public SelectionPath Source => _source.Path;
+
+    internal ResolvedSelectionPath ResolvedTarget => _target;
+
+    internal ResolvedSelectionPath ResolvedSource => _source;
 
     /// <summary>
     /// Gets the data requirements that are needed to execute this operation.

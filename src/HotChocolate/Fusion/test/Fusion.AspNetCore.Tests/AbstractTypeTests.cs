@@ -1371,6 +1371,197 @@ public class AbstractTypeTests : FusionTestBase
         await MatchSnapshotAsync(gateway, request, result);
     }
 
+    [Fact]
+    public async Task Three_Level_Interface_Fragment_With_Field_Resolved_From_Other_Schema()
+    {
+        // arrange
+        using var serverA = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+              orders: [OrderBase!]!
+            }
+
+            interface OrderBase {
+              name: String!
+            }
+
+            interface MultiOrderBase implements OrderBase {
+              name: String!
+              items: [OrderItem!]!
+            }
+
+            interface DetailedOrderBase implements MultiOrderBase & OrderBase {
+              name: String!
+              items: [OrderItem!]!
+              priority: Int!
+            }
+
+            type OrderA implements DetailedOrderBase & MultiOrderBase & OrderBase {
+              name: String!
+              items: [OrderItem!]!
+              priority: Int!
+            }
+
+            type OrderB implements DetailedOrderBase & MultiOrderBase & OrderBase {
+              name: String!
+              items: [OrderItem!]!
+              priority: Int!
+            }
+
+            type OrderItem {
+              product: Product!
+            }
+
+            type Product @key(fields: "id") {
+              id: ID!
+            }
+            """);
+
+        using var serverB = CreateSourceSchema(
+            "B",
+            """
+            type Query {
+              productById(id: ID!): Product @lookup
+            }
+
+            type Product @key(fields: "id") {
+              id: ID!
+              name: String!
+              description: String!
+            }
+            """);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", serverA),
+            ("B", serverB)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            query {
+              orders {
+                ...OrderBaseFragment
+              }
+            }
+
+            fragment OrderBaseFragment on OrderBase {
+              __typename
+              name
+              ...MultiOrderBaseFragment
+            }
+
+            fragment MultiOrderBaseFragment on MultiOrderBase {
+              __typename
+              items {
+                product {
+                  id
+                  name
+                  description
+                }
+              }
+              ...DetailedOrderBaseFragment
+            }
+
+            fragment DetailedOrderBaseFragment on DetailedOrderBase {
+              __typename
+              priority
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    [Fact]
+    public async Task Union_Member_Fragment_With_Field_Resolved_From_Other_Schema()
+    {
+        // arrange
+        using var serverA = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+              feed: [FeedItem!]!
+            }
+
+            union FeedItem = Article | Photo
+
+            type Article @key(fields: "id") {
+              id: ID!
+            }
+
+            type Photo @key(fields: "id") {
+              id: ID!
+            }
+            """);
+
+        using var serverB = CreateSourceSchema(
+            "B",
+            """
+            type Query {
+              articleById(id: ID!): Article @lookup
+              photoById(id: ID!): Photo @lookup
+            }
+
+            type Article @key(fields: "id") {
+              id: ID!
+              headline: String!
+            }
+
+            type Photo @key(fields: "id") {
+              id: ID!
+              caption: String!
+            }
+            """);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", serverA),
+            ("B", serverB)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            query {
+              feed {
+                __typename
+                ...ArticleFragment
+                ...PhotoFragment
+              }
+            }
+
+            fragment ArticleFragment on Article {
+              id
+              headline
+            }
+
+            fragment PhotoFragment on Photo {
+              id
+              caption
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
     public static class SourceSchema1
     {
         public class Query

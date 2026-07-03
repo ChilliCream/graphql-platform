@@ -60,7 +60,7 @@ public sealed class FetchResultStoreTests : FusionTestBase
         // act
         var exception = Assert.Throws<ArgumentOutOfRangeException>(
             () => store.AddPartialResults(
-                SelectionPath.Root,
+                ResolvedSelectionPath.Create(SelectionPath.Root, schema),
                 results,
                 node.ResultSelectionSet,
                 containsErrors));

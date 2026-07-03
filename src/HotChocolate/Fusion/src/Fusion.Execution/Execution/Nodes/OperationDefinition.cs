@@ -1,5 +1,3 @@
-using HotChocolate.Execution;
-
 namespace HotChocolate.Fusion.Execution.Nodes;
 
 internal abstract class OperationDefinition : IOperationPlanNode
@@ -19,7 +17,7 @@ internal abstract class OperationDefinition : IOperationPlanNode
         int id,
         OperationSourceText operation,
         string? schemaName,
-        SelectionPath source,
+        ResolvedSelectionPath source,
         OperationRequirement[] requirements,
         string[] forwardedVariables,
         ResultSelectionSet resultSelectionSet,
@@ -64,7 +62,7 @@ internal abstract class OperationDefinition : IOperationPlanNode
     /// Gets the path to the local selection set (the selection set within the
     /// source schema request) to extract the data from.
     /// </summary>
-    public SelectionPath Source { get; }
+    public ResolvedSelectionPath Source { get; }
 
     /// <summary>
     /// Gets the data requirements that must be satisfied before this operation

@@ -558,8 +558,8 @@ public sealed partial class OperationPlanner
             operationStep.Id,
             operationSource,
             operationStep.SchemaName,
-            operationStep.Target,
-            operationStep.Source,
+            ResolvedSelectionPath.Create(operationStep.Target, schema),
+            ResolvedSelectionPath.Create(operationStep.Source, schema),
             requirements,
             forwardedVariables,
             resultSelectionSet,
@@ -588,8 +588,8 @@ public sealed partial class OperationPlanner
         var node = new EventStreamExecutionNode(
             operationStep.Id,
             eventStreamPlan.FieldName,
-            operationStep.Target,
-            operationStep.Source,
+            ResolvedSelectionPath.Create(operationStep.Target, schema),
+            ResolvedSelectionPath.Create(operationStep.Source, schema),
             resultSelectionSet,
             eventStreamPlan.Source,
             eventStreamPlan.Message,
@@ -683,11 +683,11 @@ public sealed partial class OperationPlanner
 
                 var primary = group[0];
                 var (canonicalOp, canonicalRequirements) = CanonicalizeOperation(primary);
-                var targets = new SelectionPath[group.Count];
+                var targets = new ResolvedSelectionPath[group.Count];
 
                 for (var i = 0; i < group.Count; i++)
                 {
-                    targets[i] = group[i].Target;
+                    targets[i] = group[i].ResolvedTarget;
                 }
 
                 mergeResults[primary.Id] = new MergeResult(
@@ -990,7 +990,7 @@ public sealed partial class OperationPlanner
             merge.CanonicalOp,
             primary.SchemaName,
             merge.Targets,
-            primary.Source,
+            primary.ResolvedSource,
             merge.CanonicalRequirements,
             primary.ForwardedVariables.ToArray(),
             primary.ResultSelectionSet,
@@ -1011,8 +1011,8 @@ public sealed partial class OperationPlanner
             member.Id,
             member.Operation,
             member.SchemaName,
-            member.Target,
-            member.Source,
+            member.ResolvedTarget,
+            member.ResolvedSource,
             member.Requirements.ToArray(),
             member.ForwardedVariables.ToArray(),
             member.ResultSelectionSet,
@@ -2008,7 +2008,7 @@ public sealed partial class OperationPlanner
     }
 
     private readonly record struct MergeResult(
-        SelectionPath[] Targets,
+        ResolvedSelectionPath[] Targets,
         OperationSourceText CanonicalOp,
         OperationRequirement[] CanonicalRequirements,
         OperationExecutionNode Primary);

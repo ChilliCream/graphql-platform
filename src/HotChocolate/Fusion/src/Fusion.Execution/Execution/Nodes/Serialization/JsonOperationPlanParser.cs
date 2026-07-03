@@ -552,7 +552,8 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
             Message = message,
             Dependencies = dependencies,
             ParentDependencies = parentDependencies,
-            Conditions = conditions
+            Conditions = conditions,
+            Schema = schema
         };
     }
 
@@ -911,8 +912,8 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
                 Id,
                 OperationSource,
                 SchemaName,
-                Target,
-                Source,
+                ResolvedSelectionPath.Create(Target, Schema),
+                ResolvedSelectionPath.Create(Source, Schema),
                 Requirements,
                 ForwardedVariables,
                 ResultSelectionSet,
@@ -936,8 +937,8 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
                 Id,
                 OperationSource,
                 SchemaName,
-                Target,
-                Source,
+                ResolvedSelectionPath.Create(Target, Schema),
+                ResolvedSelectionPath.Create(Source, Schema),
                 Requirements,
                 ForwardedVariables,
                 ResultSelectionSet,
@@ -974,13 +975,15 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
 
         public ExecutionNodeCondition[] Conditions { get; init; } = [];
 
+        public required ISchemaDefinition Schema { get; init; }
+
         public override (ExecutionNode, int[]?, Dictionary<string, int>?, int?) ToExecutionNodeTuple()
         {
             var node = new EventStreamExecutionNode(
                 Id,
                 FieldName,
-                Target,
-                Source,
+                ResolvedSelectionPath.Create(Target, Schema),
+                ResolvedSelectionPath.Create(Source, Schema),
                 ResultSelectionSet,
                 EventStreamSource,
                 Message,
@@ -1004,12 +1007,18 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
 
         public override OperationDefinition ToOperationDefinition()
         {
+            var resolvedTargets = new ResolvedSelectionPath[Targets.Length];
+            for (var i = 0; i < Targets.Length; i++)
+            {
+                resolvedTargets[i] = ResolvedSelectionPath.Create(Targets[i], Schema);
+            }
+
             var definition = new BatchOperationDefinition(
                 Id,
                 OperationSource,
                 SchemaName,
-                Targets,
-                Source,
+                resolvedTargets,
+                ResolvedSelectionPath.Create(Source, Schema),
                 Requirements,
                 ForwardedVariables,
                 ResultSelectionSet,

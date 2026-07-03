@@ -30,7 +30,7 @@ public sealed class OperationPlanContextRoutingTests : FusionTestBase
 
         // act
         var result = context.CreateVariableValueSets(
-            SelectionPath.Root,
+            ResolvedSelectionPath.Create(SelectionPath.Root, context.Schema),
             forwardedVariables: [],
             requirements: [Requirement("__fusion_1_id")]);
 
@@ -48,7 +48,7 @@ public sealed class OperationPlanContextRoutingTests : FusionTestBase
 
         // act
         var result = context.CreateVariableValueSets(
-            SelectionPath.Root,
+            ResolvedSelectionPath.Create(SelectionPath.Root, context.Schema),
             forwardedVariables: [],
             requirements: [Requirement("__fusion_2_other")]);
 
@@ -67,7 +67,7 @@ public sealed class OperationPlanContextRoutingTests : FusionTestBase
         // act
         var exception = Assert.Throws<InvalidOperationException>(
             () => context.CreateVariableValueSets(
-                SelectionPath.Root,
+                ResolvedSelectionPath.Create(SelectionPath.Root, context.Schema),
                 forwardedVariables: [],
                 requirements:
                 [
@@ -129,7 +129,7 @@ public sealed class OperationPlanContextRoutingTests : FusionTestBase
 
         // act
         var first = context.CreateVariableValueSets(
-            SelectionPath.Root,
+            ResolvedSelectionPath.Create(SelectionPath.Root, context.Schema),
             forwardedVariables: [],
             requirements:
             [
@@ -137,7 +137,7 @@ public sealed class OperationPlanContextRoutingTests : FusionTestBase
                 Requirement("__fusion_2_sku")
             ]);
         var second = context.CreateVariableValueSets(
-            SelectionPath.Root,
+            ResolvedSelectionPath.Create(SelectionPath.Root, context.Schema),
             forwardedVariables: [],
             requirements:
             [
@@ -173,7 +173,7 @@ public sealed class OperationPlanContextRoutingTests : FusionTestBase
 
         // act
         var result = context.CreateVariableValueSets(
-            SelectionPath.Root,
+            ResolvedSelectionPath.Create(SelectionPath.Root, context.Schema),
             forwardedVariables: ["limit"],
             requirements: [Requirement("__fusion_1_id")]);
 
@@ -199,7 +199,7 @@ public sealed class OperationPlanContextRoutingTests : FusionTestBase
 
         // act
         var result = context.CreateVariableValueSets(
-            SelectionPath.Root,
+            ResolvedSelectionPath.Create(SelectionPath.Root, context.Schema),
             forwardedVariables: [],
             requirements: [Requirement("__fusion_1_id")]);
 
@@ -222,7 +222,7 @@ public sealed class OperationPlanContextRoutingTests : FusionTestBase
         // act
         var exception = Assert.Throws<InvalidOperationException>(
             () => context.CreateVariableValueSets(
-                selectionSets: [SelectionPath.Root],
+                selectionSets: [ResolvedSelectionPath.Create(SelectionPath.Root, context.Schema)],
                 forwardedVariables: [],
                 requiredData:
                 [

@@ -567,7 +567,7 @@ internal static class OperationPlanExecutor
         }
 
         var parentValues = parentResultStore.CreateVariableValueSets(
-            anchor,
+            ResolvedSelectionPath.Create(anchor, childContext.Schema),
             requestVariables: [],
             requirementSpan);
 

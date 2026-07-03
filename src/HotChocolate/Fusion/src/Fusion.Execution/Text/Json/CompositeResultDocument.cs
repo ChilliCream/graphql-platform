@@ -53,6 +53,11 @@ public sealed partial class CompositeResultDocument : IDisposable
     {
         var row = _metaDb.Get(cursor);
 
+        if (row.TokenType is ElementTokenType.Reference)
+        {
+            row = _metaDb.Get(new Cursor(row.Location));
+        }
+
         if (row.OperationReferenceType is not OperationReferenceType.SelectionSet)
         {
             return null;

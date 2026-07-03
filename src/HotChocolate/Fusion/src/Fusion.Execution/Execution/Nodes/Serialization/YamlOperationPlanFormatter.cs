@@ -410,14 +410,14 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
         }
         writer.Unindent();
 
-        if (!opDef.Source.IsRoot)
+        if (!opDef.Source.Path.IsRoot)
         {
-            writer.WriteLine("source: {0}", opDef.Source.ToString());
+            writer.WriteLine("source: {0}", opDef.Source.Path.ToString());
         }
 
-        if (!opDef.Target.IsRoot)
+        if (!opDef.Target.Path.IsRoot)
         {
-            writer.WriteLine("target: {0}", opDef.Target.ToString());
+            writer.WriteLine("target: {0}", opDef.Target.Path.ToString());
         }
 
         writer.WriteLine("batchingGroupId: {0}", batchNode.Id);
@@ -464,9 +464,9 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
         }
         writer.Unindent();
 
-        if (!opDef.Source.IsRoot)
+        if (!opDef.Source.Path.IsRoot)
         {
-            writer.WriteLine("source: {0}", opDef.Source.ToString());
+            writer.WriteLine("source: {0}", opDef.Source.Path.ToString());
         }
 
         if (opDef.Targets.Length > 0)
@@ -475,7 +475,7 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
             writer.Indent();
             foreach (var target in opDef.Targets)
             {
-                writer.WriteLine("- {0}", target.ToString());
+                writer.WriteLine("- {0}", target.Path.ToString());
             }
             writer.Unindent();
         }

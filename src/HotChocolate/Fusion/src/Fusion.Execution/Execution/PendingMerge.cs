@@ -16,7 +16,7 @@ internal readonly struct PendingMerge
     private PendingMerge(
         ExecutionNode node,
         string schemaName,
-        SelectionPath sourcePath,
+        ResolvedSelectionPath sourcePath,
         ResultSelectionSet resultSelectionSet,
         ImmutableArray<VariableValues> variableValueSets,
         bool containsErrors,
@@ -41,7 +41,7 @@ internal readonly struct PendingMerge
 
     public string SchemaName { get; }
 
-    public SelectionPath SourcePath { get; }
+    public ResolvedSelectionPath SourcePath { get; }
 
     public ResultSelectionSet ResultSelectionSet { get; }
 
@@ -52,7 +52,7 @@ internal readonly struct PendingMerge
     public static PendingMerge Single(
         ExecutionNode node,
         string schemaName,
-        SelectionPath sourcePath,
+        ResolvedSelectionPath sourcePath,
         ResultSelectionSet resultSelectionSet,
         ImmutableArray<VariableValues> variableValueSets,
         SourceSchemaResult result,
@@ -72,7 +72,7 @@ internal readonly struct PendingMerge
     public static PendingMerge Multiple(
         ExecutionNode node,
         string schemaName,
-        SelectionPath sourcePath,
+        ResolvedSelectionPath sourcePath,
         ResultSelectionSet resultSelectionSet,
         ImmutableArray<VariableValues> variableValueSets,
         SourceSchemaResult[] buffer,

@@ -308,7 +308,7 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
         => _executionState.EnqueueMerge(merge);
 
     internal ImmutableArray<VariableValues> CreateVariableValueSets(
-        SelectionPath selectionSet,
+        ResolvedSelectionPath selectionSet,
         ReadOnlySpan<string> forwardedVariables,
         ReadOnlySpan<OperationRequirement> requirements)
     {
@@ -318,12 +318,12 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
         {
             if (forwardedVariables.Length == 0)
             {
-                if (selectionSet.IsRoot)
+                if (selectionSet.Path.IsRoot)
                 {
                     return [];
                 }
 
-                return [_resultStore.CreateVariableValueSets(ToResultPath(selectionSet), [])];
+                return [_resultStore.CreateVariableValueSets(ToResultPath(selectionSet.Path), [])];
             }
 
             var variableValues = GetPathThroughVariables(forwardedVariables);
@@ -363,7 +363,7 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
     }
 
     internal ImmutableArray<VariableValues> CreateVariableValueSets(
-        ReadOnlySpan<SelectionPath> selectionSets,
+        ReadOnlySpan<ResolvedSelectionPath> selectionSets,
         ReadOnlySpan<string> forwardedVariables,
         ReadOnlySpan<OperationRequirement> requiredData)
     {
@@ -554,7 +554,7 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
     }
 
     internal void AddPartialResult(
-        SelectionPath sourcePath,
+        ResolvedSelectionPath sourcePath,
         SourceSchemaResult result,
         ResultSelectionSet resultSelectionSet,
         bool containsErrors)
@@ -569,7 +569,7 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
     }
 
     internal void AddPartialResults(
-        SelectionPath sourcePath,
+        ResolvedSelectionPath sourcePath,
         ReadOnlySpan<SourceSchemaResult> results,
         ResultSelectionSet resultSelectionSet,
         bool containsErrors)

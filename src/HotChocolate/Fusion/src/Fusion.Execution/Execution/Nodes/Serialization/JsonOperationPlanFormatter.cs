@@ -598,16 +598,16 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
         jsonWriter.WritePropertyName("resultSelectionSet");
         jsonWriter.WriteStringValue(operationDef.ResultSelectionSet.ToString(indented: false));
 
-        if (!operationDef.Source.IsRoot)
+        if (!operationDef.Source.Path.IsRoot)
         {
             jsonWriter.WritePropertyName("source");
-            jsonWriter.WriteStringValue(operationDef.Source.ToString());
+            jsonWriter.WriteStringValue(operationDef.Source.Path.ToString());
         }
 
-        if (!operationDef.Target.IsRoot)
+        if (!operationDef.Target.Path.IsRoot)
         {
             jsonWriter.WritePropertyName("target");
-            jsonWriter.WriteStringValue(operationDef.Target.ToString());
+            jsonWriter.WriteStringValue(operationDef.Target.Path.ToString());
         }
 
         jsonWriter.WritePropertyName("batchingGroupId");
@@ -728,10 +728,10 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
         jsonWriter.WritePropertyName("resultSelectionSet");
         jsonWriter.WriteStringValue(operationDef.ResultSelectionSet.ToString(indented: false));
 
-        if (!operationDef.Source.IsRoot)
+        if (!operationDef.Source.Path.IsRoot)
         {
             jsonWriter.WritePropertyName("source");
-            jsonWriter.WriteStringValue(operationDef.Source.ToString());
+            jsonWriter.WriteStringValue(operationDef.Source.Path.ToString());
         }
 
         jsonWriter.WritePropertyName("targets");
@@ -739,7 +739,7 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
 
         foreach (var target in operationDef.Targets)
         {
-            jsonWriter.WriteStringValue(target.ToString());
+            jsonWriter.WriteStringValue(target.Path.ToString());
         }
 
         jsonWriter.WriteEndArray();

@@ -11,6 +11,7 @@ using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Language;
 using HotChocolate.Fusion.Text.Json;
+using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Text.Json;
@@ -72,7 +73,7 @@ internal sealed partial class FetchResultStore : IDisposable
     public List<IDisposable> MemoryOwners => _memory;
 
     public bool AddPartialResult(
-        SelectionPath sourcePath,
+        ResolvedSelectionPath sourcePath,
         SourceSchemaResult result,
         ResultSelectionSet resultSelectionSet,
         bool containsErrors)
@@ -86,7 +87,7 @@ internal sealed partial class FetchResultStore : IDisposable
     }
 
     public bool AddPartialResults(
-        SelectionPath sourcePath,
+        ResolvedSelectionPath sourcePath,
         ReadOnlySpan<SourceSchemaResult> results,
         ResultSelectionSet resultSelectionSet,
         bool containsErrors)
@@ -133,7 +134,7 @@ internal sealed partial class FetchResultStore : IDisposable
                 }
 
                 dataElementsSpan[i] = GetDataElement(sourcePath, result.Data);
-                errorTriesSpan[i] = GetErrorTrie(sourcePath, errors?.Trie);
+                errorTriesSpan[i] = GetErrorTrie(sourcePath.Path, errors?.Trie);
             }
 
             lock (_lock)
@@ -206,7 +207,7 @@ internal sealed partial class FetchResultStore : IDisposable
     }
 
     private bool AddPartialResultsNoErrors(
-        SelectionPath sourcePath,
+        ResolvedSelectionPath sourcePath,
         ReadOnlySpan<SourceSchemaResult> results,
         ResultSelectionSet resultSelectionSet)
     {
@@ -283,13 +284,13 @@ internal sealed partial class FetchResultStore : IDisposable
     }
 
     private bool AddSinglePartialResult(
-        SelectionPath sourcePath,
+        ResolvedSelectionPath sourcePath,
         SourceSchemaResult result,
         ResultSelectionSet resultSelectionSet)
     {
         var errors = result.Errors;
         var dataElement = GetDataElement(sourcePath, result.Data);
-        var errorTrie = GetErrorTrie(sourcePath, errors?.Trie);
+        var errorTrie = GetErrorTrie(sourcePath.Path, errors?.Trie);
 
         lock (_lock)
         {
@@ -319,7 +320,7 @@ internal sealed partial class FetchResultStore : IDisposable
     }
 
     private bool AddSinglePartialResultNoErrors(
-        SelectionPath sourcePath,
+        ResolvedSelectionPath sourcePath,
         SourceSchemaResult result,
         ResultSelectionSet resultSelectionSet)
     {
@@ -669,7 +670,7 @@ AddErrors_Next:
     }
 
     public ImmutableArray<VariableValues> CreateVariableValueSets(
-        SelectionPath selectionSet,
+        ResolvedSelectionPath selectionSet,
         IReadOnlyList<ObjectFieldNode> requestVariables,
         ReadOnlySpan<OperationRequirement> requiredData)
     {
@@ -704,7 +705,7 @@ AddErrors_Next:
     /// into a single <see cref="VariableValues"/> entry via <see cref="VariableValues.AdditionalPaths"/>.
     /// </summary>
     public ImmutableArray<VariableValues> CreateVariableValueSets(
-        ReadOnlySpan<SelectionPath> selectionSets,
+        ReadOnlySpan<ResolvedSelectionPath> selectionSets,
         IReadOnlyList<ObjectFieldNode> requestVariables,
         ReadOnlySpan<OperationRequirement> requiredData)
     {
@@ -787,8 +788,9 @@ AddErrors_Next:
     }
 
     // Caller must hold _lock for reading.
-    private ReadOnlySpan<CompositeResultElement> CollectTargetElements(SelectionPath selectionSet)
+    private ReadOnlySpan<CompositeResultElement> CollectTargetElements(ResolvedSelectionPath selectionSet)
     {
+        var path = selectionSet.Path;
         var current = _collectTargetA;
         var currentCount = 0;
         var next = _collectTargetB;
@@ -796,18 +798,18 @@ AddErrors_Next:
 
         current[currentCount++] = _result.Data;
 
-        for (var i = 0; i < selectionSet.Length; i++)
+        for (var i = 0; i < path.Length; i++)
         {
-            var segment = selectionSet[i];
+            var segment = path[i];
 
             if (segment.Kind is SelectionPathSegmentKind.InlineFragment)
             {
+                var typeCondition = selectionSet.GetTypeCondition(i);
+
                 for (var j = 0; j < currentCount; j++)
                 {
                     var element = current[j];
-                    if (element.TryGetProperty(IntrospectionFieldNames.TypeNameSpan, out var value)
-                        && value.ValueKind is JsonValueKind.String
-                        && value.TextEqualsHelper(segment.Name, isPropertyName: false))
+                    if (typeCondition.IsAssignableFrom(element.AssertSelectionSet().Type))
                     {
                         AddToBuffer(ref next, ref nextCount, element);
                     }
@@ -863,6 +865,27 @@ AddErrors_Next:
         _collectTargetA = current;
         _collectTargetB = next;
         return current.AsSpan(0, currentCount);
+    }
+
+    private static bool MatchesFragmentTypeCondition(
+        SourceResultElement typeName,
+        string typeCondition,
+        ImmutableArray<FusionObjectTypeDefinition> possibleTypes)
+    {
+        if (typeName.TextEqualsHelper(typeCondition, isPropertyName: false))
+        {
+            return true;
+        }
+
+        foreach (var possibleType in possibleTypes)
+        {
+            if (typeName.TextEqualsHelper(possibleType.Name, isPropertyName: false))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private ImmutableArray<VariableValues> BuildVariableValueSetsFromSnapshot(
@@ -1806,16 +1829,20 @@ AddErrors_Next:
         return buffer;
     }
 
-    private static SourceResultElement GetDataElement(SelectionPath sourcePath, SourceResultElement data)
+    private static SourceResultElement GetDataElement(
+        ResolvedSelectionPath sourcePath,
+        SourceResultElement data)
     {
-        if (sourcePath.IsRoot)
+        var path = sourcePath.Path;
+
+        if (path.IsRoot)
         {
             return data;
         }
 
         var current = data;
 
-        for (var i = 0; i < sourcePath.Length; i++)
+        for (var i = 0; i < path.Length; i++)
         {
             if (current.ValueKind != JsonValueKind.Object)
             {
@@ -1825,7 +1852,7 @@ AddErrors_Next:
                 return current.ValueKind is JsonValueKind.Null ? current : default;
             }
 
-            var segment = sourcePath[i];
+            var segment = path[i];
 
             switch (segment.Kind)
             {
@@ -1840,9 +1867,10 @@ AddErrors_Next:
                 case SelectionPathSegmentKind.InlineFragment:
                     if (!current.TryGetProperty(IntrospectionFieldNames.TypeNameSpan, out var typeNameProperty)
                             || typeNameProperty.ValueKind != JsonValueKind.String
-                            || !typeNameProperty.TextEqualsHelper(
+                            || !MatchesFragmentTypeCondition(
+                                typeNameProperty,
                                 segment.Name,
-                                isPropertyName: false))
+                                sourcePath.GetPossibleTypes(i)))
                     {
                         return default;
                     }
