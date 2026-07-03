@@ -379,8 +379,11 @@ public sealed class NatsEventStreamBrokerTests : IClassFixture<NatsResource>
 
             await broker.DisposeAsync();
 
-            // Disposing the broker cancels its active subscriptions.
-            await Assert.ThrowsAnyAsync<OperationCanceledException>(() => pending);
+            // Disposing the broker cancels its active subscriptions. The short
+            // timeout attributes the cancellation to the broker disposal rather
+            // than the test-wide token, and fails fast if it does not happen.
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(
+                () => pending.WaitAsync(TimeSpan.FromSeconds(5), cts.Token));
         }
 
         await using (var broker = factory.Create(null))
