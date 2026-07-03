@@ -374,10 +374,13 @@ public sealed class NatsEventStreamBrokerTests : IClassFixture<NatsResource>
             await using var enumerator = broker
                 .SubscribeAsync(EmptySubscriptionFieldContext.Instance, [subject], cursor: null, cts.Token)
                 .GetAsyncEnumerator(cts.Token);
-            _ = enumerator.MoveNextAsync().AsTask();
+            var pending = enumerator.MoveNextAsync().AsTask();
             await Task.Delay(250, cts.Token);
 
             await broker.DisposeAsync();
+
+            // Disposing the broker cancels its active subscriptions.
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(() => pending);
         }
 
         await using (var broker = factory.Create(null))
