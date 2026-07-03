@@ -7,6 +7,7 @@ using HotChocolate.Fusion.Execution.Results;
 using HotChocolate.Fusion.Language;
 using HotChocolate.Fusion.Text.Json;
 using HotChocolate.Fusion.Transport.Http;
+using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
@@ -30,7 +31,7 @@ public sealed class OperationPlanContextRoutingTests : FusionTestBase
 
         // act
         var result = context.CreateVariableValueSets(
-            ResolvedSelectionPath.Create(SelectionPath.Root, context.Schema),
+            ResolvedSelectionPath.Create(SelectionPath.Root, (FusionSchemaDefinition)context.Schema),
             forwardedVariables: [],
             requirements: [Requirement("__fusion_1_id")]);
 
@@ -48,7 +49,7 @@ public sealed class OperationPlanContextRoutingTests : FusionTestBase
 
         // act
         var result = context.CreateVariableValueSets(
-            ResolvedSelectionPath.Create(SelectionPath.Root, context.Schema),
+            ResolvedSelectionPath.Create(SelectionPath.Root, (FusionSchemaDefinition)context.Schema),
             forwardedVariables: [],
             requirements: [Requirement("__fusion_2_other")]);
 
@@ -67,7 +68,7 @@ public sealed class OperationPlanContextRoutingTests : FusionTestBase
         // act
         var exception = Assert.Throws<InvalidOperationException>(
             () => context.CreateVariableValueSets(
-                ResolvedSelectionPath.Create(SelectionPath.Root, context.Schema),
+                ResolvedSelectionPath.Create(SelectionPath.Root, (FusionSchemaDefinition)context.Schema),
                 forwardedVariables: [],
                 requirements:
                 [
@@ -129,7 +130,7 @@ public sealed class OperationPlanContextRoutingTests : FusionTestBase
 
         // act
         var first = context.CreateVariableValueSets(
-            ResolvedSelectionPath.Create(SelectionPath.Root, context.Schema),
+            ResolvedSelectionPath.Create(SelectionPath.Root, (FusionSchemaDefinition)context.Schema),
             forwardedVariables: [],
             requirements:
             [
@@ -137,7 +138,7 @@ public sealed class OperationPlanContextRoutingTests : FusionTestBase
                 Requirement("__fusion_2_sku")
             ]);
         var second = context.CreateVariableValueSets(
-            ResolvedSelectionPath.Create(SelectionPath.Root, context.Schema),
+            ResolvedSelectionPath.Create(SelectionPath.Root, (FusionSchemaDefinition)context.Schema),
             forwardedVariables: [],
             requirements:
             [
@@ -173,7 +174,7 @@ public sealed class OperationPlanContextRoutingTests : FusionTestBase
 
         // act
         var result = context.CreateVariableValueSets(
-            ResolvedSelectionPath.Create(SelectionPath.Root, context.Schema),
+            ResolvedSelectionPath.Create(SelectionPath.Root, (FusionSchemaDefinition)context.Schema),
             forwardedVariables: ["limit"],
             requirements: [Requirement("__fusion_1_id")]);
 
@@ -199,7 +200,7 @@ public sealed class OperationPlanContextRoutingTests : FusionTestBase
 
         // act
         var result = context.CreateVariableValueSets(
-            ResolvedSelectionPath.Create(SelectionPath.Root, context.Schema),
+            ResolvedSelectionPath.Create(SelectionPath.Root, (FusionSchemaDefinition)context.Schema),
             forwardedVariables: [],
             requirements: [Requirement("__fusion_1_id")]);
 
@@ -222,7 +223,7 @@ public sealed class OperationPlanContextRoutingTests : FusionTestBase
         // act
         var exception = Assert.Throws<InvalidOperationException>(
             () => context.CreateVariableValueSets(
-                selectionSets: [ResolvedSelectionPath.Create(SelectionPath.Root, context.Schema)],
+                selectionSets: [ResolvedSelectionPath.Create(SelectionPath.Root, (FusionSchemaDefinition)context.Schema)],
                 forwardedVariables: [],
                 requiredData:
                 [

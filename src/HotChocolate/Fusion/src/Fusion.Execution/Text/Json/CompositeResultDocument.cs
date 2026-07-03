@@ -51,12 +51,7 @@ public sealed partial class CompositeResultDocument : IDisposable
 
     internal SelectionSet? GetSelectionSet(Cursor cursor)
     {
-        var row = _metaDb.Get(cursor);
-
-        if (row.TokenType is ElementTokenType.Reference)
-        {
-            row = _metaDb.Get(new Cursor(row.Location));
-        }
+        var row = _metaDb.GetValue(ref cursor);
 
         if (row.OperationReferenceType is not OperationReferenceType.SelectionSet)
         {

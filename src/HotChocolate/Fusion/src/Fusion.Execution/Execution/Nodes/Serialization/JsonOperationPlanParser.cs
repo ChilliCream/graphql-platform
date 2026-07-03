@@ -2,6 +2,7 @@ using System.Collections.Immutable;
 using System.Text.Json;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Language;
+using HotChocolate.Fusion.Types;
 using HotChocolate.Fusion.Types.Directives;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -258,11 +259,11 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
                     break;
 
                 case "Introspection":
-                    parsedNodes.Add(ParseIntrospectionNodeInfo(nodeElement, id, operation));
+                    parsedNodes.Add(ParseIntrospectionNodeInfo(nodeElement, id, operation, schema));
                     break;
 
                 case "Node":
-                    parsedNodes.Add(ParseNodeFieldNodeInfo(nodeElement, id, operation));
+                    parsedNodes.Add(ParseNodeFieldNodeInfo(nodeElement, id, operation, schema));
                     break;
 
                 default:
@@ -492,7 +493,7 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
     }
 
     private static ParsedOperationNodeInfo ParseOperationNodeInfo(
-        JsonElement nodeElement, int id, ISchemaDefinition schema)
+        JsonElement nodeElement, int id, FusionSchemaDefinition schema)
     {
         var (schemaName, opSource, source, requirements, forwardedVariables,
             resultSelectionSet, dependencies, parentDependencies, batchingGroupId, conditions,
@@ -525,7 +526,7 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
     }
 
     private static ParsedEventStreamNodeInfo ParseEventStreamNodeInfo(
-        JsonElement nodeElement, int id, ISchemaDefinition schema)
+        JsonElement nodeElement, int id, FusionSchemaDefinition schema)
     {
         var resultSelectionSet = Utf8GraphQLParser.Syntax.ParseSelectionSet(
             nodeElement.GetProperty("resultSelectionSet").GetString()!);
@@ -609,7 +610,7 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
     }
 
     private static ParsedOperationNodeInfo ParseOperationBatchNodeInfo(
-        JsonElement nodeElement, int id, ISchemaDefinition schema)
+        JsonElement nodeElement, int id, FusionSchemaDefinition schema)
     {
         var (schemaName, opSource, source, requirements, forwardedVariables,
             resultSelectionSet, dependencies, parentDependencies, batchingGroupId, conditions,
@@ -766,7 +767,8 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
     private static ParsedNodeInfo ParseIntrospectionNodeInfo(
         JsonElement nodeElement,
         int id,
-        Operation operation)
+        Operation operation,
+        FusionSchemaDefinition schema)
     {
         var selectionsElement = nodeElement.GetProperty("selections");
         var selections = new List<Selection>();
@@ -784,7 +786,8 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
         {
             Id = id,
             Selections = selections.ToArray(),
-            Conditions = conditions
+            Conditions = conditions,
+            Schema = schema
         };
 
         Selection GetRootSelection(string responseName)
@@ -803,7 +806,7 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
     }
 
     private static ParsedNodeInfo ParseNodeFieldNodeInfo(
-        JsonElement nodeElement, int id, Operation operation)
+        JsonElement nodeElement, int id, Operation operation, FusionSchemaDefinition schema)
     {
         var responseName = nodeElement.GetProperty("responseName").GetString()!;
 
@@ -846,7 +849,8 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
             IdValue = idValue,
             Conditions = conditions,
             Branches = branches,
-            FallbackNodeId = fallbackNodeId
+            FallbackNodeId = fallbackNodeId,
+            Schema = schema
         };
     }
 
@@ -880,6 +884,7 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
     {
         public int Id { get; init; }
         public int[]? Dependencies { get; init; }
+        public required FusionSchemaDefinition Schema { get; init; }
 
         public abstract (ExecutionNode Node, int[]? Dependencies, Dictionary<string, int>? Branches, int? Fallback)
             ToExecutionNodeTuple();
@@ -897,7 +902,6 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
         public int[]? ParentDependencies { get; init; }
         public ExecutionNodeCondition[] Conditions { get; init; } = [];
         public bool RequiresFileUpload { get; init; }
-        public required ISchemaDefinition Schema { get; init; }
 
         public abstract OperationDefinition ToOperationDefinition();
     }
@@ -974,8 +978,6 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
         public int[]? ParentDependencies { get; init; }
 
         public ExecutionNodeCondition[] Conditions { get; init; } = [];
-
-        public required ISchemaDefinition Schema { get; init; }
 
         public override (ExecutionNode, int[]?, Dictionary<string, int>?, int?) ToExecutionNodeTuple()
         {

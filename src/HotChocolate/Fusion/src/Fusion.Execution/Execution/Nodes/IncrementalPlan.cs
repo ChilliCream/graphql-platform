@@ -1,4 +1,6 @@
 using System.Collections.Immutable;
+using HotChocolate.Execution;
+using HotChocolate.Fusion.Types;
 
 namespace HotChocolate.Fusion.Execution.Nodes;
 
@@ -8,6 +10,7 @@ namespace HotChocolate.Fusion.Execution.Nodes;
 public sealed class IncrementalPlan : IOperationPlan
 {
     private readonly ExecutionNode?[] _nodesById;
+    private ResolvedSelectionPath? _requirementAnchor;
 
     /// <summary>
     /// Initializes a new instance of <see cref="IncrementalPlan"/>.
@@ -141,6 +144,14 @@ public sealed class IncrementalPlan : IOperationPlan
 
         throw ThrowHelper.NodeNotFound(planNode.Id);
     }
+
+    /// <summary>
+    /// Gets the anchor selection set shared by this plan's parent-scope requirements, resolved
+    /// against the schema. The anchor is plan-invariant, so it is resolved once and reused across
+    /// every delivery this plan handles.
+    /// </summary>
+    internal ResolvedSelectionPath GetRequirementAnchor(SelectionPath anchor, FusionSchemaDefinition schema)
+        => _requirementAnchor ??= ResolvedSelectionPath.Create(anchor, schema);
 
     private static ExecutionNode?[] CreateNodeLookup(ImmutableArray<ExecutionNode> allNodes)
     {

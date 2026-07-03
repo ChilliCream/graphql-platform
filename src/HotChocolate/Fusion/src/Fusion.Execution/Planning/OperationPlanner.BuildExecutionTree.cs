@@ -455,7 +455,7 @@ public sealed partial class OperationPlanner
     private static void BuildExecutionNodes(
         ImmutableList<PlanStep> planSteps,
         ExecutionPlanBuildContext ctx,
-        ISchemaDefinition schema,
+        FusionSchemaDefinition schema,
         bool hasVariables,
         CancellationToken cancellationToken)
     {
@@ -513,7 +513,7 @@ public sealed partial class OperationPlanner
 
     private static OperationExecutionNode CreateOperationExecutionNode(
         OperationPlanStep operationStep,
-        ISchemaDefinition schema,
+        FusionSchemaDefinition schema,
         bool requiresUpload,
         List<string>? variableBuffer)
     {
@@ -576,7 +576,7 @@ public sealed partial class OperationPlanner
 
     private static EventStreamExecutionNode CreateEventStreamExecutionNode(
         OperationPlanStep operationStep,
-        ISchemaDefinition schema)
+        FusionSchemaDefinition schema)
     {
         var eventStreamPlan = operationStep.EventStreamPlan
             ?? throw new InvalidOperationException("The operation step does not carry event-stream metadata.");

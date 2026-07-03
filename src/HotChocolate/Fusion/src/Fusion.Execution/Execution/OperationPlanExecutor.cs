@@ -7,6 +7,7 @@ using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Execution.Results;
 using HotChocolate.Fusion.Text.Json;
+using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -567,7 +568,7 @@ internal static class OperationPlanExecutor
         }
 
         var parentValues = parentResultStore.CreateVariableValueSets(
-            ResolvedSelectionPath.Create(anchor, childContext.Schema),
+            incrementalPlan.GetRequirementAnchor(anchor, (FusionSchemaDefinition)childContext.Schema),
             requestVariables: [],
             requirementSpan);
 

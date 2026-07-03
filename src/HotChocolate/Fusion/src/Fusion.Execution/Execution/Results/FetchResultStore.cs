@@ -809,7 +809,20 @@ AddErrors_Next:
                 for (var j = 0; j < currentCount; j++)
                 {
                     var element = current[j];
-                    if (typeCondition.IsAssignableFrom(element.AssertSelectionSet().Type))
+                    var elementType = element.SelectionSet?.Type;
+
+                    if (elementType is null)
+                    {
+                        continue;
+                    }
+
+                    // A resolved condition is matched by type identity; an unresolved (name-only)
+                    // condition is matched by type-name equality, mirroring the source-side behavior.
+                    var matches = typeCondition is null
+                        ? string.Equals(elementType.Name, segment.Name, StringComparison.Ordinal)
+                        : typeCondition.IsAssignableFrom(elementType);
+
+                    if (matches)
                     {
                         AddToBuffer(ref next, ref nextCount, element);
                     }
