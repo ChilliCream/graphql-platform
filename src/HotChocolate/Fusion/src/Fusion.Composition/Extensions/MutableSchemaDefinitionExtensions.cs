@@ -1,7 +1,11 @@
 using System.Collections.Immutable;
+using HotChocolate.Fusion.Language;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Types.Mutable;
+using BooleanValueNode = HotChocolate.Language.BooleanValueNode;
+using ListValueNode = HotChocolate.Language.ListValueNode;
+using StringValueNode = HotChocolate.Language.StringValueNode;
 
 namespace HotChocolate.Fusion.Extensions;
 
@@ -304,6 +308,7 @@ internal static class MutableSchemaDefinitionExtensions
         foreach (var directive in complexType.Directives)
         {
             backlog.Push(directive.Definition);
+            InspectSelectionCarryingDirective(schema, directive, backlog);
         }
 
         foreach (var field in complexType.Fields)
@@ -314,6 +319,7 @@ internal static class MutableSchemaDefinitionExtensions
             foreach (var directive in field.Directives)
             {
                 backlog.Push(directive.Definition);
+                InspectSelectionCarryingDirective(schema, directive, backlog);
             }
 
             if (returnType is IInterfaceTypeDefinition or IUnionTypeDefinition)
@@ -331,8 +337,150 @@ internal static class MutableSchemaDefinitionExtensions
                 foreach (var directive in argument.Directives)
                 {
                     backlog.Push(directive.Definition);
+                    InspectSelectionCarryingDirective(schema, directive, backlog);
                 }
             }
+        }
+    }
+
+    private static void InspectSelectionCarryingDirective(
+        ISchemaDefinition schema,
+        IDirective directive,
+        Stack<ITypeSystemMember> backlog)
+    {
+        switch (directive.Name)
+        {
+            case WellKnownDirectiveNames.Key:
+            case WellKnownDirectiveNames.Provides:
+                if (directive.Arguments.TryGetValue(WellKnownArgumentNames.Fields, out var fieldsValue)
+                    && fieldsValue is StringValueNode fieldsSelectionSet)
+                {
+                    PushSelectionSetReferencedTypes(schema, fieldsSelectionSet.Value, backlog);
+                }
+
+                break;
+
+            case WellKnownDirectiveNames.EventStream:
+                if (directive.Arguments.TryGetValue(WellKnownArgumentNames.Message, out var messageValue)
+                    && messageValue is StringValueNode messageSelectionSet)
+                {
+                    PushSelectionSetReferencedTypes(schema, messageSelectionSet.Value, backlog);
+                }
+
+                break;
+
+            case WellKnownDirectiveNames.Require:
+            case WellKnownDirectiveNames.Is:
+                if (directive.Arguments.TryGetValue(WellKnownArgumentNames.Field, out var fieldValue)
+                    && fieldValue is StringValueNode fieldSelectionMap)
+                {
+                    PushSelectionMapReferencedTypes(schema, fieldSelectionMap.Value, backlog);
+                }
+
+                break;
+        }
+    }
+
+    private static void PushSelectionSetReferencedTypes(
+        ISchemaDefinition schema,
+        string selectionSet,
+        Stack<ITypeSystemMember> backlog)
+    {
+        SelectionSetNode parsed;
+
+        // Invalid selections are the validators' concern; skip and continue so the prune
+        // never crashes on malformed directive arguments.
+        try
+        {
+            parsed = ParseSelectionSet(selectionSet);
+        }
+        catch (SyntaxException)
+        {
+            return;
+        }
+
+        CollectSelectionSetTypeConditions(schema, parsed, backlog);
+    }
+
+    private static void CollectSelectionSetTypeConditions(
+        ISchemaDefinition schema,
+        ISyntaxNode node,
+        Stack<ITypeSystemMember> backlog)
+    {
+        if (node is InlineFragmentNode { TypeCondition: { } typeCondition })
+        {
+            PushTypeByName(schema, typeCondition.Name.Value, backlog);
+        }
+
+        foreach (var child in node.GetNodes())
+        {
+            CollectSelectionSetTypeConditions(schema, child, backlog);
+        }
+    }
+
+    private static void PushSelectionMapReferencedTypes(
+        ISchemaDefinition schema,
+        string fieldSelectionMap,
+        Stack<ITypeSystemMember> backlog)
+    {
+        IValueSelectionNode parsed;
+
+        // Invalid maps are the validators' concern; skip and continue so the prune
+        // never crashes on malformed directive arguments.
+        try
+        {
+            parsed = new FieldSelectionMapParser(fieldSelectionMap).Parse();
+        }
+        catch (FieldSelectionMapSyntaxException)
+        {
+            return;
+        }
+
+        CollectSelectionMapTypeConditions(schema, parsed, backlog);
+    }
+
+    private static void CollectSelectionMapTypeConditions(
+        ISchemaDefinition schema,
+        IFieldSelectionMapSyntaxNode node,
+        Stack<ITypeSystemMember> backlog)
+    {
+        switch (node)
+        {
+            case PathNode { TypeName: { } pathTypeName }:
+                PushTypeByName(schema, pathTypeName.Value, backlog);
+                break;
+
+            case PathSegmentNode { TypeName: { } segmentTypeName }:
+                PushTypeByName(schema, segmentTypeName.Value, backlog);
+                break;
+        }
+
+        foreach (var child in node.GetNodes())
+        {
+            CollectSelectionMapTypeConditions(schema, child, backlog);
+        }
+    }
+
+    private static void PushTypeByName(
+        ISchemaDefinition schema,
+        string typeName,
+        Stack<ITypeSystemMember> backlog)
+    {
+        if (schema.Types.TryGetType(typeName, out var type))
+        {
+            backlog.Push(type);
+        }
+    }
+
+    private static SelectionSetNode ParseSelectionSet(string value)
+    {
+        try
+        {
+            return Utf8GraphQLParser.Syntax.ParseSelectionSet(value);
+        }
+        catch (SyntaxException)
+        {
+            return Utf8GraphQLParser.Syntax.ParseSelectionSet($"{{ {value} }}");
         }
     }
 

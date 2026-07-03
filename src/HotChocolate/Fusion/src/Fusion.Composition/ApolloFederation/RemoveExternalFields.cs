@@ -6,7 +6,9 @@ namespace HotChocolate.Fusion.ApolloFederation;
 
 /// <summary>
 /// Removes fields marked with <c>@external</c> from complex types,
-/// preserving those referenced by <c>@provides</c> selections.
+/// preserving those referenced by <c>@provides</c> selections. Fields referenced
+/// by <c>@key</c> selections are retained with <c>@external</c> removed so they
+/// become full contributions.
 /// </summary>
 internal static class RemoveExternalFields
 {
@@ -14,14 +16,17 @@ internal static class RemoveExternalFields
     /// Removes unreferenced <c>@external</c> fields from the schema.
     /// External fields that are the target of a <c>@provides</c> selection
     /// on the same subgraph are kept so the downstream Composite Schema Spec
-    /// validator and planner can see them.
+    /// validator and planner can see them. External fields that are part of a
+    /// <c>@key</c> selection are retained with <c>@external</c> removed so they
+    /// become full contributions.
     /// </summary>
     /// <param name="schema">
     /// The mutable schema definition to transform in place.
     /// </param>
     public static void Apply(MutableSchemaDefinition schema)
     {
-        var referencedFields = CollectProvidesReferences(schema);
+        var providesReferences = CollectProvidesReferences(schema);
+        var keyReferences = CollectKeyReferences(schema);
         var emptyObjectTypes = new List<MutableObjectTypeDefinition>();
 
         foreach (var type in schema.Types)
@@ -35,8 +40,22 @@ internal static class RemoveExternalFields
 
             foreach (var field in complexType.Fields)
             {
-                if (field.Directives.ContainsName(FederationDirectiveNames.External)
-                    && !referencedFields.Contains((complexType.Name, field.Name)))
+                if (!field.Directives.ContainsName(FederationDirectiveNames.External))
+                {
+                    continue;
+                }
+
+                if (keyReferences.Contains((complexType.Name, field.Name)))
+                {
+                    var externalDirective = field.Directives.FirstOrDefault(
+                        FederationDirectiveNames.External);
+
+                    if (externalDirective is not null)
+                    {
+                        field.Directives.Remove(externalDirective);
+                    }
+                }
+                else if (!providesReferences.Contains((complexType.Name, field.Name)))
                 {
                     externalFields.Add(field);
                 }
@@ -142,6 +161,45 @@ internal static class RemoveExternalFields
                 }
 
                 CollectReferencedFields(selectionSet, targetType, schema, referenced);
+            }
+        }
+
+        return referenced;
+    }
+
+    private static HashSet<(string TypeName, string FieldName)> CollectKeyReferences(
+        MutableSchemaDefinition schema)
+    {
+        var referenced = new HashSet<(string, string)>();
+
+        foreach (var type in schema.Types)
+        {
+            if (type is not MutableComplexTypeDefinition complexType)
+            {
+                continue;
+            }
+
+            foreach (var keyDirective in complexType.Directives[FederationDirectiveNames.Key])
+            {
+                if (!keyDirective.Arguments.TryGetValue("fields", out var fieldsValue)
+                    || fieldsValue is not StringValueNode fieldsString)
+                {
+                    continue;
+                }
+
+                SelectionSetNode selectionSet;
+
+                try
+                {
+                    selectionSet = Utf8GraphQLParser.Syntax.ParseSelectionSet(
+                        "{ " + fieldsString.Value + " }");
+                }
+                catch (SyntaxException)
+                {
+                    continue;
+                }
+
+                CollectReferencedFields(selectionSet, complexType, schema, referenced);
             }
         }
 
