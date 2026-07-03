@@ -44,8 +44,8 @@ schema {
 }
 
 type Query {
+  fusion__lookup_userById(id: ID!): User @internal @lookup
   reviews: [Review]
-  userById(id: ID!): User @internal @lookup
 }
 
 type Review {

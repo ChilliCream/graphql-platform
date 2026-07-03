@@ -9,6 +9,7 @@ using HotChocolate.Fusion.Execution.ApolloFederation;
 using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Text.Json;
+using HotChocolate.Language;
 using HotChocolate.Text.Json;
 using HotChocolate.Types;
 using ObjectFieldNode = HotChocolate.Language.ObjectFieldNode;
@@ -628,7 +629,7 @@ internal sealed partial class FetchResultStore
     private bool TryWriteShapeElementArray(
         CompositeResultElement array,
         RepresentationShapeNode node,
-        IType? elementType,
+        ITypeNode? elementType,
         JsonWriter writer)
     {
         writer.WriteStartArray();
@@ -710,7 +711,7 @@ internal sealed partial class FetchResultStore
 
     private static bool TryWriteLeafArray(
         CompositeResultElement array,
-        IType? elementType,
+        ITypeNode? elementType,
         JsonWriter writer)
     {
         writer.WriteStartArray();
@@ -761,18 +762,11 @@ internal sealed partial class FetchResultStore
         writer.WriteRawValue(value.GetRawValue(includeQuotes: true));
     }
 
-    private static bool IsNonNullPosition(IType? type)
-        => type?.Kind is TypeKind.NonNull;
+    private static bool IsNonNullPosition(ITypeNode? type)
+        => type?.Kind is SyntaxKind.NonNullType;
 
-    private static IType? GetElementType(IType? type)
-    {
-        if (type is NonNullType nonNullType)
-        {
-            type = nonNullType.NullableType;
-        }
-
-        return type is ListType listType ? listType.ElementType : null;
-    }
+    private static ITypeNode? GetElementType(ITypeNode? type)
+        => type?.IsListType() == true ? type.ElementType() : null;
 
     private bool SatisfiesTypeCondition(CompositeResultElement element, string typeName)
     {

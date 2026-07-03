@@ -40,8 +40,8 @@ schema {
 }
 
 type Query {
-  productById(id: ID!): Product @internal @lookup
-  productListByProductsAndId(
+  fusion__lookup_productById(id: ID!): Product @internal @lookup
+  fusion__lookup_productListByProductsAndId(
     key: ProductListByProductsAndIdInput! @is(field: "{ products: products[{ id }] }")
   ): ProductList @internal @lookup
   topProducts: ProductList!

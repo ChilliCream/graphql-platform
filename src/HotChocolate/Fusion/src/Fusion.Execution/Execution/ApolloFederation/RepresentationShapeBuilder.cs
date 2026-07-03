@@ -2,7 +2,6 @@ using System.Text;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Language;
 using HotChocolate.Language;
-using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Execution.ApolloFederation;
 
@@ -199,7 +198,7 @@ internal static class RepresentationShapeBuilder
         IValueSelectionNode selection,
         int requirementIndex,
         List<string> lhsPath,
-        IType? inputType)
+        ITypeNode? inputType)
     {
         switch (selection)
         {
@@ -208,7 +207,7 @@ internal static class RepresentationShapeBuilder
                 break;
 
             case ObjectValueSelectionNode objectValue:
-                AddObjectFields(level, objectValue, requirementIndex, lhsPath, inputType);
+                AddObjectFields(level, objectValue, requirementIndex, lhsPath);
                 break;
 
             case PathObjectValueSelectionNode pathObject:
@@ -217,8 +216,7 @@ internal static class RepresentationShapeBuilder
                     terminal.Children!,
                     pathObject.ObjectValueSelection,
                     requirementIndex,
-                    lhsPath,
-                    inputType);
+                    lhsPath);
                 break;
 
             case PathListValueSelectionNode pathList:
@@ -237,7 +235,7 @@ internal static class RepresentationShapeBuilder
         PathNode path,
         int requirementIndex,
         List<string> lhsPath,
-        IType? inputType)
+        ITypeNode? inputType)
     {
         var currentLevel = level;
         var parentTypeCondition = path.TypeName?.Value;
@@ -273,7 +271,7 @@ internal static class RepresentationShapeBuilder
         PathListValueSelectionNode pathList,
         int requirementIndex,
         List<string> lhsPath,
-        IType? inputType)
+        ITypeNode? inputType)
     {
         if (pathList.ListValueSelection.ElementSelection
             is not ObjectValueSelectionNode elementSelection)
@@ -335,29 +333,18 @@ internal static class RepresentationShapeBuilder
 
         // Element fields resolve against a single list element, so the input
         // path restarts at the list boundary.
-        AddObjectFields(listNode.Children, elementSelection, requirementIndex, [], elementType);
+        AddObjectFields(listNode.Children, elementSelection, requirementIndex, []);
     }
 
     private static void AddObjectFields(
         List<RepresentationShapeNode> level,
         ObjectValueSelectionNode objectValue,
         int requirementIndex,
-        List<string> lhsPath,
-        IType? inputType)
+        List<string> lhsPath)
     {
-        var inputObjectType = GetInputObjectType(inputType);
-
         foreach (var field in objectValue.Fields)
         {
             lhsPath.Add(field.Name.Value);
-
-            IType? fieldType = null;
-
-            if (inputObjectType is not null
-                && inputObjectType.Fields.TryGetField(field.Name.Value, out var inputField))
-            {
-                fieldType = inputField.Type;
-            }
 
             if (field.ValueSelection is null)
             {
@@ -368,11 +355,11 @@ internal static class RepresentationShapeBuilder
                     lhsPath,
                     parentTypeCondition: null,
                     typeCondition: null,
-                    fieldType);
+                    inputType: null);
             }
             else
             {
-                AddValueSelection(level, field.ValueSelection, requirementIndex, lhsPath, fieldType);
+                AddValueSelection(level, field.ValueSelection, requirementIndex, lhsPath, inputType: null);
             }
 
             lhsPath.RemoveAt(lhsPath.Count - 1);
@@ -496,7 +483,7 @@ internal static class RepresentationShapeBuilder
         List<string> lhsPath,
         string? parentTypeCondition,
         string? typeCondition,
-        IType? inputType)
+        ITypeNode? inputType)
     {
         var skipOnNull = IsNonNullPosition(inputType);
         var elementInputType = GetElementType(inputType);
@@ -558,23 +545,16 @@ internal static class RepresentationShapeBuilder
         return null;
     }
 
-    private static bool IsNonNullPosition(IType? type)
-        => type?.Kind is TypeKind.NonNull;
+    private static bool IsNonNullPosition(ITypeNode? type)
+        => type?.Kind is SyntaxKind.NonNullType;
 
-    private static IType? GetElementType(IType? type)
-    {
-        if (type is NonNullType nonNullType)
-        {
-            type = nonNullType.NullableType;
-        }
-
-        return type is ListType listType ? listType.ElementType : null;
-    }
+    private static ITypeNode? GetElementType(ITypeNode? type)
+        => type?.IsListType() == true ? type.ElementType() : null;
 
     // A merged node keeps a single element type. Requirements sharing a node
     // must skip the entity when any of their element positions is non-null,
     // so a non-null element type wins over a nullable one.
-    private static IType? MergeElementInputType(IType? current, IType? other)
+    private static ITypeNode? MergeElementInputType(ITypeNode? current, ITypeNode? other)
     {
         if (current is null)
         {
@@ -588,7 +568,4 @@ internal static class RepresentationShapeBuilder
 
         return IsNonNullPosition(other) ? other : current;
     }
-
-    private static IInputObjectTypeDefinition? GetInputObjectType(IType? type)
-        => type?.AsTypeDefinition() as IInputObjectTypeDefinition;
 }

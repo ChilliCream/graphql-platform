@@ -58,13 +58,13 @@ schema {
 }
 
 type Query {
-  product(id: ID!): Product
-  productById(id: ID!): Product @internal @lookup
-  productBySkuAndPackage(package: String!, sku: String!): Product
+  fusion__lookup_productById(id: ID!): Product @internal @lookup
+  fusion__lookup_productBySkuAndPackage(package: String!, sku: String!): Product
     @internal
     @lookup
+  fusion__lookup_userById(id: ID!): User @internal @lookup
+  product(id: ID!): Product
   reviews: [Review]
-  userById(id: ID!): User @internal @lookup
 }
 
 type Product @key(fields: "id") @key(fields: "sku package") {

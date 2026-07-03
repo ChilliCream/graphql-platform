@@ -39,8 +39,8 @@ schema {
 }
 
 type Query {
-  productById(id: ID!): Product @internal @lookup
-  productBySkuAndPackage(package: String!, sku: String!): Product
+  fusion__lookup_productById(id: ID!): Product @internal @lookup
+  fusion__lookup_productBySkuAndPackage(package: String!, sku: String!): Product
     @internal
     @lookup
   products: [Product]

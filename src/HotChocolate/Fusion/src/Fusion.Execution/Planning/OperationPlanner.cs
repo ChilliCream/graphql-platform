@@ -1014,7 +1014,6 @@ public sealed partial class OperationPlanner
                 var operationRequirement = new OperationRequirement(
                     argumentRequirementKey,
                     argument.Type,
-                    CreateInputType(argument.Type, _schema),
                     workItem.SelectionSet.Path,
                     fieldSelectionMap);
 
@@ -1372,7 +1371,6 @@ public sealed partial class OperationPlanner
             var operationRequirement = new OperationRequirement(
                 argumentRequirementKey,
                 argument.Type,
-                CreateInputType(argument.Type, _schema),
                 workItem.Selection.Path,
                 fieldSelectionMap);
 
@@ -1506,7 +1504,6 @@ public sealed partial class OperationPlanner
             var operationRequirement = new OperationRequirement(
                 argumentRequirementKey,
                 argument.Type,
-                CreateInputType(argument.Type, _schema),
                 workItem.Selection.Path,
                 fieldSelectionMap);
 
@@ -1560,7 +1557,6 @@ public sealed partial class OperationPlanner
             var operationRequirement = new OperationRequirement(
                 argumentRequirementKey,
                 argument.Type,
-                CreateInputType(argument.Type, _schema),
                 workItem.Selection.Path,
                 fieldSelectionMap);
 
@@ -1947,30 +1943,6 @@ public sealed partial class OperationPlanner
         }
 
         return arguments;
-    }
-
-    /// <summary>
-    /// Creates the semantic input type for a requirement from its declared type
-    /// syntax, throwing when the named type is missing from the schema or is not
-    /// an input type.
-    /// </summary>
-    internal static IInputType CreateInputType(ITypeNode typeNode, FusionSchemaDefinition schema)
-    {
-        var typeName = typeNode.NamedType().Name.Value;
-
-        if (!schema.Types.TryGetType(typeName, allowInaccessibleFields: true, out var typeDefinition))
-        {
-            throw new InvalidOperationException(
-                $"The requirement type '{typeName}' is not defined in the schema.");
-        }
-
-        if (typeDefinition is not IInputTypeDefinition)
-        {
-            throw new InvalidOperationException(
-                $"The requirement type '{typeName}' is not an input type.");
-        }
-
-        return (IInputType)typeNode.RewriteToType(typeDefinition);
     }
 
     private SelectionSetNode? ExtractResolvableChildSelections(

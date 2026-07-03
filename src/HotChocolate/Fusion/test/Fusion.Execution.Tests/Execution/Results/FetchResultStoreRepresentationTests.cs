@@ -9,6 +9,7 @@ using HotChocolate.Fusion.Execution.ApolloFederation;
 using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Language;
+using HotChocolate.Fusion.Planning;
 using HotChocolate.Fusion.Rewriters;
 using HotChocolate.Fusion.Text.Json;
 using HotChocolate.Fusion.Types;
@@ -404,12 +405,11 @@ public sealed class FetchResultStoreRepresentationTests : FusionTestBase
             new FieldSelectionMapParser("dimensions.{ size weight }").Parse()
         };
         var stringType = new NamedTypeNode("String");
-        var stringInputType = OperationRequirement.CreateInputType(stringType, s_schema);
         var requirements = new[]
         {
-            new OperationRequirement("__fusion_1_a", stringType, stringInputType, SelectionPath.Root, maps[0]),
-            new OperationRequirement("__fusion_2_b", stringType, stringInputType, SelectionPath.Root, maps[1]),
-            new OperationRequirement("__fusion_3_c", stringType, stringInputType, SelectionPath.Root, maps[2])
+            new OperationRequirement("__fusion_1_a", stringType, SelectionPath.Root, maps[0]),
+            new OperationRequirement("__fusion_2_b", stringType, SelectionPath.Root, maps[1]),
+            new OperationRequirement("__fusion_3_c", stringType, SelectionPath.Root, maps[2])
         };
 
         // act
@@ -2249,7 +2249,6 @@ public sealed class FetchResultStoreRepresentationTests : FusionTestBase
         => new(
             key,
             type,
-            OperationRequirement.CreateInputType(type, schema),
             SelectionPath.Root,
             new FieldSelectionMapParser(map).Parse());
 

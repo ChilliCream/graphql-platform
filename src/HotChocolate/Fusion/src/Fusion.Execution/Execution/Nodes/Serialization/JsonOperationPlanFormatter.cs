@@ -307,7 +307,7 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
         jsonWriter.WriteStringValue(requirement.Key);
 
         jsonWriter.WritePropertyName("type");
-        jsonWriter.WriteStringValue(requirement.TypeNode.ToString());
+        jsonWriter.WriteStringValue(requirement.Type.ToString());
 
         jsonWriter.WritePropertyName("path");
         jsonWriter.WriteStringValue(requirement.Path.ToString());
@@ -634,7 +634,7 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
                 jsonWriter.WriteStringValue(requirement.Key);
 
                 jsonWriter.WritePropertyName("type");
-                jsonWriter.WriteStringValue(requirement.TypeNode.ToString());
+                jsonWriter.WriteStringValue(requirement.Type.ToString());
 
                 jsonWriter.WritePropertyName("path");
                 jsonWriter.WriteStringValue(requirement.Path.ToString());

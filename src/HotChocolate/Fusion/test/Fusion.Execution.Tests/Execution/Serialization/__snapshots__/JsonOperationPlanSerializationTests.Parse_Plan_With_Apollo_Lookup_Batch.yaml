@@ -33,7 +33,7 @@ nodes:
     schema: b
     operation: |
       query Op_123456789101112_2($__fusion_1_id: ID!) {
-        brandById(id: $__fusion_1_id) {
+        fusion__lookup_brandById(id: $__fusion_1_id) {
           name
         }
       }
@@ -51,7 +51,7 @@ nodes:
     schema: b
     operation: |
       query Op_123456789101112_3($__fusion_2_id: ID!) {
-        productById(id: $__fusion_2_id) {
+        fusion__lookup_productById(id: $__fusion_2_id) {
           name
         }
       }

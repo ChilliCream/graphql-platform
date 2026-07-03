@@ -2,7 +2,6 @@ using System.Collections.Immutable;
 using System.Text.Json;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Language;
-using HotChocolate.Fusion.Planning;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Fusion.Types.Directives;
 using HotChocolate.Language;
@@ -192,7 +191,6 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
                     requirementsBuilder.Add(new OperationRequirement(
                         requirementName,
                         requirementTypeNode,
-                        OperationPlanner.CreateInputType(requirementTypeNode, _operationCompiler.Schema),
                         SelectionPath.Parse(requirementPath),
                         FieldSelectionMapParser.Parse(selectionMap)));
                 }
@@ -532,7 +530,7 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
     {
         var (schemaName, opSource, source, requirements, forwardedVariables,
             resultSelectionSet, dependencies, parentDependencies, batchingGroupId, conditions,
-            requiresFileUpload) = ParseCommonOperationFields(nodeElement, schema);
+            requiresFileUpload) = ParseCommonOperationFields(nodeElement);
 
         SelectionPath? target = null;
 
@@ -565,7 +563,7 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
     {
         var (schemaName, opSource, source, requirements, forwardedVariables,
             resultSelectionSet, dependencies, parentDependencies, batchingGroupId, conditions,
-            requiresFileUpload) = ParseCommonOperationFields(nodeElement, schema);
+            requiresFileUpload) = ParseCommonOperationFields(nodeElement);
 
         SelectionPath? target = null;
 
@@ -682,7 +680,7 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
     {
         var (schemaName, opSource, source, requirements, forwardedVariables,
             resultSelectionSet, dependencies, parentDependencies, batchingGroupId, conditions,
-            requiresFileUpload) = ParseCommonOperationFields(nodeElement, schema);
+            requiresFileUpload) = ParseCommonOperationFields(nodeElement);
 
         var targets = nodeElement.TryGetProperty("targets", out var targetsElement)
             ? targetsElement.EnumerateArray().Select(e => SelectionPath.Parse(e.GetString()!)).ToArray()
@@ -711,7 +709,7 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
         List<OperationRequirement>? requirements, string[]? forwardedVariables,
         SelectionSetNode? resultSelectionSet, int[]? dependencies, int[]? parentDependencies,
         int? batchingGroupId, ExecutionNodeCondition[] conditions, bool requiresFileUpload)
-        ParseCommonOperationFields(JsonElement nodeElement, FusionSchemaDefinition schema)
+        ParseCommonOperationFields(JsonElement nodeElement)
     {
         string? schemaName = null;
 
@@ -755,7 +753,6 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
                 requirements.Add(new OperationRequirement(
                     requirementName,
                     requirementTypeNode,
-                    OperationPlanner.CreateInputType(requirementTypeNode, schema),
                     SelectionPath.Parse(requirementPath),
                     FieldSelectionMapParser.Parse(selectionMap)));
             }

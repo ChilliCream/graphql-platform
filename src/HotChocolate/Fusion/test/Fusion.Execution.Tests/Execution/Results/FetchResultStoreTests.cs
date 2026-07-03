@@ -6,6 +6,7 @@ using HotChocolate.Execution.Errors;
 using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Language;
+using HotChocolate.Fusion.Planning;
 using HotChocolate.Fusion.Text.Json;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
@@ -428,11 +429,13 @@ public sealed class FetchResultStoreTests : FusionTestBase
     }
 
     [Fact]
-    public void CreateVariableValueSets_Should_SkipElement_When_NonNullInputFieldValueIsNull()
+    public void CreateVariableValueSets_Should_ShipNestedNull_When_NonNullInputFieldValueIsNull()
     {
         // arrange
         // The requirement map projects 'name' into the non-null input field
-        // 'FooKeyInput.name', which the first element's null value cannot satisfy.
+        // 'FooKeyInput.name', but nested input-object field nullability is not
+        // enforced during projection, so the null value ships and the downstream
+        // subgraph owns it. No element is skipped.
         var schema = ComposeSchema(
             """
             # name: test
@@ -467,11 +470,16 @@ public sealed class FetchResultStoreTests : FusionTestBase
             [Requirement(schema, "__fusion_1_key", "{ name }", new NamedTypeNode("FooKeyInput"))]);
 
         // assert
-        var entry = Assert.Single(result);
-        Normalize(entry.Values).MatchInlineSnapshot(
-            """
-            {"__fusion_1_key":{"name":"n"}}
-            """);
+        Assert.Collection(
+            result,
+            entry => Normalize(entry.Values).MatchInlineSnapshot(
+                """
+                {"__fusion_1_key":{"name":null}}
+                """),
+            entry => Normalize(entry.Values).MatchInlineSnapshot(
+                """
+                {"__fusion_1_key":{"name":"n"}}
+                """));
     }
 
     [Fact]
@@ -814,7 +822,6 @@ public sealed class FetchResultStoreTests : FusionTestBase
         => new(
             key,
             new NamedTypeNode("String"),
-            OperationRequirement.CreateInputType(new NamedTypeNode("String"), s_schema),
             SelectionPath.Root,
             new PathNode(new PathSegmentNode(new FusionNameNode(key))));
 
@@ -826,7 +833,6 @@ public sealed class FetchResultStoreTests : FusionTestBase
         => new(
             key,
             type,
-            OperationRequirement.CreateInputType(type, schema),
             SelectionPath.Root,
             new FieldSelectionMapParser(map).Parse());
 

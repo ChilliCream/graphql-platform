@@ -1,4 +1,4 @@
-using HotChocolate.Types;
+using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Execution.ApolloFederation;
 
@@ -73,13 +73,13 @@ internal sealed class RepresentationShapeNode
     public bool SkipOnNull { get; set; }
 
     /// <summary>
-    /// Gets the input type that elements of this node's backing list value
-    /// feed into, or <c>null</c> when the node is not list-valued or the
+    /// Gets the declared input type syntax for elements of this node's backing
+    /// list value, or <c>null</c> when the node is not list-valued or the
     /// element type is unknown. A null element cannot satisfy a non-null
     /// element position, which makes the containing entity unresolvable.
     /// This is set on leaf and list nodes.
     /// </summary>
-    public IType? ElementInputType { get; set; }
+    public ITypeNode? ElementInputType { get; set; }
 
     /// <summary>
     /// Gets the type condition that the containing element must satisfy for

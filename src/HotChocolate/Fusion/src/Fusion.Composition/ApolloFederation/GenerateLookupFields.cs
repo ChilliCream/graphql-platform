@@ -24,6 +24,8 @@ namespace HotChocolate.Fusion.ApolloFederation;
 internal static class GenerateLookupFields
 {
     private const string NestedLookupArgumentName = "key";
+    // Namespaces synthetic lookup fields so user-authored Query fields cannot collide.
+    private const string ReservedLookupFieldPrefix = "fusion__lookup_";
 
     /// <summary>
     /// Applies the lookup field generation to the schema.
@@ -222,7 +224,7 @@ internal static class GenerateLookupFields
             return null;
         }
 
-        lookupField.Name = fieldName;
+        lookupField.Name = ReservedLookupFieldPrefix + fieldName;
         lookupField.Directives.Add(new Directive(internalDef));
         lookupField.Directives.Add(new Directive(lookupDef));
 

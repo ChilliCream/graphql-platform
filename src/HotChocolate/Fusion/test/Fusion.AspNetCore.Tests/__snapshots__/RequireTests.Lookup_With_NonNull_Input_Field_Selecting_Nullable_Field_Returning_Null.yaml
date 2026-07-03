@@ -13,7 +13,27 @@ response:
         "productById": {
           "fieldB": null
         }
-      }
+      },
+      "errors": [
+        {
+          "message": "Cannot accept null for non-nullable input.",
+          "extensions": {
+            "code": "HC0018",
+            "inputPath": [
+              "__fusion_1_key",
+              "sku"
+            ],
+            "coordinate": "ProductKeyInput.sku"
+          }
+        },
+        {
+          "message": "Unexpected Execution Error",
+          "path": [
+            "productById",
+            "fieldB"
+          ]
+        }
+      ]
     }
 sourceSchemas:
   - name: A
@@ -68,6 +88,40 @@ sourceSchemas:
       input ProductKeyInput {
         sku: String!
       }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_1146a07f_2($__fusion_1_key: ProductKeyInput!) {
+              productByKey(key: $__fusion_1_key) {
+                fieldB
+              }
+            }
+          variables: |
+            {
+              "__fusion_1_key": {
+                "sku": null
+              }
+            }
+        response:
+          statusCode: 400
+          results:
+            - |
+              {
+                "errors": [
+                  {
+                    "message": "Cannot accept null for non-nullable input.",
+                    "extensions": {
+                      "code": "HC0018",
+                      "inputPath": [
+                        "__fusion_1_key",
+                        "sku"
+                      ],
+                      "coordinate": "ProductKeyInput.sku"
+                    }
+                  }
+                ]
+              }
 operationPlan:
   operation:
     - document: |

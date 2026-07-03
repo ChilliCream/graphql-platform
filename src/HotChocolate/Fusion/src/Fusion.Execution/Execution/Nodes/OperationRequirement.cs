@@ -1,7 +1,6 @@
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Language;
 using HotChocolate.Language;
-using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Execution.Nodes;
 
@@ -12,14 +11,10 @@ namespace HotChocolate.Fusion.Execution.Nodes;
 /// <param name="Key">
 /// The requirement key that names the variable carrying the requirement value.
 /// </param>
-/// <param name="TypeNode">
-/// The declared variable type in its syntax form. It is used to emit the variable
-/// declaration in the subquery and to serialize the plan.
-/// </param>
 /// <param name="Type">
-/// The input type of the requirement, including its list and non-null structure.
-/// It defines the input positions that the projected requirement value must
-/// satisfy.
+/// The declared variable type in its syntax form. It is used to emit the variable
+/// declaration in the subquery, to serialize the plan, and to check whether
+/// projected values satisfy the declared nullability.
 /// </param>
 /// <param name="Path">
 /// The selection path the requirement is anchored at.
@@ -29,7 +24,6 @@ namespace HotChocolate.Fusion.Execution.Nodes;
 /// </param>
 public record OperationRequirement(
     string Key,
-    ITypeNode TypeNode,
-    IInputType Type,
+    ITypeNode Type,
     SelectionPath Path,
     IValueSelectionNode Map);

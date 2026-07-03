@@ -1,6 +1,7 @@
 using System.Text.Json;
 using HotChocolate.Fusion.Language;
 using HotChocolate.Fusion.Text.Json;
+using HotChocolate.Language;
 using HotChocolate.Types;
 using JsonWriter = HotChocolate.Text.Json.JsonWriter;
 
@@ -12,20 +13,20 @@ internal static class ResultDataMapper
     /// Maps a value selection from the composite result and writes it directly as JSON.
     /// Returns <c>true</c> if the value was written successfully, <c>false</c> if the
     /// value could not be resolved (undefined/null for required paths) or a null value
-    /// landed in a non-null input position of <paramref name="inputType"/>.
+    /// landed in a non-null position of the declared requirement type.
     /// </summary>
     public static bool TryMap(
         CompositeResultElement result,
         IValueSelectionNode valueSelection,
-        IInputType inputType,
+        ITypeNode type,
         ISchemaDefinition schema,
         JsonWriter writer)
-        => Visit(valueSelection, result, inputType, schema, writer);
+        => Visit(valueSelection, result, type, schema, writer);
 
     private static bool Visit(
         IValueSelectionNode node,
         CompositeResultElement result,
-        IType? type,
+        ITypeNode? type,
         ISchemaDefinition schema,
         JsonWriter writer)
     {
@@ -38,10 +39,10 @@ internal static class ResultDataMapper
                 return VisitPath(path, result, type, schema, writer);
 
             case ObjectValueSelectionNode objectValue:
-                return VisitObject(objectValue, result, type, schema, writer);
+                return VisitObject(objectValue, result, schema, writer);
 
             case PathObjectValueSelectionNode pathObject:
-                return VisitPathObject(pathObject, result, type, schema, writer);
+                return VisitPathObject(pathObject, result, schema, writer);
 
             case PathListValueSelectionNode pathList:
                 return VisitPathList(pathList, result, type, schema, writer);
@@ -54,7 +55,7 @@ internal static class ResultDataMapper
     private static bool VisitChoice(
         ChoiceValueSelectionNode node,
         CompositeResultElement result,
-        IType? type,
+        ITypeNode? type,
         ISchemaDefinition schema,
         JsonWriter writer)
     {
@@ -72,7 +73,7 @@ internal static class ResultDataMapper
     private static bool VisitPath(
         PathNode node,
         CompositeResultElement result,
-        IType? type,
+        ITypeNode? type,
         ISchemaDefinition schema,
         JsonWriter writer)
     {
@@ -106,7 +107,7 @@ internal static class ResultDataMapper
 
     private static bool TryWriteLeafArray(
         CompositeResultElement array,
-        IType? elementType,
+        ITypeNode? elementType,
         JsonWriter writer)
     {
         writer.WriteStartArray();
@@ -160,7 +161,6 @@ internal static class ResultDataMapper
     private static bool VisitObject(
         ObjectValueSelectionNode node,
         CompositeResultElement result,
-        IType? type,
         ISchemaDefinition schema,
         JsonWriter writer)
     {
@@ -169,32 +169,22 @@ internal static class ResultDataMapper
             throw new InvalidOperationException("Only object results are supported.");
         }
 
-        var inputObjectType = GetInputObjectType(type);
-
         writer.WriteStartObject();
 
         foreach (var field in node.Fields)
         {
             writer.WritePropertyName(field.Name.Value);
 
-            IType? fieldType = null;
-
-            if (inputObjectType is not null
-                && inputObjectType.Fields.TryGetField(field.Name.Value, out var inputField))
-            {
-                fieldType = inputField.Type;
-            }
-
             bool written;
 
             if (field.ValueSelection is null)
             {
                 var pathNode = new PathNode(new PathSegmentNode(field.Name));
-                written = VisitPath(pathNode, result, fieldType, schema, writer);
+                written = VisitPath(pathNode, result, null, schema, writer);
             }
             else
             {
-                written = Visit(field.ValueSelection, result, fieldType, schema, writer);
+                written = Visit(field.ValueSelection, result, null, schema, writer);
             }
 
             if (!written)
@@ -210,7 +200,6 @@ internal static class ResultDataMapper
     private static bool VisitPathObject(
         PathObjectValueSelectionNode node,
         CompositeResultElement result,
-        IType? type,
         ISchemaDefinition schema,
         JsonWriter writer)
     {
@@ -227,13 +216,13 @@ internal static class ResultDataMapper
             throw new InvalidOperationException("Only object results are supported.");
         }
 
-        return VisitObject(node.ObjectValueSelection, resolved, type, schema, writer);
+        return VisitObject(node.ObjectValueSelection, resolved, schema, writer);
     }
 
     private static bool VisitPathList(
         PathListValueSelectionNode node,
         CompositeResultElement result,
-        IType? type,
+        ITypeNode? type,
         ISchemaDefinition schema,
         JsonWriter writer)
     {
@@ -265,7 +254,7 @@ internal static class ResultDataMapper
     private static bool VisitList(
         ListValueSelectionNode node,
         CompositeResultElement result,
-        IType? elementType,
+        ITypeNode? elementType,
         ISchemaDefinition schema,
         JsonWriter writer)
     {
@@ -299,21 +288,11 @@ internal static class ResultDataMapper
         return true;
     }
 
-    private static bool IsNonNullPosition(IType? type)
-        => type?.Kind is TypeKind.NonNull;
+    private static bool IsNonNullPosition(ITypeNode? type)
+        => type?.Kind is SyntaxKind.NonNullType;
 
-    private static IType? GetElementType(IType? type)
-    {
-        if (type is NonNullType nonNullType)
-        {
-            type = nonNullType.NullableType;
-        }
-
-        return type is ListType listType ? listType.ElementType : null;
-    }
-
-    private static IInputObjectTypeDefinition? GetInputObjectType(IType? type)
-        => type?.AsTypeDefinition() as IInputObjectTypeDefinition;
+    private static ITypeNode? GetElementType(ITypeNode? type)
+        => type?.IsListType() == true ? type.ElementType() : null;
 
     private static CompositeResultElement ResolvePath(
         ISchemaDefinition schema,

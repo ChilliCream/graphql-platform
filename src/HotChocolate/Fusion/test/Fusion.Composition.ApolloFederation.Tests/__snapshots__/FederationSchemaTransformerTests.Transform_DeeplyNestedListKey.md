@@ -51,11 +51,13 @@ schema {
 }
 
 type Query {
-  categoryByIdAndTag(id: String!, tag: String!): Category @internal @lookup
-  productByIdAndPidAndCategoryAndIdAndTag(
+  fusion__lookup_categoryByIdAndTag(id: String!, tag: String!): Category
+    @internal
+    @lookup
+  fusion__lookup_productByIdAndPidAndCategoryAndIdAndTag(
     key: ProductByIdAndPidAndCategoryAndIdAndTagInput! @is(field: "{ id, pid, category: category.{ id, tag } }")
   ): Product @internal @lookup
-  productListByProductsAndIdAndPidAndCategoryAndIdAndTagAndSelectedAndId(
+  fusion__lookup_productListByProductsAndIdAndPidAndCategoryAndIdAndTagAndSelectedAndId(
     key: ProductListByProductsAndIdAndPidAndCategoryAndIdAndTagAndSelectedAndIdInput! @is(field: "{ products: products[{ id, pid, category: category.{ id, tag } }], selected: selected.{ id } }")
   ): ProductList @internal @lookup
   topProducts: ProductList!

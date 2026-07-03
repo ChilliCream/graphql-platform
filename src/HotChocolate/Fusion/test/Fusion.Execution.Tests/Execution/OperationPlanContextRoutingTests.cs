@@ -5,6 +5,7 @@ using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Execution.Results;
 using HotChocolate.Fusion.Language;
+using HotChocolate.Fusion.Planning;
 using HotChocolate.Fusion.Text.Json;
 using HotChocolate.Fusion.Transport.Http;
 using HotChocolate.Fusion.Types;
@@ -277,7 +278,6 @@ public sealed class OperationPlanContextRoutingTests : FusionTestBase
         => new(
             key,
             new NamedTypeNode("String"),
-            OperationRequirement.CreateInputType(new NamedTypeNode("String"), s_schema),
             SelectionPath.Root,
             new PathNode(new PathSegmentNode(new FusionNameNode(key))));
 

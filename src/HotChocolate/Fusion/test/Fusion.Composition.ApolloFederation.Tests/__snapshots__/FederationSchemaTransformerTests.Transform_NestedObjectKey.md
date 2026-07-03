@@ -43,7 +43,7 @@ schema {
 
 type Query {
   article: Article
-  articleByMetadataAndId(
+  fusion__lookup_articleByMetadataAndId(
     key: ArticleByMetadataAndIdInput! @is(field: "{ metadata: metadata.{ id } }")
   ): Article @internal @lookup
 }

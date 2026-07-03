@@ -1042,7 +1042,7 @@ AddErrors_Next:
         // so list-typed requirements take the slow path where the mapper checks
         // element nullability.
         if (TryGetSimpleRequirementFieldName(requirement.Map, out var fieldName)
-            && !requirement.TypeNode.IsListType())
+            && !requirement.Type.IsListType())
         {
             return BuildVariableValueSetsSingleRequirementFastPath(elements, requirement, fieldName);
         }
@@ -1058,7 +1058,7 @@ AddErrors_Next:
         VariableValues[]? variableValueSets = null;
         var additionalPaths = new AdditionalPathAccumulator();
         var nextIndex = 0;
-        var isNonNullRequirement = requirement.TypeNode.Kind is SyntaxKind.NonNullType;
+        var isNonNullRequirement = requirement.Type.Kind is SyntaxKind.NonNullType;
 
         for (var i = 0; i < elements.Length; i++)
         {
@@ -1158,9 +1158,9 @@ AddErrors_Next:
         // so list-typed requirements take the slow path where the mapper checks
         // element nullability.
         if (TryGetSimpleRequirementFieldName(requirement1.Map, out var fieldName1)
-            && !requirement1.TypeNode.IsListType()
+            && !requirement1.Type.IsListType()
             && TryGetSimpleRequirementFieldName(requirement2.Map, out var fieldName2)
-            && !requirement2.TypeNode.IsListType())
+            && !requirement2.Type.IsListType())
         {
             return BuildVariableValueSetsTwoRequirementsFastPath(
                 elements,
@@ -1192,7 +1192,7 @@ AddErrors_Next:
             if (!result.TryGetProperty(fieldName1, out var value1)
                 || value1.ValueKind is JsonValueKind.Undefined
                 || (value1.ValueKind is JsonValueKind.Null
-                    && requirement1.TypeNode.Kind == SyntaxKind.NonNullType))
+                    && requirement1.Type.Kind == SyntaxKind.NonNullType))
             {
                 continue;
             }
@@ -1200,7 +1200,7 @@ AddErrors_Next:
             if (!result.TryGetProperty(fieldName2, out var value2)
                 || value2.ValueKind is JsonValueKind.Undefined
                 || (value2.ValueKind is JsonValueKind.Null
-                    && requirement2.TypeNode.Kind == SyntaxKind.NonNullType))
+                    && requirement2.Type.Kind == SyntaxKind.NonNullType))
             {
                 continue;
             }
@@ -1292,11 +1292,11 @@ AddErrors_Next:
         // so list-typed requirements take the slow path where the mapper checks
         // element nullability.
         if (TryGetSimpleRequirementFieldName(requirement1.Map, out var fieldName1)
-            && !requirement1.TypeNode.IsListType()
+            && !requirement1.Type.IsListType()
             && TryGetSimpleRequirementFieldName(requirement2.Map, out var fieldName2)
-            && !requirement2.TypeNode.IsListType()
+            && !requirement2.Type.IsListType()
             && TryGetSimpleRequirementFieldName(requirement3.Map, out var fieldName3)
-            && !requirement3.TypeNode.IsListType())
+            && !requirement3.Type.IsListType())
         {
             return BuildVariableValueSetsThreeRequirementsFastPath(
                 elements,
@@ -1333,7 +1333,7 @@ AddErrors_Next:
             if (!result.TryGetProperty(fieldName1, out var value1)
                 || value1.ValueKind is JsonValueKind.Undefined
                 || (value1.ValueKind is JsonValueKind.Null
-                    && requirement1.TypeNode.Kind == SyntaxKind.NonNullType))
+                    && requirement1.Type.Kind == SyntaxKind.NonNullType))
             {
                 continue;
             }
@@ -1341,7 +1341,7 @@ AddErrors_Next:
             if (!result.TryGetProperty(fieldName2, out var value2)
                 || value2.ValueKind is JsonValueKind.Undefined
                 || (value2.ValueKind is JsonValueKind.Null
-                    && requirement2.TypeNode.Kind == SyntaxKind.NonNullType))
+                    && requirement2.Type.Kind == SyntaxKind.NonNullType))
             {
                 continue;
             }
@@ -1349,7 +1349,7 @@ AddErrors_Next:
             if (!result.TryGetProperty(fieldName3, out var value3)
                 || value3.ValueKind is JsonValueKind.Undefined
                 || (value3.ValueKind is JsonValueKind.Null
-                    && requirement3.TypeNode.Kind == SyntaxKind.NonNullType))
+                    && requirement3.Type.Kind == SyntaxKind.NonNullType))
             {
                 continue;
             }

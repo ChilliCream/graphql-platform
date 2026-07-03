@@ -460,7 +460,6 @@ public class LookupEntityQueryRewriterTests
         => new(
             key,
             new NamedTypeNode("String"),
-            OperationPlanner.CreateInputType(new NamedTypeNode("String"), schema),
             SelectionPath.Root,
             map);
 
