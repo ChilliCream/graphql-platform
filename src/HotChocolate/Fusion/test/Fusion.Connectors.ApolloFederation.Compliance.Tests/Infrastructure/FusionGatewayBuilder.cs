@@ -35,7 +35,21 @@ internal static class FusionGatewayBuilder
     /// The composed <see cref="FusionGateway"/>; dispose it to tear down the
     /// subgraph hosts and the gateway service provider.
     /// </returns>
+    public static Task<FusionGateway> ComposeAsync(
+        params (string Name, Func<Task<SubgraphHost>> Factory)[] subgraphs)
+        => ComposeAsync(capture: null, subgraphs);
+
+    /// <summary>
+    /// Composes a Fusion gateway around the supplied Apollo Federation subgraphs,
+    /// optionally recording the outgoing subgraph HTTP requests.
+    /// </summary>
+    /// <param name="capture">
+    /// When not <see langword="null"/>, records every gateway to subgraph HTTP request
+    /// so a test can assert the number and shape of the requests that were sent.
+    /// </param>
+    /// <param name="subgraphs">Named subgraph factories.</param>
     public static async Task<FusionGateway> ComposeAsync(
+        SubgraphRequestCapture? capture,
         params (string Name, Func<Task<SubgraphHost>> Factory)[] subgraphs)
     {
         ArgumentNullException.ThrowIfNull(subgraphs);
@@ -76,7 +90,7 @@ internal static class FusionGatewayBuilder
 
             var gatewayServices = new ServiceCollection();
             gatewayServices.AddSingleton<IHttpClientFactory>(
-                new TestSubgraphHttpClientFactory(hosts));
+                new TestSubgraphHttpClientFactory(hosts, capture));
 
             gatewayServices
                 .AddGraphQLGateway()
@@ -222,7 +236,8 @@ internal static class FusionGatewayBuilder
         return result.Value.ToSyntaxNode();
     }
 
-    private static JsonDocumentOwner BuildGatewaySettings(IReadOnlyList<SubgraphInfo> subgraphs)
+    private static JsonDocumentOwner BuildGatewaySettings(
+        IReadOnlyList<SubgraphInfo> subgraphs)
     {
         var buffer = new ArrayBufferWriter<byte>();
 
@@ -238,20 +253,6 @@ internal static class FusionGatewayBuilder
                 writer.WriteStartObject("transports");
                 writer.WriteStartObject("http");
                 writer.WriteString("url", subgraph.BaseAddress.ToString());
-
-                // Every subgraph here is an Apollo Federation subgraph, which is not
-                // guaranteed to implement the batching formats of the Composite Schema
-                // Specification. Composition declares a conservative batching default for
-                // Apollo Federation source schemas; the harness mirrors that declaration so
-                // the kind-blind runtime client configuration parser disables batching for
-                // these subgraphs unless the settings state otherwise.
-                writer.WriteStartObject("capabilities");
-                writer.WriteStartObject("batching");
-                writer.WriteBoolean("variableBatching", false);
-                writer.WriteBoolean("requestBatching", false);
-                writer.WriteEndObject();
-                writer.WriteEndObject();
-
                 writer.WriteEndObject();
                 writer.WriteEndObject();
 
@@ -281,9 +282,11 @@ internal static class FusionGatewayBuilder
     {
         private readonly HostDispatchingHandler _handler;
 
-        public TestSubgraphHttpClientFactory(IReadOnlyList<SubgraphHost> subgraphs)
+        public TestSubgraphHttpClientFactory(
+            IReadOnlyList<SubgraphHost> subgraphs,
+            SubgraphRequestCapture? capture)
         {
-            _handler = new HostDispatchingHandler(subgraphs);
+            _handler = new HostDispatchingHandler(subgraphs, capture);
         }
 
         public HttpClient CreateClient(string name) => new(_handler, disposeHandler: false);
@@ -292,16 +295,20 @@ internal static class FusionGatewayBuilder
     private sealed class HostDispatchingHandler : HttpMessageHandler
     {
         private readonly Dictionary<string, HttpMessageInvoker> _byHost;
+        private readonly SubgraphRequestCapture? _capture;
 
-        public HostDispatchingHandler(IReadOnlyList<SubgraphHost> subgraphs)
+        public HostDispatchingHandler(
+            IReadOnlyList<SubgraphHost> subgraphs,
+            SubgraphRequestCapture? capture)
         {
             _byHost = subgraphs.ToDictionary(
                 static s => s.Name,
                 static s => new HttpMessageInvoker(s.Server.CreateHandler(), disposeHandler: false),
                 StringComparer.OrdinalIgnoreCase);
+            _capture = capture;
         }
 
-        protected override Task<HttpResponseMessage> SendAsync(
+        protected override async Task<HttpResponseMessage> SendAsync(
             HttpRequestMessage request,
             CancellationToken cancellationToken)
         {
@@ -313,7 +320,16 @@ internal static class FusionGatewayBuilder
                     $"No subgraph host registered for '{host}'.");
             }
 
-            return invoker.SendAsync(request, cancellationToken);
+            if (_capture is not null && request.Content is { } content)
+            {
+                // Buffer the body so it can be recorded and still forwarded to the
+                // in-process subgraph handler.
+                await content.LoadIntoBufferAsync().ConfigureAwait(false);
+                var body = await content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+                _capture.Record(host, body);
+            }
+
+            return await invoker.SendAsync(request, cancellationToken).ConfigureAwait(false);
         }
     }
 

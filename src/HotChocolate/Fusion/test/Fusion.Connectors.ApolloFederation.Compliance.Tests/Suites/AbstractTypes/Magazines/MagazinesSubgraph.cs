@@ -21,7 +21,7 @@ public static class MagazinesSubgraph
             .AddType<MagazineType>();
 
         var app = builder.Build();
-        app.MapGraphQL();
+        app.MapSubgraph();
 
         await app.StartAsync();
 

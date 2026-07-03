@@ -1,16 +1,17 @@
-using System.Buffers;
 using System.Collections.Immutable;
 using System.Runtime.InteropServices;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.ApolloFederation;
 using HotChocolate.Fusion.Execution.Clients;
+using HotChocolate.Fusion.Text.Json;
+using HotChocolate.Fusion.Types;
 
 namespace HotChocolate.Fusion.Execution.Nodes;
 
-internal sealed class ApolloOperationExecutionNode : ExecutionNode
+public sealed class ApolloOperationExecutionNode : ExecutionNode
 {
     private static readonly SelectionPath s_entitiesSource =
-      SelectionPath.Root.AppendField("_entities");
+        SelectionPath.Root.AppendField("_entities");
 
     private readonly OperationRequirement[] _requirements;
     private readonly string[] _forwardedVariables;
@@ -18,17 +19,21 @@ internal sealed class ApolloOperationExecutionNode : ExecutionNode
     private readonly ExecutionNodeCondition[] _conditions;
     private readonly bool _requiresFileUpload;
     private readonly OperationSourceText _operation;
+    private readonly OperationSourceText _lookupOperation;
     private readonly ulong _operationHash;
     private readonly string? _schemaName;
     private readonly SelectionPath _target;
-    private readonly SelectionPath _source;
+    private readonly string _entityTypeName;
+    private readonly List<RepresentationShapeNode> _representationShape;
 
     private ApolloOperationExecutionNode(
         int id,
         OperationSourceText operation,
+        OperationSourceText lookupOperation,
         string? schemaName,
         SelectionPath target,
-        SelectionPath source,
+        string entityTypeName,
+        List<RepresentationShapeNode> representationShape,
         OperationRequirement[] requirements,
         string[] forwardedVariables,
         ResultSelectionSet resultSelectionSet,
@@ -37,10 +42,12 @@ internal sealed class ApolloOperationExecutionNode : ExecutionNode
     {
         Id = id;
         _operation = operation;
+        _lookupOperation = lookupOperation;
         _operationHash = operation.SourceText.ComputeHash();
         _schemaName = schemaName;
         _target = target;
-        _source = source;
+        _entityTypeName = entityTypeName;
+        _representationShape = representationShape;
         _requirements = requirements;
         _forwardedVariables = forwardedVariables;
         _resultSelectionSet = resultSelectionSet;
@@ -58,16 +65,25 @@ internal sealed class ApolloOperationExecutionNode : ExecutionNode
         ResultSelectionSet resultSelectionSet,
         ExecutionNodeCondition[] conditions,
         bool requiresFileUpload,
-        EntityOperationRewriter rewriter)
+        FusionSchemaDefinition schema)
     {
-        operation = rewriter.Rewrite(schemaName, operation);
+        var rewritten = LookupEntityQueryRewriter.Rewrite(schema, schemaName!, operation);
+
+        // Compile the representation shape once at plan build so that unsupported
+        // requirement maps and unbound requirements fail here rather than at
+        // execution time. The shape is a plan-time constant, so it is retained and
+        // reused for every request this node serves.
+        var representationShape =
+            RepresentationShapeBuilder.Build(rewritten.LookupField, requirements);
 
         return new ApolloOperationExecutionNode(
             id,
+            rewritten.Operation,
             operation,
             schemaName,
             target,
-            s_entitiesSource,
+            rewritten.EntityTypeName,
+            representationShape,
             requirements,
             forwardedVariables,
             resultSelectionSet,
@@ -90,6 +106,12 @@ internal sealed class ApolloOperationExecutionNode : ExecutionNode
     public OperationSourceText Operation => _operation;
 
     /// <summary>
+    /// Gets the lookup operation this node was created from, before it was
+    /// rewritten into an <c>_entities</c> operation.
+    /// </summary>
+    internal OperationSourceText LookupOperation => _lookupOperation;
+
+    /// <summary>
     /// Gets the result selection set fulfilled by this operation.
     /// </summary>
     internal ResultSelectionSet ResultSelectionSet => _resultSelectionSet;
@@ -106,7 +128,7 @@ internal sealed class ApolloOperationExecutionNode : ExecutionNode
     /// Gets the path to the local selection set (the selection set within the source schema request)
     /// to extract the data from.
     /// </summary>
-    public SelectionPath Source => _source;
+    public SelectionPath Source => s_entitiesSource;
 
     /// <summary>
     /// Gets the data requirements that are needed to execute this operation.
@@ -132,15 +154,27 @@ internal sealed class ApolloOperationExecutionNode : ExecutionNode
         CancellationToken cancellationToken = default)
     {
         var diagnosticEvents = context.DiagnosticEvents;
-        var variables = context.CreateVariableValueSets(_target, _forwardedVariables, _requirements);
+        var representation = context.CreateRepresentationVariableValue(
+            _target,
+            _forwardedVariables,
+            _requirements,
+            _entityTypeName,
+            _representationShape);
 
-        if (variables.Length == 0 && (_requirements.Length > 0 || _forwardedVariables.Length > 0))
+        if (representation.IsEmpty)
         {
             return ExecutionStatus.Skipped;
         }
 
+        var variables = representation.ToVariableValues();
         var schemaName = _schemaName ?? context.GetDynamicSchemaName(this);
-        context.TrackVariableValueSets(this, variables);
+
+        // The combined representations object must be the request's single
+        // variable set so the request is routed as a single operation. The
+        // per-entity variable value sets are only used for error attribution.
+        var requestVariables = ImmutableArray.Create(
+            new VariableValues(CompactPath.Root, representation.Value));
+        context.TrackVariableValueSets(this, requestVariables);
 
         var request = new SourceSchemaClientRequest
         {
@@ -148,50 +182,31 @@ internal sealed class ApolloOperationExecutionNode : ExecutionNode
             SchemaName = schemaName,
             OperationType = _operation.Type,
             OperationSourceText = _operation.SourceText,
-            Variables = variables,
-            RequiresFileUpload = _requiresFileUpload,
+            Variables = requestVariables,
+            RequiresFileUpload = false,
             OperationHash = _operationHash
         };
 
-        var index = 0;
-        var bufferLength = 0;
-        SourceSchemaResult[]? buffer = null;
-        SourceSchemaResult? singleResult = null;
+        SourceSchemaResult? result = null;
         var hasSomeErrors = false;
 
         try
         {
-            // we execute the GraphQL request against a source schema
             var client = context.GetClient(schemaName, _operation.Type);
             using var clientScope = diagnosticEvents.ExecuteSourceSchemaRequest(context, this, schemaName);
 
-            // we read the responses from the response stream.
-            var initialBufferLength = Math.Max(variables.Length, 2);
-
-            await foreach (var result in client.ExecuteAsync(context, request, cancellationToken).ConfigureAwait(false))
+            await foreach (var current in client.ExecuteAsync(context, request, cancellationToken).ConfigureAwait(false))
             {
-                // If there is only one response, we skip the buffer rental.
-                if (index == 0)
+                if (result is not null)
                 {
-                    singleResult = result;
-                    index = 1;
-                }
-                else
-                {
-                    // If we have more than one response, we rent a buffer and move the first result into it.
-                    if (buffer is null)
-                    {
-                        bufferLength = initialBufferLength;
-                        buffer = ArrayPool<SourceSchemaResult>.Shared.Rent(bufferLength);
-                        buffer[0] = singleResult!;
-                    }
-
-                    buffer[index++] = result;
+                    current.Dispose();
+                    throw new InvalidOperationException(
+                        "Apollo entity fetches must produce a single source schema result.");
                 }
 
-                // Parsing errors here allows the result store to reuse the cached value
-                // and avoids a second document lookup per result.
-                if (result.Errors is not null)
+                result = current;
+
+                if (current.Errors is not null)
                 {
                     hasSomeErrors = true;
                 }
@@ -207,24 +222,7 @@ internal sealed class ApolloOperationExecutionNode : ExecutionNode
         catch (Exception exception)
         {
             diagnosticEvents.SourceSchemaTransportError(context, this, schemaName, exception);
-
-            // if there is an error, we need to make sure that the pooled buffers for the JsonDocuments
-            // are returned to the pool.
-            if (buffer is not null && bufferLength > 0)
-            {
-                foreach (var result in buffer.AsSpan(0, index))
-                {
-                    // ReSharper disable once ConditionalAccessQualifierIsNonNullableAccordingToAPIContract
-                    result?.Dispose();
-                }
-
-                buffer.AsSpan(0, index).Clear();
-                ArrayPool<SourceSchemaResult>.Shared.Return(buffer);
-            }
-            else
-            {
-                singleResult?.Dispose();
-            }
+            result?.Dispose();
 
             context.AddErrors(exception, variables, _resultSelectionSet);
             return ExecutionStatus.Failed;
@@ -235,28 +233,16 @@ internal sealed class ApolloOperationExecutionNode : ExecutionNode
 
         try
         {
-            if (buffer is not null)
+            if (result is not null)
             {
-                pendingMerge = PendingMerge.Multiple(
+                pendingMerge = PendingMerge.RepresentationSingle(
                     this,
                     schemaName,
-                    _source,
+                    s_entitiesSource,
                     _resultSelectionSet,
                     variables,
-                    buffer,
-                    index,
-                    hasSomeErrors);
-                hasPendingMerge = true;
-            }
-            else if (singleResult is not null)
-            {
-                pendingMerge = PendingMerge.Single(
-                    this,
-                    schemaName,
-                    _source,
-                    _resultSelectionSet,
-                    variables,
-                    singleResult,
+                    representation,
+                    result,
                     hasSomeErrors);
                 hasPendingMerge = true;
             }
@@ -266,8 +252,7 @@ internal sealed class ApolloOperationExecutionNode : ExecutionNode
                 context.EnqueuePendingMerge(pendingMerge);
             }
 
-            buffer = null;
-            singleResult = null;
+            result = null;
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
@@ -287,19 +272,9 @@ internal sealed class ApolloOperationExecutionNode : ExecutionNode
             {
                 pendingMerge.DisposeUnmerged();
             }
-            else if (buffer is not null)
-            {
-                foreach (var result in buffer.AsSpan(0, index))
-                {
-                    result?.Dispose();
-                }
-
-                buffer.AsSpan(0, index).Clear();
-                ArrayPool<SourceSchemaResult>.Shared.Return(buffer);
-            }
             else
             {
-                singleResult?.Dispose();
+                result?.Dispose();
             }
 
             diagnosticEvents.SourceSchemaStoreError(context, this, schemaName, exception);
@@ -313,6 +288,6 @@ internal sealed class ApolloOperationExecutionNode : ExecutionNode
     protected override IDisposable CreateScope(OperationPlanContext context)
     {
         var schemaName = _schemaName ?? context.GetDynamicSchemaName(this);
-        return context.DiagnosticEvents.ExecuteOperationNode(context, this, schemaName);
+        return context.DiagnosticEvents.ExecuteApolloOperationExecutionNode(context, this, schemaName);
     }
 }

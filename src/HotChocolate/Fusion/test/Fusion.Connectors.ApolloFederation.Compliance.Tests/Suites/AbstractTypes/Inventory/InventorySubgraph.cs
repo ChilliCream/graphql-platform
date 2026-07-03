@@ -24,7 +24,7 @@ public static class InventorySubgraph
             .AddType<DeliveryEstimatesType>();
 
         var app = builder.Build();
-        app.MapGraphQL();
+        app.MapSubgraph();
 
         await app.StartAsync();
 

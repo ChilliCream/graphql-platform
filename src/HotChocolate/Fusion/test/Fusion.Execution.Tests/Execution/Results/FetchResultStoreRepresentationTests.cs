@@ -57,7 +57,7 @@ public sealed class FetchResultStoreRepresentationTests : FusionTestBase
         var representation = CreateRepresentationFromSnapshot(
             target,
             s_schema,
-[entry],
+            [entry],
             ImportedKeys("__fusion_1_id", "__fusion_2_y"),
             [],
             [Requirement("__fusion_1_id", "id"), Requirement("__fusion_2_y", "y")],
@@ -91,7 +91,7 @@ public sealed class FetchResultStoreRepresentationTests : FusionTestBase
         var representation = CreateRepresentationFromSnapshot(
             target,
             s_schema,
-[entry],
+            [entry],
             ImportedKeys("__fusion_1_sku", "__fusion_1_package"),
             [],
             [Requirement("__fusion_1_sku", "sku"), Requirement("__fusion_1_package", "package")],
@@ -127,7 +127,7 @@ public sealed class FetchResultStoreRepresentationTests : FusionTestBase
         var representation = CreateRepresentationFromSnapshot(
             target,
             s_schema,
-[entry],
+            [entry],
             ImportedKeys("__fusion_1_pkey"),
             [],
             [Requirement("__fusion_1_pkey", "{ name brandName: brand.name }")],
@@ -163,7 +163,7 @@ public sealed class FetchResultStoreRepresentationTests : FusionTestBase
         var representation = CreateRepresentationFromSnapshot(
             target,
             s_schema,
-[entry],
+            [entry],
             ImportedKeys("__fusion_1_key"),
             [],
             [Requirement("__fusion_1_key", "{ two: compositeId.two three: compositeId.three }")],
@@ -201,7 +201,7 @@ public sealed class FetchResultStoreRepresentationTests : FusionTestBase
         var representation = CreateRepresentationFromSnapshot(
             target,
             s_schema,
-[entry],
+            [entry],
             ImportedKeys("__fusion_1_id", "__fusion_2_similar"),
             [],
             [Requirement("__fusion_1_id", "id"), Requirement("__fusion_2_similar", "similar[{ id: id }]")],
@@ -233,7 +233,7 @@ public sealed class FetchResultStoreRepresentationTests : FusionTestBase
         var representation = CreateRepresentationFromSnapshot(
             target,
             s_schema,
-[first, second],
+            [first, second],
             ImportedKeys("__fusion_1_id"),
             [],
             [Requirement("__fusion_1_id", "id")],
@@ -263,7 +263,7 @@ public sealed class FetchResultStoreRepresentationTests : FusionTestBase
         var representation = CreateRepresentationFromSnapshot(
             target,
             s_schema,
-[VariableValues.Empty],
+            [VariableValues.Empty],
             ImportedKeys("__fusion_1_id"),
             [],
             [Requirement("__fusion_1_id", "id")],
@@ -288,9 +288,9 @@ public sealed class FetchResultStoreRepresentationTests : FusionTestBase
         // act
         var exception = Assert.Throws<InvalidOperationException>(
             () => CreateRepresentationFromSnapshot(
-            target,
-            s_schema,
-    [entry],
+                target,
+                s_schema,
+                [entry],
                 ImportedKeys("__fusion_2_sku"),
                 [],
                 [Requirement("__fusion_1_id", "id")],
@@ -367,7 +367,7 @@ public sealed class FetchResultStoreRepresentationTests : FusionTestBase
         var live = CreateRepresentation(
             store,
             schema,
-SelectionPath.Root.AppendField("foos"),
+            SelectionPath.Root.AppendField("foos"),
             [],
             requirements,
             "Foo",
@@ -375,7 +375,7 @@ SelectionPath.Root.AppendField("foos"),
         var snapshot = CreateRepresentationFromSnapshot(
             snapshotTarget,
             s_schema,
-[entry],
+            [entry],
             ImportedKeys("__fusion_1_id", "__fusion_2_y"),
             [],
             requirements,
@@ -403,15 +403,17 @@ SelectionPath.Root.AppendField("foos"),
             new FieldSelectionMapParser("{ name brandName: brand.name }").Parse(),
             new FieldSelectionMapParser("dimensions.{ size weight }").Parse()
         };
+        var stringType = new NamedTypeNode("String");
+        var stringInputType = OperationRequirement.ResolveInputType(stringType, s_schema);
         var requirements = new[]
         {
-            new OperationRequirement("__fusion_1_a", new NamedTypeNode("String"), SelectionPath.Root, maps[0]),
-            new OperationRequirement("__fusion_2_b", new NamedTypeNode("String"), SelectionPath.Root, maps[1]),
-            new OperationRequirement("__fusion_3_c", new NamedTypeNode("String"), SelectionPath.Root, maps[2])
+            new OperationRequirement("__fusion_1_a", stringType, stringInputType, SelectionPath.Root, maps[0]),
+            new OperationRequirement("__fusion_2_b", stringType, stringInputType, SelectionPath.Root, maps[1]),
+            new OperationRequirement("__fusion_3_c", stringType, stringInputType, SelectionPath.Root, maps[2])
         };
 
         // act
-        var shape = RepresentationShapeBuilder.Build(lookupField, requirements, s_schema);
+        var shape = RepresentationShapeBuilder.Build(lookupField, requirements);
 
         // assert
         // The shape merges overlapping source paths; the rewriter output is the
@@ -457,7 +459,7 @@ SelectionPath.Root.AppendField("foos"),
         var requirements = new[] { Requirement("__fusion_1_id", "<Bar>.id") };
 
         // act
-        var shape = RepresentationShapeBuilder.Build(lookupField, requirements, s_schema);
+        var shape = RepresentationShapeBuilder.Build(lookupField, requirements);
 
         // assert
         var node = Assert.Single(shape);
@@ -475,7 +477,7 @@ SelectionPath.Root.AppendField("foos"),
 
         // act
         var exception = Assert.Throws<InvalidOperationException>(
-            () => RepresentationShapeBuilder.Build(lookupField, requirements, s_schema));
+            () => RepresentationShapeBuilder.Build(lookupField, requirements));
 
         // assert
         Assert.Equal(
@@ -493,7 +495,7 @@ SelectionPath.Root.AppendField("foos"),
 
         // act
         var exception = Assert.Throws<InvalidOperationException>(
-            () => RepresentationShapeBuilder.Build(lookupField, requirements, s_schema));
+            () => RepresentationShapeBuilder.Build(lookupField, requirements));
 
         // assert
         Assert.Equal(
@@ -517,7 +519,7 @@ SelectionPath.Root.AppendField("foos"),
 
         // act
         var exception = Assert.Throws<InvalidOperationException>(
-            () => RepresentationShapeBuilder.Build(lookupField, requirements, s_schema));
+            () => RepresentationShapeBuilder.Build(lookupField, requirements));
 
         // assert
         Assert.Equal(
@@ -539,7 +541,7 @@ SelectionPath.Root.AppendField("foos"),
 
         // act
         var exception = Assert.Throws<InvalidOperationException>(
-            () => RepresentationShapeBuilder.Build(lookupField, requirements, s_schema));
+            () => RepresentationShapeBuilder.Build(lookupField, requirements));
 
         // assert
         Assert.Equal(
@@ -565,7 +567,7 @@ SelectionPath.Root.AppendField("foos"),
         var representation = CreateRepresentationFromSnapshot(
             target,
             s_schema,
-[entry],
+            [entry],
             ImportedKeys("__fusion_1_id"),
             [],
             [Requirement("__fusion_1_id", "<Foo>.id")],
@@ -599,7 +601,7 @@ SelectionPath.Root.AppendField("foos"),
         var representation = CreateRepresentationFromSnapshot(
             target,
             s_schema,
-[entry],
+            [entry],
             ImportedKeys("__fusion_1_a", "__fusion_2_b"),
             [],
             [Requirement("__fusion_1_a", "{ z: y.z }"), Requirement("__fusion_2_b", "{ w: y.w }")],
@@ -639,7 +641,7 @@ SelectionPath.Root.AppendField("foos"),
         var representation = CreateRepresentationFromSnapshot(
             target,
             s_schema,
-[entry],
+            [entry],
             ImportedKeys("__fusion_1_id", "__fusion_2_similar"),
             [],
             [Requirement("__fusion_1_id", "id"), Requirement("__fusion_2_similar", "similar[{ pid: id }]")],
@@ -677,7 +679,7 @@ SelectionPath.Root.AppendField("foos"),
         var representation = CreateRepresentationFromSnapshot(
             target,
             s_schema,
-[entry],
+            [entry],
             ImportedKeys("__fusion_1_id", "__fusion_2_similar"),
             [],
             [
@@ -730,7 +732,7 @@ SelectionPath.Root.AppendField("foos"),
         var live = CreateRepresentation(
             store,
             schema,
-SelectionPath.Root.AppendField("foos"),
+            SelectionPath.Root.AppendField("foos"),
             [],
             [Requirement("__fusion_1_id", "<Qux>.id")],
             "Foo",
@@ -785,7 +787,7 @@ SelectionPath.Root.AppendField("foos"),
         var live = CreateRepresentation(
             store,
             schema,
-SelectionPath.Root.AppendField("foos"),
+            SelectionPath.Root.AppendField("foos"),
             [],
             requirements,
             "Foo",
@@ -793,7 +795,7 @@ SelectionPath.Root.AppendField("foos"),
         var snapshot = CreateRepresentationFromSnapshot(
             snapshotTarget,
             s_schema,
-[entry],
+            [entry],
             ImportedKeys("__fusion_1_id"),
             [],
             requirements,
@@ -860,7 +862,7 @@ SelectionPath.Root.AppendField("foos"),
         var live = CreateRepresentation(
             store,
             schema,
-SelectionPath.Root.AppendField("foos"),
+            SelectionPath.Root.AppendField("foos"),
             [],
             requirements,
             "Foo",
@@ -868,7 +870,7 @@ SelectionPath.Root.AppendField("foos"),
         var snapshot = CreateRepresentationFromSnapshot(
             snapshotTarget,
             s_schema,
-[entry],
+            [entry],
             ImportedKeys("__fusion_1_id", "__fusion_2_y"),
             [],
             requirements,
@@ -933,7 +935,7 @@ SelectionPath.Root.AppendField("foos"),
         var live = CreateRepresentation(
             store,
             schema,
-SelectionPath.Root.AppendField("foos"),
+            SelectionPath.Root.AppendField("foos"),
             [],
             requirements,
             "Foo",
@@ -941,7 +943,7 @@ SelectionPath.Root.AppendField("foos"),
         var snapshot = CreateRepresentationFromSnapshot(
             snapshotTarget,
             s_schema,
-[entry],
+            [entry],
             ImportedKeys("__fusion_1_id", "__fusion_2_bn"),
             [],
             requirements,
@@ -1003,7 +1005,7 @@ SelectionPath.Root.AppendField("foos"),
         var live = CreateRepresentation(
             store,
             schema,
-SelectionPath.Root.AppendField("foos"),
+            SelectionPath.Root.AppendField("foos"),
             [],
             requirements,
             "Foo",
@@ -1011,7 +1013,7 @@ SelectionPath.Root.AppendField("foos"),
         var snapshot = CreateRepresentationFromSnapshot(
             snapshotTarget,
             s_schema,
-[entry],
+            [entry],
             ImportedKeys("__fusion_1_id", "__fusion_2_y"),
             [],
             requirements,
@@ -1078,7 +1080,7 @@ SelectionPath.Root.AppendField("foos"),
         var live = CreateRepresentation(
             store,
             schema,
-SelectionPath.Root.AppendField("foos"),
+            SelectionPath.Root.AppendField("foos"),
             [],
             requirements,
             "Foo",
@@ -1086,7 +1088,7 @@ SelectionPath.Root.AppendField("foos"),
         var snapshot = CreateRepresentationFromSnapshot(
             snapshotTarget,
             s_schema,
-[entry],
+            [entry],
             ImportedKeys("__fusion_1_a", "__fusion_2_b"),
             [],
             requirements,
@@ -1153,7 +1155,7 @@ SelectionPath.Root.AppendField("foos"),
         var live = CreateRepresentation(
             store,
             schema,
-SelectionPath.Root.AppendField("things"),
+            SelectionPath.Root.AppendField("things"),
             [],
             requirements,
             "Thing",
@@ -1161,7 +1163,7 @@ SelectionPath.Root.AppendField("things"),
         var snapshot = CreateRepresentationFromSnapshot(
             snapshotTarget,
             s_schema,
-[entry],
+            [entry],
             ImportedKeys("__fusion_1_key"),
             [],
             requirements,
@@ -1217,7 +1219,7 @@ SelectionPath.Root.AppendField("things"),
         var live = CreateRepresentation(
             store,
             schema,
-SelectionPath.Root.AppendField("products"),
+            SelectionPath.Root.AppendField("products"),
             [],
             requirements,
             "Product",
@@ -1229,7 +1231,7 @@ SelectionPath.Root.AppendField("products"),
         var snapshot = CreateRepresentationFromSnapshot(
             snapshotTarget,
             s_schema,
-entries,
+            entries,
             ImportedKeys("__fusion_1_id", "__fusion_2_similar"),
             [],
             requirements,
@@ -1277,7 +1279,7 @@ entries,
         var requirements = new[]
         {
             Requirement("__fusion_1_id", "id"),
-            Requirement("__fusion_2_y", "y", new NonNullTypeNode(new NamedTypeNode("String")))
+            Requirement(schema, "__fusion_2_y", "y", new NonNullTypeNode(new NamedTypeNode("String")))
         };
 
         using var snapshotArena = new MemoryArena();
@@ -1287,7 +1289,7 @@ entries,
         var live = CreateRepresentation(
             store,
             schema,
-SelectionPath.Root.AppendField("foos"),
+            SelectionPath.Root.AppendField("foos"),
             [],
             requirements,
             "Foo",
@@ -1299,7 +1301,7 @@ SelectionPath.Root.AppendField("foos"),
         var snapshot = CreateRepresentationFromSnapshot(
             snapshotTarget,
             s_schema,
-entries,
+            entries,
             ImportedKeys("__fusion_1_id", "__fusion_2_y"),
             [],
             requirements,
@@ -1345,7 +1347,7 @@ entries,
         var requirements = new[]
         {
             Requirement("__fusion_1_id", "id"),
-            Requirement("__fusion_2_y", "y", new NonNullTypeNode(new NamedTypeNode("String")))
+            Requirement(schema, "__fusion_2_y", "y", new NonNullTypeNode(new NamedTypeNode("String")))
         };
 
         using var snapshotArena = new MemoryArena();
@@ -1355,7 +1357,7 @@ entries,
         var live = CreateRepresentation(
             store,
             schema,
-SelectionPath.Root.AppendField("foos"),
+            SelectionPath.Root.AppendField("foos"),
             [],
             requirements,
             "Foo",
@@ -1367,7 +1369,7 @@ SelectionPath.Root.AppendField("foos"),
         var snapshot = CreateRepresentationFromSnapshot(
             snapshotTarget,
             s_schema,
-entries,
+            entries,
             ImportedKeys("__fusion_1_id", "__fusion_2_y"),
             [],
             requirements,
@@ -1421,6 +1423,7 @@ entries,
         {
             Requirement("__fusion_1_id", "id"),
             Requirement(
+                schema,
                 "__fusion_2_bn",
                 "brand.name",
                 new NonNullTypeNode(new NamedTypeNode("String")))
@@ -1433,7 +1436,7 @@ entries,
         var live = CreateRepresentation(
             store,
             schema,
-SelectionPath.Root.AppendField("foos"),
+            SelectionPath.Root.AppendField("foos"),
             [],
             requirements,
             "Foo",
@@ -1445,7 +1448,7 @@ SelectionPath.Root.AppendField("foos"),
         var snapshot = CreateRepresentationFromSnapshot(
             snapshotTarget,
             s_schema,
-entries,
+            entries,
             ImportedKeys("__fusion_1_id", "__fusion_2_bn"),
             [],
             requirements,
@@ -1497,6 +1500,7 @@ entries,
         {
             Requirement("__fusion_1_id", "id"),
             Requirement(
+                schema,
                 "__fusion_2_similar",
                 "similar[{ id: id }]",
                 new ListTypeNode(new NonNullTypeNode(new NamedTypeNode("ProductKeyInput"))))
@@ -1509,7 +1513,7 @@ entries,
         var live = CreateRepresentation(
             store,
             schema,
-SelectionPath.Root.AppendField("products"),
+            SelectionPath.Root.AppendField("products"),
             [],
             requirements,
             "Product",
@@ -1521,7 +1525,7 @@ SelectionPath.Root.AppendField("products"),
         var snapshot = CreateRepresentationFromSnapshot(
             snapshotTarget,
             s_schema,
-entries,
+            entries,
             ImportedKeys("__fusion_1_id", "__fusion_2_similar"),
             [],
             requirements,
@@ -1568,6 +1572,7 @@ entries,
         {
             Requirement("__fusion_1_id", "id"),
             Requirement(
+                schema,
                 "__fusion_2_tags",
                 "tags",
                 new ListTypeNode(new NonNullTypeNode(new NamedTypeNode("String"))))
@@ -1580,7 +1585,7 @@ entries,
         var live = CreateRepresentation(
             store,
             schema,
-SelectionPath.Root.AppendField("foos"),
+            SelectionPath.Root.AppendField("foos"),
             [],
             requirements,
             "Foo",
@@ -1592,7 +1597,7 @@ SelectionPath.Root.AppendField("foos"),
         var snapshot = CreateRepresentationFromSnapshot(
             snapshotTarget,
             s_schema,
-entries,
+            entries,
             ImportedKeys("__fusion_1_id", "__fusion_2_tags"),
             [],
             requirements,
@@ -1639,6 +1644,7 @@ entries,
         {
             Requirement("__fusion_1_id", "id"),
             Requirement(
+                schema,
                 "__fusion_2_tags",
                 "tags",
                 new ListTypeNode(new NamedTypeNode("String")))
@@ -1651,7 +1657,7 @@ entries,
         var live = CreateRepresentation(
             store,
             schema,
-SelectionPath.Root.AppendField("foos"),
+            SelectionPath.Root.AppendField("foos"),
             [],
             requirements,
             "Foo",
@@ -1663,7 +1669,7 @@ SelectionPath.Root.AppendField("foos"),
         var snapshot = CreateRepresentationFromSnapshot(
             snapshotTarget,
             s_schema,
-entries,
+            entries,
             ImportedKeys("__fusion_1_id", "__fusion_2_tags"),
             [],
             requirements,
@@ -1717,6 +1723,7 @@ entries,
         {
             Requirement("__fusion_1_id", "id"),
             Requirement(
+                schema,
                 "__fusion_2_similar",
                 "similar[{ id: id }]",
                 new ListTypeNode(new NamedTypeNode("ProductKeyInput")))
@@ -1729,7 +1736,7 @@ entries,
         var live = CreateRepresentation(
             store,
             schema,
-SelectionPath.Root.AppendField("products"),
+            SelectionPath.Root.AppendField("products"),
             [],
             requirements,
             "Product",
@@ -1741,7 +1748,7 @@ SelectionPath.Root.AppendField("products"),
         var snapshot = CreateRepresentationFromSnapshot(
             snapshotTarget,
             s_schema,
-entries,
+            entries,
             ImportedKeys("__fusion_1_id", "__fusion_2_similar"),
             [],
             requirements,
@@ -1792,6 +1799,7 @@ entries,
         {
             Requirement("__fusion_1_id", "id"),
             Requirement(
+                schema,
                 "__fusion_2_dims",
                 "dimensions",
                 new ListTypeNode(new NonNullTypeNode(new NamedTypeNode("JSON"))))
@@ -1804,7 +1812,7 @@ entries,
         var live = CreateRepresentation(
             store,
             schema,
-SelectionPath.Root.AppendField("foos"),
+            SelectionPath.Root.AppendField("foos"),
             [],
             requirements,
             "Foo",
@@ -1816,7 +1824,7 @@ SelectionPath.Root.AppendField("foos"),
         var snapshot = CreateRepresentationFromSnapshot(
             snapshotTarget,
             s_schema,
-entries,
+            entries,
             ImportedKeys("__fusion_1_id", "__fusion_2_dims"),
             [],
             requirements,
@@ -1866,7 +1874,7 @@ entries,
         var requirements = new[]
         {
             Requirement("__fusion_1_id", "id"),
-            Requirement("__fusion_2_size", "size", new NamedTypeNode("JSON"))
+            Requirement(schema, "__fusion_2_size", "size", new NamedTypeNode("JSON"))
         };
 
         using var snapshotArena = new MemoryArena();
@@ -1876,7 +1884,7 @@ entries,
         var live = CreateRepresentation(
             store,
             schema,
-SelectionPath.Root.AppendField("foos"),
+            SelectionPath.Root.AppendField("foos"),
             [],
             requirements,
             "Foo",
@@ -1888,7 +1896,7 @@ SelectionPath.Root.AppendField("foos"),
         var snapshot = CreateRepresentationFromSnapshot(
             snapshotTarget,
             s_schema,
-entries,
+            entries,
             ImportedKeys("__fusion_1_id", "__fusion_2_size"),
             [],
             requirements,
@@ -1957,8 +1965,8 @@ entries,
             resultArena,
             sourceArena);
 
-        var fooRepresentation = CreateLookupRepresentation(store, "Foo", fooDefinition);
-        var barRepresentation = CreateLookupRepresentation(store, "Bar", barDefinition);
+        var fooRepresentation = CreateLookupRepresentation(store, schema, "Foo", fooDefinition);
+        var barRepresentation = CreateLookupRepresentation(store, schema, "Bar", barDefinition);
         var fooResponse = CreateResponse(sourceArena, """{"data":{"_entities":[{"name":"a"}]}}""");
         var barResponse = CreateResponse(sourceArena, """{"data":{"_entities":[{"title":"t"}]}}""");
 
@@ -2004,8 +2012,8 @@ entries,
             resultArena,
             sourceArena);
 
-        var fooRepresentation = CreateLookupRepresentation(store, "Foo", fooDefinition);
-        var barRepresentation = CreateLookupRepresentation(store, "Bar", barDefinition);
+        var fooRepresentation = CreateLookupRepresentation(store, schema, "Foo", fooDefinition);
+        var barRepresentation = CreateLookupRepresentation(store, schema, "Bar", barDefinition);
         var fooResponse = CreateResponse(
             sourceArena,
             """
@@ -2099,16 +2107,52 @@ entries,
 
     private static RepresentationValue CreateLookupRepresentation(
         FetchResultStore store,
+        FusionSchemaDefinition schema,
         string entityTypeName,
         SingleOperationDefinition definition)
         => CreateRepresentation(
             store,
             schema,
-definition.Target,
+            definition.Target,
             [],
             definition.Requirements,
             entityTypeName,
             ParseLookupField(definition.Operation.SourceText));
+
+    // The representation shape is a plan-time constant, so the production code
+    // builds it once at node creation. These harness helpers mirror that by
+    // compiling the shape and passing it in.
+    private static RepresentationValue CreateRepresentation(
+        FetchResultStore store,
+        FusionSchemaDefinition schema,
+        SelectionPath selectionSet,
+        IReadOnlyList<ObjectFieldNode> requestVariables,
+        ReadOnlySpan<OperationRequirement> requirements,
+        string entityTypeName,
+        FieldNode lookupField)
+        => store.CreateRepresentationVariableValue(
+            selectionSet,
+            requestVariables,
+            requirements,
+            entityTypeName,
+            RepresentationShapeBuilder.Build(lookupField, requirements));
+
+    private static RepresentationValue CreateRepresentationFromSnapshot(
+        FetchResultStore store,
+        FusionSchemaDefinition schema,
+        ImmutableArray<VariableValues> importedEntries,
+        HashSet<string> importedKeys,
+        IReadOnlyList<ObjectFieldNode> requestVariables,
+        ReadOnlySpan<OperationRequirement> requirements,
+        string entityTypeName,
+        FieldNode lookupField)
+        => store.CreateRepresentationVariableValueFromSnapshot(
+            importedEntries,
+            importedKeys,
+            requestVariables,
+            requirements,
+            entityTypeName,
+            RepresentationShapeBuilder.Build(lookupField, requirements));
 
     private static SourceSchemaResult CreateResponse(MemoryArena arena, string payloadJson)
     {
@@ -2195,12 +2239,17 @@ definition.Target,
         => new(name, value);
 
     private static OperationRequirement Requirement(string key, string map)
-        => Requirement(key, map, new NamedTypeNode("String"));
+        => Requirement(s_schema, key, map, new NamedTypeNode("String"));
 
-    private static OperationRequirement Requirement(string key, string map, ITypeNode type)
+    private static OperationRequirement Requirement(
+        FusionSchemaDefinition schema,
+        string key,
+        string map,
+        ITypeNode type)
         => new(
             key,
             type,
+            OperationRequirement.ResolveInputType(type, schema),
             SelectionPath.Root,
             new FieldSelectionMapParser(map).Parse());
 

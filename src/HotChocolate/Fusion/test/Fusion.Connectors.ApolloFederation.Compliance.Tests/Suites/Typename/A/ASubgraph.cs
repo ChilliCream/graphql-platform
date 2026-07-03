@@ -40,7 +40,7 @@ public static class ASubgraph
             .AddType<AdminType>();
 
         var app = builder.Build();
-        app.MapGraphQL();
+        app.MapSubgraph();
 
         await app.StartAsync();
 

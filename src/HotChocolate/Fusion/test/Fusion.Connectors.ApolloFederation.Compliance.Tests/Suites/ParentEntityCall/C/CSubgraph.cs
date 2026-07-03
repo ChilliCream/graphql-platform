@@ -38,7 +38,7 @@ public static class CSubgraph
             .AddType<CategoryDetailsType>();
 
         var app = builder.Build();
-        app.MapGraphQL();
+        app.MapSubgraph();
 
         await app.StartAsync();
 

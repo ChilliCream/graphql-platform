@@ -22,11 +22,12 @@ internal static class RepresentationShapeBuilder
     /// </summary>
     /// <param name="lookupField">The original, un-stripped root lookup field.</param>
     /// <param name="requiredData">The operation requirements of the lookup.</param>
-    /// <param name="schema">
-    /// The schema against which the requirement input types are resolved to
-    /// determine which nodes cannot be satisfied by a null value.
-    /// </param>
-    /// <returns>The root level of the representation shape.</returns>
+    /// <returns>
+    /// The root level of the representation shape. The result is a plan-time
+    /// constant that callers may cache and reuse across concurrent executions.
+    /// It must be treated as read-only once this method returns; consumers read
+    /// the shape without modifying it.
+    /// </returns>
     /// <exception cref="InvalidOperationException">
     /// Thrown when a requirement is not bound by exactly one argument of the
     /// lookup selection, or when requirement maps produce conflicting nodes.
@@ -37,11 +38,9 @@ internal static class RepresentationShapeBuilder
     /// </exception>
     public static List<RepresentationShapeNode> Build(
         FieldNode lookupField,
-        ReadOnlySpan<OperationRequirement> requiredData,
-        ISchemaDefinition schema)
+        ReadOnlySpan<OperationRequirement> requiredData)
     {
         ArgumentNullException.ThrowIfNull(lookupField);
-        ArgumentNullException.ThrowIfNull(schema);
 
         var root = new List<RepresentationShapeNode>();
         var matched = requiredData.Length <= 64
@@ -49,8 +48,8 @@ internal static class RepresentationShapeBuilder
             : new bool[requiredData.Length];
         matched.Clear();
 
-        AddRequirementArguments(lookupField, root, requiredData, matched, schema);
-        WalkSelections(lookupField.SelectionSet, root, requiredData, matched, schema);
+        AddRequirementArguments(lookupField, root, requiredData, matched);
+        WalkSelections(lookupField.SelectionSet, root, requiredData, matched);
 
         for (var i = 0; i < requiredData.Length; i++)
         {
@@ -69,8 +68,7 @@ internal static class RepresentationShapeBuilder
         SelectionSetNode? selectionSet,
         List<RepresentationShapeNode> level,
         ReadOnlySpan<OperationRequirement> requiredData,
-        Span<bool> matched,
-        ISchemaDefinition schema)
+        Span<bool> matched)
     {
         if (selectionSet is null)
         {
@@ -82,12 +80,12 @@ internal static class RepresentationShapeBuilder
             switch (selectionSet.Selections[i])
             {
                 case FieldNode field:
-                    AddRequirementArguments(field, level, requiredData, matched, schema);
+                    AddRequirementArguments(field, level, requiredData, matched);
 
                     if (HasRequirementArguments(field.SelectionSet, requiredData))
                     {
                         var node = GetOrCreateStructuralNode(level, field);
-                        WalkSelections(field.SelectionSet, node.Children!, requiredData, matched, schema);
+                        WalkSelections(field.SelectionSet, node.Children!, requiredData, matched);
                     }
 
                     break;
@@ -95,7 +93,7 @@ internal static class RepresentationShapeBuilder
                 case InlineFragmentNode inlineFragment:
                     // An inline fragment adds no level to the result data, so its
                     // selections contribute to the current level.
-                    WalkSelections(inlineFragment.SelectionSet, level, requiredData, matched, schema);
+                    WalkSelections(inlineFragment.SelectionSet, level, requiredData, matched);
                     break;
             }
         }
@@ -105,8 +103,7 @@ internal static class RepresentationShapeBuilder
         FieldNode field,
         List<RepresentationShapeNode> level,
         ReadOnlySpan<OperationRequirement> requiredData,
-        Span<bool> matched,
-        ISchemaDefinition schema)
+        Span<bool> matched)
     {
         for (var i = 0; i < field.Arguments.Count; i++)
         {
@@ -135,7 +132,7 @@ internal static class RepresentationShapeBuilder
                 requiredData[index].Map,
                 index,
                 [],
-                requiredData[index].ResolveInputType(schema));
+                requiredData[index].InputType);
         }
     }
 

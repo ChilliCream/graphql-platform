@@ -34,7 +34,7 @@ public static class BSubgraph
             .AddType<VideoType>();
 
         var app = builder.Build();
-        app.MapGraphQL();
+        app.MapSubgraph();
 
         await app.StartAsync();
 

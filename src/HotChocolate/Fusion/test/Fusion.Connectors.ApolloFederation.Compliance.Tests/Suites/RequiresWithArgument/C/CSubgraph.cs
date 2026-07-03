@@ -27,7 +27,7 @@ public static class CSubgraph
             .AddType<CommentType>();
 
         var app = builder.Build();
-        app.MapGraphQL();
+        app.MapSubgraph();
 
         await app.StartAsync();
 

@@ -37,7 +37,7 @@ public static class SubgraphASubgraph
             .AddType<AnimalInterfaceType>();
 
         var app = builder.Build();
-        app.MapGraphQL();
+        app.MapSubgraph();
 
         await app.StartAsync();
 

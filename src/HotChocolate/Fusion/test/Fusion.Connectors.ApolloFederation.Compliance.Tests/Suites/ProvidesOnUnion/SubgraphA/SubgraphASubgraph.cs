@@ -23,7 +23,7 @@ public static class SubgraphASubgraph
             .AddType<MediaUnionType>();
 
         var app = builder.Build();
-        app.MapGraphQL();
+        app.MapSubgraph();
 
         await app.StartAsync();
 

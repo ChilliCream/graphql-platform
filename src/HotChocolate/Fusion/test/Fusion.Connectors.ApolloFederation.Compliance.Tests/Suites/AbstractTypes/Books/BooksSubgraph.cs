@@ -21,7 +21,7 @@ public static class BooksSubgraph
             .AddType<BookType>();
 
         var app = builder.Build();
-        app.MapGraphQL();
+        app.MapSubgraph();
 
         await app.StartAsync();
 

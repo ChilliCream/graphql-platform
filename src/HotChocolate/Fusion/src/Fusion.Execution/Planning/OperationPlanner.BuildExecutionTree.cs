@@ -4,6 +4,7 @@ using System.Text;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Types;
+using HotChocolate.Fusion.Types.Metadata;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 using HotChocolate.Types;
@@ -49,7 +50,7 @@ public sealed partial class OperationPlanner
         planSteps = TransformPlanSteps(planSteps, operationDefinition);
         IndexDependencies(planSteps, ctx);
         BuildExecutionNodes(planSteps, ctx, _schema, hasVariables, cancellationToken);
-        MergeAndBatchOperations(ctx, _options.EnableRequestGrouping, _options.MergePolicy);
+        MergeAndBatchOperations(ctx, _schema, _options.EnableRequestGrouping, _options.MergePolicy);
         WireExecutionDependencies(ctx);
 
         var rootNodes = planSteps
@@ -173,10 +174,10 @@ public sealed partial class OperationPlanner
     /// <summary>
     /// Finds the execution node in <paramref name="owningNodes"/> whose fetch
     /// lands on (or inside) the selection set where this defer is anchored.
-    /// The match is the node whose <see cref="OperationExecutionNode.Target"/>
-    /// is the deepest path that is an ancestor of (or equal to)
-    /// <paramref name="deferPath"/>, meaning its output contributes to the
-    /// enclosing object where the deferred fragment's fields get merged.
+    /// The match is the node whose fetch target is the deepest path that is an
+    /// ancestor of (or equal to) <paramref name="deferPath"/>, meaning its
+    /// output contributes to the enclosing object where the deferred
+    /// fragment's fields get merged.
     /// </summary>
     private static int? ResolveDeferParentNodeId(
         ImmutableArray<ExecutionNode> owningNodes,
@@ -187,12 +188,23 @@ public sealed partial class OperationPlanner
 
         for (var i = 0; i < owningNodes.Length; i++)
         {
-            if (owningNodes[i] is not OperationExecutionNode op)
+            SelectionPath target;
+
+            switch (owningNodes[i])
             {
-                continue;
+                case OperationExecutionNode op:
+                    target = op.Target;
+                    break;
+
+                case ApolloOperationExecutionNode apolloOp:
+                    target = apolloOp.Target;
+                    break;
+
+                default:
+                    continue;
             }
 
-            if (!op.Target.IsParentOfOrSame(deferPath))
+            if (!target.IsParentOfOrSame(deferPath))
             {
                 continue;
             }
@@ -200,10 +212,10 @@ public sealed partial class OperationPlanner
             // Pick the deepest matching node so we attach to the most specific
             // fetch (e.g. a lookup node at $.user rather than a root fetch) when
             // multiple nodes could claim the defer's anchor.
-            if (op.Target.Length > bestDepth)
+            if (target.Length > bestDepth)
             {
-                match = op.Id;
-                bestDepth = op.Target.Length;
+                match = owningNodes[i].Id;
+                bestDepth = target.Length;
             }
         }
 
@@ -455,7 +467,7 @@ public sealed partial class OperationPlanner
     private static void BuildExecutionNodes(
         ImmutableList<PlanStep> planSteps,
         ExecutionPlanBuildContext ctx,
-        ISchemaDefinition schema,
+        FusionSchemaDefinition schema,
         bool hasVariables,
         CancellationToken cancellationToken)
     {
@@ -511,9 +523,9 @@ public sealed partial class OperationPlanner
         }
     }
 
-    private static OperationExecutionNode CreateOperationExecutionNode(
+    private static ExecutionNode CreateOperationExecutionNode(
         OperationPlanStep operationStep,
-        ISchemaDefinition schema,
+        FusionSchemaDefinition schema,
         bool requiresUpload,
         List<string>? variableBuffer)
     {
@@ -553,6 +565,41 @@ public sealed partial class OperationPlanner
         var selectionSetNode = GetSelectionSetNodeFromPath(operationStep.Definition, operationStep.Source);
         selectionSetNode = PruneNonValueTypeChildren(selectionSetNode, operationStep.Type, schema);
         var resultSelectionSet = ResultSelectionSet.Create(selectionSetNode, schema);
+
+        // Lookups that target an Apollo Federation source schema are executed
+        // through the _entities protocol, so they get their own node type that
+        // rewrites the lookup operation at plan build time.
+        if (operationStep.Lookup is { } lookup
+            && schema.GetSourceSchemaConnectorKind(operationStep.SchemaName ?? lookup.SchemaName)
+                == ConnectorKindNames.ApolloFederation)
+        {
+            if (operationStep.SchemaName is null)
+            {
+                throw new InvalidOperationException(
+                    $"The lookup '{lookup.FieldName}' targets the Apollo Federation source schema "
+                    + $"'{lookup.SchemaName}', but the plan step does not specify a concrete source "
+                    + "schema name. Apollo Federation lookups cannot be resolved dynamically.");
+            }
+
+            var apolloNode = ApolloOperationExecutionNode.Create(
+                operationStep.Id,
+                operationSource,
+                operationStep.SchemaName,
+                operationStep.Target,
+                requirements,
+                forwardedVariables,
+                resultSelectionSet,
+                operationStep.Conditions,
+                requiresFileUpload,
+                schema);
+
+            foreach (var parentDependency in operationStep.ParentDependencies)
+            {
+                apolloNode.AddParentDependency(parentDependency.StepId);
+            }
+
+            return apolloNode;
+        }
 
         var node = new OperationExecutionNode(
             operationStep.Id,
@@ -605,6 +652,7 @@ public sealed partial class OperationPlanner
 
     private static void MergeAndBatchOperations(
         ExecutionPlanBuildContext ctx,
+        FusionSchemaDefinition schema,
         bool enableRequestGrouping,
         OperationMergePolicy mergePolicy)
     {
@@ -622,6 +670,12 @@ public sealed partial class OperationPlanner
 
         var perOperationDependencies = GroupBySchemaAndDepthIntoBatches(
             ctx, nodeFieldBoundCache, mergeResults, originalDependencies, enableRequestGrouping);
+
+        foreach (var (batchNode, memberDependencies) in GroupApolloLookupsIntoBatches(
+            ctx, schema, nodeFieldBoundCache, originalDependencies, enableRequestGrouping))
+        {
+            perOperationDependencies.Add(batchNode, memberDependencies);
+        }
 
         WrapRemainingMergedOperations(ctx, mergeResults, perOperationDependencies, originalDependencies);
         WirePerOperationDependencies(ctx, perOperationDependencies);
@@ -752,7 +806,7 @@ public sealed partial class OperationPlanner
     /// source schema are independent of each other, so the executor can
     /// send them together in a single batched network request.
     /// </summary>
-    private static Dictionary<OperationBatchExecutionNode, Dictionary<int, int[]>>
+    private static Dictionary<ExecutionNode, Dictionary<int, int[]>>
         GroupBySchemaAndDepthIntoBatches(
             ExecutionPlanBuildContext ctx,
             Dictionary<int, bool> nodeFieldBoundCache,
@@ -761,7 +815,7 @@ public sealed partial class OperationPlanner
             bool enableRequestGrouping)
     {
         var consumedMergeIds = new HashSet<int>();
-        var perOperationDependencies = new Dictionary<OperationBatchExecutionNode, Dictionary<int, int[]>>();
+        var perOperationDependencies = new Dictionary<ExecutionNode, Dictionary<int, int[]>>();
 
         if (!enableRequestGrouping)
         {
@@ -855,13 +909,106 @@ public sealed partial class OperationPlanner
     }
 
     /// <summary>
+    /// Groups Apollo Federation entity lookups by their target schema and
+    /// dependency depth into batch execution nodes. Lookups at the same depth
+    /// targeting the same source schema are independent of each other, so the
+    /// executor can send them together in a single batched network request.
+    /// </summary>
+    private static Dictionary<ExecutionNode, Dictionary<int, int[]>>
+        GroupApolloLookupsIntoBatches(
+            ExecutionPlanBuildContext ctx,
+            FusionSchemaDefinition schema,
+            Dictionary<int, bool> nodeFieldBoundCache,
+            Dictionary<int, int[]> originalDependencies,
+            bool enableRequestGrouping)
+    {
+        var perOperationDependencies = new Dictionary<ExecutionNode, Dictionary<int, int[]>>();
+
+        if (!enableRequestGrouping)
+        {
+            return perOperationDependencies;
+        }
+
+        var lookupNodes = ctx.ExecutionNodes.Values
+            .OfType<ApolloOperationExecutionNode>()
+            .Where(n => n.Operation.Type == OperationType.Query)
+            .Where(n => !IsNodeFieldBound(n.Id, ctx, nodeFieldBoundCache))
+            .ToList();
+
+        var depthLookup = new Dictionary<int, int>();
+        var recursionStack = new HashSet<int>();
+
+        foreach (var node in lookupNodes)
+        {
+            GetDependencyDepth(node.Id, ctx.DependenciesByStepId, depthLookup, recursionStack);
+        }
+
+        var batchGroups = new Dictionary<(string schema, int depth), List<ApolloOperationExecutionNode>>();
+
+        foreach (var node in lookupNodes)
+        {
+            // Apollo lookup nodes always carry a concrete schema name because
+            // the routing in CreateOperationExecutionNode rejects dynamic ones.
+            var depth = depthLookup.TryGetValue(node.Id, out var d) ? d : 0;
+            var key = (node.SchemaName!, depth);
+
+            if (!batchGroups.TryGetValue(key, out var group))
+            {
+                group = [];
+                batchGroups[key] = group;
+            }
+
+            group.Add(node);
+        }
+
+        // Process from shallowest to deepest so that deeper groups
+        // reference the already-redirected identifiers from earlier merges.
+        foreach (var (_, groupMembers) in batchGroups.OrderBy(t => t.Key.depth))
+        {
+            if (groupMembers.Count <= 1)
+            {
+                continue;
+            }
+
+            groupMembers.Sort((a, b) => a.Id.CompareTo(b.Id));
+
+            var operations = new SingleOperationDefinition[groupMembers.Count];
+
+            for (var i = 0; i < groupMembers.Count; i++)
+            {
+                operations[i] = CreateApolloSingleOperationDefinition(groupMembers[i]);
+            }
+
+            var lowestId = groupMembers[0].Id;
+            var batchNode = ApolloOperationBatchExecutionNode.Create(lowestId, operations, schema);
+
+            // Save each member's dependencies before replacing the individual
+            // nodes, because the replacement will remove them from the lookup.
+            var memberDependencies = new Dictionary<int, int[]>();
+
+            foreach (var member in groupMembers)
+            {
+                if (originalDependencies.TryGetValue(member.Id, out var memberDeps))
+                {
+                    memberDependencies[member.Id] = memberDeps;
+                }
+            }
+
+            ReplaceMembersWithBatchNode(ctx, groupMembers, batchNode, lowestId);
+            perOperationDependencies[batchNode] = memberDependencies;
+        }
+
+        return perOperationDependencies;
+    }
+
+    /// <summary>
     /// Wraps merged operations that were not included in any multi-member
     /// batch group into standalone batch execution nodes.
     /// </summary>
     private static void WrapRemainingMergedOperations(
         ExecutionPlanBuildContext ctx,
         Dictionary<int, MergeResult> remainingMerges,
-        Dictionary<OperationBatchExecutionNode, Dictionary<int, int[]>> perOperationDependencies,
+        Dictionary<ExecutionNode, Dictionary<int, int[]>> perOperationDependencies,
         Dictionary<int, int[]> originalDependencies)
     {
         foreach (var (primaryId, merge) in remainingMerges)
@@ -887,7 +1034,7 @@ public sealed partial class OperationPlanner
     /// </summary>
     private static void WirePerOperationDependencies(
         ExecutionPlanBuildContext ctx,
-        Dictionary<OperationBatchExecutionNode, Dictionary<int, int[]>> perOperationDependencies)
+        Dictionary<ExecutionNode, Dictionary<int, int[]>> perOperationDependencies)
     {
         if (perOperationDependencies.Count == 0)
         {
@@ -903,6 +1050,14 @@ public sealed partial class OperationPlanner
             if (node is OperationBatchExecutionNode batch)
             {
                 foreach (var operation in batch.Operations)
+                {
+                    planNodeById[operation.Id] = operation;
+                }
+            }
+
+            if (node is ApolloOperationBatchExecutionNode apolloBatch)
+            {
+                foreach (var operation in apolloBatch.Operations)
                 {
                     planNodeById[operation.Id] = operation;
                 }
@@ -934,8 +1089,8 @@ public sealed partial class OperationPlanner
     /// </summary>
     private static void ReplaceMembersWithBatchNode(
         ExecutionPlanBuildContext ctx,
-        List<OperationExecutionNode> members,
-        OperationBatchExecutionNode batchNode,
+        IReadOnlyList<ExecutionNode> members,
+        ExecutionNode batchNode,
         int batchNodeId)
     {
         var batchDependencies = new HashSet<int>();
@@ -1010,6 +1165,32 @@ public sealed partial class OperationPlanner
         var definition = new SingleOperationDefinition(
             member.Id,
             member.Operation,
+            member.SchemaName,
+            member.Target,
+            member.Source,
+            member.Requirements.ToArray(),
+            member.ForwardedVariables.ToArray(),
+            member.ResultSelectionSet,
+            member.Conditions.ToArray(),
+            member.RequiresFileUpload);
+
+        foreach (var parentDependency in member.BufferedParentDependencies)
+        {
+            definition.AddParentDependency(parentDependency);
+        }
+
+        return definition;
+    }
+
+    private static SingleOperationDefinition CreateApolloSingleOperationDefinition(
+        ApolloOperationExecutionNode member)
+    {
+        // The definition carries the lookup operation rather than the rewritten
+        // _entities operation because the batch node rewrites each definition
+        // itself when it is created.
+        var definition = new SingleOperationDefinition(
+            member.Id,
+            member.LookupOperation,
             member.SchemaName,
             member.Target,
             member.Source,
@@ -1121,19 +1302,39 @@ public sealed partial class OperationPlanner
                     executionNodeById[operation.Id] = batch;
                 }
             }
+
+            if (node is ApolloOperationBatchExecutionNode apolloBatch)
+            {
+                foreach (var operation in apolloBatch.Operations)
+                {
+                    executionNodeById[operation.Id] = apolloBatch;
+                }
+            }
         }
 
         foreach (var (nodeId, stepDependencies) in ctx.DependenciesByStepId)
         {
             if (!ctx.ExecutionNodes.TryGetValue(nodeId, out var entry)
-                || entry is not (OperationExecutionNode or OperationBatchExecutionNode))
+                || entry is not (
+                    OperationExecutionNode
+                    or OperationBatchExecutionNode
+                    or ApolloOperationExecutionNode
+                    or ApolloOperationBatchExecutionNode))
             {
                 continue;
             }
 
             if (entry is OperationBatchExecutionNode batchEntry)
             {
-                WireBatchNodeDependencies(batchEntry, stepDependencies, executionNodeById);
+                WireBatchNodeDependencies(
+                    batchEntry, batchEntry.Operations.Length, stepDependencies, executionNodeById);
+                continue;
+            }
+
+            if (entry is ApolloOperationBatchExecutionNode apolloBatchEntry)
+            {
+                WireBatchNodeDependencies(
+                    apolloBatchEntry, apolloBatchEntry.Operations.Length, stepDependencies, executionNodeById);
                 continue;
             }
 
@@ -1144,6 +1345,8 @@ public sealed partial class OperationPlanner
                     || childEntry is not (
                         OperationExecutionNode
                         or OperationBatchExecutionNode
+                        or ApolloOperationExecutionNode
+                        or ApolloOperationBatchExecutionNode
                         or NodeFieldExecutionNode
                         or EventStreamExecutionNode))
                 {
@@ -1157,7 +1360,8 @@ public sealed partial class OperationPlanner
     }
 
     private static void WireBatchNodeDependencies(
-        OperationBatchExecutionNode batchEntry,
+        ExecutionNode batchEntry,
+        int operationCount,
         HashSet<int> stepDependencies,
         Dictionary<int, ExecutionNode> executionNodeById)
     {
@@ -1186,7 +1390,7 @@ public sealed partial class OperationPlanner
             // When a batch holds multiple operations, the dependency is
             // optional. The executor evaluates each operation individually
             // and only waits for the specific upstream results it needs.
-            if (batchEntry.Operations.Length > 1)
+            if (operationCount > 1)
             {
                 batchEntry.AddOptionalDependency(dependencyExecutionNode);
             }

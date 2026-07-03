@@ -25,7 +25,7 @@ public static class ASubgraph
             .AddType<ProductType>();
 
         var app = builder.Build();
-        app.MapGraphQL();
+        app.MapSubgraph();
 
         await app.StartAsync();
 

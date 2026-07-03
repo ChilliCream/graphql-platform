@@ -376,7 +376,7 @@ public class LookupEntityQueryRewriterTests
         };
 
         // act
-        var shape = RepresentationShapeBuilder.Build(rewritten.LookupField, requirements, schema);
+        var shape = RepresentationShapeBuilder.Build(rewritten.LookupField, requirements);
 
         // assert
         RenderShape(shape).ToString(indented: true).MatchInlineSnapshot(
@@ -453,7 +453,7 @@ public class LookupEntityQueryRewriterTests
         => new("Op", OperationType.Query, sourceText, "hash");
 
     private static OperationRequirement CreateRequirement(string key, IValueSelectionNode map)
-        => new(key, new NamedTypeNode("String"), SelectionPath.Root, map);
+        => new(key, new NamedTypeNode("String"), InputType: null, SelectionPath.Root, map);
 
     private static IValueSelectionNode GetRequireMap(
         FusionSchemaDefinition schema,

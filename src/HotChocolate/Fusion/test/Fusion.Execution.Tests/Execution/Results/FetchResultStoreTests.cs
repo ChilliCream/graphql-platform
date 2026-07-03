@@ -463,7 +463,7 @@ public sealed class FetchResultStoreTests : FusionTestBase
         var result = store.CreateVariableValueSets(
             SelectionPath.Root.AppendField("foos"),
             [],
-            [Requirement("__fusion_1_key", "{ name }", new NamedTypeNode("FooKeyInput"))]);
+            [Requirement(schema, "__fusion_1_key", "{ name }", new NamedTypeNode("FooKeyInput"))]);
 
         // assert
         var entry = Assert.Single(result);
@@ -508,7 +508,7 @@ public sealed class FetchResultStoreTests : FusionTestBase
         var result = store.CreateVariableValueSets(
             SelectionPath.Root.AppendField("foos"),
             [],
-            [Requirement("__fusion_1_key", "{ name }", new NamedTypeNode("FooKeyInput"))]);
+            [Requirement(schema, "__fusion_1_key", "{ name }", new NamedTypeNode("FooKeyInput"))]);
 
         // assert
         var entry = Assert.Single(result);
@@ -556,6 +556,7 @@ public sealed class FetchResultStoreTests : FusionTestBase
             [],
             [
                 Requirement(
+                    schema,
                     "__fusion_1_bn",
                     "brand.name",
                     new NonNullTypeNode(new NamedTypeNode("String")))
@@ -599,6 +600,7 @@ public sealed class FetchResultStoreTests : FusionTestBase
             [],
             [
                 Requirement(
+                    schema,
                     "__fusion_1_tags",
                     "tags",
                     new ListTypeNode(new NonNullTypeNode(new NamedTypeNode("String"))))
@@ -646,6 +648,7 @@ public sealed class FetchResultStoreTests : FusionTestBase
             [],
             [
                 Requirement(
+                    schema,
                     "__fusion_1_tags",
                     "tags",
                     new ListTypeNode(new NamedTypeNode("String")))
@@ -695,6 +698,7 @@ public sealed class FetchResultStoreTests : FusionTestBase
             [],
             [
                 Requirement(
+                    schema,
                     "__fusion_1_dims",
                     "dimensions",
                     new ListTypeNode(new NonNullTypeNode(new NamedTypeNode("JSON"))))
@@ -746,7 +750,7 @@ public sealed class FetchResultStoreTests : FusionTestBase
         var result = store.CreateVariableValueSets(
             SelectionPath.Root.AppendField("foos"),
             [],
-            [Requirement("__fusion_1_size", "meta.size", new NamedTypeNode("JSON"))]);
+            [Requirement(schema, "__fusion_1_size", "meta.size", new NamedTypeNode("JSON"))]);
 
         // assert
         var entry = Assert.Single(result);
@@ -809,13 +813,19 @@ public sealed class FetchResultStoreTests : FusionTestBase
         => new(
             key,
             new NamedTypeNode("String"),
+            InputType: null,
             SelectionPath.Root,
             new PathNode(new PathSegmentNode(new FusionNameNode(key))));
 
-    private static OperationRequirement Requirement(string key, string map, ITypeNode type)
+    private static OperationRequirement Requirement(
+        FusionSchemaDefinition schema,
+        string key,
+        string map,
+        ITypeNode type)
         => new(
             key,
             type,
+            OperationRequirement.ResolveInputType(type, schema),
             SelectionPath.Root,
             new FieldSelectionMapParser(map).Parse());
 

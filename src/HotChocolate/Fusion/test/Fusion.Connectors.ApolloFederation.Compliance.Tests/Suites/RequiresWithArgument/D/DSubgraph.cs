@@ -29,7 +29,7 @@ public static class DSubgraph
             .AddType<AuthorType>();
 
         var app = builder.Build();
-        app.MapGraphQL();
+        app.MapSubgraph();
 
         await app.StartAsync();
 

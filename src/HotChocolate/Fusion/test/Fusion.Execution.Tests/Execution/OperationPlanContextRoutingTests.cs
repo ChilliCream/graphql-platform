@@ -274,6 +274,7 @@ public sealed class OperationPlanContextRoutingTests : FusionTestBase
         => new(
             key,
             new NamedTypeNode("String"),
+            InputType: null,
             SelectionPath.Root,
             new PathNode(new PathSegmentNode(new FusionNameNode(key))));
 

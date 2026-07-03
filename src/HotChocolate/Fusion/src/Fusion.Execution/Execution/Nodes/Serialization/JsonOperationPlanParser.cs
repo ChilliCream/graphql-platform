@@ -186,10 +186,12 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
                     var requirementType = requirementElement.GetProperty("type").GetString()!;
                     var requirementPath = requirementElement.GetProperty("path").GetString()!;
                     var selectionMap = requirementElement.GetProperty("selectionMap").GetString()!;
+                    var requirementTypeNode = Utf8GraphQLParser.Syntax.ParseTypeReference(requirementType);
 
                     requirementsBuilder.Add(new OperationRequirement(
                         requirementName,
-                        Utf8GraphQLParser.Syntax.ParseTypeReference(requirementType),
+                        requirementTypeNode,
+                        OperationRequirement.ResolveInputType(requirementTypeNode, _operationCompiler.Schema),
                         SelectionPath.Parse(requirementPath),
                         FieldSelectionMapParser.Parse(selectionMap)));
                 }
@@ -708,7 +710,7 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
         List<OperationRequirement>? requirements, string[]? forwardedVariables,
         SelectionSetNode? resultSelectionSet, int[]? dependencies, int[]? parentDependencies,
         int? batchingGroupId, ExecutionNodeCondition[] conditions, bool requiresFileUpload)
-        ParseCommonOperationFields(JsonElement nodeElement, ISchemaDefinition _)
+        ParseCommonOperationFields(JsonElement nodeElement, ISchemaDefinition schema)
     {
         string? schemaName = null;
 
@@ -747,10 +749,12 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
                 var requirementType = requirementElement.GetProperty("type").GetString()!;
                 var requirementPath = requirementElement.GetProperty("path").GetString()!;
                 var selectionMap = requirementElement.GetProperty("selectionMap").GetString()!;
+                var requirementTypeNode = Utf8GraphQLParser.Syntax.ParseTypeReference(requirementType);
 
                 requirements.Add(new OperationRequirement(
                     requirementName,
-                    Utf8GraphQLParser.Syntax.ParseTypeReference(requirementType),
+                    requirementTypeNode,
+                    OperationRequirement.ResolveInputType(requirementTypeNode, schema),
                     SelectionPath.Parse(requirementPath),
                     FieldSelectionMapParser.Parse(selectionMap)));
             }

@@ -33,7 +33,7 @@ public static class AgeSubgraph
             .AddType<UserType>();
 
         var app = builder.Build();
-        app.MapGraphQL();
+        app.MapSubgraph();
 
         await app.StartAsync();
 

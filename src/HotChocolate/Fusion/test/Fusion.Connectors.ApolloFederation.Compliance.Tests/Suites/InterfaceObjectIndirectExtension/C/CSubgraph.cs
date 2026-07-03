@@ -34,7 +34,7 @@ public static class CSubgraph
             .AddType<MediaType>();
 
         var app = builder.Build();
-        app.MapGraphQL();
+        app.MapSubgraph();
 
         await app.StartAsync();
 

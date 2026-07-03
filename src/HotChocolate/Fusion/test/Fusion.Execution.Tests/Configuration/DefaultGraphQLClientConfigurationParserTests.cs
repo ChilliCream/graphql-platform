@@ -525,7 +525,7 @@ public class DefaultGraphQLClientConfigurationParserTests : FusionTestBase
 
     private static FusionSchemaDefinition ComposeApolloFederationSchema(string name)
     {
-        var sdl =
+        const string sdl =
             """
             schema @link(url: "https://specs.apollo.dev/federation/v2.6", import: ["@key"]) {
               query: Query

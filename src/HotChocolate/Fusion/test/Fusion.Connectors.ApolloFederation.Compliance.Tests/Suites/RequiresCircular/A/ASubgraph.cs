@@ -27,7 +27,7 @@ public static class ASubgraph
             .AddType<AuthorType>();
 
         var app = builder.Build();
-        app.MapGraphQL();
+        app.MapSubgraph();
 
         await app.StartAsync();
 

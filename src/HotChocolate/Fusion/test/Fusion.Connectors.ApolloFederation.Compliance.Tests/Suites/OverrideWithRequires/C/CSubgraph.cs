@@ -24,7 +24,7 @@ public static class CSubgraph
             .AddType<UserType>();
 
         var app = builder.Build();
-        app.MapGraphQL();
+        app.MapSubgraph();
 
         await app.StartAsync();
 

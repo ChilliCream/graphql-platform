@@ -24,7 +24,7 @@ public static class AgencySubgraph
             .AddType<PublisherTypeUnionExtension>();
 
         var app = builder.Build();
-        app.MapGraphQL();
+        app.MapSubgraph();
 
         await app.StartAsync();
 

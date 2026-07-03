@@ -29,7 +29,7 @@ public static class ASubgraph
             .AddType<BarInterfaceType>();
 
         var app = builder.Build();
-        app.MapGraphQL();
+        app.MapSubgraph();
 
         await app.StartAsync();
 

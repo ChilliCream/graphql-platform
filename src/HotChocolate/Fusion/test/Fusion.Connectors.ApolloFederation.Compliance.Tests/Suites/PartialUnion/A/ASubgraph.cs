@@ -25,7 +25,7 @@ public static class ASubgraph
             .AddType<GammaType>();
 
         var app = builder.Build();
-        app.MapGraphQL();
+        app.MapSubgraph();
 
         await app.StartAsync();
 

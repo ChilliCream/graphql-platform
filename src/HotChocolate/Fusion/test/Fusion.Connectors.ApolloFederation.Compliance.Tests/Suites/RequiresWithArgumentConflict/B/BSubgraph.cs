@@ -27,7 +27,7 @@ public static class BSubgraph
             .AddType<CategoryType>();
 
         var app = builder.Build();
-        app.MapGraphQL();
+        app.MapSubgraph();
 
         await app.StartAsync();
 

@@ -30,7 +30,7 @@ public static class BSubgraph
             .AddType<AddressInterfaceType>();
 
         var app = builder.Build();
-        app.MapGraphQL();
+        app.MapSubgraph();
 
         await app.StartAsync();
 

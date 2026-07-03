@@ -35,7 +35,7 @@ public static class SubcategoriesSubgraph
             .AddType<CategoryEntityType>();
 
         var app = builder.Build();
-        app.MapGraphQL();
+        app.MapSubgraph();
 
         await app.StartAsync();
 

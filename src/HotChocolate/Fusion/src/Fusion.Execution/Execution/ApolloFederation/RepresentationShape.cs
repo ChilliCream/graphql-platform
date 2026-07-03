@@ -8,6 +8,9 @@ namespace HotChocolate.Fusion.Execution.ApolloFederation;
 /// representation object. A node is either a leaf that is supplied by a single
 /// requirement value, a structural object that groups child nodes, or a list
 /// whose child nodes are resolved per element of the backing list value.
+/// <para>
+/// Nodes are immutable and safe to share across concurrent executions.
+/// </para>
 /// </summary>
 internal sealed class RepresentationShapeNode
 {

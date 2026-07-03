@@ -23,7 +23,7 @@ public static class BSubgraph
             .AddType<BreadType>();
 
         var app = builder.Build();
-        app.MapGraphQL();
+        app.MapSubgraph();
 
         await app.StartAsync();
 

@@ -1014,6 +1014,7 @@ public sealed partial class OperationPlanner
                 var operationRequirement = new OperationRequirement(
                     argumentRequirementKey,
                     argument.Type,
+                    OperationRequirement.ResolveInputType(argument.Type, _schema),
                     workItem.SelectionSet.Path,
                     fieldSelectionMap);
 
@@ -1371,6 +1372,7 @@ public sealed partial class OperationPlanner
             var operationRequirement = new OperationRequirement(
                 argumentRequirementKey,
                 argument.Type,
+                OperationRequirement.ResolveInputType(argument.Type, _schema),
                 workItem.Selection.Path,
                 fieldSelectionMap);
 
@@ -1504,6 +1506,7 @@ public sealed partial class OperationPlanner
             var operationRequirement = new OperationRequirement(
                 argumentRequirementKey,
                 argument.Type,
+                OperationRequirement.ResolveInputType(argument.Type, _schema),
                 workItem.Selection.Path,
                 fieldSelectionMap);
 
@@ -1557,6 +1560,7 @@ public sealed partial class OperationPlanner
             var operationRequirement = new OperationRequirement(
                 argumentRequirementKey,
                 argument.Type,
+                OperationRequirement.ResolveInputType(argument.Type, _schema),
                 workItem.Selection.Path,
                 fieldSelectionMap);
 

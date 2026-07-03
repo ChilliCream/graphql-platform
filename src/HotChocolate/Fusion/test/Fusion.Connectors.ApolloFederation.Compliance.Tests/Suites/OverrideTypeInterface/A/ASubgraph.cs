@@ -25,7 +25,7 @@ public static class ASubgraph
             .AddType<ImagePostType>();
 
         var app = builder.Build();
-        app.MapGraphQL();
+        app.MapSubgraph();
 
         await app.StartAsync();
 
