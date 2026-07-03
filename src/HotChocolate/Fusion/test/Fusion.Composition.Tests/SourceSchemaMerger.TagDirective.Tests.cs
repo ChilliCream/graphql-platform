@@ -196,6 +196,76 @@ public sealed class SourceSchemaMergerTagDirectiveTests : SourceSchemaMergerTest
             options => options.TagMergeBehavior = DirectiveMergeBehavior.Include);
     }
 
+    // Merge @tag directives when a source schema's definition predates the
+    // DIRECTIVE_DEFINITION location added to the canonical @tag definition.
+    [Fact]
+    public void Merge_TagDirectivesLocationSubsetOfCanonical_MatchesSnapshot()
+    {
+        AssertMatches(
+            [
+                $"""
+                # Schema A
+                scalar Foo @tag(name: "a")
+
+                directive @tag(name: String!) repeatable on {s_preDirectiveDefinitionTagLocations}
+                """,
+                $"""
+                # Schema B
+                scalar Foo @tag(name: "b")
+
+                directive @tag(name: String!) repeatable on {s_preDirectiveDefinitionTagLocations}
+                """
+            ],
+            """
+            scalar Foo
+              @tag(name: "a")
+              @tag(name: "b")
+              @fusion__type(schema: A)
+              @fusion__type(schema: B)
+
+            directive @tag(name: String!) repeatable on
+              | SCHEMA
+              | SCALAR
+              | OBJECT
+              | FIELD_DEFINITION
+              | ARGUMENT_DEFINITION
+              | INTERFACE
+              | UNION
+              | ENUM
+              | ENUM_VALUE
+              | INPUT_OBJECT
+              | INPUT_FIELD_DEFINITION
+              | DIRECTIVE_DEFINITION
+            """,
+            options => options.TagMergeBehavior = DirectiveMergeBehavior.Include);
+    }
+
+    // Do not merge @tag directives when a source schema's definition declares a location
+    // outside the canonical set (a superset), even though its locations are otherwise compatible.
+    [Fact]
+    public void Merge_TagDirectivesLocationSupersetOfCanonical_MatchesSnapshot()
+    {
+        AssertMatches(
+            [
+                $"""
+                # Schema A
+                scalar Foo @tag(name: "a")
+
+                directive @tag(name: String!) repeatable on {s_tagLocations} | FIELD
+                """,
+                $"""
+                # Schema B
+                scalar Foo @tag(name: "b")
+
+                directive @tag(name: String!) repeatable on {s_tagLocations} | FIELD
+                """
+            ],
+            """
+            scalar Foo @fusion__type(schema: A) @fusion__type(schema: B)
+            """,
+            options => options.TagMergeBehavior = DirectiveMergeBehavior.Include);
+    }
+
     // Do not merge @tag directives when the definitions do not match the canonical definition.
     [Fact]
     public void Merge_TagDirectivesNonMatching_MatchesSnapshot()
@@ -317,5 +387,21 @@ public sealed class SourceSchemaMergerTagDirectiveTests : SourceSchemaMergerTest
         | INPUT_OBJECT
         | INPUT_FIELD_DEFINITION
         | DIRECTIVE_DEFINITION
+        """.ReplaceLineEndings(" ");
+
+    // The @tag locations before DIRECTIVE_DEFINITION was added to the canonical definition.
+    private static readonly string s_preDirectiveDefinitionTagLocations =
+        """
+        SCHEMA
+        | SCALAR
+        | OBJECT
+        | FIELD_DEFINITION
+        | ARGUMENT_DEFINITION
+        | INTERFACE
+        | UNION
+        | ENUM
+        | ENUM_VALUE
+        | INPUT_OBJECT
+        | INPUT_FIELD_DEFINITION
         """.ReplaceLineEndings(" ");
 }
