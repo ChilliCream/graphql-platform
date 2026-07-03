@@ -404,7 +404,7 @@ public sealed class FetchResultStoreRepresentationTests : FusionTestBase
             new FieldSelectionMapParser("dimensions.{ size weight }").Parse()
         };
         var stringType = new NamedTypeNode("String");
-        var stringInputType = OperationRequirement.ResolveInputType(stringType, s_schema);
+        var stringInputType = OperationRequirement.CreateInputType(stringType, s_schema);
         var requirements = new[]
         {
             new OperationRequirement("__fusion_1_a", stringType, stringInputType, SelectionPath.Root, maps[0]),
@@ -2249,7 +2249,7 @@ public sealed class FetchResultStoreRepresentationTests : FusionTestBase
         => new(
             key,
             type,
-            OperationRequirement.ResolveInputType(type, schema),
+            OperationRequirement.CreateInputType(type, schema),
             SelectionPath.Root,
             new FieldSelectionMapParser(map).Parse());
 

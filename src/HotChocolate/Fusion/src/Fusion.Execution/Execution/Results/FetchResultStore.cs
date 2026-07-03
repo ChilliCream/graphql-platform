@@ -996,7 +996,7 @@ AddErrors_Next:
                 var requirement = requiredData[i];
                 _jsonWriter.WritePropertyName(requirement.Key);
 
-                if (!ResultDataMapper.TryMap(result, requirement.Map, requirement.InputType, _schema, _jsonWriter))
+                if (!ResultDataMapper.TryMap(result, requirement.Map, requirement.Type, _schema, _jsonWriter))
                 {
                     failed = true;
                     break;
@@ -1042,7 +1042,7 @@ AddErrors_Next:
         // so list-typed requirements take the slow path where the mapper checks
         // element nullability.
         if (TryGetSimpleRequirementFieldName(requirement.Map, out var fieldName)
-            && !requirement.Type.IsListType())
+            && !requirement.TypeNode.IsListType())
         {
             return BuildVariableValueSetsSingleRequirementFastPath(elements, requirement, fieldName);
         }
@@ -1058,7 +1058,7 @@ AddErrors_Next:
         VariableValues[]? variableValueSets = null;
         var additionalPaths = new AdditionalPathAccumulator();
         var nextIndex = 0;
-        var isNonNullRequirement = requirement.Type.Kind is SyntaxKind.NonNullType;
+        var isNonNullRequirement = requirement.TypeNode.Kind is SyntaxKind.NonNullType;
 
         for (var i = 0; i < elements.Length; i++)
         {
@@ -1115,7 +1115,7 @@ AddErrors_Next:
         VariableValues[]? variableValueSets = null;
         var additionalPaths = new AdditionalPathAccumulator();
         var nextIndex = 0;
-        var requirementType = requirement.InputType;
+        var requirementType = requirement.Type;
 
         foreach (var result in elements)
         {
@@ -1158,9 +1158,9 @@ AddErrors_Next:
         // so list-typed requirements take the slow path where the mapper checks
         // element nullability.
         if (TryGetSimpleRequirementFieldName(requirement1.Map, out var fieldName1)
-            && !requirement1.Type.IsListType()
+            && !requirement1.TypeNode.IsListType()
             && TryGetSimpleRequirementFieldName(requirement2.Map, out var fieldName2)
-            && !requirement2.Type.IsListType())
+            && !requirement2.TypeNode.IsListType())
         {
             return BuildVariableValueSetsTwoRequirementsFastPath(
                 elements,
@@ -1192,7 +1192,7 @@ AddErrors_Next:
             if (!result.TryGetProperty(fieldName1, out var value1)
                 || value1.ValueKind is JsonValueKind.Undefined
                 || (value1.ValueKind is JsonValueKind.Null
-                    && requirement1.Type.Kind == SyntaxKind.NonNullType))
+                    && requirement1.TypeNode.Kind == SyntaxKind.NonNullType))
             {
                 continue;
             }
@@ -1200,7 +1200,7 @@ AddErrors_Next:
             if (!result.TryGetProperty(fieldName2, out var value2)
                 || value2.ValueKind is JsonValueKind.Undefined
                 || (value2.ValueKind is JsonValueKind.Null
-                    && requirement2.Type.Kind == SyntaxKind.NonNullType))
+                    && requirement2.TypeNode.Kind == SyntaxKind.NonNullType))
             {
                 continue;
             }
@@ -1239,8 +1239,8 @@ AddErrors_Next:
         VariableValues[]? variableValueSets = null;
         var additionalPaths = new AdditionalPathAccumulator();
         var nextIndex = 0;
-        var requirementType1 = requirement1.InputType;
-        var requirementType2 = requirement2.InputType;
+        var requirementType1 = requirement1.Type;
+        var requirementType2 = requirement2.Type;
 
         foreach (var result in elements)
         {
@@ -1292,11 +1292,11 @@ AddErrors_Next:
         // so list-typed requirements take the slow path where the mapper checks
         // element nullability.
         if (TryGetSimpleRequirementFieldName(requirement1.Map, out var fieldName1)
-            && !requirement1.Type.IsListType()
+            && !requirement1.TypeNode.IsListType()
             && TryGetSimpleRequirementFieldName(requirement2.Map, out var fieldName2)
-            && !requirement2.Type.IsListType()
+            && !requirement2.TypeNode.IsListType()
             && TryGetSimpleRequirementFieldName(requirement3.Map, out var fieldName3)
-            && !requirement3.Type.IsListType())
+            && !requirement3.TypeNode.IsListType())
         {
             return BuildVariableValueSetsThreeRequirementsFastPath(
                 elements,
@@ -1333,7 +1333,7 @@ AddErrors_Next:
             if (!result.TryGetProperty(fieldName1, out var value1)
                 || value1.ValueKind is JsonValueKind.Undefined
                 || (value1.ValueKind is JsonValueKind.Null
-                    && requirement1.Type.Kind == SyntaxKind.NonNullType))
+                    && requirement1.TypeNode.Kind == SyntaxKind.NonNullType))
             {
                 continue;
             }
@@ -1341,7 +1341,7 @@ AddErrors_Next:
             if (!result.TryGetProperty(fieldName2, out var value2)
                 || value2.ValueKind is JsonValueKind.Undefined
                 || (value2.ValueKind is JsonValueKind.Null
-                    && requirement2.Type.Kind == SyntaxKind.NonNullType))
+                    && requirement2.TypeNode.Kind == SyntaxKind.NonNullType))
             {
                 continue;
             }
@@ -1349,7 +1349,7 @@ AddErrors_Next:
             if (!result.TryGetProperty(fieldName3, out var value3)
                 || value3.ValueKind is JsonValueKind.Undefined
                 || (value3.ValueKind is JsonValueKind.Null
-                    && requirement3.Type.Kind == SyntaxKind.NonNullType))
+                    && requirement3.TypeNode.Kind == SyntaxKind.NonNullType))
             {
                 continue;
             }
@@ -1390,9 +1390,9 @@ AddErrors_Next:
         VariableValues[]? variableValueSets = null;
         var additionalPaths = new AdditionalPathAccumulator();
         var nextIndex = 0;
-        var requirementType1 = requirement1.InputType;
-        var requirementType2 = requirement2.InputType;
-        var requirementType3 = requirement3.InputType;
+        var requirementType1 = requirement1.Type;
+        var requirementType2 = requirement2.Type;
+        var requirementType3 = requirement3.Type;
 
         foreach (var result in elements)
         {

@@ -12,14 +12,14 @@ namespace HotChocolate.Fusion.Execution.Nodes;
 /// <param name="Key">
 /// The requirement key that names the variable carrying the requirement value.
 /// </param>
-/// <param name="Type">
+/// <param name="TypeNode">
 /// The declared variable type in its syntax form. It is used to emit the variable
 /// declaration in the subquery and to serialize the plan.
 /// </param>
-/// <param name="InputType">
-/// The resolved input type of the requirement, or <c>null</c> when the named type
-/// is not part of the schema and the nullability of input positions is therefore
-/// unknown.
+/// <param name="Type">
+/// The input type of the requirement, including its list and non-null structure.
+/// It defines the input positions that the projected requirement value must
+/// satisfy.
 /// </param>
 /// <param name="Path">
 /// The selection path the requirement is anchored at.
@@ -29,23 +29,7 @@ namespace HotChocolate.Fusion.Execution.Nodes;
 /// </param>
 public record OperationRequirement(
     string Key,
-    ITypeNode Type,
-    IType? InputType,
+    ITypeNode TypeNode,
+    IInputType Type,
     SelectionPath Path,
-    IValueSelectionNode Map)
-{
-    /// <summary>
-    /// Resolves the declared variable type against the schema. Returns <c>null</c>
-    /// when the named type is not part of the schema, in which case the nullability
-    /// of input positions is unknown.
-    /// </summary>
-    internal static IType? ResolveInputType(ITypeNode type, ISchemaDefinition schema)
-    {
-        if (schema.Types.TryGetType(type.NamedType().Name.Value, out var typeDefinition))
-        {
-            return type.RewriteToType(typeDefinition);
-        }
-
-        return null;
-    }
-}
+    IValueSelectionNode Map);

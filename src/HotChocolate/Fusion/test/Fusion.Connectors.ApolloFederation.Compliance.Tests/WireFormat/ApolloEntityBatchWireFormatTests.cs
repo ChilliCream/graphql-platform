@@ -49,6 +49,46 @@ public sealed class ApolloEntityBatchWireFormatTests
         await MatchExchangeAsync(capture, result);
     }
 
+    [Fact]
+    public async Task ApolloEntityBatch_Should_SendSequentialSingleRequests_When_OperatorDeclaresRequestBatchingFalse()
+    {
+        // arrange
+        // the operator declares that the 'right' subgraph supports neither variable nor request
+        // batching, so the gateway must send the two _entities sub-requests as two sequential
+        // single requests instead of a single JSON-array operation batch.
+        var capture = new SubgraphRequestCapture();
+        var settings = new Dictionary<string, string>
+        {
+            [RightSubgraph.Name] =
+                """
+                {
+                  "transports": {
+                    "http": {
+                      "capabilities": {
+                        "batching": {
+                          "variableBatching": false,
+                          "requestBatching": false
+                        }
+                      }
+                    }
+                  }
+                }
+                """
+        };
+
+        await using var gateway = await FusionGatewayBuilder.ComposeAsync(
+            capture,
+            settings,
+            (LeftSubgraph.Name, LeftSubgraph.BuildAsync),
+            (RightSubgraph.Name, RightSubgraph.BuildAsync));
+
+        // act
+        var result = await gateway.Executor.ExecuteAsync(Query, TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchExchangeAsync(capture, result);
+    }
+
     private static async Task MatchExchangeAsync(SubgraphRequestCapture capture, IExecutionResult result)
     {
         var snapshot = Snapshot.Create();

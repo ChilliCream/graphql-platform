@@ -1,6 +1,7 @@
 using System.Buffers;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using HotChocolate.Buffers;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Logging;
@@ -37,7 +38,7 @@ internal static class FusionGatewayBuilder
     /// </returns>
     public static Task<FusionGateway> ComposeAsync(
         params (string Name, Func<Task<SubgraphHost>> Factory)[] subgraphs)
-        => ComposeAsync(capture: null, subgraphs);
+        => ComposeAsync(capture: null, sourceSchemaSettings: null, subgraphs);
 
     /// <summary>
     /// Composes a Fusion gateway around the supplied Apollo Federation subgraphs,
@@ -48,8 +49,29 @@ internal static class FusionGatewayBuilder
     /// so a test can assert the number and shape of the requests that were sent.
     /// </param>
     /// <param name="subgraphs">Named subgraph factories.</param>
+    public static Task<FusionGateway> ComposeAsync(
+        SubgraphRequestCapture? capture,
+        params (string Name, Func<Task<SubgraphHost>> Factory)[] subgraphs)
+        => ComposeAsync(capture, sourceSchemaSettings: null, subgraphs);
+
+    /// <summary>
+    /// Composes a Fusion gateway around the supplied Apollo Federation subgraphs,
+    /// optionally recording the outgoing subgraph HTTP requests and merging
+    /// operator-supplied settings into the generated gateway settings document.
+    /// </summary>
+    /// <param name="capture">
+    /// When not <see langword="null"/>, records every gateway to subgraph HTTP request
+    /// so a test can assert the number and shape of the requests that were sent.
+    /// </param>
+    /// <param name="sourceSchemaSettings">
+    /// When not <see langword="null"/>, maps a source schema name to a raw JSON object
+    /// that is deep-merged into that source schema's settings node, so a test can
+    /// declare transport capabilities the way an operator would in gateway settings.
+    /// </param>
+    /// <param name="subgraphs">Named subgraph factories.</param>
     public static async Task<FusionGateway> ComposeAsync(
         SubgraphRequestCapture? capture,
+        IReadOnlyDictionary<string, string>? sourceSchemaSettings,
         params (string Name, Func<Task<SubgraphHost>> Factory)[] subgraphs)
     {
         ArgumentNullException.ThrowIfNull(subgraphs);
@@ -86,7 +108,7 @@ internal static class FusionGatewayBuilder
             }
 
             var schemaDocument = ComposeSchema(sourceSchemaTexts);
-            var settings = BuildGatewaySettings(subgraphInfos);
+            var settings = BuildGatewaySettings(subgraphInfos, sourceSchemaSettings);
 
             var gatewayServices = new ServiceCollection();
             gatewayServices.AddSingleton<IHttpClientFactory>(
@@ -237,7 +259,8 @@ internal static class FusionGatewayBuilder
     }
 
     private static JsonDocumentOwner BuildGatewaySettings(
-        IReadOnlyList<SubgraphInfo> subgraphs)
+        IReadOnlyList<SubgraphInfo> subgraphs,
+        IReadOnlyDictionary<string, string>? sourceSchemaSettings)
     {
         var buffer = new ArrayBufferWriter<byte>();
 
@@ -264,8 +287,48 @@ internal static class FusionGatewayBuilder
             writer.Flush();
         }
 
-        var document = JsonDocument.Parse(buffer.WrittenMemory);
-        return new JsonDocumentOwner(document, EmptyMemoryOwner.Instance);
+        if (sourceSchemaSettings is not { Count: > 0 })
+        {
+            var document = JsonDocument.Parse(buffer.WrittenMemory);
+            return new JsonDocumentOwner(document, EmptyMemoryOwner.Instance);
+        }
+
+        var root = JsonNode.Parse(buffer.WrittenMemory.Span)!.AsObject();
+        var schemas = root["sourceSchemas"]!.AsObject();
+
+        foreach (var (name, json) in sourceSchemaSettings)
+        {
+            if (schemas[name] is not JsonObject target)
+            {
+                throw new InvalidOperationException(
+                    $"Settings supplied for unknown source schema '{name}'.");
+            }
+
+            DeepMerge(target, JsonNode.Parse(json)!.AsObject());
+        }
+
+        var merged = JsonDocument.Parse(root.ToJsonString());
+        return new JsonDocumentOwner(merged, EmptyMemoryOwner.Instance);
+    }
+
+    // Recursively merges the 'source' JSON object into 'target'. Nested objects are
+    // merged key-by-key; every other value (including arrays) replaces the target
+    // value, so a test overrides only the keys it declares and leaves the generated
+    // url in place.
+    private static void DeepMerge(JsonObject target, JsonObject source)
+    {
+        foreach (var (key, value) in source)
+        {
+            if (value is JsonObject sourceObject
+                && target[key] is JsonObject targetObject)
+            {
+                DeepMerge(targetObject, sourceObject);
+            }
+            else
+            {
+                target[key] = value?.DeepClone();
+            }
+        }
     }
 
     private sealed record SubgraphInfo(

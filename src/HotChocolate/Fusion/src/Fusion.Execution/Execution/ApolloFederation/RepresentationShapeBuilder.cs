@@ -132,7 +132,7 @@ internal static class RepresentationShapeBuilder
                 requiredData[index].Map,
                 index,
                 [],
-                requiredData[index].InputType);
+                requiredData[index].Type);
         }
     }
 

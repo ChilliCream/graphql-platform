@@ -4,6 +4,7 @@ using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Language;
 using HotChocolate.Fusion.Logging;
 using HotChocolate.Fusion.Options;
+using HotChocolate.Fusion.Planning;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 using NameNode = HotChocolate.Language.NameNode;
@@ -371,8 +372,8 @@ public class LookupEntityQueryRewriterTests
         var rewritten = LookupEntityQueryRewriter.Rewrite(schema, "nested", operation);
         var requirements = new[]
         {
-            CreateRequirement("__fusion_1_id", new FieldSelectionMapParser("id").Parse()),
-            CreateRequirement("__fusion_2_y", GetRequireMap(schema, "nested", "Bar", "x", "y"))
+            CreateRequirement(schema, "__fusion_1_id", new FieldSelectionMapParser("id").Parse()),
+            CreateRequirement(schema, "__fusion_2_y", GetRequireMap(schema, "nested", "Bar", "x", "y"))
         };
 
         // act
@@ -452,8 +453,16 @@ public class LookupEntityQueryRewriterTests
     private static OperationSourceText CreateOperation(string sourceText)
         => new("Op", OperationType.Query, sourceText, "hash");
 
-    private static OperationRequirement CreateRequirement(string key, IValueSelectionNode map)
-        => new(key, new NamedTypeNode("String"), InputType: null, SelectionPath.Root, map);
+    private static OperationRequirement CreateRequirement(
+        FusionSchemaDefinition schema,
+        string key,
+        IValueSelectionNode map)
+        => new(
+            key,
+            new NamedTypeNode("String"),
+            OperationPlanner.CreateInputType(new NamedTypeNode("String"), schema),
+            SelectionPath.Root,
+            map);
 
     private static IValueSelectionNode GetRequireMap(
         FusionSchemaDefinition schema,

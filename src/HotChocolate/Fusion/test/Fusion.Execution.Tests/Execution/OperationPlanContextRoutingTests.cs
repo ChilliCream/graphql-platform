@@ -7,6 +7,7 @@ using HotChocolate.Fusion.Execution.Results;
 using HotChocolate.Fusion.Language;
 using HotChocolate.Fusion.Text.Json;
 using HotChocolate.Fusion.Transport.Http;
+using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
@@ -21,6 +22,8 @@ namespace HotChocolate.Fusion.Execution;
 
 public sealed class OperationPlanContextRoutingTests : FusionTestBase
 {
+    private static readonly FusionSchemaDefinition s_schema = CreateCompositeSchema();
+
     [Fact]
     public async Task CreateVariableValueSets_Should_RouteThroughResultStore_When_RequirementKeysIsNull()
     {
@@ -274,7 +277,7 @@ public sealed class OperationPlanContextRoutingTests : FusionTestBase
         => new(
             key,
             new NamedTypeNode("String"),
-            InputType: null,
+            OperationRequirement.CreateInputType(new NamedTypeNode("String"), s_schema),
             SelectionPath.Root,
             new PathNode(new PathSegmentNode(new FusionNameNode(key))));
 

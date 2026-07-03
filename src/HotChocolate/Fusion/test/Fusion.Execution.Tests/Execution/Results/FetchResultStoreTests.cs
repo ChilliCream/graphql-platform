@@ -22,6 +22,7 @@ namespace HotChocolate.Fusion.Execution.Results;
 public sealed class FetchResultStoreTests : FusionTestBase
 {
     private static readonly byte[] s_fieldPayload = """{"data":{"field":"value"}}"""u8.ToArray();
+    private static readonly FusionSchemaDefinition s_schema = CreateCompositeSchema();
 
     [Theory]
     [InlineData(false)]
@@ -813,7 +814,7 @@ public sealed class FetchResultStoreTests : FusionTestBase
         => new(
             key,
             new NamedTypeNode("String"),
-            InputType: null,
+            OperationRequirement.CreateInputType(new NamedTypeNode("String"), s_schema),
             SelectionPath.Root,
             new PathNode(new PathSegmentNode(new FusionNameNode(key))));
 
@@ -825,7 +826,7 @@ public sealed class FetchResultStoreTests : FusionTestBase
         => new(
             key,
             type,
-            OperationRequirement.ResolveInputType(type, schema),
+            OperationRequirement.CreateInputType(type, schema),
             SelectionPath.Root,
             new FieldSelectionMapParser(map).Parse());
 

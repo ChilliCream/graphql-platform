@@ -17,7 +17,7 @@ internal static class ResultDataMapper
     public static bool TryMap(
         CompositeResultElement result,
         IValueSelectionNode valueSelection,
-        IType? inputType,
+        IInputType inputType,
         ISchemaDefinition schema,
         JsonWriter writer)
         => Visit(valueSelection, result, inputType, schema, writer);
