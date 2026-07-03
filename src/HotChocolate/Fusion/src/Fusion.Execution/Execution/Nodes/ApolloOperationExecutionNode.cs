@@ -1,40 +1,31 @@
+using System.Buffers;
+using System.Collections.Immutable;
 using System.Runtime.InteropServices;
 using HotChocolate.Execution;
+using HotChocolate.Fusion.Execution.ApolloFederation;
 using HotChocolate.Fusion.Execution.Clients;
 
 namespace HotChocolate.Fusion.Execution.Nodes;
 
-internal sealed class ApolloOperationExecutionNode : OperationExecutionNode
+internal sealed class ApolloOperationExecutionNode : ExecutionNode
 {
-    private readonly ApolloEntityOperation _entityOperation;
+    private static readonly SelectionPath s_entitiesSource =
+      SelectionPath.Root.AppendField("_entities");
+
+    private readonly OperationRequirement[] _requirements;
+    private readonly string[] _forwardedVariables;
+    private readonly ResultSelectionSet _resultSelectionSet;
+    private readonly ExecutionNodeCondition[] _conditions;
+    private readonly bool _requiresFileUpload;
+    private readonly OperationSourceText _operation;
     private readonly ulong _operationHash;
+    private readonly string? _schemaName;
+    private readonly SelectionPath _target;
+    private readonly SelectionPath _source;
 
-    internal ApolloOperationExecutionNode(
-        OperationExecutionNode node,
-        ApolloEntityOperation entityOperation)
-        : base(
-            node.Id,
-            entityOperation.Operation,
-            node.SchemaName,
-            node.Target,
-            node.Source,
-            node.Requirements.ToArray(),
-            node.ForwardedVariables.ToArray(),
-            node.ResultSelectionSet,
-            node.Conditions.ToArray(),
-            node.RequiresFileUpload)
-    {
-        _entityOperation = entityOperation;
-        _operationHash = entityOperation.Operation.SourceText.ComputeHash();
-
-        foreach (var parentDependency in node.BufferedParentDependencies)
-        {
-            AddParentDependency(parentDependency);
-        }
-    }
-
-    internal ApolloOperationExecutionNode(
+    private ApolloOperationExecutionNode(
         int id,
+        OperationSourceText operation,
         string? schemaName,
         SelectionPath target,
         SelectionPath source,
@@ -42,129 +33,286 @@ internal sealed class ApolloOperationExecutionNode : OperationExecutionNode
         string[] forwardedVariables,
         ResultSelectionSet resultSelectionSet,
         ExecutionNodeCondition[] conditions,
+        bool requiresFileUpload)
+    {
+        Id = id;
+        _operation = operation;
+        _operationHash = operation.SourceText.ComputeHash();
+        _schemaName = schemaName;
+        _target = target;
+        _source = source;
+        _requirements = requirements;
+        _forwardedVariables = forwardedVariables;
+        _resultSelectionSet = resultSelectionSet;
+        _conditions = conditions;
+        _requiresFileUpload = requiresFileUpload;
+    }
+
+    internal static ApolloOperationExecutionNode Create(
+        int id,
+        OperationSourceText operation,
+        string? schemaName,
+        SelectionPath target,
+        OperationRequirement[] requirements,
+        string[] forwardedVariables,
+        ResultSelectionSet resultSelectionSet,
+        ExecutionNodeCondition[] conditions,
         bool requiresFileUpload,
-        ApolloEntityOperation entityOperation)
-        : base(
+        EntityOperationRewriter rewriter)
+    {
+        operation = rewriter.Rewrite(schemaName, operation);
+
+        return new ApolloOperationExecutionNode(
             id,
-            entityOperation.Operation,
+            operation,
             schemaName,
             target,
-            source,
+            s_entitiesSource,
             requirements,
             forwardedVariables,
             resultSelectionSet,
             conditions,
-            requiresFileUpload)
-    {
-        _entityOperation = entityOperation;
-        _operationHash = entityOperation.Operation.SourceText.ComputeHash();
+            requiresFileUpload);
     }
 
-    internal ApolloEntityOperation EntityOperation => _entityOperation;
+    /// <inheritdoc />
+    public override int Id { get; }
+
+    /// <inheritdoc />
+    public override ExecutionNodeType Type => ExecutionNodeType.Operation;
+
+    /// <inheritdoc />
+    public override ReadOnlySpan<ExecutionNodeCondition> Conditions => _conditions;
+
+    /// <summary>
+    /// Gets the operation definition that this execution node represents.
+    /// </summary>
+    public OperationSourceText Operation => _operation;
+
+    /// <summary>
+    /// Gets the result selection set fulfilled by this operation.
+    /// </summary>
+    internal ResultSelectionSet ResultSelectionSet => _resultSelectionSet;
+
+    /// <inheritdoc />
+    public override string? SchemaName => _schemaName;
+
+    /// <summary>
+    /// Gets the path to the selection set for which this operation fetches data.
+    /// </summary>
+    public SelectionPath Target => _target;
+
+    /// <summary>
+    /// Gets the path to the local selection set (the selection set within the source schema request)
+    /// to extract the data from.
+    /// </summary>
+    public SelectionPath Source => _source;
+
+    /// <summary>
+    /// Gets the data requirements that are needed to execute this operation.
+    /// </summary>
+    public ReadOnlySpan<OperationRequirement> Requirements => _requirements;
+
+    internal ImmutableArray<OperationRequirement> GetRequirementsArray()
+        => ImmutableCollectionsMarshal.AsImmutableArray(_requirements);
+
+    /// <summary>
+    /// Gets the variables that are needed to execute this operation.
+    /// </summary>
+    public ReadOnlySpan<string> ForwardedVariables => _forwardedVariables;
+
+    /// <summary>
+    /// Gets whether this operation contains one or more variables
+    /// that contain the Upload scalar.
+    /// </summary>
+    public bool RequiresFileUpload => _requiresFileUpload;
 
     protected override async ValueTask<ExecutionStatus> OnExecuteAsync(
         OperationPlanContext context,
         CancellationToken cancellationToken = default)
     {
         var diagnosticEvents = context.DiagnosticEvents;
-        var variables = context.CreateVariableValueSets(Target, ForwardedVariables, Requirements);
+        var variables = context.CreateVariableValueSets(_target, _forwardedVariables, _requirements);
 
-        if (variables.Length == 0 && (Requirements.Length > 0 || ForwardedVariables.Length > 0))
+        if (variables.Length == 0 && (_requirements.Length > 0 || _forwardedVariables.Length > 0))
         {
             return ExecutionStatus.Skipped;
         }
 
-        var schemaName = SchemaName ?? context.GetDynamicSchemaName(this);
+        var schemaName = _schemaName ?? context.GetDynamicSchemaName(this);
         context.TrackVariableValueSets(this, variables);
-
-        var apolloVariables = ApolloEntityExecution.CreateVariables(
-            variables,
-            _entityOperation,
-            out var variablesBuffer);
 
         var request = new SourceSchemaClientRequest
         {
             Node = this,
             SchemaName = schemaName,
-            OperationType = _entityOperation.Operation.Type,
-            OperationSourceText = _entityOperation.Operation.SourceText,
-            Variables = [apolloVariables],
-            RequiresFileUpload = false,
+            OperationType = _operation.Type,
+            OperationSourceText = _operation.SourceText,
+            Variables = variables,
+            RequiresFileUpload = _requiresFileUpload,
             OperationHash = _operationHash
         };
 
-        var results = new List<SourceSchemaResult>(Math.Max(variables.Length, 1));
+        var index = 0;
+        var bufferLength = 0;
+        SourceSchemaResult[]? buffer = null;
+        SourceSchemaResult? singleResult = null;
         var hasSomeErrors = false;
 
         try
         {
-            var client = context.GetClient(schemaName, _entityOperation.Operation.Type);
+            // we execute the GraphQL request against a source schema
+            var client = context.GetClient(schemaName, _operation.Type);
             using var clientScope = diagnosticEvents.ExecuteSourceSchemaRequest(context, this, schemaName);
-            await foreach (var rawResult in client.ExecuteAsync(context, request, cancellationToken).ConfigureAwait(false))
+
+            // we read the responses from the response stream.
+            var initialBufferLength = Math.Max(variables.Length, 2);
+
+            await foreach (var result in client.ExecuteAsync(context, request, cancellationToken).ConfigureAwait(false))
             {
-                ApolloEntityExecution.SplitEntities(
-                    rawResult,
-                    variables,
-                    results);
+                // If there is only one response, we skip the buffer rental.
+                if (index == 0)
+                {
+                    singleResult = result;
+                    index = 1;
+                }
+                else
+                {
+                    // If we have more than one response, we rent a buffer and move the first result into it.
+                    if (buffer is null)
+                    {
+                        bufferLength = initialBufferLength;
+                        buffer = ArrayPool<SourceSchemaResult>.Shared.Rent(bufferLength);
+                        buffer[0] = singleResult!;
+                    }
+
+                    buffer[index++] = result;
+                }
+
+                // Parsing errors here allows the result store to reuse the cached value
+                // and avoids a second document lookup per result.
+                if (result.Errors is not null)
+                {
+                    hasSomeErrors = true;
+                }
             }
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
-            DisposeResults(results);
+            // If the execution of the node was cancelled, either the entire request was cancelled
+            // or the execution was halted. In both cases we do not want to produce any errors
+            // and just exit the node as quickly as possible.
             return ExecutionStatus.Failed;
         }
         catch (Exception exception)
         {
-            DisposeResults(results);
             diagnosticEvents.SourceSchemaTransportError(context, this, schemaName, exception);
-            context.AddErrors(exception, variables, ResultSelectionSet);
+
+            // if there is an error, we need to make sure that the pooled buffers for the JsonDocuments
+            // are returned to the pool.
+            if (buffer is not null && bufferLength > 0)
+            {
+                foreach (var result in buffer.AsSpan(0, index))
+                {
+                    // ReSharper disable once ConditionalAccessQualifierIsNonNullableAccordingToAPIContract
+                    result?.Dispose();
+                }
+
+                buffer.AsSpan(0, index).Clear();
+                ArrayPool<SourceSchemaResult>.Shared.Return(buffer);
+            }
+            else
+            {
+                singleResult?.Dispose();
+            }
+
+            context.AddErrors(exception, variables, _resultSelectionSet);
             return ExecutionStatus.Failed;
         }
-        finally
-        {
-            variablesBuffer.Dispose();
-        }
+
+        var pendingMerge = default(PendingMerge);
+        var hasPendingMerge = false;
 
         try
         {
-            if (results.Count > 0)
+            if (buffer is not null)
             {
-                var span = CollectionsMarshal.AsSpan(results);
-
-                for (var i = 0; i < span.Length; i++)
-                {
-                    if (span[i].Errors is not null)
-                    {
-                        hasSomeErrors = true;
-                    }
-                }
-
-                context.AddPartialResults(
-                    SelectionPath.Root,
-                    span,
-                    ResultSelectionSet,
+                pendingMerge = PendingMerge.Multiple(
+                    this,
+                    schemaName,
+                    _source,
+                    _resultSelectionSet,
+                    variables,
+                    buffer,
+                    index,
                     hasSomeErrors);
+                hasPendingMerge = true;
             }
+            else if (singleResult is not null)
+            {
+                pendingMerge = PendingMerge.Single(
+                    this,
+                    schemaName,
+                    _source,
+                    _resultSelectionSet,
+                    variables,
+                    singleResult,
+                    hasSomeErrors);
+                hasPendingMerge = true;
+            }
+
+            if (hasPendingMerge)
+            {
+                context.EnqueuePendingMerge(pendingMerge);
+            }
+
+            buffer = null;
+            singleResult = null;
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
+            // If the execution of the node was cancelled, either the entire request was cancelled
+            // or the execution was halted. In both cases we do not want to produce any errors
+            // and just exit the node as quickly as possible.
+            if (hasPendingMerge)
+            {
+                pendingMerge.DisposeUnmerged();
+            }
+
             return ExecutionStatus.Failed;
         }
         catch (Exception exception)
         {
+            if (hasPendingMerge)
+            {
+                pendingMerge.DisposeUnmerged();
+            }
+            else if (buffer is not null)
+            {
+                foreach (var result in buffer.AsSpan(0, index))
+                {
+                    result?.Dispose();
+                }
+
+                buffer.AsSpan(0, index).Clear();
+                ArrayPool<SourceSchemaResult>.Shared.Return(buffer);
+            }
+            else
+            {
+                singleResult?.Dispose();
+            }
+
             diagnosticEvents.SourceSchemaStoreError(context, this, schemaName, exception);
-            context.AddErrors(exception, variables, ResultSelectionSet);
+            context.AddErrors(exception, variables, _resultSelectionSet);
             return ExecutionStatus.Failed;
         }
 
         return hasSomeErrors ? ExecutionStatus.PartialSuccess : ExecutionStatus.Success;
     }
 
-    private static void DisposeResults(List<SourceSchemaResult> results)
+    protected override IDisposable CreateScope(OperationPlanContext context)
     {
-        foreach (var result in results)
-        {
-            result.Dispose();
-        }
+        var schemaName = _schemaName ?? context.GetDynamicSchemaName(this);
+        return context.DiagnosticEvents.ExecuteOperationNode(context, this, schemaName);
     }
 }

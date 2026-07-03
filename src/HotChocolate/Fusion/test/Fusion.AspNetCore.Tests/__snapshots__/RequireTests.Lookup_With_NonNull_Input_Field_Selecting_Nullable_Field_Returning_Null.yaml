@@ -1,0 +1,111 @@
+title: Lookup_With_NonNull_Input_Field_Selecting_Nullable_Field_Returning_Null
+request:
+  document: |
+    {
+      productById(id: "1") {
+        fieldB
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "productById": {
+          "fieldB": null
+        }
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        productById(id: ID!): Product @lookup
+      }
+
+      type Product {
+        id: ID!
+        sku: String @null
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_1146a07f_1 {
+              productById(id: "1") {
+                sku
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "productById": {
+                    "sku": null
+                  }
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        productByKey(key: ProductKeyInput! @is(field: "{ sku }")): Product
+          @lookup
+          @internal
+      }
+
+      type Product {
+        fieldB: String
+      }
+
+      input ProductKeyInput {
+        sku: String!
+      }
+operationPlan:
+  operation:
+    - document: |
+        {
+          productById(id: "1") {
+            fieldB
+            sku @fusion__requirement
+          }
+        }
+      hash: 1146a07feeac63e70b9e07e888326c30
+      searchSpace: 1
+      expandedNodes: 2
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        query Op_1146a07f_1 {
+          productById(id: "1") {
+            sku
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: B
+      operation: |
+        query Op_1146a07f_2($__fusion_1_key: ProductKeyInput!) {
+          productByKey(key: $__fusion_1_key) {
+            fieldB
+          }
+        }
+      source: $.productByKey
+      target: $.productById
+      requirements:
+        - name: __fusion_1_key
+          selectionMap: >-
+            {
+              sku
+            }
+      dependencies:
+        - id: 1

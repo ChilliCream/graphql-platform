@@ -1,3 +1,4 @@
+using System.Text;
 using System.Text.Json;
 using HotChocolate.Buffers;
 using HotChocolate.Execution;
@@ -6,6 +7,7 @@ using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Language;
 using HotChocolate.Fusion.Text.Json;
+using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 using FusionNameNode = HotChocolate.Fusion.Language.NameNode;
 using IntValueNode = HotChocolate.Language.IntValueNode;
@@ -424,6 +426,368 @@ public sealed class FetchResultStoreTests : FusionTestBase
             """);
     }
 
+    [Fact]
+    public void CreateVariableValueSets_Should_SkipElement_When_NonNullInputFieldValueIsNull()
+    {
+        // arrange
+        // The requirement map projects 'name' into the non-null input field
+        // 'FooKeyInput.name', which the first element's null value cannot satisfy.
+        var schema = ComposeSchema(
+            """
+            # name: test
+            type Query {
+              foos: [Foo]
+              fooByKey(key: FooKeyInput): Foo
+            }
+
+            type Foo {
+              id: ID!
+              name: String
+            }
+
+            input FooKeyInput {
+              name: String!
+            }
+            """);
+
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+        using var store = CreateLiveStore(
+            schema,
+            "{ foos { id name } }",
+            """{"data":{"foos":[{"id":"1","name":null},{"id":"2","name":"n"}]}}""",
+            resultArena,
+            sourceArena);
+
+        // act
+        var result = store.CreateVariableValueSets(
+            SelectionPath.Root.AppendField("foos"),
+            [],
+            [Requirement("__fusion_1_key", "{ name }", new NamedTypeNode("FooKeyInput"))]);
+
+        // assert
+        var entry = Assert.Single(result);
+        Normalize(entry.Values).MatchInlineSnapshot(
+            """
+            {"__fusion_1_key":{"name":"n"}}
+            """);
+    }
+
+    [Fact]
+    public void CreateVariableValueSets_Should_WriteNullInputField_When_NullableInputFieldValueIsNull()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: test
+            type Query {
+              foos: [Foo]
+              fooByKey(key: FooKeyInput): Foo
+            }
+
+            type Foo {
+              id: ID!
+              name: String
+            }
+
+            input FooKeyInput {
+              name: String
+            }
+            """);
+
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+        using var store = CreateLiveStore(
+            schema,
+            "{ foos { id name } }",
+            """{"data":{"foos":[{"id":"1","name":null}]}}""",
+            resultArena,
+            sourceArena);
+
+        // act
+        var result = store.CreateVariableValueSets(
+            SelectionPath.Root.AppendField("foos"),
+            [],
+            [Requirement("__fusion_1_key", "{ name }", new NamedTypeNode("FooKeyInput"))]);
+
+        // assert
+        var entry = Assert.Single(result);
+        Normalize(entry.Values).MatchInlineSnapshot(
+            """
+            {"__fusion_1_key":{"name":null}}
+            """);
+    }
+
+    [Fact]
+    public void CreateVariableValueSets_Should_SkipElement_When_NonNullRequirementPathResolvesNull()
+    {
+        // arrange
+        // A null intermediate resolves 'brand.name' to null, which cannot
+        // satisfy the non-null requirement type.
+        var schema = ComposeSchema(
+            """
+            # name: test
+            type Query {
+              foos: [Foo]
+            }
+
+            type Foo {
+              id: ID!
+              brand: Brand
+            }
+
+            type Brand {
+              name: String
+            }
+            """);
+
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+        using var store = CreateLiveStore(
+            schema,
+            "{ foos { id brand { name } } }",
+            """{"data":{"foos":[{"id":"1","brand":null}]}}""",
+            resultArena,
+            sourceArena);
+
+        // act
+        var result = store.CreateVariableValueSets(
+            SelectionPath.Root.AppendField("foos"),
+            [],
+            [
+                Requirement(
+                    "__fusion_1_bn",
+                    "brand.name",
+                    new NonNullTypeNode(new NamedTypeNode("String")))
+            ]);
+
+        // assert
+        Assert.True(result.IsDefaultOrEmpty);
+    }
+
+    [Fact]
+    public void CreateVariableValueSets_Should_SkipElement_When_NonNullListElementValueIsNull()
+    {
+        // arrange
+        // The requirement type '[String!]' does not allow null elements, so the
+        // element with a null tag is skipped.
+        var schema = ComposeSchema(
+            """
+            # name: test
+            type Query {
+              foos: [Foo]
+            }
+
+            type Foo {
+              id: ID!
+              tags: [String]
+            }
+            """);
+
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+        using var store = CreateLiveStore(
+            schema,
+            "{ foos { id tags } }",
+            """{"data":{"foos":[{"id":"1","tags":["a",null]},{"id":"2","tags":["b"]}]}}""",
+            resultArena,
+            sourceArena);
+
+        // act
+        var result = store.CreateVariableValueSets(
+            SelectionPath.Root.AppendField("foos"),
+            [],
+            [
+                Requirement(
+                    "__fusion_1_tags",
+                    "tags",
+                    new ListTypeNode(new NonNullTypeNode(new NamedTypeNode("String"))))
+            ]);
+
+        // assert
+        var entry = Assert.Single(result);
+        Normalize(entry.Values).MatchInlineSnapshot(
+            """
+            {"__fusion_1_tags":["b"]}
+            """);
+    }
+
+    [Fact]
+    public void CreateVariableValueSets_Should_WriteNullListElement_When_NullableListElementValueIsNull()
+    {
+        // arrange
+        // The requirement type '[String]' allows null elements, so the null
+        // tag ships as part of the list value.
+        var schema = ComposeSchema(
+            """
+            # name: test
+            type Query {
+              foos: [Foo]
+            }
+
+            type Foo {
+              id: ID!
+              tags: [String]
+            }
+            """);
+
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+        using var store = CreateLiveStore(
+            schema,
+            "{ foos { id tags } }",
+            """{"data":{"foos":[{"id":"1","tags":["a",null]}]}}""",
+            resultArena,
+            sourceArena);
+
+        // act
+        var result = store.CreateVariableValueSets(
+            SelectionPath.Root.AppendField("foos"),
+            [],
+            [
+                Requirement(
+                    "__fusion_1_tags",
+                    "tags",
+                    new ListTypeNode(new NamedTypeNode("String")))
+            ]);
+
+        // assert
+        var entry = Assert.Single(result);
+        Normalize(entry.Values).MatchInlineSnapshot(
+            """
+            {"__fusion_1_tags":["a",null]}
+            """);
+    }
+
+    [Fact]
+    public void CreateVariableValueSets_Should_CopyObjectScalarElements_When_RequirementIsObjectValuedScalarList()
+    {
+        // arrange
+        // Elements of a 'JSON' scalar list are JSON objects, which the
+        // list-typed requirement routes through the type-aware mapper.
+        var schema = ComposeSchema(
+            """
+            # name: test
+            type Query {
+              foos: [Foo]
+            }
+
+            type Foo {
+              id: ID!
+              dimensions: [JSON!]
+            }
+
+            scalar JSON
+            """);
+
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+        using var store = CreateLiveStore(
+            schema,
+            "{ foos { id dimensions } }",
+            """{"data":{"foos":[{"id":"1","dimensions":[{"width":1},{"height":2}]}]}}""",
+            resultArena,
+            sourceArena);
+
+        // act
+        var result = store.CreateVariableValueSets(
+            SelectionPath.Root.AppendField("foos"),
+            [],
+            [
+                Requirement(
+                    "__fusion_1_dims",
+                    "dimensions",
+                    new ListTypeNode(new NonNullTypeNode(new NamedTypeNode("JSON"))))
+            ]);
+
+        // assert
+        var entry = Assert.Single(result);
+        Normalize(entry.Values).MatchInlineSnapshot(
+            """
+            {"__fusion_1_dims":[{"width":1},{"height":2}]}
+            """);
+    }
+
+    [Fact]
+    public void CreateVariableValueSets_Should_CopyObjectScalarValue_When_RequirementPathResolvesObjectValuedScalar()
+    {
+        // arrange
+        // The multi-segment path routes through the type-aware mapper, whose
+        // leaf value is a JSON object of the 'JSON' scalar.
+        var schema = ComposeSchema(
+            """
+            # name: test
+            type Query {
+              foos: [Foo]
+            }
+
+            type Foo {
+              id: ID!
+              meta: Meta
+            }
+
+            type Meta {
+              size: JSON
+            }
+
+            scalar JSON
+            """);
+
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+        using var store = CreateLiveStore(
+            schema,
+            "{ foos { id meta { size } } }",
+            """{"data":{"foos":[{"id":"1","meta":{"size":{"width":1,"height":2}}}]}}""",
+            resultArena,
+            sourceArena);
+
+        // act
+        var result = store.CreateVariableValueSets(
+            SelectionPath.Root.AppendField("foos"),
+            [],
+            [Requirement("__fusion_1_size", "meta.size", new NamedTypeNode("JSON"))]);
+
+        // assert
+        var entry = Assert.Single(result);
+        Normalize(entry.Values).MatchInlineSnapshot(
+            """
+            {"__fusion_1_size":{"width":1,"height":2}}
+            """);
+    }
+
+    private static FetchResultStore CreateLiveStore(
+        FusionSchemaDefinition schema,
+        string operationText,
+        string payloadJson,
+        MemoryArena resultArena,
+        MemoryArena sourceArena)
+    {
+        var plan = PlanOperation(schema, operationText);
+        var node = Assert.IsType<OperationExecutionNode>(Assert.Single(plan.RootNodes));
+        var store = new FetchResultStore();
+        store.Initialize(
+            resultArena,
+            schema,
+            DefaultErrorHandler.Default,
+            plan.Operation,
+            ErrorHandlingMode.Propagate,
+            includeFlags: 0,
+            deferFlags: 0,
+            pathSegmentLocalPoolCapacity: 16);
+
+        var payload = Encoding.UTF8.GetBytes(payloadJson);
+        var document = SourceResultDocument.Parse(sourceArena, payload, payload.Length);
+        var added = store.AddPartialResults(
+            SelectionPath.Root,
+            [new SourceSchemaResult(CompactPath.Root, document)],
+            node.ResultSelectionSet,
+            containsErrors: false);
+        Assert.True(added);
+
+        return store;
+    }
+
     private static VariableValues CreateVariableValues(
         FetchResultStore store,
         CompactPath path,
@@ -447,6 +811,13 @@ public sealed class FetchResultStoreTests : FusionTestBase
             new NamedTypeNode("String"),
             SelectionPath.Root,
             new PathNode(new PathSegmentNode(new FusionNameNode(key))));
+
+    private static OperationRequirement Requirement(string key, string map, ITypeNode type)
+        => new(
+            key,
+            type,
+            SelectionPath.Root,
+            new FieldSelectionMapParser(map).Parse());
 
     private static HashSet<string> ImportedKeys(params string[] keys)
         => new(keys, StringComparer.Ordinal);

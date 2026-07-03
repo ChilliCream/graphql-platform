@@ -114,6 +114,26 @@ public interface IFusionExecutionDiagnosticEvents : ICoreExecutionDiagnosticEven
         string schemaName);
 
     /// <summary>
+    /// Called when executing an Apollo Federation operation node that fetches entities from a source schema.
+    /// </summary>
+    /// <param name="context">
+    /// The operation plan context.
+    /// </param>
+    /// <param name="node">
+    /// The Apollo operation execution node being executed.
+    /// </param>
+    /// <param name="schemaName">
+    /// The name of the source schema being queried.
+    /// </param>
+    /// <returns>
+    /// Returns a scope that is disposed when the operation node execution is completed.
+    /// </returns>
+    IDisposable ExecuteApolloOperationExecutionNode(
+        OperationPlanContext context,
+        ApolloOperationExecutionNode node,
+        string schemaName);
+
+    /// <summary>
     /// Called when executing an operation plan node that batches or deduplicates source schema requests.
     /// </summary>
     /// <param name="context">
@@ -131,6 +151,27 @@ public interface IFusionExecutionDiagnosticEvents : ICoreExecutionDiagnosticEven
     IDisposable ExecuteOperationBatchNode(
         OperationPlanContext context,
         OperationBatchExecutionNode node,
+        string schemaName);
+
+    /// <summary>
+    /// Called when executing an Apollo Federation operation plan node that batches
+    /// entity lookups against a source schema.
+    /// </summary>
+    /// <param name="context">
+    /// The operation plan context.
+    /// </param>
+    /// <param name="node">
+    /// The Apollo operation batch execution node being executed.
+    /// </param>
+    /// <param name="schemaName">
+    /// The name of the source schema being queried.
+    /// </param>
+    /// <returns>
+    /// Returns a scope that is disposed when the node execution is completed.
+    /// </returns>
+    IDisposable ExecuteApolloOperationBatchExecutionNode(
+        OperationPlanContext context,
+        ApolloOperationBatchExecutionNode node,
         string schemaName);
 
     /// <summary>
@@ -192,6 +233,48 @@ public interface IFusionExecutionDiagnosticEvents : ICoreExecutionDiagnosticEven
     IDisposable ExecuteSourceSchemaRequest(
         OperationPlanContext context,
         OperationExecutionNode node,
+        string schemaName);
+
+    /// <summary>
+    /// Called when executing a source schema request within an Apollo operation execution node.
+    /// This wraps the actual HTTP call to the source schema.
+    /// </summary>
+    /// <param name="context">
+    /// The operation plan context.
+    /// </param>
+    /// <param name="node">
+    /// The Apollo operation execution node that is making the request.
+    /// </param>
+    /// <param name="schemaName">
+    /// The name of the source schema being queried.
+    /// </param>
+    /// <returns>
+    /// Returns a scope that is disposed when the source schema request is completed.
+    /// </returns>
+    IDisposable ExecuteSourceSchemaRequest(
+        OperationPlanContext context,
+        ApolloOperationExecutionNode node,
+        string schemaName);
+
+    /// <summary>
+    /// Called when executing a source schema request within an Apollo operation
+    /// batch execution node. This wraps the actual HTTP call to the source schema.
+    /// </summary>
+    /// <param name="context">
+    /// The operation plan context.
+    /// </param>
+    /// <param name="node">
+    /// The Apollo operation batch execution node that is making the request.
+    /// </param>
+    /// <param name="schemaName">
+    /// The name of the source schema being queried.
+    /// </param>
+    /// <returns>
+    /// Returns a scope that is disposed when the source schema request is completed.
+    /// </returns>
+    IDisposable ExecuteSourceSchemaRequest(
+        OperationPlanContext context,
+        ApolloOperationBatchExecutionNode node,
         string schemaName);
 
     /// <summary>

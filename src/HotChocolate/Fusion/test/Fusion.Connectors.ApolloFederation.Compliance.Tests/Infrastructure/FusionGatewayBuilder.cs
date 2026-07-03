@@ -238,6 +238,20 @@ internal static class FusionGatewayBuilder
                 writer.WriteStartObject("transports");
                 writer.WriteStartObject("http");
                 writer.WriteString("url", subgraph.BaseAddress.ToString());
+
+                // Every subgraph here is an Apollo Federation subgraph, which is not
+                // guaranteed to implement the batching formats of the Composite Schema
+                // Specification. Composition declares a conservative batching default for
+                // Apollo Federation source schemas; the harness mirrors that declaration so
+                // the kind-blind runtime client configuration parser disables batching for
+                // these subgraphs unless the settings state otherwise.
+                writer.WriteStartObject("capabilities");
+                writer.WriteStartObject("batching");
+                writer.WriteBoolean("variableBatching", false);
+                writer.WriteBoolean("requestBatching", false);
+                writer.WriteEndObject();
+                writer.WriteEndObject();
+
                 writer.WriteEndObject();
                 writer.WriteEndObject();
 
