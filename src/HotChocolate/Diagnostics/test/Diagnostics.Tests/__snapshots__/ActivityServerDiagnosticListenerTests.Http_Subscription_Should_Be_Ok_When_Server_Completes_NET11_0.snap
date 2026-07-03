@@ -34,12 +34,12 @@
           "Value": "1.1"
         },
         {
-          "Key": "http.route",
-          "Value": "/graphql/{**slug}"
-        },
-        {
           "Key": "http.response.status_code",
           "Value": 200
+        },
+        {
+          "Key": "http.route",
+          "Value": "/graphql/{**slug}"
         }
       ],
       "event": [],
@@ -64,11 +64,11 @@
             },
             {
               "Key": "graphql.http.request.query.id",
-              "Value": "41faa6dbd0de29d0cdf705c602b506bf"
+              "Value": "ef859b98c9d8c17038c8fd9aeecdb1e2"
             },
             {
               "Key": "graphql.http.request.query.hash",
-              "Value": "41faa6dbd0de29d0cdf705c602b506bf"
+              "Value": "ef859b98c9d8c17038c8fd9aeecdb1e2"
             }
           ],
           "event": [],
@@ -105,11 +105,11 @@
                 },
                 {
                   "Key": "graphql.operation.name",
-                  "Value": "OnBlockingMessageSubscription"
+                  "Value": "OnMessageSubscription"
                 },
                 {
                   "Key": "graphql.document.hash",
-                  "Value": "md5:41faa6dbd0de29d0cdf705c602b506bf"
+                  "Value": "md5:ef859b98c9d8c17038c8fd9aeecdb1e2"
                 }
               ],
               "event": [
@@ -135,7 +135,7 @@
                     },
                     {
                       "Key": "graphql.document.hash",
-                      "Value": "md5:41faa6dbd0de29d0cdf705c602b506bf"
+                      "Value": "md5:ef859b98c9d8c17038c8fd9aeecdb1e2"
                     }
                   ],
                   "event": []
@@ -148,11 +148,11 @@
                   "tags": [
                     {
                       "Key": "graphql.document.hash",
-                      "Value": "md5:41faa6dbd0de29d0cdf705c602b506bf"
+                      "Value": "md5:ef859b98c9d8c17038c8fd9aeecdb1e2"
                     },
                     {
                       "Key": "graphql.operation.fieldCost",
-                      "Value": 10.0
+                      "Value": 0.0
                     },
                     {
                       "Key": "graphql.operation.typeCost",
@@ -173,7 +173,7 @@
                     },
                     {
                       "Key": "graphql.document.hash",
-                      "Value": "md5:41faa6dbd0de29d0cdf705c602b506bf"
+                      "Value": "md5:ef859b98c9d8c17038c8fd9aeecdb1e2"
                     },
                     {
                       "Key": "graphql.operation.type",
@@ -181,7 +181,7 @@
                     },
                     {
                       "Key": "graphql.operation.name",
-                      "Value": "OnBlockingMessageSubscription"
+                      "Value": "OnMessageSubscription"
                     }
                   ],
                   "event": []
@@ -202,11 +202,11 @@
                     },
                     {
                       "Key": "graphql.operation.name",
-                      "Value": "OnBlockingMessageSubscription"
+                      "Value": "OnMessageSubscription"
                     },
                     {
                       "Key": "graphql.document.hash",
-                      "Value": "md5:41faa6dbd0de29d0cdf705c602b506bf"
+                      "Value": "md5:ef859b98c9d8c17038c8fd9aeecdb1e2"
                     }
                   ],
                   "event": [],
@@ -215,7 +215,7 @@
                       "OperationName": "GraphQL Subscription Event",
                       "DisplayName": "GraphQL Subscription Event",
                       "Kind": "Internal",
-                      "Status": "Error",
+                      "Status": "Ok",
                       "tags": [
                         {
                           "Key": "graphql.processing.type",
@@ -227,46 +227,24 @@
                         },
                         {
                           "Key": "graphql.operation.name",
-                          "Value": "OnBlockingMessageSubscription"
+                          "Value": "OnMessageSubscription"
                         },
                         {
                           "Key": "graphql.document.hash",
-                          "Value": "md5:41faa6dbd0de29d0cdf705c602b506bf"
+                          "Value": "md5:ef859b98c9d8c17038c8fd9aeecdb1e2"
                         },
                         {
                           "Key": "graphql.subscription.id",
                           "Value": "1"
-                        },
-                        {
-                          "Key": "error.type",
-                          "Value": "System.OperationCanceledException"
                         }
                       ],
-                      "event": [
-                        {
-                          "Name": "exception",
-                          "Tags": [
-                            {
-                              "Key": "exception.message",
-                              "Value": "The operation was canceled."
-                            },
-                            {
-                              "Key": "exception.stacktrace",
-                              "Value": "System.OperationCanceledException: The operation was canceled.\n   at System.Threading.CancellationToken.ThrowOperationCanceledException()\n   at System.Threading.CancellationToken.ThrowIfCancellationRequested()\n   at HotChocolate.Execution.Processing.WorkScheduler.ExecuteInternalAsync(IExecutionTask[] buffer) in WorkScheduler.Execute.cs\n   at HotChocolate.Execution.Processing.WorkScheduler.ExecuteAsync1() in WorkScheduler.Execute.cs\n   at HotChocolate.Execution.Processing.QueryExecutor.ExecuteNoIncrementalAsync(OperationContext operationContext, IImmutableDictionary`2 scopedContext) in QueryExecutor.cs\n   at HotChocolate.Execution.Processing.SubscriptionExecutor.Subscription.OnEvent(Object payload) in SubscriptionExecutor.Subscription.cs"
-                            },
-                            {
-                              "Key": "exception.type",
-                              "Value": "System.OperationCanceledException"
-                            }
-                          ]
-                        }
-                      ],
+                      "event": [],
                       "activities": [
                         {
-                          "OperationName": "Subscription.onBlockingMessage",
-                          "DisplayName": "Subscription.onBlockingMessage",
+                          "OperationName": "Subscription.onMessage",
+                          "DisplayName": "Subscription.onMessage",
                           "Kind": "Internal",
-                          "Status": "Unset",
+                          "Status": "Ok",
                           "tags": [
                             {
                               "Key": "graphql.processing.type",
@@ -274,19 +252,19 @@
                             },
                             {
                               "Key": "graphql.field.alias",
-                              "Value": "onBlockingMessage"
+                              "Value": "onMessage"
                             },
                             {
                               "Key": "graphql.field.path",
-                              "Value": "onBlockingMessage"
+                              "Value": "onMessage"
                             },
                             {
                               "Key": "graphql.field.name",
-                              "Value": "onBlockingMessage"
+                              "Value": "onMessage"
                             },
                             {
                               "Key": "graphql.field.schema_coordinate",
-                              "Value": "Subscription.onBlockingMessage"
+                              "Value": "Subscription.onMessage"
                             },
                             {
                               "Key": "graphql.field.parent_type",

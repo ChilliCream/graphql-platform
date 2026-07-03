@@ -34,12 +34,12 @@
           "Value": "1.1"
         },
         {
-          "Key": "http.route",
-          "Value": "/graphql/{**slug}"
-        },
-        {
           "Key": "http.response.status_code",
           "Value": 200
+        },
+        {
+          "Key": "http.route",
+          "Value": "/graphql/{**slug}"
         }
       ],
       "event": [],
@@ -48,7 +48,7 @@
           "OperationName": "ExecuteHttpRequest",
           "DisplayName": "GraphQL HTTP POST",
           "Kind": "Internal",
-          "Status": "Ok",
+          "Status": "Unset",
           "tags": [
             {
               "Key": "graphql.http.kind",
@@ -64,11 +64,11 @@
             },
             {
               "Key": "graphql.http.request.query.id",
-              "Value": "41faa6dbd0de29d0cdf705c602b506bf"
+              "Value": "f2e6099a9e9d8a7f69c688a88962f100"
             },
             {
               "Key": "graphql.http.request.query.hash",
-              "Value": "41faa6dbd0de29d0cdf705c602b506bf"
+              "Value": "f2e6099a9e9d8a7f69c688a88962f100"
             }
           ],
           "event": [],
@@ -83,9 +83,9 @@
             },
             {
               "OperationName": "GraphQL Operation",
-              "DisplayName": "subscription",
+              "DisplayName": "query",
               "Kind": "Internal",
-              "Status": "Ok",
+              "Status": "Unset",
               "tags": [
                 {
                   "Key": "graphql.processing.type",
@@ -101,24 +101,16 @@
                 },
                 {
                   "Key": "graphql.operation.type",
-                  "Value": "subscription"
-                },
-                {
-                  "Key": "graphql.operation.name",
-                  "Value": "OnBlockingMessageSubscription"
+                  "Value": "query"
                 },
                 {
                   "Key": "graphql.document.hash",
-                  "Value": "md5:41faa6dbd0de29d0cdf705c602b506bf"
+                  "Value": "md5:f2e6099a9e9d8a7f69c688a88962f100"
                 }
               ],
               "event": [
                 {
                   "Name": "AddedOperationToCache",
-                  "Tags": []
-                },
-                {
-                  "Name": "AddedDocumentToCache",
                   "Tags": []
                 }
               ],
@@ -135,7 +127,7 @@
                     },
                     {
                       "Key": "graphql.document.hash",
-                      "Value": "md5:41faa6dbd0de29d0cdf705c602b506bf"
+                      "Value": "md5:f2e6099a9e9d8a7f69c688a88962f100"
                     }
                   ],
                   "event": []
@@ -148,7 +140,7 @@
                   "tags": [
                     {
                       "Key": "graphql.document.hash",
-                      "Value": "md5:41faa6dbd0de29d0cdf705c602b506bf"
+                      "Value": "md5:f2e6099a9e9d8a7f69c688a88962f100"
                     },
                     {
                       "Key": "graphql.operation.fieldCost",
@@ -173,15 +165,11 @@
                     },
                     {
                       "Key": "graphql.document.hash",
-                      "Value": "md5:41faa6dbd0de29d0cdf705c602b506bf"
+                      "Value": "md5:f2e6099a9e9d8a7f69c688a88962f100"
                     },
                     {
                       "Key": "graphql.operation.type",
-                      "Value": "subscription"
-                    },
-                    {
-                      "Key": "graphql.operation.name",
-                      "Value": "OnBlockingMessageSubscription"
+                      "Value": "query"
                     }
                   ],
                   "event": []
@@ -190,7 +178,7 @@
                   "OperationName": "GraphQL Operation Execution",
                   "DisplayName": "GraphQL Operation Execution",
                   "Kind": "Internal",
-                  "Status": "Ok",
+                  "Status": "Unset",
                   "tags": [
                     {
                       "Key": "graphql.processing.type",
@@ -198,104 +186,47 @@
                     },
                     {
                       "Key": "graphql.operation.type",
-                      "Value": "subscription"
-                    },
-                    {
-                      "Key": "graphql.operation.name",
-                      "Value": "OnBlockingMessageSubscription"
+                      "Value": "query"
                     },
                     {
                       "Key": "graphql.document.hash",
-                      "Value": "md5:41faa6dbd0de29d0cdf705c602b506bf"
+                      "Value": "md5:f2e6099a9e9d8a7f69c688a88962f100"
                     }
                   ],
                   "event": [],
                   "activities": [
                     {
-                      "OperationName": "GraphQL Subscription Event",
-                      "DisplayName": "GraphQL Subscription Event",
+                      "OperationName": "Query.blockUntilCancelled",
+                      "DisplayName": "Query.blockUntilCancelled",
                       "Kind": "Internal",
-                      "Status": "Error",
+                      "Status": "Unset",
                       "tags": [
                         {
                           "Key": "graphql.processing.type",
-                          "Value": "subscription_event"
+                          "Value": "resolve"
                         },
                         {
-                          "Key": "graphql.operation.type",
-                          "Value": "subscription"
+                          "Key": "graphql.field.alias",
+                          "Value": "blockUntilCancelled"
                         },
                         {
-                          "Key": "graphql.operation.name",
-                          "Value": "OnBlockingMessageSubscription"
+                          "Key": "graphql.field.path",
+                          "Value": "blockUntilCancelled"
                         },
                         {
-                          "Key": "graphql.document.hash",
-                          "Value": "md5:41faa6dbd0de29d0cdf705c602b506bf"
+                          "Key": "graphql.field.name",
+                          "Value": "blockUntilCancelled"
                         },
                         {
-                          "Key": "graphql.subscription.id",
-                          "Value": "1"
+                          "Key": "graphql.field.schema_coordinate",
+                          "Value": "Query.blockUntilCancelled"
                         },
                         {
-                          "Key": "error.type",
-                          "Value": "System.OperationCanceledException"
+                          "Key": "graphql.field.parent_type",
+                          "Value": "Query"
                         }
                       ],
-                      "event": [
-                        {
-                          "Name": "exception",
-                          "Tags": [
-                            {
-                              "Key": "exception.message",
-                              "Value": "The operation was canceled."
-                            },
-                            {
-                              "Key": "exception.stacktrace",
-                              "Value": "System.OperationCanceledException: The operation was canceled.\n   at System.Threading.CancellationToken.ThrowOperationCanceledException()\n   at System.Threading.CancellationToken.ThrowIfCancellationRequested()\n   at HotChocolate.Execution.Processing.WorkScheduler.ExecuteInternalAsync(IExecutionTask[] buffer) in WorkScheduler.Execute.cs\n   at HotChocolate.Execution.Processing.WorkScheduler.ExecuteAsync1() in WorkScheduler.Execute.cs\n   at HotChocolate.Execution.Processing.QueryExecutor.ExecuteNoIncrementalAsync(OperationContext operationContext, IImmutableDictionary`2 scopedContext) in QueryExecutor.cs\n   at HotChocolate.Execution.Processing.SubscriptionExecutor.Subscription.OnEvent(Object payload) in SubscriptionExecutor.Subscription.cs"
-                            },
-                            {
-                              "Key": "exception.type",
-                              "Value": "System.OperationCanceledException"
-                            }
-                          ]
-                        }
-                      ],
-                      "activities": [
-                        {
-                          "OperationName": "Subscription.onBlockingMessage",
-                          "DisplayName": "Subscription.onBlockingMessage",
-                          "Kind": "Internal",
-                          "Status": "Unset",
-                          "tags": [
-                            {
-                              "Key": "graphql.processing.type",
-                              "Value": "resolve"
-                            },
-                            {
-                              "Key": "graphql.field.alias",
-                              "Value": "onBlockingMessage"
-                            },
-                            {
-                              "Key": "graphql.field.path",
-                              "Value": "onBlockingMessage"
-                            },
-                            {
-                              "Key": "graphql.field.name",
-                              "Value": "onBlockingMessage"
-                            },
-                            {
-                              "Key": "graphql.field.schema_coordinate",
-                              "Value": "Subscription.onBlockingMessage"
-                            },
-                            {
-                              "Key": "graphql.field.parent_type",
-                              "Value": "Subscription"
-                            }
-                          ],
-                          "event": []
-                        }
-                      ]
+                      "event": []
                     }
                   ]
                 }

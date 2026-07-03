@@ -43,7 +43,17 @@ internal sealed class ExecuteOperationSpan(
         // opposite span statuses (Unset vs. Error), so defer the decision to the
         // root request span, which observes the final result and finalizes this
         // span once the outcome is known.
-        if (context.Result is null && context.RequestAborted.IsCancellationRequested)
+        //
+        // Deferral is only safe when a request span is present, because the request
+        // span is the only thing that drains the deferred list. If ExecuteOperation
+        // is instrumented without a request span (for example without ExecuteRequest
+        // and without an HTTP request span to reuse) nothing would ever finalize the
+        // deferred span, so classify immediately instead. In that rare configuration
+        // an in-flight cancellation cannot be told apart from an execution timeout,
+        // which matches the pre-existing behavior for a missing request span.
+        if (context.Result is null
+            && context.RequestAborted.IsCancellationRequested
+            && context.Features.TryGet<ExecuteRequestSpanBase>(out _))
         {
             context.Features.GetOrSet<DeferredOperationSpans>().Add(this);
             return;

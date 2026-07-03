@@ -34,12 +34,12 @@
           "Value": "1.1"
         },
         {
-          "Key": "http.route",
-          "Value": "/graphql/{**slug}"
-        },
-        {
           "Key": "http.response.status_code",
           "Value": 200
+        },
+        {
+          "Key": "http.route",
+          "Value": "/graphql/{**slug}"
         }
       ],
       "event": [],

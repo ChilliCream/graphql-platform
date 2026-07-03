@@ -34,12 +34,12 @@
           "Value": "1.1"
         },
         {
-          "Key": "http.route",
-          "Value": "/graphql/{**slug}"
-        },
-        {
           "Key": "http.response.status_code",
           "Value": 200
+        },
+        {
+          "Key": "http.route",
+          "Value": "/graphql/{**slug}"
         }
       ],
       "event": [],
@@ -48,7 +48,7 @@
           "OperationName": "ExecuteHttpRequest",
           "DisplayName": "GraphQL HTTP POST",
           "Kind": "Internal",
-          "Status": "Ok",
+          "Status": "Unset",
           "tags": [
             {
               "Key": "graphql.http.kind",
@@ -215,7 +215,7 @@
                       "OperationName": "GraphQL Subscription Event",
                       "DisplayName": "GraphQL Subscription Event",
                       "Kind": "Internal",
-                      "Status": "Error",
+                      "Status": "Unset",
                       "tags": [
                         {
                           "Key": "graphql.processing.type",
@@ -236,31 +236,9 @@
                         {
                           "Key": "graphql.subscription.id",
                           "Value": "1"
-                        },
-                        {
-                          "Key": "error.type",
-                          "Value": "System.OperationCanceledException"
                         }
                       ],
-                      "event": [
-                        {
-                          "Name": "exception",
-                          "Tags": [
-                            {
-                              "Key": "exception.message",
-                              "Value": "The operation was canceled."
-                            },
-                            {
-                              "Key": "exception.stacktrace",
-                              "Value": "System.OperationCanceledException: The operation was canceled.\n   at System.Threading.CancellationToken.ThrowOperationCanceledException()\n   at System.Threading.CancellationToken.ThrowIfCancellationRequested()\n   at HotChocolate.Execution.Processing.WorkScheduler.ExecuteInternalAsync(IExecutionTask[] buffer) in WorkScheduler.Execute.cs\n   at HotChocolate.Execution.Processing.WorkScheduler.ExecuteAsync1() in WorkScheduler.Execute.cs\n   at HotChocolate.Execution.Processing.QueryExecutor.ExecuteNoIncrementalAsync(OperationContext operationContext, IImmutableDictionary`2 scopedContext) in QueryExecutor.cs\n   at HotChocolate.Execution.Processing.SubscriptionExecutor.Subscription.OnEvent(Object payload) in SubscriptionExecutor.Subscription.cs"
-                            },
-                            {
-                              "Key": "exception.type",
-                              "Value": "System.OperationCanceledException"
-                            }
-                          ]
-                        }
-                      ],
+                      "event": [],
                       "activities": [
                         {
                           "OperationName": "Subscription.onBlockingMessage",

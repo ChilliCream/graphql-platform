@@ -26,5 +26,18 @@ internal static class ClientCancellation
     /// not treated as a client cancellation.
     /// </remarks>
     public static bool IsClientCanceled(RequestContext context)
-        => context.Result is OperationResult { Errors: [{ Code: ErrorCodes.Execution.Canceled }, ..] };
+        => context.Result is OperationResult result && IsClientCanceled(result);
+
+    /// <summary>
+    /// Determines whether the given result represents a caller cancellation.
+    /// </summary>
+    /// <remarks>
+    /// A client/caller cancellation surfaces as an <see cref="OperationResult"/>
+    /// whose first error carries <see cref="ErrorCodes.Execution.Canceled"/>
+    /// (<c>HC0049</c>). A server-side execution timeout instead carries
+    /// <see cref="ErrorCodes.Execution.Timeout"/> (<c>HC0045</c>) and is therefore
+    /// not treated as a client cancellation.
+    /// </remarks>
+    public static bool IsClientCanceled(OperationResult result)
+        => result is { Errors: [{ Code: ErrorCodes.Execution.Canceled }, ..] };
 }

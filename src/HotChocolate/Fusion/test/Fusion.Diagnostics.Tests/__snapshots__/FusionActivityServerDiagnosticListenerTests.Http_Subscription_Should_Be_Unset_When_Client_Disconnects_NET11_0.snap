@@ -1,6 +1,6 @@
 {
   "source": {
-    "name": "HotChocolate.Diagnostics"
+    "name": "HotChocolate.Fusion.Diagnostics"
   },
   "activities": [
     {
@@ -34,12 +34,12 @@
           "Value": "1.1"
         },
         {
-          "Key": "http.route",
-          "Value": "/graphql/{**slug}"
-        },
-        {
           "Key": "http.response.status_code",
           "Value": 200
+        },
+        {
+          "Key": "http.route",
+          "Value": "/graphql/{**slug}"
         }
       ],
       "event": [],
@@ -48,7 +48,7 @@
           "OperationName": "ExecuteHttpRequest",
           "DisplayName": "GraphQL HTTP POST",
           "Kind": "Internal",
-          "Status": "Ok",
+          "Status": "Unset",
           "tags": [
             {
               "Key": "graphql.http.kind",
@@ -64,11 +64,11 @@
             },
             {
               "Key": "graphql.http.request.query.id",
-              "Value": "41faa6dbd0de29d0cdf705c602b506bf"
+              "Value": "51d9b3bca5722d3209429e79f8ee6435"
             },
             {
               "Key": "graphql.http.request.query.hash",
-              "Value": "41faa6dbd0de29d0cdf705c602b506bf"
+              "Value": "51d9b3bca5722d3209429e79f8ee6435"
             }
           ],
           "event": [],
@@ -105,16 +105,16 @@
                 },
                 {
                   "Key": "graphql.operation.name",
-                  "Value": "OnBlockingMessageSubscription"
+                  "Value": "OnIdleMessageSubscription"
                 },
                 {
                   "Key": "graphql.document.hash",
-                  "Value": "md5:41faa6dbd0de29d0cdf705c602b506bf"
+                  "Value": "md5:51d9b3bca5722d3209429e79f8ee6435"
                 }
               ],
               "event": [
                 {
-                  "Name": "AddedOperationToCache",
+                  "Name": "AddedOperationPlanToCache",
                   "Tags": []
                 },
                 {
@@ -135,28 +135,7 @@
                     },
                     {
                       "Key": "graphql.document.hash",
-                      "Value": "md5:41faa6dbd0de29d0cdf705c602b506bf"
-                    }
-                  ],
-                  "event": []
-                },
-                {
-                  "OperationName": "GraphQL Complexity Analysis",
-                  "DisplayName": "GraphQL Complexity Analysis",
-                  "Kind": "Internal",
-                  "Status": "Ok",
-                  "tags": [
-                    {
-                      "Key": "graphql.document.hash",
-                      "Value": "md5:41faa6dbd0de29d0cdf705c602b506bf"
-                    },
-                    {
-                      "Key": "graphql.operation.fieldCost",
-                      "Value": 10.0
-                    },
-                    {
-                      "Key": "graphql.operation.typeCost",
-                      "Value": 1.0
+                      "Value": "md5:51d9b3bca5722d3209429e79f8ee6435"
                     }
                   ],
                   "event": []
@@ -173,7 +152,7 @@
                     },
                     {
                       "Key": "graphql.document.hash",
-                      "Value": "md5:41faa6dbd0de29d0cdf705c602b506bf"
+                      "Value": "md5:51d9b3bca5722d3209429e79f8ee6435"
                     },
                     {
                       "Key": "graphql.operation.type",
@@ -181,7 +160,7 @@
                     },
                     {
                       "Key": "graphql.operation.name",
-                      "Value": "OnBlockingMessageSubscription"
+                      "Value": "OnIdleMessageSubscription"
                     }
                   ],
                   "event": []
@@ -202,24 +181,24 @@
                     },
                     {
                       "Key": "graphql.operation.name",
-                      "Value": "OnBlockingMessageSubscription"
+                      "Value": "OnIdleMessageSubscription"
                     },
                     {
                       "Key": "graphql.document.hash",
-                      "Value": "md5:41faa6dbd0de29d0cdf705c602b506bf"
+                      "Value": "md5:51d9b3bca5722d3209429e79f8ee6435"
                     }
                   ],
                   "event": [],
                   "activities": [
                     {
-                      "OperationName": "GraphQL Subscription Event",
-                      "DisplayName": "GraphQL Subscription Event",
+                      "OperationName": "GraphQL Step Execution",
+                      "DisplayName": "GraphQL Step Execution",
                       "Kind": "Internal",
-                      "Status": "Error",
+                      "Status": "Ok",
                       "tags": [
                         {
                           "Key": "graphql.processing.type",
-                          "Value": "subscription_event"
+                          "Value": "step_execute"
                         },
                         {
                           "Key": "graphql.operation.type",
@@ -227,77 +206,141 @@
                         },
                         {
                           "Key": "graphql.operation.name",
-                          "Value": "OnBlockingMessageSubscription"
+                          "Value": "OnIdleMessageSubscription"
                         },
                         {
                           "Key": "graphql.document.hash",
-                          "Value": "md5:41faa6dbd0de29d0cdf705c602b506bf"
+                          "Value": "md5:51d9b3bca5722d3209429e79f8ee6435"
                         },
                         {
-                          "Key": "graphql.subscription.id",
+                          "Key": "graphql.operation.step.id",
                           "Value": "1"
                         },
                         {
-                          "Key": "error.type",
-                          "Value": "System.OperationCanceledException"
+                          "Key": "graphql.operation.step.kind",
+                          "Value": "operation"
+                        },
+                        {
+                          "Key": "graphql.operation.step.plan.id",
+                          "Value": "1cc55c27f3db9358cd95f4627e38a7f68efbe13edd75faf4a891ee58f9dac912"
+                        },
+                        {
+                          "Key": "graphql.source_schema.name",
+                          "Value": "a"
+                        },
+                        {
+                          "Key": "graphql.source_schema.operation.name",
+                          "Value": "OnIdleMessageSubscription_51d9b3bc_1"
+                        },
+                        {
+                          "Key": "graphql.source_schema.operation.hash",
+                          "Value": "sha256:6b6ed56d2f50e7e614c9096e8e46d789db0e605355b6baf21ab088bde107ca0e"
                         }
                       ],
-                      "event": [
-                        {
-                          "Name": "exception",
-                          "Tags": [
-                            {
-                              "Key": "exception.message",
-                              "Value": "The operation was canceled."
-                            },
-                            {
-                              "Key": "exception.stacktrace",
-                              "Value": "System.OperationCanceledException: The operation was canceled.\n   at System.Threading.CancellationToken.ThrowOperationCanceledException()\n   at System.Threading.CancellationToken.ThrowIfCancellationRequested()\n   at HotChocolate.Execution.Processing.WorkScheduler.ExecuteInternalAsync(IExecutionTask[] buffer) in WorkScheduler.Execute.cs\n   at HotChocolate.Execution.Processing.WorkScheduler.ExecuteAsync1() in WorkScheduler.Execute.cs\n   at HotChocolate.Execution.Processing.QueryExecutor.ExecuteNoIncrementalAsync(OperationContext operationContext, IImmutableDictionary`2 scopedContext) in QueryExecutor.cs\n   at HotChocolate.Execution.Processing.SubscriptionExecutor.Subscription.OnEvent(Object payload) in SubscriptionExecutor.Subscription.cs"
-                            },
-                            {
-                              "Key": "exception.type",
-                              "Value": "System.OperationCanceledException"
-                            }
-                          ]
-                        }
-                      ],
-                      "activities": [
-                        {
-                          "OperationName": "Subscription.onBlockingMessage",
-                          "DisplayName": "Subscription.onBlockingMessage",
-                          "Kind": "Internal",
-                          "Status": "Unset",
-                          "tags": [
-                            {
-                              "Key": "graphql.processing.type",
-                              "Value": "resolve"
-                            },
-                            {
-                              "Key": "graphql.field.alias",
-                              "Value": "onBlockingMessage"
-                            },
-                            {
-                              "Key": "graphql.field.path",
-                              "Value": "onBlockingMessage"
-                            },
-                            {
-                              "Key": "graphql.field.name",
-                              "Value": "onBlockingMessage"
-                            },
-                            {
-                              "Key": "graphql.field.schema_coordinate",
-                              "Value": "Subscription.onBlockingMessage"
-                            },
-                            {
-                              "Key": "graphql.field.parent_type",
-                              "Value": "Subscription"
-                            }
-                          ],
-                          "event": []
-                        }
-                      ]
+                      "event": []
                     }
                   ]
+                },
+                {
+                  "OperationName": "GraphQL Subscription Event",
+                  "DisplayName": "GraphQL Subscription Event",
+                  "Kind": "Internal",
+                  "Status": "Ok",
+                  "tags": [
+                    {
+                      "Key": "graphql.processing.type",
+                      "Value": "subscription_event"
+                    },
+                    {
+                      "Key": "graphql.operation.type",
+                      "Value": "subscription"
+                    },
+                    {
+                      "Key": "graphql.operation.name",
+                      "Value": "OnIdleMessageSubscription"
+                    },
+                    {
+                      "Key": "graphql.document.hash",
+                      "Value": "md5:51d9b3bca5722d3209429e79f8ee6435"
+                    },
+                    {
+                      "Key": "graphql.subscription.id",
+                      "Value": "<id>"
+                    }
+                  ],
+                  "event": []
+                }
+              ]
+            },
+            {
+              "OperationName": "System.Net.Http.HttpRequestOut",
+              "DisplayName": "System.Net.Http.HttpRequestOut",
+              "Kind": "Client",
+              "Status": "Unset",
+              "tags": [
+                {
+                  "Key": "http.request.method",
+                  "Value": "POST"
+                },
+                {
+                  "Key": "server.address",
+                  "Value": "localhost"
+                },
+                {
+                  "Key": "server.port",
+                  "Value": 5000
+                },
+                {
+                  "Key": "url.full",
+                  "Value": "http://localhost:5000/graphql"
+                },
+                {
+                  "Key": "http.response.status_code",
+                  "Value": 200
+                }
+              ],
+              "event": [],
+              "activities": [
+                {
+                  "OperationName": "Microsoft.AspNetCore.Hosting.HttpRequestIn",
+                  "DisplayName": "POST /graphql/{**slug}",
+                  "Kind": "Server",
+                  "Status": "Unset",
+                  "tags": [
+                    {
+                      "Key": "server.address",
+                      "Value": "localhost"
+                    },
+                    {
+                      "Key": "server.port",
+                      "Value": 5000
+                    },
+                    {
+                      "Key": "http.request.method",
+                      "Value": "POST"
+                    },
+                    {
+                      "Key": "url.scheme",
+                      "Value": "http"
+                    },
+                    {
+                      "Key": "url.path",
+                      "Value": "/graphql"
+                    },
+                    {
+                      "Key": "network.protocol.version",
+                      "Value": "1.1"
+                    },
+                    {
+                      "Key": "http.response.status_code",
+                      "Value": 200
+                    },
+                    {
+                      "Key": "http.route",
+                      "Value": "/graphql/{**slug}"
+                    }
+                  ],
+                  "event": []
                 }
               ]
             }

@@ -244,6 +244,15 @@ internal sealed class ExecuteHttpRequestSpan(
 
     public void RecordResultErrors(OperationResult result)
     {
+        // A client cancellation (browser tab closed, connection dropped) surfaces as
+        // a result carrying HC0049 and is not an error. FormatHttpResponse can run
+        // before the HTTP span completes on a disconnect, so a canceled result must
+        // not force the span to Error here; the span status is left untouched.
+        if (ClientCancellation.IsClientCanceled(result))
+        {
+            return;
+        }
+
         // The GraphQL response contains errors (request error, total execution failure,
         // or partial success). Per the GraphQL OpenTelemetry semantic conventions the
         // server span status is set to Error in this case. The individual errors and the
