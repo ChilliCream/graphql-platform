@@ -1,3 +1,5 @@
+using System.Buffers;
+
 namespace Mocha.Sagas.Tests;
 
 public class SagaInitializationTests
@@ -289,6 +291,98 @@ public class SagaInitializationTests
 
         // Assert
         Assert.Equal("When 'StartEvent' is triggered, no state factory is defined.", exception.Message);
+    }
+
+    [Fact]
+    public void Initialize_Should_Succeed_When_ConfigurationFeatureIsMissing()
+    {
+        // Arrange
+        var context = new TestMessagingSetupContext();
+        context.Features.Set<MessagingConfigurationFeature>(null);
+
+        var saga =
+            Saga.Create<TestState>(descriptor =>
+            {
+                descriptor
+                    .Initially()
+                    .OnEvent<StartEvent>()
+                    .TransitionTo("Started")
+                    .StateFactory(_ => new TestState(Guid.NewGuid(), "Started"));
+
+                descriptor.Finally("Started");
+            });
+
+        // Act
+        saga.Initialize(context);
+
+        // Assert
+        Assert.Equal(2, saga.States.Count);
+    }
+
+    [Fact]
+    public void Initialize_Should_KeepPresetStateSerializer_When_DescriptorHasNoSerializer()
+    {
+        // Arrange
+        var preset = new StubSagaStateSerializer();
+
+        var saga =
+            Saga.Create<TestState>(descriptor =>
+            {
+                descriptor
+                    .Initially()
+                    .OnEvent<StartEvent>()
+                    .TransitionTo("Started")
+                    .StateFactory(_ => new TestState(Guid.NewGuid(), "Started"));
+
+                descriptor.Finally("Started");
+            });
+
+        saga.StateSerializer = preset;
+
+        // Act
+        saga.Initialize(TestMessagingSetupContext.Instance);
+
+        // Assert
+        Assert.Same(preset, saga.StateSerializer);
+    }
+
+    [Fact]
+    public void Initialize_Should_UseDescriptorSerializer_When_PresetSerializerExists()
+    {
+        // Arrange
+        var fromDescriptor = new StubSagaStateSerializer();
+
+        var saga =
+            Saga.Create<TestState>(descriptor =>
+            {
+                descriptor
+                    .Initially()
+                    .OnEvent<StartEvent>()
+                    .TransitionTo("Started")
+                    .StateFactory(_ => new TestState(Guid.NewGuid(), "Started"));
+
+                descriptor.Finally("Started");
+                descriptor.Serializer(_ => fromDescriptor);
+            });
+
+        saga.StateSerializer = new StubSagaStateSerializer();
+
+        // Act
+        saga.Initialize(TestMessagingSetupContext.Instance);
+
+        // Assert
+        Assert.Same(fromDescriptor, saga.StateSerializer);
+    }
+
+    private sealed class StubSagaStateSerializer : ISagaStateSerializer
+    {
+        public T? Deserialize<T>(ReadOnlyMemory<byte> body) => default;
+
+        public object? Deserialize(ReadOnlyMemory<byte> body) => null;
+
+        public void Serialize<T>(T message, IBufferWriter<byte> writer) { }
+
+        public void Serialize(object message, IBufferWriter<byte> writer) { }
     }
 
     private class TestState(Guid id, string state) : SagaStateBase(id, state);

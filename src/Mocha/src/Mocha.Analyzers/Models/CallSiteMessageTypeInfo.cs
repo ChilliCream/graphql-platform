@@ -13,11 +13,22 @@ namespace Mocha.Analyzers;
 /// The fully qualified type name of the response type for request-reply call sites, or <see langword="null"/>
 /// for fire-and-forget calls.
 /// </param>
+/// <param name="DeclaredMessageType">
+/// The declaration metadata (doc + span) of the statically resolved message type, captured cross-file from its
+/// resolved symbol, or <see langword="null"/> when the message type has no source declaration in this
+/// compilation. Consumed only by the message declaration pipeline, never by validation.
+/// </param>
+/// <param name="DeclaredResponseType">
+/// The declaration metadata (doc + span) of the resolved response type, or <see langword="null"/> when the call
+/// site resolves no response type or the response type has no source declaration in this compilation.
+/// </param>
 public sealed record CallSiteMessageTypeInfo(
     string MessageTypeName,
     CallSiteKind Kind,
     LocationInfo? Location,
-    string? ResponseTypeName = null) : SyntaxInfo
+    string? ResponseTypeName = null,
+    DeclaredTypeInfo? DeclaredMessageType = null,
+    DeclaredTypeInfo? DeclaredResponseType = null) : SyntaxInfo
 {
     /// <inheritdoc />
     public override string OrderByKey => $"CallSite:{Kind}:{MessageTypeName}";

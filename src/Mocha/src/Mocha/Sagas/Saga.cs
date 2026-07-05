@@ -60,6 +60,11 @@ public abstract partial class Saga : IFeatureProvider
     public abstract IReadOnlyDictionary<string, SagaState> States { get; }
 
     /// <summary>
+    /// Gets the compiled saga configuration containing the resolved state machine definition.
+    /// </summary>
+    protected internal SagaConfiguration Configuration { get; private protected set; } = null!;
+
+    /// <summary>
     /// Processes an incoming message by loading or creating saga state, executing transitions, and persisting the result.
     /// </summary>
     /// <param name="context">The consume context providing the incoming message, headers, and runtime services.</param>
@@ -201,11 +206,6 @@ public abstract partial class Saga<TState> : Saga where TState : SagaStateBase
     {
         _configure = Configure;
     }
-
-    /// <summary>
-    /// Gets the compiled saga configuration containing the resolved state machine definition.
-    /// </summary>
-    protected internal SagaConfiguration Configuration { get; private set; } = null!;
 
     private Dictionary<string, SagaState>? _states;
 

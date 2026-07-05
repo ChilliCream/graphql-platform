@@ -1,4 +1,3 @@
-using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.DependencyInjection;
 using Mocha.Middlewares;
@@ -18,18 +17,18 @@ public interface IMessageBusBuilder
     /// <typeparam name="THandler">The handler type implementing <see cref="IHandler"/>.</typeparam>
     /// <param name="configure">Optional action to configure the consumer descriptor.</param>
     /// <returns>The builder instance for method chaining.</returns>
-    [RequiresDynamicCode("Use source-generated AddHandlerConfiguration for AOT compatibility.")]
-    [RequiresUnreferencedCode("Use source-generated AddHandlerConfiguration for AOT compatibility.")]
-    IMessageBusBuilder AddHandler<THandler>(Action<IConsumerDescriptor>? configure = null)
+    [RequiresDynamicCode("Use source-generated AddConsumer(ConsumerFactory...) for AOT compatibility.")]
+    [RequiresUnreferencedCode("Use source-generated AddConsumer(ConsumerFactory...) for AOT compatibility.")]
+    IMessageBusBuilder AddHandler<THandler>(
+        Action<IConsumerDescriptor>? configure = null)
         where THandler : class, IHandler;
 
     /// <summary>
-    /// Registers a handler using pre-built configuration from the source generator.
+    /// Registers a pre-built consumer with the message bus.
     /// </summary>
-    /// <param name="configuration">The pre-built handler configuration.</param>
+    /// <param name="consumer">The consumer to register.</param>
     /// <returns>The builder instance for method chaining.</returns>
-    [EditorBrowsable(EditorBrowsableState.Never)]
-    IMessageBusBuilder AddHandlerConfiguration(MessagingHandlerConfiguration configuration);
+    IMessageBusBuilder AddConsumer(Consumer consumer);
 
     /// <summary>
     /// Registers a batch event handler that collects messages and delivers them in batches.
@@ -37,9 +36,10 @@ public interface IMessageBusBuilder
     /// <typeparam name="THandler">The batch handler type.</typeparam>
     /// <param name="configure">Optional action to configure batch options.</param>
     /// <returns>The builder instance for method chaining.</returns>
-    [RequiresDynamicCode("Use source-generated AddHandlerConfiguration for AOT compatibility.")]
-    [RequiresUnreferencedCode("Use source-generated AddHandlerConfiguration for AOT compatibility.")]
-    IMessageBusBuilder AddBatchHandler<THandler>(Action<BatchOptions>? configure = null)
+    [RequiresDynamicCode("Use source-generated AddConsumer(ConsumerFactory...) for AOT compatibility.")]
+    [RequiresUnreferencedCode("Use source-generated AddConsumer(ConsumerFactory...) for AOT compatibility.")]
+    IMessageBusBuilder AddBatchHandler<THandler>(
+        Action<BatchOptions>? configure = null)
         where THandler : class, IBatchEventHandler;
 
     /// <summary>
@@ -100,21 +100,11 @@ public interface IMessageBusBuilder
     IMessageBusBuilder Host(Action<IHostInfoDescriptor> configure);
 
     /// <summary>
-    /// Registers a message type using pre-built configuration from the source generator.
+    /// Registers a message type with the bus.
     /// </summary>
-    /// <param name="configuration">The pre-built message configuration.</param>
+    /// <typeparam name="TMessage">The CLR type of the message.</typeparam>
     /// <returns>The builder instance for method chaining.</returns>
-    [EditorBrowsable(EditorBrowsableState.Never)]
-    IMessageBusBuilder AddMessageConfiguration(MessagingMessageConfiguration configuration);
-
-    /// <summary>
-    /// Registers a saga using pre-built configuration from the source generator.
-    /// </summary>
-    /// <typeparam name="TSaga">The saga type.</typeparam>
-    /// <param name="configuration">The pre-built saga configuration.</param>
-    /// <returns>The builder instance for method chaining.</returns>
-    [EditorBrowsable(EditorBrowsableState.Never)]
-    IMessageBusBuilder AddSagaConfiguration<TSaga>(MessagingSagaConfiguration configuration) where TSaga : Saga, new();
+    IMessageBusBuilder AddMessage<TMessage>() where TMessage : notnull;
 
     /// <summary>
     /// Registers a message type with the bus and configures its serialization, routing, and metadata.
@@ -122,7 +112,7 @@ public interface IMessageBusBuilder
     /// <typeparam name="TMessage">The CLR type of the message.</typeparam>
     /// <param name="configure">An action to configure the message type descriptor.</param>
     /// <returns>The builder instance for method chaining.</returns>
-    IMessageBusBuilder AddMessage<TMessage>(Action<IMessageTypeDescriptor> configure) where TMessage : class;
+    IMessageBusBuilder AddMessage<TMessage>(Action<IMessageTypeDescriptor> configure) where TMessage : notnull;
 
     /// <summary>
     /// Builds and returns the fully configured <see cref="MessagingRuntime"/> using the specified
