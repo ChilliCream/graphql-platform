@@ -83,6 +83,7 @@ public class SchemaTests
               | ENUM_VALUE
               | INPUT_OBJECT
               | INPUT_FIELD_DEFINITION
+              | DIRECTIVE_DEFINITION
             """");
     }
 
