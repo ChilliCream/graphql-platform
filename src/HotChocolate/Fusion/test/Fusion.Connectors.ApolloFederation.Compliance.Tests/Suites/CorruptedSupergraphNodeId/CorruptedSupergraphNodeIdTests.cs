@@ -1,3 +1,4 @@
+using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Suites.CorruptedSupergraphNodeId.A;
 using HotChocolate.Fusion.Suites.CorruptedSupergraphNodeId.B;
 
@@ -14,6 +15,7 @@ public sealed class CorruptedSupergraphNodeIdTests : ComplianceTestBase
 {
     protected override Task<FusionGateway> BuildGatewayAsync()
         => FusionGatewayBuilder.ComposeAsync(
+            NodeResolution.SourceSchema,
             (SubgraphASubgraph.Name, SubgraphASubgraph.BuildAsync),
             (SubgraphBSubgraph.Name, SubgraphBSubgraph.BuildAsync));
 

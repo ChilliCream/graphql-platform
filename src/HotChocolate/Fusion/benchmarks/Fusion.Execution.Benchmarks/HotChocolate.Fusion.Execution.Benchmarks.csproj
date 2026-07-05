@@ -19,8 +19,11 @@
     <ProjectReference Include="..\..\..\AspNetCore\src\AspNetCore\HotChocolate.AspNetCore.csproj" />
     <ProjectReference Include="..\..\..\AspNetCore\src\Transport.Abstractions\HotChocolate.Transport.Abstractions.csproj" />
     <ProjectReference Include="..\..\..\AspNetCore\src\Transport.Http\HotChocolate.Transport.Http.csproj" />
+    <ProjectReference Include="..\..\..\ApolloFederation\src\ApolloFederation\HotChocolate.ApolloFederation.csproj" />
     <ProjectReference Include="..\..\..\Core\src\Execution.Configuration.Abstractions\HotChocolate.Execution.Configuration.Abstractions.csproj" />
+    <ProjectReference Include="..\..\src\Fusion.AspNetCore\HotChocolate.Fusion.AspNetCore.csproj" />
     <ProjectReference Include="..\..\src\Fusion.Composition\HotChocolate.Fusion.Composition.csproj" />
+    <ProjectReference Include="..\..\src\Fusion.Connectors.InMemory\HotChocolate.Fusion.Connectors.InMemory.csproj" />
     <ProjectReference Include="..\..\src\Fusion.Execution\HotChocolate.Fusion.Execution.csproj" />
   </ItemGroup>
 

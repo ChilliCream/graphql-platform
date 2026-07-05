@@ -59,6 +59,9 @@ directive @fusion__field(
   sourceType: String
 ) repeatable on FIELD_DEFINITION
 
+"The @fusion__gateway_field directive marks a field that is implemented by the gateway itself rather than resolved from an underlying source schema, such as the global object identification node field."
+directive @fusion__gateway_field on FIELD_DEFINITION
+
 "The @fusion__implements directive specifies on which source schema an interface is implemented by an object or interface type."
 directive @fusion__implements(
   "The name of the interface type."

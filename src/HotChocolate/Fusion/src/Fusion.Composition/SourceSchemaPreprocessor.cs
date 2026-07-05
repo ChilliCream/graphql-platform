@@ -42,6 +42,7 @@ internal sealed partial class SourceSchemaPreprocessor(
             MarkKeyFieldsShareable.Apply(schema, schemas);
             TransformRequiresToRequire.Apply(schema);
             RemoveExternalFields.Apply(schema);
+            GenerateNodeLookup.Apply(schema);
             StampConnectorKind.Apply(schema);
         }
 

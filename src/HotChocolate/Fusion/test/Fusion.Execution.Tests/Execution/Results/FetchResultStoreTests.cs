@@ -77,6 +77,78 @@ public sealed class FetchResultStoreTests : FusionTestBase
     }
 
     [Fact]
+    public void AddErrors_Should_NullParentAndSkipSiblings_When_ErrorOnNonNullFieldNullsParent()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: test
+            type Query {
+              foos: [Foo]
+            }
+
+            type Foo {
+              id: ID!
+              name: String
+              sku: String!
+            }
+            """);
+        var plan = PlanOperation(schema, "{ foos { id name sku } }");
+        var node = Assert.IsType<OperationExecutionNode>(Assert.Single(plan.RootNodes));
+        var elementSelectionSet = ResultSelectionSet.Create(
+            Utf8GraphQLParser.Parse("{ id name sku }")
+                .Definitions
+                .OfType<OperationDefinitionNode>()
+                .Single()
+                .SelectionSet,
+            schema);
+
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+        using var store = new FetchResultStore();
+        store.Initialize(
+            resultArena,
+            schema,
+            DefaultErrorHandler.Default,
+            plan.Operation,
+            ErrorHandlingMode.Propagate,
+            includeFlags: 0,
+            deferFlags: 0,
+            pathSegmentLocalPoolCapacity: 16);
+
+        var payload = """{"data":{"foos":[{"name":"one"},{"id":"2","name":"two","sku":"sku-2"}]}}"""u8.ToArray();
+        var document = SourceResultDocument.Parse(sourceArena, payload, payload.Length);
+        var added = store.AddPartialResults(
+            SelectionPath.Root,
+            [new SourceSchemaResult(CompactPath.Root, document)],
+            node.ResultSelectionSet,
+            containsErrors: false);
+
+        var error = ErrorBuilder.New()
+            .SetMessage("boom")
+            .Build();
+
+        // act
+        var completed = store.AddErrors(
+            error,
+            elementSelectionSet,
+            global::HotChocolate.Path.Root.Append("foos").Append(0));
+
+        // assert
+        Assert.True(added);
+        Assert.True(completed);
+        Assert.NotNull(store.Errors);
+        Assert.Contains(
+            store.Errors,
+            error => error.Message == "boom"
+                && error.Path?.Print() is "foos[0].id" or "foos[0].sku");
+        RenderData(store).MatchInlineSnapshot(
+            """
+            {"foos":[null,{"id":"2","name":"two","sku":"sku-2"}]}
+            """);
+    }
+
+    [Fact]
     public void Reset_Should_ClearAccumulatedErrors_When_ReusedForNextEvent()
     {
         // arrange
@@ -859,6 +931,13 @@ public sealed class FetchResultStoreTests : FusionTestBase
     {
         using var document = JsonDocument.Parse(segment.AsSequence());
         return JsonSerializer.Serialize(document.RootElement);
+    }
+
+    private static string RenderData(FetchResultStore store)
+    {
+        using var buffer = new PooledArrayWriter();
+        store.Result.Data.WriteTo(buffer);
+        return Encoding.UTF8.GetString(buffer.WrittenSpan);
     }
 
     private static void PadSourceWriterTo(FetchResultStore store, int position)

@@ -271,32 +271,80 @@ internal sealed class SourceSchemaMerger
 
     private void AddNodeField(MutableSchemaDefinition mergedSchema)
     {
-        if (mergedSchema.Types.TryGetType<IInterfaceTypeDefinition>(TypeNames.Node, out var nodeType)
+        if (_options.EnableGlobalObjectIdentification
+            && mergedSchema.Types.TryGetType<IInterfaceTypeDefinition>(TypeNames.Node, out var nodeType)
+            && mergedSchema.Types.TryGetType<IScalarTypeDefinition>(TypeNames.ID, out var idType)
             && mergedSchema.QueryType is { } queryType)
         {
             if (queryType.Fields.TryGetField(FieldNames.Node, out var nodeField)
-                && nodeField.Type == nodeType)
+                && IsGoiNodeField(nodeField, nodeType, idType))
             {
                 queryType.Fields.Remove(nodeField);
             }
 
-            // Until gateway support is implemented, we never expose the nodes field in the merged schema.
+            // Only remove the GOI-shaped nodes field; user-defined nodes fields remain visible.
             if (queryType.Fields.TryGetField(FieldNames.Nodes, out var nodesField)
-                && nodesField.Type.NamedType() == nodeType)
+                && IsGoiNodesField(nodesField, nodeType, idType))
             {
                 queryType.Fields.Remove(nodesField);
             }
 
-            if (_options.EnableGlobalObjectIdentification
-                && mergedSchema.Types.TryGetType<IScalarTypeDefinition>(TypeNames.ID, out var idType))
+            if (!queryType.Fields.ContainsName(FieldNames.Node))
             {
                 var canonicalNodeField = new MutableOutputFieldDefinition(FieldNames.Node, nodeType);
                 canonicalNodeField.Arguments.Add(
                     new MutableInputFieldDefinition(ArgumentNames.Id, new NonNullType(idType)));
+                canonicalNodeField.Directives.Add(
+                    new Directive(_fusionDirectiveDefinitions[DirectiveNames.FusionGatewayField]));
 
                 queryType.Fields.Add(canonicalNodeField);
             }
         }
+    }
+
+    private static bool IsGoiNodeField(
+        MutableOutputFieldDefinition field,
+        IInterfaceTypeDefinition nodeType,
+        IScalarTypeDefinition idType)
+    {
+        if (field.Name != FieldNames.Node
+            || field.Type != nodeType
+            || field.Arguments.Count != 1
+            || !field.Arguments.TryGetField(ArgumentNames.Id, out var argument))
+        {
+            return false;
+        }
+
+        return argument.Type is NonNullType { NullableType: var nullableType }
+            && nullableType.NamedType() == idType
+            && nullableType.Kind == TypeKind.Scalar;
+    }
+
+    private static bool IsGoiNodesField(
+        MutableOutputFieldDefinition field,
+        IInterfaceTypeDefinition nodeType,
+        IScalarTypeDefinition idType)
+    {
+        if (field.Name != FieldNames.Nodes
+            || field.Type.NamedType() != nodeType
+            || field.Arguments.Count != 1
+            || !field.Arguments.TryGetField(ArgumentNames.Ids, out var argument))
+        {
+            return false;
+        }
+
+        return argument.Type is NonNullType
+            {
+                NullableType: ListType
+                {
+                    ElementType: NonNullType
+                    {
+                        NullableType: var idElementType
+                    }
+                }
+            }
+            && idElementType.NamedType() == idType
+            && idElementType.Kind == TypeKind.Scalar;
     }
 
     /// <summary>
@@ -1822,6 +1870,10 @@ internal sealed class SourceSchemaMerger
                     stringType,
                     fieldSelectionSetType,
                     booleanType)
+            },
+            {
+                DirectiveNames.FusionGatewayField,
+                new FusionGatewayFieldMutableDirectiveDefinition()
             },
             {
                 DirectiveNames.FusionImplements,

@@ -4,6 +4,7 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using HotChocolate.Buffers;
 using HotChocolate.Execution;
+using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Logging;
 using HotChocolate.Fusion.Options;
 using HotChocolate.Language;
@@ -38,7 +39,23 @@ internal static class FusionGatewayBuilder
     /// </returns>
     public static Task<FusionGateway> ComposeAsync(
         params (string Name, Func<Task<SubgraphHost>> Factory)[] subgraphs)
-        => ComposeAsync(capture: null, sourceSchemaSettings: null, subgraphs);
+        => ComposeAsync(
+            capture: null,
+            sourceSchemaSettings: null,
+            NodeResolution.Gateway,
+            subgraphs);
+
+    /// <summary>
+    /// Composes a Fusion gateway around the supplied Apollo Federation subgraphs.
+    /// </summary>
+    /// <param name="nodeResolution">
+    /// Determines how the gateway resolves the <c>Query.node</c> field.
+    /// </param>
+    /// <param name="subgraphs">Named subgraph factories.</param>
+    public static Task<FusionGateway> ComposeAsync(
+        NodeResolution nodeResolution,
+        params (string Name, Func<Task<SubgraphHost>> Factory)[] subgraphs)
+        => ComposeAsync(capture: null, sourceSchemaSettings: null, nodeResolution, subgraphs);
 
     /// <summary>
     /// Composes a Fusion gateway around the supplied Apollo Federation subgraphs,
@@ -52,7 +69,7 @@ internal static class FusionGatewayBuilder
     public static Task<FusionGateway> ComposeAsync(
         SubgraphRequestCapture? capture,
         params (string Name, Func<Task<SubgraphHost>> Factory)[] subgraphs)
-        => ComposeAsync(capture, sourceSchemaSettings: null, subgraphs);
+        => ComposeAsync(capture, sourceSchemaSettings: null, NodeResolution.Gateway, subgraphs);
 
     /// <summary>
     /// Composes a Fusion gateway around the supplied Apollo Federation subgraphs,
@@ -69,9 +86,34 @@ internal static class FusionGatewayBuilder
     /// declare transport capabilities the way an operator would in gateway settings.
     /// </param>
     /// <param name="subgraphs">Named subgraph factories.</param>
+    public static Task<FusionGateway> ComposeAsync(
+        SubgraphRequestCapture? capture,
+        IReadOnlyDictionary<string, string>? sourceSchemaSettings,
+        params (string Name, Func<Task<SubgraphHost>> Factory)[] subgraphs)
+        => ComposeAsync(capture, sourceSchemaSettings, NodeResolution.Gateway, subgraphs);
+
+    /// <summary>
+    /// Composes a Fusion gateway around the supplied Apollo Federation subgraphs,
+    /// optionally recording the outgoing subgraph HTTP requests and merging
+    /// operator-supplied settings into the generated gateway settings document.
+    /// </summary>
+    /// <param name="capture">
+    /// When not <see langword="null"/>, records every gateway to subgraph HTTP request
+    /// so a test can assert the number and shape of the requests that were sent.
+    /// </param>
+    /// <param name="sourceSchemaSettings">
+    /// When not <see langword="null"/>, maps a source schema name to a raw JSON object
+    /// that is deep-merged into that source schema's settings node, so a test can
+    /// declare transport capabilities the way an operator would in gateway settings.
+    /// </param>
+    /// <param name="nodeResolution">
+    /// Determines how the gateway resolves the <c>Query.node</c> field.
+    /// </param>
+    /// <param name="subgraphs">Named subgraph factories.</param>
     public static async Task<FusionGateway> ComposeAsync(
         SubgraphRequestCapture? capture,
         IReadOnlyDictionary<string, string>? sourceSchemaSettings,
+        NodeResolution nodeResolution,
         params (string Name, Func<Task<SubgraphHost>> Factory)[] subgraphs)
     {
         ArgumentNullException.ThrowIfNull(subgraphs);
@@ -107,7 +149,10 @@ internal static class FusionGatewayBuilder
                 subgraphInfos.Add(info);
             }
 
-            var schemaDocument = ComposeSchema(sourceSchemaTexts);
+            var enableGlobalObjectIdentification = nodeResolution != NodeResolution.Gateway;
+            var schemaDocument = ComposeSchema(
+                sourceSchemaTexts,
+                enableGlobalObjectIdentification);
             var settings = BuildGatewaySettings(subgraphInfos, sourceSchemaSettings);
 
             var gatewayServices = new ServiceCollection();
@@ -117,6 +162,7 @@ internal static class FusionGatewayBuilder
             gatewayServices
                 .AddGraphQLGateway()
                 .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
+                .ModifyOptions(o => o.NodeResolution = nodeResolution)
                 .AddInMemoryConfiguration(schemaDocument, settings);
 
             var services = gatewayServices.BuildServiceProvider();
@@ -185,7 +231,9 @@ internal static class FusionGatewayBuilder
         return sdlText;
     }
 
-    private static DocumentNode ComposeSchema(IReadOnlyList<SourceSchemaText> sourceSchemas)
+    private static DocumentNode ComposeSchema(
+        IReadOnlyList<SourceSchemaText> sourceSchemas,
+        bool enableGlobalObjectIdentification)
     {
         var compositionLog = new CompositionLog();
         var options = new SchemaComposerOptions();
@@ -205,6 +253,11 @@ internal static class FusionGatewayBuilder
                     InferKeysFromLookups = false
                 }
             };
+        }
+
+        if (enableGlobalObjectIdentification)
+        {
+            options.Merger.EnableGlobalObjectIdentification = true;
         }
 
         var composer = new SchemaComposer(sourceSchemas, options, compositionLog);

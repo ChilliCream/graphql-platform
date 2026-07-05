@@ -321,6 +321,15 @@ namespace HotChocolate.Fusion.Properties {
         }
 
         /// <summary>
+        ///   Looks up a localized string similar to The @fusion__gateway_field directive marks a field that is implemented by the gateway itself rather than resolved from an underlying source schema, such as the global object identification node field..
+        /// </summary>
+        internal static string FusionGatewayFieldMutableDirectiveDefinition_Description {
+            get {
+                return ResourceManager.GetString("FusionGatewayFieldMutableDirectiveDefinition_Description", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to The @fusion__implements directive specifies on which source schema an interface is implemented by an object or interface type..
         /// </summary>
         internal static string FusionImplementsMutableDirectiveDefinition_Description {
