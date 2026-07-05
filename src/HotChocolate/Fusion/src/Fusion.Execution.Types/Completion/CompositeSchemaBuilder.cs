@@ -1,11 +1,11 @@
 using System.Collections.Immutable;
 using HotChocolate.Features;
 using HotChocolate.Fusion.Language;
-using HotChocolate.Fusion.Rewriters;
 using HotChocolate.Fusion.Types.Collections;
 using HotChocolate.Fusion.Types.Directives;
 using HotChocolate.Fusion.Types.Introspection;
 using HotChocolate.Fusion.Types.Metadata;
+using HotChocolate.Fusion.Types.Rewriters;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;

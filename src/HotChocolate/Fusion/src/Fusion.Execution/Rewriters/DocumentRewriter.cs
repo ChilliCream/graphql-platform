@@ -2,12 +2,13 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Fusion.Planning;
+using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
-namespace HotChocolate.Fusion.Rewriters;
+namespace HotChocolate.Fusion.Execution.Rewriters;
 
-public sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStaticallyExcludedSelections = false)
+public sealed class DocumentRewriter(FusionSchemaDefinition schema, bool removeStaticallyExcludedSelections = false)
 {
     private static readonly FieldNode s_typeNameField =
         new(
@@ -87,7 +88,7 @@ public sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStatic
     {
         var (conditional, _, directives) = DivideDirectives(
             fieldNode,
-            Types.DirectiveLocation.Field);
+            HotChocolate.Types.DirectiveLocation.Field);
 
         if (conditional is not null)
         {
@@ -130,12 +131,14 @@ public sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStatic
     private void CollectInlineFragment(InlineFragmentNode inlineFragment, Context context)
     {
         var typeCondition = inlineFragment.TypeCondition is not null
-            ? schema.Types[inlineFragment.TypeCondition.Name.Value]
+            ? schema.Types.GetType(
+                inlineFragment.TypeCondition.Name.Value,
+                allowInaccessibleFields: true)
             : context.Type;
 
         var (conditional, defer, directives) = DivideDirectives(
             inlineFragment,
-            Types.DirectiveLocation.InlineFragment);
+            HotChocolate.Types.DirectiveLocation.InlineFragment);
 
         CollectFragment(
             inlineFragment.SelectionSet,
@@ -149,11 +152,13 @@ public sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStatic
     private void CollectFragmentSpread(FragmentSpreadNode fragmentSpread, Context context)
     {
         var fragmentDefinition = context.GetFragmentDefinition(fragmentSpread.Name.Value);
-        var typeCondition = schema.Types[fragmentDefinition.TypeCondition.Name.Value];
+        var typeCondition = schema.Types.GetType(
+            fragmentDefinition.TypeCondition.Name.Value,
+            allowInaccessibleFields: true);
 
         var (conditional, defer, directives) = DivideDirectives(
             fragmentSpread,
-            Types.DirectiveLocation.InlineFragment);
+            HotChocolate.Types.DirectiveLocation.InlineFragment);
 
         CollectFragment(
             fragmentDefinition.SelectionSet,
@@ -585,7 +590,7 @@ public sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStatic
 
     private (Conditional? Conditional, Defer? Defer, IReadOnlyList<DirectiveNode>? Directives) DivideDirectives(
         IHasDirectives directiveProvider,
-        Types.DirectiveLocation targetLocation)
+        HotChocolate.Types.DirectiveLocation targetLocation)
     {
         if (directiveProvider.Directives.Count == 0)
         {

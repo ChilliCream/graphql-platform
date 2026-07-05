@@ -1,16 +1,15 @@
 using HotChocolate.Language;
-using HotChocolate.Types.Mutable.Serialization;
 
-namespace HotChocolate.Fusion.Rewriters;
+namespace HotChocolate.Fusion.Execution.Rewriters;
 
-public class DocumentRewriterTests
+public class DocumentRewriterTests : FusionTestBase
 {
     [Fact]
     public void Inline_Into_ProductById_SelectionSet()
     {
         // arrange
         var sourceText = FileResource.Open("schema1.graphql");
-        var schemaDefinition = SchemaParser.Parse(sourceText);
+        var schemaDefinition = ComposeSchema(sourceText);
 
         var doc = Utf8GraphQLParser.Parse(
             """
@@ -47,7 +46,7 @@ public class DocumentRewriterTests
     {
         // arrange
         var sourceText = FileResource.Open("schema1.graphql");
-        var schemaDefinition = SchemaParser.Parse(sourceText);
+        var schemaDefinition = ComposeSchema(sourceText);
 
         var doc = Utf8GraphQLParser.Parse(
             """
@@ -88,7 +87,7 @@ public class DocumentRewriterTests
     {
         // arrange
         var sourceText = FileResource.Open("schema1.graphql");
-        var schemaDefinition = SchemaParser.Parse(sourceText);
+        var schemaDefinition = ComposeSchema(sourceText);
 
         var doc = Utf8GraphQLParser.Parse(
             """
@@ -123,7 +122,7 @@ public class DocumentRewriterTests
     {
         // arrange
         var sourceText = FileResource.Open("schema1.graphql");
-        var schemaDefinition = SchemaParser.Parse(sourceText);
+        var schemaDefinition = ComposeSchema(sourceText);
 
         var doc = Utf8GraphQLParser.Parse(
             """
@@ -166,7 +165,7 @@ public class DocumentRewriterTests
     {
         // arrange
         var sourceText = FileResource.Open("schema1.graphql");
-        var schemaDefinition = SchemaParser.Parse(sourceText);
+        var schemaDefinition = ComposeSchema(sourceText);
 
         var doc = Utf8GraphQLParser.Parse(
             """
@@ -202,7 +201,7 @@ public class DocumentRewriterTests
     {
         // arrange
         var sourceText = FileResource.Open("schema1.graphql");
-        var schemaDefinition = SchemaParser.Parse(sourceText);
+        var schemaDefinition = ComposeSchema(sourceText);
 
         var doc = Utf8GraphQLParser.Parse(
             """
@@ -237,7 +236,7 @@ public class DocumentRewriterTests
     {
         // arrange
         var sourceText = FileResource.Open("schema1.graphql");
-        var schemaDefinition = SchemaParser.Parse(sourceText);
+        var schemaDefinition = ComposeSchema(sourceText);
 
         var doc = Utf8GraphQLParser.Parse(
             """
@@ -276,7 +275,7 @@ public class DocumentRewriterTests
     {
         // arrange
         var sourceText = FileResource.Open("schema1.graphql");
-        var schemaDefinition = SchemaParser.Parse(sourceText);
+        var schemaDefinition = ComposeSchema(sourceText);
 
         var doc = Utf8GraphQLParser.Parse(
             """
@@ -314,7 +313,7 @@ public class DocumentRewriterTests
     {
         // arrange
         var sourceText = FileResource.Open("schema1.graphql");
-        var schemaDefinition = SchemaParser.Parse(sourceText);
+        var schemaDefinition = ComposeSchema(sourceText);
 
         var doc = Utf8GraphQLParser.Parse(
             """
@@ -349,7 +348,7 @@ public class DocumentRewriterTests
     {
         // arrange
         var sourceText = FileResource.Open("schema1.graphql");
-        var schemaDefinition = SchemaParser.Parse(sourceText);
+        var schemaDefinition = ComposeSchema(sourceText);
 
         var doc = Utf8GraphQLParser.Parse(
             """
@@ -380,7 +379,7 @@ public class DocumentRewriterTests
     {
         // arrange
         var sourceText = FileResource.Open("schema1.graphql");
-        var schemaDefinition = SchemaParser.Parse(sourceText);
+        var schemaDefinition = ComposeSchema(sourceText);
 
         var doc = Utf8GraphQLParser.Parse(
             """
@@ -415,7 +414,7 @@ public class DocumentRewriterTests
     {
         // arrange
         var sourceText = FileResource.Open("schema1.graphql");
-        var schemaDefinition = SchemaParser.Parse(sourceText);
+        var schemaDefinition = ComposeSchema(sourceText);
 
         var doc = Utf8GraphQLParser.Parse(
             """
@@ -456,7 +455,7 @@ public class DocumentRewriterTests
     {
         // arrange
         var sourceText = FileResource.Open("schema1.graphql");
-        var schemaDefinition = SchemaParser.Parse(sourceText);
+        var schemaDefinition = ComposeSchema(sourceText);
 
         var doc = Utf8GraphQLParser.Parse(
             """
@@ -511,7 +510,7 @@ public class DocumentRewriterTests
     {
         // arrange
         var sourceText = FileResource.Open("schema1.graphql");
-        var schemaDefinition = SchemaParser.Parse(sourceText);
+        var schemaDefinition = ComposeSchema(sourceText);
 
         var doc = Utf8GraphQLParser.Parse(
             """
@@ -550,7 +549,7 @@ public class DocumentRewriterTests
     {
         // arrange
         var sourceText = FileResource.Open("schema1.graphql");
-        var schemaDefinition = SchemaParser.Parse(sourceText);
+        var schemaDefinition = ComposeSchema(sourceText);
 
         var doc = Utf8GraphQLParser.Parse(
             """
@@ -584,7 +583,7 @@ public class DocumentRewriterTests
     {
         // arrange
         var sourceText = FileResource.Open("schema1.graphql");
-        var schemaDefinition = SchemaParser.Parse(sourceText);
+        var schemaDefinition = ComposeSchema(sourceText);
 
         var doc = Utf8GraphQLParser.Parse(
             """
@@ -616,7 +615,7 @@ public class DocumentRewriterTests
     {
         // arrange
         var sourceText = FileResource.Open("schema1.graphql");
-        var schemaDefinition = SchemaParser.Parse(sourceText);
+        var schemaDefinition = ComposeSchema(sourceText);
 
         var doc = Utf8GraphQLParser.Parse(
             """
@@ -650,7 +649,7 @@ public class DocumentRewriterTests
     {
         // arrange
         var sourceText = FileResource.Open("schema1.graphql");
-        var schemaDefinition = SchemaParser.Parse(sourceText);
+        var schemaDefinition = ComposeSchema(sourceText);
 
         var doc = Utf8GraphQLParser.Parse(
             """
@@ -685,7 +684,7 @@ public class DocumentRewriterTests
     {
         // arrange
         var sourceText = FileResource.Open("schema1.graphql");
-        var schemaDefinition = SchemaParser.Parse(sourceText);
+        var schemaDefinition = ComposeSchema(sourceText);
 
         var doc = Utf8GraphQLParser.Parse(
             """
@@ -720,7 +719,7 @@ public class DocumentRewriterTests
     {
         // arrange
         var sourceText = FileResource.Open("schema1.graphql");
-        var schemaDefinition = SchemaParser.Parse(sourceText);
+        var schemaDefinition = ComposeSchema(sourceText);
 
         var doc = Utf8GraphQLParser.Parse(
             """
@@ -761,7 +760,7 @@ public class DocumentRewriterTests
     {
         // arrange
         var sourceText = FileResource.Open("schema1.graphql");
-        var schemaDefinition = SchemaParser.Parse(sourceText);
+        var schemaDefinition = ComposeSchema(sourceText);
 
         var doc = Utf8GraphQLParser.Parse(
             """
@@ -802,7 +801,7 @@ public class DocumentRewriterTests
     {
         // arrange
         var sourceText = FileResource.Open("schema1.graphql");
-        var schemaDefinition = SchemaParser.Parse(sourceText);
+        var schemaDefinition = ComposeSchema(sourceText);
 
         var doc = Utf8GraphQLParser.Parse(
             """
@@ -843,7 +842,7 @@ public class DocumentRewriterTests
     {
         // arrange
         var sourceText = FileResource.Open("schema1.graphql");
-        var schemaDefinition = SchemaParser.Parse(sourceText);
+        var schemaDefinition = ComposeSchema(sourceText);
 
         var doc = Utf8GraphQLParser.Parse(
             """
@@ -884,7 +883,7 @@ public class DocumentRewriterTests
     {
         // arrange
         var sourceText = FileResource.Open("schema1.graphql");
-        var schemaDefinition = SchemaParser.Parse(sourceText);
+        var schemaDefinition = ComposeSchema(sourceText);
 
         var doc = Utf8GraphQLParser.Parse(
             """
@@ -915,7 +914,7 @@ public class DocumentRewriterTests
     {
         // arrange
         var sourceText = FileResource.Open("schema1.graphql");
-        var schemaDefinition = SchemaParser.Parse(sourceText);
+        var schemaDefinition = ComposeSchema(sourceText);
 
         var doc = Utf8GraphQLParser.Parse(
             """
@@ -949,7 +948,7 @@ public class DocumentRewriterTests
     {
         // arrange
         var sourceText = FileResource.Open("schema1.graphql");
-        var schemaDefinition = SchemaParser.Parse(sourceText);
+        var schemaDefinition = ComposeSchema(sourceText);
 
         var doc = Utf8GraphQLParser.Parse(
             """
@@ -992,7 +991,7 @@ public class DocumentRewriterTests
     {
         // arrange
         var sourceText = FileResource.Open("schema1.graphql");
-        var schemaDefinition = SchemaParser.Parse(sourceText);
+        var schemaDefinition = ComposeSchema(sourceText);
 
         var doc = Utf8GraphQLParser.Parse(
             """
@@ -1026,7 +1025,7 @@ public class DocumentRewriterTests
     {
         // arrange
         var sourceText = FileResource.Open("schema1.graphql");
-        var schemaDefinition = SchemaParser.Parse(sourceText);
+        var schemaDefinition = ComposeSchema(sourceText);
 
         var doc = Utf8GraphQLParser.Parse(
             """
@@ -1065,7 +1064,7 @@ public class DocumentRewriterTests
     {
         // arrange
         var sourceText = FileResource.Open("schema1.graphql");
-        var schemaDefinition = SchemaParser.Parse(sourceText);
+        var schemaDefinition = ComposeSchema(sourceText);
 
         var doc = Utf8GraphQLParser.Parse(
             """
@@ -1103,7 +1102,7 @@ public class DocumentRewriterTests
     public void InlineFragment_With_Conditional_On_Same_Type_Merged_With_Unconditional()
     {
         // arrange
-        var schemaDefinition = SchemaParser.Parse(
+        var schemaDefinition = ComposeSchema(
             """
             type Query {
               votables: [Votable!]!
@@ -1158,7 +1157,7 @@ public class DocumentRewriterTests
     public void InlineFragment_With_Conditional_On_Same_Type_With_Different_Fields()
     {
         // arrange
-        var schemaDefinition = SchemaParser.Parse(
+        var schemaDefinition = ComposeSchema(
             """
             type Query {
               votables: [Votable!]!
@@ -1212,7 +1211,7 @@ public class DocumentRewriterTests
     public void InlineFragment_With_Conditional_Without_TypeCondition_Not_Merged()
     {
         // arrange
-        var schemaDefinition = SchemaParser.Parse(
+        var schemaDefinition = ComposeSchema(
             """
             type Query {
               votables: [Votable!]!
@@ -1270,7 +1269,7 @@ public class DocumentRewriterTests
     public void Nested_InlineFragment_With_Conditional_Merged_Into_Parent()
     {
         // arrange
-        var schemaDefinition = SchemaParser.Parse(
+        var schemaDefinition = ComposeSchema(
             """
             type Query {
               votables: [Votable!]!
@@ -1325,7 +1324,7 @@ public class DocumentRewriterTests
     public void Nested_InlineFragment_With_Conditional_On_Parent_And_Child()
     {
         // arrange
-        var schemaDefinition = SchemaParser.Parse(
+        var schemaDefinition = ComposeSchema(
             """
             type Query {
               votables: [Votable!]!
@@ -1380,7 +1379,7 @@ public class DocumentRewriterTests
     public void Multiple_Nested_InlineFragments_With_Different_Conditionals_Not_Merged()
     {
         // arrange
-        var schemaDefinition = SchemaParser.Parse(
+        var schemaDefinition = ComposeSchema(
             """
             type Query {
               productBySlug(slug: String!): Product
@@ -1436,7 +1435,7 @@ public class DocumentRewriterTests
     public void Multiple_Nested_InlineFragments_With_Different_Conditionals_Merged_When_Field_Unconditional()
     {
         // arrange
-        var schemaDefinition = SchemaParser.Parse(
+        var schemaDefinition = ComposeSchema(
             """
             type Query {
               productBySlug(slug: String!): Product
@@ -1495,7 +1494,7 @@ public class DocumentRewriterTests
     public void Same_Field_With_Different_Conditionals_Not_Merged()
     {
         // arrange
-        var schemaDefinition = SchemaParser.Parse(
+        var schemaDefinition = ComposeSchema(
             """
             type Query {
               productBySlug(slug: String!): Product
@@ -1537,7 +1536,7 @@ public class DocumentRewriterTests
     public void InlineFragments_On_Same_Type_With_Different_Conditionals_Not_Merged()
     {
         // arrange
-        var schemaDefinition = SchemaParser.Parse(
+        var schemaDefinition = ComposeSchema(
             """
             type Query {
               votables: [Votable!]!
@@ -1597,7 +1596,7 @@ public class DocumentRewriterTests
     public void InlineFragments_With_Different_Conditionals_Merged_When_Field_Unconditional()
     {
         // arrange
-        var schemaDefinition = SchemaParser.Parse(
+        var schemaDefinition = ComposeSchema(
             """
             type Query {
               votables: [Votable!]!
@@ -1658,7 +1657,7 @@ public class DocumentRewriterTests
     {
         // arrange
         var sourceText = FileResource.Open("schema1.graphql");
-        var schemaDefinition = SchemaParser.Parse(sourceText);
+        var schemaDefinition = ComposeSchema(sourceText);
 
         var doc = Utf8GraphQLParser.Parse(
             """
@@ -1699,7 +1698,7 @@ public class DocumentRewriterTests
     {
         // arrange
         var sourceText = FileResource.Open("schema1.graphql");
-        var schemaDefinition = SchemaParser.Parse(sourceText);
+        var schemaDefinition = ComposeSchema(sourceText);
 
         var doc = Utf8GraphQLParser.Parse(
             """
@@ -1741,7 +1740,7 @@ public class DocumentRewriterTests
     public void Multiple_Nested_InlineFragments_With_Same_Conditional_Merged()
     {
         // arrange
-        var schemaDefinition = SchemaParser.Parse(
+        var schemaDefinition = ComposeSchema(
             """
             type Query {
               productBySlug(slug: String!): Product
@@ -1805,7 +1804,7 @@ public class DocumentRewriterTests
     {
         // arrange
         var sourceText = FileResource.Open("schema1.graphql");
-        var schemaDefinition = SchemaParser.Parse(sourceText);
+        var schemaDefinition = ComposeSchema(sourceText);
 
         var doc = Utf8GraphQLParser.Parse(
             """
@@ -1839,7 +1838,7 @@ public class DocumentRewriterTests
     public void Three_Level_Nested_InlineFragments_With_Mixed_Conditionals()
     {
         // arrange
-        var schemaDefinition = SchemaParser.Parse(
+        var schemaDefinition = ComposeSchema(
             """
             type Query {
               productBySlug(slug: String!): Product
@@ -1917,7 +1916,7 @@ public class DocumentRewriterTests
     public void InlineFragments_At_Multiple_Levels_With_Same_Conditional_Merged()
     {
         // arrange
-        var schemaDefinition = SchemaParser.Parse(
+        var schemaDefinition = ComposeSchema(
             """
             type Query {
               productBySlug(slug: String!): Product
@@ -1978,7 +1977,7 @@ public class DocumentRewriterTests
     {
         // arrange
         var sourceText = FileResource.Open("schema1.graphql");
-        var schemaDefinition = SchemaParser.Parse(sourceText);
+        var schemaDefinition = ComposeSchema(sourceText);
 
         var doc = Utf8GraphQLParser.Parse(
             """
@@ -2023,7 +2022,7 @@ public class DocumentRewriterTests
     {
         // arrange
         var sourceText = FileResource.Open("schema1.graphql");
-        var schemaDefinition = SchemaParser.Parse(sourceText);
+        var schemaDefinition = ComposeSchema(sourceText);
 
         var doc = Utf8GraphQLParser.Parse(
             """
@@ -2056,7 +2055,7 @@ public class DocumentRewriterTests
     {
         // arrange
         var sourceText = FileResource.Open("schema1.graphql");
-        var schemaDefinition = SchemaParser.Parse(sourceText);
+        var schemaDefinition = ComposeSchema(sourceText);
 
         var doc = Utf8GraphQLParser.Parse(
             """
@@ -2093,7 +2092,7 @@ public class DocumentRewriterTests
     {
         // arrange
         var sourceText = FileResource.Open("schema1.graphql");
-        var schemaDefinition = SchemaParser.Parse(sourceText);
+        var schemaDefinition = ComposeSchema(sourceText);
 
         var doc = Utf8GraphQLParser.Parse(
             """
@@ -2138,7 +2137,7 @@ public class DocumentRewriterTests
     {
         // arrange
         var sourceText = FileResource.Open("schema1.graphql");
-        var schemaDefinition = SchemaParser.Parse(sourceText);
+        var schemaDefinition = ComposeSchema(sourceText);
 
         var doc = Utf8GraphQLParser.Parse(
             """
@@ -2174,7 +2173,7 @@ public class DocumentRewriterTests
     public void Complex_Nested_Structure_With_Multiple_Conditional_Levels()
     {
         // arrange
-        var schemaDefinition = SchemaParser.Parse(
+        var schemaDefinition = ComposeSchema(
             """
             type Query {
               productBySlug(slug: String!): Product
@@ -2242,7 +2241,7 @@ public class DocumentRewriterTests
     public void InlineFragment_With_TypeCondition_And_Without_Both_Conditional()
     {
         // arrange
-        var schemaDefinition = SchemaParser.Parse(
+        var schemaDefinition = ComposeSchema(
             """
             type Query {
               votables: [Votable!]!
@@ -2299,7 +2298,7 @@ public class DocumentRewriterTests
     {
         // arrange
         var sourceText = FileResource.Open("schema1.graphql");
-        var schemaDefinition = SchemaParser.Parse(sourceText);
+        var schemaDefinition = ComposeSchema(sourceText);
 
         var doc = Utf8GraphQLParser.Parse(
             """
@@ -2346,7 +2345,7 @@ public class DocumentRewriterTests
     {
         // arrange
         var sourceText = FileResource.Open("schema1.graphql");
-        var schemaDefinition = SchemaParser.Parse(sourceText);
+        var schemaDefinition = ComposeSchema(sourceText);
 
         var doc = Utf8GraphQLParser.Parse(
             """
@@ -2382,7 +2381,7 @@ public class DocumentRewriterTests
     public void Deeply_Nested_InlineFragments_With_Alternating_Conditionals()
     {
         // arrange
-        var schemaDefinition = SchemaParser.Parse(
+        var schemaDefinition = ComposeSchema(
             """
             type Query {
               productBySlug(slug: String!): Product
@@ -2460,7 +2459,7 @@ public class DocumentRewriterTests
     public void Remove_Opposite_Child_Conditional_With_Same_Value_Skip_Include()
     {
         // arrange
-        var schemaDefinition = SchemaParser.Parse(
+        var schemaDefinition = ComposeSchema(
             """
             type Query {
               productBySlug(slug: String!): Product
@@ -2509,7 +2508,7 @@ public class DocumentRewriterTests
     public void Remove_Opposite_Child_Conditional_With_Same_Value_Include_Skip()
     {
         // arrange
-        var schemaDefinition = SchemaParser.Parse(
+        var schemaDefinition = ComposeSchema(
             """
             type Query {
               productBySlug(slug: String!): Product
@@ -2559,7 +2558,7 @@ public class DocumentRewriterTests
     {
         // arrange
         var sourceText = FileResource.Open("schema1.graphql");
-        var schemaDefinition = SchemaParser.Parse(sourceText);
+        var schemaDefinition = ComposeSchema(sourceText);
 
         var doc = Utf8GraphQLParser.Parse(
             """
@@ -2593,7 +2592,7 @@ public class DocumentRewriterTests
     {
         // arrange
         var sourceText = FileResource.Open("schema1.graphql");
-        var schemaDefinition = SchemaParser.Parse(sourceText);
+        var schemaDefinition = ComposeSchema(sourceText);
 
         var doc = Utf8GraphQLParser.Parse(
             """
@@ -2636,7 +2635,7 @@ public class DocumentRewriterTests
     {
         // arrange
         var sourceText = FileResource.Open("schema1.graphql");
-        var schemaDefinition = SchemaParser.Parse(sourceText);
+        var schemaDefinition = ComposeSchema(sourceText);
 
         var doc = Utf8GraphQLParser.Parse(
             """
@@ -2673,7 +2672,7 @@ public class DocumentRewriterTests
     {
         // arrange
         var sourceText = FileResource.Open("schema1.graphql");
-        var schemaDefinition = SchemaParser.Parse(sourceText);
+        var schemaDefinition = ComposeSchema(sourceText);
 
         var doc = Utf8GraphQLParser.Parse(
             """
@@ -2706,7 +2705,7 @@ public class DocumentRewriterTests
     {
         // arrange
         var sourceText = FileResource.Open("schema1.graphql");
-        var schemaDefinition = SchemaParser.Parse(sourceText);
+        var schemaDefinition = ComposeSchema(sourceText);
 
         var doc = Utf8GraphQLParser.Parse(
             """
@@ -2747,7 +2746,7 @@ public class DocumentRewriterTests
     {
         // arrange
         var sourceText = FileResource.Open("schema1.graphql");
-        var schemaDefinition = SchemaParser.Parse(sourceText);
+        var schemaDefinition = ComposeSchema(sourceText);
 
         var doc = Utf8GraphQLParser.Parse(
             """
@@ -2788,7 +2787,7 @@ public class DocumentRewriterTests
     {
         // arrange
         var sourceText = FileResource.Open("schema1.graphql");
-        var schemaDefinition = SchemaParser.Parse(sourceText);
+        var schemaDefinition = ComposeSchema(sourceText);
 
         var doc = Utf8GraphQLParser.Parse(
             """
@@ -2829,7 +2828,7 @@ public class DocumentRewriterTests
     {
         // arrange
         var sourceText = FileResource.Open("schema1.graphql");
-        var schemaDefinition = SchemaParser.Parse(sourceText);
+        var schemaDefinition = ComposeSchema(sourceText);
 
         var doc = Utf8GraphQLParser.Parse(
             """
@@ -2870,7 +2869,7 @@ public class DocumentRewriterTests
     {
         // arrange
         var sourceText = FileResource.Open("schema1.graphql");
-        var schemaDefinition = SchemaParser.Parse(sourceText);
+        var schemaDefinition = ComposeSchema(sourceText);
 
         var doc = Utf8GraphQLParser.Parse(
             """
@@ -2911,7 +2910,7 @@ public class DocumentRewriterTests
     {
         // arrange
         var sourceText = FileResource.Open("schema1.graphql");
-        var schemaDefinition = SchemaParser.Parse(sourceText);
+        var schemaDefinition = ComposeSchema(sourceText);
 
         var doc = Utf8GraphQLParser.Parse(
             """
@@ -2955,7 +2954,7 @@ public class DocumentRewriterTests
     {
         // arrange
         var sourceText = FileResource.Open("schema1.graphql");
-        var schemaDefinition = SchemaParser.Parse(sourceText);
+        var schemaDefinition = ComposeSchema(sourceText);
 
         var doc = Utf8GraphQLParser.Parse(
             """
@@ -2993,7 +2992,7 @@ public class DocumentRewriterTests
     {
         // arrange
         var sourceText = FileResource.Open("schema1.graphql");
-        var schemaDefinition = SchemaParser.Parse(sourceText);
+        var schemaDefinition = ComposeSchema(sourceText);
 
         var doc = Utf8GraphQLParser.Parse(
             """
@@ -3032,7 +3031,7 @@ public class DocumentRewriterTests
     {
         // arrange
         var sourceText = FileResource.Open("schema1.graphql");
-        var schemaDefinition = SchemaParser.Parse(sourceText);
+        var schemaDefinition = ComposeSchema(sourceText);
 
         var doc = Utf8GraphQLParser.Parse(
             """
@@ -3073,7 +3072,7 @@ public class DocumentRewriterTests
     {
         // arrange
         var sourceText = FileResource.Open("schema1.graphql");
-        var schemaDefinition = SchemaParser.Parse(sourceText);
+        var schemaDefinition = ComposeSchema(sourceText);
 
         var doc = Utf8GraphQLParser.Parse(
             """
@@ -3109,7 +3108,7 @@ public class DocumentRewriterTests
     {
         // arrange
         var sourceText = FileResource.Open("schema1.graphql");
-        var schemaDefinition = SchemaParser.Parse(sourceText);
+        var schemaDefinition = ComposeSchema(sourceText);
 
         var doc = Utf8GraphQLParser.Parse(
             """
@@ -3152,7 +3151,7 @@ public class DocumentRewriterTests
     {
         // arrange
         var sourceText = FileResource.Open("schema1.graphql");
-        var schemaDefinition = SchemaParser.Parse(sourceText);
+        var schemaDefinition = ComposeSchema(sourceText);
 
         var doc = Utf8GraphQLParser.Parse(
             """
@@ -3188,7 +3187,7 @@ public class DocumentRewriterTests
     public void Defer_On_TypedInlineFragment_With_Refinement_Stays_On_InlineFragment()
     {
         // arrange
-        var schemaDefinition = SchemaParser.Parse(
+        var schemaDefinition = ComposeSchema(
             """
             type Query {
               votables: [Votable!]!
@@ -3238,7 +3237,7 @@ public class DocumentRewriterTests
     public void Defer_On_TypedInlineFragment_With_Refinement_Moves_Down_When_Sibling_Without_Defer()
     {
         // arrange
-        var schemaDefinition = SchemaParser.Parse(
+        var schemaDefinition = ComposeSchema(
             """
             type Query {
               votables: [Votable!]!
@@ -3295,7 +3294,7 @@ public class DocumentRewriterTests
     {
         // arrange
         var sourceText = FileResource.Open("schema1.graphql");
-        var schemaDefinition = SchemaParser.Parse(sourceText);
+        var schemaDefinition = ComposeSchema(sourceText);
 
         var doc = Utf8GraphQLParser.Parse(
             """
@@ -3331,7 +3330,7 @@ public class DocumentRewriterTests
     {
         // arrange
         var sourceText = FileResource.Open("schema1.graphql");
-        var schemaDefinition = SchemaParser.Parse(sourceText);
+        var schemaDefinition = ComposeSchema(sourceText);
 
         var doc = Utf8GraphQLParser.Parse(
             """
@@ -3370,7 +3369,7 @@ public class DocumentRewriterTests
     {
         // arrange
         var sourceText = FileResource.Open("schema1.graphql");
-        var schemaDefinition = SchemaParser.Parse(sourceText);
+        var schemaDefinition = ComposeSchema(sourceText);
 
         var doc = Utf8GraphQLParser.Parse(
             """
@@ -3409,7 +3408,7 @@ public class DocumentRewriterTests
     {
         // arrange
         var sourceText = FileResource.Open("schema1.graphql");
-        var schemaDefinition = SchemaParser.Parse(sourceText);
+        var schemaDefinition = ComposeSchema(sourceText);
 
         var doc = Utf8GraphQLParser.Parse(
             """
@@ -3448,7 +3447,7 @@ public class DocumentRewriterTests
     {
         // arrange
         var sourceText = FileResource.Open("schema1.graphql");
-        var schemaDefinition = SchemaParser.Parse(sourceText);
+        var schemaDefinition = ComposeSchema(sourceText);
 
         var doc = Utf8GraphQLParser.Parse(
             """
@@ -3486,7 +3485,7 @@ public class DocumentRewriterTests
     {
         // arrange
         var sourceText = FileResource.Open("schema1.graphql");
-        var schemaDefinition = SchemaParser.Parse(sourceText);
+        var schemaDefinition = ComposeSchema(sourceText);
 
         var doc = Utf8GraphQLParser.Parse(
             """
@@ -3528,7 +3527,7 @@ public class DocumentRewriterTests
     {
         // arrange
         var sourceText = FileResource.Open("schema1.graphql");
-        var schemaDefinition = SchemaParser.Parse(sourceText);
+        var schemaDefinition = ComposeSchema(sourceText);
 
         var doc = Utf8GraphQLParser.Parse(
             """

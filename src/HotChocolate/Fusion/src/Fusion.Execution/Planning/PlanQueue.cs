@@ -249,7 +249,7 @@ internal sealed class PlanQueue(FusionSchemaDefinition schema)
 
             // for each concrete type that implements the abstract type,
             // find a lookup in the target schema.
-            foreach (var possibleType in schema.GetPossibleTypes(type))
+            foreach (var possibleType in schema.GetPossibleTypes(type, includeInaccessible: true))
             {
                 if (!schema.TryGetBestDirectLookup(possibleType, fromSchemas, toSchema, out var concreteLookup))
                 {
@@ -309,7 +309,7 @@ internal sealed class PlanQueue(FusionSchemaDefinition schema)
         string? topSchema = null;
         double topCost = 0;
 
-        foreach (var possibleType in schema.GetPossibleTypes(type))
+        foreach (var possibleType in schema.GetPossibleTypes(type, includeInaccessible: true))
         {
             // rewrite the selection set to target the concrete type with a
             // fragment path so the executor can match the runtime type.

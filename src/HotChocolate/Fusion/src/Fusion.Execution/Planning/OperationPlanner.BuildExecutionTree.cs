@@ -623,7 +623,7 @@ public sealed partial class OperationPlanner
 
     private static EventStreamExecutionNode CreateEventStreamExecutionNode(
         OperationPlanStep operationStep,
-        ISchemaDefinition schema)
+        FusionSchemaDefinition schema)
     {
         var eventStreamPlan = operationStep.EventStreamPlan
             ?? throw new InvalidOperationException("The operation step does not carry event-stream metadata.");
@@ -1830,7 +1830,7 @@ public sealed partial class OperationPlanner
     private static SelectionSetNode PruneNonValueTypeChildren(
         SelectionSetNode selectionSet,
         ITypeDefinition parentType,
-        ISchemaDefinition schema)
+        FusionSchemaDefinition schema)
     {
         if (parentType is not IComplexTypeDefinition complexType)
         {
@@ -1882,7 +1882,10 @@ public sealed partial class OperationPlanner
                 case InlineFragmentNode inlineFragment:
                 {
                     var fragmentType = inlineFragment.TypeCondition is not null
-                        && schema.Types.TryGetType(inlineFragment.TypeCondition.Name.Value, out var resolvedType)
+                        && schema.Types.TryGetType(
+                            inlineFragment.TypeCondition.Name.Value,
+                            allowInaccessibleFields: true,
+                            out var resolvedType)
                             ? resolvedType
                             : parentType;
 
