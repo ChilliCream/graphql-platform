@@ -382,6 +382,43 @@ public class ResolveWithProjectionTests
     }
 
     [Fact]
+    public async Task AsSelector_Should_Reuse_Instance_When_LeafOnly_Selection_Has_No_Covering_Constructor()
+    {
+        // arrange
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<LeafOnlySelectionQuery>()
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            {
+              items {
+                id
+                label
+              }
+            }
+            """,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "items": [
+                  {
+                    "id": 1,
+                    "label": "Some value"
+                  }
+                ]
+              }
+            }
+            """);
+    }
+
+    [Fact]
     public async Task AsSelector_Should_Skip_Computed_ReadOnly_Property_When_Selected()
     {
         // arrange
@@ -625,6 +662,25 @@ public class ResolveWithProjectionTests
     public sealed class UncoveredReadOnlyLeafNested
     {
         public string Name { get; set; } = default!;
+    }
+
+    public class LeafOnlySelectionQuery
+    {
+        public IQueryable<LeafOnlySelectionEntity> GetItems(ISelection selection)
+            => new[] { new LeafOnlySelectionEntity { Id = 1 } }
+                .AsQueryable()
+                .Select(selection.AsSelector<LeafOnlySelectionEntity>());
+    }
+
+    // Label is a read-only leaf that no constructor on this type covers (the only constructor
+    // is parameterless), just like UncoveredReadOnlyLeafEntity above. Unlike that type, the
+    // query below selects leaf members only, so the source instance is reused instead of being
+    // rebuilt from the writable subset, and Label keeps its real value.
+    public sealed class LeafOnlySelectionEntity
+    {
+        public int Id { get; set; }
+
+        public string Label { get; } = "Some value";
     }
 
     public class ComputedPropertyQuery

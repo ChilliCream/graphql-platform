@@ -245,7 +245,7 @@ internal sealed class SelectionExpressionBuilder
 
         var memberList = members.ToImmutable();
 
-        // Wee keep EF constructor-injected entities intact by reusing the existing instance.
+        // We keep EF constructor-injected entities intact by reusing the existing instance.
         if (ShouldReuseExistingInstance(context.ParentType))
         {
             return context.Parent;
@@ -289,9 +289,19 @@ internal sealed class SelectionExpressionBuilder
                 writableMembers.Select(m => Expression.Bind(m.Property, m.Value)));
         }
 
-        // No constructor covers every read-only leaf on this type. The read-only members are
-        // leaf scalars, so dropping them loses no navigation data; project the writable
-        // subset only.
+        // The selection contains only leaf members (no nested object or collection
+        // projection selected below it), so reusing the source instance loses no nested
+        // projection and carries the correct read-only values. This may fetch more columns
+        // than strictly required.
+        if (parent.Nodes.All(n => n.Nodes.Count == 0))
+        {
+            return context.Parent;
+        }
+
+        // The selection also projects a nested object or collection, and no constructor
+        // covers every read-only leaf on this type. Reusing the source instance here would
+        // drop that nested projection on a database-backed source, so the read-only leaf
+        // scalars are dropped instead and only the writable subset is projected.
         return writableMembers.Length == 0
             ? context.Parent
             : BuildFromWritableMembers(context, writableMembers);
