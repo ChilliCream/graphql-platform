@@ -5,7 +5,7 @@ operation:
           byNovice
           id @fusion__requirement
           author @fusion__requirement {
-            yearsOfExperience
+            yearsOfExperience @fusion__requirement
           }
         }
       }

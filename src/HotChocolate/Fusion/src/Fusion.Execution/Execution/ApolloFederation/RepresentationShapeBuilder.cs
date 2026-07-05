@@ -213,7 +213,7 @@ internal static class RepresentationShapeBuilder
             case PathObjectValueSelectionNode pathObject:
                 var terminal = EnsureCompositeChain(level, pathObject.Path);
                 AddObjectFields(
-                    terminal.Children!,
+                    terminal,
                     pathObject.ObjectValueSelection,
                     requirementIndex,
                     lhsPath);
@@ -245,13 +245,12 @@ internal static class RepresentationShapeBuilder
         {
             // A null intermediate of a plain path resolves the leaf value to
             // null, so the node must not make the entity unresolvable.
-            var node = GetOrCreateCompositeNode(
+            currentLevel = GetOrCreateCompositeNode(
                 currentLevel,
                 segment.FieldName.Value,
                 parentTypeCondition,
                 segment.TypeName?.Value,
                 skipOnNull: false);
-            currentLevel = node.Children!;
             parentTypeCondition = null;
             segment = segment.PathSegment;
         }
@@ -289,13 +288,12 @@ internal static class RepresentationShapeBuilder
         {
             // A null intermediate of a list path resolves the list value to
             // null, so the node must not make the entity unresolvable.
-            var node = GetOrCreateCompositeNode(
+            currentLevel = GetOrCreateCompositeNode(
                 currentLevel,
                 segment.FieldName.Value,
                 parentTypeCondition,
                 segment.TypeName?.Value,
                 skipOnNull: false);
-            currentLevel = node.Children!;
             parentTypeCondition = null;
             segment = segment.PathSegment;
         }
@@ -366,7 +364,7 @@ internal static class RepresentationShapeBuilder
         }
     }
 
-    private static RepresentationShapeNode EnsureCompositeChain(
+    private static List<RepresentationShapeNode> EnsureCompositeChain(
         List<RepresentationShapeNode> level,
         PathNode path)
     {
@@ -378,7 +376,7 @@ internal static class RepresentationShapeBuilder
         {
             // An object value selection is unresolvable when any segment of
             // its path is null, so the whole chain skips the entity on null.
-            var node = GetOrCreateCompositeNode(
+            currentLevel = GetOrCreateCompositeNode(
                 currentLevel,
                 segment.FieldName.Value,
                 parentTypeCondition,
@@ -387,10 +385,9 @@ internal static class RepresentationShapeBuilder
 
             if (segment.PathSegment is null)
             {
-                return node;
+                return currentLevel;
             }
 
-            currentLevel = node.Children!;
             parentTypeCondition = null;
             segment = segment.PathSegment;
         }
@@ -436,7 +433,7 @@ internal static class RepresentationShapeBuilder
         return node;
     }
 
-    private static RepresentationShapeNode GetOrCreateCompositeNode(
+    private static List<RepresentationShapeNode> GetOrCreateCompositeNode(
         List<RepresentationShapeNode> level,
         string name,
         string? parentTypeCondition,
@@ -455,7 +452,7 @@ internal static class RepresentationShapeBuilder
 
             if (!string.Equals(existing.ResponseName, name, StringComparison.Ordinal)
                 || !string.Equals(existing.ParentTypeCondition, parentTypeCondition, StringComparison.Ordinal)
-                || !string.Equals(existing.TypeCondition, typeCondition, StringComparison.Ordinal))
+                || existing.TypeCondition is not null)
             {
                 throw new InvalidOperationException(
                     $"The requirement maps produce conflicting representation nodes for '{name}'.");
@@ -464,16 +461,52 @@ internal static class RepresentationShapeBuilder
             // When requirements of both null behaviors merge under one node,
             // skip-on-null wins: the skipping requirement is unresolvable on null.
             existing.SkipOnNull |= skipOnNull;
-            return existing;
+
+            if (typeCondition is null)
+            {
+                return existing.Children;
+            }
+
+            return GetOrCreateBranch(existing, typeCondition).Children;
         }
 
         var node = CreateNode(name, name);
         node.Children = [];
         node.ParentTypeCondition = parentTypeCondition;
-        node.TypeCondition = typeCondition;
         node.SkipOnNull = skipOnNull;
         level.Add(node);
-        return node;
+
+        if (typeCondition is null)
+        {
+            return node.Children;
+        }
+
+        return GetOrCreateBranch(node, typeCondition).Children;
+    }
+
+    private static RepresentationShapeBranch GetOrCreateBranch(
+        RepresentationShapeNode node,
+        string typeCondition)
+    {
+        if (node.Branches is { } branches)
+        {
+            for (var i = 0; i < branches.Count; i++)
+            {
+                if (string.Equals(branches[i].TypeCondition, typeCondition, StringComparison.Ordinal))
+                {
+                    return branches[i];
+                }
+            }
+        }
+        else
+        {
+            branches = [];
+            node.Branches = branches;
+        }
+
+        var branch = new RepresentationShapeBranch { TypeCondition = typeCondition };
+        branches.Add(branch);
+        return branch;
     }
 
     private static void AddLeafNode(

@@ -469,6 +469,133 @@ public sealed class FetchResultStoreRepresentationTests : FusionTestBase
     }
 
     [Fact]
+    public void RepresentationShapeBuilder_Should_CreateCoexistingBranches_When_MapMixesUnconditionalAndTypeConditionedPaths()
+    {
+        // arrange
+        var lookupField = ParseLookupField("{ entityById(input: $__fusion_1_input) { id } }");
+        var requirements = new[]
+        {
+            Requirement(
+                "__fusion_1_input",
+                "{ foo: data.foo bar: data<Bar>.bar qux: data<Qux>.qux }")
+        };
+
+        // act
+        var shape = RepresentationShapeBuilder.Build(lookupField, requirements);
+
+        // assert
+        Assert.Collection(
+            shape,
+            node =>
+            {
+                node.Name.MatchInlineSnapshot(
+                    """
+                    data
+                    """);
+                Assert.Collection(
+                    node.Children!,
+                    child => $"{child.Name}:{child.Children is null}".MatchInlineSnapshot(
+                        """
+                        foo:True
+                        """));
+                Assert.Collection(
+                    node.Branches!,
+                    branch =>
+                    {
+                        branch.TypeCondition.MatchInlineSnapshot(
+                            """
+                            Bar
+                            """);
+                        Assert.Collection(
+                            branch.Children,
+                            child => $"{child.Name}:{child.Children is null}".MatchInlineSnapshot(
+                                """
+                                bar:True
+                                """));
+                    },
+                    branch =>
+                    {
+                        branch.TypeCondition.MatchInlineSnapshot(
+                            """
+                            Qux
+                            """);
+                        Assert.Collection(
+                            branch.Children,
+                            child => $"{child.Name}:{child.Children is null}".MatchInlineSnapshot(
+                                """
+                                qux:True
+                                """));
+                    });
+            });
+    }
+
+    [Fact]
+    public void RepresentationShapeBuilder_Should_MergeIntoSameBranch_When_TwoPathsShareTypeCondition()
+    {
+        // arrange
+        var lookupField = ParseLookupField("{ entityById(input: $__fusion_1_input) { id } }");
+        var requirements = new[]
+        {
+            Requirement("__fusion_1_input", "{ bar: data<Bar>.bar baz: data<Bar>.baz }")
+        };
+
+        // act
+        var shape = RepresentationShapeBuilder.Build(lookupField, requirements);
+
+        // assert
+        Assert.Collection(
+            shape,
+            node =>
+            {
+                node.Name.MatchInlineSnapshot(
+                    """
+                    data
+                    """);
+                Assert.Empty(node.Children!);
+                Assert.Collection(
+                    node.Branches!,
+                    branch =>
+                    {
+                        branch.TypeCondition.MatchInlineSnapshot(
+                            """
+                            Bar
+                            """);
+                        Assert.Collection(
+                            branch.Children,
+                            child => $"{child.Name}:{child.Children is null}".MatchInlineSnapshot(
+                                """
+                                bar:True
+                                """),
+                            child => $"{child.Name}:{child.Children is null}".MatchInlineSnapshot(
+                                """
+                                baz:True
+                                """));
+                    });
+            });
+    }
+
+    [Fact]
+    public void RepresentationShapeBuilder_Should_Throw_When_LeafConflictsWithTypeConditionedComposite()
+    {
+        // arrange
+        var lookupField = ParseLookupField("{ e(a: $__fusion_1_data, b: $__fusion_2_data) { id } }");
+        var requirements = new[]
+        {
+            Requirement("__fusion_1_data", "data"),
+            Requirement("__fusion_2_data", "{ bar: data<Bar>.bar }")
+        };
+
+        // act
+        var exception = Assert.Throws<InvalidOperationException>(
+            () => RepresentationShapeBuilder.Build(lookupField, requirements));
+
+        // assert
+        Assert.Equal(
+            "The requirement maps produce conflicting representation nodes for 'data'.",
+            exception.Message);
+    }
+
+    [Fact]
     public void RepresentationShapeBuilder_Should_Throw_When_RequirementIsNotBound()
     {
         // arrange
@@ -807,6 +934,120 @@ public sealed class FetchResultStoreRepresentationTests : FusionTestBase
         Normalize(live.Value).MatchInlineSnapshot(
             """
             {"representations":[{"__typename":"Foo","id":"1"}]}
+            """);
+    }
+
+    private const string AbstractBranchSchema =
+        """
+        # name: test
+        type Query {
+          entities: [Entity]
+        }
+
+        type Entity {
+          id: ID!
+          data: Foo
+        }
+
+        interface Foo {
+          foo: String
+        }
+
+        interface Bar implements Foo {
+          foo: String
+          bar: String
+        }
+
+        type Qux implements Foo & Bar {
+          foo: String
+          bar: String
+          qux: String
+        }
+
+        type Baz implements Foo & Bar {
+          foo: String
+          bar: String
+          baz: String
+        }
+        """;
+
+    [Fact]
+    public void CreateRepresentationVariableValue_Should_EmitTypenameAndMatchingBranches_When_RuntimeTypeImplementsBranch()
+    {
+        // arrange
+        var schema = ComposeSchema(AbstractBranchSchema);
+
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+        using var store = CreateLiveStore(
+            schema,
+            "{ entities { id data { __typename foo ... on Bar { bar } ... on Baz { baz } ... on Qux { qux } } } }",
+            """{"data":{"entities":[{"id":"1","data":{"__typename":"Qux","foo":"f","bar":"b","qux":"q"}}]}}""",
+            resultArena,
+            sourceArena);
+
+        var lookupField = ParseLookupField("{ entityById(input: $__fusion_1_input) { id } }");
+        var requirements = new[]
+        {
+            Requirement(
+                "__fusion_1_input",
+                "{ foo: data.foo bar: data<Bar>.bar baz: data<Baz>.baz qux: data<Qux>.qux }")
+        };
+
+        // act
+        var live = CreateRepresentation(
+            store,
+            schema,
+            SelectionPath.Root.AppendField("entities"),
+            [],
+            requirements,
+            "Entity",
+            lookupField);
+
+        // assert
+        Normalize(live.Value).MatchInlineSnapshot(
+            """
+            {"representations":[{"__typename":"Entity","data":{"__typename":"Qux","foo":"f","bar":"b","qux":"q"}}]}
+            """);
+    }
+
+    [Fact]
+    public void CreateRepresentationVariableValue_Should_OmitNonMatchingBranch_When_RuntimeTypeIsDifferentImplementor()
+    {
+        // arrange
+        var schema = ComposeSchema(AbstractBranchSchema);
+
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+        using var store = CreateLiveStore(
+            schema,
+            "{ entities { id data { __typename foo ... on Bar { bar } ... on Baz { baz } ... on Qux { qux } } } }",
+            """{"data":{"entities":[{"id":"1","data":{"__typename":"Baz","foo":"f","bar":"b","baz":"z"}}]}}""",
+            resultArena,
+            sourceArena);
+
+        var lookupField = ParseLookupField("{ entityById(input: $__fusion_1_input) { id } }");
+        var requirements = new[]
+        {
+            Requirement(
+                "__fusion_1_input",
+                "{ foo: data.foo bar: data<Bar>.bar baz: data<Baz>.baz qux: data<Qux>.qux }")
+        };
+
+        // act
+        var live = CreateRepresentation(
+            store,
+            schema,
+            SelectionPath.Root.AppendField("entities"),
+            [],
+            requirements,
+            "Entity",
+            lookupField);
+
+        // assert
+        Normalize(live.Value).MatchInlineSnapshot(
+            """
+            {"representations":[{"__typename":"Entity","data":{"__typename":"Baz","foo":"f","bar":"b","baz":"z"}}]}
             """);
     }
 

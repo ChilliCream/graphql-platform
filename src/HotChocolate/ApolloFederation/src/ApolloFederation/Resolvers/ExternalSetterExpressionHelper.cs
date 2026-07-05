@@ -20,6 +20,7 @@ internal static class ExternalSetterExpressionHelper
         typeof(ReferenceResolverHelper)
             .GetMethod(nameof(ReferenceResolverHelper.TrySetExternal), Static | Public)!;
 
+    private static readonly ParameterExpression s_schema = Parameter(typeof(Schema), "schema");
     private static readonly ParameterExpression s_type = Parameter(typeof(ObjectType), "type");
     private static readonly ParameterExpression s_data = Parameter(typeof(IValueNode), "data");
     private static readonly ParameterExpression s_entity = Parameter(typeof(object), "entity");
@@ -41,8 +42,8 @@ internal static class ExternalSetterExpressionHelper
         if (block is not null)
         {
             typeDef.Features.Set(new ExternalSetter(
-                Lambda<Action<ObjectType, IValueNode, object>>(
-                    Block(block), s_type, s_data, s_entity)
+                Lambda<Action<Schema, ObjectType, IValueNode, object>>(
+                    Block(block), s_schema, s_type, s_data, s_entity)
                         .Compile()));
         }
     }
@@ -65,8 +66,8 @@ internal static class ExternalSetterExpressionHelper
         if (block is not null)
         {
             typeDef.Features.Set(new ExternalSetter(
-                Lambda<Action<ObjectType, IValueNode, object>>(
-                        Block(block), s_type, s_data, s_entity)
+                Lambda<Action<Schema, ObjectType, IValueNode, object>>(
+                        Block(block), s_schema, s_type, s_data, s_entity)
                     .Compile()));
         }
     }
@@ -79,7 +80,7 @@ internal static class ExternalSetterExpressionHelper
         var trySetValue = s_trySetExternal.MakeGenericMethod(property.PropertyType);
         var path = Constant(new[] { fieldName });
         var setter = CreateSetValue(runtimeType, property);
-        return Call(trySetValue, s_type, s_data, s_entity, path, setter);
+        return Call(trySetValue, s_schema, s_type, s_data, s_entity, path, setter);
     }
 
     private static Expression CreateSetValue(

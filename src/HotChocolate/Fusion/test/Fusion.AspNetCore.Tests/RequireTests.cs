@@ -453,6 +453,62 @@ public class RequireTests : FusionTestBase
     }
 
     [Fact]
+    public async Task Require_DoesNotLeak_RequirementOnlyChild_When_ClientSelectsParent()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "a",
+            b => b.AddQueryType<BookCatalog.Query>());
+
+        using var server2 = CreateSourceSchema(
+            "b",
+            b => b.AddQueryType<BookInventory.Query>());
+
+        using var server3 = CreateSourceSchema(
+            "c",
+            b => b.AddQueryType<BookShipping.Query>());
+
+        using var server4 = CreateSourceSchema(
+            "d",
+            b => b.AddQueryType<BookGenre.Query>()
+                .AddType<BookGenre.Query>());
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("a", server1),
+            ("b", server2),
+            ("c", server3),
+            ("d", server4)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            {
+                books {
+                  nodes {
+                    title
+                    dimension {
+                      width
+                    }
+                    estimatedDelivery
+                  }
+                }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    [Fact]
     public async Task Require_Enumerable_In_List()
     {
         // arrange

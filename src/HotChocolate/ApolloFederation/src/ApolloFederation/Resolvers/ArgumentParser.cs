@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using HotChocolate.Language;
@@ -15,15 +16,17 @@ internal static class ArgumentParser
     public static T? GetValue<T>(
         IValueNode valueNode,
         IType type,
-        string[] path)
-        => TryGetValue<T>(valueNode, type, path, 0, out var value) ? value : default;
+        string[] path,
+        Schema schema)
+        => TryGetValue<T>(valueNode, type, path, 0, schema, out var value) ? value : default;
 
     public static bool TryGetValue<T>(
         IValueNode valueNode,
         IType type,
         string[] path,
+        Schema schema,
         out T? value)
-        => TryGetValue(valueNode, type, path, 0, out value);
+        => TryGetValue(valueNode, type, path, 0, schema, out value);
 
     [MethodImpl(MethodImplOptions.AggressiveOptimization)]
     private static bool TryGetValue<T>(
@@ -31,13 +34,14 @@ internal static class ArgumentParser
         IType type,
         string[] path,
         int i,
+        Schema schema,
         out T? value)
     {
         type = type is NonNullType nonNullType ? nonNullType.NullableType : type;
 
         if (path.Length <= i)
         {
-            if (TryConvertValue(valueNode, type, typeof(T), out var converted))
+            if (TryConvertValue(valueNode, type, typeof(T), schema, out var converted))
             {
                 value = (T?)converted;
                 return true;
@@ -62,7 +66,7 @@ internal static class ArgumentParser
                 {
                     if (fieldValue.Name.Value.EqualsOrdinal(current))
                     {
-                        return TryGetValue(fieldValue.Value, field.Type, path, i + 1, out value);
+                        return TryGetValue(fieldValue.Value, field.Type, path, i + 1, schema, out value);
                     }
                 }
                 break;
@@ -81,7 +85,13 @@ internal static class ArgumentParser
 
                 foreach (var itemNode in listValue.Items)
                 {
-                    if (!TryGetValue<object?>(itemNode, listType.ElementType, path, i, out var itemValue))
+                    if (!TryGetValue<object?>(
+                        itemNode,
+                        listType.ElementType,
+                        path,
+                        i,
+                        schema,
+                        out var itemValue))
                     {
                         value = default;
                         return false;
@@ -189,6 +199,7 @@ internal static class ArgumentParser
         IValueNode valueNode,
         IType type,
         Type targetType,
+        Schema schema,
         out object? value)
     {
         type = type is NonNullType nonNullType ? nonNullType.NullableType : type;
@@ -200,10 +211,15 @@ internal static class ArgumentParser
                 return true;
 
             case SyntaxKind.ObjectValue:
-                return TryConvertObjectValue((ObjectValueNode)valueNode, type, targetType, out value);
+                return TryConvertObjectValue(
+                    (ObjectValueNode)valueNode,
+                    type,
+                    targetType,
+                    schema,
+                    out value);
 
             case SyntaxKind.ListValue:
-                return TryConvertListValue((ListValueNode)valueNode, type, targetType, out value);
+                return TryConvertListValue((ListValueNode)valueNode, type, targetType, schema, out value);
 
             case SyntaxKind.StringValue:
             case SyntaxKind.IntValue:
@@ -228,6 +244,7 @@ internal static class ArgumentParser
         ObjectValueNode valueNode,
         IType type,
         Type targetType,
+        Schema schema,
         out object? value)
     {
         if (type.NamedType() is not IComplexTypeDefinition complexType)
@@ -237,6 +254,17 @@ internal static class ArgumentParser
         }
 
         var runtimeType = ResolveRuntimeType(complexType, targetType);
+
+        // When the declared field type is an abstract interface, the runtime type cannot
+        // be instantiated directly. If the representation carries a __typename discriminator
+        // we resolve the concrete object type and reconstruct that type instead.
+        if ((runtimeType == typeof(object) || runtimeType.IsAbstract || runtimeType.IsInterface)
+            && complexType is IInterfaceTypeDefinition interfaceType
+            && TryResolveConcreteType(valueNode, interfaceType, schema, out var concreteType))
+        {
+            complexType = concreteType;
+            runtimeType = concreteType.RuntimeType;
+        }
 
         if (runtimeType == typeof(object)
             || runtimeType.IsAbstract
@@ -257,7 +285,12 @@ internal static class ArgumentParser
                 continue;
             }
 
-            if (!TryConvertValue(fieldValue.Value, field.Type, property.PropertyType, out var propertyValue))
+            if (!TryConvertValue(
+                fieldValue.Value,
+                field.Type,
+                property.PropertyType,
+                schema,
+                out var propertyValue))
             {
                 value = default;
                 return false;
@@ -274,6 +307,7 @@ internal static class ArgumentParser
         ListValueNode valueNode,
         IType type,
         Type targetType,
+        Schema schema,
         out object? value)
     {
         if (type is not ListType listType
@@ -288,7 +322,7 @@ internal static class ArgumentParser
 
         foreach (var itemNode in valueNode.Items)
         {
-            if (!TryConvertValue(itemNode, listType.ElementType, elementType, out var itemValue))
+            if (!TryConvertValue(itemNode, listType.ElementType, elementType, schema, out var itemValue))
             {
                 value = default;
                 return false;
@@ -351,6 +385,33 @@ internal static class ArgumentParser
         }
 
         return type.RuntimeType;
+    }
+
+    private static bool TryResolveConcreteType(
+        ObjectValueNode valueNode,
+        IInterfaceTypeDefinition interfaceType,
+        Schema schema,
+        [NotNullWhen(true)] out ObjectType? concreteType)
+    {
+        foreach (var fieldValue in valueNode.Fields)
+        {
+            if (fieldValue.Name.Value.EqualsOrdinal(IntrospectionFieldNames.TypeName)
+                && fieldValue.Value is StringValueNode typeName)
+            {
+                if (schema.Types.TryGetType<ObjectType>(typeName.Value, out var objectType)
+                    && objectType.IsImplementing(interfaceType))
+                {
+                    concreteType = objectType;
+                    return true;
+                }
+
+                concreteType = null;
+                return false;
+            }
+        }
+
+        concreteType = null;
+        return false;
     }
 
     private static PropertyInfo? TryGetProperty(

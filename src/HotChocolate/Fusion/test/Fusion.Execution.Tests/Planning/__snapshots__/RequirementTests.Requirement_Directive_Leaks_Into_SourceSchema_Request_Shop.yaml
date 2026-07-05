@@ -45,9 +45,9 @@ operation:
                     }
                   }
                   dimension @fusion__requirement {
-                    length
-                    width
-                    height
+                    length @fusion__requirement
+                    width @fusion__requirement
+                    height @fusion__requirement
                   }
                   quantity @skip(if: $skip)
                 }

@@ -48,7 +48,7 @@ public class Issue6232ReproTests
             .AddGraphQL()
             .AddApolloFederation()
             .AddQueryType<Query>()
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var type = schema.Types.GetType<ObjectType>(nameof(ExternalComplexFields));
         var representation = new ObjectValueNode(
@@ -90,7 +90,7 @@ public class Issue6232ReproTests
         if (entity is not null
             && type.Features.TryGet(out ExternalSetter? externalSetter))
         {
-            externalSetter.Invoke(type, representation, entity);
+            externalSetter.Invoke(schema, type, representation, entity);
         }
 
         return entity;

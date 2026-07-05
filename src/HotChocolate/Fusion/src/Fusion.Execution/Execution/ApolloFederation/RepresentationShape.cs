@@ -44,6 +44,13 @@ internal sealed class RepresentationShapeNode
     public List<RepresentationShapeNode>? Children { get; set; }
 
     /// <summary>
+    /// Gets the type-conditioned branches of this composite node. Each branch
+    /// contributes its children only when the value's runtime type satisfies
+    /// the branch condition, or null when this node has no conditioned branches.
+    /// </summary>
+    public List<RepresentationShapeBranch>? Branches { get; set; }
+
+    /// <summary>
     /// Gets the index of the requirement that supplies the value for this node.
     /// This is only set on leaf and list nodes.
     /// </summary>
@@ -92,4 +99,20 @@ internal sealed class RepresentationShapeNode
     /// or <c>null</c> when unconditional.
     /// </summary>
     public string? TypeCondition { get; set; }
+}
+
+/// <summary>
+/// A type-conditioned child set of a representation composite node.
+/// </summary>
+internal sealed class RepresentationShapeBranch
+{
+    /// <summary>
+    /// Gets the branch condition type name.
+    /// </summary>
+    public required string TypeCondition { get; init; }
+
+    /// <summary>
+    /// Gets the child nodes emitted when this branch matches.
+    /// </summary>
+    public List<RepresentationShapeNode> Children { get; set; } = [];
 }

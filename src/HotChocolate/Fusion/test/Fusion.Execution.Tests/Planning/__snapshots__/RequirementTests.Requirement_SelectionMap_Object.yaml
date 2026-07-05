@@ -6,7 +6,7 @@ operation:
             name
           }
           brand @fusion__requirement {
-            name
+            name @fusion__requirement
           }
           nameAndId
           id @fusion__requirement

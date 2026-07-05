@@ -77,7 +77,7 @@ operationPlan:
           productById(id: "1") {
             fieldB
             brand @fusion__requirement {
-              name
+              name @fusion__requirement
             }
           }
         }

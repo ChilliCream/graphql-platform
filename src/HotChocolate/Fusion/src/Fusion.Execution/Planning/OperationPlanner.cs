@@ -3,10 +3,10 @@ using System.Diagnostics;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Planning.Partitioners;
-using HotChocolate.Fusion.Rewriters;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Fusion.Types.Directives;
 using HotChocolate.Fusion.Types.Metadata;
+using HotChocolate.Fusion.Types.Rewriters;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 using HotChocolate.Types;
@@ -2283,17 +2283,17 @@ public sealed partial class OperationPlanner
 
                     foreach (var selection in selectionsToInline.Selections)
                     {
-                        var directives = AddInternalDirective(selection);
+                        var markedSelection = MarkInternalSubtree(selection, index);
 
-                        switch (selection)
+                        selections.Add(markedSelection);
+
+                        switch (markedSelection)
                         {
                             case FieldNode field:
-                                selections.Add(field.WithDirectives(directives));
                                 IndexInternalSelections(field.SelectionSet, index, ref backlog);
                                 break;
 
                             case InlineFragmentNode inlineFragment:
-                                selections.Add(inlineFragment.WithDirectives(directives));
                                 IndexInternalSelections(inlineFragment.SelectionSet, index, ref backlog);
                                 break;
                         }
@@ -2333,6 +2333,54 @@ public sealed partial class OperationPlanner
 
         return rewrittenOperation;
 
+        static ISelectionNode MarkInternalSubtree(
+            ISelectionNode selection,
+            SelectionSetIndexBuilder index)
+        {
+            switch (selection)
+            {
+                case FieldNode field:
+                    var fieldWithDirectives = field.WithDirectives(AddInternalDirective(field));
+
+                    if (field.SelectionSet is null)
+                    {
+                        return fieldWithDirectives;
+                    }
+
+                    return fieldWithDirectives.WithSelectionSet(
+                        MarkInternalSelections(field.SelectionSet, index));
+
+                case InlineFragmentNode { SelectionSet: { } selectionSet } inlineFragment:
+                    return inlineFragment.WithSelectionSet(MarkInternalSelections(selectionSet, index));
+
+                default:
+                    return selection;
+            }
+        }
+
+        static SelectionSetNode MarkInternalSelections(
+            SelectionSetNode selectionSet,
+            SelectionSetIndexBuilder index)
+        {
+            var selections = new List<ISelectionNode>(selectionSet.Selections.Count);
+
+            foreach (var childSelection in selectionSet.Selections)
+            {
+                selections.Add(MarkInternalSubtree(childSelection, index));
+            }
+
+            var markedSelectionSet = selectionSet.WithSelections(selections);
+
+            if (!index.IsRegistered(selectionSet))
+            {
+                index.Register(selectionSet);
+            }
+
+            index.Register(selectionSet, markedSelectionSet);
+
+            return markedSelectionSet;
+        }
+
         static IReadOnlyList<DirectiveNode> AddInternalDirective(IHasDirectives selection)
         {
             var directives = new List<DirectiveNode>(selection.Directives.Count + 1);
@@ -2342,7 +2390,10 @@ public sealed partial class OperationPlanner
                 directives.AddRange(selection.Directives);
             }
 
-            directives.Add(new DirectiveNode("fusion__requirement"));
+            if (!directives.Any(t => t.Name.Value.Equals("fusion__requirement", StringComparison.Ordinal)))
+            {
+                directives.Add(new DirectiveNode("fusion__requirement"));
+            }
 
             return directives;
         }
@@ -2432,7 +2483,7 @@ public sealed partial class OperationPlanner
                 }
                 else if (node is InlineFragmentNode { TypeCondition: { } typeCondition })
                 {
-                    path.Push(_schema.Types[typeCondition.Name.Value]);
+                    path.Push(_schema.Types.GetType(typeCondition.Name.Value, allowInaccessibleFields: true));
                 }
 
                 return path;
@@ -2555,7 +2606,9 @@ public sealed partial class OperationPlanner
 
                     case InlineFragmentNode inlineFragment:
                         var fragmentType = inlineFragment.TypeCondition is not null
-                            ? schema.Types[inlineFragment.TypeCondition.Name.Value]
+                            ? schema.Types.GetType(
+                                inlineFragment.TypeCondition.Name.Value,
+                                allowInaccessibleFields: true)
                             : currentType;
 
                         path.Add((selectionSet, inlineFragment, currentType));
@@ -2920,7 +2973,9 @@ internal static class PlannerExtensions
 
                         if (inlineFragmentNode.TypeCondition is not null)
                         {
-                            typeCondition = compositeSchema.Types[inlineFragmentNode.TypeCondition.Name.Value];
+                            typeCondition = compositeSchema.Types.GetType(
+                                inlineFragmentNode.TypeCondition.Name.Value,
+                                allowInaccessibleFields: true);
                         }
 
                         CollectCandidateSchemas(
@@ -2984,7 +3039,9 @@ internal static class PlannerExtensions
 
                         if (inlineFragmentNode.TypeCondition is not null)
                         {
-                            typeCondition = compositeSchema.Types[inlineFragmentNode.TypeCondition.Name.Value];
+                            typeCondition = compositeSchema.Types.GetType(
+                                inlineFragmentNode.TypeCondition.Name.Value,
+                                allowInaccessibleFields: true);
                         }
 
                         CollectFieldResolutions(
@@ -3251,7 +3308,10 @@ internal static class PlannerExtensions
                     IOutputTypeDefinition? typeCondition = null;
                     if (inlineFragmentSelection.TypeCondition?.Name.Value is { } typeConditionName)
                     {
-                        if (!compositeSchema.Types.TryGetType(typeConditionName, out typeCondition))
+                        if (!compositeSchema.Types.TryGetType(
+                            typeConditionName,
+                            allowInaccessibleFields: true,
+                            out typeCondition))
                         {
                             return null;
                         }
