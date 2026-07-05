@@ -324,6 +324,7 @@ internal static class CompositeSchemaBuilder
                 isDeprecated: false,
                 deprecationReason: null,
                 isInaccessible: false,
+                isGatewayField: false,
                 arguments: FusionInputFieldDefinitionCollection.Empty);
 
             sourceFields[fieldIndex++] = new FusionOutputFieldDefinition(
@@ -332,6 +333,7 @@ internal static class CompositeSchemaBuilder
                 isDeprecated: false,
                 deprecationReason: null,
                 isInaccessible: false,
+                isGatewayField: false,
                 arguments: new FusionInputFieldDefinitionCollection(
                 [
                     new FusionInputFieldDefinition(
@@ -350,6 +352,7 @@ internal static class CompositeSchemaBuilder
                 isDeprecated: false,
                 deprecationReason: null,
                 isInaccessible: false,
+                isGatewayField: false,
                 arguments: FusionInputFieldDefinitionCollection.Empty);
 
             if (enableSemanticIntrospection)
@@ -360,6 +363,7 @@ internal static class CompositeSchemaBuilder
                     isDeprecated: false,
                     deprecationReason: null,
                     isInaccessible: false,
+                    isGatewayField: false,
                     arguments: new FusionInputFieldDefinitionCollection(
                     [
                         new FusionInputFieldDefinition(
@@ -402,6 +406,7 @@ internal static class CompositeSchemaBuilder
                     isDeprecated: false,
                     deprecationReason: null,
                     isInaccessible: false,
+                    isGatewayField: false,
                     arguments: new FusionInputFieldDefinitionCollection(
                     [
                         new FusionInputFieldDefinition(
@@ -420,6 +425,7 @@ internal static class CompositeSchemaBuilder
                 var field = fields[i];
                 var isDeprecated = DeprecatedDirectiveParser.TryParse(field.Directives, out var deprecated);
                 var isInaccessible = InaccessibleDirectiveParser.Parse(field.Directives);
+                var isGatewayField = GatewayFieldDirectiveParser.Parse(field.Directives);
 
                 sourceFields[fieldIndex + i] = new FusionOutputFieldDefinition(
                     field.Name.Value,
@@ -427,6 +433,7 @@ internal static class CompositeSchemaBuilder
                     isDeprecated,
                     deprecated?.Reason,
                     isInaccessible: isInaccessible,
+                    isGatewayField: isGatewayField,
                     CreateOutputFieldArguments(field.Arguments));
             }
         }
@@ -437,6 +444,7 @@ internal static class CompositeSchemaBuilder
                 var field = fields[i];
                 var isDeprecated = DeprecatedDirectiveParser.TryParse(field.Directives, out var deprecated);
                 var isInaccessible = InaccessibleDirectiveParser.Parse(field.Directives);
+                var isGatewayField = GatewayFieldDirectiveParser.Parse(field.Directives);
 
                 sourceFields[i] = new FusionOutputFieldDefinition(
                     field.Name.Value,
@@ -444,6 +452,7 @@ internal static class CompositeSchemaBuilder
                     isDeprecated,
                     deprecated?.Reason,
                     isInaccessible: isInaccessible,
+                    isGatewayField: isGatewayField,
                     CreateOutputFieldArguments(field.Arguments));
             }
         }

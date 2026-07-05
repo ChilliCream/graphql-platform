@@ -446,6 +446,14 @@ public sealed partial class OperationPlanner
                     }
 
                     dependencies.Add(nodePlanStep.Id);
+
+                    // In source-schema resolution the branch enriches the entity produced by the
+                    // fallback query, so it must run after the fallback query has resolved the
+                    // concrete type into the node result.
+                    if (nodePlanStep.SourceSchemaResolution)
+                    {
+                        dependencies.Add(nodePlanStep.FallbackQuery.Id);
+                    }
                 }
 
                 if (!ctx.DependenciesByStepId.TryGetValue(nodePlanStep.FallbackQuery.Id, out var fallbackDependencies))
@@ -566,10 +574,10 @@ public sealed partial class OperationPlanner
         selectionSetNode = PruneNonValueTypeChildren(selectionSetNode, operationStep.Type, schema);
         var resultSelectionSet = ResultSelectionSet.Create(selectionSetNode, schema);
 
-        // Lookups that target an Apollo Federation source schema are executed
-        // through the _entities protocol, so they get their own node type that
-        // rewrites the lookup operation at plan build time.
-        if (operationStep.Lookup is { } lookup
+        // Only synthetic internal key lookups resolve through _entities. Real public
+        // root-field lookups, for example the composed node field, stay native even
+        // on Apollo schemas.
+        if (operationStep.Lookup is { IsInternal: true } lookup
             && schema.GetSourceSchemaConnectorKind(operationStep.SchemaName ?? lookup.SchemaName)
                 == ConnectorKindNames.ApolloFederation)
         {

@@ -294,6 +294,16 @@ public sealed partial class CompositeResultDocument : IDisposable
         return (flags & ElementFlags.IsInternal) == ElementFlags.IsInternal;
     }
 
+    internal bool IsEnumValueProperty(Cursor current)
+    {
+        ObjectDisposedException.ThrowIf(_disposed != 0, this);
+
+        // The flag sits on the property row (one before value)
+        var propertyCursor = current.AddRows(-1);
+        var flags = _metaDb.GetFlags(propertyCursor);
+        return (flags & ElementFlags.IsEnumValue) == ElementFlags.IsEnumValue;
+    }
+
     internal void Invalidate(Cursor current)
     {
         ObjectDisposedException.ThrowIf(_disposed != 0, this);
@@ -511,6 +521,11 @@ public sealed partial class CompositeResultDocument : IDisposable
         if (selection.Type.Kind is not TypeKind.NonNull)
         {
             flags |= ElementFlags.IsNullable;
+        }
+
+        if (selection.IsEnumValue)
+        {
+            flags |= ElementFlags.IsEnumValue;
         }
 
         return flags;
