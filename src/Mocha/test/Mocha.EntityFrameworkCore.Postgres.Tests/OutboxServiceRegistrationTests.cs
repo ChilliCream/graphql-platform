@@ -77,7 +77,7 @@ public sealed class OutboxServiceRegistrationTests
 
         // Act
         var optionsMonitor = provider.GetRequiredService<IOptionsMonitor<PostgresMessageOutboxOptions>>();
-        var contextName = typeof(TestDbContext).FullName!;
+        var contextName = typeof(TestDbContext).FullName;
         var options = optionsMonitor.Get(contextName);
 
         // Assert

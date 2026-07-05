@@ -145,7 +145,7 @@ public class ScalarExecutionErrorTests
         {
             if (inputValue.ValueKind is JsonValueKind.String)
             {
-                var value = inputValue.GetString()!;
+                var value = inputValue.GetString();
                 if (value is "a")
                 {
                     return value;

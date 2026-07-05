@@ -4,6 +4,7 @@ public static class LogEntryCodes
 {
     public const string ConflictingSourceSchemaName = "CONFLICTING_SOURCE_SCHEMA_NAME";
     public const string CursorArgumentNotString = "CURSOR_ARGUMENT_NOT_STRING";
+    public const string CursorArgumentRequiresCursorField = "CURSOR_ARGUMENT_REQUIRES_CURSOR_FIELD";
     public const string CursorFieldNotString = "CURSOR_FIELD_NOT_STRING";
     public const string CursorMarkerOnNonSubscriptionField = "CURSOR_MARKER_ON_NON_SUBSCRIPTION_FIELD";
     public const string DisallowedInaccessible = "DISALLOWED_INACCESSIBLE";
@@ -55,6 +56,7 @@ public static class LogEntryCodes
     public const string MultipleEventStreamSources = "MULTIPLE_EVENT_STREAM_SOURCES";
     public const string NonNullInputFieldIsInaccessible = "NON_NULL_INPUT_FIELD_IS_INACCESSIBLE";
     public const string NoQueries = "NO_QUERIES";
+    public const string OptInFeatureStabilityMismatch = "OPT_IN_FEATURE_STABILITY_MISMATCH";
     public const string OutputFieldTypesNotMergeable = "OUTPUT_FIELD_TYPES_NOT_MERGEABLE";
     public const string OverrideFromSelf = "OVERRIDE_FROM_SELF";
     public const string OverrideOnInterface = "OVERRIDE_ON_INTERFACE";

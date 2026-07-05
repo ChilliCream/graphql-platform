@@ -50,7 +50,7 @@ public sealed class KafkaFixture : IAsyncLifetime
         await _container.DisposeAsync();
     }
 
-    public async Task CreateTopicAsync(string topic, CancellationToken cancellationToken)
+    public async Task CreateTopicAsync(string topic, CancellationToken cancellationToken, int partitions = 1)
     {
         using var admin = new AdminClientBuilder(
             new AdminClientConfig { BootstrapServers = BootstrapServers })
@@ -63,7 +63,7 @@ public sealed class KafkaFixture : IAsyncLifetime
                     new TopicSpecification
                     {
                         Name = topic,
-                        NumPartitions = 1,
+                        NumPartitions = partitions,
                         ReplicationFactor = 1
                     }
                 ],
@@ -80,6 +80,31 @@ public sealed class KafkaFixture : IAsyncLifetime
         await WaitForTopicMetadataAsync(admin, topic, cancellationToken);
     }
 
+    public async Task IncreasePartitionsAsync(
+        string topic,
+        int newTotalCount,
+        CancellationToken cancellationToken)
+    {
+        using var admin = new AdminClientBuilder(
+            new AdminClientConfig { BootstrapServers = BootstrapServers })
+            .Build();
+
+        await admin.CreatePartitionsAsync(
+            [
+                new PartitionsSpecification
+                {
+                    Topic = topic,
+                    IncreaseTo = newTotalCount
+                }
+            ],
+            new CreatePartitionsOptions
+            {
+                RequestTimeout = TimeSpan.FromSeconds(20)
+            });
+
+        await WaitForPartitionCountMetadataAsync(admin, topic, newTotalCount, cancellationToken);
+    }
+
     private static async Task WaitForTopicMetadataAsync(
         IAdminClient admin,
         string topic,
@@ -90,6 +115,30 @@ public sealed class KafkaFixture : IAsyncLifetime
             var metadata = admin.GetMetadata(topic, TimeSpan.FromSeconds(5));
 
             if (metadata.Topics.Any(t => t.Topic == topic && t.Error.Code == ErrorCode.NoError))
+            {
+                return;
+            }
+
+            await Task.Delay(100, cancellationToken);
+        }
+
+        cancellationToken.ThrowIfCancellationRequested();
+    }
+
+    private static async Task WaitForPartitionCountMetadataAsync(
+        IAdminClient admin,
+        string topic,
+        int partitionCount,
+        CancellationToken cancellationToken)
+    {
+        while (!cancellationToken.IsCancellationRequested)
+        {
+            var metadata = admin.GetMetadata(topic, TimeSpan.FromSeconds(5));
+
+            if (metadata.Topics.Any(
+                t => t.Topic == topic
+                    && t.Error.Code == ErrorCode.NoError
+                    && t.Partitions.Count >= partitionCount))
             {
                 return;
             }

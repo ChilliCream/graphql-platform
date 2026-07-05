@@ -9,17 +9,17 @@ public class QueryableSortVisitorExpressionTests : IClassFixture<SchemaCache>
     private static readonly Foo[] s_fooEntities =
     [
         new()
-         {
-             Name = "Sam",
-             LastName = "Sampleman",
-             Bars = Array.Empty<Bar>()
-         },
-         new()
-         {
-             Name = "Foo",
-             LastName = "Galoo",
-             Bars = new Bar[] { new() { Value = "A" } }
-         }
+        {
+            Name = "Sam",
+            LastName = "Sampleman",
+            Bars = Array.Empty<Bar>()
+        },
+        new()
+        {
+            Name = "Foo",
+            LastName = "Galoo",
+            Bars = new Bar[] { new() { Value = "A" } }
+        }
     ];
 
     private readonly SchemaCache _cache;

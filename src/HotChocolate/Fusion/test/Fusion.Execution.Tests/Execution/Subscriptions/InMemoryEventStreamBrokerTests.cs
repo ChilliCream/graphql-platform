@@ -115,5 +115,7 @@ public sealed class InMemoryEventStreamBrokerTests
 
         public IReadOnlyDictionary<string, IValueNode> Arguments { get; } =
             new Dictionary<string, IValueNode>();
+
+        public bool RequiresCursor => true;
     }
 }

@@ -953,6 +953,15 @@ namespace HotChocolate.Fusion.Properties {
         }
 
         /// <summary>
+        ///   Looks up a localized string similar to The @eventCursor argument on field &apos;{0}&apos; in schema &apos;{1}&apos; requires an @eventCursor field on the event payload type..
+        /// </summary>
+        internal static string LogEntryHelper_EventCursorArgumentRequiresCursorField {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_EventCursorArgumentRequiresCursorField", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to The @eventCursor field &apos;{0}&apos; in schema &apos;{1}&apos; must be of type String..
         /// </summary>
         internal static string LogEntryHelper_EventCursorFieldNotString {
@@ -1259,6 +1268,15 @@ namespace HotChocolate.Fusion.Properties {
         }
 
         /// <summary>
+        ///   Looks up a localized string similar to The opt-in feature &apos;{0}&apos; has a different stability in schema &apos;{1}&apos; ({2}) than it does in schema &apos;{3}&apos; ({4})..
+        /// </summary>
+        internal static string LogEntryHelper_OptInFeatureStabilityMismatch {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_OptInFeatureStabilityMismatch", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to The output field &apos;{0}&apos; has a different type shape in schema &apos;{1}&apos; than it does in schema &apos;{2}&apos;..
         /// </summary>
         internal static string LogEntryHelper_OutputFieldTypesNotMergeable {
@@ -1484,6 +1502,15 @@ namespace HotChocolate.Fusion.Properties {
         }
 
         /// <summary>
+        ///   Looks up a localized string similar to The @optInFeatureStability directive must have a &apos;feature&apos; argument and a &apos;stability&apos; argument, both of type String..
+        /// </summary>
+        internal static string OptInFeatureStabilityDirective_Arguments_Invalid {
+            get {
+                return ResourceManager.GetString("OptInFeatureStabilityDirective_Arguments_Invalid", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to The name of the source schema that originally provided this field..
         /// </summary>
         internal static string OverrideMutableDirectiveDefinition_Argument_From_Description {
@@ -1624,6 +1651,15 @@ namespace HotChocolate.Fusion.Properties {
         internal static string RequireMutableDirectiveDefinition_Description {
             get {
                 return ResourceManager.GetString("RequireMutableDirectiveDefinition_Description", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The @requiresOptIn directive must have a &apos;feature&apos; argument of type String..
+        /// </summary>
+        internal static string RequiresOptInDirective_FeatureArgument_Invalid {
+            get {
+                return ResourceManager.GetString("RequiresOptInDirective_FeatureArgument_Invalid", resourceCulture);
             }
         }
 

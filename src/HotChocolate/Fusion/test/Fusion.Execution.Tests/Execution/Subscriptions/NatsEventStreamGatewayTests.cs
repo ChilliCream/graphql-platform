@@ -35,12 +35,11 @@ public sealed class NatsEventStreamGatewayTests
         // arrange
         await using var nats = await JetStreamNatsFixture.StartAsync();
         var stream = "S" + Guid.NewGuid().ToString("N");
-        var durable = "D" + Guid.NewGuid().ToString("N");
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(60));
 
         await CreateStreamAsync(nats.Url, stream, Topic, cts.Token);
 
-        var executor = await BuildGatewayAsync(nats.Url, stream, durable);
+        var executor = await BuildGatewayAsync(nats.Url, stream);
 
         // act
         // Drive the initial subscription, publish two events to the single NATS subject, and receive
@@ -59,6 +58,7 @@ public sealed class NatsEventStreamGatewayTests
             count: 2,
             async () =>
             {
+                await WaitForConsumerAsync(nats.Url, stream, expectedCount: 1, cts.Token);
                 await PublishAsync(nats.Url, Topic, """{"user":{"id":"u1"}}""", cts.Token);
                 await PublishAsync(nats.Url, Topic, """{"user":{"id":"u2"}}""", cts.Token);
             },
@@ -139,8 +139,7 @@ public sealed class NatsEventStreamGatewayTests
 
     private static async Task<IRequestExecutor> BuildGatewayAsync(
         string natsUrl,
-        string stream,
-        string durable)
+        string stream)
     {
         var sourceSchemaSdl = await PrintSourceSchemaSdlAsync(
             b => b.AddSubscriptionType<AttributeSubscriptions>());
@@ -155,8 +154,7 @@ public sealed class NatsEventStreamGatewayTests
             o.Url = natsUrl;
             o.JetStream = new NatsJetStreamOptions
             {
-                Stream = stream,
-                DurableConsumer = durable
+                Stream = stream
             };
         });
 
@@ -279,6 +277,34 @@ public sealed class NatsEventStreamGatewayTests
             subject,
             System.Text.Encoding.UTF8.GetBytes(body),
             cancellationToken: cancellationToken);
+    }
+
+    // A fresh JetStream subscription uses DeliverPolicy.New, so it only observes events published
+    // after its ephemeral consumer exists on the server. Waiting until the stream reports the
+    // expected consumer count makes "subscribe then publish" deterministic instead of racing a
+    // fixed delay. The consumer name is server-generated, so we poll by count, not by name.
+    private static async Task WaitForConsumerAsync(
+        string url,
+        string stream,
+        int expectedCount,
+        CancellationToken cancellationToken)
+    {
+        await using var connection = new NatsConnection(new NatsOpts { Url = url });
+        var js = new NatsJSContext(connection);
+
+        while (true)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var info = await js.GetStreamAsync(stream, cancellationToken: cancellationToken);
+
+            if (info.Info.State.ConsumerCount >= expectedCount)
+            {
+                return;
+            }
+
+            await Task.Delay(25, cancellationToken);
+        }
     }
 
     private static string ReadCursor(string operationResultJson)

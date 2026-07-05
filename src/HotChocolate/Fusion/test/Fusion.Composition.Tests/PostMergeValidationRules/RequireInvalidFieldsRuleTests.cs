@@ -82,9 +82,9 @@ public sealed class RequireInvalidFieldsRuleTests : RuleTestBase
             """,
             """
             type CartDiscount {
-               id: ID!
-               name: String!
-               channelIds: [ID!]!
+                id: ID!
+                name: String!
+                channelIds: [ID!]!
             }
             """
         ]);

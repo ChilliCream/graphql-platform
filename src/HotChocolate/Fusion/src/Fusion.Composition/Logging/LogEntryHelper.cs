@@ -169,6 +169,22 @@ internal static class LogEntryHelper
             .Build();
     }
 
+    public static LogEntry EventCursorArgumentRequiresCursorField(
+        MutableOutputFieldDefinition field,
+        MutableSchemaDefinition schema)
+    {
+        return LogEntryBuilder.New()
+            .SetMessage(
+                LogEntryHelper_EventCursorArgumentRequiresCursorField,
+                field.Coordinate.ToString(),
+                schema.Name)
+            .SetCode(LogEntryCodes.CursorArgumentRequiresCursorField)
+            .SetSeverity(LogSeverity.Error)
+            .SetTypeSystemMember(field)
+            .SetSchema(schema)
+            .Build();
+    }
+
     public static LogEntry EventCursorFieldNotString(
         MutableOutputFieldDefinition field,
         MutableSchemaDefinition schema)
@@ -973,6 +989,27 @@ internal static class LogEntryHelper
             .SetSeverity(LogSeverity.Error)
             .SetTypeSystemMember(queryType)
             .SetSchema(schema)
+            .Build();
+    }
+
+    public static LogEntry OptInFeatureStabilityMismatch(
+        string feature,
+        MutableSchemaDefinition schemaA,
+        string stabilityA,
+        MutableSchemaDefinition schemaB,
+        string stabilityB)
+    {
+        return LogEntryBuilder.New()
+            .SetMessage(
+                LogEntryHelper_OptInFeatureStabilityMismatch,
+                feature,
+                schemaA.Name,
+                stabilityA,
+                schemaB.Name,
+                stabilityB)
+            .SetCode(LogEntryCodes.OptInFeatureStabilityMismatch)
+            .SetSeverity(LogSeverity.Error)
+            .SetSchema(schemaA)
             .Build();
     }
 

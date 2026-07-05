@@ -275,9 +275,9 @@ internal sealed class AzureEventHubsEventStreamBroker(AzureEventHubsEventStreamO
 
         return new EventHubConsumerClient(
             options.ConsumerGroup,
-            options.FullyQualifiedNamespace!,
+            options.FullyQualifiedNamespace,
             hub,
-            options.Credential!,
+            options.Credential,
             clientOptions);
     }
 

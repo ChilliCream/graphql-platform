@@ -81,6 +81,14 @@ internal sealed class SourceSchemaMerger
                     new OneOfDirectiveMerger(DirectiveMergeBehavior.Include)
                 },
                 {
+                    DirectiveNames.OptInFeatureStability,
+                    new OptInFeatureStabilityDirectiveMerger(DirectiveMergeBehavior.Include)
+                },
+                {
+                    DirectiveNames.RequiresOptIn,
+                    new RequiresOptInDirectiveMerger(DirectiveMergeBehavior.Include)
+                },
+                {
                     DirectiveNames.SerializeAs,
                     new SerializeAsDirectiveMerger(DirectiveMergeBehavior.Include)
                 },
@@ -109,6 +117,8 @@ internal sealed class SourceSchemaMerger
         // Merge directives.
         var memberDefinitions = _schemas.Select(s => new DirectivesProviderInfo(s, s)).ToImmutableArray();
         _directiveMergers[DirectiveNames.Tag].MergeDirectives(mergedSchema, memberDefinitions, mergedSchema);
+        _directiveMergers[DirectiveNames.OptInFeatureStability]
+            .MergeDirectives(mergedSchema, memberDefinitions, mergedSchema);
 
         // Remove unreferenced definitions.
         if (_options.RemoveUnreferencedDefinitions)
@@ -180,10 +190,11 @@ internal sealed class SourceSchemaMerger
             var canonicalDirectiveDefinition = directiveMerger.GetCanonicalDirectiveDefinition(mergedSchema);
             var canonicalDirectiveNode = canonicalDirectiveDefinition.ToSyntaxNode();
 
-            // Ensure that all directive definitions match the canonical definition.
+            // Ensure that all directive definitions are compatible with the canonical definition.
             if (!grouping.All(
-                d => DirectiveDefinitionNodeComparer.Instance
-                    .Equals(d.DirectiveDefinition.ToSyntaxNode(), canonicalDirectiveNode)))
+                d => DirectiveDefinitionCompatibility.IsSourceCompatibleWithCanonical(
+                    d.DirectiveDefinition.ToSyntaxNode(),
+                    canonicalDirectiveNode)))
             {
                 // Skip merging if there is a mismatch.
                 continue;
@@ -354,6 +365,8 @@ internal sealed class SourceSchemaMerger
                 var memberDefinitions =
                     argumentGroup.Select(g => new DirectivesProviderInfo(g.Argument, g.Schema)).ToImmutableArray();
                 _directiveMergers[DirectiveNames.Cost].MergeDirectives(mergedArgument, memberDefinitions, mergedSchema);
+                _directiveMergers[DirectiveNames.RequiresOptIn]
+                    .MergeDirectives(mergedArgument, memberDefinitions, mergedSchema);
                 _directiveMergers[DirectiveNames.Tag].MergeDirectives(mergedArgument, memberDefinitions, mergedSchema);
 
                 AddFusionCostDirectives(mergedArgument, memberDefinitions);
@@ -470,6 +483,8 @@ internal sealed class SourceSchemaMerger
             {
                 var memberDefinitions =
                     enumValueGroup.Select(g => new DirectivesProviderInfo(g.EnumValue, g.Schema)).ToImmutableArray();
+                _directiveMergers[DirectiveNames.RequiresOptIn]
+                    .MergeDirectives(enumValue, memberDefinitions, mergedSchema);
                 _directiveMergers[DirectiveNames.Tag].MergeDirectives(enumValue, memberDefinitions, mergedSchema);
 
                 AddFusionEnumValueDirectives(enumValue, enumValueGroup);
@@ -604,6 +619,8 @@ internal sealed class SourceSchemaMerger
                 var memberDefinitions =
                     inputFieldGroup.Select(g => new DirectivesProviderInfo(g.Field, g.Schema)).ToImmutableArray();
                 _directiveMergers[DirectiveNames.Cost].MergeDirectives(inputField, memberDefinitions, mergedSchema);
+                _directiveMergers[DirectiveNames.RequiresOptIn]
+                    .MergeDirectives(inputField, memberDefinitions, mergedSchema);
                 _directiveMergers[DirectiveNames.Tag].MergeDirectives(inputField, memberDefinitions, mergedSchema);
 
                 AddFusionCostDirectives(inputField, memberDefinitions);
@@ -898,6 +915,8 @@ internal sealed class SourceSchemaMerger
                 _directiveMergers[DirectiveNames.ListSize]
                     .MergeDirectives(outputField, memberDefinitions, mergedSchema);
                 _directiveMergers[DirectiveNames.McpToolAnnotations]
+                    .MergeDirectives(outputField, memberDefinitions, mergedSchema);
+                _directiveMergers[DirectiveNames.RequiresOptIn]
                     .MergeDirectives(outputField, memberDefinitions, mergedSchema);
                 _directiveMergers[DirectiveNames.Tag]
                     .MergeDirectives(outputField, memberDefinitions, mergedSchema);
