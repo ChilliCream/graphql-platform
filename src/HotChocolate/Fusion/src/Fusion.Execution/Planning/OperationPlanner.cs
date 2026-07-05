@@ -1,6 +1,7 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using HotChocolate.Execution;
+using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Planning.Partitioners;
 using HotChocolate.Fusion.Types;
@@ -1424,32 +1425,52 @@ public sealed partial class OperationPlanner
             return;
         }
 
-        var selectionSetStub = new SelectionSet(
-            workItem.Selection.SelectionSetId,
-            new SelectionSetNode([workItem.Selection.Node]),
-            workItem.Selection.Field.DeclaringType,
-            workItem.Selection.Path);
-        current = InlineLookupRequirements(
-            selectionSetStub,
-            current,
-            lookup,
-            workItem.EstimatedDepth,
-            backlog,
-            workItem.Conditions);
-        backlog = current.Backlog;
-
         if (current.Steps.ById(stepConsumer.StepId) is not OperationPlanStep currentStep)
         {
             return;
         }
 
+        var mergeWithExistingStep =
+            TryFindMergeableRequirementLookupStep(
+                current,
+                workItem,
+                lookup,
+                stepConsumer.StepId,
+                out var existingStep,
+                out var existingStepIndex);
+
+        if (!mergeWithExistingStep)
+        {
+            var selectionSetStub = new SelectionSet(
+                workItem.Selection.SelectionSetId,
+                new SelectionSetNode([workItem.Selection.Node]),
+                workItem.Selection.Field.DeclaringType,
+                workItem.Selection.Path);
+            current = InlineLookupRequirements(
+                selectionSetStub,
+                current,
+                lookup,
+                workItem.EstimatedDepth,
+                backlog,
+                workItem.Conditions);
+            backlog = current.Backlog;
+
+            if (current.Steps.ById(stepConsumer.StepId) is not OperationPlanStep updatedCurrentStep)
+            {
+                return;
+            }
+
+            currentStep = updatedCurrentStep;
+        }
+
         var steps = current.Steps;
-        var stepId = current.Steps.NextId();
-        var stepDepth = workItem.EstimatedDepth;
+        var stepId = mergeWithExistingStep ? existingStep.Id : current.Steps.NextId();
+        var stepDepth = mergeWithExistingStep
+            ? GetOperationStepDepth(current, existingStep.Id)
+            : workItem.EstimatedDepth;
         var indexBuilder = current.SelectionSetIndex.ToBuilder();
         var lastRequirementId = current.LastRequirementId + 1;
         var requirementKey = $"__fusion_{lastRequirementId}";
-        var requirements = ImmutableDictionary<string, OperationRequirement>.Empty;
 
         var leftoverRequirements =
             TryInlineFieldRequirements(
@@ -1488,6 +1509,9 @@ public sealed partial class OperationPlanner
 
         var compositeField = workItem.Selection.Field;
         var sourceField = compositeField.Sources[current.SchemaName];
+        var requirements = mergeWithExistingStep
+            ? existingStep.Requirements
+            : ImmutableDictionary<string, OperationRequirement>.Empty;
         var arguments = new List<ArgumentNode>(workItem.Selection.Node.Arguments);
 
         for (var i = 0; i < sourceField.Requirements!.Arguments.Length; i++)
@@ -1537,6 +1561,61 @@ public sealed partial class OperationPlanner
         var selectionSetNode = new SelectionSetNode(
             [workItem.Selection.Node.WithArguments(arguments).WithSelectionSet(childSelections)]);
         indexBuilder.Register(workItem.Selection.SelectionSetId, selectionSetNode);
+
+        if (mergeWithExistingStep)
+        {
+            if (steps[existingStepIndex] is not OperationPlanStep refreshedExistingStep)
+            {
+                return;
+            }
+
+            var operation = InlineSelections(
+                refreshedExistingStep.Definition,
+                indexBuilder,
+                compositeField.DeclaringType,
+                refreshedExistingStep.RootSelectionSetId,
+                selectionSetNode);
+            EnsureAllSelectionSetsRegistered(operation.SelectionSet, indexBuilder);
+
+            var updatedStep = refreshedExistingStep with
+            {
+                Definition = operation,
+                SelectionSets = SelectionSetIndexer.CreateIdSet(operation.SelectionSet, indexBuilder),
+                Requirements = requirements
+            };
+
+            steps = steps.SetItem(existingStepIndex, updatedStep);
+
+            var mergeRemainingCost =
+                PlannerCostEstimator.EstimateRemainingCost(
+                    current.Options,
+                    current.MaxDepth,
+                    current.OpsPerLevel,
+                    backlog.Cost);
+
+            var mergeNext = new PlanNode
+            {
+                OperationDefinition = current.OperationDefinition,
+                InternalOperationDefinition = current.InternalOperationDefinition,
+                ShortHash = current.ShortHash,
+                SchemaName = current.SchemaName,
+                Options = current.Options,
+                SelectionSetIndex = indexBuilder,
+                Backlog = backlog,
+                RemainingCost = mergeRemainingCost,
+                Steps = steps,
+                LastRequirementId = lastRequirementId,
+                OperationStepCount = current.OperationStepCount,
+                MaxDepth = current.MaxDepth,
+                ExcessFanout = current.ExcessFanout,
+                OpsPerLevel = current.OpsPerLevel,
+                OperationStepDepths = current.OperationStepDepths,
+                EventStreamDirective = current.EventStreamDirective
+            };
+
+            possiblePlans.EnqueueBranches(mergeNext);
+            return;
+        }
 
         var operationBuilder =
             OperationDefinitionBuilder
@@ -1614,6 +1693,58 @@ public sealed partial class OperationPlanner
         };
 
         possiblePlans.EnqueueBranches(next);
+    }
+
+    private static bool TryFindMergeableRequirementLookupStep(
+        PlanNode current,
+        FieldRequirementWorkItem workItem,
+        Lookup lookup,
+        int consumerStepId,
+        out OperationPlanStep step,
+        out int stepIndex)
+    {
+        for (var i = 0; i < current.Steps.Count; i++)
+        {
+            if (current.Steps[i] is OperationPlanStep candidate
+                && candidate.Id != consumerStepId
+                && candidate.RootSelectionSetId == workItem.Selection.SelectionSetId
+                && candidate.Target == workItem.Selection.Path
+                && candidate.SchemaName?.Equals(current.SchemaName, StringComparison.Ordinal) == true
+                && ReferenceEquals(candidate.Lookup, lookup)
+                && candidate.Type.Name.Equals(
+                    workItem.Selection.Field.DeclaringType.Name,
+                    StringComparison.Ordinal)
+                && ConditionsEqual(candidate.Conditions, workItem.Conditions))
+            {
+                step = candidate;
+                stepIndex = i;
+                return true;
+            }
+        }
+
+        step = null!;
+        stepIndex = -1;
+        return false;
+    }
+
+    private static bool ConditionsEqual(
+        ExecutionNodeCondition[] left,
+        ExecutionNodeCondition[] right)
+    {
+        if (left.Length != right.Length)
+        {
+            return false;
+        }
+
+        for (var i = 0; i < left.Length; i++)
+        {
+            if (!left[i].Equals(right[i]))
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     private void PlanNodeLookup(
@@ -1755,6 +1886,8 @@ public sealed partial class OperationPlanner
         var nodeField = workItem.NodeField.Field;
         var responseName = nodeField.Alias?.Value ?? nodeField.Name.Value;
         var selectionPath = SelectionPath.Root.AppendField(responseName);
+        var sourceSchemaResolution =
+            _schema.Features.Get<FusionOptions>()?.NodeResolution == NodeResolution.SourceSchema;
 
         var idArgumentValue = nodeField.Arguments.First(a => a.Name.Value == "id").Value;
 
@@ -1769,9 +1902,16 @@ public sealed partial class OperationPlanner
         (var sharedSelectionSet, var selectionSetsByType, index) = _selectionSetByTypePartitioner.Partition(input);
 
         var sharedSelections = sharedSelectionSet?.Selections ?? [];
-        if (sharedSelections.Count < 1 || !sharedSelections.Any(IsTypeNameSelection))
+        if (sourceSchemaResolution)
         {
-            sharedSelections = [new FieldNode(IntrospectionFieldNames.TypeName), .. sharedSelections];
+            sharedSelections = [new FieldNode(IntrospectionFieldNames.TypeName)];
+        }
+        else
+        {
+            if (sharedSelections.Count < 1 || !sharedSelections.Any(IsTypeNameSelection))
+            {
+                sharedSelections = [new FieldNode(IntrospectionFieldNames.TypeName), .. sharedSelections];
+            }
         }
 
         var nodeFieldSelectionSet = new SelectionSetNode(sharedSelections);
@@ -1816,7 +1956,8 @@ public sealed partial class OperationPlanner
             ResponseName = responseName,
             IdValue = idArgumentValue,
             Conditions = ExtractConditions(workItem.NodeField),
-            FallbackQuery = fallbackQueryStep
+            FallbackQuery = fallbackQueryStep,
+            SourceSchemaResolution = sourceSchemaResolution
         };
 
         foreach (var (type, selectionSetNode) in selectionSetsByType)

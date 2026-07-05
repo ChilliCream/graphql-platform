@@ -1,7 +1,10 @@
 using System.Buffers;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
+using HotChocolate.Features;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Text.Json;
+using HotChocolate.Fusion.Types;
 
 namespace HotChocolate.Fusion.Execution;
 
@@ -60,5 +63,15 @@ internal static class OperationPlanContextExtensions
                 ArrayPool<CompactPath>.Shared.Return(pathBuffer);
             }
         }
+    }
+
+    extension(OperationPlanContext context)
+    {
+        internal NodeResolution NodeResolution
+            => context.RequestContext.Schema.Features.Get<FusionOptions>()?.NodeResolution ?? NodeResolution.Gateway;
+
+        internal bool TryGetAnyNodeLookupSchema([NotNullWhen(true)] out string? schemaName)
+            => context.RequestContext.Schema.Features.GetRequired<NodeFallbackLookup>()
+                .TryGetAnyNodeLookupSchema(out schemaName);
     }
 }

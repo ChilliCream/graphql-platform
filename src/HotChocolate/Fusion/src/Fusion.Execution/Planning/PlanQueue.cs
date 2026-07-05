@@ -432,9 +432,7 @@ internal sealed class PlanQueue(FusionSchemaDefinition schema)
             // If we have multiple id lookups in a single schema,
             // we try to choose one that returns the desired type directly
             // and not an abstract type.
-            var byIdLookup = schema
-                .GetPossibleLookupsOrdered(type, schemaName)
-                .FirstOrDefault(l => l.Fields is [PathNode { PathSegment.FieldName.Value: "id" }] && !l.IsInternal);
+            var byIdLookup = SelectNodeBranchLookup(schema, type, schemaName);
 
             if (byIdLookup is null)
             {
@@ -460,11 +458,9 @@ internal sealed class PlanQueue(FusionSchemaDefinition schema)
         // In this case we enqueue the best matching by id lookup of any source schema.
         if (!hasEnqueuedLookup)
         {
-            var byIdLookup = schema
-                .GetPossibleLookupsOrdered(type)
-                .FirstOrDefault(l => l.Fields is [PathNode { PathSegment.FieldName.Value: "id" }] && !l.IsInternal)
-                    ?? throw new InvalidOperationException(
-                        $"Expected to have at least one lookup with just an 'id' argument for type '{type.Name}'.");
+            var byIdLookup = SelectNodeBranchLookup(schema, type, schemaName: null)
+                ?? throw new InvalidOperationException(
+                    $"Expected to have at least one lookup with just an 'id' argument for type '{type.Name}'.");
 
             var lookupWorkItem = workItem with { Lookup = byIdLookup };
             var branchBacklog = backlog.Push(lookupWorkItem);
@@ -477,6 +473,19 @@ internal sealed class PlanQueue(FusionSchemaDefinition schema)
             });
         }
     }
+
+    // Selects the by-id lookup a per-type continuation branch uses. It must be
+    // the source schema's public, non-internal by-id lookup: the composed `node`
+    // field on Apollo schemas, or the native public by-id lookup elsewhere.
+    // Synthetic internal key lookups are reserved for _entities entity resolution.
+    private static Lookup? SelectNodeBranchLookup(
+        FusionSchemaDefinition schema,
+        ITypeDefinition type,
+        string? schemaName)
+        => schema
+            .GetPossibleLookupsOrdered(type, schemaName)
+            .FirstOrDefault(l => l.Fields is [PathNode { PathSegment.FieldName.Value: "id" }]
+                && !l.IsInternal);
 
     private void EnqueueRequirePlanNodes(
         PlanNode planNodeTemplate,
