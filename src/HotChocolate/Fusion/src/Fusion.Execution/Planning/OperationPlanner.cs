@@ -286,6 +286,85 @@ public sealed partial class OperationPlanner
         }
     }
 
+    /// <summary>
+    /// Determines whether the step-dependency graph of the given plan steps contains a cycle.
+    /// The graph is derived by inverting each step's dependents, then traversed depth-first.
+    /// </summary>
+    private static bool HasCyclicStepDependencies(ImmutableList<PlanStep> steps)
+    {
+        Dictionary<int, List<int>>? dependencies = null;
+
+        foreach (var step in steps)
+        {
+            if (step is OperationPlanStep operationStep)
+            {
+                foreach (var dependentId in operationStep.Dependents)
+                {
+                    dependencies ??= [];
+
+                    if (!dependencies.TryGetValue(dependentId, out var list))
+                    {
+                        list = [];
+                        dependencies[dependentId] = list;
+                    }
+
+                    list.Add(operationStep.Id);
+                }
+            }
+        }
+
+        if (dependencies is null)
+        {
+            return false;
+        }
+
+        var visited = new HashSet<int>();
+        var stack = new HashSet<int>();
+
+        foreach (var stepId in dependencies.Keys)
+        {
+            if (HasCycle(stepId, dependencies, visited, stack))
+            {
+                return true;
+            }
+        }
+
+        return false;
+
+        static bool HasCycle(
+            int stepId,
+            Dictionary<int, List<int>> dependencies,
+            HashSet<int> visited,
+            HashSet<int> stack)
+        {
+            if (stack.Contains(stepId))
+            {
+                return true;
+            }
+
+            if (!visited.Add(stepId))
+            {
+                return false;
+            }
+
+            stack.Add(stepId);
+
+            if (dependencies.TryGetValue(stepId, out var deps))
+            {
+                foreach (var dep in deps)
+                {
+                    if (HasCycle(dep, dependencies, visited, stack))
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            stack.Remove(stepId);
+            return false;
+        }
+    }
+
     private PlanResult? Plan(
         string operationId,
         PlanQueue possiblePlans,
@@ -308,6 +387,14 @@ public sealed partial class OperationPlanner
         // that are already worse. If it cannot finish a full plan, it returns null and the planner
         // continues without that early shortcut.
         var bestCompletePlan = TryBuildGreedyCompletePlan(possiblePlans, cancellationToken);
+
+        // A plan whose step-dependency graph is cyclic cannot be scheduled, so it must never win.
+        // We discard a cyclic greedy plan here and reject cyclic candidates during the search below.
+        if (bestCompletePlan is not null && HasCyclicStepDependencies(bestCompletePlan.Steps))
+        {
+            bestCompletePlan = null;
+        }
+
         var bestCompletePlanCost = bestCompletePlan?.PathCost ?? double.PositiveInfinity;
 
         while (possiblePlans.TryDequeue(out var current, out _))
@@ -348,6 +435,12 @@ public sealed partial class OperationPlanner
 
             if (backlog.IsEmpty)
             {
+                // Reject candidates whose step-dependency graph is cyclic; they cannot be scheduled.
+                if (HasCyclicStepDependencies(current.Steps))
+                {
+                    continue;
+                }
+
                 // We found a complete plan. Keep it if it is cheaper than the current best plan.
                 // If cost is the same, use a deterministic tie-break so results stay stable.
                 var completeCost = current.PathCost;

@@ -51,6 +51,32 @@ public class RequirementCrossEntityTests : FusionTestBase
     }
 
     [Fact]
+    public void Plan_Should_Resolve_ByNovice_When_Both_Providers_Have_Author_Lookup()
+    {
+        // arrange
+        // mirror of the cross-provider topology an Apollo _entities gateway produces, where
+        // BOTH subgraphs expose an authorById lookup (one per @key entity). The re-rooted
+        // author lookup could otherwise satisfy its own key (author.id) through b's authorById,
+        // which forms a lookup cycle; the planner must resolve author.id through the parent
+        // path (postById { author { id } }) so the plan stays acyclic.
+        var schema = CreateCircularCrossProviderMirrorSchema();
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+              feed {
+                byNovice
+              }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
     public void Plan_Should_Resolve_Author_When_Require_Crosses_List_Entity_Boundary()
     {
         // arrange
@@ -180,6 +206,57 @@ public class RequirementCrossEntityTests : FusionTestBase
 
             type Query {
               postById(id: ID! @is(field: "id")): Post @lookup @internal
+            }
+
+            type Post @key(fields: "id") {
+              id: ID!
+              author: Author!
+              byNovice(
+                yearsOfExperience: Int!
+                  @require(field: "author.yearsOfExperience")): Boolean!
+            }
+
+            type Author @key(fields: "id") {
+              id: ID!
+            }
+            """);
+    }
+
+    private static FusionSchemaDefinition CreateCircularCrossProviderMirrorSchema()
+    {
+        return ComposeSchema(
+            """
+            # name: a
+            schema {
+              query: Query
+            }
+
+            type Query {
+              feed: [Post]
+              postById(id: ID! @is(field: "id")): Post @lookup @internal
+              authorById(id: ID! @is(field: "id")): Author @lookup @internal
+            }
+
+            type Post @key(fields: "id") {
+              id: ID!
+              byExpert(byNovice: Boolean! @require(field: "byNovice")): Boolean!
+            }
+
+            type Author @key(fields: "id") {
+              id: ID!
+              name: String!
+              yearsOfExperience: Int!
+            }
+            """,
+            """
+            # name: b
+            schema {
+              query: Query
+            }
+
+            type Query {
+              postById(id: ID! @is(field: "id")): Post @lookup @internal
+              authorById(id: ID! @is(field: "id")): Author @lookup @internal
             }
 
             type Post @key(fields: "id") {

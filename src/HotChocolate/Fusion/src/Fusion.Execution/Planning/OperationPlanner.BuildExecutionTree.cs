@@ -529,6 +529,26 @@ public sealed partial class OperationPlanner
                 break;
             }
         }
+
+        // Every plan step must be schedulable. If any remain unprocessed the plan has a cyclic
+        // step dependency, which is an internal planner invariant violation rather than a
+        // user-facing condition. We fail loudly instead of silently emitting a degenerate plan.
+        if (ctx.ProcessedStepIds.Count < planSteps.Count)
+        {
+            var unschedulableStepIds = new List<int>();
+
+            foreach (var step in planSteps)
+            {
+                if (!ctx.ProcessedStepIds.Contains(step.Id))
+                {
+                    unschedulableStepIds.Add(step.Id);
+                }
+            }
+
+            throw new InvalidOperationException(
+                "The execution plan could not be built because the following plan steps have a "
+                + $"cyclic dependency and cannot be scheduled: {string.Join(", ", unschedulableStepIds)}.");
+        }
     }
 
     private static ExecutionNode CreateOperationExecutionNode(
@@ -567,7 +587,7 @@ public sealed partial class OperationPlanner
         var requiresFileUpload = requiresUpload
             && DoVariablesContainUploadScalar(operationStep.Definition.VariableDefinitions, schema);
 
-        var operation = RemoveEmptyTypeNames(operationStep.Definition);
+        var operation = RemoveInternalDirectives(operationStep.Definition);
         var operationSource = operation.ToSourceText();
 
         var selectionSetNode = GetSelectionSetNodeFromPath(operationStep.Definition, operationStep.Source);
@@ -2010,67 +2030,121 @@ public sealed partial class OperationPlanner
             .Rewrite(operationDefinition)!;
     }
 
-    private static OperationDefinitionNode RemoveEmptyTypeNames(OperationDefinitionNode operationDefinition)
+    /// <summary>
+    /// Removes gateway-internal executable directives from an operation before it is serialized
+    /// for a source schema. Source schemas do not understand these directives and reject any
+    /// request that carries them. The caller must pass a copy: the original plan step definition
+    /// keeps the markers so the result reader can still identify requirement-only selections.
+    /// </summary>
+    /// <remarks>
+    /// Two internal directives can occur on outgoing selections:
+    /// <c>fusion__requirement</c> marks requirement-only selections; the directive is stripped while
+    /// the field is kept, because the data still has to be fetched. <c>fusion__empty</c> is a
+    /// synthesized <c>__typename</c> placeholder for an otherwise-empty selection set; the placeholder
+    /// is dropped when the set has real siblings, otherwise the directive is stripped so a plain
+    /// <c>__typename</c> keeps the selection set valid.
+    /// </remarks>
+    private static OperationDefinitionNode RemoveInternalDirectives(OperationDefinitionNode operationDefinition)
     {
-        return (OperationDefinitionNode)SyntaxRewriter.Create<List<bool>>(
-                rewrite: (node, context) =>
+        return SyntaxRewriter.Create(
+                rewrite: node =>
                 {
-                    if (node is SelectionSetNode selectionSet && context.Peek())
+                    if (node is not SelectionSetNode selectionSet)
                     {
-                        var items = selectionSet.Selections.ToList();
-                        for (var i = items.Count - 1; i >= 0; i--)
+                        return node;
+                    }
+
+                    var selections = selectionSet.Selections;
+                    List<ISelectionNode>? rewritten = null;
+
+                    for (var i = 0; i < selections.Count; i++)
+                    {
+                        var selection = selections[i];
+                        var replacement = selection;
+                        var drop = false;
+
+                        switch (selection)
                         {
-                            if (items[i] is FieldNode
-                                {
-                                    Alias: null,
-                                    Name.Value: IntrospectionFieldNames.TypeName,
-                                    Directives: [{ Name.Value: "fusion__empty" }]
-                                } field)
+                            case FieldNode
                             {
-                                if (items.Count > 1)
+                                Alias: null,
+                                Name.Value: IntrospectionFieldNames.TypeName,
+                                Directives: [{ Name.Value: "fusion__empty" }]
+                            } placeholder:
+                                if (selections.Count > 1)
                                 {
-                                    items.RemoveAt(i);
+                                    drop = true;
                                 }
                                 else
                                 {
-                                    items[i] = field.WithDirectives([]);
+                                    replacement = placeholder.WithDirectives([]);
                                 }
+
+                                break;
+
+                            case FieldNode { Directives.Count: > 0 } field
+                                when TryRemoveRequirementDirective(field.Directives, out var fieldDirectives):
+                                replacement = field.WithDirectives(fieldDirectives);
+                                break;
+
+                            case InlineFragmentNode { Directives.Count: > 0 } fragment
+                                when TryRemoveRequirementDirective(fragment.Directives, out var fragmentDirectives):
+                                replacement = fragment.WithDirectives(fragmentDirectives);
+                                break;
+                        }
+
+                        if (rewritten is null)
+                        {
+                            if (!drop && ReferenceEquals(replacement, selection))
+                            {
+                                continue;
+                            }
+
+                            rewritten = new List<ISelectionNode>(selections.Count);
+                            for (var j = 0; j < i; j++)
+                            {
+                                rewritten.Add(selections[j]);
                             }
                         }
 
-                        return new SelectionSetNode(items);
-                    }
-
-                    return node;
-                },
-                enter: (node, context) =>
-                {
-                    switch (node)
-                    {
-                        case SelectionSetNode:
-                            context.Push(false);
-                            break;
-
-                        case FieldNode
+                        if (!drop)
                         {
-                            Alias: null,
-                            Name.Value: IntrospectionFieldNames.TypeName,
-                            Directives: [{ Name.Value: "fusion__empty" }]
-                        }:
-                            context[^1] = true;
-                            break;
+                            rewritten.Add(replacement);
+                        }
                     }
 
-                    return context;
-                },
-                leave: (node, context) =>
-                {
-                    if (node is SelectionSetNode)
-                    {
-                        context.Pop();
-                    }
+                    return rewritten is null
+                        ? node
+                        : new SelectionSetNode(rewritten);
                 })
-            .Rewrite(operationDefinition, [])!;
+            .Rewrite(operationDefinition)!;
+    }
+
+    private static bool TryRemoveRequirementDirective(
+        IReadOnlyList<DirectiveNode> directives,
+        out IReadOnlyList<DirectiveNode> result)
+    {
+        for (var i = 0; i < directives.Count; i++)
+        {
+            if (directives[i].Name.Value.Equals("fusion__requirement", StringComparison.Ordinal))
+            {
+                var remaining = new List<DirectiveNode>(directives.Count - 1);
+
+                for (var j = 0; j < directives.Count; j++)
+                {
+                    if (!directives[j].Name.Value.Equals("fusion__requirement", StringComparison.Ordinal))
+                    {
+                        remaining.Add(directives[j]);
+                    }
+                }
+
+                result = remaining;
+                return true;
+            }
+        }
+
+        result = directives;
+        return false;
     }
 
     /// <summary>

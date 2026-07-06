@@ -31,7 +31,7 @@ nodes:
     operation: |
       query Op_123456789101112_3(
         $__fusion_2_comments: [CommentInput]
-          $__fusion_3_id: ID!
+        $__fusion_3_id: ID!
       ) {
         postById(id: $__fusion_3_id) {
           author(comments: $__fusion_2_comments) {
@@ -76,7 +76,7 @@ nodes:
     operation: |
       query Op_123456789101112_5($__fusion_5_id: ID!) {
         postById(id: $__fusion_5_id) {
-          comments(limit: 3) @fusion__requirement {
+          comments(limit: 3) {
             id
           }
         }

@@ -69,7 +69,7 @@ nodes:
     operation: |
       query Op_123456789101112_4(
         $__fusion_4_yearsOfExperience: Int!
-          $__fusion_5_id: ID!
+        $__fusion_5_id: ID!
       ) {
         postById(id: $__fusion_5_id) {
           byNovice(yearsOfExperience: $__fusion_4_yearsOfExperience)
@@ -93,7 +93,7 @@ nodes:
     operation: |
       query Op_123456789101112_6($__fusion_7_id: ID!) {
         postById(id: $__fusion_7_id) {
-          author @fusion__requirement {
+          author {
             id
           }
         }

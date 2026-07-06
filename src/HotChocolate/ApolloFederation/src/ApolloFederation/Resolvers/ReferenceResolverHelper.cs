@@ -49,4 +49,36 @@ internal static class ReferenceResolverHelper
             setValue(entity, value);
         }
     }
+
+    public static void TrySetNestedExternal<TIntermediate, TValue>(
+        Schema schema,
+        ObjectType type,
+        IValueNode data,
+        object entity,
+        string[] intermediatePath,
+        string[] leafPath,
+        Func<object, TIntermediate?> getIntermediate,
+        Action<TIntermediate, TValue?> setLeaf,
+        Action<object, TIntermediate?>? setIntermediate)
+        where TIntermediate : class
+    {
+        var intermediate = getIntermediate(entity);
+
+        if (intermediate is not null)
+        {
+            if (ArgumentParser.TryGetValue<TValue>(data, type, leafPath, schema, out var value))
+            {
+                setLeaf(intermediate, value);
+            }
+
+            return;
+        }
+
+        if (setIntermediate is not null
+            && ArgumentParser.TryGetValue<TIntermediate>(data, type, intermediatePath, schema, out var reconstructed)
+            && reconstructed is not null)
+        {
+            setIntermediate(entity, reconstructed);
+        }
+    }
 }
