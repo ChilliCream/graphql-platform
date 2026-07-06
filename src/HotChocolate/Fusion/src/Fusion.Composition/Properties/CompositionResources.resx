@@ -306,6 +306,9 @@
   <data name="LogEntryHelper_EventCursorArgumentNotString" xml:space="preserve">
     <value>The @eventCursor argument '{0}' in schema '{1}' must be of type String.</value>
   </data>
+  <data name="LogEntryHelper_EventCursorArgumentRequiresCursorField" xml:space="preserve">
+    <value>The @eventCursor argument on field '{0}' in schema '{1}' requires an @eventCursor field on the event payload type.</value>
+  </data>
   <data name="LogEntryHelper_EventCursorFieldNotString" xml:space="preserve">
     <value>The @eventCursor field '{0}' in schema '{1}' must be of type String.</value>
   </data>
