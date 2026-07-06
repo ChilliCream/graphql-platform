@@ -115,7 +115,7 @@ type Review @key(fields: "id") {
 }
 ```
 
-The event cursor is inserted by the Gateway, so there is no need to add it to the message format. If you are using Hot Chocolate, this is how the above schema would look like.
+The event cursor is inserted by the gateway, so there is no need to add it to the message format. If you are using Hot Chocolate, the same schema looks like this:
 
 ```csharp
 [SubscriptionType]
@@ -163,11 +163,11 @@ type Subscription {
 
 type ReviewCreated implements Resumable {
   review: Review!
-  cursor: String! @eventCursor
+  cursor: String @eventCursor
 }
 
 interface Resumable {
-  cursor: String!
+  cursor: String
 }
 
 type Review @key(fields: "id") {
@@ -200,7 +200,7 @@ builder
     });
 ```
 
-Want Kafka instead? Swap `AddNatsEventStreamBroker` for `AddKafkaEventStreamBroker`. The `@eventStream` directive in your schema stays **byte-for-byte the same**, because the broker is selected in host DI, never in the SDL. Connection strings, partitions, SASL/SSL, JetStream stream and consumer names all live in your application code. None of that plumbing leaks into the published API contract.
+Want Kafka instead? Swap `AddNatsEventStreamBroker` for `AddKafkaEventStreamBroker`. The event shape in your schema stays the same, while the broker configuration lives in host DI. Connection strings, partitions, SASL/SSL, JetStream stream and consumer names all live in your application code. None of that plumbing leaks into the published API contract.
 
 If you use a broker we do not ship, or if you want to wrap an existing broker with your own authorization, filtering, or transformation logic, implement `IEventStreamBroker`:
 
@@ -223,16 +223,16 @@ How does a message get into the stream? This is where your application code conn
 
 ```csharp
 await nats.PublishAsync(
-    ReviewTopics.ReviewCreated,
+    "onReviewCreated",
     JsonSerializer.SerializeToUtf8Bytes(new { review = new { id } }),
     cancellationToken: cancellationToken);
 ```
 
-Whether you publish directly through your NATS client, use [Mocha](../docs/mocha/messaging-patterns.md), or hide the broker behind a small wrapper is up to you. Federated Event Streams takes the complex parts out of the subscription path and lets your application publish normal domain events without bleeding GraphQL details into the rest of your system.
+Whether you publish directly through your NATS client, use [Mocha](../docs/mocha/messaging-patterns.md), or hide the broker behind a small wrapper is up to you. Federated Event Streams takes the complex parts out of the subscription path and lets your application publish events from your domain without bleeding GraphQL execution details into the rest of your system.
 
 ## Try Fusion 16.4
 
-Federated Event Streams is the main feature in Fusion 16.4, but it is not the only one. This release also continues our work on the GraphQL Federation spec (aka Composite Schema spec). `@tag` can now be applied to directive definitions, directive definitions support deprecation and the `DIRECTIVE_DEFINITION` location in introspection, and Fusion adds opt-in feature support with `@requiresOptIn`.
+Federated Event Streams is the main feature in Fusion 16.4, but it is not the only one. This release also continues our work on the GraphQL-Federation spec (aka Composite Schema spec). `@tag` can now be applied to directive definitions, directive definitions support deprecation and the `DIRECTIVE_DEFINITION` location in introspection, and Fusion adds opt-in feature support with `@requiresOptIn`.
 
 The full Federated Event Streams reference, including every broker and the `@eventStream` / `@eventCursor` SDL, lives in the [subscriptions docs](../docs/fusion/subscriptions.md).
 
