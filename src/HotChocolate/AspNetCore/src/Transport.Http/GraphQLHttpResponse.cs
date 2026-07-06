@@ -335,6 +335,11 @@ public sealed class GraphQLHttpResponse : IDisposable
 
         if (!TryGetRawMediaTypeAndCharSet(out var mediaType, out var charSet))
         {
+            // A caller cancellation can tear down the response before its content
+            // type is available. Report that as a cancellation rather than the
+            // misleading "unexpected content type" error so the execution node can
+            // treat it as an intentional abort.
+            cancellationToken.ThrowIfCancellationRequested();
             _message.EnsureSuccessStatusCode();
             throw new InvalidOperationException("Received a successful response with an unexpected content type.");
         }
@@ -354,6 +359,7 @@ public sealed class GraphQLHttpResponse : IDisposable
             return ReadAsResultInternalAsync(arena, charSet, cancellationToken);
         }
 
+        cancellationToken.ThrowIfCancellationRequested();
         _message.EnsureSuccessStatusCode();
 
         throw new InvalidOperationException("Received a successful response with an unexpected content type.");

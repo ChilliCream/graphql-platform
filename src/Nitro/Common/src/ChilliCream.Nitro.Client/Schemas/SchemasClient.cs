@@ -124,7 +124,7 @@ internal sealed class SchemasClient(
         }
     }
 
-    public async Task<Stream?> DownloadLatestSchemaAsync(
+    public async Task<Stream> DownloadLatestSchemaAsync(
         string apiId,
         string stageName,
         CancellationToken cancellationToken)
@@ -140,7 +140,8 @@ internal sealed class SchemasClient(
 
         if (response.StatusCode is HttpStatusCode.NotFound)
         {
-            return null;
+            throw new NitroClientNotFoundException(
+                $"Could not find a published schema on stage '{stageName}'.");
         }
 
         if (response.StatusCode is HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden)

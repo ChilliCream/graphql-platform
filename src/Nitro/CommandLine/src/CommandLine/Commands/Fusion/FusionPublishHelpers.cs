@@ -422,12 +422,19 @@ internal static class FusionPublishHelpers
                          $"Downloading existing configuration from '{stageName}'",
                          "Failed to download the existing Fusion configuration."))
         {
-            existingArchiveStream = await client.DownloadLatestFusionArchiveAsync(
-                apiId,
-                stageName,
-                WellKnownVersions.LatestGatewayFormatVersion.ToString(),
-                ArchiveFormats.Far,
-                cancellationToken);
+            try
+            {
+                existingArchiveStream = await client.DownloadLatestFusionArchiveAsync(
+                    apiId,
+                    stageName,
+                    WellKnownVersions.LatestGatewayFormatVersion.ToString(),
+                    ArchiveFormats.Far,
+                    cancellationToken);
+            }
+            catch (NitroClientNotFoundException)
+            {
+                existingArchiveStream = null;
+            }
 
             // Precedence:
             //   server .far + no flag -> use .far (existing embedded .fgp carried forward via Update mode)
@@ -447,12 +454,20 @@ internal static class FusionPublishHelpers
             }
             else
             {
-                var serverLegacyStream = await client.DownloadLatestFusionArchiveAsync(
-                    apiId,
-                    stageName,
-                    WellKnownVersions.LegacyGatewayFormatVersion.ToString(),
-                    ArchiveFormats.Fgp,
-                    cancellationToken);
+                Stream? serverLegacyStream;
+                try
+                {
+                    serverLegacyStream = await client.DownloadLatestFusionArchiveAsync(
+                        apiId,
+                        stageName,
+                        WellKnownVersions.LegacyGatewayFormatVersion.ToString(),
+                        ArchiveFormats.Fgp,
+                        cancellationToken);
+                }
+                catch (NitroClientNotFoundException)
+                {
+                    serverLegacyStream = null;
+                }
 
                 if (serverLegacyStream is not null)
                 {

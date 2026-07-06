@@ -38,6 +38,8 @@ items:
     title: CLI
   - path: directives-reference
     title: Directive Reference
+  - path: connectors
+    title: Connectors
   - path: adapters
     title: Adapters
   - path: migration
