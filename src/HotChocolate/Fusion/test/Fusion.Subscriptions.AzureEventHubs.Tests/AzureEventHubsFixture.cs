@@ -33,7 +33,9 @@ public sealed class AzureEventHubsFixture : IAsyncLifetime
         "hub-e",
         "hub-f",
         "hub-g",
-        "hub-h"
+        "hub-h",
+        "hub-i",
+        "hub-j"
     ];
 
     private readonly INetwork? _network;
@@ -114,11 +116,15 @@ public sealed class AzureEventHubsFixture : IAsyncLifetime
 
     public string ResumeHub => GetHub(4);
 
-    public string CancellationHub => GetHub(5);
+    public string MultiHubResumeHubA => GetHub(5);
 
-    public string InvalidCursorHub => GetHub(6);
+    public string MultiHubResumeHubB => GetHub(6);
 
-    public string GatewayHub => GetHub(7);
+    public string MultiPartitionResumeHub => GetHub(7);
+
+    public string GatewayHub => GetHub(8);
+
+    public string SinglePartitionHub => GetHub(9);
 
     public async ValueTask InitializeAsync()
     {
@@ -127,7 +133,7 @@ public sealed class AzureEventHubsFixture : IAsyncLifetime
             if (Hubs.Count < s_defaultHubs.Length)
             {
                 Assert.Skip(
-                    "AZURE_EVENTHUBS_HUBS must provide at least eight pre-created hubs.");
+                    "AZURE_EVENTHUBS_HUBS must provide at least ten pre-created hubs.");
             }
 
             return;
@@ -223,13 +229,16 @@ public sealed class AzureEventHubsFixture : IAsyncLifetime
             ",",
             hubs.Select(
                 hub =>
+                {
+                    return
                     $$"""
                     {
                       "Name": "{{hub}}",
-                      "PartitionCount": "2",
+                      "PartitionCount": "{{GetPartitionCount(hub)}}",
                       "ConsumerGroups": []
                     }
-                    """));
+                    """;
+                }));
 
         return
             $$"""
@@ -251,6 +260,14 @@ public sealed class AzureEventHubsFixture : IAsyncLifetime
             }
             """;
     }
+
+    private static string GetPartitionCount(string hub)
+        => hub switch
+        {
+            "hub-h" => "3",
+            "hub-j" => "1",
+            _ => "2"
+        };
 
     private static int GetFreeTcpPort()
     {

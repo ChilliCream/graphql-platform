@@ -1,7 +1,11 @@
 using System.Collections.Immutable;
+using HotChocolate.Fusion.Language;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Types.Mutable;
+using BooleanValueNode = HotChocolate.Language.BooleanValueNode;
+using ListValueNode = HotChocolate.Language.ListValueNode;
+using StringValueNode = HotChocolate.Language.StringValueNode;
 
 namespace HotChocolate.Fusion.Extensions;
 
@@ -134,9 +138,25 @@ internal static class MutableSchemaDefinitionExtensions
         return lookupsById;
     }
 
+    /// <summary>
+    /// Removes type system definitions that are not reachable from operation roots or preserved types.
+    /// </summary>
+    /// <param name="schema">
+    /// The schema from which unreferenced definitions are removed.
+    /// </param>
+    /// <param name="preservedTypeNames">
+    /// Type names that are always treated as reachable.
+    /// </param>
+    /// <param name="seedUnionsAsRoots">
+    /// A source schema's union definition is a piecewise contribution to the merged union.
+    /// Reachability of a union is a merged-schema property, so per-source pruning must seed
+    /// union definitions as roots. The merged-schema prune passes false and remains the cleanup
+    /// for genuinely dead unions.
+    /// </param>
     public static void RemoveUnreferencedDefinitions(
         this MutableSchemaDefinition schema,
-        IReadOnlySet<string> preservedTypeNames)
+        IReadOnlySet<string> preservedTypeNames,
+        bool seedUnionsAsRoots)
     {
         var touchedDefinitions = new HashSet<ITypeSystemMember>();
         var backlog = new Stack<ITypeSystemMember>();
@@ -169,6 +189,23 @@ internal static class MutableSchemaDefinitionExtensions
             }
         }
 
+        // A union type definition in a source schema is a piecewise contribution to the
+        // merged union. Because a union's reachability is a merged-schema property, per-source
+        // pruning seeds union definitions as roots so member contributions that only become
+        // reachable through another source schema's fields are not eaten before the merge.
+        // The merged-schema prune (which passes seedUnionsAsRoots: false) still removes unions
+        // that are unreachable in every source.
+        if (seedUnionsAsRoots)
+        {
+            foreach (var type in schema.Types)
+            {
+                if (type is IUnionTypeDefinition)
+                {
+                    backlog.Push(type);
+                }
+            }
+        }
+
         while (backlog.TryPop(out var type))
         {
             if (!touchedDefinitions.Add(type))
@@ -184,6 +221,10 @@ internal static class MutableSchemaDefinitionExtensions
 
                 case IDirectiveDefinition directiveDefinition:
                     InspectDirectiveDefinition(directiveDefinition, backlog);
+                    break;
+
+                case IEnumTypeDefinition enumType:
+                    InspectEnumType(enumType, backlog);
                     break;
 
                 case IInputObjectTypeDefinition inputObjectType:
@@ -300,6 +341,7 @@ internal static class MutableSchemaDefinitionExtensions
         foreach (var directive in complexType.Directives)
         {
             backlog.Push(directive.Definition);
+            InspectSelectionCarryingDirective(schema, directive, backlog);
         }
 
         foreach (var field in complexType.Fields)
@@ -310,6 +352,7 @@ internal static class MutableSchemaDefinitionExtensions
             foreach (var directive in field.Directives)
             {
                 backlog.Push(directive.Definition);
+                InspectSelectionCarryingDirective(schema, directive, backlog);
             }
 
             if (returnType is IInterfaceTypeDefinition or IUnionTypeDefinition)
@@ -327,8 +370,150 @@ internal static class MutableSchemaDefinitionExtensions
                 foreach (var directive in argument.Directives)
                 {
                     backlog.Push(directive.Definition);
+                    InspectSelectionCarryingDirective(schema, directive, backlog);
                 }
             }
+        }
+    }
+
+    private static void InspectSelectionCarryingDirective(
+        ISchemaDefinition schema,
+        IDirective directive,
+        Stack<ITypeSystemMember> backlog)
+    {
+        switch (directive.Name)
+        {
+            case WellKnownDirectiveNames.Key:
+            case WellKnownDirectiveNames.Provides:
+                if (directive.Arguments.TryGetValue(WellKnownArgumentNames.Fields, out var fieldsValue)
+                    && fieldsValue is StringValueNode fieldsSelectionSet)
+                {
+                    PushSelectionSetReferencedTypes(schema, fieldsSelectionSet.Value, backlog);
+                }
+
+                break;
+
+            case WellKnownDirectiveNames.EventStream:
+                if (directive.Arguments.TryGetValue(WellKnownArgumentNames.Message, out var messageValue)
+                    && messageValue is StringValueNode messageSelectionSet)
+                {
+                    PushSelectionSetReferencedTypes(schema, messageSelectionSet.Value, backlog);
+                }
+
+                break;
+
+            case WellKnownDirectiveNames.Require:
+            case WellKnownDirectiveNames.Is:
+                if (directive.Arguments.TryGetValue(WellKnownArgumentNames.Field, out var fieldValue)
+                    && fieldValue is StringValueNode fieldSelectionMap)
+                {
+                    PushSelectionMapReferencedTypes(schema, fieldSelectionMap.Value, backlog);
+                }
+
+                break;
+        }
+    }
+
+    private static void PushSelectionSetReferencedTypes(
+        ISchemaDefinition schema,
+        string selectionSet,
+        Stack<ITypeSystemMember> backlog)
+    {
+        SelectionSetNode parsed;
+
+        // Invalid selections are the validators' concern; skip and continue so the prune
+        // never crashes on malformed directive arguments.
+        try
+        {
+            parsed = ParseSelectionSet(selectionSet);
+        }
+        catch (SyntaxException)
+        {
+            return;
+        }
+
+        CollectSelectionSetTypeConditions(schema, parsed, backlog);
+    }
+
+    private static void CollectSelectionSetTypeConditions(
+        ISchemaDefinition schema,
+        ISyntaxNode node,
+        Stack<ITypeSystemMember> backlog)
+    {
+        if (node is InlineFragmentNode { TypeCondition: { } typeCondition })
+        {
+            PushTypeByName(schema, typeCondition.Name.Value, backlog);
+        }
+
+        foreach (var child in node.GetNodes())
+        {
+            CollectSelectionSetTypeConditions(schema, child, backlog);
+        }
+    }
+
+    private static void PushSelectionMapReferencedTypes(
+        ISchemaDefinition schema,
+        string fieldSelectionMap,
+        Stack<ITypeSystemMember> backlog)
+    {
+        IValueSelectionNode parsed;
+
+        // Invalid maps are the validators' concern; skip and continue so the prune
+        // never crashes on malformed directive arguments.
+        try
+        {
+            parsed = new FieldSelectionMapParser(fieldSelectionMap).Parse();
+        }
+        catch (FieldSelectionMapSyntaxException)
+        {
+            return;
+        }
+
+        CollectSelectionMapTypeConditions(schema, parsed, backlog);
+    }
+
+    private static void CollectSelectionMapTypeConditions(
+        ISchemaDefinition schema,
+        IFieldSelectionMapSyntaxNode node,
+        Stack<ITypeSystemMember> backlog)
+    {
+        switch (node)
+        {
+            case PathNode { TypeName: { } pathTypeName }:
+                PushTypeByName(schema, pathTypeName.Value, backlog);
+                break;
+
+            case PathSegmentNode { TypeName: { } segmentTypeName }:
+                PushTypeByName(schema, segmentTypeName.Value, backlog);
+                break;
+        }
+
+        foreach (var child in node.GetNodes())
+        {
+            CollectSelectionMapTypeConditions(schema, child, backlog);
+        }
+    }
+
+    private static void PushTypeByName(
+        ISchemaDefinition schema,
+        string typeName,
+        Stack<ITypeSystemMember> backlog)
+    {
+        if (schema.Types.TryGetType(typeName, out var type))
+        {
+            backlog.Push(type);
+        }
+    }
+
+    private static SelectionSetNode ParseSelectionSet(string value)
+    {
+        try
+        {
+            return Utf8GraphQLParser.Syntax.ParseSelectionSet(value);
+        }
+        catch (SyntaxException)
+        {
+            return Utf8GraphQLParser.Syntax.ParseSelectionSet($"{{ {value} }}");
         }
     }
 
@@ -339,6 +524,24 @@ internal static class MutableSchemaDefinitionExtensions
         foreach (var argument in directiveDefinition.Arguments)
         {
             backlog.Push(argument.Type.AsTypeDefinition());
+        }
+    }
+
+    private static void InspectEnumType(
+        IEnumTypeDefinition enumType,
+        Stack<ITypeSystemMember> backlog)
+    {
+        foreach (var directive in enumType.Directives)
+        {
+            backlog.Push(directive.Definition);
+        }
+
+        foreach (var value in enumType.Values)
+        {
+            foreach (var directive in value.Directives)
+            {
+                backlog.Push(directive.Definition);
+            }
         }
     }
 

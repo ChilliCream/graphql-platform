@@ -35,12 +35,6 @@ internal sealed class NatsEventStreamBrokerProvider : IEventStreamBrokerProvider
                 throw new InvalidOperationException(
                     "NATS JetStream options require a stream name.");
             }
-
-            if (string.IsNullOrWhiteSpace(jetStream.DurableConsumer))
-            {
-                throw new InvalidOperationException(
-                    "NATS JetStream options require a durable consumer name.");
-            }
         }
     }
 }

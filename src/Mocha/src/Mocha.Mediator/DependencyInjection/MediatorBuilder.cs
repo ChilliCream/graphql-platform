@@ -1,6 +1,5 @@
 using System.Collections.Frozen;
 using System.Collections.Immutable;
-using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using Microsoft.Extensions.DependencyInjection;
@@ -125,40 +124,6 @@ public sealed class MediatorBuilder : IMediatorBuilder
         else
         {
             _handlerDescriptors.TryAdd(handlerType, static _ => { });
-        }
-    }
-
-    /// <inheritdoc />
-    [EditorBrowsable(EditorBrowsableState.Never)]
-    public void AddHandlerConfiguration(MediatorHandlerConfiguration configuration)
-    {
-        ArgumentNullException.ThrowIfNull(configuration);
-
-        var handlerType = configuration.HandlerType!;
-
-        void ApplyConfig(MediatorHandlerDescriptor d)
-        {
-            var config = d.Extend().Configuration;
-            config.MessageType = configuration.MessageType;
-            config.ResponseType = configuration.ResponseType;
-            config.Kind = configuration.Kind;
-            config.Delegate = configuration.Delegate;
-        }
-
-        var existing = _handlerDescriptors.GetValueOrDefault(handlerType);
-
-        if (existing is not null)
-        {
-            var inner = existing;
-            _handlerDescriptors[handlerType] = d =>
-            {
-                inner(d);
-                ApplyConfig(d);
-            };
-        }
-        else
-        {
-            _handlerDescriptors[handlerType] = ApplyConfig;
         }
     }
 
@@ -302,8 +267,8 @@ public sealed class MediatorBuilder : IMediatorBuilder
             description);
     }
 
-    [RequiresDynamicCode("Use source-generated AddHandlerConfiguration for AOT compatibility.")]
-    [RequiresUnreferencedCode("Use source-generated AddHandlerConfiguration for AOT compatibility.")]
+    [RequiresDynamicCode("Use source-generated mediator module registration for AOT compatibility.")]
+    [RequiresUnreferencedCode("Use source-generated mediator module registration for AOT compatibility.")]
     private static MediatorDelegate BuildPipelineViaReflection(MediatorHandlerConfiguration config)
     {
         return config.Kind switch

@@ -80,6 +80,21 @@ public sealed class FusionOptions : IFusionSchemaOptions, ICloneable
     } = 256;
 
     /// <summary>
+    /// Gets or sets how the gateway resolves the <c>Query.node</c> field.
+    /// <see cref="NodeResolution.Gateway"/> by default.
+    /// </summary>
+    public NodeResolution NodeResolution
+    {
+        get;
+        set
+        {
+            ExpectMutableOptions();
+
+            field = value;
+        }
+    } = NodeResolution.Gateway;
+
+    /// <summary>
     /// Gets or sets the initial capacity of the local path segment pool used during result composition.
     /// <c>64</c> by default. <c>1</c> is the minimum.
     /// </summary>
@@ -169,6 +184,22 @@ public sealed class FusionOptions : IFusionSchemaOptions, ICloneable
     } = true;
 
     /// <summary>
+    /// Gets or sets whether opt-in feature support is enabled. When <c>true</c>, the introspection
+    /// schema exposes the <c>includeOptIn</c> argument and opt-in members are hidden from
+    /// introspection unless the client opts into their feature.
+    /// </summary>
+    public bool EnableOptInFeatures
+    {
+        get;
+        set
+        {
+            ExpectMutableOptions();
+
+            field = value;
+        }
+    }
+
+    /// <summary>
     /// Enables the <c>__search</c> and <c>__definitions</c> introspection fields
     /// for semantic schema discovery.
     /// </summary>
@@ -197,11 +228,13 @@ public sealed class FusionOptions : IFusionSchemaOptions, ICloneable
             OperationExecutionPlanCacheSize = OperationExecutionPlanCacheSize,
             OperationExecutionPlanCacheDiagnostics = OperationExecutionPlanCacheDiagnostics,
             OperationDocumentCacheSize = OperationDocumentCacheSize,
+            NodeResolution = NodeResolution,
             PathSegmentLocalPoolCapacity = PathSegmentLocalPoolCapacity,
             LazyInitialization = LazyInitialization,
             NodeIdSerializerFormat = NodeIdSerializerFormat,
             ApplySerializeAsToScalars = ApplySerializeAsToScalars,
             EnableDefer = EnableDefer,
+            EnableOptInFeatures = EnableOptInFeatures,
             EnableSemanticIntrospection = EnableSemanticIntrospection
         };
     }

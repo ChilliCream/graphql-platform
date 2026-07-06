@@ -9,10 +9,10 @@ internal static class WellKnownDirectiveNames
     public const string Cost = DirectiveNames.Cost.Name;
     public const string EventCursor = DirectiveNames.EventCursor.Name;
     public const string External = DirectiveNames.External.Name;
-    public const string FusionConnector = "fusion__connector";
     public const string FusionCost = "fusion__cost";
     public const string FusionEnumValue = "fusion__enumValue";
     public const string FusionField = "fusion__field";
+    public const string FusionGatewayField = "fusion__gateway_field";
     public const string FusionImplements = "fusion__implements";
     public const string FusionInaccessible = "fusion__inaccessible";
     public const string FusionInputField = "fusion__inputField";
@@ -31,9 +31,11 @@ internal static class WellKnownDirectiveNames
     public const string Lookup = DirectiveNames.Lookup.Name;
     public const string McpToolAnnotations = "mcpToolAnnotations";
     public const string OneOf = DirectiveNames.OneOf.Name;
+    public const string OptInFeatureStability = DirectiveNames.OptInFeatureStability.Name;
     public const string Override = DirectiveNames.Override.Name;
     public const string Provides = DirectiveNames.Provides.Name;
     public const string Require = DirectiveNames.Require.Name;
+    public const string RequiresOptIn = DirectiveNames.RequiresOptIn.Name;
     public const string SerializeAs = DirectiveNames.SerializeAs.Name;
     public const string Shareable = DirectiveNames.Shareable.Name;
     public const string SpecifiedBy = DirectiveNames.SpecifiedBy.Name;

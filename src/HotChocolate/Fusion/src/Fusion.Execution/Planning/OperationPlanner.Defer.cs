@@ -1,8 +1,8 @@
 using System.Collections.Immutable;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
-using HotChocolate.Fusion.Rewriters;
 using HotChocolate.Fusion.Types;
+using HotChocolate.Fusion.Types.Rewriters;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
@@ -783,7 +783,10 @@ public sealed partial class OperationPlanner
                     }
 
                     if (fragment is null
-                        || !_schema.Types.TryGetType(segment.Name, out var fragmentType))
+                        || !_schema.Types.TryGetType(
+                            segment.Name,
+                            allowInaccessibleFields: true,
+                            out var fragmentType))
                     {
                         targetSelectionSet = null!;
                         targetType = null!;
@@ -934,7 +937,7 @@ public sealed partial class OperationPlanner
         planSteps = TransformPlanSteps(planSteps, deferredOperation);
         IndexDependencies(planSteps, ctx);
         BuildExecutionNodes(planSteps, ctx, _schema, hasVariables, CancellationToken.None);
-        MergeAndBatchOperations(ctx, _options.EnableRequestGrouping, _options.MergePolicy);
+        MergeAndBatchOperations(ctx, _schema, _options.EnableRequestGrouping, _options.MergePolicy);
         WireExecutionDependencies(ctx);
 
         var rootNodes = planSteps

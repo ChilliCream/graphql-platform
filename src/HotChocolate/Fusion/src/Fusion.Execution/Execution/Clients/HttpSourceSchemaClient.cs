@@ -56,10 +56,10 @@ public sealed class HttpSourceSchemaClient : ISourceSchemaClient
     public SourceSchemaClientCapabilities Capabilities { get; }
 
     /// <inheritdoc />
-    public async IAsyncEnumerable<SourceSchemaResult> ExecuteAsync(
+    public IAsyncEnumerable<SourceSchemaResult> ExecuteAsync(
         OperationPlanContext context,
         SourceSchemaClientRequest request,
-        [EnumeratorCancellation] CancellationToken cancellationToken)
+        CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(context);
 
@@ -71,42 +71,50 @@ public sealed class HttpSourceSchemaClient : ISourceSchemaClient
 
         Debug.WriteLine(request.SchemaName);
 
-        ChunkedArrayWriter? buffer = null;
-        GraphQLHttpResponse? httpResponse = null;
+        return CreateStreamAsync(context, request, cancellationToken);
 
-        try
+        async IAsyncEnumerable<SourceSchemaResult> CreateStreamAsync(
+            OperationPlanContext context,
+            SourceSchemaClientRequest request,
+            [EnumeratorCancellation] CancellationToken cancellationToken)
         {
-            var httpRequest = CreateHttpRequest(context, request, ref buffer);
-            ConfigureCallbacks(httpRequest, context, request.Node);
+            ChunkedArrayWriter? buffer = null;
+            GraphQLHttpResponse? httpResponse = null;
 
-            httpResponse = await _client.SendAsync(httpRequest, cancellationToken).ConfigureAwait(false);
-            context.TrackTransport(request.Node, httpRequest.Uri, httpResponse.RawContentType);
-
-            var results = ReadAsResultStreamAsync(
-                context,
-                request.Variables,
-                httpResponse,
-                cancellationToken);
-
-            if (_configuration.OnSourceSchemaResult is not null)
+            try
             {
-                results = WithResultCallback(
-                    results,
+                var httpRequest = CreateHttpRequest(context, request, ref buffer);
+                ConfigureCallbacks(httpRequest, context, request.Node);
+
+                httpResponse = await _client.SendAsync(httpRequest, cancellationToken).ConfigureAwait(false);
+                context.TrackTransport(request.Node, httpRequest.Uri, httpResponse.RawContentType);
+
+                var results = ReadAsResultStreamAsync(
                     context,
-                    request.Node,
-                    _configuration.OnSourceSchemaResult,
+                    request.Variables,
+                    httpResponse,
                     cancellationToken);
-            }
 
-            await foreach (var result in results.WithCancellation(cancellationToken).ConfigureAwait(false))
-            {
-                yield return result;
+                if (_configuration.OnSourceSchemaResult is not null)
+                {
+                    results = WithResultCallback(
+                        results,
+                        context,
+                        request.Node,
+                        _configuration.OnSourceSchemaResult,
+                        cancellationToken);
+                }
+
+                await foreach (var result in results.WithCancellation(cancellationToken).ConfigureAwait(false))
+                {
+                    yield return result;
+                }
             }
-        }
-        finally
-        {
-            httpResponse?.Dispose();
-            buffer?.Dispose();
+            finally
+            {
+                httpResponse?.Dispose();
+                buffer?.Dispose();
+            }
         }
     }
 
@@ -123,6 +131,14 @@ public sealed class HttpSourceSchemaClient : ISourceSchemaClient
         {
             throw new InvalidOperationException(
                 FusionExecutionResources.HttpSourceSchemaClient_SubscriptionBatchNotSupported);
+        }
+
+        // A source schema that does not support request batching still accepts
+        // each operation on its own, so we fall back to individual requests and
+        // stream the results back in request order.
+        if (!Capabilities.HasFlag(SourceSchemaClientCapabilities.RequestBatching))
+        {
+            return ExecuteBatchAsSingleRequestsAsync(context, requests, cancellationToken);
         }
 
         var requiresFileUpload = requests[0].RequiresFileUpload;
@@ -189,6 +205,55 @@ public sealed class HttpSourceSchemaClient : ISourceSchemaClient
         {
             httpResponse?.Dispose();
             buffer?.Dispose();
+        }
+    }
+
+    private async IAsyncEnumerable<SourceSchemaBatchResult> ExecuteBatchAsSingleRequestsAsync(
+        OperationPlanContext context,
+        ImmutableArray<SourceSchemaClientRequest> requests,
+        [EnumeratorCancellation] CancellationToken cancellationToken)
+    {
+        // Each request is its own HTTP round-trip, so a transport failure of one
+        // request must not abort the batch. We isolate each request: if it fails
+        // we record the cause against its index and continue with the next one,
+        // leaving results already produced by sibling requests untouched.
+        for (var i = 0; i < requests.Length; i++)
+        {
+            var request = requests[i];
+            var enumerator = ExecuteAsync(context, request, cancellationToken)
+                .WithCancellation(cancellationToken).ConfigureAwait(false).GetAsyncEnumerator();
+
+            try
+            {
+                while (true)
+                {
+                    try
+                    {
+                        if (!await enumerator.MoveNextAsync())
+                        {
+                            break;
+                        }
+                    }
+                    catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+                    {
+                        // Caller-driven cancellation aborts the whole batch.
+                        throw;
+                    }
+                    catch (Exception exception)
+                    {
+                        // The consuming node attaches the recorded cause to the
+                        // request that produced no result.
+                        context.TrackBatchRequestError(request.Node, i, exception);
+                        break;
+                    }
+
+                    yield return new SourceSchemaBatchResult(i, enumerator.Current);
+                }
+            }
+            finally
+            {
+                await enumerator.DisposeAsync();
+            }
         }
     }
 

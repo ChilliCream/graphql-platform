@@ -90,7 +90,7 @@ public class DurationType : ScalarType<TimeSpan, StringValueNode>
     /// <inheritdoc />
     protected override TimeSpan OnCoerceInputValue(JsonElement inputValue, IFeatureProvider context)
     {
-        var str = inputValue.GetString()!;
+        var str = inputValue.GetString();
 
         if (Format == DurationFormat.Iso8601)
         {

@@ -46,7 +46,7 @@ public class InMemoryTransportTests
         // assert
         Assert.True(found, "TryGetDispatchEndpoint should resolve queue:// URI");
         Assert.NotNull(endpoint);
-        Assert.IsType<InMemoryQueue>(endpoint!.Destination);
+        Assert.IsType<InMemoryQueue>(endpoint.Destination);
         var queue = (InMemoryQueue)endpoint.Destination;
         Assert.Equal("process-payment", queue.Name);
     }
@@ -70,7 +70,7 @@ public class InMemoryTransportTests
         var topicEndpoint = transport.DispatchEndpoints.FirstOrDefault(e => e.Destination is InMemoryTopic);
 
         Assert.NotNull(topicEndpoint);
-        var topicName = ((InMemoryTopic)topicEndpoint!.Destination).Name;
+        var topicName = ((InMemoryTopic)topicEndpoint.Destination).Name;
 
         var topicUri = new Uri($"topic://{topicName}");
 
@@ -80,7 +80,7 @@ public class InMemoryTransportTests
         // assert
         Assert.True(found, "TryGetDispatchEndpoint should resolve topic:// URI");
         Assert.NotNull(endpoint);
-        Assert.IsType<InMemoryTopic>(endpoint!.Destination);
+        Assert.IsType<InMemoryTopic>(endpoint.Destination);
         Assert.Equal(topicName, ((InMemoryTopic)endpoint.Destination).Name);
     }
 
@@ -152,7 +152,7 @@ public class InMemoryTransportTests
 
         Assert.NotNull(dispatchEndpoint);
 
-        var destinationAddress = dispatchEndpoint!.Destination.Address;
+        var destinationAddress = dispatchEndpoint.Destination.Address;
 
         // act
         var found = transport.TryGetDispatchEndpoint(destinationAddress, out var endpoint);
@@ -296,7 +296,7 @@ public class InMemoryTransportTests
 
         // assert - topology should contain topic entities
         Assert.NotNull(description.Topology);
-        Assert.Contains(description.Topology!.Entities, e => e.Kind == "topic");
+        Assert.Contains(description.Topology.Entities, e => e.Kind == "topic");
     }
 
     [Fact]
@@ -317,7 +317,7 @@ public class InMemoryTransportTests
 
         // assert - topology should contain queue entities
         Assert.NotNull(description.Topology);
-        Assert.Contains(description.Topology!.Entities, e => e.Kind == "queue");
+        Assert.Contains(description.Topology.Entities, e => e.Kind == "queue");
     }
 
     [Fact]
@@ -338,7 +338,7 @@ public class InMemoryTransportTests
 
         // assert - topology should contain links for bindings
         Assert.NotNull(description.Topology);
-        Assert.NotEmpty(description.Topology!.Links);
+        Assert.NotEmpty(description.Topology.Links);
         Assert.All(
             description.Topology.Links,
             link =>
@@ -435,7 +435,7 @@ public class InMemoryTransportTests
 
         // assert - there should be a link representing the topic-to-topic binding
         Assert.NotNull(description.Topology);
-        Assert.NotEmpty(description.Topology!.Links);
+        Assert.NotEmpty(description.Topology.Links);
 
         // The topic-to-topic binding link has the address path containing /b/t/source/t/dest
         var topicToTopicLink = Assert.Single(
@@ -558,7 +558,7 @@ public class InMemoryTransportTests
         );
 
         Assert.NotNull(queueEndpoint);
-        Assert.StartsWith("q/", queueEndpoint!.Name);
+        Assert.StartsWith("q/", queueEndpoint.Name);
     }
 
     [Fact]
@@ -578,7 +578,7 @@ public class InMemoryTransportTests
         var topicEndpoint = transport.DispatchEndpoints.FirstOrDefault(e => e.Destination is InMemoryTopic);
 
         Assert.NotNull(topicEndpoint);
-        Assert.StartsWith("t/", topicEndpoint!.Name);
+        Assert.StartsWith("t/", topicEndpoint.Name);
     }
 
     [Fact]
@@ -689,7 +689,7 @@ public class InMemoryTransportTests
 
         // assert - should have queue entity for process-payment
         Assert.NotNull(description.Topology);
-        Assert.Contains(description.Topology!.Entities, e => e.Kind == "queue" && e.Name == "process-payment");
+        Assert.Contains(description.Topology.Entities, e => e.Kind == "queue" && e.Name == "process-payment");
     }
 
     [Fact]
@@ -711,7 +711,7 @@ public class InMemoryTransportTests
 
         // assert
         Assert.NotNull(description.Topology);
-        var topicCount = description.Topology!.Entities.Count(e => e.Kind == "topic");
+        var topicCount = description.Topology.Entities.Count(e => e.Kind == "topic");
         var queueCount = description.Topology.Entities.Count(e => e.Kind == "queue");
 
         // Both event handler (creates topic + queue) and request handler (creates queue) contribute
@@ -739,7 +739,7 @@ public class InMemoryTransportTests
         // assert
         Assert.NotNull(description.Topology);
         Assert.Equal(topology.Address.ToString(), description.Topology!.Address);
-        Assert.Equal(topology.Address.ToString(), description.Address);
+        Assert.Equal(topology.Address.ToString(), description.Identifier);
     }
 
     [Fact]
@@ -764,7 +764,7 @@ public class InMemoryTransportTests
         Assert.StartsWith("t/", topicDispatch.Name);
         Assert.Equal(DispatchEndpointKind.Default, topicDispatch.Kind);
         Assert.NotNull(topicDispatch.Address);
-        Assert.Contains("/t/", topicDispatch.Address!.AbsolutePath);
+        Assert.Contains("/t/", topicDispatch.Address.AbsolutePath);
     }
 
     [Fact]
@@ -791,7 +791,7 @@ public class InMemoryTransportTests
         Assert.StartsWith("q/", queueDispatch.Name);
         Assert.Equal(DispatchEndpointKind.Default, queueDispatch.Kind);
         Assert.NotNull(queueDispatch.Address);
-        Assert.Contains("/q/", queueDispatch.Address!.AbsolutePath);
+        Assert.Contains("/q/", queueDispatch.Address.AbsolutePath);
     }
 
     [Fact]
@@ -868,7 +868,7 @@ public class InMemoryTransportTests
 
         // assert - binding address should contain path segments b/t/source/q/dest
         Assert.NotNull(queueBinding.Address);
-        var path = queueBinding.Address!.AbsolutePath;
+        var path = queueBinding.Address.AbsolutePath;
         Assert.Contains("/b/t/addr-source/q/addr-dest", path);
     }
 
@@ -893,7 +893,7 @@ public class InMemoryTransportTests
 
         // assert - binding address should contain path segments b/t/source/t/dest
         Assert.NotNull(topicBinding.Address);
-        var path = topicBinding.Address!.AbsolutePath;
+        var path = topicBinding.Address.AbsolutePath;
         Assert.Contains("/b/t/addr-source-t/t/addr-dest-t", path);
     }
 

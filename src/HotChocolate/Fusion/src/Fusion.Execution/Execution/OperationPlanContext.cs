@@ -7,6 +7,7 @@ using HotChocolate.Buffers;
 using HotChocolate.Execution;
 using HotChocolate.Features;
 using HotChocolate.Fusion.Diagnostics;
+using HotChocolate.Fusion.Execution.ApolloFederation;
 using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Execution.Nodes.Serialization;
@@ -32,6 +33,7 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
     private Uri?[] _transportUris = [];
     private string?[] _transportContentTypes = [];
     private List<IOperationPlanNode>?[] _skippedDefinitions = [];
+    private Dictionary<int, Exception>?[] _batchRequestErrors = [];
     private readonly IFusionExecutionDiagnosticEvents _diagnosticEvents;
     private readonly FetchResultStore _resultStore;
     private ImmutableArray<VariableValues> _requirementValues;
@@ -40,7 +42,9 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
     private readonly INodeIdParser _nodeIdParser;
     private readonly IErrorHandler _errorHandler;
     private bool _collectTelemetry;
+#pragma warning disable IDE0370 // Remove unnecessary suppression
     private ISourceSchemaClientScope _clientScope = default!;
+#pragma warning restore IDE0370 // Remove unnecessary suppression
     private string? _traceId;
     private long _start;
     private long _clientScopeCreatedAt;
@@ -48,18 +52,24 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
     private int _nodeSlotCapacity;
     private MemoryArena? _memory;
     private readonly FixedMemoryArenaSource _memorySource = new();
+#pragma warning disable IDE0370 // Remove unnecessary suppression
     private IMemoryArenaSource _currentMemorySource = default!;
+#pragma warning restore IDE0370 // Remove unnecessary suppression
     internal OperationPlanContextPool? _pool;
 
     /// <summary>
     /// Gets the operation plan being executed.
     /// </summary>
+#pragma warning disable IDE0370 // Remove unnecessary suppression
     public IOperationPlan OperationPlan { get; private set; } = default!;
+#pragma warning restore IDE0370 // Remove unnecessary suppression
 
     /// <summary>
     /// Gets the coerced variable values for the current request.
     /// </summary>
+#pragma warning disable IDE0370 // Remove unnecessary suppression
     public IVariableValueCollection Variables { get; private set; } = default!;
+#pragma warning restore IDE0370 // Remove unnecessary suppression
 
     /// <summary>
     /// Gets the schema definition associated with this execution.
@@ -69,7 +79,9 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
     /// <summary>
     /// Gets the request context for the current request.
     /// </summary>
+#pragma warning disable IDE0370 // Remove unnecessary suppression
     public RequestContext RequestContext { get; private set; } = default!;
+#pragma warning restore IDE0370 // Remove unnecessary suppression
 
     /// <summary>
     /// Gets the source schema client scope used to obtain HTTP clients for downstream subgraphs.
@@ -219,6 +231,39 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
         }
 
         return ImmutableCollectionsMarshal.AsImmutableArray(array);
+    }
+
+    // Records a transport failure that a batch fallback isolated to a single
+    // request. The consuming batch node surfaces the recorded cause for the
+    // request that has no result, instead of reporting a generic protocol error.
+    internal void TrackBatchRequestError(ExecutionNode node, int requestIndex, Exception error)
+    {
+        var nodeId = node.Id;
+        var errors = _batchRequestErrors[nodeId];
+
+        if (errors is null)
+        {
+            errors = [];
+            _batchRequestErrors[nodeId] = errors;
+        }
+
+        errors[requestIndex] = error;
+    }
+
+    internal bool TryGetBatchRequestError(
+        ExecutionNode node,
+        int requestIndex,
+        [NotNullWhen(true)] out Exception? error)
+    {
+        var errors = _batchRequestErrors[node.Id];
+
+        if (errors is not null && errors.TryGetValue(requestIndex, out error))
+        {
+            return true;
+        }
+
+        error = null;
+        return false;
     }
 
     internal void SetDynamicSchemaName(ExecutionNode node, string schemaName)
@@ -400,6 +445,63 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
         }
     }
 
+    internal RepresentationValue CreateRepresentationVariableValue(
+        SelectionPath selectionSet,
+        ReadOnlySpan<string> forwardedVariables,
+        ReadOnlySpan<OperationRequirement> requirements,
+        string entityTypeName,
+        List<RepresentationShapeNode> shape)
+    {
+        ArgumentNullException.ThrowIfNull(selectionSet);
+
+        if (requirements.Length == 0)
+        {
+            if (forwardedVariables.Length == 0)
+            {
+                return RepresentationValue.Empty;
+            }
+
+            var variableValues = GetPathThroughVariables(forwardedVariables);
+            return _resultStore.CreateRepresentationVariableValue(
+                selectionSet,
+                variableValues,
+                requirements,
+                entityTypeName,
+                shape);
+        }
+
+        var importedMatchCount = CountImportedRequirementKeys(requirements);
+
+        if (importedMatchCount == 0)
+        {
+            var variableValues = GetPathThroughVariables(forwardedVariables);
+            return _resultStore.CreateRepresentationVariableValue(
+                selectionSet,
+                variableValues,
+                requirements,
+                entityTypeName,
+                shape);
+        }
+
+        if (importedMatchCount != requirements.Length)
+        {
+            // Planner-invariant guard. CollectParentScopeRequirements makes _requirementKeys
+            // the union of every parent-dependent node's full requirement list, so a single
+            // node's requirements are either all imported or none imported. A partial overlap
+            // means the planner produced a shape this routing layer is not built to handle.
+            throw CreateMixedScopeException(requirements);
+        }
+
+        var variableValuesFromSnapshot = GetPathThroughVariables(forwardedVariables);
+        return _resultStore.CreateRepresentationVariableValueFromSnapshot(
+            _requirementValues,
+            _requirementKeys!,
+            variableValuesFromSnapshot,
+            requirements,
+            entityTypeName,
+            shape);
+    }
+
     private InvalidOperationException CreateMixedScopeException(
         ReadOnlySpan<OperationRequirement> requirements)
     {
@@ -576,6 +678,27 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
     internal void AddPartialResults(SourceResultDocument result, ResultSelectionSet resultSelectionSet)
     {
         var canExecutionContinue = _resultStore.AddPartialResults(result, resultSelectionSet);
+
+        if (!canExecutionContinue)
+        {
+            ExecutionState.CancelProcessing();
+        }
+    }
+
+    internal void AddRepresentationResult(
+        SelectionPath sourcePath,
+        SourceSchemaResult result,
+        RepresentationValue representation,
+        ResultSelectionSet resultSelectionSet,
+        bool containsErrors)
+    {
+        var canExecutionContinue =
+            _resultStore.AddRepresentationResult(
+                sourcePath,
+                result,
+                representation,
+                resultSelectionSet,
+                containsErrors);
 
         if (!canExecutionContinue)
         {
@@ -766,6 +889,7 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
     {
         Array.Clear(_schemaNames);
         Array.Clear(_skippedDefinitions);
+        Array.Clear(_batchRequestErrors);
 
         if (_collectTelemetry)
         {

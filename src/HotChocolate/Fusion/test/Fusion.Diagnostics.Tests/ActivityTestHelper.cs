@@ -34,7 +34,7 @@ public static partial class ActivityTestHelper
             // Registered after the exporter so the exporter's OnEnd appends the span before
             // this processor signals idle.
             .AddProcessor(quiescence)
-            .Build()!;
+            .Build();
 
         var capture = new Capture(tracerProvider, exported, quiescence);
         activities = capture;
@@ -51,7 +51,7 @@ public static partial class ActivityTestHelper
             ["DisplayName"] = activity.DisplayName,
             ["Kind"] = activity.Kind,
             ["Status"] = activity.Status,
-            ["tags"] = activity.TagObjects,
+            ["tags"] = ScrubActivityTags(activity.TagObjects),
             ["event"] = activity.Events.Select(e => new
             {
                 e.Name,
@@ -144,6 +144,26 @@ public static partial class ActivityTestHelper
             IFormattable formattable => formattable.ToString(null, CultureInfo.InvariantCulture),
             _ => value.ToString() ?? ""
         };
+
+    private static IEnumerable<KeyValuePair<string, object?>> ScrubActivityTags(
+        IEnumerable<KeyValuePair<string, object?>> tags)
+    {
+        foreach (var tag in tags)
+        {
+            // The subscription id is a process-wide incrementing counter, so its
+            // value depends on how many subscriptions ran earlier in the suite.
+            // Replace it with a stable placeholder to keep the snapshot
+            // order-independent.
+            if (tag.Key.Equals("graphql.subscription.id", StringComparison.Ordinal))
+            {
+                yield return new KeyValuePair<string, object?>(tag.Key, "<id>");
+            }
+            else
+            {
+                yield return tag;
+            }
+        }
+    }
 
     private static IEnumerable<KeyValuePair<string, object?>> ScrubEventTags(
         IEnumerable<KeyValuePair<string, object?>>? tags)

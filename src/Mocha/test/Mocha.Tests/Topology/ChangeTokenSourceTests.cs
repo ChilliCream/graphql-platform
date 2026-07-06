@@ -50,7 +50,7 @@ public sealed class ChangeTokenSourceTests
         // assert
         Assert.NotNull(nextToken);
         Assert.NotSame(token, nextToken);
-        Assert.False(nextToken!.HasChanged);
+        Assert.False(nextToken.HasChanged);
     }
 
     [Fact]

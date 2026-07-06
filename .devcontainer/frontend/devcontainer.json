@@ -8,24 +8,45 @@
   "features": {
     "ghcr.io/devcontainers/features/github-cli:1": {}
   },
+  "forwardPorts": [3000, 6006],
+  "portsAttributes": {
+    "3000": {
+      "label": "Next.js dev server",
+      "onAutoForward": "notify"
+    },
+    "6006": {
+      "label": "Storybook",
+      "onAutoForward": "silent"
+    }
+  },
+  "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}/website",
+  "postCreateCommand": "yarn install --immutable && yarn playwright install chromium",
+  "containerEnv": {
+    "NEXT_TELEMETRY_DISABLED": "1",
+    "CHILLICREAM_FRONTEND_ENV": "devcontainer"
+  },
   "customizations": {
     "vscode": {
       "extensions": [
+        "esbenp.prettier-vscode",
         "dbaeumer.vscode-eslint",
-        "esbenp.prettier-vscode",
         "bradlc.vscode-tailwindcss",
-        "dsznajder.es7-react-js-snippets",
-        "csstools.postcss",
-        "graphql.vscode-graphql",
-        "esbenp.prettier-vscode",
+        "unifiedjs.vscode-mdx",
+        "jock.svg",
+        "ms-playwright.playwright",
         "anthropic.claude-code",
+        "github.copilot",
+        "github.copilot-chat",
         "openai.chatgpt"
       ],
       "settings": {
-        "terminal.integrated.defaultProfile.linux": "zsh"
+        "terminal.integrated.defaultProfile.linux": "zsh",
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "esbenp.prettier-vscode",
+        "editor.codeActionsOnSave": {
+          "source.organizeImports": "explicit"
+        }
       }
     }
-  },
-  "forwardPorts": [3000],
-  "postCreateCommand": "cd website && yarn"
+  }
 }

@@ -29,7 +29,8 @@ public sealed class MessagingGenerator : IIncrementalGenerator
     private static readonly ISyntaxInspector[] s_callSiteInspectors =
     [
         new CallSiteMessageTypeInspector(),
-        new ImportedModuleTypeInspector()
+        new ImportedModuleTypeInspector(),
+        new AddMessageDeclarationInspector()
     ];
 
     private static readonly ISyntaxGenerator[] s_generators =
@@ -132,6 +133,19 @@ public sealed class MessagingGenerator : IIncrementalGenerator
             return string.Equals(publishAot, "true", StringComparison.OrdinalIgnoreCase);
         });
 
+        var sourceMetadataOptions = context.AnalyzerConfigOptionsProvider.Select(static (options, _) =>
+        {
+            options.GlobalOptions.TryGetValue("build_property.MochaEmitSourceMetadata", out var emit);
+            options.GlobalOptions.TryGetValue("build_property.ProjectDir", out var projectDir);
+            options.GlobalOptions.TryGetValue("build_property.RepositoryUrl", out var repositoryUrl);
+            options.GlobalOptions.TryGetValue("build_property.SourceRevisionId", out var commit);
+            return new SourceMetadataOptionsInfo(
+                !string.Equals(emit, "false", StringComparison.OrdinalIgnoreCase),
+                string.IsNullOrWhiteSpace(projectDir) ? null : projectDir,
+                string.IsNullOrWhiteSpace(repositoryUrl) ? null : repositoryUrl,
+                string.IsNullOrWhiteSpace(commit) ? null : commit);
+        });
+
         var jsonSerializableInfos = context
             .SyntaxProvider.CreateSyntaxProvider(
                 predicate: static (s, _) => IsJsonSerializableAttributeCandidate(s),
@@ -146,15 +160,30 @@ public sealed class MessagingGenerator : IIncrementalGenerator
             .Combine(jsonSerializableInfos)
             .Select(static (source, _) => BuildJsonContextInfo(source.Left, source.Right));
 
+        // Aggregate the per-type declaration metadata (doc + location) captured cross-file from every discovery
+        // source: handler infos (message + response types), dispatch and explicit AddMessage call sites, and
+        // the weakest source, the [JsonSerializable] list. Entries are merged by fully qualified type name so a
+        // type declared in another assembly still resolves whenever any source in this compilation observes it.
+        var messageDeclarations = jsonContextInfo
+            .Combine(syntaxInfos)
+            .Combine(callSiteInfos)
+            .Select(static (source, _) =>
+                BuildMessageDeclarations(source.Left.Left, source.Left.Right, source.Right))
+            .WithTrackingName("MochaMessageDeclarations");
+
         context.RegisterSourceOutput(
             assemblyName
                 .Combine(syntaxInfos)
                 .Combine(callSiteInfos)
                 .Combine(isAotPublish)
-                .Combine(jsonContextInfo),
+                .Combine(jsonContextInfo)
+                .Combine(sourceMetadataOptions)
+                .Combine(messageDeclarations),
             static (context, source) => Execute(
                 context,
-                source.Left.Left.Left.Left,
+                source.Left.Left.Left.Left.Left.Left,
+                source.Left.Left.Left.Left.Left.Right,
+                source.Left.Left.Left.Left.Right,
                 source.Left.Left.Left.Right,
                 source.Left.Left.Right,
                 source.Left.Right,
@@ -213,7 +242,9 @@ public sealed class MessagingGenerator : IIncrementalGenerator
         ImmutableArray<SyntaxInfo> syntaxInfos,
         ImmutableArray<SyntaxInfo> callSiteInfos,
         bool isAotPublish,
-        JsonContextInfo jsonContextInfo)
+        JsonContextInfo jsonContextInfo,
+        SourceMetadataOptionsInfo sourceMetadataOptions,
+        MessageDeclarationsInfo messageDeclarations)
     {
         var sourceFiles = PooledObjects.GetStringDictionary();
         var moduleInfo = GetModuleInfo(syntaxInfos, ModuleNameHelper.CreateModuleName(assemblyName));
@@ -244,6 +275,12 @@ public sealed class MessagingGenerator : IIncrementalGenerator
             // Extract context-only message types from JsonSerializerContext (types without handlers).
             var augmentedInfos = ExtractContextOnlyTypes(syntaxInfos, jsonContextInfo);
             augmentedInfos = augmentedInfos.Add(new AotPublishInfo(isAotPublish));
+            augmentedInfos = augmentedInfos.Add(sourceMetadataOptions);
+
+            if (messageDeclarations.Declarations.Count > 0)
+            {
+                augmentedInfos = augmentedInfos.Add(messageDeclarations);
+            }
 
             // Pass the full set of JsonContext-serializable type names so the DI generator
             // can restrict serializer registrations to types that are actually in the context.
@@ -350,7 +387,10 @@ public sealed class MessagingGenerator : IIncrementalGenerator
 
         return new JsonSerializableAttributeInfo(
             contextSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
-            CreateJsonSerializableTypeInfo(serializableType, attribute.GetLocation().ToLocationInfo()));
+            CreateJsonSerializableTypeInfo(
+                serializableType,
+                attribute.GetLocation().ToDeclarationLocationInfo(),
+                cancellationToken));
     }
 
     private static JsonContextInfo BuildJsonContextInfo(
@@ -389,11 +429,103 @@ public sealed class MessagingGenerator : IIncrementalGenerator
             new ImmutableEquatableArray<JsonSerializableTypeInfo>(serializableTypes));
     }
 
+    private static MessageDeclarationsInfo BuildMessageDeclarations(
+        JsonContextInfo jsonContextInfo,
+        ImmutableArray<SyntaxInfo> syntaxInfos,
+        ImmutableArray<SyntaxInfo> callSiteInfos)
+    {
+        // Aggregation always runs: message registration and SourceMetadata emission no longer require a
+        // JsonSerializerContext, so every discovered declared message type must flow to the DI generator.
+
+        // Merge entries by fully qualified type name, deduplicating across sources and across partial parts.
+        // Every source resolves the same closed symbol, so overlapping entries collapse to an identical value.
+        var byTypeName = new Dictionary<string, DeclaredTypeInfo>(StringComparer.Ordinal);
+
+        // Type names registered by an explicit user AddMessage<T>() call. The user's own call already emits
+        // AddMessage, so the generated module contributes only the descriptor callback for these types.
+        var explicitAddMessageTypeNames = new HashSet<string>(StringComparer.Ordinal);
+
+        // Source A: handler message and response declarations.
+        foreach (var info in syntaxInfos)
+        {
+            if (info is MessagingHandlerInfo handler)
+            {
+                AddDeclaration(byTypeName, handler.DeclaredMessageType);
+                AddDeclaration(byTypeName, handler.DeclaredResponseType);
+            }
+        }
+
+        // Sources B and C: dispatch call sites and explicit AddMessage registrations.
+        foreach (var info in callSiteInfos)
+        {
+            if (info is CallSiteMessageTypeInfo callSite)
+            {
+                AddDeclaration(byTypeName, callSite.DeclaredMessageType);
+                AddDeclaration(byTypeName, callSite.DeclaredResponseType);
+            }
+            else if (info is AddMessageDeclarationInfo addMessage)
+            {
+                AddDeclaration(byTypeName, addMessage.DeclaredMessageType);
+                explicitAddMessageTypeNames.Add(addMessage.DeclaredMessageType.TypeName);
+            }
+        }
+
+        // Weakest source: the [JsonSerializable] list (AOT-only, requires a context).
+        foreach (var serializableType in jsonContextInfo.SerializableTypes)
+        {
+            AddDeclaration(byTypeName, serializableType.Declaration);
+        }
+
+        var survivors = byTypeName.Values
+            .OrderBy(d => d.TypeName, StringComparer.Ordinal)
+            .ToList();
+
+        var explicitNames = explicitAddMessageTypeNames
+            .OrderBy(n => n, StringComparer.Ordinal)
+            .ToList();
+
+        return new MessageDeclarationsInfo(
+            new ImmutableEquatableArray<DeclaredTypeInfo>(survivors),
+            new ImmutableEquatableArray<string>(explicitNames));
+    }
+
+    private static void AddDeclaration(
+        Dictionary<string, DeclaredTypeInfo> byTypeName,
+        DeclaredTypeInfo? declared)
+    {
+        // Metadata-only types (declared in another assembly) carry no captured declaration.
+        if (declared is null)
+        {
+            return;
+        }
+
+        if (!byTypeName.TryGetValue(declared.TypeName, out var existing))
+        {
+            byTypeName[declared.TypeName] = declared;
+            return;
+        }
+
+        byTypeName[declared.TypeName] = MergeDeclarations(existing, declared);
+    }
+
+    private static DeclaredTypeInfo MergeDeclarations(DeclaredTypeInfo first, DeclaredTypeInfo second)
+    {
+        // XmlDocumentation is the first non-null; partial parts carry identical symbol-level doc.
+        var xmlDocumentation = first.XmlDocumentation ?? second.XmlDocumentation;
+
+        // Prefer the entry with the ordinally smallest location; a null location always loses.
+        var location = LocationInfo.Min(first.Location, second.Location);
+
+        return new DeclaredTypeInfo(first.TypeName, xmlDocumentation, location);
+    }
+
     private static JsonSerializableTypeInfo CreateJsonSerializableTypeInfo(
         INamedTypeSymbol serializableType,
-        LocationInfo? location)
+        LocationInfo? location,
+        CancellationToken cancellationToken)
     {
         var typeName = serializableType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+        var typeNamespace = serializableType.ContainingNamespace?.ToDisplayString() ?? string.Empty;
 
         // Walk the full type hierarchy (base types + interfaces), same as MessagingHandlerInspector.
         var hierarchy = new List<string>();
@@ -410,10 +542,17 @@ public sealed class MessagingGenerator : IIncrementalGenerator
             hierarchy.Add(iface.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat));
         }
 
+        // Capture the declaration metadata (doc + location) cross-file from the resolved symbol so
+        // context-only types (serializable types with no handler) still carry their own declaration.
+        // This is stale only in the IDE's incremental cache; every real compiler invocation runs fresh.
+        var declaration = serializableType.ToDeclaredTypeInfo(cancellationToken);
+
         return new JsonSerializableTypeInfo(
             typeName,
+            typeNamespace,
             new ImmutableEquatableArray<string>(hierarchy),
-            location);
+            location,
+            declaration);
     }
 
     private sealed record JsonSerializableAttributeInfo(
@@ -443,9 +582,18 @@ public sealed class MessagingGenerator : IIncrementalGenerator
             return;
         }
 
+        // Dedupe handler infos by handler type name so a handler declared across multiple
+        // partial declaration parts (e.g. restating the handler interface on each part)
+        // counts once, matching the emission-side deduplication in MessagingDependencyInjectionGenerator.
+        var dedupedRequestHandlers = DeduplicationHelper.SelectRepresentatives(
+            requestHandlers,
+            h => h.HandlerTypeName,
+            h => h.XmlDocumentation,
+            h => h.Location);
+
         // Group by message type to detect duplicates
         var handlersByMessageType = new Dictionary<string, List<MessagingHandlerInfo>>();
-        foreach (var handler in requestHandlers)
+        foreach (var handler in dedupedRequestHandlers)
         {
             if (!handlersByMessageType.TryGetValue(handler.MessageTypeName, out var list))
             {
@@ -733,6 +881,7 @@ public sealed class MessagingGenerator : IIncrementalGenerator
 
             contextOnlyInfos.Add(new ContextOnlyMessageInfo(
                 serializableType.TypeName,
+                serializableType.TypeNamespace,
                 serializableType.TypeHierarchy,
                 serializableType.AttributeLocation));
         }

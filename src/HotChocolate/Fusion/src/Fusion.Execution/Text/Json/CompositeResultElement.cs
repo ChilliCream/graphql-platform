@@ -261,6 +261,22 @@ public readonly partial struct CompositeResultElement
     }
 
     /// <summary>
+    /// Gets a value indicating whether this element represents an enum value.
+    /// </summary>
+    public bool IsEnumValue
+    {
+        get
+        {
+            if (_parent is null)
+            {
+                return false;
+            }
+
+            return _parent.IsEnumValueProperty(_cursor);
+        }
+    }
+
+    /// <summary>
     /// Gets the <see cref="SelectionSet"/> for this element.
     /// </summary>
     /// <returns>

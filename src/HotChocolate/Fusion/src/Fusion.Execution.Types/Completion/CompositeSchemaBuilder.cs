@@ -1,10 +1,11 @@
 using System.Collections.Immutable;
 using HotChocolate.Features;
 using HotChocolate.Fusion.Language;
-using HotChocolate.Fusion.Rewriters;
 using HotChocolate.Fusion.Types.Collections;
 using HotChocolate.Fusion.Types.Directives;
+using HotChocolate.Fusion.Types.Introspection;
 using HotChocolate.Fusion.Types.Metadata;
+using HotChocolate.Fusion.Types.Rewriters;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
@@ -76,10 +77,14 @@ internal static class CompositeSchemaBuilder
             }
         }
 
+        var baseIntrospectionDocument = options.EnableOptInFeatures
+            ? IntrospectionSchema.OptInDocument
+            : IntrospectionSchema.Document;
+
         var introspectionDefinitions = options.EnableSemanticIntrospection
-            ? IntrospectionSchema.Document.Definitions
+            ? baseIntrospectionDocument.Definitions
                 .Concat(SemanticIntrospectionSchema.Document.Definitions)
-            : IntrospectionSchema.Document.Definitions.AsEnumerable();
+            : baseIntrospectionDocument.Definitions.AsEnumerable();
 
         foreach (var definition in introspectionDefinitions.Concat(schemaDocument.Definitions))
         {
@@ -283,9 +288,13 @@ internal static class CompositeSchemaBuilder
     private static FusionDirectiveDefinition CreateDirectiveType(
         DirectiveDefinitionNode definition)
     {
+        var isDeprecated = DeprecatedDirectiveParser.TryParse(definition.Directives, out var deprecated);
+
         return new FusionDirectiveDefinition(
             definition.Name.Value,
             definition.Description?.Value,
+            isDeprecated,
+            deprecated?.Reason,
             definition.IsRepeatable,
             CreateInputFields(definition.Arguments),
             DirectiveLocationUtils.Parse(definition.Locations));
@@ -315,6 +324,7 @@ internal static class CompositeSchemaBuilder
                 isDeprecated: false,
                 deprecationReason: null,
                 isInaccessible: false,
+                isGatewayField: false,
                 arguments: FusionInputFieldDefinitionCollection.Empty);
 
             sourceFields[fieldIndex++] = new FusionOutputFieldDefinition(
@@ -323,6 +333,7 @@ internal static class CompositeSchemaBuilder
                 isDeprecated: false,
                 deprecationReason: null,
                 isInaccessible: false,
+                isGatewayField: false,
                 arguments: new FusionInputFieldDefinitionCollection(
                 [
                     new FusionInputFieldDefinition(
@@ -341,6 +352,7 @@ internal static class CompositeSchemaBuilder
                 isDeprecated: false,
                 deprecationReason: null,
                 isInaccessible: false,
+                isGatewayField: false,
                 arguments: FusionInputFieldDefinitionCollection.Empty);
 
             if (enableSemanticIntrospection)
@@ -351,6 +363,7 @@ internal static class CompositeSchemaBuilder
                     isDeprecated: false,
                     deprecationReason: null,
                     isInaccessible: false,
+                    isGatewayField: false,
                     arguments: new FusionInputFieldDefinitionCollection(
                     [
                         new FusionInputFieldDefinition(
@@ -393,6 +406,7 @@ internal static class CompositeSchemaBuilder
                     isDeprecated: false,
                     deprecationReason: null,
                     isInaccessible: false,
+                    isGatewayField: false,
                     arguments: new FusionInputFieldDefinitionCollection(
                     [
                         new FusionInputFieldDefinition(
@@ -411,6 +425,7 @@ internal static class CompositeSchemaBuilder
                 var field = fields[i];
                 var isDeprecated = DeprecatedDirectiveParser.TryParse(field.Directives, out var deprecated);
                 var isInaccessible = InaccessibleDirectiveParser.Parse(field.Directives);
+                var isGatewayField = GatewayFieldDirectiveParser.Parse(field.Directives);
 
                 sourceFields[fieldIndex + i] = new FusionOutputFieldDefinition(
                     field.Name.Value,
@@ -418,6 +433,7 @@ internal static class CompositeSchemaBuilder
                     isDeprecated,
                     deprecated?.Reason,
                     isInaccessible: isInaccessible,
+                    isGatewayField: isGatewayField,
                     CreateOutputFieldArguments(field.Arguments));
             }
         }
@@ -428,6 +444,7 @@ internal static class CompositeSchemaBuilder
                 var field = fields[i];
                 var isDeprecated = DeprecatedDirectiveParser.TryParse(field.Directives, out var deprecated);
                 var isInaccessible = InaccessibleDirectiveParser.Parse(field.Directives);
+                var isGatewayField = GatewayFieldDirectiveParser.Parse(field.Directives);
 
                 sourceFields[i] = new FusionOutputFieldDefinition(
                     field.Name.Value,
@@ -435,6 +452,7 @@ internal static class CompositeSchemaBuilder
                     isDeprecated,
                     deprecated?.Reason,
                     isInaccessible: isInaccessible,
+                    isGatewayField: isGatewayField,
                     CreateOutputFieldArguments(field.Arguments));
             }
         }
@@ -591,6 +609,11 @@ internal static class CompositeSchemaBuilder
 
         var directives = CompletionTools.CreateDirectiveCollection(context.Directives, context);
         var features = context.Features;
+
+        if (options.EnableOptInFeatures)
+        {
+            features.Set(CollectOptInFeatures(context));
+        }
 
         context.Interceptor.OnBeforeCompleteSchema(context, ref features);
         features.Set<ValueSelectionToSelectionSetRewriter>(null);
@@ -1140,10 +1163,83 @@ internal static class CompositeSchemaBuilder
 
         static string? GetConnectorKind(EnumValueDefinitionNode sourceSchema)
         {
-            var directive = sourceSchema.Directives.FirstOrDefault(t =>
-                t.Name.Value.Equals(FusionBuiltIns.Connector, StringComparison.Ordinal));
-            var kindArg = directive?.Arguments.FirstOrDefault(t => t.Name.Value.Equals("kind"));
+            var metadataDirective = sourceSchema.Directives.FirstOrDefault(t =>
+                t.Name.Value.Equals(FusionBuiltIns.SchemaMetadata, StringComparison.Ordinal));
+            var kindArg = metadataDirective?.Arguments.FirstOrDefault(t => t.Name.Value.Equals("kind"));
+
             return kindArg?.Value is StringValueNode kindValue ? kindValue.Value : null;
+        }
+    }
+
+    private static FusionOptInFeatures CollectOptInFeatures(CompositeSchemaBuilderContext context)
+    {
+        var result = new FusionOptInFeatures();
+
+        foreach (var type in context.TypeDefinitions)
+        {
+            switch (type)
+            {
+                case IComplexTypeDefinition complexType:
+                    foreach (var field in complexType.Fields)
+                    {
+                        CollectFromDirectives(field.Directives, result);
+
+                        foreach (var argument in field.Arguments)
+                        {
+                            CollectFromDirectives(argument.Directives, result);
+                        }
+                    }
+
+                    break;
+
+                case IInputObjectTypeDefinition inputObjectType:
+                    foreach (var field in inputObjectType.Fields)
+                    {
+                        CollectFromDirectives(field.Directives, result);
+                    }
+
+                    break;
+
+                case IEnumTypeDefinition enumType:
+                    foreach (var value in enumType.Values)
+                    {
+                        CollectFromDirectives(value.Directives, result);
+                    }
+
+                    break;
+            }
+        }
+
+        foreach (IDirectiveDefinition directiveDefinition in context.DirectiveDefinitions)
+        {
+            CollectFromDirectives(directiveDefinition.Directives, result);
+
+            foreach (var argument in directiveDefinition.Arguments)
+            {
+                CollectFromDirectives(argument.Directives, result);
+            }
+        }
+
+        return result;
+
+        static void CollectFromDirectives(
+            IReadOnlyDirectiveCollection directives,
+            FusionOptInFeatures features)
+        {
+            foreach (var directive in directives)
+            {
+                if (!directive.Name.Equals(RequiresOptIn.Name, StringComparison.Ordinal))
+                {
+                    continue;
+                }
+
+                if (directive is FusionDirective fusionDirective
+                    && fusionDirective.Arguments.TryGetValue(RequiresOptIn.Arguments.Feature, out var argValue)
+                    && argValue is StringValueNode feature)
+                {
+                    features.Add(feature.Value);
+                }
+            }
         }
     }
 

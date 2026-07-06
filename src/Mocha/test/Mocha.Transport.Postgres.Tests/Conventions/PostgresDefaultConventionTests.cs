@@ -18,7 +18,7 @@ public class PostgresDefaultConventionTests
         // assert
         var feature = receiveEndpoint.Features.Get<ReceiveFaultEndpointFeature>();
         Assert.NotNull(feature?.Endpoint);
-        Assert.Contains("_error", feature.Endpoint!.Name);
+        Assert.Contains("_error", feature.Endpoint.Name);
     }
 
     [Fact]
@@ -32,7 +32,7 @@ public class PostgresDefaultConventionTests
         // assert
         var feature = receiveEndpoint.Features.Get<ReceiveSkippedEndpointFeature>();
         Assert.NotNull(feature?.Endpoint);
-        Assert.Contains("_skipped", feature.Endpoint!.Name);
+        Assert.Contains("_skipped", feature.Endpoint.Name);
     }
 
     [Fact]
@@ -63,7 +63,7 @@ public class PostgresDefaultConventionTests
         // assert
         var errorEndpoint = receiveEndpoint.Features.Get<ReceiveFaultEndpointFeature>()?.Endpoint;
         Assert.NotNull(errorEndpoint);
-        var errorDest = errorEndpoint!.Destination;
+        var errorDest = errorEndpoint.Destination;
         Assert.IsType<PostgresQueue>(errorDest);
         Assert.EndsWith("_error", ((PostgresQueue)errorDest).Name);
     }
@@ -79,7 +79,7 @@ public class PostgresDefaultConventionTests
         // assert
         var skippedEndpoint = receiveEndpoint.Features.Get<ReceiveSkippedEndpointFeature>()?.Endpoint;
         Assert.NotNull(skippedEndpoint);
-        var skippedDest = skippedEndpoint!.Destination;
+        var skippedDest = skippedEndpoint.Destination;
         Assert.IsType<PostgresQueue>(skippedDest);
         Assert.EndsWith("_skipped", ((PostgresQueue)skippedDest).Name);
     }
@@ -108,7 +108,7 @@ public class PostgresDefaultConventionTests
         // assert
         var errorEndpoint = receiveEndpoint.Features.Get<ReceiveFaultEndpointFeature>()?.Endpoint;
         Assert.NotNull(errorEndpoint);
-        Assert.IsType<PostgresQueue>(errorEndpoint!.Destination);
+        Assert.IsType<PostgresQueue>(errorEndpoint.Destination);
         Assert.Equal("custom-error-q", ((PostgresQueue)errorEndpoint.Destination).Name);
     }
 

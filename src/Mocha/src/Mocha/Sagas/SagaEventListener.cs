@@ -7,7 +7,7 @@ namespace Mocha.Sagas;
 /// A consumer that routes incoming messages to the appropriate saga state machine for processing.
 /// </summary>
 /// <param name="saga">The saga definition that this consumer handles.</param>
-public sealed class SagaConsumer(Saga saga) : Consumer
+public sealed class SagaConsumer(Saga saga) : Consumer(saga.GetType())
 {
     /// <summary>
     /// Gets the saga definition that this consumer handles.
@@ -80,13 +80,6 @@ public sealed class SagaConsumer(Saga saga) : Consumer
             Identity.FullName,
             saga.Name,
             false);
-    }
-
-    /// <inheritdoc />
-    protected override void OnAfterInitialize(IMessagingSetupContext context)
-    {
-        base.OnAfterInitialize(context);
-        SetIdentity(saga.GetType());
     }
 
     /// <inheritdoc />

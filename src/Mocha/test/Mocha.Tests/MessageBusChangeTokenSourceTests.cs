@@ -181,7 +181,7 @@ public sealed class MessageBusChangeTokenSourceTests
         // assert
         Assert.NotNull(nextToken);
         Assert.NotSame(token, nextToken);
-        Assert.False(nextToken!.HasChanged);
+        Assert.False(nextToken.HasChanged);
     }
 
     [Fact]
@@ -224,7 +224,7 @@ public sealed class MessageBusChangeTokenSourceTests
         // assert
         Assert.NotNull(nextToken);
         Assert.NotSame(token, nextToken);
-        Assert.False(nextToken!.HasChanged);
+        Assert.False(nextToken.HasChanged);
     }
 
     [Fact]

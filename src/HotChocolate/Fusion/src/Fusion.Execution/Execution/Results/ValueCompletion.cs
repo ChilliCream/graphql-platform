@@ -93,6 +93,12 @@ internal sealed class ValueCompletion
             // going through the full TryCompleteValue type-dispatch chain.
             if (errorTrie is null && propertyValueKind.IsScalarValue())
             {
+                if (propertyValueKind is JsonValueKind.String && resultField.IsEnumValue)
+                {
+                    CompleteEnumValue(propertyValue, resultField, resultField.AssertSelection());
+                    continue;
+                }
+
                 resultField.SetLeafValue(propertyValue);
                 continue;
             }
@@ -166,6 +172,15 @@ internal sealed class ValueCompletion
 
         foreach (var responseName in resultSelectionSet.ResponseNames)
         {
+            // A prior field's error may have propagated a null up to this target
+            // (a non-null field on a nullable parent nulls the parent). Once the
+            // target is itself null or invalidated, the remaining field results
+            // have nowhere to land, so stop applying them.
+            if (target.IsNullOrInvalidated)
+            {
+                return true;
+            }
+
             if (!target.TryGetProperty(responseName, out var fieldResult)
                 || fieldResult.IsInternal)
             {
@@ -644,8 +659,12 @@ internal sealed class ValueCompletion
                     depth,
                     resultSelectionSet);
 
-            case TypeKind.Scalar or TypeKind.Enum:
+            case TypeKind.Scalar:
                 target.SetLeafValue(source);
+                return true;
+
+            case TypeKind.Enum:
+                CompleteEnumValue(source, target, selection);
                 return true;
 
             default:
@@ -723,8 +742,13 @@ internal sealed class ValueCompletion
                         resultSelectionSet);
                     break;
 
-                case TypeKind.Scalar or TypeKind.Enum:
+                case TypeKind.Scalar:
                     targetElement.SetLeafValue(element);
+                    completed = true;
+                    break;
+
+                case TypeKind.Enum:
+                    CompleteEnumValue(element, targetElement, selection);
                     completed = true;
                     break;
 
@@ -767,6 +791,29 @@ TryCompleteList_MoveNext:
         }
 
         return true;
+    }
+
+    private static void CompleteEnumValue(
+        SourceResultElement source,
+        CompositeResultElement target,
+        Selection selection)
+    {
+        // Reached only for rows flagged as enum values. A string that is an accessible
+        // member of the composite enum is written through; anything else (a value unknown
+        // to or inaccessible from the composite schema, or a non-string kind) is masked to
+        // null so it can never leak past the gateway. The raw UTF-8 payload may contain JSON
+        // escape sequences, but GraphQL enum names are [A-Za-z0-9_] only, so an escaped
+        // payload cannot match any name and correctly falls through to masking.
+        if (selection.NamedType is FusionEnumTypeDefinition enumType
+            && source.ValueKind is JsonValueKind.String
+            && enumType.Values.ContainsName(source.ValueSpan))
+        {
+            target.SetLeafValue(source);
+        }
+        else
+        {
+            target.SetNullValue();
+        }
     }
 
     private bool TryCompleteObjectValue(
@@ -827,6 +874,12 @@ TryCompleteList_MoveNext:
             // going through the full TryCompleteValue type-dispatch chain.
             if (errorTrie is null && propertyValueKind.IsScalarValue())
             {
+                if (propertyValueKind is JsonValueKind.String && targetProperty.IsEnumValue)
+                {
+                    CompleteEnumValue(propertyValue, targetProperty, targetProperty.AssertSelection());
+                    continue;
+                }
+
                 targetProperty.SetLeafValue(propertyValue);
                 continue;
             }
