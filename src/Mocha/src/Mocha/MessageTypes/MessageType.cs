@@ -96,7 +96,7 @@ public class MessageType
 
         context.Conventions.Configure(context, configuration);
 
-        Identity = configuration.Identity ?? throw new InvalidOperationException("Message requires and identity");
+        Identity = configuration.Identity ?? throw new InvalidOperationException("Message requires an identity");
         RuntimeType = configuration.RuntimeType ?? RuntimeType
             ?? throw new InvalidOperationException("Message requires a runtime type");
         IsInterface = RuntimeType.IsInterface;

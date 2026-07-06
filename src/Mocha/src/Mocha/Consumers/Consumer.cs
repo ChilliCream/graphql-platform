@@ -24,7 +24,7 @@ public abstract class Consumer
 
     protected Consumer(Type identity)
     {
-        Identity = identity;
+        Identity = identity ?? throw new ArgumentNullException(nameof(identity));
     }
 
     /// <summary>

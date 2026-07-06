@@ -231,7 +231,10 @@ internal static class MessagingTestHelper
 
         return CSharpCompilation.Create(
             assemblyName: assemblyName,
-            syntaxTrees: sourceTexts.Select((s, i) => CSharpSyntaxTree.ParseText(s, path: sourcePaths?[i] ?? "")),
+            syntaxTrees: sourceTexts.Select(
+                (s, i) => CSharpSyntaxTree.ParseText(
+                    s,
+                    path: sourcePaths is not null && i < sourcePaths.Length ? sourcePaths[i] : "")),
             references,
             new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
     }
