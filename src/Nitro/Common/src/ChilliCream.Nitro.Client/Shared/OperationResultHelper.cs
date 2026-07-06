@@ -26,6 +26,11 @@ internal static partial class OperationResultHelper
 
             if (errors.Count == 1 && httpRequestException is not null)
             {
+                if (httpRequestException.StatusCode is HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden)
+                {
+                    throw new NitroClientAuthorizationException();
+                }
+
                 throw new NitroClientHttpRequestException(httpRequestException.StatusCode);
             }
 
@@ -36,7 +41,14 @@ internal static partial class OperationResultHelper
                 && int.TryParse(statusCodeMatch.Groups[1].ValueSpan, out var statusCodeValue)
                 && Enum.IsDefined(typeof(HttpStatusCode), statusCodeValue))
             {
-                throw new NitroClientHttpRequestException((HttpStatusCode)statusCodeValue);
+                var statusCode = (HttpStatusCode)statusCodeValue;
+
+                if (statusCode is HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden)
+                {
+                    throw new NitroClientAuthorizationException();
+                }
+
+                throw new NitroClientHttpRequestException(statusCode);
             }
 
             throw new NitroClientGraphQLException(firstError.Message, firstError.Code);

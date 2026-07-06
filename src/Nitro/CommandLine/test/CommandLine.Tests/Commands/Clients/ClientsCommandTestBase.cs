@@ -327,7 +327,7 @@ public abstract class ClientsCommandTestBase(NitroCommandFixture fixture) : Comm
     {
         ClientsClientMock.Setup(x => x.ListClientsAsync(
                 ApiId, null, 10, It.IsAny<CancellationToken>()))
-            .ReturnsAsync((ConnectionPage<IListClientCommandQuery_Node_Clients_Edges_Node>?)null);
+            .ThrowsAsync(new NitroClientNotFoundException("The API was not found."));
     }
 
     private static IListClientCommandQuery_Node_Clients_Edges_Node CreateListClientNode(
@@ -376,7 +376,7 @@ public abstract class ClientsCommandTestBase(NitroCommandFixture fixture) : Comm
     {
         ClientsClientMock.Setup(x => x.ListClientVersionsAsync(
                 ClientId, cursor, 10, It.IsAny<CancellationToken>()))
-            .ReturnsAsync((ConnectionPage<IClientDetailPrompt_ClientVersionEdge>?)null);
+            .ThrowsAsync(new NitroClientNotFoundException("The client was not found."));
     }
 
     protected static ConnectionPage<IClientDetailPrompt_ClientVersionEdge> CreateListClientVersionsPage(
@@ -453,7 +453,7 @@ public abstract class ClientsCommandTestBase(NitroCommandFixture fixture) : Comm
     {
         ClientsClientMock.Setup(x => x.ListClientPublishedVersionsAsync(
                 ClientId, Stage, cursor, 10, It.IsAny<CancellationToken>()))
-            .ReturnsAsync((ConnectionPage<IListClientPublishedVersionsCommand_PublishedClientVersionEdge>?)null);
+            .ThrowsAsync(new NitroClientNotFoundException("The client was not found."));
     }
 
     protected static IListClientPublishedVersionsCommand_PublishedClientVersionEdge CreatePublishedVersionEdge(
@@ -477,11 +477,18 @@ public abstract class ClientsCommandTestBase(NitroCommandFixture fixture) : Comm
 
     #region Download
 
-    protected void SetupDownloadPersistedQueries(Stream? result)
+    protected void SetupDownloadPersistedQueries(Stream result)
     {
         ClientsClientMock.Setup(x => x.DownloadPersistedQueriesAsync(
                 ApiId, Stage, It.IsAny<CancellationToken>()))
             .ReturnsAsync(result);
+    }
+
+    protected void SetupMissingDownloadPersistedQueries()
+    {
+        ClientsClientMock.Setup(x => x.DownloadPersistedQueriesAsync(
+                ApiId, Stage, It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new NitroClientNotFoundException($"Could not find a published client on stage '{Stage}'."));
     }
 
     protected void SetupDownloadPersistedQueriesException()
