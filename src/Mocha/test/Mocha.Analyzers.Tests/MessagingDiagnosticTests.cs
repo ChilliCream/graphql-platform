@@ -310,6 +310,110 @@ public class MessagingDiagnosticTests
     }
 
     [Fact]
+    public void Generate_Should_Compile_When_MessageAndResponseAreRecordStructs()
+    {
+        // arrange
+        const string source =
+            """
+            using System;
+            using System.Text.Json;
+            using System.Text.Json.Serialization;
+            using System.Text.Json.Serialization.Metadata;
+            using System.Threading;
+            using System.Threading.Tasks;
+            using Mocha;
+
+            [assembly: MessagingModule("TestApp", JsonContext = typeof(TestApp.TestJsonContext))]
+
+            namespace TestApp;
+
+            [JsonSerializable(typeof(InventorySnapshot))]
+            [JsonSerializable(typeof(GetStockRequest))]
+            [JsonSerializable(typeof(StockLevel))]
+            public sealed class TestJsonContext : IJsonTypeInfoResolver
+            {
+                public static TestJsonContext Default { get; } = new();
+
+                public JsonTypeInfo? GetTypeInfo(Type type, JsonSerializerOptions options)
+                    => null;
+
+                public JsonTypeInfo? GetTypeInfo(Type type)
+                    => null;
+            }
+
+            public record struct InventorySnapshot(int Sku, int Quantity);
+
+            public record struct StockLevel(int Quantity);
+
+            public record GetStockRequest(int Sku) : IEventRequest<StockLevel>;
+
+            public class InventorySnapshotHandler : IEventHandler<InventorySnapshot>
+            {
+                public ValueTask HandleAsync(InventorySnapshot message, CancellationToken cancellationToken)
+                    => default;
+            }
+
+            public class GetStockHandler : IEventRequestHandler<GetStockRequest, StockLevel>
+            {
+                public ValueTask<StockLevel> HandleAsync(GetStockRequest request, CancellationToken cancellationToken)
+                    => new(default(StockLevel));
+            }
+            """;
+
+        // act
+        var diagnostics = MessagingTestHelper.GetCompilationDiagnostics([source]);
+
+        // assert
+        AssertNoErrors(diagnostics);
+    }
+
+    [Fact]
+    public void Generate_Should_Compile_When_MessageIsStruct()
+    {
+        // arrange
+        const string source =
+            """
+            using System;
+            using System.Text.Json;
+            using System.Text.Json.Serialization;
+            using System.Text.Json.Serialization.Metadata;
+            using System.Threading;
+            using System.Threading.Tasks;
+            using Mocha;
+
+            [assembly: MessagingModule("TestApp", JsonContext = typeof(TestApp.TestJsonContext))]
+
+            namespace TestApp;
+
+            [JsonSerializable(typeof(OrderPlacedEvent))]
+            public sealed class TestJsonContext : IJsonTypeInfoResolver
+            {
+                public static TestJsonContext Default { get; } = new();
+
+                public JsonTypeInfo? GetTypeInfo(Type type, JsonSerializerOptions options)
+                    => null;
+
+                public JsonTypeInfo? GetTypeInfo(Type type)
+                    => null;
+            }
+
+            public readonly record struct OrderPlacedEvent(int OrderId);
+
+            public class OrderPlacedHandler : IEventHandler<OrderPlacedEvent>
+            {
+                public ValueTask HandleAsync(OrderPlacedEvent message, CancellationToken cancellationToken)
+                    => default;
+            }
+            """;
+
+        // act
+        var diagnostics = MessagingTestHelper.GetCompilationDiagnostics([source]);
+
+        // assert
+        AssertNoErrors(diagnostics);
+    }
+
+    [Fact]
     public void MO0018_Should_Report_When_MessageBusCallSiteTypesAreMissingFromJsonContext()
     {
         // arrange

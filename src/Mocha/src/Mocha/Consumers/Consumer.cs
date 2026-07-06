@@ -13,26 +13,18 @@ namespace Mocha;
 /// </remarks>
 public abstract class Consumer
 {
-    private readonly Action<IConsumerDescriptor> _configure;
-
-    /// <summary>
-    /// Creates a consumer with an external configuration action for the consumer descriptor.
-    /// </summary>
-    /// <param name="configure">
-    /// The action used to configure the consumer descriptor during initialization.
-    /// </param>
-    protected Consumer(Action<IConsumerDescriptor> configure)
-    {
-        _configure = configure;
-    }
-
     /// <summary>
     /// Creates a consumer that uses the virtual <see cref="Configure(IConsumerDescriptor)"/> method
     /// for descriptor setup.
     /// </summary>
     protected Consumer()
     {
-        _configure = Configure;
+        Identity = GetType();
+    }
+
+    protected Consumer(Type identity)
+    {
+        Identity = identity ?? throw new ArgumentNullException(nameof(identity));
     }
 
     /// <summary>
@@ -54,7 +46,7 @@ public abstract class Consumer
     /// <summary>
     /// Gets the CLR type that identifies this consumer, typically the handler type it wraps.
     /// </summary>
-    public Type Identity { get; private set; } = null!;
+    public Type Identity { get; }
 
     private protected ConsumerDelegate Pipeline { get; private set; } = null!;
 
@@ -119,18 +111,11 @@ public abstract class Consumer
 
         OnBeforeInitialize(context);
 
-        Configuration = CreateConfiguration(context);
-
-        if (Configuration is null)
-        {
-            throw ThrowHelper.HandlerConfigurationMissing();
-        }
+        Configuration = CreateConfiguration(context) ?? throw ThrowHelper.HandlerConfigurationMissing();
 
         // TODO should we assign a default name in the Action? GetType().Name?
         Name = Configuration.Name ?? throw ThrowHelper.ConsumerNameRequired();
-        Identity ??= GetType();
-
-        foreach (var route in Configuration.Routes)
+        foreach (var route in Configuration!.Routes)
         {
             route.Consumer = this;
 
@@ -143,11 +128,6 @@ public abstract class Consumer
         OnAfterInitialize(context);
 
         MarkInitialized();
-    }
-
-    protected void SetIdentity(Type identity)
-    {
-        Identity = identity;
     }
 
     protected virtual void OnBeforeInitialize(IMessagingSetupContext context) { }
@@ -217,7 +197,11 @@ public abstract class Consumer
     private ConsumerConfiguration CreateConfiguration(IMessagingSetupContext discoveryContext)
     {
         var descriptor = new ConsumerDescriptor(discoveryContext);
-        _configure(descriptor);
+
+        Configure(descriptor);
+
+        discoveryContext.ApplyConfigurations<IConsumerDescriptor>(Identity, descriptor);
+
         return descriptor.CreateConfiguration();
     }
 }

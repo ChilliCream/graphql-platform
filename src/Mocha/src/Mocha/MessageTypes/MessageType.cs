@@ -8,7 +8,7 @@ namespace Mocha;
 /// <summary>
 /// Represents a registered message type in the messaging system, holding identity, serialization, and type hierarchy metadata.
 /// </summary>
-public sealed class MessageType
+public class MessageType
 {
     /// <summary>
     /// Gets a value indicating whether the message type has been fully initialized with its type hierarchy and enclosed types.
@@ -65,23 +65,44 @@ public sealed class MessageType
     public bool IsInternal { get; private set; }
 
     /// <summary>
-    /// Initializes this message type from configuration, applying conventions and registering outbound routes.
+    /// Source metadata captured from the message declaration.
     /// </summary>
-    /// <param name="context">The messaging configuration context.</param>
-    /// <param name="configuration">The configuration to initialize from.</param>
-    /// <exception cref="InvalidOperationException">
-    /// Thrown when the configuration is missing a required identity, runtime type, or serializer registry.
-    /// </exception>
-    public void Initialize(IMessagingConfigurationContext context, MessageTypeConfiguration configuration)
+    public SourceMetadata? Source { get; private set; }
+
+    public MessageType()
     {
+    }
+
+    internal MessageType(Type runtimeType)
+    {
+        ArgumentNullException.ThrowIfNull(runtimeType);
+
+        RuntimeType = runtimeType;
+    }
+
+    internal void Initialize(IMessagingConfigurationContext context)
+    {
+        if (RuntimeType is null)
+        {
+            throw new InvalidOperationException(
+                "Message type requires a runtime type to create configuration from a descriptor.");
+        }
+
+        var descriptor = new MessageTypeDescriptor(context, RuntimeType);
+
+        context.ApplyConfigurations<IMessageTypeDescriptor>(RuntimeType, descriptor);
+
+        var configuration = descriptor.CreateConfiguration();
+
         context.Conventions.Configure(context, configuration);
 
-        Identity = configuration.Identity ?? throw new InvalidOperationException("Message requires and identity");
-        RuntimeType =
-            configuration.RuntimeType ?? throw new InvalidOperationException("Message requires a runtime type");
+        Identity = configuration.Identity ?? throw new InvalidOperationException("Message requires an identity");
+        RuntimeType = configuration.RuntimeType ?? RuntimeType
+            ?? throw new InvalidOperationException("Message requires a runtime type");
         IsInterface = RuntimeType.IsInterface;
         IsInternal = configuration.IsInternal;
         DefaultContentType = configuration.DefaultContentType;
+        Source = configuration.Source;
 
         Features = configuration.GetFeatures().ToReadOnly();
 

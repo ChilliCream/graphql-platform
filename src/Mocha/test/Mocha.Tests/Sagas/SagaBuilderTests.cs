@@ -1,10 +1,11 @@
 using Microsoft.Extensions.DependencyInjection;
+using Mocha.Features;
 using Mocha.Sagas;
 using Mocha.Transport.InMemory;
 
 namespace Mocha.Tests;
 
-public class SagaRegistrationTests
+public class SagaBuilderTests
 {
     private static MessagingRuntime CreateRuntime(Action<IMessageBusHostBuilder> configure)
     {
@@ -98,6 +99,35 @@ public class SagaRegistrationTests
         Assert.NotNull(runtime.Consumers.FirstOrDefault(c => c.Name == "order-saga"));
     }
 
+    [Fact]
+    public void SagaConfiguration_Should_PreserveSourceMetadata_When_RuntimeRegistrationFollowsGeneratedRegistration()
+    {
+        // arrange
+        const string xmlDocumentation = "<member name=\"T:Mocha.Tests.SagaBuilderTests.SourceMetadataSaga\" />";
+        var declarationLocation = new DeclarationLocation("SourceMetadataSaga.cs", 1, 2, 3, 4);
+        var sourceMetadata = new SourceMetadata
+        {
+            XmlDocumentation = xmlDocumentation,
+            DeclarationLocation = declarationLocation
+        };
+        SourceMetadataSaga.LastConfiguration = null;
+
+        // act
+        _ = CreateRuntime(b =>
+        {
+            b.ConfigureMessageBus(h => h.AddSaga<SourceMetadataSaga>());
+            b.ConfigureDescriptorContext(ctx =>
+                ctx.Features.GetRequired<MessagingConfigurationFeature>()
+                    .Configurations.TryAdd<ISagaDescriptor<OrderSagaState>>(
+                        "test::SourceMetadataSaga",
+                        typeof(SourceMetadataSaga),
+                        descriptor => descriptor.Extend().Configuration.Source = sourceMetadata));
+        });
+
+        // assert
+        Assert.Equal(sourceMetadata, SourceMetadataSaga.LastConfiguration?.Source);
+    }
+
     public sealed class OrderPlaced
     {
         public string OrderId { get; init; } = "";
@@ -173,6 +203,28 @@ public class SagaRegistrationTests
             descriptor.During("InTransit").OnEvent<ShipmentDelivered>().Then((_, _) => { }).TransitionTo("Delivered");
 
             descriptor.Finally("Delivered");
+        }
+    }
+
+    public sealed class SourceMetadataSaga : Saga<OrderSagaState>
+    {
+        public static SagaConfiguration? LastConfiguration { get; set; }
+
+        public override void Initialize(IMessagingSetupContext context)
+        {
+            base.Initialize(context);
+            LastConfiguration = Configuration;
+        }
+
+        protected override void Configure(ISagaDescriptor<OrderSagaState> descriptor)
+        {
+            descriptor
+                .Initially()
+                .OnEvent<OrderPlaced>()
+                .StateFactory(e => new OrderSagaState { OrderId = e.OrderId, Total = e.Total })
+                .TransitionTo("Completed");
+
+            descriptor.Finally("Completed");
         }
     }
 

@@ -37,4 +37,9 @@ public class MediatorHandlerConfiguration : MediatorConfiguration
     /// It is wrapped in middleware during pipeline compilation.
     /// </summary>
     public MediatorDelegate? Delegate { get; set; }
+
+    /// <summary>
+    /// Source metadata captured from the handler declaration.
+    /// </summary>
+    public SourceMetadata? Source { get; set; }
 }

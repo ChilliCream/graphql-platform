@@ -20,17 +20,19 @@ public abstract partial class Saga<TState> where TState : SagaStateBase
     {
         var descriptor = new SagaDescriptor<TState>(context);
 
-        Configuration = CreateConfiguration(context);
         descriptor.Name(context.Naming.GetSagaName(GetType()));
 
-        Configure(descriptor);
+        _configure(descriptor);
+        context.ApplyConfigurations<ISagaDescriptor<TState>>(GetType(), descriptor);
 
         var definition = descriptor.CreateConfiguration();
+        Configuration = definition;
 
         _logger = context.Services.GetRequiredService<ILogger<Saga<TState>>>();
         Name = definition.Name ?? throw new SagaInitializationException(this, "Saga name is not defined.");
-        StateSerializer ??=
+        StateSerializer =
             definition.StateSerializer?.Invoke(context.Services)
+            ?? StateSerializer
             ?? context.Services.GetRequiredService<ISagaStateSerializerFactory>().GetSerializer(typeof(TState));
 
         var duringAnyTransitions = InitializeTransitions(definition.DuringAny!);
@@ -175,12 +177,5 @@ public abstract partial class Saga<TState> where TState : SagaStateBase
         }
 
         return send.MoveToImmutable();
-    }
-
-    private SagaConfiguration CreateConfiguration(IMessagingSetupContext discoveryContext)
-    {
-        var descriptor = new SagaDescriptor<TState>(discoveryContext);
-        _configure(descriptor);
-        return descriptor.CreateConfiguration();
     }
 }
