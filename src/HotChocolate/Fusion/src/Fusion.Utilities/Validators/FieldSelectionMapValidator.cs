@@ -141,6 +141,14 @@ public sealed class FieldSelectionMapValidator(
 
             context.SelectedFields.Add(field);
 
+            if (node.Arguments.Length > 0)
+            {
+                ConstantArgumentValidator.Validate(
+                    FieldSelectionMapValueNodeConverter.Convert(node.Arguments),
+                    field,
+                    context.Errors);
+            }
+
             var fieldNullableType = field.Type.NullableType();
 
             if (fieldNullableType is IComplexTypeDefinition or IUnionTypeDefinition or ListType)

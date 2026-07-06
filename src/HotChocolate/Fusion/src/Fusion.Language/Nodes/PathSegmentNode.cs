@@ -1,3 +1,5 @@
+using System.Collections.Immutable;
+
 namespace HotChocolate.Fusion.Language;
 
 /// <summary>
@@ -7,14 +9,14 @@ namespace HotChocolate.Fusion.Language;
 public sealed class PathSegmentNode : IFieldSelectionMapSyntaxNode
 {
     public PathSegmentNode(NameNode fieldName)
-        : this(null, fieldName, null, null)
+        : this(null, fieldName, [], null, null)
     {
     }
 
     public PathSegmentNode(
         NameNode fieldName,
         PathSegmentNode? pathSegment)
-        : this(null, fieldName, null, pathSegment)
+        : this(null, fieldName, [], null, pathSegment)
     {
     }
 
@@ -22,7 +24,7 @@ public sealed class PathSegmentNode : IFieldSelectionMapSyntaxNode
         NameNode fieldName,
         NameNode? typeName,
         PathSegmentNode? pathSegment)
-        : this(null, fieldName, typeName, pathSegment)
+        : this(null, fieldName, [], typeName, pathSegment)
     {
     }
 
@@ -38,21 +40,18 @@ public sealed class PathSegmentNode : IFieldSelectionMapSyntaxNode
     public PathSegmentNode(
         Location? location,
         NameNode fieldName,
-        IReadOnlyList<PathArgumentNode> arguments,
+        ImmutableArray<ArgumentNode> arguments,
         NameNode? typeName,
         PathSegmentNode? pathSegment)
     {
         ArgumentNullException.ThrowIfNull(fieldName);
-        ArgumentNullException.ThrowIfNull(arguments);
 
         FieldName = fieldName;
-        _arguments = arguments;
+        Arguments = arguments.IsDefault ? [] : arguments;
         TypeName = typeName;
         PathSegment = pathSegment;
         Location = location;
     }
-
-    private readonly IReadOnlyList<PathArgumentNode> _arguments;
 
     public FieldSelectionMapSyntaxKind Kind => FieldSelectionMapSyntaxKind.PathSegment;
 
@@ -60,15 +59,23 @@ public sealed class PathSegmentNode : IFieldSelectionMapSyntaxNode
 
     public NameNode FieldName { get; }
 
+    /// <summary>
+    /// Gets the arguments applied to the field of this path segment.
+    /// </summary>
+    public ImmutableArray<ArgumentNode> Arguments { get; }
+
     public NameNode? TypeName { get; }
 
     public PathSegmentNode? PathSegment { get; }
 
-    public IReadOnlyList<PathArgumentNode> GetArguments() => _arguments;
-
     public IEnumerable<IFieldSelectionMapSyntaxNode> GetNodes()
     {
         yield return FieldName;
+
+        foreach (var argument in Arguments)
+        {
+            yield return argument;
+        }
 
         if (TypeName is not null)
         {

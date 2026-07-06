@@ -43,20 +43,7 @@ internal class FieldSelectionMapSyntaxSerializer(SyntaxSerializerOptions options
     {
         writer.Write(node.FieldName.Value);
 
-        var arguments = node.GetArguments();
-
-        if (arguments.Count > 0)
-        {
-            writer.Write(LeftParenthesis);
-            writer.Write(arguments[0].ToString());
-
-            for (var i = 1; i < arguments.Count; i++)
-            {
-                writer.Write($", {arguments[i]}");
-            }
-
-            writer.Write(RightParenthesis);
-        }
+        WriteArguments(node.Arguments, writer);
 
         if (node.TypeName is not null)
         {
