@@ -86,13 +86,13 @@ public sealed class ReviewsMagazineType : ObjectType<ReviewMagazineEntity>
     private static ReviewResult BuildReviewResult(ReviewEntity r)
     {
         var typeName = ReviewData.GetProductTypeName(r.ProductId);
-        IProductRef? productRef = typeName switch
+        object? product = typeName switch
         {
-            "Book" => new BookRef { Id = r.ProductId },
-            "Magazine" => new MagazineRef { Id = r.ProductId },
+            "Book" => new ReviewBookEntity { Id = r.ProductId },
+            "Magazine" => new ReviewMagazineEntity { Id = r.ProductId },
             _ => null
         };
 
-        return new ReviewResult { Id = r.Id, Body = r.Body, Product = productRef };
+        return new ReviewResult { Id = r.Id, Body = r.Body, Product = product };
     }
 }

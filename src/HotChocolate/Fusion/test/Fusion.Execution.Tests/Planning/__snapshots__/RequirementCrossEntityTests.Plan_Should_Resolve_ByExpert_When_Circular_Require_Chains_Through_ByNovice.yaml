@@ -35,7 +35,6 @@ nodes:
       }
     source: $.postById
     target: $.feed
-    batchingGroupId: 2
     requirements:
       - name: __fusion_1_byNovice
         selectionMap: >-
@@ -44,24 +43,7 @@ nodes:
         selectionMap: >-
           id
     dependencies:
-      - id: 7
-  - id: 5
-    type: Operation
-    schema: a
-    operation: |
-      query Op_123456789101112_5($__fusion_6_id: ID!) {
-        authorById(id: $__fusion_6_id) {
-          yearsOfExperience
-        }
-      }
-    source: $.authorById
-    target: $.feed.author
-    batchingGroupId: 2
-    requirements:
-      - name: __fusion_6_id
-        selectionMap: >-
-          id
-    dependencies:
+      - id: 4
       - id: 6
   - id: 4
     type: Operation
@@ -86,7 +68,24 @@ nodes:
           id
     dependencies:
       - id: 1
-      - id: 2
+      - id: 5
+  - id: 5
+    type: Operation
+    schema: a
+    operation: |
+      query Op_123456789101112_5($__fusion_6_id: ID!) {
+        authorById(id: $__fusion_6_id) {
+          yearsOfExperience
+        }
+      }
+    source: $.authorById
+    target: $.feed.author
+    requirements:
+      - name: __fusion_6_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 6
   - id: 6
     type: Operation
     schema: b

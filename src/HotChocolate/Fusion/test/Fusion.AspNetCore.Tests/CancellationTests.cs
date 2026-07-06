@@ -6,7 +6,6 @@ using HotChocolate.Types;
 using HotChocolate.Types.Composite;
 using Microsoft.Extensions.DependencyInjection;
 using OperationRequest = HotChocolate.Transport.OperationRequest;
-using OperationResult = HotChocolate.Transport.OperationResult;
 
 namespace HotChocolate.Fusion;
 

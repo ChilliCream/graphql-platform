@@ -23,10 +23,6 @@ namespace HotChocolate.Fusion;
 /// </summary>
 internal static class FusionGatewayBuilder
 {
-    // TEMP DIAGNOSTIC HOOK (revert): lets an RCA test configure the gateway builder
-    // (e.g. register an IOperationPlannerInterceptor) before the executor is built.
-    internal static Action<HotChocolate.Fusion.Configuration.IFusionGatewayBuilder>? DiagnosticConfigure;
-
     private static Uri SubgraphAddress(string name) => new($"http://{name}/graphql");
 
     /// <summary>
@@ -163,9 +159,8 @@ internal static class FusionGatewayBuilder
             gatewayServices.AddSingleton<IHttpClientFactory>(
                 new TestSubgraphHttpClientFactory(hosts, capture));
 
-            var gatewayBuilder = gatewayServices.AddGraphQLGateway();
-            DiagnosticConfigure?.Invoke(gatewayBuilder);
-            gatewayBuilder
+            gatewayServices
+                .AddGraphQLGateway()
                 .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
                 .ModifyOptions(o => o.NodeResolution = nodeResolution)
                 .AddInMemoryConfiguration(schemaDocument, settings);

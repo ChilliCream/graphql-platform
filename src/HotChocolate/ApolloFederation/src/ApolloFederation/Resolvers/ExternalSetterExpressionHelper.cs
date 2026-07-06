@@ -9,25 +9,21 @@ using static System.Reflection.BindingFlags;
 namespace HotChocolate.ApolloFederation.Resolvers;
 
 /// <summary>
-/// This class contains helpers to generate external field setters.
+/// This class contains helpers to generate representation-driven entity fillers. The representation is
+/// authoritative wherever it carries a value, while resolver values survive where it is silent.
 /// </summary>
+/// <remarks>
+/// Non-null concrete object fields are filled per-property instead of replaced wholesale. Abstract
+/// object fields are still replaced as a whole.
+/// </remarks>
 internal static class ExternalSetterExpressionHelper
 {
     private static readonly MethodInfo s_createSetValueExpression =
         typeof(ExternalSetterExpressionHelper)
             .GetMethod(nameof(CreateSetValueExpression), Static | NonPublic)!;
-    private static readonly MethodInfo s_createGetValueExpression =
-        typeof(ExternalSetterExpressionHelper)
-            .GetMethod(nameof(CreateGetValueExpression), Static | NonPublic)!;
-    private static readonly MethodInfo s_createSetLeafValueExpression =
-        typeof(ExternalSetterExpressionHelper)
-            .GetMethod(nameof(CreateSetLeafValueExpression), Static | NonPublic)!;
     private static readonly MethodInfo s_trySetExternal =
         typeof(ReferenceResolverHelper)
             .GetMethod(nameof(ReferenceResolverHelper.TrySetExternal), Static | Public)!;
-    private static readonly MethodInfo s_trySetNestedExternal =
-        typeof(ReferenceResolverHelper)
-            .GetMethod(nameof(ReferenceResolverHelper.TrySetNestedExternal), Static | Public)!;
 
     private static readonly ParameterExpression s_schema = Parameter(typeof(Schema), "schema");
     private static readonly ParameterExpression s_type = Parameter(typeof(ObjectType), "type");
@@ -36,26 +32,19 @@ internal static class ExternalSetterExpressionHelper
 
     public static void TryAddExternalSetter(ObjectType type, ObjectTypeConfiguration typeDef)
     {
-        List<Expression>? block = null;
-
-        foreach (var field in type.Fields)
-        {
-            if (field.Directives.ContainsDirective<ExternalDirective>()
-                && field.Member is PropertyInfo { SetMethod: not null } property)
-            {
-                var expression = CreateTrySetValue(type.RuntimeType, property, field.Name);
-                (block ??= []).Add(expression);
-            }
-        }
-
-        AddNestedExternalSetters(type, ref block);
+        var visited = new HashSet<ITypeDefinition> { type };
+        var block = BuildFiller(type, type.RuntimeType, s_entity, [], visited);
 
         if (block is not null)
         {
+            // A reference resolver may return an instance that is not the type's runtime type.
+            // The generated setters cast the entity to that runtime type, so guard the fill.
+            var guarded = IfThen(TypeIs(s_entity, type.RuntimeType), block);
+
             typeDef.Features.Set(new ExternalSetter(
                 Lambda<Action<Schema, ObjectType, IValueNode, object>>(
-                    Block(block), s_schema, s_type, s_data, s_entity)
-                        .Compile()));
+                        guarded, s_schema, s_type, s_data, s_entity)
+                    .Compile()));
         }
     }
 
@@ -69,7 +58,7 @@ internal static class ExternalSetterExpressionHelper
                 && typeDef.Fields.FirstOrDefault(f => f.Name == field.Name) is
                 { Member: PropertyInfo { SetMethod: not null } property })
             {
-                var expression = CreateTrySetValue(type.RuntimeType, property, field.Name);
+                var expression = CreateTrySetValue(type.RuntimeType, property, [field.Name], s_entity);
                 (block ??= []).Add(expression);
             }
         }
@@ -83,160 +72,100 @@ internal static class ExternalSetterExpressionHelper
         }
     }
 
-    private static Expression CreateTrySetValue(
+    private static BlockExpression? BuildFiller(
+        ObjectType type,
         Type runtimeType,
-        PropertyInfo property,
-        string fieldName)
+        Expression instance,
+        string[] pathPrefix,
+        HashSet<ITypeDefinition> visited)
     {
-        var trySetValue = s_trySetExternal.MakeGenericMethod(property.PropertyType);
-        var path = Constant(new[] { fieldName });
-        var setter = CreateSetValue(runtimeType, property);
-        return Call(trySetValue, s_schema, s_type, s_data, s_entity, path, setter);
-    }
+        var statements = new List<Expression>();
+        var variables = new List<ParameterExpression>();
 
-    private static void AddNestedExternalSetters(ObjectType type, ref List<Expression>? block)
-    {
         foreach (var field in type.Fields)
         {
-            if (field.Directives.FirstOrDefault<RequiresDirective>() is not { } directive)
+            if (field.Member is not PropertyInfo property)
             {
                 continue;
             }
 
-            var requires = directive.ToValue<RequiresDirective>();
+            var fieldType = field.Type is NonNullType nonNull ? nonNull.NullableType : field.Type;
+            var path = Append(pathPrefix, field.Name);
 
-            foreach (var path in EnumerateLeafPaths(requires.Fields))
+            if (fieldType is ListType)
             {
-                // v1 scope: two-segment object paths only (intermediate object + external leaf).
-                if (path.Length != 2)
+                if (property.SetMethod is not null)
                 {
-                    continue;
+                    statements.Add(CreateTrySetValue(runtimeType, property, path, instance));
                 }
 
-                if (!type.Fields.TryGetField(path[0], out var intermediateField)
-                    || intermediateField.Directives.ContainsDirective<ExternalDirective>()
-                    || intermediateField.Member is not PropertyInfo { GetMethod: not null } intermediateProperty
-                    || !intermediateProperty.PropertyType.IsClass)
-                {
-                    continue;
-                }
-
-                var intermediateFieldType = intermediateField.Type is NonNullType nonNull
-                    ? nonNull.NullableType
-                    : intermediateField.Type;
-
-                // v1 scope: object intermediates only. Lists and abstract types are out of scope.
-                if (intermediateFieldType is not ObjectType intermediateObjectType)
-                {
-                    continue;
-                }
-
-                if (!intermediateObjectType.Fields.TryGetField(path[1], out var leafField)
-                    || leafField.Member is not PropertyInfo { SetMethod: not null } leafProperty)
-                {
-                    continue;
-                }
-
-                var expression = CreateTrySetNestedValue(
-                    type.RuntimeType,
-                    intermediateProperty,
-                    leafProperty,
-                    [path[0]],
-                    path);
-                (block ??= []).Add(expression);
-            }
-        }
-    }
-
-    private static IEnumerable<string[]> EnumerateLeafPaths(SelectionSetNode selectionSet)
-    {
-        foreach (var selection in selectionSet.Selections)
-        {
-            if (selection is not FieldNode fieldNode)
-            {
                 continue;
             }
 
-            if (fieldNode.SelectionSet is null)
+            if (fieldType.NamedType() is ObjectType objectType
+                && property.PropertyType.IsClass
+                && property.GetMethod is not null)
             {
-                yield return [fieldNode.Name.Value];
-            }
-            else
-            {
-                foreach (var childPath in EnumerateLeafPaths(fieldNode.SelectionSet))
+                var childType = property.PropertyType;
+                var childVar = Parameter(typeof(object), field.Name);
+
+                BlockExpression? recurse = null;
+                // The visited set tracks the current ancestor chain. A repeated type is a cycle,
+                // so non-null children are preserved and null children can still be reconstructed.
+                if (visited.Add(objectType))
                 {
-                    var path = new string[childPath.Length + 1];
-                    path[0] = fieldNode.Name.Value;
-                    Array.Copy(childPath, 0, path, 1, childPath.Length);
-                    yield return path;
+                    recurse = BuildFiller(objectType, childType, childVar, path, visited);
+                    visited.Remove(objectType);
                 }
+
+                var reconstruct = property.SetMethod is not null
+                    ? CreateTrySetValue(runtimeType, property, path, instance)
+                    : null;
+
+                if (recurse is null && reconstruct is null)
+                {
+                    continue;
+                }
+
+                variables.Add(childVar);
+                statements.Add(
+                    Assign(
+                        childVar,
+                        Convert(Property(Convert(instance, runtimeType), property), typeof(object))));
+                statements.Add(
+                    IfThenElse(
+                        ReferenceEqual(childVar, Constant(null, typeof(object))),
+                        reconstruct ?? (Expression)Empty(),
+                        recurse ?? (Expression)Empty()));
+                continue;
+            }
+
+            if (property.SetMethod is not null)
+            {
+                statements.Add(CreateTrySetValue(runtimeType, property, path, instance));
             }
         }
+
+        return statements.Count == 0 ? null : Block(variables, statements);
     }
 
-    private static MethodCallExpression CreateTrySetNestedValue(
+    private static MethodCallExpression CreateTrySetValue(
         Type runtimeType,
-        PropertyInfo intermediateProperty,
-        PropertyInfo leafProperty,
-        string[] intermediatePath,
-        string[] leafPath)
+        PropertyInfo property,
+        string[] path,
+        Expression instance)
     {
-        var intermediateType = intermediateProperty.PropertyType;
-        var leafType = leafProperty.PropertyType;
-        var trySetValue = s_trySetNestedExternal.MakeGenericMethod(intermediateType, leafType);
-
-        var getIntermediate = CreateGetValue(runtimeType, intermediateProperty);
-        var setLeaf = CreateSetLeafValue(intermediateType, leafProperty);
-        var setIntermediate = intermediateProperty.SetMethod is not null
-            ? CreateSetValue(runtimeType, intermediateProperty)
-            : NullSetIntermediate(intermediateType);
-
-        return Call(
-            trySetValue,
-            s_schema,
-            s_type,
-            s_data,
-            s_entity,
-            Constant(intermediatePath),
-            Constant(leafPath),
-            getIntermediate,
-            setLeaf,
-            setIntermediate);
+        var trySetValue = s_trySetExternal.MakeGenericMethod(property.PropertyType);
+        var setter = CreateSetValue(runtimeType, property);
+        return Call(trySetValue, s_schema, s_type, s_data, Convert(instance, typeof(object)), Constant(path), setter);
     }
 
-    private static ConstantExpression NullSetIntermediate(Type intermediateType)
-        => Constant(null, typeof(Action<,>).MakeGenericType(typeof(object), intermediateType));
-
-    private static ConstantExpression CreateGetValue(Type runtimeType, PropertyInfo property)
-        => (ConstantExpression)s_createGetValueExpression
-            .MakeGenericMethod(property.PropertyType)
-            .Invoke(null, [runtimeType, property])!;
-
-    private static ConstantExpression CreateGetValueExpression<TValue>(
-        Type runtimeType,
-        PropertyInfo property)
-        where TValue : class
+    private static string[] Append(string[] prefix, string name)
     {
-        var entity = Parameter(typeof(object), "entity");
-        var castedEntity = Convert(entity, runtimeType);
-        var getValue = Property(castedEntity, property);
-        return Constant(Lambda<Func<object, TValue?>>(getValue, entity).Compile());
-    }
-
-    private static Expression CreateSetLeafValue(Type intermediateType, PropertyInfo property)
-        => (Expression)s_createSetLeafValueExpression
-            .MakeGenericMethod(intermediateType, property.PropertyType)
-            .Invoke(null, [intermediateType, property])!;
-
-    private static ConstantExpression CreateSetLeafValueExpression<TIntermediate, TValue>(
-        Type intermediateType,
-        PropertyInfo property)
-        where TIntermediate : class
-    {
-        var intermediate = Parameter(intermediateType, "intermediate");
-        var value = Parameter(property.PropertyType, "value");
-        var setValue = Call(intermediate, property.SetMethod!, value);
-        return Constant(Lambda<Action<TIntermediate, TValue?>>(setValue, intermediate, value).Compile());
+        var path = new string[prefix.Length + 1];
+        Array.Copy(prefix, path, prefix.Length);
+        path[prefix.Length] = name;
+        return path;
     }
 
     private static Expression CreateSetValue(

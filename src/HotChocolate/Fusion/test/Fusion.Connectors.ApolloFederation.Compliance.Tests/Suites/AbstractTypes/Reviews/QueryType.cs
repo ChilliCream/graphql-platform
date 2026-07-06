@@ -22,10 +22,10 @@ public sealed class QueryType : ObjectType
                 }
 
                 var typeName = ReviewData.GetProductTypeName(review.ProductId);
-                IProductRef? productRef = typeName switch
+                object? product = typeName switch
                 {
-                    "Book" => new BookRef { Id = review.ProductId },
-                    "Magazine" => new MagazineRef { Id = review.ProductId },
+                    "Book" => new ReviewBookEntity { Id = review.ProductId },
+                    "Magazine" => new ReviewMagazineEntity { Id = review.ProductId },
                     _ => null
                 };
 
@@ -33,7 +33,7 @@ public sealed class QueryType : ObjectType
                 {
                     Id = review.Id,
                     Body = review.Body,
-                    Product = productRef
+                    Product = product
                 };
             });
     }

@@ -125,7 +125,8 @@ internal sealed class SourceSchemaMerger
         if (_options.RemoveUnreferencedDefinitions)
         {
             mergedSchema.RemoveUnreferencedDefinitions(
-                MutableSchemaDefinitionExtensions.GetPreservedTypeNames(_schemas));
+                MutableSchemaDefinitionExtensions.GetPreservedTypeNames(_schemas),
+                seedUnionsAsRoots: false);
         }
 
         // Add Fusion definitions.

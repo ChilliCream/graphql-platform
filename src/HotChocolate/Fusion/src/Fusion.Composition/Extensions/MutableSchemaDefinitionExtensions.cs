@@ -138,9 +138,25 @@ internal static class MutableSchemaDefinitionExtensions
         return lookupsById;
     }
 
+    /// <summary>
+    /// Removes type system definitions that are not reachable from operation roots or preserved types.
+    /// </summary>
+    /// <param name="schema">
+    /// The schema from which unreferenced definitions are removed.
+    /// </param>
+    /// <param name="preservedTypeNames">
+    /// Type names that are always treated as reachable.
+    /// </param>
+    /// <param name="seedUnionsAsRoots">
+    /// A source schema's union definition is a piecewise contribution to the merged union.
+    /// Reachability of a union is a merged-schema property, so per-source pruning must seed
+    /// union definitions as roots. The merged-schema prune passes false and remains the cleanup
+    /// for genuinely dead unions.
+    /// </param>
     public static void RemoveUnreferencedDefinitions(
         this MutableSchemaDefinition schema,
-        IReadOnlySet<string> preservedTypeNames)
+        IReadOnlySet<string> preservedTypeNames,
+        bool seedUnionsAsRoots)
     {
         var touchedDefinitions = new HashSet<ITypeSystemMember>();
         var backlog = new Stack<ITypeSystemMember>();
@@ -170,6 +186,23 @@ internal static class MutableSchemaDefinitionExtensions
             if (schema.Types.TryGetType(typeName, out var inputType))
             {
                 backlog.Push(inputType);
+            }
+        }
+
+        // A union type definition in a source schema is a piecewise contribution to the
+        // merged union. Because a union's reachability is a merged-schema property, per-source
+        // pruning seeds union definitions as roots so member contributions that only become
+        // reachable through another source schema's fields are not eaten before the merge.
+        // The merged-schema prune (which passes seedUnionsAsRoots: false) still removes unions
+        // that are unreachable in every source.
+        if (seedUnionsAsRoots)
+        {
+            foreach (var type in schema.Types)
+            {
+                if (type is IUnionTypeDefinition)
+                {
+                    backlog.Push(type);
+                }
             }
         }
 

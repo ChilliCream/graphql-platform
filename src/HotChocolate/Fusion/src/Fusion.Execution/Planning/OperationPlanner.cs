@@ -1748,6 +1748,7 @@ public sealed partial class OperationPlanner
             RootSelectionSetId = index.GetId(selectionSetNode),
             SelectionSets = SelectionSetIndexer.CreateIdSet(definition.SelectionSet, indexBuilder),
             Requirements = requirements,
+            Dependents = currentStep.Dependents,
             Conditions = workItem.Conditions,
             Target = workItem.Selection.Path,
             Source = source,

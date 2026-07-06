@@ -397,20 +397,46 @@ public sealed class AbstractTypesTests : ComplianceTestBase
             {
               products {
                 id
-                publisherType {
-                  ... on Agency { id companyName }
-                  ... on Self { email }
+                reviews {
+                  product {
+                    id
+                    ... on Magazine {
+                      publisherType {
+                        ...Publisher
+                      }
+                    }
+                    ... on Book {
+                      publisherType {
+                        ...Publisher
+                      }
+                    }
+                  }
                 }
+              }
+            }
+
+            fragment Publisher on PublisherType {
+              ... on Agency {
+                id
+                companyName
+              }
+              ... on Self {
+                email
               }
             }
             """,
         expectedData: """
             {
               "products": [
-                { "id": "p1", "publisherType": { "email": "u1@example.com" } },
-                { "id": "p3", "publisherType": { "id": "a1", "companyName": "Agency 1" } },
-                { "id": "p2", "publisherType": { "id": "a1", "companyName": "Agency 1" } },
-                { "id": "p4", "publisherType": { "email": "u1@example.com" } }
+                { "id": "p1", "reviews": [
+                  { "product": { "id": "p1", "publisherType": { "email": "u1@example.com" } } },
+                  { "product": { "id": "p1", "publisherType": { "email": "u1@example.com" } } }
+                ] },
+                { "id": "p3", "reviews": [] },
+                { "id": "p2", "reviews": [
+                  { "product": { "id": "p2", "publisherType": { "id": "a1", "companyName": "Agency 1" } } }
+                ] },
+                { "id": "p4", "reviews": [] }
               ]
             }
             """);
@@ -421,21 +447,49 @@ public sealed class AbstractTypesTests : ComplianceTestBase
             {
               products {
                 id
-                publisherType {
-                  ... on Agency { id companyName }
-                  ... on Self { email }
-                  ... on Group { name }
+                reviews {
+                  product {
+                    id
+                    ... on Magazine {
+                      publisherType {
+                        ...Publisher
+                      }
+                    }
+                    ... on Book {
+                      publisherType {
+                        ...Publisher
+                      }
+                    }
+                  }
                 }
+              }
+            }
+
+            fragment Publisher on PublisherType {
+              ... on Agency {
+                id
+                companyName
+              }
+              ... on Self {
+                email
+              }
+              ... on Group {
+                name
               }
             }
             """,
         expectedData: """
             {
               "products": [
-                { "id": "p1", "publisherType": { "email": "u1@example.com" } },
-                { "id": "p3", "publisherType": { "id": "a1", "companyName": "Agency 1" } },
-                { "id": "p2", "publisherType": { "id": "a1", "companyName": "Agency 1" } },
-                { "id": "p4", "publisherType": { "email": "u1@example.com" } }
+                { "id": "p1", "reviews": [
+                  { "product": { "id": "p1", "publisherType": { "email": "u1@example.com" } } },
+                  { "product": { "id": "p1", "publisherType": { "email": "u1@example.com" } } }
+                ] },
+                { "id": "p3", "reviews": [] },
+                { "id": "p2", "reviews": [
+                  { "product": { "id": "p2", "publisherType": { "id": "a1", "companyName": "Agency 1" } } }
+                ] },
+                { "id": "p4", "reviews": [] }
               ]
             }
             """);
@@ -446,21 +500,50 @@ public sealed class AbstractTypesTests : ComplianceTestBase
             {
               products {
                 id
-                publisherType {
-                  ... on Agency { id companyName emailObj: email { address } }
-                  ... on Self { emailStr: email }
-                  ... on Group { name emailStr: email }
+                reviews {
+                  product {
+                    id
+                    ... on Magazine {
+                      publisherType {
+                        ...Publisher
+                      }
+                    }
+                    ... on Book {
+                      publisherType {
+                        ...Publisher
+                      }
+                    }
+                  }
                 }
+              }
+            }
+
+            fragment Publisher on PublisherType {
+              ... on Agency {
+                emailObj: email {
+                  address
+                }
+              }
+              ... on Self {
+                emailStr: email
+              }
+              ... on Group {
+                emailStr: email
               }
             }
             """,
         expectedData: """
             {
               "products": [
-                { "id": "p1", "publisherType": { "emailStr": "u1@example.com" } },
-                { "id": "p3", "publisherType": { "id": "a1", "companyName": "Agency 1", "emailObj": { "address": "a1@example.com" } } },
-                { "id": "p2", "publisherType": { "id": "a1", "companyName": "Agency 1", "emailObj": { "address": "a1@example.com" } } },
-                { "id": "p4", "publisherType": { "emailStr": "u1@example.com" } }
+                { "id": "p1", "reviews": [
+                  { "product": { "id": "p1", "publisherType": { "emailStr": "u1@example.com" } } },
+                  { "product": { "id": "p1", "publisherType": { "emailStr": "u1@example.com" } } }
+                ] },
+                { "id": "p3", "reviews": [] },
+                { "id": "p2", "reviews": [
+                  { "product": { "id": "p2", "publisherType": { "emailObj": { "address": "a1@example.com" } } } }
+                ] },
+                { "id": "p4", "reviews": [] }
               ]
             }
             """);
