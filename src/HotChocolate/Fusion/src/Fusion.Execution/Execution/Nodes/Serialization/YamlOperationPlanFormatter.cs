@@ -76,6 +76,14 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
                 WriteBatchExecutionNode(batchNode, nodeTrace, writer);
                 break;
 
+            case ApolloOperationExecutionNode apolloOperationNode:
+                WriteApolloOperationNode(apolloOperationNode, nodeTrace, writer);
+                break;
+
+            case ApolloOperationBatchExecutionNode apolloBatchNode:
+                WriteApolloBatchExecutionNode(apolloBatchNode, nodeTrace, writer);
+                break;
+
             case IntrospectionExecutionNode introspectionNode:
                 WriteIntrospectionNode(introspectionNode, nodeTrace, writer);
                 break;
@@ -478,6 +486,125 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
                 writer.WriteLine("- {0}", target.ToString());
             }
             writer.Unindent();
+        }
+
+        writer.WriteLine("batchingGroupId: {0}", batchNode.Id);
+
+        WriteRequirements(opDef.Requirements, writer);
+        WriteConditions(opDef.Conditions, writer);
+        WriteForwardedVariables(opDef.ForwardedVariables, writer);
+
+        if (opDef.RequiresFileUpload)
+        {
+            writer.WriteLine("requiresFileUpload: true");
+        }
+
+        WriteDependencies(opDef.Dependencies, opDef.ParentDependencies, writer);
+        TryWriteNodeTrace(writer, trace);
+
+        writer.Unindent();
+    }
+
+    private static void WriteApolloOperationNode(
+        ApolloOperationExecutionNode node,
+        ExecutionNodeTrace? trace,
+        CodeWriter writer)
+    {
+        writer.WriteLine("- id: {0}", node.Id);
+        writer.Indent();
+
+        writer.WriteLine("type: {0}", "ApolloOperation");
+
+        if (node.SchemaName is not null)
+        {
+            writer.WriteLine("schema: {0}", node.SchemaName);
+        }
+
+        // The lookup operation is serialized rather than the rewritten
+        // _entities operation because the node derives the rewritten form
+        // from the lookup operation when it is created.
+        writer.WriteLine("operation: |");
+        writer.Indent();
+        var reader = new StringReader(node.LookupOperation.SourceText);
+        var line = reader.ReadLine();
+        while (line != null)
+        {
+            writer.WriteLine(line);
+            line = reader.ReadLine();
+        }
+        writer.Unindent();
+
+        if (!node.Source.IsRoot)
+        {
+            writer.WriteLine("source: {0}", node.Source.ToString());
+        }
+
+        if (!node.Target.IsRoot)
+        {
+            writer.WriteLine("target: {0}", node.Target.ToString());
+        }
+
+        WriteRequirements(node.Requirements, writer);
+        TryWriteConditions(writer, node);
+        WriteForwardedVariables(node.ForwardedVariables, writer);
+
+        if (node.RequiresFileUpload)
+        {
+            writer.WriteLine("requiresFileUpload: true");
+        }
+
+        WriteDependencies(node.Dependencies, node.ParentDependencies, writer);
+        TryWriteNodeTrace(writer, trace);
+
+        writer.Unindent();
+    }
+
+    private static void WriteApolloBatchExecutionNode(
+        ApolloOperationBatchExecutionNode batchNode,
+        ExecutionNodeTrace? trace,
+        CodeWriter writer)
+    {
+        foreach (var opDef in batchNode.Operations)
+        {
+            WriteApolloOperationDefinitionAsNode(batchNode, opDef, trace, writer);
+        }
+    }
+
+    private static void WriteApolloOperationDefinitionAsNode(
+        ApolloOperationBatchExecutionNode batchNode,
+        SingleOperationDefinition opDef,
+        ExecutionNodeTrace? trace,
+        CodeWriter writer)
+    {
+        writer.WriteLine("- id: {0}", opDef.Id);
+        writer.Indent();
+
+        writer.WriteLine("type: {0}", "ApolloOperationBatch");
+
+        if (opDef.SchemaName is not null)
+        {
+            writer.WriteLine("schema: {0}", opDef.SchemaName);
+        }
+
+        writer.WriteLine("operation: |");
+        writer.Indent();
+        var reader = new StringReader(opDef.Operation.SourceText);
+        var line = reader.ReadLine();
+        while (line != null)
+        {
+            writer.WriteLine(line);
+            line = reader.ReadLine();
+        }
+        writer.Unindent();
+
+        if (!opDef.Source.IsRoot)
+        {
+            writer.WriteLine("source: {0}", opDef.Source.ToString());
+        }
+
+        if (!opDef.Target.IsRoot)
+        {
+            writer.WriteLine("target: {0}", opDef.Target.ToString());
         }
 
         writer.WriteLine("batchingGroupId: {0}", batchNode.Id);

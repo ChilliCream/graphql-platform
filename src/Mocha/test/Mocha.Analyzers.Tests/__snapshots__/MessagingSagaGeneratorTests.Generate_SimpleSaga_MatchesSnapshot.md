@@ -9,7 +9,7 @@
 namespace Microsoft.Extensions.DependencyInjection
 {
     [global::System.CodeDom.Compiler.GeneratedCode("Mocha.Analyzers", "1.0.0")]
-    public static class TestsMessageBusBuilderExtensions
+    public static partial class TestsMessageBusBuilderExtensions
     {
         [global::Mocha.MessagingModuleInfo(
             SagaTypes = new global::System.Type[]
@@ -22,15 +22,25 @@ namespace Microsoft.Extensions.DependencyInjection
         {
 
             // --- Saga Configuration ---
-            global::Mocha.MessageBusHostBuilderExtensions.AddSagaConfiguration<
-                global::TestApp.OrderFulfillmentSaga>(
+            global::Mocha.MessageBusHostBuilderExtensions.AddSaga<global::TestApp.OrderFulfillmentSaga>(builder);
+            global::Mocha.MessageBusHostBuilderExtensions.ConfigureDescriptorContext(
                 builder,
-                new global::Mocha.MessagingSagaConfiguration
-                {
-                    SagaType = typeof(global::TestApp.OrderFulfillmentSaga),
-                });
+                static ctx => global::Mocha.Features.FeatureCollectionExtensions.GetRequired<global::Mocha.MessagingConfigurationFeature>(ctx.Features)
+                    .Configurations.TryAdd<global::Mocha.Sagas.ISagaDescriptor<global::TestApp.OrderState>>(
+                        "Tests::TestApp.OrderFulfillmentSaga",
+                        typeof(global::TestApp.OrderFulfillmentSaga),
+                        __Initialize_OrderFulfillmentSaga_Saga_gqKOsgSD1keQ7yUDa_GkiA));
 
             return builder;
+        }
+
+        private static void __Initialize_OrderFulfillmentSaga_Saga_gqKOsgSD1keQ7yUDa_GkiA(global::Mocha.Sagas.ISagaDescriptor<global::TestApp.OrderState> descriptor)
+        {
+            descriptor.Extend().Configuration.Source = new global::Mocha.SourceMetadata
+            {
+                Assembly = "Tests",
+                DeclarationLocation = new global::Mocha.DeclarationLocation("", 7, 1, 12, 2)
+            };
         }
     }
 }

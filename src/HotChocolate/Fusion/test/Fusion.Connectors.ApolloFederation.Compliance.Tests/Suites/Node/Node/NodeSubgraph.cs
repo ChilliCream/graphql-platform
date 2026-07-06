@@ -36,7 +36,7 @@ public static class NodeSubgraph
             .AddType<CategoryType>();
 
         var app = builder.Build();
-        app.MapGraphQL();
+        app.MapSubgraph();
 
         await app.StartAsync();
 

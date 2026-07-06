@@ -265,6 +265,14 @@ public sealed record OperationPlan : IOperationPlan
                     maxId = Math.Max(maxId, op.Id);
                 }
             }
+
+            if (node is ApolloOperationBatchExecutionNode apolloBatchNode)
+            {
+                foreach (var op in apolloBatchNode.Operations)
+                {
+                    maxId = Math.Max(maxId, op.Id);
+                }
+            }
         }
 
         var nodesById = new ExecutionNode?[maxId + 1];
@@ -280,6 +288,14 @@ public sealed record OperationPlan : IOperationPlan
                 foreach (var op in batchNode.Operations)
                 {
                     nodesById[op.Id] = batchNode;
+                }
+            }
+
+            if (node is ApolloOperationBatchExecutionNode apolloBatchNode)
+            {
+                foreach (var op in apolloBatchNode.Operations)
+                {
+                    nodesById[op.Id] = apolloBatchNode;
                 }
             }
         }

@@ -210,6 +210,7 @@ public sealed class PostgresMessagingTransport : MessagingTransport
         {
             entities.Add(
                 new TopologyEntityDescription(
+                    MochaUrn.TopologyEntity(topic.Address.ToString(), "topic", topic.Name),
                     "topic",
                     topic.Name,
                     topic.Address.ToString(),
@@ -225,6 +226,7 @@ public sealed class PostgresMessagingTransport : MessagingTransport
         {
             entities.Add(
                 new TopologyEntityDescription(
+                    MochaUrn.TopologyEntity(queue.Address.ToString(), "queue", queue.Name),
                     "queue",
                     queue.Name,
                     queue.Address.ToString(),
@@ -241,6 +243,11 @@ public sealed class PostgresMessagingTransport : MessagingTransport
         {
             links.Add(
                 new TopologyLinkDescription(
+                    MochaUrn.TopologyLink(
+                        subscription.Address.ToString(),
+                        "subscription",
+                        subscription.Source.Address.ToString(),
+                        subscription.Destination.Address.ToString()),
                     "subscription",
                     subscription.Address.ToString(),
                     subscription.Source.Address.ToString(),
@@ -256,6 +263,7 @@ public sealed class PostgresMessagingTransport : MessagingTransport
         var topology = new TopologyDescription(_topology.Address.ToString(), entities, links);
 
         return new TransportDescription(
+            Urn,
             _topology.Address.ToString(),
             Name,
             Schema,

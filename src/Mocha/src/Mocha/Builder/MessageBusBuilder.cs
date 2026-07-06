@@ -1,5 +1,4 @@
 using System.Collections.Immutable;
-using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json.Serialization.Metadata;
 using Microsoft.Extensions.DependencyInjection;
@@ -19,11 +18,11 @@ public partial class MessageBusBuilder : IMessageBusBuilder
 {
     private readonly MessagingOptions _messagingOptions = new();
 
-    private readonly Dictionary<Type, Action<MessageTypeDescriptor>> _messageDescriptors = [];
+    private readonly Dictionary<Type, MessageType> _messageTypes = [];
 
-    private readonly List<ConsumerRegistration> _consumerRegistrations = [];
+    private readonly List<Consumer> _consumers = [];
 
-    private readonly List<SagaRegistration> _sagaRegistrations = [];
+    private readonly Dictionary<Type, Func<Saga>> _sagas = [];
 
     private readonly List<MessagingTransport> _transports = [];
 
@@ -33,6 +32,7 @@ public partial class MessageBusBuilder : IMessageBusBuilder
 
     private readonly List<Action<IServiceProvider, IServiceCollection>> _configureServices = [];
     private readonly List<Action<IFeatureCollection>> _configureFeatures = [];
+    private readonly List<Action<IMessagingConfigurationContext>> _configureDescriptorContext = [];
 
     /// <inheritdoc />
     public IMessageBusBuilder ConfigureServices(Action<IServiceCollection> configure)
@@ -66,128 +66,103 @@ public partial class MessageBusBuilder : IMessageBusBuilder
         return this;
     }
 
-    /// <inheritdoc />
-    [RequiresDynamicCode("Use source-generated AddHandlerConfiguration for AOT compatibility.")]
-    [RequiresUnreferencedCode("Use source-generated AddHandlerConfiguration for AOT compatibility.")]
-    public IMessageBusBuilder AddHandler<THandler>(Action<IConsumerDescriptor>? configure = null)
+    internal void ConfigureDescriptorContext(Action<IMessagingConfigurationContext> configure)
+    {
+        ArgumentNullException.ThrowIfNull(configure);
+
+        _configureDescriptorContext.Add(configure);
+    }
+
+    [RequiresDynamicCode("Use source-generated AddConsumer(ConsumerFactory...) for AOT compatibility.")]
+    [RequiresUnreferencedCode("Use source-generated AddConsumer(ConsumerFactory...) for AOT compatibility.")]
+    public IMessageBusBuilder AddHandler<THandler>(
+        Action<IConsumerDescriptor>? configure = null)
         where THandler : class, IHandler
     {
         var handlerType = typeof(THandler);
-        var existing = _consumerRegistrations.Find(r => r.HandlerType == handlerType);
+        var existing = _consumers.Find(c => c.Identity == handlerType);
 
         if (existing is not null)
         {
             if (configure is not null)
             {
-                var inner = existing.Configure;
-                existing.Configure = inner is not null
-                    ? d =>
-                    {
-                        inner(d);
-                        configure(d);
-                    }
-                : configure;
+                ConfigureDescriptorContext(context =>
+                    context.Configurations.Add<IConsumerDescriptor>(handlerType, configure));
             }
 
             return this;
         }
 
-        // New registration - detect kind and create factory
-        Func<Action<IConsumerDescriptor>?, Consumer> factory;
+        Consumer consumer;
 
         if (typeof(IBatchEventHandler).IsAssignableFrom(typeof(THandler)) && THandler.EventType is not null)
         {
-            factory = static c =>
-            {
-                var consumerType = typeof(BatchConsumer<,>).MakeGenericType(typeof(THandler), THandler.EventType);
-                return (Consumer)Activator.CreateInstance(consumerType, c)!;
-            };
+            var consumerType = typeof(BatchConsumer<,>).MakeGenericType(typeof(THandler), THandler.EventType);
+            consumer = (Consumer)Activator.CreateInstance(consumerType)!;
         }
         else if (typeof(IConsumer).IsAssignableFrom(typeof(THandler)) && THandler.EventType is not null)
         {
-            factory = static c =>
-            {
-                var consumerType = typeof(ConsumerAdapter<,>).MakeGenericType(typeof(THandler), THandler.EventType);
-                return (Consumer)Activator.CreateInstance(consumerType, c)!;
-            };
+            var consumerType = typeof(ConsumerAdapter<,>).MakeGenericType(typeof(THandler), THandler.EventType);
+            consumer = (Consumer)Activator.CreateInstance(consumerType)!;
         }
         else if (THandler.RequestType is not null && THandler.ResponseType is not null)
         {
-            factory = static c =>
-            {
-                var consumerType = typeof(RequestConsumer<,,>).MakeGenericType(
-                    typeof(THandler),
-                    THandler.RequestType,
-                    THandler.ResponseType);
+            var consumerType = typeof(RequestConsumer<,,>).MakeGenericType(
+                typeof(THandler),
+                THandler.RequestType,
+                THandler.ResponseType);
 
-                return (Consumer)Activator.CreateInstance(consumerType, c)!;
-            };
+            consumer = (Consumer)Activator.CreateInstance(consumerType)!;
         }
         else if (THandler.RequestType is not null)
         {
-            factory = static c =>
-            {
-                var consumerType = typeof(SendConsumer<,>).MakeGenericType(typeof(THandler), THandler.RequestType);
-                return (Consumer)Activator.CreateInstance(consumerType, c)!;
-            };
+            var consumerType = typeof(SendConsumer<,>).MakeGenericType(typeof(THandler), THandler.RequestType);
+            consumer = (Consumer)Activator.CreateInstance(consumerType)!;
         }
         else if (THandler.EventType is not null)
         {
-            factory = static c =>
-            {
-                var consumerType = typeof(SubscribeConsumer<,>).MakeGenericType(typeof(THandler), THandler.EventType);
-                return (Consumer)Activator.CreateInstance(consumerType, c)!;
-            };
+            var consumerType = typeof(SubscribeConsumer<,>).MakeGenericType(typeof(THandler), THandler.EventType);
+            consumer = (Consumer)Activator.CreateInstance(consumerType)!;
         }
         else
         {
             throw ThrowHelper.InvalidHandlerType();
         }
 
-        _consumerRegistrations.Add(
-            new ConsumerRegistration
-            {
-                HandlerType = handlerType,
-                Configure = configure,
-                Factory = factory
-            });
+        AddConsumer(consumer);
+
+        if (configure is not null)
+        {
+            ConfigureDescriptorContext(context =>
+                context.Configurations.Add<IConsumerDescriptor>(handlerType, configure));
+        }
 
         return this;
     }
 
-    /// <inheritdoc />
-    [EditorBrowsable(EditorBrowsableState.Never)]
-    public IMessageBusBuilder AddHandlerConfiguration(MessagingHandlerConfiguration configuration)
+    public IMessageBusBuilder AddConsumer(Consumer consumer)
     {
-        var handlerType = configuration.HandlerType;
-        var existing = _consumerRegistrations.Find(r => r.HandlerType == handlerType);
+        ArgumentNullException.ThrowIfNull(consumer);
 
-        if (existing is not null)
+        if (_consumers.Exists(c => c.Identity == consumer.Identity))
         {
-            // Factory first-wins, nothing else to stack from SG path
             return this;
         }
 
-        _consumerRegistrations.Add(
-            new ConsumerRegistration
-            {
-                HandlerType = handlerType,
-                Configure = null,
-                Factory = configuration.Factory
-            });
+        _consumers.Add(consumer);
 
         return this;
     }
-
     /// <summary>
     /// Registers a batch event handler with the message bus.
     /// </summary>
     /// <typeparam name="THandler">The batch handler type.</typeparam>
     /// <param name="configure">Optional action to configure batch options.</param>
     /// <returns>The builder instance for method chaining.</returns>
-    [RequiresDynamicCode("Use source-generated AddHandlerConfiguration for AOT compatibility.")]
-    [RequiresUnreferencedCode("Use source-generated AddHandlerConfiguration for AOT compatibility.")]
-    public IMessageBusBuilder AddBatchHandler<THandler>(Action<BatchOptions>? configure = null)
+    [RequiresDynamicCode("Use source-generated AddConsumer(ConsumerFactory...) for AOT compatibility.")]
+    [RequiresUnreferencedCode("Use source-generated AddConsumer(ConsumerFactory...) for AOT compatibility.")]
+    public IMessageBusBuilder AddBatchHandler<THandler>(
+        Action<BatchOptions>? configure = null)
         where THandler : class, IBatchEventHandler
     {
         var options = new BatchOptions();
@@ -201,88 +176,34 @@ public partial class MessageBusBuilder : IMessageBusBuilder
     /// <inheritdoc />
     public IMessageBusBuilder AddSaga<TSaga>() where TSaga : Saga, new()
     {
-        var sagaType = typeof(TSaga);
-
-        _sagaRegistrations.RemoveAll(r => r.SagaType == sagaType);
-
-        _sagaRegistrations.Add(new SagaRegistration { SagaType = sagaType, Factory = static () => new TSaga() });
+        _sagas.TryAdd(typeof(TSaga), static () => new TSaga());
 
         return this;
     }
 
     /// <inheritdoc />
-    [EditorBrowsable(EditorBrowsableState.Never)]
-    public IMessageBusBuilder AddMessageConfiguration(MessagingMessageConfiguration configuration)
+    public IMessageBusBuilder AddMessage<TMessage>()
+        where TMessage : notnull
     {
-        var messageType = configuration.MessageType;
-        var serializer = configuration.Serializer;
-        var enclosedTypes = configuration.EnclosedTypes;
+        var runtimeType = typeof(TMessage);
 
-        var existingDelegate = _messageDescriptors.GetValueOrDefault(messageType);
-
-        if (existingDelegate is not null)
+        if (!_messageTypes.ContainsKey(runtimeType))
         {
-            var innerDelegate = existingDelegate;
-            _messageDescriptors[messageType] = descriptor =>
-            {
-                innerDelegate(descriptor);
-                Configure(descriptor);
-            };
+            _messageTypes.Add(runtimeType, new MessageType(runtimeType));
         }
-        else
-        {
-            _messageDescriptors[messageType] = Configure;
-        }
-
-        return this;
-
-        void Configure(IMessageTypeDescriptor descriptor)
-        {
-            descriptor.AddSerializer(serializer);
-
-            if (!enclosedTypes.IsDefaultOrEmpty)
-            {
-                descriptor.Extend().Configuration.EnclosedTypes = enclosedTypes;
-            }
-        }
-    }
-
-    /// <inheritdoc />
-    [EditorBrowsable(EditorBrowsableState.Never)]
-    public IMessageBusBuilder AddSagaConfiguration<TSaga>(MessagingSagaConfiguration configuration)
-        where TSaga : Saga, new()
-    {
-        var sagaType = typeof(TSaga);
-
-        _sagaRegistrations.RemoveAll(r => r.SagaType == sagaType);
-
-        _sagaRegistrations.Add(
-            new SagaRegistration
-            {
-                SagaType = sagaType,
-                Factory = static () => new TSaga(),
-                StateSerializer = configuration.StateSerializer
-            });
 
         return this;
     }
 
     /// <inheritdoc />
-    public IMessageBusBuilder AddMessage<TMessage>(Action<IMessageTypeDescriptor> configure) where TMessage : class
+    public IMessageBusBuilder AddMessage<TMessage>(Action<IMessageTypeDescriptor> configure) where TMessage : notnull
     {
-        var configureDelegate = _messageDescriptors.GetValueOrDefault(typeof(TMessage));
+        ArgumentNullException.ThrowIfNull(configure);
 
-        if (configureDelegate is not null)
-        {
-            var innerDelegate = configureDelegate;
-            configureDelegate = descriptor =>
-            {
-                innerDelegate(descriptor);
-                configure(descriptor);
-            };
-        }
+        AddMessage<TMessage>();
 
-        _messageDescriptors[typeof(TMessage)] = configureDelegate ?? configure;
+        ConfigureDescriptorContext(context =>
+            context.Configurations.Add<IMessageTypeDescriptor>(typeof(TMessage), configure));
 
         return this;
     }
@@ -436,32 +357,23 @@ public partial class MessageBusBuilder : IMessageBusBuilder
 
         var responseManager = applicationServices.GetRequiredService<DeferredResponseManager>();
 
-        // Materialize consumers from registrations
         var consumerList = new List<Consumer>
         {
-            // Infrastructure consumer
             new ReplyConsumer(responseManager)
         };
 
-        // Handler consumers from registrations
-        foreach (var reg in _consumerRegistrations)
+        foreach (var consumer in _consumers)
         {
-            consumerList.Add(reg.Factory(reg.Configure));
+            consumerList.Add(consumer);
         }
 
-        // Saga consumers
         var sagas = new List<Saga>();
-        foreach (var reg in _sagaRegistrations)
+        foreach (var createSaga in _sagas.Values)
         {
-            var saga = reg.Factory();
+            var saga = createSaga();
 
-            if (reg.StateSerializer is not null)
-            {
-                saga.StateSerializer = reg.StateSerializer;
-            }
-
-            sagas.Add(saga);
             consumerList.Add(saga.Consumer);
+            sagas.Add(saga);
         }
 
         var consumers = consumerList.ToImmutableArray();
@@ -479,6 +391,7 @@ public partial class MessageBusBuilder : IMessageBusBuilder
 
         var features = new FeatureCollection();
         servicesCollection.AddSingleton<IFeatureCollection>(features);
+        features.Set(new MessagingConfigurationFeature(new MessagingConfigurationContainer()));
 
         var services = servicesCollection.BuildServiceProvider();
 
@@ -517,20 +430,17 @@ public partial class MessageBusBuilder : IMessageBusBuilder
             Conventions = conventions
         };
 
-        foreach (var (type, configureDelegate) in _messageDescriptors)
+        foreach (var configure in _configureDescriptorContext)
         {
-            var descriptor = new MessageTypeDescriptor(setupContext, type);
+            configure(setupContext);
+        }
 
-            configureDelegate(descriptor);
-
-            var configuration = descriptor.CreateConfiguration();
-
-            var messageType = new MessageType();
-            messageType.Initialize(setupContext, configuration);
+        foreach (var messageType in _messageTypes.Values)
+        {
+            messageType.Initialize(setupContext);
             messageRegistry.AddMessageType(messageType);
         }
 
-        // sagas have to be initialized before consumers, because of the saga consumer
         foreach (var saga in sagas)
         {
             saga.Initialize(setupContext);
@@ -612,6 +522,9 @@ public partial class MessageBusBuilder : IMessageBusBuilder
         }
 
         setupContext.Transport = null;
+
+        // The configuration container is setup scratch state; remove it before the features are sealed into the runtime.
+        features.Remove<MessagingConfigurationFeature>();
 
         var runtime = new MessagingRuntime(
             services,
