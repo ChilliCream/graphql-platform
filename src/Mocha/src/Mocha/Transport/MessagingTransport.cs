@@ -139,12 +139,13 @@ public abstract partial class MessagingTransport : IAsyncDisposable, IFeaturePro
 
         foreach (var resource in outboundResources)
         {
+            var address = resource.Address.ToString();
             entities.Add(
                 new TopologyEntityDescription(
-                    MochaUrn.TopologyEntity(resource.Address?.ToString(), resource.GetType().Name.ToLowerInvariant(), null),
+                    MochaUrn.TopologyEntity(address, resource.GetType().Name.ToLowerInvariant(), null),
                     resource.GetType().Name.ToLowerInvariant(),
                     null,
-                    resource.Address?.ToString(),
+                    address,
                     "outbound",
                     null));
         }
@@ -156,12 +157,13 @@ public abstract partial class MessagingTransport : IAsyncDisposable, IFeaturePro
                 continue;
             }
 
+            var address = resource.Address.ToString();
             entities.Add(
                 new TopologyEntityDescription(
-                    MochaUrn.TopologyEntity(resource.Address?.ToString(), resource.GetType().Name.ToLowerInvariant(), null),
+                    MochaUrn.TopologyEntity(address, resource.GetType().Name.ToLowerInvariant(), null),
                     resource.GetType().Name.ToLowerInvariant(),
                     null,
-                    resource.Address?.ToString(),
+                    address,
                     "inbound",
                     null));
         }
