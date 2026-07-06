@@ -1,9 +1,3 @@
-/**
- * NitroTabReel — the full 5-tab product reel (railway.com-style). Five looping Nitro / Fusion
- * surface clones, each demonstrated by using it; the active tab's background fills as a progress
- * bar, then auto-advances to the next with a crossfade. Prop-less + autoplay + responsive;
- * `staticTab`/`staticProgress` freeze a beat for verification.
- */
 import { TabReel, type TabReelTab } from "../../primitives/reel/TabReel";
 import {
   IconGraphql,
@@ -18,10 +12,6 @@ import { DiagnoseScreen, DIAGNOSE_MS } from "./DiagnoseScreen";
 import { SchemaScreen } from "./SchemaScreen";
 import { FusionScreen, FUSION_MS } from "./FusionScreen";
 
-// Per-tab benefit messaging + pacing. The headline/subhead render as
-// marketing chrome above the reel and communicate WHY each capability matters.
-// Order mirrors the page section flow: Observe, Diagnose, Fusion, Schema, then
-// Author last (matching the sections where Fusion precedes Schema and Author).
 export const NITRO_TABS: TabReelTab[] = [
   {
     id: "trace",

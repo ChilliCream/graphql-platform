@@ -6,11 +6,6 @@ import { CountUp } from "./CountUp";
 import { Sparkline } from "./Sparkline";
 import { ThemeProvider } from "../lib/theme";
 
-// Realistic child layout: a full-width status banner, a row of KPI tiles wrapping
-// CountUp, then a wide throughput chart (SPAN_2) beside a saturation sparkline. This
-// exercises the frame's 3→2→1 auto-fit reflow with the same primitives it hosts in the
-// Monitoring Overview. reducedMotion="always" pins every child's clock to its final
-// frame, so the screenshot is deterministic.
 const dashboardChildren = (
   <>
     <Tile
@@ -62,7 +57,6 @@ const meta = {
   component: DashboardFrame,
   parameters: { layout: "centered" },
   argTypes: {
-    // ReactNode / MotionValue / function props can't be driven by Storybook controls.
     children: { control: false },
     progress: { control: false },
     playWindow: { control: false },

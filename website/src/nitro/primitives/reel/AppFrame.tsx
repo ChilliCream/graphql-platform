@@ -1,8 +1,3 @@
-/**
- * AppFrame — the shared Nitro desktop-IDE shell that frames every tab screen: a 50px icon
- * rail + optional aside + a 36px toolbar slot + main content + a 23px footer. Static chrome,
- * authored in the reel canvas px.
- */
 import type { ComponentType, CSSProperties, ReactNode } from "react";
 import { token } from "../../lib/tokens";
 import {
@@ -27,7 +22,6 @@ import {
 const RAIL_W = 50;
 export const FOOTER_H = 23;
 
-// The real Nitro desktop rail: Documents / Environments / History explorers (app/shell/sidebar.tsx).
 export type RailKey = "documents" | "environments" | "history";
 
 const RAIL_ITEMS: { key: RailKey; Icon: ComponentType<IconProps> }[] = [
@@ -193,10 +187,8 @@ function Footer({ counts = [0, 0, 0] }: { counts?: [number, number, number] }) {
 
 export interface AppFrameProps {
   railActive: RailKey;
-  /** optional left explorer pane (e.g. a document tree) */
   aside?: ReactNode;
   asideWidth?: number;
-  /** optional 36px toolbar above the content */
   toolbar?: ReactNode;
   children: ReactNode;
   footerCounts?: [number, number, number];
@@ -231,7 +223,6 @@ export function AppFrame({
       }}
     >
       <div style={{ flex: 1, minHeight: 0, display: "flex" }}>
-        {/* icon rail */}
         <div
           style={{
             width: RAIL_W,
@@ -256,7 +247,6 @@ export function AppFrame({
           <RailButton Icon={IconSettings} />
         </div>
 
-        {/* optional aside */}
         {aside && (
           <div
             style={{
@@ -272,7 +262,6 @@ export function AppFrame({
           </div>
         )}
 
-        {/* main */}
         <div
           style={{
             flex: 1,

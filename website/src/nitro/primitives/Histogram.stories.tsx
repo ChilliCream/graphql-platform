@@ -9,9 +9,7 @@ const meta = {
   component: Histogram,
   parameters: { layout: "centered" },
   argTypes: {
-    // structured data object, not meaningfully editable via a control
     histogram: { control: false },
-    // MotionValue master clock: never drive it from a control/arg
     progress: { control: false },
     successColor: { control: "color" },
     errorColor: { control: "color" },

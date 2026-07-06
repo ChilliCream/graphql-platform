@@ -6,11 +6,9 @@ import { useEffect, useRef } from "react";
 interface RisingParticlesProps {
   readonly className?: string;
   readonly count?: number;
-  /** Comma-separated rgb triple, e.g. "180,205,255". */
   readonly color?: string;
 }
 
-/** A light canvas-2D field of soft motes drifting upward (additive blend). */
 export function RisingParticles({
   className,
   count = 42,
@@ -46,7 +44,6 @@ export function RisingParticles({
       const cw = canvas.clientWidth;
       const ch = canvas.clientHeight;
       const base = Math.min(window.devicePixelRatio || 1, 2);
-      // Cap total pixels (~4M) so a full-page-tall canvas stays cheap.
       const cap = Math.sqrt(4_000_000 / Math.max(1, cw * ch));
       dpr = Math.max(0.75, Math.min(base, cap));
       canvas.width = Math.max(1, Math.round(cw * dpr));

@@ -1,9 +1,3 @@
-/**
- * Popout — a product-style hover tooltip for the reel (the kind the real monitoring UI
- * shows on hover). Shows real data rows only — NO narrative/marketing copy. Fades + lifts
- * in during [show, show+fade], holds, then fades out at `hide`. Positioned in viewport
- * coordinates; `anchor` controls which corner sits at (x,y).
- */
 import type { MotionValue } from "motion/react";
 import { motion, useTransform } from "motion/react";
 import { token } from "../../lib/tokens";
@@ -18,7 +12,6 @@ export interface PopoutProps {
   x: number;
   y: number;
   progress: MotionValue<number>;
-  /** lifecycle in 0..1: appears at show, disappears at hide */
   show: number;
   hide: number;
   title?: string;

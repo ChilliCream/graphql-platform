@@ -4,10 +4,6 @@ import { AppMotionConfig } from "@/src/nitro/lib/motion";
 
 import { ControlPlaneConsole } from "./ControlPlaneConsole";
 
-// ControlPlaneConsole animates its KPIs, sparkline, trace waterfall and schema diff in a loop, so a
-// plain story would screenshot a non-deterministic frame. `AppMotionConfig reducedMotion="always"`
-// drives its `useReducedMotionPreference()` to the reduced path, which pins every animation to its
-// final frame (fully-drawn dashboard) for a stable screenshot.
 const meta = {
   title: "Nitro/ControlPlaneConsole",
   component: ControlPlaneConsole,

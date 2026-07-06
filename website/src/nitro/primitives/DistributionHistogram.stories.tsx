@@ -5,9 +5,7 @@ import { ChartPanel } from "./ChartPanel";
 import { makeLatencyDistribution } from "../lib/data";
 import { ThemeProvider } from "../lib/theme";
 
-// Operation Detail "Latency Distribution" data (seeded → deterministic).
 const DISTRIBUTION = makeLatencyDistribution(1);
-// Peak bin count → the histogram and the enclosing ChartPanel share this log y-domain.
 const MAX_COUNT = Math.max(
   1,
   ...DISTRIBUTION.bins.map((b) => b.success + b.error),
@@ -19,9 +17,7 @@ const meta = {
   component: DistributionHistogram,
   parameters: { layout: "centered" },
   argTypes: {
-    // structured data object, not meaningfully editable via a control
     distribution: { control: false },
-    // MotionValue master clock: never drive it from a control/arg
     progress: { control: false },
     style: { control: false },
     yDomain: { control: "object" },
@@ -30,8 +26,6 @@ const meta = {
     distribution: DISTRIBUTION,
     yDomain: Y_DOMAIN,
   },
-  // The histogram is designed to sit inside a ChartPanel that draws the matching log axes;
-  // both are given the SAME yDomain so the bars line up with the y labels/gridlines.
   render: (args) => (
     <ChartPanel
       title="Latency Distribution"

@@ -1,8 +1,3 @@
-/**
- * Legend — the little pill/dot series legend that sits in a panel header (matches the
- * Nitro monitoring reference: a filled dot for active series, a hollow ring for toggled-
- * off ones, a square for the error series). Purely presentational.
- */
 import type { CSSProperties } from "react";
 import { token } from "../lib/tokens";
 
@@ -10,7 +5,6 @@ export interface LegendItem {
   label: string;
   color: string;
   shape?: "dot" | "ring" | "square";
-  /** rendered greyed-out (a toggled-off series in the reference) */
   muted?: boolean;
 }
 

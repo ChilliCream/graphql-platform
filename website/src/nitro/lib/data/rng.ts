@@ -1,8 +1,3 @@
-/**
- * Seeded RNG (mulberry32) + small helpers, for deterministic stories/snapshots.
- * Same seed → same data, every render.
- */
-
 export type Rng = () => number;
 
 export function mulberry32(seed: number): Rng {
@@ -16,16 +11,12 @@ export function mulberry32(seed: number): Rng {
   };
 }
 
-/** Uniform in [lo, hi). */
 export const uniform = (r: Rng, lo: number, hi: number) => lo + r() * (hi - lo);
 
-/** Approx standard normal via sum of 3 uniforms (cheap, good enough for demos). */
 export const gaussian = (r: Rng) => (r() + r() + r() - 1.5) * (1 / 0.866);
 
-/** Normal with mean/sd. */
 export const normal = (r: Rng, mean: number, sd: number) =>
   mean + gaussian(r) * sd;
 
-/** Pick an element. */
 export const pick = <T>(r: Rng, xs: readonly T[]): T =>
   xs[Math.floor(r() * xs.length)];

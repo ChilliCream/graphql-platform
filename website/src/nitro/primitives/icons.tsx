@@ -1,23 +1,7 @@
-/**
- * Shared, faithful Nitro icon set for the 5-tab reel.
- *
- * Path data is reproduced from Nitro's own asset SVGs in
- * cloud/src/App/src/app/shared/components/icons (+ /assets). Those are the
- * VS Code Codicon / GitHub Octicon set that Nitro re-uses, plus a couple of
- * ChilliCream marks (graphql, relay). Type-kind default colors match Nitro's
- * github-dark theme (--nitro-color-icon-*).
- *
- * Every icon is a fill-based glyph on a 16x16 viewBox (a few on 24x24, noted
- * inline) and uses `currentColor` by default so it inherits text color, unless
- * a Nitro-specific default color applies. Props: size?, color?, strokeWidth?
- * (strokeWidth accepted for API symmetry; these are fill glyphs so it is
- * ignored except by the spinner).
- */
 import type { CSSProperties } from "react";
 
 export interface IconProps {
   size?: number;
-  /** overrides the icon's fill; defaults to currentColor (or the kind color) */
   color?: string;
   strokeWidth?: number;
   className?: string;
@@ -25,7 +9,6 @@ export interface IconProps {
   title?: string;
 }
 
-/** Nitro github-dark type-kind colors (--nitro-color-icon-*). */
 export const NITRO_ICON_COLORS = {
   query: "#e1e4e8",
   mutation: "#cf222e",
@@ -51,7 +34,6 @@ const STATE_COLORS = {
 
 interface GlyphProps extends IconProps {
   viewBox?: string;
-  /** when set, used as the default fill instead of currentColor */
   defaultColor?: string;
   children: React.ReactNode;
 }
@@ -83,9 +65,6 @@ function Glyph({
   );
 }
 
-/* ----------------------------------------------------------------- brand --- */
-
-/** ChilliCream winking-cookie brand mark (chillicream-winking.svg), static shapes only. */
 export function NitroLogo({
   size = 16,
   color,
@@ -108,7 +87,6 @@ export function NitroLogo({
   );
 }
 
-/** api-gateway.svg */
 export function IconApiGateway(p: IconProps) {
   return (
     <Glyph {...p}>
@@ -117,9 +95,6 @@ export function IconApiGateway(p: IconProps) {
   );
 }
 
-/* ------------------------------------------------------------------ rail --- */
-
-// files.svg (24x24)
 export function IconDocuments(p: IconProps) {
   return (
     <Glyph {...p} viewBox="0 0 24 24">
@@ -128,7 +103,6 @@ export function IconDocuments(p: IconProps) {
   );
 }
 
-// environment.svg
 export function IconEnvironment(p: IconProps) {
   return (
     <Glyph {...p}>
@@ -140,7 +114,6 @@ export function IconEnvironment(p: IconProps) {
   );
 }
 
-// graph.svg
 export function IconSchema(p: IconProps) {
   return (
     <Glyph {...p}>
@@ -154,7 +127,6 @@ export function IconSchema(p: IconProps) {
   );
 }
 
-// pulse.svg
 export function IconTelemetry(p: IconProps) {
   return (
     <Glyph {...p}>
@@ -163,7 +135,6 @@ export function IconTelemetry(p: IconProps) {
   );
 }
 
-// history.svg
 export function IconHistory(p: IconProps) {
   return (
     <Glyph {...p}>
@@ -176,7 +147,6 @@ export function IconHistory(p: IconProps) {
   );
 }
 
-// account.svg
 export function IconAccount(p: IconProps) {
   return (
     <Glyph {...p}>
@@ -185,7 +155,6 @@ export function IconAccount(p: IconProps) {
   );
 }
 
-// gear.svg
 export function IconSettings(p: IconProps) {
   return (
     <Glyph {...p}>
@@ -194,7 +163,6 @@ export function IconSettings(p: IconProps) {
   );
 }
 
-// organization.svg
 export function IconOrganization(p: IconProps) {
   return (
     <Glyph {...p}>
@@ -209,7 +177,6 @@ export function IconOrganization(p: IconProps) {
   );
 }
 
-// vm.svg
 export function IconWorkspace(p: IconProps) {
   return (
     <Glyph {...p}>
@@ -222,7 +189,6 @@ export function IconWorkspace(p: IconProps) {
   );
 }
 
-// sync.svg
 export function IconSync(p: IconProps) {
   return (
     <Glyph {...p}>
@@ -235,7 +201,6 @@ export function IconSync(p: IconProps) {
   );
 }
 
-// lock.svg
 export function IconLock(p: IconProps) {
   return (
     <Glyph {...p}>
@@ -244,9 +209,6 @@ export function IconLock(p: IconProps) {
   );
 }
 
-/* ------------------------------------------------------------- type kinds --- */
-
-// debug-start.svg (play), tinted query color
 export function IconQuery(p: IconProps) {
   return (
     <Glyph defaultColor={NITRO_ICON_COLORS.query} {...p}>
@@ -255,7 +217,6 @@ export function IconQuery(p: IconProps) {
   );
 }
 
-// symbol-event style: a filled diamond / lightning sense for mutation (use symbol-method outline tinted)
 export function IconMutation(p: IconProps) {
   return (
     <Glyph defaultColor={NITRO_ICON_COLORS.mutation} {...p}>
@@ -264,7 +225,6 @@ export function IconMutation(p: IconProps) {
   );
 }
 
-// broadcast / pulse glyph tinted subscription purple
 export function IconSubscription(p: IconProps) {
   return (
     <Glyph defaultColor={NITRO_ICON_COLORS.subscription} {...p}>
@@ -273,7 +233,6 @@ export function IconSubscription(p: IconProps) {
   );
 }
 
-// symbol-class.svg
 export function IconObject(p: IconProps) {
   return (
     <Glyph defaultColor={NITRO_ICON_COLORS.object} {...p}>
@@ -282,7 +241,6 @@ export function IconObject(p: IconProps) {
   );
 }
 
-// symbol-interface.svg
 export function IconInterface(p: IconProps) {
   return (
     <Glyph defaultColor={NITRO_ICON_COLORS.interface} {...p}>
@@ -291,7 +249,6 @@ export function IconInterface(p: IconProps) {
   );
 }
 
-// symbol-field.svg
 export function IconScalar(p: IconProps) {
   return (
     <Glyph defaultColor={NITRO_ICON_COLORS.scalar} {...p}>
@@ -300,7 +257,6 @@ export function IconScalar(p: IconProps) {
   );
 }
 
-// symbol-enum.svg
 export function IconEnum(p: IconProps) {
   return (
     <Glyph defaultColor={NITRO_ICON_COLORS.enum} {...p}>
@@ -313,7 +269,6 @@ export function IconEnum(p: IconProps) {
   );
 }
 
-// symbol-variable.svg
 export function IconUnion(p: IconProps) {
   return (
     <Glyph defaultColor={NITRO_ICON_COLORS.union} {...p}>
@@ -326,7 +281,6 @@ export function IconUnion(p: IconProps) {
   );
 }
 
-// symbol-method.svg
 export function IconField(p: IconProps) {
   return (
     <Glyph defaultColor={NITRO_ICON_COLORS.field} {...p}>
@@ -335,7 +289,6 @@ export function IconField(p: IconProps) {
   );
 }
 
-// symbol-class.svg (input objects share the class glyph) tinted input-object orange
 export function IconInputObject(p: IconProps) {
   return (
     <Glyph defaultColor={NITRO_ICON_COLORS.inputObject} {...p}>
@@ -344,7 +297,6 @@ export function IconInputObject(p: IconProps) {
   );
 }
 
-// symbol-constant.svg
 export function IconDirective(p: IconProps) {
   return (
     <Glyph defaultColor={NITRO_ICON_COLORS.directive} {...p}>
@@ -362,9 +314,6 @@ export function IconDirective(p: IconProps) {
   );
 }
 
-/* --------------------------------------------------------------- actions --- */
-
-// debug-start.svg
 export function IconRun(p: IconProps) {
   return (
     <Glyph {...p}>
@@ -373,7 +322,6 @@ export function IconRun(p: IconProps) {
   );
 }
 
-// sync.svg, spinning
 export function IconSpinner({
   size = 16,
   color,
@@ -409,7 +357,6 @@ export function IconSpinner({
   );
 }
 
-// symbol-keyword.svg
 export function IconFormat(p: IconProps) {
   return (
     <Glyph {...p}>
@@ -418,7 +365,6 @@ export function IconFormat(p: IconProps) {
   );
 }
 
-// save.svg
 export function IconSave(p: IconProps) {
   return (
     <Glyph {...p}>
@@ -431,7 +377,6 @@ export function IconSave(p: IconProps) {
   );
 }
 
-// add.svg
 export function IconPlus(p: IconProps) {
   return (
     <Glyph {...p}>
@@ -440,7 +385,6 @@ export function IconPlus(p: IconProps) {
   );
 }
 
-// close.svg
 export function IconClose(p: IconProps) {
   return (
     <Glyph {...p}>
@@ -453,7 +397,6 @@ export function IconClose(p: IconProps) {
   );
 }
 
-// chevron-down.svg
 export function IconChevronDown(p: IconProps) {
   return (
     <Glyph {...p}>
@@ -466,7 +409,6 @@ export function IconChevronDown(p: IconProps) {
   );
 }
 
-// chevron-right.svg
 export function IconChevronRight(p: IconProps) {
   return (
     <Glyph {...p}>
@@ -479,7 +421,6 @@ export function IconChevronRight(p: IconProps) {
   );
 }
 
-// chevron-up.svg
 export function IconChevronUp(p: IconProps) {
   return (
     <Glyph {...p}>
@@ -492,7 +433,6 @@ export function IconChevronUp(p: IconProps) {
   );
 }
 
-// filter.svg
 export function IconFilter(p: IconProps) {
   return (
     <Glyph {...p}>
@@ -505,7 +445,6 @@ export function IconFilter(p: IconProps) {
   );
 }
 
-// search.svg (24x24)
 export function IconSearch(p: IconProps) {
   return (
     <Glyph {...p} viewBox="0 0 24 24">
@@ -514,7 +453,6 @@ export function IconSearch(p: IconProps) {
   );
 }
 
-// calendar.svg
 export function IconCalendar(p: IconProps) {
   return (
     <Glyph {...p}>
@@ -527,7 +465,6 @@ export function IconCalendar(p: IconProps) {
   );
 }
 
-// cloud-download.svg
 export function IconDownload(p: IconProps) {
   return (
     <Glyph {...p}>
@@ -540,7 +477,6 @@ export function IconDownload(p: IconProps) {
   );
 }
 
-// ellipsis.svg
 export function IconMore(p: IconProps) {
   return (
     <Glyph {...p}>
@@ -551,9 +487,6 @@ export function IconMore(p: IconProps) {
   );
 }
 
-/* ---------------------------------------------------------- span / plan --- */
-
-// database.svg
 export function IconDatabase(p: IconProps) {
   return (
     <Glyph {...p}>
@@ -562,7 +495,6 @@ export function IconDatabase(p: IconProps) {
   );
 }
 
-// globe.svg
 export function IconHttp(p: IconProps) {
   return (
     <Glyph {...p}>
@@ -575,7 +507,6 @@ export function IconHttp(p: IconProps) {
   );
 }
 
-// graphql.svg (ChilliCream mark) tinted graphql pink
 export function IconGraphql(p: IconProps) {
   return (
     <Glyph defaultColor={NITRO_ICON_COLORS.graphql} {...p}>
@@ -584,7 +515,6 @@ export function IconGraphql(p: IconProps) {
   );
 }
 
-// server: vm-like rounded rect stack (codicon server)
 export function IconServer(p: IconProps) {
   return (
     <Glyph {...p}>
@@ -598,7 +528,6 @@ export function IconServer(p: IconProps) {
   );
 }
 
-// internal: chip / processor (codicon chip-like)
 export function IconInternal(p: IconProps) {
   return (
     <Glyph {...p}>
@@ -611,7 +540,6 @@ export function IconInternal(p: IconProps) {
   );
 }
 
-// query-plan: checklist.svg
 export function IconQueryPlan(p: IconProps) {
   return (
     <Glyph {...p}>
@@ -624,7 +552,6 @@ export function IconQueryPlan(p: IconProps) {
   );
 }
 
-// resolve: resolvers.svg (pulse with list)
 export function IconResolve(p: IconProps) {
   return (
     <Glyph {...p}>
@@ -637,9 +564,6 @@ export function IconResolve(p: IconProps) {
   );
 }
 
-/* ---------------------------------------------------------------- status --- */
-
-// check.svg
 export function IconCheck({ color, ...rest }: IconProps) {
   return (
     <Glyph color={color ?? STATE_COLORS.success} {...rest}>
@@ -652,7 +576,6 @@ export function IconCheck({ color, ...rest }: IconProps) {
   );
 }
 
-// error.svg (circle with x)
 export function IconErrorCircle({ color, ...rest }: IconProps) {
   return (
     <Glyph color={color ?? STATE_COLORS.failure} {...rest}>
@@ -665,7 +588,6 @@ export function IconErrorCircle({ color, ...rest }: IconProps) {
   );
 }
 
-// warning.svg (triangle)
 export function IconWarning({ color, ...rest }: IconProps) {
   return (
     <Glyph color={color ?? STATE_COLORS.warning} {...rest}>
@@ -678,7 +600,6 @@ export function IconWarning({ color, ...rest }: IconProps) {
   );
 }
 
-// info.svg
 export function IconInfo({ color, ...rest }: IconProps) {
   return (
     <Glyph color={color ?? STATE_COLORS.info} {...rest}>
@@ -691,7 +612,6 @@ export function IconInfo({ color, ...rest }: IconProps) {
   );
 }
 
-// circle-filled.svg
 export function IconOnline(p: IconProps) {
   return (
     <Glyph {...p}>
@@ -700,7 +620,6 @@ export function IconOnline(p: IconProps) {
   );
 }
 
-// link.svg
 export function IconLink(p: IconProps) {
   return (
     <Glyph {...p}>
@@ -713,7 +632,6 @@ export function IconLink(p: IconProps) {
   );
 }
 
-// keyboard.svg
 export function IconShortcuts(p: IconProps) {
   return (
     <Glyph {...p}>
@@ -726,7 +644,6 @@ export function IconShortcuts(p: IconProps) {
   );
 }
 
-// question.svg
 export function IconHelp(p: IconProps) {
   return (
     <Glyph {...p}>
@@ -738,8 +655,6 @@ export function IconHelp(p: IconProps) {
     </Glyph>
   );
 }
-
-/* --------------------------------------------------------------- helper --- */
 
 export type TypeKind =
   | "query"
@@ -755,7 +670,6 @@ export type TypeKind =
   | "inputObject"
   | "directive";
 
-/** Returns the icon component for a GraphQL schema type-kind. */
 export function typeKindIcon(
   kind: TypeKind,
 ): (props: IconProps) => React.ReactElement {

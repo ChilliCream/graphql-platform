@@ -1,4 +1,3 @@
-/** Reusable, animation-aware building blocks. */
 export * from "./DashboardFrame";
 export * from "./Tile";
 export * from "./LineAreaChart";

@@ -1,12 +1,3 @@
-/**
- * ChartPanel — a monitoring panel card (matches the Nitro reference): a bordered card with
- * a title + legend header, a left y-axis label column, horizontal gridlines, the chart
- * filling the plot, and a bottom x-axis label row. The chart child fills the plot 100% and
- * is expected to use the SAME `yDomain` (and `yLog`) so its data lines up with the labels.
- *
- * The whole panel fades/rises in once off the shared clock; pass it the master `progress`
- * and a `playWindow` and it slots into a screen's choreography (reduced-motion-safe).
- */
 import type { CSSProperties, ReactNode } from "react";
 import { motion, useTransform, type MotionValue } from "motion/react";
 import { clamp } from "../lib/scale";
@@ -19,15 +10,12 @@ export interface ChartPanelProps {
   title: string;
   subtitle?: string;
   legend?: LegendItem[];
-  /** right-aligned header node (e.g. a date pill) */
   action?: ReactNode;
-  /** plot-area height in px */
   height?: number;
   yDomain?: [number, number];
   yTicks?: number[];
   yFormat?: (n: number) => string;
   yLog?: boolean;
-  /** width of the y-axis label column, px */
   yAxisWidth?: number;
   xTicks?: string[];
   children: ReactNode;
@@ -38,7 +26,6 @@ export interface ChartPanelProps {
   style?: CSSProperties;
 }
 
-/** top fraction (0 at the panel top) for a value, linear or log. */
 function topFrac(
   v: number,
   [min, max]: [number, number],
@@ -100,7 +87,6 @@ export function ChartPanel({
         ...style,
       }}
     >
-      {/* header */}
       <div
         style={{
           display: "flex",
@@ -134,7 +120,6 @@ export function ChartPanel({
         )}
       </div>
 
-      {/* body: y-axis column + plot */}
       <div style={{ display: "flex" }}>
         {showAxes && (
           <div
@@ -170,7 +155,6 @@ export function ChartPanel({
             height: showAxes ? height : undefined,
           }}
         >
-          {/* gridlines */}
           {showAxes &&
             yTicks!.map((v) => (
               <div
@@ -189,7 +173,6 @@ export function ChartPanel({
         </div>
       </div>
 
-      {/* x-axis labels */}
       {xTicks && xTicks.length > 0 && (
         <div
           style={{

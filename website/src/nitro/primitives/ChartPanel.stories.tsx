@@ -12,7 +12,6 @@ const meta = {
   component: ChartPanel,
   parameters: { layout: "centered" },
   argTypes: {
-    // MotionValue / ReactNode / render props: Storybook cannot control these.
     progress: { control: false },
     action: { control: false },
     children: { control: false },

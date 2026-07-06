@@ -1,15 +1,3 @@
-/**
- * TabReel, a railway.com-style auto-advancing tab reel. A row of tabs sits above a stage;
- * the ACTIVE tab's background is a progress bar that fills L→R over that tab's duration. When
- * it completes, the reel advances to the next tab and crossfades to that tab's screen. Loops.
- *
- * One master clock runs 0→1 over Σ(tab durations). From it we derive the active tab index
- * (React state) and, per rendered screen, a LOCAL progress 0→1 scoped to that tab's window,
- * so a screen that is crossfading out holds its own final frame instead of snapping back.
- *
- * Verification hooks: `staticTab` + `staticProgress` freeze a specific tab at a specific local
- * progress (no clock), so Playwright can screenshot any beat deterministically.
- */
 import {
   useCallback,
   useEffect,
@@ -31,11 +19,9 @@ import {
 import { ease, useReducedMotionPreference } from "../../lib/motion";
 import { token } from "../../lib/tokens";
 
-/** The shared design canvas every tab screen is authored in (sidebar+content, with footer). */
 export const TABREEL_CANVAS = { w: 1504, h: 940 } as const;
 
 export interface TabScreenProps {
-  /** local progress 0→1 across this tab's window (holds at 1 once past). */
   progress: MotionValue<number>;
   active: boolean;
 }
@@ -44,26 +30,17 @@ export interface TabReelTab {
   id: string;
   label: string;
   icon?: ReactNode;
-  /** benefit headline shown (as marketing chrome) while this tab is active */
   headline?: string;
-  /** one-line supporting benefit copy under the headline */
   subhead?: string;
-  /** how long this tab plays before advancing, ms */
   durationMs: number;
   Screen: (props: TabScreenProps) => ReactNode;
 }
 
 export interface TabReelProps {
   tabs: TabReelTab[];
-  /** freeze on a specific tab (verification/debug) */
   staticTab?: number;
-  /** local progress 0..1 for the frozen tab */
   staticProgress?: number;
   ariaLabel?: string;
-  /**
-   * Float the phase nav as a pill straddling the bottom edge of the stage
-   * (overlapping it ~50%) instead of sitting below it in flow.
-   */
   tabsOverlay?: boolean;
 }
 
@@ -78,7 +55,6 @@ export function TabReel({
     () => tabs.reduce((s, t) => s + t.durationMs, 0),
     [tabs],
   );
-  // cumulative END fraction of each tab in [0,1]
   const ends = useMemo(() => {
     const out: number[] = [];
     let acc = 0;
@@ -99,9 +75,6 @@ export function TabReel({
 
   const staticMode = staticTab != null;
 
-  // A seekable master clock: 0→1 over Σ(durations). `play(from)` (re)starts it
-  // from an arbitrary fraction and then loops, which is what makes the phase tabs
-  // clickable, a click seeks the clock to that tab's start.
   const reduced = useReducedMotionPreference();
   const clockRef = useRef<HTMLDivElement>(null);
   const inView = useInView(clockRef, { amount: 0.25 });
@@ -183,7 +156,6 @@ export function TabReel({
         gap: 12,
       }}
     >
-      {/* ── benefit headline (marketing chrome, communicates the value of the active tab) ── */}
       {tabs.some((t) => t.headline) && (
         <div style={{ position: "relative", height: 64, textAlign: "center" }}>
           <AnimatePresence>
@@ -229,7 +201,6 @@ export function TabReel({
         </div>
       )}
 
-      {/* ── stage + phase nav ── */}
       {(() => {
         const stage = (
           <div
@@ -280,7 +251,6 @@ export function TabReel({
           />
         ));
 
-        // Overlay: the phase nav floats as a pill straddling the stage's bottom edge.
         if (tabsOverlay) {
           return (
             <div style={{ position: "relative", marginBottom: 26 }}>
@@ -317,7 +287,6 @@ export function TabReel({
           );
         }
 
-        // Default: the phase nav sits below the stage, in flow (railway.com style).
         return (
           <>
             {stage}
@@ -339,7 +308,6 @@ export function TabReel({
   );
 }
 
-/** local progress 0→1 for tab `index`, clamped (1 once the global clock is past this tab). */
 function localFor(p: number, index: number, ends: number[]): number {
   const start = index === 0 ? 0 : ends[index - 1];
   const end = ends[index];
@@ -367,7 +335,6 @@ function TabButton({
   staticLocal: MotionValue<number>;
   onSelect?: () => void;
 }) {
-  // fill tracks THIS tab's local progress only while it is the active tab.
   const zero = useMotionValue(0);
   const fromGlobal = useTransform(global, (p) =>
     isActive ? localFor(p, index, ends) : 0,
@@ -404,7 +371,6 @@ function TabButton({
         transition: "color 0.2s ease",
       }}
     >
-      {/* progress fill */}
       <motion.div
         aria-hidden
         style={{

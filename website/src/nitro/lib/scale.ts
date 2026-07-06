@@ -1,12 +1,3 @@
-/**
- * Tiny hand-written scales + SVG path builders. No d3, no deps.
- *
- * Charts work in a fixed `viewBox` pixel space (e.g. 0..W, 0..H) and render with
- * `preserveAspectRatio="none"` + `vector-effect="non-scaling-stroke"`, so geometry
- * stretches to fill its tile while stroke widths stay crisp. These helpers map a data
- * domain into that pixel space and emit path `d` strings.
- */
-
 export type Pt = readonly [number, number];
 
 export const clamp = (x: number, lo: number, hi: number) =>
@@ -14,11 +5,9 @@ export const clamp = (x: number, lo: number, hi: number) =>
 
 export const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 
-/** Inverse-lerp: where does `x` sit in [a,b] as 0..1 (clamped). */
 export const norm = (x: number, a: number, b: number) =>
   b === a ? 0 : clamp((x - a) / (b - a), 0, 1);
 
-/** Linear scale domain→range as a function. */
 export function linScale(
   d0: number,
   d1: number,
@@ -29,7 +18,6 @@ export function linScale(
   return (x: number) => r0 + (x - d0) * m;
 }
 
-/** Log10 scale (for latency). Domain values must be > 0; floored to `min`. */
 export function logScale(
   d0: number,
   d1: number,
@@ -45,16 +33,11 @@ export function logScale(
 
 const f = (n: number) => (Number.isFinite(n) ? +n.toFixed(2) : 0);
 
-/** Straight polyline through points: "M x0 y0 L x1 y1 ...". */
 export function linePath(pts: readonly Pt[]): string {
   if (!pts.length) return "";
   return pts.map(([x, y], i) => `${i ? "L" : "M"}${f(x)} ${f(y)}`).join(" ");
 }
 
-/**
- * Smooth line via Catmull-Rom → cubic bezier. `tension` 0..1 (0 = loose, 1 = tight).
- * Produces an open path (no fill close).
- */
 export function smoothLinePath(pts: readonly Pt[], tension = 0.5): string {
   const n = pts.length;
   if (n < 2) return linePath(pts);
@@ -76,7 +59,6 @@ export function smoothLinePath(pts: readonly Pt[], tension = 0.5): string {
   return d;
 }
 
-/** Close a (smooth or straight) top line down to `baselineY` to make an area fill. */
 export function areaFromLine(
   linePathD: string,
   pts: readonly Pt[],
@@ -87,8 +69,6 @@ export function areaFromLine(
   const last = pts[pts.length - 1];
   return `${linePathD} L${f(last[0])} ${f(baselineY)} L${f(first[0])} ${f(baselineY)} Z`;
 }
-
-// ----- color interpolation (for the impact gradient / data-viz hex) -----
 
 const hex = (h: string) => {
   const s = h.replace("#", "");
@@ -116,7 +96,6 @@ const toHex = (rgb: readonly number[]) =>
     )
     .join("");
 
-/** Interpolate two hex colors. */
 export function lerpColor(a: string, b: string, t: number): string {
   const ca = hex(a);
   const cb = hex(b);
@@ -127,7 +106,6 @@ export function lerpColor(a: string, b: string, t: number): string {
   ]);
 }
 
-/** Multi-stop color ramp; `t` in 0..1 across evenly-spaced `stops`. */
 export function colorAt(stops: readonly string[], t: number): string {
   if (stops.length === 1) return stops[0];
   const x = clamp(t, 0, 1) * (stops.length - 1);
@@ -135,7 +113,6 @@ export function colorAt(stops: readonly string[], t: number): string {
   return lerpColor(stops[i], stops[i + 1], x - i);
 }
 
-/** "Nice" evenly-spaced tick values across [min,max]. */
 export function niceTicks(min: number, max: number, count = 4): number[] {
   if (min === max) return [min];
   const span = max - min;
@@ -150,7 +127,6 @@ export function niceTicks(min: number, max: number, count = 4): number[] {
   return out;
 }
 
-/** Compact metric formatting: 1234 → "1.2k", 1_200_000 → "1.2M". */
 export function compact(n: number): string {
   const abs = Math.abs(n);
   if (abs >= 1e6) return (n / 1e6).toFixed(abs >= 1e7 ? 0 : 1) + "M";
@@ -158,7 +134,6 @@ export function compact(n: number): string {
   return `${Math.round(n)}`;
 }
 
-/** Latency formatting: 8.3 → "8 ms", 1240 → "1.24 s" (space before unit, per the design). */
 export function ms(n: number): string {
   if (n >= 1000) return (n / 1000).toFixed(2) + " s";
   if (n >= 100) return Math.round(n) + " ms";

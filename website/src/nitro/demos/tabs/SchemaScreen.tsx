@@ -1,18 +1,3 @@
-/**
- * SchemaScreen — Tab 4: Schema Insights, governance story.
- *
- * STORY ("Change fields without breaking anyone"): in an API's Schema → Insights the developer
- *   1. opens the type-filter and chooses "Show deprecated" → the coordinate list narrows to only
- *      deprecated coordinates,
- *   2. opens order-by and picks "Requests ↓" → the deprecated field that STILL gets the most
- *      traffic rises to the top: Product.inStock (4.1K),
- *   3. selects it → the coordinate's live usage charts (Throughput / Latency / Errors) + the
- *      CLIENTS still calling it appear,
- *   4. drills into a client → the exact OPERATIONS still using the field.
- *
- * Faithful shell: document tab strip (the API) → gateway view nav (Schema selected) → schema
- * toolbar (Reference/SDL/Insights) → the insights splitter. All motion derives from `progress`.
- */
 import { useState } from "react";
 import {
   motion,
@@ -50,8 +35,6 @@ import {
 const W = TABREEL_CANVAS.w;
 const H = TABREEL_CANVAS.h;
 const ORANGE = token.graphEdgeActive;
-
-/* ── data ─────────────────────────────────────────────────────────────────── */
 
 interface Coord {
   coord: string;
@@ -131,34 +114,28 @@ const SERIES = {
   errors: smoothSeries(33, 40, 0.6, 0.5),
 };
 
-/* ── geometry / timeline ──────────────────────────────────────────────────── */
-
 const RAIL = 50;
 const COL_W = 300;
 const H_DOCTABS = 38;
 const H_VIEWNAV = 36;
 const H_TOOLBAR = 36;
-const HEADER_H = H_DOCTABS + H_VIEWNAV + H_TOOLBAR; // 110
+const HEADER_H = H_DOCTABS + H_VIEWNAV + H_TOOLBAR;
 const COORD_HEADER = 32;
 const COORD_SEARCH = 36;
 const COORD_CONTROLS = 36;
-const LIST_TOP = HEADER_H + COORD_HEADER + COORD_SEARCH + COORD_CONTROLS; // 214
+const LIST_TOP = HEADER_H + COORD_HEADER + COORD_SEARCH + COORD_CONTROLS;
 const ROW_H = 30;
 const rowY = (i: number) => LIST_TOP + i * ROW_H + ROW_H / 2;
-const CONTROLS_Y = HEADER_H + COORD_HEADER + COORD_SEARCH + COORD_CONTROLS / 2; // 196
+const CONTROLS_Y = HEADER_H + COORD_HEADER + COORD_SEARCH + COORD_CONTROLS / 2;
 const MENU_TOP = LIST_TOP + 2;
 
-// scripted clicks (spaced — slow establish, deliberate move→pause→click, and a LONG dwell on the
-// coordinate's usage/clients before drilling so the viewer can actually read it).
 const FILTER_OPEN = 0.16;
 const FILTER_PICK = 0.24;
 const ORDER_OPEN = 0.33;
 const ORDER_PICK = 0.42;
-const SELECT = 0.57; // cursor waits for the list to reorder (ORDER_PICK + LOAD) before selecting
+const SELECT = 0.57;
 const CLIENT_SELECT = 0.8;
-// list refetch duration — the loading bar/dim plays for this long BEFORE the rows change
 const LOAD = 0.05;
-// the ">" chevron at the right of the first (Admin Dashboard) client row — the drill affordance
 const CLIENT_X = 1466;
 const CLIENT_Y = 384;
 
@@ -168,8 +145,6 @@ export interface SchemaScreenProps {
 }
 
 export function SchemaScreen({ progress }: SchemaScreenProps) {
-  // control phase (filter chip / order chip) updates immediately on click; the list ROWS lag by
-  // LOAD so the loading bar plays BEFORE the content changes.
   const phaseAt = (p: number) =>
     p >= ORDER_PICK ? 2 : p >= FILTER_PICK ? 1 : 0;
   const listPhaseAt = (p: number) =>
@@ -184,11 +159,6 @@ export function SchemaScreen({ progress }: SchemaScreenProps) {
     setStage(stageAt(p));
   });
 
-  // Smooth path with clear holds: establish → filter btn → menu item → order btn → menu item →
-  // hero row → (drift slowly to the clients and REST so they're readable) → admin client row.
-  // …, requests pick (0.42) → HOLD at the order area through the list load+reorder (~0.52) →
-  // move up to the now-top Product.inStock and select (0.57) → then a SLOW drift (0.58→0.78,
-  // ~2× the previous travel time) across to the Admin Dashboard client chevron.
   const T = [
     0, 0.1, 0.14, 0.16, 0.22, 0.24, 0.31, 0.33, 0.4, 0.42, 0.52, 0.56, 0.58,
     0.78, 0.8, 1,
@@ -300,8 +270,6 @@ export function SchemaScreen({ progress }: SchemaScreenProps) {
   );
 }
 
-/* ── header row A: document tabs (the open API) ───────────────────────────── */
-
 function DocTab({ name }: { name: string }) {
   return (
     <div
@@ -368,8 +336,6 @@ function DocTabStrip() {
     </div>
   );
 }
-
-/* ── header row B: gateway view nav (Schema selected) ─────────────────────── */
 
 function GatewayViewNav() {
   const views = [
@@ -458,8 +424,6 @@ function GatewayViewNav() {
     </div>
   );
 }
-
-/* ── header row C: schema toolbar (Reference | SDL | Insights) ────────────── */
 
 function SchemaToolbar() {
   const tab = (t: string, on?: boolean) => (
@@ -561,8 +525,6 @@ function SchemaToolbar() {
   );
 }
 
-/* ── Coordinates column ───────────────────────────────────────────────────── */
-
 function CoordinatesColumn({
   phase,
   listPhase,
@@ -572,8 +534,6 @@ function CoordinatesColumn({
   listPhase: number;
   progress: MotionValue<number>;
 }) {
-  // rows lag the controls by LOAD; the loading bar + dim play during [click, click+LOAD], BEFORE
-  // the rows swap. No initial load — the list is present from the first frame.
   const list =
     listPhase === 0
       ? ALL_BY_NAME
@@ -734,7 +694,6 @@ function CoordinatesColumn({
   );
 }
 
-/** thin indeterminate loading bar at the top of the list (refetch on filter/sort change). */
 function ListLoadingBar({
   progress,
   windows,
@@ -808,8 +767,6 @@ function ControlButton({
     </span>
   );
 }
-
-/* ── dropdown menus (anchored under their buttons) ────────────────────────── */
 
 function Menu({
   progress,
@@ -960,8 +917,6 @@ function OrderMenu({ progress }: { progress: MotionValue<number> }) {
   );
 }
 
-/* ── right pane ───────────────────────────────────────────────────────────── */
-
 function NoCoordinate() {
   return (
     <div
@@ -1061,9 +1016,6 @@ function DetailsColumn() {
 }
 
 function UsageView({ progress }: { progress: MotionValue<number> }) {
-  // the pane frame + breadcrumb appear immediately on select; a SHORT spinner stands in for the
-  // deferred query, then the usage content reveals. The client→operations drill is an inline
-  // fan-out within the Clients card (no heavy view swap), so the breadcrumb just stays "Usage".
   const fade = useTransform(progress, [SELECT, SELECT + 0.015], [0, 1], {
     clamp: true,
   });
@@ -1155,7 +1107,6 @@ function LoadingSpinner({
 }
 
 function CoordinateUsage({ progress }: { progress: MotionValue<number> }) {
-  // Admin Dashboard's ">" rotates to "v" and its operations fan out inline beneath it
   const chevRot = useTransform(
     progress,
     [CLIENT_SELECT - 0.02, CLIENT_SELECT + 0.03],
@@ -1348,7 +1299,6 @@ function ChartTile({
       >
         avg over 7 days
       </div>
-      {/* plot with y-axis tick + gridlines + end dot */}
       <div style={{ position: "relative", height: 88 }}>
         <span
           style={{
@@ -1424,7 +1374,6 @@ function ChartTile({
               vectorEffect="non-scaling-stroke"
             />
           </svg>
-          {/* end-of-series dot (placed in % so it isn't stretched by the non-uniform svg) */}
           <span
             style={{
               position: "absolute",
@@ -1438,7 +1387,6 @@ function ChartTile({
               transform: "translate(-50%,-50%)",
             }}
           />
-          {/* x-axis ticks */}
           <div
             style={{
               position: "absolute",
@@ -1482,7 +1430,6 @@ function GridCol({
   );
 }
 
-/** GraphQL operation-kind badge (matches Nitro: a letter in a kind-colored rounded outline). */
 function OpBadge({ letter = "Q", color }: { letter?: string; color: string }) {
   return (
     <span
@@ -1506,8 +1453,6 @@ function OpBadge({ letter = "Q", color }: { letter?: string; color: string }) {
   );
 }
 
-/** Operations that fan out INLINE beneath the Admin Dashboard client row: the region grows in
- *  height, a short spinner stands in for the load, then the operation rows fade in. */
 function ExpandedOps({ progress }: { progress: MotionValue<number> }) {
   const HEAD = 28;
   const ROWH = 36;
@@ -1543,7 +1488,6 @@ function ExpandedOps({ progress }: { progress: MotionValue<number> }) {
   return (
     <motion.div style={{ height, overflow: "hidden", background: token.bg }}>
       <div style={{ position: "relative", minHeight: OPS_H }}>
-        {/* loading spinner (before the rows) */}
         <motion.div
           style={{
             position: "absolute",
@@ -1559,7 +1503,6 @@ function ExpandedOps({ progress }: { progress: MotionValue<number> }) {
             <IconSpinner size={18} color={token.accent} />
           </motion.div>
         </motion.div>
-        {/* operation rows */}
         <motion.div style={{ opacity: rowsOp }}>
           <div
             style={{

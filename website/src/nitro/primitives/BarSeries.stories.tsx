@@ -9,8 +9,6 @@ const meta = {
   component: BarSeries,
   parameters: { layout: "centered" },
   argTypes: {
-    // MotionValue — Storybook can't drive it; the story leaves it undefined so the
-    // primitive runs its own clock (pinned to t=1 by reduced motion).
     progress: { control: false },
   },
   args: {

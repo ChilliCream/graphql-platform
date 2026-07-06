@@ -1,12 +1,3 @@
-/**
- * TraceTimeline — trace-sample scatter.
- *
- * Each sampled trace is a dot at (time, duration): x is wall-clock across the window,
- * y is duration on a log scale (durations span orders of magnitude). Dots are colored
- * by status (ok / error), pop in staggered left→right off the shared clock `t`, and a
- * scan line sweeps the plot near the end of the cycle. Log gridlines + labels are HTML
- * (crisp), the dots are inline SVG.
- */
 import type { CSSProperties } from "react";
 import { motion, useTransform, type MotionValue } from "motion/react";
 import { logScale, linScale, ms } from "../lib/scale";
@@ -19,7 +10,6 @@ export interface TraceTimelineProps {
   samples: TraceSample[];
   width?: number;
   height?: number;
-  /** horizontal threshold line (e.g. p95), ms */
   threshold?: number;
   showScan?: boolean;
   progress?: MotionValue<number>;
@@ -83,7 +73,6 @@ export function TraceTimeline({
         height="100%"
         style={{ display: "block", overflow: "visible" }}
       >
-        {/* log gridlines */}
         {LOG_TICKS.filter((v) => v >= dMin && v <= dMax).map((v) => (
           <line
             key={v}
@@ -126,7 +115,6 @@ export function TraceTimeline({
         )}
       </svg>
 
-      {/* y-axis labels (HTML, crisp) */}
       {LOG_TICKS.filter((v) => v >= dMin && v <= dMax).map((v) => (
         <span
           key={v}
@@ -162,7 +150,6 @@ function Dot({
   frac: number;
   t: MotionValue<number>;
 }) {
-  // pop in, staggered left→right across the first 70% of the window
   const s0 = frac * 0.7;
   const opacity = useTransform(t, [s0, s0 + 0.12], [0, 1], { clamp: true });
   const scale = useTransform(t, [s0, s0 + 0.18], [0.2, 1], {

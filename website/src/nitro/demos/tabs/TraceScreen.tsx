@@ -1,35 +1,3 @@
-/**
- * TraceScreen — Tab 2: "Observe" (the monitoring flagship). Sells "watch your gateway, then
- * root-cause a slow request in seconds." It clones the REAL Nitro monitoring screens as ONE tall
- * Monitoring page the view SCROLLS DOWN through, section by section, as a developer narrows from
- * the gateway dashboard to one slow database span.
- *
- * SECTION A — MONITORING OVERVIEW: under the gateway chrome (doc tab +
- *   view-nav with Monitoring active + Production stage + "Last 7 days") and a "Production Stage"
- *   sub-header, a tile grid —
- *     · Row 1: Latency, FULL WIDTH — a multi-series (min/avg/max) spiky LINE chart + legend.
- *     · Row 2: Throughput (~62%) blue AREA chart + Checks (~38%) horizontal BAR chart.
- *     · Row 3: Failed Operations (~62%) one red line (GetHomePageQuery) + Errors (~38%) an empty
- *       "No Metrics Available" state.
- *     · Row 4: Insights, FULL WIDTH — the operations table (Operation / Latency / Throughput /
- *       Error Rate / Impact, sorted by impact, mini sparklines + impact bars).
- *   The cursor scans the Insights rows, then clicks the slow outlier GetHomePageQuery
- *   (data-testid="slow-op-row") → a short load.
- *
- * SECTION B — OPERATION SCREEN:
- *     · Row 1: three charts — Latency (line) / Throughput (area) / Errors (line).
- *     · Row 2: Latency Distribution, FULL WIDTH — a HISTOGRAM (log-ish x; "Click and drag to
- *       select a range") with median/p90/p95/p99 markers.
- *     · Row 3: Trace Sample · 1 of N (Timeline | Logs tabs) → the distributed-trace WATERFALL
- *       builds rank by rank (POST /graphql → parse/validate → parallel subgraph fetches → the slow
- *       db.query span). The cursor drills the slowest span (data-testid="db-span") → the SPAN
- *       DETAILS flyout (data-testid="reel-flyout") slides in with the literal slow SQL, and dwells.
- *
- * All motion derives from a STAGE-BASED timeline (`src/lib/timeline.ts`): each beat owns its OWN
- * duration in ms and the total (`TRACE_MS`) is DERIVED by summing them. The screen consumes a
- * normalized `progress` MotionValue; at progress=1 (reduced motion) it sits in the fully-resolved
- * payoff: flyout open, SQL visible, amber span selected.
- */
 import { useState } from "react";
 import {
   motion,
@@ -76,19 +44,14 @@ import {
 const W = TABREEL_CANVAS.w;
 const H = TABREEL_CANVAS.h;
 
-// Nitro IDE active-accent (tab underlines / rail) is orange.
 const ORANGE = token.graphEdgeActive;
 
-// Exact Nitro github-dark chart palette (cloud .../themes: chart-palette-0..3 map to the span
-// legend HTTP / GraphQL / Internal / DB and to the metric series colors).
 const PAL = {
-  http: token.chThroughput, // #0288d1 blue
-  graphql: token.chP95, // #c2095a pink/red
-  internal: token.chLatency, // #3bceac teal/green
-  db: token.chImpact, // #ffc914 amber
+  http: token.chThroughput,
+  graphql: token.chP95,
+  internal: token.chLatency,
+  db: token.chImpact,
 };
-
-/* ── LOCAL data (kept out of src/lib/data/tabs.ts per task constraints) ──────────── */
 
 type SpanKind = "server" | "graphql" | "internal" | "http" | "db";
 
@@ -99,14 +62,11 @@ interface Span {
   depth: number;
   startMs: number;
   durationMs: number;
-  /** 0-based rank used to reveal the waterfall depth by depth */
   rank: number;
   hasChildren?: boolean;
   target?: boolean;
-  /** the parent's child glyph sits at this depth's indent */
 }
 
-// span colors map to the real Transaction legend (HTTP / GraphQL / Internal / DB palette slots).
 const KIND_COLOR: Record<SpanKind, string> = {
   server: PAL.http,
   http: PAL.http,
@@ -129,7 +89,6 @@ const TRACE = {
   timeAgo: "2 minutes ago",
   traceId: "4e2d9f7a6c1b08e3",
   sampleOf: 24,
-  // captured waterfall (matches the real OpenTelemetry span tree shape)
   spans: [
     {
       id: "s0",
@@ -221,10 +180,6 @@ const TRACE = {
   ] as Span[],
   maxRank: 4,
   ticks: [0, 200, 400, 600],
-  // log events emitted during the request — markers ABOVE the waterfall. Each marker sits directly
-  // above the SPAN it was emitted from (`spanId`); its x is derived from that span's startMs using
-  // the SAME time→x scale the waterfall uses, so the indicator lines up with its span. `count` is
-  // the number of logs at that point (1 each here). The cursor hovers the WARN one during the dwell.
   logs: [
     {
       id: "l0",
@@ -297,13 +252,11 @@ interface OpRow {
   opm: string;
   p95: string;
   errorRate: string;
-  impact: number; // 0..1 bar
+  impact: number;
   slow?: boolean;
   seed: number;
 }
 
-// The Insights table (Monitoring → Insights), ordered by impact (real grid sorts impact desc).
-// GetHomePageQuery is the slow outlier the developer is chasing — tall latency + highest impact.
 const OPS: OpRow[] = [
   {
     name: "GetHomePageQuery",
@@ -356,10 +309,6 @@ const OPS: OpRow[] = [
   },
 ];
 
-// gateway-wide overview time-series. Latency is multi-series (min / avg / max) and spiky; the rest
-// are single-series. Seeds chosen for organic, distinct shapes.
-// min/avg/max are STACKED (avg = min + positive gap, max = avg + positive gap) so the lines never
-// cross — max is always ≥ avg ≥ min at every point.
 const _latMin = smoothSeries(63, 64, 18, 9);
 const _latAvgGap = smoothSeries(62, 64, 34, 12);
 const _latMaxGap = smoothSeries(61, 64, 78, 44);
@@ -373,8 +322,6 @@ const OVERVIEW = {
   failed: smoothSeries(71, 56, 18, 16),
 };
 
-// the Clients tile — requests per client, a horizontal bar chart (real MetricsClientsChart:
-// category y-axis of client names, value x-axis of request totals, hot→cold color ramp).
 const CLIENTS = [
   { label: "Web Storefront", value: 128540 },
   { label: "iOS App", value: 86220 },
@@ -384,7 +331,6 @@ const CLIENTS = [
 ];
 const CLIENTS_MAX = Math.max(...CLIENTS.map((c) => c.value));
 
-// the Errors tile — a small list of recent errors (timestamp / operation / message).
 const ERRORS = [
   {
     time: "14:32:08",
@@ -408,29 +354,23 @@ const ERRORS = [
   },
 ];
 
-// the slow operation's own time-series (Operation screen)
 const OPSERIES = {
   latency: smoothSeries(51, 48, 842, 140),
   errors: smoothSeries(52, 48, 0.04, 0.05),
   throughput: smoothSeries(53, 48, 8400, 1700),
 };
 
-// latency-distribution histogram — MANY thin bins forming a proper distribution curve. Log
-// duration x from ~4ms to ~1.2s; a tall log-normal mass low, plus a long slow tail and a small
-// red error mass out near the p99. Built procedurally so the curve reads as ~36 bins.
 const DIST_BINS = 36;
 const DIST_MS_MIN = 4;
 const DIST_MS_MAX = 1200;
 function buildDistCounts(): number[] {
-  // log-normal-ish in log-ms space: peak around ~28ms, sigma wide, + a secondary slow hump.
   const lo = Math.log10(DIST_MS_MIN);
   const hi = Math.log10(DIST_MS_MAX);
   const out: number[] = [];
   for (let i = 0; i < DIST_BINS; i++) {
-    const lm = lo + ((hi - lo) * (i + 0.5)) / DIST_BINS; // bin-center log-ms
+    const lm = lo + ((hi - lo) * (i + 0.5)) / DIST_BINS;
     const main = Math.exp(-Math.pow((lm - Math.log10(28)) / 0.34, 2)) * 5200;
     const tail = Math.exp(-Math.pow((lm - Math.log10(360)) / 0.42, 2)) * 520;
-    // light deterministic jitter so bars aren't a perfect curve
     const j = 1 + 0.12 * Math.sin(i * 1.7) + 0.06 * Math.cos(i * 3.1);
     out.push(Math.max(1, Math.round((main + tail) * j)));
   }
@@ -441,7 +381,6 @@ const DIST = {
   msMin: DIST_MS_MIN,
   msMax: DIST_MS_MAX,
   counts: buildDistCounts(),
-  // error mass lives in the slow tail (last ~6 bins carry a little red)
   errorFrom: DIST_BINS - 6,
   total: 12936,
   markers: [
@@ -452,22 +391,17 @@ const DIST = {
   ],
 };
 
-/* ── geometry ────────────────────────────────────────────────────────────────────── */
-
 const RAIL = 50;
 const H_VIEWNAV = 36;
 const H_SUBHEAD = 34;
 const PANEL_PAD_X = 20;
-const HEADER_H = H_VIEWNAV + H_SUBHEAD; // chrome above the scrolling content
+const HEADER_H = H_VIEWNAV + H_SUBHEAD;
 const TILE_GAP = 14;
 
-// usable viewport height below the chrome (footer is 23px = AppFrame.FOOTER_H)
 const VIEW_H = H - HEADER_H - 23;
 
-// ── PAGE 1 (Monitoring Overview) — one fixed page; the Insights table scrolls into view at the
-// bottom of the overview as the cursor scans it.
 const OV_PAD_TOP = 16;
-const LAT_TILE_H = 240; // TALL latency tile — its multi-series line chart must read clearly
+const LAT_TILE_H = 240;
 const TP_TILE_H = 168;
 const FAIL_TILE_H = 150;
 const INSIGHTS_HEAD_H = 38;
@@ -485,7 +419,6 @@ const SEC_OVERVIEW_H =
   INSIGHTS_COL_H +
   6 * GRID_ROW_H +
   16;
-// the Insights table top inside the overview page
 const INSIGHTS_TOP_IN_OV =
   OV_PAD_TOP +
   LAT_TILE_H +
@@ -500,53 +433,41 @@ const gridRowYInOv = (i: number) =>
   INSIGHTS_COL_H +
   i * GRID_ROW_H +
   GRID_ROW_H / 2;
-// measured calibration: real rendered Insights row center is ~50 canvas-px below the estimate.
 const OV_ROW_CAL = 50;
 
-// ── PAGE 2 (Operation screen) — a scrolling column: op-charts + latency distribution, then the
-// Trace Sample waterfall below. Within page 2 the view scrolls down to reveal the trace.
-const SEC_OP_H = 470; // per-operation charts + latency distribution
-const SEC_TRACE_H = 600; // trace sample header + log lane + waterfall
+const SEC_OP_H = 470;
+const SEC_TRACE_H = 600;
 const OFF_TRACE = SEC_OP_H;
 
-// Trace waterfall geometry (inside the Trace section, which starts at OFF_TRACE in page 2)
 const TRACE_HEADER_H = 62;
 const RULER_H = 22;
-// section pad-top (OV_PAD_TOP=16) + card border (1) + header + log lane + ruler band. Calibrated
-// so the cursor tip lands inside the db.query row rect (see scripts/verify-tabs.mjs).
 const WATERFALL_TOP_IN_SEC = OV_PAD_TOP + 1 + TRACE_HEADER_H + RULER_H + 4 + 30;
 const SPAN_ROW_H = 40;
-// the span BAR sits at the top of each row (top:5, height:12 → its center is ~11px below row top).
-// db.query span is index 6 → aim the cursor at that span's BAR center inside the page-2 column.
 const DB_ROW_YIN_COL = OFF_TRACE + WATERFALL_TOP_IN_SEC + 6 * SPAN_ROW_H + 11;
-// the db.query bar spans canvas x ~[242..752]; aim the cursor near its center so the tip lands on
-// the bar (not just the full-width row). Measured against the rendered bar in Playwright.
 const DB_SPAN_X = RAIL + PANEL_PAD_X + 430;
 
-/* ── STAGE-BASED timeline: each beat owns its ms; the total is DERIVED ────────────── */
 const TL = timeline([
-  { name: "establish", ms: 1000 }, // settle on the Monitoring Overview
-  { name: "overviewDwell", ms: 1500 }, // read the Latency / Throughput / Clients tiles
-  { name: "scrollToInsights", ms: 1300 }, // scroll the overview down to the Insights table
-  { name: "scanOps", ms: 1400 }, // cursor scans the operation rows
-  { name: "moveToSlowRow", ms: 1400 }, // glide to the slow GetHomePageQuery row
-  { name: "opClick", ms: 120 }, // click the slow row
-  { name: "pageOut", ms: 420 }, // PAGE TRANSITION out — overview fades/slides away
-  { name: "opLoad", ms: 650 }, // short spinner — loading the operation screen
-  { name: "pageIn", ms: 480 }, // PAGE TRANSITION in — operation screen slides/fades in
-  { name: "opReveal", ms: 1500 }, // read the op charts + latency distribution
-  { name: "scrollToTrace", ms: 1300 }, // scroll page 2 down to the Trace Sample
-  { name: "traceLoad", ms: 550 }, // short spinner — fetching the trace sample
-  { name: "waterfallBuild", ms: 1400 }, // the distributed-trace waterfall builds rank by rank
-  { name: "moveToDbSpan", ms: 1500 }, // drill DOWN the call tree to the db span
-  { name: "dbClick", ms: 120 }, // click the slow db.query span
-  { name: "flyoutLoad", ms: 420 }, // span detail loads
-  { name: "detailReveal", ms: 1500 }, // General + Database (SQL) reveal
-  { name: "moveToLog", ms: 1300 }, // move up to hover the WARN log marker
-  { name: "dwell", ms: 2400 }, // dwell on the root-cause payoff (log popup + SQL)
+  { name: "establish", ms: 1000 },
+  { name: "overviewDwell", ms: 1500 },
+  { name: "scrollToInsights", ms: 1300 },
+  { name: "scanOps", ms: 1400 },
+  { name: "moveToSlowRow", ms: 1400 },
+  { name: "opClick", ms: 120 },
+  { name: "pageOut", ms: 420 },
+  { name: "opLoad", ms: 650 },
+  { name: "pageIn", ms: 480 },
+  { name: "opReveal", ms: 1500 },
+  { name: "scrollToTrace", ms: 1300 },
+  { name: "traceLoad", ms: 550 },
+  { name: "waterfallBuild", ms: 1400 },
+  { name: "moveToDbSpan", ms: 1500 },
+  { name: "dbClick", ms: 120 },
+  { name: "flyoutLoad", ms: 420 },
+  { name: "detailReveal", ms: 1500 },
+  { name: "moveToLog", ms: 1300 },
+  { name: "dwell", ms: 2400 },
 ]);
 
-/** DERIVED total duration in ms — feed to SoloScreen / the reel tab. */
 export const TRACE_MS = TL.total;
 export const TRACE_TL = TL;
 
@@ -555,18 +476,11 @@ export interface TraceScreenProps {
   active?: boolean;
 }
 
-// ── the WARN log marker the cursor hovers during the dwell (root-cause callout). Computed in
-// canvas px so the cursor can travel to it and the verify probe could be re-pointed if needed.
 const HOVER_LOG = TRACE.logs.find((l) => l.hover)!;
-const WF_LEFT = RAIL + PANEL_PAD_X + 16; // waterfall inner-area left edge in canvas px
+const WF_LEFT = RAIL + PANEL_PAD_X + 16;
 const WF_RIGHT = W - PANEL_PAD_X - 16;
 const WF_WIDTH = WF_RIGHT - WF_LEFT;
 const logXInArea = (atMs: number) => (atMs / TRACE.totalMs) * WF_WIDTH;
-// each log sits over its span on the SAME time→x scale the waterfall uses. Most logs anchor to
-// their span's START; "completion" logs (rows returned) anchor near the span's END so they don't
-// pile on top of the dispatch markers.
-// place each marker in the MIDDLE of its span (never at the very start/end) so the circle clears the
-// previous row's left-anchored label and reads as belonging to that span.
 const logTimeMs = (log: (typeof TRACE.logs)[number]) => {
   const sp = TRACE.spans.find((s) => s.id === log.spanId)!;
   return sp.startMs + sp.durationMs * 0.5;
@@ -574,23 +488,14 @@ const logTimeMs = (log: (typeof TRACE.logs)[number]) => {
 const logLeftPct = (log: (typeof TRACE.logs)[number]) =>
   (logTimeMs(log) / TRACE.totalMs) * 100;
 const HOVER_LOG_X = WF_LEFT + logXInArea(logTimeMs(HOVER_LOG));
-// log-marker DOT center inside the trace section (page-2 column coords). The marker's 16px circle
-// sits at the TOP of the log lane (top:2 + 8px radius); the lane itself starts below the card
-// border + header. Calibrated against the measured on-screen dot center so the cursor tip lands on
-// the dot, not the band center.
-// the WARN marker sits just above the db.query span's bar, so the cursor hovers it ~16px above the bar
 const LOG_DOT_YIN_COL = DB_ROW_YIN_COL - 16;
 
 export function TraceScreen({ progress }: TraceScreenProps) {
-  // which PAGE is shown: 0 = the gateway Monitoring Overview, 1 = the Operation screen + Trace.
-  // The hand-off is a real PAGE TRANSITION (overview fades/slides out, op screen fades/slides in)
-  // bridged by a short load — not a scroll. `view` keeps the inactive page from intercepting.
   const pageMid = TL.at("opLoad", 0.5);
   const viewAt = (p: number) => (p >= pageMid ? 1 : 0);
   const [view, setView] = useState(() => viewAt(progress.get()));
   useMotionValueEvent(progress, "change", (p) => setView(viewAt(p)));
 
-  // ── PAGE TRANSITION — crossfade + slide between the two distinct page states.
   const ovOpacity = useTransform(
     progress,
     [TL.start("pageOut"), TL.end("pageOut")],
@@ -615,7 +520,6 @@ export function TraceScreen({ progress }: TraceScreenProps) {
     [44, 0],
     { ease: ease.inOut, clamp: true },
   );
-  // load spinner that bridges the two pages (over pageOut→opLoad→pageIn)
   const loadOpacity = useTransform(
     progress,
     [
@@ -633,7 +537,6 @@ export function TraceScreen({ progress }: TraceScreenProps) {
     [0, 720],
   );
 
-  // ── PAGE 1 scroll (overview → insights). A small translateY just to bring Insights into view.
   const ovMaxScroll = Math.max(0, SEC_OVERVIEW_H - VIEW_H);
   const ovScrollY = useTransform(
     progress,
@@ -642,7 +545,6 @@ export function TraceScreen({ progress }: TraceScreenProps) {
     { ease: ease.inOut, clamp: true },
   );
 
-  // ── PAGE 2 scroll (op charts → trace sample).
   const p2MaxScroll = Math.max(0, OFF_TRACE + SEC_TRACE_H - VIEW_H);
   const p2ScrollY = useTransform(
     progress,
@@ -651,9 +553,6 @@ export function TraceScreen({ progress }: TraceScreenProps) {
     { ease: ease.inOut, clamp: true },
   );
 
-  // Cursor targets that live inside scrolling columns track the live scroll. OV_ROW_CAL corrects a
-  // small layout drift between the estimated overview geometry and the real rendered row center
-  // (measured in Playwright: the slow-op-row center sits ~50 canvas-px below the computed value).
   const opRowY = useTransform(
     ovScrollY,
     (sy) => HEADER_H + gridRowYInOv(0) + OV_ROW_CAL + sy,
@@ -664,10 +563,6 @@ export function TraceScreen({ progress }: TraceScreenProps) {
   );
   const logY = useTransform(p2ScrollY, (sy) => HEADER_H + LOG_DOT_YIN_COL + sy);
 
-  // ── CURSOR OPACITY — fade the pointer fully OUT across the page transition (pageOut → opLoad →
-  // pageIn) and back IN once it is repositioned on page 2. This is what lets the shared cursor jump
-  // from the overview slow-op-row to the operation-screen page WITHOUT any visible instantaneous
-  // warp: while it crosses that long distance it is invisible.
   const cursorOpacity = useTransform(
     progress,
     [
@@ -680,27 +575,22 @@ export function TraceScreen({ progress }: TraceScreenProps) {
     { ease: ease.inOut, clamp: true },
   );
 
-  // PAGE-2 neutral rest position the cursor fades back in on (a calm spot over the op charts), held
-  // through opReveal / scrollToTrace / traceLoad until it purposefully glides to the db span.
   const P2_REST_X = 460;
   const P2_REST_Y = 300;
 
-  // ── CURSOR X — purposeful, target-to-target only (no idle micro-drifts). The big overview→page-2
-  // jump happens entirely while the cursor is faded out (between opClick and pageIn end), so it is
-  // never seen warping.
   const cx = useTransform(
     progress,
     [
-      TL.start("establish"), // rest
-      TL.start("moveToSlowRow"), // still resting (hold — no drift)
-      TL.start("opClick"), // on the slow op-row (x within the full-width row)
-      TL.start("pageOut"), // hold while fading out
-      TL.end("pageIn"), // faded back in at the page-2 rest spot
-      TL.start("moveToDbSpan"), // hold rest through reading / scrolling / trace fetch
-      TL.start("dbClick"), // glide to the db span and click
-      TL.end("detailReveal"), // hold on the db span through the detail reveal
-      TL.end("moveToLog"), // glide up to the WARN log marker
-      1, // rest on the marker
+      TL.start("establish"),
+      TL.start("moveToSlowRow"),
+      TL.start("opClick"),
+      TL.start("pageOut"),
+      TL.end("pageIn"),
+      TL.start("moveToDbSpan"),
+      TL.start("dbClick"),
+      TL.end("detailReveal"),
+      TL.end("moveToLog"),
+      1,
     ],
     [
       460,
@@ -717,11 +607,6 @@ export function TraceScreen({ progress }: TraceScreenProps) {
     { ease: ease.inOut },
   );
 
-  // ── CURSOR Y — blends a progress-driven rest track with the live, scroll-tracked targets. Each
-  // target is HELD still until its own move stage, so the cursor never drifts with the scroll before
-  // it is supposed to move. The two real glides (rest→db span, db span→log) are smoothed.
-  // smoothstep for the in-stage glides — CLAMPED so progress past a stage's end holds at the target
-  // (an unclamped smoothstep overshoots wildly for t>1, flinging the cursor off-screen).
   const smooth = (t: number) => {
     const c = t < 0 ? 0 : t > 1 ? 1 : t;
     return c * c * (3 - 2 * c);
@@ -729,8 +614,6 @@ export function TraceScreen({ progress }: TraceScreenProps) {
   const cy = useTransform(
     [progress, opRowY, dbRowY, logY] as MotionValue<number>[],
     ([p, orow, drow, lrow]: number[]) => {
-      // moveToSlowRow: glide down from the rest spot onto the slow op-row, then hold on it (scroll
-      // already settled) through the CLICK.
       if (p >= TL.start("moveToSlowRow") && p < TL.start("pageOut")) {
         if (p >= TL.start("opClick")) return orow;
         const f = smooth(
@@ -739,7 +622,6 @@ export function TraceScreen({ progress }: TraceScreenProps) {
         );
         return P2_REST_Y + (orow - P2_REST_Y) * f;
       }
-      // moveToLog: glide up from the db span to the WARN log marker.
       if (p >= TL.start("moveToLog")) {
         const f = smooth(
           (p - TL.start("moveToLog")) /
@@ -747,8 +629,6 @@ export function TraceScreen({ progress }: TraceScreenProps) {
         );
         return drow + (lrow - drow) * f;
       }
-      // moveToDbSpan: glide down from the page-2 rest spot to the db span (then held through click
-      // and the detail reveal).
       if (p >= TL.start("moveToDbSpan")) {
         if (p >= TL.start("dbClick")) return drow;
         const f = smooth(
@@ -757,8 +637,6 @@ export function TraceScreen({ progress }: TraceScreenProps) {
         );
         return P2_REST_Y + (drow - P2_REST_Y) * f;
       }
-      // before any move stage on page 2 (and through the faded page transition): hold the rest spot.
-      // establish / overview dwells fall here too — a brief, still rest before the first move.
       return P2_REST_Y;
     },
   );
@@ -794,11 +672,9 @@ export function TraceScreen({ progress }: TraceScreenProps) {
             flexDirection: "column",
           }}
         >
-          {/* gateway chrome: view nav (Monitoring active) + "Production Stage" sub-header */}
           <GatewayViewNav />
           <ProductionStageHeader />
 
-          {/* the page viewport — holds the two stacked, crossfading page states */}
           <div
             style={{
               flex: 1,
@@ -807,7 +683,6 @@ export function TraceScreen({ progress }: TraceScreenProps) {
               overflow: "hidden",
             }}
           >
-            {/* PAGE 1 — Monitoring Overview */}
             <motion.div
               style={{
                 position: "absolute",
@@ -831,7 +706,6 @@ export function TraceScreen({ progress }: TraceScreenProps) {
               </motion.div>
             </motion.div>
 
-            {/* PAGE 2 — Operation screen + Trace Sample (a scrolling column) */}
             <motion.div
               style={{
                 position: "absolute",
@@ -858,7 +732,6 @@ export function TraceScreen({ progress }: TraceScreenProps) {
               </motion.div>
             </motion.div>
 
-            {/* the bridging load spinner during the page transition */}
             <motion.div
               style={{
                 position: "absolute",
@@ -878,7 +751,6 @@ export function TraceScreen({ progress }: TraceScreenProps) {
           </div>
         </div>
 
-        {/* Span Details flyout — slides in as the RESPONSE to the db-span click */}
         <Flyout
           progress={progress}
           show={TL.at("dbClick", 0.4)}
@@ -896,9 +768,6 @@ export function TraceScreen({ progress }: TraceScreenProps) {
   );
 }
 
-/* ── gateway chrome ─────────────────────────────────────────────────────────────────── */
-
-/** document tab strip — the open gateway API ("EShops Gateway"). */
 function DocTabStrip() {
   return (
     <div style={{ display: "flex", alignItems: "center", height: "100%" }}>
@@ -925,7 +794,6 @@ function DocTabStrip() {
   );
 }
 
-/** gateway view nav — Overview / Monitoring (active) / … + Production stage selector + Last 7 days. */
 function GatewayViewNav() {
   const views = [
     "Overview",
@@ -1012,7 +880,6 @@ function GatewayViewNav() {
   );
 }
 
-/** "Production Stage" sub-header + a "Last 7 days" range selector (matches the screenshot). */
 function ProductionStageHeader() {
   return (
     <div
@@ -1048,8 +915,6 @@ function ProductionStageHeader() {
   );
 }
 
-/* ── SECTION A — Monitoring Overview ───────────────────────────────────────────────── */
-
 function MonitoringOverview() {
   return (
     <div
@@ -1061,7 +926,6 @@ function MonitoringOverview() {
         gap: TILE_GAP,
       }}
     >
-      {/* Row 1 — Latency, FULL WIDTH + TALL (multi-series spiky line) */}
       <Tile
         title="Latency"
         height={LAT_TILE_H}
@@ -1082,7 +946,6 @@ function MonitoringOverview() {
         />
       </Tile>
 
-      {/* Row 2 — Throughput (area) + Clients (horizontal request bars) */}
       <div style={{ display: "flex", gap: TILE_GAP, height: TP_TILE_H }}>
         <div style={{ flex: "0 0 61%", minWidth: 0, display: "flex" }}>
           <Tile
@@ -1109,7 +972,6 @@ function MonitoringOverview() {
         </div>
       </div>
 
-      {/* Row 3 — Failed Operations (red line) + Errors (recent error list) */}
       <div style={{ display: "flex", gap: TILE_GAP, height: FAIL_TILE_H }}>
         <div style={{ flex: "0 0 61%", minWidth: 0, display: "flex" }}>
           <Tile title="Failed Operations">
@@ -1134,13 +996,10 @@ function MonitoringOverview() {
         </div>
       </div>
 
-      {/* Row 4 — Insights, FULL WIDTH (operations table) */}
       <InsightsTable />
     </div>
   );
 }
-
-/* ── tiles + charts ─────────────────────────────────────────────────────────────────── */
 
 function Tile({
   title,
@@ -1220,8 +1079,6 @@ function MetricBadge({ value, sub }: { value: string; sub: string }) {
   );
 }
 
-/** A multi-series line chart with an optional legend; `jagged` adds spiky highs (latency).
- *  STATIC — the chart is rendered fully present at rest (no draw-in animation). */
 function MultiLineChart({
   series,
   legend,
@@ -1337,7 +1194,6 @@ function LinePath({
   );
 }
 
-/** A single-series area+line chart (Throughput / Failed Operations). STATIC — fully present. */
 function AreaLineChart({
   values,
   color,
@@ -1427,8 +1283,6 @@ function AreaLineChart({
   );
 }
 
-/** The Clients tile — a horizontal bar chart of requests-per-client (real MetricsClientsChart:
- *  category rows, value bars, hot→cold ramp). STATIC — bars are fully present at rest. */
 function ClientsBars() {
   return (
     <div
@@ -1442,8 +1296,6 @@ function ClientsBars() {
     >
       {CLIENTS.map((c, i) => {
         const frac = c.value / CLIENTS_MAX;
-        // hot (top, most requests) → cold ramp, matching the real visualMap. (token.ch* are CSS
-        // vars, not hex, so pick from a discrete real-color ramp instead of lerping.)
         const CLIENT_RAMP = [
           token.chImpact,
           token.chP95,
@@ -1506,7 +1358,6 @@ function ClientsBars() {
   );
 }
 
-/** The Errors tile — a small list of recent errors (timestamp / operation / message). */
 function ErrorList() {
   return (
     <div
@@ -1590,8 +1441,6 @@ function ErrorList() {
   );
 }
 
-/* ── Insights table (Monitoring → Insights) ─────────────────────────────────────────── */
-
 function InsightsTable() {
   return (
     <div
@@ -1603,7 +1452,6 @@ function InsightsTable() {
         flexDirection: "column",
       }}
     >
-      {/* tile header */}
       <div
         style={{
           height: INSIGHTS_HEAD_H,
@@ -1641,7 +1489,6 @@ function InsightsTable() {
           <IconSearch size={12} color="currentColor" /> Search operations…
         </span>
       </div>
-      {/* column headers */}
       <div
         style={{
           height: INSIGHTS_COL_H,
@@ -1841,8 +1688,6 @@ function ImpactBar({ value, hot }: { value: number; hot?: boolean }) {
   );
 }
 
-/* ── SECTION B.1 — Operation screen (per-operation metrics + distribution) ───────────── */
-
 function OperationScreen() {
   return (
     <div
@@ -1860,7 +1705,6 @@ function OperationScreen() {
           height: "100%",
         }}
       >
-        {/* operation breadcrumb */}
         <div
           style={{
             display: "flex",
@@ -1881,7 +1725,6 @@ function OperationScreen() {
             operation metrics
           </span>
         </div>
-        {/* Row 1 — three charts side by side */}
         <div
           style={{
             display: "flex",
@@ -1912,7 +1755,6 @@ function OperationScreen() {
             <AreaLineChart values={OPSERIES.errors} color={token.chP95} />
           </Tile>
         </div>
-        {/* Row 2 — Latency Distribution, FULL WIDTH */}
         <div
           style={{
             flex: 1,
@@ -1958,9 +1800,6 @@ function OperationScreen() {
   );
 }
 
-/** Latency-distribution histogram — MANY thin bins (a proper distribution curve) on a log
- *  duration x-axis, log count y-axis, with median/p90/p95/p99 markers + a red error tail.
- *  STATIC — all bars + markers are fully present at rest (no draw-in). */
 function LatencyDistribution() {
   const maxCount = Math.max(...DIST.counts);
   const yScale = logScale(1, maxCount * 1.15, 100, 4);
@@ -1970,7 +1809,6 @@ function LatencyDistribution() {
   const xScale = logScale(xMin, xMax, 0, 100);
   const lo = Math.log10(xMin);
   const hi = Math.log10(xMax);
-  // bin [i] spans equal log-ms slices over [xMin, xMax]
   const binLeftMs = (i: number) => Math.pow(10, lo + ((hi - lo) * i) / n);
   const yTicks = [1, 10, 100, 1000, 10000].filter((t) => t <= maxCount * 1.15);
   const markPct = (msVal: number) =>
@@ -1978,7 +1816,6 @@ function LatencyDistribution() {
 
   return (
     <div style={{ position: "relative", width: "100%", height: "100%" }}>
-      {/* y labels */}
       <div
         style={{ position: "absolute", left: 0, top: 0, bottom: 18, width: 30 }}
       >
@@ -2028,10 +1865,9 @@ function LatencyDistribution() {
           {DIST.counts.map((c, i) => {
             const x0 = xScale(binLeftMs(i));
             const x1 = xScale(binLeftMs(i + 1));
-            const bw = Math.max(0.5, x1 - x0 - 0.4); // thin bars
+            const bw = Math.max(0.5, x1 - x0 - 0.4);
             const topY = yScale(Math.max(1, c));
             const hasError = i >= DIST.errorFrom;
-            // taller red error cap further out in the tail
             const errH = hasError
               ? Math.min(100 - topY, 4 + (i - DIST.errorFrom) * 2.5)
               : 0;
@@ -2058,7 +1894,6 @@ function LatencyDistribution() {
             );
           })}
         </svg>
-        {/* median / p90 / p95 / p99 markers */}
         {DIST.markers.map((m) => (
           <DistMarker
             key={m.label}
@@ -2067,7 +1902,6 @@ function LatencyDistribution() {
             color={m.color}
           />
         ))}
-        {/* x ticks */}
         <div
           style={{
             position: "absolute",
@@ -2091,7 +1925,6 @@ function LatencyDistribution() {
   );
 }
 
-/** A static median/p90/p95/p99 marker — dashed vertical line + label pill. */
 function DistMarker({
   label,
   leftPct,
@@ -2142,10 +1975,7 @@ function DistMarker({
   );
 }
 
-/* ── SECTION B.2 — Trace Sample (waterfall → drill the slow span) ───────────────────── */
-
 function TraceSampleSection({ progress }: { progress: MotionValue<number> }) {
-  // The trace sample is present from the start of the operation screen — no load spinner.
   return (
     <div
       style={{
@@ -2166,7 +1996,6 @@ function TraceSampleSection({ progress }: { progress: MotionValue<number> }) {
           overflow: "visible",
         }}
       >
-        {/* Trace Sample header — title + "1 of N" + Timeline | Logs tabs */}
         <div
           style={{
             height: TRACE_HEADER_H,
@@ -2256,7 +2085,6 @@ function TraceSampleSection({ progress }: { progress: MotionValue<number> }) {
           </div>
         </div>
 
-        {/* the waterfall — present from the start (no load reveal) */}
         <div
           style={{
             flex: 1,
@@ -2265,7 +2093,6 @@ function TraceSampleSection({ progress }: { progress: MotionValue<number> }) {
             flexDirection: "column",
           }}
         >
-          {/* time ruler */}
           <div
             style={{
               position: "relative",
@@ -2302,7 +2129,6 @@ function TraceSampleSection({ progress }: { progress: MotionValue<number> }) {
               {TRACE.totalMs} ms
             </span>
           </div>
-          {/* waterfall rows */}
           <div
             style={{
               position: "relative",
@@ -2327,7 +2153,6 @@ function TraceSampleSection({ progress }: { progress: MotionValue<number> }) {
             {TRACE.spans.map((s, i) => (
               <SpanRow key={s.id} span={s} index={i} progress={progress} />
             ))}
-            {/* log markers — each just ABOVE its own span's bar, with a short flag-pole */}
             {TRACE.logs.map((lg) => (
               <LogMarker key={lg.id} log={lg} progress={progress} />
             ))}
@@ -2385,10 +2210,6 @@ const LOG_SEVERITY = {
   },
 } as const;
 
-/** A log-event marker sitting JUST ABOVE its own span's bar: a small severity circle badged with
- *  the log COUNT, on a short "flag-pole" stem that drops onto the span's bar (so it's clearly tied
- *  to that span — not floating in a top lane). x uses the same time→% scale as the bar. The WARN
- *  marker the cursor settles on shows a tooltip POPUP (the log message) above it during the dwell. */
 const CIRCLE = 15;
 const STEM = 7;
 function LogMarker({
@@ -2401,7 +2222,6 @@ function LogMarker({
   const sev = LOG_SEVERITY[log.severity];
   const leftPct = logLeftPct(log);
   const idx = TRACE.spans.findIndex((s) => s.id === log.spanId);
-  // the WARN one pops its tooltip as the cursor reaches it.
   const popOpacity = useTransform(
     progress,
     [TL.at("moveToLog", 0.6), TL.end("moveToLog")],
@@ -2439,7 +2259,6 @@ function LogMarker({
       >
         {log.count}
       </span>
-      {/* flag-pole down to the span's bar */}
       <span
         style={{ width: 1, height: STEM, background: sev.color, opacity: 0.7 }}
       />
@@ -2527,14 +2346,8 @@ function SpanRow({
   const width = Math.max(0.6, (span.durationMs / TRACE.totalMs) * 100);
   const rightAnchor = left > 55;
 
-  // The waterfall is rendered STATICALLY present — the full span tree is already there the instant
-  // the operation screen is shown (no rank-by-rank build-in). Bars and labels are at full from the
-  // start; the only "load" is the brief trace-fetch spinner gating the whole lane (see
-  // `waterfallOpacity`). `built` is kept as a constant 1 so the bar geometry stays unchanged.
   const built = 1;
 
-  // the amber DB span carries a SUBTLE bottleneck highlight (no heavy glow), nudging up slightly as
-  // it is about to be clicked.
   const glow = useTransform(progress, [0, TL.start("dbClick")], [3, 4], {
     clamp: true,
   });
@@ -2543,7 +2356,6 @@ function SpanRow({
     (r) => `0 0 ${r}px 0 ${token.chImpact}`,
   );
 
-  // the DB span row latches to the active (selected) highlight the instant it is clicked
   const select = TL.start("dbClick");
   const rowBg = useTransform(progress, (p) =>
     span.target && p >= select ? token.highlight : "transparent",
@@ -2587,7 +2399,6 @@ function SpanRow({
           transformOrigin: "left center",
           scaleX: built,
           boxShadow: span.target ? targetGlow : undefined,
-          // (scaleX held at 1 — the bar is statically full-width from the start)
         }}
       />
       <motion.div
@@ -2633,14 +2444,10 @@ function SpanRow({
 const fmtDur = (d: number) =>
   d >= 1 ? `${d.toFixed(d < 10 ? 1 : 0)} ms` : `${Math.round(d * 1000)} µs`;
 
-/* ── Span Details flyout body ───────────────────────────────────────────────────────── */
-
 function DbDetail({ progress }: { progress: MotionValue<number> }) {
-  // header settles WITH the flyout; the General + Database (SQL) reveals are the climax, then hold.
   const w0 = TL.start("detailReveal");
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
-      {/* span header — span name + duration + client kind */}
       <div style={{ marginBottom: 14, flex: "0 0 auto" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <span style={{ display: "flex", color: token.chImpact }}>
@@ -2675,7 +2482,6 @@ function DbDetail({ progress }: { progress: MotionValue<number> }) {
       </div>
 
       <div style={{ flex: 1, minHeight: 0, overflow: "hidden" }}>
-        {/* General Information settles first … */}
         <TableList
           title="General Information"
           rows={TRACE.dbSpan.general.map(([label, value]) => ({
@@ -2686,7 +2492,6 @@ function DbDetail({ progress }: { progress: MotionValue<number> }) {
           progress={progress}
           playWindow={[w0, TL.at("detailReveal", 0.4)]}
         />
-        {/* Database attributes — System / Instance / etc. */}
         <TableList
           title="Database"
           rows={TRACE.dbSpan.database.map(([label, value]) => ({
@@ -2697,15 +2502,12 @@ function DbDetail({ progress }: { progress: MotionValue<number> }) {
           progress={progress}
           playWindow={[TL.at("detailReveal", 0.4), TL.at("detailReveal", 0.7)]}
         />
-        {/* … THE CLIMAX: the literal slow SQL statement, properly syntax-highlighted. */}
         <SqlStatement progress={progress} />
       </div>
     </div>
   );
 }
 
-/** The Span Details "Statement" block — the slow SQL, syntax-highlighted via CodeBlock. The SQL
- *  types in over the back half of detailReveal as the span's attributes resolve. */
 function SqlStatement({ progress }: { progress: MotionValue<number> }) {
   return (
     <div style={{ marginTop: 14 }}>
@@ -2744,8 +2546,6 @@ function SqlStatement({ progress }: { progress: MotionValue<number> }) {
     </div>
   );
 }
-
-/* ── small helpers ─────────────────────────────────────────────────────────────────── */
 
 function GridCol({
   w,

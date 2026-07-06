@@ -1,8 +1,3 @@
-/**
- * Sidebar — the Nitro / Banana Cake Pop app-shell left nav (icon rail + document tree).
- * Static chrome for the reel; the active operation
- * (`selected`) is highlighted.
- */
 import type { CSSProperties } from "react";
 import { token } from "../../lib/tokens";
 
@@ -115,7 +110,6 @@ export function Sidebar({ selected = "createOrder", style }: SidebarProps) {
         ...style,
       }}
     >
-      {/* icon rail */}
       <div
         style={{
           width: RAIL_W,
@@ -177,7 +171,6 @@ export function Sidebar({ selected = "createOrder", style }: SidebarProps) {
         ))}
       </div>
 
-      {/* document tree */}
       <div
         style={{
           flex: 1,

@@ -1,10 +1,3 @@
-/**
- * PlanGraph — the Fusion distributed execution-plan visualizer (ReactFlow clone). A left-to-
- * right graph: the "Query Plan" root at far left, ranks flowing right into subgraph "Fetch
- * from …" nodes via Resolve steps. Nodes are fixed-width rounded cards on a dot-grid canvas;
- * edges are dashed beziers that light SOLID ORANGE during the execution sweep. Hovering a node
- * keeps its lineage lit and dims the rest. Fully driven by a local `progress` MotionValue.
- */
 import { useMemo } from "react";
 import { motion, useTransform, type MotionValue } from "motion/react";
 import { token } from "../../lib/tokens";
@@ -38,15 +31,11 @@ export interface PlanGraphProps {
   nodes: PlanNode[];
   edges: PlanEdge[];
   progress: MotionValue<number>;
-  /** id of the node whose lineage is highlighted during the hover beat */
   hoverId?: string;
-  /** local-progress window for the sequential reveal: each rank appears + executes after the
-   *  previous rank, rank-by-rank, across [revealStart, revealEnd]. */
   revealStart?: number;
   revealEnd?: number;
   hoverStart?: number;
   hoverEnd?: number;
-  /** scale the whole graph plane (centered) to fit a narrower container */
   fitScale?: number;
 }
 
@@ -97,7 +86,6 @@ export function PlanGraph({
     return { placed, byId, W, H, ranks };
   }, [nodes]);
 
-  // ancestor lineage of hoverId (inclusive) for the hover-dim beat
   const lineage = useMemo(() => {
     const set = new Set<string>([hoverId]);
     let added = true;
@@ -113,8 +101,6 @@ export function PlanGraph({
     return set;
   }, [edges, hoverId]);
 
-  // Sequential, rank-by-rank reveal: rank R's nodes APPEAR at the start of their slot and EXECUTE
-  // partway through it — so each step appears only after the previous step has executed.
   const slot = (revealEnd - revealStart) / Math.max(1, ranks);
   const appearAt = (n: Placed) => revealStart + slot * n.rank;
   const execAt = (rank: number) => revealStart + slot * rank + slot * 0.45;
@@ -128,7 +114,6 @@ export function PlanGraph({
         overflow: "hidden",
       }}
     >
-      {/* dot grid */}
       <div
         style={{
           position: "absolute",
@@ -138,7 +123,6 @@ export function PlanGraph({
           opacity: 0.5,
         }}
       />
-      {/* centered graph layer */}
       <div
         style={{
           position: "absolute",
@@ -237,7 +221,6 @@ function EdgePath({
   const dash = useTransform(progress, [drawAt, drawAt + 0.06], [len, 0], {
     clamp: true,
   });
-  // execution: turn solid orange; hover: dim if not in lineage
   const dimmed = (p: number) => p >= hoverStart && p <= hoverEnd && !lit;
   const stroke = useTransform(progress, (p) =>
     p >= execAt && !dimmed(p) ? token.graphEdgeActive : token.graphEdge,
@@ -323,7 +306,6 @@ function NodeCard({
         boxShadow: "0 2px 8px rgba(1,4,9,0.4)",
       }}
     >
-      {/* header */}
       <motion.div
         style={{
           flex: "0 0 auto",
@@ -404,7 +386,6 @@ function NodeCard({
         </div>
       </motion.div>
 
-      {/* body editor */}
       {expanded && node.subOp && (
         <div
           style={{

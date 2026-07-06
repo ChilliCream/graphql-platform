@@ -1,22 +1,3 @@
-/**
- * FusionQueryPlanScreen — Fusion Scene 3: "Compose a query, then see its path."
- *
- * STORY (one continuous developer action): a NEW query document `GetOrderSummary` is open in the
- * Nitro IDE (document chrome, not the gateway view). The developer
- *   1. types the GraphQL query into the Request editor (typed reveal),
- *   2. clicks the green Run split-button → a short spinner,
- *   3. the federated order JSON streams into the Response pane,
- *   4. clicks the "Operation Plan" sub-tab → a short load,
- *   5. the OPERATION PLAN graph builds + executes (root → Orders → Resolve → parallel
- *      Products/Reviews/Accounts) and the cursor rests on the Products lineage at the end.
- *
- * All motion derives from `progress` via useTransform (no internal clocks). Reduced motion freezes
- * at progress=1, so the final frame is the fully-resolved, traced glass-box plan.
- *
- * All motion derives from a STAGE-BASED timeline (`src/lib/timeline.ts`): each interaction is a
- * named stage with its OWN duration in ms, and the screen's total (`QUERYPLAN_MS`) is DERIVED by
- * summing them. No magic-number progress fractions — every window is a `TL.span/start/end` call.
- */
 import { useState } from "react";
 import {
   motion,
@@ -52,7 +33,6 @@ import {
 const W = TABREEL_CANVAS.w;
 const H = TABREEL_CANVAS.h;
 
-// Nitro IDE active-accent (doc tabs / underlines / tree selection) is orange, not the pink token.active.
 const ORANGE = token.graphEdgeActive;
 
 const kindColor = (k: string) =>
@@ -60,40 +40,31 @@ const kindColor = (k: string) =>
 const renderKindGlyph = (k: string, size: number) =>
   k === "mutation" ? <IconMutation size={size} /> : <IconQuery size={size} />;
 
-/* ── STAGE-BASED timeline: each interaction owns its ms; the total is DERIVED ──
- * Flow: establish → editorClick → typeQuery → moveToRun → runClick → runLoad → response →
- *       moveToPlanTab → planTabClick → planLoad → planBuild → planExec →
- *       zoomIn → panPlan → zoomOut → planDwell → viewClick → subgraphLoad → subgraphReveal.
- * The editor is EMPTY through establish+editorClick; typing only begins at typeQuery.
- * The camera (zoomIn/panPlan/zoomOut) is driven by the PARENT, not here.
- * Cursor MOVE stages are deliberately generous (the slow glides between targets). */
 const TL = timeline([
-  { name: "establish", ms: 600 }, // settle on the empty query doc
-  { name: "editorClick", ms: 200 }, // cursor clicks INTO the empty editor to focus it
-  { name: "typeQuery", ms: 2000 }, // THEN the query types into the Request editor
-  { name: "moveToRun", ms: 1400 }, // editor → Run split-button (slow glide)
-  { name: "runClick", ms: 120 }, // click Run
-  { name: "runLoad", ms: 500 }, // in-flight spinner
-  { name: "response", ms: 1600 }, // federated JSON streams into the Response pane
-  { name: "moveToPlanTab", ms: 1400 }, // Run → Operation Plan sub-tab (slow glide)
-  { name: "planTabClick", ms: 120 }, // click Operation Plan
-  { name: "planLoad", ms: 500 }, // plan-tab load spinner
-  { name: "planBuild", ms: 700 }, // graph builds (nodes/edges draw in)
-  { name: "planExec", ms: 2400 }, // exec sweep root → Orders → parallel fetches
-  { name: "zoomIn", ms: 1100 }, // camera zooms into the plan (driven by the parent)
-  { name: "panPlan", ms: 2600 }, // camera pans along the plan
-  { name: "zoomOut", ms: 1100 }, // camera zooms back out
-  { name: "planDwell", ms: 1100 }, // rest on the whole traced plan (Products lineage isolates)
-  { name: "viewClick", ms: 130 }, // cursor clicks "View Raw Data" on the Products node
-  { name: "subgraphLoad", ms: 500 }, // brief load
-  { name: "subgraphReveal", ms: 4800 }, // the subgraph request+response reveals & rests
+  { name: "establish", ms: 600 },
+  { name: "editorClick", ms: 200 },
+  { name: "typeQuery", ms: 2000 },
+  { name: "moveToRun", ms: 1400 },
+  { name: "runClick", ms: 120 },
+  { name: "runLoad", ms: 500 },
+  { name: "response", ms: 1600 },
+  { name: "moveToPlanTab", ms: 1400 },
+  { name: "planTabClick", ms: 120 },
+  { name: "planLoad", ms: 500 },
+  { name: "planBuild", ms: 700 },
+  { name: "planExec", ms: 2400 },
+  { name: "zoomIn", ms: 1100 },
+  { name: "panPlan", ms: 2600 },
+  { name: "zoomOut", ms: 1100 },
+  { name: "planDwell", ms: 1100 },
+  { name: "viewClick", ms: 130 },
+  { name: "subgraphLoad", ms: 500 },
+  { name: "subgraphReveal", ms: 4800 },
 ]);
 
-/** DERIVED total duration in ms — feed to SoloScreen / the reel tab. */
 export const QUERYPLAN_MS = TL.total;
 export const QUERYPLAN_TL = TL;
 
-// A realistic GetOrderSummary response (matches fusionData.rootOp shape: order/items/customer).
 const RESPONSE = `{
   "data": {
     "order": {
@@ -112,7 +83,6 @@ export interface FusionQueryPlanScreenProps {
   progress: MotionValue<number>;
   active?: boolean;
   showCursor?: boolean;
-  /** pan/zoom camera supplied by the parent sequencer; undefined = identity (standalone story). */
   camera?: StageCamera;
 }
 
@@ -121,36 +91,22 @@ export function FusionQueryPlanScreen({
   showCursor = true,
   camera,
 }: FusionQueryPlanScreenProps) {
-  // run lifecycle: spinner runs from the Run click through the in-flight load.
   const runClick = TL.start("runClick");
   const runDone = TL.end("runLoad");
   const running = useTransform(progress, (p): number =>
     p >= runClick && p < runDone ? 1 : 0,
   );
 
-  // which sub-tab is active in the Response column: 0 = Response (JSON), 1 = Operation Plan
   const planTabClick = TL.start("planTabClick");
   const subTabAt = (p: number) => (p >= planTabClick ? 1 : 0);
   const [subTab, setSubTab] = useState(() => subTabAt(progress.get()));
   useMotionValueEvent(progress, "change", (p) => setSubTab(subTabAt(p)));
 
-  // which document is open: 0 = GetOrderSummary (request/response/plan), 1 = the "Fetch from
-  // Products" subgraph request doc that opens once the developer clicks "View Raw Data".
   const viewClick = TL.start("viewClick");
   const viewAt = (p: number) => (p >= viewClick ? 1 : 0);
   const [view, setView] = useState(() => viewAt(progress.get()));
   useMotionValueEvent(progress, "change", (p) => setView(viewAt(p)));
 
-  // cursor: rest → click INTO the empty editor → (typing) → Run button → settle → Operation Plan
-  // sub-tab → Products node, where it RESTS through the camera zoom/pan + dwell.
-  // Coordinates (canvas px), aimed at the full-width-from-rail layout:
-  //   · click-to-focus inside the empty Request editor (left column)  ~x 300, y 210
-  //   · Run split-button at the Request column header right            ~x 620, y 64
-  //   · "Operation Plan" sub-tab in the Response header                ~x 830, y 64
-  //   · Products rank-3 fetch node (plan graph full width)              x 1198, y 335 — CALIBRATED, do not change
-  // The MOVE stages (moveToRun, moveToPlanTab) own generous ms, so the glides are slow and
-  // unhurried; a long ease keeps the pointer drifting with no whip. After reaching Products the
-  // cursor is parked while the parent's camera drives zoomIn/panPlan/zoomOut and the final dwell.
   const cx = useTransform(
     progress,
     [
@@ -190,8 +146,6 @@ export function FusionQueryPlanScreen({
     { ease: ease.glide },
   );
 
-  // when the Operation Plan tab is active the Request column collapses so the plan graph gets the
-  // full result width (matching the standalone plan framing) — the deepest fetch nodes then fit.
   const reqWidth = useTransform(
     progress,
     TL.span("planTabClick"),
@@ -225,8 +179,6 @@ export function FusionQueryPlanScreen({
       }
     >
       <AppFrame railActive="documents" toolbar={<DocTabs view={view} />}>
-        {/* GetOrderSummary document (request / response / operation-plan). Hidden once the
-            developer opens the subgraph request doc, but kept mounted so the plan phase holds. */}
         <div
           style={{
             position: "absolute",
@@ -234,7 +186,6 @@ export function FusionQueryPlanScreen({
             display: view === 1 ? "none" : "flex",
           }}
         >
-          {/* Request column (collapses when the Operation Plan tab is active) */}
           <motion.div
             style={{
               width: reqWidth,
@@ -270,7 +221,6 @@ export function FusionQueryPlanScreen({
                 style={{ position: "absolute", inset: 0 }}
               />
             </div>
-            {/* variables sub-pane — statically present */}
             <div
               style={{
                 flex: "0 0 auto",
@@ -315,10 +265,8 @@ export function FusionQueryPlanScreen({
             </div>
           </motion.div>
 
-          {/* separator */}
           <div style={{ width: 1, background: token.border }} />
 
-          {/* Response column */}
           <div
             style={{
               flex: 1,
@@ -337,15 +285,12 @@ export function FusionQueryPlanScreen({
                 position: "relative",
               }}
             >
-              {/* JSON response pane */}
               <ResponsePane progress={progress} visible={subTab === 0} />
-              {/* Operation Plan pane */}
               <PlanPane progress={progress} visible={subTab === 1} />
             </div>
           </div>
         </div>
 
-        {/* Subgraph request document — "Fetch from Products": its request + response. */}
         <div
           style={{
             position: "absolute",
@@ -360,8 +305,6 @@ export function FusionQueryPlanScreen({
   );
 }
 
-/* ── Response column header: Run status + the Response | Operation Plan sub-tabs ── */
-
 function ResponseHeader({
   progress,
   subTab,
@@ -369,14 +312,12 @@ function ResponseHeader({
   progress: MotionValue<number>;
   subTab: number;
 }) {
-  // 200 · ms · KB status fades in just as the JSON begins to stream
   const statusOpacity = useTransform(
     progress,
     [TL.at("response", 0.1), TL.at("response", 0.4)],
     [0, 1],
     { clamp: true },
   );
-  // plan-summary status (Success · 1 partial · 41 ms · 7 nodes) resolves once the exec sweep ends
   const planStatusOpacity = useTransform(
     progress,
     [TL.end("planExec"), TL.at("zoomIn", 0.1)],
@@ -527,8 +468,6 @@ function SubTab({
   );
 }
 
-/* ── JSON response pane (streams after Run) ── */
-
 function ResponsePane({
   progress,
   visible,
@@ -544,7 +483,6 @@ function ResponsePane({
     [0, 1],
     { clamp: true },
   );
-  // spinner stands in for the in-flight request (runLoad), before the JSON streams
   const spinnerOpacity = useTransform(
     progress,
     [runClick, TL.at("runLoad", 0.1), TL.at("runLoad", 0.9), runDone],
@@ -552,7 +490,6 @@ function ResponsePane({
     { clamp: true },
   );
   const spinnerRot = useTransform(progress, [runClick, runDone], [0, 540]);
-  // visible until Run is clicked, then fades out as the in-flight spinner takes over
   const emptyOpacity = useTransform(
     progress,
     [runClick, TL.end("runClick")],
@@ -617,8 +554,6 @@ function ResponsePane({
   );
 }
 
-/* ── Operation Plan pane (sub-tab load → graph builds/executes/hovers) ── */
-
 function PlanPane({
   progress,
   visible,
@@ -626,7 +561,6 @@ function PlanPane({
   progress: MotionValue<number>;
   visible: boolean;
 }) {
-  // a short spinner stands in for computing/fetching the plan (planLoad), BEFORE the graph appears
   const planTabClick = TL.start("planTabClick");
   const planLoadEnd = TL.end("planLoad");
   const spinnerOpacity = useTransform(
@@ -689,8 +623,6 @@ function PlanPane({
     </div>
   );
 }
-
-/* ── chrome helpers ── */
 
 function ColumnHeader({
   title,
@@ -840,13 +772,6 @@ function RunButton({
   );
 }
 
-/* ── toolbar / tree ── */
-
-// The "+" just opened a NEW query document tab: the existing gateway doc (inactive) sits to the
-// left, the freshly-opened GetOrderSummary query tab (active, with a close ×) sits beside it.
-// view 0: [EShops Gateway] [GetOrderSummary*]   — the query doc is active.
-// view 1: [EShops Gateway] [GetOrderSummary] [Fetch from Products* ×] — clicking "View Raw Data"
-//         opened the subgraph request doc, which becomes the active tab.
 function DocTabs({ view }: { view: number }) {
   return (
     <div
@@ -893,8 +818,6 @@ function DocTabs({ view }: { view: number }) {
   );
 }
 
-/* ── Subgraph request document ("Fetch from Products"): request | response split ── */
-
 function SubgraphView({ progress }: { progress: MotionValue<number> }) {
   const products = F.nodes.find((n) => n.id === "products");
   const subOp = products?.subOp ?? "";
@@ -903,7 +826,6 @@ function SubgraphView({ progress }: { progress: MotionValue<number> }) {
 
   const viewClick = TL.start("viewClick");
   const loadEnd = TL.end("subgraphLoad");
-  // brief spinner over subgraphLoad, then the request + response reveal over subgraphReveal.
   const spinnerOpacity = useTransform(
     progress,
     [
@@ -934,7 +856,6 @@ function SubgraphView({ progress }: { progress: MotionValue<number> }) {
           opacity: contentOpacity,
         }}
       >
-        {/* header label */}
         <div
           style={{
             height: 36,
@@ -956,7 +877,6 @@ function SubgraphView({ progress }: { progress: MotionValue<number> }) {
           </span>
         </div>
         <div style={{ flex: 1, minHeight: 0, display: "flex" }}>
-          {/* Request pane (single-entity query) + the batched Variables sub-pane */}
           <div
             style={{
               width: "44%",
@@ -989,7 +909,6 @@ function SubgraphView({ progress }: { progress: MotionValue<number> }) {
                 style={{ position: "absolute", inset: 0 }}
               />
             </div>
-            {/* variable batching: an ARRAY of variable sets */}
             <div
               style={{
                 flex: "0 0 auto",
@@ -1053,7 +972,6 @@ function SubgraphView({ progress }: { progress: MotionValue<number> }) {
             </div>
           </div>
           <div style={{ width: 1, background: token.border }} />
-          {/* Response pane */}
           <div
             style={{
               flex: 1,
@@ -1089,7 +1007,6 @@ function SubgraphView({ progress }: { progress: MotionValue<number> }) {
           </div>
         </div>
       </motion.div>
-      {/* brief load spinner */}
       <motion.div
         style={{
           position: "absolute",

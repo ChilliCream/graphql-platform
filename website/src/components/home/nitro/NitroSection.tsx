@@ -13,8 +13,6 @@ interface Surface {
   readonly visual: ReactNode;
 }
 
-// One app, four surfaces. Each screen loops independently inside its own frame.
-// Compose (NitroFusion) runs on a clearly slower clock so it never feels rushed.
 const SURFACES: readonly Surface[] = [
   {
     caption: "Author",
@@ -39,11 +37,6 @@ interface SurfaceCardProps {
   readonly children: ReactNode;
 }
 
-/**
- * Compact Nitro app-window frame: a title bar carrying three macOS-style window
- * dots and the "Nitro / <surface>" label, with the looping screen clipped flush
- * to the frame corners below and a soft teal glow behind the card.
- */
 function SurfaceCard({ caption, children }: SurfaceCardProps) {
   return (
     <div className="relative">
@@ -81,10 +74,6 @@ function SurfaceCard({ caption, children }: SurfaceCardProps) {
   );
 }
 
-/**
- * Nitro landing section: one app shown as four small, independently looping
- * surfaces in a 2x2 grid.
- */
 export function NitroSection() {
   return (
     <section className="mx-auto max-w-7xl px-5 pt-16 sm:px-12 sm:pt-24">

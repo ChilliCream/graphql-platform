@@ -10,7 +10,6 @@ const meta = {
   component: Tile,
   parameters: { layout: "centered" },
   argTypes: {
-    // ReactNode / MotionValue / tuple / object props can't be driven by controls.
     children: { control: false },
     action: { control: false },
     progress: { control: false },
@@ -20,8 +19,6 @@ const meta = {
   args: {
     title: "Total Requests",
     subheader: "last 24h",
-    // Body: a big stat over a trend line — the tile's real content, shown once the
-    // reduced-motion decorator pins the clock to t=1 (skeleton hidden, content in).
     children: (
       <div
         style={{

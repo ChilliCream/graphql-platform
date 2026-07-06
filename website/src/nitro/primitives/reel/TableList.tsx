@@ -1,9 +1,3 @@
-/**
- * TableList — a collapsible key/value section like the Nitro flyout's TableList blocks
- * (General Information, Database, Exception…). A subtitle header + chevron, then label/value
- * rows that stagger-fade in off a local `progress` + play window. Values may be multi-line
- * monospace (SQL statement, stack trace) — the reel's payoff content.
- */
 import { motion, useTransform, type MotionValue } from "motion/react";
 import { token } from "../../lib/tokens";
 
@@ -18,9 +12,7 @@ export interface TableListProps {
   title: string;
   rows: TableRow[];
   progress: MotionValue<number>;
-  /** rows stagger-reveal across this window of local progress */
   playWindow: [number, number];
-  /** title color override (e.g. red for an Exception block) */
   titleColor?: string;
 }
 

@@ -1,16 +1,3 @@
-/**
- * LineAreaChart — animated multi-series line + area.
- *
- * Used for latency (mean/p95/p99), throughput (opm), and errors. Each series' line
- * draws left→right via `pathLength`; its area wipes in under a synced clip. Drawing is
- * driven by a normalized clock `t` (0→1) from `useChartClock`, so the chart animates
- * standalone in its story and also slots into the Monitoring Overview's shared cycle.
- *
- * Responsive contract (shared by every chart primitive):
- *   - inline SVG, `viewBox="0 0 W H"`, `preserveAspectRatio="none"`, width/height 100%
- *   - strokes get `vectorEffect="non-scaling-stroke"` so they stay crisp when stretched
- *   - text/labels live in the DOM (here: none baked into the SVG), not in pixels
- */
 import { useEffect, useId, useState } from "react";
 import type { CSSProperties } from "react";
 import { motion, useTransform, type MotionValue } from "motion/react";
@@ -29,18 +16,10 @@ import { useChartClock } from "../lib/useInViewLoop";
 
 export interface LineSeries {
   values: number[];
-  /** stroke color — a `token.*` var string or hex */
   stroke: string;
-  /** draw a filled area down to the baseline */
   fill?: boolean;
-  /** area fill color (defaults to `stroke`) */
   fillColor?: string;
   fillOpacity?: number;
-  /**
-   * Render the area as a top-down gradient (color at `fillOpacity` fading to
-   * transparent at the baseline) instead of a flat fill, matching the console
-   * chart language. Off by default so existing flat fills stay unchanged.
-   */
   fillGradient?: boolean;
   strokeWidth?: number;
   smooth?: boolean;
@@ -59,17 +38,13 @@ export interface LineAreaChartProps {
   width?: number;
   height?: number;
   padding?: Partial<Insets>;
-  /** y-domain; computed from data (with headroom) when omitted */
   domain?: [number, number];
   log?: boolean;
   grid?: boolean;
   gridCount?: number;
-  /** shared master clock (overview); omit for a self-contained standalone loop */
   progress?: MotionValue<number>;
   playWindow?: [number, number];
-  /** fraction of the local window each successive series is offset by */
   seriesStagger?: number;
-  /** pulsing dot at the most recent point of the first series */
   showHead?: boolean;
   durationMs?: number;
   className?: string;
@@ -102,7 +77,6 @@ export function LineAreaChart({
     playWindow,
     durationMs,
   });
-  // Only let the head dot pulse when it would actually be seen and motion is allowed.
   const pulse = !reduced && inView;
   const label = ariaLabel ?? `Line chart with ${series.length} series`;
   const pad: Insets = { ...DEFAULT_PAD, ...padding };
@@ -115,7 +89,6 @@ export function LineAreaChart({
   const allValues = series.flatMap((s) => s.values);
   const dMin = domain ? domain[0] : Math.min(...allValues);
   const dMaxRaw = domain ? domain[1] : Math.max(...allValues);
-  // headroom so the peak isn't glued to the top
   const dMax = domain
     ? dMaxRaw
     : dMaxRaw + (dMaxRaw - dMin) * 0.12 || dMaxRaw + 1;
@@ -209,7 +182,6 @@ function SeriesPath({
   t: MotionValue<number>;
   draw: [number, number];
   showHead: boolean;
-  /** animate the head halo (off under reduced motion / off-screen → static dot only) */
   pulse: boolean;
 }) {
   const uid = useId().replace(/:/g, "");
@@ -229,15 +201,7 @@ function SeriesPath({
     [0, 0.25, 1],
     [0, 0, series.fillOpacity ?? 0.18],
   );
-  // Play-once head dot: ramp in as the line nears the end, then fade back out
-  // right at the finish so it does not sit pulsing forever after the draw settles.
   const headOpacity = useTransform(progress, [0.85, 0.95, 1], [0, 1, 0]);
-  // Motion draws the line by animating `pathLength`, which it implements with a
-  // `pathLength="1"` + `stroke-dasharray="1 1"` pair. On longer, wigglier paths the
-  // dash rounding clips the final segment once the draw settles, leaving a
-  // stroke-less area wedge at the right edge. Once fully drawn, drop `pathLength`
-  // and render the whole stroke solid so it caps the entire area. The reveal is
-  // unchanged while drawing.
   const [drawn, setDrawn] = useState(() => progress.get() >= 0.99);
   useEffect(() => {
     return progress.on("change", (p) => setDrawn(p >= 0.99));
@@ -283,8 +247,6 @@ function SeriesPath({
             ? {
                 stroke: series.stroke,
                 strokeWidth: series.strokeWidth ?? 2,
-                // Clear the dash Motion leaves from the pathLength draw so the
-                // stroke renders solid end to end (style overrides the attribute).
                 strokeDasharray: series.dash ?? "none",
                 strokeDashoffset: 0,
               }
@@ -297,9 +259,6 @@ function SeriesPath({
       />
       {showHead && last && (
         <motion.g style={{ opacity: headOpacity }}>
-          {/* Pulsing halo: a free-running loop, so render it ONLY when motion is allowed
-              and the chart is on screen — otherwise it would keep flickering its opacity
-              under reduced motion and never idle off-screen. The static dot always shows. */}
           {pulse && (
             <motion.circle
               cx={last[0]}

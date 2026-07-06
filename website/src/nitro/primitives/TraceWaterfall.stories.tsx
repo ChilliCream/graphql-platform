@@ -9,7 +9,6 @@ const meta = {
   component: TraceWaterfall,
   parameters: { layout: "centered" },
   argTypes: {
-    // Master clock is a MotionValue Storybook can't drive; the decorator freezes t=1.
     progress: { control: false },
     style: { control: false },
   },

@@ -1,8 +1,3 @@
-/**
- * Seeded synthetic generators. Each produces a steady baseline plus
- * scripted "events" — a traffic ramp, an error+latency spike, a new version marker —
- * so the looping demo tells a story instead of showing noise.
- */
 import { mulberry32, uniform, normal, pick, type Rng } from "./rng";
 import type {
   Client,
@@ -18,7 +13,6 @@ import type {
   VersionMarker,
 } from "./types";
 
-/** Fixed epoch, mirrors cloud2's story convention. */
 export const NOW = Date.UTC(2026, 3, 25, 12);
 const MINUTE = 60_000;
 
@@ -43,7 +37,6 @@ const SPAN_KINDS: SpanKind[] = [
 const CLIENT_NAMES = ["Web", "Mobile", "Others"];
 
 const smooth = (r: Rng, n: number, base: number, amp: number) => {
-  // two sine components with random phase + light noise → organic baseline
   const ph1 = r() * Math.PI * 2;
   const ph2 = r() * Math.PI * 2;
   return Array.from({ length: n }, (_, i) => {
@@ -53,7 +46,6 @@ const smooth = (r: Rng, n: number, base: number, amp: number) => {
   });
 };
 
-/** Index window where the scripted error/latency spike happens. */
 const spikeAt = (n: number) => ({
   start: Math.floor(n * 0.62),
   end: Math.floor(n * 0.78),
@@ -62,7 +54,7 @@ const spikeAt = (n: number) => ({
 function bump(i: number, start: number, end: number, height: number) {
   if (i < start || i > end) return 0;
   const t = (i - start) / Math.max(1, end - start);
-  return Math.sin(t * Math.PI) * height; // smooth 0→height→0
+  return Math.sin(t * Math.PI) * height;
 }
 
 export function makeThroughput(
@@ -79,7 +71,6 @@ export function makeThroughput(
   const errors: ThroughputPoint[] = [];
   for (let i = 0; i < n; i++) {
     const opm = Math.max(40, wave[i] + (ramp * i) / n);
-    // baseline 1–4% errors, spiking to ~12% during the beat
     const errFrac =
       uniform(r, 0.01, 0.04) + bump(i, start, end, 0.09) + (i > end ? 0.01 : 0);
     const totalCount = Math.round(opm);
@@ -117,7 +108,6 @@ export function makeLatency(
 }
 
 export function makeHistogram(r: Rng): LatencyHistogram {
-  // mass concentrated 10–100ms with a long tail
   const weights = [2, 14, 26, 22, 16, 9, 5, 3, 2, 1];
   const bins = HIST_EDGES.map((bin, i) => {
     const w = weights[i];
@@ -132,7 +122,6 @@ export function makeHistogram(r: Rng): LatencyHistogram {
 
 export function makeClients(r: Rng, count = 3): Client[] {
   const names = [...CLIENT_NAMES].slice(0, count);
-  // power-law totals
   const totals = names.map((_, i) =>
     Math.round(9000 * Math.pow(0.62, i) + uniform(r, 0, 300)),
   );
@@ -182,11 +171,6 @@ export function makeVersionMarker(
   };
 }
 
-/**
- * Sampled traces for the trace-sample timeline: each a point in
- * (time, duration) space, colored by status. Mass sits at 8–140 ms with a tail; the
- * scripted degradation window slows things down and produces more errors.
- */
 export function makeTraceSamples(seed = 1, n = 90): TraceSample[] {
   const r = mulberry32((seed ^ 0x9e3779b9) >>> 0);
   const windowMs = 60 * MINUTE;
@@ -194,22 +178,16 @@ export function makeTraceSamples(seed = 1, n = 90): TraceSample[] {
   return Array.from({ length: n }, (_, i) => {
     const frac = i / n;
     const epoch = start + frac * windowMs + uniform(r, 0, windowMs / n);
-    // log-uniform base duration, 8–140 ms
     let durationMs = Math.exp(uniform(r, Math.log(8), Math.log(140)));
     const inSpike = frac > 0.62 && frac < 0.78;
     if (inSpike) durationMs *= uniform(r, 2, 6);
-    if (r() < 0.06) durationMs *= uniform(r, 3, 12); // occasional slow outlier
+    if (r() < 0.06) durationMs *= uniform(r, 3, 12);
     const errProb = (inSpike ? 0.18 : 0.03) + (durationMs > 500 ? 0.2 : 0);
     const status = r() < errProb ? "error" : "ok";
     return { id: `t-${i}`, epoch, durationMs: Math.round(durationMs), status };
   });
 }
 
-/**
- * Fine latency-distribution histogram over a log duration axis (1ms → 10s), with a sharp
- * low-latency peak + long sparse tail, errors concentrated in the tail. For the Operation
- * Detail "Latency Distribution" panel.
- */
 export function makeLatencyDistribution(
   seed = 1,
   nbins = 48,
@@ -219,7 +197,7 @@ export function makeLatencyDistribution(
   const max = 10000;
   const lmin = Math.log10(min);
   const lmax = Math.log10(max);
-  const peakLog = Math.log10(18); // mode ~18ms
+  const peakLog = Math.log10(18);
   const bins: LatencyDistribution["bins"] = [];
   let total = 0;
   for (let i = 0; i < nbins; i++) {
@@ -227,7 +205,6 @@ export function makeLatencyDistribution(
     const l1 = lmin + ((lmax - lmin) * (i + 1)) / nbins;
     const center = Math.pow(10, (l0 + l1) / 2);
     const g = Math.exp(-Math.pow((Math.log10(center) - peakLog) / 0.34, 2) / 2);
-    // tall narrow peak + a sparse, noisy tail
     let count = g * 2600;
     if (center > 60) count += Math.max(0, r() < 0.55 ? r() * 16 : 0);
     count = Math.round(count * uniform(r, 0.8, 1.15));
@@ -240,18 +217,12 @@ export function makeLatencyDistribution(
   return { bins, total, p95: 260, current: 42, min, max };
 }
 
-/**
- * A single GraphQL request trace, as nested spans for the waterfall (flamegraph).
- * Hand-shaped to mirror the reference (root /graphql → query → parse / http post → ...).
- */
 export function makeTrace(seed = 1): Trace {
   const r = mulberry32((seed ^ 0xc2b2ae35) >>> 0);
   const totalMs = +uniform(r, 7, 9).toFixed(1);
   const j = (v: number) => +(v * uniform(r, 0.95, 1.05)).toFixed(2);
-  // All spans nest within [0, totalMs]; none START past ~38% so their left-anchored
-  // labels never overflow the panel. Two sibling HTTP fetches — the 2nd is the slow one.
-  const f1 = totalMs * 0.3; // userById fetch starts ~here
-  const f2 = totalMs * 0.36; // products fetch (slow) starts ~here
+  const f1 = totalMs * 0.3;
+  const f2 = totalMs * 0.36;
   const spans: Trace["spans"] = [
     {
       id: "s0",
@@ -329,7 +300,6 @@ export function makeTrace(seed = 1): Trace {
   return { spans, totalMs };
 }
 
-/** Aggregate everything the Monitoring Overview needs from one seed. */
 export function makeMonitoringData(seed = 1, n = 60): MonitoringData {
   const r = mulberry32(seed);
   const windowMs = n * MINUTE;

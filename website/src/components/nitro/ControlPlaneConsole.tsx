@@ -12,12 +12,7 @@ import { useEffect, useRef, useState } from "react";
 
 import { useReducedMotionPreference } from "@/src/nitro/lib/motion";
 
-// A composite, animated observability dashboard: a request-rate sparkline that
-// draws in and drifts, KPI tiles whose numbers count up, a trace waterfall whose
-// spans stagger-grow, and a schema-diff strip that crossfades change classes.
-// Self-framed (it is its own product window), so do not wrap it in another frame.
-
-const ACCENT = "#5eead4"; // cc-accent teal
+const ACCENT = "#5eead4";
 
 interface KpiTileProps {
   readonly label: string;
@@ -122,9 +117,6 @@ function Sparkline({ inView, reduceMotion }: SparklineProps) {
     .map(([x, y], i) => `${i === 0 ? "M" : "L"}${x} ${y}`)
     .join(" ");
 
-  // A soft glowing pulse that scans the polyline LEFT -> RIGHT only, fading in at
-  // the left and out at the right before looping, so it reads as a live metric
-  // streaming forward rather than a dot bouncing back and forth.
   const travel = useMotionValue(0);
   useEffect(() => {
     if (!inView || reduceMotion) {
@@ -150,7 +142,6 @@ function Sparkline({ inView, reduceMotion }: SparklineProps) {
   };
   const tipX = useTransform(travel, (t) => pointAt(t, 0));
   const tipY = useTransform(travel, (t) => pointAt(t, 1));
-  // Ramp opacity up as the pulse enters from the left and down as it exits right.
   const pulseOpacity = useTransform(travel, [0, 0.12, 0.85, 1], [0, 1, 1, 0]);
 
   return (
@@ -350,14 +341,7 @@ interface ControlPlaneConsoleProps {
   readonly className?: string;
 }
 
-/**
- * A self-framed, animated observability console for the "Observe" beat: request
- * rate, latency and error KPIs, a live trace waterfall, and a rolling schema
- * diff, all animating in when scrolled into view.
- */
 export function ControlPlaneConsole({ className }: ControlPlaneConsoleProps) {
-  // Honors both the OS prefers-reduced-motion setting and an in-app override, so a
-  // Storybook `reducedMotion="always"` wrapper can freeze it to a deterministic frame.
   const reduceMotion = useReducedMotionPreference();
   const ref = useRef<HTMLDivElement | null>(null);
   const inView = useInView(ref, { margin: "-10% 0px", once: true });

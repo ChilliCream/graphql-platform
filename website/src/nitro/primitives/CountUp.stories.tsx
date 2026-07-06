@@ -8,7 +8,6 @@ const meta = {
   component: CountUp,
   parameters: { layout: "centered" },
   argTypes: {
-    // Function and MotionValue props can't be driven by Storybook controls.
     format: { control: false },
     progress: { control: false },
     playWindow: { control: false },

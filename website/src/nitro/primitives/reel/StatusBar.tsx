@@ -1,7 +1,3 @@
-/**
- * StatusBar — the thin app footer: connection/account/
- * workspace/environment items on the left, counters on the right. Static reel chrome.
- */
 import type { CSSProperties } from "react";
 import { token } from "../../lib/tokens";
 

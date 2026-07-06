@@ -1,39 +1,18 @@
-/**
- * Tile — card shell with an animated skeleton→content entrance.
- *
- * The dashboard's first beat is every tile "booting up": the card fades + rises in, a
- * skeleton overlay shimmers over the body, then crossfades out as the real children fade
- * in. Like every primitive the timing is derived from a normalized clock `t` (0→1) via
- * `useChartClock`, so it animates standalone in its story and also slots into the
- * Monitoring Overview's shared cycle (pass `progress`/`playWindow`).
- *
- * This is chrome, not a chart — no SVG/viewBox here. It still honors the shared contract:
- * fills its container (width/height 100%), takes `className`/`style`, and collapses to a
- * static final frame (content shown, skeleton hidden) under reduced motion via `t = 1`.
- */
 import type { CSSProperties, ReactNode } from "react";
 import { motion, useTransform, type MotionValue } from "motion/react";
 import { ease } from "../lib/motion";
 import { token } from "../lib/tokens";
 import { useChartClock } from "../lib/useInViewLoop";
 
-/** How the tile spans a parent dashboard grid. */
 export type TileSpan = "full" | "wide" | "default";
 
 export interface TileProps {
-  /** Header title (strong text). */
   title: string;
-  /** Optional secondary line under the title. */
   subheader?: string;
-  /** Optional right-aligned control / badge in the header. */
   action?: ReactNode;
-  /** Tile body. */
   children: ReactNode;
-  /** Grid placement: 'full' → `1 / -1`, 'wide' → `span 2`, 'default' → unset. */
   span?: TileSpan;
-  /** Inner padding (px). */
   padding?: number;
-  /** Shared master clock (overview); omit for a self-contained standalone loop. */
   progress?: MotionValue<number>;
   playWindow?: [number, number];
   durationMs?: number;
@@ -47,7 +26,6 @@ const SPAN_COLUMN: Record<TileSpan, CSSProperties["gridColumn"]> = {
   default: undefined,
 };
 
-/** Skeleton bar widths (% of body) — a title-ish bar then a couple of body lines. */
 const SKELETON_BARS = ["62%", "92%", "78%"];
 
 export function Tile({
@@ -69,7 +47,6 @@ export function Tile({
     durationMs,
   });
 
-  // Whole card: fade + rise in early, then hold.
   const cardOpacity = useTransform(t, [0, 0.18], [0, 1], {
     ease: ease.out,
     clamp: true,
@@ -79,7 +56,6 @@ export function Tile({
     clamp: true,
   });
 
-  // Skeleton overlay crossfades out; real body fades in just after.
   const skeletonOpacity = useTransform(t, [0, 0.25], [1, 0], {
     ease: ease.inOut,
     clamp: true,
@@ -89,7 +65,6 @@ export function Tile({
     clamp: true,
   });
 
-  // Skip the overlay entirely once it has faded so it never traps pointer events.
   const skeletonVisible = useTransform(skeletonOpacity, (o) =>
     o <= 0.001 ? "none" : "block",
   );
@@ -168,7 +143,6 @@ export function Tile({
         )}
       </header>
 
-      {/* Body: real content fades in over the skeleton overlay. */}
       <div style={{ position: "relative", flex: 1, minHeight: 0 }}>
         <motion.div style={{ height: "100%", opacity: bodyOpacity }}>
           {children}
@@ -196,11 +170,6 @@ export function Tile({
   );
 }
 
-/**
- * A single shimmer bar. A highlight sweeps left→right (driven by `t`, looped via the
- * standalone clock) only when motion is allowed; under reduced motion it's a flat block.
- * Rendered as a child so its `useTransform` hooks aren't called in a parent loop.
- */
 function SkeletonBar({
   width,
   index,
@@ -212,7 +181,6 @@ function SkeletonBar({
   t: MotionValue<number>;
   reduced: boolean;
 }) {
-  // Stagger each bar's sweep slightly so the shimmer ripples down the stack.
   const start = index * 0.06;
   const shimmer = useTransform(t, [start, start + 0.22], [-120, 220], {
     clamp: false,

@@ -1,20 +1,3 @@
-/**
- * ComposeScreen — Tab 1: "Write GraphQL at the speed of thought."
- *
- * STORY (one continuous developer action): the IDE is open on the GetOrder document. The LEFT
- * companion (a thin Builder/Lens icon-rail + the QUERY BUILDER — a checkbox field-tree of the
- * GetOrder operation) is visible alongside the Request|Response panes. The developer
- *   1. ticks the `customer` field in the query builder — its checkbox fills,
- *   2. a ready `customer { name email }` selection-set snaps into the Request editor,
- *   3. they hit Run,
- *   4. the federated order — Ada Lovelace, PROCESSING, $129.97 — streams back in 142 ms,
- * then we dwell on the finished build→run→data story. All motion derives from a STAGE-BASED
- * timeline (`src/lib/timeline.ts`): each beat owns its ms and the total (`COMPOSE_MS`) is derived.
- *
- * The operation-view lays out a thin companion icon-rail (Operation Builder = object-type icon,
- * Operation Lens = info icon) + a companion panel (the Operation Builder tree — each row a CHECKBOX
- * + field-type icon + `field: Type`) then a Request|Response splitter.
- */
 import { useState } from "react";
 import {
   motion,
@@ -57,7 +40,6 @@ import {
 const W = TABREEL_CANVAS.w;
 const H = TABREEL_CANVAS.h;
 
-// Nitro IDE active-accent (DocTabStrip / tab underline / tree selection) is orange, not the pink token.active.
 const ORANGE = token.graphEdgeActive;
 
 type Kind = "query" | "mutation" | "subscription";
@@ -73,33 +55,22 @@ function KindGlyph({ kind, size }: { kind: Kind; size: number }) {
   return <IconQuery size={size} />;
 }
 
-/* ── STAGE-BASED timeline: each beat owns its ms; the total is DERIVED ──
- * Flow: establish → moveToBuilder → tickCustomer → insertBlock → moveToRun → runClick →
- *       runLoad → response → statusResolve → moveToLens → lensClick → lensReveal → lensDwell.
- * The cursor first glides to the `customer` checkbox in the query builder (left companion),
- * ticks it; the `customer { name email }` block snaps into the editor; then it moves to Run and
- * runs the operation. Finally it moves to the OPERATION LENS toggle in the companion icon-rail,
- * clicks it, and the left panel switches from the Operation Builder to the Operation Lens —
- * the schema-reference detail for the just-selected `customer: Customer!` field — and we dwell
- * on the lens as the focus.
- */
 const TL = timeline([
-  { name: "establish", ms: 700 }, // settle on the open GetOrder doc + query builder
-  { name: "moveToBuilder", ms: 1400 }, // cursor glides to the `customer` checkbox in the builder
-  { name: "tickCustomer", ms: 130 }, // click the checkbox (it fills immediately, no hover-wait)
-  { name: "insertBlock", ms: 700 }, // `customer { name email }` snaps into the editor
-  { name: "moveToRun", ms: 1300 }, // builder → Run split-button (slow glide)
-  { name: "runClick", ms: 120 }, // click Run
-  { name: "runLoad", ms: 450 }, // in-flight spinner (~142 ms feel)
-  { name: "response", ms: 1400 }, // federated JSON streams into the Response pane
-  { name: "statusResolve", ms: 550 }, // 200 · ms · size status + history check resolve
-  { name: "moveToLens", ms: 1300 }, // cursor glides to the Operation Lens toggle (companion rail)
-  { name: "lensClick", ms: 120 }, // click the Operation Lens toggle
-  { name: "lensReveal", ms: 650 }, // left panel switches to the Operation Lens detail
-  { name: "lensDwell", ms: 2000 }, // rest on the Operation Lens — the schema detail for `customer`
+  { name: "establish", ms: 700 },
+  { name: "moveToBuilder", ms: 1400 },
+  { name: "tickCustomer", ms: 130 },
+  { name: "insertBlock", ms: 700 },
+  { name: "moveToRun", ms: 1300 },
+  { name: "runClick", ms: 120 },
+  { name: "runLoad", ms: 450 },
+  { name: "response", ms: 1400 },
+  { name: "statusResolve", ms: 550 },
+  { name: "moveToLens", ms: 1300 },
+  { name: "lensClick", ms: 120 },
+  { name: "lensReveal", ms: 650 },
+  { name: "lensDwell", ms: 2000 },
 ]);
 
-/** DERIVED total duration in ms — feed to SoloScreen / the reel tab. */
 export const COMPOSE_MS = TL.total;
 export const COMPOSE_TL = TL;
 
@@ -109,7 +80,6 @@ export interface ComposeScreenProps {
 }
 
 export function ComposeScreen({ progress }: ComposeScreenProps) {
-  // run lifecycle — snappy ~140ms feel, not a drawn-out spin
   const runClick = TL.start("runClick");
   const runDone = TL.end("runLoad");
   const running = useTransform(progress, (p): number =>
@@ -128,7 +98,6 @@ export function ComposeScreen({ progress }: ComposeScreenProps) {
     { clamp: true },
   );
 
-  // whether the `customer` field is checked in the builder — flips at the tick click
   const tick = TL.start("tickCustomer");
   const checkedAt = (p: number) => (p >= tick ? 1 : 0);
   const [custChecked, setCustChecked] = useState(() =>
@@ -136,24 +105,15 @@ export function ComposeScreen({ progress }: ComposeScreenProps) {
   );
   useMotionValueEvent(progress, "change", (p) => setCustChecked(checkedAt(p)));
 
-  // whether the left companion shows the Operation LENS (true) or the Operation BUILDER (false).
-  // Flips at the lens-toggle click; the panel cross-fades over lensReveal.
   const lensClickP = TL.start("lensClick");
   const lensAt = (p: number) => (p >= lensClickP ? 1 : 0);
   const [lensOn, setLensOn] = useState(() => lensAt(progress.get()));
   useMotionValueEvent(progress, "change", (p) => setLensOn(lensAt(p)));
 
-  // cursor path (canvas coords): establish → `customer` checkbox in the query builder companion →
-  // (tick, block snaps in) → Run split-button (parked) → settle.
-  // The builder companion sits left of Request: rail at x≈50+36, panel ≈ x86..366. The `customer`
-  // checkbox row is the last top-level field in the builder → ~x 150, y 300.
-  // Run split-button sits top-right of the Request column header.
-  // Builder `customer` checkbox (MEASURED on-screen in canvas px so the cursor hand lands on it).
   const CUST_X = 396;
   const CUST_Y = 327;
   const RUN_X = 980;
   const RUN_Y = 64;
-  // Operation Lens toggle — 2nd button in the companion icon-rail (MEASURED in canvas px).
   const LENS_X = 324;
   const LENS_Y = 102;
   const cx = useTransform(
@@ -221,7 +181,6 @@ export function ComposeScreen({ progress }: ComposeScreenProps) {
         toolbar={<DocTabs />}
       >
         <div style={{ position: "absolute", inset: 0, display: "flex" }}>
-          {/* ── LEFT COMPANION: thin Builder/Lens icon-rail + the QUERY BUILDER / OPERATION LENS panel ── */}
           <CompanionRail lensOn={lensOn === 1} />
           <div
             style={{
@@ -241,7 +200,6 @@ export function ComposeScreen({ progress }: ComposeScreenProps) {
           </div>
           <div style={{ width: 1, background: token.border }} />
 
-          {/* Request column */}
           <div
             style={{
               flex: "1 1 0",
@@ -266,7 +224,6 @@ export function ComposeScreen({ progress }: ComposeScreenProps) {
             >
               <QueryEditor progress={progress} />
             </div>
-            {/* variables sub-pane — statically present, no animated reveal */}
             <div
               style={{
                 flex: "0 0 auto",
@@ -311,10 +268,8 @@ export function ComposeScreen({ progress }: ComposeScreenProps) {
             </div>
           </div>
 
-          {/* separator */}
           <div style={{ width: 1, background: token.border }} />
 
-          {/* Response column */}
           <div
             style={{
               flex: "1 1 0",
@@ -374,7 +329,6 @@ export function ComposeScreen({ progress }: ComposeScreenProps) {
               </motion.div>
               <NoResponseYet progress={progress} />
             </div>
-            {/* responses history — already present at frame 0; only the new pending row animates on Run */}
             <div
               style={{
                 flex: "0 0 auto",
@@ -402,8 +356,6 @@ export function ComposeScreen({ progress }: ComposeScreenProps) {
     </Stage>
   );
 }
-
-/* ── LEFT COMPANION icon-rail (operation-sidebar.tsx): Operation Builder (active) + Operation Lens ── */
 
 function CompanionRail({ lensOn }: { lensOn: boolean }) {
   const btn = (
@@ -456,9 +408,6 @@ function CompanionRail({ lensOn }: { lensOn: boolean }) {
   );
 }
 
-/* ── the LEFT COMPANION PANEL: cross-fades the Operation Builder ↔ the Operation Lens. The lens
- *    reveal is driven by the lensClick → lensReveal beats (the cursor toggles the rail). ── */
-
 function CompanionPanel({
   lensOn,
   custChecked,
@@ -468,7 +417,6 @@ function CompanionPanel({
   custChecked: boolean;
   progress: MotionValue<number>;
 }) {
-  // builder fades out / lens fades in over lensReveal
   const builderOpacity = useTransform(
     progress,
     [TL.start("lensClick"), TL.at("lensReveal", 0.5)],
@@ -506,11 +454,6 @@ function CompanionPanel({
     </>
   );
 }
-
-/* ── the OPERATION LENS — the schema-reference DETAIL for the selected field. For the
- *    just-selected `customer: Customer!` field it shows: a header (field icon + name), a
- *    description, a Schema Coordinate, an Arguments section, a Return Type section, and the Fusion
- *    "Source Schemas" chip list. ── */
 
 const LENS = {
   name: "customer",
@@ -626,7 +569,6 @@ function OperationLens() {
         flexDirection: "column",
       }}
     >
-      {/* header: field icon + name (the active lens item) */}
       <div
         style={{
           display: "flex",
@@ -656,7 +598,6 @@ function OperationLens() {
         </span>
       </div>
 
-      {/* description */}
       <div
         style={{
           padding: "10px 12px",
@@ -669,7 +610,6 @@ function OperationLens() {
         {LENS.description}
       </div>
 
-      {/* schema coordinate */}
       <LensSection title="Schema Coordinate">
         <span
           style={{
@@ -683,7 +623,6 @@ function OperationLens() {
         </span>
       </LensSection>
 
-      {/* source schemas (Fusion) — chip list */}
       <LensSection title="Source Schemas">
         <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
           {LENS.sources.map((s) => (
@@ -708,7 +647,6 @@ function OperationLens() {
         </div>
       </LensSection>
 
-      {/* arguments */}
       <LensSection title={`Arguments (${LENS.args.length})`}>
         <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
           {LENS.args.map((a) => (
@@ -723,7 +661,6 @@ function OperationLens() {
         </div>
       </LensSection>
 
-      {/* return type */}
       <LensSection title="Return Type">
         <LensCoordinateRow
           icon={<IconObject size={13} />}
@@ -745,10 +682,6 @@ function OperationLens() {
   );
 }
 
-/* ── the QUERY BUILDER: a checkbox field-tree of the GetOrder operation ──
- * Each row: an indent, an expand chevron (for object fields), a CHECKBOX, a field-type icon
- * (scalar/object/enum colors), the field name and its type. Checked rows are in the operation. */
-
 type FieldKind = "scalar" | "object" | "enum";
 interface BField {
   name: string;
@@ -756,11 +689,8 @@ interface BField {
   kind: FieldKind;
   depth: number;
   checked: boolean;
-  /** the operation root row (query GetOrder) */
   op?: boolean;
-  /** object rows render an expand chevron */
   expandable?: boolean;
-  /** this row is the `customer` field whose check is driven by the story */
   cust?: boolean;
 }
 
@@ -776,8 +706,6 @@ function FieldIcon({ kind }: { kind: FieldKind }) {
   return <IconScalar size={13} />;
 }
 
-// query GetOrder → orderById(id:) → { id, total, status, items { product { … }, quantity },
-//                                     customer { name email } }
 const BUILDER: BField[] = [
   {
     name: "GetOrder",
@@ -879,9 +807,7 @@ function BuilderRow({
   progress: MotionValue<number>;
 }) {
   const checked = f.cust ? custChecked : f.checked;
-  // when `customer` becomes checked, its row gets the orange selection wash + the checkbox fills
   const sel = f.cust && custChecked;
-  // a brief flash when the field is ticked (selection wash pulses in)
   const flashTick = TL.start("tickCustomer");
   const flash = useTransform(
     progress,
@@ -914,7 +840,6 @@ function BuilderRow({
           }}
         />
       )}
-      {/* expand chevron (object fields) or a spacer */}
       <span
         style={{
           width: 10,
@@ -926,7 +851,6 @@ function BuilderRow({
       >
         {f.expandable && <IconChevronDown size={9} color="currentColor" />}
       </span>
-      {/* checkbox — the operation always has GetOrder/orderById, so the op row is not checkable */}
       {f.op ? (
         <span
           style={{
@@ -946,7 +870,6 @@ function BuilderRow({
           testid={f.cust ? "cust-checkbox" : undefined}
         />
       )}
-      {/* field-type icon */}
       <span
         style={{
           display: "flex",
@@ -957,7 +880,6 @@ function BuilderRow({
       >
         {f.op ? null : <FieldIcon kind={f.kind} />}
       </span>
-      {/* name : type */}
       <span
         style={{
           fontSize: 12,
@@ -1031,9 +953,6 @@ function Checkbox({
   );
 }
 
-/* ── the query editor: pre-written GraphQL; the `customer { name email }` block snaps in once
- *    the builder checkbox is ticked (insertBlock stage) ── */
-
 type Seg = { t: string; c: string };
 
 const synField = token.synField;
@@ -1042,7 +961,6 @@ const synKw = token.synKeyword;
 const synVar = token.blue;
 const synPunct = token.synPunct;
 
-// Static lines above and below the inserted block (line index irrelevant; we render in order).
 const HEAD: Seg[][] = [
   [
     { t: "query ", c: synKw },
@@ -1080,7 +998,6 @@ const HEAD: Seg[][] = [
   [{ t: "      quantity", c: synField }],
   [{ t: "    }", c: synPunct }],
 ];
-// the accepted, ready selection set — snaps in once `customer` is ticked in the builder
 const INSERTED: Seg[][] = [
   [
     { t: "    customer", c: synField },
@@ -1098,7 +1015,6 @@ const FS = 12.5;
 const GUTTER = 36;
 
 function QueryEditor({ progress }: { progress: MotionValue<number> }) {
-  // the inserted block reveals as the builder checkbox is ticked, over insertBlock
   const insertedOpacity = useTransform(
     progress,
     [TL.start("tickCustomer"), TL.at("insertBlock", 0.6)],
@@ -1135,7 +1051,6 @@ function QueryEditor({ progress }: { progress: MotionValue<number> }) {
         <EditorLine key={`h${i}`} no={gutterStart + i} segs={segs} />
       ))}
 
-      {/* inserted "customer { name email }" block — grows + fades in once ticked in the builder */}
       <motion.div
         style={{
           overflow: "hidden",
@@ -1189,8 +1104,6 @@ function EditorLine({ no, segs }: { no: number; segs: Seg[] }) {
     </div>
   );
 }
-
-/* ── chrome helpers ── */
 
 function ColumnHeader({
   title,
@@ -1455,8 +1368,6 @@ function HistoryRow({
   progress: MotionValue<number>;
   pending: boolean;
 }) {
-  // the first (active) row spins in as pending on Run and resolves to a check once the status resolves.
-  // The two older rows are already present at frame 0. (hooks called unconditionally)
   const runClick = TL.start("runClick");
   const resolve = TL.start("statusResolve");
   const rowOpacity = useTransform(
@@ -1551,8 +1462,6 @@ function HistoryRow({
   );
 }
 
-/* ── toolbar / tree ── */
-
 function DocTabs() {
   return (
     <div
@@ -1625,10 +1534,6 @@ function DocTab({
   );
 }
 
-/* ── Documents explorer tree — REAL operation-kind icons (the tree renders
- *    folders with api-collection / gateway / service icons; documents carry the operation-kind
- *    glyph: query Q-glyph, mutation diamond, subscription pulse). ── */
-
 interface TreeNode {
   label: string;
   depth: number;
@@ -1668,7 +1573,6 @@ function FolderIcon({
   expanded?: boolean;
   color?: string;
 }) {
-  // api-collection style folder
   return expanded ? (
     <svg
       width={13}

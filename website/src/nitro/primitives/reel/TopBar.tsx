@@ -1,8 +1,3 @@
-/**
- * TopBar — the Nitro / Banana Cake Pop app chrome above a dashboard: a browser-style
- * tab strip, a nav-tab row with a "Development" dropdown +
- * window controls, and a "Development Stage" + date-range row. Static reel chrome.
- */
 import type { CSSProperties } from "react";
 import { token } from "../../lib/tokens";
 
@@ -57,7 +52,6 @@ const ICON = {
 
 export interface TopBarProps {
   active?: string;
-  /** the operation name shown in the stage row when in the operation view */
   stage?: string;
   width?: number;
   style?: CSSProperties;
@@ -71,7 +65,6 @@ export function TopBar({
 }: TopBarProps) {
   return (
     <div style={{ width: width ?? "100%", color: token.text, ...style }}>
-      {/* row 1 — browser tab strip */}
       <div
         style={{
           display: "flex",
@@ -149,7 +142,6 @@ export function TopBar({
         </span>
       </div>
 
-      {/* row 2 — nav tabs + window controls */}
       <div
         style={{
           display: "flex",
@@ -228,7 +220,6 @@ export function TopBar({
         </div>
       </div>
 
-      {/* row 3 — stage + date range */}
       <div style={{ display: "flex", alignItems: "center", height: 38 }}>
         <span style={{ fontSize: 13, color: token.text }}>{stage}</span>
         <div

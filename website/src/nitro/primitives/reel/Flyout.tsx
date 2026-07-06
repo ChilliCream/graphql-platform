@@ -1,9 +1,3 @@
-/**
- * Flyout — the right-side detail drawer the Nitro IDE slides in when you click a span / node /
- * operation (Span Details, Plan Details, etc.). Slides in from the right + fades, driven by a
- * local `progress` MotionValue with show/hide fractions. Header (title + "{i} of {n}" counter +
- * up/down steppers + close) and an optional underline tab strip; children are the scrollable body.
- */
 import { useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { motion, useTransform, type MotionValue } from "motion/react";
 import { token } from "../../lib/tokens";
@@ -23,7 +17,6 @@ const Chev = ({ up }: { up?: boolean }) => (
   </svg>
 );
 
-/** Animated active-tab transition: slide the underline from `from` to `to` over `range`. */
 export interface TabSlide {
   from: string;
   to: string;
@@ -39,9 +32,7 @@ export interface FlyoutProps {
   counter?: string;
   tabs?: string[];
   activeTab?: string;
-  /** color of the active-tab underline indicator (defaults to token.active) */
   indicatorColor?: string;
-  /** drive the active tab + sliding underline off progress (from → to over range) */
   tabSlide?: TabSlide;
   children: ReactNode;
 }
@@ -59,8 +50,6 @@ export function Flyout({
   tabSlide,
   children,
 }: FlyoutProps) {
-  // A real drawer slides in OPAQUE — so the panel snaps to full opacity almost instantly (its solid
-  // background never goes see-through) and the SLIDE is the entrance. Kept short so it appears fast.
   const SLIDE = 0.02;
   const x = useTransform(
     progress,
@@ -95,7 +84,6 @@ export function Flyout({
         zIndex: 30,
       }}
     >
-      {/* header */}
       <div
         style={{
           height: 48,
@@ -143,7 +131,6 @@ export function Flyout({
         </span>
       </div>
 
-      {/* tab strip */}
       {tabs &&
         (tabSlide ? (
           <SlidingTabStrip
@@ -197,7 +184,6 @@ export function Flyout({
           </div>
         ))}
 
-      {/* body */}
       <div style={{ flex: 1, minHeight: 0, overflow: "hidden", padding: 14 }}>
         {children}
       </div>
@@ -210,11 +196,6 @@ interface Slot {
   width: number;
 }
 
-/**
- * Tab strip whose active underline slides from one tab to another over `tabSlide.range`,
- * with the from/to labels crossfading their text color at the range midpoint. Tab geometry is
- * measured from the DOM so the underline travels to the real label positions.
- */
 function SlidingTabStrip({
   progress,
   tabs,

@@ -1,13 +1,5 @@
-/**
- * Curated, mostly-constant data for the 5-tab Nitro product reel (see PLAN-tabs.md).
- * Hand-authored to mirror the real EShops federated GraphQL domain so the clones read as
- * the genuine product; a couple of series are seeded for organic chart shapes.
- */
 import { mulberry32 } from "./rng";
 
-/* ─────────────────────────── shared helpers ─────────────────────────── */
-
-/** A seeded smooth series (two sine components + light noise), length n, in [lo,hi]-ish. */
 export function smoothSeries(
   seed: number,
   n: number,
@@ -23,8 +15,6 @@ export function smoothSeries(
     return Math.max(0, base + amp * wave + (r() - 0.5) * amp * 0.25);
   });
 }
-
-/* ─────────────────────────── 1. Compose (query editor) ─────────────────────────── */
 
 export const composeData = {
   query: `query GetOrder($id: ID!) {
@@ -94,8 +84,6 @@ export const composeData = {
   ],
 };
 
-/* ─────────────────────────── 2. Trace (waterfall + DB span) ─────────────────────────── */
-
 export type TabSpanKind = "server" | "graphql" | "internal" | "http" | "db";
 
 export interface TabSpan {
@@ -106,7 +94,6 @@ export interface TabSpan {
   startMs: number;
   durationMs: number;
   hasChildren?: boolean;
-  /** the slow database span the reel drills into */
   target?: boolean;
 }
 
@@ -195,7 +182,6 @@ export const traceData = {
       durationMs: 150,
     },
   ] as TabSpan[],
-  // flyout for the DB span
   dbSpan: {
     name: "db.query SELECT products",
     duration: "312.4 ms",
@@ -219,18 +205,15 @@ export const traceData = {
   },
 };
 
-/* ─────────────────────────── 3. Diagnose (errors) ─────────────────────────── */
-
 export interface ErrRow {
   op: string;
   kind: "query" | "mutation" | "subscription";
-  errorRate: number; // 0..1
+  errorRate: number;
   requests: string;
   p95: string;
 }
 
 export const diagnoseData = {
-  // flat baseline → sharp spike ~70% across → settle (32 buckets)
   spike: [
     1, 0, 2, 1, 0, 1, 2, 1, 0, 1, 1, 0, 2, 1, 1, 0, 1, 2, 1, 0, 3, 5, 9, 18, 34,
     52, 47, 31, 18, 9, 4, 2,
@@ -303,8 +286,6 @@ export const diagnoseData = {
   },
 };
 
-/* ─────────────────────────── 4. Schema (reference + insights) ─────────────────────────── */
-
 export type SchemaKind =
   | "query"
   | "mutation"
@@ -320,7 +301,6 @@ export interface SchemaRow {
   name: string;
   kind: SchemaKind;
   drillable?: boolean;
-  /** syntax-colored signature for field rows */
   sig?: { field: string; type: string; bang?: boolean; deprecated?: boolean };
 }
 
@@ -330,7 +310,6 @@ export const schemaData = {
     ["1,243", "Fields"],
     ["12", "Directives"],
   ] as [string, string][],
-  // Column 1 — types grouped
   typeGroups: [
     {
       group: "Objects",
@@ -376,7 +355,6 @@ export const schemaData = {
       ),
     },
   ],
-  // Column 2 — Query fields
   queryFields: [
     {
       name: "products",
@@ -413,7 +391,6 @@ export const schemaData = {
       sig: { field: "me", type: "Account" },
     },
   ] as SchemaRow[],
-  // Column 3 — Product fields
   productFields: [
     { name: "id", kind: "field", sig: { field: "id", type: "ID", bang: true } },
     {
@@ -451,7 +428,6 @@ export const schemaData = {
     },
   ] as SchemaRow[],
   breadcrumb: ["Query", "products", "Product", "reviews"],
-  // Insights — coordinates
   coordinates: [
     { coord: "Query.products", kind: "field", usage: "48.2K" },
     { coord: "Product.reviews", kind: "field", usage: "31.7K" },
@@ -496,8 +472,6 @@ export const schemaData = {
   latencyP99: smoothSeries(14, 40, 52, 12),
 };
 
-/* ─────────────────────────── 5. Fusion (execution plan) ─────────────────────────── */
-
 export type PlanStatus = "success" | "partial" | "failed";
 export type PlanKind = "root" | "fetch" | "resolve" | "introspection";
 
@@ -509,12 +483,9 @@ export interface PlanNode {
   durationMs: number;
   status: PlanStatus;
   subOp?: string;
-  /** JSON the subgraph returned for this fetch — shown in the "View Raw Data" subgraph tab */
   response?: string;
-  /** variable-batching: the array of variable sets the single-entity query is dispatched with */
   viewVariables?: string;
   batch?: number;
-  /** rank (column, 0 = root at left) and order within the column (top→bottom) */
   rank: number;
   order: number;
 }
@@ -537,9 +508,6 @@ export const fusionData = {
     customer { id name email }
   }
 }`,
-  // A deeper, query-only federated plan (no "Resolve" steps — every node is a real subgraph fetch),
-  // 5 ranks deep with several hops: Orders → {Products, Accounts} → {Inventory, Reviews, Loyalty}
-  // → {Warehouses, review Authors}.
   nodes: [
     {
       id: "root",
@@ -592,8 +560,6 @@ export const fusionData = {
       batch: 2,
       rank: 2,
       order: 0,
-      // VARIABLE BATCHING: a single-entity query (productById, one $id) is dispatched once per id —
-      // an ARRAY of variable sets in, an ARRAY of results out.
       subOp: `query Fetch_Products($id: ID!) {
   productById(id: $id) {
     id

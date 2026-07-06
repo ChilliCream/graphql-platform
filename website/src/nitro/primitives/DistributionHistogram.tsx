@@ -1,12 +1,3 @@
-/**
- * DistributionHistogram — fine latency-distribution histogram (Operation Detail reference).
- *
- * Many thin success/error bars on a log duration x-axis and a log count y-axis, with
- * "Current" and "p95" vertical markers (line + pill). Bars grow up from the baseline
- * staggered left→right off the shared clock; markers slide in after. Designed to sit
- * inside a ChartPanel (yLog, yTicks=[1,10,100,1k,10k]) that draws the matching axes —
- * pass the SAME `yDomain`.
- */
 import type { CSSProperties } from "react";
 import { motion, useTransform, type MotionValue } from "motion/react";
 import { logScale, ms, compact } from "../lib/scale";
@@ -19,7 +10,6 @@ export interface DistributionHistogramProps {
   distribution: LatencyDistribution;
   width?: number;
   height?: number;
-  /** [1, maxCount] log — share with the enclosing ChartPanel */
   yDomain: [number, number];
   xDomain?: [number, number];
   progress?: MotionValue<number>;

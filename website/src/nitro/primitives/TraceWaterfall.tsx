@@ -1,9 +1,3 @@
-/**
- * TraceWaterfall — a trace flamegraph (Operation Detail "Trace Sample" reference). Each
- * span is a row: a colored bar positioned by (start, duration) on a linear time axis, with
- * an icon + name + duration label. Bars grow left→right, staggered top→bottom, off the
- * shared clock. A time ruler + dashed gridlines sit above. Colors encode span kind.
- */
 import type { CSSProperties } from "react";
 import { motion, useTransform, type MotionValue } from "motion/react";
 import { ease } from "../lib/motion";
@@ -50,7 +44,6 @@ export function TraceWaterfall({
 }: TraceWaterfallProps) {
   const { ref, t } = useChartClock({ progress, playWindow, durationMs });
   const total = trace.totalMs;
-  // integer ms ticks within [0, total); the total is shown as a right-anchored end label
   const ticks = Array.from(
     { length: Math.floor(total) + 1 },
     (_, i) => i,
@@ -67,7 +60,6 @@ export function TraceWaterfall({
       role="img"
       aria-label={label}
     >
-      {/* time ruler */}
       <div style={{ position: "relative", height: 16, marginBottom: 4 }}>
         {ticks.map((tk) => (
           <span
@@ -99,7 +91,6 @@ export function TraceWaterfall({
         </span>
       </div>
 
-      {/* rows + gridlines */}
       <div style={{ position: "relative" }}>
         {[...ticks, total].map((tk, i) => (
           <div

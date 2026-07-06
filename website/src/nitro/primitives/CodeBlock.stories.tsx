@@ -38,7 +38,6 @@ const meta = {
   component: CodeBlock,
   parameters: { layout: "centered" },
   argTypes: {
-    // MotionValue reveal driver — omit it so the block renders its full, final text (deterministic).
     progress: { control: false },
   },
   args: {

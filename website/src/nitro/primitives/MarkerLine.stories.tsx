@@ -9,7 +9,6 @@ const meta = {
   component: MarkerLine,
   parameters: { layout: "centered" },
   argTypes: {
-    // MotionValue shared clock — Storybook cannot control it.
     progress: { control: false },
   },
   args: {
@@ -21,8 +20,6 @@ const meta = {
   decorators: [
     (Story) => (
       <ThemeProvider theme="dark" reducedMotion="always" className="p-6">
-        {/* MarkerLine is position:relative; 100% x 100%, so it needs a sized
-            parent to overlay. A bordered dark panel stands in for the chart. */}
         <div
           style={{
             width: 480,

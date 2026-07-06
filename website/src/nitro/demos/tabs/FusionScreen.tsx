@@ -1,19 +1,3 @@
-/**
- * FusionScreen — Tab 5: the full Fusion story in three sequenced scenes whose CONTENT crossfades,
- * with ONE persistent cursor gliding continuously across all three (so it never disappears at a cut
- * and the seams read as a single session). Timing is fully DERIVED from each scene's stage timeline
- * (`*_TL` / `*_MS`); the scene windows and the shared cursor's keyframe TIMES are computed from
- * those stages — nothing is a hand-tuned global fraction.
- *
- *   1. GATEWAY OVERVIEW   — spot the new Reviews v2.4.0 deployment, click it
- *   2. DEPLOYMENTS        — its additive schema changes recompose the gateway; click "+"
- *   3. QUERY + PLAN       — click into the empty editor, type & Run, then the Operation Plan graph
- *      builds + executes and a CAMERA zooms in and pans ALONG the plan before zooming back out.
- *
- * The camera lives here (it must stay in lock-step with the shared cursor): during the plan's
- * zoom/pan the cursor parks at viewport centre so it "reads along" the plan as it scrolls beneath,
- * then settles on the Products node as the camera zooms back out.
- */
 import { useState } from "react";
 import {
   motion,
@@ -45,31 +29,26 @@ import {
 const W = TABREEL_CANVAS.w;
 const H = TABREEL_CANVAS.h;
 
-// Tab TOTAL = sum of the scenes' derived durations; windows are proportional.
 export const FUSION_MS = OVERVIEW_MS + DEPLOYMENTS_MS + QUERYPLAN_MS;
 const OV_END = OVERVIEW_MS / FUSION_MS;
 const DEP_END = (OVERVIEW_MS + DEPLOYMENTS_MS) / FUSION_MS;
-const BAND = 0.014; // content crossfade width at each boundary
+const BAND = 0.014;
 
-// map a scene-local progress (0..1) → GLOBAL progress
 const gOv = (l: number) => (l * OVERVIEW_MS) / FUSION_MS;
 const gDep = (l: number) => (OVERVIEW_MS + l * DEPLOYMENTS_MS) / FUSION_MS;
 const gQp = (l: number) =>
   (OVERVIEW_MS + DEPLOYMENTS_MS + l * QUERYPLAN_MS) / FUSION_MS;
 const Q = QUERYPLAN_TL;
 
-// ── plan-camera key instants (global progress) ──
 const Z_IN0 = gQp(Q.start("zoomIn"));
 const Z_IN1 = gQp(Q.end("zoomIn"));
 const Z_PAN1 = gQp(Q.end("panPlan"));
 const Z_OUT1 = gQp(Q.end("zoomOut"));
-// focus points (canvas px) the camera frames at viewport centre while zoomed (k=1.6):
-//   start ≈ the root/Orders area (left), end ≈ the Products fetch (right).
 const ZK = 1.5;
 const fx0 = 470,
-  fy0 = 460; // start-of-plan focus (root/Orders)
+  fy0 = 460;
 const fx1 = 1050,
-  fy1 = 460; // end-of-plan focus (deepest fetches)
+  fy1 = 460;
 const camAt = (fx: number, fy: number) => ({
   x: W / 2 - fx * ZK,
   y: H / 2 - fy * ZK,
@@ -77,10 +56,6 @@ const camAt = (fx: number, fy: number) => ({
 const C0 = camAt(fx0, fy0);
 const C1 = camAt(fx1, fy1);
 
-// ── ONE continuous cursor path (canvas px). Times derived from each scene's stages; positions
-// chosen so boundaries line up. In scene 3 it clicks into the empty editor, types, Runs, opens the
-// plan, drifts onto the plan as it execs, then PARKS at viewport centre (752,470) through the
-// zoom+pan, and settles on Products as the camera zooms out.
 const CURSOR_T = [
   0,
   gOv(OVERVIEW_TL.start("moveToDeployment")),
@@ -93,9 +68,9 @@ const CURSOR_T = [
   gQp(Q.start("runClick")),
   gQp(Q.start("moveToPlanTab")),
   gQp(Q.start("planTabClick")),
-  Z_IN0, // drifted onto the plan (as it execs), at viewport centre
-  Z_PAN1, // hold centre through the pan
-  gQp(Q.start("viewClick")), // → the Products node's "View Raw Data"
+  Z_IN0,
+  Z_PAN1,
+  gQp(Q.start("viewClick")),
   1,
 ];
 const CURSOR_X = [
@@ -144,7 +119,6 @@ export function FusionScreen({ progress }: FusionScreenProps) {
     clamp: true,
   });
 
-  // plan camera: identity until zoomIn, frames the start, pans to Products, zooms back to identity.
   const camScale = useTransform(
     progress,
     [Z_IN0, Z_IN1, Z_PAN1, Z_OUT1],
@@ -165,11 +139,9 @@ export function FusionScreen({ progress }: FusionScreenProps) {
   );
   const planCamera = { x: camX, y: camY, scale: camScale };
 
-  // the single shared cursor (global progress)
   const cx = useTransform(progress, CURSOR_T, CURSOR_X, { ease: ease.glide });
   const cy = useTransform(progress, CURSOR_T, CURSOR_Y, { ease: ease.glide });
 
-  // identity camera for the non-zooming scenes (stable refs)
   const z0 = useMotionValue(0);
   const k1 = useMotionValue(1);
 
@@ -203,9 +175,6 @@ export function FusionScreen({ progress }: FusionScreenProps) {
         </motion.div>
       )}
 
-      {/* ONE persistent cursor on top of the crossfading content — never fades or jumps. It is NOT
-          camera-transformed, so during the plan zoom/pan it sits at viewport centre and the plan
-          scrolls beneath it. */}
       <div style={{ position: "absolute", inset: 0, pointerEvents: "none" }}>
         <Stage
           width={W}

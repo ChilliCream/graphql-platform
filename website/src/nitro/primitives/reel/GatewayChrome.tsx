@@ -1,10 +1,3 @@
-/**
- * GatewayChrome — the shared two-row header for an open API (Gateway): the document tab strip
- * (the "EShops Gateway" tab + new/save/more actions) and the gateway view-nav (Overview /
- * Monitoring / … / Stages) with the active view underlined, plus the Production stage selector +
- * secure endpoint + settings on the right. Reused across the Fusion scene screens so the chrome
- * is identical as they crossfade. Authored in the reel canvas px.
- */
 import { token } from "../../lib/tokens";
 import {
   IconApiGateway,
@@ -47,7 +40,6 @@ const VIEWS: GatewayView[] = [
 export function GatewayChrome({ activeView }: { activeView: GatewayView }) {
   return (
     <>
-      {/* document tab strip */}
       <div
         style={{
           height: GW_DOCTABS_H,
@@ -99,7 +91,6 @@ export function GatewayChrome({ activeView }: { activeView: GatewayView }) {
           <IconMore size={15} color="currentColor" />
         </span>
       </div>
-      {/* gateway view nav */}
       <div
         style={{
           height: GW_VIEWNAV_H,

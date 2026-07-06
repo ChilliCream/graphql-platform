@@ -34,10 +34,6 @@ import {
 import { areaFromLine, smoothLinePath, type Pt } from "@/src/nitro/lib/scale";
 import type { Client, InsightRow, Trace } from "@/src/nitro/lib/data/types";
 
-/* ────────────────────────────────────────────────────────────────────────
-   Shared shells
-   ──────────────────────────────────────────────────────────────────────── */
-
 interface EyebrowProps {
   readonly children: ReactNode;
 }
@@ -106,8 +102,6 @@ interface CardProps {
   readonly glow?: boolean;
 }
 
-/** Console-token surface: the same border and fill as the ControlPlaneConsole
-    tiles, so every card on the page reads as one system. */
 function Card({ className, children, glow = false }: CardProps) {
   return (
     <div
@@ -157,10 +151,6 @@ interface NitroCanvasProps {
   readonly style?: CSSProperties;
 }
 
-/** Wraps chart primitives so their `--t-*` token vars resolve; stays transparent.
-    Overrides the theme's font tokens with the page font variables so bento chart
-    text reads in the same families as the surrounding page instead of the nitro
-    product-UI stack. */
 function NitroCanvas({ children, className, style }: NitroCanvasProps) {
   return (
     <NitroTheme
@@ -181,7 +171,6 @@ function NitroCanvas({ children, className, style }: NitroCanvasProps) {
   );
 }
 
-/** Frames a chrome-less Nitro product screen like an embedded screenshot. */
 interface FramedVisualProps {
   readonly children: ReactNode;
 }
@@ -215,7 +204,6 @@ interface ShowcaseProps {
   readonly reverse?: boolean;
 }
 
-/** Alternating split: short headline + graphic, Linear feature-row rhythm. */
 function Showcase({
   id,
   index,
@@ -266,27 +254,12 @@ function Showcase({
   );
 }
 
-/* ────────────────────────────────────────────────────────────────────────
-   Hero aurora beam (signature visual): a real-aurora beam descending from the
-   top that flares into a wide aurora burst at the bottom-center, pouring
-   light into and behind the crisp product reel. Graded on the landing-hero
-   spectrum: white-hot core -> cyan #16b9e4 as the dominant curtain, with
-   periwinkle #7c92c6, mauve #b681a9, and coral #f0786a accents at the fringes.
-   Spans the full viewport width and fades to navy #0b0f1a at every edge so it
-   dissolves into the page atmosphere. Everything stills under
-   prefers-reduced-motion.
-   ──────────────────────────────────────────────────────────────────────── */
-
-// Stacked conic fans: the defining triangular burst. Each widens downward from
-// the apex; screen-blended and graded coral fringe -> mauve -> periwinkle ->
-// cyan inner -> cool-white core, so the light reads as a saturated multi-color
-// cone pouring over the reel, not a flat wash.
 const CONES: readonly {
-  readonly halfAngle: number; // degrees off vertical to each edge
-  readonly color: string; // "r,g,b"
-  readonly peak: number; // opacity at the bright axis
-  readonly mid: number; // opacity mid-way to the edge
-  readonly blur: number; // px
+  readonly halfAngle: number;
+  readonly color: string;
+  readonly peak: number;
+  readonly mid: number;
+  readonly blur: number;
 }[] = [
   { halfAngle: 37, color: "240,120,106", peak: 0.4, mid: 0.18, blur: 50 },
   { halfAngle: 30, color: "182,129,169", peak: 0.52, mid: 0.24, blur: 44 },
@@ -295,8 +268,6 @@ const CONES: readonly {
   { halfAngle: 9, color: "196,236,247", peak: 0.9, mid: 0.46, blur: 20 },
 ];
 
-// Aurora curtains: vertical striations splaying wide from the apex across the
-// fan, giving the shimmering ribbed texture (px widths, degrees of splay).
 const CURTAINS: readonly {
   readonly rot: number;
   readonly width: number;
@@ -362,21 +333,15 @@ const CURTAINS: readonly {
   },
 ];
 
-// Beam-impact anchor, shared by the aurora beam, the reel glare, and the hero
-// sparks so all three stay locked together at every viewport width. The strike
-// sits a fixed 288px right of viewport center (the reel's 3/4 point at
-// max-w-6xl: 1152px * 0.75 from the left edge == center + 288) and ~577px down
-// from the hero top, right on the reel's top edge.
 const STRIKE_X_OFFSET = 288;
 const STRIKE_Y = 577;
 
-// Mote tints for the sparks: warm white (weighted), gold, warm coral, faint cool.
 const MOTE_TINTS = [
-  { fill: "255,246,232", glow: "255,224,168" }, // warm white
-  { fill: "255,236,196", glow: "244,180,94" }, // gold
-  { fill: "255,246,232", glow: "255,224,168" }, // warm white (weighted)
-  { fill: "255,224,196", glow: "242,140,90" }, // warm coral
-  { fill: "222,240,246", glow: "143,201,221" }, // faint cool
+  { fill: "255,246,232", glow: "255,224,168" },
+  { fill: "255,236,196", glow: "244,180,94" },
+  { fill: "255,246,232", glow: "255,224,168" },
+  { fill: "255,224,196", glow: "242,140,90" },
+  { fill: "222,240,246", glow: "143,201,221" },
 ] as const;
 
 interface HeroSparksProps {
@@ -384,12 +349,6 @@ interface HeroSparksProps {
   readonly className?: string;
 }
 
-/** Canvas-2D motes rising from the beam-impact point on the reel's top edge,
-    a gentle warm ember spread with a sunrise-mote feel: a fairly
-    dense, well-spaced field that lifts slowly and fans out in a tight-ish cone
-    as it climbs, fading in off the strike and easing out near the top. The
-    origin tracks the shared strike anchor (center + STRIKE_X_OFFSET, STRIKE_Y)
-    so it stays aligned with the beam and the glare at every viewport width. */
 function HeroSparks({ reduced, className }: HeroSparksProps) {
   const ref = useRef<HTMLCanvasElement | null>(null);
 
@@ -409,30 +368,22 @@ function HeroSparks({ reduced, className }: HeroSparksProps) {
       return x - Math.floor(x);
     };
 
-    // How far a mote climbs above the strike (px), and how wide the fan opens at
-    // full height (px, half-width to each side). Kept tight so the plume reads as
-    // a spaced rising fan from the impact point.
     const RISE_PX = 340;
     const FAN_PX = 150;
 
-    // A plume of motes: `life` runs 0 at the strike to 1 near
-    // the top; density, gentle rise speed, tight eased fan, and alpha fades all
-    // give an even spread, just emitted from
-    // the beam-impact point instead of the reel's bottom-center.
     const motes = Array.from({ length: 54 }, (_, i) => ({
       life: rand(i * 9 + 1),
-      fan: (rand(i * 9 + 2) - 0.5) * 2, // -1..1, how far it drifts off the axis
+      fan: (rand(i * 9 + 2) - 0.5) * 2,
       wobPhase: rand(i * 9 + 3) * Math.PI * 2,
       wobSpeed: 0.4 + rand(i * 9 + 4) * 0.9,
       r: 0.5 + rand(i * 9 + 5) * 2.1,
-      speed: 0.04 + rand(i * 9 + 6) * 0.07, // life units per second
+      speed: 0.04 + rand(i * 9 + 6) * 0.07,
       base: 0.32 + rand(i * 9 + 7) * 0.52,
       phase: rand(i * 9 + 8) * Math.PI * 2,
       twSpeed: 0.6 + rand(i * 9 + 9) * 1.4,
       tint: MOTE_TINTS[Math.floor(rand(i * 9 + 10) * MOTE_TINTS.length)],
     }));
 
-    // Smooth 0→1 ramp used to fade motes in/out along their rising life.
     const smoothstep = (a: number, b: number, x: number) => {
       const s = Math.min(1, Math.max(0, (x - a) / (b - a)));
       return s * s * (3 - 2 * s);
@@ -448,7 +399,6 @@ function HeroSparks({ reduced, className }: HeroSparksProps) {
       dpr = Math.max(0.75, Math.min(base, cap));
       canvas.width = Math.max(1, Math.round(cw * dpr));
       canvas.height = Math.max(1, Math.round(ch * dpr));
-      // Draw in CSS pixels; the transform handles dpr.
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     };
     const observer = new ResizeObserver(resize);
@@ -462,8 +412,6 @@ function HeroSparks({ reduced, className }: HeroSparksProps) {
       const t = (now - start) / 1000;
       const dt = reduced ? 0 : Math.min(0.05, (now - last) / 1000);
       last = now;
-      // Origin in CSS pixels: shared strike anchor. Horizontal offset is a fixed
-      // px value from center, matching the beam/glare exactly.
       const ox = cw / 2 + STRIKE_X_OFFSET;
       const oy = STRIKE_Y;
       ctx.clearRect(0, 0, cw, ch);
@@ -472,18 +420,14 @@ function HeroSparks({ reduced, className }: HeroSparksProps) {
         if (!reduced) {
           m.life += m.speed * dt;
           if (m.life > 1) {
-            // Respawn at the strike with a fresh fan offset.
             m.life -= 1;
             m.fan = (rand(m.phase * 1000 + t) - 0.5) * 2;
           }
         }
-        // Rise from the strike; the fan opens from a tight point (eased by
-        // life²) and a gentle wobble keeps the plume alive.
         const wobble = Math.sin(m.wobPhase + t * m.wobSpeed) * 6;
         const spread = 0.05 + 0.95 * (m.life * m.life);
         const px = ox + m.fan * FAN_PX * spread + wobble;
         const py = oy - m.life * RISE_PX;
-        // Fade in as it lifts off the strike, ease out as it nears the top.
         const edge =
           smoothstep(0, 0.16, m.life) * (1 - smoothstep(0.78, 1, m.life));
         const twinkle = 0.55 + 0.45 * Math.sin(m.phase + t * m.twSpeed);
@@ -491,8 +435,6 @@ function HeroSparks({ reduced, className }: HeroSparksProps) {
         if (a <= 0.01) {
           continue;
         }
-        // A solid tinted dot with a soft shadow glow, no per-particle gradient
-        // (that per-frame cost was the slowdown).
         ctx.fillStyle = `rgba(${m.tint.fill},1)`;
         ctx.shadowColor = `rgba(${m.tint.glow},0.9)`;
         ctx.globalAlpha = a;
@@ -536,8 +478,6 @@ interface HeroAuroraProps {
 }
 
 function HeroAurora({ reduced }: HeroAuroraProps) {
-  // y-offset (px from hero top) of the reel's top edge, where the beam strikes
-  // and blooms white-hot. Every base-flare layer keys off this.
   const baseY = 602;
   const screen = { mixBlendMode: "screen" as const };
   return (
@@ -550,30 +490,17 @@ function HeroAurora({ reduced }: HeroAuroraProps) {
           0%, 100% { opacity: 0.9; }
           50% { opacity: 1; }
         }
-        /* Suppress the reel's per-tab benefit headline in the hero: it landed
-           inside the beam, center-aligned and washed out. The hero has its
-           own H1 + lead, so this floating block is dropped here only. */
         .v22-hero-reel [role="group"] > div:first-child { display: none !important; }
-        /* Mobile-only hero fixes (below sm/640px). Desktop is untouched. */
         @media (max-width: 639px) {
-          /* Hide the running tab strip: it overflows and is clipped at 390px,
-             while the reel dashboard underneath stays visible. */
           .v22-hero-reel [role="group"] > div:last-child > div:last-child > div {
             display: none !important;
           }
-          /* Damp the beam burst so it stops washing over the lead paragraph.
-             The beam is anchored 288px right of center, so on a narrow viewport
-             its blur bleeds left across the copy; lowering the flare opacity
-             (overriding the v22-breathe animation here) keeps it readable. */
           .v22-hero-flare {
             opacity: 0.4 !important;
           }
         }
       `}</style>
 
-      {/* Ambient atmosphere: an aurora sky spread across the whole width,
-          coral bleeding in from the right, cyan filling the crown, periwinkle
-          cooling the left, so no quadrant is dead space. */}
       <div
         className="absolute inset-0"
         style={{
@@ -582,8 +509,6 @@ function HeroAurora({ reduced }: HeroAuroraProps) {
             "radial-gradient(130% 80% at 50% -12%, rgba(22,185,228,0.24), transparent 58%), radial-gradient(58% 50% at 86% 6%, rgba(240,120,106,0.24), transparent 64%), radial-gradient(52% 44% at 8% 6%, rgba(124,146,198,0.22), transparent 62%)",
         }}
       />
-      {/* Soft aurora cloud haze for atmospheric depth: two offset blooms so the
-          sky reads as layered cloud, not a flat blob. */}
       <div
         className="absolute"
         style={{
@@ -598,22 +523,15 @@ function HeroAurora({ reduced }: HeroAuroraProps) {
         }}
       />
 
-      {/* Breathing wrapper around the beam + burst. */}
       <div
         className="v22-hero-flare absolute inset-0"
         style={{
-          // Fixed px offset from viewport center (== the glare's anchor), so the
-          // beam and the glare stay aligned at every screen width. 288px is the
-          // reel's 3/4 point at max-w-6xl (1152px / 4).
           transform: "translateX(288px)",
           ...(reduced
             ? {}
             : { animation: "v22-breathe 9s ease-in-out infinite" }),
         }}
       >
-        {/* THE FAN: stacked conic cones widening from the apex to a wide base
-            over the reel, graded teal -> cyan -> white-hot core. This is the
-            dramatic triangular burst, not a soft oval. */}
         {CONES.map((c, i) => (
           <div
             key={i}
@@ -641,7 +559,6 @@ function HeroAurora({ reduced }: HeroAuroraProps) {
           />
         ))}
 
-        {/* Repeating vertical striations (aurora grain), masked to the fan. */}
         <div
           className="absolute left-1/2 -translate-x-1/2"
           style={{
@@ -659,7 +576,6 @@ function HeroAurora({ reduced }: HeroAuroraProps) {
           }}
         />
 
-        {/* Curtain streaks splaying wide from the apex across the fan. */}
         {CURTAINS.map((c, i) => (
           <div
             key={i}
@@ -677,7 +593,6 @@ function HeroAurora({ reduced }: HeroAuroraProps) {
           />
         ))}
 
-        {/* Signature bright filament from the very top down into the burst. */}
         <div
           className="absolute top-0 left-1/2 -translate-x-1/2"
           style={{
@@ -701,11 +616,6 @@ function HeroAurora({ reduced }: HeroAuroraProps) {
           }}
         />
 
-        {/* Base flare: the money shot where the beam strikes the reel. Every
-            layer focuses at 50% 100% and bottoms out at the reel edge, so the
-            light blooms UP from the strike point and pours into the window. */}
-        {/* Wide cyan fan spreading across the top of the reel, with a
-            coral fringe bleeding into the outer edge. */}
         <div
           className="absolute left-1/2 -translate-x-1/2"
           style={{
@@ -718,8 +628,6 @@ function HeroAurora({ reduced }: HeroAuroraProps) {
               "radial-gradient(ellipse 100% 100% at 50% 100%, rgba(22,185,228,0.42), rgba(240,120,106,0.16) 52%, transparent 80%)",
           }}
         />
-        {/* Coral/mauve lower fringe on the left flank, the warm hue an aurora
-            picks up beneath the cyan curtain. */}
         <div
           className="absolute left-[24%]"
           style={{
@@ -732,7 +640,6 @@ function HeroAurora({ reduced }: HeroAuroraProps) {
               "radial-gradient(ellipse 100% 100% at 50% 100%, rgba(240,120,106,0.5), rgba(182,129,169,0.24) 46%, transparent 78%)",
           }}
         />
-        {/* Periwinkle lower fringe on the right flank, cooling the opposite edge. */}
         <div
           className="absolute right-[22%]"
           style={{
@@ -745,7 +652,6 @@ function HeroAurora({ reduced }: HeroAuroraProps) {
               "radial-gradient(ellipse 100% 100% at 50% 100%, rgba(124,146,198,0.44), transparent 78%)",
           }}
         />
-        {/* Cyan fan (#16b9e4), the dominant curtain color. */}
         <div
           className="absolute left-1/2 -translate-x-1/2"
           style={{
@@ -758,8 +664,6 @@ function HeroAurora({ reduced }: HeroAuroraProps) {
               "radial-gradient(ellipse 100% 100% at 50% 100%, rgba(22,185,228,0.58), transparent 74%)",
           }}
         />
-        {/* Cyan burst (#16b9e4), the saturated heart, warmed with a periwinkle
-            fringe. */}
         <div
           className="absolute left-1/2 -translate-x-1/2"
           style={{
@@ -772,7 +676,6 @@ function HeroAurora({ reduced }: HeroAuroraProps) {
               "radial-gradient(ellipse 100% 100% at 50% 100%, rgba(22,185,228,0.7), rgba(124,146,198,0.34) 44%, transparent 74%)",
           }}
         />
-        {/* White-hot elliptical bloom (~620x220) sitting just above the reel. */}
         <div
           className="absolute left-1/2 -translate-x-1/2"
           style={{
@@ -785,8 +688,6 @@ function HeroAurora({ reduced }: HeroAuroraProps) {
               "radial-gradient(ellipse 100% 100% at 50% 100%, rgba(255,255,255,0.9), rgba(22,185,228,0.5) 40%, transparent 72%)",
           }}
         />
-        {/* Impact hue: a wider spectrum bloom centered on the strike point so the
-            beam clearly lands on the window, spilling a little onto its top edge. */}
         <div
           className="absolute left-1/2 -translate-x-1/2"
           style={{
@@ -799,7 +700,6 @@ function HeroAurora({ reduced }: HeroAuroraProps) {
               "radial-gradient(ellipse 50% 46% at 50% 50%, rgba(255,255,255,0.5), rgba(22,185,228,0.42) 30%, rgba(124,146,198,0.26) 52%, rgba(240,120,106,0.14) 70%, transparent 84%)",
           }}
         />
-        {/* Bright vertical flare-up spike where the filament strikes the edge. */}
         <div
           className="absolute left-1/2 -translate-x-1/2"
           style={{
@@ -812,7 +712,6 @@ function HeroAurora({ reduced }: HeroAuroraProps) {
               "radial-gradient(ellipse 100% 100% at 50% 100%, rgba(255,255,255,0.85), rgba(196,236,247,0.4) 42%, transparent 72%)",
           }}
         />
-        {/* Broad white band spreading the burst across the reel's top edge. */}
         <div
           className="absolute left-1/2 -translate-x-1/2"
           style={{
@@ -825,7 +724,6 @@ function HeroAurora({ reduced }: HeroAuroraProps) {
               "radial-gradient(ellipse 100% 100% at 50% 100%, rgba(230,244,250,0.42), transparent 72%)",
           }}
         />
-        {/* Tight white core right at the foot of the beam. */}
         <div
           className="absolute left-1/2 -translate-x-1/2"
           style={{
@@ -838,8 +736,6 @@ function HeroAurora({ reduced }: HeroAuroraProps) {
               "radial-gradient(ellipse 100% 100% at 50% 100%, rgba(255,255,255,0.92), rgba(206,240,248,0.42) 46%, transparent 72%)",
           }}
         />
-        {/* Hot horizontal spread lying right on the reel's top edge, so the
-            dashboard reads as lit from the descending beam. */}
         <div
           className="absolute left-1/2 -translate-x-1/2"
           style={{
@@ -852,7 +748,6 @@ function HeroAurora({ reduced }: HeroAuroraProps) {
               "radial-gradient(ellipse 100% 50% at 50% 0%, rgba(255,255,255,0.9), rgba(22,185,228,0.5) 42%, transparent 72%)",
           }}
         />
-        {/* Rim light along the reel's top edge. */}
         <div
           className="absolute left-1/2 -translate-x-1/2"
           style={{
@@ -867,14 +762,8 @@ function HeroAurora({ reduced }: HeroAuroraProps) {
         />
       </div>
 
-      {/* Sparks erupting from the beam-impact point on the reel's top edge,
-          soft warm-white embers thrown off where the beam strikes. Their origin
-          tracks the shared strike anchor, so they stay locked to the beam and
-          the glare at every viewport width. */}
       <HeroSparks reduced={reduced} className="absolute inset-0" />
 
-      {/* Edge + bottom fade to brand navy #0b0f1a so the full-bleed aurora
-          dissolves into the page with no seam or hard cutoff. */}
       <div
         className="absolute inset-0"
         style={{
@@ -887,21 +776,10 @@ function HeroAurora({ reduced }: HeroAuroraProps) {
   );
 }
 
-/* ────────────────────────────────────────────────────────────────────────
-   Fixtures for the bento chart primitives
-   ──────────────────────────────────────────────────────────────────────── */
-
-// Bento-scoped chart palette. Pulled toward the ControlPlaneConsole (section 01)
-// so scrolling 01 -> 02 reads as one chart family: cyan throughput (the hero
-// glow color), a warm mauve-pink p95 and a cool mauve p99 that sit in the same
-// spectrum as the console's teal/cyan/coral. These are call-site only, so the
-// reel product screens keep the full nitro token palette.
 const BENTO_THROUGHPUT = "#16b9e4";
 const BENTO_P95 = "#d6488f";
 const BENTO_P99 = "#9b7dd0";
 
-/** Inline p95/p99 legend for the Latency card header: the colored dots that used
-    to live inside the chart panel, moved up beside the title. */
 function LatencyLegend() {
   return (
     <span className="flex items-center gap-3">
@@ -1027,16 +905,6 @@ const TRACE: Trace = {
   ],
 };
 
-/* ────────────────────────────────────────────────────────────────────────
-   Bento of telemetry signals (Observe, built from chart primitives)
-   ──────────────────────────────────────────────────────────────────────── */
-
-/**
- * Drives every bento chart from a single progress value that animates 0 -> 1 once
- * when the bento scrolls into view, then holds at 1. Passing `progress` to each
- * primitive makes them follow this shared clock instead of self-looping, so the
- * charts draw in once and never reset. Under reduced motion it stays frozen at 1.
- */
 function useBentoProgress() {
   const ref = useRef<HTMLDivElement>(null);
   const reduced = useReducedMotion() ?? false;
@@ -1058,8 +926,6 @@ function useBentoProgress() {
   return { ref, progress };
 }
 
-// Error-rate curve: climbs through a couple of small bumps to a single 1.6% peak,
-// then settles back to the 0.31% baseline shown as the stat.
 const ERROR_CURVE = [
   0.18, 0.22, 0.2, 0.28, 0.26, 0.34, 0.44, 0.52, 0.66, 0.9, 1.2, 1.6, 1.24,
   0.82, 0.58, 0.48, 0.5, 0.44, 0.38, 0.31,
@@ -1069,13 +935,6 @@ interface ErrorRateSparkProps {
   readonly progress: MotionValue<number>;
 }
 
-/**
- * One continuous coral error-rate line that draws in once off the shared bento
- * clock, rising to a single marked peak and settling (holds at the end, no loop).
- * The area fades in uniformly while the line draws, so the fill and line never
- * drift apart, and a DOM marker pins the 1.6% peak so it stays circular under the
- * `preserveAspectRatio="none"` stretch.
- */
 function ErrorRateSpark({ progress }: ErrorRateSparkProps) {
   const W = 240;
   const H = 64;
@@ -1097,16 +956,9 @@ function ErrorRateSpark({ progress }: ErrorRateSparkProps) {
   const peakLeft = `${(xOf(peakIndex) / W) * 100}%`;
   const peakTop = `${(yOf(dMax) / H) * 100}%`;
 
-  // The line is ONE solid path revealed left-to-right by a clip-path wipe (a
-  // growing rect), NOT by pathLength. Under preserveAspectRatio="none" a
-  // pathLength/dash reveal is distorted by the non-uniform stretch and shreds
-  // the stroke into gaps; a clip wipe keeps the line continuous and the fill
-  // locked to it, drawing in once and holding solid at the end (no snap/jump).
   const draw = useTransform(progress, [0, 1], [0, 1], { clamp: true });
   const wipeW = useTransform(draw, [0, 1], [0, W]);
   const peakFrac = n > 1 ? peakIndex / (n - 1) : 0.5;
-  // The peak dot/halo appear exactly as the wipe reaches the peak, so the dot
-  // always lands on the drawn line rather than floating ahead of it.
   const dotOpacity = useTransform(
     draw,
     [peakFrac, Math.min(1, peakFrac + 0.05)],
@@ -1158,8 +1010,6 @@ function ErrorRateSpark({ progress }: ErrorRateSparkProps) {
           />
         </g>
       </svg>
-      {/* Soft peak halo: fades in with the draw, then keeps a gentle infinite
-          pulse (expand + fade) even after the rest of the bento has settled. */}
       <motion.span
         aria-hidden="true"
         style={{
@@ -1194,7 +1044,6 @@ function ErrorRateSpark({ progress }: ErrorRateSparkProps) {
           }
         />
       </motion.span>
-      {/* Solid peak dot. */}
       <motion.span
         aria-hidden="true"
         style={{
@@ -1221,7 +1070,6 @@ function SignalsBento() {
 
   return (
     <div ref={ref} className="grid grid-cols-1 gap-4 sm:grid-cols-6">
-      {/* Latency p95/p99 */}
       <Card className="sm:col-span-4" glow>
         <CardHeader title="Latency" hint={<LatencyLegend />} />
         <div className="px-5 pt-3 pb-5">
@@ -1256,7 +1104,6 @@ function SignalsBento() {
         </div>
       </Card>
 
-      {/* Throughput big stat */}
       <Card className="sm:col-span-2">
         <CardHeader title="Throughput" hint="ops / min" />
         <div className="flex flex-1 flex-col justify-between px-5 pt-4 pb-5">
@@ -1280,7 +1127,6 @@ function SignalsBento() {
         </div>
       </Card>
 
-      {/* Per-client usage & impact */}
       <Card className="sm:col-span-3">
         <CardHeader title="Top clients" hint="by impact" />
         <div className="px-5 pt-3 pb-5">
@@ -1295,7 +1141,6 @@ function SignalsBento() {
         </div>
       </Card>
 
-      {/* Error rate */}
       <Card className="sm:col-span-3">
         <CardHeader title="Error rate" hint="% of requests" />
         <div className="flex flex-1 flex-col justify-between px-5 pt-4 pb-5">
@@ -1316,7 +1161,6 @@ function SignalsBento() {
         </div>
       </Card>
 
-      {/* Impact-ranked operations */}
       <Card className="sm:col-span-4">
         <CardHeader title="Impact score" hint="what hurts most" />
         <div className="px-5 pt-3 pb-5">
@@ -1331,14 +1175,6 @@ function SignalsBento() {
         </div>
       </Card>
 
-      {/* Trace preview. The waterfall draws one ruler tick + gridline per integer
-          millisecond, which for a 168 ms trace collapses into an unreadable band;
-          the scoped style hides that dense ruler and its gridlines so only the
-          span bars and labels show, and a taller rowHeight lets them breathe.
-          The final span (PaymentGateway) starts at ~87% of the trace, so its
-          left-anchored label runs off the card's right edge; the last rule
-          re-anchors that last row's label to the right so it grows leftward and
-          stays inside the card. */}
       <Card className="sm:col-span-2">
         <CardHeader title="Slow span" hint="checkout" />
         <div className="nitro-trace px-5 pt-4 pb-5">
@@ -1364,10 +1200,6 @@ function SignalsBento() {
     </div>
   );
 }
-
-/* ────────────────────────────────────────────────────────────────────────
-   Schema change classification (Evolve aside graphic)
-   ──────────────────────────────────────────────────────────────────────── */
 
 type ChangeKind = "safe" | "dangerous" | "breaking";
 
@@ -1446,10 +1278,6 @@ function ClassificationCard() {
     </Card>
   );
 }
-
-/* ────────────────────────────────────────────────────────────────────────
-   Delivery / safety band (persisted ops · CI checks · safe rollout)
-   ──────────────────────────────────────────────────────────────────────── */
 
 interface CheckRow {
   readonly label: string;
@@ -1572,10 +1400,6 @@ function DeliveryBand() {
   );
 }
 
-/* ────────────────────────────────────────────────────────────────────────
-   Hero (full-bleed cyan aurora, left-aligned copy, crisp reel)
-   ──────────────────────────────────────────────────────────────────────── */
-
 interface HeroProps {
   readonly reduced: boolean;
 }
@@ -1583,12 +1407,6 @@ interface HeroProps {
 function Hero({ reduced }: HeroProps) {
   return (
     <section className="relative left-1/2 isolate -mt-8 w-screen -translate-x-1/2 overflow-hidden">
-      {/* Full-viewport-width aurora that fades to brand navy at every edge. The
-          negative top margin cancels the (content) layout's top padding so the
-          beam and aurora begin at the true viewport top and run unbroken behind
-          the transparent fixed nav (the header is out of flow on this route),
-          instead of below a dark gap band. The content below is padded down by
-          the header height so the copy still clears the nav. */}
       <HeroAurora reduced={reduced} />
 
       <div className="relative z-10 mx-auto max-w-7xl px-5 pt-24 pb-16 sm:px-12 sm:pt-30">
@@ -1635,21 +1453,13 @@ function Hero({ reduced }: HeroProps) {
           </div>
         </RevealOnScroll>
 
-        {/* 5-tab reel: it is its own app window, so no outer frame. Rendered
-            directly (no reveal) so it is lit by the aurora beam from the first
-            frame instead of fading in after the already-visible glow. */}
         <div className="relative z-10 mt-16 sm:mt-20">
           <div className="v22-hero-reel relative mx-auto w-full max-w-6xl">
             <NitroReel tabsOverlay />
-            {/* Beam glare: the aurora beam strikes the reel's top edge here, so
-                light glares off the top border and spills onto the window. In
-                front of the reel (z-30), blended as screen so it reads as an
-                actual hit, not light passing behind the window. */}
             <div
               aria-hidden="true"
               className="pointer-events-none absolute inset-x-0 top-0 z-30 hidden sm:block"
             >
-              {/* Soft halo bloom around the strike. */}
               <div
                 className="absolute"
                 style={{
@@ -1664,7 +1474,6 @@ function Hero({ reduced }: HeroProps) {
                     "radial-gradient(ellipse 50% 50% at 50% 50%, rgba(140,214,240,0.55), rgba(22,185,228,0.26) 52%, transparent 80%)",
                 }}
               />
-              {/* Wide soft anamorphic glow lying along the top border. */}
               <div
                 className="absolute"
                 style={{
@@ -1679,7 +1488,6 @@ function Hero({ reduced }: HeroProps) {
                     "linear-gradient(90deg, transparent, rgba(170,222,244,0.75) 40%, rgba(255,255,255,0.95) 50%, rgba(170,222,244,0.75) 60%, transparent)",
                 }}
               />
-              {/* Crisp specular streak, the glare line ON the border. */}
               <div
                 className="absolute"
                 style={{
@@ -1694,7 +1502,6 @@ function Hero({ reduced }: HeroProps) {
                     "linear-gradient(90deg, transparent, rgba(140,214,240,0.5) 24%, rgba(255,255,255,1) 50%, rgba(140,214,240,0.5) 76%, transparent)",
                 }}
               />
-              {/* Bright compact flare point at the exact hit. */}
               <div
                 className="absolute"
                 style={{
@@ -1709,7 +1516,6 @@ function Hero({ reduced }: HeroProps) {
                     "radial-gradient(circle, rgba(255,255,255,1), rgba(205,240,255,0.7) 30%, transparent 68%)",
                 }}
               />
-              {/* Light spilling down onto the window surface below the hit. */}
               <div
                 className="absolute"
                 style={{
@@ -1732,20 +1538,12 @@ function Hero({ reduced }: HeroProps) {
   );
 }
 
-/* ────────────────────────────────────────────────────────────────────────
-   Full-page atmosphere: two drifting particle layers on different spectrum
-   hues + soft multi-color glows that scroll with the document, so the brand
-   spectrum recurs from hero to footer instead of a single flat teal.
-   ──────────────────────────────────────────────────────────────────────── */
-
 function PageAtmosphere() {
   return (
     <div
       aria-hidden="true"
       className="pointer-events-none absolute inset-0 left-1/2 -z-10 w-screen -translate-x-1/2 overflow-hidden"
     >
-      {/* Two low-count mote layers, cyan and coral, so the drifting field
-          itself reads multi-color. */}
       <RisingParticles
         color="22,185,228"
         count={16}
@@ -1756,9 +1554,6 @@ function PageAtmosphere() {
         count={12}
         className="absolute inset-0"
       />
-      {/* Large, very soft spectrum glows placed down the page so the brand
-          light recurs and ties the whole surface together: coral upper-left,
-          cyan mid, mauve lower. */}
       <div
         className="absolute top-[20%] left-0 h-[48rem] w-[48rem] -translate-x-1/4 rounded-full opacity-90 blur-3xl"
         style={{
@@ -1784,22 +1579,15 @@ function PageAtmosphere() {
   );
 }
 
-/* ────────────────────────────────────────────────────────────────────────
-   Page
-   ──────────────────────────────────────────────────────────────────────── */
-
 export function ClientPage() {
   const reduced = useReducedMotion() ?? false;
 
   return (
     <div className="relative isolate">
-      {/* FULL-PAGE ATMOSPHERE ─────────────────────────────────── */}
       <PageAtmosphere />
 
-      {/* HERO ─────────────────────────────────────────────────── */}
       <Hero reduced={reduced} />
 
-      {/* OBSERVE ──────────────────────────────────────────────── */}
       <section
         id="observe"
         className="border-cc-card-border scroll-mt-24 border-t py-20 text-center sm:py-28"
@@ -1820,7 +1608,6 @@ export function ClientPage() {
         </RevealOnScroll>
       </section>
 
-      {/* SIGNALS BENTO ────────────────────────────────────────── */}
       <section
         id="signals"
         className="border-cc-card-border scroll-mt-24 border-t py-20 sm:py-28"
@@ -1841,7 +1628,6 @@ export function ClientPage() {
         </RevealOnScroll>
       </section>
 
-      {/* TRACE ────────────────────────────────────────────────── */}
       <Showcase
         id="trace"
         index="03"
@@ -1852,7 +1638,6 @@ export function ClientPage() {
         reverse
       />
 
-      {/* DIAGNOSE ─────────────────────────────────────────────── */}
       <Showcase
         id="diagnose"
         index="04"
@@ -1862,7 +1647,6 @@ export function ClientPage() {
         visual={<NitroDiagnose className="w-full" />}
       />
 
-      {/* FUSION ───────────────────────────────────────────────── */}
       <Showcase
         id="fusion"
         index="05"
@@ -1873,7 +1657,6 @@ export function ClientPage() {
         reverse
       />
 
-      {/* EVOLVE / SCHEMA ──────────────────────────────────────── */}
       <Showcase
         id="schema"
         index="06"
@@ -1884,10 +1667,8 @@ export function ClientPage() {
         aside={<ClassificationCard />}
       />
 
-      {/* DELIVERY / SAFETY ────────────────────────────────────── */}
       <DeliveryBand />
 
-      {/* AUTHOR ───────────────────────────────────────────────── */}
       <Showcase
         id="author"
         index="08"
@@ -1897,7 +1678,6 @@ export function ClientPage() {
         visual={<NitroCompose className="w-full" />}
       />
 
-      {/* CTA ──────────────────────────────────────────────────── */}
       <section className="border-cc-card-border border-t py-24 text-center sm:py-32">
         <RevealOnScroll className="mx-auto flex max-w-2xl flex-col items-center gap-6">
           <Eyebrow>Ready when you are</Eyebrow>

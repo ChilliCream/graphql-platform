@@ -1,12 +1,3 @@
-/**
- * Stage — the reel "viewport". A fixed design canvas (where every camera/cursor coordinate
- * is authored) scaled responsively to the container, clipping a taller screen that the
- * camera pans/zooms over. The cursor + popouts live in a separate overlay that is NOT
- * camera-transformed, so they stay in viewport space on top of the moving screen.
- *
- * Camera math: to frame a focus point (fx,fy) of the canvas at viewport centre at scale k,
- * the orchestrator sets x = W/2 - fx*k, y = H/2 - fy*k (transform-origin 0 0).
- */
 import type { CSSProperties, ReactNode } from "react";
 import { motion, useMotionValue, type MotionValue } from "motion/react";
 import { useElementSize } from "../../lib/useElementSize";
@@ -19,22 +10,12 @@ export interface StageCamera {
 }
 
 export interface StageProps {
-  /** design viewport size — the coordinate space the reel is authored in */
   width?: number;
   height?: number;
-  /** optional pan/zoom camera; omit for a static (identity) camera */
   camera?: StageCamera;
-  /** the screen(s) being toured (rendered at canvas width) */
   children: ReactNode;
-  /** viewport-space overlay (cursor, popouts) — not camera-transformed */
   overlay?: ReactNode;
-  /**
-   * Sizing mode. `'aspect'` (default) makes the stage an aspect-ratio box at width:100%
-   * (standalone stories). `'fill'` makes it fill an absolutely-positioned parent — used by
-   * TabReel, whose content area already owns the aspect ratio and stacks crossfading screens.
-   */
   fit?: "aspect" | "fill";
-  /** chrome — disable the rounded border/background when embedded (e.g. inside TabReel). */
   chrome?: boolean;
   className?: string;
   style?: CSSProperties;
@@ -55,7 +36,6 @@ export function Stage({
 }: StageProps) {
   const { ref, width: cw } = useElementSize<HTMLDivElement>();
   const s = cw > 0 ? cw / width : 1;
-  // identity-camera fallbacks (stable MotionValues) when no camera is provided
   const ix = useMotionValue(0);
   const iy = useMotionValue(0);
   const ik = useMotionValue(1);
@@ -84,7 +64,6 @@ export function Stage({
         ...style,
       }}
     >
-      {/* fixed design canvas, scaled to fit the container width */}
       <div
         style={{
           position: "absolute",
@@ -96,7 +75,6 @@ export function Stage({
           transformOrigin: "0 0",
         }}
       >
-        {/* camera-transformed screen layer */}
         <motion.div
           style={{
             position: "absolute",
@@ -112,8 +90,6 @@ export function Stage({
           {children}
         </motion.div>
 
-        {/* viewport-space overlay (cursor + popouts) — sits ABOVE all in-canvas UI (dropdown
-            menus, flyouts) so the simulated cursor is never occluded. */}
         <div
           style={{
             position: "absolute",

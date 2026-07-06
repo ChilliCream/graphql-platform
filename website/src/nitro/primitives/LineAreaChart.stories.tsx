@@ -4,9 +4,6 @@ import { LineAreaChart } from "./LineAreaChart";
 import { ThemeProvider } from "../lib/theme";
 import { token } from "../lib/tokens";
 
-// Realistic latency series (mean / p95 / p99, in ms) mirroring the shape the
-// Nitro product page feeds this chart from `makeLatency` — a calm band with a
-// scripted mid-window spike on the tail percentiles.
 const MEAN_SERIES = [
   11, 12, 11, 13, 12, 13, 13, 12, 11, 12, 13, 14, 13, 12, 12, 12, 13, 14, 13,
   11, 11, 12, 13, 12,
@@ -25,7 +22,6 @@ const meta = {
   component: LineAreaChart,
   parameters: { layout: "centered" },
   argTypes: {
-    // MotionValue / CSSProperties props Storybook controls cannot represent.
     progress: { control: false },
     style: { control: false },
   },

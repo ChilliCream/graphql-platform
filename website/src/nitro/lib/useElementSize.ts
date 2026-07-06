@@ -1,9 +1,3 @@
-/**
- * Measure an element's size via ResizeObserver. Used by the reel Stage to scale a
- * fixed-size "design canvas" (where all camera/cursor coordinates are authored) down to
- * whatever width the container is — so the reel is responsive while its choreography stays
- * in stable pixel coordinates.
- */
 import { useEffect, useRef, useState } from "react";
 import type { RefObject } from "react";
 

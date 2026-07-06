@@ -1,31 +1,3 @@
-/**
- * FusionOverviewScreen — Fusion reel Scene 1: the GATEWAY OVERVIEW for the EShops federated
- * gateway (Production stage). It clones the real "Gateway Overview" surface: a top half with a
- * TOPOLOGY graph + a DETAILS panel, and a
- * bottom half with the SUBGRAPHS tile + the DEPLOYMENTS widget. Everything is present from the
- * first frame (no slow assembly):
- *
- *  ROW 1
- *   - TOPOLOGY tile (left): a client → Gateway hub → 4 subgraph node graph. The Gateway hub is a
- *     teal-green badge; the four subgraph nodes (Products, Reviews, Orders, Accounts) each carry a
- *     PINK subgraph icon. Curved SVG edges connect them.
- *   - DETAILS tile (right): a 3-up KPI strip (Latency / Throughput / Error Rate) over a
- *     label/value table (API ID with copy glyph, Stage, Version, Last published, Clients, Subgraphs).
- *
- *  ROW 2
- *   - SUBGRAPHS tile (left): the four source schemas — each a row with a green health dot, a PINK
- *     subgraph icon, name, version and a small metric.
- *   - DEPLOYMENTS widget (right): recent deployments, newest at top. The top row is a freshly landed
- *     deployment — "Reviews v2.4.0 · deployed · 2 minutes ago" — with a green "deployed" badge and a
- *     subtle highlight. It is the scripted click target (`data-testid="fusion-new-deployment"`).
- *
- * Beat (a developer scanning the gateway after a deploy): the cursor rests neutrally while the
- * viewer reads the overview, then makes one long, slow travel down to the deployments widget, rests
- * on and clicks the NEW Reviews v2.4.0 row (hand cursor), then holds. The cursor does NOT visit the
- * subgraphs. The final frame is the resolved end state so reduced-motion (frozen at progress=1)
- * reads correctly. All motion derives from `progress` via useTransform (no internal clocks); the
- * windows come from a STAGE-BASED timeline (see TL / OVERVIEW_MS below) whose total is DERIVED.
- */
 import { motion, useTransform, type MotionValue } from "motion/react";
 import { Stage } from "../../../primitives/reel/Stage";
 import { AppFrame } from "../../../primitives/reel/AppFrame";
@@ -43,8 +15,6 @@ import {
 
 const W = TABREEL_CANVAS.w;
 const H = TABREEL_CANVAS.h;
-
-/* ── data ─────────────────────────────────────────────────────────────────── */
 
 interface Subgraph {
   name: string;
@@ -84,7 +54,7 @@ const SUBGRAPHS: Subgraph[] = [
 interface Deployment {
   title: string;
   tag: string;
-  target: string; // subgraph or client name
+  target: string;
   when: string;
   isNew?: boolean;
 }
@@ -138,47 +108,32 @@ const DETAILS: DetailRow[] = [
   { label: "Subgraphs", value: "4" },
 ];
 
-/* ── geometry / timeline ──────────────────────────────────────────────────── */
-
 const RAIL = 50;
-const HEADER_H = 74; // GatewayChrome: 38 doc-tabs + 36 view-nav
+const HEADER_H = 74;
 const CRUMB_H = 28;
 const FOOTER_H = 23;
 const PAD = 16;
 const GAP = 16;
 
-// content area below header + breadcrumb, inside the rail.
 const CONTENT_LEFT = RAIL + PAD;
 const CONTENT_TOP = HEADER_H + CRUMB_H + PAD;
-const CONTENT_H = H - FOOTER_H - HEADER_H - CRUMB_H - PAD * 2; // ~775
+const CONTENT_H = H - FOOTER_H - HEADER_H - CRUMB_H - PAD * 2;
 const ROW1_H = 336;
-const ROW2_H = CONTENT_H - ROW1_H - GAP; // remaining for row 2
+const ROW2_H = CONTENT_H - ROW1_H - GAP;
 
-const LEFT_W = 720; // shared left-column width (topology + subgraphs)
-const RIGHT_X = CONTENT_LEFT + LEFT_W + GAP; // left edge of the right column
+const LEFT_W = 720;
+const RIGHT_X = CONTENT_LEFT + LEFT_W + GAP;
 
 const TILE_HEAD = 38;
 
-// ── ROW 2 row geometry (for the cursor scan / click) ──
 const ROW2_TOP = CONTENT_TOP + ROW1_H + GAP;
 const SG_ROW_H = 58;
 
 const DEP_ROW_H = 70;
 const depRowY = (i: number) =>
   ROW2_TOP + TILE_HEAD + i * DEP_ROW_H + DEP_ROW_H / 2;
-const DEP_ROW_CX = RIGHT_X + 320; // a point well inside the deployments tile
+const DEP_ROW_CX = RIGHT_X + 320;
 
-/* ── STAGE-BASED timeline ─────────────────────────────────────────────────────
- * Each interaction is a NAMED stage with its OWN ms; the screen's total duration is
- * DERIVED (OVERVIEW_MS = TL.total). Flow: establish/read (hold) → ONE slow cursor
- * move down to the new "Reviews v2.4.0" deployment row → hover → click → short dwell.
- * The cursor does NOT visit the subgraphs.
- *  - read:             hold while the viewer reads the overview
- *  - moveToDeployment: ONE generous, slow glide down to the new deployment row
- *  - hover:            dwell on the row (hand cursor)
- *  - click:            the scripted click pulse (snappy)
- *  - settle:           short hold after the click (resolved end state for reduced-motion)
- */
 const TL = timeline([
   { name: "read", ms: 1200 },
   { name: "moveToDeployment", ms: 1700 },
@@ -190,13 +145,11 @@ const TL = timeline([
 export const OVERVIEW_MS = TL.total;
 export const OVERVIEW_TL = TL;
 
-// scripted click: the NEW Reviews v2.4.0 deployment row.
 const CLICK = TL.start("click");
 
 export interface FusionOverviewScreenProps {
   progress: MotionValue<number>;
   active?: boolean;
-  /** when false (sequenced reel), the per-scene cursor is suppressed — the reel hosts one shared cursor */
   showCursor?: boolean;
 }
 
@@ -204,14 +157,6 @@ export function FusionOverviewScreen({
   progress,
   showCursor = true,
 }: FusionOverviewScreenProps) {
-  // STAGE-BASED, deliberate path (no detour to subgraphs):
-  //  read              rest neutrally above the deployments area while the viewer reads
-  //  moveToDeployment  ONE long, slow glide down to the new Reviews v2.4.0 deployment row
-  //  hover             rest / hover on the row (hand cursor)
-  //  click             the scripted click
-  //  settle            hold after the click (resolved end state for reduced-motion)
-  // The cursor holds its resting spot through `read`, then travels only during
-  // `moveToDeployment`, and stays on the row from `hover` onward.
   const cx = useTransform(
     progress,
     [TL.start("moveToDeployment"), TL.end("moveToDeployment")],
@@ -254,7 +199,6 @@ export function FusionOverviewScreen({
           }}
         >
           <GatewayChrome activeView="Overview" />
-          {/* breadcrumb / stage toolbar */}
           <div
             style={{
               height: CRUMB_H,
@@ -276,7 +220,6 @@ export function FusionOverviewScreen({
               Stage
             </span>
           </div>
-          {/* content */}
           <div
             style={{
               flex: 1,
@@ -288,7 +231,6 @@ export function FusionOverviewScreen({
               background: token.bg,
             }}
           >
-            {/* ROW 1: topology + details */}
             <div
               style={{
                 flex: `0 0 ${ROW1_H}px`,
@@ -300,7 +242,6 @@ export function FusionOverviewScreen({
               <TopologyTile />
               <DetailsTile />
             </div>
-            {/* ROW 2: subgraphs + deployments */}
             <div
               style={{
                 flex: `0 0 ${ROW2_H}px`,
@@ -318,8 +259,6 @@ export function FusionOverviewScreen({
     </Stage>
   );
 }
-
-/* ── shared tile shell ────────────────────────────────────────────────────── */
 
 function Tile({
   title,
@@ -384,18 +323,14 @@ function Tile({
   );
 }
 
-/** PINK subgraph glyph — used everywhere a subgraph is represented. */
 function SubgraphIcon({ size = 16 }: { size?: number }) {
   return <IconApiGateway size={size} color={token.pink} />;
 }
 
-/* ── ROW 1: TOPOLOGY tile ─────────────────────────────────────────────────── */
-
 function TopologyTile() {
-  // graph drawn in the tile body (minus head). The body is ROW1_H - TILE_HEAD tall.
   const VW = 860;
   const VH = ROW1_H - TILE_HEAD;
-  const cx = VW * 0.5; // gateway hub
+  const cx = VW * 0.5;
   const cy = VH * 0.5;
   const clientX = VW * 0.12;
   const clientY = cy;
@@ -440,14 +375,12 @@ function TopologyTile() {
             </pattern>
           </defs>
           <rect x="0" y="0" width={VW} height={VH} fill="url(#topo-dots)" />
-          {/* client → gateway */}
           <path
             d={`M ${clientX + 34} ${clientY} C ${(clientX + cx) / 2} ${clientY}, ${(clientX + cx) / 2} ${cy}, ${cx - 44} ${cy}`}
             fill="none"
             stroke={token.graphEdge}
             strokeWidth={1.6}
           />
-          {/* gateway → each subgraph */}
           {subs.map((s) => (
             <path
               key={s.name}
@@ -467,7 +400,6 @@ function TopologyTile() {
           ))}
         </svg>
 
-        {/* overlay nodes (HTML for crisp text + icons) */}
         <NodeBox
           xPct={clientX / VW}
           yPct={clientY / VH}
@@ -595,8 +527,6 @@ function NodeBox({
   );
 }
 
-/* ── ROW 1: DETAILS tile ──────────────────────────────────────────────────── */
-
 function DetailsTile() {
   return (
     <Tile title="Details" flex="1">
@@ -609,7 +539,6 @@ function DetailsTile() {
           height: "100%",
         }}
       >
-        {/* 3-up KPI strip in a bordered inner card */}
         <div
           style={{
             flex: "0 0 auto",
@@ -664,7 +593,6 @@ function DetailsTile() {
             </div>
           ))}
         </div>
-        {/* label / value table */}
         <div style={{ display: "flex", flexDirection: "column" }}>
           {DETAILS.map((d, i) => (
             <div
@@ -762,8 +690,6 @@ function CopyIcon() {
   );
 }
 
-/* ── ROW 2: SUBGRAPHS tile ────────────────────────────────────────────────── */
-
 function HealthDot() {
   return (
     <span
@@ -780,7 +706,6 @@ function HealthDot() {
 }
 
 function SubgraphsTile() {
-  // The cursor does NOT visit the subgraphs — these rows are static (no hover tint).
   return (
     <Tile title="Subgraphs" count="4" flex={`0 0 ${LEFT_W}px`}>
       {SUBGRAPHS.map((s, i) => (
@@ -872,8 +797,6 @@ function SubgraphRow({ s, i }: { s: Subgraph; i: number }) {
   );
 }
 
-/* ── ROW 2: DEPLOYMENTS widget ────────────────────────────────────────────── */
-
 function DeploymentsTile({ progress }: { progress: MotionValue<number> }) {
   return (
     <Tile title="Deployments" flex="1">
@@ -899,13 +822,12 @@ function DeploymentRow({
   progress: MotionValue<number>;
 }) {
   const isNew = !!d.isNew;
-  // The NEW row gets a hover tint as the cursor arrives (hover stage) and goes ACTIVE on click.
   const HOVER = TL.start("hover");
   const bg = useTransform(progress, (p): string => {
     if (!isNew) return "transparent";
-    if (p >= CLICK) return token.highlight; // active
-    if (p >= HOVER) return token.surface; // hover
-    return "rgba(30,217,148,0.06)"; // resting subtle highlight on the fresh row
+    if (p >= CLICK) return token.highlight;
+    if (p >= HOVER) return token.surface;
+    return "rgba(30,217,148,0.06)";
   });
   const accentOpacity = useTransform(progress, (p): number =>
     isNew ? (p >= CLICK ? 1 : 0.5) : 0,
@@ -938,7 +860,6 @@ function DeploymentRow({
           }}
         />
       )}
-      {/* status icon: green success check */}
       <span
         style={{
           flex: "0 0 auto",
@@ -954,7 +875,6 @@ function DeploymentRow({
         <IconCheck size={14} color={token.successText} />
       </span>
       <div style={{ flex: 1, minWidth: 0 }}>
-        {/* primary line: title + tag badge + subgraph badge + deployed badge */}
         <div
           style={{
             display: "flex",
@@ -997,7 +917,6 @@ function DeploymentRow({
             </span>
           )}
         </div>
-        {/* secondary line */}
         <div
           style={{ fontSize: 11.5, color: token.textSecondary, marginTop: 3 }}
         >

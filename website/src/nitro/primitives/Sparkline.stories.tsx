@@ -3,8 +3,6 @@ import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 import { Sparkline } from "./Sparkline";
 import { ThemeProvider } from "../lib/theme";
 
-// Realistic latency-in-ms micro series, matching the InsightsTable rows that
-// feed each row's inline latency Sparkline (generators.ts → miniSeries).
 const latencySeries = [42, 48, 45, 51, 58, 54, 49, 46, 52, 60, 55];
 
 const meta = {
@@ -12,8 +10,6 @@ const meta = {
   component: Sparkline,
   parameters: { layout: "centered" },
   argTypes: {
-    // MotionValue — not a controllable arg; omit so the standalone clock runs
-    // (frozen to its final frame by the reduced-motion decorator).
     progress: { control: false },
     style: { control: false },
   },

@@ -1,18 +1,3 @@
-/**
- * FusionDeploymentsScreen — Fusion scene 2: the DEPLOYMENTS view.
- *
- * STORY ("a non-breaking schema change recomposes the gateway cleanly"): the developer opens the
- * gateway's Deployments tab. A short spinner stands in for the fetch, then the master list (left)
- * and detail pane (right) resolve. The freshly-arrived top row — "Gateway Configuration Deployment
- * succeeded · v2.4.0 · Reviews · Approved" — is auto-selected; the detail pane shows Deployment
- * Succeeded, the Reviews subgraph link, a single green SAFE "2" change chip, the changelog tree
- * (Review › +helpfulVotes, +verifiedPurchase) and a green-only raw SDL diff. Everything is green:
- * the gateway recomposed. The developer then drifts the cursor up to the document tab strip and
- * clicks the "+" (new tab) to go start a query against the freshly recomposed gateway.
- *
- * All motion derives from `progress` via useTransform (no internal clocks). Reduced motion freezes
- * at progress=1, so the FINAL frame is the fully-resolved end state (diff visible, SAFE chip lit).
- */
 import { motion, useTransform, type MotionValue } from "motion/react";
 import { Stage } from "../../../primitives/reel/Stage";
 import { AppFrame } from "../../../primitives/reel/AppFrame";
@@ -41,8 +26,6 @@ const H = TABREEL_CANVAS.h;
 const RAIL = 50;
 const GREEN = token.success;
 const GREEN_TEXT = token.successText;
-
-/* ── data ─────────────────────────────────────────────────────────────────── */
 
 interface Row {
   id: string;
@@ -118,32 +101,14 @@ const DIFF = `type Review {
   helpfulVotes: Int!
   verifiedPurchase: Boolean!
 }`;
-// the two NEW lines (0-based) that render with a green "+" gutter
 const ADDED_LINES = new Set([4, 5]);
-
-/* ── geometry / timeline ──────────────────────────────────────────────────── */
 
 const LIST_W = 300;
 const TOOLBAR_H = 36;
-const HEADER_H = GW_HEADER_H + TOOLBAR_H; // chrome + "Production Stage" toolbar
+const HEADER_H = GW_HEADER_H + TOOLBAR_H;
 const ENTRY_H = 68;
-const listRowY = (i: number) =>
-  HEADER_H + 20 /*ColumnContent pad*/ + 1 + i * ENTRY_H + ENTRY_H / 2;
+const listRowY = (i: number) => HEADER_H + 20 + 1 + i * ENTRY_H + ENTRY_H / 2;
 
-/**
- * STAGE-BASED timeline. Each interaction owns its real duration in ms; the screen total is DERIVED
- * (TL.total → DEPLOYMENTS_MS). UI reveals/pulses are SNAPPY; the cursor's trip to the "+" is a
- * dedicated, generous slow-glide stage.
- *
- *   load        spinner stand-in for the fetch
- *   select      top row auto-selects + detail pane resolves
- *   tree        changelog children (helpfulVotes, verifiedPurchase) fan in
- *   diff        raw SDL diff reveals
- *   read        dwell — the developer reads the additive diff
- *   safe        the green "2 safe" chip confirm-pulses
- *   moveToPlus  ONE slow cursor glide up to the document-tab "+"
- *   plusClick   click the "+" then a short hold
- */
 const TL = timeline([
   { name: "load", ms: 500 },
   { name: "select", ms: 400 },
@@ -158,11 +123,8 @@ const TL = timeline([
 export const DEPLOYMENTS_MS = TL.total;
 export const DEPLOYMENTS_TL = TL;
 
-// the gw-plus "+" lives in the doc-tab strip just after the EShops Gateway tab.
-// rail(50) + pad(8) + tab(~165) + gap(6) + marginLeft(6) → ~+ glyph center.
 const PLUS_X = RAIL + 8 + 165 + 6 + 6 + 8;
-const PLUS_Y = 19; // doc-tab strip is 38px tall, glyph sits mid-height
-// top list row center (in canvas px) — the cursor's first dwell target
+const PLUS_Y = 19;
 const ROW0_X = RAIL + 150;
 const ROW0_Y = listRowY(0);
 
@@ -176,9 +138,6 @@ export function FusionDeploymentsScreen({
   progress,
   showCursor = true,
 }: FusionDeploymentsScreenProps) {
-  // Settle on the freshly-selected top row by the end of `select`, rest there through the diff read
-  // and SAFE pulse, then a dedicated slow `moveToPlus` glide up to the document-tab "+", landing as
-  // `plusClick` begins and holding there.
   const cx = useTransform(
     progress,
     [0, TL.end("select"), TL.start("moveToPlus"), TL.start("plusClick"), 1],
@@ -223,7 +182,6 @@ export function FusionDeploymentsScreen({
           }}
         >
           <GatewayChrome activeView="Deployments" />
-          {/* ColumnHeader toolbar: "{stage} Stage" */}
           <div
             style={{
               height: TOOLBAR_H,
@@ -251,7 +209,6 @@ export function FusionDeploymentsScreen({
               {ROWS.length} deployments
             </span>
           </div>
-          {/* ColumnContent: 20px padding wrapping the split card */}
           <div
             style={{ flex: 1, minHeight: 0, padding: 20, position: "relative" }}
           >
@@ -291,10 +248,7 @@ export function FusionDeploymentsScreen({
   );
 }
 
-/* ── left: master deployment list ─────────────────────────────────────────── */
-
 function DeploymentList({ progress }: { progress: MotionValue<number> }) {
-  // rows fade up as the spinner clears; the top (new) row slides down a touch as if just prepended.
   const fade = useTransform(
     progress,
     [TL.at("load", 0.8), TL.at("select", 0.3)],
@@ -307,14 +261,12 @@ function DeploymentList({ progress }: { progress: MotionValue<number> }) {
     [-10, 0],
     { clamp: true },
   );
-  // active highlight settles on row 0 as the detail resolves
   const activeBg = useTransform(
     progress,
     [TL.at("select", 0.5), TL.end("select")],
     [0, 1],
     { clamp: true },
   );
-  // full-row green tint for the selected (new) deployment
   const activeRowBg = useTransform(
     progress,
     [TL.at("select", 0.5), TL.end("select")],
@@ -500,8 +452,6 @@ function ApprovedBadge() {
   );
 }
 
-/* ── right: deployment detail ─────────────────────────────────────────────── */
-
 function DetailPane({ progress }: { progress: MotionValue<number> }) {
   const fade = useTransform(
     progress,
@@ -522,7 +472,6 @@ function DetailPane({ progress }: { progress: MotionValue<number> }) {
         opacity: fade,
       }}
     >
-      {/* header */}
       <div style={{ display: "flex", alignItems: "flex-start" }}>
         <div style={{ flex: 1 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
@@ -558,7 +507,6 @@ function DetailPane({ progress }: { progress: MotionValue<number> }) {
         </div>
       </div>
 
-      {/* Subgraph group */}
       <Group label="Subgraph">
         <span
           style={{
@@ -574,12 +522,10 @@ function DetailPane({ progress }: { progress: MotionValue<number> }) {
         </span>
       </Group>
 
-      {/* Changes group — ChangelogStats (single green SAFE chip "2") */}
       <Group label="Changes">
         <SafeChip progress={progress} />
       </Group>
 
-      {/* changelog tree + raw SDL diff */}
       <div
         style={{
           flex: 1,
@@ -593,7 +539,6 @@ function DetailPane({ progress }: { progress: MotionValue<number> }) {
         <RawDiff progress={progress} />
       </div>
 
-      {/* Sequence timeline */}
       <Sequence />
     </motion.div>
   );
@@ -625,7 +570,6 @@ function Group({
 }
 
 function SafeChip({ progress }: { progress: MotionValue<number> }) {
-  // single confirm pulse over the `safe` stage
   const scale = useTransform(
     progress,
     [TL.start("safe"), TL.at("safe", 0.4), TL.end("safe")],
@@ -655,7 +599,6 @@ function SafeChip({ progress }: { progress: MotionValue<number> }) {
   );
 }
 
-/* changelog tree — "object type modified" Review → +helpfulVotes, +verifiedPurchase */
 function ChangelogTree({ progress }: { progress: MotionValue<number> }) {
   const chevRot = useTransform(
     progress,
@@ -681,7 +624,6 @@ function ChangelogTree({ progress }: { progress: MotionValue<number> }) {
   ];
   return (
     <div style={{ fontSize: 12.5 }}>
-      {/* top-level: object type modified */}
       <div
         style={{
           display: "flex",
@@ -703,7 +645,6 @@ function ChangelogTree({ progress }: { progress: MotionValue<number> }) {
         <Coordinate text="Review" />
         <span style={{ color: token.textSecondary }}>object type modified</span>
       </div>
-      {/* children */}
       {children.map(([coord, full, op]) => (
         <motion.div
           key={coord}
@@ -761,7 +702,6 @@ function Coordinate({ text, green }: { text: string; green?: boolean }) {
   );
 }
 
-/* raw SDL DiffEditor — green-only inserted lines for the two new fields */
 function RawDiff({ progress }: { progress: MotionValue<number> }) {
   const reveal = useTransform(
     progress,
@@ -842,7 +782,6 @@ function RawDiff({ progress }: { progress: MotionValue<number> }) {
   );
 }
 
-/* sequence timeline */
 function Sequence() {
   return (
     <Group label="Sequence">
@@ -906,8 +845,6 @@ function Sequence() {
   );
 }
 
-/* ── shared spinner (initial load) ────────────────────────────────────────── */
-
 function Spinner({
   progress,
   show,
@@ -917,7 +854,7 @@ function Spinner({
   show: number;
   hide: number;
 }) {
-  const fade = (hide - show) * 0.15; // edge fade is a fraction of the spinner's own window
+  const fade = (hide - show) * 0.15;
   const opacity = useTransform(
     progress,
     [show, show + fade, hide - fade, hide],

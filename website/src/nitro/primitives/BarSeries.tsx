@@ -1,18 +1,3 @@
-/**
- * BarSeries — vertical bars that grow from the baseline, staggered.
- *
- * The throughput card's "errors per minute" mini-bars: one rect per value, each scaling
- * up from the bottom edge on a slightly offset sub-window of the normalized clock `t`
- * (0→1) so the row sweeps left→right. Driven by `useChartClock`, it animates standalone
- * in its story and also slots into the Monitoring Overview's shared cycle.
- *
- * Responsive contract (shared by every chart primitive):
- *   - inline SVG, `viewBox="0 0 W H"`, `preserveAspectRatio="none"`, width/height 100%
- *   - strokes get `vectorEffect="non-scaling-stroke"` so they stay crisp when stretched
- *   - bars scale via `scaleY` with `transformBox: 'fill-box'` + `transformOrigin: 'bottom'`
- *     so they grow from their own bottom edge regardless of the stretch
- *   - labels (none baked in here) live in the DOM, never in the SVG
- */
 import type { CSSProperties } from "react";
 import { motion, useTransform, type MotionValue } from "motion/react";
 import { clamp, linScale } from "../lib/scale";
@@ -21,21 +6,14 @@ import { token } from "../lib/tokens";
 import { useChartClock } from "../lib/useInViewLoop";
 
 export interface BarSeriesProps {
-  /** one bar per value, left→right */
   values: number[];
-  /** bar color — a `token.*` var string or hex */
   color?: string;
   width?: number;
   height?: number;
-  /** y-domain; `[0, max]` from data when omitted */
   domain?: [number, number];
-  /** gap between bars, in viewBox units */
   gap?: number;
-  /** corner radius of each bar, in viewBox units */
   barRadius?: number;
-  /** fraction of the local window each successive bar is offset by */
   stagger?: number;
-  /** shared master clock (overview); omit for a self-contained standalone loop */
   progress?: MotionValue<number>;
   playWindow?: [number, number];
   durationMs?: number;
@@ -67,12 +45,9 @@ export function BarSeries({
   const dMax = domain ? domain[1] : Math.max(1, ...values);
   const yScale = linScale(dMin, dMax, height, 0);
 
-  // Bars share the full width; gap is split into the slot so the row is flush-fit.
   const slot = n > 0 ? width / n : width;
   const barW = Math.max(0.5, slot - gap);
 
-  // Per-bar draw window: each bar's sub-window is `span` wide, sliding across [0,1] by
-  // index so the row reveals left→right while overlapping (controlled by `stagger`).
   const span = Math.max(0.001, 1 - (n - 1) * (stagger / Math.max(1, n)));
   const step = n > 1 ? (1 - span) / (n - 1) : 0;
 

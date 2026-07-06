@@ -1,12 +1,3 @@
-/**
- * CodeBlock — a hand-tokenized, syntax-highlighted code view with a progressive reveal that
- * reads as live typing (request editor) or streaming (response/JSON). Tokenizes GraphQL or
- * JSON using the exact Nitro editor token colors. Reveals by character count driven by
- * a local `progress` MotionValue + play window; with no `progress` it renders fully (static).
- *
- * Not a real editor — a presentational clone for the reel. Monospace (Fira Code), optional
- * left line-number gutter, optional caret at the typing boundary.
- */
 import { useMemo, useState } from "react";
 import type { CSSProperties } from "react";
 import {
@@ -40,7 +31,6 @@ const GQL_KEYWORDS = new Set([
   "null",
 ]);
 
-// SQL keywords (upper or lower) for the Span Details SQL statement highlighting.
 const SQL_KEYWORDS = new Set([
   "select",
   "from",
@@ -90,7 +80,6 @@ const SQL_KEYWORDS = new Set([
   "end",
 ]);
 
-/** Tokenize one line of SQL into colored runs. */
 function tokenizeSql(line: string): Tok[] {
   const out: Tok[] = [];
   const re =
@@ -104,10 +93,8 @@ function tokenizeSql(line: string): Tok[] {
     if (m[1]) out.push({ t: m[1], c: token.synPunct });
     else if (m[2]) out.push({ t: m[2], c: token.synComment });
     else if (m[3]) out.push({ t: m[3], c: token.synString });
-    else if (m[4])
-      out.push({ t: m[4], c: token.blue }); // bind params $1 / :name
-    else if (m[5])
-      out.push({ t: m[5], c: token.synString }); // numbers
+    else if (m[4]) out.push({ t: m[4], c: token.blue });
+    else if (m[5]) out.push({ t: m[5], c: token.synString });
     else if (m[6]) out.push({ t: m[6], c: token.synPunct });
     else if (m[7]) {
       const w = m[7];
@@ -121,7 +108,6 @@ function tokenizeSql(line: string): Tok[] {
   return out;
 }
 
-/** Tokenize one line of GraphQL into colored runs (no cross-line tokens in our data). */
 function tokenizeGraphql(line: string): Tok[] {
   const out: Tok[] = [];
   const re =
@@ -153,7 +139,6 @@ function tokenizeGraphql(line: string): Tok[] {
   return out;
 }
 
-/** Tokenize one line of JSON; a string immediately followed by ':' is a key (green). */
 function tokenizeJson(line: string): Tok[] {
   const out: Tok[] = [];
   const re =
@@ -180,15 +165,12 @@ function tokenizeJson(line: string): Tok[] {
 export interface CodeBlockProps {
   code: string;
   lang: "graphql" | "json" | "sql";
-  /** local progress driving the reveal; omit for fully-static (final) rendering */
   progress?: MotionValue<number>;
-  /** when within `progress` this types in, as [start,end] fractions */
   playWindow?: [number, number];
   gutter?: boolean;
   caret?: boolean;
   fontSize?: number;
   lineHeight?: number;
-  /** start line number (gutter) */
   startLine?: number;
   padding?: number;
   style?: CSSProperties;
@@ -221,7 +203,6 @@ export function CodeBlock({
       ),
     [lines, lang],
   );
-  // char start offset of each line (newline counts as 1)
   const starts = useMemo(() => {
     const s: number[] = [];
     let acc = 0;
@@ -272,7 +253,7 @@ export function CodeBlock({
     >
       {lines.map((line, i) => {
         const s = starts[i];
-        if (shownChars <= s && i > 0) return null; // line not started yet
+        if (shownChars <= s && i > 0) return null;
         const vis = Math.max(0, Math.min(line.length, shownChars - s));
         const isCurrent = shownChars > s && shownChars <= s + line.length;
         return (

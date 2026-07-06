@@ -9,7 +9,6 @@ const meta = {
   component: TraceTimeline,
   parameters: { layout: "centered" },
   argTypes: {
-    // driven by the Nitro chart clock — not a Storybook-controllable value
     progress: { control: false },
     playWindow: { control: false },
     style: { control: false },

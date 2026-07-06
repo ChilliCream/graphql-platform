@@ -9,7 +9,6 @@ const meta = {
   component: HBarSeries,
   parameters: { layout: "centered" },
   argTypes: {
-    // driven by the Nitro chart clock / render-only props — Storybook can't control these
     progress: { control: false },
     style: { control: false },
   },
