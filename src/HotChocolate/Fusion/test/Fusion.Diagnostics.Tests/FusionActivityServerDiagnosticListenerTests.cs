@@ -1,5 +1,4 @@
 using System.Runtime.CompilerServices;
-using System.Text.Json;
 using HotChocolate.Diagnostics;
 using HotChocolate.Resolvers;
 using HotChocolate.Transport.Http;
