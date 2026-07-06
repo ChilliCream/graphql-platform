@@ -51,7 +51,7 @@ public sealed class DispatchSchedulingMiddleware
 
         var resolver = context.Services.GetRequiredService<ScheduledMessageStoreResolver>();
 
-        if (!resolver.TryGetForDispatch(context, out var store))
+        if (!resolver.TryResolve(context, out var store))
         {
             throw ThrowHelper.ScheduledDispatchUnsupported(context.Transport.GetType());
         }

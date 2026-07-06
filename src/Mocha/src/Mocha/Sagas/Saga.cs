@@ -274,20 +274,11 @@ public abstract partial class Saga<TState> : Saga where TState : SagaStateBase
 
                 var scheduledTime = timeProvider.GetUtcNow().Add(timeout);
 
-                try
-                {
-                    var result = await bus.ScheduleSendAsync(new SagaTimedOutEvent(state.Id), scheduledTime, ct);
+                var result = await bus.ScheduleSendAsync(new SagaTimedOutEvent(state.Id), scheduledTime, ct);
 
-                    if (result.Token is not null)
-                    {
-                        state.TimeoutToken = result.Token;
-                    }
-                }
-                catch (NotSupportedException)
+                if (result.Token is not null)
                 {
-                    // No scheduling store registered for this transport; the saga will
-                    // proceed without an automatic timeout. The saga remains correct;
-                    // it just won't receive a SagaTimedOutEvent unless one is sent manually.
+                    state.TimeoutToken = result.Token;
                 }
             }
         }

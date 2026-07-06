@@ -97,7 +97,9 @@ internal sealed class ReceiveRedeliveryMiddleware(
 
             dispatchContext.Envelope = envelope;
 
-            if (context.Services.GetService<ScheduledMessageStoreResolver>()?.TryGetForDispatch(dispatchContext, out _) is true)
+            var resolver = context.Services.GetRequiredService<ScheduledMessageStoreResolver>();
+
+            if (resolver.CanSchedule(dispatchContext))
             {
                 dispatchContext.ScheduledTime = scheduledTime;
             }
@@ -140,6 +142,12 @@ internal sealed class ReceiveRedeliveryMiddleware(
 
 file static class Extensions
 {
+    /// <summary>
+    /// Determines whether a scheduled message store is available for the dispatch context's transport.
+    /// </summary>
+    public static bool CanSchedule(this ScheduledMessageStoreResolver resolver, IDispatchContext context)
+        => resolver.TryResolve(context, out _);
+
     /// <summary>
     /// Resolves exception policy feature with the most specific scope taking precedence.
     /// Endpoint -> Transport -> Bus.

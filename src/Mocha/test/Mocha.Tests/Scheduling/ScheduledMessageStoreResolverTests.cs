@@ -8,7 +8,7 @@ namespace Mocha.Tests.Scheduling;
 public class ScheduledMessageStoreResolverTests
 {
     [Fact]
-    public void TryGetForDispatch_Should_UseTransportSpecificStoreBeforeFallback()
+    public void TryResolve_Should_UseTransportSpecificStoreBeforeFallback()
     {
         var specific = new SpecificStore();
         var fallback = new FallbackStore();
@@ -20,14 +20,14 @@ public class ScheduledMessageStoreResolverTests
         var resolver = provider.GetRequiredService<ScheduledMessageStoreResolver>();
         var context = new DispatchContext { Transport = new TransportA() };
 
-        var found = resolver.TryGetForDispatch(context, out var store);
+        var found = resolver.TryResolve(context, out var store);
 
         Assert.True(found);
         Assert.Same(specific, store);
     }
 
     [Fact]
-    public void TryGetForDispatch_Should_UseMostSpecificTransportRegistration()
+    public void TryResolve_Should_UseMostSpecificTransportRegistration()
     {
         var specific = new SpecificStore();
         var fallback = new FallbackStore();
@@ -39,14 +39,14 @@ public class ScheduledMessageStoreResolverTests
         var resolver = provider.GetRequiredService<ScheduledMessageStoreResolver>();
         var context = new DispatchContext { Transport = new TransportA() };
 
-        var found = resolver.TryGetForDispatch(context, out var store);
+        var found = resolver.TryResolve(context, out var store);
 
         Assert.True(found);
         Assert.Same(specific, store);
     }
 
     [Fact]
-    public void TryGetForDispatch_Should_UseExactTransportInstanceBeforeTransportType()
+    public void TryResolve_Should_UseExactTransportInstanceBeforeTransportType()
     {
         var transport = new TransportA();
         var specific = new SpecificStore();
@@ -59,14 +59,14 @@ public class ScheduledMessageStoreResolverTests
         var resolver = provider.GetRequiredService<ScheduledMessageStoreResolver>();
         var context = new DispatchContext { Transport = transport };
 
-        var found = resolver.TryGetForDispatch(context, out var store);
+        var found = resolver.TryResolve(context, out var store);
 
         Assert.True(found);
         Assert.Same(specific, store);
     }
 
     [Fact]
-    public void TryGetForDispatch_Should_UseFallback_When_NoTransportSpecificStoreMatches()
+    public void TryResolve_Should_UseFallback_When_NoTransportSpecificStoreMatches()
     {
         var specific = new SpecificStore();
         var fallback = new FallbackStore();
@@ -78,14 +78,14 @@ public class ScheduledMessageStoreResolverTests
         var resolver = provider.GetRequiredService<ScheduledMessageStoreResolver>();
         var context = new DispatchContext { Transport = new TransportB() };
 
-        var found = resolver.TryGetForDispatch(context, out var store);
+        var found = resolver.TryResolve(context, out var store);
 
         Assert.True(found);
         Assert.Same(fallback, store);
     }
 
     [Fact]
-    public void TryGetForDispatch_Should_ReturnFalse_When_NoStoreMatches()
+    public void TryResolve_Should_ReturnFalse_When_NoStoreMatches()
     {
         using var provider = BuildProvider(
             new SpecificStore(),
@@ -94,7 +94,7 @@ public class ScheduledMessageStoreResolverTests
         var resolver = provider.GetRequiredService<ScheduledMessageStoreResolver>();
         var context = new DispatchContext { Transport = new TransportB() };
 
-        var found = resolver.TryGetForDispatch(context, out _);
+        var found = resolver.TryResolve(context, out _);
 
         Assert.False(found);
     }

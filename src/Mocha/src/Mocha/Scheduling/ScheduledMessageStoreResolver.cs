@@ -25,7 +25,7 @@ internal sealed class ScheduledMessageStoreResolver
         _services = services;
     }
 
-    public bool TryGetForDispatch(IDispatchContext context, [NotNullWhen(true)] out IScheduledMessageStore? store)
+    public bool TryResolve(IDispatchContext context, [NotNullWhen(true)] out IScheduledMessageStore? store)
     {
         var transportType = context.Transport.GetType();
         ScheduledMessageStoreRegistration? fallback = null;
