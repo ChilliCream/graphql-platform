@@ -81,6 +81,55 @@ public class CompositeResultDocumentTests : FusionTestBase
     }
 
     [Fact]
+    public void TryGetObjectScope_Should_ReturnFalseAndFallback_When_ObjectHasNoSelectionSet()
+    {
+        // arrange
+        var schema = CreateCompositeSchema();
+
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+                productBySlug(slug: "1") {
+                    ... Product
+                }
+            }
+
+            fragment Product on Product {
+                id
+                name
+            }
+            """);
+
+        var compositeResult = new CompositeResultDocument(CommonTestExtensions.CreateArena(), plan.Operation, 0);
+        var operation = compositeResult.Data.Operation;
+
+        var productBySlug = compositeResult.Data.GetProperty("productBySlug");
+        var productBySlugSelection = productBySlug.AssertSelection();
+        var selectionSet = operation.GetSelectionSet(productBySlugSelection);
+        productBySlug.SetObjectValue(selectionSet);
+
+        var objectStart = compositeResult.GetStartCursor(productBySlug.Cursor);
+        var row = compositeResult._metaDb.Get(objectStart);
+        compositeResult._metaDb.Replace(
+            objectStart,
+            ElementTokenType.StartObject,
+            sizeOrLength: row.SizeOrLength,
+            parentRow: row.Parent,
+            numberOfRows: row.NumberOfRows,
+            flags: row.Flags);
+
+        // act
+        var hasScope = productBySlug.TryGetObjectScope(out _);
+        var hasProperty = productBySlug.TryGetProperty("id"u8, out var id);
+
+        // assert
+        Assert.False(hasScope);
+        Assert.True(hasProperty);
+        Assert.Equal("id", id.GetPropertyName());
+    }
+
+    [Fact]
     public void Add_SourceResult_Leaf_Value()
     {
         // arrange

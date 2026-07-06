@@ -1,6 +1,7 @@
 using System.Text.Json;
 using HotChocolate.Buffers;
 using HotChocolate.Execution;
+using HotChocolate.Execution.Errors;
 using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Execution.Results;
@@ -294,6 +295,7 @@ public sealed class OperationPlanContextRoutingTests : FusionTestBase
         private readonly IVariableValueCollection _variables;
         private readonly List<OperationPlanContext> _rentedContexts = [];
         private readonly List<FetchResultStore> _stores = [];
+        private readonly List<MemoryArena> _arenas = [];
         private readonly List<CancellationTokenSource> _ctsList = [];
         private readonly List<(ObjectPool<PooledRequestContext> Pool, PooledRequestContext Context)> _requestContexts = [];
 
@@ -400,7 +402,18 @@ public sealed class OperationPlanContextRoutingTests : FusionTestBase
             params ObjectFieldNode[] fields)
         {
             var sourceStore = new FetchResultStore();
+            var sourceArena = new MemoryArena();
+            sourceStore.Initialize(
+                sourceArena,
+                _executor.Schema,
+                DefaultErrorHandler.Default,
+                _operationPlan.Operation,
+                ErrorHandlingMode.Propagate,
+                includeFlags: 0,
+                deferFlags: 0,
+                pathSegmentLocalPoolCapacity: 16);
             _stores.Add(sourceStore);
+            _arenas.Add(sourceArena);
 
             var entry = sourceStore.CreateVariableValueSets(CompactPath.Root, fields);
             context.SetRequirements([entry], keys);
@@ -421,6 +434,11 @@ public sealed class OperationPlanContextRoutingTests : FusionTestBase
             foreach (var store in _stores)
             {
                 store.Dispose();
+            }
+
+            foreach (var arena in _arenas)
+            {
+                arena.Dispose();
             }
 
             foreach (var cts in _ctsList)
