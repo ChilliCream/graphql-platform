@@ -1,0 +1,75 @@
+{
+  "openapi": "3.1.2",
+  "info": {
+    "title": "HotChocolate.Adapters.OpenApi.Tests | v1",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "http://localhost"
+    }
+  ],
+  "paths": {
+    "/indirect-input": {
+      "post": {
+        "operationId": "submitIndirect",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "middle": {
+                    "$ref": "#/components/schemas/IndirectMiddleInput"
+                  },
+                  "name": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": null,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "boolean"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "IndirectMiddleInput": {
+        "type": "object",
+        "properties": {
+          "label": {
+            "type": "string"
+          },
+          "parent": {
+            "$ref": "#/components/schemas/IndirectParentInput"
+          }
+        }
+      },
+      "IndirectParentInput": {
+        "type": "object",
+        "properties": {
+          "middle": {
+            "$ref": "#/components/schemas/IndirectMiddleInput"
+          },
+          "name": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

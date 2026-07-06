@@ -92,7 +92,68 @@ public static class SyntaxConstants
     public const string IEventRequestOfT = "Mocha.IEventRequest`1";
 
     /// <summary>
+    /// Gets the fully qualified display string for the <c>IEventRequest</c> marker interface,
+    /// used when comparing emitted <c>typeof(...)</c> expressions.
+    /// </summary>
+    public const string IEventRequestDisplay = "global::Mocha.IEventRequest";
+
+    /// <summary>
+    /// Gets the fully qualified display prefix for a closed <c>IEventRequest&lt;TResponse&gt;</c>,
+    /// used to detect framework base types in emitted <c>typeof(...)</c> expressions.
+    /// </summary>
+    public const string IEventRequestOfTDisplayPrefix = "global::Mocha.IEventRequest<";
+
+    /// <summary>
     /// Gets the metadata name for the <c>MessagingModuleAttribute</c> class.
     /// </summary>
     public const string MessagingModuleAttribute = "Mocha.MessagingModuleAttribute";
+
+    /// <summary>
+    /// Gets the named property name for the <c>JsonContext</c> property
+    /// on <c>MessagingModuleAttribute</c>.
+    /// </summary>
+    public const string JsonContextProperty = "JsonContext";
+
+    /// <summary>
+    /// Gets the metadata name for the <c>MessagingModuleInfoAttribute</c> class.
+    /// </summary>
+    public const string MessagingModuleInfoAttribute = "Mocha.MessagingModuleInfoAttribute";
+
+    /// <summary>
+    /// Gets the metadata name for the <c>MediatorModuleInfoAttribute</c> class.
+    /// </summary>
+    public const string MediatorModuleInfoAttribute = "Mocha.Mediator.MediatorModuleInfoAttribute";
+
+    /// <summary>
+    /// Gets the named property name for the <c>MessageTypes</c> property
+    /// on <c>MessagingModuleInfoAttribute</c> and <c>MediatorModuleInfoAttribute</c>.
+    /// </summary>
+    public const string MessageTypesProperty = "MessageTypes";
+
+    /// <summary>
+    /// Gets the named property name for the <c>SagaTypes</c> property
+    /// on <c>MessagingModuleInfoAttribute</c>.
+    /// </summary>
+    public const string SagaTypesProperty = "SagaTypes";
+
+    /// <summary>
+    /// Gets the named property name for the <c>HandlerTypes</c> property
+    /// on <c>MessagingModuleInfoAttribute</c> and <c>MediatorModuleInfoAttribute</c>.
+    /// </summary>
+    public const string HandlerTypesProperty = "HandlerTypes";
+
+    /// <summary>
+    /// Gets the metadata name for the <c>IMessageBus</c> interface.
+    /// </summary>
+    public const string IMessageBus = "Mocha.IMessageBus";
+
+    /// <summary>
+    /// Gets the metadata name for the <c>ISender</c> interface (Mediator).
+    /// </summary>
+    public const string ISender = "Mocha.Mediator.ISender";
+
+    /// <summary>
+    /// Gets the metadata name for the <c>IPublisher</c> interface (Mediator).
+    /// </summary>
+    public const string IPublisher = "Mocha.Mediator.IPublisher";
 }

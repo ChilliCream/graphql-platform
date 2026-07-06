@@ -61,7 +61,10 @@ public interface IClientsClient
     /// <summary>
     /// Lists clients for an API.
     /// </summary>
-    /// <returns>A page of results, or <c>null</c> if the API was not found.</returns>
+    /// <returns>A page of results.</returns>
+    /// <exception cref="NitroClientNotFoundException">
+    /// The API was not found.
+    /// </exception>
     /// <exception cref="NitroClientGraphQLException">
     /// The server returned a GraphQL error.
     /// </exception>
@@ -72,7 +75,7 @@ public interface IClientsClient
     /// The request was rejected because the current credentials do not grant access.
     /// </exception>
     /// <exception cref="OperationCanceledException">The operation was canceled.</exception>
-    Task<ConnectionPage<IListClientCommandQuery_Node_Clients_Edges_Node>?> ListClientsAsync(
+    Task<ConnectionPage<IListClientCommandQuery_Node_Clients_Edges_Node>> ListClientsAsync(
         string apiId,
         string? after,
         int? first,
@@ -81,7 +84,10 @@ public interface IClientsClient
     /// <summary>
     /// Lists versions of a client.
     /// </summary>
-    /// <returns>A page of results, or <c>null</c> if the client was not found.</returns>
+    /// <returns>A page of results.</returns>
+    /// <exception cref="NitroClientNotFoundException">
+    /// The client was not found.
+    /// </exception>
     /// <exception cref="NitroClientGraphQLException">
     /// The server returned a GraphQL error.
     /// </exception>
@@ -92,8 +98,32 @@ public interface IClientsClient
     /// The request was rejected because the current credentials do not grant access.
     /// </exception>
     /// <exception cref="OperationCanceledException">The operation was canceled.</exception>
-    Task<ConnectionPage<IClientDetailPrompt_ClientVersionEdge>?> ListClientVersionsAsync(
+    Task<ConnectionPage<IClientDetailPrompt_ClientVersionEdge>> ListClientVersionsAsync(
         string clientId,
+        string? after,
+        int? first,
+        CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Lists published versions of a client filtered by stage.
+    /// </summary>
+    /// <returns>A page of results.</returns>
+    /// <exception cref="NitroClientNotFoundException">
+    /// The client was not found.
+    /// </exception>
+    /// <exception cref="NitroClientGraphQLException">
+    /// The server returned a GraphQL error.
+    /// </exception>
+    /// <exception cref="NitroClientHttpRequestException">
+    /// The server returned an HTTP error without a GraphQL response body.
+    /// </exception>
+    /// <exception cref="NitroClientAuthorizationException">
+    /// The request was rejected because the current credentials do not grant access.
+    /// </exception>
+    /// <exception cref="OperationCanceledException">The operation was canceled.</exception>
+    Task<ConnectionPage<IListClientPublishedVersionsCommand_PublishedClientVersionEdge>> ListClientPublishedVersionsAsync(
+        string clientId,
+        string stage,
         string? after,
         int? first,
         CancellationToken cancellationToken);
@@ -219,8 +249,11 @@ public interface IClientsClient
     /// <summary>
     /// Downloads persisted queries from a stage.
     /// </summary>
-    /// <returns>The query stream, or <c>null</c> if no published client exists on the stage.</returns>
+    /// <returns>The query stream.</returns>
     /// <remarks>The caller owns and must dispose the returned stream.</remarks>
+    /// <exception cref="NitroClientNotFoundException">
+    /// No published client exists on the requested stage.
+    /// </exception>
     /// <exception cref="NitroClientAuthorizationException">
     /// The request was rejected because the current credentials do not grant access.
     /// </exception>
@@ -228,7 +261,7 @@ public interface IClientsClient
     /// The server returned an HTTP error without a GraphQL response body.
     /// </exception>
     /// <exception cref="OperationCanceledException">The operation was canceled.</exception>
-    Task<Stream?> DownloadPersistedQueriesAsync(
+    Task<Stream> DownloadPersistedQueriesAsync(
         string apiId,
         string stageName,
         CancellationToken cancellationToken);

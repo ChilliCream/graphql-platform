@@ -13,7 +13,7 @@ public class FusionValidationTests : ValidationTestBase
 {
     private DocumentNode _compositeSchema = null!;
 
-    protected override async Task InitializeAsync(TestServerSession serverSession)
+    protected override async ValueTask InitializeAsync(TestServerSession serverSession)
     {
         var server = CreateSourceSchema();
 

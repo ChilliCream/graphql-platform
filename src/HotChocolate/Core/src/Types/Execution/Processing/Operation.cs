@@ -9,6 +9,8 @@ namespace HotChocolate.Execution.Processing;
 
 public sealed class Operation : IOperation
 {
+    private static long s_nextCacheId;
+
 #if NET9_0_OR_GREATER
     private readonly Lock _sync = new();
 #else
@@ -65,6 +67,7 @@ public sealed class Operation : IOperation
         _elementsById = elementsById;
         _features = features;
         HasIncrementalParts = hasIncrementalParts;
+        CacheId = CreateCacheId();
     }
 
     /// <summary>
@@ -126,6 +129,13 @@ public sealed class Operation : IOperation
 
     /// <inheritdoc />
     public bool HasIncrementalParts { get; }
+
+    /// <summary>
+    /// Gets the process-unique cache identifier for this operation.
+    /// </summary>
+    internal long CacheId { get; }
+
+    private static long CreateCacheId() => Interlocked.Increment(ref s_nextCacheId);
 
     /// <summary>
     /// Gets the selection set for the specified <paramref name="selection"/>

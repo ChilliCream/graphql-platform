@@ -1,4 +1,5 @@
 using System.Text;
+using HotChocolate.Features;
 using HotChocolate.Types.Mutable.Serialization;
 
 namespace HotChocolate.Types.Mutable;
@@ -784,5 +785,126 @@ public class SchemaParserTests
         Assert.True(field.IsDeprecated);
         Assert.Equal("Use newId", field.DeprecationReason);
         Assert.True(field.Directives.ContainsName("deprecated"));
+    }
+
+    [Fact]
+    public void Parse_Should_MapDirectiveDefinitionLocation_When_DirectiveDeclaresIt()
+    {
+        // arrange
+        const string sdl = "directive @meta on DIRECTIVE_DEFINITION";
+
+        // act
+        var schema = SchemaParser.Parse(Encoding.UTF8.GetBytes(sdl));
+
+        // assert
+        Assert.Equal(
+            DirectiveLocation.DirectiveDefinition,
+            schema.DirectiveDefinitions["meta"].Locations);
+    }
+
+    [Fact]
+    public void Parse_Should_ReadDirectivesOnDirectiveDefinition()
+    {
+        // arrange
+        const string sdl =
+            """
+            directive @meta(value: String) on DIRECTIVE_DEFINITION
+
+            directive @foo @meta(value: "a") @deprecated(reason: "Use bar") on OBJECT
+            """;
+
+        // act
+        var schema = SchemaParser.Parse(Encoding.UTF8.GetBytes(sdl));
+
+        // assert
+        var directiveDefinition = schema.DirectiveDefinitions["foo"];
+        Assert.True(directiveDefinition.Directives.ContainsName("meta"));
+        Assert.True(directiveDefinition.IsDeprecated);
+        Assert.Equal("Use bar", directiveDefinition.DeprecationReason);
+        Assert.True(directiveDefinition.Directives.ContainsName("deprecated"));
+    }
+
+    [Fact]
+    public void Parse_Should_MergeDirectives_When_DirectiveExtensionTargetsExistingDefinition()
+    {
+        // arrange
+        const string sdl =
+            """
+            directive @meta(value: String) on DIRECTIVE_DEFINITION
+
+            directive @foo on OBJECT
+
+            extend directive @foo @meta(value: "a")
+            """;
+
+        // act
+        var schema = SchemaParser.Parse(Encoding.UTF8.GetBytes(sdl));
+
+        // assert
+        Assert.True(schema.DirectiveDefinitions["foo"].Directives.ContainsName("meta"));
+    }
+
+    [Fact]
+    public void Parse_Should_MarkDirectiveDefinitionAsDeprecated_When_ExtensionAppliesDeprecated()
+    {
+        // arrange
+        const string sdl =
+            """
+            directive @foo on OBJECT
+
+            extend directive @foo @deprecated(reason: "Use bar")
+            """;
+
+        // act
+        var schema = SchemaParser.Parse(Encoding.UTF8.GetBytes(sdl));
+
+        // assert
+        var directiveDefinition = schema.DirectiveDefinitions["foo"];
+        Assert.True(directiveDefinition.IsDeprecated);
+        Assert.Equal("Use bar", directiveDefinition.DeprecationReason);
+        Assert.True(directiveDefinition.Directives.ContainsName("deprecated"));
+    }
+
+    [Fact]
+    public void Parse_Should_Throw_When_DirectiveExtensionAppliesNonRepeatableDirectiveAlreadyApplied()
+    {
+        // arrange
+        const string sdl =
+            """
+            directive @meta(value: String) on DIRECTIVE_DEFINITION
+
+            directive @foo @meta(value: "a") on OBJECT
+
+            extend directive @foo @meta(value: "b")
+            """;
+
+        // act
+        static void Action() => SchemaParser.Parse(Encoding.UTF8.GetBytes(sdl));
+
+        // assert
+        Assert.Equal(
+            "The non-repeatable directive '@meta' was already applied to '@foo' "
+            + "and cannot be applied again by an extension.",
+            Assert.Throws<SchemaInitializationException>(Action).Message);
+    }
+
+    [Fact]
+    public void Parse_Should_CreateDirectiveDefinition_When_ExtensionTargetsUnknownDirective()
+    {
+        // arrange
+        const string sdl =
+            """
+            directive @meta(value: String) on DIRECTIVE_DEFINITION
+
+            extend directive @foo @meta(value: "a")
+            """;
+
+        // act
+        var schema = SchemaParser.Parse(Encoding.UTF8.GetBytes(sdl));
+
+        // assert
+        var directiveDefinition = schema.DirectiveDefinitions["foo"];
+        Assert.True(directiveDefinition.Directives.ContainsName("meta"));
+        Assert.NotNull(directiveDefinition.Features.Get<TypeExtensionMarker>());
     }
 }

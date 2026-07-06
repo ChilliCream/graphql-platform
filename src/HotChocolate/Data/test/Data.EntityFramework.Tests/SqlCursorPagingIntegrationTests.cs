@@ -40,7 +40,8 @@ public class SqlCursorPagingIntegrationTests : SqlLiteCursorTestBase
                     }
                 }
             }
-            """);
+            """,
+            Xunit.TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -60,7 +61,8 @@ public class SqlCursorPagingIntegrationTests : SqlLiteCursorTestBase
                   foo
                 }
             }
-            """);
+            """,
+            Xunit.TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -92,7 +94,8 @@ public class SqlCursorPagingIntegrationTests : SqlLiteCursorTestBase
                     }
                 }
             }
-            """);
+            """,
+            Xunit.TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -124,7 +127,8 @@ public class SqlCursorPagingIntegrationTests : SqlLiteCursorTestBase
                     }
                 }
             }
-            """);
+            """,
+            Xunit.TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -156,7 +160,8 @@ public class SqlCursorPagingIntegrationTests : SqlLiteCursorTestBase
                     }
                 }
             }
-            """);
+            """,
+            Xunit.TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -188,7 +193,8 @@ public class SqlCursorPagingIntegrationTests : SqlLiteCursorTestBase
                     }
                 }
             }
-            """);
+            """,
+            Xunit.TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -220,7 +226,8 @@ public class SqlCursorPagingIntegrationTests : SqlLiteCursorTestBase
                     }
                 }
             }
-            """);
+            """,
+            Xunit.TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -252,7 +259,8 @@ public class SqlCursorPagingIntegrationTests : SqlLiteCursorTestBase
                     }
                 }
             }
-            """);
+            """,
+            Xunit.TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -284,7 +292,8 @@ public class SqlCursorPagingIntegrationTests : SqlLiteCursorTestBase
                     }
                 }
             }
-            """);
+            """,
+            Xunit.TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -316,7 +325,8 @@ public class SqlCursorPagingIntegrationTests : SqlLiteCursorTestBase
                     }
                 }
             }
-            """);
+            """,
+            Xunit.TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -337,7 +347,8 @@ public class SqlCursorPagingIntegrationTests : SqlLiteCursorTestBase
                     totalCount
                 }
             }
-            """);
+            """,
+            Xunit.TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -358,7 +369,8 @@ public class SqlCursorPagingIntegrationTests : SqlLiteCursorTestBase
                     totalCount
                 }
             }
-            """);
+            """,
+            Xunit.TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -378,7 +390,8 @@ public class SqlCursorPagingIntegrationTests : SqlLiteCursorTestBase
                     totalCount
                 }
             }
-            """);
+            """,
+            Xunit.TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();

@@ -27,7 +27,7 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
               --legacy-v1-archive <legacy-v1-archive>        The path to a Fusion v1 archive file. This option is only intended to be used during the migration from Fusion v1 to Fusion v2+.
               -f, --source-schema-file <source-schema-file>  One or more paths to a source schema file (.graphqls) or directory containing a source schema file
               --cloud-url <cloud-url>                        The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL]
-              --api-key <api-key>                            The API key used for authentication [env: NITRO_API_KEY]
+              --api-key <api-key>                            The API key or PAT used for authentication [env: NITRO_API_KEY]
               --output <json>                                The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
               -?, -h, --help                                 Show help and usage information
 
@@ -334,7 +334,6 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
     {
         // arrange
         SetupArchiveFile();
-        SetupFusionConfigurationDownload();
         SetupSchemaValidationMutation();
         SetupSchemaValidationSubscription(
             CreateSchemaVersionOperationInProgressEvent(),
@@ -564,7 +563,6 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
         SetupSourceSchemaFile();
         SetupLegacyArchiveFile();
         SetupMissingFusionConfigurationDownload();
-        SetupLegacyFusionConfigurationDownload();
         var capturedStream = SetupSchemaValidationMutation();
         SetupSchemaValidationSubscription();
 
@@ -605,7 +603,6 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
             SourceSchemaReviews);
         SetupLegacyArchiveFile();
         SetupMissingFusionConfigurationDownload();
-        SetupLegacyFusionConfigurationDownload();
         var capturedStream = SetupSchemaValidationMutation();
         SetupSchemaValidationSubscription();
 
@@ -643,7 +640,6 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
         SetupSourceSchemaFile();
         SetupLegacyArchiveFile();
         SetupMissingFusionConfigurationDownload();
-        SetupMissingLegacyFusionConfigurationDownload();
         var capturedStream = SetupSchemaValidationMutation();
         SetupSchemaValidationSubscription();
 
@@ -684,7 +680,6 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
             SourceSchemaReviews);
         SetupLegacyArchiveFile();
         SetupMissingFusionConfigurationDownload();
-        SetupMissingLegacyFusionConfigurationDownload();
         var capturedStream = SetupSchemaValidationMutation();
         SetupSchemaValidationSubscription();
 
@@ -1106,6 +1101,15 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
               schema: fusion__Schema!
             ) repeatable on ENUM_VALUE
 
+            directive @fusion__eventStream(
+              broker: String
+              cursorArgument: String
+              cursorField: String
+              message: fusion__FieldSelectionSet!
+              schema: fusion__Schema!
+              topics: [String!]
+            ) on FIELD_DEFINITION
+
             "The @fusion__field directive specifies which source schema provides a field in a composite type and what execution behavior it has."
             directive @fusion__field(
               "Indicates that this field is only partially provided and must be combined with `provides`."
@@ -1290,6 +1294,15 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
               "The name of the source schema that provides the specified enum value."
               schema: fusion__Schema!
             ) repeatable on ENUM_VALUE
+
+            directive @fusion__eventStream(
+              broker: String
+              cursorArgument: String
+              cursorField: String
+              message: fusion__FieldSelectionSet!
+              schema: fusion__Schema!
+              topics: [String!]
+            ) on FIELD_DEFINITION
 
             "The @fusion__field directive specifies which source schema provides a field in a composite type and what execution behavior it has."
             directive @fusion__field(

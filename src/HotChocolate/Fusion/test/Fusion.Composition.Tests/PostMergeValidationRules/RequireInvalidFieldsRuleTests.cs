@@ -82,9 +82,9 @@ public sealed class RequireInvalidFieldsRuleTests : RuleTestBase
             """,
             """
             type CartDiscount {
-               id: ID!
-               name: String!
-               channelIds: [ID!]!
+                id: ID!
+                name: String!
+                channelIds: [ID!]!
             }
             """
         ]);
@@ -150,6 +150,76 @@ public sealed class RequireInvalidFieldsRuleTests : RuleTestBase
                     "extensions": {
                         "errors": [
                             "The required field 'Book.size' must not be defined in schema 'A'."
+                        ]
+                    }
+                }
+                """
+            ]);
+    }
+
+    // A constant argument on a required field is valid when it matches the field's argument
+    // definition.
+    [Fact]
+    public void Validate_RequireFieldWithValidArgument_Succeeds()
+    {
+        AssertValid(
+        [
+            """
+            # Schema A
+            type Product @key(fields: "id") {
+                id: ID!
+                shippingCost(size: Int! @require(field: "dimension(unit: METRIC)")): Float
+            }
+            """,
+            """
+            # Schema B
+            type Product @key(fields: "id") {
+                id: ID!
+                dimension(unit: Unit!): Int!
+            }
+
+            enum Unit { METRIC IMPERIAL }
+            """
+        ]);
+    }
+
+    // The @require field selection map references a constant argument that does not exist on the
+    // field.
+    [Fact]
+    public void Validate_RequireFieldWithUnknownArgument_Fails()
+    {
+        AssertInvalid(
+            [
+                """
+                # Schema A
+                type Product @key(fields: "id") {
+                    id: ID!
+                    shippingCost(size: Int! @require(field: "dimension(scale: METRIC)")): Float
+                }
+                """,
+                """
+                # Schema B
+                type Product @key(fields: "id") {
+                    id: ID!
+                    dimension(unit: Unit!): Int!
+                }
+
+                enum Unit { METRIC IMPERIAL }
+                """
+            ],
+            [
+                """
+                {
+                    "message": "The @require directive on argument 'Product.shippingCost(size:)' in schema 'A' specifies an invalid field selection against the composed schema.",
+                    "code": "REQUIRE_INVALID_FIELDS",
+                    "severity": "Error",
+                    "coordinate": "Product.shippingCost(size:)",
+                    "member": "require",
+                    "schema": "A",
+                    "extensions": {
+                        "errors": [
+                            "The argument 'scale' does not exist on field 'Product.dimension'.",
+                            "The required argument 'unit' on field 'Product.dimension' was not provided."
                         ]
                     }
                 }

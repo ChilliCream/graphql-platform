@@ -35,6 +35,11 @@ public sealed class InboundRoute
     public InboundRouteKind Kind { get; private set; }
 
     /// <summary>
+    /// Gets the condition that decides whether this route selects its consumer for a received message.
+    /// </summary>
+    public RouteCondition Condition { get; private set; } = null!;
+
+    /// <summary>
     /// Gets the receive endpoint that this route is connected to, or <c>null</c> if not yet connected.
     /// </summary>
     public ReceiveEndpoint? Endpoint { get; private set; }
@@ -71,6 +76,13 @@ public sealed class InboundRoute
             context.Messages.GetOrAdd(context, configuration.ResponseRuntimeType);
         }
 
+        Condition = configuration.Condition
+            ?? (MessageType is not null
+                ? new MessageTypeCondition(MessageType)
+                : NoMatchCondition.Instance);
+
+        Condition.Initialize(context);
+
         MarkInitialized();
     }
 
@@ -101,7 +113,7 @@ public sealed class InboundRoute
 
         if (Endpoint is null)
         {
-            throw ThrowHelper.RouteEndpointNotConnected();
+            throw ThrowHelper.RouteEndpointNotConnected(this);
         }
 
         MarkCompleted();
@@ -146,6 +158,7 @@ public sealed class InboundRoute
             Kind,
             MessageType?.Identity,
             Consumer?.Name,
+            Condition.Describe(),
             Endpoint is not null
                 ? new EndpointReferenceDescription(Endpoint.Name, Endpoint.Address?.ToString(), Endpoint.Transport.Name)
                 : null);

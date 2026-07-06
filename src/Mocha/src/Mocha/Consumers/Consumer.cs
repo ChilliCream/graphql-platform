@@ -56,7 +56,7 @@ public abstract class Consumer
     /// </summary>
     public Type Identity { get; private set; } = null!;
 
-    private ConsumerDelegate _pipeline = null!;
+    private protected ConsumerDelegate Pipeline { get; private set; } = null!;
 
     /// <summary>
     /// Handles an incoming message after the consume middleware pipeline has completed.
@@ -84,14 +84,14 @@ public abstract class Consumer
     /// <exception cref="InvalidOperationException">
     /// Thrown when the context does not implement <see cref="IConsumeContext"/>.
     /// </exception>
-    public async ValueTask ProcessAsync(IReceiveContext context)
+    public virtual async ValueTask ProcessAsync(IReceiveContext context)
     {
         if (context is not IConsumeContext handlerContext)
         {
             throw ThrowHelper.InvalidHandlerContext();
         }
 
-        await _pipeline(handlerContext);
+        await Pipeline(handlerContext);
     }
 
     /// <summary>
@@ -130,7 +130,7 @@ public abstract class Consumer
         Name = Configuration.Name ?? throw ThrowHelper.ConsumerNameRequired();
         Identity ??= GetType();
 
-        foreach (var route in Configuration!.Routes)
+        foreach (var route in Configuration.Routes)
         {
             route.Consumer = this;
 
@@ -176,7 +176,7 @@ public abstract class Consumer
             Consumer = this
         };
 
-        _pipeline = MiddlewareCompiler.CompileHandler(
+        Pipeline = MiddlewareCompiler.CompileHandler(
             middlewareFactoryContext,
             ConsumeAsync,
             [context.GetConsumerMiddlewares(), Configuration!.ConsumerMiddlewares],

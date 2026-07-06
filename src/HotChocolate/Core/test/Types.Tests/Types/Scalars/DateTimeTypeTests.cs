@@ -31,7 +31,7 @@ public class DateTimeTypeTests
             new TimeSpan(4, 0, 0));
 
         // act
-        var dateTime = (DateTimeOffset)type.CoerceInputLiteral(literal)!;
+        var dateTime = (DateTimeOffset)type.CoerceInputLiteral(literal);
 
         // assert
         Assert.Equal(expectedDateTime, dateTime);
@@ -88,7 +88,7 @@ public class DateTimeTypeTests
             new TimeSpan(4, 0, 0));
 
         // act
-        var dateTime = (DateTimeOffset)type.CoerceInputLiteral(literal)!;
+        var dateTime = (DateTimeOffset)type.CoerceInputLiteral(literal);
 
         // assert
         Assert.Equal(expectedDateTime, dateTime);
@@ -151,7 +151,7 @@ public class DateTimeTypeTests
 
         // act
         var operation = CommonTestExtensions.CreateOperation();
-        var resultDocument = new ResultDocument(operation, 0);
+        var resultDocument = new ResultDocument(CommonTestExtensions.CreateArena(), operation, 0);
         var resultValue = resultDocument.Data.GetProperty("first");
         type.CoerceOutputValue(dateTime, resultValue);
 
@@ -175,7 +175,7 @@ public class DateTimeTypeTests
 
         // act
         var operation = CommonTestExtensions.CreateOperation();
-        var resultDocument = new ResultDocument(operation, 0);
+        var resultDocument = new ResultDocument(CommonTestExtensions.CreateArena(), operation, 0);
         var resultValue = resultDocument.Data.GetProperty("first");
         type.CoerceOutputValue(dateTime, resultValue);
 
@@ -197,7 +197,7 @@ public class DateTimeTypeTests
 
         // act
         var operation = CommonTestExtensions.CreateOperation();
-        var resultDocument = new ResultDocument(operation, 0);
+        var resultDocument = new ResultDocument(CommonTestExtensions.CreateArena(), operation, 0);
         var resultValue = resultDocument.Data.GetProperty("first");
         type.CoerceOutputValue(dateTime, resultValue);
 
@@ -219,7 +219,7 @@ public class DateTimeTypeTests
 
         // act
         var operation = CommonTestExtensions.CreateOperation();
-        var resultDocument = new ResultDocument(operation, 0);
+        var resultDocument = new ResultDocument(CommonTestExtensions.CreateArena(), operation, 0);
         var resultValue = resultDocument.Data.GetProperty("first");
         type.CoerceOutputValue(dateTime, resultValue);
 
@@ -241,7 +241,7 @@ public class DateTimeTypeTests
 
         // act
         var operation = CommonTestExtensions.CreateOperation();
-        var resultDocument = new ResultDocument(operation, 0);
+        var resultDocument = new ResultDocument(CommonTestExtensions.CreateArena(), operation, 0);
         var resultValue = resultDocument.Data.GetProperty("first");
         type.CoerceOutputValue(dateTime, resultValue);
 
@@ -259,7 +259,7 @@ public class DateTimeTypeTests
 
         // act
         var operation = CommonTestExtensions.CreateOperation();
-        var resultDocument = new ResultDocument(operation, 0);
+        var resultDocument = new ResultDocument(CommonTestExtensions.CreateArena(), operation, 0);
         var resultValue = resultDocument.Data.GetProperty("first");
         type.CoerceOutputValue(dateTime, resultValue);
 
@@ -278,7 +278,7 @@ public class DateTimeTypeTests
 
         // act
         var operation = CommonTestExtensions.CreateOperation();
-        var resultDocument = new ResultDocument(operation, 0);
+        var resultDocument = new ResultDocument(CommonTestExtensions.CreateArena(), operation, 0);
         var resultValue = resultDocument.Data.GetProperty("first");
         type.CoerceOutputValue(dateTime, resultValue);
 
@@ -294,7 +294,7 @@ public class DateTimeTypeTests
 
         // act
         var operation = CommonTestExtensions.CreateOperation();
-        var resultDocument = new ResultDocument(operation, 0);
+        var resultDocument = new ResultDocument(CommonTestExtensions.CreateArena(), operation, 0);
         var resultValue = resultDocument.Data.GetProperty("first");
         void Action() => type.CoerceOutputValue("foo", resultValue);
 
@@ -385,10 +385,10 @@ public class DateTimeTypeTests
         var executor = await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<DefaultDateTime>()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
-        var res = await executor.ExecuteAsync("{ test }");
+        var res = await executor.ExecuteAsync("{ test }", TestContext.Current.CancellationToken);
 
         // assert
         res.ToJson().MatchSnapshot();
@@ -461,8 +461,8 @@ public class DateTimeTypeTests
             { DateTimeOptions.DefaultInputPrecision, "2023-12-24T15:30:00" },
             // Space instead of T or t separator.
             { DateTimeOptions.DefaultInputPrecision, "2023-12-24 15:30:00Z" },
-            // Invalid hour (25).
-            { DateTimeOptions.DefaultInputPrecision, "2023-12-24T25:00:00Z" },
+            // Invalid hour (24).
+            { DateTimeOptions.DefaultInputPrecision, "2023-12-24T24:00:00Z" },
             // Invalid minute (60).
             { DateTimeOptions.DefaultInputPrecision, "2023-12-24T15:60:00Z" },
             // ReSharper disable once GrammarMistakeInComment

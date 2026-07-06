@@ -25,7 +25,7 @@ using Spectre.Console.Testing;
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands;
 
 public abstract class CommandTestBase
-    : IClassFixture<NitroCommandFixture>, IAsyncDisposable
+    : IClassFixture<NitroCommandFixture>, IAsyncLifetime
 {
     protected const string ApiId = "api-1";
     protected const string Stage = "dev";
@@ -107,6 +107,9 @@ public abstract class CommandTestBase
 
         if (_interactionMode is InteractionMode.JsonOutput)
         {
+            // Simulate a real terminal (TTY): '--output json' must force
+            // non-interactive behavior even when the console is interactive.
+            outConsole.Profile.Capabilities.Interactive = true;
             arguments.AddRange(["--output", "json"]);
         }
         else if (_interactionMode is InteractionMode.NonInteractive)
@@ -397,6 +400,8 @@ public abstract class CommandTestBase
                 It.IsAny<CancellationToken>()),
             Times.Never);
     }
+
+    public ValueTask InitializeAsync() => ValueTask.CompletedTask;
 
     public async ValueTask DisposeAsync()
     {

@@ -61,7 +61,8 @@ public abstract class IntegrationTestBase
                             ```
                             """))
                 ]
-            });
+            },
+            TestContext.Current.CancellationToken);
         await storage.AddOrUpdatePromptAsync(
             new PromptDefinition("bug_finder")
             {
@@ -89,12 +90,13 @@ public abstract class IntegrationTestBase
                             ```
                             """))
                 ]
-            });
+            },
+            TestContext.Current.CancellationToken);
         var server = await CreateTestServerAsync(storage);
         var mcpClient = await CreateMcpClientAsync(server.CreateClient());
 
         // act
-        var prompts = await mcpClient.ListPromptsAsync();
+        var prompts = await mcpClient.ListPromptsAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         JsonSerializer.Serialize(prompts.Select(t => t.ProtocolPrompt), JsonSerializerOptions)
@@ -143,7 +145,8 @@ public abstract class IntegrationTestBase
                             ```
                             """))
                 ]
-            });
+            },
+            TestContext.Current.CancellationToken);
         var server = await CreateTestServerAsync(storage);
         var mcpClient = await CreateMcpClientAsync(server.CreateClient());
         var listChangedResetEvent = new ManualResetEventSlim(false);
@@ -156,7 +159,7 @@ public abstract class IntegrationTestBase
             });
 
         // act
-        var prompts = await mcpClient.ListPromptsAsync();
+        var prompts = await mcpClient.ListPromptsAsync(cancellationToken: TestContext.Current.CancellationToken);
         IList<McpClientPrompt>? updatedPrompts = null;
 
         await storage.AddOrUpdatePromptAsync(
@@ -186,11 +189,12 @@ public abstract class IntegrationTestBase
                             ```
                             """))
                 ]
-            });
+            },
+            TestContext.Current.CancellationToken);
 
-        if (listChangedResetEvent.Wait(TimeSpan.FromSeconds(5)))
+        if (listChangedResetEvent.Wait(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken))
         {
-            updatedPrompts = await mcpClient.ListPromptsAsync();
+            updatedPrompts = await mcpClient.ListPromptsAsync(cancellationToken: TestContext.Current.CancellationToken);
         }
 
         // assert
@@ -244,7 +248,7 @@ public abstract class IntegrationTestBase
                             """))
                 ]
             };
-        await storage.AddOrUpdatePromptAsync(prompt);
+        await storage.AddOrUpdatePromptAsync(prompt, TestContext.Current.CancellationToken);
         var server = await CreateTestServerAsync(storage);
         var mcpClient = await CreateMcpClientAsync(server.CreateClient());
 
@@ -260,7 +264,8 @@ public abstract class IntegrationTestBase
                     console.log("Hello, World!");
                     """
                 }
-            });
+            },
+            cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         JsonSerializer.Serialize(result, JsonSerializerOptions)
@@ -300,7 +305,7 @@ public abstract class IntegrationTestBase
         var mcpClient = await CreateMcpClientAsync(server.CreateClient());
 
         // act
-        var prompts = await mcpClient.ListPromptsAsync();
+        var prompts = await mcpClient.ListPromptsAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         var prompt = Assert.Single(prompts);
@@ -330,7 +335,7 @@ public abstract class IntegrationTestBase
         var mcpClient = await CreateMcpClientAsync(server.CreateClient());
 
         // act
-        var tools = await mcpClient.ListToolsAsync();
+        var tools = await mcpClient.ListToolsAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         var tool = Assert.Single(tools);
@@ -376,8 +381,8 @@ public abstract class IntegrationTestBase
 
         // act
         storage.RemovePromptAt(0);
-        var notified = listChangedResetEvent.Wait(TimeSpan.FromSeconds(5));
-        var prompts = await mcpClient.ListPromptsAsync();
+        var notified = listChangedResetEvent.Wait(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
+        var prompts = await mcpClient.ListPromptsAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         Assert.True(notified);
@@ -434,8 +439,8 @@ public abstract class IntegrationTestBase
                         new TextContentBlockDefinition("Review (second updated)."))
                 ]
             });
-        var notified = listChangedResetEvent.Wait(TimeSpan.FromSeconds(5));
-        var prompts = await mcpClient.ListPromptsAsync();
+        var notified = listChangedResetEvent.Wait(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
+        var prompts = await mcpClient.ListPromptsAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         Assert.True(notified);
@@ -471,8 +476,8 @@ public abstract class IntegrationTestBase
 
         // act
         storage.RemoveToolAt(0);
-        var notified = listChangedResetEvent.Wait(TimeSpan.FromSeconds(5));
-        var tools = await mcpClient.ListToolsAsync();
+        var notified = listChangedResetEvent.Wait(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
+        var tools = await mcpClient.ListToolsAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         Assert.True(notified);
@@ -502,8 +507,10 @@ public abstract class IntegrationTestBase
         var mcpClient = await CreateMcpClientAsync(server.CreateClient());
 
         // act
-        var tools = await mcpClient.ListToolsAsync();
-        var callResult = await mcpClient.CallToolAsync("get_books");
+        var tools = await mcpClient.ListToolsAsync(cancellationToken: TestContext.Current.CancellationToken);
+        var callResult = await mcpClient.CallToolAsync(
+            "get_books",
+            cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         var tool = Assert.Single(tools);
@@ -539,9 +546,11 @@ public abstract class IntegrationTestBase
 
         // act
         storage.RemoveToolAt(0);
-        var notified = listChangedResetEvent.Wait(TimeSpan.FromSeconds(5));
-        var tools = await mcpClient.ListToolsAsync();
-        var callResult = await mcpClient.CallToolAsync("get_books");
+        var notified = listChangedResetEvent.Wait(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
+        var tools = await mcpClient.ListToolsAsync(cancellationToken: TestContext.Current.CancellationToken);
+        var callResult = await mcpClient.CallToolAsync(
+            "get_books",
+            cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         Assert.True(notified);
@@ -584,8 +593,8 @@ public abstract class IntegrationTestBase
             {
                 Title = "Second GetBooks (updated)"
             });
-        var notified = listChangedResetEvent.Wait(TimeSpan.FromSeconds(5));
-        var tools = await mcpClient.ListToolsAsync();
+        var notified = listChangedResetEvent.Wait(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
+        var tools = await mcpClient.ListToolsAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         Assert.True(notified);
@@ -619,16 +628,22 @@ public abstract class IntegrationTestBase
         await storage.AddOrUpdateToolAsync(
             new OperationToolDefinition(
                 Utf8GraphQLParser.Parse(
-                    await File.ReadAllTextAsync("__resources__/GetWithNullableVariables.graphql"))));
+                    await File.ReadAllTextAsync(
+                        "__resources__/GetWithNullableVariables.graphql",
+                        TestContext.Current.CancellationToken))),
+            TestContext.Current.CancellationToken);
         await storage.AddOrUpdateToolAsync(
             new OperationToolDefinition(
                 Utf8GraphQLParser.Parse(
-                    await File.ReadAllTextAsync("__resources__/GetWithNonNullableVariables.graphql"))));
+                    await File.ReadAllTextAsync(
+                        "__resources__/GetWithNonNullableVariables.graphql",
+                        TestContext.Current.CancellationToken))),
+            TestContext.Current.CancellationToken);
         var server = await CreateTestServerAsync(storage);
         var mcpClient = await CreateMcpClientAsync(server.CreateClient());
 
         // act
-        var tools = await mcpClient.ListToolsAsync();
+        var tools = await mcpClient.ListToolsAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         JsonSerializer.Serialize(
@@ -653,7 +668,10 @@ public abstract class IntegrationTestBase
         await storage.AddOrUpdateToolAsync(
             new OperationToolDefinition(
                 Utf8GraphQLParser.Parse(
-                    await File.ReadAllTextAsync("__resources__/GetBooksWithTitle1.graphql"))));
+                    await File.ReadAllTextAsync(
+                        "__resources__/GetBooksWithTitle1.graphql",
+                        TestContext.Current.CancellationToken))),
+            TestContext.Current.CancellationToken);
         var server = await CreateTestServerAsync(storage);
         var mcpClient = await CreateMcpClientAsync(server.CreateClient());
         var listChangedResetEvent = new ManualResetEventSlim(false);
@@ -666,17 +684,20 @@ public abstract class IntegrationTestBase
             });
 
         // act
-        var tools = await mcpClient.ListToolsAsync();
+        var tools = await mcpClient.ListToolsAsync(cancellationToken: TestContext.Current.CancellationToken);
         IList<McpClientTool>? updatedTools = null;
 
         await storage.AddOrUpdateToolAsync(
             new OperationToolDefinition(
                 Utf8GraphQLParser.Parse(
-                    await File.ReadAllTextAsync("__resources__/GetBooksWithTitle2.graphql"))));
+                    await File.ReadAllTextAsync(
+                        "__resources__/GetBooksWithTitle2.graphql",
+                        TestContext.Current.CancellationToken))),
+            TestContext.Current.CancellationToken);
 
-        if (listChangedResetEvent.Wait(TimeSpan.FromSeconds(5)))
+        if (listChangedResetEvent.Wait(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken))
         {
-            updatedTools = await mcpClient.ListToolsAsync();
+            updatedTools = await mcpClient.ListToolsAsync(cancellationToken: TestContext.Current.CancellationToken);
         }
 
         // assert
@@ -704,7 +725,8 @@ public abstract class IntegrationTestBase
         var storage = new TestMcpStorage();
         await storage.AddOrUpdateToolAsync(
             new OperationToolDefinition(
-                Utf8GraphQLParser.Parse("query GetBooks { books { title } }")));
+                Utf8GraphQLParser.Parse("query GetBooks { books { title } }")),
+            TestContext.Current.CancellationToken);
         var server =
             await CreateTestServerAsync(
                 storage,
@@ -712,7 +734,7 @@ public abstract class IntegrationTestBase
         var mcpClient = await CreateMcpClientAsync(server.CreateClient());
 
         // act
-        var tools = await mcpClient.ListToolsAsync();
+        var tools = await mcpClient.ListToolsAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal("get_books", tools[0].Name);
@@ -726,22 +748,31 @@ public abstract class IntegrationTestBase
         var storage = new TestMcpStorage();
         var document1 =
             Utf8GraphQLParser.Parse(
-                await File.ReadAllTextAsync("__resources__/GetWithNullableVariables.graphql"));
+                await File.ReadAllTextAsync(
+                    "__resources__/GetWithNullableVariables.graphql",
+                    TestContext.Current.CancellationToken));
         var document2 =
             Utf8GraphQLParser.Parse(
-                await File.ReadAllTextAsync("__resources__/GetWithNonNullableVariables.graphql"));
-        await storage.AddOrUpdateToolAsync(new OperationToolDefinition(document1));
+                await File.ReadAllTextAsync(
+                    "__resources__/GetWithNonNullableVariables.graphql",
+                    TestContext.Current.CancellationToken));
+        await storage.AddOrUpdateToolAsync(
+            new OperationToolDefinition(document1),
+            TestContext.Current.CancellationToken);
         await storage.AddOrUpdateToolAsync(
             new OperationToolDefinition(document2)
             {
                 View = new McpAppView(
-                    html: await File.ReadAllTextAsync("__resources__/McpAppView.html"))
-            });
+                    html: await File.ReadAllTextAsync(
+                        "__resources__/McpAppView.html",
+                        TestContext.Current.CancellationToken))
+            },
+            TestContext.Current.CancellationToken);
         var server = await CreateTestServerAsync(storage);
         var mcpClient = await CreateMcpClientAsync(server.CreateClient());
 
         // act
-        var tools = await mcpClient.ListToolsAsync();
+        var tools = await mcpClient.ListToolsAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         JsonSerializer.Serialize(
@@ -776,12 +807,13 @@ public abstract class IntegrationTestBase
                     """))
             {
                 Title = "Custom Title"
-            });
+            },
+            TestContext.Current.CancellationToken);
         var server = await CreateTestServerAsync(storage);
         var mcpClient = await CreateMcpClientAsync(server.CreateClient());
 
         // act
-        var tools = await mcpClient.ListToolsAsync();
+        var tools = await mcpClient.ListToolsAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal("Custom Title", tools[0].Title);
@@ -818,12 +850,13 @@ public abstract class IntegrationTestBase
                         Theme = "dark"
                     }
                 ]
-            });
+            },
+            TestContext.Current.CancellationToken);
         var server = await CreateTestServerAsync(storage);
         var mcpClient = await CreateMcpClientAsync(server.CreateClient());
 
         // act
-        var tools = await mcpClient.ListToolsAsync();
+        var tools = await mcpClient.ListToolsAsync(cancellationToken: TestContext.Current.CancellationToken);
         var icons = tools[0].ProtocolTool.Icons;
 
         // assert
@@ -855,12 +888,13 @@ public abstract class IntegrationTestBase
                 DestructiveHint = false,
                 IdempotentHint = true,
                 OpenWorldHint = false
-            });
+            },
+            TestContext.Current.CancellationToken);
         var server = await CreateTestServerAsync(storage);
         var mcpClient = await CreateMcpClientAsync(server.CreateClient());
 
         // act
-        var tools = await mcpClient.ListToolsAsync();
+        var tools = await mcpClient.ListToolsAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal(false, tools[0].ProtocolTool.Annotations?.DestructiveHint);
@@ -876,20 +910,29 @@ public abstract class IntegrationTestBase
         await storage.AddOrUpdateToolAsync(
             new OperationToolDefinition(
                 Utf8GraphQLParser.Parse(
-                    await File.ReadAllTextAsync("__resources__/ExplicitNonDestructiveTool.graphql"))));
+                    await File.ReadAllTextAsync(
+                        "__resources__/ExplicitNonDestructiveTool.graphql",
+                        TestContext.Current.CancellationToken))),
+            TestContext.Current.CancellationToken);
         await storage.AddOrUpdateToolAsync(
             new OperationToolDefinition(
                 Utf8GraphQLParser.Parse(
-                    await File.ReadAllTextAsync("__resources__/ExplicitIdempotentTool.graphql"))));
+                    await File.ReadAllTextAsync(
+                        "__resources__/ExplicitIdempotentTool.graphql",
+                        TestContext.Current.CancellationToken))),
+            TestContext.Current.CancellationToken);
         await storage.AddOrUpdateToolAsync(
             new OperationToolDefinition(
                 Utf8GraphQLParser.Parse(
-                    await File.ReadAllTextAsync("__resources__/ExplicitClosedWorldTool.graphql"))));
+                    await File.ReadAllTextAsync(
+                        "__resources__/ExplicitClosedWorldTool.graphql",
+                        TestContext.Current.CancellationToken))),
+            TestContext.Current.CancellationToken);
         var server = await CreateTestServerAsync(storage);
         var mcpClient = await CreateMcpClientAsync(server.CreateClient());
 
         // act
-        var tools = await mcpClient.ListToolsAsync();
+        var tools = await mcpClient.ListToolsAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal(false, tools[0].ProtocolTool.Annotations?.DestructiveHint);
@@ -904,16 +947,18 @@ public abstract class IntegrationTestBase
         var storage = new TestMcpStorage();
         await storage.AddOrUpdateToolAsync(
             new OperationToolDefinition(
-                Utf8GraphQLParser.Parse("query Invalid { doesNotExist1, doesNotExist2 }")));
+                Utf8GraphQLParser.Parse("query Invalid { doesNotExist1, doesNotExist2 }")),
+            TestContext.Current.CancellationToken);
         await storage.AddOrUpdateToolAsync(
             new OperationToolDefinition(
-                Utf8GraphQLParser.Parse("query Valid { books { title } }")));
+                Utf8GraphQLParser.Parse("query Valid { books { title } }")),
+            TestContext.Current.CancellationToken);
         var listener = new TestMcpDiagnosticEventListener();
         var server = await CreateTestServerAsync(storage, diagnosticEventListener: listener);
         var mcpClient = await CreateMcpClientAsync(server.CreateClient());
 
         // act
-        var result = await mcpClient.ListToolsAsync();
+        var result = await mcpClient.ListToolsAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal(2, result.Count);
@@ -934,13 +979,14 @@ public abstract class IntegrationTestBase
         var storage = new TestMcpStorage();
         await storage.AddOrUpdateToolAsync(
             new OperationToolDefinition(
-                Utf8GraphQLParser.Parse("query Invalid { doesNotExist1 }")));
+                Utf8GraphQLParser.Parse("query Invalid { doesNotExist1 }")),
+            TestContext.Current.CancellationToken);
         var listener = new TestMcpDiagnosticEventListener();
         var server = await CreateTestServerAsync(storage, diagnosticEventListener: listener);
         var mcpClient = await CreateMcpClientAsync(server.CreateClient());
 
         // act
-        var result = await mcpClient.CallToolAsync("invalid");
+        var result = await mcpClient.CallToolAsync("invalid", cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         Assert.True(result.IsError);
@@ -958,7 +1004,8 @@ public abstract class IntegrationTestBase
             new OperationToolDefinition(Utf8GraphQLParser.Parse("query Tool { books { title } }"))
             {
                 Title = "BEFORE"
-            });
+            },
+            TestContext.Current.CancellationToken);
         var listener = new TestMcpDiagnosticEventListener();
         var server = await CreateTestServerAsync(storage, diagnosticEventListener: listener);
         var mcpClient = await CreateMcpClientAsync(server.CreateClient());
@@ -977,10 +1024,13 @@ public abstract class IntegrationTestBase
                 Utf8GraphQLParser.Parse("query Tool { doesNotExist1, doesNotExist2 }"))
             {
                 Title = "AFTER"
-            });
-        var notified = listChangedResetEvent.Wait(TimeSpan.FromSeconds(5));
-        var listed = await mcpClient.ListToolsAsync();
-        var callResult = await mcpClient.CallToolAsync("tool");
+            },
+            TestContext.Current.CancellationToken);
+        var notified = listChangedResetEvent.Wait(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
+        var listed = await mcpClient.ListToolsAsync(cancellationToken: TestContext.Current.CancellationToken);
+        var callResult = await mcpClient.CallToolAsync(
+            "tool",
+            cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         Assert.True(notified);
@@ -1003,7 +1053,10 @@ public abstract class IntegrationTestBase
         await storage.AddOrUpdateToolAsync(
             new OperationToolDefinition(
                 Utf8GraphQLParser.Parse(
-                    await File.ReadAllTextAsync("__resources__/GetWithNullableVariables.graphql"))));
+                    await File.ReadAllTextAsync(
+                        "__resources__/GetWithNullableVariables.graphql",
+                        TestContext.Current.CancellationToken))),
+            TestContext.Current.CancellationToken);
         var server = await CreateTestServerAsync(storage);
         var mcpClient = await CreateMcpClientAsync(server.CreateClient());
 
@@ -1042,7 +1095,8 @@ public abstract class IntegrationTestBase
                 { "url", null },
                 { "uuid", null }
             },
-            options: new RequestOptions { JsonSerializerOptions = JsonSerializerOptions.Default });
+            options: new RequestOptions { JsonSerializerOptions = JsonSerializerOptions.Default },
+            cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         result.StructuredContent.MatchSnapshot(extension: ".json");
@@ -1056,7 +1110,10 @@ public abstract class IntegrationTestBase
         await storage.AddOrUpdateToolAsync(
             new OperationToolDefinition(
                 Utf8GraphQLParser.Parse(
-                    await File.ReadAllTextAsync("__resources__/GetWithNonNullableVariables.graphql"))));
+                    await File.ReadAllTextAsync(
+                        "__resources__/GetWithNonNullableVariables.graphql",
+                        TestContext.Current.CancellationToken))),
+            TestContext.Current.CancellationToken);
         var server = await CreateTestServerAsync(storage);
         var mcpClient = await CreateMcpClientAsync(server.CreateClient());
 
@@ -1096,7 +1153,8 @@ public abstract class IntegrationTestBase
                 { "url", "https://example.com" },
                 { "uuid", "00000000-0000-0000-0000-000000000000" }
             },
-            options: new RequestOptions { JsonSerializerOptions = JsonSerializerOptions.Default });
+            options: new RequestOptions { JsonSerializerOptions = JsonSerializerOptions.Default },
+            cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         result.StructuredContent.MatchSnapshot(extension: ".json");
@@ -1110,12 +1168,17 @@ public abstract class IntegrationTestBase
         await storage.AddOrUpdateToolAsync(
             new OperationToolDefinition(
                 Utf8GraphQLParser.Parse(
-                    await File.ReadAllTextAsync("__resources__/GetWithDefaultedVariables.graphql"))));
+                    await File.ReadAllTextAsync(
+                        "__resources__/GetWithDefaultedVariables.graphql",
+                        TestContext.Current.CancellationToken))),
+            TestContext.Current.CancellationToken);
         var server = await CreateTestServerAsync(storage);
         var mcpClient = await CreateMcpClientAsync(server.CreateClient());
 
         // act
-        var result = await mcpClient.CallToolAsync("get_with_defaulted_variables");
+        var result = await mcpClient.CallToolAsync(
+            "get_with_defaulted_variables",
+            cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         result.StructuredContent.MatchSnapshot(extension: ".json");
@@ -1129,7 +1192,10 @@ public abstract class IntegrationTestBase
         await storage.AddOrUpdateToolAsync(
             new OperationToolDefinition(
                 Utf8GraphQLParser.Parse(
-                    await File.ReadAllTextAsync("__resources__/GetWithComplexVariables.graphql"))));
+                    await File.ReadAllTextAsync(
+                        "__resources__/GetWithComplexVariables.graphql",
+                        TestContext.Current.CancellationToken))),
+            TestContext.Current.CancellationToken);
         var server = await CreateTestServerAsync(storage, [new DurationType(DurationFormat.DotNet)]);
         var mcpClient = await CreateMcpClientAsync(server.CreateClient());
 
@@ -1161,7 +1227,8 @@ public abstract class IntegrationTestBase
                 { "objectWithOneOfField", new { field = new { field1 = 1 } } },
                 { "durationDotNet", "00:05:00" }
             },
-            options: new RequestOptions { JsonSerializerOptions = JsonSerializerOptions.Default });
+            options: new RequestOptions { JsonSerializerOptions = JsonSerializerOptions.Default },
+            cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         result.StructuredContent.MatchSnapshot(extension: ".json");
@@ -1174,12 +1241,15 @@ public abstract class IntegrationTestBase
         var storage = new TestMcpStorage();
         await storage.AddOrUpdateToolAsync(
             new OperationToolDefinition(
-                Utf8GraphQLParser.Parse("query GetWithErrors { withErrors }")));
+                Utf8GraphQLParser.Parse("query GetWithErrors { withErrors }")),
+            TestContext.Current.CancellationToken);
         var server = await CreateTestServerAsync(storage);
         var mcpClient = await CreateMcpClientAsync(server.CreateClient());
 
         // act
-        var result = await mcpClient.CallToolAsync("get_with_errors");
+        var result = await mcpClient.CallToolAsync(
+            "get_with_errors",
+            cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         result.StructuredContent.MatchSnapshot(extension: ".json");
@@ -1192,19 +1262,24 @@ public abstract class IntegrationTestBase
         var storage = new TestMcpStorage();
         await storage.AddOrUpdateToolAsync(
             new OperationToolDefinition(
-                Utf8GraphQLParser.Parse("query GetWithAuth { withAuth }")));
+                Utf8GraphQLParser.Parse("query GetWithAuth { withAuth }")),
+            TestContext.Current.CancellationToken);
         var server = await CreateTestServerAsync(storage);
         var mcpClient = await CreateMcpClientAsync(server.CreateClient(), TestJwtTokenHelper.GenerateToken());
 
         // act
-        var result1 = await mcpClient.CallToolAsync("get_with_auth");
-        var result2 = await mcpClient.CallToolAsync("get_with_auth");
+        var result1 = await mcpClient.CallToolAsync(
+            "get_with_auth",
+            cancellationToken: TestContext.Current.CancellationToken);
+        var result2 = await mcpClient.CallToolAsync(
+            "get_with_auth",
+            cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         var snapshot = new Snapshot();
         snapshot.Add(result1.StructuredContent, "Result 1");
         snapshot.Add(result2.StructuredContent, "Result 2");
-        await snapshot.MatchMarkdownAsync();
+        await snapshot.MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -1214,12 +1289,15 @@ public abstract class IntegrationTestBase
         var storage = new TestMcpStorage();
         await storage.AddOrUpdateToolAsync(
             new OperationToolDefinition(
-                Utf8GraphQLParser.Parse("query GetWithAuth { withAuth }")));
+                Utf8GraphQLParser.Parse("query GetWithAuth { withAuth }")),
+            TestContext.Current.CancellationToken);
         var server = await CreateTestServerAsync(storage);
         var mcpClient = await CreateMcpClientAsync(server.CreateClient());
 
         // act
-        var result = await mcpClient.CallToolAsync("get_with_auth");
+        var result = await mcpClient.CallToolAsync(
+            "get_with_auth",
+            cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         result.StructuredContent.MatchSnapshot(extension: ".json");
@@ -1241,7 +1319,8 @@ public abstract class IntegrationTestBase
             new Dictionary<string, object?>
             {
                 { "message", "Hello, World!" }
-            });
+            },
+            cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal("Hello, World!", ((TextContentBlock)result.Content[0]).Text);
@@ -1253,12 +1332,16 @@ public abstract class IntegrationTestBase
         // arrange
         var storage = new TestMcpStorage();
         var documentNode = Utf8GraphQLParser.Parse(
-            await File.ReadAllTextAsync("__resources__/GetBooksWithTitle1.graphql"));
+            await File.ReadAllTextAsync(
+                "__resources__/GetBooksWithTitle1.graphql",
+                TestContext.Current.CancellationToken));
         var tool =
             new OperationToolDefinition(documentNode)
             {
                 View = new McpAppView(
-                    html: await File.ReadAllTextAsync("__resources__/McpAppView.html"))
+                    html: await File.ReadAllTextAsync(
+                        "__resources__/McpAppView.html",
+                        TestContext.Current.CancellationToken))
                 {
                     Csp =
                         new McpAppViewCsp
@@ -1281,12 +1364,14 @@ public abstract class IntegrationTestBase
                 },
                 Visibility = [McpAppViewVisibility.App]
             };
-        await storage.AddOrUpdateToolAsync(tool);
+        await storage.AddOrUpdateToolAsync(tool, TestContext.Current.CancellationToken);
         var server = await CreateTestServerAsync(storage);
         var mcpClient = await CreateMcpClientAsync(server.CreateClient());
 
         // act
-        var result = await mcpClient.ReadResourceAsync(tool.ViewResourceUri!);
+        var result = await mcpClient.ReadResourceAsync(
+            tool.ViewResourceUri!,
+            cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         JsonSerializer.Serialize(result, JsonSerializerOptions)
@@ -1321,7 +1406,8 @@ public abstract class IntegrationTestBase
                 new TestMcpStorage(),
                 configureMcpServerOptions: o => o.InitializationTimeout = TimeSpan.FromSeconds(10));
         await CreateMcpClientAsync(server.CreateClient());
-        var executor = await server.Services.GetRequiredService<IRequestExecutorProvider>().GetExecutorAsync();
+        var executor = await server.Services.GetRequiredService<IRequestExecutorProvider>().GetExecutorAsync(
+            cancellationToken: TestContext.Current.CancellationToken);
         var mcpServers = executor.Schema.Services.GetRequiredService<ConcurrentDictionary<string, McpServer>>();
         var options = mcpServers.Values.First().ServerOptions;
 

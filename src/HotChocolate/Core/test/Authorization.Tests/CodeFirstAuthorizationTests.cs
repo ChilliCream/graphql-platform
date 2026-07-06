@@ -16,10 +16,10 @@ public class CodeFirstAuthorizationTests
             resolver: AuthorizeResult.NotAllowed,
             validation: AuthorizeResult.Allowed);
         var services = CreateServices(handler);
-        var executor = await services.GetRequestExecutorAsync();
+        var executor = await services.GetRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
-        var result = await executor.ExecuteAsync("{ person { name } }");
+        var result = await executor.ExecuteAsync("{ person { name } }", TestContext.Current.CancellationToken);
 
         // assert
         Snapshot
@@ -54,10 +54,10 @@ public class CodeFirstAuthorizationTests
             resolver: AuthorizeResult.Allowed,
             validation: AuthorizeResult.NotAllowed);
         var services = CreateServices(handler);
-        var executor = await services.GetRequestExecutorAsync();
+        var executor = await services.GetRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
-        var result = await executor.ExecuteAsync("{ person { name } }");
+        var result = await executor.ExecuteAsync("{ person { name } }", TestContext.Current.CancellationToken);
 
         // assert
         Snapshot
@@ -78,7 +78,7 @@ public class CodeFirstAuthorizationTests
                 """);
 
         Assert.NotNull(result.ContextData);
-        Assert.True(result.ContextData!.TryGetValue(ExecutionContextData.HttpStatusCode, out var value));
+        Assert.True(result.ContextData.TryGetValue(ExecutionContextData.HttpStatusCode, out var value));
         Assert.Equal(401, value);
     }
 
@@ -92,7 +92,7 @@ public class CodeFirstAuthorizationTests
                 : AuthorizeResult.NotAllowed,
             validation: (_, _) => AuthorizeResult.Allowed);
         var services = CreateServices(handler);
-        var executor = await services.GetRequestExecutorAsync();
+        var executor = await services.GetRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -102,7 +102,8 @@ public class CodeFirstAuthorizationTests
                 __typename
               }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         Snapshot
@@ -130,7 +131,7 @@ public class CodeFirstAuthorizationTests
                 : AuthorizeResult.NotAllowed,
             validation: (_, _) => AuthorizeResult.Allowed);
         var services = CreateServices(handler);
-        var executor = await services.GetRequestExecutorAsync();
+        var executor = await services.GetRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -140,7 +141,8 @@ public class CodeFirstAuthorizationTests
                 __typename
               }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         Snapshot
@@ -175,7 +177,7 @@ public class CodeFirstAuthorizationTests
             resolver: (_, _) => AuthorizeResult.NotAllowed,
             validation: (_, _) => AuthorizeResult.Allowed);
         var services = CreateServices(handler);
-        var executor = await services.GetRequestExecutorAsync();
+        var executor = await services.GetRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -183,7 +185,8 @@ public class CodeFirstAuthorizationTests
             {
               thisIsAuthorized
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         Snapshot
@@ -220,7 +223,7 @@ public class CodeFirstAuthorizationTests
                 ? AuthorizeResult.NotAllowed
                 : AuthorizeResult.Allowed);
         var services = CreateServices(handler);
-        var executor = await services.GetRequestExecutorAsync();
+        var executor = await services.GetRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -228,7 +231,8 @@ public class CodeFirstAuthorizationTests
             {
               thisIsAuthorizedOnValidation
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         Snapshot
@@ -249,7 +253,55 @@ public class CodeFirstAuthorizationTests
                 """);
 
         Assert.NotNull(result.ContextData);
-        Assert.True(result.ContextData!.TryGetValue(ExecutionContextData.HttpStatusCode, out var value));
+        Assert.True(result.ContextData.TryGetValue(ExecutionContextData.HttpStatusCode, out var value));
+        Assert.Equal(401, value);
+    }
+
+    [Fact]
+    public async Task Authorize_Field_Validation_NoAccess_When_Type_Not_Authorized()
+    {
+        // arrange
+        // only the field carries a validation policy; the query type itself is not authorized,
+        // so request-level enforcement must be triggered by the field configuration alone.
+        var handler = new AuthHandler(
+            resolver: (_, _) => AuthorizeResult.Allowed,
+            validation: (_, _) => AuthorizeResult.NotAllowed);
+
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType(d => d
+                    .Name("Query")
+                    .Field("sensitiveData")
+                    .Type<StringType>()
+                    .Resolve("sensitive data")
+                    .Authorize("READ_AUTH", ApplyPolicy.Validation))
+                .AddAuthorizationHandler(_ => handler)
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // act
+        var result = await executor.ExecuteAsync("{ sensitiveData }", TestContext.Current.CancellationToken);
+
+        // assert
+        Snapshot
+            .Create()
+            .Add(result)
+            .MatchInline(
+                """
+                {
+                  "errors": [
+                    {
+                      "message": "The current user is not authorized to access this resource.",
+                      "extensions": {
+                        "code": "AUTH_NOT_AUTHORIZED"
+                      }
+                    }
+                  ]
+                }
+                """);
+
+        Assert.NotNull(result.ContextData);
+        Assert.True(result.ContextData.TryGetValue(ExecutionContextData.HttpStatusCode, out var value));
         Assert.Equal(401, value);
     }
 
@@ -269,7 +321,7 @@ public class CodeFirstAuthorizationTests
                 options.ConfigureSchemaField =
                     descriptor => descriptor.Authorize("READ_INTRO", ApplyPolicy.Validation);
             });
-        var executor = await services.GetRequestExecutorAsync();
+        var executor = await services.GetRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -279,7 +331,8 @@ public class CodeFirstAuthorizationTests
                 description
               }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         Snapshot
@@ -300,7 +353,7 @@ public class CodeFirstAuthorizationTests
                 """);
 
         Assert.NotNull(result.ContextData);
-        Assert.True(result.ContextData!.TryGetValue(ExecutionContextData.HttpStatusCode, out var value));
+        Assert.True(result.ContextData.TryGetValue(ExecutionContextData.HttpStatusCode, out var value));
         Assert.Equal(401, value);
     }
 
@@ -320,7 +373,7 @@ public class CodeFirstAuthorizationTests
                 options.ConfigureTypeField =
                     descriptor => descriptor.Authorize("READ_INTRO", ApplyPolicy.Validation);
             });
-        var executor = await services.GetRequestExecutorAsync();
+        var executor = await services.GetRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -330,7 +383,8 @@ public class CodeFirstAuthorizationTests
                 name
               }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         Snapshot
@@ -351,7 +405,7 @@ public class CodeFirstAuthorizationTests
                 """);
 
         Assert.NotNull(result.ContextData);
-        Assert.True(result.ContextData!.TryGetValue(ExecutionContextData.HttpStatusCode, out var value));
+        Assert.True(result.ContextData.TryGetValue(ExecutionContextData.HttpStatusCode, out var value));
         Assert.Equal(401, value);
     }
 
@@ -371,7 +425,7 @@ public class CodeFirstAuthorizationTests
                 options.ConfigureNodeFields =
                     descriptor => descriptor.Authorize("READ_NODE", ApplyPolicy.Validation);
             });
-        var executor = await services.GetRequestExecutorAsync();
+        var executor = await services.GetRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -381,7 +435,8 @@ public class CodeFirstAuthorizationTests
                 __typename
               }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         Snapshot
@@ -402,7 +457,7 @@ public class CodeFirstAuthorizationTests
                 """);
 
         Assert.NotNull(result.ContextData);
-        Assert.True(result.ContextData!.TryGetValue(ExecutionContextData.HttpStatusCode, out var value));
+        Assert.True(result.ContextData.TryGetValue(ExecutionContextData.HttpStatusCode, out var value));
         Assert.Equal(401, value);
     }
 
@@ -422,7 +477,7 @@ public class CodeFirstAuthorizationTests
                 options.ConfigureNodeFields =
                     descriptor => descriptor.Authorize("READ_NODE", ApplyPolicy.Validation);
             });
-        var executor = await services.GetRequestExecutorAsync();
+        var executor = await services.GetRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -432,7 +487,8 @@ public class CodeFirstAuthorizationTests
                 __typename
               }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         Snapshot
@@ -453,7 +509,7 @@ public class CodeFirstAuthorizationTests
                 """);
 
         Assert.NotNull(result.ContextData);
-        Assert.True(result.ContextData!.TryGetValue(ExecutionContextData.HttpStatusCode, out var value));
+        Assert.True(result.ContextData.TryGetValue(ExecutionContextData.HttpStatusCode, out var value));
         Assert.Equal(401, value);
     }
 

@@ -18,7 +18,7 @@
             baz
               @__execute(id: 7, kind: DEFAULT, type: COMPOSITE, internal: true) {
               ... on Baz {
-                text @__execute(id: 9, kind: PURE, type: LEAF)
+                text @__execute(id: 9, kind: PURE, type: LEAF, internal: true)
               }
             }
           }

@@ -20,7 +20,7 @@ public class SchemaTests
                         Language.OperationType.Query)
                         .ModifyOptions(o => o.RemoveUnusedTypeSystemDirectives = false))
                 .AddCacheControl()
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         schema.MatchInlineSnapshot(
             """"
@@ -83,6 +83,7 @@ public class SchemaTests
               | ENUM_VALUE
               | INPUT_OBJECT
               | INPUT_FIELD_DEFINITION
+              | DIRECTIVE_DEFINITION
             """");
     }
 

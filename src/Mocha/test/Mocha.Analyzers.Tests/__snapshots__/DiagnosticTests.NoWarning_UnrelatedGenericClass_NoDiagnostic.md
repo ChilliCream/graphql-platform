@@ -1,0 +1,2 @@
+# NoWarning_UnrelatedGenericClass_NoDiagnostic
+

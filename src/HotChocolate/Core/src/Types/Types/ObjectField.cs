@@ -25,7 +25,7 @@ public sealed class ObjectField : OutputField
         Member = configuration.Member;
         ResolverMember = configuration.ResolverMember ?? configuration.Member;
         Middleware = s_empty;
-        Resolver = configuration.Resolver!;
+        Resolver = configuration.Resolver;
         ResolverExpression = configuration.Expression;
         SubscribeResolver = configuration.SubscribeResolver;
     }
@@ -36,7 +36,7 @@ public sealed class ObjectField : OutputField
         Member = original.Member;
         ResolverMember = original.ResolverMember ?? original.Member;
         Middleware = original.Middleware;
-        Resolver = original.Resolver!;
+        Resolver = original.Resolver;
         ResolverExpression = original.ResolverExpression;
         SubscribeResolver = original.SubscribeResolver;
         ResultPostProcessor = original.ResultPostProcessor;
@@ -307,7 +307,7 @@ file static class ResolverHelpers
 
         if (extendedType.IsArrayOrList)
         {
-            var elementType = extendedType.ElementType!.Type;
+            var elementType = extendedType.ElementType.Type;
             return GetFactoryMethod(elementType);
         }
 

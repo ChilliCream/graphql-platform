@@ -32,7 +32,7 @@ public sealed class DownloadClientCommandTests(NitroCommandFixture fixture) : Cl
               --path <path> (REQUIRED)      The path where the client is stored
               --format <folder|relay>       The format in which the client is stored [default: relay]
               --cloud-url <cloud-url>       The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL]
-              --api-key <api-key>           The API key used for authentication [env: NITRO_API_KEY]
+              --api-key <api-key>           The API key or PAT used for authentication [env: NITRO_API_KEY]
               --output <json>               The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
               -?, -h, --help                Show help and usage information
 
@@ -147,7 +147,7 @@ public sealed class DownloadClientCommandTests(NitroCommandFixture fixture) : Cl
     public async Task NoPublishedClient_ReturnsError()
     {
         // arrange
-        SetupDownloadPersistedQueries(null);
+        SetupMissingDownloadPersistedQueries();
 
         // act
         var result = await ExecuteCommandAsync(

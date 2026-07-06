@@ -117,12 +117,23 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
             yield return _typeInspector.GetTypeRef(typeof(LinkDirective));
         }
 
-        if (discoveryContexts.Any(t => t.Type is PageInfoType)
+        // The page info fields are made shareable in OnAfterCompleteName for any type
+        // named "PageInfo". That match is by name, so it also covers the page info type
+        // that is inferred from PageConnection<T> (runtime type PageInfo) and not just the
+        // built-in PageInfoType. We therefore have to register the shareable directive for
+        // any discovered page info object type, otherwise the directive cannot be resolved
+        // when the fields are completed.
+        if (discoveryContexts.Any(t => IsPageInfoType(t.Type))
             && discoveryContexts.All(t => t.Type is not DirectiveType<ShareableDirective>))
         {
             yield return _typeInspector.GetTypeRef(typeof(ShareableDirective));
         }
     }
+
+    private static bool IsPageInfoType(TypeSystemObject type)
+        => type is PageInfoType
+            || (type is IRuntimeTypeProvider { RuntimeType: { } runtimeType }
+                && typeof(IPageInfo).IsAssignableFrom(runtimeType));
 
     public override void OnBeforeCompleteName(
         ITypeCompletionContext completionContext,

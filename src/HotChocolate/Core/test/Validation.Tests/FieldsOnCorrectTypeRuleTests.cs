@@ -308,9 +308,9 @@ public class FieldsOnCorrectTypeRuleTests()
                   list: [Foo!]
                 }
                 """)
-            .AddResolver("Query", "list", ctx => null!)
-            .AddResolver("Bar", "baz", ctx => null!)
-            .AddResolver("Baz", "baz", ctx => null!)
+            .AddResolver("Query", "list", ctx => null)
+            .AddResolver("Bar", "baz", ctx => null)
+            .AddResolver("Baz", "baz", ctx => null)
             .Create();
 
         ExpectErrors(

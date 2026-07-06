@@ -10,6 +10,10 @@ using HotChocolate.Fusion.Language;
 using HotChocolate.Fusion.Text.Json;
 using HotChocolate.Language;
 using FusionNameNode = HotChocolate.Fusion.Language.NameNode;
+using IntValueNode = HotChocolate.Language.IntValueNode;
+using StringValueNode = HotChocolate.Language.StringValueNode;
+using ObjectFieldNode = HotChocolate.Language.ObjectFieldNode;
+using IValueNode = HotChocolate.Language.IValueNode;
 
 namespace Fusion.Execution.Benchmarks;
 
@@ -37,8 +41,8 @@ public class VariableMergingBenchmark
     private static readonly HashSet<string> s_twoImportedKeys =
         new(["__fusion_1_id", "__fusion_2_sku"], StringComparer.Ordinal);
 
-    private FetchResultStore _baselineStore = null!;
-    private FetchResultStore _snapshotStore = null!;
+    private FetchResultStore _baselineStore;
+    private FetchResultStore _snapshotStore;
 
     private ImmutableArray<VariableValues> _singleEntrySnapshot;
     private ImmutableArray<VariableValues> _subsetEntrySnapshot;

@@ -53,11 +53,11 @@ public class ReconnectionResilienceTests
 
         // Delete the consumer row to simulate eviction
         await using var conn = new NpgsqlConnection(db.ConnectionString);
-        await conn.OpenAsync();
+        await conn.OpenAsync(TestContext.Current.CancellationToken);
         await using var cmd = conn.CreateCommand();
         cmd.CommandText = "DELETE FROM mocha_consumers WHERE id = @id";
         cmd.Parameters.AddWithValue("id", consumerManager.ConsumerId);
-        await cmd.ExecuteNonQueryAsync();
+        await cmd.ExecuteNonQueryAsync(TestContext.Current.CancellationToken);
 
         // act
         var result = await consumerManager.HeartbeatAsync(CancellationToken.None);
@@ -83,7 +83,7 @@ public class ReconnectionResilienceTests
 
         // Create a temp queue linked to this consumer
         await using var conn = new NpgsqlConnection(db.ConnectionString);
-        await conn.OpenAsync();
+        await conn.OpenAsync(TestContext.Current.CancellationToken);
 
         await using var insertQueueCmd = conn.CreateCommand();
         insertQueueCmd.CommandText = """
@@ -91,24 +91,24 @@ public class ReconnectionResilienceTests
             VALUES ('temp-reply-queue', @consumerId)
             """;
         insertQueueCmd.Parameters.AddWithValue("consumerId", consumerManager.ConsumerId);
-        await insertQueueCmd.ExecuteNonQueryAsync();
+        await insertQueueCmd.ExecuteNonQueryAsync(TestContext.Current.CancellationToken);
 
         // Delete the consumer row (simulates eviction by ExpiredConsumerCleanupTask)
         // This CASCADE deletes the temp queue too
         await using var deleteCmd = conn.CreateCommand();
         deleteCmd.CommandText = "DELETE FROM mocha_consumers WHERE id = @id";
         deleteCmd.Parameters.AddWithValue("id", consumerManager.ConsumerId);
-        await deleteCmd.ExecuteNonQueryAsync();
+        await deleteCmd.ExecuteNonQueryAsync(TestContext.Current.CancellationToken);
 
         // Verify both are gone
         await using var checkConsumer = conn.CreateCommand();
         checkConsumer.CommandText = "SELECT COUNT(*) FROM mocha_consumers WHERE id = @id";
         checkConsumer.Parameters.AddWithValue("id", consumerManager.ConsumerId);
-        Assert.Equal(0L, (long)(await checkConsumer.ExecuteScalarAsync())!);
+        Assert.Equal(0L, (long)(await checkConsumer.ExecuteScalarAsync(TestContext.Current.CancellationToken))!);
 
         await using var checkQueue = conn.CreateCommand();
         checkQueue.CommandText = "SELECT COUNT(*) FROM mocha_queue WHERE name = 'temp-reply-queue'";
-        Assert.Equal(0L, (long)(await checkQueue.ExecuteScalarAsync())!);
+        Assert.Equal(0L, (long)(await checkQueue.ExecuteScalarAsync(TestContext.Current.CancellationToken))!);
 
         // act - recover: re-register consumer and re-provision queue
         await consumerManager.RegisterAsync(CancellationToken.None);
@@ -120,17 +120,17 @@ public class ReconnectionResilienceTests
             ON CONFLICT (name) DO UPDATE SET consumer_id = @consumerId
             """;
         reprovisionCmd.Parameters.AddWithValue("consumerId", consumerManager.ConsumerId);
-        await reprovisionCmd.ExecuteNonQueryAsync();
+        await reprovisionCmd.ExecuteNonQueryAsync(TestContext.Current.CancellationToken);
 
         // assert - both are re-created
         await using var verifyConsumer = conn.CreateCommand();
         verifyConsumer.CommandText = "SELECT COUNT(*) FROM mocha_consumers WHERE id = @id";
         verifyConsumer.Parameters.AddWithValue("id", consumerManager.ConsumerId);
-        Assert.Equal(1L, (long)(await verifyConsumer.ExecuteScalarAsync())!);
+        Assert.Equal(1L, (long)(await verifyConsumer.ExecuteScalarAsync(TestContext.Current.CancellationToken))!);
 
         await using var verifyQueue = conn.CreateCommand();
         verifyQueue.CommandText = "SELECT COUNT(*) FROM mocha_queue WHERE name = 'temp-reply-queue'";
-        Assert.Equal(1L, (long)(await verifyQueue.ExecuteScalarAsync())!);
+        Assert.Equal(1L, (long)(await verifyQueue.ExecuteScalarAsync(TestContext.Current.CancellationToken))!);
 
         await connectionManager.DisposeAsync();
     }
@@ -146,12 +146,12 @@ public class ReconnectionResilienceTests
         await connectionManager.EnsureMigratedAsync(CancellationToken.None);
 
         await using var conn = new NpgsqlConnection(db.ConnectionString);
-        await conn.OpenAsync();
+        await conn.OpenAsync(TestContext.Current.CancellationToken);
 
         // Create a queue
         await using var createQueue = conn.CreateCommand();
         createQueue.CommandText = "INSERT INTO mocha_queue (name) VALUES ('test-queue') RETURNING id";
-        var queueId = (long)(await createQueue.ExecuteScalarAsync())!;
+        var queueId = (long)(await createQueue.ExecuteScalarAsync(TestContext.Current.CancellationToken))!;
 
         // Insert a message with consumer_id set and last_delivered > 5 minutes ago
         var consumerId = Guid.NewGuid();
@@ -164,7 +164,7 @@ public class ReconnectionResilienceTests
         insertMsg.Parameters.AddWithValue("body", new byte[] { 1, 2, 3 });
         insertMsg.Parameters.AddWithValue("queueId", queueId);
         insertMsg.Parameters.AddWithValue("consumerId", consumerId);
-        var messageId = (Guid)(await insertMsg.ExecuteScalarAsync())!;
+        var messageId = (Guid)(await insertMsg.ExecuteScalarAsync(TestContext.Current.CancellationToken))!;
 
         // act - run orphaned message cleanup
         var cleanupTask = new OrphanedMessageCleanupTask(connectionManager, schemaOptions, NullLogger.Instance);
@@ -178,7 +178,7 @@ public class ReconnectionResilienceTests
         await using var checkMsg = conn.CreateCommand();
         checkMsg.CommandText = "SELECT consumer_id FROM mocha_message WHERE transport_message_id = @id";
         checkMsg.Parameters.AddWithValue("id", messageId);
-        var result = await checkMsg.ExecuteScalarAsync();
+        var result = await checkMsg.ExecuteScalarAsync(TestContext.Current.CancellationToken);
         Assert.True(result is DBNull, "consumer_id should be NULL after orphaned cleanup");
 
         await connectionManager.DisposeAsync();
@@ -195,12 +195,12 @@ public class ReconnectionResilienceTests
         await connectionManager.EnsureMigratedAsync(CancellationToken.None);
 
         await using var conn = new NpgsqlConnection(db.ConnectionString);
-        await conn.OpenAsync();
+        await conn.OpenAsync(TestContext.Current.CancellationToken);
 
         // Create a queue
         await using var createQueue = conn.CreateCommand();
         createQueue.CommandText = "INSERT INTO mocha_queue (name) VALUES ('test-queue') RETURNING id";
-        var queueId = (long)(await createQueue.ExecuteScalarAsync())!;
+        var queueId = (long)(await createQueue.ExecuteScalarAsync(TestContext.Current.CancellationToken))!;
 
         // Insert a message with consumer_id set and last_delivered = now (recent lock)
         var consumerId = Guid.NewGuid();
@@ -213,7 +213,7 @@ public class ReconnectionResilienceTests
         insertMsg.Parameters.AddWithValue("body", new byte[] { 1, 2, 3 });
         insertMsg.Parameters.AddWithValue("queueId", queueId);
         insertMsg.Parameters.AddWithValue("consumerId", consumerId);
-        var messageId = (Guid)(await insertMsg.ExecuteScalarAsync())!;
+        var messageId = (Guid)(await insertMsg.ExecuteScalarAsync(TestContext.Current.CancellationToken))!;
 
         // act - run orphaned message cleanup
         var cleanupTask = new OrphanedMessageCleanupTask(connectionManager, schemaOptions, NullLogger.Instance);
@@ -226,7 +226,7 @@ public class ReconnectionResilienceTests
         await using var checkMsg = conn.CreateCommand();
         checkMsg.CommandText = "SELECT consumer_id FROM mocha_message WHERE transport_message_id = @id";
         checkMsg.Parameters.AddWithValue("id", messageId);
-        var result = await checkMsg.ExecuteScalarAsync();
+        var result = await checkMsg.ExecuteScalarAsync(TestContext.Current.CancellationToken);
         Assert.Equal(consumerId, result);
 
         await connectionManager.DisposeAsync();
@@ -245,12 +245,12 @@ public class ReconnectionResilienceTests
         var messageStore = new PostgresMessageStore(connectionManager, schemaOptions);
 
         await using var conn = new NpgsqlConnection(db.ConnectionString);
-        await conn.OpenAsync();
+        await conn.OpenAsync(TestContext.Current.CancellationToken);
 
         // Create a queue
         await using var createQueue = conn.CreateCommand();
         createQueue.CommandText = "INSERT INTO mocha_queue (name) VALUES ('test-queue') RETURNING id";
-        var queueId = (long)(await createQueue.ExecuteScalarAsync())!;
+        var queueId = (long)(await createQueue.ExecuteScalarAsync(TestContext.Current.CancellationToken))!;
 
         // Insert a message locked by a now-dead consumer > 5 min ago
         var deadConsumerId = Guid.NewGuid();
@@ -262,7 +262,7 @@ public class ReconnectionResilienceTests
         insertMsg.Parameters.AddWithValue("body", new byte[] { 42 });
         insertMsg.Parameters.AddWithValue("queueId", queueId);
         insertMsg.Parameters.AddWithValue("consumerId", deadConsumerId);
-        await insertMsg.ExecuteNonQueryAsync();
+        await insertMsg.ExecuteNonQueryAsync(TestContext.Current.CancellationToken);
 
         // Verify message is not readable (consumer_id is set)
         var newConsumerId = Guid.NewGuid();
@@ -326,19 +326,21 @@ public class ReconnectionResilienceTests
         // Verify listener works before disconnect
         await using (var conn = new NpgsqlConnection(db.ConnectionString))
         {
-            await conn.OpenAsync();
+            await conn.OpenAsync(TestContext.Current.CancellationToken);
             await using var notifyCmd = conn.CreateCommand();
             notifyCmd.CommandText = $"SELECT pg_notify('{schemaOptions.NotificationChannel}', 'test-queue')";
-            await notifyCmd.ExecuteNonQueryAsync();
+            await notifyCmd.ExecuteNonQueryAsync(TestContext.Current.CancellationToken);
         }
 
-        Assert.True(await signal.WaitAsync(TimeSpan.FromSeconds(5)), "Should receive notification before disconnect");
+        Assert.True(
+            await signal.WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken),
+            "Should receive notification before disconnect");
         Assert.Contains("test-queue", receivedPayloads);
 
         // act - kill the LISTEN connection via pg_terminate_backend
         await using (var adminConn = new NpgsqlConnection(db.ConnectionString))
         {
-            await adminConn.OpenAsync();
+            await adminConn.OpenAsync(TestContext.Current.CancellationToken);
             await using var killCmd = adminConn.CreateCommand();
             killCmd.CommandText = $"""
                 SELECT pg_terminate_backend(pid)
@@ -347,26 +349,28 @@ public class ReconnectionResilienceTests
                   AND pid <> pg_backend_pid()
                   AND query LIKE '%LISTEN%'
                 """;
-            await killCmd.ExecuteNonQueryAsync();
+            await killCmd.ExecuteNonQueryAsync(TestContext.Current.CancellationToken);
         }
 
         // Wait for the listener to reconnect (it broadcasts an empty-string payload on reconnect)
         Assert.True(
-            await reconnectedSignal.WaitAsync(TimeSpan.FromSeconds(15)),
+            await reconnectedSignal.WaitAsync(TimeSpan.FromSeconds(15), TestContext.Current.CancellationToken),
             "Listener did not reconnect within timeout");
 
         // Send a notification after reconnection
         receivedPayloads.Clear();
         await using (var conn2 = new NpgsqlConnection(db.ConnectionString))
         {
-            await conn2.OpenAsync();
+            await conn2.OpenAsync(TestContext.Current.CancellationToken);
             await using var notifyCmd2 = conn2.CreateCommand();
             notifyCmd2.CommandText = $"SELECT pg_notify('{schemaOptions.NotificationChannel}', 'after-reconnect')";
-            await notifyCmd2.ExecuteNonQueryAsync();
+            await notifyCmd2.ExecuteNonQueryAsync(TestContext.Current.CancellationToken);
         }
 
         // assert - should receive notification after reconnection
-        Assert.True(await signal.WaitAsync(TimeSpan.FromSeconds(10)), "Should receive notification after reconnect");
+        Assert.True(
+            await signal.WaitAsync(TimeSpan.FromSeconds(10), TestContext.Current.CancellationToken),
+            "Should receive notification after reconnect");
         Assert.Contains("after-reconnect", receivedPayloads);
 
         await listener.DisposeAsync();
@@ -402,7 +406,7 @@ public class ReconnectionResilienceTests
         // act - kill the LISTEN connection to trigger reconnect
         await using (var adminConn = new NpgsqlConnection(db.ConnectionString))
         {
-            await adminConn.OpenAsync();
+            await adminConn.OpenAsync(TestContext.Current.CancellationToken);
             await using var killCmd = adminConn.CreateCommand();
             killCmd.CommandText = $"""
                 SELECT pg_terminate_backend(pid)
@@ -411,12 +415,12 @@ public class ReconnectionResilienceTests
                   AND pid <> pg_backend_pid()
                   AND query LIKE '%LISTEN%'
                 """;
-            await killCmd.ExecuteNonQueryAsync();
+            await killCmd.ExecuteNonQueryAsync(TestContext.Current.CancellationToken);
         }
 
         // assert - empty-string signal should be sent to all subscribers on reconnect
         Assert.True(
-            await reconnectSignal.WaitAsync(TimeSpan.FromSeconds(10)),
+            await reconnectSignal.WaitAsync(TimeSpan.FromSeconds(10), TestContext.Current.CancellationToken),
             "Should receive empty-payload signal after reconnect");
         Assert.Contains(string.Empty, emptyPayloads);
 

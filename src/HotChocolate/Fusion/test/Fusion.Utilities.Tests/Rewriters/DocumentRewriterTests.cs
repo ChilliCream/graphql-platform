@@ -517,14 +517,14 @@ public class DocumentRewriterTests
             """
             query($slug: String!) {
                 productBySlug(slug: $slug) {
-                   ... {
-                       a: name
-                   }
-                   a: name
-                   name
-                   ... {
-                       name
-                   }
+                    ... {
+                        a: name
+                    }
+                    a: name
+                    name
+                    ... {
+                        name
+                    }
                 }
             }
             """);

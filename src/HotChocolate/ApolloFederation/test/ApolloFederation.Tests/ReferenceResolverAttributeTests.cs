@@ -20,7 +20,7 @@ public class ReferenceResolverAttributeTests
             .AddGraphQL()
             .AddApolloFederation()
             .AddQueryType<Query>()
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var type = schema.Types.GetType<ObjectType>(nameof(InClassRefResolver));
@@ -40,7 +40,7 @@ public class ReferenceResolverAttributeTests
             .AddGraphQL()
             .AddApolloFederation()
             .AddQueryType<Query>()
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var type = schema.Types.GetType<ObjectType>(nameof(ExternalRefResolver));
@@ -61,7 +61,7 @@ public class ReferenceResolverAttributeTests
             .AddGraphQL()
             .AddApolloFederation()
             .AddQueryType<QueryWithSingleKeyResolver>()
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var type = schema.Types.GetType<ObjectType>(nameof(ExternalSingleKeyResolver));
@@ -80,7 +80,7 @@ public class ReferenceResolverAttributeTests
             .AddGraphQL()
             .AddApolloFederation()
             .AddQueryType<QueryWithExternalField>()
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var type = schema.Types.GetType<ObjectType>(nameof(ExternalFields));
@@ -102,7 +102,7 @@ public class ReferenceResolverAttributeTests
             .AddGraphQL()
             .AddApolloFederation()
             .AddQueryType<QueryWithExternalField>()
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var type = schema.Types.GetType<ObjectType>(nameof(ExternalFields));
@@ -122,7 +122,7 @@ public class ReferenceResolverAttributeTests
             .AddGraphQL()
             .AddApolloFederation()
             .AddQueryType<QueryWithMultiKeyResolver>()
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var type = schema.Types.GetType<ObjectType>(nameof(ExternalMultiKeyResolver));
 
@@ -143,7 +143,7 @@ public class ReferenceResolverAttributeTests
             .AddGraphQL()
             .AddApolloFederation()
             .AddQueryType<Query>()
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var type = schema.Types.GetType<ObjectType>(nameof(ExternalRefResolverRenamedMethod));
@@ -200,7 +200,7 @@ public class ReferenceResolverAttributeTests
             .AddApolloFederation()
             .AddType<Product>()
             .AddQueryType()
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await schema.MakeExecutable().ExecuteAsync(
@@ -210,7 +210,8 @@ public class ReferenceResolverAttributeTests
                     { id: "00000000-0000-0000-0000-000000000000", __typename: "Product" }
                 ]) { ... on Product { id } }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();

@@ -6,6 +6,7 @@ using HotChocolate.Fusion.Types.Directives;
 using HotChocolate.Fusion.Types.Metadata;
 using HotChocolate.Language;
 using HotChocolate.Types;
+using ArgumentNode = HotChocolate.Language.ArgumentNode;
 
 namespace HotChocolate.Fusion.Types.Completion;
 

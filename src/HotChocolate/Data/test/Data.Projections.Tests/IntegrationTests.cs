@@ -1,4 +1,6 @@
+using System.Linq.Expressions;
 using System.Text.Json;
+using GreenDonut.Data;
 using HotChocolate.Execution;
 using HotChocolate.Types;
 using HotChocolate.Types.Relay;
@@ -18,18 +20,57 @@ public class IntegrationTests
             .AddQueryType<Query>()
             .AddTypeExtension<FooExtensions>()
             .AddProjections()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
-        var result = await executor.ExecuteAsync(@"
+        var result = await executor.ExecuteAsync(
+            @"
             {
                 foos {
                     bar
                     baz
                 }
             }
-            ");
+            ",
+            TestContext.Current.CancellationToken);
 
+        result.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Projection_Should_NotThrow_When_ParentRequiresObjectField()
+    {
+        // arrange
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType(q => q
+                .Field("foo")
+                .Resolve(_ => new[] { new RequiresFoo { Bar = new RequiresBar { Baz = "baz" } } }.AsQueryable())
+                .UseProjection())
+            .AddObjectType<RequiresFoo>(c =>
+            {
+                c.Field(f => f.Bar);
+                c.Field("quux")
+                    .Resolve(ctx => ctx.Parent<RequiresFoo>().Bar)
+                    .ParentRequires<RequiresFoo>(f => f.Bar!);
+            })
+            .AddProjections()
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            query {
+                foo {
+                    quux {
+                        baz
+                    }
+                }
+            }
+            """,
+            TestContext.Current.CancellationToken);
+
+        // assert
         result.MatchSnapshot();
     }
 
@@ -43,17 +84,19 @@ public class IntegrationTests
             .AddQueryType<Query>()
             .AddTypeExtension<FooExtensions>()
             .AddProjections()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
-        var result = await executor.ExecuteAsync(@"
+        var result = await executor.ExecuteAsync(
+            @"
             {
                 foos {
                     bar
                     qux
                 }
             }
-            ");
+            ",
+            TestContext.Current.CancellationToken);
 
         result.MatchSnapshot();
     }
@@ -68,10 +111,11 @@ public class IntegrationTests
             .AddQueryType<Query>()
             .AddTypeExtension<FooExtensions>()
             .AddProjections()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
-        var result = await executor.ExecuteAsync(@"
+        var result = await executor.ExecuteAsync(
+            @"
             {
                 foos {
                     bar
@@ -80,7 +124,8 @@ public class IntegrationTests
                     }
                 }
             }
-            ");
+            ",
+            TestContext.Current.CancellationToken);
 
         result.MatchSnapshot();
     }
@@ -95,10 +140,11 @@ public class IntegrationTests
             .AddQueryType<Query>()
             .AddTypeExtension<FooExtensions>()
             .AddProjections()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
-        var result = await executor.ExecuteAsync(@"
+        var result = await executor.ExecuteAsync(
+            @"
             {
                 foos {
                     bar
@@ -107,7 +153,8 @@ public class IntegrationTests
                     }
                 }
             }
-            ");
+            ",
+            TestContext.Current.CancellationToken);
 
         result.MatchSnapshot();
     }
@@ -121,7 +168,7 @@ public class IntegrationTests
             .AddQueryType<QueryWithExpressionProjection>()
             .AddType<CardReaderType>()
             .AddProjections()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -131,7 +178,8 @@ public class IntegrationTests
                     cardReaderUidLength
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         using var document = JsonDocument.Parse(result.ToJson());
         var readers = document.RootElement
@@ -158,7 +206,7 @@ public class IntegrationTests
             .AddQueryType<QueryWithComputedExpressionProjection>()
             .AddType<ExpressionPersonType>()
             .AddProjections()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -169,7 +217,8 @@ public class IntegrationTests
                     fullName
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         using var document = JsonDocument.Parse(result.ToJson());
         var people = document.RootElement
@@ -200,7 +249,7 @@ public class IntegrationTests
             .AddObjectType<Baz>(d => d.ImplementsNode().IdField(t => t.Bar2))
             .AddGlobalObjectIdentification()
             .AddProjections()
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         schema.MatchSnapshot();
     }
@@ -216,7 +265,7 @@ public class IntegrationTests
             .AddObjectType<Baz>(d => d.ImplementsNode().IdField(t => t.Bar2))
             .AddGlobalObjectIdentification()
             .AddProjections()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var result = await executor.ExecuteAsync(
             """
@@ -229,7 +278,8 @@ public class IntegrationTests
                 ... on Bar { fieldOfBar }
               }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         result.MatchSnapshot();
     }
@@ -245,10 +295,11 @@ public class IntegrationTests
             .AddObjectType<Baz>(d => d.ImplementsNode().IdField(t => t.Bar2))
             .AddGlobalObjectIdentification()
             .AddProjections()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var result = await executor
-            .ExecuteAsync("""
+            .ExecuteAsync(
+                """
                 {
                     node(id: "Rm9vOkE=") {
                         id
@@ -257,7 +308,8 @@ public class IntegrationTests
                         ... on Foo { fieldOfFoo }
                     }
                 }
-                """);
+                """,
+                TestContext.Current.CancellationToken);
 
         result.MatchSnapshot();
     }
@@ -273,7 +325,7 @@ public class IntegrationTests
             .AddObjectType<Baz>(d => d.ImplementsNode().IdField(t => t.Bar2))
             .AddGlobalObjectIdentification()
             .AddProjections()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var result = await executor.ExecuteAsync(
             """
@@ -286,7 +338,8 @@ public class IntegrationTests
                 ... on Bar { fieldOfBar }
               }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         result.MatchSnapshot();
     }
@@ -302,9 +355,11 @@ public class IntegrationTests
             .AddObjectType<Baz>(d => d.ImplementsNode().IdField(t => t.Bar2))
             .AddGlobalObjectIdentification()
             .AddProjections()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
-        var result = await executor.ExecuteAsync(@"{ nodes(ids: ""Rm9vOkE="") { id __typename } }");
+        var result = await executor.ExecuteAsync(
+            @"{ nodes(ids: ""Rm9vOkE="") { id __typename } }",
+            TestContext.Current.CancellationToken);
 
         result.MatchSnapshot();
     }
@@ -320,10 +375,11 @@ public class IntegrationTests
             .AddObjectType<Baz>(d => d.ImplementsNode().IdField(t => t.Bar2))
             .AddGlobalObjectIdentification()
             .AddProjections()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var result = await executor
-            .ExecuteAsync("""
+            .ExecuteAsync(
+                """
                 {
                     nodes(ids: "Rm9vOkE=") {
                         id
@@ -332,7 +388,8 @@ public class IntegrationTests
                         ... on Foo { fieldOfFoo }
                     }
                 }
-                """);
+                """,
+                TestContext.Current.CancellationToken);
 
         result.MatchSnapshot();
     }
@@ -348,10 +405,11 @@ public class IntegrationTests
             .AddObjectType<Baz>(d => d.ImplementsNode().IdField(t => t.Bar2))
             .AddGlobalObjectIdentification()
             .AddProjections()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var result = await executor
-            .ExecuteAsync("""
+            .ExecuteAsync(
+                """
                 {
                     nodes(ids: "QmFyOkE=") {
                         id
@@ -361,7 +419,8 @@ public class IntegrationTests
                         ... on Bar { fieldOfBar }
                     }
                 }
-                """);
+                """,
+                TestContext.Current.CancellationToken);
 
         result.MatchSnapshot();
     }
@@ -375,10 +434,10 @@ public class IntegrationTests
             .AddMutationType<Mutation>()
             .AddProjections()
             .AddMutationConventions()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var result = await executor.ExecuteAsync(
-             """
+            """
               mutation {
                   modify {
                       foo {
@@ -386,7 +445,8 @@ public class IntegrationTests
                       }
                   }
               }
-              """);
+              """,
+            TestContext.Current.CancellationToken);
 
         result.MatchSnapshot();
     }
@@ -400,7 +460,7 @@ public class IntegrationTests
             .AddMutationType<Mutation>()
             .AddProjections()
             .AddMutationConventions()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var result = await executor.ExecuteAsync(
             """
@@ -416,7 +476,8 @@ public class IntegrationTests
                     }
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         result.MatchSnapshot();
     }
@@ -430,7 +491,7 @@ public class IntegrationTests
             .AddMutationType<Mutation>()
             .AddProjections()
             .AddMutationConventions()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var result = await executor.ExecuteAsync(
             """
@@ -446,7 +507,8 @@ public class IntegrationTests
                     }
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         result.MatchSnapshot();
     }
@@ -460,10 +522,10 @@ public class IntegrationTests
             .AddMutationType<Mutation>()
             .AddProjections()
             .AddMutationConventions()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var result = await executor.ExecuteAsync(
-             """
+            """
               mutation {
                   modifySingleOrDefault {
                       foo {
@@ -471,7 +533,8 @@ public class IntegrationTests
                       }
                   }
               }
-              """);
+              """,
+            TestContext.Current.CancellationToken);
 
         result.MatchSnapshot();
     }
@@ -490,7 +553,7 @@ public class IntegrationTests
             .AddQueryFieldToMutationPayloads()
             .AddProjections()
             .AddMutationConventions()
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         schema.MatchSnapshot();
     }
@@ -509,7 +572,7 @@ public class IntegrationTests
             .AddQueryFieldToMutationPayloads()
             .AddProjections()
             .AddMutationConventions()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var result = await executor.ExecuteAsync(
             """
@@ -535,9 +598,140 @@ public class IntegrationTests
                     }
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         result.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Mutation_Convention_QueryContext_Selector()
+    {
+        // arrange
+        var capture = new QueryContextSelectorCapture();
+        var executor = await new ServiceCollection()
+            .AddSingleton(capture)
+            .AddGraphQL()
+            .AddQueryType(c => c.Name("Query").Field("abc").Resolve("def"))
+            .AddMutationType<MutationWithQueryContext>()
+            .AddQueryContext()
+            .AddMutationConventions()
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            mutation {
+                modifyUser(input: { userName: "abc" }) {
+                    userProfile {
+                        userName
+                    }
+                }
+            }
+            """,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "modifyUser": {
+                  "userProfile": {
+                    "userName": "abc"
+                  }
+                }
+              }
+            }
+            """);
+
+        // the selector must project the selected userName field only,
+        // not fall back to an identity selector that fetches the entire entity.
+        var selector = capture.Selector;
+        Assert.NotNull(selector);
+        var projected = selector.Compile().Invoke(new UserProfile { UserName = "abc", DisplayName = "def" });
+        Assert.Equal("abc", projected.UserName);
+        Assert.Null(projected.DisplayName);
+    }
+
+    [Fact]
+    public async Task Mutation_Convention_QueryContext_Selector_Merges_Aliased_Data_Fields()
+    {
+        // arrange
+        var executor = await new ServiceCollection()
+            .AddSingleton(new QueryContextSelectorCapture())
+            .AddGraphQL()
+            .AddQueryType(c => c.Name("Query").Field("abc").Resolve("def"))
+            .AddMutationType<MutationWithQueryContext>()
+            .AddQueryContext()
+            .AddMutationConventions()
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            mutation {
+                modifyUser(input: { userName: "abc" }) {
+                    a: userProfile { userName }
+                    b: userProfile { displayName }
+                }
+            }
+            """,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "modifyUser": {
+                  "a": {
+                    "userName": "abc"
+                  },
+                  "b": {
+                    "displayName": "Display-abc"
+                  }
+                }
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task Mutation_Convention_QueryContext_Without_Data_Field_Selection()
+    {
+        // arrange
+        var executor = await new ServiceCollection()
+            .AddSingleton(new QueryContextSelectorCapture())
+            .AddGraphQL()
+            .AddQueryType(c => c.Name("Query").Field("abc").Resolve("def"))
+            .AddMutationType<MutationWithQueryContext>()
+            .AddQueryContext()
+            .AddMutationConventions()
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            mutation {
+                modifyUser(input: { userName: "abc" }) {
+                    __typename
+                }
+            }
+            """,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "modifyUser": {
+                  "__typename": "ModifyUserPayload"
+                }
+              }
+            }
+            """);
     }
 }
 
@@ -634,6 +828,37 @@ public class Mutation
     }
 }
 
+public class MutationWithQueryContext
+{
+    [UseMutationConvention]
+    public UserProfile? ModifyUser(
+        string userName,
+        QueryContext<UserProfile> query,
+        [Service] QueryContextSelectorCapture capture)
+    {
+        capture.Selector = query.Selector;
+
+        var data = new UserProfile[]
+        {
+            new() { UserName = userName, DisplayName = "Display-" + userName }
+        }.AsQueryable();
+
+        return data.With(query).FirstOrDefault();
+    }
+}
+
+public sealed class QueryContextSelectorCapture
+{
+    public Expression<Func<UserProfile, UserProfile>>? Selector { get; set; }
+}
+
+public class UserProfile
+{
+    public string? UserName { get; set; }
+
+    public string? DisplayName { get; set; }
+}
+
 [ExtendObjectType(typeof(Foo))]
 public class FooExtensions
 {
@@ -650,6 +875,16 @@ public class Foo
 {
     public string? Bar { get; set; }
     public string FieldOfFoo => "fieldOfFoo";
+}
+
+public class RequiresFoo
+{
+    public RequiresBar? Bar { get; set; }
+}
+
+public class RequiresBar
+{
+    public string? Baz { get; set; }
 }
 
 public class Baz

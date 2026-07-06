@@ -115,7 +115,7 @@ public sealed class DurationTypeTests
 
         // act
         var operation = CommonTestExtensions.CreateOperation();
-        var resultDocument = new ResultDocument(operation, 0);
+        var resultDocument = new ResultDocument(CommonTestExtensions.CreateArena(), operation, 0);
         var resultValue = resultDocument.Data.GetProperty("first");
         type.CoerceOutputValue(runtimeValue, resultValue);
 
@@ -131,7 +131,7 @@ public sealed class DurationTypeTests
 
         // act
         var operation = CommonTestExtensions.CreateOperation();
-        var resultDocument = new ResultDocument(operation, 0);
+        var resultDocument = new ResultDocument(CommonTestExtensions.CreateArena(), operation, 0);
         var resultValue = resultDocument.Data.GetProperty("first");
         void Action() => type.CoerceOutputValue("bad", resultValue);
 
@@ -235,12 +235,13 @@ public sealed class DurationTypeTests
             .AddQueryType(b => b.Name(OperationTypeNames.Query))
             .AddType(typeof(QuerySingleRuntimeType))
             .AddNodaTime()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result =
             await executor.ExecuteAsync(
-                """{ duration(input: "P16777215DT23H59M59.999999999S") }""");
+                """{ duration(input: "P16777215DT23H59M59.999999999S") }""",
+                TestContext.Current.CancellationToken);
 
         // assert
         result.MatchInlineSnapshot(

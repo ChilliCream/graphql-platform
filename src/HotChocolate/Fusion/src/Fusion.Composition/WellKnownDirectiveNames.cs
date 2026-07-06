@@ -7,6 +7,7 @@ internal static class WellKnownDirectiveNames
     public const string Authorize = "authorize";
     public const string CacheControl = DirectiveNames.CacheControl.Name;
     public const string Cost = DirectiveNames.Cost.Name;
+    public const string EventCursor = DirectiveNames.EventCursor.Name;
     public const string External = DirectiveNames.External.Name;
     public const string FusionConnector = "fusion__connector";
     public const string FusionCost = "fusion__cost";
@@ -19,6 +20,7 @@ internal static class WellKnownDirectiveNames
     public const string FusionLookup = "fusion__lookup";
     public const string FusionRequires = "fusion__requires";
     public const string FusionSchemaMetadata = "fusion__schema_metadata";
+    public const string FusionEventStream = "fusion__eventStream";
     public const string FusionType = "fusion__type";
     public const string FusionUnionMember = "fusion__unionMember";
     public const string Inaccessible = DirectiveNames.Inaccessible.Name;
@@ -29,11 +31,14 @@ internal static class WellKnownDirectiveNames
     public const string Lookup = DirectiveNames.Lookup.Name;
     public const string McpToolAnnotations = "mcpToolAnnotations";
     public const string OneOf = DirectiveNames.OneOf.Name;
+    public const string OptInFeatureStability = DirectiveNames.OptInFeatureStability.Name;
     public const string Override = DirectiveNames.Override.Name;
     public const string Provides = DirectiveNames.Provides.Name;
     public const string Require = DirectiveNames.Require.Name;
+    public const string RequiresOptIn = DirectiveNames.RequiresOptIn.Name;
     public const string SerializeAs = DirectiveNames.SerializeAs.Name;
     public const string Shareable = DirectiveNames.Shareable.Name;
     public const string SpecifiedBy = DirectiveNames.SpecifiedBy.Name;
+    public const string EventStream = DirectiveNames.EventStream.Name;
     public const string Tag = DirectiveNames.Tag.Name;
 }

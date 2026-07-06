@@ -18,7 +18,7 @@ internal sealed class ReusableFieldContext(
     private readonly List<object?> _runtimeResults = [];
     private Selection _selection = null!;
     private object? _parent;
-    private SourceResultElementBuilder _result = default!;
+    private SourceResultElementBuilder _result;
 
     public override PooledArrayWriter Memory => memory;
 

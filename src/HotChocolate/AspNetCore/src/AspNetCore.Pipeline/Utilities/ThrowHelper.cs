@@ -42,10 +42,9 @@ internal static class ThrowHelper
             .SetCode(ErrorCodes.Server.MaxRequestSize)
             .Build());
 
-    public static GraphQLRequestException HttpMultipartMiddleware_Invalid_Form(
-        Exception ex) =>
-         new GraphQLRequestException(
-             ErrorBuilder.New()
+    public static GraphQLRequestException HttpMultipartMiddleware_Invalid_Form(Exception ex) =>
+        new GraphQLRequestException(
+            ErrorBuilder.New()
                 .SetMessage(ThrowHelper_HttpMultipartMiddleware_Invalid_Form)
                 .SetException(ex)
                 .SetCode(ErrorCodes.Server.MultiPartInvalidForm)
@@ -78,6 +77,13 @@ internal static class ThrowHelper
             ErrorBuilder.New()
                 .SetMessage(ThrowHelper_HttpMultipartMiddleware_FileMissing, filename)
                 .SetCode(ErrorCodes.Server.MultiPartFileMissing)
+                .Build());
+
+    public static GraphQLRequestException HttpMultipartMiddleware_FileVariableValueNotNull(string fileKey) =>
+        new GraphQLRequestException(
+            ErrorBuilder.New()
+                .SetMessage(ThrowHelper_HttpMultipartMiddleware_FileVariableValueNotNull, fileKey)
+                .SetCode(ErrorCodes.Server.MultiPartFileVariableValueNotNull)
                 .Build());
 
     public static GraphQLRequestException HttpMultipartMiddleware_VariableStructureInvalid() =>

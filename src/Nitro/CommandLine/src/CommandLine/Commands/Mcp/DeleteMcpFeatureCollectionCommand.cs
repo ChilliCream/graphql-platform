@@ -47,12 +47,12 @@ internal sealed class DeleteMcpFeatureCollectionCommand : Command
             var apiId = await console.PromptForApiIdAsync(
                 apisClient,
                 workspaceId,
-                "For which API do you want to delete an MCP Feature Collection?",
+                Prompts.SelectApiForDeleteMcpFeatureCollection,
                 cancellationToken);
 
             var selectedMcpFeatureCollection = await SelectMcpFeatureCollectionPrompt
                 .New(client, apiId)
-                .Title("Which MCP Feature Collection do you want to delete?")
+                .Title(Prompts.DeleteMcpFeatureCollection)
                 .RenderAsync(console, cancellationToken) ?? throw new ExitException("You did not select an MCP Feature Collection!");
 
             mcpFeatureCollectionId = selectedMcpFeatureCollection.Id;
@@ -62,7 +62,7 @@ internal sealed class DeleteMcpFeatureCollectionCommand : Command
         if (!force)
         {
             var confirmed = await console.ConfirmAsync(
-                $"Do you want to delete the MCP Feature Collection with the ID {mcpFeatureCollectionId}?"
+                Prompts.ConfirmDeleteMcpFeatureCollection(mcpFeatureCollectionId)
                     .EscapeMarkup(),
                 cancellationToken);
 

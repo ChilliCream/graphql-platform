@@ -43,7 +43,7 @@ internal sealed class DeleteApiKeyCommand : Command
         if (!force)
         {
             var confirmed = await console.ConfirmAsync(
-                $"Do you really want to delete API key with ID '{keyId}'?",
+                Prompts.ConfirmDeleteApiKey(keyId),
                 cancellationToken);
 
             if (!confirmed)

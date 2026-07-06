@@ -28,7 +28,7 @@ public sealed class FusionConfigurationPublishValidateCommandTests(NitroCommandF
               --request-id <request-id>                            The ID of a request [env: NITRO_REQUEST_ID]
               -a, --archive, --configuration <archive> (REQUIRED)  The path to a Fusion archive file (the '--configuration' alias is deprecated) [env: NITRO_FUSION_CONFIG_FILE]
               --cloud-url <cloud-url>                              The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL]
-              --api-key <api-key>                                  The API key used for authentication [env: NITRO_API_KEY]
+              --api-key <api-key>                                  The API key or PAT used for authentication [env: NITRO_API_KEY]
               --output <json>                                      The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
               -?, -h, --help                                       Show help and usage information
 
@@ -96,10 +96,7 @@ public sealed class FusionConfigurationPublishValidateCommandTests(NitroCommandF
             "fusion", "publish", "validate", "--archive", ArchiveFile, "--request-id", RequestId);
 
         // assert
-        result.StdErr.MatchInlineSnapshot(
-            $"""
-             {expectedErrorMessage}
-             """);
+        result.StdErr.MatchInlineSnapshot(expectedErrorMessage);
         result.StdOut.MatchInlineSnapshot(
             """
             Validating Fusion configuration

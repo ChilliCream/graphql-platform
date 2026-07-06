@@ -1,0 +1,7 @@
+{
+  "message": "The specified directive `@onDirectiveDefinition` is unique and cannot be added twice.",
+  "code": "TS_MISSING_TYPE",
+  "extensions": {
+    "Source": "directive @custom @onDirectiveDefinition on OBJECT"
+  }
+}

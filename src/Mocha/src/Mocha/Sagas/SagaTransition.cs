@@ -12,8 +12,7 @@ public sealed class SagaTransition(
     Action<object, object> action,
     IEnumerable<SagaEventPublish> publish,
     IEnumerable<SagaEventSend> send,
-    Func<object, SagaStateBase>? stateFactory,
-    bool autoProvision)
+    Func<object, SagaStateBase>? stateFactory)
 {
     /// <summary>
     /// Gets the CLR type of the event that triggers this transition.
@@ -44,11 +43,6 @@ public sealed class SagaTransition(
     /// Gets the factory that creates new saga state instances, or <c>null</c> if the state is not auto-provisioned.
     /// </summary>
     public Func<object, SagaStateBase>? StateFactory { get; } = stateFactory;
-
-    /// <summary>
-    /// Gets a value indicating whether the saga instance should be automatically created when this transition is triggered.
-    /// </summary>
-    public bool AutoProvision { get; } = autoProvision;
 
     /// <summary>
     /// Gets the kind of transition (initial, transition, or final).

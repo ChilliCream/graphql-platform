@@ -18,6 +18,16 @@ public abstract class ReceiveEndpoint<TConfiguration>(MessagingTransport transpo
 
     protected abstract void OnInitialize(IMessagingConfigurationContext context, TConfiguration configuration);
 
+    protected sealed override void OnDiscoverTopology(
+        IMessagingConfigurationContext context,
+        ReceiveEndpointConfiguration configuration)
+    {
+        OnDiscoverTopology(context, (TConfiguration)configuration);
+    }
+
+    protected virtual void OnDiscoverTopology(IMessagingConfigurationContext context, TConfiguration configuration)
+    { }
+
     protected sealed override void OnComplete(
         IMessagingConfigurationContext context,
         ReceiveEndpointConfiguration configuration)

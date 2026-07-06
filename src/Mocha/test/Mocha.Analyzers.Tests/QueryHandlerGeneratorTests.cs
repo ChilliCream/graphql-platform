@@ -22,7 +22,7 @@ public class QueryHandlerGeneratorTests
                     => new(new UserDto(query.Id, "Test"));
             }
             """
-        ]).MatchMarkdownAsync();
+        ]).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -58,6 +58,6 @@ public class QueryHandlerGeneratorTests
                     => new(new OrderDto(query.Id, "Pending"));
             }
             """
-        ]).MatchMarkdownAsync();
+        ]).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 }

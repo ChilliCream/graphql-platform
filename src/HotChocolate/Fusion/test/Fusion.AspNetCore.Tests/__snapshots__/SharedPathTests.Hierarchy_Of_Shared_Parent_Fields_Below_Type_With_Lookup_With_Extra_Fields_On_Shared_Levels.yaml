@@ -50,7 +50,7 @@ sourceSchemas:
         topReview: Review! @shareable
       }
 
-      type Product implements IInterface {
+      type Product implements IInterface @key(fields: "id") {
         id: Int!
         schema1: String!
         shared: SharedProduct @shareable
@@ -132,7 +132,7 @@ sourceSchemas:
         topReview: Review! @shareable
       }
 
-      type Product implements IInterface {
+      type Product implements IInterface @key(fields: "id") {
         id: Int!
         schema2: String!
         shared: SharedProduct @shareable

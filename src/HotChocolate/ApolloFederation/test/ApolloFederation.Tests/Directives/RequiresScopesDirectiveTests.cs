@@ -16,7 +16,7 @@ public class RequiresScopesDirectiveTests : FederationTypesTestBase
             .AddGraphQL()
             .AddApolloFederation()
             .AddQueryType<Query>()
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         CheckReviewType(schema);
         CheckQueryType(schema);
@@ -52,7 +52,7 @@ public class RequiresScopesDirectiveTests : FederationTypesTestBase
             .AddApolloFederation()
             .AddType(reviewType)
             .AddQueryType(queryType)
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         CheckReviewType(schema);
         CheckQueryType(schema);
@@ -74,7 +74,7 @@ public class RequiresScopesDirectiveTests : FederationTypesTestBase
         }
 
         Assert.Fail("No requires scopes directive found.");
-        return null!;
+        return null;
     }
 
     private static void CheckQueryType(Schema schema)
@@ -113,7 +113,7 @@ public class RequiresScopesDirectiveTests : FederationTypesTestBase
             .AddGraphQL()
             .AddApolloFederation()
             .AddQueryType<Query>()
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         CheckQueryType(schema);

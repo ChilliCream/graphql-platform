@@ -30,6 +30,9 @@ public sealed class KnownTypeSymbols
     private Resolved<INamedTypeSymbol?>? _saga;
     private Resolved<INamedTypeSymbol?>? _eventRequest;
     private Resolved<INamedTypeSymbol?>? _eventRequestOfT;
+    private Resolved<INamedTypeSymbol?>? _messageBus;
+    private Resolved<INamedTypeSymbol?>? _sender;
+    private Resolved<INamedTypeSymbol?>? _publisher;
 
     private KnownTypeSymbols(Compilation compilation)
     {
@@ -132,6 +135,24 @@ public sealed class KnownTypeSymbols
     /// </summary>
     public INamedTypeSymbol? IEventRequestOfT
         => Resolve(SyntaxConstants.IEventRequestOfT, ref _eventRequestOfT);
+
+    /// <summary>
+    /// Gets the symbol for the <c>IMessageBus</c> interface.
+    /// </summary>
+    public INamedTypeSymbol? IMessageBus
+        => Resolve(SyntaxConstants.IMessageBus, ref _messageBus);
+
+    /// <summary>
+    /// Gets the symbol for the <c>ISender</c> interface (Mediator).
+    /// </summary>
+    public INamedTypeSymbol? ISender
+        => Resolve(SyntaxConstants.ISender, ref _sender);
+
+    /// <summary>
+    /// Gets the symbol for the <c>IPublisher</c> interface (Mediator).
+    /// </summary>
+    public INamedTypeSymbol? IPublisher
+        => Resolve(SyntaxConstants.IPublisher, ref _publisher);
 
     private INamedTypeSymbol? Resolve(string metadataName, ref Resolved<INamedTypeSymbol?>? field)
     {

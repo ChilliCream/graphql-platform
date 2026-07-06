@@ -161,6 +161,11 @@ internal static class SettingsExtensions
                 preprocessorOptions.InferKeysFromLookups = inferKeys;
             }
 
+            if (preprocessorSettings.InferShareable is { } inferShareable)
+            {
+                preprocessorOptions.InferShareable = inferShareable;
+            }
+
             if (preprocessorSettings.InheritInterfaceKeys is { } inheritInterfaceKeys)
             {
                 preprocessorOptions.InheritInterfaceKeys = inheritInterfaceKeys;

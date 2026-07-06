@@ -1,11 +1,11 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
+    <Product>Hot Chocolate</Product>
+    <PackageIcon>hotchocolate-icon.png</PackageIcon>
     <PackageType>Template</PackageType>
     <PackageId>HotChocolate.Templates</PackageId>
     <Description>Hot Chocolate GraphQL templates.</Description>
-    <Authors>Michael Staib</Authors>
-    <PackageIcon>hotchocolate-signet.png</PackageIcon>
 
     <TargetFramework>netstandard2.0</TargetFramework>
 
@@ -18,14 +18,30 @@
     <GenerateDocumentationFile>false</GenerateDocumentationFile>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <Authors>ChilliCream authors and contributors</Authors>
+    <Company>ChilliCream Inc.</Company>
+    <Copyright>Copyright &#169; 2018 - present ChilliCream Inc.</Copyright>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://chillicream.com</PackageProjectUrl>
+    <PackageReleaseNotes>Release notes: https://github.com/ChilliCream/graphql-platform/releases/$(PackageVersion)</PackageReleaseNotes>
+    <PackageTags>GraphQL ChilliCream</PackageTags>
+    <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+    <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <RepositoryType>GitHub</RepositoryType>
+    <RepositoryUrl>https://github.com/ChilliCream/graphql-platform.git</RepositoryUrl>
+  </PropertyGroup>
+
   <ItemGroup>
     <Compile Remove="**\*" />
     <Content Include="azure-function\**\*;gateway\**\*;server\**\*"
              Exclude="**\bin\**;**\obj\**" />
-    <None Include="..\website\static\resources\hotchocolate-signet.png"
-          Pack="true"
-          PackagePath=""
-          Visible="false" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)..\website\static\resources\hotchocolate-icon.png" Pack="true" PackagePath="hotchocolate-icon.png" Visible="false" />
+    <None Include="$(MSBuildThisFileDirectory)..\LICEN*" Pack="true" PackagePath="" Visible="false" />
   </ItemGroup>
 
 </Project>

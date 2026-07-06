@@ -1,9 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Test.props', '$(MSBuildThisFileDirectory)'))" />
+
   <PropertyGroup>
     <AssemblyName>StrawberryShake.Transport.InMemory.Tests</AssemblyName>
     <RootNamespace>StrawberryShake.Transport.InMemory</RootNamespace>
-    <IsPackable>false</IsPackable>
   </PropertyGroup>
 
   <ItemGroup>
@@ -11,6 +12,10 @@
     <ProjectReference Include="..\..\..\..\HotChocolate\Core\src\Subscriptions.InMemory\HotChocolate.Subscriptions.InMemory.csproj" />
     <ProjectReference Include="..\..\src\Transport.InMemory\StrawberryShake.Transport.InMemory.csproj" />
     <ProjectReference Include="..\Transport.WebSocket.Tests\StrawberryShake.Transport.WebSocket.Tests.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Moq" />
   </ItemGroup>
 
   <ItemGroup>

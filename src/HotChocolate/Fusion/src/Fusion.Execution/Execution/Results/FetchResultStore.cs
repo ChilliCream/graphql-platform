@@ -14,6 +14,16 @@ using HotChocolate.Fusion.Text.Json;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Text.Json;
+using IntValueNode = HotChocolate.Language.IntValueNode;
+using FloatValueNode = HotChocolate.Language.FloatValueNode;
+using StringValueNode = HotChocolate.Language.StringValueNode;
+using BooleanValueNode = HotChocolate.Language.BooleanValueNode;
+using NullValueNode = HotChocolate.Language.NullValueNode;
+using EnumValueNode = HotChocolate.Language.EnumValueNode;
+using ListValueNode = HotChocolate.Language.ListValueNode;
+using ObjectValueNode = HotChocolate.Language.ObjectValueNode;
+using ObjectFieldNode = HotChocolate.Language.ObjectFieldNode;
+using IValueNode = HotChocolate.Language.IValueNode;
 
 namespace HotChocolate.Fusion.Execution.Results;
 
@@ -41,6 +51,7 @@ internal sealed partial class FetchResultStore : IDisposable
     private CompositeResultElement[] _collectTargetB = ArrayPool<CompositeResultElement>.Shared.Rent(64);
     private CompositeResultElement[] _collectTargetCombined = ArrayPool<CompositeResultElement>.Shared.Rent(64);
     private PathSegmentLocalPool _pathPool = default!;
+    private IMemoryArena _arena = default!;
     private HashSet<int[]> _seenPaths = new(ReferenceEqualityComparer.Instance);
     private CompositeResultDocument _result = default!;
     private ValueCompletion _valueCompletion = default!;
@@ -127,6 +138,8 @@ internal sealed partial class FetchResultStore : IDisposable
 
             lock (_lock)
             {
+                var i = 0;
+
                 try
                 {
                     if (rootErrors is not null)
@@ -136,8 +149,7 @@ internal sealed partial class FetchResultStore : IDisposable
                     }
 
                     var resultData = _result.Data;
-
-                    for (var i = 0; i < results.Length; i++)
+                    for (i = 0; i < results.Length; i++)
                     {
                         var result = results[i];
                         _memory.Add(result);
@@ -150,11 +162,17 @@ internal sealed partial class FetchResultStore : IDisposable
                                 errorTriesSpan[i],
                                 resultSelectionSet))
                         {
+                            RegisterRemainingResults(_memory, results, i);
                             return false;
                         }
                     }
 
                     return true;
+                }
+                catch
+                {
+                    RegisterRemainingResults(_memory, results, i);
+                    throw;
                 }
                 finally
                 {
@@ -168,6 +186,22 @@ internal sealed partial class FetchResultStore : IDisposable
             errorTriesSpan.Clear();
             ArrayPool<SourceResultElement>.Shared.Return(dataElements);
             ArrayPool<ErrorTrie?>.Shared.Return(errorTries);
+        }
+
+        static void RegisterRemainingResults(
+            List<IDisposable> _memory,
+            ReadOnlySpan<SourceSchemaResult> results,
+            int i)
+        {
+            i++;
+
+            if (i < results.Length)
+            {
+                for (; i < results.Length; i++)
+                {
+                    _memory.Add(results[i]);
+                }
+            }
         }
     }
 
@@ -188,11 +222,13 @@ internal sealed partial class FetchResultStore : IDisposable
 
             lock (_lock)
             {
+                var i = 0;
+
                 try
                 {
                     var resultData = _result.Data;
 
-                    for (var i = 0; i < results.Length; i++)
+                    for (i = 0; i < results.Length; i++)
                     {
                         var result = results[i];
                         _memory.Add(result);
@@ -205,11 +241,17 @@ internal sealed partial class FetchResultStore : IDisposable
                                 errorTrie: null,
                                 resultSelectionSet))
                         {
+                            RegisterRemainingResults(_memory, results, i);
                             return false;
                         }
                     }
 
                     return true;
+                }
+                catch
+                {
+                    RegisterRemainingResults(_memory, results, i);
+                    throw;
                 }
                 finally
                 {
@@ -221,6 +263,22 @@ internal sealed partial class FetchResultStore : IDisposable
         {
             dataElementsSpan.Clear();
             ArrayPool<SourceResultElement>.Shared.Return(dataElements);
+        }
+
+        static void RegisterRemainingResults(
+            List<IDisposable> _memory,
+            ReadOnlySpan<SourceSchemaResult> results,
+            int i)
+        {
+            i++;
+
+            if (i < results.Length)
+            {
+                for (; i < results.Length; i++)
+                {
+                    _memory.Add(results[i]);
+                }
+            }
         }
     }
 
@@ -408,7 +466,7 @@ AddErrors_Next:
                 }
 
 AddErrors_Next:
-                path = ref Unsafe.Add(ref path, 1)!;
+                path = ref Unsafe.Add(ref path, 1);
             }
         }
 
@@ -1761,7 +1819,10 @@ AddErrors_Next:
         {
             if (current.ValueKind != JsonValueKind.Object)
             {
-                return default;
+                // An intermediate value on the path is not an object. If it is null, the target
+                // value null-propagates from here, so we surface the null element (not Undefined)
+                // and let value completion integrate it together with any source error.
+                return current.ValueKind is JsonValueKind.Null ? current : default;
             }
 
             var segment = sourcePath[i];
@@ -1808,6 +1869,13 @@ AddErrors_Next:
         for (var i = 0; i < sourcePath.Length; i++)
         {
             var segment = sourcePath[i];
+
+            // Source schema error paths only carry response names and list indices, never type
+            // conditions, so inline-fragment segments have no corresponding level in the trie.
+            if (segment.Kind is SelectionPathSegmentKind.InlineFragment)
+            {
+                continue;
+            }
 
             if (!current.TryGetValue(segment.Name, out current))
             {
