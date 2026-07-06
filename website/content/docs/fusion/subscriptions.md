@@ -272,6 +272,21 @@ Kafka gives every GraphQL subscriber its own consumer group, so each client rece
 the full stream rather than competing for partitions. SASL and SSL options are
 available on `KafkaEventStreamOptions` for secured clusters.
 
+`AutoOffsetReset` controls where a subscription without a resume cursor starts:
+`Latest` (default) delivers only future events, while `Earliest` replays from the
+earliest retained event. For cursor-enabled subscriptions, the same setting determines
+where a fresh subscribe begins, and the emitted cursor reflects that start position.
+
+For cursor-enabled subscriptions, the broker seeds initial partition positions before
+accepting the first event. Tune `SeedingQueryTimeout` (maximum time per partition
+lookup, default 2 s) and `SeedingDeadline` (overall budget for all partitions, default
+5 s). If any partition position is still missing when the deadline expires, the
+subscription fails rather than starting with an incomplete cursor.
+
+The default message channel waits when full, which keeps cursor-based resume lossless.
+Use `KafkaEventStreamOptions.CreateBoundedMessageChannel` with a drop mode for
+at-most-once delivery, where a resume skips any messages dropped under backpressure.
+
 ### Azure Event Hubs
 
 Install the `HotChocolate.Fusion.Subscriptions.AzureEventHubs` package and register the
@@ -306,11 +321,29 @@ builder
 ```
 
 Every GraphQL subscriber reads independently, so each client receives the full stream.
-By default a subscriber without a cursor starts at the latest event; set
-`StartFromEarliest` to begin from the earliest retained event instead. Event Hubs allows
-only a limited number of non-exclusive readers per partition and consumer group, so set
-`ConsumerGroup` to spread independent gateways across consumer groups when the service
-quota requires it.
+`StartFromEarliest` controls where a subscription without a resume cursor starts: omit
+it (default) to begin at the latest event, or set it to `true` to replay from the
+earliest retained event. For cursor-enabled subscriptions, the same setting determines
+where a fresh subscribe begins, and the emitted cursor reflects that start position.
+
+A cursor-tracked subscription opens one reader per (hub, partition) pair. Event Hubs
+allows at most 5 concurrent non-exclusive readers per partition per consumer group,
+which is about 5 concurrent cursor-tracked subscribers per hub on one group. Use
+separate `ConsumerGroup` values to scale beyond that limit.
+
+For cursor-enabled subscriptions, the broker seeds initial partition positions before
+accepting the first event. Tune `SeedingQueryTimeout` (maximum time per partition
+metadata lookup, default 2 s) and `SeedingDeadline` (overall budget for all partitions,
+default 5 s). If any partition position is still missing when the deadline expires, the
+subscription fails rather than starting with an incomplete cursor.
+
+`PartitionDiscoveryInterval` (default 30 s) controls how often a running cursor-tracked
+subscription checks for partitions added after it started. Raise or lower this based
+on how quickly you expect partition scale-out to be visible to subscribers.
+
+The default message channel waits when full, which keeps cursor-based resume lossless.
+Use `AzureEventHubsEventStreamOptions.CreateBoundedMessageChannel` with a drop mode for
+at-most-once delivery, where a resume skips any messages dropped under backpressure.
 
 ### Amazon SQS
 
@@ -531,10 +564,11 @@ Resumption is driven by an opaque **cursor**. The broker assigns each event a cu
 the client stores the most recent one and, on reconnect, passes it back to resume the
 stream from immediately after that event.
 
-Only single-topic event streams are resumable. A cursor identifies a position within a
-single ordered topic, so a field that subscribes to multiple topics cannot be resumed:
-passing a cursor to such a field resolves it to `null` with an error. Keep a field to a
-single topic when it needs to support resumption.
+Kafka and Azure Event Hubs use a composite cursor that encodes one position per
+assigned (topic, partition) pair, so those brokers support resumable streams even
+when a subscription field resolves to multiple topics. A NATS JetStream cursor is a
+single sequence number within the configured stream; because every subscribed subject
+is filtered from that same stream, multi-topic fields resume there as well.
 
 Two markers wire this up, both expressed with the `@eventCursor` directive:
 
@@ -631,8 +665,9 @@ event 2 onward and never re-receives event 1. A first-time subscriber simply omi
 the argument.
 
 The cursor is an opaque, base64-encoded token. Its meaning is owned by the broker (a
-JetStream sequence for NATS, a `topic:partition:offset` for Kafka, a
-`partition:sequenceNumber` for Azure Event Hubs), so clients should
+JetStream sequence for NATS; a composite of one `topic:partition:offset` entry per
+assigned partition for Kafka; a composite of one `hub:partition:sequenceNumber` entry
+per assigned (hub, partition) pair for Azure Event Hubs), so clients should
 treat it as a black box and never parse or construct it.
 
 > [!NOTE]

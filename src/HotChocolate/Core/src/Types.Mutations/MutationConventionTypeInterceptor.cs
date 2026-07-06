@@ -467,6 +467,7 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
         RegisterType(type);
 
         mutation.Type = Parse($"{payloadTypeName}!");
+        mutation.Flags |= CoreFieldFlags.MutationPayload;
 
         // we mustn't forget to drop the error definitions at this point since we do not
         // want to preserve them on the actual schema field.
