@@ -105,7 +105,7 @@ public sealed partial class CompositeResultDocument
         {
             Debug.Assert(parentRow is >= 0 and <= 0x1FFFFFFF);
             Debug.Assert(selectionId is >= 0 and <= 0x7FFF);
-            Debug.Assert((byte)flags <= 63);
+            Debug.Assert((byte)flags <= 127);
 
             var (chunk, byteOffset, cursor) = ReserveRow();
 
@@ -139,7 +139,7 @@ public sealed partial class CompositeResultDocument
         {
             Debug.Assert(parentRow is >= 0 and <= 0x1FFFFFFF);
             Debug.Assert(selectionId is >= 0 and <= 0x7FFF);
-            Debug.Assert((byte)flags <= 63);
+            Debug.Assert((byte)flags <= 127);
 
             var next = _next;
             var byteOffset = next.ByteOffset;
@@ -187,7 +187,7 @@ public sealed partial class CompositeResultDocument
             Debug.Assert(parentRow is >= 0 and <= 0x1FFFFFFF);
             Debug.Assert(selectionSetId is >= 0 and <= 0x7FFF);
             Debug.Assert(propertyCount is >= 0 and <= 0x0FFFFFFF); // room for (count*2)+1 in 29 bits
-            Debug.Assert((byte)flags <= 63);
+            Debug.Assert((byte)flags <= 127);
 
             var (chunk, byteOffset, cursor) = ReserveRow();
 
@@ -224,7 +224,7 @@ public sealed partial class CompositeResultDocument
         {
             Debug.Assert(parentRow is >= 0 and <= 0x1FFFFFFF);
             Debug.Assert(length is >= 0 and <= int.MaxValue);
-            Debug.Assert((byte)flags <= 63);
+            Debug.Assert((byte)flags <= 127);
 
             var (chunk, byteOffset, cursor) = ReserveRow();
 
@@ -506,20 +506,20 @@ public sealed partial class CompositeResultDocument
             AssertValidCursor(cursor);
 
             var selectionAndFlags = MemoryMarshal.Read<int>(RowSpan(cursor)[DbRow.SelectionAndFlagsOffset..]);
-            return (ElementFlags)((selectionAndFlags >> 17) & 0x3F);
+            return (ElementFlags)((selectionAndFlags >> 17) & 0x7F);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal readonly void SetFlags(Cursor cursor, ElementFlags flags)
         {
             AssertValidCursor(cursor);
-            Debug.Assert((byte)flags <= 63, "Flags value exceeds 6-bit limit");
+            Debug.Assert((byte)flags <= 127, "Flags value exceeds 7-bit limit");
 
             var fieldSpan = RowSpan(cursor)[DbRow.SelectionAndFlagsOffset..];
             var currentValue = MemoryMarshal.Read<int>(fieldSpan);
 
-            // Clear bits 17..22 (6-bit Flags region) then OR new flags in.
-            var clearedValue = (int)((uint)currentValue & ~(0x3Fu << 17));
+            // Clear bits 17..23 (7-bit Flags region) then OR new flags in.
+            var clearedValue = (int)((uint)currentValue & ~(0x7Fu << 17));
             var newValue = clearedValue | ((int)flags << 17);
 
             MemoryMarshal.Write(fieldSpan, newValue);

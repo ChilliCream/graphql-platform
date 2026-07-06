@@ -5,6 +5,9 @@ using System.Text.Json.Nodes;
 using HotChocolate.Buffers;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Execution.Nodes.Serialization;
+using HotChocolate.Fusion.Logging;
+using HotChocolate.Fusion.Options;
+using HotChocolate.Fusion.Types;
 using Microsoft.Extensions.ObjectPool;
 
 namespace HotChocolate.Fusion.Execution.Serialization;
@@ -165,6 +168,89 @@ public class JsonOperationPlanSerializationTests : FusionTestBase
         // assert
         var parsedPlanFormatted = formatter.Format(parsedPlan);
         parsedPlanFormatted.MatchInlineSnapshot(Encoding.UTF8.GetString(buffer.WrittenSpan));
+    }
+
+    [Fact]
+    public void Parse_Plan_With_Apollo_Lookup()
+    {
+        // arrange
+        var compositeSchema = ComposeApolloSchema();
+        var originalPlan = PlanOperation(
+            compositeSchema,
+            """
+            {
+                products {
+                    id
+                    name
+                }
+            }
+            """);
+
+        using var buffer = new PooledArrayWriter();
+        var formatter = new JsonOperationPlanFormatter(
+            new JsonWriterOptions
+            {
+                Indented = true,
+                Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+            });
+        formatter.Format(buffer, originalPlan);
+
+        // act
+        var compiler = new OperationCompiler(
+            compositeSchema,
+            new DefaultObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>>(
+                new DefaultPooledObjectPolicy<OrderedDictionary<string, List<FieldSelectionNode>>>()));
+        var parser = new JsonOperationPlanParser(compiler);
+        var parsedPlan = parser.Parse(buffer.WrittenMemory);
+
+        // assert
+        Assert.Single(originalPlan.AllNodes.OfType<ApolloOperationExecutionNode>());
+        formatter.Format(parsedPlan).MatchInlineSnapshot(Encoding.UTF8.GetString(buffer.WrittenSpan));
+    }
+
+    [Fact]
+    public void Parse_Plan_With_Apollo_Lookup_Batch()
+    {
+        // arrange
+        // Two entity lookups against the same Apollo source schema at the same
+        // depth are grouped into a single Apollo batch node.
+        var compositeSchema = ComposeApolloSchema();
+        var originalPlan = PlanOperation(
+            compositeSchema,
+            """
+            {
+                products {
+                    id
+                    name
+                }
+                brands {
+                    id
+                    name
+                }
+            }
+            """);
+
+        using var buffer = new PooledArrayWriter();
+        var formatter = new JsonOperationPlanFormatter(
+            new JsonWriterOptions
+            {
+                Indented = true,
+                Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+            });
+        formatter.Format(buffer, originalPlan);
+
+        // act
+        var compiler = new OperationCompiler(
+            compositeSchema,
+            new DefaultObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>>(
+                new DefaultPooledObjectPolicy<OrderedDictionary<string, List<FieldSelectionNode>>>()));
+        var parser = new JsonOperationPlanParser(compiler);
+        var parsedPlan = parser.Parse(buffer.WrittenMemory);
+
+        // assert
+        MatchSnapshot(originalPlan);
+        Assert.Single(originalPlan.AllNodes.OfType<ApolloOperationBatchExecutionNode>());
+        formatter.Format(parsedPlan).MatchInlineSnapshot(Encoding.UTF8.GetString(buffer.WrittenSpan));
     }
 
     [Fact]
@@ -375,5 +461,108 @@ public class JsonOperationPlanSerializationTests : FusionTestBase
 
         // assert
         Assert.NotEmpty(parsedPlan.AllNodes.OfType<OperationExecutionNode>());
+    }
+
+    /// <summary>
+    /// Composes a schema from two Apollo Federation subgraphs. Source schema
+    /// "a" exposes the entity root fields and source schema "b" owns the
+    /// entity name fields, so selecting a name plans an entity lookup that is
+    /// routed to an Apollo execution node.
+    /// </summary>
+    private static FusionSchemaDefinition ComposeApolloSchema()
+    {
+        const string sourceSchemaA =
+            """
+            schema @link(url: "https://specs.apollo.dev/federation/v2.6", import: ["@key"]) {
+              query: Query
+            }
+
+            type Product @key(fields: "id") {
+              id: ID!
+            }
+
+            type Brand @key(fields: "id") {
+              id: ID!
+            }
+
+            type Query {
+              products: [Product!]
+              brands: [Brand!]
+              _service: _Service!
+              _entities(representations: [_Any!]!): [_Entity]!
+            }
+
+            type _Service { sdl: String! }
+
+            union _Entity = Product | Brand
+
+            scalar FieldSet
+            scalar _Any
+
+            directive @key(fields: FieldSet! resolvable: Boolean = true) repeatable on OBJECT | INTERFACE
+            directive @link(url: String! import: [String!]) repeatable on SCHEMA
+            """;
+
+        const string sourceSchemaB =
+            """
+            schema @link(url: "https://specs.apollo.dev/federation/v2.6", import: ["@key"]) {
+              query: Query
+            }
+
+            type Product @key(fields: "id") {
+              id: ID!
+              name: String
+            }
+
+            type Brand @key(fields: "id") {
+              id: ID!
+              name: String
+            }
+
+            type Query {
+              _service: _Service!
+              _entities(representations: [_Any!]!): [_Entity]!
+            }
+
+            type _Service { sdl: String! }
+
+            union _Entity = Product | Brand
+
+            scalar FieldSet
+            scalar _Any
+
+            directive @key(fields: FieldSet! resolvable: Boolean = true) repeatable on OBJECT | INTERFACE
+            directive @link(url: String! import: [String!]) repeatable on SCHEMA
+            """;
+
+        var sourceTexts = new[]
+        {
+            new SourceSchemaText("a", sourceSchemaA),
+            new SourceSchemaText("b", sourceSchemaB)
+        };
+
+        var compositionLog = new CompositionLog();
+        var composerOptions = new SchemaComposerOptions();
+
+        foreach (var sourceText in sourceTexts)
+        {
+            composerOptions.SourceSchemas[sourceText.Name] = new SourceSchemaOptions
+            {
+                Preprocessor = new SourceSchemaPreprocessorOptions
+                {
+                    InferKeysFromLookups = false
+                }
+            };
+        }
+
+        var composer = new SchemaComposer(sourceTexts, composerOptions, compositionLog);
+        var result = composer.Compose();
+
+        if (!result.IsSuccess)
+        {
+            throw new InvalidOperationException(result.Errors[0].Message);
+        }
+
+        return FusionSchemaDefinition.Create(result.Value.ToSyntaxNode());
     }
 }

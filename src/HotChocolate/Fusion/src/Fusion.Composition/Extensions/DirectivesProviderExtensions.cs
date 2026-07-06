@@ -114,6 +114,11 @@ internal static class DirectivesProviderExtensions
             return member.Directives.ContainsName(WellKnownDirectiveNames.FusionInaccessible);
         }
 
+        public bool HasFusionGatewayFieldDirective()
+        {
+            return member.Directives.ContainsName(WellKnownDirectiveNames.FusionGatewayField);
+        }
+
         public bool HasInaccessibleDirective()
         {
             return member.Directives.ContainsName(WellKnownDirectiveNames.Inaccessible);

@@ -205,9 +205,21 @@ internal sealed class FusionActivityExecutionDiagnosticEventListener(
         string schemaName)
         => ExecuteNode(context, node, schemaName);
 
+    public override IDisposable ExecuteApolloOperationExecutionNode(
+        OperationPlanContext context,
+        ApolloOperationExecutionNode node,
+        string schemaName)
+        => ExecuteNode(context, node, schemaName);
+
     public override IDisposable ExecuteOperationBatchNode(
         OperationPlanContext context,
         OperationBatchExecutionNode node,
+        string schemaName)
+        => ExecuteNode(context, node, schemaName);
+
+    public override IDisposable ExecuteApolloOperationBatchExecutionNode(
+        OperationPlanContext context,
+        ApolloOperationBatchExecutionNode node,
         string schemaName)
         => ExecuteNode(context, node, schemaName);
 

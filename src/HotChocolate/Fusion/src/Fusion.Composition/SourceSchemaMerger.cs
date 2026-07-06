@@ -1,6 +1,7 @@
 using System.Collections.Frozen;
 using System.Collections.Immutable;
 using System.Text;
+using HotChocolate.Fusion.ApolloFederation;
 using HotChocolate.Fusion.Definitions;
 using HotChocolate.Fusion.DirectiveMergers;
 using HotChocolate.Fusion.Extensions;
@@ -124,14 +125,15 @@ internal sealed class SourceSchemaMerger
         if (_options.RemoveUnreferencedDefinitions)
         {
             mergedSchema.RemoveUnreferencedDefinitions(
-                MutableSchemaDefinitionExtensions.GetPreservedTypeNames(_schemas));
+                MutableSchemaDefinitionExtensions.GetPreservedTypeNames(_schemas),
+                seedUnionsAsRoots: false);
         }
 
         // Add Fusion definitions.
         if (_options.AddFusionDefinitions)
         {
             AddFusionDefinitions(mergedSchema);
-            LiftConnectorKindOntoEnumValues(mergedSchema);
+            LiftConnectorKindOntoSchemaMetadata(mergedSchema);
         }
 
         return mergedSchema;
@@ -271,32 +273,80 @@ internal sealed class SourceSchemaMerger
 
     private void AddNodeField(MutableSchemaDefinition mergedSchema)
     {
-        if (mergedSchema.Types.TryGetType<IInterfaceTypeDefinition>(TypeNames.Node, out var nodeType)
+        if (_options.EnableGlobalObjectIdentification
+            && mergedSchema.Types.TryGetType<IInterfaceTypeDefinition>(TypeNames.Node, out var nodeType)
+            && mergedSchema.Types.TryGetType<IScalarTypeDefinition>(TypeNames.ID, out var idType)
             && mergedSchema.QueryType is { } queryType)
         {
             if (queryType.Fields.TryGetField(FieldNames.Node, out var nodeField)
-                && nodeField.Type == nodeType)
+                && IsGoiNodeField(nodeField, nodeType, idType))
             {
                 queryType.Fields.Remove(nodeField);
             }
 
-            // Until gateway support is implemented, we never expose the nodes field in the merged schema.
+            // Only remove the GOI-shaped nodes field; user-defined nodes fields remain visible.
             if (queryType.Fields.TryGetField(FieldNames.Nodes, out var nodesField)
-                && nodesField.Type.NamedType() == nodeType)
+                && IsGoiNodesField(nodesField, nodeType, idType))
             {
                 queryType.Fields.Remove(nodesField);
             }
 
-            if (_options.EnableGlobalObjectIdentification
-                && mergedSchema.Types.TryGetType<IScalarTypeDefinition>(TypeNames.ID, out var idType))
+            if (!queryType.Fields.ContainsName(FieldNames.Node))
             {
                 var canonicalNodeField = new MutableOutputFieldDefinition(FieldNames.Node, nodeType);
                 canonicalNodeField.Arguments.Add(
                     new MutableInputFieldDefinition(ArgumentNames.Id, new NonNullType(idType)));
+                canonicalNodeField.Directives.Add(
+                    new Directive(_fusionDirectiveDefinitions[DirectiveNames.FusionGatewayField]));
 
                 queryType.Fields.Add(canonicalNodeField);
             }
         }
+    }
+
+    private static bool IsGoiNodeField(
+        MutableOutputFieldDefinition field,
+        IInterfaceTypeDefinition nodeType,
+        IScalarTypeDefinition idType)
+    {
+        if (field.Name != FieldNames.Node
+            || field.Type != nodeType
+            || field.Arguments.Count != 1
+            || !field.Arguments.TryGetField(ArgumentNames.Id, out var argument))
+        {
+            return false;
+        }
+
+        return argument.Type is NonNullType { NullableType: var nullableType }
+            && nullableType.NamedType() == idType
+            && nullableType.Kind == TypeKind.Scalar;
+    }
+
+    private static bool IsGoiNodesField(
+        MutableOutputFieldDefinition field,
+        IInterfaceTypeDefinition nodeType,
+        IScalarTypeDefinition idType)
+    {
+        if (field.Name != FieldNames.Nodes
+            || field.Type.NamedType() != nodeType
+            || field.Arguments.Count != 1
+            || !field.Arguments.TryGetField(ArgumentNames.Ids, out var argument))
+        {
+            return false;
+        }
+
+        return argument.Type is NonNullType
+            {
+                NullableType: ListType
+                {
+                    ElementType: NonNullType
+                    {
+                        NullableType: var idElementType
+                    }
+                }
+            }
+            && idElementType.NamedType() == idType
+            && idElementType.Kind == TypeKind.Scalar;
     }
 
     /// <summary>
@@ -1808,10 +1858,6 @@ internal sealed class SourceSchemaMerger
         return new Dictionary<string, MutableDirectiveDefinition>
         {
             {
-                DirectiveNames.FusionConnector,
-                new FusionConnectorMutableDirectiveDefinition(stringType)
-            },
-            {
                 DirectiveNames.FusionCost,
                 new FusionCostMutableDirectiveDefinition(schemaEnumType, stringType)
             },
@@ -1826,6 +1872,10 @@ internal sealed class SourceSchemaMerger
                     stringType,
                     fieldSelectionSetType,
                     booleanType)
+            },
+            {
+                DirectiveNames.FusionGatewayField,
+                new FusionGatewayFieldMutableDirectiveDefinition()
             },
             {
                 DirectiveNames.FusionImplements,
@@ -1900,7 +1950,7 @@ internal sealed class SourceSchemaMerger
         }
     }
 
-    private void LiftConnectorKindOntoEnumValues(MutableSchemaDefinition mergedSchema)
+    private void LiftConnectorKindOntoSchemaMetadata(MutableSchemaDefinition mergedSchema)
     {
         if (!mergedSchema.Types.TryGetType<MutableEnumTypeDefinition>(
             TypeNames.FusionSchema,
@@ -1909,24 +1959,40 @@ internal sealed class SourceSchemaMerger
             return;
         }
 
-        var connectorDirective = _fusionDirectiveDefinitions[DirectiveNames.FusionConnector];
+        var metadataDirective = _fusionDirectiveDefinitions[DirectiveNames.FusionSchemaMetadata];
 
         foreach (var schema in _schemas)
         {
-            if (schema.Directives.FirstOrDefault(DirectiveNames.FusionConnector) is not { } connector
-                || !connector.Arguments.TryGetValue(ArgumentNames.Kind, out var kindValue)
-                || kindValue is not StringValueNode kindString
-                || kindString.Value == "GraphQL")
+            if (schema.Features.Get<ConnectorKindMetadata>() is not { } connectorKind)
             {
                 continue;
             }
 
             if (schemaEnum.Values.TryGetValue(_schemaConstantNames[schema.Name], out var enumValue))
             {
-                enumValue.Directives.Add(
-                    new Directive(
-                        connectorDirective,
-                        new ArgumentAssignment(ArgumentNames.Kind, kindString.Value)));
+                var currentMetadata =
+                    enumValue.Directives.FirstOrDefault(DirectiveNames.FusionSchemaMetadata);
+                List<ArgumentAssignment> arguments = currentMetadata is null
+                    ? [new ArgumentAssignment(ArgumentNames.Name, schema.Name)]
+                    : currentMetadata.Arguments
+                        .Select(static t => new ArgumentAssignment(t.Name, t.Value))
+                        .ToList();
+
+                if (arguments.All(static t => t.Name != ArgumentNames.Kind))
+                {
+                    arguments.Add(new ArgumentAssignment(ArgumentNames.Kind, connectorKind.Kind));
+                }
+
+                var newMetadata = new Directive(metadataDirective, arguments);
+
+                if (currentMetadata is null)
+                {
+                    enumValue.Directives.Add(newMetadata);
+                }
+                else
+                {
+                    enumValue.Directives.Replace(currentMetadata, newMetadata);
+                }
             }
         }
     }

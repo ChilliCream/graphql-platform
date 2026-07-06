@@ -86,7 +86,7 @@ public sealed class SchemaComposer
 
             foreach (var schema in schemas)
             {
-                schema.RemoveUnreferencedDefinitions(preservedTypeNames);
+                schema.RemoveUnreferencedDefinitions(preservedTypeNames, seedUnionsAsRoots: true);
             }
         }
 

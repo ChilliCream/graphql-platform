@@ -22,6 +22,8 @@ internal sealed class FusionSchemaMetadataMutableDirectiveDefinition : MutableDi
             Description = FusionSchemaMetadataMutableDirectiveDefinition_Argument_Name_Description
         });
 
+        Arguments.Add(new MutableInputFieldDefinition(argNames.Kind, stringType));
+
         Locations = DirectiveLocation.EnumValue;
     }
 }

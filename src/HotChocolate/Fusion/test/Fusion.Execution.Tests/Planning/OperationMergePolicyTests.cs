@@ -1,4 +1,5 @@
 using HotChocolate.Fusion.Execution.Nodes;
+using HotChocolate.Fusion.Execution.Rewriters;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 using Microsoft.Extensions.ObjectPool;
@@ -191,7 +192,7 @@ public class OperationMergePolicyTests : FusionTestBase
 
         var operationDoc = Utf8GraphQLParser.Parse(operationText);
 
-        var rewriter = new Rewriters.DocumentRewriter(schema);
+        var rewriter = new DocumentRewriter(schema);
         var rewritten = rewriter.RewriteDocument(operationDoc, operationName: null);
         var operation = rewritten.Definitions.OfType<OperationDefinitionNode>().First();
 

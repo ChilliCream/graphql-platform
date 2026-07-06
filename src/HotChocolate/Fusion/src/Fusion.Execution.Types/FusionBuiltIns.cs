@@ -11,7 +11,6 @@ internal static class FusionBuiltIns
     public const string Schema = "fusion__Schema";
 
     public const string Type = "fusion__type";
-    public const string Connector = "fusion__connector";
     public const string Field = "fusion__field";
     public const string InputField = "fusion__inputField";
     public const string Requires = "fusion__requires";
@@ -20,6 +19,7 @@ internal static class FusionBuiltIns
     public const string UnionMember = "fusion__unionMember";
     public const string EnumValue = "fusion__enumValue";
     public const string Inaccessible = "fusion__inaccessible";
+    public const string GatewayField = "fusion__gateway_field";
     public const string SchemaMetadata = "fusion__schema_metadata";
     public const string EventStream = "fusion__eventStream";
 

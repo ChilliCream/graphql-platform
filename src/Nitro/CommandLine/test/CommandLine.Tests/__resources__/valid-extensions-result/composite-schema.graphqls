@@ -37,12 +37,6 @@ scalar fusion__FieldSelectionPath
 "The fusion__FieldSelectionSet scalar is used to represent a GraphQL selection set. To simplify the syntax, the outermost selection set is not wrapped in curly braces."
 scalar fusion__FieldSelectionSet
 
-"The @fusion__connector directive declares which connector kind handles a source schema."
-directive @fusion__connector(
-  "The kind of connector that handles the source schema represented by this enum value."
-  kind: String!
-) on ENUM_VALUE
-
 "The @fusion__cost directive specifies cost metadata for each source schema."
 directive @fusion__cost(
   "The name of the source schema that defined the cost metadata."
@@ -83,6 +77,9 @@ directive @fusion__field(
   "The field type in the source schema if it differs in nullability or structure."
   sourceType: String
 ) repeatable on FIELD_DEFINITION
+
+"The @fusion__gateway_field directive marks a field that is implemented by the gateway itself rather than resolved from an underlying source schema, such as the global object identification node field."
+directive @fusion__gateway_field on FIELD_DEFINITION
 
 "The @fusion__implements directive specifies on which source schema an interface is implemented by an object or interface type."
 directive @fusion__implements(
@@ -159,6 +156,7 @@ directive @fusion__requires(
 
 "The @fusion__schema_metadata directive is used to provide additional metadata for a source schema."
 directive @fusion__schema_metadata(
+  kind: String
   "The name of the source schema."
   name: String!
 ) on ENUM_VALUE

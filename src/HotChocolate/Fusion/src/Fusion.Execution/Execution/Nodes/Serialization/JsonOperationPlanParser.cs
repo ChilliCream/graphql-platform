@@ -2,6 +2,7 @@ using System.Collections.Immutable;
 using System.Text.Json;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Language;
+using HotChocolate.Fusion.Types;
 using HotChocolate.Fusion.Types.Directives;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -185,10 +186,11 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
                     var requirementType = requirementElement.GetProperty("type").GetString()!;
                     var requirementPath = requirementElement.GetProperty("path").GetString()!;
                     var selectionMap = requirementElement.GetProperty("selectionMap").GetString()!;
+                    var requirementTypeNode = Utf8GraphQLParser.Syntax.ParseTypeReference(requirementType);
 
                     requirementsBuilder.Add(new OperationRequirement(
                         requirementName,
-                        Utf8GraphQLParser.Syntax.ParseTypeReference(requirementType),
+                        requirementTypeNode,
                         SelectionPath.Parse(requirementPath),
                         FieldSelectionMapParser.Parse(selectionMap)));
                 }
@@ -253,6 +255,11 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
                     parsedNodes.Add(ParseOperationBatchNodeInfo(nodeElement, id, schema));
                     break;
 
+                case "ApolloOperation":
+                case "ApolloOperationBatch":
+                    parsedNodes.Add(ParseApolloOperationNodeInfo(nodeElement, id, schema));
+                    break;
+
                 case "EventStream":
                     parsedNodes.Add(ParseEventStreamNodeInfo(nodeElement, id, schema));
                     break;
@@ -301,7 +308,7 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
         var allNodes = new List<(ExecutionNode Node, int[]? Dependencies, Dictionary<string, int>? Branches, int? Fallback)>();
         var nodeMap = new Dictionary<int, ExecutionNode>();
 
-        // Merge each batch group into a single OperationBatchExecutionNode.
+        // Merge each batch group into a single batch execution node.
         // The group identifier becomes the node identifier, and every member
         // operation becomes an entry in the batch node's operation list.
         foreach (var (groupId, groupMembers) in batchGroups)
@@ -322,7 +329,15 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
                 }
             }
 
-            var batchNode = new OperationBatchExecutionNode(groupId, operations.ToArray());
+            // Apollo entity lookups group into their own batch node type because
+            // each member operation is rewritten into an _entities request.
+            ExecutionNode batchNode = groupMembers[0] is ParsedApolloOperationNodeInfo
+                ? ApolloOperationBatchExecutionNode.Create(
+                    groupId,
+                    operations.Cast<SingleOperationDefinition>().ToArray(),
+                    _operationCompiler.Schema)
+                : new OperationBatchExecutionNode(groupId, operations.ToArray());
+
             allNodes.Add((batchNode, allDeps.Count > 0 ? allDeps.ToArray() : null, null, null));
             nodeMap[groupId] = batchNode;
         }
@@ -377,7 +392,8 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
                         // does not block the entire batch when only one member's
                         // dependency is missing. Single-operation nodes (and
                         // non-batch nodes) need a strict dependency instead.
-                        if (node is OperationBatchExecutionNode { Operations.Length: > 1 })
+                        if (node is OperationBatchExecutionNode { Operations.Length: > 1 }
+                            or ApolloOperationBatchExecutionNode { Operations.Length: > 1 })
                         {
                             node.AddOptionalDependency(dependencyNode);
                         }
@@ -449,6 +465,14 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
                     planNodeMap[op.Id] = op;
                 }
             }
+
+            if (node is ApolloOperationBatchExecutionNode abn)
+            {
+                foreach (var op in abn.Operations)
+                {
+                    planNodeMap[op.Id] = op;
+                }
+            }
         }
 
         // Each operation definition inside a batch node tracks its own
@@ -457,16 +481,26 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
         // dependencies using the original identifiers from the JSON.
         foreach (var (groupId, groupMembers) in batchGroups)
         {
-            if (nodeMap.TryGetValue(groupId, out var batchNode) && batchNode is OperationBatchExecutionNode batch)
+            if (!nodeMap.TryGetValue(groupId, out var groupNode))
             {
-                var memberIndex = 0;
+                continue;
+            }
 
-                foreach (var member in groupMembers)
+            var memberIndex = 0;
+
+            foreach (var member in groupMembers)
+            {
+                if (member.Dependencies is { Length: > 0 })
                 {
-                    if (member.Dependencies is { Length: > 0 })
+                    var opDef = groupNode switch
                     {
-                        var opDef = batch.Operations[memberIndex];
+                        OperationBatchExecutionNode batch => batch.Operations[memberIndex],
+                        ApolloOperationBatchExecutionNode apolloBatch => apolloBatch.Operations[memberIndex],
+                        _ => null
+                    };
 
+                    if (opDef is not null)
+                    {
                         foreach (var depId in member.Dependencies)
                         {
                             if (planNodeMap.TryGetValue(depId, out var depNode))
@@ -475,9 +509,9 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
                             }
                         }
                     }
-
-                    memberIndex++;
                 }
+
+                memberIndex++;
             }
         }
 
@@ -492,11 +526,11 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
     }
 
     private static ParsedOperationNodeInfo ParseOperationNodeInfo(
-        JsonElement nodeElement, int id, ISchemaDefinition schema)
+        JsonElement nodeElement, int id, FusionSchemaDefinition schema)
     {
         var (schemaName, opSource, source, requirements, forwardedVariables,
             resultSelectionSet, dependencies, parentDependencies, batchingGroupId, conditions,
-            requiresFileUpload) = ParseCommonOperationFields(nodeElement, schema);
+            requiresFileUpload) = ParseCommonOperationFields(nodeElement);
 
         SelectionPath? target = null;
 
@@ -521,6 +555,40 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
             Conditions = conditions,
             RequiresFileUpload = requiresFileUpload,
             Schema = schema
+        };
+    }
+
+    private static ParsedOperationNodeInfo ParseApolloOperationNodeInfo(
+        JsonElement nodeElement, int id, FusionSchemaDefinition schema)
+    {
+        var (schemaName, opSource, source, requirements, forwardedVariables,
+            resultSelectionSet, dependencies, parentDependencies, batchingGroupId, conditions,
+            requiresFileUpload) = ParseCommonOperationFields(nodeElement);
+
+        SelectionPath? target = null;
+
+        if (nodeElement.TryGetProperty("target", out var targetElement))
+        {
+            target = SelectionPath.Parse(targetElement.GetString()!);
+        }
+
+        return new ParsedApolloOperationNodeInfo
+        {
+            Id = id,
+            SchemaName = schemaName,
+            OperationSource = opSource,
+            Source = source ?? SelectionPath.Root,
+            Target = target ?? SelectionPath.Root,
+            Requirements = requirements?.ToArray() ?? [],
+            ForwardedVariables = forwardedVariables ?? [],
+            ResultSelectionSet = ResultSelectionSet.Create(resultSelectionSet!, schema),
+            Dependencies = dependencies,
+            ParentDependencies = parentDependencies,
+            BatchingGroupId = batchingGroupId,
+            Conditions = conditions,
+            RequiresFileUpload = requiresFileUpload,
+            Schema = schema,
+            FusionSchema = schema
         };
     }
 
@@ -608,11 +676,11 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
     }
 
     private static ParsedOperationNodeInfo ParseOperationBatchNodeInfo(
-        JsonElement nodeElement, int id, ISchemaDefinition schema)
+        JsonElement nodeElement, int id, FusionSchemaDefinition schema)
     {
         var (schemaName, opSource, source, requirements, forwardedVariables,
             resultSelectionSet, dependencies, parentDependencies, batchingGroupId, conditions,
-            requiresFileUpload) = ParseCommonOperationFields(nodeElement, schema);
+            requiresFileUpload) = ParseCommonOperationFields(nodeElement);
 
         var targets = nodeElement.TryGetProperty("targets", out var targetsElement)
             ? targetsElement.EnumerateArray().Select(e => SelectionPath.Parse(e.GetString()!)).ToArray()
@@ -641,7 +709,7 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
         List<OperationRequirement>? requirements, string[]? forwardedVariables,
         SelectionSetNode? resultSelectionSet, int[]? dependencies, int[]? parentDependencies,
         int? batchingGroupId, ExecutionNodeCondition[] conditions, bool requiresFileUpload)
-        ParseCommonOperationFields(JsonElement nodeElement, ISchemaDefinition _)
+        ParseCommonOperationFields(JsonElement nodeElement)
     {
         string? schemaName = null;
 
@@ -680,10 +748,11 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
                 var requirementType = requirementElement.GetProperty("type").GetString()!;
                 var requirementPath = requirementElement.GetProperty("path").GetString()!;
                 var selectionMap = requirementElement.GetProperty("selectionMap").GetString()!;
+                var requirementTypeNode = Utf8GraphQLParser.Syntax.ParseTypeReference(requirementType);
 
                 requirements.Add(new OperationRequirement(
                     requirementName,
-                    Utf8GraphQLParser.Syntax.ParseTypeReference(requirementType),
+                    requirementTypeNode,
                     SelectionPath.Parse(requirementPath),
                     FieldSelectionMapParser.Parse(selectionMap)));
             }
@@ -943,6 +1012,63 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
                 ResultSelectionSet,
                 Conditions,
                 RequiresFileUpload);
+
+            if (ParentDependencies is not null)
+            {
+                foreach (var parentId in ParentDependencies)
+                {
+                    node.AddParentDependency(parentId);
+                }
+            }
+
+            return (node, Dependencies, null, null);
+        }
+    }
+
+    private sealed class ParsedApolloOperationNodeInfo : ParsedOperationNodeInfo
+    {
+        public required SelectionPath Target { get; init; }
+
+        public required FusionSchemaDefinition FusionSchema { get; init; }
+
+        public override OperationDefinition ToOperationDefinition()
+        {
+            var definition = new SingleOperationDefinition(
+                Id,
+                OperationSource,
+                SchemaName,
+                Target,
+                Source,
+                Requirements,
+                ForwardedVariables,
+                ResultSelectionSet,
+                Conditions,
+                RequiresFileUpload);
+
+            if (ParentDependencies is not null)
+            {
+                foreach (var parentId in ParentDependencies)
+                {
+                    definition.AddParentDependency(parentId);
+                }
+            }
+
+            return definition;
+        }
+
+        public override (ExecutionNode, int[]?, Dictionary<string, int>?, int?) ToExecutionNodeTuple()
+        {
+            var node = ApolloOperationExecutionNode.Create(
+                Id,
+                OperationSource,
+                SchemaName,
+                Target,
+                Requirements,
+                ForwardedVariables,
+                ResultSelectionSet,
+                Conditions,
+                RequiresFileUpload,
+                FusionSchema);
 
             if (ParentDependencies is not null)
             {

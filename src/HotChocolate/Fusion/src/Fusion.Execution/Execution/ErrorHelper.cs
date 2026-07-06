@@ -1,6 +1,7 @@
 using System.Net;
 using HotChocolate.Collections.Immutable;
 using HotChocolate.Execution;
+using HotChocolate.Fusion.Properties;
 
 namespace HotChocolate.Fusion.Execution;
 
@@ -34,4 +35,10 @@ internal static class ErrorHelper
             ErrorBuilder.New()
                 .SetMessage("The variable coercion requires an operation execution plan.")
                 .Build());
+
+    public static IError InvalidNodeIdFormat(string originalValue)
+        => ErrorBuilder.New()
+            .SetMessage(FusionExecutionResources.NodeFieldExecutionNode_InvalidNodeIdFormat)
+            .SetExtension("originalValue", originalValue)
+            .Build();
 }
