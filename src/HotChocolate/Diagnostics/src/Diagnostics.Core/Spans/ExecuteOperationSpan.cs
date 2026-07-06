@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using HotChocolate.Execution;
 using HotChocolate.Language;
+using Microsoft.AspNetCore.Http;
 using static HotChocolate.Diagnostics.SemanticConventions;
 
 namespace HotChocolate.Diagnostics;
@@ -34,7 +35,24 @@ internal sealed class ExecuteOperationSpan(
 
     protected override void OnComplete()
     {
-        if (context.Result is null or OperationResult { Errors: [_, ..] })
+        // An intentional caller cancellation (browser tab closed, connection
+        // dropped) is not an error: per the OpenTelemetry semantic conventions
+        // the span status is left Unset and no error.type is reported. A
+        // server-side execution timeout is not a client cancellation and keeps
+        // the regular error behavior below.
+        if (ClientCancellation.IsClientCanceled(context))
+        {
+            // leave the span Unset (neither Error nor Ok).
+        }
+        else if (context.Result is null
+            && context.RequestAborted.IsCancellationRequested
+            && context.Features.TryGet<HttpContext>(out var httpContext)
+            && !httpContext.RequestAborted.IsCancellationRequested)
+        {
+            Activity.SetStatus(ActivityStatusCode.Error);
+            Activity.SetErrorType(ErrorCodes.Execution.Timeout);
+        }
+        else if (context.Result is null or OperationResult { Errors: [_, ..] })
         {
             Activity.SetStatus(ActivityStatusCode.Error);
 

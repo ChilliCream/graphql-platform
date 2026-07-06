@@ -249,5 +249,7 @@ public sealed class RedisEventStreamBrokerTests(RedisFixture fixture)
 
         public IReadOnlyDictionary<string, IValueNode> Arguments { get; } =
             new Dictionary<string, IValueNode>();
+
+        public bool RequiresCursor => true;
     }
 }
