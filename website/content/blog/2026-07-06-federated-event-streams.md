@@ -1,8 +1,8 @@
 ---
 date: "2026-07-06"
-title: "Real-time, federated: Introducing Federated Event Streams"
-description: "Federated Event Streams bring broker-backed, resumable GraphQL subscriptions to Fusion 16.4. Subscribe once, keep your gateway stateless, and craft exactly the event payloads your schema needs."
-tags: ["fusion", "graphql", "federation", "subscriptions", "events", "dotnet"]
+title: "Introducing Federated Event Streams for Fusion 16.4"
+description: "Federated Event Streams add broker-backed, resumable GraphQL subscriptions to Fusion 16.4, with stateless gateway scaling and client-owned resume cursors."
+tags: ["fusion", "graphql", "federation", "subscriptions", "event-streams", "dotnet"]
 category: "Release"
 featuredImage: "header.png"
 author: Michael Staib
@@ -22,7 +22,7 @@ In a federated graph, these concerns become even more important. Events can orig
 
 Today, we are introducing **Federated Event Streams** in Fusion 16.4: a new way to build broker-backed, resumable subscriptions across a federated graph without making the gateway stateful. A client subscribes once through the Fusion gateway, events come from your broker, and for each event the gateway resolves exactly the fields the client asked for across the federated graph. Resume state stays with the client, so a reconnect can land on any gateway replica without sticky sessions or gateway-owned subscription state.
 
-## How Federated Event Streams work
+## Broker-backed GraphQL subscriptions in Fusion
 
 Federated Event Streams starts with the GraphQL subscription the client already knows. The client subscribes through the Fusion gateway and selects the fields it wants back.
 
