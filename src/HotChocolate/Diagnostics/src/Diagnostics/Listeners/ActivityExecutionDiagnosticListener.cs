@@ -48,11 +48,6 @@ internal sealed class ActivityExecutionDiagnosticListener(
 
         context.Features.Set(span);
 
-        // Register the span under its base type as well so that operation spans,
-        // which live in a lower layer and cannot see the concrete type, can tell
-        // that a request span is present to drain their deferred classification.
-        context.Features.Set<ExecuteRequestSpanBase>(span);
-
         return span;
     }
 

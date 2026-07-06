@@ -1,7 +1,7 @@
 using System.Diagnostics;
 using HotChocolate.Execution;
-using HotChocolate.Features;
 using HotChocolate.Language;
+using Microsoft.AspNetCore.Http;
 using static HotChocolate.Diagnostics.SemanticConventions;
 
 namespace HotChocolate.Diagnostics;
@@ -9,7 +9,7 @@ namespace HotChocolate.Diagnostics;
 internal sealed class ExecuteOperationSpan(
     Activity activity,
     RequestContext context,
-    ActivityEnricherBase enricher) : SpanBase(activity, shouldDisposeActivity: false)
+    ActivityEnricherBase enricher) : SpanBase(activity)
 {
     public static ExecuteOperationSpan? Start(
         ActivitySource source,
@@ -35,39 +35,6 @@ internal sealed class ExecuteOperationSpan(
 
     protected override void OnComplete()
     {
-        enricher.EnrichExecuteOperation(context, Activity);
-
-        // When the operation is torn down by an in-flight cancellation the result
-        // is not yet known here: a client abort and a server-side execution timeout
-        // both unwind as a cancellation with no result set. The two cases require
-        // opposite span statuses (Unset vs. Error), so defer the decision to the
-        // root request span, which observes the final result and finalizes this
-        // span once the outcome is known.
-        //
-        // Deferral is only safe when a request span is present, because the request
-        // span is the only thing that drains the deferred list. If ExecuteOperation
-        // is instrumented without a request span (for example without ExecuteRequest
-        // and without an HTTP request span to reuse) nothing would ever finalize the
-        // deferred span, so classify immediately instead. In that rare configuration
-        // an in-flight cancellation cannot be told apart from an execution timeout,
-        // which matches the pre-existing behavior for a missing request span.
-        if (context.Result is null
-            && context.RequestAborted.IsCancellationRequested
-            && context.Features.TryGet<ExecuteRequestSpanBase>(out _))
-        {
-            context.Features.GetOrSet<DeferredOperationSpans>().Add(this);
-            return;
-        }
-
-        Classify();
-        Activity.Dispose();
-    }
-
-    /// <summary>
-    /// Applies the terminal span status once the request outcome is known.
-    /// </summary>
-    private void Classify()
-    {
         // An intentional caller cancellation (browser tab closed, connection
         // dropped) is not an error: per the OpenTelemetry semantic conventions
         // the span status is left Unset and no error.type is reported. A
@@ -76,6 +43,14 @@ internal sealed class ExecuteOperationSpan(
         if (ClientCancellation.IsClientCanceled(context))
         {
             // leave the span Unset (neither Error nor Ok).
+        }
+        else if (context.Result is null
+            && context.RequestAborted.IsCancellationRequested
+            && context.Features.TryGet<HttpContext>(out var httpContext)
+            && !httpContext.RequestAborted.IsCancellationRequested)
+        {
+            Activity.SetStatus(ActivityStatusCode.Error);
+            Activity.SetErrorType(ErrorCodes.Execution.Timeout);
         }
         else if (context.Result is null or OperationResult { Errors: [_, ..] })
         {
@@ -94,28 +69,7 @@ internal sealed class ExecuteOperationSpan(
         {
             Activity.SetStatus(ActivityStatusCode.Ok);
         }
-    }
 
-    /// <summary>
-    /// Holds operation spans whose terminal status cannot be decided when they
-    /// complete because the request outcome (client cancellation vs. execution
-    /// timeout) is not yet known.
-    /// </summary>
-    internal sealed class DeferredOperationSpans
-    {
-        private readonly List<ExecuteOperationSpan> _spans = [];
-
-        public void Add(ExecuteOperationSpan span) => _spans.Add(span);
-
-        public void Complete()
-        {
-            foreach (var span in _spans)
-            {
-                span.Classify();
-                span.Activity.Dispose();
-            }
-
-            _spans.Clear();
-        }
+        enricher.EnrichExecuteOperation(context, Activity);
     }
 }

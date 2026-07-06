@@ -1,4 +1,5 @@
 using HotChocolate.Execution;
+using Microsoft.AspNetCore.Http;
 
 namespace HotChocolate.Diagnostics;
 
@@ -19,14 +20,28 @@ internal static class ClientCancellation
     /// Determines whether the request ended because the caller cancelled it.
     /// </summary>
     /// <remarks>
-    /// A client/caller cancellation surfaces as an <see cref="OperationResult"/>
-    /// whose first error carries <see cref="ErrorCodes.Execution.Canceled"/>
-    /// (<c>HC0049</c>). A server-side execution timeout instead carries
-    /// <see cref="ErrorCodes.Execution.Timeout"/> (<c>HC0045</c>) and is therefore
-    /// not treated as a client cancellation.
+    /// A client/caller cancellation is recognized either from the finished result
+    /// (an <see cref="ErrorCodes.Execution.Canceled"/> result) or, while the
+    /// operation is still unwinding, from the transport abort token:
+    /// <see cref="HttpContext.RequestAborted"/>. A server-side execution timeout
+    /// also cancels <see cref="RequestContext.RequestAborted"/>, but it leaves the
+    /// transport abort token untouched.
     /// </remarks>
     public static bool IsClientCanceled(RequestContext context)
-        => context.Result is OperationResult result && IsClientCanceled(result);
+    {
+        if (context.Result is OperationResult result && IsClientCanceled(result))
+        {
+            return true;
+        }
+
+        if (!context.RequestAborted.IsCancellationRequested)
+        {
+            return false;
+        }
+
+        return context.Features.TryGet<HttpContext>(out var httpContext)
+            && httpContext.RequestAborted.IsCancellationRequested;
+    }
 
     /// <summary>
     /// Determines whether the given result represents a caller cancellation.

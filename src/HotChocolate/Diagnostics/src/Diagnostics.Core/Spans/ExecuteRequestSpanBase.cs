@@ -98,14 +98,6 @@ internal abstract class ExecuteRequestSpanBase(
             Activity.SetStatus(ActivityStatusCode.Ok);
         }
 
-        // Finalize any operation spans that could not classify themselves while
-        // an in-flight cancellation was unwinding. The final result is now known,
-        // so a client cancellation can be told apart from an execution timeout.
-        if (Context.Features.TryGet<ExecuteOperationSpan.DeferredOperationSpans>(out var deferred))
-        {
-            deferred.Complete();
-        }
-
         enricher.EnrichExecuteRequest(Context, Activity);
     }
 

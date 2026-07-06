@@ -233,6 +233,10 @@ internal sealed class ExecuteHttpRequestSpan(
                 // dropped) is not an error: per the OpenTelemetry semantic conventions
                 // the span is left Unset and no error.type is reported.
             }
+            else if (httpContext.Response.StatusCode >= 400)
+            {
+                Activity.SetStatus(ActivityStatusCode.Error);
+            }
             else
             {
                 Activity.SetStatus(ActivityStatusCode.Ok);
@@ -240,28 +244,6 @@ internal sealed class ExecuteHttpRequestSpan(
         }
 
         enricher.EnrichExecuteHttpRequest(httpContext, kind, Activity);
-    }
-
-    public void RecordResultErrors(OperationResult result)
-    {
-        // A client cancellation (browser tab closed, connection dropped) surfaces as
-        // a result carrying HC0049 and is not an error. FormatHttpResponse can run
-        // before the HTTP span completes on a disconnect, so a canceled result must
-        // not force the span to Error here; the span status is left untouched.
-        if (ClientCancellation.IsClientCanceled(result))
-        {
-            return;
-        }
-
-        // The GraphQL response contains errors (request error, total execution failure,
-        // or partial success). Per the GraphQL OpenTelemetry semantic conventions the
-        // server span status is set to Error in this case. The individual errors and the
-        // error.type are already recorded on the operation and field spans, so only the
-        // status is set here.
-        if (result.Errors is { Count: > 0 })
-        {
-            Activity.SetStatus(ActivityStatusCode.Error);
-        }
     }
 
     public void RecordError(IError error)
