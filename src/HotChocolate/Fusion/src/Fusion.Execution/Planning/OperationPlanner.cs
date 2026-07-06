@@ -1236,19 +1236,22 @@ public sealed partial class OperationPlanner
             }
         }
 
-        // if we have still selections left we need to add them to the backlog.
+        // if we have still selections left we need to add them to the backlog. A nested
+        // object/list leftover is re-rooted at its own entity type so a requirement that
+        // crosses an entity boundary resolves via that entity's key lookup.
         if (selectionSet is not null)
         {
-            backlog = backlog.Push(
-                new OperationWorkItem(
-                    OperationWorkItemKind.Lookup,
-                    workItemSelectionSet with { Node = selectionSet },
-                    FromSchema: lookup.SchemaName)
-                {
-                    Dependents = ImmutableHashSet<int>.Empty.Add(lookupStepId),
-                    ParentDepth = lookupStepDepth,
-                    Conditions = conditions ?? []
-                });
+            backlog = PushRequirementLeftover(
+                backlog,
+                index,
+                selectionSet,
+                workItemSelectionSet.Id,
+                workItemSelectionSet.Type,
+                workItemSelectionSet.Path,
+                lookup.SchemaName,
+                ImmutableHashSet<int>.Empty.Add(lookupStepId),
+                lookupStepDepth,
+                conditions ?? []);
         }
 
         var remainingCost =
@@ -1482,29 +1485,23 @@ public sealed partial class OperationPlanner
                 ref backlog,
                 ref steps);
 
-        // if we have requirements that we could not inline into existing
-        // nodes of the operation plan we will put it on the backlog to be
-        // planned as another lookup.
+        // if we have requirements that we could not inline into existing nodes of the
+        // operation plan we will put them on the backlog to be planned as another lookup.
+        // A nested object/list leftover is re-rooted at its own entity type so a requirement
+        // that crosses an entity boundary resolves via that entity's key lookup.
         if (leftoverRequirements is not null)
         {
-            indexBuilder.Register(
+            backlog = PushRequirementLeftover(
+                backlog,
+                indexBuilder,
+                leftoverRequirements,
                 workItem.Selection.SelectionSetId,
-                leftoverRequirements);
-
-            backlog = backlog.Push(
-                new OperationWorkItem(
-                    OperationWorkItemKind.Lookup,
-                    new SelectionSet(
-                        workItem.Selection.SelectionSetId,
-                        leftoverRequirements,
-                        workItem.Selection.Field.DeclaringType,
-                        workItem.Selection.Path),
-                    FromSchema: lookup.SchemaName)
-                {
-                    Dependents = ImmutableHashSet<int>.Empty.Add(stepId),
-                    ParentDepth = stepDepth,
-                    Conditions = workItem.Conditions
-                });
+                workItem.Selection.Field.DeclaringType,
+                workItem.Selection.Path,
+                lookup.SchemaName,
+                ImmutableHashSet<int>.Empty.Add(stepId),
+                stepDepth,
+                workItem.Conditions);
         }
 
         var compositeField = workItem.Selection.Field;
@@ -2125,6 +2122,95 @@ public sealed partial class OperationPlanner
         backlog = backlog.PushUnresolvable(unresolvable, current.SchemaName, stepDepth);
         backlog = backlog.PushRequirements(fieldsWithRequirements, new StepConsumer(stepId), stepDepth);
         return resolvable;
+    }
+
+    // A leftover requirement selection set could not be inlined into any existing plan step.
+    // Direct fields of the requiring entity are pushed as a lookup rooted at the entity itself.
+    // A nested object or list field is instead re-rooted at the nested entity type (its own path
+    // and key), so a requirement whose selection map descends through an intermediate entity owned
+    // by one source schema into a leaf owned by another can be resolved by the nested entity's key
+    // lookup, mirroring how a requiring field's own child selections are re-planned as re-entrant
+    // lookups.
+    private Backlog PushRequirementLeftover(
+        Backlog backlog,
+        SelectionSetIndexBuilder index,
+        SelectionSetNode leftover,
+        uint selectionSetId,
+        ITypeDefinition entityType,
+        SelectionPath path,
+        string fromSchema,
+        ImmutableHashSet<int> dependents,
+        int parentDepth,
+        ExecutionNodeCondition[] conditions)
+    {
+        var complexType = entityType as FusionComplexTypeDefinition;
+        List<ISelectionNode>? directSelections = null;
+
+        foreach (var selection in leftover.Selections)
+        {
+            if (complexType is not null
+                && selection is FieldNode { SelectionSet: { } childSelectionSet } fieldNode
+                && complexType.Fields.TryGetField(
+                    fieldNode.Name.Value,
+                    allowInaccessibleFields: true,
+                    out var field)
+                && field.Type.AsTypeDefinition() is FusionComplexTypeDefinition childType
+                && !_schema.GetPossibleLookups(childType).IsDefaultOrEmpty
+                // only re-root when the intermediate field itself cannot be resolved by
+                // re-entering a schema other than the one we came from. If another schema
+                // owns it, the parent-rooted lookup already resolves it without crossing
+                // an entity boundary.
+                && field.Sources.Schemas.All(
+                    schemaName => schemaName.Equals(fromSchema, StringComparison.Ordinal)))
+            {
+                var responseName = fieldNode.Alias?.Value ?? fieldNode.Name.Value;
+
+                if (!index.IsRegistered(childSelectionSet))
+                {
+                    index.Register(childSelectionSet);
+                }
+
+                backlog = backlog.Push(
+                    new OperationWorkItem(
+                        OperationWorkItemKind.Lookup,
+                        new SelectionSet(
+                            index.GetId(childSelectionSet),
+                            childSelectionSet,
+                            childType,
+                            path.AppendField(responseName)),
+                        FromSchema: fromSchema)
+                    {
+                        Dependents = dependents,
+                        ParentDepth = parentDepth,
+                        Conditions = conditions
+                    });
+                continue;
+            }
+
+            directSelections ??= [];
+            directSelections.Add(selection);
+        }
+
+        if (directSelections is not null)
+        {
+            var directSelectionSet = directSelections.Count == leftover.Selections.Count
+                ? leftover
+                : new SelectionSetNode(directSelections);
+            index.Register(selectionSetId, directSelectionSet);
+
+            backlog = backlog.Push(
+                new OperationWorkItem(
+                    OperationWorkItemKind.Lookup,
+                    new SelectionSet(selectionSetId, directSelectionSet, entityType, path),
+                    FromSchema: fromSchema)
+                {
+                    Dependents = dependents,
+                    ParentDepth = parentDepth,
+                    Conditions = conditions
+                });
+        }
+
+        return backlog;
     }
 
     private SelectionSetNode? TryInlineFieldRequirements(

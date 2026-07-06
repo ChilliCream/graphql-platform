@@ -1,0 +1,127 @@
+operation:
+  - document: |
+      {
+        feed {
+          byExpert
+          id @fusion__requirement
+          byNovice @fusion__requirement
+          author @fusion__requirement {
+            yearsOfExperience @fusion__requirement
+            id @fusion__requirement
+          }
+        }
+      }
+    hash: 123456789101112
+    searchSpace: 2
+    expandedNodes: 10
+nodes:
+  - id: 1
+    type: Operation
+    schema: a
+    operation: |
+      query Op_123456789101112_1 {
+        feed {
+          id
+        }
+      }
+  - id: 2
+    type: Operation
+    schema: a
+    operation: |
+      query Op_123456789101112_2($__fusion_1_byNovice: Boolean!, $__fusion_2_id: ID!) {
+        postById(id: $__fusion_2_id) {
+          byExpert(byNovice: $__fusion_1_byNovice)
+        }
+      }
+    source: $.postById
+    target: $.feed
+    batchingGroupId: 2
+    requirements:
+      - name: __fusion_1_byNovice
+        selectionMap: >-
+          byNovice
+      - name: __fusion_2_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 7
+  - id: 5
+    type: Operation
+    schema: a
+    operation: |
+      query Op_123456789101112_5($__fusion_6_id: ID!) {
+        authorById(id: $__fusion_6_id) {
+          yearsOfExperience
+        }
+      }
+    source: $.authorById
+    target: $.feed.author
+    batchingGroupId: 2
+    requirements:
+      - name: __fusion_6_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 6
+  - id: 4
+    type: Operation
+    schema: b
+    operation: |
+      query Op_123456789101112_4(
+        $__fusion_4_yearsOfExperience: Int!
+          $__fusion_5_id: ID!
+      ) {
+        postById(id: $__fusion_5_id) {
+          byNovice(yearsOfExperience: $__fusion_4_yearsOfExperience)
+        }
+      }
+    source: $.postById
+    target: $.feed
+    requirements:
+      - name: __fusion_4_yearsOfExperience
+        selectionMap: >-
+          author.yearsOfExperience
+      - name: __fusion_5_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 1
+      - id: 2
+  - id: 6
+    type: Operation
+    schema: b
+    operation: |
+      query Op_123456789101112_6($__fusion_7_id: ID!) {
+        postById(id: $__fusion_7_id) {
+          author @fusion__requirement {
+            id
+          }
+        }
+      }
+    source: $.postById
+    target: $.feed
+    batchingGroupId: 6
+    requirements:
+      - name: __fusion_7_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 1
+  - id: 7
+    type: Operation
+    schema: b
+    operation: |
+      query Op_123456789101112_7($__fusion_8_id: ID!) {
+        postById(id: $__fusion_8_id) {
+          id
+        }
+      }
+    source: $.postById
+    target: $.feed
+    batchingGroupId: 6
+    requirements:
+      - name: __fusion_8_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 1
