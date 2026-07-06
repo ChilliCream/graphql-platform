@@ -12,6 +12,7 @@ interface StoryEntry {
   readonly id: string;
   readonly title: string;
   readonly name: string;
+  readonly tags?: readonly string[];
 }
 
 interface StoryIndex {
@@ -30,8 +31,10 @@ try {
   );
 }
 
+// Stories tagged "no-snapshot" opt out of pixel diffing (e.g. full-page compositions whose looping
+// product visuals can't be frozen to a stable frame). They still render in Storybook for review.
 const stories = Object.values(index.entries).filter(
-  (entry) => entry.type === "story",
+  (entry) => entry.type === "story" && !entry.tags?.includes("no-snapshot"),
 );
 
 for (const story of stories) {
