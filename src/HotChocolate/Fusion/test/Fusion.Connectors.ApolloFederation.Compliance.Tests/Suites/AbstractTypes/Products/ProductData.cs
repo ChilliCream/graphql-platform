@@ -1,5 +1,3 @@
-using HotChocolate.Fusion.Suites.AbstractTypes.Agency;
-
 namespace HotChocolate.Fusion.Suites.AbstractTypes.Products;
 
 public static class ProductData

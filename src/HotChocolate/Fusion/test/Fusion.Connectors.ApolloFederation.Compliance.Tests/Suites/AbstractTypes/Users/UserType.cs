@@ -1,5 +1,4 @@
 using HotChocolate.ApolloFederation.Types;
-using HotChocolate.Fusion.Suites.AbstractTypes.Products;
 using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Suites.AbstractTypes.Users;

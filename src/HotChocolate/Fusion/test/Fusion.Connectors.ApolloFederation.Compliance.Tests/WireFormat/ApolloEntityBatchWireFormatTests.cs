@@ -1,6 +1,5 @@
 using System.Text.Encodings.Web;
 using System.Text.Json;
-using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.WireFormat.Left;
 using HotChocolate.Fusion.WireFormat.Right;

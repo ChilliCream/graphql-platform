@@ -1,4 +1,3 @@
-using HotChocolate.ApolloFederation.Types;
 using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Suites.RequiresRequires.B;
