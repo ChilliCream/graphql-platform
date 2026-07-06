@@ -45,6 +45,11 @@ public abstract partial class Saga : IFeatureProvider
     public string Name { get; protected set; } = "__Unnamed";
 
     /// <summary>
+    /// Gets the stable URN identity of this saga.
+    /// </summary>
+    public string Urn { get; private protected set; } = null!;
+
+    /// <summary>
     /// Gets the dispatch endpoint used to send response messages when the saga completes a request-reply flow.
     /// </summary>
     public IDispatchEndpoint ResponseEndpoint { get; protected set; } = null!;
@@ -93,6 +98,7 @@ public abstract partial class Saga : IFeatureProvider
             {
                 transitions.Add(
                     new SagaTransitionDescription(
+                        transition.Urn,
                         DescriptionHelpers.GetTypeName(eventType),
                         eventType.FullName,
                         transition.TransitionTo,
@@ -115,6 +121,7 @@ public abstract partial class Saga : IFeatureProvider
 
             states.Add(
                 new SagaStateDescription(
+                    state.Urn,
                     stateName,
                     state.IsInitial,
                     state.IsFinal,
@@ -144,6 +151,7 @@ public abstract partial class Saga : IFeatureProvider
         }
 
         return new SagaDescription(
+            Urn,
             Name,
             DescriptionHelpers.GetTypeName(StateType),
             StateType.FullName,

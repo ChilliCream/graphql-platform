@@ -146,6 +146,31 @@ public class PostgresMessagingTopologyTests
     }
 
     [Fact]
+    public void Describe_Should_UseAddressBasedIds_When_TopologyHasEntitiesAndLinks()
+    {
+        // arrange
+        var (_, transport, topology) = PostgresBusFixture.CreateTopology(_ => { });
+        var topic = topology.AddTopic(new PostgresTopicConfiguration { Name = "src-topic" });
+        var queue = topology.AddQueue(new PostgresQueueConfiguration { Name = "dst-queue" });
+        var subscription = topology.AddSubscription(new PostgresSubscriptionConfiguration
+        {
+            Source = "src-topic",
+            Destination = "dst-queue"
+        });
+
+        // act
+        var description = transport.Describe();
+
+        // assert
+        var describedTopic = description.Topology!.Entities.Single(e => e.Address == topic.Address.ToString());
+        var describedQueue = description.Topology.Entities.Single(e => e.Address == queue.Address.ToString());
+        var describedSubscription = description.Topology.Links.Single();
+        Assert.Equal($"urn:mocha:topology:{topic.Address}", describedTopic.Id);
+        Assert.Equal($"urn:mocha:topology:{queue.Address}", describedQueue.Id);
+        Assert.Equal($"urn:mocha:link:{subscription.Address}", describedSubscription.Id);
+    }
+
+    [Fact]
     public void AddSubscription_Should_Throw_When_TopicNotFound()
     {
         // arrange

@@ -1,6 +1,7 @@
 using System.Collections.Immutable;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Mocha.Middlewares;
 
 namespace Mocha.Sagas;
 
@@ -30,12 +31,13 @@ public abstract partial class Saga<TState> where TState : SagaStateBase
 
         _logger = context.Services.GetRequiredService<ILogger<Saga<TState>>>();
         Name = definition.Name ?? throw new SagaInitializationException(this, "Saga name is not defined.");
+        Urn = MochaUrn.Saga(context.Host.EffectiveServiceName, Name);
         StateSerializer =
             definition.StateSerializer?.Invoke(context.Services)
             ?? StateSerializer
             ?? context.Services.GetRequiredService<ISagaStateSerializerFactory>().GetSerializer(typeof(TState));
 
-        var duringAnyTransitions = InitializeTransitions(definition.DuringAny!);
+        var duringAnyTransitions = definition.DuringAny!.Transitions;
 
         var states = new Dictionary<string, SagaState>();
 
@@ -46,6 +48,7 @@ public abstract partial class Saga<TState> where TState : SagaStateBase
                 throw new SagaInitializationException(this, "State name is not defined.");
             }
 
+            var stateName = state.Name;
             var transitions = InitializeTransitions(
                 state,
                 // we don't want DuringAny transitions to be added to initial and final states
@@ -59,7 +62,14 @@ public abstract partial class Saga<TState> where TState : SagaStateBase
 
             var onEntry = InitializeLifeCycle(state.OnEntry);
 
-            var sagaState = new SagaState(state.Name, state.IsInitial, state.IsFinal, onEntry, response, transitions);
+            var sagaState = new SagaState(
+                MochaUrn.SagaState(Urn, stateName),
+                stateName,
+                state.IsInitial,
+                state.IsFinal,
+                onEntry,
+                response,
+                transitions);
 
             if (state.IsInitial)
             {
@@ -102,52 +112,59 @@ public abstract partial class Saga<TState> where TState : SagaStateBase
 
     private ImmutableArray<SagaTransition> InitializeTransitions(
         SagaStateConfiguration state,
-        ImmutableArray<SagaTransition>? additionalTransitions = null)
+        IReadOnlyList<SagaTransitionConfiguration>? additionalTransitions = null)
     {
         additionalTransitions ??= [];
 
-        var transitions =
-            ImmutableArray.CreateBuilder<SagaTransition>(state.Transitions.Count + additionalTransitions.Value.Length);
+        var stateName = state.Name ?? throw new SagaInitializationException(this, "State name is not defined.");
+
+        var transitions = ImmutableArray.CreateBuilder<SagaTransition>(
+            state.Transitions.Count + additionalTransitions.Count);
 
         foreach (var transition in state.Transitions)
         {
-            var publish = InitializeEventPublish(transition.Publish);
-            var send = InitializeEventSend(transition.Send);
-
-            if (transition.EventType is null)
-            {
-                throw new SagaInitializationException(this, "Transition event type is not defined.");
-            }
-
-            if (transition.TransitionTo is null)
-            {
-                throw new SagaInitializationException(this, "Transition target state is not defined.");
-            }
-
-            var action = transition.Action ?? DefaultAction;
-
-            var transitionKind =
-                transition.TransitionKind
-                ?? throw new SagaInitializationException(this, "Transition has no kind defined");
-
-            transitions.Add(
-                new SagaTransition(
-                    transition.EventType,
-                    transition.TransitionTo,
-                    transitionKind,
-                    action,
-                    publish,
-                    send,
-                    transition.StateFactory));
+            transitions.Add(InitializeTransition(stateName, transition));
         }
 
-        transitions.AddRange(additionalTransitions);
+        foreach (var transition in additionalTransitions)
+        {
+            transitions.Add(InitializeTransition(stateName, transition));
+        }
 
         return transitions.MoveToImmutable();
-
-        static void DefaultAction(object _, object __)
-        { }
     }
+
+    private SagaTransition InitializeTransition(
+        string stateName,
+        SagaTransitionConfiguration transition)
+    {
+        if (transition.EventType is not { } eventType)
+        {
+            throw new SagaInitializationException(this, "Transition event type is not defined.");
+        }
+
+        if (transition.TransitionTo is null)
+        {
+            throw new SagaInitializationException(this, "Transition target state is not defined.");
+        }
+
+        var transitionKind =
+            transition.TransitionKind
+            ?? throw new SagaInitializationException(this, "Transition has no kind defined");
+
+        return new SagaTransition(
+            MochaUrn.SagaTransition(Urn, stateName, DescriptionHelpers.GetTypeName(eventType)),
+            eventType,
+            transition.TransitionTo,
+            transitionKind,
+            transition.Action ?? DefaultAction,
+            InitializeEventPublish(transition.Publish),
+            InitializeEventSend(transition.Send),
+            transition.StateFactory);
+    }
+
+    private static void DefaultAction(object _, object __)
+    { }
 
     private static ImmutableArray<SagaEventPublish> InitializeEventPublish(
         List<SagaEventPublishConfiguration> definitions)

@@ -30,6 +30,11 @@ public class MessageType
     public string Identity { get; private set; } = null!;
 
     /// <summary>
+    /// Gets the stable URN identity of this message type.
+    /// </summary>
+    public string Urn { get; private set; } = null!;
+
+    /// <summary>
     /// Gets the CLR type represented by this message type.
     /// </summary>
     public Type RuntimeType { get; private set; } = null!;
@@ -97,6 +102,7 @@ public class MessageType
         context.Conventions.Configure(context, configuration);
 
         Identity = configuration.Identity ?? throw new InvalidOperationException("Message requires an identity");
+        Urn = MochaUrn.MessageType(Identity);
         RuntimeType = configuration.RuntimeType ?? RuntimeType
             ?? throw new InvalidOperationException("Message requires a runtime type");
         IsInterface = RuntimeType.IsInterface;
@@ -221,6 +227,7 @@ public class MessageType
     public MessageTypeDescription Describe()
     {
         return new MessageTypeDescription(
+            Urn,
             Identity,
             DescriptionHelpers.GetTypeName(RuntimeType),
             RuntimeType.FullName,
