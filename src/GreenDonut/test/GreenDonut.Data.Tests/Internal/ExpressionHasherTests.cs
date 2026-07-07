@@ -197,6 +197,24 @@ public static class ExpressionHasherTests
     }
 
     [Fact]
+    public static void Captured_Double_Difference_In_Least_Significant_Digits_Affects_Hash()
+    {
+        // arrange
+        // 0.1 + 0.2 (0.30000000000000004) and 0.3 are distinct doubles. Shortest
+        // round-trip formatting - the default for double since .NET Core 3.0 -
+        // keeps them distinct, so the two filters must not collide.
+        var predicate1 = BuildScoreEqualsViaHolder(0.1 + 0.2);
+        var predicate2 = BuildScoreEqualsViaHolder(0.3);
+
+        // act
+        var hash1 = new ExpressionHasher().Add(predicate1).Compute();
+        var hash2 = new ExpressionHasher().Add(predicate2).Compute();
+
+        // assert
+        Assert.NotEqual(hash1, hash2);
+    }
+
+    [Fact]
     public static void Predicate_With_Self_Referential_Collection_Terminates()
     {
         // arrange
@@ -254,6 +272,14 @@ public static class ExpressionHasherTests
         var x = Expression.Parameter(typeof(Entity1), "x");
         var p = Expression.Property(Expression.Constant(new Holder<DateTime>(value)), nameof(Holder<DateTime>.p));
         var body = Expression.Equal(Expression.Property(x, nameof(Entity1.Created)), p);
+        return Expression.Lambda<Func<Entity1, bool>>(body, x);
+    }
+
+    private static Expression<Func<Entity1, bool>> BuildScoreEqualsViaHolder(double value)
+    {
+        var x = Expression.Parameter(typeof(Entity1), "x");
+        var p = Expression.Property(Expression.Constant(new Holder<double>(value)), nameof(Holder<double>.p));
+        var body = Expression.Equal(Expression.Property(x, nameof(Entity1.Score)), p);
         return Expression.Lambda<Func<Entity1, bool>>(body, x);
     }
 
@@ -372,6 +398,8 @@ public static class ExpressionHasherTests
         public string? Description { get; set; }
 
         public DateTime Created { get; set; }
+
+        public double Score { get; set; }
 
         public IEntity Entity { get; set; } = null!;
 
