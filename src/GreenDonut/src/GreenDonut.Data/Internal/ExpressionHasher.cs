@@ -231,7 +231,6 @@ internal sealed class ExpressionHasher : ExpressionVisitor
                 AppendDelimited(timeSpan.ToString("c", CultureInfo.InvariantCulture));
                 return;
 
-#if NET6_0_OR_GREATER
             case DateOnly dateOnly:
                 AppendDelimited(dateOnly.ToString("O", CultureInfo.InvariantCulture));
                 return;
@@ -239,7 +238,6 @@ internal sealed class ExpressionHasher : ExpressionVisitor
             case TimeOnly timeOnly:
                 AppendDelimited(timeOnly.ToString("O", CultureInfo.InvariantCulture));
                 return;
-#endif
 
             case IFormattable formattable:
                 // numbers, decimal, Guid, ...
