@@ -13,7 +13,7 @@ Directives are GraphQL's built-in extension mechanism. Every time you write `@de
 
 Almost everywhere. There was one conspicuous gap. You could never apply a directive to a _directive definition_ itself.
 
-That sounds like a technicality until you hit it, and the most common way to hit it is this: you have a custom directive you would like to retire, so you reach for `@deprecated`, only to find it is not allowed there. A directive was the one schema element you could not deprecate.
+That sounds like a technicality until you hit it, and the most common way to hit it is this: you have a custom directive you would like to retire, so you reach for `@deprecated`, only to find it is not allowed there. There was no way, in the schema itself, to signal that a directive was on its way out.
 
 That gap is now closed. As of Hot Chocolate 16.4, directives can be applied to directive definitions, and `@deprecated` is one of them.
 
@@ -142,7 +142,7 @@ Deprecation is the headline, but it is not the whole story. A directive definiti
 
 <!-- prettier-ignore -->
 ```graphql
-directive @experimentalTrace @requiresOptIn(feature: "experimentalTracing") on FIELD
+directive @experimentalTrace @requiresOptIn(feature: "experimentalTracing") on FIELD_DEFINITION
 ```
 
 `@tag` applies to directive definitions too, letting you group and filter directives with the same labels you already apply to types and fields.
