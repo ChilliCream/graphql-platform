@@ -38,6 +38,7 @@ internal sealed class DefaultGraphQLClientConfigurationParser : ISourceSchemaCli
         JsonElement http)
     {
         var clientName = HttpSourceSchemaClientConfiguration.DefaultClientName;
+
         var capabilities = SourceSchemaClientCapabilities.All;
         var supportedOperations = SupportedOperationType.All;
         ImmutableArray<MediaTypeWithQualityHeaderValue>? defaultAcceptHeaderValues = null;
@@ -72,16 +73,18 @@ internal sealed class DefaultGraphQLClientConfigurationParser : ISourceSchemaCli
 
             if (capabilitiesElement.TryGetProperty("batching", out var batchingElement))
             {
-                if (batchingElement.TryGetProperty("variableBatching", out var supported)
-                    && !supported.GetBoolean())
+                if (batchingElement.TryGetProperty("variableBatching", out var supported))
                 {
-                    capabilities &= ~SourceSchemaClientCapabilities.VariableBatching;
+                    capabilities = supported.GetBoolean()
+                        ? capabilities | SourceSchemaClientCapabilities.VariableBatching
+                        : capabilities & ~SourceSchemaClientCapabilities.VariableBatching;
                 }
 
-                if (batchingElement.TryGetProperty("requestBatching", out supported)
-                    && !supported.GetBoolean())
+                if (batchingElement.TryGetProperty("requestBatching", out supported))
                 {
-                    capabilities &= ~SourceSchemaClientCapabilities.RequestBatching;
+                    capabilities = supported.GetBoolean()
+                        ? capabilities | SourceSchemaClientCapabilities.RequestBatching
+                        : capabilities & ~SourceSchemaClientCapabilities.RequestBatching;
                 }
 
                 if (batchingElement.TryGetProperty("formats", out var formats))

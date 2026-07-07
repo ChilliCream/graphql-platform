@@ -52,7 +52,7 @@ public sealed class SharedRootTests : ComplianceTestBase
     /// List form of the same composition; verifies the planner stitches
     /// list elements across subgraphs without an entity lookup.
     /// </summary>
-    [Fact(Skip = "Planner does not zip parallel shareable list root queries across subgraphs without an entity lookup. See APOLLO_FEDERATION_COMPLIANCE_FOLLOWUP.md follow-up.")]
+    [Fact]
     public Task Products_Composes_Fields_From_Three_Subgraphs() => RunAsync(
         query: """
             query {

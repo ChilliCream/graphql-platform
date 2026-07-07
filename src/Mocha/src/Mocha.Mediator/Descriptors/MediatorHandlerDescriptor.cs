@@ -47,7 +47,7 @@ public class MediatorHandlerDescriptor
     }
 
     [RequiresUnreferencedCode(
-        "Handler detection uses reflection. Use source-generated AddHandlerConfiguration for AOT compatibility.")]
+        "Handler detection uses reflection. Use source-generated mediator module registration for AOT compatibility.")]
     private void DetectHandler(Type handlerType)
     {
         var found = false;

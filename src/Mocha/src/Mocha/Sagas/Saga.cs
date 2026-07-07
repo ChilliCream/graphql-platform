@@ -45,6 +45,11 @@ public abstract partial class Saga : IFeatureProvider
     public string Name { get; protected set; } = "__Unnamed";
 
     /// <summary>
+    /// Gets the stable URN identity of this saga.
+    /// </summary>
+    public string Urn { get; private protected set; } = null!;
+
+    /// <summary>
     /// Gets the dispatch endpoint used to send response messages when the saga completes a request-reply flow.
     /// </summary>
     public IDispatchEndpoint ResponseEndpoint { get; protected set; } = null!;
@@ -58,6 +63,11 @@ public abstract partial class Saga : IFeatureProvider
     /// Gets the dictionary of all configured states in this saga, keyed by state name.
     /// </summary>
     public abstract IReadOnlyDictionary<string, SagaState> States { get; }
+
+    /// <summary>
+    /// Gets the compiled saga configuration containing the resolved state machine definition.
+    /// </summary>
+    protected internal SagaConfiguration Configuration { get; private protected set; } = null!;
 
     /// <summary>
     /// Processes an incoming message by loading or creating saga state, executing transitions, and persisting the result.
@@ -88,6 +98,7 @@ public abstract partial class Saga : IFeatureProvider
             {
                 transitions.Add(
                     new SagaTransitionDescription(
+                        transition.Urn,
                         DescriptionHelpers.GetTypeName(eventType),
                         eventType.FullName,
                         transition.TransitionTo,
@@ -110,6 +121,7 @@ public abstract partial class Saga : IFeatureProvider
 
             states.Add(
                 new SagaStateDescription(
+                    state.Urn,
                     stateName,
                     state.IsInitial,
                     state.IsFinal,
@@ -139,6 +151,7 @@ public abstract partial class Saga : IFeatureProvider
         }
 
         return new SagaDescription(
+            Urn,
             Name,
             DescriptionHelpers.GetTypeName(StateType),
             StateType.FullName,
@@ -201,11 +214,6 @@ public abstract partial class Saga<TState> : Saga where TState : SagaStateBase
     {
         _configure = Configure;
     }
-
-    /// <summary>
-    /// Gets the compiled saga configuration containing the resolved state machine definition.
-    /// </summary>
-    protected internal SagaConfiguration Configuration { get; private set; } = null!;
 
     private Dictionary<string, SagaState>? _states;
 

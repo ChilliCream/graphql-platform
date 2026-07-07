@@ -8,6 +8,7 @@ namespace Mocha.Analyzers;
 /// registrations for AOT compatibility.
 /// </summary>
 /// <param name="MessageTypeName">The fully qualified type name of the message.</param>
+/// <param name="MessageNamespace">The namespace containing the message type.</param>
 /// <param name="MessageTypeHierarchy">
 /// The unfiltered type hierarchy of the message type (base types excluding <c>object</c>, plus all interfaces),
 /// as fully qualified display strings. Filtering to registered types happens in the generator phase.
@@ -17,6 +18,7 @@ namespace Mocha.Analyzers;
 /// </param>
 public sealed record ContextOnlyMessageInfo(
     string MessageTypeName,
+    string MessageNamespace,
     ImmutableEquatableArray<string> MessageTypeHierarchy,
     LocationInfo? Location) : SyntaxInfo
 {

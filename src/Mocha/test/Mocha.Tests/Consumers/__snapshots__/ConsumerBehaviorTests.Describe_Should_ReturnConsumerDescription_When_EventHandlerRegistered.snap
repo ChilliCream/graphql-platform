@@ -1,4 +1,5 @@
 {
+  "Id": "urn:mocha:svc:Mocha.Tests:consumer:OrderCreatedHandler",
   "Name": "OrderCreatedHandler",
   "IdentityType": "OrderCreatedHandler",
   "IdentityTypeFullName": "Mocha.Tests.Consumers.ConsumerBehaviorTests+OrderCreatedHandler",

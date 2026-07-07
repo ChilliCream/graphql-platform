@@ -1,6 +1,5 @@
 using System.Collections.Frozen;
 using System.Collections.Immutable;
-using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using Microsoft.Extensions.DependencyInjection;
@@ -128,40 +127,6 @@ public sealed class MediatorBuilder : IMediatorBuilder
         }
     }
 
-    /// <inheritdoc />
-    [EditorBrowsable(EditorBrowsableState.Never)]
-    public void AddHandlerConfiguration(MediatorHandlerConfiguration configuration)
-    {
-        ArgumentNullException.ThrowIfNull(configuration);
-
-        var handlerType = configuration.HandlerType!;
-
-        void ApplyConfig(MediatorHandlerDescriptor d)
-        {
-            var config = d.Extend().Configuration;
-            config.MessageType = configuration.MessageType;
-            config.ResponseType = configuration.ResponseType;
-            config.Kind = configuration.Kind;
-            config.Delegate = configuration.Delegate;
-        }
-
-        var existing = _handlerDescriptors.GetValueOrDefault(handlerType);
-
-        if (existing is not null)
-        {
-            var inner = existing;
-            _handlerDescriptors[handlerType] = d =>
-            {
-                inner(d);
-                ApplyConfig(d);
-            };
-        }
-        else
-        {
-            _handlerDescriptors[handlerType] = ApplyConfig;
-        }
-    }
-
     /// <summary>
     /// Builds the <see cref="MediatorRuntime"/> by creating an internal service provider,
     /// applying deferred service configurations, and compiling all registered pipelines.
@@ -218,11 +183,28 @@ public sealed class MediatorBuilder : IMediatorBuilder
         var pipelines = new Dictionary<Type, MediatorDelegate>();
         var notificationTerminals = new Dictionary<Type, NotificationTerminals>();
 
+        var serviceName = _options.ServiceName
+            ?? Environment.GetEnvironmentVariable("SERVICE_NAME")
+            ?? Environment.GetEnvironmentVariable("OTEL_SERVICE_NAME")
+            ?? Assembly.GetEntryAssembly()?.GetName().Name
+            ?? "default";
+        var handlerDescriptions = new List<MediatorHandlerDescription>();
+
         foreach (var (handlerType, configureDelegate) in _handlerDescriptors)
         {
             var descriptor = new MediatorHandlerDescriptor(configContext, handlerType);
             configureDelegate(descriptor);
             var config = descriptor.CreateConfiguration();
+
+            var handlerName = MediatorDescriptionHelpers.GetTypeName(config.HandlerType!);
+            var messageName = MediatorDescriptionHelpers.GetTypeName(config.MessageType!);
+            handlerDescriptions.Add(new MediatorHandlerDescription(
+                MediatorUrn.Handler(serviceName, handlerName),
+                handlerName,
+                config.Kind,
+                MediatorUrn.Message(serviceName, messageName),
+                messageName,
+                config.ResponseType is { } responseType ? MediatorDescriptionHelpers.GetTypeName(responseType) : null));
 
             var terminal = config.Delegate ?? BuildPipelineViaReflection(config);
 
@@ -271,16 +253,22 @@ public sealed class MediatorBuilder : IMediatorBuilder
 
         var pools = applicationServices.GetRequiredService<IMediatorPools>();
 
+        var description = new MediatorDescription(
+            MediatorUrn.Mediator(serviceName),
+            serviceName,
+            handlerDescriptions.OrderBy(h => h.Id, StringComparer.Ordinal).ToArray());
+
         return new MediatorRuntime(
             pipelines.ToFrozenDictionary(),
             notificationPipelines.ToFrozenDictionary(),
             pools,
             features,
-            _options.NotificationPublishMode);
+            _options.NotificationPublishMode,
+            description);
     }
 
-    [RequiresDynamicCode("Use source-generated AddHandlerConfiguration for AOT compatibility.")]
-    [RequiresUnreferencedCode("Use source-generated AddHandlerConfiguration for AOT compatibility.")]
+    [RequiresDynamicCode("Use source-generated mediator module registration for AOT compatibility.")]
+    [RequiresUnreferencedCode("Use source-generated mediator module registration for AOT compatibility.")]
     private static MediatorDelegate BuildPipelineViaReflection(MediatorHandlerConfiguration config)
     {
         return config.Kind switch

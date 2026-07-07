@@ -1,6 +1,7 @@
 using System.Collections.Immutable;
 using HotChocolate.Fusion.Language;
 using HotChocolate.Fusion.Types;
+using HotChocolate.Language;
 using HotChocolate.Types;
 using Lookup = HotChocolate.Fusion.Types.Metadata.Lookup;
 
@@ -160,10 +161,20 @@ internal sealed class PlanQueue(FusionSchemaDefinition schema)
                     Backlog = branchBacklog,
                     RemainingCost = branchRemainingCost
                 });
+
+                // A self-cyclic direct lookup requires, as its input key, the very fields it is
+                // asked to produce, so it cannot bootstrap that key on its own. In that case we do
+                // not let it suppress the parent-path walk: the parent path can supply the key from
+                // an enclosing entity, which yields an acyclic plan.
+                if (IsSelfCyclicLookup(workItem, bestLookup))
+                {
+                    EnqueueParentPathLookupPlanNodes(planNodeTemplate, workItem, backlog, toSchema, resolutionCost);
+                }
+
                 continue;
             }
 
-            var hasEnqueuedDirectLookup = false;
+            var hasEnqueuedResolvingDirectLookup = false;
             foreach (var lookup in schema.GetPossibleLookupsOrdered(workItem.SelectionSet.Type, toSchema))
             {
                 var lookupWorkItem = workItem with { Lookup = lookup };
@@ -177,35 +188,96 @@ internal sealed class PlanQueue(FusionSchemaDefinition schema)
                     RemainingCost = branchRemainingCost
                 });
 
-                hasEnqueuedDirectLookup = true;
-            }
-
-            // If we did not find a direct lookup for the type of the current selection set,
-            // we attempt to walk up the path we came from to see if we can lookup a parent
-            // type or if we can just reuse the entire path we came from, e.g. viewer { ... }.
-            if (!hasEnqueuedDirectLookup)
-            {
-                foreach (var (lookupThroughPathWorkItem, cost, index) in PlannerExtensions.GetPossibleLookupsThroughPath(
-                    planNodeTemplate,
-                    workItem,
-                    toSchema,
-                    schema).OrderBy(
-                    t => PlannerExtensions.LookupOrderingKey(t.WorkItem.Lookup),
-                    StringComparer.Ordinal))
+                // A self-cyclic lookup makes no progress on its own (see above), so it does not
+                // count as a resolving direct lookup that can suppress the parent-path walk.
+                if (!IsSelfCyclicLookup(workItem, lookup))
                 {
-                    var branchBacklog = backlog.Push(lookupThroughPathWorkItem);
-                    var branchRemainingCost = EstimateRemainingCost(planNodeTemplate, branchBacklog);
-                    Enqueue(planNodeTemplate with
-                    {
-                        SchemaName = toSchema,
-                        SelectionSetIndex = index,
-                        ResolutionCost = resolutionCost + cost,
-                        Backlog = branchBacklog,
-                        RemainingCost = branchRemainingCost
-                    });
+                    hasEnqueuedResolvingDirectLookup = true;
                 }
             }
+
+            // If we did not find a direct lookup that can resolve the current selection set on its
+            // own, we attempt to walk up the path we came from to see if we can lookup a parent type
+            // or if we can just reuse the entire path we came from, e.g. viewer { ... }.
+            if (!hasEnqueuedResolvingDirectLookup)
+            {
+                EnqueueParentPathLookupPlanNodes(planNodeTemplate, workItem, backlog, toSchema, resolutionCost);
+            }
         }
+    }
+
+    /// <summary>
+    /// Walks up the path of the work item's selection set to enqueue plan branches that resolve it
+    /// through a parent-type lookup on <paramref name="toSchema"/> (or reuse the whole path up to the
+    /// root, e.g. <c>viewer { ... }</c>).
+    /// </summary>
+    private void EnqueueParentPathLookupPlanNodes(
+        PlanNode planNodeTemplate,
+        OperationWorkItem workItem,
+        Backlog backlog,
+        string toSchema,
+        double resolutionCost)
+    {
+        foreach (var (lookupThroughPathWorkItem, cost, index) in PlannerExtensions.GetPossibleLookupsThroughPath(
+            planNodeTemplate,
+            workItem,
+            toSchema,
+            schema).OrderBy(
+            t => PlannerExtensions.LookupOrderingKey(t.WorkItem.Lookup),
+            StringComparer.Ordinal))
+        {
+            var branchBacklog = backlog.Push(lookupThroughPathWorkItem);
+            var branchRemainingCost = EstimateRemainingCost(planNodeTemplate, branchBacklog);
+            Enqueue(planNodeTemplate with
+            {
+                SchemaName = toSchema,
+                SelectionSetIndex = index,
+                ResolutionCost = resolutionCost + cost,
+                Backlog = branchBacklog,
+                RemainingCost = branchRemainingCost
+            });
+        }
+    }
+
+    /// <summary>
+    /// Determines whether <paramref name="lookup"/> is self-cyclic for the given work item, meaning
+    /// every field the work item asks it to produce is itself one of the key fields the lookup
+    /// requires as input. Such a lookup cannot make progress on its own; the key must be supplied
+    /// from the parent path instead.
+    /// </summary>
+    private static bool IsSelfCyclicLookup(OperationWorkItem workItem, Lookup lookup)
+    {
+        var requested = workItem.SelectionSet.Node.Selections;
+
+        if (requested.Count == 0)
+        {
+            return false;
+        }
+
+        foreach (var selection in requested)
+        {
+            if (selection is not FieldNode field
+                || !RequirementsContainField(lookup.Requirements, field.Name.Value))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private static bool RequirementsContainField(SelectionSetNode requirements, string fieldName)
+    {
+        foreach (var selection in requirements.Selections)
+        {
+            if (selection is FieldNode field
+                && field.Name.Value.Equals(fieldName, StringComparison.Ordinal))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /// <summary>
@@ -249,7 +321,7 @@ internal sealed class PlanQueue(FusionSchemaDefinition schema)
 
             // for each concrete type that implements the abstract type,
             // find a lookup in the target schema.
-            foreach (var possibleType in schema.GetPossibleTypes(type))
+            foreach (var possibleType in schema.GetPossibleTypes(type, includeInaccessible: true))
             {
                 if (!schema.TryGetBestDirectLookup(possibleType, fromSchemas, toSchema, out var concreteLookup))
                 {
@@ -309,7 +381,7 @@ internal sealed class PlanQueue(FusionSchemaDefinition schema)
         string? topSchema = null;
         double topCost = 0;
 
-        foreach (var possibleType in schema.GetPossibleTypes(type))
+        foreach (var possibleType in schema.GetPossibleTypes(type, includeInaccessible: true))
         {
             // rewrite the selection set to target the concrete type with a
             // fragment path so the executor can match the runtime type.
@@ -432,9 +504,7 @@ internal sealed class PlanQueue(FusionSchemaDefinition schema)
             // If we have multiple id lookups in a single schema,
             // we try to choose one that returns the desired type directly
             // and not an abstract type.
-            var byIdLookup = schema
-                .GetPossibleLookupsOrdered(type, schemaName)
-                .FirstOrDefault(l => l.Fields is [PathNode { PathSegment.FieldName.Value: "id" }] && !l.IsInternal);
+            var byIdLookup = SelectNodeBranchLookup(schema, type, schemaName);
 
             if (byIdLookup is null)
             {
@@ -460,11 +530,9 @@ internal sealed class PlanQueue(FusionSchemaDefinition schema)
         // In this case we enqueue the best matching by id lookup of any source schema.
         if (!hasEnqueuedLookup)
         {
-            var byIdLookup = schema
-                .GetPossibleLookupsOrdered(type)
-                .FirstOrDefault(l => l.Fields is [PathNode { PathSegment.FieldName.Value: "id" }] && !l.IsInternal)
-                    ?? throw new InvalidOperationException(
-                        $"Expected to have at least one lookup with just an 'id' argument for type '{type.Name}'.");
+            var byIdLookup = SelectNodeBranchLookup(schema, type, schemaName: null)
+                ?? throw new InvalidOperationException(
+                    $"Expected to have at least one lookup with just an 'id' argument for type '{type.Name}'.");
 
             var lookupWorkItem = workItem with { Lookup = byIdLookup };
             var branchBacklog = backlog.Push(lookupWorkItem);
@@ -477,6 +545,19 @@ internal sealed class PlanQueue(FusionSchemaDefinition schema)
             });
         }
     }
+
+    // Selects the by-id lookup a per-type continuation branch uses. It must be
+    // the source schema's public, non-internal by-id lookup: the composed `node`
+    // field on Apollo schemas, or the native public by-id lookup elsewhere.
+    // Synthetic internal key lookups are reserved for _entities entity resolution.
+    private static Lookup? SelectNodeBranchLookup(
+        FusionSchemaDefinition schema,
+        ITypeDefinition type,
+        string? schemaName)
+        => schema
+            .GetPossibleLookupsOrdered(type, schemaName)
+            .FirstOrDefault(l => l.Fields is [PathNode { PathSegment.FieldName.Value: "id" }]
+                && !l.IsInternal);
 
     private void EnqueueRequirePlanNodes(
         PlanNode planNodeTemplate,

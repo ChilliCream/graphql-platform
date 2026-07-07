@@ -5,6 +5,8 @@ using HotChocolate.Features;
 using HotChocolate.Fusion.Configuration.Parsers;
 using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Execution.Clients;
+using HotChocolate.Fusion.Logging;
+using HotChocolate.Fusion.Options;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
@@ -115,6 +117,45 @@ public class DefaultGraphQLClientConfigurationParserTests : FusionTestBase
         Assert.True(claimed);
         var http = Assert.IsType<HttpSourceSchemaClientConfiguration>(Assert.Single(configurations!));
         Assert.Equal(SourceSchemaClientCapabilities.RequestBatching, http.Capabilities);
+    }
+
+    [Fact]
+    public void DefaultGraphQLClientConfigurationParser_Should_Honor_Declared_VariableBatching_When_Schema_Is_ApolloFederation()
+    {
+        // arrange
+        // the source schema is composed as an Apollo Federation connector, yet the
+        // kind-blind parser honors the batching capability declared in its settings.
+        var schema = ComposeApolloFederationSchema("products");
+        Assert.Equal("ApolloFederation", schema.GetSourceSchemaConnectorKind("products"));
+        var sourceSchema = GetSourceSchemaProperty(
+            """
+            {
+                "sourceSchemas": {
+                    "products": {
+                        "transports": {
+                            "http": {
+                                "url": "http://localhost:5000/graphql",
+                                "capabilities": {
+                                    "batching": {
+                                        "variableBatching": true
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            """,
+            "products");
+        var parser = new DefaultGraphQLClientConfigurationParser();
+
+        // act
+        var claimed = parser.TryParse(schema, sourceSchema, out var configurations);
+
+        // assert
+        Assert.True(claimed);
+        var http = Assert.IsType<HttpSourceSchemaClientConfiguration>(Assert.Single(configurations!));
+        Assert.Equal(SourceSchemaClientCapabilities.All, http.Capabilities);
     }
 
     [Fact]
@@ -480,6 +521,58 @@ public class DefaultGraphQLClientConfigurationParserTests : FusionTestBase
         var clientConfigs = executor.Schema.Features.GetRequired<SourceSchemaClientConfigurations>();
         Assert.True(clientConfigs.TryGet("a", OperationType.Query, out var queryConfig));
         Assert.IsType<StubClientConfiguration>(queryConfig);
+    }
+
+    private static FusionSchemaDefinition ComposeApolloFederationSchema(string name)
+    {
+        const string sdl =
+            """
+            schema @link(url: "https://specs.apollo.dev/federation/v2.6", import: ["@key"]) {
+              query: Query
+            }
+
+            type Product @key(fields: "id") {
+              id: ID!
+              name: String
+            }
+
+            type Query {
+              product(id: ID!): Product
+              _service: _Service!
+              _entities(representations: [_Any!]!): [_Entity]!
+            }
+
+            type _Service { sdl: String! }
+
+            union _Entity = Product
+
+            scalar FieldSet
+            scalar _Any
+
+            directive @key(fields: FieldSet! resolvable: Boolean = true) repeatable on OBJECT | INTERFACE
+            directive @link(url: String! import: [String!]) repeatable on SCHEMA
+            """;
+
+        var composerOptions = new SchemaComposerOptions();
+        composerOptions.SourceSchemas[name] = new SourceSchemaOptions
+        {
+            Preprocessor = new SourceSchemaPreprocessorOptions
+            {
+                InferKeysFromLookups = false
+            }
+        };
+
+        var result = new SchemaComposer(
+            [new SourceSchemaText(name, sdl)],
+            composerOptions,
+            new CompositionLog()).Compose();
+
+        if (!result.IsSuccess)
+        {
+            throw new InvalidOperationException(result.Errors[0].Message);
+        }
+
+        return FusionSchemaDefinition.Create(result.Value.ToSyntaxNode());
     }
 
     private static JsonProperty GetSourceSchemaProperty(string settingsJson, string schemaName)

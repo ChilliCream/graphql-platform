@@ -1,4 +1,6 @@
+using System.Linq.Expressions;
 using System.Text.Json;
+using GreenDonut.Data;
 using HotChocolate.Execution;
 using HotChocolate.Types;
 using HotChocolate.Types.Relay;
@@ -601,6 +603,136 @@ public class IntegrationTests
 
         result.MatchSnapshot();
     }
+
+    [Fact]
+    public async Task Mutation_Convention_QueryContext_Selector()
+    {
+        // arrange
+        var capture = new QueryContextSelectorCapture();
+        var executor = await new ServiceCollection()
+            .AddSingleton(capture)
+            .AddGraphQL()
+            .AddQueryType(c => c.Name("Query").Field("abc").Resolve("def"))
+            .AddMutationType<MutationWithQueryContext>()
+            .AddQueryContext()
+            .AddMutationConventions()
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            mutation {
+                modifyUser(input: { userName: "abc" }) {
+                    userProfile {
+                        userName
+                    }
+                }
+            }
+            """,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "modifyUser": {
+                  "userProfile": {
+                    "userName": "abc"
+                  }
+                }
+              }
+            }
+            """);
+
+        // the selector must project the selected userName field only,
+        // not fall back to an identity selector that fetches the entire entity.
+        var selector = capture.Selector;
+        Assert.NotNull(selector);
+        var projected = selector.Compile().Invoke(new UserProfile { UserName = "abc", DisplayName = "def" });
+        Assert.Equal("abc", projected.UserName);
+        Assert.Null(projected.DisplayName);
+    }
+
+    [Fact]
+    public async Task Mutation_Convention_QueryContext_Selector_Merges_Aliased_Data_Fields()
+    {
+        // arrange
+        var executor = await new ServiceCollection()
+            .AddSingleton(new QueryContextSelectorCapture())
+            .AddGraphQL()
+            .AddQueryType(c => c.Name("Query").Field("abc").Resolve("def"))
+            .AddMutationType<MutationWithQueryContext>()
+            .AddQueryContext()
+            .AddMutationConventions()
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            mutation {
+                modifyUser(input: { userName: "abc" }) {
+                    a: userProfile { userName }
+                    b: userProfile { displayName }
+                }
+            }
+            """,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "modifyUser": {
+                  "a": {
+                    "userName": "abc"
+                  },
+                  "b": {
+                    "displayName": "Display-abc"
+                  }
+                }
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task Mutation_Convention_QueryContext_Without_Data_Field_Selection()
+    {
+        // arrange
+        var executor = await new ServiceCollection()
+            .AddSingleton(new QueryContextSelectorCapture())
+            .AddGraphQL()
+            .AddQueryType(c => c.Name("Query").Field("abc").Resolve("def"))
+            .AddMutationType<MutationWithQueryContext>()
+            .AddQueryContext()
+            .AddMutationConventions()
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            mutation {
+                modifyUser(input: { userName: "abc" }) {
+                    __typename
+                }
+            }
+            """,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "modifyUser": {
+                  "__typename": "ModifyUserPayload"
+                }
+              }
+            }
+            """);
+    }
 }
 
 public class Query
@@ -694,6 +826,37 @@ public class Mutation
         {
         }
     }
+}
+
+public class MutationWithQueryContext
+{
+    [UseMutationConvention]
+    public UserProfile? ModifyUser(
+        string userName,
+        QueryContext<UserProfile> query,
+        [Service] QueryContextSelectorCapture capture)
+    {
+        capture.Selector = query.Selector;
+
+        var data = new UserProfile[]
+        {
+            new() { UserName = userName, DisplayName = "Display-" + userName }
+        }.AsQueryable();
+
+        return data.With(query).FirstOrDefault();
+    }
+}
+
+public sealed class QueryContextSelectorCapture
+{
+    public Expression<Func<UserProfile, UserProfile>>? Selector { get; set; }
+}
+
+public class UserProfile
+{
+    public string? UserName { get; set; }
+
+    public string? DisplayName { get; set; }
 }
 
 [ExtendObjectType(typeof(Foo))]

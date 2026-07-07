@@ -18,4 +18,11 @@ public sealed class MediatorOptions
     /// Default is <see cref="NotificationPublishMode.Sequential"/>.
     /// </summary>
     public NotificationPublishMode NotificationPublishMode { get; set; } = NotificationPublishMode.Sequential;
+
+    /// <summary>
+    /// Gets or sets the logical service name used to scope mediator URN identities.
+    /// When <c>null</c>, falls back to the <c>SERVICE_NAME</c> environment variable, then the
+    /// <c>OTEL_SERVICE_NAME</c> environment variable, then the entry assembly name.
+    /// </summary>
+    public string? ServiceName { get; set; }
 }

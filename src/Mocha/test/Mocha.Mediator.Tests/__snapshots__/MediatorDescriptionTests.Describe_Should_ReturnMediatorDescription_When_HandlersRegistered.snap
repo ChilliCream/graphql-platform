@@ -1,0 +1,38 @@
+{
+  "Id": "urn:mocha:svc:orders:mediator",
+  "ServiceName": "orders",
+  "Handlers": [
+    {
+      "Id": "urn:mocha:svc:orders:mediator:handler:ManualCommandHandler",
+      "Name": "ManualCommandHandler",
+      "Kind": "CommandResponse",
+      "MessageId": "urn:mocha:svc:orders:mediator:message:ManualCommand",
+      "MessageName": "ManualCommand",
+      "ResponseTypeName": "ManualResponse"
+    },
+    {
+      "Id": "urn:mocha:svc:orders:mediator:handler:ManualNotificationHandler1",
+      "Name": "ManualNotificationHandler1",
+      "Kind": "Notification",
+      "MessageId": "urn:mocha:svc:orders:mediator:message:ManualNotification",
+      "MessageName": "ManualNotification",
+      "ResponseTypeName": null
+    },
+    {
+      "Id": "urn:mocha:svc:orders:mediator:handler:ManualQueryHandler",
+      "Name": "ManualQueryHandler",
+      "Kind": "Query",
+      "MessageId": "urn:mocha:svc:orders:mediator:message:ManualQuery",
+      "MessageName": "ManualQuery",
+      "ResponseTypeName": "ManualResponse"
+    },
+    {
+      "Id": "urn:mocha:svc:orders:mediator:handler:ManualVoidCommandHandler",
+      "Name": "ManualVoidCommandHandler",
+      "Kind": "Command",
+      "MessageId": "urn:mocha:svc:orders:mediator:message:ManualVoidCommand",
+      "MessageName": "ManualVoidCommand",
+      "ResponseTypeName": null
+    }
+  ]
+}

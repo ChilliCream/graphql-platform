@@ -751,8 +751,8 @@ public class NatsEventStreamOverHttpTests : FusionTestBase
             // The abstract payload sits at the ROOT; the body projects only the runtime type and the
             // entity key, and the type-owned fields are resolved per concrete type by the DETAILS lookup.
             [EventStream("__typename id", Topic = Topic, Broker = BrokerName)]
-            public AbstractEntityEvents.INode OnNodeCreated([EventCursor] string? after)
-                => EventStream.Create<AbstractEntityEvents.INode>(after);
+            public AbstractEntityEvents.INode OnNodeCreated()
+                => EventStream.Create<AbstractEntityEvents.INode>();
         }
     }
 

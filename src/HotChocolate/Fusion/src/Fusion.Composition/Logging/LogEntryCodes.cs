@@ -4,6 +4,7 @@ public static class LogEntryCodes
 {
     public const string ConflictingSourceSchemaName = "CONFLICTING_SOURCE_SCHEMA_NAME";
     public const string CursorArgumentNotString = "CURSOR_ARGUMENT_NOT_STRING";
+    public const string CursorArgumentRequiresCursorField = "CURSOR_ARGUMENT_REQUIRES_CURSOR_FIELD";
     public const string CursorFieldNotString = "CURSOR_FIELD_NOT_STRING";
     public const string CursorMarkerOnNonSubscriptionField = "CURSOR_MARKER_ON_NON_SUBSCRIPTION_FIELD";
     public const string DisallowedInaccessible = "DISALLOWED_INACCESSIBLE";
