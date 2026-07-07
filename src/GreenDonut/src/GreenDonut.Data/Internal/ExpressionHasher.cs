@@ -1,5 +1,7 @@
 using System.Buffers;
 using System.Buffers.Text;
+using System.Collections;
+using System.Globalization;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Security.Cryptography;
@@ -9,6 +11,8 @@ namespace GreenDonut.Data.Internal;
 
 internal sealed class ExpressionHasher : ExpressionVisitor
 {
+    private const int MaxCapturedValueDepth = 8;
+
     private ReadOnlySpan<byte> Lambda => "Lambda|"u8;
     private ReadOnlySpan<byte> Binary => "Binary:"u8;
     private ReadOnlySpan<byte> Member => "Member:"u8;
@@ -18,6 +22,8 @@ internal sealed class ExpressionHasher : ExpressionVisitor
     private ReadOnlySpan<byte> New => "New:"u8;
     private ReadOnlySpan<byte> MemberInit => "MemberInit|"u8;
     private ReadOnlySpan<byte> Binding => "Binding:"u8;
+    private ReadOnlySpan<byte> Value => "Value:"u8;
+    private ReadOnlySpan<byte> Null => "null"u8;
 
     private byte[] _buffer;
     private readonly int _initialSize;
@@ -119,8 +125,111 @@ internal sealed class ExpressionHasher : ExpressionVisitor
         Append(Member);
         Append(node.Member);
         Append('|');
+
+        // A member access rooted directly at a constant is a hoisted/captured
+        // value - e.g. HotChocolate's ExpressionParameter<T>.p that filtering
+        // uses to parameterize filter values, or a compiler-generated closure
+        // field. The base traversal visits the constant, which contributes no
+        // bytes, so two predicates that differ only by their captured value
+        // (e.g. `status eq A` vs `status eq B`, or `status in [..]` with
+        // different lists) produced identical hashes and collided onto the same
+        // DataLoader branch key. Evaluate the captured value and fold it into
+        // the hash instead of hashing only the member name.
+        if (node.Expression is ConstantExpression constant)
+        {
+            Append(Value);
+            AppendCapturedValue(TryGetMemberValue(node.Member, constant.Value), 0);
+            Append('|');
+            return node;
+        }
+
         Visit(node.Expression);
         return node;
+    }
+
+    private static object? TryGetMemberValue(MemberInfo member, object? instance)
+    {
+        switch (member)
+        {
+            case FieldInfo field:
+                return field.GetValue(instance);
+
+            case PropertyInfo { CanRead: true } property
+                when property.GetIndexParameters().Length == 0:
+                return property.GetValue(instance);
+
+            default:
+                return null;
+        }
+    }
+
+    private void AppendCapturedValue(object? value, int depth)
+    {
+        switch (value)
+        {
+            case null:
+                Append(Null);
+                return;
+
+            case string s:
+                Append(s);
+                return;
+
+            case bool b:
+                Append(b ? (byte)1 : (byte)0);
+                return;
+
+            case char c:
+                Append((int)c);
+                return;
+
+            case Enum e:
+                Append(e.GetType().FullName ?? e.GetType().Name);
+                Append('.');
+                Append(e.ToString());
+                return;
+
+            case IFormattable formattable:
+                // numbers, decimal, Guid, DateTime, DateTimeOffset, TimeSpan, ...
+                Append(formattable.ToString(null, CultureInfo.InvariantCulture));
+                return;
+        }
+
+        if (depth >= MaxCapturedValueDepth)
+        {
+            Append(value.GetType().FullName ?? value.GetType().Name);
+            return;
+        }
+
+        if (value is IEnumerable enumerable)
+        {
+            Append('[');
+            foreach (var item in enumerable)
+            {
+                AppendCapturedValue(item, depth + 1);
+                Append(',');
+            }
+            Append(']');
+            return;
+        }
+
+        // Complex holder (e.g. ExpressionParameter<T> or a closure display
+        // class): fold in its instance fields so that captured values embedded
+        // in the holder still differentiate the hash. Fields are ordered to keep
+        // the hash stable across runtimes.
+        var type = value.GetType();
+        Append(type.FullName ?? type.Name);
+        Append('{');
+        foreach (var field in type
+            .GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
+            .OrderBy(f => f.Name, StringComparer.Ordinal))
+        {
+            Append(field.Name);
+            Append('=');
+            AppendCapturedValue(field.GetValue(value), depth + 1);
+            Append(';');
+        }
+        Append('}');
     }
 
     protected override Expression VisitParameter(ParameterExpression node)

@@ -97,6 +97,52 @@ public static class ExpressionHasherTests
     }
 
     [Fact]
+    public static void Predicate_With_Captured_Value_Affects_Hash()
+    {
+        // arrange
+        // Each call captures its argument into a fresh closure, producing a
+        // `x.Name == <captured>.value` shape - the same member access rooted at a
+        // constant that HotChocolate filtering emits via ExpressionParameter<T>.p.
+        var predicate1 = BuildNameEquals("abc");
+        var predicate2 = BuildNameEquals("xyz");
+        var predicate3 = BuildNameEquals("abc");
+
+        // act
+        var hash1 = new ExpressionHasher().Add(predicate1).Compute();
+        var hash2 = new ExpressionHasher().Add(predicate2).Compute();
+        var hash3 = new ExpressionHasher().Add(predicate3).Compute();
+
+        // assert
+        // Different captured values must not collide (regression: they used to,
+        // so two aliased fields filtering by eq: A vs eq: B shared one branch).
+        Assert.NotEqual(hash1, hash2);
+        // Equal captured values must remain stable.
+        Assert.Equal(hash1, hash3);
+    }
+
+    [Fact]
+    public static void Predicate_With_Captured_List_Affects_Hash()
+    {
+        // arrange
+        var predicate1 = BuildNameIn(["a", "b"]);
+        var predicate2 = BuildNameIn(["a", "c"]);
+
+        // act
+        var hash1 = new ExpressionHasher().Add(predicate1).Compute();
+        var hash2 = new ExpressionHasher().Add(predicate2).Compute();
+
+        // assert
+        // `in` filters with different lists must not collide either.
+        Assert.NotEqual(hash1, hash2);
+    }
+
+    private static Expression<Func<Entity1, bool>> BuildNameEquals(string value)
+        => x => x.Name == value;
+
+    private static Expression<Func<Entity1, bool>> BuildNameIn(string[] values)
+        => x => values.Contains(x.Name);
+
+    [Fact]
     public static void BufferResize_Add_Char()
     {
         // arrange
