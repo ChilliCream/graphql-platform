@@ -11,6 +11,7 @@ namespace Mocha;
 /// <param name="IsInternal">Whether this message type is internal to the bus and not exposed to user code.</param>
 /// <param name="DefaultContentType">The default serialization content type, or <c>null</c> if using the bus default.</param>
 /// <param name="EnclosedMessageIdentities">The identities of message types enclosed by this type, or <c>null</c> if none.</param>
+/// <param name="Source">Source metadata captured from the message type declaration, or <c>null</c> when not provided.</param>
 public sealed record MessageTypeDescription(
     string Id,
     string Identity,
@@ -19,4 +20,5 @@ public sealed record MessageTypeDescription(
     bool IsInterface,
     bool IsInternal,
     string? DefaultContentType,
-    IReadOnlyList<string>? EnclosedMessageIdentities);
+    IReadOnlyList<string>? EnclosedMessageIdentities,
+    SourceMetadata? Source);
