@@ -33,12 +33,6 @@
   <data name="CompositionLogExtensions_EntryMessageWithSchemaName" xml:space="preserve">
     <value>{0} (Schema: '{1}')</value>
   </data>
-  <data name="ConnectorMutableDirectiveDefinition_Argument_Kind_Description" xml:space="preserve">
-    <value>The kind of connector that backs this source schema.</value>
-  </data>
-  <data name="ConnectorMutableDirectiveDefinition_Description" xml:space="preserve">
-    <value>The @fusion__connector directive declares which connector kind handles this source schema.</value>
-  </data>
   <data name="CostDirective_WeightArgument_Invalid" xml:space="preserve">
     <value>The @cost directive must have a 'weight' argument of type String.</value>
   </data>
@@ -62,12 +56,6 @@
   </data>
   <data name="ExternalMutableDirectiveDefinition_Description" xml:space="preserve">
     <value>The @external directive indicates that a field is recognized by the current source schema but is not directly contributed (resolved) by it.</value>
-  </data>
-  <data name="FusionConnectorMutableDirectiveDefinition_Argument_Kind_Description" xml:space="preserve">
-    <value>The kind of connector that handles the source schema represented by this enum value.</value>
-  </data>
-  <data name="FusionConnectorMutableDirectiveDefinition_Description" xml:space="preserve">
-    <value>The @fusion__connector directive declares which connector kind handles a source schema.</value>
   </data>
   <data name="FusionCostMutableDirectiveDefinition_Argument_Schema_Description" xml:space="preserve">
     <value>The name of the source schema that defined the cost metadata.</value>
@@ -116,6 +104,9 @@
   </data>
   <data name="FusionImplementsMutableDirectiveDefinition_Argument_Schema_Description" xml:space="preserve">
     <value>The name of the source schema on which the annotated type implements the specified interface.</value>
+  </data>
+  <data name="FusionGatewayFieldMutableDirectiveDefinition_Description" xml:space="preserve">
+    <value>The @fusion__gateway_field directive marks a field that is implemented by the gateway itself rather than resolved from an underlying source schema, such as the global object identification node field.</value>
   </data>
   <data name="FusionImplementsMutableDirectiveDefinition_Description" xml:space="preserve">
     <value>The @fusion__implements directive specifies on which source schema an interface is implemented by an object or interface type.</value>
@@ -314,6 +305,9 @@
   </data>
   <data name="LogEntryHelper_EventCursorArgumentNotString" xml:space="preserve">
     <value>The @eventCursor argument '{0}' in schema '{1}' must be of type String.</value>
+  </data>
+  <data name="LogEntryHelper_EventCursorArgumentRequiresCursorField" xml:space="preserve">
+    <value>The @eventCursor argument on field '{0}' in schema '{1}' requires an @eventCursor field on the event payload type.</value>
   </data>
   <data name="LogEntryHelper_EventCursorFieldNotString" xml:space="preserve">
     <value>The @eventCursor field '{0}' in schema '{1}' must be of type String.</value>

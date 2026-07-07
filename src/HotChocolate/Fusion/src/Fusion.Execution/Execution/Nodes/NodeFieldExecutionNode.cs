@@ -68,6 +68,37 @@ public sealed class NodeFieldExecutionNode : ExecutionNode
         OperationPlanContext context,
         CancellationToken cancellationToken = default)
     {
+        if (context.NodeResolution == NodeResolution.SourceSchema)
+        {
+            if (!context.TryGetAnyNodeLookupSchema(out var nodeSchemaName))
+            {
+                var nodeId = IdValue switch
+                {
+                    VariableNode variable => GetVariableValue(variable),
+                    StringValueNode stringValueNode => stringValueNode.Value,
+                    _ => throw new InvalidOperationException(
+                        $"Expected either a {nameof(VariableNode)} or {nameof(StringValueNode)}.")
+                };
+
+                // We have an invalid id or a valid id of a type that does not implement the Node interface
+                var error = ErrorHelper.InvalidNodeIdFormat(nodeId);
+
+                context.AddErrors(error, _resultSelectionSet, Path.Root);
+
+                return ValueTask.FromResult(ExecutionStatus.Failed);
+            }
+
+            EnqueueDependentForExecution(context, _fallbackQuery);
+            context.SetDynamicSchemaName(_fallbackQuery, nodeSchemaName);
+
+            foreach (var branch in _branches.Values)
+            {
+                EnqueueDependentForExecution(context, branch);
+            }
+
+            return ValueTask.FromResult(ExecutionStatus.Success);
+        }
+
         var id = IdValue switch
         {
             VariableNode variable => GetVariableValue(variable),
@@ -80,10 +111,7 @@ public sealed class NodeFieldExecutionNode : ExecutionNode
             || !context.TryGetNodeLookupSchemaForType(typeName, out var schemaName))
         {
             // We have an invalid id or a valid id of a type that does not implement the Node interface
-            var error = ErrorBuilder.New()
-                .SetMessage("The node ID string has an invalid format.")
-                .SetExtension("originalValue", id)
-                .Build();
+            var error = ErrorHelper.InvalidNodeIdFormat(id);
 
             context.AddErrors(error, _resultSelectionSet, Path.Root);
 

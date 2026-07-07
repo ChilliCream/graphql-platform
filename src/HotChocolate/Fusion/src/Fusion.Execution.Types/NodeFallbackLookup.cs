@@ -21,6 +21,22 @@ internal sealed class NodeFallbackLookup : INeedsCompletion
     public bool TryGetNodeLookupSchemaForType(string typeName, [NotNullWhen(true)] out string? schemaName)
         => _schemaByType.TryGetValue(typeName, out schemaName);
 
+    /// <summary>
+    /// Tries to determine any source schema that owns a node lookup, used when the gateway
+    /// forwards the node field without interpreting the identifier.
+    /// </summary>
+    public bool TryGetAnyNodeLookupSchema([NotNullWhen(true)] out string? schemaName)
+    {
+        foreach (var value in _schemaByType.Values)
+        {
+            schemaName = value;
+            return true;
+        }
+
+        schemaName = null;
+        return false;
+    }
+
     void INeedsCompletion.Complete(FusionSchemaDefinition schema, CompositeSchemaBuilderContext context)
     {
         if (!schema.Types.TryGetType<IInterfaceTypeDefinition>("Node", out var nodeType)

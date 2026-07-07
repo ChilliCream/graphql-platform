@@ -87,7 +87,7 @@ public sealed class ComplexEntityCallTests : ComplianceTestBase
     /// the follow-up separately so this PR stays scoped to nested-<c>@key</c>
     /// composition support.
     /// </remarks>
-    [Fact(Skip = "Planner does not yet route through nested-list @key lookups when the originating subgraph lacks sibling key fields. See APOLLO_FEDERATION_COMPLIANCE_PLAN.md follow-up.")]
+    [Fact]
     public Task TopProducts_Projects_Across_All_Subgraphs() => RunAsync(
         query: """
             query {

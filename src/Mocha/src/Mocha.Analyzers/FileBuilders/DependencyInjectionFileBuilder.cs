@@ -10,11 +10,16 @@ public sealed class DependencyInjectionFileBuilder : FileBuilderBase
 {
     private readonly string _extensionsClassName;
     private readonly string _methodName;
+    private readonly SourceMetadataOptionsInfo _sourceMetadataOptions;
 
-    public DependencyInjectionFileBuilder(string moduleName, string assemblyName) : base(moduleName)
+    public DependencyInjectionFileBuilder(
+        string moduleName,
+        string assemblyName,
+        SourceMetadataOptionsInfo sourceMetadataOptions) : base(moduleName, assemblyName)
     {
         _extensionsClassName = moduleName + "MediatorBuilderExtensions";
         _methodName = "Add" + moduleName;
+        _sourceMetadataOptions = sourceMetadataOptions;
         HintName = _extensionsClassName + "." + HashHelper.ComputeSalt(assemblyName);
     }
 
@@ -27,7 +32,7 @@ public sealed class DependencyInjectionFileBuilder : FileBuilderBase
     public override void WriteBeginClass()
     {
         Writer.WriteGeneratedAttribute();
-        Writer.WriteIndentedLine("public static class {0}", _extensionsClassName);
+        Writer.WriteIndentedLine("public static partial class {0}", _extensionsClassName);
         Writer.WriteIndentedLine("{");
         Writer.IncreaseIndent();
     }
@@ -97,9 +102,32 @@ public sealed class DependencyInjectionFileBuilder : FileBuilderBase
     }
 
     /// <summary>
-    /// Writes an AddHandlerConfiguration call for a command/query handler.
+    /// Writes a mediator handler registration that points at a generated initializer method.
     /// </summary>
-    public void WriteHandlerConfiguration(HandlerInfo handler)
+    public void WriteHandlerRegistration(string handlerTypeName, string initializerMethodName)
+    {
+        Writer.WriteIndentedLine("global::Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions.TryAdd(");
+        Writer.IncreaseIndent();
+        Writer.WriteIndentedLine("builder.Services,");
+        Writer.WriteIndentedLine("new global::Microsoft.Extensions.DependencyInjection.ServiceDescriptor(");
+        Writer.IncreaseIndent();
+        Writer.WriteIndentedLine("typeof({0}),", handlerTypeName);
+        Writer.WriteIndentedLine("typeof({0}),", handlerTypeName);
+        Writer.WriteIndentedLine("builder.Options.ServiceLifetime));");
+        Writer.DecreaseIndent();
+        Writer.DecreaseIndent();
+
+        Writer.WriteIndentedLine("global::Mocha.Mediator.MediatorHostBuilderExtensions.ConfigureMediator(");
+        Writer.IncreaseIndent();
+        Writer.WriteIndentedLine("builder,");
+        Writer.WriteIndentedLine(
+            "static b => b.AddHandler<{0}>({1}));",
+            handlerTypeName,
+            initializerMethodName);
+        Writer.DecreaseIndent();
+    }
+
+    public void WriteHandlerInitializer(string methodName, HandlerInfo handler)
     {
         var (kindEnum, terminalCall) = handler.Kind switch
         {
@@ -115,55 +143,25 @@ public sealed class DependencyInjectionFileBuilder : FileBuilderBase
             _ => throw new ArgumentOutOfRangeException()
         };
 
-        WriteAddHandlerConfiguration(
-            handler.HandlerTypeName,
+        WriteHandlerInitializer(
+            methodName,
             handler.MessageTypeName,
             handler.ResponseTypeName,
             kindEnum,
-            $"global::Mocha.Mediator.PipelineBuilder.{terminalCall}");
+            $"global::Mocha.Mediator.PipelineBuilder.{terminalCall}",
+            handler.XmlDocumentation,
+            handler.Location);
     }
 
-    /// <summary>
-    /// Writes an AddHandlerConfiguration call for a notification handler.
-    /// </summary>
-    public void WriteNotificationHandlerConfiguration(string notificationType, NotificationHandlerInfo handler)
-    {
-        WriteAddHandlerConfiguration(
-            handler.HandlerTypeName,
-            notificationType,
+    public void WriteNotificationHandlerInitializer(string methodName, NotificationHandlerInfo handler)
+        => WriteHandlerInitializer(
+            methodName,
+            handler.NotificationTypeName,
             responseTypeName: null,
             "Notification",
-            $"global::Mocha.Mediator.PipelineBuilder.BuildNotificationPipeline<{handler.HandlerTypeName}, {notificationType}>()");
-    }
-
-    private void WriteAddHandlerConfiguration(
-        string handlerTypeName,
-        string messageTypeName,
-        string? responseTypeName,
-        string kindEnum,
-        string terminalCall)
-    {
-        Writer.WriteIndentedLine(
-            "global::Mocha.Mediator.MediatorHostBuilderHandlerExtensions.AddHandlerConfiguration<{0}>(builder,",
-            handlerTypeName);
-        Writer.IncreaseIndent();
-        Writer.WriteIndentedLine("new global::Mocha.Mediator.MediatorHandlerConfiguration");
-        Writer.WriteIndentedLine("{");
-        Writer.IncreaseIndent();
-        Writer.WriteIndentedLine("HandlerType = typeof({0}),", handlerTypeName);
-        Writer.WriteIndentedLine("MessageType = typeof({0}),", messageTypeName);
-
-        if (responseTypeName is not null)
-        {
-            Writer.WriteIndentedLine("ResponseType = typeof({0}),", responseTypeName);
-        }
-
-        Writer.WriteIndentedLine("Kind = global::Mocha.Mediator.MediatorHandlerKind.{0},", kindEnum);
-        Writer.WriteIndentedLine("Delegate = {0}", terminalCall);
-        Writer.DecreaseIndent();
-        Writer.WriteIndentedLine("});");
-        Writer.DecreaseIndent();
-    }
+            $"global::Mocha.Mediator.PipelineBuilder.BuildNotificationPipeline<{handler.HandlerTypeName}, {handler.NotificationTypeName}>()",
+            handler.XmlDocumentation,
+            handler.Location);
 
     public void WriteSectionComment(string comment)
     {
@@ -175,6 +173,45 @@ public sealed class DependencyInjectionFileBuilder : FileBuilderBase
     {
         Writer.WriteLine();
         Writer.WriteIndentedLine("return builder;");
+        Writer.DecreaseIndent();
+        Writer.WriteIndentedLine("}");
+    }
+
+    private void WriteHandlerInitializer(
+        string methodName,
+        string messageTypeName,
+        string? responseTypeName,
+        string kindEnum,
+        string terminalCall,
+        string? xmlDocumentation,
+        LocationInfo? location)
+    {
+        Writer.WriteLine();
+        Writer.WriteIndentedLine(
+            "private static void {0}(global::Mocha.Mediator.IMediatorHandlerDescriptor descriptor)",
+            methodName);
+        Writer.WriteIndentedLine("{");
+        Writer.IncreaseIndent();
+        Writer.WriteIndentedLine("var configuration = descriptor.Extend().Configuration;");
+        Writer.WriteIndentedLine("configuration.MessageType = typeof({0});", messageTypeName);
+
+        if (responseTypeName is not null)
+        {
+            Writer.WriteIndentedLine("configuration.ResponseType = typeof({0});", responseTypeName);
+        }
+
+        Writer.WriteIndentedLine("configuration.Kind = global::Mocha.Mediator.MediatorHandlerKind.{0};", kindEnum);
+        Writer.WriteIndentedLine("configuration.Delegate = {0};", terminalCall);
+
+        Writer.WriteSourceMetadataAssignment(
+            "configuration.Source",
+            "global::Mocha.SourceMetadata",
+            "global::Mocha.DeclarationLocation",
+            AssemblyName,
+            xmlDocumentation,
+            location,
+            _sourceMetadataOptions);
+
         Writer.DecreaseIndent();
         Writer.WriteIndentedLine("}");
     }

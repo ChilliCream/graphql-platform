@@ -1,6 +1,6 @@
 using System.Buffers;
+using HotChocolate.Fusion.Execution.Rewriters;
 using HotChocolate.Fusion.Planning;
-using HotChocolate.Fusion.Rewriters;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
@@ -453,7 +453,7 @@ public sealed class OperationCompiler
             return true;
         }
 
-        if (_schema.Types.TryGetType(typeCondition.Name.Value, out var type))
+        if (_schema.Types.TryGetType(typeCondition.Name.Value, allowInaccessibleFields: true, out var type))
         {
             return type.IsAssignableFrom(typeContext);
         }
