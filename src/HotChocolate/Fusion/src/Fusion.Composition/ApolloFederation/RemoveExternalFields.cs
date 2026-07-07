@@ -253,6 +253,32 @@ internal static class RemoveExternalFields
                             outputType,
                             out var selectedFields);
 
+                        // A @require map that traverses an object- or interface-typed
+                        // intermediate (a nested selection such as
+                        // "dimensions { size weight }") keeps its ENTIRE subtree with
+                        // @external intact: the intermediate path field has to stay
+                        // traversable and its leaf fields belong to the same non-resolvable
+                        // input contribution, so dropping them would leave the intermediate
+                        // type empty. A map that is a flat, root-level scalar requirement
+                        // (such as "price") keeps nothing: its external leaf is removed so it
+                        // never competes with its real owner as a spurious partial
+                        // contribution.
+                        var hasComplexIntermediate = false;
+
+                        foreach (var selectedField in selectedFields)
+                        {
+                            if (selectedField.Type.NamedType() is IComplexTypeDefinition)
+                            {
+                                hasComplexIntermediate = true;
+                                break;
+                            }
+                        }
+
+                        if (!hasComplexIntermediate)
+                        {
+                            continue;
+                        }
+
                         foreach (var selectedField in selectedFields)
                         {
                             var coordinate = selectedField.Coordinate;

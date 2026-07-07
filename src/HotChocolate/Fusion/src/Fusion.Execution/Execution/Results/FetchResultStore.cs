@@ -996,7 +996,13 @@ AddErrors_Next:
                 var requirement = requiredData[i];
                 _jsonWriter.WritePropertyName(requirement.Key);
 
-                if (!ResultDataMapper.TryMap(result, requirement.Map, requirement.Type, _schema, _jsonWriter))
+                if (!ResultDataMapper.TryMap(
+                    result,
+                    requirement.Map,
+                    requirement.Type,
+                    _schema,
+                    requirement.InternalAlias,
+                    _jsonWriter))
                 {
                     failed = true;
                     break;
@@ -1041,7 +1047,7 @@ AddErrors_Next:
         // The fast path copies values verbatim and only guards top-level nulls,
         // so list-typed requirements take the slow path where the mapper checks
         // element nullability.
-        if (TryGetSimpleRequirementFieldName(requirement.Map, out var fieldName)
+        if (TryGetSimpleRequirementFieldName(requirement, out var fieldName)
             && !requirement.Type.IsListType())
         {
             return BuildVariableValueSetsSingleRequirementFastPath(elements, requirement, fieldName);
@@ -1064,7 +1070,7 @@ AddErrors_Next:
         {
             var result = elements[i];
 
-            if (!result.TryGetProperty(fieldName, out var value))
+            if (!result.TryGetProperty(requirement.InternalAlias ?? fieldName, out var value))
             {
                 continue;
             }
@@ -1126,7 +1132,13 @@ AddErrors_Next:
             _jsonWriter.WriteStartObject();
             _jsonWriter.WritePropertyName(requirement.Key);
 
-            if (!ResultDataMapper.TryMap(result, requirement.Map, requirementType, _schema, _jsonWriter))
+            if (!ResultDataMapper.TryMap(
+                result,
+                requirement.Map,
+                requirementType,
+                _schema,
+                requirement.InternalAlias,
+                _jsonWriter))
             {
                 _variableWriter.ResetTo(startPosition);
                 continue;
@@ -1157,9 +1169,9 @@ AddErrors_Next:
         // The fast path copies values verbatim and only guards top-level nulls,
         // so list-typed requirements take the slow path where the mapper checks
         // element nullability.
-        if (TryGetSimpleRequirementFieldName(requirement1.Map, out var fieldName1)
+        if (TryGetSimpleRequirementFieldName(requirement1, out var fieldName1)
             && !requirement1.Type.IsListType()
-            && TryGetSimpleRequirementFieldName(requirement2.Map, out var fieldName2)
+            && TryGetSimpleRequirementFieldName(requirement2, out var fieldName2)
             && !requirement2.Type.IsListType())
         {
             return BuildVariableValueSetsTwoRequirementsFastPath(
@@ -1189,7 +1201,7 @@ AddErrors_Next:
 
         foreach (var result in elements)
         {
-            if (!result.TryGetProperty(fieldName1, out var value1)
+            if (!result.TryGetProperty(requirement1.InternalAlias ?? fieldName1, out var value1)
                 || value1.ValueKind is JsonValueKind.Undefined
                 || (value1.ValueKind is JsonValueKind.Null
                     && requirement1.Type.Kind == SyntaxKind.NonNullType))
@@ -1197,7 +1209,7 @@ AddErrors_Next:
                 continue;
             }
 
-            if (!result.TryGetProperty(fieldName2, out var value2)
+            if (!result.TryGetProperty(requirement2.InternalAlias ?? fieldName2, out var value2)
                 || value2.ValueKind is JsonValueKind.Undefined
                 || (value2.ValueKind is JsonValueKind.Null
                     && requirement2.Type.Kind == SyntaxKind.NonNullType))
@@ -1252,7 +1264,13 @@ AddErrors_Next:
 
             _jsonWriter.WritePropertyName(requirement1.Key);
 
-            if (!ResultDataMapper.TryMap(result, requirement1.Map, requirementType1, _schema, _jsonWriter))
+            if (!ResultDataMapper.TryMap(
+                result,
+                requirement1.Map,
+                requirementType1,
+                _schema,
+                requirement1.InternalAlias,
+                _jsonWriter))
             {
                 _variableWriter.ResetTo(startPosition);
                 continue;
@@ -1260,7 +1278,13 @@ AddErrors_Next:
 
             _jsonWriter.WritePropertyName(requirement2.Key);
 
-            if (!ResultDataMapper.TryMap(result, requirement2.Map, requirementType2, _schema, _jsonWriter))
+            if (!ResultDataMapper.TryMap(
+                result,
+                requirement2.Map,
+                requirementType2,
+                _schema,
+                requirement2.InternalAlias,
+                _jsonWriter))
             {
                 _variableWriter.ResetTo(startPosition);
                 continue;
@@ -1291,11 +1315,11 @@ AddErrors_Next:
         // The fast path copies values verbatim and only guards top-level nulls,
         // so list-typed requirements take the slow path where the mapper checks
         // element nullability.
-        if (TryGetSimpleRequirementFieldName(requirement1.Map, out var fieldName1)
+        if (TryGetSimpleRequirementFieldName(requirement1, out var fieldName1)
             && !requirement1.Type.IsListType()
-            && TryGetSimpleRequirementFieldName(requirement2.Map, out var fieldName2)
+            && TryGetSimpleRequirementFieldName(requirement2, out var fieldName2)
             && !requirement2.Type.IsListType()
-            && TryGetSimpleRequirementFieldName(requirement3.Map, out var fieldName3)
+            && TryGetSimpleRequirementFieldName(requirement3, out var fieldName3)
             && !requirement3.Type.IsListType())
         {
             return BuildVariableValueSetsThreeRequirementsFastPath(
@@ -1330,7 +1354,7 @@ AddErrors_Next:
 
         foreach (var result in elements)
         {
-            if (!result.TryGetProperty(fieldName1, out var value1)
+            if (!result.TryGetProperty(requirement1.InternalAlias ?? fieldName1, out var value1)
                 || value1.ValueKind is JsonValueKind.Undefined
                 || (value1.ValueKind is JsonValueKind.Null
                     && requirement1.Type.Kind == SyntaxKind.NonNullType))
@@ -1338,7 +1362,7 @@ AddErrors_Next:
                 continue;
             }
 
-            if (!result.TryGetProperty(fieldName2, out var value2)
+            if (!result.TryGetProperty(requirement2.InternalAlias ?? fieldName2, out var value2)
                 || value2.ValueKind is JsonValueKind.Undefined
                 || (value2.ValueKind is JsonValueKind.Null
                     && requirement2.Type.Kind == SyntaxKind.NonNullType))
@@ -1346,7 +1370,7 @@ AddErrors_Next:
                 continue;
             }
 
-            if (!result.TryGetProperty(fieldName3, out var value3)
+            if (!result.TryGetProperty(requirement3.InternalAlias ?? fieldName3, out var value3)
                 || value3.ValueKind is JsonValueKind.Undefined
                 || (value3.ValueKind is JsonValueKind.Null
                     && requirement3.Type.Kind == SyntaxKind.NonNullType))
@@ -1404,7 +1428,13 @@ AddErrors_Next:
 
             _jsonWriter.WritePropertyName(requirement1.Key);
 
-            if (!ResultDataMapper.TryMap(result, requirement1.Map, requirementType1, _schema, _jsonWriter))
+            if (!ResultDataMapper.TryMap(
+                result,
+                requirement1.Map,
+                requirementType1,
+                _schema,
+                requirement1.InternalAlias,
+                _jsonWriter))
             {
                 _variableWriter.ResetTo(startPosition);
                 continue;
@@ -1412,7 +1442,13 @@ AddErrors_Next:
 
             _jsonWriter.WritePropertyName(requirement2.Key);
 
-            if (!ResultDataMapper.TryMap(result, requirement2.Map, requirementType2, _schema, _jsonWriter))
+            if (!ResultDataMapper.TryMap(
+                result,
+                requirement2.Map,
+                requirementType2,
+                _schema,
+                requirement2.InternalAlias,
+                _jsonWriter))
             {
                 _variableWriter.ResetTo(startPosition);
                 continue;
@@ -1420,7 +1456,13 @@ AddErrors_Next:
 
             _jsonWriter.WritePropertyName(requirement3.Key);
 
-            if (!ResultDataMapper.TryMap(result, requirement3.Map, requirementType3, _schema, _jsonWriter))
+            if (!ResultDataMapper.TryMap(
+                result,
+                requirement3.Map,
+                requirementType3,
+                _schema,
+                requirement3.InternalAlias,
+                _jsonWriter))
             {
                 _variableWriter.ResetTo(startPosition);
                 continue;
@@ -1443,10 +1485,10 @@ AddErrors_Next:
     }
 
     private static bool TryGetSimpleRequirementFieldName(
-        IValueSelectionNode map,
+        OperationRequirement requirement,
         [NotNullWhen(true)] out string? fieldName)
     {
-        if (map is PathNode
+        if (requirement.Map is PathNode
             {
                 TypeName: null,
                 PathSegment:
@@ -1456,7 +1498,7 @@ AddErrors_Next:
                 } pathSegment
             })
         {
-            fieldName = pathSegment.FieldName.Value;
+            fieldName = requirement.InternalAlias ?? pathSegment.FieldName.Value;
             return true;
         }
 

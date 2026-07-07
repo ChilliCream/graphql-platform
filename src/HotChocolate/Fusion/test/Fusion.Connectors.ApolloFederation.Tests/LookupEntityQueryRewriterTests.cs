@@ -377,7 +377,11 @@ public class LookupEntityQueryRewriterTests
         };
 
         // act
-        var shape = RepresentationShapeBuilder.Build(rewritten.LookupField, requirements);
+        var shape = RepresentationShapeBuilder.Build(
+            rewritten.LookupField,
+            requirements,
+            schema,
+            rewritten.EntityTypeName);
 
         // assert
         RenderShape(shape).ToString(indented: true).MatchInlineSnapshot(

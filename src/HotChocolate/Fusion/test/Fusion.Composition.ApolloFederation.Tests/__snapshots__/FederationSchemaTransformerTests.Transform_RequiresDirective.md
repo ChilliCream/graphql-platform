@@ -47,11 +47,9 @@ type Query {
 
 type Product @key(fields: "id") {
   id: ID!
-  price: Float @external
   shippingEstimate(
     price: Float @require(field: "price")
     weight: Float @require(field: "weight")
   ): Float
-  weight: Float @external
 }
 ```

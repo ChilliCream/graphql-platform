@@ -1,6 +1,7 @@
 using System.Collections.Immutable;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
+using HotChocolate.Fusion.Language;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Fusion.Types.Rewriters;
 using HotChocolate.Language;
@@ -432,6 +433,7 @@ public sealed partial class OperationPlanner
                 injectionSelections,
                 dependentStepId: 0,
                 stepIndex,
+                new RequirementAliasContext([]),
                 out var updatedParentStep,
                 out _))
             {
@@ -597,7 +599,9 @@ public sealed partial class OperationPlanner
         OperationPlanStep consumingStep,
         OperationRequirement requirement)
     {
-        var requirementFieldName = ExtractRootFieldName(requirement.Map.ToString());
+        var requirementFieldName =
+            requirement.InternalAlias
+                ?? ExtractRootFieldName(requirement.Map.ToString());
 
         if (requirementFieldName is null)
         {

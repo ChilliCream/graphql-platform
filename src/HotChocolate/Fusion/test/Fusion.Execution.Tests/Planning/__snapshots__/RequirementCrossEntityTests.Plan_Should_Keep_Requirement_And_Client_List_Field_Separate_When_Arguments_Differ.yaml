@@ -8,15 +8,16 @@ operation:
           comments(limit: 1) {
             id
           }
-          comments @fusion__requirement {
+          comments(limit: 3) @fusion__requirement {
             authorId @fusion__requirement
+            id @fusion__requirement
           }
           id @fusion__requirement
         }
       }
     hash: 123456789101112
     searchSpace: 2
-    expandedNodes: 6
+    expandedNodes: 7
 nodes:
   - id: 1
     type: Operation
@@ -24,9 +25,6 @@ nodes:
     operation: |
       query Op_123456789101112_1 {
         feed {
-          comments(limit: 1) {
-            id
-          }
           id
         }
       }
@@ -36,13 +34,36 @@ nodes:
     operation: |
       query Op_123456789101112_2($__fusion_1_id: ID!) {
         postById(id: $__fusion_1_id) {
-          id
+          comments(limit: 1) {
+            id
+          }
         }
       }
     source: $.postById
     target: $.feed
+    batchingGroupId: 2
     requirements:
       - name: __fusion_1_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 1
+  - id: 5
+    type: Operation
+    schema: d
+    operation: |
+      query Op_123456789101112_5($__fusion_5_id: ID!) {
+        postById(id: $__fusion_5_id) {
+          comments(limit: 3) {
+            id
+          }
+        }
+      }
+    source: $.postById
+    target: $.feed
+    batchingGroupId: 2
+    requirements:
+      - name: __fusion_5_id
         selectionMap: >-
           id
     dependencies:
@@ -52,11 +73,11 @@ nodes:
     schema: d
     operation: |
       query Op_123456789101112_3(
-        $__fusion_2_commentAuthorIds: [ID]
+        $__fusion_2_comments: [CommentInput]
         $__fusion_3_id: ID!
       ) {
         postById(id: $__fusion_3_id) {
-          author(commentAuthorIds: $__fusion_2_commentAuthorIds) {
+          author(comments: $__fusion_2_comments) {
             id
           }
         }
@@ -64,9 +85,11 @@ nodes:
     source: $.postById
     target: $.feed
     requirements:
-      - name: __fusion_2_commentAuthorIds
+      - name: __fusion_2_comments
         selectionMap: >-
-          comments[authorId]
+          comments(limit: 3)[{
+            authorId: authorId
+          }]
       - name: __fusion_3_id
         selectionMap: >-
           id
@@ -78,14 +101,12 @@ nodes:
     schema: c
     operation: |
       query Op_123456789101112_4($__fusion_4_id: ID!) {
-        postById(id: $__fusion_4_id) {
-          comments {
-            authorId
-          }
+        commentById(id: $__fusion_4_id) {
+          authorId
         }
       }
-    source: $.postById
-    target: $.feed
+    source: $.commentById
+    target: $.feed.comments
     requirements:
       - name: __fusion_4_id
         selectionMap: >-
