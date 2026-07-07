@@ -5,6 +5,7 @@ using HotChocolate.Execution;
 using HotChocolate.Fusion.Converters;
 using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
+using HotChocolate.Fusion.Language;
 using HotChocolate.Fusion.Planning.Partitioners;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Fusion.Types.Directives;
@@ -13,6 +14,7 @@ using HotChocolate.Fusion.Types.Rewriters;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 using HotChocolate.Types;
+using ArgumentNode = HotChocolate.Language.ArgumentNode;
 using NameNode = HotChocolate.Language.NameNode;
 
 namespace HotChocolate.Fusion.Planning;
@@ -1632,7 +1634,7 @@ public sealed partial class OperationPlanner
         var sourceField = compositeField.Sources[current.SchemaName];
         var requirements = mergeWithExistingStep
             ? existingStep.Requirements
-            : ImmutableDictionary<string, OperationRequirement>.Empty;
+            : [];
         var arguments = new List<ArgumentNode>(workItem.Selection.Node.Arguments);
 
         for (var i = 0; i < sourceField.Requirements!.Arguments.Length; i++)
@@ -2378,11 +2380,48 @@ public sealed partial class OperationPlanner
                 }).Rewrite(requirements)!;
         }
 
+        // A requirement field that shares a response name with a sibling client
+        // selection but carries different arguments must resolve into its own response
+        // slot; otherwise the requirement fetch and the client selection merge under the
+        // same field and produce mismatched results (for example a limited list fetched
+        // twice with different limits). The requirement may be resolved by a separate
+        // re-entrant lookup that never inlines next to the client selection, so the
+        // in-step collision check cannot see the conflict. Detect it here against the
+        // sibling selections and mint an alias so the requirement carries a distinct
+        // response name through partitioning, leftover re-rooting and the internal
+        // operation.
+        if (index.TryGetSelectionSet(workItem.Selection.SelectionSetId, out var siblingSelections))
+        {
+            var mintedAlias = false;
+
+            foreach (var selection in requirements.Selections)
+            {
+                if (selection is FieldNode field
+                    && HasArgumentConflict(field, siblingSelections.Selections))
+                {
+                    requirementAliases.MintAlias(field);
+                    mintedAlias = true;
+                }
+            }
+
+            if (mintedAlias)
+            {
+                requirements = requirementAliases.ApplyAliases(requirements);
+            }
+        }
+
         var fullRequirements = requirements;
 
         index.Register(
             workItem.Selection.SelectionSetId,
             requirements);
+
+        // Register the requirement's nested selection sets so the partitioner can
+        // resolve their identifiers while inlining into candidate steps. The aliased
+        // requirement is inlined into the internal operation only after the loop
+        // (aliases are minted during inlining), so the identifier registration that
+        // inlining performs must happen up front here.
+        RegisterRequirementSelectionSets(requirements, index);
 
         foreach (var (step, stepIndex, _) in current.GetCandidateSteps(workItem.Selection.SelectionSetId))
         {
@@ -2565,10 +2604,7 @@ public sealed partial class OperationPlanner
                 if (selection is FieldNode field
                     && HasArgumentConflict(field, existingSelectionSet.Selections))
                 {
-                    var internalAlias = requirementAliases.MintAlias(
-                        targetSelectionSetId,
-                        field,
-                        existingSelectionSet.Selections);
+                    var internalAlias = requirementAliases.MintAlias(field);
                     var aliasedField = CreateFieldWithAlias(field, internalAlias);
 
                     collidingSelections ??= [];
@@ -2576,7 +2612,7 @@ public sealed partial class OperationPlanner
 
                     if (selectionsToInline is null)
                     {
-                        selectionsToInline = new List<ISelectionNode>(resolvable.Selections.Count);
+                        selectionsToInline = [with(resolvable.Selections.Count)];
                         for (var j = 0; j < i; j++)
                         {
                             selectionsToInline.Add(resolvable.Selections[j]);
@@ -2721,19 +2757,16 @@ public sealed partial class OperationPlanner
             field.SelectionSet);
 
     private sealed class RequirementAliasContext(
-        ImmutableArray<HotChocolate.Fusion.Language.IValueSelectionNode?> fieldSelectionMaps)
+        ImmutableArray<IValueSelectionNode?> fieldSelectionMaps)
     {
-        private readonly Dictionary<uint, RequirementAliasScope> _scopes = [];
-        private readonly Dictionary<HotChocolate.Fusion.Language.IValueSelectionNode, string> _aliasesByMap = [];
+        private readonly Dictionary<IValueSelectionNode, string> _aliasesByMap = [];
         private readonly List<(RequirementFieldSelectionKey Key, string Alias)> _aliases = [];
+        private uint _nextAliasIndex;
 
-        public string? GetInternalAlias(HotChocolate.Fusion.Language.IValueSelectionNode fieldSelectionMap)
+        public string? GetInternalAlias(IValueSelectionNode fieldSelectionMap)
             => _aliasesByMap.GetValueOrDefault(fieldSelectionMap);
 
-        public string MintAlias(
-            uint targetSelectionSetId,
-            FieldNode field,
-            IReadOnlyList<ISelectionNode> siblingSelections)
+        public string MintAlias(FieldNode field)
         {
             for (var i = 0; i < _aliases.Count; i++)
             {
@@ -2743,8 +2776,7 @@ public sealed partial class OperationPlanner
                 }
             }
 
-            var scope = GetScope(targetSelectionSetId, siblingSelections);
-            var alias = scope.MintAlias(field.Name.Value);
+            var alias = $"fusion__requirement_{field.Name.Value}_{_nextAliasIndex++}";
             var key = new RequirementFieldSelectionKey(field);
             _aliases.Add((key, alias));
             RecordMapAliases(key, alias);
@@ -2774,7 +2806,7 @@ public sealed partial class OperationPlanner
 
                 if (!ReferenceEquals(rewritten, selection) && selections is null)
                 {
-                    selections = new List<ISelectionNode>(selectionSet.Selections.Count);
+                    selections = [with(selectionSet.Selections.Count)];
                     for (var j = 0; j < i; j++)
                     {
                         selections.Add(selectionSet.Selections[j]);
@@ -2787,23 +2819,9 @@ public sealed partial class OperationPlanner
             return selections is null ? selectionSet : selectionSet.WithSelections(selections);
         }
 
-        private RequirementAliasScope GetScope(
-            uint targetSelectionSetId,
-            IReadOnlyList<ISelectionNode> siblingSelections)
-        {
-            if (!_scopes.TryGetValue(targetSelectionSetId, out var scope))
-            {
-                scope = new RequirementAliasScope();
-                _scopes.Add(targetSelectionSetId, scope);
-            }
-
-            scope.Reserve(siblingSelections);
-            return scope;
-        }
-
         private bool TryGetAlias(
             FieldNode field,
-            [global::System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out string? alias)
+            [NotNullWhen(true)] out string? alias)
         {
             for (var i = 0; i < _aliases.Count; i++)
             {
@@ -2837,21 +2855,21 @@ public sealed partial class OperationPlanner
         }
 
         private static bool TryCreateRootFieldSelectionKey(
-            HotChocolate.Fusion.Language.IValueSelectionNode selection,
+            IValueSelectionNode selection,
             out RequirementFieldSelectionKey key)
         {
             switch (selection)
             {
-                case HotChocolate.Fusion.Language.PathNode path:
+                case PathNode path:
                     return TryCreateRootFieldSelectionKey(path.PathSegment, out key);
 
-                case HotChocolate.Fusion.Language.PathObjectValueSelectionNode pathObject:
+                case PathObjectValueSelectionNode pathObject:
                     return TryCreateRootFieldSelectionKey(pathObject.Path.PathSegment, out key);
 
-                case HotChocolate.Fusion.Language.PathListValueSelectionNode pathList:
+                case PathListValueSelectionNode pathList:
                     return TryCreateRootFieldSelectionKey(pathList.Path.PathSegment, out key);
 
-                case HotChocolate.Fusion.Language.ObjectValueSelectionNode { Fields.Length: 1 } objectValue:
+                case ObjectValueSelectionNode { Fields.Length: 1 } objectValue:
                     var field = objectValue.Fields[0];
 
                     if (field.ValueSelection is null)
@@ -2871,53 +2889,13 @@ public sealed partial class OperationPlanner
         }
 
         private static bool TryCreateRootFieldSelectionKey(
-            HotChocolate.Fusion.Language.PathSegmentNode pathSegment,
+            PathSegmentNode pathSegment,
             out RequirementFieldSelectionKey key)
         {
             key = new RequirementFieldSelectionKey(
                 pathSegment.FieldName.Value,
                 FieldSelectionMapValueNodeConverter.Convert(pathSegment.Arguments));
             return true;
-        }
-    }
-
-    private sealed class RequirementAliasScope
-    {
-        private readonly HashSet<string> _usedResponseNames = new(StringComparer.Ordinal);
-
-        public void Reserve(IReadOnlyList<ISelectionNode> siblingSelections)
-        {
-            for (var i = 0; i < siblingSelections.Count; i++)
-            {
-                if (siblingSelections[i] is FieldNode field)
-                {
-                    _usedResponseNames.Add(field.Alias?.Value ?? field.Name.Value);
-                }
-            }
-        }
-
-        public string MintAlias(string fieldName)
-        {
-            var baseAlias = $"fusion__req_{fieldName}";
-
-            if (_usedResponseNames.Add(baseAlias))
-            {
-                return baseAlias;
-            }
-
-            var suffix = 2;
-
-            while (true)
-            {
-                var alias = $"{baseAlias}_{suffix}";
-
-                if (_usedResponseNames.Add(alias))
-                {
-                    return alias;
-                }
-
-                suffix++;
-            }
         }
     }
 
@@ -3030,6 +3008,36 @@ public sealed partial class OperationPlanner
             targetSelectionSetId,
             selectionsToInline,
             inlineInternal: true);
+    }
+
+    private static void RegisterRequirementSelectionSets(
+        SelectionSetNode selectionSet,
+        SelectionSetIndexBuilder index)
+    {
+        var backlog = new Stack<SelectionSetNode>();
+        backlog.Push(selectionSet);
+
+        while (backlog.TryPop(out var current))
+        {
+            if (!index.IsRegistered(current))
+            {
+                index.Register(current);
+            }
+
+            foreach (var selection in current.Selections)
+            {
+                switch (selection)
+                {
+                    case FieldNode { SelectionSet: { } fieldSelectionSet }:
+                        backlog.Push(fieldSelectionSet);
+                        break;
+
+                    case InlineFragmentNode { SelectionSet: { } fragmentSelectionSet }:
+                        backlog.Push(fragmentSelectionSet);
+                        break;
+                }
+            }
+        }
     }
 
     private OperationDefinitionNode InlineSelections(

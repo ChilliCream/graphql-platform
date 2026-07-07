@@ -107,7 +107,7 @@ public class MutableScalarTypeDefinition : INamedTypeSystemMemberDefinition<Muta
                 throw new InvalidOperationException("The specified URL is not a valid URI.");
             }
 
-            return new Uri(urlValue.Value);
+            return Uri.TryCreate(urlValue.Value, UriKind.RelativeOrAbsolute, out var uri) ? uri : null;
         }
     }
 

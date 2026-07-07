@@ -1,3 +1,5 @@
+using HotChocolate.Fusion.ApolloFederation;
+using HotChocolate.Fusion.Definitions;
 using HotChocolate.Fusion.Errors;
 using HotChocolate.Fusion.Extensions;
 using HotChocolate.Fusion.Logging;
@@ -23,6 +25,20 @@ internal sealed class SourceSchemaParser(
         var schema = new MutableSchemaDefinition { Name = sourceSchemaText.Name };
         schema.AddBuiltInFusionTypes();
         schema.AddBuiltInFusionDirectives();
+
+        // Apollo Federation's @requires directive has no Fusion-native definition (the Fusion
+        // equivalent @require differs in name and argument shape). Register it before parsing
+        // federation source schemas so an applied @requires binds to a real definition instead
+        // of a missing one; preprocessing then rewrites it to @require and removes the
+        // definition. A non-federation schema does not get the definition, so an applied
+        // @requires is reported as an unknown directive, steering authors to @require.
+        if (IsFederationSourceText(sourceSchemaText)
+            && schema.Types.TryGetType<MutableScalarTypeDefinition>(
+                WellKnownTypeNames.FieldSelectionSet, out var fieldSelectionSetType))
+        {
+            schema.DirectiveDefinitions.Add(
+                new RequiresMutableDirectiveDefinition(fieldSelectionSetType));
+        }
 
         // Parse source schema.
         try
@@ -77,4 +93,12 @@ internal sealed class SourceSchemaParser(
             ? ErrorHelper.SourceSchemaParsingFailed()
             : schema;
     }
+
+    private static bool IsFederationSourceText(SourceSchemaText sourceSchemaText)
+        => sourceSchemaText.SourceText.Contains(
+               FederationSchemaAnalyzer.FederationUrlPrefix,
+               StringComparison.Ordinal)
+           || (sourceSchemaText.ExtensionsSourceText?.Contains(
+               FederationSchemaAnalyzer.FederationUrlPrefix,
+               StringComparison.Ordinal) ?? false);
 }

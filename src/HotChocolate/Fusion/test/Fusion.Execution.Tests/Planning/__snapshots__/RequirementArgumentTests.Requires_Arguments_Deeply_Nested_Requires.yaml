@@ -8,15 +8,15 @@ operation:
           comments(limit: 1) {
             id
           }
-          comments @fusion__requirement {
+          id @fusion__requirement
+          fusion__requirement_comments_0: comments @fusion__requirement {
             authorId @fusion__requirement
           }
-          id @fusion__requirement
         }
       }
     hash: 123456789101112
-    searchSpace: 2
-    expandedNodes: 6
+    searchSpace: 1
+    expandedNodes: 2
 nodes:
   - id: 1
     type: Operation
@@ -28,34 +28,20 @@ nodes:
             id
           }
           id
+          fusion__requirement_comments_0: comments {
+            authorId
+          }
         }
       }
   - id: 2
     type: Operation
     schema: d
     operation: |
-      query Op_123456789101112_2($__fusion_1_id: ID!) {
-        postById(id: $__fusion_1_id) {
-          id
-        }
-      }
-    source: $.postById
-    target: $.feed
-    requirements:
-      - name: __fusion_1_id
-        selectionMap: >-
-          id
-    dependencies:
-      - id: 1
-  - id: 3
-    type: Operation
-    schema: d
-    operation: |
-      query Op_123456789101112_3(
+      query Op_123456789101112_2(
+        $__fusion_1_id: ID!
         $__fusion_2_commentAuthorIds: [ID]
-        $__fusion_3_id: ID!
       ) {
-        postById(id: $__fusion_3_id) {
+        postById(id: $__fusion_1_id) {
           author(commentAuthorIds: $__fusion_2_commentAuthorIds) {
             id
           }
@@ -64,31 +50,12 @@ nodes:
     source: $.postById
     target: $.feed
     requirements:
+      - name: __fusion_1_id
+        selectionMap: >-
+          id
       - name: __fusion_2_commentAuthorIds
+        internalAlias: fusion__requirement_comments_0
         selectionMap: >-
           comments[authorId]
-      - name: __fusion_3_id
-        selectionMap: >-
-          id
     dependencies:
       - id: 1
-      - id: 4
-  - id: 4
-    type: Operation
-    schema: c
-    operation: |
-      query Op_123456789101112_4($__fusion_4_id: ID!) {
-        postById(id: $__fusion_4_id) {
-          comments {
-            authorId
-          }
-        }
-      }
-    source: $.postById
-    target: $.feed
-    requirements:
-      - name: __fusion_4_id
-        selectionMap: >-
-          id
-    dependencies:
-      - id: 2
