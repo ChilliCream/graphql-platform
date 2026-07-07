@@ -126,14 +126,18 @@ public static class ExpressionHasherTests
         // arrange
         var predicate1 = BuildNameIn(["a", "b"]);
         var predicate2 = BuildNameIn(["a", "c"]);
+        var predicate3 = BuildNameIn(["a", "b"]);
 
         // act
         var hash1 = new ExpressionHasher().Add(predicate1).Compute();
         var hash2 = new ExpressionHasher().Add(predicate2).Compute();
+        var hash3 = new ExpressionHasher().Add(predicate3).Compute();
 
         // assert
         // `in` filters with different lists must not collide either.
         Assert.NotEqual(hash1, hash2);
+        // Equal list contents must stay stable across closure instances.
+        Assert.Equal(hash1, hash3);
     }
 
     [Fact]

@@ -2,6 +2,7 @@ using System.Buffers;
 using System.Buffers.Text;
 using System.Collections;
 using System.Globalization;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Security.Cryptography;
@@ -155,8 +156,14 @@ internal sealed class ExpressionHasher : ExpressionVisitor
             {
                 FieldInfo field => field.GetValue(instance),
 
+                // Only read properties off value-type holders (record structs
+                // like ExpressionParameter<T>). Closures expose captured values
+                // as fields, so this never invokes an arbitrary reference-type
+                // getter - which could be expensive or have side effects - just
+                // to compute a branch key.
                 PropertyInfo { CanRead: true } property
                     when property.GetIndexParameters().Length == 0
+                        && instance is ValueType
                     => property.GetValue(instance),
 
                 _ => null
@@ -204,6 +211,15 @@ internal sealed class ExpressionHasher : ExpressionVisitor
         }
 
         if (depth >= MaxCapturedValueDepth)
+        {
+            AppendDelimited(value.GetType().FullName ?? value.GetType().Name);
+            return;
+        }
+
+        // Never enumerate a queryable (or other lazy provider) while hashing:
+        // doing so could execute a database query or another side effect just to
+        // compute a branch key. Fold in its type instead.
+        if (value is IQueryable)
         {
             AppendDelimited(value.GetType().FullName ?? value.GetType().Name);
             return;
