@@ -2,7 +2,6 @@ using System.Buffers;
 using System.Buffers.Text;
 using System.Collections;
 using System.Globalization;
-using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Security.Cryptography;
@@ -216,24 +215,26 @@ internal sealed class ExpressionHasher : ExpressionVisitor
             return;
         }
 
-        // Never enumerate a queryable (or other lazy provider) while hashing:
-        // doing so could execute a database query or another side effect just to
-        // compute a branch key. Fold in its type instead.
-        if (value is IQueryable)
-        {
-            AppendDelimited(value.GetType().FullName ?? value.GetType().Name);
-            return;
-        }
-
-        if (value is IEnumerable enumerable)
+        // Only enumerate materialized collections (arrays, List<T>, ...). Any
+        // other IEnumerable - an IQueryable, an iterator block, or another lazy
+        // provider - can throw or trigger a side effect (e.g. a database query)
+        // when enumerated, and ComputeHash() does not catch. Fold in its type
+        // instead so branch-key computation stays pure and reliable.
+        if (value is ICollection collection)
         {
             Append('[');
-            foreach (var item in enumerable)
+            foreach (var item in collection)
             {
                 AppendCapturedValue(item, depth + 1);
                 Append(',');
             }
             Append(']');
+            return;
+        }
+
+        if (value is IEnumerable)
+        {
+            AppendDelimited(value.GetType().FullName ?? value.GetType().Name);
             return;
         }
 

@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Linq.Expressions;
 
 namespace GreenDonut.Data.Internal;
@@ -157,10 +158,29 @@ public static class ExpressionHasherTests
         Assert.NotEqual(hash1, hash2);
     }
 
+    [Fact]
+    public static void Predicate_With_Captured_Lazy_Enumerable_Is_Not_Enumerated()
+    {
+        // arrange
+        // A lazy sequence must never be enumerated to compute a branch key - that
+        // could throw or trigger a side effect (e.g. a database query). Only
+        // materialized collections are folded in.
+        var predicate = BuildNameInSeq(new ThrowingEnumerable());
+
+        // act
+        var exception = Record.Exception(() => new ExpressionHasher().Add(predicate).Compute());
+
+        // assert
+        Assert.Null(exception);
+    }
+
     private static Expression<Func<Entity1, bool>> BuildNameEquals(string value)
         => x => x.Name == value;
 
     private static Expression<Func<Entity1, bool>> BuildNameIn(string[] values)
+        => x => values.Contains(x.Name);
+
+    private static Expression<Func<Entity1, bool>> BuildNameInSeq(IEnumerable<string> values)
         => x => values.Contains(x.Name);
 
     [Fact]
@@ -292,5 +312,14 @@ public static class ExpressionHasherTests
     public class Entity3 : IEntity
     {
         public string Name { get; set; } = null!;
+    }
+
+    private sealed class ThrowingEnumerable : IEnumerable<string>
+    {
+        public IEnumerator<string> GetEnumerator()
+            => throw new InvalidOperationException("must not be enumerated while hashing");
+
+        IEnumerator IEnumerable.GetEnumerator()
+            => throw new InvalidOperationException("must not be enumerated while hashing");
     }
 }
