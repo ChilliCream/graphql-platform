@@ -174,6 +174,16 @@ public static class TypeReferenceBuilder
         }
 
         var typeName = GetFullyQualifiedTypeName(underlyingType);
+
+        if (IsFlagsEnumType(underlyingType))
+        {
+            return (
+                string.Empty,
+                typeName,
+                CreateNullabilityLiteral(underlyingType, isNullable),
+                IsSimpleType: true);
+        }
+
         var compliantTypeName = MakeGraphQLCompliant(typeName);
         var nullability = ShouldPreserveNullability(underlyingType)
             ? CreateNullabilityLiteral(underlyingType, isNullable)
@@ -325,6 +335,24 @@ public static class TypeReferenceBuilder
         }
 
         elementType = null;
+        return false;
+    }
+
+    private static bool IsFlagsEnumType(ITypeSymbol typeSymbol)
+    {
+        if (typeSymbol.TypeKind != TypeKind.Enum)
+        {
+            return false;
+        }
+
+        foreach (var attribute in typeSymbol.GetAttributes())
+        {
+            if (attribute.AttributeClass?.ToDisplayString() == WellKnownAttributes.FlagsAttribute)
+            {
+                return true;
+            }
+        }
+
         return false;
     }
 
