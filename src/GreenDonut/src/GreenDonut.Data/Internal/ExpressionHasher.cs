@@ -149,17 +149,25 @@ internal sealed class ExpressionHasher : ExpressionVisitor
 
     private static object? TryGetMemberValue(MemberInfo member, object? instance)
     {
-        switch (member)
+        try
         {
-            case FieldInfo field:
-                return field.GetValue(instance);
+            return member switch
+            {
+                FieldInfo field => field.GetValue(instance),
 
-            case PropertyInfo { CanRead: true } property
-                when property.GetIndexParameters().Length == 0:
-                return property.GetValue(instance);
+                PropertyInfo { CanRead: true } property
+                    when property.GetIndexParameters().Length == 0
+                    => property.GetValue(instance),
 
-            default:
-                return null;
+                _ => null
+            };
+        }
+        catch
+        {
+            // A branch key must never fail because a captured member's accessor
+            // throws, has side effects, or the instance is null. Fall back to
+            // treating the value as absent instead of propagating the exception.
+            return null;
         }
     }
 
@@ -172,7 +180,7 @@ internal sealed class ExpressionHasher : ExpressionVisitor
                 return;
 
             case string s:
-                Append(s);
+                AppendDelimited(s);
                 return;
 
             case bool b:
@@ -184,20 +192,20 @@ internal sealed class ExpressionHasher : ExpressionVisitor
                 return;
 
             case Enum e:
-                Append(e.GetType().FullName ?? e.GetType().Name);
+                AppendDelimited(e.GetType().FullName ?? e.GetType().Name);
                 Append('.');
-                Append(e.ToString());
+                AppendDelimited(e.ToString());
                 return;
 
             case IFormattable formattable:
                 // numbers, decimal, Guid, DateTime, DateTimeOffset, TimeSpan, ...
-                Append(formattable.ToString(null, CultureInfo.InvariantCulture));
+                AppendDelimited(formattable.ToString(null, CultureInfo.InvariantCulture));
                 return;
         }
 
         if (depth >= MaxCapturedValueDepth)
         {
-            Append(value.GetType().FullName ?? value.GetType().Name);
+            AppendDelimited(value.GetType().FullName ?? value.GetType().Name);
             return;
         }
 
@@ -218,18 +226,33 @@ internal sealed class ExpressionHasher : ExpressionVisitor
         // in the holder still differentiate the hash. Fields are ordered to keep
         // the hash stable across runtimes.
         var type = value.GetType();
-        Append(type.FullName ?? type.Name);
+        AppendDelimited(type.FullName ?? type.Name);
         Append('{');
-        foreach (var field in type
-            .GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
-            .OrderBy(f => f.Name, StringComparer.Ordinal))
+
+        var fields = type.GetFields(
+            BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+        Array.Sort(fields, static (a, b) => string.CompareOrdinal(a.Name, b.Name));
+
+        foreach (var field in fields)
         {
-            Append(field.Name);
+            AppendDelimited(field.Name);
             Append('=');
-            AppendCapturedValue(field.GetValue(value), depth + 1);
+            AppendCapturedValue(TryGetMemberValue(field, value), depth + 1);
             Append(';');
         }
+
         Append('}');
+    }
+
+    private void AppendDelimited(string value)
+    {
+        // Length-prefix variable-length text so a separator embedded in a value
+        // (e.g. a comma inside a filtered string) cannot produce the same byte
+        // sequence as a different set of values - i.e. ["a,b"] must not hash the
+        // same as ["a", "b"].
+        Append(value.Length);
+        Append(':');
+        Append(value);
     }
 
     protected override Expression VisitParameter(ParameterExpression node)

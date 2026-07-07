@@ -136,6 +136,23 @@ public static class ExpressionHasherTests
         Assert.NotEqual(hash1, hash2);
     }
 
+    [Fact]
+    public static void Predicate_With_Captured_List_Element_Boundaries_Affect_Hash()
+    {
+        // arrange
+        // A separator embedded in an element must not make ["a,b", "c"] hash the
+        // same as ["a", "b", "c"].
+        var predicate1 = BuildNameIn(["a,b", "c"]);
+        var predicate2 = BuildNameIn(["a", "b", "c"]);
+
+        // act
+        var hash1 = new ExpressionHasher().Add(predicate1).Compute();
+        var hash2 = new ExpressionHasher().Add(predicate2).Compute();
+
+        // assert
+        Assert.NotEqual(hash1, hash2);
+    }
+
     private static Expression<Func<Entity1, bool>> BuildNameEquals(string value)
         => x => x.Name == value;
 
