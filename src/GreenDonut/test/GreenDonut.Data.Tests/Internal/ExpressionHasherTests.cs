@@ -159,6 +159,62 @@ public static class ExpressionHasherTests
     }
 
     [Fact]
+    public static void Value_Hoisted_Into_Struct_Property_Affects_Hash()
+    {
+        // arrange
+        // The real HotChocolate shape: a value hoisted into a record struct and
+        // read via property `p` over a ConstantExpression (ExpressionParameter<T>).
+        var predicate1 = BuildNameEqualsViaHolder("abc");
+        var predicate2 = BuildNameEqualsViaHolder("xyz");
+        var predicate3 = BuildNameEqualsViaHolder("abc");
+
+        // act
+        var hash1 = new ExpressionHasher().Add(predicate1).Compute();
+        var hash2 = new ExpressionHasher().Add(predicate2).Compute();
+        var hash3 = new ExpressionHasher().Add(predicate3).Compute();
+
+        // assert
+        Assert.NotEqual(hash1, hash2);
+        Assert.Equal(hash1, hash3);
+    }
+
+    [Fact]
+    public static void Captured_DateTime_Difference_Below_A_Second_Affects_Hash()
+    {
+        // arrange
+        // Round-trip precision: two timestamps differing only by a fraction of a
+        // second must not collide (default "G" formatting would drop it).
+        var baseTime = new DateTime(2024, 1, 15, 10, 0, 0, DateTimeKind.Utc);
+        var predicate1 = BuildCreatedEqualsViaHolder(baseTime.AddTicks(1_230_000));
+        var predicate2 = BuildCreatedEqualsViaHolder(baseTime.AddTicks(4_560_000));
+
+        // act
+        var hash1 = new ExpressionHasher().Add(predicate1).Compute();
+        var hash2 = new ExpressionHasher().Add(predicate2).Compute();
+
+        // assert
+        Assert.NotEqual(hash1, hash2);
+    }
+
+    [Fact]
+    public static void Predicate_With_Self_Referential_Collection_Terminates()
+    {
+        // arrange
+        // A captured collection that contains itself must not blow up (the depth
+        // guard alone would still allow exponential traversal).
+        var self = new object[2];
+        self[0] = self;
+        self[1] = "x";
+        Expression<Func<Entity1, bool>> predicate = x => self.Contains(x.Name);
+
+        // act
+        var exception = Record.Exception(() => new ExpressionHasher().Add(predicate).Compute());
+
+        // assert
+        Assert.Null(exception);
+    }
+
+    [Fact]
     public static void Predicate_With_Captured_Lazy_Enumerable_Is_Not_Enumerated()
     {
         // arrange
@@ -182,6 +238,24 @@ public static class ExpressionHasherTests
 
     private static Expression<Func<Entity1, bool>> BuildNameInSeq(IEnumerable<string> values)
         => x => values.Contains(x.Name);
+
+    // Mimics HotChocolate's ExpressionParameter<T>(T p): a value hoisted into a
+    // record struct and read via property `p` over a ConstantExpression.
+    private static Expression<Func<Entity1, bool>> BuildNameEqualsViaHolder(string value)
+    {
+        var x = Expression.Parameter(typeof(Entity1), "x");
+        var p = Expression.Property(Expression.Constant(new Holder<string>(value)), nameof(Holder<string>.p));
+        var body = Expression.Equal(Expression.Property(x, nameof(Entity1.Name)), p);
+        return Expression.Lambda<Func<Entity1, bool>>(body, x);
+    }
+
+    private static Expression<Func<Entity1, bool>> BuildCreatedEqualsViaHolder(DateTime value)
+    {
+        var x = Expression.Parameter(typeof(Entity1), "x");
+        var p = Expression.Property(Expression.Constant(new Holder<DateTime>(value)), nameof(Holder<DateTime>.p));
+        var body = Expression.Equal(Expression.Property(x, nameof(Entity1.Created)), p);
+        return Expression.Lambda<Func<Entity1, bool>>(body, x);
+    }
 
     [Fact]
     public static void BufferResize_Add_Char()
@@ -297,10 +371,14 @@ public static class ExpressionHasherTests
 
         public string? Description { get; set; }
 
+        public DateTime Created { get; set; }
+
         public IEntity Entity { get; set; } = null!;
 
         public List<IEntity> Entities { get; set; } = null!;
     }
+
+    private readonly record struct Holder<T>(T p);
 
     public interface IEntity;
 

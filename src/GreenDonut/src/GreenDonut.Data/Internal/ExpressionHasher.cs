@@ -1,6 +1,7 @@
 using System.Buffers;
 using System.Buffers.Text;
 using System.Collections;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -12,6 +13,8 @@ namespace GreenDonut.Data.Internal;
 internal sealed class ExpressionHasher : ExpressionVisitor
 {
     private const int MaxCapturedValueDepth = 8;
+    private const int MaxCapturedNodes = 2048;
+    private int _capturedNodeCount;
 
     private ReadOnlySpan<byte> Lambda => "Lambda|"u8;
     private ReadOnlySpan<byte> Binary => "Binary:"u8;
@@ -96,6 +99,7 @@ internal sealed class ExpressionHasher : ExpressionVisitor
         }
 
         _start = 0;
+        _capturedNodeCount = 0;
         return hashString;
     }
 
@@ -179,6 +183,15 @@ internal sealed class ExpressionHasher : ExpressionVisitor
 
     private void AppendCapturedValue(object? value, int depth)
     {
+        // Bound total work, not just depth: a cyclic or pathological captured
+        // graph (e.g. an array that contains itself) would otherwise blow up
+        // exponentially even under the depth guard.
+        if (++_capturedNodeCount > MaxCapturedNodes)
+        {
+            AppendDelimited("__budget_exceeded__");
+            return;
+        }
+
         switch (value)
         {
             case null:
@@ -203,8 +216,33 @@ internal sealed class ExpressionHasher : ExpressionVisitor
                 AppendDelimited(e.ToString());
                 return;
 
+            // Temporal types must round-trip: the default ("G") format drops
+            // sub-second precision (and Kind/offset), so two predicates whose
+            // only difference is a fractional second would otherwise collide.
+            case DateTime dateTime:
+                AppendDelimited(dateTime.ToString("O", CultureInfo.InvariantCulture));
+                return;
+
+            case DateTimeOffset dateTimeOffset:
+                AppendDelimited(dateTimeOffset.ToString("O", CultureInfo.InvariantCulture));
+                return;
+
+            case TimeSpan timeSpan:
+                AppendDelimited(timeSpan.ToString("c", CultureInfo.InvariantCulture));
+                return;
+
+#if NET6_0_OR_GREATER
+            case DateOnly dateOnly:
+                AppendDelimited(dateOnly.ToString("O", CultureInfo.InvariantCulture));
+                return;
+
+            case TimeOnly timeOnly:
+                AppendDelimited(timeOnly.ToString("O", CultureInfo.InvariantCulture));
+                return;
+#endif
+
             case IFormattable formattable:
-                // numbers, decimal, Guid, DateTime, DateTimeOffset, TimeSpan, ...
+                // numbers, decimal, Guid, ...
                 AppendDelimited(formattable.ToString(null, CultureInfo.InvariantCulture));
                 return;
         }
@@ -215,20 +253,33 @@ internal sealed class ExpressionHasher : ExpressionVisitor
             return;
         }
 
-        // Only enumerate materialized collections (arrays, List<T>, ...). Any
-        // other IEnumerable - an IQueryable, an iterator block, or another lazy
-        // provider - can throw or trigger a side effect (e.g. a database query)
-        // when enumerated, and ComputeHash() does not catch. Fold in its type
-        // instead so branch-key computation stays pure and reliable.
-        if (value is ICollection collection)
+        // Only enumerate collection types we know are materialized and side-effect
+        // free - arrays and List<T>. Any other IEnumerable (an IQueryable, an EF
+        // lazy-loading proxy, an iterator block, ...) could trigger a database
+        // query or throw when enumerated, and ComputeHash() does not catch, so
+        // fold in its type instead. Enumeration is still guarded and rolls back
+        // partial writes so a throwing enumerator can never fail hashing.
+        if (value is Array
+            || (value.GetType() is { IsGenericType: true } listType
+                && listType.GetGenericTypeDefinition() == typeof(List<>)))
         {
-            Append('[');
-            foreach (var item in collection)
+            var rollback = _start;
+            try
             {
-                AppendCapturedValue(item, depth + 1);
-                Append(',');
+                Append('[');
+                foreach (var item in (IEnumerable)value)
+                {
+                    AppendCapturedValue(item, depth + 1);
+                    Append(',');
+                }
+                Append(']');
             }
-            Append(']');
+            catch
+            {
+                _start = rollback;
+                AppendDelimited(value.GetType().FullName ?? value.GetType().Name);
+            }
+
             return;
         }
 
