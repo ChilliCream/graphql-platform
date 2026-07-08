@@ -555,9 +555,6 @@
   <data name="SatisfiabilityValidator_NoLookupsFoundForType" xml:space="preserve">
     <value>No lookups found for type '{0}' in schema '{1}'.</value>
   </data>
-  <data name="SatisfiabilityValidator_ProvidesFieldNotResolvable" xml:space="preserve">
-    <value>The non-external field '{0}' selected by '@provides' on '{1}.{2}' is not resolvable on source schema '{3}'.</value>
-  </data>
   <data name="SatisfiabilityValidator_UnableToAccessField" xml:space="preserve">
     <value>Unable to access the field '{0}.{1}'.</value>
   </data>
