@@ -20,7 +20,7 @@ internal sealed class SatisfiabilityValidator
     private readonly SatisfiabilityOptions _options;
     private readonly RequirementsValidator _requirementsValidator;
     private readonly FusionLookupDirectiveCache _lookupCache;
-    private readonly SourceSchemaTransitionCache _transitionCache;
+    private readonly SatisfiabilityFacts _facts;
     private readonly MutableSchemaDefinition _schema;
     private readonly ICompositionLog _log;
 
@@ -33,9 +33,13 @@ internal sealed class SatisfiabilityValidator
         _log = log;
         _options = options ?? new SatisfiabilityOptions();
         _lookupCache = new FusionLookupDirectiveCache(schema);
-        _transitionCache = new SourceSchemaTransitionCache();
+        _facts = new SatisfiabilityFactsBuilder(schema, _lookupCache).Build();
         _requirementsValidator =
-            new RequirementsValidator(schema, _lookupCache, _transitionCache, _options.IncludeSatisfiabilityPaths);
+            new RequirementsValidator(
+                schema,
+                _lookupCache,
+                _facts,
+                _options.IncludeSatisfiabilityPaths);
     }
 
     public CompositionResult Validate()
@@ -67,9 +71,100 @@ internal sealed class SatisfiabilityValidator
             VisitObjectType(work.ObjectType, work.Path, worklist, visited);
         }
 
+        ValidateProvidesDeliverability();
+
         return _log.HasErrors
             ? ErrorHelper.SatisfiabilityValidationFailed()
             : CompositionResult.Success();
+    }
+
+    // Every field selected by an @provides must itself be resolvable from the providing source
+    // schema. @provides is an optimization, so it can only reference data the schema can already
+    // deliver; a selection the schema cannot resolve is invalid (Composite Schemas spec / PR #231).
+    private void ValidateProvidesDeliverability()
+    {
+        foreach (var type in _schema.Types)
+        {
+            if (type is not MutableObjectTypeDefinition objectType)
+            {
+                continue;
+            }
+
+            foreach (var field in objectType.Fields)
+            {
+                foreach (var schemaName in field.GetSchemaNames())
+                {
+                    var provides = field.GetFusionFieldProvides(schemaName);
+
+                    if (provides is null)
+                    {
+                        continue;
+                    }
+
+                    var providedSelectionSet = ParseSelectionSet($"{{ {provides} }}");
+
+                    ValidateProvidedSelectionSet(
+                        providedSelectionSet,
+                        field.Type.AsTypeDefinition(),
+                        schemaName,
+                        objectType,
+                        field);
+                }
+            }
+        }
+    }
+
+    private void ValidateProvidedSelectionSet(
+        SelectionSetNode selectionSet,
+        ITypeDefinition selectionType,
+        string providingSchemaName,
+        MutableObjectTypeDefinition providingType,
+        MutableOutputFieldDefinition providingField)
+    {
+        if (selectionType.Kind is not TypeKind.Object and not TypeKind.Interface and not TypeKind.Union)
+        {
+            return;
+        }
+
+        foreach (var possibleType in selectionType.GetPossibleTypes(providingSchemaName, _schema))
+        {
+            foreach (var selection in selectionSet.Selections)
+            {
+                if (selection is not FieldNode fieldNode
+                    || !possibleType.Fields.TryGetField(fieldNode.Name.Value, out var providedField))
+                {
+                    // Non-field selections and shape errors are handled by the @provides shape rules.
+                    continue;
+                }
+
+                if (!_facts.IsFieldAccessible(possibleType, providedField, providingSchemaName))
+                {
+                    _log.Write(
+                        LogEntryBuilder.New()
+                            .SetMessage(
+                                SatisfiabilityValidator_ProvidesFieldNotResolvable,
+                                fieldNode.Name.Value,
+                                providingType.Name,
+                                providingField.Name,
+                                providingSchemaName)
+                            .SetCode(LogEntryCodes.ProvidesFieldsNotResolvable)
+                            .SetSeverity(LogSeverity.Error)
+                            .Build());
+
+                    continue;
+                }
+
+                if (fieldNode.SelectionSet is not null)
+                {
+                    ValidateProvidedSelectionSet(
+                        fieldNode.SelectionSet,
+                        providedField.Type.AsTypeDefinition(),
+                        providingSchemaName,
+                        providingType,
+                        providingField);
+                }
+            }
+        }
     }
 
     private void VisitObjectType(
@@ -142,21 +237,22 @@ internal sealed class SatisfiabilityValidator
                 continue;
             }
 
-            // If the field is marked as partial, it must be provided by the current schema for it
-            // to be an option.
+            // A partial (@external) field is never a resolution candidate in its declaring schema;
+            // only an event stream message can make it an option. @provides never does (PR #231).
             if (field.IsPartial(schemaName)
-                && path?.Item.Provides(field, type, schemaName, _schema) != true)
+                && path?.Item.ProvidesViaEventStream(field, type, schemaName, _schema) != true)
             {
                 continue;
             }
 
+            var eventStreamMessage = field.GetFusionEventStreamMessage(schemaName);
             var pathItem = new SatisfiabilityPathItem(
                 field,
                 type,
                 schemaName)
             {
-                ProvidedSelectionSet =
-                    field.GetFusionEventStreamMessage(schemaName) ?? providedSelectionSet
+                ProvidedSelectionSet = eventStreamMessage ?? providedSelectionSet,
+                ProvidedByEventStream = eventStreamMessage is not null
             };
 
             // Validate that we are not in a cycle by checking if this path item
@@ -167,8 +263,15 @@ internal sealed class SatisfiabilityValidator
                 continue;
             }
 
-            // Validate transition between source schemas.
-            if (previousSchemaName is not null && previousSchemaName != schemaName)
+            // Validate transition between source schemas. The fixpoint answers the direct-lookup
+            // route in O(1); only when it cannot confirm the transition do we fall back to the full
+            // recursion, which also covers the parent-call and one-to-one routes and builds the error.
+            // A provided selection set (event stream message or @provides) narrows the context in a
+            // way the fixpoint does not model, so we always defer to the recursion in that case.
+            if (previousSchemaName is not null
+                && previousSchemaName != schemaName
+                && (path?.Item.ProvidedSelectionSet is not null
+                    || !_facts.CanTransition(type, schemaName, previousSchemaName)))
             {
                 var transitionErrors = ValidateSourceSchemaTransition(type, path, schemaName);
 
@@ -187,10 +290,14 @@ internal sealed class SatisfiabilityValidator
                 }
             }
 
-            // Validate field requirements (@require).
+            // Validate field requirements (@require). The fixpoint answers whether the requirement
+            // holds in O(1); only when it does not, or when a provided selection set narrows the
+            // context, do we re-run the recursion to build the error tree.
             var requirements = field.GetFusionRequiresRequirements(schemaName);
 
-            if (requirements is not null)
+            if (requirements is not null
+                && (path?.Item.ProvidedSelectionSet is not null
+                    || !_facts.IsFieldResolvableOn(type, field, schemaName)))
             {
                 var requirementErrors =
                     _requirementsValidator.Validate(
@@ -348,8 +455,6 @@ internal sealed class SatisfiabilityValidator
     {
         return SourceSchemaTransitionHelper.ValidateSourceSchemaTransition(
             _lookupCache,
-            _transitionCache,
-            cycleDetectionPath: null,
             type,
             transitionToSchemaName,
             [.. path.EnumerateFromLeaf()],

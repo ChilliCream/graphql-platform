@@ -1682,6 +1682,15 @@ namespace HotChocolate.Fusion.Properties {
         }
 
         /// <summary>
+        ///   Looks up a localized string similar to The field &apos;{0}&apos; selected by &apos;@provides&apos; on &apos;{1}.{2}&apos; cannot be delivered by source schema &apos;{3}&apos;..
+        /// </summary>
+        internal static string SatisfiabilityValidator_ProvidesFieldNotResolvable {
+            get {
+                return ResourceManager.GetString("SatisfiabilityValidator_ProvidesFieldNotResolvable", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to Unable to access the field &apos;{0}.{1}&apos;..
         /// </summary>
         internal static string SatisfiabilityValidator_UnableToAccessField {

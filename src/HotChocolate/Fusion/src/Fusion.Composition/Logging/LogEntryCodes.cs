@@ -63,6 +63,7 @@ public static class LogEntryCodes
     public const string ProvidesDirectiveInFieldsArgument = "PROVIDES_DIRECTIVE_IN_FIELDS_ARGUMENT";
     public const string ProvidesFieldsHasArguments = "PROVIDES_FIELDS_HAS_ARGUMENTS";
     public const string ProvidesFieldsMissingExternal = "PROVIDES_FIELDS_MISSING_EXTERNAL";
+    public const string ProvidesFieldsNotResolvable = "PROVIDES_FIELDS_NOT_RESOLVABLE";
     public const string ProvidesInvalidFields = "PROVIDES_INVALID_FIELDS";
     public const string ProvidesInvalidFieldsType = "PROVIDES_INVALID_FIELDS_TYPE";
     public const string ProvidesInvalidSyntax = "PROVIDES_INVALID_SYNTAX";
