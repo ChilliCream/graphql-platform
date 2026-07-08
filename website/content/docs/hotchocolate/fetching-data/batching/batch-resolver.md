@@ -176,7 +176,8 @@ A failed element becomes a GraphQL error at that specific parent's path, while t
 }
 ```
 
-> [!WARNING] > `ResolverResult` only works with the code-first `ResolveBatch` API. Returning `List<ResolverResult>` from a `[BatchResolver]`-attributed method (or through `ResolveBatchWith`) is not unwrapped: every element fails leaf-value coercion with an `EXEC_INVALID_LEAF_VALUE` error.
+> [!WARNING]
+> `ResolverResult` only works with the code-first `ResolveBatch` API. Returning `List<ResolverResult>` from a `[BatchResolver]`-attributed method (or through `ResolveBatchWith`) is not unwrapped: every element fails leaf-value coercion with an `EXEC_INVALID_LEAF_VALUE` error.
 
 # Code-First Batch Resolvers
 
