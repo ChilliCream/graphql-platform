@@ -160,6 +160,50 @@ public class IntegrationTests
     }
 
     [Fact]
+    public async Task Projection_Should_NotThrow_When_OnlyNonProjectableExtensionFieldInNestedList()
+    {
+        // arrange
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<QueryWithNestedListExtension>()
+            .AddTypeExtension<ListItemExtensions>()
+            .AddProjections()
+            .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // act
+        // 'computed' is the only selection inside the list, so the list sub-projection is
+        // empty; the trailing sibling 'id' must still bind against the parent.
+        var result = await executor.ExecuteAsync(
+            """
+            {
+                listParents {
+                    items {
+                        computed
+                    }
+                    id
+                }
+            }
+            """,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "listParents": [
+                  {
+                    "items": [],
+                    "id": 1
+                  }
+                ]
+              }
+            }
+            """);
+    }
+
+    [Fact]
     public async Task Projection_Should_Project_ArrayLength_Expression_Fields()
     {
         // arrange
@@ -921,4 +965,39 @@ public class QueryWithNodeResolvers
 
     [NodeResolver]
     public Bar GetBarById(string id) => new() { IdOfBar = "A" };
+}
+
+public class QueryWithNestedListExtension
+{
+    [UseProjection]
+    public IQueryable<ListParent> ListParents
+        => new[]
+        {
+            new ListParent
+            {
+                Id = 1,
+                Items = [new ListItem { Id = 10, Value = "a" }, new ListItem { Id = 11, Value = "b" }]
+            }
+        }.AsQueryable();
+}
+
+public class ListParent
+{
+    public int Id { get; set; }
+
+    public List<ListItem> Items { get; set; } = [];
+}
+
+public class ListItem
+{
+    public int Id { get; set; }
+
+    public string Value { get; set; } = "";
+}
+
+[ExtendObjectType(typeof(ListItem))]
+public class ListItemExtensions
+{
+    // Resolver whose value does not come from a ListItem column, so it is not projected.
+    public string Computed() => "computed";
 }
