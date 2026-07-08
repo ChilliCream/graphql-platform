@@ -692,7 +692,29 @@ internal sealed class ValueCompletion
             elementTypeKind = Unsafe.As<IType, NonNullType>(ref elementType).NullableType.Kind;
         }
 
-        target.SetArrayValue(source.GetArrayLength());
+        // A shared list slot may already be populated by a sibling subgraph
+        // result. Create the array only on the first write; otherwise reuse it
+        // so sibling contributions accumulate through the positional merge below.
+        if (target.ValueKind is JsonValueKind.Undefined)
+        {
+            target.SetArrayValue(source.GetArrayLength());
+        }
+        else if (target.ValueKind is not JsonValueKind.Array
+            || target.GetArrayLength() != source.GetArrayLength())
+        {
+            // Non-keyed sibling lists can only be merged by position, which
+            // requires an identical length. A differing shape cannot be
+            // correlated, so surface an execution error and let the configured
+            // null handling apply instead of silently misaligning elements.
+            var error = ErrorBuilder.New()
+                .SetMessage("Cannot merge shared list results with different lengths.")
+                .SetPath(target.CompactPath.ToPath(target.Operation))
+                .Build();
+            error = _errorHandler.Handle(error);
+            _store.AddError(error);
+
+            return !_propagateNullValues;
+        }
 
         var i = 0;
         using var targetEnumerator = target.EnumerateArray().GetEnumerator();

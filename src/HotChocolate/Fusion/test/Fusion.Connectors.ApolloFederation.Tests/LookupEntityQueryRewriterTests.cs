@@ -270,7 +270,7 @@ public class LookupEntityQueryRewriterTests
         // assert
         rewritten.Operation.SourceText.MatchInlineSnapshot(
             """
-            query($representations: [_Any!]!) {
+            query($representations: [_Any!]!, $__fusion_3_currency: String!) {
               _entities(representations: $representations) {
                 ... on Product {
                   shippingEstimate(currency: $__fusion_3_currency)
@@ -342,7 +342,7 @@ public class LookupEntityQueryRewriterTests
         // assert
         rewritten.Operation.SourceText.MatchInlineSnapshot(
             """
-            query($representations: [_Any!]!) {
+            query($representations: [_Any!]!, $__fusion_3_currency: String!) {
               _entities(representations: $representations) {
                 ... on Product {
                   ... on Product {
@@ -377,7 +377,11 @@ public class LookupEntityQueryRewriterTests
         };
 
         // act
-        var shape = RepresentationShapeBuilder.Build(rewritten.LookupField, requirements);
+        var shape = RepresentationShapeBuilder.Build(
+            rewritten.LookupField,
+            requirements,
+            schema,
+            rewritten.EntityTypeName);
 
         // assert
         RenderShape(shape).ToString(indented: true).MatchInlineSnapshot(

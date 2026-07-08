@@ -20,32 +20,34 @@ internal static class ResultDataMapper
         IValueSelectionNode valueSelection,
         ITypeNode type,
         ISchemaDefinition schema,
+        string? internalAlias,
         JsonWriter writer)
-        => Visit(valueSelection, result, type, schema, writer);
+        => Visit(valueSelection, result, type, schema, internalAlias, writer);
 
     private static bool Visit(
         IValueSelectionNode node,
         CompositeResultElement result,
         ITypeNode? type,
         ISchemaDefinition schema,
+        string? internalAlias,
         JsonWriter writer)
     {
         switch (node)
         {
             case ChoiceValueSelectionNode choice:
-                return VisitChoice(choice, result, type, schema, writer);
+                return VisitChoice(choice, result, type, schema, internalAlias, writer);
 
             case PathNode path:
-                return VisitPath(path, result, type, schema, writer);
+                return VisitPath(path, result, type, schema, internalAlias, writer);
 
             case ObjectValueSelectionNode objectValue:
-                return VisitObject(objectValue, result, schema, writer);
+                return VisitObject(objectValue, result, schema, internalAlias, writer);
 
             case PathObjectValueSelectionNode pathObject:
-                return VisitPathObject(pathObject, result, schema, writer);
+                return VisitPathObject(pathObject, result, schema, internalAlias, writer);
 
             case PathListValueSelectionNode pathList:
-                return VisitPathList(pathList, result, type, schema, writer);
+                return VisitPathList(pathList, result, type, schema, internalAlias, writer);
 
             default:
                 throw new NotSupportedException("Unknown value selection node type.");
@@ -57,11 +59,12 @@ internal static class ResultDataMapper
         CompositeResultElement result,
         ITypeNode? type,
         ISchemaDefinition schema,
+        string? internalAlias,
         JsonWriter writer)
     {
         foreach (var branch in node.Branches)
         {
-            if (Visit(branch, result, type, schema, writer))
+            if (Visit(branch, result, type, schema, internalAlias, writer))
             {
                 return true;
             }
@@ -75,9 +78,10 @@ internal static class ResultDataMapper
         CompositeResultElement result,
         ITypeNode? type,
         ISchemaDefinition schema,
+        string? internalAlias,
         JsonWriter writer)
     {
-        var resolved = ResolvePath(schema, result, node);
+        var resolved = ResolvePath(schema, result, node, internalAlias);
         var valueKind = resolved.ValueKind;
 
         if (valueKind is JsonValueKind.Undefined)
@@ -162,6 +166,7 @@ internal static class ResultDataMapper
         ObjectValueSelectionNode node,
         CompositeResultElement result,
         ISchemaDefinition schema,
+        string? internalAlias,
         JsonWriter writer)
     {
         if (result.ValueKind is not JsonValueKind.Object)
@@ -173,6 +178,11 @@ internal static class ResultDataMapper
 
         foreach (var field in node.Fields)
         {
+            var fieldInternalAlias =
+                internalAlias is not null && node.Fields.Length == 1
+                    ? internalAlias
+                    : null;
+
             writer.WritePropertyName(field.Name.Value);
 
             bool written;
@@ -180,11 +190,11 @@ internal static class ResultDataMapper
             if (field.ValueSelection is null)
             {
                 var pathNode = new PathNode(new PathSegmentNode(field.Name));
-                written = VisitPath(pathNode, result, null, schema, writer);
+                written = VisitPath(pathNode, result, null, schema, fieldInternalAlias, writer);
             }
             else
             {
-                written = Visit(field.ValueSelection, result, null, schema, writer);
+                written = Visit(field.ValueSelection, result, null, schema, fieldInternalAlias, writer);
             }
 
             if (!written)
@@ -201,9 +211,10 @@ internal static class ResultDataMapper
         PathObjectValueSelectionNode node,
         CompositeResultElement result,
         ISchemaDefinition schema,
+        string? internalAlias,
         JsonWriter writer)
     {
-        var resolved = ResolvePath(schema, result, node.Path);
+        var resolved = ResolvePath(schema, result, node.Path, internalAlias);
         var valueKind = resolved.ValueKind;
 
         if (valueKind is JsonValueKind.Null or JsonValueKind.Undefined)
@@ -216,7 +227,7 @@ internal static class ResultDataMapper
             throw new InvalidOperationException("Only object results are supported.");
         }
 
-        return VisitObject(node.ObjectValueSelection, resolved, schema, writer);
+        return VisitObject(node.ObjectValueSelection, resolved, schema, internalAlias: null, writer: writer);
     }
 
     private static bool VisitPathList(
@@ -224,9 +235,10 @@ internal static class ResultDataMapper
         CompositeResultElement result,
         ITypeNode? type,
         ISchemaDefinition schema,
+        string? internalAlias,
         JsonWriter writer)
     {
-        var resolved = ResolvePath(schema, result, node.Path);
+        var resolved = ResolvePath(schema, result, node.Path, internalAlias);
         var valueKind = resolved.ValueKind;
 
         switch (valueKind)
@@ -278,7 +290,7 @@ internal static class ResultDataMapper
                 continue;
             }
 
-            if (!Visit(node.ElementSelection, item, elementType, schema, writer))
+            if (!Visit(node.ElementSelection, item, elementType, schema, internalAlias: null, writer: writer))
             {
                 return false;
             }
@@ -297,7 +309,8 @@ internal static class ResultDataMapper
     private static CompositeResultElement ResolvePath(
         ISchemaDefinition schema,
         CompositeResultElement result,
-        PathNode path)
+        PathNode path,
+        string? internalAlias)
     {
         if (result.ValueKind is not JsonValueKind.Object)
         {
@@ -317,10 +330,11 @@ internal static class ResultDataMapper
         var currentSegment = path.PathSegment;
         var currentResult = result;
         var currentValueKind = result.ValueKind;
+        var currentFieldName = internalAlias ?? currentSegment.FieldName.Value;
 
         while (currentSegment is not null && currentValueKind is not JsonValueKind.Null and not JsonValueKind.Undefined)
         {
-            if (!currentResult.TryGetProperty(currentSegment.FieldName.Value, out var fieldResult))
+            if (!currentResult.TryGetProperty(currentFieldName, out var fieldResult))
             {
                 return default;
             }
@@ -350,6 +364,10 @@ internal static class ResultDataMapper
                 }
 
                 currentSegment = currentSegment.PathSegment;
+                if (currentSegment is not null)
+                {
+                    currentFieldName = currentSegment.FieldName.Value;
+                }
                 continue;
             }
 
@@ -362,6 +380,10 @@ internal static class ResultDataMapper
 
                 currentResult = fieldResult;
                 currentSegment = currentSegment.PathSegment;
+                if (currentSegment is not null)
+                {
+                    currentFieldName = currentSegment.FieldName.Value;
+                }
                 continue;
             }
 

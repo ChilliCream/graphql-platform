@@ -56,6 +56,7 @@ internal readonly struct Backlog(ImmutableStack<WorkItem> items, BacklogCost cos
         ImmutableStack<ConditionedSelectionSet> unresolvable,
         string fromSchema,
         int parentDepth,
+        ImmutableHashSet<int>? dependents = null,
         bool allowSourceSchemaReentry = false)
     {
         if (unresolvable.IsEmpty)
@@ -77,6 +78,7 @@ internal readonly struct Backlog(ImmutableStack<WorkItem> items, BacklogCost cos
             {
                 ParentDepth = parentDepth,
                 Conditions = entry.Conditions,
+                Dependents = dependents ?? [],
                 AllowSourceSchemaReentry = allowSourceSchemaReentry
             };
             backlog = backlog.Push(workItem);

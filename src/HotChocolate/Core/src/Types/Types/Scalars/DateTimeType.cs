@@ -40,7 +40,7 @@ public partial class DateTimeType : ScalarType<DateTimeOffset, StringValueNode>
         _options = options ?? new DateTimeOptions();
         Description = description;
         Pattern = GetPattern();
-        SpecifiedBy = new Uri(SpecifiedByUri);
+        SpecifiedBy = SpecifiedByUri;
         _utcFormat = GetUtcFormat();
         _localFormat = GetLocalFormat();
         _dateTimeRegex = GetDateTimeRegex();
@@ -85,7 +85,7 @@ public partial class DateTimeType : ScalarType<DateTimeOffset, StringValueNode>
         _options = new DateTimeOptions { ValidateInputFormat = !disableFormatCheck };
         Description = description;
         Pattern = GetPattern();
-        SpecifiedBy = new Uri(SpecifiedByUri);
+        SpecifiedBy = SpecifiedByUri;
         _utcFormat = GetUtcFormat();
         _localFormat = GetLocalFormat();
         _dateTimeRegex = GetDateTimeRegex();

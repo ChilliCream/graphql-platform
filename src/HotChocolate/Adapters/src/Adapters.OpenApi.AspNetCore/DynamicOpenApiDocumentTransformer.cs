@@ -978,7 +978,7 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
                 _ => null
             };
 
-            return format ?? scalarType.SpecifiedBy?.OriginalString switch
+            return format ?? scalarType.SpecifiedBy switch
             {
                 "https://scalars.graphql.org/chillicream/byte.html" => "int8",
                 "https://scalars.graphql.org/chillicream/date-time.html" => "date-time",
@@ -1000,7 +1000,7 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
 
         private static string? GetJsonSchemaPattern(IScalarTypeDefinition scalarType)
         {
-            var pattern = scalarType.SpecifiedBy?.OriginalString switch
+            var pattern = scalarType.SpecifiedBy switch
             {
                 "https://scalars.graphql.org/chillicream/base64-string.html"
                     => @"^(?:[A-Za-z0-9+\/]{4})*(?:[A-Za-z0-9+\/]{2}==|[A-Za-z0-9+\/]{3}=)?$",

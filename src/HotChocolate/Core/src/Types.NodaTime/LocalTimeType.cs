@@ -38,7 +38,7 @@ public class LocalTimeType : ScalarType<LocalTime, StringValueNode>
         _options = options ?? new DateTimeOptions();
         Description = description;
         Pattern = GetPattern();
-        SpecifiedBy = new Uri(SpecifiedByUri);
+        SpecifiedBy = SpecifiedByUri;
         _inputPattern = LocalTimePattern.CreateWithInvariantCulture(
             GetFormat(_options.InputPrecision, padFractionalSeconds: false));
         _outputFormat = GetFormat(_options.OutputPrecision, _options.AlwaysOutputFractionalSeconds);

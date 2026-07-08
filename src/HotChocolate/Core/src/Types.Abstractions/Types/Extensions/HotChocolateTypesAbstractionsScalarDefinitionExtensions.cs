@@ -17,7 +17,7 @@ public static class HotChocolateTypesAbstractionsScalarDefinitionExtensions
     {
         if (scalarTypeDefinition.SpecifiedBy is not null
             && s_serializationTypeLookup.TryGetValue(
-                scalarTypeDefinition.SpecifiedBy.OriginalString,
+                scalarTypeDefinition.SpecifiedBy,
                 out var scalarSerializationType))
         {
             return scalarSerializationType;

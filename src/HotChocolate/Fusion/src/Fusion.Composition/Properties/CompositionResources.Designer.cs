@@ -1520,6 +1520,24 @@ namespace HotChocolate.Fusion.Properties {
         }
 
         /// <summary>
+        ///   Looks up a localized string similar to The fields that are required from another source schema..
+        /// </summary>
+        internal static string RequiresMutableDirectiveDefinition_Argument_Fields_Description {
+            get {
+                return ResourceManager.GetString("RequiresMutableDirectiveDefinition_Argument_Fields_Description", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The @requires directive expresses that a field depends on the given selection of fields from the same entity, resolved by another source schema..
+        /// </summary>
+        internal static string RequiresMutableDirectiveDefinition_Description {
+            get {
+                return ResourceManager.GetString("RequiresMutableDirectiveDefinition_Description", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to The required field &apos;{0}&apos; must not be defined in schema &apos;{1}&apos;..
         /// </summary>
         internal static string RequireInvalidFieldsRule_RequiredFieldMustNotBeDefinedInSameSchema {
