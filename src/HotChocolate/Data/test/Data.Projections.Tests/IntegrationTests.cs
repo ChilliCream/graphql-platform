@@ -172,8 +172,7 @@ public class IntegrationTests
             .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
-        // 'computed' is the only selection inside the list, so the list sub-projection is
-        // empty; the trailing sibling 'id' must still bind against the parent.
+        // 'computed' is the only selection inside the list.
         var result = await executor.ExecuteAsync(
             """
             {
@@ -188,6 +187,11 @@ public class IntegrationTests
             TestContext.Current.CancellationToken);
 
         // assert
+        // 'computed' has no backing column, so it contributes nothing to the projection.
+        // As the only selection on the element, it leaves the list sub-projection empty, so
+        // the list is not materialized and 'items' is empty. The trailing 'id' must still
+        // bind against the parent. Materializing the list so element resolvers run when no
+        // element column is selected is a separate change, not covered here.
         result.MatchInlineSnapshot(
             """
             {
