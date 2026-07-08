@@ -199,7 +199,8 @@ The `[DataLoader]` attribute accepts configuration options.
 | `AccessModifier` | `DataLoaderAccessModifier` | `Default`                    | Controls generated code visibility. `Public` makes both class and interface public. `Internal` makes both internal. `PublicInterface` makes the interface public and the class internal. `Default` defers to `[DataLoaderDefaults]`; without one, both are public.                |
 | `Lookups`        | `string[]`                 | None                         | Names of methods on the same class that derive additional cache keys from loaded values, so an entity fetched by one key can be resolved from the cache by another.                                                                                                               |
 
-> [!NOTE] > `Name` is a positional constructor argument, not a settable property. `[DataLoader(Name = "X")]` does not compile; use `[DataLoader("X")]`.
+> [!NOTE]
+> `Name` is a positional constructor argument, not a settable property. `[DataLoader(Name = "X")]` does not compile; use `[DataLoader("X")]`.
 
 ### MaxBatchSize
 
