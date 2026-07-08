@@ -1,8 +1,8 @@
 using System.Buffers;
 using System.Buffers.Text;
-using System.Globalization;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
@@ -41,21 +41,12 @@ internal sealed class ExpressionHasher : ExpressionVisitor
     private ReadOnlySpan<byte> CollectionEnd => "C]:"u8;
     private ReadOnlySpan<byte> Struct => "W:"u8;
     private ReadOnlySpan<byte> TypeFallback => "TF:"u8;
-    private ReadOnlySpan<byte> Truncated => "TRUNC:"u8;
-    private ReadOnlySpan<byte> ErrorTag => "ERR:"u8;
 
-    private const int MaxCapturedNodes = 10_000;
-    private const int MaxCapturedBytes = 64 * 1024;
-    private const int MaxCapturedDepth = 3;
-    private const int MaxCapturedStringChars = 2048;
-    private const byte CharDiscriminator = (byte)TypeCode.Char;
-    private const byte OtherFormattableDiscriminator = 103;
+    private const int MaxCapturedDepth = 8;
 
     private byte[] _buffer;
     private readonly int _initialSize;
     private int _start;
-    private int _capturedNodeCount;
-    private int _capturedByteCount;
 
     public ExpressionHasher()
     {
@@ -124,8 +115,6 @@ internal sealed class ExpressionHasher : ExpressionVisitor
         }
 
         _start = 0;
-        _capturedNodeCount = 0;
-        _capturedByteCount = 0;
         return hashString;
     }
 
@@ -162,46 +151,24 @@ internal sealed class ExpressionHasher : ExpressionVisitor
             AppendType(constant.Type);
             Append('|');
 
-            object? value;
-            bool evaluated;
-
             // Reference-type property getters can execute user code. Captured closures use fields,
             // and value-type holders cover hoisted ExpressionParameter<T> values.
-            try
+            switch (node.Member)
             {
-                switch (node.Member)
-                {
-                    case FieldInfo field:
-                        value = field.GetValue(constant.Value);
-                        evaluated = true;
-                        break;
+                case FieldInfo field:
+                    Append(Value);
+                    AppendCapturedValue(field.GetValue(constant.Value), 0);
+                    break;
 
-                    case PropertyInfo property
-                        when property.GetIndexParameters().Length == 0 && constant.Value is ValueType:
-                        value = property.GetValue(constant.Value);
-                        evaluated = true;
-                        break;
+                case PropertyInfo property
+                    when property.GetIndexParameters().Length == 0 && constant.Value is ValueType:
+                    Append(Value);
+                    AppendCapturedValue(property.GetValue(constant.Value), 0);
+                    break;
 
-                    default:
-                        value = null;
-                        evaluated = false;
-                        break;
-                }
-            }
-            catch
-            {
-                value = null;
-                evaluated = false;
-            }
-
-            if (evaluated)
-            {
-                Append(Value);
-                AppendCapturedValue(value, 0);
-            }
-            else
-            {
-                AppendMemberTypeFallback(node.Member, constant.Type);
+                default:
+                    AppendMemberTypeFallback(node.Member, constant.Type);
+                    break;
             }
 
             return node;
@@ -400,12 +367,11 @@ internal sealed class ExpressionHasher : ExpressionVisitor
 
     private void AppendCapturedValue(object? value, int depth)
     {
-        if (++_capturedNodeCount > MaxCapturedNodes
-            || _capturedByteCount > MaxCapturedBytes
-            || depth > MaxCapturedDepth)
+        if (depth > MaxCapturedDepth)
         {
-            AppendTruncated(value);
-            return;
+            throw new NotSupportedException(
+                "The captured value graph is too deep or cyclic and cannot be hashed into "
+                + $"a DataLoader branch key (value type: {value?.GetType().FullName ?? "null"}).");
         }
 
         switch (value)
@@ -421,11 +387,10 @@ internal sealed class ExpressionHasher : ExpressionVisitor
             case bool b:
                 Append(Bool);
                 Append(b ? (byte)1 : (byte)0);
-                AddCapturedBytes(1);
                 break;
 
             case char c:
-                AppendFormatted(Num, CharDiscriminator, (int)c, default);
+                AppendNumber(ValueKind.Char, c);
                 break;
 
             case Enum e:
@@ -433,71 +398,74 @@ internal sealed class ExpressionHasher : ExpressionVisitor
                 break;
 
             case sbyte i:
-                AppendFormatted(Num, (byte)TypeCode.SByte, i, default);
+                AppendNumber(ValueKind.SByte, i);
                 break;
 
             case byte i:
-                AppendFormatted(Num, (byte)TypeCode.Byte, i, default);
+                AppendNumber(ValueKind.Byte, i);
                 break;
 
             case short i:
-                AppendFormatted(Num, (byte)TypeCode.Int16, i, default);
+                AppendNumber(ValueKind.Int16, i);
                 break;
 
             case ushort i:
-                AppendFormatted(Num, (byte)TypeCode.UInt16, i, default);
+                AppendNumber(ValueKind.UInt16, i);
                 break;
 
             case int i:
-                AppendFormatted(Num, (byte)TypeCode.Int32, i, default);
+                AppendNumber(ValueKind.Int32, i);
                 break;
 
             case uint i:
-                AppendFormatted(Num, (byte)TypeCode.UInt32, i, default);
+                AppendNumber(ValueKind.UInt32, i);
                 break;
 
             case long i:
-                AppendFormatted(Num, (byte)TypeCode.Int64, i, default);
+                AppendNumber(ValueKind.Int64, i);
                 break;
 
             case ulong i:
-                AppendFormatted(Num, (byte)TypeCode.UInt64, i, default);
+                AppendNumber(ValueKind.UInt64, i);
                 break;
 
             case float f:
-                AppendFormatted(Num, (byte)TypeCode.Single, f, default);
+                AppendNumber(ValueKind.Single, f);
                 break;
 
             case double d:
-                AppendFormatted(Num, (byte)TypeCode.Double, d, default);
+                AppendNumber(ValueKind.Double, d);
                 break;
 
             case decimal d:
-                AppendFormatted(Num, (byte)TypeCode.Decimal, d, default);
+                AppendNumber(ValueKind.Decimal, d);
                 break;
 
             case DateTime d:
-                AppendFormatted(Temporal, (byte)TypeCode.DateTime, d, "O");
+                AppendNumber(ValueKind.DateTime, d.Ticks);
+                Append((byte)d.Kind);
                 break;
 
             case DateTimeOffset d:
-                AppendFormatted(Temporal, (byte)'O', d, "O");
+                AppendNumber(ValueKind.DateTimeOffset, d.Ticks);
+                AppendRaw(d.Offset.Ticks);
                 break;
 
             case TimeSpan t:
-                AppendFormatted(Temporal, (byte)'S', t, "c");
+                AppendNumber(ValueKind.TimeSpan, t.Ticks);
                 break;
 
             case DateOnly d:
-                AppendFormatted(Temporal, (byte)'D', d, "O");
+                AppendNumber(ValueKind.DateOnly, d.DayNumber);
                 break;
 
             case TimeOnly t:
-                AppendFormatted(Temporal, (byte)'Y', t, "O");
+                AppendNumber(ValueKind.TimeOnly, t.Ticks);
                 break;
 
             case Guid g:
-                AppendFormatted(GuidTag, (byte)'G', g, "D");
+                Append(GuidTag);
+                AppendRaw(g);
                 break;
 
             default:
@@ -532,24 +500,20 @@ internal sealed class ExpressionHasher : ExpressionVisitor
 
         if (value is System.Collections.IEnumerable)
         {
-            // Other sequences may be lazy and can hit a database or throw when enumerated.
+            // Sequences other than arrays and List<T> may be lazy and are never enumerated;
+            // they contribute their type identity only.
             AppendTypeFallback(type);
             return;
         }
 
         if (type.IsValueType)
         {
-            if (value is IFormattable formattable)
-            {
-                AppendOtherFormattableValue(formattable, type);
-            }
-            else
-            {
-                AppendStructValue(value, type, depth);
-            }
+            AppendStructValue(value, type, depth);
             return;
         }
 
+        // Reference types are never evaluated beyond their type identity so that hashing
+        // cannot execute user code.
         AppendTypeFallback(type);
     }
 
@@ -559,64 +523,34 @@ internal sealed class ExpressionHasher : ExpressionVisitor
         Append(value.Length);
         Append(':');
 
-        // The length prefix keeps string payloads from aliasing element boundaries. Hashing
-        // the UTF-16 payload directly is lossless for any content, including unpaired
-        // surrogates, and cannot fail.
-        var chars = value.Length <= MaxCapturedStringChars
-            ? value.AsSpan()
-            : value.AsSpan(0, MaxCapturedStringChars);
-
-        Append(MemoryMarshal.AsBytes(chars));
-        AddCapturedBytes(chars.Length * 2);
-
-        if (value.Length > MaxCapturedStringChars)
-        {
-            Append(Truncated);
-        }
+        // The length prefix keeps string payloads from aliasing element boundaries. The
+        // UTF-16 payload is hashed directly, which is lossless for any content, including
+        // unpaired surrogates.
+        Append(MemoryMarshal.AsBytes(value.AsSpan()));
     }
 
     private void AppendEnumValue(Enum value)
     {
-        var enumType = value.GetType();
         Append(EnumTag);
-        AppendType(enumType);
+        AppendType(value.GetType());
         Append('|');
-
-        try
-        {
-            var formatted = value.ToString("D");
-            Append(formatted);
-            AddCapturedBytes(formatted.Length);
-        }
-        catch
-        {
-            AppendError(enumType);
-        }
+        Append(value.ToString("D"));
     }
 
-    private void AppendFormatted<T>(ReadOnlySpan<byte> tag, byte discriminator, T value, ReadOnlySpan<char> format)
-        where T : IUtf8SpanFormattable
+    private void AppendNumber<T>(ValueKind kind, T value)
+        where T : unmanaged
     {
-        Append(tag);
-        Append(discriminator);
-        Append(':');
+        Append(Num);
+        Append((byte)kind);
+        AppendRaw(value);
+    }
 
-        try
-        {
-            Span<byte> utf8 = stackalloc byte[128];
-            if (value.TryFormat(utf8, out var written, format, CultureInfo.InvariantCulture))
-            {
-                Append(utf8[..written]);
-                AddCapturedBytes(written);
-                return;
-            }
-        }
-        catch
-        {
-            // Fall through to the error marker.
-        }
-
-        AppendError(typeof(T));
+    private void AppendRaw<T>(T value)
+        where T : unmanaged
+    {
+        Span<byte> bytes = stackalloc byte[16];
+        MemoryMarshal.Write(bytes, in value);
+        Append(bytes[..Unsafe.SizeOf<T>()]);
     }
 
     private void AppendCollection(System.Collections.IList items, Type type, int count, int depth)
@@ -627,28 +561,9 @@ internal sealed class ExpressionHasher : ExpressionVisitor
         Append(count);
         Append(':');
 
-        var position = _start;
-        try
+        for (var i = 0; i < count; i++)
         {
-            for (var i = 0; i < count; i++)
-            {
-                if (_capturedNodeCount > MaxCapturedNodes || _capturedByteCount > MaxCapturedBytes)
-                {
-                    // A single marker with the remaining count keeps the work bounded.
-                    Append(Truncated);
-                    Append(count - i);
-                    Append('|');
-                    break;
-                }
-
-                AppendCapturedValue(items[i], depth + 1);
-            }
-        }
-        catch
-        {
-            _start = position;
-            AppendError(type);
-            return;
+            AppendCapturedValue(items[i], depth + 1);
         }
 
         Append(CollectionEnd);
@@ -660,82 +575,16 @@ internal sealed class ExpressionHasher : ExpressionVisitor
         AppendType(type);
         Append('|');
 
-        var position = _start;
-
         // Struct field reads run no user code, so captured value types like record structs,
         // tuples, and composite keys can be folded safely.
-        try
+        var fields = type.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+        Array.Sort(fields, static (a, b) => string.CompareOrdinal(a.Name, b.Name));
+
+        foreach (var field in fields)
         {
-            var fields = type.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-            Array.Sort(fields, static (a, b) => string.CompareOrdinal(a.Name, b.Name));
-
-            foreach (var field in fields)
-            {
-                if (_capturedNodeCount > MaxCapturedNodes || _capturedByteCount > MaxCapturedBytes)
-                {
-                    Append(Truncated);
-                    break;
-                }
-
-                Append(field.Name);
-                Append('=');
-                AppendCapturedValue(field.GetValue(value), depth + 1);
-            }
-        }
-        catch
-        {
-            _start = position;
-            AppendError(type);
-            return;
-        }
-
-        Append('|');
-    }
-
-    private void AppendOtherFormattableValue(IFormattable value, Type type)
-    {
-        Append(Num);
-        Append(OtherFormattableDiscriminator);
-        Append(':');
-        AppendType(type);
-        Append('|');
-
-        try
-        {
-            var formatted = value.ToString(null, CultureInfo.InvariantCulture);
-            if (formatted is null)
-            {
-                Append(Null);
-                return;
-            }
-
-            // Length-prefixed like any string so user-defined text cannot alias element boundaries.
-            AppendStringValue(formatted);
-        }
-        catch
-        {
-            AppendError(type);
-        }
-    }
-
-    private void AppendTruncated(object? value)
-    {
-        Append(Truncated);
-        AddCapturedBytes(32);
-
-        if (value is null)
-        {
-            Append(Null);
-            return;
-        }
-
-        var type = value.GetType();
-        AppendType(type);
-
-        if (TryGetMaterializedCollectionCount(value, type, out var count))
-        {
-            Append('|');
-            Append(count);
+            Append(field.Name);
+            Append('=');
+            AppendCapturedValue(field.GetValue(value), depth + 1);
         }
 
         Append('|');
@@ -772,40 +621,28 @@ internal sealed class ExpressionHasher : ExpressionVisitor
         Append('|');
     }
 
-    private void AppendError(Type type)
-    {
-        Append(ErrorTag);
-        AppendType(type);
-        Append('|');
-    }
-
     private static bool IsList(Type type)
         => type.IsGenericType && type.GetGenericTypeDefinition() == typeof(List<>);
 
-    private static bool TryGetMaterializedCollectionCount(object value, Type type, out int count)
+    private enum ValueKind : byte
     {
-        if (value is Array { Rank: 1 } array && array.GetLowerBound(0) == 0)
-        {
-            count = array.Length;
-            return true;
-        }
-
-        if (IsList(type) && value is System.Collections.ICollection collection)
-        {
-            count = collection.Count;
-            return true;
-        }
-
-        count = 0;
-        return false;
-    }
-
-    private void AddCapturedBytes(int count)
-    {
-        if (count > 0)
-        {
-            _capturedByteCount += count;
-        }
+        SByte = 1,
+        Byte,
+        Int16,
+        UInt16,
+        Int32,
+        UInt32,
+        Int64,
+        UInt64,
+        Single,
+        Double,
+        Decimal,
+        Char,
+        DateTime,
+        DateTimeOffset,
+        TimeSpan,
+        DateOnly,
+        TimeOnly
     }
 
     private void Append(int i)

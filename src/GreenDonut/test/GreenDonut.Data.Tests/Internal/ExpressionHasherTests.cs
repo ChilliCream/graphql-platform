@@ -417,24 +417,20 @@ public static class ExpressionHasherTests
     }
 
     [Fact]
-    public static void Self_Referential_Collection_Should_Terminate_And_Be_Deterministic()
+    public static void Self_Referential_Collection_Should_Throw()
     {
         // arrange
+        // a cyclic captured value has no hashable identity and must fail loudly
         var self = new object[2];
         self[0] = self;
         self[1] = "x";
         var expression = Expression.Constant(self);
 
         // act
-        string? hash1 = null;
-        string? hash2 = null;
-        var exception1 = Record.Exception(() => hash1 = new ExpressionHasher().Add(expression).Compute());
-        var exception2 = Record.Exception(() => hash2 = new ExpressionHasher().Add(expression).Compute());
+        var exception = Record.Exception(() => new ExpressionHasher().Add(expression).Compute());
 
         // assert
-        Assert.Null(exception1);
-        Assert.Null(exception2);
-        Assert.Equal(hash1, hash2);
+        Assert.IsType<NotSupportedException>(exception);
     }
 
     [Fact]
@@ -567,14 +563,12 @@ public static class ExpressionHasherTests
     }
 
     [Fact]
-    public static void Formattable_Struct_List_Boundaries_Should_Produce_Different_Hash()
+    public static void Struct_List_Element_Boundaries_Should_Produce_Different_Hash()
     {
         // arrange
-        // A payload that reproduces the per-element header could previously shift element
-        // boundaries so that two different lists encoded to identical bytes.
-        var header = "N" + (char)103 + ":" + typeof(AmbiguousFormattable).FullName + "|";
-        var value1 = new[] { new AmbiguousFormattable("1" + header + "2"), new AmbiguousFormattable("3") };
-        var value2 = new[] { new AmbiguousFormattable("1"), new AmbiguousFormattable("2" + header + "3") };
+        // element content must not shift across element boundaries
+        var value1 = new[] { new AmbiguousFormattable("1"), new AmbiguousFormattable("23") };
+        var value2 = new[] { new AmbiguousFormattable("12"), new AmbiguousFormattable("3") };
 
         // act
         var hash1 = HashConstant(value1);
@@ -615,21 +609,21 @@ public static class ExpressionHasherTests
     }
 
     [Fact]
-    public static void Large_Captured_List_Should_Be_Bounded_And_Deterministic()
+    public static void Large_Captured_List_Should_Be_Deterministic_And_Value_Sensitive()
     {
         // arrange
-        var value = new int[100_000];
-        var hasher = new ExpressionHasher();
+        var value1 = new int[100_000];
+        var value2 = new int[100_000];
+        value2[^1] = 1;
 
         // act
-        hasher.Add(Expression.Constant(value));
-        var bufferSize = hasher.BufferSize;
-        var hash1 = hasher.Compute();
-        var hash2 = HashConstant(value);
+        var hash1 = HashConstant(value1);
+        var hash2 = HashConstant(value1);
+        var hash3 = HashConstant(value2);
 
         // assert
-        Assert.True(bufferSize < 1_048_576, $"buffer grew to {bufferSize} bytes");
         Assert.Equal(hash1, hash2);
+        Assert.NotEqual(hash1, hash3);
     }
 
     private static string HashConstant(object value)
