@@ -4,12 +4,12 @@ using System.IO;
 namespace HotChocolate.Fusion.Benchmarks;
 
 /// <summary>
-/// Resolves the paths of the Netflix benchmark corpus (the big-federated-graphs checkout) without
+/// Resolves the paths of the large federated graph benchmark corpus (the big-federated-graphs checkout) without
 /// hard-coding machine-specific locations. The corpus root is taken from the
 /// <c>BIG_FEDERATED_GRAPHS</c> environment variable when set; otherwise the directories above the
 /// benchmark binary are searched for a sibling <c>big-federated-graphs</c> checkout.
 /// </summary>
-internal static class NetflixCorpusPaths
+internal static class CorpusPaths
 {
     private const string EnvironmentVariable = "BIG_FEDERATED_GRAPHS";
     private const string CorpusDirectoryName = "big-federated-graphs";
@@ -49,7 +49,7 @@ internal static class NetflixCorpusPaths
         }
 
         throw new InvalidOperationException(
-            $"The Netflix benchmark corpus was not found. Set the {EnvironmentVariable} "
+            $"The large federated graph benchmark corpus was not found. Set the {EnvironmentVariable} "
             + $"environment variable to the {CorpusDirectoryName} checkout, or place the checkout "
             + "next to an ancestor directory of the benchmark binary.");
     }

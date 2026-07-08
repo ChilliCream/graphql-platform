@@ -7,7 +7,7 @@ var config = DefaultConfig.Instance
 
 if (args.Length > 0 && args[0] == "probe")
 {
-    NetflixPlanningProbe.Run(args);
+    CorpusPlanningProbe.Run(args);
 }
 else if (args.Length == 0)
 {
