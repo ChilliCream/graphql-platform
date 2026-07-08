@@ -38,8 +38,7 @@ internal class JsonLinesReader(HttpResponseMessage message) : IAsyncEnumerable<O
 #endif
         CancellationToken cancellationToken = default)
     {
-        using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-        await using var stream = await message.Content.ReadAsStreamAsync(cts.Token);
+        await using var stream = await message.Content.ReadAsStreamAsync(cancellationToken);
         var reader = PipeReader.Create(stream, s_options);
 
         try
@@ -47,7 +46,7 @@ internal class JsonLinesReader(HttpResponseMessage message) : IAsyncEnumerable<O
             ReadResult result;
             do
             {
-                result = await reader.ReadAsync(cts.Token).ConfigureAwait(false);
+                result = await reader.ReadAsync(cancellationToken).ConfigureAwait(false);
                 if (result.IsCanceled)
                 {
                     yield break;
@@ -92,7 +91,6 @@ internal class JsonLinesReader(HttpResponseMessage message) : IAsyncEnumerable<O
         }
         finally
         {
-            await cts.CancelAsync().ConfigureAwait(false);
             await reader.CompleteAsync().ConfigureAwait(false);
         }
     }
