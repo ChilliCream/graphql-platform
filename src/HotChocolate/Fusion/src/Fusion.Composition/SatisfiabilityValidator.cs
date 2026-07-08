@@ -78,19 +78,16 @@ internal sealed class SatisfiabilityValidator
             : CompositionResult.Success();
     }
 
-    // Every field selected by an @provides must itself be resolvable from the providing source
-    // schema. @provides is an optimization, so it can only reference data the schema can already
-    // deliver; a selection the schema cannot resolve is invalid (Composite Schemas spec / PR #231).
+    // Every field selected by an @provides must be deliverable by the providing source schema.
+    // A field that is @external (partial) on the providing schema is deliverable by construction,
+    // that is the very promise of @provides. A field that the providing schema owns, however, must
+    // genuinely be resolvable there, including satisfying its own @require. Missing or malformed
+    // provided fields are already rejected by the pre-merge shape rules (PROVIDES_INVALID_FIELDS).
     private void ValidateProvidesDeliverability()
     {
-        foreach (var type in _schema.Types)
+        foreach (var type in _schema.Types.OfType<MutableObjectTypeDefinition>())
         {
-            if (type is not MutableObjectTypeDefinition objectType)
-            {
-                continue;
-            }
-
-            foreach (var field in objectType.Fields)
+            foreach (var field in type.Fields)
             {
                 foreach (var schemaName in field.GetSchemaNames())
                 {
@@ -101,14 +98,26 @@ internal sealed class SatisfiabilityValidator
                         continue;
                     }
 
-                    var providedSelectionSet = ParseSelectionSet($"{{ {provides} }}");
+                    var providedType = field.Type.AsTypeDefinition();
 
-                    ValidateProvidedSelectionSet(
-                        providedSelectionSet,
-                        field.Type.AsTypeDefinition(),
-                        schemaName,
-                        objectType,
-                        field);
+                    if (providedType.Kind is not TypeKind.Object
+                        and not TypeKind.Interface
+                        and not TypeKind.Union)
+                    {
+                        continue;
+                    }
+
+                    var selectionSet = ParseSelectionSet($"{{ {provides} }}");
+
+                    foreach (var possibleType in providedType.GetPossibleTypes(schemaName, _schema))
+                    {
+                        ValidateProvidedSelectionSet(
+                            selectionSet,
+                            possibleType,
+                            schemaName,
+                            type,
+                            field);
+                    }
                 }
             }
         }
@@ -116,54 +125,107 @@ internal sealed class SatisfiabilityValidator
 
     private void ValidateProvidedSelectionSet(
         SelectionSetNode selectionSet,
-        ITypeDefinition selectionType,
-        string providingSchemaName,
+        MutableObjectTypeDefinition currentType,
+        string schemaName,
         MutableObjectTypeDefinition providingType,
         MutableOutputFieldDefinition providingField)
     {
-        if (selectionType.Kind is not TypeKind.Object and not TypeKind.Interface and not TypeKind.Union)
+        foreach (var selection in selectionSet.Selections)
+        {
+            switch (selection)
+            {
+                case FieldNode fieldNode:
+                    ValidateProvidedField(
+                        fieldNode,
+                        currentType,
+                        schemaName,
+                        providingType,
+                        providingField);
+                    break;
+
+                case InlineFragmentNode { TypeCondition: null } inlineFragment:
+                    ValidateProvidedSelectionSet(
+                        inlineFragment.SelectionSet,
+                        currentType,
+                        schemaName,
+                        providingType,
+                        providingField);
+                    break;
+
+                case InlineFragmentNode inlineFragment:
+                    if (_schema.Types.TryGetType(inlineFragment.TypeCondition.Name.Value, out var fragmentType))
+                    {
+                        foreach (var possibleType in fragmentType.GetPossibleTypes(schemaName, _schema))
+                        {
+                            ValidateProvidedSelectionSet(
+                                inlineFragment.SelectionSet,
+                                possibleType,
+                                schemaName,
+                                providingType,
+                                providingField);
+                        }
+                    }
+
+                    break;
+            }
+        }
+    }
+
+    private void ValidateProvidedField(
+        FieldNode fieldNode,
+        MutableObjectTypeDefinition currentType,
+        string schemaName,
+        MutableObjectTypeDefinition providingType,
+        MutableOutputFieldDefinition providingField)
+    {
+        if (!currentType.Fields.TryGetField(fieldNode.Name.Value, out var field))
         {
             return;
         }
 
-        foreach (var possibleType in selectionType.GetPossibleTypes(providingSchemaName, _schema))
+        // A field that is @external on the providing schema is delivered by the @provides promise
+        // itself. Only a field the providing schema owns must be resolvable in its own right, and a
+        // plain owned field without an @require is trivially so, so the fact table is consulted only
+        // when an @require has to be satisfied.
+        if (!field.IsPartial(schemaName)
+            && field.GetFusionRequiresRequirements(schemaName) is not null
+            && !_facts.IsFieldResolvableOn(currentType, field, schemaName))
         {
-            foreach (var selection in selectionSet.Selections)
-            {
-                if (selection is not FieldNode fieldNode
-                    || !possibleType.Fields.TryGetField(fieldNode.Name.Value, out var providedField))
-                {
-                    // Non-field selections and shape errors are handled by the @provides shape rules.
-                    continue;
-                }
+            _log.Write(
+                LogEntryBuilder.New()
+                    .SetMessage(
+                        SatisfiabilityValidator_ProvidesFieldNotResolvable,
+                        field.Name,
+                        providingType.Name,
+                        providingField.Name,
+                        schemaName)
+                    .SetCode(LogEntryCodes.ProvidesFieldsNotResolvable)
+                    .SetSeverity(LogSeverity.Error)
+                    .Build());
 
-                if (!_facts.IsFieldAccessible(possibleType, providedField, providingSchemaName))
-                {
-                    _log.Write(
-                        LogEntryBuilder.New()
-                            .SetMessage(
-                                SatisfiabilityValidator_ProvidesFieldNotResolvable,
-                                fieldNode.Name.Value,
-                                providingType.Name,
-                                providingField.Name,
-                                providingSchemaName)
-                            .SetCode(LogEntryCodes.ProvidesFieldsNotResolvable)
-                            .SetSeverity(LogSeverity.Error)
-                            .Build());
+            return;
+        }
 
-                    continue;
-                }
+        if (fieldNode.SelectionSet is null)
+        {
+            return;
+        }
 
-                if (fieldNode.SelectionSet is not null)
-                {
-                    ValidateProvidedSelectionSet(
-                        fieldNode.SelectionSet,
-                        providedField.Type.AsTypeDefinition(),
-                        providingSchemaName,
-                        providingType,
-                        providingField);
-                }
-            }
+        var fieldType = field.Type.AsTypeDefinition();
+
+        if (fieldType.Kind is not TypeKind.Object and not TypeKind.Interface and not TypeKind.Union)
+        {
+            return;
+        }
+
+        foreach (var possibleType in fieldType.GetPossibleTypes(schemaName, _schema))
+        {
+            ValidateProvidedSelectionSet(
+                fieldNode.SelectionSet,
+                possibleType,
+                schemaName,
+                providingType,
+                providingField);
         }
     }
 
