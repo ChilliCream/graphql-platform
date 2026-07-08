@@ -7,18 +7,18 @@ using HotChocolate.Language;
 
 namespace Fusion.Execution.Benchmarks;
 
-// Parsing benchmarks for the composed Netflix corpus (745 sources).
+// Parsing benchmarks for the composed corpus (745 sources).
 //
 // This isolates the document-parsing layer for the schema SDL and both operations.
-// Full plan creation on the same corpus is measured by NetflixPlanningBenchmark
+// Full plan creation on the same corpus is measured by CorpusPlanningBenchmark
 // (reachable now that PlannerTopologyCache scales to the 745-source graph).
 [MemoryDiagnoser]
 [Config(typeof(InProcessConfig))]
-public class NetflixParsingBenchmark
+public class CorpusParsingBenchmark
 {
-    private static readonly string SchemaPath = NetflixCorpusPaths.SchemaPath;
-    private static readonly string Query1Path = NetflixCorpusPaths.Query1Path;
-    private static readonly string Query2Path = NetflixCorpusPaths.Query2Path;
+    private static readonly string SchemaPath = CorpusPaths.SchemaPath;
+    private static readonly string Query1Path = CorpusPaths.Query1Path;
+    private static readonly string Query2Path = CorpusPaths.Query2Path;
 
     private byte[] _schemaSdl = null!;
     private byte[] _query1 = null!;
