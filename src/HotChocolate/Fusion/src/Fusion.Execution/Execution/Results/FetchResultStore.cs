@@ -802,12 +802,30 @@ AddErrors_Next:
 
             if (segment.Kind is SelectionPathSegmentKind.InlineFragment)
             {
+                IOutputTypeDefinition? segmentType = null;
+
                 for (var j = 0; j < currentCount; j++)
                 {
                     var element = current[j];
-                    if (element.TryGetProperty(IntrospectionFieldNames.TypeNameSpan, out var value)
-                        && value.ValueKind is JsonValueKind.String
-                        && value.TextEqualsHelper(segment.Name, isPropertyName: false))
+
+                    if (!element.TryGetProperty(IntrospectionFieldNames.TypeNameSpan, out var value)
+                        || value.ValueKind is not JsonValueKind.String)
+                    {
+                        continue;
+                    }
+
+                    // Fast path: the runtime __typename equals the type condition exactly.
+                    if (value.TextEqualsHelper(segment.Name, isPropertyName: false))
+                    {
+                        AddToBuffer(ref next, ref nextCount, element);
+                        continue;
+                    }
+
+                    // The type condition names an abstract type; accept elements whose
+                    // runtime type is a subtype of it.
+                    segmentType ??= _schema.Types.GetType<IOutputTypeDefinition>(segment.Name);
+
+                    if (segmentType.IsAssignableFrom(element.AssertSelectionSet().Type))
                     {
                         AddToBuffer(ref next, ref nextCount, element);
                     }
@@ -1870,7 +1888,7 @@ AddErrors_Next:
         return buffer;
     }
 
-    private static SourceResultElement GetDataElement(SelectionPath sourcePath, SourceResultElement data)
+    private SourceResultElement GetDataElement(SelectionPath sourcePath, SourceResultElement data)
     {
         if (sourcePath.IsRoot)
         {
@@ -1903,10 +1921,15 @@ AddErrors_Next:
 
                 case SelectionPathSegmentKind.InlineFragment:
                     if (!current.TryGetProperty(IntrospectionFieldNames.TypeNameSpan, out var typeNameProperty)
-                            || typeNameProperty.ValueKind != JsonValueKind.String
-                            || !typeNameProperty.TextEqualsHelper(
-                                segment.Name,
-                                isPropertyName: false))
+                            || typeNameProperty.ValueKind != JsonValueKind.String)
+                    {
+                        return default;
+                    }
+
+                    // Fast path: exact __typename match. On a miss the type condition may name an
+                    // abstract type, so accept the element when its runtime type is a subtype.
+                    if (!typeNameProperty.TextEqualsHelper(segment.Name, isPropertyName: false)
+                        && !IsRuntimeTypeAssignableTo(segment.Name, typeNameProperty.GetString()))
                     {
                         return default;
                     }
@@ -1919,6 +1942,18 @@ AddErrors_Next:
         }
 
         return current;
+    }
+
+    private bool IsRuntimeTypeAssignableTo(string typeCondition, string? runtimeTypeName)
+    {
+        if (runtimeTypeName is null
+            || !_schema.Types.TryGetType<IOutputTypeDefinition>(typeCondition, out var conditionType)
+            || !_schema.Types.TryGetType<IOutputTypeDefinition>(runtimeTypeName, out var runtimeType))
+        {
+            return false;
+        }
+
+        return conditionType.IsAssignableFrom(runtimeType);
     }
 
     private static ErrorTrie? GetErrorTrie(SelectionPath sourcePath, ErrorTrie? errors)
