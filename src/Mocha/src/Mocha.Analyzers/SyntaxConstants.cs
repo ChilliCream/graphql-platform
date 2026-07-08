@@ -156,4 +156,16 @@ public static class SyntaxConstants
     /// Gets the metadata name for the <c>IPublisher</c> interface (Mediator).
     /// </summary>
     public const string IPublisher = "Mocha.Mediator.IPublisher";
+
+    /// <summary>
+    /// Gets the metadata name for the <c>MessageBusHostBuilderExtensions</c> class that declares
+    /// the <c>AddMessage&lt;TMessage&gt;</c> host builder registration methods.
+    /// </summary>
+    public const string MessageBusHostBuilderExtensions = "Mocha.MessageBusHostBuilderExtensions";
+
+    /// <summary>
+    /// Gets the metadata name for the <c>IMessageBusBuilder</c> interface that declares
+    /// the <c>AddMessage&lt;TMessage&gt;</c> registration methods.
+    /// </summary>
+    public const string IMessageBusBuilder = "Mocha.IMessageBusBuilder";
 }

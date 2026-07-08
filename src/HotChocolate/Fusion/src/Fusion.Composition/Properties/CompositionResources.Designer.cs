@@ -105,24 +105,6 @@ namespace HotChocolate.Fusion.Properties {
         }
 
         /// <summary>
-        ///   Looks up a localized string similar to The kind of connector that backs this source schema..
-        /// </summary>
-        internal static string ConnectorMutableDirectiveDefinition_Argument_Kind_Description {
-            get {
-                return ResourceManager.GetString("ConnectorMutableDirectiveDefinition_Argument_Kind_Description", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   Looks up a localized string similar to The @fusion__connector directive declares which connector kind handles this source schema..
-        /// </summary>
-        internal static string ConnectorMutableDirectiveDefinition_Description {
-            get {
-                return ResourceManager.GetString("ConnectorMutableDirectiveDefinition_Description", resourceCulture);
-            }
-        }
-
-        /// <summary>
         ///   Looks up a localized string similar to The @cost directive must have a &apos;weight&apos; argument of type String..
         /// </summary>
         internal static string CostDirective_WeightArgument_Invalid {
@@ -191,24 +173,6 @@ namespace HotChocolate.Fusion.Properties {
         internal static string ExternalMutableDirectiveDefinition_Description {
             get {
                 return ResourceManager.GetString("ExternalMutableDirectiveDefinition_Description", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   Looks up a localized string similar to The kind of connector that handles the source schema represented by this enum value..
-        /// </summary>
-        internal static string FusionConnectorMutableDirectiveDefinition_Argument_Kind_Description {
-            get {
-                return ResourceManager.GetString("FusionConnectorMutableDirectiveDefinition_Argument_Kind_Description", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   Looks up a localized string similar to The @fusion__connector directive declares which connector kind handles a source schema..
-        /// </summary>
-        internal static string FusionConnectorMutableDirectiveDefinition_Description {
-            get {
-                return ResourceManager.GetString("FusionConnectorMutableDirectiveDefinition_Description", resourceCulture);
             }
         }
 
@@ -353,6 +317,15 @@ namespace HotChocolate.Fusion.Properties {
         internal static string FusionImplementsMutableDirectiveDefinition_Argument_Schema_Description {
             get {
                 return ResourceManager.GetString("FusionImplementsMutableDirectiveDefinition_Argument_Schema_Description", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The @fusion__gateway_field directive marks a field that is implemented by the gateway itself rather than resolved from an underlying source schema, such as the global object identification node field..
+        /// </summary>
+        internal static string FusionGatewayFieldMutableDirectiveDefinition_Description {
+            get {
+                return ResourceManager.GetString("FusionGatewayFieldMutableDirectiveDefinition_Description", resourceCulture);
             }
         }
 
@@ -953,6 +926,15 @@ namespace HotChocolate.Fusion.Properties {
         }
 
         /// <summary>
+        ///   Looks up a localized string similar to The @eventCursor argument on field &apos;{0}&apos; in schema &apos;{1}&apos; requires an @eventCursor field on the event payload type..
+        /// </summary>
+        internal static string LogEntryHelper_EventCursorArgumentRequiresCursorField {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_EventCursorArgumentRequiresCursorField", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to The @eventCursor field &apos;{0}&apos; in schema &apos;{1}&apos; must be of type String..
         /// </summary>
         internal static string LogEntryHelper_EventCursorFieldNotString {
@@ -1534,6 +1516,24 @@ namespace HotChocolate.Fusion.Properties {
         internal static string ProvidesMutableDirectiveDefinition_Description {
             get {
                 return ResourceManager.GetString("ProvidesMutableDirectiveDefinition_Description", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The fields that are required from another source schema..
+        /// </summary>
+        internal static string RequiresMutableDirectiveDefinition_Argument_Fields_Description {
+            get {
+                return ResourceManager.GetString("RequiresMutableDirectiveDefinition_Argument_Fields_Description", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The @requires directive expresses that a field depends on the given selection of fields from the same entity, resolved by another source schema..
+        /// </summary>
+        internal static string RequiresMutableDirectiveDefinition_Description {
+            get {
+                return ResourceManager.GetString("RequiresMutableDirectiveDefinition_Description", resourceCulture);
             }
         }
 

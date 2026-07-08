@@ -391,7 +391,15 @@ public sealed class MessageBusChangeTokenSourceTests
         }
 
         public override TransportDescription Describe()
-            => new("test:/", "test", "test", nameof(MutableTokenTransport), [], [], null);
+            => new(
+                "urn:mocha:svc:test:transport:test:test",
+                "test:/",
+                "test",
+                "test",
+                nameof(MutableTokenTransport),
+                [],
+                [],
+                null);
 
         public override bool TryGetDispatchEndpoint(Uri address, [NotNullWhen(true)] out DispatchEndpoint? endpoint)
         {

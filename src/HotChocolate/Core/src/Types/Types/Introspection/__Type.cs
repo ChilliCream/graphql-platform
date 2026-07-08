@@ -256,7 +256,7 @@ internal sealed class __Type : ObjectType
 
         public static object? SpecifiedBy(IResolverContext context)
             => context.Parent<IType>() is ScalarType scalar
-                ? scalar.SpecifiedBy?.ToString()
+                ? scalar.SpecifiedBy
                 : null;
 
         public static object AppliedDirectives(IResolverContext context) =>

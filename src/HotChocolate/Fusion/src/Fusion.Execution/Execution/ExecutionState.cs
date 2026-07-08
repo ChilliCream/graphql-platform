@@ -152,7 +152,11 @@ internal sealed class ExecutionState
         ResetNodeStates();
         ResetRemainingDependencies();
 
-        _completedResults.Clear();
+        while (_completedResults.TryDequeue(out _))
+        {
+            // do nothing, just clear the queue
+        }
+
         ClearPendingMerges();
         _mergeFailures?.Clear();
         _activeNodes = 0;
@@ -218,7 +222,7 @@ internal sealed class ExecutionState
                 merge.Node,
                 merge.SchemaName,
                 exception);
-            context.AddErrors(exception, merge.VariableValueSets, merge.ResultSelectionSet);
+            merge.AddErrors(context, exception);
         }
     }
 
@@ -363,6 +367,14 @@ internal sealed class ExecutionState
             if (current is OperationBatchExecutionNode batchNode)
             {
                 foreach (var op in batchNode.Operations)
+                {
+                    MarkNodeAsSkipped(op.Id);
+                }
+            }
+
+            if (current is ApolloOperationBatchExecutionNode apolloBatchNode)
+            {
+                foreach (var op in apolloBatchNode.Operations)
                 {
                     MarkNodeAsSkipped(op.Id);
                 }

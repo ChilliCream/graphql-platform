@@ -3,9 +3,12 @@ title: "Coming from Apollo Federation"
 description: "Map Apollo Federation concepts like @key and _entities to Hot Chocolate Fusion equivalents such as [Lookup], and migrate subgraphs, gateway, and CI/CD."
 ---
 
-If you have experience with Apollo Federation, you already understand the core idea behind distributed GraphQL: multiple services contribute types and fields to a single, unified schema, and a gateway coordinates query execution across them. HotChocolate Fusion solves the same problem with a different approach -- one grounded in the open [GraphQL Composite Schemas specification](https://graphql.github.io/composite-schemas-spec/) rather than a proprietary federation spec.
+If you have experience with Apollo Federation, you already understand the core idea behind distributed GraphQL: multiple services contribute types and fields to a single, unified schema, and a gateway coordinates query execution across them. HotChocolate Fusion supports two subgraph protocols: Apollo Federation and GraphQL Federation, the open [GraphQL Federation specification](https://graphql.github.io/composite-schemas-spec/) (formerly the GraphQL Composite Schemas specification). This guide is about moving a subgraph from the Apollo Federation protocol to the GraphQL Federation protocol.
 
-This guide maps Apollo Federation concepts to their Fusion equivalents, explains behavioral differences, and walks you through migrating subgraphs, the gateway, and your CI/CD pipeline. It is self-contained: you can complete a migration by following this guide alone. Links to other Fusion docs pages are provided for deeper dives, not as prerequisites.
+This guide maps Apollo Federation concepts to their Fusion equivalents, explains behavioral differences, and walks you through migrating subgraphs, the gateway, and your CI/CD pipeline. It is self-contained: you can complete a migration by following this guide alone. Links to other Fusion docs pages provide deeper context, not prerequisites.
+
+> [!NOTE]
+> Prefer to keep running your existing Apollo Federation subgraphs unchanged behind the Fusion gateway, rather than moving them to the GraphQL Federation protocol? See the [Apollo Federation connector](../connectors/apollofederation.md). The two protocols interoperate, so you can move one subgraph at a time.
 
 # Concept Mapping
 
@@ -16,7 +19,7 @@ The table below maps Apollo Federation concepts to their Fusion equivalents. Som
 | `@key(fields: "id")`                             | `[Lookup]` on a Query field                       | Fusion uses explicit, typed lookup fields instead of implicit `_entities`. No `@key` directive needed. |
 | `__resolveReference` / `_entities` query         | Regular Query fields with `[Lookup]`              | Lookups are real fields you can call and test directly.                                                |
 | `@external`                                      | `[External]` (rarely needed)                      | Same concept, but less frequently needed in Fusion.                                                    |
-| `@requires(fields: "...")` on a field            | `[Require("...")]` on an argument                 | Argument-level, not field-level. Required arguments are hidden from the composite schema.              |
+| `@requires(fields: "...")` on a field            | `[Require("...")]` on an argument                 | Argument-level, not field-level. Required arguments are hidden from the composed schema.               |
 | `@provides(fields: "...")`                       | `[Provides("...")]` / `[Parent(requires: "...")]` | Same optimization concept.                                                                             |
 | `@shareable`                                     | `[Shareable]`                                     | Same concept and semantics. Key fields are automatically shareable.                                    |
 | `@override(from: "...")`                         | `[Override(from: "...")]`                         | Same concept.                                                                                          |
@@ -25,8 +28,8 @@ The table below maps Apollo Federation concepts to their Fusion equivalents. Som
 | Apollo Router / Gateway                          | Fusion Gateway (`AddGraphQLGateway()`)            | A .NET ASP.NET Core app, not a separate binary.                                                        |
 | `rover` CLI                                      | Nitro CLI (`nitro fusion ...`)                    | Schema composition, validation, and delivery.                                                          |
 | GraphOS managed federation                       | Nitro cloud or local CI/CD composition            | Build-time composition. Works fully offline.                                                           |
-| Supergraph schema (SDL)                          | Composite schema + `.far` archive                 | Binary archive containing the composed schema and subgraph metadata.                                   |
-| Federation subgraph library (`@apollo/subgraph`) | No equivalent needed                              | Subgraphs are standard HotChocolate servers. No federation library.                                    |
+| Supergraph schema (SDL)                          | Composed schema + `.far` archive                  | Binary archive containing the composed schema and subgraph metadata.                                   |
+| Federation subgraph library (`@apollo/subgraph`) | No equivalent needed                              | Subgraphs are standard HotChocolate servers. No Apollo Federation library.                             |
 | `_service { sdl }` introspection                 | `dotnet run -- schema export`                     | Schema export is a CLI command, not a runtime introspection field.                                     |
 
 # What Fusion Does Not Need
@@ -35,13 +38,13 @@ Several things from Apollo's model have no Fusion equivalent because the archite
 
 **No `_entities` query.** In Apollo Federation, the gateway resolves entities by calling a hidden `_entities` root field with typed representations. In Fusion, entity resolution happens through regular Query fields annotated with `[Lookup]`. These are real, typed fields that you can call directly from any GraphQL client for testing and debugging.
 
-**No `__resolveReference` resolvers.** In Apollo, every subgraph that contributes to an entity must implement a `__resolveReference` function. In Fusion, you write a normal Query field (like `GetProductById`) and add `[Lookup]`. The gateway calls this field like any other query.
+**No `__resolveReference` resolvers.** In Apollo Federation, every subgraph that contributes to an entity must implement a `__resolveReference` function. In Fusion, you write a normal Query field (like `GetProductById`) and add `[Lookup]`. The gateway calls this field like any other query.
 
-**No federation subgraph library.** Apollo subgraphs require `@apollo/subgraph` (or the equivalent in your language) to add federation-specific fields and middleware. Fusion subgraphs are standard HotChocolate servers. You add a few attributes (`[Lookup]`, `[Shareable]`, etc.) and export the schema -- no special federation runtime.
+**No Apollo Federation subgraph library.** Apollo Federation subgraphs require `@apollo/subgraph` (or the equivalent in your language) to add Apollo Federation-specific fields and middleware. Fusion subgraphs are standard HotChocolate servers. You add a few attributes (`[Lookup]`, `[Shareable]`, etc.) and export the schema. There is no special Apollo Federation runtime.
 
-**No `_service` introspection.** Apollo subgraphs expose their SDL via `_service { sdl }`. Fusion subgraphs export their schema as a `.graphqls` file using the command `dotnet run -- schema export`. The schema file and its companion `schema-settings.json` are what composition reads.
+**No `_service` introspection.** Apollo Federation subgraphs expose their SDL via `_service { sdl }`. Fusion subgraphs export their schema as a `.graphqls` file using the command `dotnet run -- schema export`. The schema file and its companion `schema-settings.json` are what composition reads.
 
-**No `@key` directive.** In Apollo, `@key(fields: "id")` tells the gateway which fields identify an entity. In Fusion, the gateway infers entity keys from the arguments of your `[Lookup]` fields. If your lookup is `GetProductById(int id)`, the gateway knows that `id` is the key for `Product`. You can use `[EntityKey("id")]` for explicit key declaration when needed, but it is rarely necessary.
+**No `@key` directive.** In Apollo Federation, `@key(fields: "id")` tells the gateway which fields identify an entity. In Fusion, the gateway infers entity keys from the arguments of your `[Lookup]` fields. If your lookup is `GetProductById(int id)`, the gateway knows that `id` is the key for `Product`. You can use `[EntityKey("id")]` for explicit key declaration when needed, but it is rarely necessary.
 
 # Behavioral Differences in Depth
 
@@ -49,9 +52,9 @@ Beyond naming, several concepts work fundamentally differently in Fusion. Unders
 
 ## Entity Resolution: Lookups vs. the Entities Query
 
-This is the most significant architectural difference between Apollo Federation and Fusion.
+This is the most significant architectural difference between Apollo Federation and the GraphQL Federation protocol.
 
-**Apollo approach:** The gateway sends a batch request to the `_entities` field, passing an array of typed representations (like `{ __typename: "Product", id: "1" }`). Each subgraph's `__resolveReference` function handles these representations.
+**Apollo Federation approach:** The gateway sends a batch request to the `_entities` field, passing an array of typed representations (like `{ __typename: "Product", id: "1" }`). Each subgraph's `__resolveReference` function handles these representations.
 
 ```graphql
 # Apollo: hidden _entities query (you never write this yourself)
@@ -91,9 +94,9 @@ query {
 }
 ```
 
-The practical benefit: you can call `productById` directly in your GraphQL IDE (like Nitro / Banana Cake Pop) to test entity resolution. In Apollo, `_entities` is hidden and awkward to test manually.
+The practical benefit is direct testing. You can call `productById` in your GraphQL IDE (like Nitro / Banana Cake Pop) to test entity resolution. In Apollo Federation, `_entities` is hidden and awkward to test manually.
 
-**Multiple lookups per entity.** In Apollo, an entity can have multiple `@key` directives to support different keys. In Fusion, you define multiple `[Lookup]` fields -- one per key:
+**Multiple lookups per entity.** In Apollo Federation, an entity can have multiple `@key` directives to support different keys. In Fusion, you define multiple `[Lookup]` fields, one per key:
 
 ```csharp
 [QueryType]
@@ -117,7 +120,7 @@ public static partial class UserQueries
 
 The gateway automatically discovers all available lookups and uses whichever one has the keys it needs.
 
-**Internal lookups.** When a subgraph extends an entity from another subgraph, it needs a lookup the gateway can use for entity resolution -- but you may not want that lookup exposed to clients. In Apollo, `_entities` handles this implicitly. In Fusion, you mark the lookup with `[Internal]`:
+**Internal lookups.** When a subgraph extends an entity from another subgraph, it needs a lookup the gateway can use for entity resolution, but you may not want that lookup exposed to clients. In Apollo Federation, `_entities` handles this implicitly. In Fusion, you mark the lookup with `[Internal]`:
 
 ```csharp
 // In the Reviews subgraph: an internal-only lookup for Product
@@ -130,7 +133,7 @@ public static partial class ProductQueries
 }
 ```
 
-The `[Internal]` attribute hides this field from the composite schema. Only the gateway uses it during query planning.
+The `[Internal]` attribute hides this field from the composed schema. Only the gateway uses it during query planning.
 
 For more on lookups and entity resolution patterns, see [Entities and Lookups](../entities-and-lookups.md).
 
@@ -147,7 +150,7 @@ type Product @key(fields: "id") {
 }
 ```
 
-In Fusion, `[Require]` is an argument-level attribute. The required data arrives as a method parameter, and that parameter is hidden from the composite schema:
+In Fusion, `[Require]` is an argument-level attribute. The required data arrives as a method parameter, and that parameter is hidden from the composed schema:
 
 ```csharp
 // Fusion: [Require] on the argument
@@ -174,7 +177,7 @@ public sealed record Product([property: ID<Product>] int Id)
 }
 ```
 
-In the composite schema, clients see `deliveryEstimate(zip: String!)` -- the `dimension` parameter is invisible. The gateway resolves `weight` and `dimension { length width height }` from the owning subgraph and passes them to the Shipping subgraph automatically.
+In the composed schema, clients see `deliveryEstimate(zip: String!)`. The `dimension` parameter is invisible. The gateway resolves `weight` and `dimension { length width height }` from the owning subgraph and passes them to the Shipping subgraph automatically.
 
 This changes how you design resolvers. In Apollo, the required data is available on `this` (the entity object). In Fusion, it arrives as a typed argument, which makes the dependency explicit and testable.
 
@@ -182,7 +185,7 @@ Cross-subgraph data dependencies with `[Require]` are also covered in the [Addin
 
 ## Entity Stubs: How Subgraphs Reference Foreign Entities
 
-In Apollo, when a subgraph extends an entity from another subgraph, it uses `extend type` with `@key`:
+In Apollo Federation, when a subgraph extends an entity from another subgraph, it uses `extend type` with `@key`:
 
 ```graphql
 # Apollo: Reviews subgraph extending Product
@@ -192,7 +195,7 @@ extend type Product @key(fields: "id") {
 }
 ```
 
-In Fusion, you create an **entity stub** -- a minimal C# type that declares the entity's key and adds your fields:
+In Fusion, you create an **entity stub**: a minimal C# type that declares the entity's key and adds your fields:
 
 ```csharp
 // Fusion: Reviews subgraph's entity stub for Product
@@ -214,7 +217,7 @@ The stub is not a copy of the full Product type. It only declares the key (`Id`)
 
 ## Composition: Build Step, Not Cloud Operation
 
-In Apollo, composition typically happens in GraphOS cloud when you run `rover subgraph publish`. The router downloads the composed supergraph schema from GraphOS at startup.
+In the Apollo Federation workflow, composition typically happens in GraphOS cloud when you run `rover subgraph publish`. The router downloads the composed supergraph schema from GraphOS at startup.
 
 In Fusion, composition is a local build step you run on your machine or in CI:
 
@@ -225,7 +228,7 @@ nitro fusion compose \
   --archive gateway.far
 ```
 
-This produces a `.far` (Fusion Archive) file -- a binary archive containing the composed schema and subgraph metadata. You can inspect what composition produced, run it locally, and validate it in CI before deployment.
+This produces a `.far` (Fusion Archive) file. The archive contains the composed schema and subgraph metadata. You can inspect what composition produced, run it locally, and validate it in CI before deployment.
 
 You can also use Nitro cloud for managed composition (similar to Apollo's GraphOS), but it is not required. Everything works fully offline.
 
@@ -257,9 +260,9 @@ For each Apollo Federation subgraph, follow these steps.
 
 ### Step 1: Replace Apollo Packages with HotChocolate
 
-Remove the Apollo subgraph library and add HotChocolate packages.
+Remove the Apollo Federation subgraph library and add HotChocolate packages.
 
-**Apollo (Node.js / TypeScript):**
+**Apollo Federation (Node.js / TypeScript):**
 
 ```json
 {
@@ -301,13 +304,13 @@ app.MapGraphQL();
 app.RunWithGraphQLCommands(args);
 ```
 
-The call to `RunWithGraphQLCommands(args)` enables `dotnet run -- schema export`, which is how Fusion extracts the subgraph schema for composition.
+The call to `RunWithGraphQLCommands(args)` enables `dotnet run -- schema export`, which is how Fusion exports the subgraph schema for composition.
 
 ### Step 2: Convert Entity Resolution to Lookups
 
 This is the core conversion. For every entity type that has a `@key` directive and a `__resolveReference` resolver, create a `[Lookup]` query field.
 
-**Apollo (TypeScript):**
+**Apollo Federation (TypeScript):**
 
 ```typescript
 // Apollo: schema
@@ -366,7 +369,7 @@ public static Product GetProductById(int id) => new(id);
 
 Replace field-level `@requires` with argument-level `[Require]`.
 
-**Apollo (GraphQL SDL):**
+**Apollo Federation (GraphQL SDL):**
 
 ```graphql
 type Product @key(fields: "id") {
@@ -401,7 +404,7 @@ public sealed record Product([property: ID<Product>] int Id)
 }
 ```
 
-The `weight` parameter is hidden from the composite schema. Clients call `shippingEstimate` with no arguments -- the gateway resolves `weight` from whichever subgraph owns it and passes it to this resolver.
+The `weight` parameter is hidden from the composed schema. Clients call `shippingEstimate` with no arguments. The gateway resolves `weight` from whichever subgraph owns it and passes it to this resolver.
 
 For complex requirements that map multiple fields into an input object:
 
@@ -424,7 +427,7 @@ public int GetDeliveryEstimate(
 
 ### Step 4: Convert External Fields and Provides
 
-**`@external`** has a direct equivalent in `[External]`, but it is less frequently needed. In Apollo, you must mark any field referenced by `@requires` as `@external`. In Fusion, the `[Require]` selection syntax references fields from the composed graph directly -- no `@external` annotation is needed on the entity type.
+**`@external`** has a direct equivalent in `[External]`, but it is less frequently needed. In Apollo Federation, you must mark any field referenced by `@requires` as `@external`. In Fusion, the `[Require]` selection syntax references fields from the composed graph directly, so no `@external` annotation is needed on the entity type.
 
 **`@provides`** maps to `[Parent(requires: "...")]`. This optimization hint tells the gateway that a field can resolve certain nested fields locally, avoiding an extra subgraph call:
 
@@ -545,7 +548,7 @@ app.MapGraphQL();
 app.Run();
 ```
 
-This loads the gateway configuration from a local `.far` file. To use Nitro cloud for configuration delivery instead (similar to Apollo's managed federation):
+This loads the gateway configuration from a local `.far` file. To use Nitro cloud for configuration delivery instead (similar to Apollo's managed composition in GraphOS):
 
 ```csharp
 builder
@@ -625,7 +628,7 @@ Replace Apollo's `rover` commands with Nitro CLI equivalents.
 
 ### Schema Upload (Replaces Rover Subgraph Publish)
 
-In Apollo, publishing a subgraph triggers server-side composition. In Fusion, this is a two-step process: upload the schema, then publish to trigger composition.
+In the Apollo workflow, publishing a subgraph triggers server-side composition. In Fusion, this is a two-step process: upload the schema, then publish to trigger composition.
 
 **Apollo:**
 
@@ -648,8 +651,7 @@ nitro fusion upload \
 
 # Step 2: Publish to trigger composition and deploy to a stage
 nitro fusion publish \
-  --source-schema products-api \
-  --tag v1.0.0 \
+  --source-schema products-api@v1.0.0 \
   --stage production \
   --api-id $NITRO_API_ID \
   --api-key $NITRO_API_KEY
@@ -731,8 +733,7 @@ jobs:
       - name: Publish to production
         run: |
           nitro fusion publish \
-            --source-schema products-api \
-            --tag ${{ github.sha }} \
+            --source-schema products-api@${{ github.sha }} \
             --stage production \
             --api-id ${{ secrets.NITRO_API_ID }} \
             --api-key ${{ secrets.NITRO_API_KEY }}
@@ -742,19 +743,19 @@ For more on deployment workflows, see [Deployment and CI/CD](../deployment-and-c
 
 # Mindset Shifts
 
-If you have spent significant time with Apollo Federation, some habits need adjusting. These are not just naming differences -- they change how you think about your graph.
+If you have spent significant time with Apollo Federation, some habits need adjusting. These are not only naming differences. They change how you think about your graph.
 
 ## Entity Resolution Is Explicit and Testable
 
-In Apollo, entity resolution happens through a hidden protocol (`_entities` + `__resolveReference`). You cannot easily call `_entities` from a GraphQL client to debug resolution issues. In Fusion, entity resolution is a regular query field. You can open your IDE, call `productById(id: 1)`, and see exactly what your lookup returns. This makes debugging straightforward.
+In Apollo Federation, entity resolution happens through a hidden protocol (`_entities` + `__resolveReference`). You cannot easily call `_entities` from a GraphQL client to debug resolution issues. In Fusion, entity resolution is a regular query field. You can open your IDE, call `productById(id: 1)`, and see exactly what your lookup returns. This makes debugging straightforward.
 
 ## You Don't Need to Think About Entity Ownership the Same Way
 
-Apollo Federation has a strong concept of entity "ownership" -- one subgraph is the "defining" subgraph for an entity, and others "extend" it. In Fusion, all subgraphs contribute fields to shared entity types. The gateway uses lookups to resolve entities wherever they need to be fetched. The question is not "who owns this entity?" but "which subgraphs provide lookups for it?"
+Apollo Federation has a strong concept of entity "ownership": one subgraph is the "defining" subgraph for an entity, and others "extend" it. In Fusion, all subgraphs contribute fields to shared entity types. The gateway uses lookups to resolve entities wherever they need to be fetched. The question is not "who owns this entity?" but "which subgraphs provide lookups for it?"
 
 ## Composition Is a Build Step, Not a Cloud Operation
 
-In Apollo, composition typically happens in GraphOS when you publish a subgraph. In Fusion, composition is a command you run locally or in CI:
+In the Apollo workflow, composition typically happens in GraphOS when you publish a subgraph. In Fusion, composition is a command you run locally or in CI:
 
 ```bash
 nitro fusion compose --archive gateway.far
@@ -764,7 +765,7 @@ You can run this on your machine, see the output, inspect errors, and fix them b
 
 ## Requirements Operate on Arguments, Not Fields
 
-This changes resolver design. In Apollo, required data appears on the entity object. In Fusion, it arrives as a method parameter:
+This changes resolver design. In Apollo Federation, required data appears on the entity object. In Fusion, it arrives as a method parameter:
 
 ```csharp
 // The 'weight' parameter is injected by the gateway
@@ -782,25 +783,25 @@ Apollo Router is a pre-built binary you configure externally. Fusion's gateway i
 
 # What Gets Simpler
 
-Migrating to Fusion resolves several common pain points from Apollo Federation.
+Moving to the GraphQL Federation protocol resolves several common pain points from Apollo Federation.
 
-**No federation library required.** Apollo subgraphs need `@apollo/subgraph` (or an equivalent library in your language). Fusion subgraphs are standard HotChocolate servers. If you already have a HotChocolate GraphQL server, it is already a valid Fusion subgraph -- you just need to add a few attributes and export the schema.
+**No Apollo Federation library required.** Apollo Federation subgraphs need `@apollo/subgraph` (or an equivalent library in your language). Fusion subgraphs are standard HotChocolate servers. If you already have a HotChocolate GraphQL server, it is already a valid Fusion subgraph. Add a few attributes and export the schema.
 
-**Lookups are testable.** In Apollo, `_entities` is hidden and awkward to test. In Fusion, lookups are regular query fields. You can write integration tests that call them directly, use them in your GraphQL IDE, and verify their behavior in isolation.
+**Lookups are testable.** In Apollo Federation, `_entities` is hidden and awkward to test. In Fusion, lookups are regular query fields. You can write integration tests that call them directly, use them in your GraphQL IDE, and verify their behavior in isolation.
 
-**Build-time composition catches errors early.** Apollo's managed federation composes schemas when you publish. If composition fails, you find out after pushing. Fusion's composition runs locally as a build step -- you can catch schema conflicts the same way you catch compilation errors: before you commit.
+**Build-time composition catches errors early.** GraphOS composes Apollo Federation schemas when you publish. If composition fails, you find out after pushing. Fusion's composition runs locally as a build step, so you can catch schema conflicts the same way you catch compilation errors: before you commit.
 
 **.NET-native tooling.** If your team is a .NET shop, Fusion means your gateway, subgraphs, and tooling are all .NET. No Node.js dependency for the gateway or CLI, no context-switching between languages.
 
-**Open standards.** Fusion implements the [GraphQL Composite Schemas specification](https://graphql.github.io/composite-schemas-spec/), an open, vendor-neutral standard under the GraphQL Foundation. Your subgraph schemas are portable -- they are not locked into any vendor's directive syntax.
+**Open standards.** Fusion implements the [GraphQL Federation specification](https://graphql.github.io/composite-schemas-spec/), an open, vendor-neutral standard under the GraphQL Foundation. Your subgraph schemas are portable. They are not locked into any vendor's directive syntax.
 
-**Simpler subgraph setup.** Without a federation library, there are fewer moving parts. A minimal Fusion subgraph is just a HotChocolate server with `[Lookup]` on its entity query fields and a `schema-settings.json` file. That is the entire federation surface area.
+**Simpler subgraph setup.** Without an Apollo Federation library, there are fewer moving parts. A minimal Fusion subgraph is a HotChocolate server with `[Lookup]` on its entity query fields and a `schema-settings.json` file. That is the entire GraphQL Federation surface area.
 
 # FAQ
 
-## Can I migrate incrementally -- some subgraphs on Apollo, some on Fusion?
+## Can I migrate incrementally, with some subgraphs on Apollo Federation and some on GraphQL Federation?
 
-No. Apollo Federation and Fusion use different gateway protocols and composition models. You cannot run a mixed fleet where some subgraphs speak Apollo's federation protocol and others speak Fusion's. You need to migrate all subgraphs and the gateway together. However, you can migrate one subgraph at a time by converting and testing each one before switching the gateway over.
+Yes. A Fusion gateway composes and executes both subgraph protocols in one graph, so you can move subgraphs from the Apollo Federation protocol to the GraphQL Federation protocol one at a time while the rest keep running unchanged. To keep running your existing Apollo Federation subgraphs as they are, see the [Apollo Federation connector](../connectors/apollofederation.md). Convert and test each subgraph before moving on to the next.
 
 ## Do I need Nitro cloud?
 
@@ -808,7 +809,7 @@ No. Nitro cloud provides managed composition and gateway configuration delivery 
 
 ## What About Apollo Federation Auth Directives?
 
-Fusion uses standard ASP.NET Core authentication and authorization. You configure JWT/cookie authentication in the gateway's middleware pipeline and use HotChocolate's `[Authorize]` attribute on fields and types in your subgraphs. There is no Fusion-specific auth directive -- you use the same patterns you already know from ASP.NET Core.
+Fusion uses standard ASP.NET Core authentication and authorization. You configure JWT/cookie authentication in the gateway's middleware pipeline and use HotChocolate's `[Authorize]` attribute on fields and types in your subgraphs. There is no Fusion-specific auth directive. You use the same patterns you already know from ASP.NET Core.
 
 ## Can Fusion handle subscriptions?
 
@@ -818,9 +819,9 @@ Yes. Fusion supports real-time subscriptions through the gateway via SSE (Server
 
 After migrating, these pages provide deeper coverage of specific topics:
 
-- [Getting Started](../getting-started.md) -- The full tutorial for building a Fusion setup from scratch
-- [Entities and Lookups](../entities-and-lookups.md) -- Deep dive into entity resolution patterns
-- [Adding a Subgraph](../adding-a-subgraph.md) -- Adding subgraphs with `[Require]` for cross-subgraph data
-- [Composition](../composition.md) -- Composition rules, merging behavior, and error reference
-- [Deployment and CI/CD](../deployment-and-ci-cd.md) -- Production deployment and pipeline setup
-- [Nitro CLI Reference](../cli.md) -- Complete CLI command reference
+- [Getting Started](../getting-started.md): The full tutorial for building a Fusion setup from scratch
+- [Entities and Lookups](../entities-and-lookups.md): Deep dive into entity resolution patterns
+- [Adding a Subgraph](../adding-a-subgraph.md): Adding subgraphs with `[Require]` for cross-subgraph data
+- [Composition](../composition.md): Composition rules, merging behavior, and error reference
+- [Deployment and CI/CD](../deployment-and-ci-cd.md): Production deployment and pipeline setup
+- [Nitro CLI Reference](../cli.md): Complete CLI command reference

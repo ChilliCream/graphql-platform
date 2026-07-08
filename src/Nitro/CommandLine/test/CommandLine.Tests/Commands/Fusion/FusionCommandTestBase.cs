@@ -107,7 +107,8 @@ public abstract class FusionCommandTestBase(NitroCommandFixture fixture) : Schem
                 SourceSchema,
                 Tag,
                 It.IsAny<CancellationToken>()))
-            .ReturnsAsync(() => null);
+            .ThrowsAsync(new NitroClientNotFoundException(
+                $"Could not find source schema '{SourceSchema}' with version '{Tag}'."));
     }
 
     protected void SetupArchiveFile()
@@ -237,7 +238,8 @@ public abstract class FusionCommandTestBase(NitroCommandFixture fixture) : Schem
                 version,
                 archiveFormat,
                 It.IsAny<CancellationToken>()))
-            .ReturnsAsync(() => null);
+            .ThrowsAsync(new NitroClientNotFoundException(
+                $"Could not find a Fusion configuration for stage '{Stage}' that supports version '{version}'."));
     }
 
     protected void SetupLegacyFusionConfigurationDownload()

@@ -79,15 +79,11 @@ public sealed class ComplexEntityCallTests : ComplianceTestBase
     /// <c>selected</c>, <c>pid</c>, and <c>price</c> in a single query.
     /// </summary>
     /// <remarks>
-    /// The Apollo Federation composite-schema output for these keys is accepted
-    /// by the Fusion composer (validated by
-    /// <see cref="TopProducts_ResolvesNestedCategoryKey"/>) but the Fusion
-    /// planner currently declines to route through the nested-list lookup
-    /// fields when the originating subgraph does not own <c>pid</c>. Tracking
-    /// the follow-up separately so this PR stays scoped to nested-<c>@key</c>
-    /// composition support.
+    /// Pins that the planner wires each nested-list <c>@key</c> lookup onto the hop
+    /// that produces its buried key leaf (<c>pid</c> inside <c>products</c>), so
+    /// <c>selected</c>, <c>first</c>, <c>pid</c>, and <c>price</c> all resolve.
     /// </remarks>
-    [Fact(Skip = "Planner does not yet route through nested-list @key lookups when the originating subgraph lacks sibling key fields. See APOLLO_FEDERATION_COMPLIANCE_PLAN.md follow-up.")]
+    [Fact]
     public Task TopProducts_Projects_Across_All_Subgraphs() => RunAsync(
         query: """
             query {

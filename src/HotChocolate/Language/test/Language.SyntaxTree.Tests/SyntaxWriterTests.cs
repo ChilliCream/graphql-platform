@@ -174,6 +174,37 @@ public class SyntaxWriterTests
     }
 
     [Fact]
+    public void Serialize_Should_PreserveArgumentDescriptions_When_IndentedArgumentDefinitionsAreFlat()
+    {
+        // arrange
+        const string schema =
+            """
+            directive @short("Short description" arg: String!) on FIELD_DEFINITION
+
+            directive @long("This argument description is deliberately long enough to exceed the configured print width." arg: String!) on FIELD_DEFINITION
+            """;
+
+        var document = Utf8GraphQLParser.Parse(schema);
+        var serializer = new SyntaxSerializer(
+            new SyntaxSerializerOptions { Indented = true, PrintWidth = 80 });
+        var writer = new StringSyntaxWriter();
+
+        // act
+        serializer.Serialize(document, writer);
+
+        // assert
+        writer.ToString().MatchInlineSnapshot(
+            """
+            directive @short("Short description" arg: String!) on FIELD_DEFINITION
+
+            directive @long(
+              "This argument description is deliberately long enough to exceed the configured print width."
+              arg: String!
+            ) on FIELD_DEFINITION
+            """);
+    }
+
+    [Fact]
     public void WriteMany_WithCarriageReturnNewLine_WritesIndentation()
     {
         // arrange

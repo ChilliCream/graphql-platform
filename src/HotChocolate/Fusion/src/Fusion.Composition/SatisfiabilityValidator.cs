@@ -12,7 +12,6 @@ using HotChocolate.Types;
 using HotChocolate.Types.Mutable;
 using static HotChocolate.Fusion.Properties.CompositionResources;
 using static HotChocolate.Language.Utf8GraphQLParser.Syntax;
-using FieldNames = HotChocolate.Fusion.WellKnownFieldNames;
 
 namespace HotChocolate.Fusion;
 
@@ -20,6 +19,8 @@ internal sealed class SatisfiabilityValidator
 {
     private readonly SatisfiabilityOptions _options;
     private readonly RequirementsValidator _requirementsValidator;
+    private readonly FusionLookupDirectiveCache _lookupCache;
+    private readonly SourceSchemaTransitionCache _transitionCache;
     private readonly MutableSchemaDefinition _schema;
     private readonly ICompositionLog _log;
 
@@ -31,7 +32,10 @@ internal sealed class SatisfiabilityValidator
         _schema = schema;
         _log = log;
         _options = options ?? new SatisfiabilityOptions();
-        _requirementsValidator = new RequirementsValidator(schema, _options.IncludeSatisfiabilityPaths);
+        _lookupCache = new FusionLookupDirectiveCache(schema);
+        _transitionCache = new SourceSchemaTransitionCache();
+        _requirementsValidator =
+            new RequirementsValidator(schema, _lookupCache, _transitionCache, _options.IncludeSatisfiabilityPaths);
     }
 
     public CompositionResult Validate()
@@ -81,21 +85,16 @@ internal sealed class SatisfiabilityValidator
                 continue;
             }
 
-            // The node and nodes fields are "virtual" fields that might not directly map
-            // to an underlying source schema, so we have to validate them differently.
-            if (field.Name is FieldNames.Node or FieldNames.Nodes
-                && objectType == _schema.QueryType
-                && _schema.Types.TryGetType<IInterfaceTypeDefinition>(WellKnownTypeNames.Node, out var nodeType)
-                && field.Type.NamedType() == nodeType)
+            // Fields implemented by the gateway are marked with @fusion__gateway_field and are
+            // not resolved from a single source schema, so ordinary source-schema satisfiability
+            // does not apply. When such a field returns the Node interface, its resolvability is
+            // validated against the per-type node lookups instead.
+            if (field.HasFusionGatewayFieldDirective())
             {
-                if (field.Name == FieldNames.Nodes)
+                if (field.Type.NamedType() is IInterfaceTypeDefinition { Name: WellKnownTypeNames.Node } nodeType)
                 {
-                    // The node and nodes fields always appear in pairs, so we can skip nodes entirely
-                    // and only do the validation once for the node field.
-                    continue;
+                    VisitNodeField(objectType, field, nodeType, path, worklist);
                 }
-
-                VisitNodeField(objectType, field, nodeType, path, worklist);
 
                 continue;
             }
@@ -292,8 +291,7 @@ internal sealed class SatisfiabilityValidator
     {
         foreach (var possibleType in _schema.GetPossibleTypes(nodeType))
         {
-            var byIdLookups = _schema
-                .GetPossibleFusionLookupDirectivesById(possibleType);
+            var byIdLookups = _lookupCache.GetPossibleFusionLookupDirectivesById(possibleType);
 
             var hasNodeLookup = false;
 
@@ -349,7 +347,9 @@ internal sealed class SatisfiabilityValidator
         string transitionToSchemaName)
     {
         return SourceSchemaTransitionHelper.ValidateSourceSchemaTransition(
-            _schema,
+            _lookupCache,
+            _transitionCache,
+            cycleDetectionPath: null,
             type,
             transitionToSchemaName,
             [.. path.EnumerateFromLeaf()],

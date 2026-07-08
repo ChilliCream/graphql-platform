@@ -12,6 +12,7 @@
     <ProjectReference Include="..\..\src\Fusion.Execution\HotChocolate.Fusion.Execution.csproj" />
     <ProjectReference Include="..\..\src\Fusion.Subscriptions.NATS\HotChocolate.Fusion.Subscriptions.NATS.csproj" />
     <ProjectReference Include="..\..\..\AspNetCore\src\AspNetCore\HotChocolate.AspNetCore.csproj" />
+    <ProjectReference Include="..\..\..\Mutable\src\Types.Mutable\HotChocolate.Types.Mutable.csproj" />
   </ItemGroup>
 
   <ItemGroup>

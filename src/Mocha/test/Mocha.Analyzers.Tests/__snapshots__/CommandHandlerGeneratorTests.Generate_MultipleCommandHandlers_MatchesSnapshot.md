@@ -9,7 +9,7 @@
 namespace Microsoft.Extensions.DependencyInjection
 {
     [global::System.CodeDom.Compiler.GeneratedCode("Mocha.Analyzers", "1.0.0")]
-    public static class TestsMediatorBuilderExtensions
+    public static partial class TestsMediatorBuilderExtensions
     {
         [global::Mocha.Mediator.MediatorModuleInfo(
             MessageTypes = new global::System.Type[]
@@ -27,26 +27,54 @@ namespace Microsoft.Extensions.DependencyInjection
             this global::Mocha.Mediator.IMediatorHostBuilder builder)
         {
 
-            // Register handler configurations
-            global::Mocha.Mediator.MediatorHostBuilderHandlerExtensions.AddHandlerConfiguration<global::TestApp.DeleteOrderHandler>(builder,
-                new global::Mocha.Mediator.MediatorHandlerConfiguration
-                {
-                    HandlerType = typeof(global::TestApp.DeleteOrderHandler),
-                    MessageType = typeof(global::TestApp.DeleteOrderCommand),
-                    Kind = global::Mocha.Mediator.MediatorHandlerKind.Command,
-                    Delegate = global::Mocha.Mediator.PipelineBuilder.BuildCommandPipeline<global::TestApp.DeleteOrderHandler, global::TestApp.DeleteOrderCommand>()
-                });
-            global::Mocha.Mediator.MediatorHostBuilderHandlerExtensions.AddHandlerConfiguration<global::TestApp.CreateOrderHandler>(builder,
-                new global::Mocha.Mediator.MediatorHandlerConfiguration
-                {
-                    HandlerType = typeof(global::TestApp.CreateOrderHandler),
-                    MessageType = typeof(global::TestApp.CreateOrderCommand),
-                    ResponseType = typeof(int),
-                    Kind = global::Mocha.Mediator.MediatorHandlerKind.CommandResponse,
-                    Delegate = global::Mocha.Mediator.PipelineBuilder.BuildCommandResponsePipeline<global::TestApp.CreateOrderHandler, global::TestApp.CreateOrderCommand, int>()
-                });
+            // Register handlers
+            global::Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions.TryAdd(
+                builder.Services,
+                new global::Microsoft.Extensions.DependencyInjection.ServiceDescriptor(
+                    typeof(global::TestApp.DeleteOrderHandler),
+                    typeof(global::TestApp.DeleteOrderHandler),
+                    builder.Options.ServiceLifetime));
+            global::Mocha.Mediator.MediatorHostBuilderExtensions.ConfigureMediator(
+                builder,
+                static b => b.AddHandler<global::TestApp.DeleteOrderHandler>(__Initialize_DeleteOrderHandler_Handler_aWDuDwKebXZopBjbFLUIgA));
+            global::Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions.TryAdd(
+                builder.Services,
+                new global::Microsoft.Extensions.DependencyInjection.ServiceDescriptor(
+                    typeof(global::TestApp.CreateOrderHandler),
+                    typeof(global::TestApp.CreateOrderHandler),
+                    builder.Options.ServiceLifetime));
+            global::Mocha.Mediator.MediatorHostBuilderExtensions.ConfigureMediator(
+                builder,
+                static b => b.AddHandler<global::TestApp.CreateOrderHandler>(__Initialize_CreateOrderHandler_Handler_ZT_Kb55ulioCoTTi5x0bAQ));
 
             return builder;
+        }
+
+        private static void __Initialize_DeleteOrderHandler_Handler_aWDuDwKebXZopBjbFLUIgA(global::Mocha.Mediator.IMediatorHandlerDescriptor descriptor)
+        {
+            var configuration = descriptor.Extend().Configuration;
+            configuration.MessageType = typeof(global::TestApp.DeleteOrderCommand);
+            configuration.Kind = global::Mocha.Mediator.MediatorHandlerKind.Command;
+            configuration.Delegate = global::Mocha.Mediator.PipelineBuilder.BuildCommandPipeline<global::TestApp.DeleteOrderHandler, global::TestApp.DeleteOrderCommand>();
+            configuration.Source = new global::Mocha.SourceMetadata
+            {
+                Assembly = "Tests",
+                DeclarationLocation = new global::Mocha.DeclarationLocation("", 7, 1, 11, 2)
+            };
+        }
+
+        private static void __Initialize_CreateOrderHandler_Handler_ZT_Kb55ulioCoTTi5x0bAQ(global::Mocha.Mediator.IMediatorHandlerDescriptor descriptor)
+        {
+            var configuration = descriptor.Extend().Configuration;
+            configuration.MessageType = typeof(global::TestApp.CreateOrderCommand);
+            configuration.ResponseType = typeof(int);
+            configuration.Kind = global::Mocha.Mediator.MediatorHandlerKind.CommandResponse;
+            configuration.Delegate = global::Mocha.Mediator.PipelineBuilder.BuildCommandResponsePipeline<global::TestApp.CreateOrderHandler, global::TestApp.CreateOrderCommand, int>();
+            configuration.Source = new global::Mocha.SourceMetadata
+            {
+                Assembly = "Tests",
+                DeclarationLocation = new global::Mocha.DeclarationLocation("", 7, 1, 11, 2)
+            };
         }
     }
 }

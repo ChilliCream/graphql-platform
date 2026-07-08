@@ -66,7 +66,12 @@ public sealed class RequirementsValidatorTests
         var schema = merger.Merge().Value;
         var queryType = (MutableObjectTypeDefinition)schema.Types["Query"];
         var productByIdField = queryType.Fields["productById"];
-        var requirementsValidator = new RequirementsValidator(schema);
+        var requirementsValidator =
+            new RequirementsValidator(
+                schema,
+                new FusionLookupDirectiveCache(schema),
+                new SourceSchemaTransitionCache(),
+                includeSatisfiabilityPaths: false);
         var selectedValue = new FieldSelectionMapParser("specialField").Parse();
         var selectionSet =
             new ValueSelectionToSelectionSetRewriter(schema).Rewrite(

@@ -9,7 +9,7 @@
 namespace Microsoft.Extensions.DependencyInjection
 {
     [global::System.CodeDom.Compiler.GeneratedCode("Mocha.Analyzers", "1.0.0")]
-    public static class TestsMediatorBuilderExtensions
+    public static partial class TestsMediatorBuilderExtensions
     {
         [global::Mocha.Mediator.MediatorModuleInfo(
             MessageTypes = new global::System.Type[]
@@ -25,17 +25,31 @@ namespace Microsoft.Extensions.DependencyInjection
             this global::Mocha.Mediator.IMediatorHostBuilder builder)
         {
 
-            // Register handler configurations
-            global::Mocha.Mediator.MediatorHostBuilderHandlerExtensions.AddHandlerConfiguration<global::TestApp.OrderCreatedEmailHandler>(builder,
-                new global::Mocha.Mediator.MediatorHandlerConfiguration
-                {
-                    HandlerType = typeof(global::TestApp.OrderCreatedEmailHandler),
-                    MessageType = typeof(global::TestApp.OrderCreated),
-                    Kind = global::Mocha.Mediator.MediatorHandlerKind.Notification,
-                    Delegate = global::Mocha.Mediator.PipelineBuilder.BuildNotificationPipeline<global::TestApp.OrderCreatedEmailHandler, global::TestApp.OrderCreated>()
-                });
+            // Register handlers
+            global::Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions.TryAdd(
+                builder.Services,
+                new global::Microsoft.Extensions.DependencyInjection.ServiceDescriptor(
+                    typeof(global::TestApp.OrderCreatedEmailHandler),
+                    typeof(global::TestApp.OrderCreatedEmailHandler),
+                    builder.Options.ServiceLifetime));
+            global::Mocha.Mediator.MediatorHostBuilderExtensions.ConfigureMediator(
+                builder,
+                static b => b.AddHandler<global::TestApp.OrderCreatedEmailHandler>(__Initialize_OrderCreatedEmailHandler_Handler_MJ_sF3C__AzDnVve_iwrTA));
 
             return builder;
+        }
+
+        private static void __Initialize_OrderCreatedEmailHandler_Handler_MJ_sF3C__AzDnVve_iwrTA(global::Mocha.Mediator.IMediatorHandlerDescriptor descriptor)
+        {
+            var configuration = descriptor.Extend().Configuration;
+            configuration.MessageType = typeof(global::TestApp.OrderCreated);
+            configuration.Kind = global::Mocha.Mediator.MediatorHandlerKind.Notification;
+            configuration.Delegate = global::Mocha.Mediator.PipelineBuilder.BuildNotificationPipeline<global::TestApp.OrderCreatedEmailHandler, global::TestApp.OrderCreated>();
+            configuration.Source = new global::Mocha.SourceMetadata
+            {
+                Assembly = "Tests",
+                DeclarationLocation = new global::Mocha.DeclarationLocation("", 7, 1, 11, 2)
+            };
         }
     }
 }
