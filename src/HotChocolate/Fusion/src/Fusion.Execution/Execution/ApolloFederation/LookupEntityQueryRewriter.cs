@@ -42,7 +42,9 @@ internal static class LookupEntityQueryRewriter
         ArgumentNullException.ThrowIfNull(schema);
         ArgumentException.ThrowIfNullOrEmpty(schemaName);
 
-        var lookupField = GetLookupField(operation);
+        var document = Utf8GraphQLParser.Parse(operation.SourceText);
+        var operationDefinition = GetOperationDefinition(document);
+        var lookupField = GetLookupField(operationDefinition);
         var lookup = ResolveLookup(schema, schemaName, lookupField);
         var entityTypeName = lookup.FieldType.Name;
         var entityType = schema.Types.GetType<FusionObjectTypeDefinition>(entityTypeName);
@@ -55,7 +57,10 @@ internal static class LookupEntityQueryRewriter
             entityType,
             lookupField.SelectionSet);
 
-        var text = BuildEntitiesDocument(entityTypeName, strippedSelections);
+        var text = BuildEntitiesDocument(
+            entityTypeName,
+            strippedSelections,
+            operationDefinition.VariableDefinitions);
 
         return new RewrittenOperation(
             new OperationSourceText(operation.Name, operation.Type, text, operation.Hash),
@@ -63,10 +68,8 @@ internal static class LookupEntityQueryRewriter
             lookupField);
     }
 
-    private static FieldNode GetLookupField(OperationSourceText operation)
+    private static FieldNode GetLookupField(OperationDefinitionNode operationDefinition)
     {
-        var document = Utf8GraphQLParser.Parse(operation.SourceText);
-        var operationDefinition = GetOperationDefinition(document);
         var selections = operationDefinition.SelectionSet.Selections;
 
         if (selections.Count == 0 || selections[0] is not FieldNode lookupField)
@@ -377,7 +380,8 @@ internal static class LookupEntityQueryRewriter
 
     private static string BuildEntitiesDocument(
         string entityTypeName,
-        SelectionSetNode selectionSet)
+        SelectionSetNode selectionSet,
+        IReadOnlyList<VariableDefinitionNode> availableVariableDefinitions)
     {
         var representationsVarDef = new VariableDefinitionNode(
             location: null,
@@ -409,11 +413,59 @@ internal static class LookupEntityQueryRewriter
             name: null,
             description: null,
             operation: OperationType.Query,
-            variableDefinitions: [representationsVarDef],
+            variableDefinitions: BuildVariableDefinitions(
+                selectionSet,
+                availableVariableDefinitions,
+                representationsVarDef),
             directives: [],
             selectionSet: new SelectionSetNode([entitiesField]));
 
         return new DocumentNode([operationDefinition]).ToString(indented: true);
+    }
+
+    private static List<VariableDefinitionNode> BuildVariableDefinitions(
+        SelectionSetNode selectionSet,
+        IReadOnlyList<VariableDefinitionNode> availableVariableDefinitions,
+        VariableDefinitionNode representationsVarDef)
+    {
+        if (availableVariableDefinitions.Count == 0)
+        {
+            return [representationsVarDef];
+        }
+
+        var usedVariables = new HashSet<string>(StringComparer.Ordinal);
+        CollectVariables(selectionSet, usedVariables);
+
+        if (usedVariables.Count == 0)
+        {
+            return [representationsVarDef];
+        }
+
+        var variableDefinitions = new List<VariableDefinitionNode> { representationsVarDef };
+
+        foreach (var variableDefinition in availableVariableDefinitions)
+        {
+            if (usedVariables.Contains(variableDefinition.Variable.Name.Value))
+            {
+                variableDefinitions.Add(variableDefinition);
+            }
+        }
+
+        return variableDefinitions;
+    }
+
+    private static void CollectVariables(ISyntaxNode node, HashSet<string> variables)
+    {
+        if (node is VariableNode variable)
+        {
+            variables.Add(variable.Name.Value);
+            return;
+        }
+
+        foreach (var child in node.GetNodes())
+        {
+            CollectVariables(child, variables);
+        }
     }
 
     private static OperationDefinitionNode GetOperationDefinition(DocumentNode document)

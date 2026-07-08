@@ -19,6 +19,8 @@ internal sealed class SatisfiabilityValidator
 {
     private readonly SatisfiabilityOptions _options;
     private readonly RequirementsValidator _requirementsValidator;
+    private readonly FusionLookupDirectiveCache _lookupCache;
+    private readonly SourceSchemaTransitionCache _transitionCache;
     private readonly MutableSchemaDefinition _schema;
     private readonly ICompositionLog _log;
 
@@ -30,7 +32,10 @@ internal sealed class SatisfiabilityValidator
         _schema = schema;
         _log = log;
         _options = options ?? new SatisfiabilityOptions();
-        _requirementsValidator = new RequirementsValidator(schema, _options.IncludeSatisfiabilityPaths);
+        _lookupCache = new FusionLookupDirectiveCache(schema);
+        _transitionCache = new SourceSchemaTransitionCache();
+        _requirementsValidator =
+            new RequirementsValidator(schema, _lookupCache, _transitionCache, _options.IncludeSatisfiabilityPaths);
     }
 
     public CompositionResult Validate()
@@ -286,8 +291,7 @@ internal sealed class SatisfiabilityValidator
     {
         foreach (var possibleType in _schema.GetPossibleTypes(nodeType))
         {
-            var byIdLookups = _schema
-                .GetPossibleFusionLookupDirectivesById(possibleType);
+            var byIdLookups = _lookupCache.GetPossibleFusionLookupDirectivesById(possibleType);
 
             var hasNodeLookup = false;
 
@@ -343,7 +347,9 @@ internal sealed class SatisfiabilityValidator
         string transitionToSchemaName)
     {
         return SourceSchemaTransitionHelper.ValidateSourceSchemaTransition(
-            _schema,
+            _lookupCache,
+            _transitionCache,
+            cycleDetectionPath: null,
             type,
             transitionToSchemaName,
             [.. path.EnumerateFromLeaf()],

@@ -8,6 +8,7 @@ public sealed class InventoryBookType : ObjectType<InventoryBook>
     protected override void Configure(IObjectTypeDescriptor<InventoryBook> descriptor)
     {
         descriptor.Name("Book");
+        descriptor.Implements<InventoryProductInterfaceType>();
 
         descriptor
             .Key("id")

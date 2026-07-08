@@ -5,8 +5,8 @@ operation:
           isExpensive
           reducedPrice
           price(withDiscount: true)
-          price @fusion__requirement
           upc @fusion__requirement
+          fusion__requirement_price_0: price @fusion__requirement
         }
       }
     hash: 123456789101112
@@ -28,8 +28,8 @@ nodes:
     operation: |
       query Op_123456789101112_2(
         $__fusion_1_price: Int
-          $__fusion_2_upc: String!
-          $__fusion_5_price: Int
+        $__fusion_2_upc: String!
+        $__fusion_5_price: Int
       ) {
         productByUpc(upc: $__fusion_2_upc) {
           reducedPrice(price: $__fusion_1_price)
@@ -40,12 +40,14 @@ nodes:
     target: $.products
     requirements:
       - name: __fusion_1_price
+        internalAlias: fusion__requirement_price_0
         selectionMap: >-
           price
       - name: __fusion_2_upc
         selectionMap: >-
           upc
       - name: __fusion_5_price
+        internalAlias: fusion__requirement_price_0
         selectionMap: >-
           price
     dependencies:
@@ -56,7 +58,7 @@ nodes:
     operation: |
       query Op_123456789101112_3($__fusion_3_upc: String!) {
         productByUpc(upc: $__fusion_3_upc) {
-          price
+          fusion__requirement_price_0: price
         }
       }
     source: $.productByUpc

@@ -99,6 +99,14 @@ internal sealed class RepresentationShapeNode
     /// or <c>null</c> when unconditional.
     /// </summary>
     public string? TypeCondition { get; set; }
+
+    /// <summary>
+    /// Gets whether the emitter must write the runtime <c>__typename</c> into
+    /// this composite node's object. This is set when the node's declared type
+    /// is abstract and the node carries no type-conditioned branches, so the
+    /// source schema cannot reconstruct the abstract value without its type name.
+    /// </summary>
+    public bool RequiresTypeName { get; set; }
 }
 
 /// <summary>

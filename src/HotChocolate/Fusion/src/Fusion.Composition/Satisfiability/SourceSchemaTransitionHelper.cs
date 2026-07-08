@@ -22,7 +22,13 @@ internal static class SourceSchemaTransitionHelper
     /// Validates whether a transition to <paramref name="transitionToSchemaName"/>
     /// is possible for <paramref name="type"/>.
     /// </summary>
-    /// <param name="schema">The merged schema being validated.</param>
+    /// <param name="lookupCache">The lookup directive cache for the current validation run.</param>
+    /// <param name="transitionCache">The transition satisfiability memo for the current validation run.</param>
+    /// <param name="cycleDetectionPath">
+    /// The inherited cycle detection path, or <see langword="null"/> when the caller validates
+    /// lookup requirements from a fresh cycle context. Used to keep a memoized verdict independent
+    /// of inherited cycle context.
+    /// </param>
     /// <param name="type">
     /// The type we need to be holding in <paramref name="transitionToSchemaName"/>
     /// after the transition.
@@ -58,7 +64,9 @@ internal static class SourceSchemaTransitionHelper
     /// was tried, plus a "no lookups" error if no lookup was available at all.
     /// </returns>
     public static ImmutableArray<SatisfiabilityError> ValidateSourceSchemaTransition(
-        MutableSchemaDefinition schema,
+        FusionLookupDirectiveCache lookupCache,
+        SourceSchemaTransitionCache transitionCache,
+        SatisfiabilityPath? cycleDetectionPath,
         MutableObjectTypeDefinition type,
         string transitionToSchemaName,
         IReadOnlyList<SatisfiabilityPathItem> pathFromLeaf,
@@ -73,16 +81,75 @@ internal static class SourceSchemaTransitionHelper
         var leafPathItem = pathFromLeaf.Count > 0 ? pathFromLeaf[0] : null;
 
         var lookupDirectives =
-            schema.GetPossibleFusionLookupDirectives(type, transitionToSchemaName);
+            lookupCache.GetPossibleFusionLookupDirectives(type, transitionToSchemaName);
 
-        // Direct lookup on `type` in the target schema.
-        foreach (var lookupDirective in lookupDirectives)
+        // The direct-lookup verdict depends on the leaf only through its source schema (the transition
+        // gate) unless the leaf contributes an @provides selection, in which case it is not memoized.
+        var cacheEligible = leafPathItem is null
+            || (leafPathItem.ProvidedSelectionSet is null
+                && leafPathItem.Field.GetFusionFieldProvides(leafPathItem.SchemaName) is null);
+        var previousSchemaName = leafPathItem?.SchemaName;
+
+        DirectLookupResult directLookup;
+
+        if (cacheEligible
+            && transitionCache.TryGetDirectLookup(
+                type,
+                transitionToSchemaName,
+                previousSchemaName,
+                out var cachedDirectLookup))
         {
-            if (TryLookup(lookupDirective, type, leafPathItem))
+            directLookup = cachedDirectLookup;
+        }
+        else
+        {
+            var directLookupErrors = new List<SatisfiabilityError>();
+            var satisfiable = false;
+
+            // Only cache a verdict that is independent of inherited cycle context: begin a collision
+            // scope at the current depth, and commit only if no cycle collision referenced an item that
+            // was already on the path when the direct-lookup computation began.
+            var entryDepth = cycleDetectionPath?.Count ?? 0;
+            var previousCollisionScope = cycleDetectionPath?.BeginCollisionScope() ?? int.MaxValue;
+
+            // Direct lookup on `type` in the target schema.
+            foreach (var lookupDirective in lookupDirectives)
             {
-                return [];
+                if (TryLookup(lookupDirective, type, leafPathItem, directLookupErrors))
+                {
+                    satisfiable = true;
+                    break;
+                }
+            }
+
+            var inheritedCollision = false;
+
+            if (cycleDetectionPath is not null)
+            {
+                var observedCollisionDepth = cycleDetectionPath.EndCollisionScope(previousCollisionScope);
+                inheritedCollision = observedCollisionDepth < entryDepth;
+            }
+
+            directLookup = new DirectLookupResult(
+                satisfiable,
+                satisfiable ? [] : [.. directLookupErrors]);
+
+            if (cacheEligible && !inheritedCollision)
+            {
+                transitionCache.AddDirectLookup(
+                    type,
+                    transitionToSchemaName,
+                    previousSchemaName,
+                    directLookup);
             }
         }
+
+        if (directLookup.Satisfiable)
+        {
+            return [];
+        }
+
+        errors.AddRange(directLookup.Errors);
 
         // Parent entity call: walk from the leaf upward, find the nearest
         // ancestor on the path whose declaring type has a lookup in the target
@@ -129,7 +196,7 @@ internal static class SourceSchemaTransitionHelper
             }
 
             var ancestorLookups =
-                schema.GetPossibleFusionLookupDirectives(ancestorObjectType, transitionToSchemaName);
+                lookupCache.GetPossibleFusionLookupDirectives(ancestorObjectType, transitionToSchemaName);
 
             if (ancestorLookups.Count == 0)
             {
@@ -144,7 +211,7 @@ internal static class SourceSchemaTransitionHelper
 
             foreach (var ancestorLookup in ancestorLookups)
             {
-                if (TryLookup(ancestorLookup, ancestorObjectType, prefixLeaf))
+                if (TryLookup(ancestorLookup, ancestorObjectType, prefixLeaf, errors))
                 {
                     return [];
                 }
@@ -178,7 +245,8 @@ internal static class SourceSchemaTransitionHelper
         bool TryLookup(
             IDirective lookupDirective,
             MutableObjectTypeDefinition contextType,
-            SatisfiabilityPathItem? parentPathItem)
+            SatisfiabilityPathItem? parentPathItem,
+            List<SatisfiabilityError> sink)
         {
             var lookupKeyArg = (string)lookupDirective.Arguments["key"].Value!;
             var lookupFieldArg = (string)lookupDirective.Arguments["field"].Value!;
@@ -199,7 +267,7 @@ internal static class SourceSchemaTransitionHelper
                 ? lookupFieldName
                 : $"{lookupPathArg}.{lookupFieldName}";
 
-            errors.Add(
+            sink.Add(
                 new SatisfiabilityError(
                     string.Format(
                         unableToSatisfyRequirementForLookupMessageFormat,

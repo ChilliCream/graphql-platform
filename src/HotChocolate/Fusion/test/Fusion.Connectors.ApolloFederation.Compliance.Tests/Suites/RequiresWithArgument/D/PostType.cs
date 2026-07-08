@@ -43,7 +43,7 @@ public sealed class PostType : ObjectType<Post>
             });
 
         descriptor
-            .Field("comments")
+            .Field(p => p.Comments)
             .Type<ListType<CommentType>>()
             .Argument("limit", a => a.Type<NonNullType<IntType>>())
             .Resolve(ctx =>

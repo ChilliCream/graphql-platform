@@ -555,6 +555,53 @@ public sealed class FetchResultStoreTests : FusionTestBase
     }
 
     [Fact]
+    public void CreateVariableValueSets_Should_ReadInternalAlias_When_RequirementHasInternalAlias()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: test
+            type Query {
+              foos: [Foo]
+            }
+
+            type Foo {
+              id: ID!
+            }
+            """);
+
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+        using var store = CreateLiveStore(
+            schema,
+            "{ foos { __fusion_internal_id: id } }",
+            """{"data":{"foos":[{"__fusion_internal_id":"1"}]}}""",
+            resultArena,
+            sourceArena);
+
+        var requirement = new OperationRequirement(
+            "__fusion_1_id",
+            new NamedTypeNode("String"),
+            SelectionPath.Root,
+            new FieldSelectionMapParser("id").Parse(),
+            "__fusion_internal_id");
+
+        // act
+        var result = store.CreateVariableValueSets(
+            SelectionPath.Root.AppendField("foos"),
+            [],
+            [requirement]);
+
+        // assert
+        Assert.Collection(
+            result,
+            entry => Normalize(entry.Values).MatchInlineSnapshot(
+                """
+                {"__fusion_1_id":"1"}
+                """));
+    }
+
+    [Fact]
     public void CreateVariableValueSets_Should_WriteNullInputField_When_NullableInputFieldValueIsNull()
     {
         // arrange
@@ -895,7 +942,8 @@ public sealed class FetchResultStoreTests : FusionTestBase
             key,
             new NamedTypeNode("String"),
             SelectionPath.Root,
-            new PathNode(new PathSegmentNode(new FusionNameNode(key))));
+            new PathNode(new PathSegmentNode(new FusionNameNode(key))),
+            null);
 
     private static OperationRequirement Requirement(
         FusionSchemaDefinition schema,
@@ -906,7 +954,8 @@ public sealed class FetchResultStoreTests : FusionTestBase
             key,
             type,
             SelectionPath.Root,
-            new FieldSelectionMapParser(map).Parse());
+            new FieldSelectionMapParser(map).Parse(),
+            null);
 
     private static HashSet<string> ImportedKeys(params string[] keys)
         => new(keys, StringComparer.Ordinal);

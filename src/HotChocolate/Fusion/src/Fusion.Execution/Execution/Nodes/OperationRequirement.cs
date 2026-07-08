@@ -22,8 +22,15 @@ namespace HotChocolate.Fusion.Execution.Nodes;
 /// <param name="Map">
 /// The field selection map that projects the requirement value from the data.
 /// </param>
+/// <param name="InternalAlias">
+/// The internal alias assigned when this requirement's field collides with a sibling
+/// selection of the same response name but different arguments; the field is fetched
+/// and read under this alias to keep its result separate. Null when the requirement
+/// is not aliased.
+/// </param>
 public record OperationRequirement(
     string Key,
     ITypeNode Type,
     SelectionPath Path,
-    IValueSelectionNode Map);
+    IValueSelectionNode Map,
+    string? InternalAlias = null);

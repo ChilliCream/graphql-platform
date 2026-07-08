@@ -393,6 +393,70 @@ public sealed class FetchResultStoreRepresentationTests : FusionTestBase
     }
 
     [Fact]
+    public void CreateRepresentationVariableValue_Should_ReadInternalAlias_When_RequirementHasInternalAlias()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: test
+            type Query {
+              foos: [Foo]
+            }
+
+            type Foo {
+              id: ID!
+            }
+            """);
+        var plan = PlanOperation(schema, "{ foos { __fusion_internal_id: id } }");
+        var node = Assert.IsType<OperationExecutionNode>(Assert.Single(plan.RootNodes));
+        var lookupField = ParseLookupField("{ fooById(id: $__fusion_1_id) { id } }");
+        var requirement = new OperationRequirement(
+            "__fusion_1_id",
+            new NamedTypeNode("String"),
+            SelectionPath.Root,
+            new FieldSelectionMapParser("id").Parse(),
+            "__fusion_internal_id");
+
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+        using var store = new FetchResultStore();
+        store.Initialize(
+            resultArena,
+            schema,
+            DefaultErrorHandler.Default,
+            plan.Operation,
+            ErrorHandlingMode.Propagate,
+            includeFlags: 0,
+            deferFlags: 0,
+            pathSegmentLocalPoolCapacity: 16);
+
+        var payload = """{"data":{"foos":[{"__fusion_internal_id":"1"}]}}"""u8.ToArray();
+        var document = SourceResultDocument.Parse(sourceArena, payload, payload.Length);
+        var added = store.AddPartialResults(
+            SelectionPath.Root,
+            [new SourceSchemaResult(CompactPath.Root, document)],
+            node.ResultSelectionSet,
+            containsErrors: false);
+
+        // act
+        var representation = CreateRepresentation(
+            store,
+            schema,
+            SelectionPath.Root.AppendField("foos"),
+            [],
+            [requirement],
+            "Foo",
+            lookupField);
+
+        // assert
+        Assert.True(added);
+        Normalize(representation.Value).MatchInlineSnapshot(
+            """
+            {"representations":[{"__typename":"Foo","id":"1"}]}
+            """);
+    }
+
+    [Fact]
     public void RepresentationShapeBuilder_Should_MatchValueSelectionRewriterOutput_When_MapsAreRewritten()
     {
         // arrange
@@ -407,13 +471,13 @@ public sealed class FetchResultStoreRepresentationTests : FusionTestBase
         var stringType = new NamedTypeNode("String");
         var requirements = new[]
         {
-            new OperationRequirement("__fusion_1_a", stringType, SelectionPath.Root, maps[0]),
-            new OperationRequirement("__fusion_2_b", stringType, SelectionPath.Root, maps[1]),
-            new OperationRequirement("__fusion_3_c", stringType, SelectionPath.Root, maps[2])
+            new OperationRequirement("__fusion_1_a", stringType, SelectionPath.Root, maps[0], null),
+            new OperationRequirement("__fusion_2_b", stringType, SelectionPath.Root, maps[1], null),
+            new OperationRequirement("__fusion_3_c", stringType, SelectionPath.Root, maps[2], null)
         };
 
         // act
-        var shape = RepresentationShapeBuilder.Build(lookupField, requirements);
+        var shape = RepresentationShapeBuilder.Build(lookupField, requirements, s_schema, "Foo");
 
         // assert
         // The shape merges overlapping source paths; the rewriter output is the
@@ -459,7 +523,7 @@ public sealed class FetchResultStoreRepresentationTests : FusionTestBase
         var requirements = new[] { Requirement("__fusion_1_id", "<Bar>.id") };
 
         // act
-        var shape = RepresentationShapeBuilder.Build(lookupField, requirements);
+        var shape = RepresentationShapeBuilder.Build(lookupField, requirements, s_schema, "Foo");
 
         // assert
         var node = Assert.Single(shape);
@@ -481,7 +545,7 @@ public sealed class FetchResultStoreRepresentationTests : FusionTestBase
         };
 
         // act
-        var shape = RepresentationShapeBuilder.Build(lookupField, requirements);
+        var shape = RepresentationShapeBuilder.Build(lookupField, requirements, s_schema, "Foo");
 
         // assert
         Assert.Collection(
@@ -540,7 +604,7 @@ public sealed class FetchResultStoreRepresentationTests : FusionTestBase
         };
 
         // act
-        var shape = RepresentationShapeBuilder.Build(lookupField, requirements);
+        var shape = RepresentationShapeBuilder.Build(lookupField, requirements, s_schema, "Foo");
 
         // assert
         Assert.Collection(
@@ -587,7 +651,7 @@ public sealed class FetchResultStoreRepresentationTests : FusionTestBase
 
         // act
         var exception = Assert.Throws<InvalidOperationException>(
-            () => RepresentationShapeBuilder.Build(lookupField, requirements));
+            () => RepresentationShapeBuilder.Build(lookupField, requirements, s_schema, "Foo"));
 
         // assert
         Assert.Equal(
@@ -604,7 +668,7 @@ public sealed class FetchResultStoreRepresentationTests : FusionTestBase
 
         // act
         var exception = Assert.Throws<InvalidOperationException>(
-            () => RepresentationShapeBuilder.Build(lookupField, requirements));
+            () => RepresentationShapeBuilder.Build(lookupField, requirements, s_schema, "Foo"));
 
         // assert
         Assert.Equal(
@@ -622,7 +686,7 @@ public sealed class FetchResultStoreRepresentationTests : FusionTestBase
 
         // act
         var exception = Assert.Throws<InvalidOperationException>(
-            () => RepresentationShapeBuilder.Build(lookupField, requirements));
+            () => RepresentationShapeBuilder.Build(lookupField, requirements, s_schema, "Foo"));
 
         // assert
         Assert.Equal(
@@ -646,7 +710,7 @@ public sealed class FetchResultStoreRepresentationTests : FusionTestBase
 
         // act
         var exception = Assert.Throws<InvalidOperationException>(
-            () => RepresentationShapeBuilder.Build(lookupField, requirements));
+            () => RepresentationShapeBuilder.Build(lookupField, requirements, s_schema, "Foo"));
 
         // assert
         Assert.Equal(
@@ -668,7 +732,7 @@ public sealed class FetchResultStoreRepresentationTests : FusionTestBase
 
         // act
         var exception = Assert.Throws<InvalidOperationException>(
-            () => RepresentationShapeBuilder.Build(lookupField, requirements));
+            () => RepresentationShapeBuilder.Build(lookupField, requirements, s_schema, "Foo"));
 
         // assert
         Assert.Equal(
@@ -1048,6 +1112,87 @@ public sealed class FetchResultStoreRepresentationTests : FusionTestBase
         Normalize(live.Value).MatchInlineSnapshot(
             """
             {"representations":[{"__typename":"Entity","data":{"__typename":"Baz","foo":"f","bar":"b","baz":"z"}}]}
+            """);
+    }
+
+    [Fact]
+    public void RepresentationShapeBuilder_Should_SetRequiresTypeName_When_CompositeFieldIsAbstractAndUnbranched()
+    {
+        // arrange
+        // 'Entity.data' is an interface, so the unbranched composite must carry
+        // the runtime __typename for the source schema to reconstruct the value.
+        var schema = ComposeSchema(AbstractBranchSchema);
+        var lookupField = ParseLookupField("{ entityById(input: $__fusion_1_input) { id } }");
+        var requirements = new[] { Requirement("__fusion_1_input", "{ foo: data.foo }") };
+
+        // act
+        var shape = RepresentationShapeBuilder.Build(lookupField, requirements, schema, "Entity");
+
+        // assert
+        var node = Assert.Single(shape);
+        Assert.Equal("data", node.Name);
+        Assert.Null(node.Branches);
+        Assert.True(node.RequiresTypeName);
+    }
+
+    [Fact]
+    public void RepresentationShapeBuilder_Should_NotSetRequiresTypeName_When_CompositeFieldIsBranched()
+    {
+        // arrange
+        // A branched composite already emits __typename via its branch handling,
+        // so the unbranched typename flag must stay clear.
+        var schema = ComposeSchema(AbstractBranchSchema);
+        var lookupField = ParseLookupField("{ entityById(input: $__fusion_1_input) { id } }");
+        var requirements = new[]
+        {
+            Requirement("__fusion_1_input", "{ foo: data.foo bar: data<Bar>.bar }")
+        };
+
+        // act
+        var shape = RepresentationShapeBuilder.Build(lookupField, requirements, schema, "Entity");
+
+        // assert
+        var node = Assert.Single(shape);
+        Assert.Equal("data", node.Name);
+        Assert.NotNull(node.Branches);
+        Assert.False(node.RequiresTypeName);
+    }
+
+    [Fact]
+    public void CreateRepresentationVariableValue_Should_EmitTypename_When_CompositeFieldIsAbstractAndUnbranched()
+    {
+        // arrange
+        // 'Entity.data' is an interface; the unbranched requirement 'data.foo'
+        // must ship the runtime __typename so the source schema can reconstruct
+        // the abstract value.
+        var schema = ComposeSchema(AbstractBranchSchema);
+
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+        using var store = CreateLiveStore(
+            schema,
+            "{ entities { id data { __typename foo } } }",
+            """{"data":{"entities":[{"id":"1","data":{"__typename":"Qux","foo":"f"}}]}}""",
+            resultArena,
+            sourceArena);
+
+        var lookupField = ParseLookupField("{ entityById(input: $__fusion_1_input) { id } }");
+        var requirements = new[] { Requirement("__fusion_1_input", "{ foo: data.foo }") };
+
+        // act
+        var live = CreateRepresentation(
+            store,
+            schema,
+            SelectionPath.Root.AppendField("entities"),
+            [],
+            requirements,
+            "Entity",
+            lookupField);
+
+        // assert
+        Normalize(live.Value).MatchInlineSnapshot(
+            """
+            {"representations":[{"__typename":"Entity","data":{"__typename":"Qux","foo":"f"}}]}
             """);
     }
 
@@ -2376,7 +2521,7 @@ public sealed class FetchResultStoreRepresentationTests : FusionTestBase
             requestVariables,
             requirements,
             entityTypeName,
-            RepresentationShapeBuilder.Build(lookupField, requirements));
+            RepresentationShapeBuilder.Build(lookupField, requirements, schema, entityTypeName));
 
     private static RepresentationValue CreateRepresentationFromSnapshot(
         FetchResultStore store,
@@ -2393,7 +2538,7 @@ public sealed class FetchResultStoreRepresentationTests : FusionTestBase
             requestVariables,
             requirements,
             entityTypeName,
-            RepresentationShapeBuilder.Build(lookupField, requirements));
+            RepresentationShapeBuilder.Build(lookupField, requirements, schema, entityTypeName));
 
     private static SourceSchemaResult CreateResponse(MemoryArena arena, string payloadJson)
     {
@@ -2491,7 +2636,8 @@ public sealed class FetchResultStoreRepresentationTests : FusionTestBase
             key,
             type,
             SelectionPath.Root,
-            new FieldSelectionMapParser(map).Parse());
+            new FieldSelectionMapParser(map).Parse(),
+            null);
 
     private static HashSet<string> ImportedKeys(params string[] keys)
         => new(keys, StringComparer.Ordinal);
