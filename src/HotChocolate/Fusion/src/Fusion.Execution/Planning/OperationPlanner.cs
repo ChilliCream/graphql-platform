@@ -1,8 +1,11 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Execution;
+using HotChocolate.Fusion.Converters;
 using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
+using HotChocolate.Fusion.Language;
 using HotChocolate.Fusion.Planning.Partitioners;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Fusion.Types.Directives;
@@ -11,6 +14,7 @@ using HotChocolate.Fusion.Types.Rewriters;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 using HotChocolate.Types;
+using ArgumentNode = HotChocolate.Language.ArgumentNode;
 using NameNode = HotChocolate.Language.NameNode;
 
 namespace HotChocolate.Fusion.Planning;
@@ -24,6 +28,7 @@ public sealed partial class OperationPlanner
     private readonly SelectionSetByTypePartitioner _selectionSetByTypePartitioner;
     private readonly NodeFieldSelectionSetPartitioner _nodeFieldSelectionSetPartitioner;
     private readonly OperationPlannerOptions _options;
+    private bool? _schemaHasDivergentInterfaceFields;
 
     public OperationPlanner(
         FusionSchemaDefinition schema,
@@ -93,6 +98,21 @@ public sealed partial class OperationPlanner
 
         try
         {
+            // Interface fields whose ownership diverges across concrete types (for example after an
+            // @override) are expanded into per-concrete inline fragments up front. This runs before
+            // the defer split so deferred selections carry the expansion too, and before selection
+            // set indexing so the synthesized fragments receive stable ids like any query-authored
+            // fragment (the lookup requirement inlining later resolves ids against this operation).
+            // The __typename injection for abstract selections runs after planning and naturally
+            // covers the expanded fragments. The schema-level guard skips the walk entirely for the
+            // common case where no interface field diverges.
+            if (SchemaHasDivergentInterfaceFields())
+            {
+                operationDefinition = ExpandDivergentInterfaceFields(
+                    operationDefinition,
+                    _schema.GetOperationType(operationDefinition.Operation));
+            }
+
             // Split deferred selections into a main operation and incremental
             // plan descriptors before planning.
             ImmutableArray<DeliveryGroup> deliveryGroups = [];
@@ -1109,7 +1129,8 @@ public sealed partial class OperationPlanner
                     argumentRequirementKey,
                     argument.Type,
                     workItem.SelectionSet.Path,
-                    fieldSelectionMap);
+                    fieldSelectionMap,
+                    null);
 
                 requirements = requirements.Add(argumentRequirementKey, operationRequirement);
             }
@@ -1163,6 +1184,7 @@ public sealed partial class OperationPlanner
             RemainingCost = remainingCost,
             Steps = current.Steps.Add(step),
             LastRequirementId = lastRequirementId,
+            RequirementAliases = current.RequirementAliases,
             OperationStepCount = current.OperationStepCount + 1,
             MaxDepth = costState.MaxDepth,
             ExcessFanout = costState.ExcessFanout,
@@ -1225,6 +1247,15 @@ public sealed partial class OperationPlanner
 
         foreach (var (step, stepIndex, schemaName) in current.GetCandidateSteps(workItemSelectionSet.Id))
         {
+            // A step can only carry a requirement that lives within the data it produces.
+            // Abstract branches share a selection set id, so a candidate can match by id yet
+            // resolve a sibling concrete type (e.g. a Magazine lookup for a Book requirement);
+            // inlining there would emit an invalid cross-type fragment.
+            if (!step.Target.IsParentOfOrSame(workItemSelectionSet.Path))
+            {
+                continue;
+            }
+
             if (!processed.Add(schemaName)
                 || (!allowSourceSchemaReentry && lookup.SchemaName.Equals(schemaName)))
             {
@@ -1279,7 +1310,8 @@ public sealed partial class OperationPlanner
                     backlog = backlog.PushUnresolvable(
                         unresolvable,
                         current.SchemaName,
-                        GetOperationStepDepth(current, step.Id));
+                        GetOperationStepDepth(current, step.Id),
+                        dependents: ImmutableHashSet<int>.Empty.Add(lookupStepId));
                 }
             }
 
@@ -1324,7 +1356,8 @@ public sealed partial class OperationPlanner
                     backlog = backlog.PushUnresolvable(
                         unresolvable,
                         current.SchemaName,
-                        GetOperationStepDepth(current, ancestorMatch.Step.Id));
+                        GetOperationStepDepth(current, ancestorMatch.Step.Id),
+                        dependents: ImmutableHashSet<int>.Empty.Add(lookupStepId));
                 }
             }
         }
@@ -1402,7 +1435,8 @@ public sealed partial class OperationPlanner
                     currentStep,
                     index,
                     ref backlog,
-                    ref steps)
+                    ref steps,
+                    out var requirementAliases)
                 is null;
 
         if (!success)
@@ -1469,7 +1503,8 @@ public sealed partial class OperationPlanner
                 argumentRequirementKey,
                 argument.Type,
                 workItem.Selection.Path,
-                fieldSelectionMap);
+                fieldSelectionMap,
+                requirementAliases.GetInternalAlias(fieldSelectionMap));
 
             requirements = requirements.Add(argumentRequirementKey, operationRequirement);
         }
@@ -1496,6 +1531,7 @@ public sealed partial class OperationPlanner
             RemainingCost = remainingCost,
             Steps = steps,
             LastRequirementId = requirementId,
+            RequirementAliases = requirementAliases.Registry,
             OperationStepCount = current.OperationStepCount,
             MaxDepth = current.MaxDepth,
             ExcessFanout = current.ExcessFanout,
@@ -1576,7 +1612,8 @@ public sealed partial class OperationPlanner
                 currentStep,
                 indexBuilder,
                 ref backlog,
-                ref steps);
+                ref steps,
+                out var requirementAliases);
 
         // if we have requirements that we could not inline into existing nodes of the
         // operation plan we will put them on the backlog to be planned as another lookup.
@@ -1619,7 +1656,8 @@ public sealed partial class OperationPlanner
                 argumentRequirementKey,
                 argument.Type,
                 workItem.Selection.Path,
-                fieldSelectionMap);
+                fieldSelectionMap,
+                requirementAliases.GetInternalAlias(fieldSelectionMap));
 
             requirements = requirements.Add(argumentRequirementKey, operationRequirement);
         }
@@ -1695,6 +1733,7 @@ public sealed partial class OperationPlanner
                 RemainingCost = mergeRemainingCost,
                 Steps = steps,
                 LastRequirementId = lastRequirementId,
+                RequirementAliases = requirementAliases.Registry,
                 OperationStepCount = current.OperationStepCount,
                 MaxDepth = current.MaxDepth,
                 ExcessFanout = current.ExcessFanout,
@@ -1727,7 +1766,8 @@ public sealed partial class OperationPlanner
                 argumentRequirementKey,
                 argument.Type,
                 workItem.Selection.Path,
-                fieldSelectionMap);
+                fieldSelectionMap,
+                null);
 
             requirements = requirements.Add(argumentRequirementKey, operationRequirement);
         }
@@ -1775,6 +1815,7 @@ public sealed partial class OperationPlanner
             RemainingCost = remainingCost,
             Steps = steps.Add(step),
             LastRequirementId = lastRequirementId,
+            RequirementAliases = requirementAliases.Registry,
             OperationStepCount = current.OperationStepCount + 1,
             MaxDepth = costState.MaxDepth,
             ExcessFanout = costState.ExcessFanout,
@@ -1953,6 +1994,7 @@ public sealed partial class OperationPlanner
             RemainingCost = remainingCost,
             Steps = steps,
             LastRequirementId = current.LastRequirementId,
+            RequirementAliases = current.RequirementAliases,
             OperationStepCount = current.OperationStepCount + 1,
             MaxDepth = costState.MaxDepth,
             ExcessFanout = costState.ExcessFanout,
@@ -2093,6 +2135,7 @@ public sealed partial class OperationPlanner
                 .Add(nodeStep)
                 .Add(fallbackQueryStep),
             LastRequirementId = current.LastRequirementId,
+            RequirementAliases = current.RequirementAliases,
             OperationStepCount = current.OperationStepCount + 1,
             MaxDepth = costState.MaxDepth,
             ExcessFanout = costState.ExcessFanout,
@@ -2314,11 +2357,14 @@ public sealed partial class OperationPlanner
         OperationPlanStep currentStep,
         SelectionSetIndexBuilder index,
         ref Backlog backlog,
-        ref ImmutableList<PlanStep> steps)
+        ref ImmutableList<PlanStep> steps,
+        out RequirementAliasContext requirementAliases)
     {
         var compositeField = workItem.Selection.Field;
         var sourceField = compositeField.Sources[current.SchemaName];
-        var requirements = sourceField.Requirements!.Requirements;
+        var sourceRequirements = sourceField.Requirements!;
+        var requirements = sourceRequirements.Requirements;
+        requirementAliases = new RequirementAliasContext(sourceRequirements.Fields, current.RequirementAliases);
 
         if (index.IsRegistered(requirements))
         {
@@ -2342,18 +2388,48 @@ public sealed partial class OperationPlanner
                 }).Rewrite(requirements)!;
         }
 
+        // A requirement field that shares a response name with a sibling client
+        // selection but carries different arguments must resolve into its own response
+        // slot; otherwise the requirement fetch and the client selection merge under the
+        // same field and produce mismatched results (for example a limited list fetched
+        // twice with different limits). The requirement may be resolved by a separate
+        // re-entrant lookup that never inlines next to the client selection, so the
+        // in-step collision check cannot see the conflict. Detect it here against the
+        // sibling selections and mint an alias so the requirement carries a distinct
+        // response name through partitioning, leftover re-rooting and the internal
+        // operation.
+        if (index.TryGetSelectionSet(workItem.Selection.SelectionSetId, out var siblingSelections))
+        {
+            var mintedAlias = false;
+
+            foreach (var selection in requirements.Selections)
+            {
+                if (selection is FieldNode field
+                    && HasArgumentConflict(field, siblingSelections.Selections))
+                {
+                    requirementAliases.MintAlias(field);
+                    mintedAlias = true;
+                }
+            }
+
+            if (mintedAlias)
+            {
+                requirements = requirementAliases.ApplyAliases(requirements);
+            }
+        }
+
+        var fullRequirements = requirements;
+
         index.Register(
             workItem.Selection.SelectionSetId,
             requirements);
 
-        var internalOperation =
-            InlineSelectionsIntoOverallOperation(
-                current.InternalOperationDefinition,
-                index,
-                workItem.Selection.Field.DeclaringType,
-                workItem.Selection.SelectionSetId,
-                requirements);
-        current = current with { InternalOperationDefinition = internalOperation };
+        // Register the requirement's nested selection sets so the partitioner can
+        // resolve their identifiers while inlining into candidate steps. The aliased
+        // requirement is inlined into the internal operation only after the loop
+        // (aliases are minted during inlining), so the identifier registration that
+        // inlining performs must happen up front here.
+        RegisterRequirementSelectionSets(requirements, index);
 
         foreach (var (step, stepIndex, _) in current.GetCandidateSteps(workItem.Selection.SelectionSetId))
         {
@@ -2379,6 +2455,7 @@ public sealed partial class OperationPlanner
                 requirements,
                 dependentStepId,
                 index,
+                requirementAliases,
                 out var updatedStep,
                 out var unresolvable))
             {
@@ -2424,6 +2501,18 @@ public sealed partial class OperationPlanner
                 break;
             }
         }
+
+        var internalRequirements = requirementAliases.ApplyAliases(fullRequirements);
+        index.Register(workItem.Selection.SelectionSetId, internalRequirements);
+
+        var internalOperation =
+            InlineSelectionsIntoOverallOperation(
+                current.InternalOperationDefinition,
+                index,
+                workItem.Selection.Field.DeclaringType,
+                workItem.Selection.SelectionSetId,
+                internalRequirements);
+        current = current with { InternalOperationDefinition = internalOperation };
 
         // Fallback: if no candidate step was found via exact selection set ID match,
         // walk the internal operation AST to find the nearest ancestor step and the
@@ -2480,6 +2569,7 @@ public sealed partial class OperationPlanner
         SelectionSetNode requirementSelections,
         int dependentStepId,
         SelectionSetIndexBuilder index,
+        RequirementAliasContext requirementAliases,
         out OperationPlanStep updatedStep,
         out ImmutableStack<ConditionedSelectionSet> unresolvable)
     {
@@ -2503,6 +2593,88 @@ public sealed partial class OperationPlanner
             updatedStep = step;
             unresolvable = [];
             return false;
+        }
+
+        var existingSelectionSet = FindSelectionSet(
+            step.Definition.SelectionSet,
+            index,
+            targetSelectionSetId);
+
+        if (existingSelectionSet is not null)
+        {
+            List<ISelectionNode>? selectionsToInline = null;
+            List<ISelectionNode>? collidingSelections = null;
+
+            for (var i = 0; i < resolvable.Selections.Count; i++)
+            {
+                var selection = resolvable.Selections[i];
+
+                if (selection is FieldNode field
+                    && HasArgumentConflict(field, existingSelectionSet.Selections))
+                {
+                    var internalAlias = requirementAliases.MintAlias(field);
+                    var aliasedField = CreateFieldWithAlias(field, internalAlias);
+
+                    collidingSelections ??= [];
+                    collidingSelections.Add(aliasedField);
+
+                    if (selectionsToInline is null)
+                    {
+                        selectionsToInline = [with(resolvable.Selections.Count)];
+                        for (var j = 0; j < i; j++)
+                        {
+                            selectionsToInline.Add(resolvable.Selections[j]);
+                        }
+                    }
+                }
+                else
+                {
+                    selectionsToInline?.Add(selection);
+                }
+            }
+
+            if (collidingSelections is not null)
+            {
+                var conditions = Array.Empty<ExecutionNodeCondition>();
+
+                if (!partitionUnresolvable.IsEmpty)
+                {
+                    var top = partitionUnresolvable.Peek();
+
+                    if (top.SelectionSet.Id == targetSelectionSetId)
+                    {
+                        partitionUnresolvable = partitionUnresolvable.Pop(out top);
+                        conditions = top.Conditions;
+
+                        var mergedSelections = new List<ISelectionNode>(
+                            top.SelectionSet.Node.Selections.Count + collidingSelections.Count);
+                        mergedSelections.AddRange(top.SelectionSet.Node.Selections);
+                        mergedSelections.AddRange(collidingSelections);
+                        collidingSelections = mergedSelections;
+                    }
+                }
+
+                var collidingSelectionSet = new SelectionSetNode(collidingSelections);
+                index.Register(targetSelectionSetId, collidingSelectionSet);
+
+                partitionUnresolvable = partitionUnresolvable.Push(
+                    new ConditionedSelectionSet(
+                        new SelectionSet(
+                            targetSelectionSetId,
+                            collidingSelectionSet,
+                            selectionSetType,
+                            path),
+                        conditions));
+
+                if (selectionsToInline is not { Count: > 0 })
+                {
+                    updatedStep = step;
+                    unresolvable = partitionUnresolvable;
+                    return true;
+                }
+
+                resolvable = resolvable.WithSelections(selectionsToInline);
+            }
         }
 
         // the resolvable part of the requirement could be different from the requirement
@@ -2532,6 +2704,332 @@ public sealed partial class OperationPlanner
 
         unresolvable = partitionUnresolvable;
         return true;
+
+        static SelectionSetNode? FindSelectionSet(
+            SelectionSetNode selectionSet,
+            SelectionSetIndexBuilder index,
+            uint targetSelectionSetId)
+        {
+            if (index.IsRegistered(selectionSet)
+                && index.GetId(selectionSet) == targetSelectionSetId)
+            {
+                return selectionSet;
+            }
+
+            foreach (var selection in selectionSet.Selections)
+            {
+                switch (selection)
+                {
+                    case FieldNode { SelectionSet: not null } field:
+                    {
+                        var result = FindSelectionSet(
+                            field.SelectionSet,
+                            index,
+                            targetSelectionSetId);
+
+                        if (result is not null)
+                        {
+                            return result;
+                        }
+
+                        break;
+                    }
+
+                    case InlineFragmentNode inlineFragment:
+                    {
+                        var result = FindSelectionSet(
+                            inlineFragment.SelectionSet,
+                            index,
+                            targetSelectionSetId);
+
+                        if (result is not null)
+                        {
+                            return result;
+                        }
+
+                        break;
+                    }
+                }
+            }
+
+            return null;
+        }
+    }
+
+    private static FieldNode CreateFieldWithAlias(FieldNode field, string internalAlias)
+        => new(
+            field.Name,
+            new NameNode(internalAlias),
+            field.Directives,
+            field.Arguments,
+            field.SelectionSet);
+
+    private sealed class RequirementAliasContext(
+        ImmutableArray<IValueSelectionNode?> fieldSelectionMaps,
+        RequirementAliasRegistry registry)
+    {
+        private readonly Dictionary<IValueSelectionNode, string> _aliasesByMap = [];
+        private readonly List<(RequirementFieldSelectionKey Key, string Alias)> _aliases = [];
+        private RequirementAliasRegistry _registry = registry;
+
+        public RequirementAliasRegistry Registry => _registry;
+
+        public string? GetInternalAlias(IValueSelectionNode fieldSelectionMap)
+            => _aliasesByMap.GetValueOrDefault(fieldSelectionMap);
+
+        public string MintAlias(FieldNode field)
+        {
+            for (var i = 0; i < _aliases.Count; i++)
+            {
+                if (_aliases[i].Key.Matches(field))
+                {
+                    return _aliases[i].Alias;
+                }
+            }
+
+            _registry = _registry.GetOrAdd(field, out var alias);
+            var key = new RequirementFieldSelectionKey(field);
+            _aliases.Add((key, alias));
+            RecordMapAliases(key, alias);
+            return alias;
+        }
+
+        public SelectionSetNode ApplyAliases(SelectionSetNode selectionSet)
+        {
+            if (_aliases.Count == 0)
+            {
+                return selectionSet;
+            }
+
+            List<ISelectionNode>? selections = null;
+
+            for (var i = 0; i < selectionSet.Selections.Count; i++)
+            {
+                var selection = selectionSet.Selections[i];
+                var rewritten = selection;
+
+                if (selection is FieldNode field && TryGetAlias(field, out var alias))
+                {
+                    rewritten = field.Alias?.Value.Equals(alias, StringComparison.Ordinal) == true
+                        ? field
+                        : CreateFieldWithAlias(field, alias);
+                }
+
+                if (!ReferenceEquals(rewritten, selection) && selections is null)
+                {
+                    selections = [with(selectionSet.Selections.Count)];
+                    for (var j = 0; j < i; j++)
+                    {
+                        selections.Add(selectionSet.Selections[j]);
+                    }
+                }
+
+                selections?.Add(rewritten);
+            }
+
+            return selections is null ? selectionSet : selectionSet.WithSelections(selections);
+        }
+
+        private bool TryGetAlias(
+            FieldNode field,
+            [NotNullWhen(true)] out string? alias)
+        {
+            for (var i = 0; i < _aliases.Count; i++)
+            {
+                if (_aliases[i].Key.Matches(field))
+                {
+                    alias = _aliases[i].Alias;
+                    return true;
+                }
+            }
+
+            alias = null;
+            return false;
+        }
+
+        private void RecordMapAliases(RequirementFieldSelectionKey key, string alias)
+        {
+            for (var i = 0; i < fieldSelectionMaps.Length; i++)
+            {
+                var map = fieldSelectionMaps[i];
+
+                if (map is null
+                    || _aliasesByMap.ContainsKey(map)
+                    || !TryCreateRootFieldSelectionKey(map, out var mapKey)
+                    || !key.Equals(mapKey))
+                {
+                    continue;
+                }
+
+                _aliasesByMap.Add(map, alias);
+            }
+        }
+
+        private static bool TryCreateRootFieldSelectionKey(
+            IValueSelectionNode selection,
+            out RequirementFieldSelectionKey key)
+        {
+            switch (selection)
+            {
+                case PathNode path:
+                    return TryCreateRootFieldSelectionKey(path.PathSegment, out key);
+
+                case PathObjectValueSelectionNode pathObject:
+                    return TryCreateRootFieldSelectionKey(pathObject.Path.PathSegment, out key);
+
+                case PathListValueSelectionNode pathList:
+                    return TryCreateRootFieldSelectionKey(pathList.Path.PathSegment, out key);
+
+                case ObjectValueSelectionNode { Fields.Length: 1 } objectValue:
+                    var field = objectValue.Fields[0];
+
+                    if (field.ValueSelection is null)
+                    {
+                        key = new RequirementFieldSelectionKey(
+                            field.Name.Value,
+                            FieldSelectionMapValueNodeConverter.Convert(field.Arguments));
+                        return true;
+                    }
+
+                    return TryCreateRootFieldSelectionKey(field.ValueSelection, out key);
+
+                default:
+                    key = default;
+                    return false;
+            }
+        }
+
+        private static bool TryCreateRootFieldSelectionKey(
+            PathSegmentNode pathSegment,
+            out RequirementFieldSelectionKey key)
+        {
+            key = new RequirementFieldSelectionKey(
+                pathSegment.FieldName.Value,
+                FieldSelectionMapValueNodeConverter.Convert(pathSegment.Arguments));
+            return true;
+        }
+    }
+
+    private readonly struct RequirementFieldSelectionKey
+    {
+        private readonly IReadOnlyList<ArgumentNode> _arguments;
+
+        public RequirementFieldSelectionKey(FieldNode field)
+            : this(field.Name.Value, field.Arguments)
+        {
+        }
+
+        public RequirementFieldSelectionKey(string name, IReadOnlyList<ArgumentNode> arguments)
+        {
+            Name = name;
+            _arguments = arguments;
+        }
+
+        public string Name { get; }
+
+        public bool Matches(FieldNode field)
+            => string.Equals(Name, field.Name.Value, StringComparison.Ordinal)
+                && ArgumentsEqual(_arguments, field.Arguments);
+
+        public bool Equals(RequirementFieldSelectionKey other)
+            => string.Equals(Name, other.Name, StringComparison.Ordinal)
+                && ArgumentsEqual(_arguments, other._arguments);
+
+        private static bool ArgumentsEqual(
+            IReadOnlyList<ArgumentNode> left,
+            IReadOnlyList<ArgumentNode> right)
+        {
+            if (left.Count != right.Count)
+            {
+                return false;
+            }
+
+            for (var i = 0; i < left.Count; i++)
+            {
+                if (!SyntaxComparer.BySyntax.Equals(left[i], right[i]))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+    }
+
+    /// <summary>
+    /// An operation-level registry that assigns a stable internal alias to each distinct
+    /// requirement-field identity (field name and arguments). Identical identities from any
+    /// requiring field resolve to the same alias so their fetches merge, while identities that
+    /// differ by arguments receive distinct aliases. The registry is threaded through the plan
+    /// node like other operation-level plan state and is immutable so planner branches stay
+    /// isolated.
+    /// </summary>
+    internal readonly struct RequirementAliasRegistry
+    {
+        private readonly ImmutableArray<(RequirementFieldSelectionKey Key, string Alias)> _entries;
+
+        private RequirementAliasRegistry(
+            ImmutableArray<(RequirementFieldSelectionKey Key, string Alias)> entries)
+            => _entries = entries;
+
+        public static RequirementAliasRegistry Empty { get; } =
+            new(ImmutableArray<(RequirementFieldSelectionKey Key, string Alias)>.Empty);
+
+        public RequirementAliasRegistry GetOrAdd(FieldNode field, out string alias)
+        {
+            var entries = _entries;
+
+            for (var i = 0; i < entries.Length; i++)
+            {
+                if (entries[i].Key.Matches(field))
+                {
+                    alias = entries[i].Alias;
+                    return this;
+                }
+            }
+
+            alias = $"fusion__requirement_{field.Name.Value}_{entries.Length}";
+            return new(entries.Add((new RequirementFieldSelectionKey(field), alias)));
+        }
+    }
+
+    private static bool HasArgumentConflict(
+        FieldNode requirementField,
+        IReadOnlyList<ISelectionNode> existingSelections)
+    {
+        var responseName = requirementField.Alias?.Value ?? requirementField.Name.Value;
+
+        foreach (var selection in existingSelections)
+        {
+            if (selection is not FieldNode existingField)
+            {
+                continue;
+            }
+
+            var existingResponseName = existingField.Alias?.Value ?? existingField.Name.Value;
+
+            if (!responseName.Equals(existingResponseName, StringComparison.Ordinal))
+            {
+                continue;
+            }
+
+            if (requirementField.Arguments.Count != existingField.Arguments.Count)
+            {
+                return true;
+            }
+
+            for (var i = 0; i < requirementField.Arguments.Count; i++)
+            {
+                if (!SyntaxComparer.BySyntax.Equals(
+                    requirementField.Arguments[i],
+                    existingField.Arguments[i]))
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     private OperationDefinitionNode InlineSelectionsIntoOverallOperation(
@@ -2558,6 +3056,36 @@ public sealed partial class OperationPlanner
             targetSelectionSetId,
             selectionsToInline,
             inlineInternal: true);
+    }
+
+    private static void RegisterRequirementSelectionSets(
+        SelectionSetNode selectionSet,
+        SelectionSetIndexBuilder index)
+    {
+        var backlog = new Stack<SelectionSetNode>();
+        backlog.Push(selectionSet);
+
+        while (backlog.TryPop(out var current))
+        {
+            if (!index.IsRegistered(current))
+            {
+                index.Register(current);
+            }
+
+            foreach (var selection in current.Selections)
+            {
+                switch (selection)
+                {
+                    case FieldNode { SelectionSet: { } fieldSelectionSet }:
+                        backlog.Push(fieldSelectionSet);
+                        break;
+
+                    case InlineFragmentNode { SelectionSet: { } fragmentSelectionSet }:
+                        backlog.Push(fragmentSelectionSet);
+                        break;
+                }
+            }
+        }
     }
 
     private OperationDefinitionNode InlineSelections(
@@ -2759,6 +3287,189 @@ public sealed partial class OperationPlanner
                 }
             }
         }
+    }
+
+    /// <summary>
+    /// Returns whether the composite schema has any interface field whose ownership diverges
+    /// across concrete types (see <see cref="InterfaceFieldOwnershipDiverges"/>). The result is
+    /// computed once per schema and cached so that operations against a schema without divergence
+    /// (the common case) skip the expansion walk entirely.
+    /// </summary>
+    private bool SchemaHasDivergentInterfaceFields()
+    {
+        if (_schemaHasDivergentInterfaceFields is { } cached)
+        {
+            return cached;
+        }
+
+        var result = false;
+
+        foreach (var type in _schema.Types)
+        {
+            if (type is not FusionInterfaceTypeDefinition interfaceType)
+            {
+                continue;
+            }
+
+            foreach (var field in interfaceType.Fields)
+            {
+                if (InterfaceFieldOwnershipDiverges(interfaceType, field.Name))
+                {
+                    result = true;
+                    break;
+                }
+            }
+
+            if (result)
+            {
+                break;
+            }
+        }
+
+        _schemaHasDivergentInterfaceFields = result;
+        return result;
+    }
+
+    /// <summary>
+    /// Expands interface-level fields whose ownership diverges across concrete types into a
+    /// per-concrete inline fragment (one <c>... on ConcreteType { field }</c> per possible type),
+    /// leaving every non-diverging selection untouched.
+    /// </summary>
+    /// <remarks>
+    /// The rewrite is response equivalent to the un-expanded operation: each fragment reuses the
+    /// original field node verbatim, so its response name (alias), argument values, and directives
+    /// (for example <c>@skip</c>/<c>@include</c>) are preserved on every copy, and the runtime
+    /// response shape is unchanged. It merely moves the field from the interface level to the
+    /// concrete level so a source schema that no longer owns the field on a concrete type (for
+    /// example after an <c>@override</c>) routes that branch to the owner instead of resolving a
+    /// stale value at the interface level.
+    /// </remarks>
+    private OperationDefinitionNode ExpandDivergentInterfaceFields(
+        OperationDefinitionNode operation,
+        ITypeDefinition rootType)
+    {
+        var rewriter = SyntaxRewriter.Create<Stack<ITypeDefinition>>(
+            (node, path) =>
+            {
+                if (node is not SelectionSetNode selectionSet
+                    || path.Peek() is not FusionInterfaceTypeDefinition interfaceType)
+                {
+                    return node;
+                }
+
+                List<ISelectionNode>? rewritten = null;
+
+                for (var i = 0; i < selectionSet.Selections.Count; i++)
+                {
+                    var selection = selectionSet.Selections[i];
+
+                    // A field selected directly on an interface can look resolvable in a source
+                    // schema because the interface declares it there, even though a concrete type
+                    // that implements the interface there no longer owns the field (for example
+                    // after an @override moved it to another schema). Expanding the field into a
+                    // per-concrete inline fragment lets the planner route each branch to its owner
+                    // instead of resolving a stale value at the interface level.
+                    if (selection is FieldNode fieldNode
+                        && !fieldNode.Name.Value.Equals(IntrospectionFieldNames.TypeName)
+                        && InterfaceFieldOwnershipDiverges(interfaceType, fieldNode.Name.Value))
+                    {
+                        rewritten ??= [.. selectionSet.Selections.Take(i)];
+
+                        foreach (var possibleType in _schema.GetPossibleTypes(interfaceType, includeInaccessible: true))
+                        {
+                            rewritten.Add(new InlineFragmentNode(
+                                null,
+                                new NamedTypeNode(possibleType.Name),
+                                [],
+                                new SelectionSetNode([fieldNode])));
+                        }
+                    }
+                    else
+                    {
+                        rewritten?.Add(selection);
+                    }
+                }
+
+                return rewritten is null
+                    ? node
+                    : selectionSet.WithSelections(rewritten);
+            },
+            (node, path) =>
+            {
+                if (node is FieldNode { SelectionSet: not null } fieldNode
+                    && path.Peek() is FusionComplexTypeDefinition complexType)
+                {
+                    var field = complexType.Fields.GetField(fieldNode.Name.Value, allowInaccessibleFields: true);
+
+                    path.Push(field.Type.NamedType());
+                }
+                else if (node is InlineFragmentNode { TypeCondition: { } typeCondition })
+                {
+                    path.Push(_schema.Types.GetType(typeCondition.Name.Value, allowInaccessibleFields: true));
+                }
+
+                return path;
+            },
+            (node, path) =>
+            {
+                if (node is FieldNode { SelectionSet: not null } or InlineFragmentNode { TypeCondition: not null })
+                {
+                    path.Pop();
+                }
+            });
+
+        var context = new Stack<ITypeDefinition>();
+        context.Push(rootType);
+
+        return (OperationDefinitionNode)rewriter.Rewrite(operation, context)!;
+    }
+
+    /// <summary>
+    /// Determines whether a field declared on an interface has diverging ownership across the
+    /// interface's possible object types. Divergence occurs when a source schema declares the
+    /// field on the interface, yet a concrete type that implements the interface in that schema
+    /// does not own the field there (for example after an <c>@override</c> moved the field to
+    /// another schema). Such a field cannot be resolved uniformly at the interface level.
+    /// </summary>
+    private bool InterfaceFieldOwnershipDiverges(
+        FusionInterfaceTypeDefinition interfaceType,
+        string fieldName)
+    {
+        if (!interfaceType.Fields.TryGetField(fieldName, allowInaccessibleFields: true, out var interfaceField))
+        {
+            return false;
+        }
+
+        foreach (var interfaceSource in interfaceField.Sources)
+        {
+            // Requirements keep their existing requirement-inlining handling, and an external
+            // interface field is not claimed as resolvable by that schema in the first place.
+            if (interfaceSource.IsExternal || interfaceSource.Requirements is not null)
+            {
+                continue;
+            }
+
+            var schemaName = interfaceSource.SchemaName;
+
+            foreach (var possibleType in _schema.GetPossibleTypes(interfaceType, includeInaccessible: true))
+            {
+                // Only concrete types this schema can return through the interface are relevant.
+                if (!possibleType.Sources.TryGetMember(schemaName, out var typeSource)
+                    || !typeSource.Implements.Contains(interfaceType.Name))
+                {
+                    continue;
+                }
+
+                if (!possibleType.Fields.TryGetField(fieldName, allowInaccessibleFields: true, out var concreteField)
+                    || !concreteField.Sources.TryGetMember(schemaName, out var concreteSource)
+                    || concreteSource.IsExternal)
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     private OperationDefinitionNode AddTypeNameToAbstractSelections(
@@ -3425,7 +4136,9 @@ internal static class PlannerExtensions
         var pathItems = ReverseSelectionPath(
             planNodeTemplate.InternalOperationDefinition,
             selectionSet.Path,
-            compositeSchema);
+            compositeSchema,
+            planNodeTemplate.SelectionSetIndex,
+            selectionSet.Id);
 
         if (pathItems is null)
         {
@@ -3573,10 +4286,25 @@ internal static class PlannerExtensions
             out var viewerResolution)
             && viewerResolution.ContainsSchema(schemaName);
 
+    /// <summary>
+    /// Reverses a selection path into the concrete field and inline fragment selections that
+    /// connect the operation root to the terminal selection set.
+    /// </summary>
+    /// <param name="operationDefinitionNode">The operation definition that owns the path.</param>
+    /// <param name="path">The selection path to reverse.</param>
+    /// <param name="compositeSchema">The composite schema used to resolve field and type metadata.</param>
+    /// <param name="selectionSetIndex">The selection set index for the operation definition.</param>
+    /// <param name="terminalSelectionSetId">The logical identifier of the terminal selection set.</param>
+    /// <returns>
+    /// A stack of path items from the terminal selection set back to the operation root, or
+    /// <c>null</c> when the path cannot be resolved.
+    /// </returns>
     private static Stack<IPathItem>? ReverseSelectionPath(
         OperationDefinitionNode operationDefinitionNode,
         SelectionPath path,
-        FusionSchemaDefinition compositeSchema)
+        FusionSchemaDefinition compositeSchema,
+        ISelectionSetIndex selectionSetIndex,
+        uint terminalSelectionSetId)
     {
         IOutputTypeDefinition currentType = compositeSchema.GetOperationType(operationDefinitionNode.Operation);
         var currentSelectionSetNode = operationDefinitionNode.SelectionSet;
@@ -3593,6 +4321,15 @@ internal static class PlannerExtensions
                     var fieldAliasOrName = segment.Name;
 
                     var fieldSelection = FindThroughAnonymousFragments<FieldNode>(
+                        currentSelectionSetNode,
+                        f => (f.Name.Value == fieldAliasOrName || f.Alias?.Value == fieldAliasOrName)
+                            && ChildSelectionSetIdMatches(
+                                f,
+                                selectionSetIndex,
+                                terminalSelectionSetId),
+                        items);
+
+                    fieldSelection ??= FindThroughAnonymousFragments<FieldNode>(
                         currentSelectionSetNode,
                         f => f.Name.Value == fieldAliasOrName || f.Alias?.Value == fieldAliasOrName,
                         items);
@@ -3652,6 +4389,50 @@ internal static class PlannerExtensions
         }
 
         return items;
+    }
+
+    /// <summary>
+    /// Determines whether a field's child selection set has the expected logical identifier.
+    /// </summary>
+    /// <param name="field">The field whose child selection set should be matched.</param>
+    /// <param name="index">The selection set index that assigns logical identifiers.</param>
+    /// <param name="terminalSelectionSetId">The logical identifier to match against.</param>
+    /// <returns>
+    /// <c>true</c> when the field's child selection set matches
+    /// <paramref name="terminalSelectionSetId"/>, otherwise <c>false</c>.
+    /// </returns>
+    private static bool ChildSelectionSetIdMatches(
+        FieldNode field,
+        ISelectionSetIndex index,
+        uint terminalSelectionSetId)
+    {
+        if (field.SelectionSet is not { } childSelectionSet
+            || !index.IsRegistered(childSelectionSet))
+        {
+            return false;
+        }
+
+        var childId = index.GetId(childSelectionSet);
+
+        if (childId == terminalSelectionSetId)
+        {
+            return true;
+        }
+
+        // account for cloned selection-set ids in either direction
+        if (index.TryGetOriginalIdFromCloned(terminalSelectionSetId, out var originalTerminal)
+            && childId == originalTerminal)
+        {
+            return true;
+        }
+
+        if (index.TryGetOriginalIdFromCloned(childId, out var originalChild)
+            && originalChild == terminalSelectionSetId)
+        {
+            return true;
+        }
+
+        return false;
     }
 
     private static T? FindThroughAnonymousFragments<T>(

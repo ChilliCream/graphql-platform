@@ -609,9 +609,23 @@ internal sealed partial class FetchResultStore
                         return false;
                     }
                 }
-                else if (!TryWriteShapeLevel(value, node.Children, writer))
+                else
                 {
-                    return false;
+                    if (node.RequiresTypeName)
+                    {
+                        if (!TryResolveRuntimeType(value, out var runtimeTypeName, out _))
+                        {
+                            return false;
+                        }
+
+                        writer.WritePropertyName(TypeNameFieldName);
+                        writer.WriteStringValue(runtimeTypeName);
+                    }
+
+                    if (!TryWriteShapeLevel(value, node.Children, writer))
+                    {
+                        return false;
+                    }
                 }
 
                 writer.WriteEndObject();
@@ -914,9 +928,28 @@ internal sealed partial class FetchResultStore
                         return false;
                     }
                 }
-                else if (!TryWriteShapeLevelFromSnapshot(values, slices, node.Children, writer))
+                else
                 {
-                    return false;
+                    if (node.RequiresTypeName)
+                    {
+                        if (!TryResolveRuntimeTypeFromSnapshot(
+                            values,
+                            slices,
+                            node.Children,
+                            out var runtimeTypeName,
+                            out _))
+                        {
+                            return false;
+                        }
+
+                        writer.WritePropertyName(TypeNameFieldName);
+                        writer.WriteStringValue(runtimeTypeName);
+                    }
+
+                    if (!TryWriteShapeLevelFromSnapshot(values, slices, node.Children, writer))
+                    {
+                        return false;
+                    }
                 }
 
                 writer.WriteEndObject();
@@ -1001,9 +1034,26 @@ internal sealed partial class FetchResultStore
                         return false;
                     }
                 }
-                else if (!TryWriteNodesFromScope(scope, node.Children, writer))
+                else
                 {
-                    return false;
+                    if (node.RequiresTypeName)
+                    {
+                        if (!TryResolveRuntimeTypeFromSnapshotScope(
+                            scope,
+                            out var runtimeTypeName,
+                            out _))
+                        {
+                            return false;
+                        }
+
+                        writer.WritePropertyName(TypeNameFieldName);
+                        writer.WriteStringValue(runtimeTypeName);
+                    }
+
+                    if (!TryWriteNodesFromScope(scope, node.Children, writer))
+                    {
+                        return false;
+                    }
                 }
 
                 writer.WriteEndObject();
