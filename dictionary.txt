@@ -127,9 +127,12 @@ kode
 Kydne
 LASTEXITCODE
 Leia
+libgcc
+libstdc
 LICEN*
 Linq
 Liquibase
+longpaths
 lscache
 Marek
 marocchino
