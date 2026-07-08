@@ -1,4 +1,5 @@
 using System.Linq.Expressions;
+using System.Text.Json;
 using GreenDonut;
 using GreenDonut.Data;
 using HotChocolate.Execution;
@@ -185,6 +186,94 @@ public sealed class DataLoaderTests
             .MatchMarkdownSnapshot();
     }
 
+    [Fact]
+    public async Task Filter_With_Aliased_Filtering_Same_Operator_Different_Value()
+    {
+        // Arrange
+        var context = new CatalogContext();
+        await context.SeedAsync();
+
+        // Act
+        var result = await new ServiceCollection()
+            .AddTransient(_ => context)
+            .AddGraphQL()
+            .AddFiltering()
+            .AddQueryType<AliasFilterQuery>()
+            .AddPagingArguments()
+            .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
+            .ExecuteRequestAsync(
+                """
+                {
+                    a: productsByBrand(brandId: 1, where: { name: { eq: "Product 0-0" } }) {
+                        name
+                    }
+                    b: productsByBrand(brandId: 1, where: { name: { eq: "Product 0-1" } }) {
+                        name
+                    }
+                }
+                """,
+                cancellationToken: Xunit.TestContext.Current.CancellationToken);
+        using var doc = JsonDocument.Parse(result.ToJson());
+
+        // Assert
+        var data = doc.RootElement.GetProperty("data");
+        var aNames = data.GetProperty("a")
+            .EnumerateArray()
+            .Select(e => e.GetProperty("name").GetString())
+            .ToArray();
+        var bNames = data.GetProperty("b")
+            .EnumerateArray()
+            .Select(e => e.GetProperty("name").GetString())
+            .ToArray();
+
+        Assert.Equal(new[] { "Product 0-0" }, aNames);
+        Assert.Equal(new[] { "Product 0-1" }, bNames);
+    }
+
+    [Fact]
+    public async Task Filter_With_Aliased_Filtering_Same_Operator_In_Different_Value()
+    {
+        // Arrange
+        var context = new CatalogContext();
+        await context.SeedAsync();
+
+        // Act
+        var result = await new ServiceCollection()
+            .AddTransient(_ => context)
+            .AddGraphQL()
+            .AddFiltering()
+            .AddQueryType<AliasFilterQuery>()
+            .AddPagingArguments()
+            .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
+            .ExecuteRequestAsync(
+                """
+                {
+                    a: productsByBrand(brandId: 1, where: { name: { in: ["Product 0-0"] } }) {
+                        name
+                    }
+                    b: productsByBrand(brandId: 1, where: { name: { in: ["Product 0-1"] } }) {
+                        name
+                    }
+                }
+                """,
+                cancellationToken: Xunit.TestContext.Current.CancellationToken);
+        using var doc = JsonDocument.Parse(result.ToJson());
+
+        // Assert
+        var data = doc.RootElement.GetProperty("data");
+        var aNames = data.GetProperty("a")
+            .EnumerateArray()
+            .Select(e => e.GetProperty("name").GetString())
+            .ToArray();
+        var bNames = data.GetProperty("b")
+            .EnumerateArray()
+            .Select(e => e.GetProperty("name").GetString())
+            .ToArray();
+
+        Assert.Equal(new[] { "Product 0-0" }, aNames);
+        Assert.Equal(new[] { "Product 0-1" }, bNames);
+    }
+
     public class Query
     {
         public async Task<Brand?> FilterExpression(
@@ -304,6 +393,47 @@ public sealed class DataLoaderTests
 
             var x = await query.ToListAsync(cancellationToken);
             return x.GroupBy(t => t.Id).ToDictionary(t => t.Key, t => t.ToArray());
+        }
+    }
+
+    public class AliasFilterQuery
+    {
+        [UseFiltering]
+        public async Task<Product[]?> ProductsByBrand(
+            int brandId,
+            IFilterContext context,
+            AliasProductsByBrandIdDataLoader productsByBrandId,
+            CancellationToken cancellationToken)
+            => await productsByBrandId.Where(context).LoadAsync(brandId, cancellationToken);
+    }
+
+    public class AliasProductsByBrandIdDataLoader : StatefulBatchDataLoader<int, Product[]>
+    {
+        private readonly IServiceProvider _services;
+
+        public AliasProductsByBrandIdDataLoader(
+            IServiceProvider services,
+            IBatchScheduler batchScheduler,
+            DataLoaderOptions options) : base(batchScheduler, options)
+        {
+            _services = services;
+        }
+
+        protected override async Task<IReadOnlyDictionary<int, Product[]>> LoadBatchAsync(
+            IReadOnlyList<int> keys,
+            DataLoaderFetchContext<Product[]> context,
+            CancellationToken cancellationToken)
+        {
+            var catalogContext = _services.GetRequiredService<CatalogContext>();
+
+            var query = catalogContext.Products
+                .Where(t => keys.Contains(t.BrandId))
+                .Where(context.GetPredicate());
+            var list = await query.ToListAsync(cancellationToken);
+
+            return list
+                .GroupBy(t => t.BrandId)
+                .ToDictionary(t => t.Key, t => t.ToArray());
         }
     }
 }
