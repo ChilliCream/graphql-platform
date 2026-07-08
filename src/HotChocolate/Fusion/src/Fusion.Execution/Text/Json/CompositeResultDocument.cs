@@ -132,6 +132,7 @@ public sealed partial class CompositeResultDocument : IDisposable
         return row.SizeOrLength;
     }
 
+    [SkipLocalsInit]
     internal CompactPath CreateCompactPath(Cursor current)
     {
         var firstRow = _metaDb.Get(current);

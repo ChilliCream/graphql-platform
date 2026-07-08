@@ -18,6 +18,33 @@ public class MessageTypeTests
     }
 
     [Fact]
+    public void Describe_Should_ReturnSource_When_MessageTypeConfigurationHasSource()
+    {
+        // arrange
+        var source = new SourceMetadata
+        {
+            Assembly = "Mocha.Tests",
+            RepositoryUrl = "https://github.com/example/mocha",
+            Commit = "abc123",
+            XmlDocumentation = "<summary>Raised when an order is created.</summary>",
+            DeclarationLocation = new DeclarationLocation("OrderCreated.cs", 1, 1, 3, 2)
+        };
+        var runtime = CreateRuntime(b =>
+        {
+            b.AddEventHandler<OrderCreatedHandler>();
+            b.AddMessage<OrderCreated>(d => d.Extend().Configuration.Source = source);
+        });
+        var messageType = runtime.Messages.GetMessageType(typeof(OrderCreated));
+        Assert.NotNull(messageType);
+
+        // act
+        var description = messageType.Describe();
+
+        // assert
+        Assert.Same(source, description.Source);
+    }
+
+    [Fact]
     public void EventHandlerMessageType_Should_HaveUrnIdentity_When_Registered()
     {
         // arrange & act

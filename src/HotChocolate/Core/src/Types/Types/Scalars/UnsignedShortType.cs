@@ -25,7 +25,7 @@ public class UnsignedShortType : IntegerTypeBase<ushort>
         : base(name, ushort.MinValue, ushort.MaxValue, bind)
     {
         Description = description;
-        SpecifiedBy = new Uri(SpecifiedByUri);
+        SpecifiedBy = SpecifiedByUri;
     }
 
     /// <summary>

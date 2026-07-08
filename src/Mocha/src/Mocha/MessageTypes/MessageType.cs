@@ -234,7 +234,8 @@ public class MessageType
             IsInterface,
             IsInternal,
             DefaultContentType?.Value,
-            EnclosedMessageIdentities.IsDefaultOrEmpty ? null : EnclosedMessageIdentities);
+            EnclosedMessageIdentities.IsDefaultOrEmpty ? null : EnclosedMessageIdentities,
+            Source);
     }
 
     [RequiresUnreferencedCode("Uses GetInterfaces and BaseType traversal which may reference trimmed types.")]

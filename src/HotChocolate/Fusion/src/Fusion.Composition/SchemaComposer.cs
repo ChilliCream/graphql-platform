@@ -8,6 +8,7 @@ using HotChocolate.Fusion.PreMergeValidationRules;
 using HotChocolate.Fusion.Results;
 using HotChocolate.Fusion.SourceSchemaValidationRules;
 using HotChocolate.Types.Mutable;
+using LogSeverity = HotChocolate.Fusion.Logging.LogSeverity;
 
 namespace HotChocolate.Fusion;
 
@@ -39,7 +40,11 @@ public sealed class SchemaComposer
             {
                 var options = _schemaComposerOptions.SourceSchemas.GetValueOrDefault(schema.Name);
 
-                return new SourceSchemaParser(schema, _log, options?.Parser).Parse();
+                return new SourceSchemaParser(
+                    schema,
+                    _log,
+                    options?.Parser,
+                    options?.InvalidFieldDeprecationSeverity ?? LogSeverity.Warning).Parse();
             }).Combine();
 
         if (parsingResult.IsFailure)
@@ -61,7 +66,9 @@ public sealed class SchemaComposer
                     schemas,
                     _log,
                     options?.Version,
-                    options?.Preprocessor).Preprocess();
+                    options?.Preprocessor,
+                    options?.InvalidFieldDeprecationSeverity ?? LogSeverity.Warning)
+                    .Preprocess();
             }).Combine();
 
         if (preprocessingResult.IsFailure)
@@ -128,9 +135,11 @@ public sealed class SchemaComposer
         }
 
         // Validate Satisfiability
-        var satisfiabilityOptions = _schemaComposerOptions.Satisfiability;
         var satisfiabilityResult =
-            new SatisfiabilityValidator(mergedSchema, _log, satisfiabilityOptions).Validate();
+            new SatisfiabilityValidator(
+                mergedSchema,
+                _log,
+                _schemaComposerOptions.Satisfiability).Validate();
 
         if (satisfiabilityResult.IsFailure)
         {

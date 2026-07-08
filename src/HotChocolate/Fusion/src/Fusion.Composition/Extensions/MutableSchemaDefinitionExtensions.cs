@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using HotChocolate.Fusion.ApolloFederation;
 using HotChocolate.Fusion.Language;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -44,6 +45,22 @@ internal static class MutableSchemaDefinitionExtensions
             return [];
         }
 
+        var unionsContainingType = type.Kind == TypeKind.Object
+            ? schema.Types
+                .OfType<MutableUnionTypeDefinition>()
+                .Where(u => u.Types.Contains(type))
+                .ToImmutableArray()
+            : [];
+
+        return GetPossibleFusionLookupDirectivesCore(schema, type, schemaName, unionsContainingType);
+    }
+
+    internal static List<IDirective> GetPossibleFusionLookupDirectivesCore(
+        MutableSchemaDefinition schema,
+        MutableComplexTypeDefinition type,
+        string? schemaName,
+        IReadOnlyList<MutableUnionTypeDefinition> unionsContainingType)
+    {
         // Get the lookups directly on the requested type.
         var lookups = GetFusionLookupDirectives(type, schemaName);
 
@@ -79,12 +96,7 @@ internal static class MutableSchemaDefinitionExtensions
         // if it's an object type.
         if (type.Kind == TypeKind.Object)
         {
-            var unionTypes = schema.Types
-                .OfType<MutableUnionTypeDefinition>()
-                .Where(u => u.Types.Contains(type))
-                .ToImmutableArray();
-
-            foreach (var unionType in unionTypes)
+            foreach (var unionType in unionsContainingType)
             {
                 if (!string.IsNullOrEmpty(schemaName) && !unionType.ExistsInSchema(schemaName))
                 {
@@ -139,7 +151,9 @@ internal static class MutableSchemaDefinitionExtensions
     }
 
     /// <summary>
-    /// Removes type system definitions that are not reachable from operation roots or preserved types.
+    /// Removes type system definitions that are not reachable from operation roots or preserved
+    /// types, then removes any <c>@external</c> fields the removals left unreferenced, repeating
+    /// until the schema is stable.
     /// </summary>
     /// <param name="schema">
     /// The schema from which unreferenced definitions are removed.
@@ -155,6 +169,24 @@ internal static class MutableSchemaDefinitionExtensions
     /// </param>
     public static void RemoveUnreferencedDefinitions(
         this MutableSchemaDefinition schema,
+        IReadOnlySet<string> preservedTypeNames,
+        bool seedUnionsAsRoots)
+    {
+        RemoveUnreachableDefinitions(schema, preservedTypeNames, seedUnionsAsRoots);
+
+        // Removing an unreachable type also removes the @require/@provides selections it carried.
+        // An @external field whose only references came from those selections is now dead, so
+        // prune it and re-run reachability: dropping the field can orphan its return type, whose
+        // own requirement selections can in turn orphan further externals. This converges quickly,
+        // and schemas with no dead externals never re-run reachability.
+        while (RemoveExternalFields.RemoveDeadExternalFields(schema))
+        {
+            RemoveUnreachableDefinitions(schema, preservedTypeNames, seedUnionsAsRoots);
+        }
+    }
+
+    private static void RemoveUnreachableDefinitions(
+        MutableSchemaDefinition schema,
         IReadOnlySet<string> preservedTypeNames,
         bool seedUnionsAsRoots)
     {

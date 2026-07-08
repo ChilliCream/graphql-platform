@@ -23,6 +23,29 @@ public sealed class ConsumerBehaviorTests
     }
 
     [Fact]
+    public void Describe_Should_ReturnSource_When_ConsumerConfigurationHasSource()
+    {
+        // arrange
+        var source = new SourceMetadata
+        {
+            Assembly = "Mocha.Tests",
+            RepositoryUrl = "https://github.com/example/mocha",
+            Commit = "abc123",
+            XmlDocumentation = "<summary>Handles order created events.</summary>",
+            DeclarationLocation = new DeclarationLocation("OrderCreatedHandler.cs", 1, 1, 5, 2)
+        };
+        var runtime = CreateRuntime(
+            b => b.AddEventHandler<OrderCreatedHandler>(d => d.Extend().Configuration.Source = source));
+        var consumer = runtime.Consumers.First(c => c.Name == nameof(OrderCreatedHandler));
+
+        // act
+        var description = consumer.Describe();
+
+        // assert
+        Assert.Same(source, description.Source);
+    }
+
+    [Fact]
     public async Task ProcessAsync_Should_ThrowInvalidOperationException_When_ContextIsNotConsumeContext()
     {
         // arrange

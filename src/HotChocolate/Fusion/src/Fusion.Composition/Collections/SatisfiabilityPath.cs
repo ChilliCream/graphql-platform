@@ -9,26 +9,58 @@ namespace HotChocolate.Fusion.Collections;
 internal sealed class SatisfiabilityPath : IEnumerable<SatisfiabilityPathItem>
 {
     private readonly Stack<SatisfiabilityPathItem> _stack = [];
-    private readonly HashSet<SatisfiabilityPathItem> _hashSet = [];
+    private readonly Dictionary<SatisfiabilityPathItem, int> _depthByItem = [];
+    private int _minCollisionDepth = int.MaxValue;
 
     public bool Contains(SatisfiabilityPathItem item)
     {
-        return _hashSet.Contains(item);
+        return _depthByItem.ContainsKey(item);
     }
 
     public int Count => _stack.Count;
 
     public bool Push(SatisfiabilityPathItem item)
     {
-        if (_hashSet.Contains(item))
+        if (_depthByItem.TryGetValue(item, out var existingDepth))
         {
+            if (existingDepth < _minCollisionDepth)
+            {
+                _minCollisionDepth = existingDepth;
+            }
+
             return false;
         }
 
+        _depthByItem[item] = _stack.Count;
         _stack.Push(item);
-        _hashSet.Add(item);
 
         return true;
+    }
+
+    /// <summary>
+    /// Begins a scope that measures the shallowest cycle collision that occurs until the matching
+    /// <see cref="EndCollisionScope"/> call. Returns the enclosing scope's state to restore later.
+    /// </summary>
+    public int BeginCollisionScope()
+    {
+        var previous = _minCollisionDepth;
+        _minCollisionDepth = int.MaxValue;
+
+        return previous;
+    }
+
+    /// <summary>
+    /// Ends the current collision scope, returning the shallowest collision depth observed within
+    /// it. The enclosing scope is restored and also sees that collision so an inherited collision
+    /// propagates outward.
+    /// </summary>
+    /// <param name="previous">The value returned by the matching <see cref="BeginCollisionScope"/>.</param>
+    public int EndCollisionScope(int previous)
+    {
+        var observed = _minCollisionDepth;
+        _minCollisionDepth = Math.Min(previous, observed);
+
+        return observed;
     }
 
     public SatisfiabilityPathItem Pop()
@@ -39,7 +71,7 @@ internal sealed class SatisfiabilityPath : IEnumerable<SatisfiabilityPathItem>
         }
 
         var item = _stack.Pop();
-        _hashSet.Remove(item);
+        _depthByItem.Remove(item);
 
         return item;
     }
@@ -69,7 +101,7 @@ internal sealed class SatisfiabilityPath : IEnumerable<SatisfiabilityPathItem>
     public void Clear()
     {
         _stack.Clear();
-        _hashSet.Clear();
+        _depthByItem.Clear();
     }
 
     public IEnumerator<SatisfiabilityPathItem> GetEnumerator()

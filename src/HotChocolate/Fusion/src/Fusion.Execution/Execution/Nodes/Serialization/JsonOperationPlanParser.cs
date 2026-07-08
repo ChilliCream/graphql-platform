@@ -185,6 +185,10 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
                     var requirementName = requirementElement.GetProperty("name").GetString()!;
                     var requirementType = requirementElement.GetProperty("type").GetString()!;
                     var requirementPath = requirementElement.GetProperty("path").GetString()!;
+                    var internalAlias =
+                        requirementElement.TryGetProperty("internalAlias", out var internalAliasElement)
+                            ? internalAliasElement.GetString()
+                            : null;
                     var selectionMap = requirementElement.GetProperty("selectionMap").GetString()!;
                     var requirementTypeNode = Utf8GraphQLParser.Syntax.ParseTypeReference(requirementType);
 
@@ -192,7 +196,8 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
                         requirementName,
                         requirementTypeNode,
                         SelectionPath.Parse(requirementPath),
-                        FieldSelectionMapParser.Parse(selectionMap)));
+                        FieldSelectionMapParser.Parse(selectionMap),
+                        internalAlias));
                 }
 
                 incrementalPlanRequirements = requirementsBuilder.ToImmutable();
@@ -747,6 +752,10 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
                 var requirementName = requirementElement.GetProperty("name").GetString()!;
                 var requirementType = requirementElement.GetProperty("type").GetString()!;
                 var requirementPath = requirementElement.GetProperty("path").GetString()!;
+                var internalAlias =
+                    requirementElement.TryGetProperty("internalAlias", out var internalAliasElement)
+                        ? internalAliasElement.GetString()
+                        : null;
                 var selectionMap = requirementElement.GetProperty("selectionMap").GetString()!;
                 var requirementTypeNode = Utf8GraphQLParser.Syntax.ParseTypeReference(requirementType);
 
@@ -754,7 +763,8 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
                     requirementName,
                     requirementTypeNode,
                     SelectionPath.Parse(requirementPath),
-                    FieldSelectionMapParser.Parse(selectionMap)));
+                    FieldSelectionMapParser.Parse(selectionMap),
+                    internalAlias));
             }
         }
 

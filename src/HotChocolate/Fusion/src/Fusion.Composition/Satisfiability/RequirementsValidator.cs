@@ -10,8 +10,13 @@ namespace HotChocolate.Fusion.Satisfiability;
 
 internal sealed class RequirementsValidator(
     MutableSchemaDefinition schema,
-    bool includeSatisfiabilityPaths = false)
+    FusionLookupDirectiveCache lookupCache,
+    SourceSchemaTransitionCache transitionCache,
+    bool includeSatisfiabilityPaths)
 {
+    private readonly FusionLookupDirectiveCache _lookupCache = lookupCache;
+    private readonly SourceSchemaTransitionCache _transitionCache = transitionCache;
+
     public ImmutableArray<SatisfiabilityError> Validate(
         SelectionSetNode requirements,
         MutableObjectTypeDefinition contextType,
@@ -228,7 +233,11 @@ internal sealed class RequirementsValidator(
             if (requirements is not null)
             {
                 var requirementErrors =
-                    new RequirementsValidator(schema, includeSatisfiabilityPaths).Validate(
+                    new RequirementsValidator(
+                        schema,
+                        _lookupCache,
+                        _transitionCache,
+                        includeSatisfiabilityPaths).Validate(
                         requirements,
                         type,
                         context.Path.Peek(),
@@ -323,7 +332,9 @@ internal sealed class RequirementsValidator(
         string transitionToSchemaName)
     {
         return SourceSchemaTransitionHelper.ValidateSourceSchemaTransition(
-            schema,
+            _lookupCache,
+            _transitionCache,
+            cycleDetectionPath: context.CycleDetectionPath,
             type,
             transitionToSchemaName,
             [.. context.Path],

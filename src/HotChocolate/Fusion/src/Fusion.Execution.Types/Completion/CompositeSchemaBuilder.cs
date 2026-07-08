@@ -1020,7 +1020,7 @@ internal static class CompositeSchemaBuilder
             context,
             options.ApplySerializeAsToScalars);
         var specifiedByDirective = directives.FirstOrDefault("specifiedBy");
-        Uri? specifiedBy = null;
+        string? specifiedBy = null;
 
         if (specifiedByDirective is not null)
         {
@@ -1029,7 +1029,7 @@ internal static class CompositeSchemaBuilder
                 throw new InvalidOperationException("The specified type does not have a url.");
             }
 
-            specifiedBy = new Uri(url.Value);
+            specifiedBy = url.Value;
         }
 
         // if we have a @serializeAs directive we're going to set the

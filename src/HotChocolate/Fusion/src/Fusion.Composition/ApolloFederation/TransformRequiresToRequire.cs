@@ -141,7 +141,10 @@ internal static class TransformRequiresToRequire
             return;
         }
 
-        var argument = new MutableInputFieldDefinition(fieldName, inputType)
+        // @require arguments are gateway-supplied and stripped from the public schema, so they are
+        // generated nullable. A non-null additional argument would also violate the interface
+        // argument rules for the field it is added to.
+        var argument = new MutableInputFieldDefinition(fieldName, StripNonNull(inputType))
         {
             DeclaringMember = targetField
         };
@@ -210,7 +213,9 @@ internal static class TransformRequiresToRequire
             forceNullable,
             pathIsExternal: IsExternal(sourceField),
             addedFields,
-            fieldMappings);
+            fieldMappings,
+            pendingInputTypes,
+            inputTypeName);
 
         if (inputType.Fields.Count == 0)
         {
@@ -230,7 +235,10 @@ internal static class TransformRequiresToRequire
             return;
         }
 
-        var argument = new MutableInputFieldDefinition(fieldName, argInputType)
+        // @require arguments are gateway-supplied and stripped from the public schema, so they are
+        // generated nullable. A non-null additional argument would also violate the interface
+        // argument rules for the field it is added to.
+        var argument = new MutableInputFieldDefinition(fieldName, StripNonNull(argInputType))
         {
             DeclaringMember = targetField
         };
@@ -334,7 +342,9 @@ internal static class TransformRequiresToRequire
                         forceNullable: true,
                         pathIsExternal: IsExternal(sourceField),
                         addedFields,
-                        fieldMappings);
+                        fieldMappings,
+                        pendingInputTypes,
+                        inputTypeName);
 
                     if (inputObj.Fields.Count == 0)
                     {
@@ -377,7 +387,9 @@ internal static class TransformRequiresToRequire
         bool forceNullable,
         bool pathIsExternal,
         HashSet<string> addedFields,
-        List<(string InputFieldName, string SourcePath)> fieldMappings)
+        List<(string InputFieldName, string SourcePath)> fieldMappings,
+        List<MutableInputObjectTypeDefinition> pendingInputTypes,
+        string parentInputName)
     {
         foreach (var selection in selectionSet.Selections)
         {
@@ -462,6 +474,62 @@ internal static class TransformRequiresToRequire
                             ? $"{pathPrefix}<{typeCondition}>.{fieldSelection}"
                             : $"{pathPrefix}.{fieldSelection}";
 
+                    // A list-typed intermediate cannot be flattened into a dotted path: the
+                    // FieldSelectionMap has to map over the list with `path[{ ... }]` syntax, and
+                    // the input field becomes a list of a nested input object whose paths are
+                    // relative to each element. A non-list intermediate keeps flattening into the
+                    // current input object.
+                    if (pathField.Type.NullableType() is ListType)
+                    {
+                        if (!addedFields.Add(fieldName))
+                        {
+                            break;
+                        }
+
+                        var elementInputName =
+                            $"{innerNamedType.Name}Input_"
+                            + ComputeHash(parentInputName, newPath, fieldName);
+                        var elementInput =
+                            new MutableInputObjectTypeDefinition(elementInputName);
+                        var elementAddedFields = new HashSet<string>(StringComparer.Ordinal);
+                        var elementMappings =
+                            new List<(string InputFieldName, string SourcePath)>();
+
+                        CollectInputFields(
+                            nestedField.SelectionSet!,
+                            innerType,
+                            schema,
+                            elementInput,
+                            pathPrefix: string.Empty,
+                            typeCondition: null,
+                            forceNullable,
+                            pathIsExternal || IsExternal(pathField),
+                            elementAddedFields,
+                            elementMappings,
+                            pendingInputTypes,
+                            elementInputName);
+
+                        if (elementInput.Fields.Count == 0)
+                        {
+                            break;
+                        }
+
+                        pendingInputTypes.Add(elementInput);
+
+                        inputType.Fields.Add(
+                            new MutableInputFieldDefinition(
+                                fieldName, new ListType(elementInput))
+                            {
+                                DeclaringMember = inputType
+                            });
+
+                        var innerMap = string.Join(
+                            ", ",
+                            elementMappings.Select(m => $"{m.InputFieldName}: {m.SourcePath}"));
+                        fieldMappings.Add((fieldName, $"{newPath}[{{ {innerMap} }}]"));
+                        break;
+                    }
+
                     CollectInputFields(
                         nestedField.SelectionSet!,
                         innerType,
@@ -472,7 +540,9 @@ internal static class TransformRequiresToRequire
                         forceNullable,
                         pathIsExternal || IsExternal(pathField),
                         addedFields,
-                        fieldMappings);
+                        fieldMappings,
+                        pendingInputTypes,
+                        parentInputName);
                     break;
                 }
 
@@ -495,7 +565,9 @@ internal static class TransformRequiresToRequire
                         forceNullable: true,
                         pathIsExternal,
                         addedFields,
-                        fieldMappings);
+                        fieldMappings,
+                        pendingInputTypes,
+                        parentInputName);
                     break;
             }
         }
