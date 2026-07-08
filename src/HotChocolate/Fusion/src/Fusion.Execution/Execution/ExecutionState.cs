@@ -152,7 +152,11 @@ internal sealed class ExecutionState
         ResetNodeStates();
         ResetRemainingDependencies();
 
-        _completedResults.Clear();
+        while (_completedResults.TryDequeue(out _))
+        {
+            // do nothing, just clear the queue
+        }
+
         ClearPendingMerges();
         _mergeFailures?.Clear();
         _activeNodes = 0;
