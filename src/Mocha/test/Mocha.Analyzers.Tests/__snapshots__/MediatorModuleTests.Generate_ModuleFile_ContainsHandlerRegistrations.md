@@ -9,7 +9,7 @@
 namespace Microsoft.Extensions.DependencyInjection
 {
     [global::System.CodeDom.Compiler.GeneratedCode("Mocha.Analyzers", "1.0.0")]
-    public static class TestsMediatorBuilderExtensions
+    public static partial class TestsMediatorBuilderExtensions
     {
         [global::Mocha.Mediator.MediatorModuleInfo(
             MessageTypes = new global::System.Type[]
@@ -25,18 +25,32 @@ namespace Microsoft.Extensions.DependencyInjection
             this global::Mocha.Mediator.IMediatorHostBuilder builder)
         {
 
-            // Register handler configurations
-            global::Mocha.Mediator.MediatorHostBuilderHandlerExtensions.AddHandlerConfiguration<global::TestApp.CreateInvoiceHandler>(builder,
-                new global::Mocha.Mediator.MediatorHandlerConfiguration
-                {
-                    HandlerType = typeof(global::TestApp.CreateInvoiceHandler),
-                    MessageType = typeof(global::TestApp.CreateInvoiceCommand),
-                    ResponseType = typeof(int),
-                    Kind = global::Mocha.Mediator.MediatorHandlerKind.CommandResponse,
-                    Delegate = global::Mocha.Mediator.PipelineBuilder.BuildCommandResponsePipeline<global::TestApp.CreateInvoiceHandler, global::TestApp.CreateInvoiceCommand, int>()
-                });
+            // Register handlers
+            global::Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions.TryAdd(
+                builder.Services,
+                new global::Microsoft.Extensions.DependencyInjection.ServiceDescriptor(
+                    typeof(global::TestApp.CreateInvoiceHandler),
+                    typeof(global::TestApp.CreateInvoiceHandler),
+                    builder.Options.ServiceLifetime));
+            global::Mocha.Mediator.MediatorHostBuilderExtensions.ConfigureMediator(
+                builder,
+                static b => b.AddHandler<global::TestApp.CreateInvoiceHandler>(__Initialize_CreateInvoiceHandler_Handler_WpI3FcFYR1i208ZhfT6U4w));
 
             return builder;
+        }
+
+        private static void __Initialize_CreateInvoiceHandler_Handler_WpI3FcFYR1i208ZhfT6U4w(global::Mocha.Mediator.IMediatorHandlerDescriptor descriptor)
+        {
+            var configuration = descriptor.Extend().Configuration;
+            configuration.MessageType = typeof(global::TestApp.CreateInvoiceCommand);
+            configuration.ResponseType = typeof(int);
+            configuration.Kind = global::Mocha.Mediator.MediatorHandlerKind.CommandResponse;
+            configuration.Delegate = global::Mocha.Mediator.PipelineBuilder.BuildCommandResponsePipeline<global::TestApp.CreateInvoiceHandler, global::TestApp.CreateInvoiceCommand, int>();
+            configuration.Source = new global::Mocha.SourceMetadata
+            {
+                Assembly = "Tests",
+                DeclarationLocation = new global::Mocha.DeclarationLocation("", 7, 1, 11, 2)
+            };
         }
     }
 }

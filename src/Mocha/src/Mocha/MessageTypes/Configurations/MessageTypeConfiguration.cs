@@ -44,4 +44,9 @@ public class MessageTypeConfiguration : MessagingConfiguration
     /// indicates the source generator did not supply this information.
     /// </summary>
     public ImmutableArray<Type> EnclosedTypes { get; set; }
+
+    /// <summary>
+    /// Source metadata captured from the message declaration.
+    /// </summary>
+    public SourceMetadata? Source { get; set; }
 }

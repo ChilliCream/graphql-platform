@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using Mocha.Middlewares;
 using static System.StringSplitOptions;
 
 namespace Mocha.Transport.InMemory;
@@ -33,13 +34,13 @@ public sealed class InMemoryMessagingTransport : MessagingTransport
     public override MessagingTopology Topology => _topology;
 
     /// <summary>
-    /// Builds the in-memory topology URI from the host's assembly name and creates the
+    /// Builds the in-memory topology URI from the host's service name and creates the
     /// <see cref="InMemoryMessagingTopology"/> that holds all topics, queues, and bindings for
     /// this transport.
     /// </summary>
     /// <remarks>
     /// Called once during the messaging host initialization phase, after the base transport has
-    /// been initialized. The topology address uses the transport schema and the assembly name as
+    /// been initialized. The topology address uses the transport schema and the service name as
     /// the host component, ensuring that endpoint addresses are scoped to this application.
     /// No network connections are established because all messaging is in-process.
     /// </remarks>
@@ -49,7 +50,7 @@ public sealed class InMemoryMessagingTransport : MessagingTransport
         var builder = new UriBuilder
         {
             Scheme = Schema,
-            Host = context.Host.AssemblyName, // service name might be nicer
+            Host = context.Host.EffectiveServiceName,
             Path = "/"
         };
         _topology = new InMemoryMessagingTopology(this, builder.Uri);
@@ -86,6 +87,7 @@ public sealed class InMemoryMessagingTransport : MessagingTransport
         {
             entities.Add(
                 new TopologyEntityDescription(
+                    MochaUrn.TopologyEntity(topic.Address?.ToString(), "topic", topic.Name),
                     "topic",
                     topic.Name,
                     topic.Address?.ToString(),
@@ -97,6 +99,7 @@ public sealed class InMemoryMessagingTransport : MessagingTransport
         {
             entities.Add(
                 new TopologyEntityDescription(
+                    MochaUrn.TopologyEntity(queue.Address?.ToString(), "queue", queue.Name),
                     "queue",
                     queue.Name,
                     queue.Address?.ToString(),
@@ -106,17 +109,21 @@ public sealed class InMemoryMessagingTransport : MessagingTransport
 
         foreach (var binding in _topology.Bindings)
         {
+            var source = binding.Source.Address?.ToString();
+            var target = binding switch
+            {
+                InMemoryQueueBinding qb => qb.Destination.Address?.ToString(),
+                InMemoryTopicBinding tb => tb.Destination.Address?.ToString(),
+                _ => null
+            };
+
             links.Add(
                 new TopologyLinkDescription(
+                    MochaUrn.TopologyLink(binding.Address?.ToString(), "bind", source, target),
                     "bind",
                     binding.Address?.ToString(),
-                    binding.Source.Address?.ToString(),
-                    binding switch
-                    {
-                        InMemoryQueueBinding qb => qb.Destination.Address?.ToString(),
-                        InMemoryTopicBinding tb => tb.Destination.Address?.ToString(),
-                        _ => null
-                    },
+                    source,
+                    target,
                     "forward",
                     new Dictionary<string, object?> { ["origin"] = binding.Origin }));
         }
@@ -124,6 +131,7 @@ public sealed class InMemoryMessagingTransport : MessagingTransport
         var topology = new TopologyDescription(_topology.Address.ToString(), entities, links);
 
         return new TransportDescription(
+            Urn,
             _topology.Address.ToString(),
             Name,
             Schema,

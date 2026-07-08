@@ -9,7 +9,7 @@
 namespace Microsoft.Extensions.DependencyInjection
 {
     [global::System.CodeDom.Compiler.GeneratedCode("Mocha.Analyzers", "1.0.0")]
-    public static class TestsMediatorBuilderExtensions
+    public static partial class TestsMediatorBuilderExtensions
     {
         [global::Mocha.Mediator.MediatorModuleInfo(
             MessageTypes = new global::System.Type[]
@@ -29,33 +29,75 @@ namespace Microsoft.Extensions.DependencyInjection
             this global::Mocha.Mediator.IMediatorHostBuilder builder)
         {
 
-            // Register handler configurations
-            global::Mocha.Mediator.MediatorHostBuilderHandlerExtensions.AddHandlerConfiguration<global::TestApp.AlphaHandler>(builder,
-                new global::Mocha.Mediator.MediatorHandlerConfiguration
-                {
-                    HandlerType = typeof(global::TestApp.AlphaHandler),
-                    MessageType = typeof(global::TestApp.AlphaCommand),
-                    Kind = global::Mocha.Mediator.MediatorHandlerKind.Command,
-                    Delegate = global::Mocha.Mediator.PipelineBuilder.BuildCommandPipeline<global::TestApp.AlphaHandler, global::TestApp.AlphaCommand>()
-                });
-            global::Mocha.Mediator.MediatorHostBuilderHandlerExtensions.AddHandlerConfiguration<global::TestApp.MidHandler>(builder,
-                new global::Mocha.Mediator.MediatorHandlerConfiguration
-                {
-                    HandlerType = typeof(global::TestApp.MidHandler),
-                    MessageType = typeof(global::TestApp.MidCommand),
-                    Kind = global::Mocha.Mediator.MediatorHandlerKind.Command,
-                    Delegate = global::Mocha.Mediator.PipelineBuilder.BuildCommandPipeline<global::TestApp.MidHandler, global::TestApp.MidCommand>()
-                });
-            global::Mocha.Mediator.MediatorHostBuilderHandlerExtensions.AddHandlerConfiguration<global::TestApp.ZetaHandler>(builder,
-                new global::Mocha.Mediator.MediatorHandlerConfiguration
-                {
-                    HandlerType = typeof(global::TestApp.ZetaHandler),
-                    MessageType = typeof(global::TestApp.ZetaCommand),
-                    Kind = global::Mocha.Mediator.MediatorHandlerKind.Command,
-                    Delegate = global::Mocha.Mediator.PipelineBuilder.BuildCommandPipeline<global::TestApp.ZetaHandler, global::TestApp.ZetaCommand>()
-                });
+            // Register handlers
+            global::Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions.TryAdd(
+                builder.Services,
+                new global::Microsoft.Extensions.DependencyInjection.ServiceDescriptor(
+                    typeof(global::TestApp.AlphaHandler),
+                    typeof(global::TestApp.AlphaHandler),
+                    builder.Options.ServiceLifetime));
+            global::Mocha.Mediator.MediatorHostBuilderExtensions.ConfigureMediator(
+                builder,
+                static b => b.AddHandler<global::TestApp.AlphaHandler>(__Initialize_AlphaHandler_Handler_sNGdIz224MxtnWrel6uWkA));
+            global::Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions.TryAdd(
+                builder.Services,
+                new global::Microsoft.Extensions.DependencyInjection.ServiceDescriptor(
+                    typeof(global::TestApp.MidHandler),
+                    typeof(global::TestApp.MidHandler),
+                    builder.Options.ServiceLifetime));
+            global::Mocha.Mediator.MediatorHostBuilderExtensions.ConfigureMediator(
+                builder,
+                static b => b.AddHandler<global::TestApp.MidHandler>(__Initialize_MidHandler_Handler_NqA1kB9hPAUn92tjVmxsgw));
+            global::Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions.TryAdd(
+                builder.Services,
+                new global::Microsoft.Extensions.DependencyInjection.ServiceDescriptor(
+                    typeof(global::TestApp.ZetaHandler),
+                    typeof(global::TestApp.ZetaHandler),
+                    builder.Options.ServiceLifetime));
+            global::Mocha.Mediator.MediatorHostBuilderExtensions.ConfigureMediator(
+                builder,
+                static b => b.AddHandler<global::TestApp.ZetaHandler>(__Initialize_ZetaHandler_Handler_lNiJhsCwdk_wWPMm6KWULw));
 
             return builder;
+        }
+
+        private static void __Initialize_AlphaHandler_Handler_sNGdIz224MxtnWrel6uWkA(global::Mocha.Mediator.IMediatorHandlerDescriptor descriptor)
+        {
+            var configuration = descriptor.Extend().Configuration;
+            configuration.MessageType = typeof(global::TestApp.AlphaCommand);
+            configuration.Kind = global::Mocha.Mediator.MediatorHandlerKind.Command;
+            configuration.Delegate = global::Mocha.Mediator.PipelineBuilder.BuildCommandPipeline<global::TestApp.AlphaHandler, global::TestApp.AlphaCommand>();
+            configuration.Source = new global::Mocha.SourceMetadata
+            {
+                Assembly = "Tests",
+                DeclarationLocation = new global::Mocha.DeclarationLocation("", 14, 1, 17, 2)
+            };
+        }
+
+        private static void __Initialize_MidHandler_Handler_NqA1kB9hPAUn92tjVmxsgw(global::Mocha.Mediator.IMediatorHandlerDescriptor descriptor)
+        {
+            var configuration = descriptor.Extend().Configuration;
+            configuration.MessageType = typeof(global::TestApp.MidCommand);
+            configuration.Kind = global::Mocha.Mediator.MediatorHandlerKind.Command;
+            configuration.Delegate = global::Mocha.Mediator.PipelineBuilder.BuildCommandPipeline<global::TestApp.MidHandler, global::TestApp.MidCommand>();
+            configuration.Source = new global::Mocha.SourceMetadata
+            {
+                Assembly = "Tests",
+                DeclarationLocation = new global::Mocha.DeclarationLocation("", 19, 1, 22, 2)
+            };
+        }
+
+        private static void __Initialize_ZetaHandler_Handler_lNiJhsCwdk_wWPMm6KWULw(global::Mocha.Mediator.IMediatorHandlerDescriptor descriptor)
+        {
+            var configuration = descriptor.Extend().Configuration;
+            configuration.MessageType = typeof(global::TestApp.ZetaCommand);
+            configuration.Kind = global::Mocha.Mediator.MediatorHandlerKind.Command;
+            configuration.Delegate = global::Mocha.Mediator.PipelineBuilder.BuildCommandPipeline<global::TestApp.ZetaHandler, global::TestApp.ZetaCommand>();
+            configuration.Source = new global::Mocha.SourceMetadata
+            {
+                Assembly = "Tests",
+                DeclarationLocation = new global::Mocha.DeclarationLocation("", 9, 1, 12, 2)
+            };
         }
     }
 }

@@ -9,7 +9,7 @@
 namespace Microsoft.Extensions.DependencyInjection
 {
     [global::System.CodeDom.Compiler.GeneratedCode("Mocha.Analyzers", "1.0.0")]
-    public static class TestsMediatorBuilderExtensions
+    public static partial class TestsMediatorBuilderExtensions
     {
         [global::Mocha.Mediator.MediatorModuleInfo(
             MessageTypes = new global::System.Type[]
@@ -31,43 +31,99 @@ namespace Microsoft.Extensions.DependencyInjection
             this global::Mocha.Mediator.IMediatorHostBuilder builder)
         {
 
-            // Register handler configurations
-            global::Mocha.Mediator.MediatorHostBuilderHandlerExtensions.AddHandlerConfiguration<global::TestApp.DeleteItemHandler>(builder,
-                new global::Mocha.Mediator.MediatorHandlerConfiguration
-                {
-                    HandlerType = typeof(global::TestApp.DeleteItemHandler),
-                    MessageType = typeof(global::TestApp.DeleteItemCommand),
-                    Kind = global::Mocha.Mediator.MediatorHandlerKind.Command,
-                    Delegate = global::Mocha.Mediator.PipelineBuilder.BuildCommandPipeline<global::TestApp.DeleteItemHandler, global::TestApp.DeleteItemCommand>()
-                });
-            global::Mocha.Mediator.MediatorHostBuilderHandlerExtensions.AddHandlerConfiguration<global::TestApp.CreateItemHandler>(builder,
-                new global::Mocha.Mediator.MediatorHandlerConfiguration
-                {
-                    HandlerType = typeof(global::TestApp.CreateItemHandler),
-                    MessageType = typeof(global::TestApp.CreateItemCommand),
-                    ResponseType = typeof(int),
-                    Kind = global::Mocha.Mediator.MediatorHandlerKind.CommandResponse,
-                    Delegate = global::Mocha.Mediator.PipelineBuilder.BuildCommandResponsePipeline<global::TestApp.CreateItemHandler, global::TestApp.CreateItemCommand, int>()
-                });
-            global::Mocha.Mediator.MediatorHostBuilderHandlerExtensions.AddHandlerConfiguration<global::TestApp.GetItemHandler>(builder,
-                new global::Mocha.Mediator.MediatorHandlerConfiguration
-                {
-                    HandlerType = typeof(global::TestApp.GetItemHandler),
-                    MessageType = typeof(global::TestApp.GetItemQuery),
-                    ResponseType = typeof(global::TestApp.ItemDto),
-                    Kind = global::Mocha.Mediator.MediatorHandlerKind.Query,
-                    Delegate = global::Mocha.Mediator.PipelineBuilder.BuildQueryPipeline<global::TestApp.GetItemHandler, global::TestApp.GetItemQuery, global::TestApp.ItemDto>()
-                });
-            global::Mocha.Mediator.MediatorHostBuilderHandlerExtensions.AddHandlerConfiguration<global::TestApp.ItemCreatedHandler>(builder,
-                new global::Mocha.Mediator.MediatorHandlerConfiguration
-                {
-                    HandlerType = typeof(global::TestApp.ItemCreatedHandler),
-                    MessageType = typeof(global::TestApp.ItemCreated),
-                    Kind = global::Mocha.Mediator.MediatorHandlerKind.Notification,
-                    Delegate = global::Mocha.Mediator.PipelineBuilder.BuildNotificationPipeline<global::TestApp.ItemCreatedHandler, global::TestApp.ItemCreated>()
-                });
+            // Register handlers
+            global::Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions.TryAdd(
+                builder.Services,
+                new global::Microsoft.Extensions.DependencyInjection.ServiceDescriptor(
+                    typeof(global::TestApp.DeleteItemHandler),
+                    typeof(global::TestApp.DeleteItemHandler),
+                    builder.Options.ServiceLifetime));
+            global::Mocha.Mediator.MediatorHostBuilderExtensions.ConfigureMediator(
+                builder,
+                static b => b.AddHandler<global::TestApp.DeleteItemHandler>(__Initialize_DeleteItemHandler_Handler__4hReAtEP507b09A9H1D0vA));
+            global::Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions.TryAdd(
+                builder.Services,
+                new global::Microsoft.Extensions.DependencyInjection.ServiceDescriptor(
+                    typeof(global::TestApp.CreateItemHandler),
+                    typeof(global::TestApp.CreateItemHandler),
+                    builder.Options.ServiceLifetime));
+            global::Mocha.Mediator.MediatorHostBuilderExtensions.ConfigureMediator(
+                builder,
+                static b => b.AddHandler<global::TestApp.CreateItemHandler>(__Initialize_CreateItemHandler_Handler__7UfHWbjWHil28HYz7dVOdQ));
+            global::Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions.TryAdd(
+                builder.Services,
+                new global::Microsoft.Extensions.DependencyInjection.ServiceDescriptor(
+                    typeof(global::TestApp.GetItemHandler),
+                    typeof(global::TestApp.GetItemHandler),
+                    builder.Options.ServiceLifetime));
+            global::Mocha.Mediator.MediatorHostBuilderExtensions.ConfigureMediator(
+                builder,
+                static b => b.AddHandler<global::TestApp.GetItemHandler>(__Initialize_GetItemHandler_Handler_dxBRJkHIWR80ax4m0LvrRQ));
+            global::Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions.TryAdd(
+                builder.Services,
+                new global::Microsoft.Extensions.DependencyInjection.ServiceDescriptor(
+                    typeof(global::TestApp.ItemCreatedHandler),
+                    typeof(global::TestApp.ItemCreatedHandler),
+                    builder.Options.ServiceLifetime));
+            global::Mocha.Mediator.MediatorHostBuilderExtensions.ConfigureMediator(
+                builder,
+                static b => b.AddHandler<global::TestApp.ItemCreatedHandler>(__Initialize_ItemCreatedHandler_Handler_Jyu_jpikZvhO_1gyRRPxrQ));
 
             return builder;
+        }
+
+        private static void __Initialize_DeleteItemHandler_Handler__4hReAtEP507b09A9H1D0vA(global::Mocha.Mediator.IMediatorHandlerDescriptor descriptor)
+        {
+            var configuration = descriptor.Extend().Configuration;
+            configuration.MessageType = typeof(global::TestApp.DeleteItemCommand);
+            configuration.Kind = global::Mocha.Mediator.MediatorHandlerKind.Command;
+            configuration.Delegate = global::Mocha.Mediator.PipelineBuilder.BuildCommandPipeline<global::TestApp.DeleteItemHandler, global::TestApp.DeleteItemCommand>();
+            configuration.Source = new global::Mocha.SourceMetadata
+            {
+                Assembly = "Tests",
+                DeclarationLocation = new global::Mocha.DeclarationLocation("", 19, 1, 23, 2)
+            };
+        }
+
+        private static void __Initialize_CreateItemHandler_Handler__7UfHWbjWHil28HYz7dVOdQ(global::Mocha.Mediator.IMediatorHandlerDescriptor descriptor)
+        {
+            var configuration = descriptor.Extend().Configuration;
+            configuration.MessageType = typeof(global::TestApp.CreateItemCommand);
+            configuration.ResponseType = typeof(int);
+            configuration.Kind = global::Mocha.Mediator.MediatorHandlerKind.CommandResponse;
+            configuration.Delegate = global::Mocha.Mediator.PipelineBuilder.BuildCommandResponsePipeline<global::TestApp.CreateItemHandler, global::TestApp.CreateItemCommand, int>();
+            configuration.Source = new global::Mocha.SourceMetadata
+            {
+                Assembly = "Tests",
+                DeclarationLocation = new global::Mocha.DeclarationLocation("", 25, 1, 29, 2)
+            };
+        }
+
+        private static void __Initialize_GetItemHandler_Handler_dxBRJkHIWR80ax4m0LvrRQ(global::Mocha.Mediator.IMediatorHandlerDescriptor descriptor)
+        {
+            var configuration = descriptor.Extend().Configuration;
+            configuration.MessageType = typeof(global::TestApp.GetItemQuery);
+            configuration.ResponseType = typeof(global::TestApp.ItemDto);
+            configuration.Kind = global::Mocha.Mediator.MediatorHandlerKind.Query;
+            configuration.Delegate = global::Mocha.Mediator.PipelineBuilder.BuildQueryPipeline<global::TestApp.GetItemHandler, global::TestApp.GetItemQuery, global::TestApp.ItemDto>();
+            configuration.Source = new global::Mocha.SourceMetadata
+            {
+                Assembly = "Tests",
+                DeclarationLocation = new global::Mocha.DeclarationLocation("", 31, 1, 35, 2)
+            };
+        }
+
+        private static void __Initialize_ItemCreatedHandler_Handler_Jyu_jpikZvhO_1gyRRPxrQ(global::Mocha.Mediator.IMediatorHandlerDescriptor descriptor)
+        {
+            var configuration = descriptor.Extend().Configuration;
+            configuration.MessageType = typeof(global::TestApp.ItemCreated);
+            configuration.Kind = global::Mocha.Mediator.MediatorHandlerKind.Notification;
+            configuration.Delegate = global::Mocha.Mediator.PipelineBuilder.BuildNotificationPipeline<global::TestApp.ItemCreatedHandler, global::TestApp.ItemCreated>();
+            configuration.Source = new global::Mocha.SourceMetadata
+            {
+                Assembly = "Tests",
+                DeclarationLocation = new global::Mocha.DeclarationLocation("", 37, 1, 41, 2)
+            };
         }
     }
 }
