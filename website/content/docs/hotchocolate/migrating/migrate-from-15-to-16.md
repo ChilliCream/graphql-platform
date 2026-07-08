@@ -1406,7 +1406,7 @@ The `CanHandle` signature also changed on the filtering, sorting, and projection
 
 A field whose resolver is defined on a different type than the entity being projected, most commonly a resolver class annotated with `[ExtendObjectType]`, is no longer added to the queryable projection by default.
 
-In version 15, the projection included the backing member of such a field even though a custom resolver produced the value, and opting out required an explicit `[IsProjected(false)]`. Version 16 treats a resolver defined on a separate type as a genuine custom resolver: its backing member is left out of the projection unless you opt in. Fields whose resolver member is declared on the entity's runtime type, on an interface the entity implements, or on a base type it extends are unaffected and continue to be projected.
+In v15, the projection included the backing member of such a field even though a custom resolver produced the value, and opting out required an explicit `[IsProjected(false)]`. v16 treats a resolver defined on a separate type as a genuine custom resolver: its backing member is left out of the projection unless you opt in. Fields whose resolver member is declared on the entity's runtime type, on an interface the entity implements, or on a base type it extends are unaffected and continue to be projected.
 
 The following resolver reads a member of its parent through `[ExtendObjectType]`:
 
@@ -1418,7 +1418,7 @@ public sealed class AuthorExtensions
 }
 ```
 
-In version 15, `Author.Name` was projected, so `displayName` returned the author's name. In version 16, `Name` is no longer projected, the resolver receives a default-valued `Author`, and `displayName` returns an empty string.
+In v15, `Author.Name` was projected, so `displayName` returned the author's name. In v16, `Name` is no longer projected, so the resolver receives an `Author` whose `Name` is unset (the CLR default, `null` for a string), and `displayName` no longer returns the real name.
 
 To keep the backing member in the projection, annotate the resolver with `[BindMember]` and name the member it reads:
 
