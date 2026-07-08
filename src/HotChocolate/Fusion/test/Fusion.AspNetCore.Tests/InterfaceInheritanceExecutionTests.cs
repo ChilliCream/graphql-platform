@@ -1,4 +1,3 @@
-using System.Text.Json;
 using HotChocolate.Transport;
 using HotChocolate.Transport.Http;
 
@@ -98,19 +97,7 @@ public class InterfaceInheritanceExecutionTests : FusionTestBase
             TestContext.Current.CancellationToken);
 
         // assert
-        using var response = await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
-        var orders = response.Data.GetProperty("orders");
-        Assert.Equal(JsonValueKind.Array, orders.ValueKind);
-
-        foreach (var order in orders.EnumerateArray())
-        {
-            foreach (var item in order.GetProperty("items").EnumerateArray())
-            {
-                var product = item.GetProperty("product");
-                Assert.False(string.IsNullOrEmpty(product.GetProperty("name").GetString()));
-                Assert.False(string.IsNullOrEmpty(product.GetProperty("description").GetString()));
-            }
-        }
+        await MatchSnapshotAsync(gateway, request, result);
     }
 
     [Fact]
