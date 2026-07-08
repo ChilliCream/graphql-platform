@@ -415,7 +415,7 @@ public sealed partial class CompositeResultDocument
         {
             AssertValidCursor(cursor);
 
-            return MemoryMarshal.Read<DbRow>(RowSpan(cursor));
+            return Unsafe.ReadUnaligned<DbRow>(ref RowRef(cursor));
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -437,16 +437,16 @@ public sealed partial class CompositeResultDocument
         {
             AssertValidCursor(cursor);
 
-            var span = RowSpan(cursor);
-            var sourceAndType = MemoryMarshal.Read<int>(span[DbRow.SourceAndTypeOffset..]);
+            ref var row = ref RowRef(cursor);
+            var sourceAndType = Unsafe.ReadUnaligned<int>(ref Unsafe.Add(ref row, DbRow.SourceAndTypeOffset));
             var tokenType = (ElementTokenType)((sourceAndType >>> 15) & 0x0F);
 
             if (tokenType is ElementTokenType.Reference)
             {
-                var value = MemoryMarshal.Read<int>(span[DbRow.LocationOrRowsOffset..]) & 0x1FFFFFFF;
+                var value = Unsafe.ReadUnaligned<int>(ref Unsafe.Add(ref row, DbRow.LocationOrRowsOffset)) & 0x1FFFFFFF;
                 cursor = new Cursor(value);
-                span = RowSpan(cursor);
-                sourceAndType = MemoryMarshal.Read<int>(span[DbRow.SourceAndTypeOffset..]);
+                row = ref RowRef(cursor);
+                sourceAndType = Unsafe.ReadUnaligned<int>(ref Unsafe.Add(ref row, DbRow.SourceAndTypeOffset));
                 tokenType = (ElementTokenType)((sourceAndType >>> 15) & 0x0F);
             }
 
@@ -458,7 +458,7 @@ public sealed partial class CompositeResultDocument
         {
             AssertValidCursor(cursor);
 
-            var locationOrRows = MemoryMarshal.Read<int>(RowSpan(cursor)[DbRow.LocationOrRowsOffset..]);
+            var locationOrRows = Unsafe.ReadUnaligned<int>(ref Unsafe.Add(ref RowRef(cursor), DbRow.LocationOrRowsOffset));
             return locationOrRows & 0x1FFFFFFF;
         }
 
@@ -467,7 +467,7 @@ public sealed partial class CompositeResultDocument
         {
             AssertValidCursor(cursor);
 
-            var locationOrRows = MemoryMarshal.Read<int>(RowSpan(cursor)[DbRow.LocationOrRowsOffset..]);
+            var locationOrRows = Unsafe.ReadUnaligned<int>(ref Unsafe.Add(ref RowRef(cursor), DbRow.LocationOrRowsOffset));
             return new Cursor(locationOrRows & 0x1FFFFFFF);
         }
 
@@ -476,7 +476,7 @@ public sealed partial class CompositeResultDocument
         {
             AssertValidCursor(cursor);
 
-            var parent = MemoryMarshal.Read<int>(RowSpan(cursor));
+            var parent = Unsafe.ReadUnaligned<int>(ref RowRef(cursor));
             return parent & 0x1FFFFFFF;
         }
 
@@ -485,7 +485,7 @@ public sealed partial class CompositeResultDocument
         {
             AssertValidCursor(cursor);
 
-            var parent = MemoryMarshal.Read<int>(RowSpan(cursor)) & 0x1FFFFFFF;
+            var parent = Unsafe.ReadUnaligned<int>(ref RowRef(cursor)) & 0x1FFFFFFF;
 
             return new Cursor(parent);
         }
@@ -496,7 +496,7 @@ public sealed partial class CompositeResultDocument
             AssertValidCursor(cursor);
 
             // NumberOfRows shares storage with Location in int 3.
-            var value = MemoryMarshal.Read<int>(RowSpan(cursor)[DbRow.LocationOrRowsOffset..]);
+            var value = Unsafe.ReadUnaligned<int>(ref Unsafe.Add(ref RowRef(cursor), DbRow.LocationOrRowsOffset));
             return value & 0x1FFFFFFF;
         }
 
@@ -505,7 +505,7 @@ public sealed partial class CompositeResultDocument
         {
             AssertValidCursor(cursor);
 
-            var selectionAndFlags = MemoryMarshal.Read<int>(RowSpan(cursor)[DbRow.SelectionAndFlagsOffset..]);
+            var selectionAndFlags = Unsafe.ReadUnaligned<int>(ref Unsafe.Add(ref RowRef(cursor), DbRow.SelectionAndFlagsOffset));
             return (ElementFlags)((selectionAndFlags >> 17) & 0x7F);
         }
 
@@ -530,7 +530,7 @@ public sealed partial class CompositeResultDocument
         {
             AssertValidCursor(cursor);
 
-            var value = MemoryMarshal.Read<int>(RowSpan(cursor)[DbRow.SizeOffset..]);
+            var value = Unsafe.ReadUnaligned<int>(ref Unsafe.Add(ref RowRef(cursor), DbRow.SizeOffset));
 
             return value & int.MaxValue;
         }
@@ -573,18 +573,29 @@ public sealed partial class CompositeResultDocument
         {
             AssertValidCursor(cursor);
 
-            var sourceAndType = MemoryMarshal.Read<int>(RowSpan(cursor)[DbRow.SourceAndTypeOffset..]);
+            var sourceAndType = Unsafe.ReadUnaligned<int>(ref Unsafe.Add(ref RowRef(cursor), DbRow.SourceAndTypeOffset));
             var tokenType = (ElementTokenType)((sourceAndType >>> 15) & 0x0F);
 
             if (resolveReferences && tokenType == ElementTokenType.Reference)
             {
                 var value = GetLocation(cursor);
                 var resolved = new Cursor(value);
-                sourceAndType = MemoryMarshal.Read<int>(RowSpan(resolved)[DbRow.SourceAndTypeOffset..]);
+                sourceAndType = Unsafe.ReadUnaligned<int>(ref Unsafe.Add(ref RowRef(resolved), DbRow.SourceAndTypeOffset));
                 tokenType = (ElementTokenType)((sourceAndType >>> 15) & 0x0F);
             }
 
             return tokenType;
+        }
+
+        /// <summary>
+        /// Returns a reference to the first byte of the row the cursor points to.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private readonly ref byte RowRef(Cursor cursor)
+        {
+            var chunk = _chunks[cursor.Chunk];
+            ref var data = ref MemoryMarshal.GetArrayDataReference(chunk.Buffer);
+            return ref Unsafe.Add(ref data, chunk.Offset + cursor.ByteOffset);
         }
 
         /// <summary>
