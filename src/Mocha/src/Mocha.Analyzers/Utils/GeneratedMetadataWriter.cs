@@ -4,8 +4,7 @@ namespace Mocha.Analyzers.Utils;
 
 internal static class GeneratedMetadataWriter
 {
-    public static string ToSourceStringLiteral(this string value)
-        => SymbolDisplay.FormatLiteral(value, quote: true);
+    public static string ToSourceStringLiteral(this string value) => SymbolDisplay.FormatLiteral(value, quote: true);
 
     public static void WriteSourceMetadata(
         this CodeWriter writer,
@@ -22,13 +21,12 @@ internal static class GeneratedMetadataWriter
             return;
         }
 
-        location = NormalizeLocation(location, options.ProjectDir);
-
         if (xmlDocumentation is null && location is null)
         {
             return;
         }
 
+        var path = DeriveDeclarationPath(location?.FilePath, options.SourceRoots);
         var suffix = trailingComma ? "," : string.Empty;
 
         writer.WriteIndentedLine("Source = new {0}", metadataTypeName);
@@ -38,7 +36,21 @@ internal static class GeneratedMetadataWriter
         WriteRepositoryUrl(writer, options.RepositoryUrl);
         WriteCommit(writer, options.Commit);
         WriteXmlDocumentation(writer, xmlDocumentation, trailingComma: location is not null);
-        WriteDeclarationLocation(writer, locationTypeName, location, trailingComma: false);
+
+        if (location is not null)
+        {
+            WriteDeclarationLocation(
+                writer,
+                locationTypeName,
+                GetFileName(location.FilePath),
+                path,
+                location.StartLine,
+                location.StartColumn,
+                location.EndLine,
+                location.EndColumn,
+                trailingComma: false);
+        }
+
         writer.DecreaseIndent();
         writer.WriteIndentedLine("}}{0}", suffix);
     }
@@ -58,12 +70,12 @@ internal static class GeneratedMetadataWriter
             return;
         }
 
-        location = NormalizeLocation(location, options.ProjectDir);
-
         if (xmlDocumentation is null && location is null)
         {
             return;
         }
+
+        var path = DeriveDeclarationPath(location?.FilePath, options.SourceRoots);
 
         writer.WriteIndentedLine("{0} = new {1}", target, metadataTypeName);
         writer.WriteIndentedLine("{");
@@ -72,22 +84,26 @@ internal static class GeneratedMetadataWriter
         WriteRepositoryUrl(writer, options.RepositoryUrl);
         WriteCommit(writer, options.Commit);
         WriteXmlDocumentation(writer, xmlDocumentation, trailingComma: location is not null);
-        WriteDeclarationLocation(writer, locationTypeName, location, trailingComma: false);
+
+        if (location is not null)
+        {
+            WriteDeclarationLocation(
+                writer,
+                locationTypeName,
+                GetFileName(location.FilePath),
+                path,
+                location.StartLine,
+                location.StartColumn,
+                location.EndLine,
+                location.EndColumn,
+                trailingComma: false);
+        }
+
         writer.DecreaseIndent();
         writer.WriteIndentedLine("};");
     }
 
-    private static LocationInfo? NormalizeLocation(LocationInfo? location, string? projectDir)
-    {
-        if (location is null)
-        {
-            return null;
-        }
-
-        return location with { FilePath = NormalizeFilePath(location.FilePath, projectDir) };
-    }
-
-    private static string NormalizeFilePath(string filePath, string? projectDir)
+    private static string GetFileName(string filePath)
     {
         if (filePath.Length == 0)
         {
@@ -95,22 +111,6 @@ internal static class GeneratedMetadataWriter
         }
 
         var normalized = filePath.Replace('\\', '/');
-
-        if (!string.IsNullOrEmpty(projectDir))
-        {
-            var normalizedProjectDir = projectDir!.Replace('\\', '/');
-
-            if (!normalizedProjectDir.EndsWith("/", StringComparison.Ordinal))
-            {
-                normalizedProjectDir += "/";
-            }
-
-            if (normalized.StartsWith(normalizedProjectDir, StringComparison.OrdinalIgnoreCase))
-            {
-                return normalized.Substring(normalizedProjectDir.Length);
-            }
-        }
-
         var lastSeparator = normalized.LastIndexOf('/');
 
         return lastSeparator < 0 ? normalized : normalized.Substring(lastSeparator + 1);
@@ -139,10 +139,7 @@ internal static class GeneratedMetadataWriter
         writer.WriteIndentedLine("Commit = {0},", commit.ToSourceStringLiteral());
     }
 
-    private static void WriteXmlDocumentation(
-        CodeWriter writer,
-        string? xmlDocumentation,
-        bool trailingComma = true)
+    private static void WriteXmlDocumentation(CodeWriter writer, string? xmlDocumentation, bool trailingComma = true)
     {
         if (xmlDocumentation is null)
         {
@@ -168,24 +165,26 @@ internal static class GeneratedMetadataWriter
     private static void WriteDeclarationLocation(
         CodeWriter writer,
         string locationTypeName,
-        LocationInfo? location,
+        string file,
+        string? path,
+        int startLine,
+        int startColumn,
+        int endLine,
+        int endColumn,
         bool trailingComma = true)
     {
-        if (location is null)
-        {
-            return;
-        }
-
         var suffix = trailingComma ? "," : string.Empty;
+        var pathLiteral = path is null ? "null" : path.ToSourceStringLiteral();
 
         writer.WriteIndentedLine(
-            "DeclarationLocation = new {0}({1}, {2}, {3}, {4}, {5}){6}",
+            "DeclarationLocation = new {0}({1}, {2}, {3}, {4}, {5}, {6}){7}",
             locationTypeName,
-            location.FilePath.ToSourceStringLiteral(),
-            location.StartLine,
-            location.StartColumn,
-            location.EndLine,
-            location.EndColumn,
+            file.ToSourceStringLiteral(),
+            pathLiteral,
+            startLine,
+            startColumn,
+            endLine,
+            endColumn,
             suffix);
     }
 
@@ -218,5 +217,117 @@ internal static class GeneratedMetadataWriter
         {
             yield return line;
         }
+    }
+
+    // A flattened SourceRoot record is "Identity>MappedPath>SourceControl"; records are joined
+    // by '|'. These separators match the buildTransitive target that produces
+    // build_property._MochaSourceRoots. File system paths legally contain ';' far more often
+    // than '|' or '>', so these separators avoid collisions with real paths.
+    private const char SourceRootRecordSeparator = '|';
+    private const char SourceRootFieldSeparator = '>';
+
+    // Derives the declaration file's directory path relative to the repository root from the
+    // flattened SourceLink source roots. Returns null when no root information is available, no root
+    // matches, or the matched suffix is empty.
+    private static string? DeriveDeclarationPath(string? declarationFilePath, string? sourceRoots)
+    {
+        if (string.IsNullOrEmpty(declarationFilePath) || string.IsNullOrEmpty(sourceRoots))
+        {
+            return null;
+        }
+
+        var normalizedFilePath = declarationFilePath!.Replace('\\', '/');
+
+        string? bestSuffix = null;
+        var bestHasSourceControl = false;
+        var bestPrefixLength = -1;
+
+        foreach (var record in sourceRoots!.Split(SourceRootRecordSeparator))
+        {
+            var fields = record.Split(SourceRootFieldSeparator);
+
+            // Skip malformed records that do not carry Identity, MappedPath, and SourceControl.
+            if (fields.Length < 3)
+            {
+                continue;
+            }
+
+            var hasSourceControl = !string.IsNullOrEmpty(fields[2]);
+
+            // A file matches either the root's local Identity path or its build-mapped path
+            // (deterministic builds remap absolute paths, for example to "/_/").
+            TryConsiderRoot(
+                normalizedFilePath,
+                fields[0],
+                hasSourceControl,
+                ref bestSuffix,
+                ref bestHasSourceControl,
+                ref bestPrefixLength);
+            TryConsiderRoot(
+                normalizedFilePath,
+                fields[1],
+                hasSourceControl,
+                ref bestSuffix,
+                ref bestHasSourceControl,
+                ref bestPrefixLength);
+        }
+
+        return GetDirectoryPath(bestSuffix);
+    }
+
+    private static string? GetDirectoryPath(string? repositoryRelativeFilePath)
+    {
+        if (string.IsNullOrEmpty(repositoryRelativeFilePath))
+        {
+            return null;
+        }
+
+        var lastSeparator = repositoryRelativeFilePath!.LastIndexOf('/');
+
+        return lastSeparator < 0 ? string.Empty : repositoryRelativeFilePath.Substring(0, lastSeparator);
+    }
+
+    private static void TryConsiderRoot(
+        string normalizedFilePath,
+        string root,
+        bool hasSourceControl,
+        ref string? bestSuffix,
+        ref bool bestHasSourceControl,
+        ref int bestPrefixLength)
+    {
+        if (string.IsNullOrEmpty(root))
+        {
+            return;
+        }
+
+        var normalizedRoot = root.Replace('\\', '/');
+
+        if (!normalizedRoot.EndsWith("/", StringComparison.Ordinal))
+        {
+            normalizedRoot += "/";
+        }
+
+        if (!normalizedFilePath.StartsWith(normalizedRoot, StringComparison.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        var prefixLength = normalizedRoot.Length;
+
+        // Prefer a source-control-backed root; among equal source-control status, the longest
+        // matched prefix wins.
+        var better =
+            bestPrefixLength < 0
+            || (hasSourceControl && !bestHasSourceControl)
+            || (hasSourceControl == bestHasSourceControl && prefixLength > bestPrefixLength);
+
+        if (!better)
+        {
+            return;
+        }
+
+        bestSuffix = normalizedFilePath.Substring(normalizedRoot.Length);
+        bestHasSourceControl = hasSourceControl;
+        bestPrefixLength = prefixLength;
     }
 }
