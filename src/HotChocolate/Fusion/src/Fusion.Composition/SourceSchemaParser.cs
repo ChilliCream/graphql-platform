@@ -2,20 +2,22 @@ using HotChocolate.Fusion.ApolloFederation;
 using HotChocolate.Fusion.Definitions;
 using HotChocolate.Fusion.Errors;
 using HotChocolate.Fusion.Extensions;
-using HotChocolate.Fusion.Logging;
 using HotChocolate.Fusion.Logging.Contracts;
 using HotChocolate.Fusion.Options;
 using HotChocolate.Fusion.Results;
 using HotChocolate.Logging;
 using HotChocolate.Types.Mutable;
 using HotChocolate.Types.Mutable.Serialization;
+using LogEntryHelper = HotChocolate.Fusion.Logging.LogEntryHelper;
+using LogSeverity = HotChocolate.Fusion.Logging.LogSeverity;
 
 namespace HotChocolate.Fusion;
 
 internal sealed class SourceSchemaParser(
     SourceSchemaText sourceSchemaText,
     ICompositionLog log,
-    SourceSchemaParserOptions? options = null)
+    SourceSchemaParserOptions? options = null,
+    LogSeverity invalidFieldDeprecationSeverity = LogSeverity.Warning)
 {
     private static readonly SchemaValidator s_schemaValidator = new();
     private readonly SourceSchemaParserOptions _options = options ?? new SourceSchemaParserOptions();
@@ -85,7 +87,8 @@ internal sealed class SourceSchemaParser(
 
             if (validationLog.HasErrors)
             {
-                log.WriteValidationLog(validationLog, schema);
+                log.WriteValidationLog(
+                    validationLog, schema, invalidFieldDeprecationSeverity);
             }
         }
 

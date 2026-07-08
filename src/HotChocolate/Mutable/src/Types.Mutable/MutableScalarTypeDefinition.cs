@@ -89,7 +89,7 @@ public class MutableScalarTypeDefinition : INamedTypeSystemMemberDefinition<Muta
         return false;
     }
 
-    public Uri? SpecifiedBy
+    public string? SpecifiedBy
     {
         get
         {
@@ -102,12 +102,7 @@ public class MutableScalarTypeDefinition : INamedTypeSystemMemberDefinition<Muta
 
             var url = specifiedBy.Arguments.First(t => t.Name.Equals("url", StringComparison.Ordinal));
 
-            if (url.Value is not StringValueNode urlValue)
-            {
-                throw new InvalidOperationException("The specified URL is not a valid URI.");
-            }
-
-            return Uri.TryCreate(urlValue.Value, UriKind.RelativeOrAbsolute, out var uri) ? uri : null;
+            return url.Value is StringValueNode urlValue ? urlValue.Value : null;
         }
     }
 

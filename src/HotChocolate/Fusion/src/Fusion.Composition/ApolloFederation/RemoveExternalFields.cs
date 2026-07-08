@@ -110,6 +110,85 @@ internal static class RemoveExternalFields
         }
     }
 
+    /// <summary>
+    /// Removes <c>@external</c> fields that are no longer referenced by any <c>@provides</c>
+    /// selection or <c>@require</c> field-selection map in the schema. This is invoked by the
+    /// fixed-point prune after a reachability pass removes a requirement-carrying type, which
+    /// orphans the externals that type's selections referenced. It reuses the same collectors
+    /// that <see cref="Apply"/> uses to preserve externals during preprocessing, so an external
+    /// is dropped exactly when it would otherwise be reported as <c>EXTERNAL_UNUSED</c>.
+    /// </summary>
+    /// <param name="schema">
+    /// The mutable schema definition to transform in place.
+    /// </param>
+    /// <returns>
+    /// <c>true</c> if at least one field was removed; otherwise, <c>false</c>.
+    /// </returns>
+    internal static bool RemoveDeadExternalFields(MutableSchemaDefinition schema)
+    {
+        if (!HasExternalFields(schema))
+        {
+            return false;
+        }
+
+        var providesReferences = CollectProvidesReferences(schema);
+        var requireReferences = CollectRequireReferences(schema);
+        var removedAny = false;
+
+        foreach (var type in schema.Types)
+        {
+            if (type is not MutableComplexTypeDefinition complexType)
+            {
+                continue;
+            }
+
+            var deadExternalFields = new List<MutableOutputFieldDefinition>();
+
+            foreach (var field in complexType.Fields)
+            {
+                if (!field.Directives.ContainsName(FederationDirectiveNames.External))
+                {
+                    continue;
+                }
+
+                if (!providesReferences.Contains((complexType.Name, field.Name))
+                    && !requireReferences.Contains((complexType.Name, field.Name)))
+                {
+                    deadExternalFields.Add(field);
+                }
+            }
+
+            foreach (var field in deadExternalFields)
+            {
+                complexType.Fields.Remove(field);
+                removedAny = true;
+            }
+        }
+
+        return removedAny;
+    }
+
+    private static bool HasExternalFields(MutableSchemaDefinition schema)
+    {
+        foreach (var type in schema.Types)
+        {
+            if (type is not MutableComplexTypeDefinition complexType)
+            {
+                continue;
+            }
+
+            foreach (var field in complexType.Fields)
+            {
+                if (field.Directives.ContainsName(FederationDirectiveNames.External))
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
     private static bool IsReferencedByOutputField(
         MutableSchemaDefinition schema,
         MutableObjectTypeDefinition objectType)

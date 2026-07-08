@@ -1184,6 +1184,7 @@ public sealed partial class OperationPlanner
             RemainingCost = remainingCost,
             Steps = current.Steps.Add(step),
             LastRequirementId = lastRequirementId,
+            RequirementAliases = current.RequirementAliases,
             OperationStepCount = current.OperationStepCount + 1,
             MaxDepth = costState.MaxDepth,
             ExcessFanout = costState.ExcessFanout,
@@ -1309,7 +1310,8 @@ public sealed partial class OperationPlanner
                     backlog = backlog.PushUnresolvable(
                         unresolvable,
                         current.SchemaName,
-                        GetOperationStepDepth(current, step.Id));
+                        GetOperationStepDepth(current, step.Id),
+                        dependents: ImmutableHashSet<int>.Empty.Add(lookupStepId));
                 }
             }
 
@@ -1354,7 +1356,8 @@ public sealed partial class OperationPlanner
                     backlog = backlog.PushUnresolvable(
                         unresolvable,
                         current.SchemaName,
-                        GetOperationStepDepth(current, ancestorMatch.Step.Id));
+                        GetOperationStepDepth(current, ancestorMatch.Step.Id),
+                        dependents: ImmutableHashSet<int>.Empty.Add(lookupStepId));
                 }
             }
         }
@@ -1528,6 +1531,7 @@ public sealed partial class OperationPlanner
             RemainingCost = remainingCost,
             Steps = steps,
             LastRequirementId = requirementId,
+            RequirementAliases = requirementAliases.Registry,
             OperationStepCount = current.OperationStepCount,
             MaxDepth = current.MaxDepth,
             ExcessFanout = current.ExcessFanout,
@@ -1634,7 +1638,7 @@ public sealed partial class OperationPlanner
         var sourceField = compositeField.Sources[current.SchemaName];
         var requirements = mergeWithExistingStep
             ? existingStep.Requirements
-            : [];
+            : ImmutableDictionary<string, OperationRequirement>.Empty;
         var arguments = new List<ArgumentNode>(workItem.Selection.Node.Arguments);
 
         for (var i = 0; i < sourceField.Requirements!.Arguments.Length; i++)
@@ -1729,6 +1733,7 @@ public sealed partial class OperationPlanner
                 RemainingCost = mergeRemainingCost,
                 Steps = steps,
                 LastRequirementId = lastRequirementId,
+                RequirementAliases = requirementAliases.Registry,
                 OperationStepCount = current.OperationStepCount,
                 MaxDepth = current.MaxDepth,
                 ExcessFanout = current.ExcessFanout,
@@ -1810,6 +1815,7 @@ public sealed partial class OperationPlanner
             RemainingCost = remainingCost,
             Steps = steps.Add(step),
             LastRequirementId = lastRequirementId,
+            RequirementAliases = requirementAliases.Registry,
             OperationStepCount = current.OperationStepCount + 1,
             MaxDepth = costState.MaxDepth,
             ExcessFanout = costState.ExcessFanout,
@@ -1988,6 +1994,7 @@ public sealed partial class OperationPlanner
             RemainingCost = remainingCost,
             Steps = steps,
             LastRequirementId = current.LastRequirementId,
+            RequirementAliases = current.RequirementAliases,
             OperationStepCount = current.OperationStepCount + 1,
             MaxDepth = costState.MaxDepth,
             ExcessFanout = costState.ExcessFanout,
@@ -2128,6 +2135,7 @@ public sealed partial class OperationPlanner
                 .Add(nodeStep)
                 .Add(fallbackQueryStep),
             LastRequirementId = current.LastRequirementId,
+            RequirementAliases = current.RequirementAliases,
             OperationStepCount = current.OperationStepCount + 1,
             MaxDepth = costState.MaxDepth,
             ExcessFanout = costState.ExcessFanout,
@@ -2356,7 +2364,7 @@ public sealed partial class OperationPlanner
         var sourceField = compositeField.Sources[current.SchemaName];
         var sourceRequirements = sourceField.Requirements!;
         var requirements = sourceRequirements.Requirements;
-        requirementAliases = new RequirementAliasContext(sourceRequirements.Fields);
+        requirementAliases = new RequirementAliasContext(sourceRequirements.Fields, current.RequirementAliases);
 
         if (index.IsRegistered(requirements))
         {
@@ -2757,11 +2765,14 @@ public sealed partial class OperationPlanner
             field.SelectionSet);
 
     private sealed class RequirementAliasContext(
-        ImmutableArray<IValueSelectionNode?> fieldSelectionMaps)
+        ImmutableArray<IValueSelectionNode?> fieldSelectionMaps,
+        RequirementAliasRegistry registry)
     {
         private readonly Dictionary<IValueSelectionNode, string> _aliasesByMap = [];
         private readonly List<(RequirementFieldSelectionKey Key, string Alias)> _aliases = [];
-        private uint _nextAliasIndex;
+        private RequirementAliasRegistry _registry = registry;
+
+        public RequirementAliasRegistry Registry => _registry;
 
         public string? GetInternalAlias(IValueSelectionNode fieldSelectionMap)
             => _aliasesByMap.GetValueOrDefault(fieldSelectionMap);
@@ -2776,7 +2787,7 @@ public sealed partial class OperationPlanner
                 }
             }
 
-            var alias = $"fusion__requirement_{field.Name.Value}_{_nextAliasIndex++}";
+            _registry = _registry.GetOrAdd(field, out var alias);
             var key = new RequirementFieldSelectionKey(field);
             _aliases.Add((key, alias));
             RecordMapAliases(key, alias);
@@ -2942,6 +2953,43 @@ public sealed partial class OperationPlanner
             }
 
             return true;
+        }
+    }
+
+    /// <summary>
+    /// An operation-level registry that assigns a stable internal alias to each distinct
+    /// requirement-field identity (field name and arguments). Identical identities from any
+    /// requiring field resolve to the same alias so their fetches merge, while identities that
+    /// differ by arguments receive distinct aliases. The registry is threaded through the plan
+    /// node like other operation-level plan state and is immutable so planner branches stay
+    /// isolated.
+    /// </summary>
+    internal readonly struct RequirementAliasRegistry
+    {
+        private readonly ImmutableArray<(RequirementFieldSelectionKey Key, string Alias)> _entries;
+
+        private RequirementAliasRegistry(
+            ImmutableArray<(RequirementFieldSelectionKey Key, string Alias)> entries)
+            => _entries = entries;
+
+        public static RequirementAliasRegistry Empty { get; } =
+            new(ImmutableArray<(RequirementFieldSelectionKey Key, string Alias)>.Empty);
+
+        public RequirementAliasRegistry GetOrAdd(FieldNode field, out string alias)
+        {
+            var entries = _entries;
+
+            for (var i = 0; i < entries.Length; i++)
+            {
+                if (entries[i].Key.Matches(field))
+                {
+                    alias = entries[i].Alias;
+                    return this;
+                }
+            }
+
+            alias = $"fusion__requirement_{field.Name.Value}_{entries.Length}";
+            return new(entries.Add((new RequirementFieldSelectionKey(field), alias)));
         }
     }
 

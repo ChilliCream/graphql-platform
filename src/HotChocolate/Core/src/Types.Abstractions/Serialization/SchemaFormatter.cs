@@ -396,7 +396,7 @@ public static class SchemaFormatter
                         DirectiveNames.SpecifiedBy.Name,
                         new ArgumentNode(
                             DirectiveNames.SpecifiedBy.Arguments.Url,
-                            new StringValueNode(type.SpecifiedBy.ToString()))));
+                            new StringValueNode(type.SpecifiedBy))));
             }
 
             context.Result = IsTypeExtension(type)

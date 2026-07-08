@@ -433,7 +433,7 @@ public sealed partial class OperationPlanner
                 injectionSelections,
                 dependentStepId: 0,
                 stepIndex,
-                new RequirementAliasContext([]),
+                new RequirementAliasContext([], RequirementAliasRegistry.Empty),
                 out var updatedParentStep,
                 out _))
             {
