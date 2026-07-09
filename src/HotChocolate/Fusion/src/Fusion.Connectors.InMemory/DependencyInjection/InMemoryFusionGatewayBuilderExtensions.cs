@@ -68,7 +68,7 @@ public static class InMemoryFusionGatewayBuilderExtensions
 
         if (!builder.Services.Any(d => d.ServiceType == typeof(InMemorySourceSchemaClientFactory)))
         {
-            // Remove default HTTP client factory — in-memory mode doesn't need it.
+            // Remove default HTTP client factory; in-memory mode doesn't need it.
             for (var i = builder.Services.Count - 1; i >= 0; i--)
             {
                 if (builder.Services[i].ServiceType == typeof(ISourceSchemaClientFactory))
