@@ -302,6 +302,11 @@ public sealed partial class SourceResultDocument
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal DbRow GetDbRow(Cursor cursor) => _parsedData.Get(cursor);
 
+    // Reads the value row once with the same disposed guard the value accessors use, so callers
+    // can derive the token type and value range from a single row read.
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal DbRow GetValueRow(Cursor cursor) => _parsedData.Get(cursor);
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static int GetEndRowLength(DbRow endRow)
         => endRow.TokenType is JsonTokenType.EndObject or JsonTokenType.EndArray

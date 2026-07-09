@@ -448,6 +448,16 @@ public readonly partial struct CompositeResultElement
         return _parent.TryGetNamedPropertyValue(_cursor, utf8PropertyName, out value);
     }
 
+    internal bool TryGetProperty(
+        ReadOnlySpan<byte> utf8PropertyName,
+        out CompositeResultElement value,
+        out Selection selection)
+    {
+        CheckValidInstance();
+
+        return _parent.TryGetNamedPropertyValue(_cursor, utf8PropertyName, out value, out selection);
+    }
+
     internal CompositeResultElement GetPropertyBySelectionId(int selectionId)
     {
         CheckValidInstance();
