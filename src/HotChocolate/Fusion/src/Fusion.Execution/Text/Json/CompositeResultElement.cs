@@ -448,11 +448,30 @@ public readonly partial struct CompositeResultElement
         return _parent.TryGetNamedPropertyValue(_cursor, utf8PropertyName, out value);
     }
 
+    internal bool TryGetProperty(
+        ReadOnlySpan<byte> utf8PropertyName,
+        out CompositeResultElement value,
+        out Selection selection)
+    {
+        CheckValidInstance();
+
+        return _parent.TryGetNamedPropertyValue(_cursor, utf8PropertyName, out value, out selection);
+    }
+
     internal CompositeResultElement GetPropertyBySelectionId(int selectionId)
     {
         CheckValidInstance();
 
         return _parent.GetPropertyBySelectionId(_cursor, selectionId);
+    }
+
+    internal CompositeObjectContext GetObjectContext()
+    {
+        // The validity guard is hoisted here so it is paid once per object instead
+        // of once per property. See CompositeResultDocument.GetObjectContext.
+        CheckValidInstance();
+
+        return _parent.GetObjectContext(_cursor);
     }
 
     /// <summary>

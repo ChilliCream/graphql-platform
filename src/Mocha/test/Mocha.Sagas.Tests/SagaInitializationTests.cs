@@ -278,7 +278,7 @@ public class SagaInitializationTests
             RepositoryUrl = "https://github.com/example/mocha",
             Commit = "abc123",
             XmlDocumentation = "<summary>Test saga.</summary>",
-            DeclarationLocation = new DeclarationLocation("TestSaga.cs", 1, 1, 10, 2)
+            DeclarationLocation = new DeclarationLocation("TestSaga.cs", null, 1, 1, 10, 2)
         };
         var saga = CreateInitializedSagaWithSource(source);
 
@@ -300,7 +300,7 @@ public class SagaInitializationTests
             RepositoryUrl = "https://github.com/example/mocha",
             Commit = "abc123",
             XmlDocumentation = "<summary>Test saga.</summary>",
-            DeclarationLocation = new DeclarationLocation("TestSaga.cs", 1, 1, 10, 2)
+            DeclarationLocation = new DeclarationLocation("TestSaga.cs", null, 1, 1, 10, 2)
         };
         var saga = CreateInitializedSagaWithSource(source);
 
