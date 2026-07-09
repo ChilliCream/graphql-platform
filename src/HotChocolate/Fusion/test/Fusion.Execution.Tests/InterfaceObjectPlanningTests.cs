@@ -1,3 +1,8 @@
+using HotChocolate.Fusion.Execution.Nodes;
+using HotChocolate.Fusion.Logging;
+using HotChocolate.Fusion.Options;
+using HotChocolate.Fusion.Types;
+
 namespace HotChocolate.Fusion;
 
 public sealed class InterfaceObjectPlanningTests : FusionTestBase
@@ -35,10 +40,76 @@ public sealed class InterfaceObjectPlanningTests : FusionTestBase
         type Query {
           trendingMedia: [Media!]!
           mediaByKey(id: ID!): Media @lookup @internal
+          container: Container
+        }
+        type Container @key(fields: "id") {
+          id: ID!
+          media: Media!
         }
         type Media @interfaceObject @key(fields: "id") {
           id: ID!
           views: Int!
+        }
+        """;
+
+    private const string NonResolvableSchemaA =
+        """
+        extend schema
+          @link(url: "https://specs.apollo.dev/federation/v2.6", import: ["@key"])
+
+        type Query {
+          a: Node
+        }
+
+        interface Node @key(fields: "id") {
+          id: ID!
+        }
+
+        type NodeImpl implements Node @key(fields: "id") {
+          id: ID!
+        }
+        """;
+
+    private const string NonResolvableSchemaB =
+        """
+        extend schema
+          @link(
+            url: "https://specs.apollo.dev/federation/v2.6"
+            import: ["@key", "@interfaceObject"])
+
+        type Query {
+          b: Node
+        }
+
+        type Node @key(fields: "id", resolvable: false) @interfaceObject {
+          id: ID!
+          field: String
+        }
+        """;
+
+    private const string OpaqueProductSchema =
+        """
+        # name: opaque
+        type Query {
+          product: Product
+        }
+        type Product @interfaceObject @key(fields: "id") {
+          id: ID!
+        }
+        """;
+
+    private const string ProductLookupSchema =
+        """
+        # name: products
+        type Query {
+          productById(id: ID!): Product @lookup
+          breadById(id: ID!): Bread @lookup @internal
+        }
+        interface Product {
+          id: ID!
+        }
+        type Bread implements Product {
+          id: ID!
         }
         """;
 
@@ -187,5 +258,104 @@ public sealed class InterfaceObjectPlanningTests : FusionTestBase
         // "allMedia" is served by the concrete-aware schema A, so identity is local; the projected
         // field "views" under the concrete fragment is routed to the stand-in schema B.
         MatchSnapshot(plan);
+    }
+
+    [Fact]
+    public void Plan_Should_Prefer_CoveringAbstractLookup_Over_ConcreteFanOut()
+    {
+        // arrange
+        var schema = ComposeSchema(OpaqueProductSchema, ProductLookupSchema);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            query {
+              product {
+                ... on Bread {
+                  id
+                }
+              }
+            }
+            """);
+
+        // assert
+        // The opaque stand-in cannot provide a concrete typename. The covering Product lookup
+        // must therefore run at $.product; the Bread lookup at $.product<Bread> would be skipped
+        // before identity has been recovered.
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
+    public void Plan_Should_PreserveAliasedNestedInterfaceObjectStandIn()
+    {
+        // arrange
+        var schema = ComposeSchema(SchemaA, SchemaB);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            query {
+              container {
+                aliasedMedia: media {
+                  id
+                  views
+                }
+              }
+            }
+            """);
+
+        // assert
+        var operationNode = Assert.Single(plan.AllNodes.OfType<OperationExecutionNode>());
+        var container = operationNode.ResultSelectionSet.TryGetChild("container");
+        Assert.NotNull(container);
+        var media = container.TryGetChild("aliasedMedia");
+        Assert.NotNull(media);
+        Assert.True(media.ProducesOpaqueElements);
+    }
+
+    [Fact]
+    public void Plan_Should_Fail_When_InterfaceObjectHasNoResolvableLookup()
+    {
+        // arrange
+        var schema = ComposeNonResolvableInterfaceObjectSchema();
+
+        // act
+        var exception = Assert.Throws<InvalidOperationException>(
+            () => PlanOperation(
+                schema,
+                """
+                query {
+                  a {
+                    field
+                  }
+                }
+                """));
+
+        // assert
+        Assert.Equal("No possible plan was found.", exception.Message);
+    }
+
+    private static FusionSchemaDefinition ComposeNonResolvableInterfaceObjectSchema()
+    {
+        var options = new SchemaComposerOptions();
+        options.ApolloFederationCompatibility.AllowNonResolvableInterfaceObjects = true;
+
+        var log = new CompositionLog();
+        var result = new SchemaComposer(
+            [
+                new SourceSchemaText("a", NonResolvableSchemaA),
+                new SourceSchemaText("b", NonResolvableSchemaB)
+            ],
+            options,
+            log).Compose();
+
+        if (!result.IsSuccess)
+        {
+            throw new InvalidOperationException(result.Errors[0].Message);
+        }
+
+        return FusionSchemaDefinition.Create(result.Value.ToSyntaxNode());
     }
 }

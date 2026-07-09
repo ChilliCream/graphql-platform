@@ -5,7 +5,6 @@ public enum ExecutionNodeType
     Operation,
     OperationBatch,
     EventStream,
-    FieldError,
     Introspection,
     Node
 }

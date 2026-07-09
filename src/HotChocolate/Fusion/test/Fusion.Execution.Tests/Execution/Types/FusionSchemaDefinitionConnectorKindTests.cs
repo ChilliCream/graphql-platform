@@ -1,6 +1,7 @@
 using HotChocolate.Fusion.Logging;
 using HotChocolate.Fusion.Options;
 using HotChocolate.Fusion.Types;
+using HotChocolate.Fusion.Types.Metadata;
 
 namespace HotChocolate.Fusion.Execution.Types;
 
@@ -33,6 +34,22 @@ public sealed class FusionSchemaDefinitionConnectorKindTests
         directive @key(fields: FieldSet! resolvable: Boolean = true) repeatable on OBJECT | INTERFACE
         directive @link(url: String! import: [String!]) repeatable on SCHEMA
         """;
+
+    [Fact]
+    public void SourceSchemaInfo_Should_PreserveThreeValueConstructorAndDeconstruction()
+    {
+        // arrange
+        var sourceSchema = new SourceSchemaInfo("key", "name", "connector");
+
+        // act
+        var (key, name, connectorKind) = sourceSchema;
+
+        // assert
+        Assert.Equal("key", key);
+        Assert.Equal("name", name);
+        Assert.Equal("connector", connectorKind);
+        Assert.False(sourceSchema.AllowNonResolvableInterfaceObjects);
+    }
 
     [Fact]
     public void GetSourceSchemaConnectorKind_Should_ReturnApolloFederation_When_SourceIsFederation()

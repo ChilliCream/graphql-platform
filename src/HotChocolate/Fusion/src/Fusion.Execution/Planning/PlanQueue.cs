@@ -106,7 +106,6 @@ internal sealed class PlanQueue(FusionSchemaDefinition schema)
         PlanNode planNodeTemplate,
         OperationWorkItem workItem)
     {
-        var queueCountBefore = Count;
         var backlog = planNodeTemplate.Backlog.Pop(out _);
         var allCandidateSchemas = planNodeTemplate.GetCandidateSchemas(workItem.SelectionSet.Id);
         var type = (FusionComplexTypeDefinition)workItem.SelectionSet.Type;
@@ -210,65 +209,6 @@ internal sealed class PlanQueue(FusionSchemaDefinition schema)
                 EnqueueParentPathLookupPlanNodes(planNodeTemplate, workItem, backlog, toSchema, resolutionCost);
             }
         }
-
-        if (Count == queueCountBefore
-            && schema.IsAllowedNonResolvableInterfaceObjectSelection(
-                type,
-                workItem.SelectionSet.Node))
-        {
-            EnqueueFieldErrorPlanNode(planNodeTemplate, workItem, backlog);
-        }
-    }
-
-    private void EnqueueFieldErrorPlanNode(
-        PlanNode planNodeTemplate,
-        OperationWorkItem workItem,
-        Backlog backlog)
-    {
-        var stepId = planNodeTemplate.Steps.NextId();
-        var steps = planNodeTemplate.Steps;
-        var hasProducer = false;
-
-        foreach (var (candidate, index, _) in
-            planNodeTemplate.GetCandidateSteps(workItem.SelectionSet.Id))
-        {
-            if (!candidate.Target.IsParentOfOrSame(workItem.SelectionSet.Path))
-            {
-                continue;
-            }
-
-            steps = steps.SetItem(
-                index,
-                candidate with { Dependents = candidate.Dependents.Add(stepId) });
-            hasProducer = true;
-        }
-
-        if (!hasProducer)
-        {
-            return;
-        }
-
-        steps = steps.Add(
-            new FieldErrorPlanStep
-            {
-                Id = stepId,
-                SelectionSet = workItem.SelectionSet.Node,
-                Type = workItem.SelectionSet.Type,
-                Target = workItem.SelectionSet.Path,
-                Conditions = workItem.Conditions,
-                Dependents = workItem.Dependents
-            });
-
-        var remainingCost = EstimateRemainingCost(planNodeTemplate, backlog);
-
-        Enqueue(
-            planNodeTemplate with
-            {
-                Steps = steps,
-                Backlog = backlog,
-                RemainingCost = remainingCost,
-                ResolutionCost = 0
-            });
     }
 
     /// <summary>
@@ -370,25 +310,20 @@ internal sealed class PlanQueue(FusionSchemaDefinition schema)
                 continue;
             }
 
-            // If the target schema already has a lookup returning the abstract type, or exposes the
-            // interface as an @interfaceObject stand-in (whose single interface lookup covers every
-            // possible type), let the normal lookup path handle it instead of requiring a lookup for
-            // every concrete type.
-            var hasAbstractLookups = schema
-                .GetPossibleLookupsOrdered(type, toSchema)
-                .Any(t => t.FieldType.Name.Equals(type.Name, StringComparison.Ordinal))
-                || (type is FusionInterfaceTypeDefinition interfaceType
-                    && interfaceType.Sources.TryGetMember(toSchema, out var interfaceObjectSource)
-                    && interfaceObjectSource.IsInterfaceObject);
+            var fromSchemas = allCandidateSchemas.Remove(toSchema);
 
-            if (hasAbstractLookups)
+            // If the target schema has a directly resolvable lookup returning the abstract type,
+            // let the normal lookup path handle it instead of requiring a lookup for every concrete
+            // type. Interface-object metadata alone is not enough: a non-resolvable key does not
+            // provide a transition into the target schema.
+            if (schema.TryGetBestDirectLookup(type, fromSchemas, toSchema, out var abstractLookup)
+                && abstractLookup.FieldType.Name.Equals(type.Name, StringComparison.Ordinal))
             {
                 hasCoveringAbstractLookup = true;
                 continue;
             }
 
             var branchBacklog = backlog;
-            var fromSchemas = allCandidateSchemas.Remove(toSchema);
             var allFound = true;
 
             // for each concrete type that implements the abstract type,

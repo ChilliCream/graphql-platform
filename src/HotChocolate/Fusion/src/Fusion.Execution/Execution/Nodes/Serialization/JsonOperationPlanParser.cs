@@ -269,10 +269,6 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
                     parsedNodes.Add(ParseEventStreamNodeInfo(nodeElement, id, schema));
                     break;
 
-                case "FieldError":
-                    parsedNodes.Add(ParseFieldErrorNodeInfo(nodeElement, id, schema));
-                    break;
-
                 case "Introspection":
                     parsedNodes.Add(ParseIntrospectionNodeInfo(nodeElement, id, operation));
                     break;
@@ -931,28 +927,6 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
         }
     }
 
-    private static ParsedNodeInfo ParseFieldErrorNodeInfo(
-        JsonElement nodeElement,
-        int id,
-        FusionSchemaDefinition schema)
-    {
-        var target = SelectionPath.Parse(nodeElement.GetProperty("target").GetString()!);
-        var selectionSet = Utf8GraphQLParser.Syntax.ParseSelectionSet(
-            nodeElement.GetProperty("selectionSet").GetString()!);
-        var resultSelectionSet = ResultSelectionSet.Create(selectionSet, schema);
-        var dependencies = TryParseDependencies(nodeElement, out _);
-        var conditions = TryParseConditions(nodeElement);
-
-        return new ParsedFieldErrorNodeInfo
-        {
-            Id = id,
-            Target = target,
-            ResultSelectionSet = resultSelectionSet,
-            Conditions = conditions,
-            Dependencies = dependencies
-        };
-    }
-
     private static ParsedNodeInfo ParseNodeFieldNodeInfo(
         JsonElement nodeElement, int id, Operation operation)
     {
@@ -1257,24 +1231,6 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
         public override (ExecutionNode, int[]?, Dictionary<string, int>?, int?) ToExecutionNodeTuple()
         {
             var node = new IntrospectionExecutionNode(Id, Selections, Conditions);
-
-            return (node, Dependencies, null, null);
-        }
-    }
-
-    private sealed class ParsedFieldErrorNodeInfo : ParsedNodeInfo
-    {
-        public required SelectionPath Target { get; init; }
-        public required ResultSelectionSet ResultSelectionSet { get; init; }
-        public ExecutionNodeCondition[] Conditions { get; init; } = [];
-
-        public override (ExecutionNode, int[]?, Dictionary<string, int>?, int?) ToExecutionNodeTuple()
-        {
-            var node = new FieldErrorExecutionNode(
-                Id,
-                Target,
-                ResultSelectionSet,
-                Conditions);
 
             return (node, Dependencies, null, null);
         }

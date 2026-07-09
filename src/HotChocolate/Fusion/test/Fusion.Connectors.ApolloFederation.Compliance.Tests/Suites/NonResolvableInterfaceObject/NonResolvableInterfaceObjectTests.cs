@@ -1,6 +1,8 @@
+using HotChocolate.Execution;
+using HotChocolate.Fusion.Execution;
+using HotChocolate.Fusion.Options;
 using HotChocolate.Fusion.Suites.NonResolvableInterfaceObject.A;
 using HotChocolate.Fusion.Suites.NonResolvableInterfaceObject.B;
-using HotChocolate.Fusion.Options;
 
 namespace HotChocolate.Fusion.Suites;
 
@@ -44,52 +46,36 @@ public sealed class NonResolvableInterfaceObjectTests : ComplianceTestBase
             """);
 
     [Fact]
-    public Task A_Field_ReturnsNullWithErrorAndPreservesSiblings() => RunAsync(
-        query: """
+    public async Task A_Field_Errors_WhenInterfaceObjectNotResolvable()
+    {
+        // arrange
+        var capture = new SubgraphRequestCapture();
+        await using var gateway = await FusionGatewayBuilder.ComposeAsync(
+            capture,
+            sourceSchemaSettings: null,
+            NodeResolution.Gateway,
+            allowNonResolvableInterfaceObjects: true,
+            (ASubgraph.Name, ASubgraph.BuildAsync),
+            (BSubgraph.Name, BSubgraph.BuildAsync));
+        const string query =
+            """
             query {
               a {
-                id
                 field
               }
-              b {
-                id
-              }
             }
-            """,
-        expectedData: """
-            {
-              "a": {
-                "id": "n1",
-                "field": null
-              },
-              "b": {
-                "id": "n1"
-              }
-            }
-            """,
-        expectsErrors: true,
-        expectedErrorPath: """["a","field"]""");
+            """;
 
-    [Fact]
-    public Task A_AliasedField_ReturnsNullWithAliasedErrorPath() => RunAsync(
-        query: """
-            query {
-              aliasedA: a {
-                id
-                aliasedField: field
-              }
-            }
-            """,
-        expectedData: """
-            {
-              "aliasedA": {
-                "id": "n1",
-                "aliasedField": null
-              }
-            }
-            """,
-        expectsErrors: true,
-        expectedErrorPath: """["aliasedA","aliasedField"]""");
+        // act
+        var result = await gateway.Executor.ExecuteAsync(
+            query,
+            TestContext.Current.CancellationToken);
+        var json = result.ToJson(withIndentations: false);
+
+        // assert
+        AuditAssertions.Assert(json, expectedDataJson: "null", expectsErrors: true);
+        Assert.Empty(capture.Requests);
+    }
 
     [Fact]
     public Task B_ReturnsId() => RunAsync(
@@ -109,7 +95,7 @@ public sealed class NonResolvableInterfaceObjectTests : ComplianceTestBase
             """);
 
     [Fact]
-    public Task A_Id_ReturnsDirectly() => RunAsync(
+    public Task A_Id_ReturnsNullWithError() => RunAsync(
         query: """
             query {
               a {
@@ -119,12 +105,10 @@ public sealed class NonResolvableInterfaceObjectTests : ComplianceTestBase
             """,
         expectedData: """
             {
-              "a": {
-                "id": "n1"
-              }
+              "a": null
             }
             """,
-        expectsErrors: false);
+        expectsErrors: true);
 
     [Fact]
     public Task Product_ReturnsId() => RunAsync(
@@ -153,9 +137,8 @@ public sealed class NonResolvableInterfaceObjectTests : ComplianceTestBase
               }
             }
             """,
-        expectedData: "null",
-        expectsErrors: true,
-        expectedErrorPath: """["product","name"]""");
+        expectedData: null,
+        expectsErrors: true);
 
     [Fact]
     public Task Product_BreadFragment_ReturnsId() => RunAsync(

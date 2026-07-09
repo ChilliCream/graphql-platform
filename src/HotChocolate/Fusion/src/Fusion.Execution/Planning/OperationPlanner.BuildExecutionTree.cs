@@ -469,21 +469,6 @@ public sealed partial class OperationPlanner
                     nodePlanStep.Branches.ToDictionary(x => x.Key, x => x.Value.Id));
                 ctx.FallbackByNodeId.Add(nodePlanStep.Id, nodePlanStep.FallbackQuery.Id);
             }
-            else if (step is FieldErrorPlanStep fieldErrorStep)
-            {
-                foreach (var dependent in fieldErrorStep.Dependents)
-                {
-                    if (!ctx.DependenciesByStepId.TryGetValue(
-                            dependent,
-                            out var dependencies))
-                    {
-                        dependencies = [];
-                        ctx.DependenciesByStepId[dependent] = dependencies;
-                    }
-
-                    dependencies.Add(fieldErrorStep.Id);
-                }
-            }
         }
     }
 
@@ -525,21 +510,6 @@ public sealed partial class OperationPlanner
                 {
                     ctx.ExecutionNodes.Add(step.Id,
                         new NodeFieldExecutionNode(nodeStep.Id, nodeStep.ResponseName, nodeStep.IdValue, nodeStep.Conditions));
-                }
-                else if (step is FieldErrorPlanStep fieldErrorStep)
-                {
-                    var resultSelectionSet = ResultSelectionSet.Create(
-                        fieldErrorStep.SelectionSet,
-                        schema,
-                        fieldErrorStep.Type);
-
-                    ctx.ExecutionNodes.Add(
-                        step.Id,
-                        new FieldErrorExecutionNode(
-                            step.Id,
-                            fieldErrorStep.Target,
-                            resultSelectionSet,
-                            fieldErrorStep.Conditions));
                 }
             }
 
@@ -1385,8 +1355,7 @@ public sealed partial class OperationPlanner
                     OperationExecutionNode
                     or OperationBatchExecutionNode
                     or ApolloOperationExecutionNode
-                    or ApolloOperationBatchExecutionNode
-                    or FieldErrorExecutionNode))
+                    or ApolloOperationBatchExecutionNode))
             {
                 continue;
             }
@@ -1415,8 +1384,7 @@ public sealed partial class OperationPlanner
                         or ApolloOperationExecutionNode
                         or ApolloOperationBatchExecutionNode
                         or NodeFieldExecutionNode
-                        or EventStreamExecutionNode
-                        or FieldErrorExecutionNode))
+                        or EventStreamExecutionNode))
                 {
                     continue;
                 }
@@ -1917,9 +1885,7 @@ public sealed partial class OperationPlanner
             {
                 case FieldNode field when field.SelectionSet is not null:
                 {
-                    var responseName = field.Alias?.Value ?? field.Name.Value;
-
-                    if (complexType.Fields.TryGetField(responseName, out var fieldDef))
+                    if (complexType.Fields.TryGetField(field.Name.Value, out var fieldDef))
                     {
                         var fieldNamedType = fieldDef.Type.NamedType();
 
@@ -2032,9 +1998,7 @@ public sealed partial class OperationPlanner
         {
             if (selection is FieldNode { SelectionSet: not null } field)
             {
-                var responseName = field.Alias?.Value ?? field.Name.Value;
-
-                if (complexType.Fields.TryGetField(responseName, out var fieldDef))
+                if (complexType.Fields.TryGetField(field.Name.Value, out var fieldDef))
                 {
                     var fieldNamedType = fieldDef.Type.NamedType();
 

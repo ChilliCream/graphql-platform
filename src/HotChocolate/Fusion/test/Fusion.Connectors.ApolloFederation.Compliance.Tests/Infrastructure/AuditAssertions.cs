@@ -24,14 +24,10 @@ internal static class AuditAssertions
     /// When not <see langword="null"/>, the presence of an <c>errors</c> array is
     /// asserted against this value.
     /// </param>
-    /// <param name="expectedErrorPathJson">
-    /// When not <see langword="null"/>, an error must have a deeply equal <c>path</c> array.
-    /// </param>
     public static void Assert(
         string actualJson,
         string? expectedDataJson,
-        bool? expectsErrors,
-        string? expectedErrorPathJson = null)
+        bool? expectsErrors)
     {
         ArgumentException.ThrowIfNullOrEmpty(actualJson);
 
@@ -78,21 +74,6 @@ internal static class AuditAssertions
                     expectsErrors.Value
                         ? $"Expected response to carry errors, but none were present. Response: {actualJson}"
                         : $"Expected response to carry no errors, but errors were present: {errorsText}");
-            }
-        }
-
-        if (expectedErrorPathJson is not null)
-        {
-            var expectedErrorPath = JsonNode.Parse(expectedErrorPathJson);
-            var errors = actual["errors"] as JsonArray;
-            var hasExpectedPath = errors?.Any(
-                error => JsonNode.DeepEquals(error?["path"], expectedErrorPath)) is true;
-
-            if (!hasExpectedPath)
-            {
-                var errorsText = errors?.ToJsonString(s_indented) ?? "<none>";
-                Xunit.Assert.Fail(
-                    $"Expected an error with path {expectedErrorPathJson}, but found: {errorsText}");
             }
         }
     }
