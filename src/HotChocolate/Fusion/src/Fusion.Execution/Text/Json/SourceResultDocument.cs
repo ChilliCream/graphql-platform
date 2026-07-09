@@ -34,7 +34,7 @@ public sealed partial class SourceResultDocument : IDisposable
     // into the following chunks, and the read path walks the boundaries.
     private const int DataOffsetBits = 17;
     private const int DataChunkBits = 12;
-    internal const int DataOffsetMask = (1 << DataOffsetBits) - 1;
+    private const int DataOffsetMask = (1 << DataOffsetBits) - 1;
     internal const int DataMaxChunks = 1 << DataChunkBits;
     private const int DataMaxChunkOrdinal = (int)ChunkSize.Size128K;
 
