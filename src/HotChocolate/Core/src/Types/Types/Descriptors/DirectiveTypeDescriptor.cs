@@ -1,5 +1,7 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using HotChocolate.Configuration;
+using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors.Configurations;
@@ -26,6 +28,11 @@ public class DirectiveTypeDescriptor
             clrType, TypeKind.Directive);
         Configuration.IsPublic =
             context.Options.DefaultDirectiveVisibility == DirectiveVisibility.Public;
+
+        if (context.Naming.IsDeprecated(clrType, out var reason))
+        {
+            Deprecated(reason);
+        }
     }
 
     protected internal DirectiveTypeDescriptor(IDescriptorContext context)
@@ -51,13 +58,14 @@ public class DirectiveTypeDescriptor
     {
         Context.Descriptors.Push(this);
 
-        if (!Configuration.AttributesAreApplied && Configuration.RuntimeType != typeof(object))
+        if (!Configuration.ConfigurationsAreApplied)
         {
-            Context.TypeInspector.ApplyAttributes(
+            DescriptorAttributeHelper.ApplyConfiguration(
                 Context,
                 this,
                 Configuration.RuntimeType);
-            Configuration.AttributesAreApplied = true;
+
+            Configuration.ConfigurationsAreApplied = true;
         }
 
         var arguments = new Dictionary<string, DirectiveArgumentConfiguration>(StringComparer.Ordinal);
@@ -96,6 +104,23 @@ public class DirectiveTypeDescriptor
         return this;
     }
 
+    public IDirectiveTypeDescriptor Deprecated(string? reason)
+    {
+        if (string.IsNullOrEmpty(reason))
+        {
+            return Deprecated();
+        }
+
+        Configuration.DeprecationReason = reason;
+        return this;
+    }
+
+    public IDirectiveTypeDescriptor Deprecated()
+    {
+        Configuration.DeprecationReason = DirectiveNames.Deprecated.Arguments.DefaultReason;
+        return this;
+    }
+
     public IDirectiveArgumentDescriptor Argument(string name)
     {
         var descriptor = Arguments.FirstOrDefault(t => t.Configuration.Name.EqualsOrdinal(name));
@@ -108,6 +133,17 @@ public class DirectiveTypeDescriptor
         descriptor = DirectiveArgumentDescriptor.New(Context, name);
         Arguments.Add(descriptor);
         return descriptor;
+    }
+
+    public IDirectiveTypeDescriptor Argument(
+        string name,
+        Action<IDirectiveArgumentDescriptor> configure)
+    {
+        ArgumentNullException.ThrowIfNull(configure);
+
+        var descriptor = Argument(name);
+        configure(descriptor);
+        return this;
     }
 
     public IDirectiveTypeDescriptor Location(DirectiveLocation value)
@@ -124,13 +160,13 @@ public class DirectiveTypeDescriptor
         return this;
     }
 
-    public IDirectiveTypeDescriptor Use<TMiddleware>()
+    public IDirectiveTypeDescriptor Use<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.PublicMethods)] TMiddleware>()
         where TMiddleware : class
     {
         return Use(DirectiveClassMiddlewareFactory.Create<TMiddleware>());
     }
 
-    public IDirectiveTypeDescriptor Use<TMiddleware>(
+    public IDirectiveTypeDescriptor Use<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.PublicMethods)] TMiddleware>(
         Func<IServiceProvider, FieldDelegate, TMiddleware> factory)
         where TMiddleware : class
     {
@@ -154,6 +190,26 @@ public class DirectiveTypeDescriptor
     public IDirectiveTypeDescriptor Internal()
     {
         Configuration.IsPublic = false;
+        return this;
+    }
+
+    public IDirectiveTypeDescriptor Directive<T>(T directiveInstance)
+        where T : class
+    {
+        Configuration.AddDirective(directiveInstance, Context.TypeInspector);
+        return this;
+    }
+
+    public IDirectiveTypeDescriptor Directive<T>()
+        where T : class, new()
+    {
+        Configuration.AddDirective(new T(), Context.TypeInspector);
+        return this;
+    }
+
+    public IDirectiveTypeDescriptor Directive(string name, params ArgumentNode[] arguments)
+    {
+        Configuration.AddDirective(name, arguments);
         return this;
     }
 

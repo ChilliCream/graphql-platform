@@ -24,7 +24,7 @@ public class EntitiesResolverForInterfaceTests
             .AddType<TypeWithoutRefResolver>()
             .AddType<MixedFieldTypes>()
             .AddType<FederatedType>()
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var context = CreateResolverContext(schema);
 
@@ -59,7 +59,7 @@ public class EntitiesResolverForInterfaceTests
             .AddType<TypeWithoutRefResolver>()
             .AddType<MixedFieldTypes>()
             .AddType<FederatedType>()
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var context = CreateResolverContext(schema);
 
@@ -93,7 +93,7 @@ public class EntitiesResolverForInterfaceTests
             .AddType<TypeWithoutRefResolver>()
             .AddType<MixedFieldTypes>()
             .AddType<FederatedType>()
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var context = CreateResolverContext(schema);
 
@@ -124,7 +124,7 @@ public class EntitiesResolverForInterfaceTests
             .AddType<TypeWithoutRefResolver>()
             .AddType<MixedFieldTypes>()
             .AddType<FederatedType>()
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var batchScheduler = new ManualBatchScheduler();
         var dataLoader = new IFederatedTypeDataLoader(batchScheduler, new DataLoaderOptions());
@@ -165,7 +165,7 @@ public class EntitiesResolverForInterfaceTests
             .AddType<TypeWithoutRefResolver>()
             .AddType<MixedFieldTypes>()
             .AddType<FederatedType>()
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var context = CreateResolverContext(schema);
 
@@ -192,7 +192,7 @@ public class EntitiesResolverForInterfaceTests
             .AddType<TypeWithoutRefResolver>()
             .AddType<MixedFieldTypes>()
             .AddType<FederatedType>()
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var context = CreateResolverContext(schema);
 
@@ -221,7 +221,7 @@ public class EntitiesResolverForInterfaceTests
             .AddType<FederatedType>()
             .AddType<IFederatedTypeWithRequiredDetail>()
             .AddType<FederatedTypeWithRequiredDetail>()
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var context = CreateResolverContext(schema);
 
@@ -258,7 +258,7 @@ public class EntitiesResolverForInterfaceTests
             .AddType<FederatedType>()
             .AddType<IFederatedTypeWithOptionalDetail>()
             .AddType<FederatedTypeWithOptionalDetail>()
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var context = CreateResolverContext(schema);
 
@@ -309,7 +309,7 @@ public class EntitiesResolverForInterfaceTests
         string Id { get; set; }
         string SomeField { get; set; }
 
-        public static ITypeWithReferenceResolver Get([LocalState] ObjectValueNode data)
+        static ITypeWithReferenceResolver Get([LocalState] ObjectValueNode data)
         {
             return new TypeWithReferenceResolver { Id = "1", SomeField = "SomeField" };
         }
@@ -330,15 +330,15 @@ public class EntitiesResolverForInterfaceTests
     public interface IForeignType
     {
         [Key]
-        public string Id { get; }
+        string Id { get; }
 
         [External]
-        public string SomeExternalField { get; }
+        string SomeExternalField { get; }
 
-        public string InternalField => "InternalValue";
+        string InternalField => "InternalValue";
 
         [ReferenceResolver]
-        public static IForeignType GetById(string id, string someExternalField)
+        static IForeignType GetById(string id, string someExternalField)
             => new ForeignType(id, someExternalField);
     }
 
@@ -366,15 +366,15 @@ public class EntitiesResolverForInterfaceTests
     public interface IMixedFieldTypes
     {
         [Key]
-        public string Id { get; }
+        string Id { get; }
 
         [External]
-        public int IntField { get; }
+        int IntField { get; }
 
-        public string InternalField { get; set; }
+        string InternalField { get; set; }
 
         [ReferenceResolver]
-        public static IMixedFieldTypes GetByExternal(string id, int intField)
+        static IMixedFieldTypes GetByExternal(string id, int intField)
             => new MixedFieldTypes(id, intField);
     }
 
@@ -407,7 +407,7 @@ public class EntitiesResolverForInterfaceTests
         string SomeField { get; set; }
 
         [ReferenceResolver]
-        public static async Task<IFederatedType?> GetById(
+        static async Task<IFederatedType?> GetById(
             [LocalState] ObjectValueNode data,
             [Service] IFederatedTypeDataLoader loader)
         {
@@ -473,8 +473,8 @@ public class EntitiesResolverForInterfaceTests
         FederatedTypeDetail Detail { get; set; }
 
         [ReferenceResolver]
-        public static IFederatedTypeWithRequiredDetail ReferenceResolver([Map("detail.id")] string detailId)
-            => new FederatedTypeWithRequiredDetail()
+        static IFederatedTypeWithRequiredDetail ReferenceResolver([Map("detail.id")] string detailId)
+            => new FederatedTypeWithRequiredDetail
             {
                 Id = detailId,
                 Detail = new FederatedTypeDetail
@@ -509,8 +509,8 @@ public class EntitiesResolverForInterfaceTests
         FederatedTypeDetail? Detail { get; }
 
         [ReferenceResolver]
-        public static IFederatedTypeWithOptionalDetail ReferenceResolver([Map("detail.id")] string detailId)
-            => new FederatedTypeWithOptionalDetail()
+        static IFederatedTypeWithOptionalDetail ReferenceResolver([Map("detail.id")] string detailId)
+            => new FederatedTypeWithOptionalDetail
             {
                 Id = detailId,
                 Detail = new FederatedTypeDetail

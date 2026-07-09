@@ -1,11 +1,15 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Test.props', '$(MSBuildThisFileDirectory)'))" />
+
   <PropertyGroup>
     <AssemblyName>HotChocolate.Utilities.Tests</AssemblyName>
     <RootNamespace>HotChocolate.Utilities</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\src\Utilities.Base36\HotChocolate.Utilities.Base36.csproj" />
+    <ProjectReference Include="..\..\src\Utilities.Buffers\HotChocolate.Utilities.Buffers.csproj" />
     <ProjectReference Include="..\..\src\Utilities\HotChocolate.Utilities.csproj" />
   </ItemGroup>
 

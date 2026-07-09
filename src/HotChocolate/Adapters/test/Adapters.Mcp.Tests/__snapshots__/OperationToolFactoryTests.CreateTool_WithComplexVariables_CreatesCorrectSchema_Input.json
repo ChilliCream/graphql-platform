@@ -1,0 +1,214 @@
+{
+  "type": "object",
+  "properties": {
+    "list": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/Object1ComplexInput"
+      },
+      "description": "Complex list",
+      "default": [
+        {
+          "field1A": {
+            "field1B": [
+              {
+                "field1C": "12:00:00"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "object": {
+      "$ref": "#/$defs/Object1ComplexInput",
+      "description": "Complex object",
+      "default": {
+        "field1A": {
+          "field1B": [
+            {
+              "field1C": "12:00:00"
+            }
+          ]
+        }
+      }
+    },
+    "nullDefault": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "Null default",
+      "default": null
+    },
+    "listWithNullDefault": {
+      "type": [
+        "array",
+        "null"
+      ],
+      "items": {
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "description": "List with null default",
+      "default": [
+        null
+      ]
+    },
+    "objectWithNullDefault": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Object1ComplexInput"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "Object with null default",
+      "default": {
+        "field1A": {
+          "field1B": [
+            {
+              "field1C": null
+            }
+          ]
+        }
+      }
+    },
+    "oneOf": {
+      "$ref": "#/$defs/OneOfInput",
+      "description": "OneOf",
+      "default": {
+        "field1": 1
+      }
+    },
+    "oneOfList": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/OneOfInput"
+      },
+      "description": "OneOf list",
+      "default": [
+        {
+          "field1": 1
+        },
+        {
+          "field2": "default"
+        }
+      ]
+    },
+    "objectWithOneOfField": {
+      "$ref": "#/$defs/ObjectWithOneOfFieldInput",
+      "description": "Object with OneOf field",
+      "default": {
+        "field": {
+          "field1": 1
+        }
+      }
+    },
+    "durationDotNet": {
+      "type": "string",
+      "pattern": "^-?(?:(?:\\d{1,8})\\.)?(?:[0-1]?\\d|2[0-3]):(?:[0-5]?\\d):(?:[0-5]?\\d)(?:\\.(?:\\d{1,7}))?$",
+      "description": "Duration with DotNet format",
+      "default": "00:05:00"
+    }
+  },
+  "required": [],
+  "$defs": {
+    "Object1ComplexInput": {
+      "type": "object",
+      "properties": {
+        "field1A": {
+          "$ref": "#/$defs/Object2ComplexInput",
+          "description": "field1A description",
+          "default": {
+            "field1B": [
+              {
+                "field1C": "12:00:00"
+              }
+            ]
+          }
+        }
+      },
+      "required": []
+    },
+    "Object2ComplexInput": {
+      "type": "object",
+      "properties": {
+        "field1B": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Object3ComplexInput"
+          },
+          "description": "field1B description",
+          "default": [
+            {
+              "field1C": "12:00:00"
+            }
+          ]
+        }
+      },
+      "required": []
+    },
+    "Object3ComplexInput": {
+      "type": "object",
+      "properties": {
+        "field1C": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,9})?$",
+          "description": "field1C description",
+          "default": "12:00:00"
+        }
+      },
+      "required": []
+    },
+    "ObjectWithOneOfFieldInput": {
+      "type": "object",
+      "properties": {
+        "field": {
+          "$ref": "#/$defs/OneOfInput",
+          "description": "field description",
+          "default": {
+            "field1": 1
+          }
+        }
+      },
+      "required": []
+    },
+    "OneOfInput": {
+      "type": "object",
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "field1": {
+              "type": "integer",
+              "minimum": -2147483648,
+              "maximum": 2147483647,
+              "description": "field1 description"
+            }
+          },
+          "required": [
+            "field1"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "field2": {
+              "type": "string",
+              "description": "field2 description"
+            }
+          },
+          "required": [
+            "field2"
+          ]
+        }
+      ]
+    }
+  }
+}

@@ -448,8 +448,8 @@ public static class FragmentHelper
 
         var implements = new List<OutputTypeModel>();
 
-        foreach (var child in parentFragmentNode.Nodes.Where(
-                     t => t.Fragment.Kind is FragmentKind.Named && t.Defer is null))
+        foreach (
+            var child in parentFragmentNode.Nodes.Where(t => t.Fragment.Kind is FragmentKind.Named && t.Defer is null))
         {
             // we create a new field level with the fields that are implemented by this level.
             var fields = new HashSet<string>();

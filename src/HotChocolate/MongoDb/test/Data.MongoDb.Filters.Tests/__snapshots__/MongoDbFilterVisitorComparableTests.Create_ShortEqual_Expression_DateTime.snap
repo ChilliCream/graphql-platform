@@ -4,7 +4,7 @@
   "data": {
     "root": [
       {
-        "barDateTime": "2000-01-12T00:00:00.000Z"
+        "barDateTime": "2000-01-12T00:00:00Z"
       }
     ]
   }
@@ -22,7 +22,7 @@ find({ "BarDateTime" : { "$eq" : { "$date" : "2000-01-12T00:00:00Z" } } })
   "data": {
     "root": [
       {
-        "barDateTime": "2000-01-12T00:00:00.000Z"
+        "barDateTime": "2000-01-12T00:00:00Z"
       }
     ]
   }

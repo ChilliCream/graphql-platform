@@ -50,5 +50,11 @@ namespace HotChocolate.Buffers.Properties {
                 return ResourceManager.GetString("ArrayWriter_Advance_BufferOverflow", resourceCulture);
             }
         }
+        
+        internal static string FixedSizeArrayPool_Return_InvalidArraySize {
+            get {
+                return ResourceManager.GetString("FixedSizeArrayPool_Return_InvalidArraySize", resourceCulture);
+            }
+        }
     }
 }

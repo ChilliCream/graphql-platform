@@ -25,12 +25,10 @@ public class IntegrationTests
                 {
                     await n(c);
 
-                    if (c.IsPersistedOperationDocument() && c.Result is IOperationResult r)
+                    if (c.IsPersistedOperationDocument())
                     {
-                        c.Result = OperationResultBuilder
-                            .FromResult(r)
-                            .SetExtension("persistedDocument", true)
-                            .Build();
+                        var result = c.Result.ExpectOperationResult();
+                        result.Extensions = result.Extensions.SetItem("persistedDocument", true);
                     }
                 })
                 .UsePersistedOperationPipeline()
@@ -38,12 +36,14 @@ public class IntegrationTests
                 .BuildServiceProvider();
 
         var cache = services.GetRequiredService<IMemoryCache>();
-        var executor = await services.GetRequestExecutorAsync();
+        var executor = await services.GetRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         cache.GetOrCreate(documentId, _ => new OperationDocument(document));
 
         // act
-        var result = await executor.ExecuteAsync(OperationRequest.FromId(documentId));
+        var result = await executor.ExecuteAsync(
+            OperationRequest.FromId(documentId),
+            TestContext.Current.CancellationToken);
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -63,22 +63,22 @@ public class IntegrationTests
                 {
                     await n(c);
 
-                    if (c.IsPersistedOperationDocument() && c.Result is IOperationResult r)
+                    if (c.IsPersistedOperationDocument())
                     {
-                        c.Result = OperationResultBuilder
-                            .FromResult(r)
-                            .SetExtension("persistedDocument", true)
-                            .Build();
+                        var result = c.Result.ExpectOperationResult();
+                        result.Extensions = result.Extensions.SetItem("persistedDocument", true);
                     }
                 })
                 .UsePersistedOperationPipeline()
                 .Services
                 .BuildServiceProvider();
 
-        var executor = await services.GetRequestExecutorAsync();
+        var executor = await services.GetRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
-        var result = await executor.ExecuteAsync(OperationRequest.FromId("does_not_exist"));
+        var result = await executor.ExecuteAsync(
+            OperationRequest.FromId("does_not_exist"),
+            TestContext.Current.CancellationToken);
 
         // assert
         result.ToJson().MatchSnapshot();

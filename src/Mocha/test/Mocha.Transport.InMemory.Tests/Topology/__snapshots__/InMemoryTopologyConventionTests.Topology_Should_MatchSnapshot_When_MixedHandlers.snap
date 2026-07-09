@@ -1,0 +1,34 @@
+﻿{
+  "Topics": [
+    "mocha.test-helpers.order-created",
+    "mocha.test-helpers.process-payment",
+    "order-created",
+    "process-payment"
+  ],
+  "Queues": [
+    "process-payment",
+    "test-app.order-created"
+  ],
+  "Bindings": [
+    {
+      "Source": "mocha.test-helpers.order-created",
+      "Destination": "order-created",
+      "Kind": "Topic"
+    },
+    {
+      "Source": "mocha.test-helpers.process-payment",
+      "Destination": "process-payment",
+      "Kind": "Topic"
+    },
+    {
+      "Source": "order-created",
+      "Destination": "test-app.order-created",
+      "Kind": "Queue"
+    },
+    {
+      "Source": "process-payment",
+      "Destination": "process-payment",
+      "Kind": "Queue"
+    }
+  ]
+}

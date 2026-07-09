@@ -9,5 +9,5 @@ public interface IRootServiceProviderAccessor
     /// <summary>
     /// Gets the root service provider.
     /// </summary>
-    public IServiceProvider ServiceProvider { get; }
+    IServiceProvider ServiceProvider { get; }
 }

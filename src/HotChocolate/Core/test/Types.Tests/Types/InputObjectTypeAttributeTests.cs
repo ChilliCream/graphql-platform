@@ -85,7 +85,8 @@ public class InputObjectTypeAttributeTests
             .ExecuteAsync(
                 OperationRequestBuilder.New()
                     .SetDocument("{ foo(a: { }) { foo bar baz qux quux } }")
-                    .Build())
+                    .Build(),
+                TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -113,15 +114,16 @@ public class InputObjectTypeAttributeTests
                                     foo bar baz qux quux
                                 }
                             }")
-                    .SetVariableValues(new Dictionary<string, object> { { "q", new Dictionary<string, object>() } })
-                    .Build())
+                    .SetVariableValues(new Dictionary<string, object?> { { "q", new Dictionary<string, object>() } })
+                    .Build(),
+                TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
     public class Object1
     {
         [RenameField]
-        public string Foo { get; set; }
+        public required string Foo { get; set; }
     }
 
     public class RenameFieldAttribute
@@ -130,7 +132,7 @@ public class InputObjectTypeAttributeTests
         protected override void OnConfigure(
             IDescriptorContext context,
             IInputFieldDescriptor descriptor,
-            MemberInfo member)
+            MemberInfo? member)
         {
             descriptor.Name("bar");
         }
@@ -139,7 +141,7 @@ public class InputObjectTypeAttributeTests
     [RenameType]
     public class Object2
     {
-        public string Foo { get; set; }
+        public required string Foo { get; set; }
     }
 
     [InputObjectType(Name = "Foo")]
@@ -154,7 +156,7 @@ public class InputObjectTypeAttributeTests
         protected override void OnConfigure(
             IDescriptorContext context,
             IInputObjectTypeDescriptor descriptor,
-            Type type)
+            Type? type)
         {
             descriptor.Name("Bar");
         }
@@ -163,7 +165,7 @@ public class InputObjectTypeAttributeTests
     public class InputWithDefaults
     {
         [DefaultValue("DefaultValue123")]
-        public string Foo { get; set; }
+        public required string Foo { get; set; }
 
         [DefaultValue(2)]
         public int Bar { get; set; }

@@ -10,6 +10,7 @@ using HotChocolate.Types.Pagination;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Squadron;
+using static CookieCrumble.TestEnvironment;
 
 namespace HotChocolate.Data;
 
@@ -60,15 +61,17 @@ public class InterfaceIntegrationTests(PostgreSqlResource resource)
                             }
                         }
                         """)
-                    .Build());
+                    .Build(),
+                cancellationToken: TestContext.Current.CancellationToken);
 
         var operationResult = result.ExpectOperationResult();
+        operationResult.Extensions = [];
 
         await Snapshot
-            .Create(postFix: TestEnvironment.TargetFramework)
+            .Create(Postfix([NET8_0], [NET9_0]))
             .AddQueries(queries)
-            .Add(operationResult.WithExtensions(ImmutableDictionary<string, object?>.Empty))
-            .MatchMarkdownAsync();
+            .Add(operationResult)
+            .MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -112,15 +115,17 @@ public class InterfaceIntegrationTests(PostgreSqlResource resource)
                             }
                         }
                         """)
-                    .Build());
+                    .Build(),
+                cancellationToken: TestContext.Current.CancellationToken);
 
         var operationResult = result.ExpectOperationResult();
+        operationResult.Extensions = [];
 
         await Snapshot
-            .Create(postFix: TestEnvironment.TargetFramework)
+            .Create(Postfix([NET8_0], [NET9_0]))
             .AddQueries(queries)
-            .Add(operationResult.WithExtensions(ImmutableDictionary<string, object?>.Empty))
-            .MatchMarkdownAsync();
+            .Add(operationResult)
+            .MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -168,15 +173,17 @@ public class InterfaceIntegrationTests(PostgreSqlResource resource)
                             }
                         }
                         """)
-                    .Build());
+                    .Build(),
+                cancellationToken: TestContext.Current.CancellationToken);
 
         var operationResult = result.ExpectOperationResult();
+        operationResult.Extensions = [];
 
         await Snapshot
-            .Create(postFix: TestEnvironment.TargetFramework)
+            .Create(Postfix([NET8_0], [NET9_0]))
             .AddQueries(queries)
-            .Add(operationResult.WithExtensions(ImmutableDictionary<string, object?>.Empty))
-            .MatchMarkdownAsync();
+            .Add(operationResult)
+            .MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -211,18 +218,17 @@ public class InterfaceIntegrationTests(PostgreSqlResource resource)
                             }
                         }
                         """)
-                    .Build());
+                    .Build(),
+                cancellationToken: TestContext.Current.CancellationToken);
 
         var operationResult = result.ExpectOperationResult();
+        operationResult.Extensions = [];
 
         await Snapshot
-            .Create(
-                postFix: TestEnvironment.TargetFramework == "NET10_0"
-                    ? TestEnvironment.TargetFramework
-                    : null)
+            .Create(Postfix([NET8_0, NET9_0]))
             .AddQueries(queries)
-            .Add(operationResult.WithExtensions(ImmutableDictionary<string, object?>.Empty))
-            .MatchMarkdownAsync();
+            .Add(operationResult)
+            .MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     private static async Task SeedAsync(string connectionString)
@@ -401,7 +407,7 @@ public class InterfaceIntegrationTests(PostgreSqlResource resource)
             CancellationToken cancellationToken)
         {
             var pagingArgs = context.GetPagingArguments();
-            // var selector = context.GetSelector();
+            var query = context.GetQueryContext<Page<Animal>, Animal>();
 
             await using var scope = _services.CreateAsyncScope();
             var dbContext = scope.ServiceProvider.GetRequiredService<AnimalContext>();
@@ -409,10 +415,7 @@ public class InterfaceIntegrationTests(PostgreSqlResource resource)
             return await dbContext.Owners
                 .Where(t => keys.Contains(t.Id))
                 .SelectMany(t => t.Pets)
-                .OrderBy(t => t.Name)
-                .ThenBy(t => t.Id)
-                // selections do not work when inheritance is used for nested batching.
-                // .Select(selector, t => t.OwnerId)
+                .With(query, x => x.AddAscending(y => y.Name).AddAscending(y => y.Id))
                 .ToBatchPageAsync(
                     t => t.OwnerId,
                     pagingArgs,
@@ -440,7 +443,7 @@ public class InterfaceIntegrationTests(PostgreSqlResource resource)
             CancellationToken cancellationToken)
         {
             var pagingArgs = context.GetPagingArguments();
-            // var selector = context.GetSelector();
+            var query = context.GetQueryContext<Page<Animal>, Animal>();
 
             await using var scope = _services.CreateAsyncScope();
             var dbContext = scope.ServiceProvider.GetRequiredService<AnimalContext>();
@@ -448,10 +451,7 @@ public class InterfaceIntegrationTests(PostgreSqlResource resource)
             return await dbContext.Owners
                 .Where(t => keys.Contains(t.Id))
                 .SelectMany(t => t.Pets)
-                .OrderBy(t => t.Name)
-                .ThenBy(t => t.Id)
-                // selections do not work when inheritance is used for nested batching.
-                // .Select(selector, t => t.OwnerId)
+                .With(query, x => x.AddAscending(y => y.Name).AddAscending(y => y.Id))
                 .ToBatchPageAsync(
                     t => t.OwnerId,
                     pagingArgs,

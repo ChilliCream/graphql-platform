@@ -2,7 +2,7 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Internal;
 
-internal sealed partial class ExtendedType
+public sealed partial class ExtendedType
 {
     private static class BaseTypes
     {
@@ -34,6 +34,12 @@ internal sealed partial class ExtendedType
         /// </summary>
         public static bool IsNamedType(Type type)
         {
+            if (!typeof(IType).IsAssignableFrom(type)
+                && !typeof(IDirectiveDefinition).IsAssignableFrom(type))
+            {
+                return false;
+            }
+
             if (type.IsAbstract || IsNonGenericBaseType(type))
             {
                 return false;

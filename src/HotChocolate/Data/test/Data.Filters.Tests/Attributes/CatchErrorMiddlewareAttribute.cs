@@ -9,9 +9,9 @@ public class CatchErrorMiddlewareAttribute : ObjectFieldDescriptorAttribute
     protected override void OnConfigure(
         IDescriptorContext context,
         IObjectFieldDescriptor descriptor,
-        MemberInfo member)
+        MemberInfo? member)
     {
-        descriptor.Use(n => async c =>
+        descriptor.Use(static n => async c =>
         {
             try
             {

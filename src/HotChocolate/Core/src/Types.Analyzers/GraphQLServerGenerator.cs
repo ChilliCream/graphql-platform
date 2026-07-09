@@ -7,7 +7,6 @@ using HotChocolate.Types.Analyzers.Inspectors;
 using HotChocolate.Types.Analyzers.Models;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.Text;
 
 namespace HotChocolate.Types.Analyzers;
 
@@ -26,7 +25,8 @@ public class GraphQLServerGenerator : IIncrementalGenerator
         new ObjectTypeInspector(),
         new InterfaceTypeInfoInspector(),
         new RequestMiddlewareInspector(),
-        new ConnectionInspector()
+        new ConnectionInspector(),
+        new NodeIdValueSerializerInspector()
     ];
 
     private static readonly IPostCollectSyntaxTransformer[] s_postCollectTransformers =
@@ -40,7 +40,8 @@ public class GraphQLServerGenerator : IIncrementalGenerator
         new TypesSyntaxGenerator(),
         new MiddlewareGenerator(),
         new DataLoaderModuleGenerator(),
-        new DataLoaderGenerator()
+        new DataLoaderGenerator(),
+        new NodeIdValueSerializerGenerator()
     ];
 
     private static readonly FrozenDictionary<SyntaxKind, ImmutableArray<ISyntaxInspector>> s_inspectorLookup;
@@ -135,7 +136,7 @@ public class GraphQLServerGenerator : IIncrementalGenerator
         string assemblyName,
         ImmutableArray<SyntaxInfo> syntaxInfos)
     {
-        var processedFiles = PooledObjects.GetStringSet();
+        var sourceFiles = PooledObjects.GetStringDictionary();
 
         try
         {
@@ -154,18 +155,20 @@ public class GraphQLServerGenerator : IIncrementalGenerator
             {
                 generator.Generate(context, assemblyName, syntaxInfos, AddSource);
             }
+
+            foreach (var sourceFile in sourceFiles)
+            {
+                context.AddSource(sourceFile.Key, sourceFile.Value);
+            }
         }
         finally
         {
-            PooledObjects.Return(processedFiles);
+            PooledObjects.Return(sourceFiles);
         }
 
-        void AddSource(string fileName, SourceText sourceText)
+        void AddSource(string fileName, string sourceText)
         {
-            if (processedFiles.Add(fileName))
-            {
-                context.AddSource(fileName, sourceText);
-            }
+            sourceFiles.TryAdd(fileName, sourceText);
         }
     }
 }

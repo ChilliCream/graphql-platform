@@ -17,4 +17,7 @@ public class QueryableSpatialTouchesOperationHandler
     protected override int Operation => SpatialFilterOperations.Touches;
 
     protected override bool IsTrue => true;
+
+    public static QueryableSpatialTouchesOperationHandler Create(FilterProviderContext context) =>
+        new(context.FilterConvention, context.TypeInspector, context.InputParser);
 }

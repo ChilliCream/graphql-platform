@@ -16,7 +16,7 @@ public class RecordsTests
             .AddQueryType<Query>()
             .Services
             .BuildServiceProvider()
-            .GetSchemaAsync()
+            .GetSchemaAsync(cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -28,7 +28,7 @@ public class RecordsTests
             .AddQueryType<Query2>()
             .Services
             .BuildServiceProvider()
-            .GetSchemaAsync()
+            .GetSchemaAsync(cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -60,7 +60,7 @@ public class RecordsTests
     {
         await ExpectValid
         (
-            @"{ person { id name } }",
+            "{ person { id name } }",
             b => b.AddQueryType<Query>().AddGlobalObjectIdentification(false)
         )
         .MatchSnapshotAsync();

@@ -13,8 +13,7 @@ public class OpaProcess
     }
     public static async Task<OpaProcess> StartServerAsync()
     {
-        var opaProcess = new OpaProcess(new ContainerBuilder()
-            .WithImage("openpolicyagent/opa")
+        var opaProcess = new OpaProcess(new ContainerBuilder("openpolicyagent/opa")
             .WithPortBinding(8181, assignRandomHostPort: true)
             .WithCommand(
                 "run", "--server",

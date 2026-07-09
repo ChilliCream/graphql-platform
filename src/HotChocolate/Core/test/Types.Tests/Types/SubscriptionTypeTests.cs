@@ -3,8 +3,6 @@
 // ReSharper disable ClassNeverInstantiated.Global
 // ReSharper disable MemberCanBePrivate.Global
 
-#nullable enable
-
 using System.Runtime.CompilerServices;
 using HotChocolate.Execution;
 using HotChocolate.Subscriptions;
@@ -254,7 +252,7 @@ public class SubscriptionTypeTests : TypeTestBase
                     var mutationResult = await executor.ExecuteAsync(
                         "mutation { writeMessage(userId: \"abc\" message: \"def\") }",
                         ct);
-                    Assert.Null(mutationResult.ExpectOperationResult().Errors);
+                    Assert.Empty(mutationResult.ExpectOperationResult().Errors);
 
                     await foreach (var queryResult in
                         results.WithCancellation(ct).ConfigureAwait(false))
@@ -288,7 +286,7 @@ public class SubscriptionTypeTests : TypeTestBase
                     var mutationResult = await executor.ExecuteAsync(
                         "mutation { writeFixedMessage(message: \"def\") }",
                         ct);
-                    Assert.Null(mutationResult.ExpectOperationResult().Errors);
+                    Assert.Empty(mutationResult.ExpectOperationResult().Errors);
 
                     await foreach (var queryResult in
                         results.WithCancellation(ct).ConfigureAwait(false))
@@ -322,7 +320,7 @@ public class SubscriptionTypeTests : TypeTestBase
                     var mutationResult = await executor.ExecuteAsync(
                         "mutation { writeSysMessage(message: \"def\") }",
                         ct);
-                    Assert.Null(mutationResult.ExpectOperationResult().Errors);
+                    Assert.Empty(mutationResult.ExpectOperationResult().Errors);
 
                     await foreach (var queryResult in
                         results.WithCancellation(ct).ConfigureAwait(false))
@@ -356,7 +354,7 @@ public class SubscriptionTypeTests : TypeTestBase
                     var mutationResult = await executor.ExecuteAsync(
                         "mutation { writeOnInferTopic(message: \"def\") }",
                         ct);
-                    Assert.Null(mutationResult.ExpectOperationResult().Errors);
+                    Assert.Empty(mutationResult.ExpectOperationResult().Errors);
 
                     await foreach (var queryResult in
                         results.WithCancellation(ct).ConfigureAwait(false))
@@ -390,7 +388,7 @@ public class SubscriptionTypeTests : TypeTestBase
                     var mutationResult = await executor.ExecuteAsync(
                         "mutation { writeOnExplicit(message: \"def\") }",
                         ct);
-                    Assert.Null(mutationResult.ExpectOperationResult().Errors);
+                    Assert.Empty(mutationResult.ExpectOperationResult().Errors);
 
                     await foreach (var queryResult in
                         results.WithCancellation(ct).ConfigureAwait(false))
@@ -471,7 +469,9 @@ public class SubscriptionTypeTests : TypeTestBase
                 .AddQueryType(c => c.Name("Query").Field("a").Resolve("b"))
                 .AddSubscriptionType<MySubscription>());
 
-        var result = await executor.ExecuteAsync("subscription { onArguments(arg: \"abc\") }");
+        var result = await executor.ExecuteAsync(
+            "subscription { onArguments(arg: \"abc\") }",
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchInlineSnapshot(
@@ -502,14 +502,15 @@ public class SubscriptionTypeTests : TypeTestBase
                 """)
             .BindRuntimeType<SubscriptionWithDirective>("Subscription")
             .ModifyOptions(o => o.StrictValidation = false)
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var result = await executor.ExecuteAsync(
             """
             subscription test @bug(test: 123) {
               bookAdded
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchInlineSnapshot(

@@ -1,9 +1,9 @@
-using Microsoft.Extensions.DependencyInjection;
+using HotChocolate.Validation.Rules;
 
 namespace HotChocolate.Validation;
 
 public class LeafFieldSelectionsRuleTests()
-    : DocumentValidatorVisitorTestBase(builder => builder.AddFieldRules())
+    : DocumentValidatorVisitorTestBase(builder => builder.AddRule<LeafFieldSelectionsRule>())
 {
     [Fact]
     public void ScalarSelection()
@@ -177,7 +177,7 @@ public class LeafFieldSelectionsRuleTests()
             """,
             t => Assert.Equal(
                 "Operation `Unnamed` has an empty selection set. Root types without "
-                + "subfields are disallowed.",
+                + "selections are disallowed.",
                 t.Message));
     }
 
@@ -190,7 +190,7 @@ public class LeafFieldSelectionsRuleTests()
             """,
             t => Assert.Equal(
                 "Operation `Foo` has an empty selection set. Root types without "
-                + "subfields are disallowed.",
+                + "selections are disallowed.",
                 t.Message));
     }
 
@@ -203,7 +203,7 @@ public class LeafFieldSelectionsRuleTests()
             """,
             t => Assert.Equal(
                 "Operation `Unnamed` has an empty selection set. Root types without "
-                + "subfields are disallowed.",
+                + "selections are disallowed.",
                 t.Message));
     }
 
@@ -216,7 +216,7 @@ public class LeafFieldSelectionsRuleTests()
             """,
             t => Assert.Equal(
                 "Operation `Foo` has an empty selection set. Root types without "
-                + "subfields are disallowed.",
+                + "selections are disallowed.",
                 t.Message));
     }
 
@@ -229,7 +229,7 @@ public class LeafFieldSelectionsRuleTests()
             """,
             t => Assert.Equal(
                 "Operation `Unnamed` has an empty selection set. Root types without "
-                + "subfields are disallowed.",
+                + "selections are disallowed.",
                 t.Message));
     }
 
@@ -242,7 +242,7 @@ public class LeafFieldSelectionsRuleTests()
             """,
             t => Assert.Equal(
                 "Operation `Foo` has an empty selection set. Root types without "
-                + "subfields are disallowed.",
+                + "selections are disallowed.",
                 t.Message));
     }
 

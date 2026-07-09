@@ -43,4 +43,3 @@ type Query {
 input Approximate { field: Boolean! }
 type Product { field: Boolean! }
 ```
-

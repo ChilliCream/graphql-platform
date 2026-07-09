@@ -1,5 +1,6 @@
 using HotChocolate.Execution;
 using Microsoft.EntityFrameworkCore;
+using static CookieCrumble.TestEnvironment;
 
 namespace HotChocolate.Data.Projections;
 
@@ -111,17 +112,19 @@ public class QueryableProjectionFilterTests
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    @"{
+                    """
+                    {
                         root {
                             foo {
                                 objectArray(
                                     where: {
                                         foo: {
                                             barString: {
-                                                eq: ""a""
+                                                eq: "a"
                                             }
                                         }
-                                    }) {
+                                    }
+                                ) {
                                     foo {
                                         barString
                                         barShort
@@ -129,14 +132,16 @@ public class QueryableProjectionFilterTests
                                 }
                             }
                         }
-                    }")
-                .Build());
+                    }
+                    """)
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
-            .Create(postFix: TestEnvironment.TargetFramework)
+            .Create(Postfix([NET8_0], [NET9_0], [NET10_0]))
             .AddResult(res1)
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -149,34 +154,37 @@ public class QueryableProjectionFilterTests
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    @"
-                        {
-                            root {
-                                foo {
-                                    barString
-                                    objectArray(
-                                        where: {
-                                            foo: {
-                                                barString: {
-                                                    eq: ""a""
-                                                }
+                    """
+                    {
+                        root {
+                            foo {
+                                barString
+                                objectArray(
+                                    where: {
+                                        foo: {
+                                            barString: {
+                                                eq: "a"
                                             }
-                                        }) {
-                                        foo {
-                                            barString
-                                            barShort
                                         }
+                                    }
+                                ) {
+                                    foo {
+                                        barString
+                                        barShort
                                     }
                                 }
                             }
-                        }")
-                .Build());
+                        }
+                    }
+                    """)
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
-            .Create(postFix: TestEnvironment.TargetFramework)
+            .Create(Postfix([NET8_0], [NET9_0], [NET10_0]))
             .AddResult(res1)
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -189,17 +197,19 @@ public class QueryableProjectionFilterTests
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    @"{
+                    """
+                    {
                         root {
                             foo {
                                 objectArray(
                                     where: {
                                         foo: {
                                             barString: {
-                                                eq: ""a""
+                                                eq: "a"
                                             }
                                         }
-                                    }) {
+                                    }
+                                ) {
                                     foo {
                                         barString
                                         barShort
@@ -207,14 +217,16 @@ public class QueryableProjectionFilterTests
                                 }
                             }
                         }
-                    }")
-                .Build());
+                    }
+                    """)
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
-            .Create(postFix: TestEnvironment.TargetFramework)
+            .Create(Postfix([NET8_0], [NET9_0], [NET10_0]))
             .AddResult(res1)
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -227,7 +239,8 @@ public class QueryableProjectionFilterTests
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    @"{
+                    """
+                    {
                         root {
                             foo {
                                 barString
@@ -235,10 +248,11 @@ public class QueryableProjectionFilterTests
                                     where: {
                                         foo: {
                                             barString: {
-                                                eq: ""a""
+                                                eq: "a"
                                             }
                                         }
-                                    }) {
+                                    }
+                                ) {
                                     foo {
                                         barString
                                         barShort
@@ -246,14 +260,16 @@ public class QueryableProjectionFilterTests
                                 }
                             }
                         }
-                    }")
-                .Build());
+                    }
+                    """)
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
-            .Create(postFix: TestEnvironment.TargetFramework)
+            .Create(Postfix([NET8_0], [NET9_0], [NET10_0]))
             .AddResult(res1)
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -273,13 +289,14 @@ public class QueryableProjectionFilterTests
                             }
                         }
                     }")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
             .Create()
             .AddResult(res1)
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -301,13 +318,14 @@ public class QueryableProjectionFilterTests
                             }
                         }
                     }")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
             .Create()
             .AddResult(res1)
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -334,13 +352,14 @@ public class QueryableProjectionFilterTests
                             }
                         }
                     }")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
             .Create()
             .AddResult(res1)
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     private static void OnModelCreating(ModelBuilder modelBuilder)

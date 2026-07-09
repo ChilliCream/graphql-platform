@@ -1,3 +1,4 @@
+using System.IO.Pipelines;
 using HotChocolate.Language;
 using Microsoft.AspNetCore.Http;
 
@@ -14,14 +15,18 @@ public interface IHttpRequestParser
     /// <param name="requestBody">
     /// A stream representing the HTTP request body.
     /// </param>
+    /// <param name="skipDocumentBody">
+    /// If <c>true</c>, the document body will be skipped during parsing.
+    /// </param>
     /// <param name="cancellationToken">
     /// The request cancellation token.
     /// </param>
     /// <returns>
     /// Returns the parsed GraphQL request.
     /// </returns>
-    ValueTask<IReadOnlyList<GraphQLRequest>> ParseRequestAsync(
-        Stream requestBody,
+    ValueTask<GraphQLRequest[]> ParseRequestAsync(
+        PipeReader requestBody,
+        bool skipDocumentBody,
         CancellationToken cancellationToken);
 
     /// <summary>
@@ -36,6 +41,9 @@ public interface IHttpRequestParser
     /// <param name="requestBody">
     /// A stream representing the HTTP request body.
     /// </param>
+    /// <param name="skipDocumentBody">
+    /// If <c>true</c>, the document body will be skipped during parsing.
+    /// </param>
     /// <param name="cancellationToken">
     /// The request cancellation token.
     /// </param>
@@ -45,7 +53,8 @@ public interface IHttpRequestParser
     ValueTask<GraphQLRequest> ParsePersistedOperationRequestAsync(
         string documentId,
         string? operationName,
-        Stream requestBody,
+        PipeReader requestBody,
+        bool skipDocumentBody,
         CancellationToken cancellationToken);
 
     /// <summary>
@@ -54,10 +63,13 @@ public interface IHttpRequestParser
     /// <param name="sourceText">
     /// The operations string.
     /// </param>
+    /// <param name="skipDocumentBody">
+    /// If <c>true</c>, the document body will be skipped during parsing.
+    /// </param>
     /// <returns>
     /// Returns the parsed GraphQL request.
     /// </returns>
-    IReadOnlyList<GraphQLRequest> ParseRequest(string sourceText);
+    GraphQLRequest[] ParseRequest(string sourceText, bool skipDocumentBody = false);
 
     /// <summary>
     /// Parses a GraphQL HTTP GET request from the HTTP query parameters.
@@ -65,10 +77,13 @@ public interface IHttpRequestParser
     /// <param name="parameters">
     /// The HTTP query parameter collection.
     /// </param>
+    /// <param name="skipDocumentBody">
+    /// If <c>true</c>, the document body will be skipped during parsing.
+    /// </param>
     /// <returns>
     /// Returns the parsed GraphQL request.
     /// </returns>
-    GraphQLRequest ParseRequestFromParams(IQueryCollection parameters);
+    GraphQLRequest ParseRequestFromParams(IQueryCollection parameters, bool skipDocumentBody = false);
 
     /// <summary>
     /// Parses the variables and extensions from the HTTP query parameters.

@@ -279,7 +279,7 @@ public class GraphQLWebSocketProtocolTests
 
         // act
         await protocol.InitializeAsync(CancellationToken.None);
-        await semaphoreSlim.WaitAsync();
+        await semaphoreSlim.WaitAsync(TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal("123", id);
@@ -309,7 +309,7 @@ public class GraphQLWebSocketProtocolTests
 
         // act
         await protocol.InitializeAsync(CancellationToken.None);
-        await semaphoreSlim.WaitAsync();
+        await semaphoreSlim.WaitAsync(TestContext.Current.CancellationToken);
 
         // assert
         Assert.True(received);
@@ -321,13 +321,17 @@ public class GraphQLWebSocketProtocolTests
         // arrange
         SemaphoreSlim semaphoreSlim = new(0);
         string? error = null;
-        const string message = @"{
-            ""type"": ""error"",
-            ""id"": ""123"",
-            ""payload"": {
-                ""message"": ""test message""
+        const string message =
+            // lang=json
+            """
+            {
+                "type": "error",
+                "id": "123",
+                "payload": {
+                    "message": "test message"
+                }
             }
-        }";
+            """;
         var socketClient = new SocketClientStub { KeepOpen = true, IsClosed = false };
         var protocol = new GraphQLWebSocketProtocol(socketClient);
         protocol.Subscribe((_, operationMessage, _) =>
@@ -344,7 +348,7 @@ public class GraphQLWebSocketProtocolTests
 
         // act
         await protocol.InitializeAsync(CancellationToken.None);
-        await semaphoreSlim.WaitAsync();
+        await semaphoreSlim.WaitAsync(TestContext.Current.CancellationToken);
 
         // assert
         error.MatchSnapshot();
@@ -373,7 +377,7 @@ public class GraphQLWebSocketProtocolTests
 
         // act
         await protocol.InitializeAsync(CancellationToken.None);
-        await semaphoreSlim.WaitAsync();
+        await semaphoreSlim.WaitAsync(TestContext.Current.CancellationToken);
 
         // assert
         error.MatchSnapshot();

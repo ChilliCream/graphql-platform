@@ -10,7 +10,7 @@ public class SchemaBuilderExtensionsDocumentTests
         // arrange
         // act
         Action action = () =>
-            SchemaBuilderExtensions.AddDocumentFromFile(null, "abc");
+            SchemaBuilderExtensions.AddDocumentFromFile(null!, "abc");
 
         // assert
         Assert.Throws<ArgumentNullException>(action);
@@ -24,7 +24,7 @@ public class SchemaBuilderExtensionsDocumentTests
 
         // act
         Action action = () =>
-            SchemaBuilderExtensions.AddDocumentFromFile(builder, null);
+            SchemaBuilderExtensions.AddDocumentFromFile(builder, null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(action);
@@ -51,7 +51,7 @@ public class SchemaBuilderExtensionsDocumentTests
         // arrange
         var builder = SchemaBuilder.New();
         var file = IOPath.GetTempFileName();
-        await File.WriteAllTextAsync(file, "type Query { a: String }");
+        await File.WriteAllTextAsync(file, "type Query { a: String }", TestContext.Current.CancellationToken);
 
         // act
         builder.AddDocumentFromFile(file);

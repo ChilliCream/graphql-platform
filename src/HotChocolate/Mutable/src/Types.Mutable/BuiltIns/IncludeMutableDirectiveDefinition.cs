@@ -3,12 +3,12 @@ namespace HotChocolate.Types.Mutable;
 public sealed class IncludeMutableDirectiveDefinition : MutableDirectiveDefinition
 {
     internal IncludeMutableDirectiveDefinition(MutableScalarTypeDefinition booleanType)
-        : base(BuiltIns.Include.Name)
+        : base(DirectiveNames.Include.Name)
     {
         IsSpecDirective = true;
-        Arguments.Add(new MutableInputFieldDefinition(BuiltIns.Include.If, booleanType));
+        Arguments.Add(new MutableInputFieldDefinition(DirectiveNames.Include.Arguments.If, booleanType));
         Locations = DirectiveLocation.Field | DirectiveLocation.FragmentSpread | DirectiveLocation.InlineFragment;
     }
 
-    public MutableInputFieldDefinition If => Arguments[BuiltIns.Include.If];
+    public MutableInputFieldDefinition If => Arguments[DirectiveNames.Include.Arguments.If];
 }

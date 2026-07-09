@@ -1,17 +1,22 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <IsPackable>false</IsPackable>
-    <InterceptorsPreviewNamespaces>$(InterceptorsPreviewNamespaces);HotChocolate.Execution.Generated</InterceptorsPreviewNamespaces>
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Test.props', '$(MSBuildThisFileDirectory)'))" />
 
-    <!--EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
-    <CompilerGeneratedFilesOutputPath>$(BaseIntermediateOutputPath)\GeneratedFiles</CompilerGeneratedFilesOutputPath-->
+  <PropertyGroup>
+    <InterceptorsPreviewNamespaces>$(InterceptorsPreviewNamespaces);HotChocolate.Execution.Generated</InterceptorsPreviewNamespaces>
+    <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+    <CompilerGeneratedFilesOutputPath>.generated</CompilerGeneratedFilesOutputPath>
   </PropertyGroup>
 
   <PropertyGroup>
     <AssemblyName>HotChocolate.Types.Analyzers.Integration.Tests</AssemblyName>
     <RootNamespace>HotChocolate.Types</RootNamespace>
     <NoWarn>$(NoWarn);GD0001</NoWarn>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <!--Required since otherwise the XML docs won't be inferred by the source generator.-->
+    <GenerateDocumentationFile>True</GenerateDocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>
@@ -40,6 +45,10 @@
     <None Update="$(MSBuildProjectDirectory)\xunit.runner.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="$(CompilerGeneratedFilesOutputPath)/**/*.cs" />
   </ItemGroup>
 
 </Project>

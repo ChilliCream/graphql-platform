@@ -9,18 +9,19 @@ public class CatchErrorMiddlewareAttribute : ObjectFieldDescriptorAttribute
     protected override void OnConfigure(
         IDescriptorContext context,
         IObjectFieldDescriptor descriptor,
-        MemberInfo member)
+        MemberInfo? member)
     {
-        descriptor.Use(next => async context =>
-        {
-            try
+        descriptor.Use(
+            static next => async ctx =>
             {
-                await next(context);
-            }
-            catch (Exception ex)
-            {
-                context.ContextData["ex"] = ex.Message;
-            }
-        });
+                try
+                {
+                    await next(ctx);
+                }
+                catch (Exception ex)
+                {
+                    ctx.ContextData["ex"] = ex.Message;
+                }
+            });
     }
 }

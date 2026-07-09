@@ -1,4 +1,4 @@
-using HotChocolate.Execution.Processing;
+using HotChocolate.Execution;
 using HotChocolate.Types;
 
 namespace HotChocolate.Resolvers;
@@ -37,14 +37,14 @@ public interface ISelectionCollection : IReadOnlyList<ISelection>
     ISelectionCollection Select(ReadOnlySpan<string> fieldNames);
 
     /// <summary>
-    /// Selects all selections where the typeContext is assignable from the field`s declaring type.
+    /// Selects all selections where the typeContext is assignable from the field's declaring type.
     /// </summary>
     /// <param name="typeContext">
     /// The type context to select.
     /// </param>
     /// <returns>
     /// Returns a <see cref="ISelectionCollection"/> containing
-    /// the selections where the typeContext is assignable from the field`s declaring type.
+    /// the selections where the typeContext is assignable from the field's declaring type.
     /// </returns>
     ISelectionCollection Select(ITypeDefinition typeContext);
 

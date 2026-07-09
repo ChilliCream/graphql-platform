@@ -16,7 +16,7 @@ public static class AutoCacheDataLoaderTests
                 .AddQueryType<Query>()
                 .AddType(typeof(CatExtensions))
                 .AddDataLoader<CatDataLoader>()
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var result = await executor.ExecuteAsync(
             """
@@ -32,7 +32,8 @@ public static class AutoCacheDataLoaderTests
                     }
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         result.MatchMarkdownSnapshot();
     }

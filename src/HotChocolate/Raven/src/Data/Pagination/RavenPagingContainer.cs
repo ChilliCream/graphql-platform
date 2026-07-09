@@ -121,7 +121,11 @@ internal sealed class RavenPagingContainer<TEntity>(IAsyncDocumentQuery<TEntity>
 
     private sealed class TaskHolder
     {
+#if NET9_0_OR_GREATER
+        private readonly Lock _lock = new();
+#else
         private readonly object _lock = new();
+#endif
         private Task<int>? _task;
         private readonly Func<Task<int>> _factory;
 

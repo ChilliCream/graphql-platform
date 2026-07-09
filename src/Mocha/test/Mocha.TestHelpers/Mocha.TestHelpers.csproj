@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <AssemblyName>Mocha.TestHelpers</AssemblyName>
+    <RootNamespace>Mocha.TestHelpers</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Mocha.Abstractions\Mocha.Abstractions.csproj" />
+    <ProjectReference Include="..\..\src\Mocha\Mocha.csproj" />
+  </ItemGroup>
+</Project>

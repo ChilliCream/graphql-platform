@@ -1,0 +1,102 @@
+operation:
+  - document: |
+      query($title: Boolean = true) {
+        products {
+          __typename @fusion__requirement
+          id
+          id @fusion__requirement
+          reviews {
+            id
+          }
+          ... on Book {
+            sku
+            id @fusion__requirement
+            title @skip(if: $title)
+          }
+          ... on Magazine {
+            sku
+          }
+        }
+      }
+    hash: 123456789101112
+    searchSpace: 1
+    expandedNodes: 3
+nodes:
+  - id: 1
+    type: Operation
+    schema: a
+    operation: |
+      query Op_123456789101112_1 {
+        products {
+          __typename
+          id
+          sku
+        }
+      }
+  - id: 2
+    type: Operation
+    schema: r
+    operation: |
+      query Op_123456789101112_2($__fusion_1_id: ID!) {
+        magazineById(id: $__fusion_1_id) {
+          reviews {
+            id
+          }
+        }
+      }
+    source: $.magazineById
+    target: $.products<Magazine>
+    batchingGroupId: 2
+    requirements:
+      - name: __fusion_1_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 1
+  - id: 4
+    type: Operation
+    schema: r
+    operation: |
+      query Op_123456789101112_4($__fusion_3_id: ID!) {
+        bookById(id: $__fusion_3_id) {
+          reviews {
+            id
+          }
+          ... on Book {
+            id
+          }
+        }
+      }
+    source: $.bookById
+    target: $.products<Book>
+    batchingGroupId: 2
+    requirements:
+      - name: __fusion_3_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 1
+  - id: 3
+    type: OperationBatch
+    schema: books
+    operation: |
+      query Op_123456789101112_3($__fusion_2_id: ID!) {
+        bookById(id: $__fusion_2_id) {
+          title
+        }
+      }
+    source: $.bookById
+    targets:
+      - $.products<Magazine><Book>
+      - $.products<Book><Book>
+    batchingGroupId: 3
+    requirements:
+      - name: __fusion_2_id
+        selectionMap: >-
+          id
+    conditions:
+      - variable: $title
+        passingValue: false
+    dependencies:
+      - id: 1
+      - id: 4

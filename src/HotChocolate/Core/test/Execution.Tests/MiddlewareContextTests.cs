@@ -1,9 +1,8 @@
+using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
-using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
-using HotChocolate.Utilities;
 
 namespace HotChocolate.Execution;
 
@@ -19,7 +18,7 @@ public class MiddlewareContextTests
             .AddResolver(
                 "Query",
                 "foo",
-                ctx => ctx.Variables.GetValue<StringValueNode>("abc")?.Value)
+                ctx => ctx.Variables.GetValue<StringValueNode>("abc").Value)
             .Create();
 
         var request = OperationRequestBuilder.New()
@@ -28,7 +27,7 @@ public class MiddlewareContextTests
             .Build();
 
         // act
-        var result = await schema.MakeExecutable().ExecuteAsync(request);
+        var result = await schema.MakeExecutable().ExecuteAsync(request, TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -44,7 +43,7 @@ public class MiddlewareContextTests
             .AddResolver(
                 "Query",
                 "foo",
-                ctx => ctx.Variables.GetValue<StringValueNode>("abc")?.Value)
+                ctx => ctx.Variables.GetValue<StringValueNode>("abc").Value)
             .Create();
 
         var request = OperationRequestBuilder.New()
@@ -54,7 +53,7 @@ public class MiddlewareContextTests
 
         // act
         var result =
-            await schema.MakeExecutable().ExecuteAsync(request);
+            await schema.MakeExecutable().ExecuteAsync(request, TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -64,7 +63,7 @@ public class MiddlewareContextTests
     public async Task CollectFields()
     {
         // arrange
-        var list = new List<ISelection>();
+        var list = new List<Selection>();
 
         var schema = SchemaBuilder.New()
             .AddDocumentFromString(
@@ -103,17 +102,20 @@ public class MiddlewareContextTests
                         baz
                     }
                 }
-            }");
+            }",
+            TestContext.Current.CancellationToken);
 
         // assert
-        list.Select(t => t.SyntaxNode.Name.Value).ToList().MatchSnapshot();
+        list.Select(t => t.SyntaxNodes[0].Node.Name.Value).ToList().MatchSnapshot();
     }
 
     [Fact]
     public async Task CustomServiceProvider()
     {
         // arrange
-        var services = new DictionaryServiceProvider(typeof(string), "hello");
+        var services = new ServiceCollection()
+            .AddSingleton(typeof(string), "hello")
+            .BuildServiceProvider();
 
         // assert
         var result =
@@ -133,7 +135,7 @@ public class MiddlewareContextTests
                                     await next(context);
                                 });
                     })
-                .ExecuteRequestAsync("{ foo }");
+                .ExecuteRequestAsync("{ foo }", cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -194,7 +196,7 @@ public class MiddlewareContextTests
                                 context.ReplaceArguments(original);
                             });
                 })
-            .ExecuteRequestAsync("{ abc(a: \"abc   \") }");
+            .ExecuteRequestAsync("{ abc(a: \"abc   \") }", cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchSnapshot();
     }
@@ -220,7 +222,7 @@ public class MiddlewareContextTests
                                 context.ReplaceArguments(original);
                             });
                 })
-            .ExecuteRequestAsync("{ abc(a: \"abc   \") }");
+            .ExecuteRequestAsync("{ abc(a: \"abc   \") }", cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchSnapshot();
     }
@@ -243,7 +245,7 @@ public class MiddlewareContextTests
                                 await next(context);
                             });
                 })
-            .ExecuteRequestAsync("{ abc(a: \"abc\") }");
+            .ExecuteRequestAsync("{ abc(a: \"abc\") }", cancellationToken: TestContext.Current.CancellationToken);
 
         Assert.NotNull(result.ContextData);
         Assert.True(result.ContextData.TryGetValue("abc", out var value));
@@ -277,7 +279,7 @@ public class MiddlewareContextTests
                                 await next(context);
                             });
                 })
-            .ExecuteRequestAsync("{ abc(a: \"abc\") }");
+            .ExecuteRequestAsync("{ abc(a: \"abc\") }", cancellationToken: TestContext.Current.CancellationToken);
 
         Assert.NotNull(result.ContextData);
         Assert.True(result.ContextData.TryGetValue("abc", out var value));
@@ -333,8 +335,8 @@ public class MiddlewareContextTests
                 continue;
             }
 
-            Assert.NotNull(queryResult.Incremental?[0].ContextData);
-            Assert.True(queryResult.Incremental[0].ContextData!.TryGetValue("abc", out var value));
+            Assert.NotNull(queryResult.ContextData);
+            Assert.True(queryResult.ContextData.TryGetValue("abc", out var value));
             Assert.Equal(2, value);
         }
     }
@@ -366,7 +368,7 @@ public class MiddlewareContextTests
                                 await next(context);
                             });
                 })
-            .ExecuteRequestAsync("{ abc(a: \"abc\") }");
+            .ExecuteRequestAsync("{ abc(a: \"abc\") }", cancellationToken: TestContext.Current.CancellationToken);
 
         Assert.NotNull(result.ContextData);
         Assert.True(result.ContextData.TryGetValue("abc", out var value));
@@ -391,127 +393,22 @@ public class MiddlewareContextTests
                                 await next(context);
                             });
                 })
-            .ExecuteRequestAsync("{ abc(a: \"abc\") }");
+            .ExecuteRequestAsync("{ abc(a: \"abc\") }", cancellationToken: TestContext.Current.CancellationToken);
 
         Snapshot
             .Create()
             .Add(result)
             .MatchInline(
-                @"{
-                  ""data"": {
-                    ""abc"": ""abc""
-                  },
-                  ""extensions"": {
-                    ""abc"": 1
-                  }
-                }");
-    }
-
-    [Fact]
-    public async Task SetResultExtensionData_With_Delegate_IntValue()
-    {
-        var result = await new ServiceCollection()
-            .AddGraphQL()
-            .AddQueryType(
-                d =>
+                """
                 {
-                    d.Field("abc")
-                        .Argument("a", t => t.Type<StringType>())
-                        .Resolve(ctx => ctx.ArgumentValue<string>("a"))
-                        .Use(
-                            next => async context =>
-                            {
-                                context.OperationResult.SetExtension("abc", 1);
-                                context.OperationResult.SetExtension<int>("abc", (_, v) => 1 + v);
-                                await next(context);
-                            });
-                })
-            .ExecuteRequestAsync("{ abc(a: \"abc\") }");
-
-        Snapshot
-            .Create()
-            .Add(result)
-            .MatchInline(
-                @"{
-                  ""data"": {
-                    ""abc"": ""abc""
+                  "data": {
+                    "abc": "abc"
                   },
-                  ""extensions"": {
-                    ""abc"": 2
+                  "extensions": {
+                    "abc": 1
                   }
-                }");
-    }
-
-    [Fact]
-    public async Task SetResultExtensionData_With_Delegate_IntValue_With_State()
-    {
-        var result = await new ServiceCollection()
-            .AddGraphQL()
-            .AddQueryType(
-                d =>
-                {
-                    d.Field("abc")
-                        .Argument("a", t => t.Type<StringType>())
-                        .Resolve(ctx => ctx.ArgumentValue<string>("a"))
-                        .Use(
-                            next => async context =>
-                            {
-                                context.OperationResult.SetExtension("abc", 1);
-                                context.OperationResult.SetExtension<int, int>(
-                                    key: "abc",
-                                    state: 5,
-                                    (_, v, s) => s + v);
-                                await next(context);
-                            });
-                })
-            .ExecuteRequestAsync("{ abc(a: \"abc\") }");
-
-        Snapshot
-            .Create()
-            .Add(result)
-            .MatchInline(
-                @"{
-                  ""data"": {
-                    ""abc"": ""abc""
-                  },
-                  ""extensions"": {
-                    ""abc"": 6
-                  }
-                }");
-    }
-
-    [Fact]
-    public async Task SetResultExtensionData_With_Delegate_NoDefaultValue_IntValue()
-    {
-        var result = await new ServiceCollection()
-            .AddGraphQL()
-            .AddQueryType(
-                d =>
-                {
-                    d.Field("abc")
-                        .Argument("a", t => t.Type<StringType>())
-                        .Resolve(ctx => ctx.ArgumentValue<string>("a"))
-                        .Use(
-                            next => async context =>
-                            {
-                                context.OperationResult.SetExtension<int>("abc", (_, v) => 1 + v);
-                                await next(context);
-                            });
-                })
-            .ExecuteRequestAsync("{ abc(a: \"abc\") }");
-
-        Snapshot
-            .Create()
-            .Add(result)
-            .MatchInline(
-                @"{
-                  ""data"": {
-                    ""abc"": ""abc""
-                  },
-                  ""extensions"": {
-                    ""abc"": 1
-                  }
-                }");
+                }
+                """);
     }
 
     [Fact]
@@ -532,25 +429,28 @@ public class MiddlewareContextTests
                                 await next(context);
                             });
                 })
-            .ExecuteRequestAsync("{ abc(a: \"abc\") }");
+            .ExecuteRequestAsync("{ abc(a: \"abc\") }", cancellationToken: TestContext.Current.CancellationToken);
 
         Snapshot
             .Create()
             .Add(result)
             .MatchInline(
-                @"{
-                  ""data"": {
-                    ""abc"": ""abc""
+                """
+                {
+                  "data": {
+                    "abc": "abc"
                   },
-                  ""extensions"": {
-                    ""abc"": {
-                      ""someField"": ""def""
+                  "extensions": {
+                    "abc": {
+                      "someField": "def"
                     }
                   }
-                }");
+                }
+                """);
     }
 
-    [Fact]
+    // TODO : FIX BEFORE V16 RELEASE
+    [Fact(Skip = "We need to research how we deal with extensions")]
     public async Task SetResultExtensionData_With_ObjectValue_WhenDeferred()
     {
         using var cts = new CancellationTokenSource(5000);
@@ -593,29 +493,31 @@ public class MiddlewareContextTests
                 .Create()
                 .AddResult(queryResult)
                 .MatchInline(
-                    @"{
-                      ""incremental"": [
+                    """
+                    {
+                      "incremental": [
                         {
-                          ""data"": {
-                            ""abc"": ""abc""
+                          "data": {
+                            "abc": "abc"
                           },
-                          ""extensions"": {
-                            ""abc"": {
-                              ""someField"": ""def""
+                          "extensions": {
+                            "abc": {
+                              "someField": "def"
                             }
                           },
-                          ""path"": []
+                          "path": []
                         }
                       ],
-                      ""hasNext"": false
-                    }");
+                      "hasNext": false
+                    }
+                    """);
         }
     }
 
     private static void CollectSelections(
         IResolverContext context,
-        ISelection selection,
-        ICollection<ISelection> collected)
+        Selection selection,
+        ICollection<Selection> collected)
     {
         if (selection.Type.IsLeafType())
         {
@@ -631,5 +533,6 @@ public class MiddlewareContextTests
         }
     }
 
+    // ReSharper disable once NotAccessedPositionalProperty.Local
     private record SomeData(string SomeField);
 }

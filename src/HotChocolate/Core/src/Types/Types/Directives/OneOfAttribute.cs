@@ -19,6 +19,6 @@ public sealed class OneOfAttribute : InputObjectTypeDescriptorAttribute
     protected override void OnConfigure(
         IDescriptorContext context,
         IInputObjectTypeDescriptor descriptor,
-        Type type)
+        Type? type)
         => descriptor.OneOf();
 }

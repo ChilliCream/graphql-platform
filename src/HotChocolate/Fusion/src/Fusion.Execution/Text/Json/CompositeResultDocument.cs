@@ -1,0 +1,551 @@
+using System.Diagnostics;
+using System.Runtime.CompilerServices;
+using System.Text;
+using HotChocolate.Buffers;
+using HotChocolate.Fusion.Execution.Nodes;
+using HotChocolate.Text.Json;
+using HotChocolate.Types;
+
+namespace HotChocolate.Fusion.Text.Json;
+
+public sealed partial class CompositeResultDocument : IDisposable
+{
+    private static readonly Encoding s_utf8Encoding = Encoding.UTF8;
+    private readonly List<SourceResultDocument> _sources = [];
+    private readonly Operation _operation;
+    private readonly ulong _includeFlags;
+    private readonly ulong _deferFlags;
+    private readonly PathSegmentLocalPool? _pathPool;
+    internal MetaDb _metaDb;
+    private int _disposed;
+
+    internal CompositeResultDocument(
+        IMemoryArena arena,
+        Operation operation,
+        ulong includeFlags,
+        ulong deferFlags = 0,
+        PathSegmentLocalPool? pathPool = null)
+    {
+        ArgumentNullException.ThrowIfNull(arena);
+
+        var zero = Cursor.CreateZero();
+
+        _metaDb = MetaDb.Create(arena);
+        _operation = operation;
+        _includeFlags = includeFlags;
+        _deferFlags = deferFlags;
+        _pathPool = pathPool;
+
+        Data = CreateObject(zero, operation.RootSelectionSet);
+    }
+
+    public CompositeResultElement Data { get; }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal ElementTokenType GetElementTokenType(Cursor cursor)
+        => _metaDb.GetElementTokenType(cursor);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal Operation GetOperation()
+        => _operation;
+
+    internal SelectionSet? GetSelectionSet(Cursor cursor)
+    {
+        var row = _metaDb.Get(cursor);
+
+        if (row.TokenType is ElementTokenType.Reference)
+        {
+            row = _metaDb.Get(new Cursor(row.Location));
+        }
+
+        if (row.OperationReferenceType is not OperationReferenceType.SelectionSet)
+        {
+            return null;
+        }
+
+        return _operation.GetSelectionSetById(row.OperationReferenceId);
+    }
+
+    internal Selection? GetSelection(Cursor cursor)
+    {
+        if (cursor.IsZero)
+        {
+            return null;
+        }
+
+        // If the cursor points at a value, step back to the PropertyName row.
+        var row = _metaDb.Get(cursor);
+
+        if (row.TokenType is not ElementTokenType.PropertyName)
+        {
+            cursor = cursor.AddRows(-1);
+            row = _metaDb.Get(cursor);
+
+            if (row.TokenType is not ElementTokenType.PropertyName)
+            {
+                return null;
+            }
+        }
+
+        if (row.OperationReferenceType is not OperationReferenceType.Selection)
+        {
+            return null;
+        }
+
+        return _operation.GetSelectionById(row.OperationReferenceId);
+    }
+
+    internal CompositeResultElement GetArrayIndexElement(Cursor current, int arrayIndex)
+    {
+        ObjectDisposedException.ThrowIf(_disposed != 0, this);
+
+        var row = _metaDb.GetValue(ref current);
+        CheckExpectedType(ElementTokenType.StartArray, row.TokenType);
+
+        if ((uint)arrayIndex >= (uint)row.NumberOfRows)
+        {
+            throw new IndexOutOfRangeException(
+                $"Array index {arrayIndex} is out of range for an array of length {row.NumberOfRows}.");
+        }
+
+        // first element is at +1 after StartArray
+        return new CompositeResultElement(this, current.AddRows(arrayIndex + 1));
+    }
+
+    internal int GetArrayLength(Cursor current)
+    {
+        ObjectDisposedException.ThrowIf(_disposed != 0, this);
+
+        var row = _metaDb.GetValue(ref current);
+        CheckExpectedType(ElementTokenType.StartArray, row.TokenType);
+
+        return row.SizeOrLength;
+    }
+
+    internal int GetPropertyCount(Cursor current)
+    {
+        ObjectDisposedException.ThrowIf(_disposed != 0, this);
+
+        var row = _metaDb.GetValue(ref current);
+        CheckExpectedType(ElementTokenType.StartObject, row.TokenType);
+
+        return row.SizeOrLength;
+    }
+
+    [SkipLocalsInit]
+    internal CompactPath CreateCompactPath(Cursor current)
+    {
+        var firstRow = _metaDb.Get(current);
+
+        // Stop at root via IsRoot flag.
+        if ((firstRow.Flags & ElementFlags.IsRoot) == ElementFlags.IsRoot)
+        {
+            return CompactPath.Root;
+        }
+
+        Span<Cursor> chain = stackalloc Cursor[64];
+        Span<DbRow> rows = stackalloc DbRow[64];
+        chain[0] = current;
+        rows[0] = firstRow;
+        var written = 1;
+
+        var parentCursor = new Cursor(firstRow.Parent);
+        while (!parentCursor.IsZero)
+        {
+            var row = _metaDb.Get(parentCursor);
+            chain[written] = parentCursor;
+            rows[written] = row;
+            written++;
+
+            parentCursor = new Cursor(row.Parent);
+
+            if (written >= 64)
+            {
+                throw new InvalidOperationException("The path is to deep.");
+            }
+        }
+
+        Span<int> pathBuffer = stackalloc int[32];
+        var path = new CompactPathBuilder(pathBuffer, _pathPool);
+        var parentTokenType = ElementTokenType.StartObject;
+
+        for (var i = written - 1; i >= 0; i--)
+        {
+            var cursor = chain[i];
+            var tokenType = rows[i].TokenType;
+
+            if (tokenType == ElementTokenType.PropertyName)
+            {
+                Debug.Assert(rows[i].OperationReferenceType is OperationReferenceType.Selection);
+                path.AppendField(rows[i].OperationReferenceId);
+                i--; // skip over the actual value
+            }
+            else if (written - 1 > i)
+            {
+                var arrayParentCursor = chain[i + 1];
+
+                if (parentTokenType is ElementTokenType.StartArray)
+                {
+                    // arrayIndex = abs(child) - (abs(parent) + 1)
+                    var arrayIndex = cursor.Index - (arrayParentCursor.Index + 1);
+                    path.AppendIndex(arrayIndex);
+                }
+            }
+
+            parentTokenType = tokenType;
+        }
+
+        return path.ToPath();
+    }
+
+    internal Path CreatePath(Cursor current)
+        => CreateCompactPath(current).ToPath(_operation);
+
+    internal CompositeResultElement GetParent(Cursor current)
+    {
+        // The null cursor represents the data object, which is the utmost root.
+        // If we have reached that we simply return an undefined element
+        if (current.IsZero)
+        {
+            return default;
+        }
+
+        var parent = _metaDb.GetParentCursor(current);
+        var parentRow = _metaDb.Get(parent);
+
+        // if the parent element is a property name then we must get the parent of that,
+        // as property name and value represent the same element.
+        if (parentRow.TokenType is ElementTokenType.PropertyName)
+        {
+            parent = new Cursor(parentRow.Parent);
+            parentRow = _metaDb.Get(parent);
+        }
+
+        // if we have not yet reached the root and the element type of the parent is an object or an array
+        // then we need to get still the parent of this row as we want to get the logical parent
+        // which is the value level of the property or the element in an array.
+        if (!parent.IsZero
+            && parentRow.TokenType is ElementTokenType.StartObject or ElementTokenType.StartArray)
+        {
+            parent = new Cursor(parentRow.Parent);
+
+            // in this case the parent must be a reference, otherwise we would have
+            // found an inconsistency in the database.
+            Debug.Assert(_metaDb.Get(parent).TokenType == ElementTokenType.Reference);
+        }
+
+        return new CompositeResultElement(this, parent);
+    }
+
+    internal bool IsInvalidated(Cursor current)
+    {
+        ObjectDisposedException.ThrowIf(_disposed != 0, this);
+
+        var row = _metaDb.Get(current);
+
+        if (row.TokenType is ElementTokenType.StartObject)
+        {
+            return (row.Flags & ElementFlags.Invalidated) == ElementFlags.Invalidated;
+        }
+
+        if (row.TokenType is ElementTokenType.Reference)
+        {
+            row = _metaDb.Get(new Cursor(row.Location));
+
+            if (row.TokenType is ElementTokenType.StartObject)
+            {
+                return (row.Flags & ElementFlags.Invalidated) == ElementFlags.Invalidated;
+            }
+        }
+
+        return false;
+    }
+
+    internal bool IsNullOrInvalidated(Cursor current)
+    {
+        ObjectDisposedException.ThrowIf(_disposed != 0, this);
+
+        var row = _metaDb.Get(current);
+
+        if (row.TokenType is ElementTokenType.Null)
+        {
+            return true;
+        }
+
+        if (row.TokenType is ElementTokenType.Reference)
+        {
+            row = _metaDb.Get(new Cursor(row.Location));
+        }
+
+        if (row.TokenType is ElementTokenType.StartObject)
+        {
+            return (row.Flags & ElementFlags.Invalidated) == ElementFlags.Invalidated;
+        }
+
+        return false;
+    }
+
+    internal bool IsInternalProperty(Cursor current)
+    {
+        ObjectDisposedException.ThrowIf(_disposed != 0, this);
+
+        // The flag sits on the property row (one before value)
+        var propertyCursor = current.AddRows(-1);
+        var flags = _metaDb.GetFlags(propertyCursor);
+        return (flags & ElementFlags.IsInternal) == ElementFlags.IsInternal;
+    }
+
+    internal bool IsEnumValueProperty(Cursor current)
+    {
+        ObjectDisposedException.ThrowIf(_disposed != 0, this);
+
+        // The flag sits on the property row (one before value)
+        var propertyCursor = current.AddRows(-1);
+        var flags = _metaDb.GetFlags(propertyCursor);
+        return (flags & ElementFlags.IsEnumValue) == ElementFlags.IsEnumValue;
+    }
+
+    internal void Invalidate(Cursor current)
+    {
+        ObjectDisposedException.ThrowIf(_disposed != 0, this);
+
+        var row = _metaDb.Get(current);
+
+        if (row.TokenType is ElementTokenType.Reference)
+        {
+            current = new Cursor(row.Location);
+            row = _metaDb.Get(current);
+        }
+
+        if (row.TokenType is ElementTokenType.None or ElementTokenType.StartArray)
+        {
+            return;
+        }
+
+        if (row.TokenType is ElementTokenType.StartObject)
+        {
+            _metaDb.SetFlags(current, row.Flags | ElementFlags.Invalidated);
+            return;
+        }
+
+        Debug.Fail("Only objects can be invalidated.");
+    }
+
+    private ReadOnlySpan<byte> ReadRawValue(DbRow row)
+    {
+        if (row.TokenType == ElementTokenType.Null)
+        {
+            return JsonConstants.NullValue;
+        }
+
+        if (row.TokenType == ElementTokenType.True)
+        {
+            return JsonConstants.TrueValue;
+        }
+
+        if (row.TokenType == ElementTokenType.False)
+        {
+            return JsonConstants.FalseValue;
+        }
+
+        if (row.TokenType == ElementTokenType.PropertyName)
+        {
+            return _operation.GetSelectionById(row.OperationReferenceId).Utf8ResponseName;
+        }
+
+        if ((row.Flags & ElementFlags.SourceResult) == ElementFlags.SourceResult)
+        {
+            var document = _sources[row.SourceDocumentId];
+            return document.ReadRawValue(row.Location, row.SizeOrLength);
+        }
+
+        if (row.TokenType == ElementTokenType.String)
+        {
+            // An inline string value synthesized by the result layer (the __typename
+            // introspection field). Its concrete type comes from the enclosing selection set,
+            // which the merge has already specialized to the runtime type.
+            var typeName = _operation.GetSelectionSetById(row.Location).Type.Name;
+            return Utf8StringCache.GetQuotedUtf8String(typeName);
+        }
+
+        throw new NotSupportedException();
+    }
+
+    internal CompositeResultElement CreateObject(Cursor parent, SelectionSet selectionSet)
+    {
+        var selections = selectionSet.Selections;
+        var startObjectCursor = WriteStartObject(parent, selectionSet.Id, selections.Length);
+
+        foreach (var selection in selections)
+        {
+            if (selection.Field.IsIntrospectionField
+                && selection.Field.Name == IntrospectionFieldNames.TypeName)
+            {
+                // __typename resolves to the concrete type of this selection set. Synthesizing it
+                // here means payloads that never echo __typename (such as broker event streams)
+                // still report it, while a subgraph that does echo it simply overwrites the slot
+                // with the identical value.
+                WriteTypeNameProperty(startObjectCursor, selection, selectionSet.Id);
+            }
+            else
+            {
+                WriteEmptyProperty(startObjectCursor, selection);
+            }
+        }
+
+        _metaDb.AppendEndObject();
+
+        return new CompositeResultElement(this, startObjectCursor);
+    }
+
+    internal CompositeResultElement CreateArray(Cursor parent, int length)
+    {
+        var cursor = WriteStartArray(parent, length);
+
+        _metaDb.AppendNullRange(cursor.Value, length);
+
+        WriteEndArray();
+
+        return new CompositeResultElement(this, cursor);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal void AssignCompositeValue(CompositeResultElement target, CompositeResultElement value)
+    {
+        _metaDb.ReplacePreserveParent(
+            cursor: target.Cursor,
+            tokenType: ElementTokenType.Reference,
+            location: value.Cursor.Value);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal void AssignSourceValue(CompositeResultElement target, SourceResultElement source)
+    {
+        var row = source.GetValueRow();
+        var parent = source._parent;
+
+        if (parent.Id == -1)
+        {
+            Debug.Assert(!_sources.Contains(parent), "The source document is marked as unbound but is already registered.");
+            parent.Id = _sources.Count;
+            _sources.Add(parent);
+        }
+
+        Debug.Assert(_sources.Contains(parent), "Expected the source document of the source element to be registered.");
+
+        var tokenType = row.TokenType.ToElementTokenType();
+
+        if (tokenType is ElementTokenType.StartObject or ElementTokenType.StartArray)
+        {
+            var sourceCursor = source._cursor;
+
+            _metaDb.ReplacePreserveParent(
+                cursor: target.Cursor,
+                tokenType: tokenType,
+                location: sourceCursor.Chunk,
+                sizeOrLength: sourceCursor.Row,
+                sourceDocumentId: parent.Id,
+                flags: ElementFlags.SourceResult);
+            return;
+        }
+
+        _metaDb.ReplacePreserveParent(
+            cursor: target.Cursor,
+            tokenType: tokenType,
+            location: row.Location,
+            sizeOrLength: row.SizeOrLength,
+            sourceDocumentId: parent.Id,
+            flags: ElementFlags.SourceResult);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal void AssignNullValue(CompositeResultElement target)
+    {
+        _metaDb.ReplacePreserveParent(
+            cursor: target.Cursor,
+            tokenType: ElementTokenType.Null);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private Cursor WriteStartObject(Cursor parent, int selectionSetId, int propertyCount)
+        => _metaDb.AppendStartObject(parent.Value, selectionSetId, propertyCount, ElementFlags.None);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private Cursor WriteStartArray(Cursor parent, int length = 0)
+        => _metaDb.AppendStartArray(parent.Value, length, ElementFlags.None);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private void WriteEndArray() => _metaDb.AppendEndArray();
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private void WriteEmptyProperty(Cursor parent, Selection selection)
+        => _metaDb.AppendEmptyPropertyWithNullValue(
+            parentRow: parent.Value,
+            selectionId: selection.Id,
+            flags: GetPropertyFlags(selection));
+
+    // Writes the __typename property with its value already set to the concrete type name of the
+    // enclosing selection set. The value row stores the selection-set id as an inline string
+    // reference, so the interned type name is resolved (and quoted) lazily when read.
+    private void WriteTypeNameProperty(Cursor parent, Selection selection, int selectionSetId)
+    {
+        var propertyCursor = _metaDb.AppendEmptyProperty(
+            parentRow: parent.Value,
+            selectionId: selection.Id,
+            flags: GetPropertyFlags(selection));
+
+        _metaDb.Append(
+            ElementTokenType.String,
+            location: selectionSetId,
+            parentRow: propertyCursor.Value);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private ElementFlags GetPropertyFlags(Selection selection)
+    {
+        var flags = ElementFlags.None;
+
+        if (selection.IsInternal)
+        {
+            flags = ElementFlags.IsInternal;
+        }
+
+        if (!selection.IsIncluded(_includeFlags) || selection.IsDeferred(_deferFlags))
+        {
+            flags |= ElementFlags.IsExcluded;
+        }
+
+        if (selection.Type.Kind is not TypeKind.NonNull)
+        {
+            flags |= ElementFlags.IsNullable;
+        }
+
+        if (selection.IsEnumValue)
+        {
+            flags |= ElementFlags.IsEnumValue;
+        }
+
+        return flags;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private void WriteEmptyValue(Cursor parent) => _metaDb.AppendNull(parent.Value);
+
+    private static void CheckExpectedType(ElementTokenType expected, ElementTokenType actual)
+    {
+        if (expected != actual)
+        {
+            throw new ArgumentOutOfRangeException($"Expected {expected} but found {actual}.");
+        }
+    }
+
+    public void Dispose()
+    {
+        if (Interlocked.Exchange(ref _disposed, 1) != 0)
+        {
+            return;
+        }
+
+        _metaDb.Dispose();
+    }
+}

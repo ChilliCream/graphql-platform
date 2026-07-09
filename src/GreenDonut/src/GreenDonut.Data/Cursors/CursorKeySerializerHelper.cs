@@ -5,10 +5,10 @@ namespace GreenDonut.Data.Cursors;
 
 internal static class CursorKeySerializerHelper
 {
-    public static ReadOnlySpan<byte> Null => "\\null"u8;
-    public static ReadOnlySpan<byte> EscapedNull => "\\\\null"u8;
+    public static ReadOnlySpan<byte> Null => @"\null"u8;
+    public static ReadOnlySpan<byte> EscapedNull => @"\\null"u8;
 
-    public static ReadOnlySpan<byte> EscapedColon => "\\:"u8;
+    public static ReadOnlySpan<byte> EscapedColon => @"\:"u8;
 
     public static object? Parse(ReadOnlySpan<byte> formattedKey, ICursorKeySerializer serializer)
     {

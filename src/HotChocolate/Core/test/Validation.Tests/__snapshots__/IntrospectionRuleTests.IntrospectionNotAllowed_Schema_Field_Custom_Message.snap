@@ -1,27 +1,15 @@
-[
+"errors": [
   {
-    "Message": "Baz",
-    "Code": "HC0046",
-    "Path": null,
-    "Locations": [
+    "message": "Baz",
+    "locations": [
       {
-        "Line": 2,
-        "Column": 5
+        "line": 2,
+        "column": 5
       }
     ],
-    "Extensions": {
+    "extensions": {
       "code": "HC0046",
-      "field": {
-        "Kind": "Name",
-        "Location": {
-          "Start": 6,
-          "End": 16,
-          "Line": 2,
-          "Column": 5
-        },
-        "Value": "__schema"
-      }
-    },
-    "Exception": null
+      "field": "__schema"
+    }
   }
 ]

@@ -49,14 +49,14 @@ public class FileSystemOperationDocumentStorage : IOperationDocumentStorage
         const int chunkSize = 4096;
         await using var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read);
         using var writer = new PooledArrayWriter();
-        var read = 0;
+        int read;
 
         do
         {
             var memory = writer.GetMemory(chunkSize);
             read = await stream.ReadAsync(memory, cancellationToken).ConfigureAwait(false);
             writer.Advance(read);
-        } while (read == chunkSize);
+        } while (read != 0);
 
         var document = Utf8GraphQLParser.Parse(writer.WrittenSpan);
         return new OperationDocument(document);

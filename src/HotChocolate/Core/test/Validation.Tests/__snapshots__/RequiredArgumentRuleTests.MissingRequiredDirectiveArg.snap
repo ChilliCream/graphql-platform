@@ -1,33 +1,18 @@
-[
-  {
-    "Message": "The argument `if` is required.",
-    "Code": null,
-    "Path": {
-      "Name": "nonNullBooleanArgField",
-      "Parent": {
-        "Name": "arguments",
-        "Parent": {
-          "Parent": null,
-          "Length": 0,
-          "IsRoot": true
-        },
-        "Length": 1,
-        "IsRoot": false
-      },
-      "Length": 2,
-      "IsRoot": false
-    },
-    "Locations": [
-      {
-        "Line": 8,
-        "Column": 51
-      }
-    ],
-    "Extensions": {
-      "directive": "skip",
-      "argument": "if",
-      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Required-Arguments"
-    },
-    "Exception": null
+{
+  "message": "The argument \u0060if\u0060 is required.",
+  "locations": [
+    {
+      "line": 8,
+      "column": 51
+    }
+  ],
+  "path": [
+    "arguments",
+    "nonNullBooleanArgField"
+  ],
+  "extensions": {
+    "directive": "skip",
+    "argument": "if",
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Required-Arguments"
   }
-]
+}

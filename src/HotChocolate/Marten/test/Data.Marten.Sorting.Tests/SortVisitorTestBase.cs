@@ -57,9 +57,9 @@ public class SortVisitorTestBase : IAsyncLifetime
 {
     protected static ResourceContainer Container { get; } = new();
 
-    public async Task InitializeAsync() => await Container.InitializeAsync();
+    public async ValueTask InitializeAsync() => await Container.InitializeAsync();
 
-    public async Task DisposeAsync() => await Container.DisposeAsync();
+    public async ValueTask DisposeAsync() => await Container.DisposeAsync();
 
     private static async Task<Func<IResolverContext, IQueryable<TResult>>> BuildResolverAsync<TResult>(
         IDocumentStore store,
@@ -124,11 +124,8 @@ public class SortVisitorTestBase : IAsyncLifetime
                     await next(context);
                     if (context.ContextData.TryGetValue("sql", out var queryString))
                     {
-                        context.Result =
-                            OperationResultBuilder
-                                .FromResult(context.Result!.ExpectOperationResult())
-                                .SetContextData("sql", queryString)
-                                .Build();
+                        var result = context.Result.ExpectOperationResult();
+                        result.ContextData = result.ContextData.SetItem("sql", queryString);
                     }
                 })
             .ModifyRequestOptions(x => x.IncludeExceptionDetails = true)

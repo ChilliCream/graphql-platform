@@ -17,12 +17,13 @@ public class FragmentHelperTests
                 .AddStarWarsRepositories()
                 .AddGraphQL()
                 .AddStarWars()
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var document =
-            Utf8GraphQLParser.Parse(@"
+            Utf8GraphQLParser.Parse(
+                """
                 query GetHero {
-                    hero(episode: NEW_HOPE) @returns(fragment: ""Hero"") {
+                    hero(episode: NEW_HOPE) @returns(fragment: "Hero") {
                         ... Characters
                     }
                 }
@@ -44,7 +45,8 @@ public class FragmentHelperTests
                 fragment Droid on Droid {
                     ... Hero
                     primaryFunction
-                }");
+                }
+                """);
 
         var context = new DocumentAnalyzerContext(schema, document);
         var selectionSetVariants = context.CollectFields();
@@ -66,7 +68,7 @@ public class FragmentHelperTests
                 .AddStarWarsRepositories()
                 .AddGraphQL()
                 .AddStarWars()
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var document =
             Utf8GraphQLParser.Parse(@"
@@ -115,12 +117,13 @@ public class FragmentHelperTests
                 .AddStarWarsRepositories()
                 .AddGraphQL()
                 .AddStarWars()
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var document =
-            Utf8GraphQLParser.Parse(@"
+            Utf8GraphQLParser.Parse(
+                """
                 query GetHero {
-                    hero(episode: NEW_HOPE) @returns(fragment: ""Hero"") {
+                    hero(episode: NEW_HOPE) @returns(fragment: "Hero") {
                         ... Characters
                     }
                 }
@@ -142,7 +145,8 @@ public class FragmentHelperTests
                 fragment Droid on Droid {
                     ... Hero
                     primaryFunction
-                }");
+                }
+                """);
 
         var context = new DocumentAnalyzerContext(schema, document);
         var selectionSetVariants = context.CollectFields();
@@ -173,7 +177,7 @@ public class FragmentHelperTests
                 .AddStarWarsRepositories()
                 .AddGraphQL()
                 .AddStarWars()
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var document =
             Utf8GraphQLParser.Parse(@"
@@ -198,8 +202,7 @@ public class FragmentHelperTests
             returnTypeFragment,
             fieldSelection.Path));
 
-        foreach (var selectionSet in
-                 selectionSetVariants.Variants.OrderBy(t => t.Type.Name))
+        foreach (var selectionSet in selectionSetVariants.Variants.OrderBy(t => t.Type.Name))
         {
             returnTypeFragment = FragmentHelper.CreateFragmentNode(
                 selectionSet,
@@ -290,7 +293,7 @@ public class FragmentHelperTests
                 .AddStarWarsRepositories()
                 .AddGraphQL()
                 .AddStarWars()
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var document =
             Utf8GraphQLParser.Parse(@"
@@ -329,8 +332,7 @@ public class FragmentHelperTests
             returnTypeFragment,
             fieldSelection.Path));
 
-        foreach (var selectionSet in
-                 selectionSetVariants.Variants.OrderBy(t => t.Type.Name))
+        foreach (var selectionSet in selectionSetVariants.Variants.OrderBy(t => t.Type.Name))
         {
             returnTypeFragment = FragmentHelper.CreateFragmentNode(
                 selectionSet,
@@ -425,12 +427,13 @@ public class FragmentHelperTests
                 .AddStarWarsRepositories()
                 .AddGraphQL()
                 .AddStarWars()
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var document =
-            Utf8GraphQLParser.Parse(@"
+            Utf8GraphQLParser.Parse(
+                """
                 query GetHero {
-                    hero(episode: NEW_HOPE) @returns(fragment: ""Hero"") {
+                    hero(episode: NEW_HOPE) @returns(fragment: "Hero") {
                         ... Characters
                     }
                 }
@@ -452,7 +455,8 @@ public class FragmentHelperTests
                 fragment Droid on Droid {
                     ... Hero
                     primaryFunction
-                }");
+                }
+                """);
 
         var context = new DocumentAnalyzerContext(schema, document);
         var selectionSetVariants = context.CollectFields();
@@ -474,8 +478,7 @@ public class FragmentHelperTests
             returnTypeFragment!,
             fieldSelection.Path));
 
-        foreach (var selectionSet in
-                 selectionSetVariants.Variants.OrderBy(t => t.Type.Name))
+        foreach (var selectionSet in selectionSetVariants.Variants.OrderBy(t => t.Type.Name))
         {
             returnTypeFragment = FragmentHelper.CreateFragmentNode(
                 selectionSet,

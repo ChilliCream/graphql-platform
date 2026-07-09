@@ -14,8 +14,7 @@ public class DescriptionTests
 
         // act
         // assert
-        SchemaPrinter
-            .PrintSchema(schema)
+        schema.ToSyntaxNode()
             .Print(indented: true)
             .MatchSnapshot(extension: ".graphql");
     }
@@ -28,8 +27,7 @@ public class DescriptionTests
 
         // act
         // assert
-        SchemaPrinter
-            .PrintSchema(schema)
+        schema.ToSyntaxNode()
             .Print(indented: false)
             .MatchSnapshot(extension: ".graphql");
     }
@@ -44,7 +42,7 @@ public class DescriptionTests
             .AddQueryType(d => d
                 .Field("field").Type<StringType>()
                 .Description("Comment with manual\nline break"))
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         // assert
@@ -73,7 +71,7 @@ public class DescriptionTests
             .AddQueryType(d => d
                 .Field("field").Type<StringType>()
                 .Description("Comment with manual\n\nline breaks"))
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         // assert
@@ -103,7 +101,7 @@ public class DescriptionTests
             .AddQueryType(d => d
                 .Field("field").Type<StringType>()
                 .Description("   Single line comment    "))
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         // assert
@@ -129,7 +127,7 @@ public class DescriptionTests
             .AddQueryType(d => d
                 .Field("field").Type<StringType>()
                 .Description("   Multi line\ncomment    "))
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         // assert
@@ -162,7 +160,7 @@ public class DescriptionTests
                                line
                              description
                              """))
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         // assert
@@ -192,7 +190,7 @@ public class DescriptionTests
             .AddQueryType(d => d
                 .Field("field").Type<StringType>()
                 .Description("Single line with linebreak at end\n"))
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         // assert
@@ -241,15 +239,15 @@ public class DescriptionTests
     public class Query
     {
         [GraphQLDescription("Single line comment")]
-        public string OutputFieldSingle() => null;
+        public string? OutputFieldSingle() => null;
 
         [GraphQLDescription("""
                             Multi line
                             comment
                             """)]
-        public string OutputFieldMulti() => null;
+        public string? OutputFieldMulti() => null;
 
-        public string OutputFieldWithArgs(
+        public string? OutputFieldWithArgs(
             [GraphQLDescription("Single line comment")] SomeInput arg1,
             [GraphQLDescription("""
                                 Multi line
@@ -265,13 +263,13 @@ public class DescriptionTests
     public class SomeInput
     {
         [GraphQLDescription("Single line comment")]
-        public string Field { get; set; }
+        public required string Field { get; set; }
 
         [GraphQLDescription("""
                             Multi line
                             comment
                             """)]
-        public string FieldMulti { get; set; }
+        public required string FieldMulti { get; set; }
     }
 
     [InputObjectType]
@@ -279,13 +277,13 @@ public class DescriptionTests
     public class OtherInput
     {
         [GraphQLDescription("Single line comment")]
-        public string Field { get; set; }
+        public required string Field { get; set; }
 
         [GraphQLDescription("""
                             Multi line
                             comment
                             """)]
-        public string FieldMulti { get; set; }
+        public required string FieldMulti { get; set; }
     }
 
     [UnionType("SomeUnion")]
@@ -307,15 +305,15 @@ public class DescriptionTests
     public interface ISomeInterface
     {
         [GraphQLDescription("Single line comment")]
-        string Field();
+        string? Field();
 
         [GraphQLDescription("""
                             Multi line
                             comment
                             """)]
-        string FieldMulti();
+        string? FieldMulti();
 
-        string FieldWithArgs(
+        string? FieldWithArgs(
             [GraphQLDescription("Single line comment")] string arg1,
             [GraphQLDescription("""
                                 Multi line
@@ -327,7 +325,7 @@ public class DescriptionTests
     [GraphQLDescription("Single line comment")]
     public interface IOtherInterface
     {
-        string Field();
+        string? Field();
     }
 
     [GraphQLDescription("""
@@ -336,10 +334,10 @@ public class DescriptionTests
                         """)]
     public class OtherObjectType : ISomeUnion, IOtherUnion, ISomeInterface, IOtherInterface
     {
-        public string Field() => null;
+        public string? Field() => null;
 
-        public string FieldMulti() => null;
-        public string FieldWithArgs(string arg1, string arg2) => null;
+        public string? FieldMulti() => null;
+        public string? FieldWithArgs(string arg1, string arg2) => null;
     }
 
     public class SomeDirective : DirectiveType

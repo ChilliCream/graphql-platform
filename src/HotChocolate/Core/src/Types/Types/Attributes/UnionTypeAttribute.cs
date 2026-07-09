@@ -32,7 +32,7 @@ public sealed class UnionTypeAttribute
     protected override void OnConfigure(
         IDescriptorContext context,
         IUnionTypeDescriptor descriptor,
-        Type type)
+        Type? type)
     {
         if (!string.IsNullOrEmpty(Name))
         {

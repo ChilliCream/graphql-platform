@@ -39,6 +39,28 @@ public class QueryableProjectionUnionTypeTests
         }
     ];
 
+    private static readonly InspectionDefinition[] s_inspectionDefinitions =
+    [
+        new()
+        {
+            Id = 1,
+            Trigger = new FieldDateTimeInspectionTrigger
+            {
+                Id = 11,
+                FieldModelKey = "field-1"
+            }
+        },
+        new()
+        {
+            Id = 2,
+            Trigger = new FieldDateTimeInspectionTrigger
+            {
+                Id = 12,
+                FieldModelKey = "field-2"
+            }
+        }
+    ];
+
     private readonly SchemaCache _cache = new SchemaCache();
 
     [Fact]
@@ -63,13 +85,14 @@ public class QueryableProjectionUnionTypeTests
                                 }
                             }
                         }")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
             .Create()
             .AddResult(res1)
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -111,13 +134,14 @@ public class QueryableProjectionUnionTypeTests
                                 }
                             }
                         }")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
             .Create()
             .AddResult(res1)
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -144,13 +168,14 @@ public class QueryableProjectionUnionTypeTests
                                 }
                             }
                         }")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
             .Create()
             .AddResult(res1)
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -177,13 +202,14 @@ public class QueryableProjectionUnionTypeTests
                                 }
                             }
                         }")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
             .Create()
             .AddResult(res1)
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -205,13 +231,85 @@ public class QueryableProjectionUnionTypeTests
                                 }
                             }
                         }")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
             .Create()
             .AddResult(res1)
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
+    }
+
+    [Fact]
+    public async Task Create_Union_Single_Property()
+    {
+        // arrange
+        var tester = _cache.CreateSchema(
+            s_inspectionDefinitions,
+            OnModelCreatingInspection,
+            configure: ConfigureInspectionSchema);
+
+        // act
+        var result = await tester.ExecuteAsync(
+            OperationRequestBuilder.New()
+                .SetDocument(
+                    """
+                    {
+                        root {
+                            trigger {
+                                ... on FieldDateTimeInspectionTrigger {
+                                    fieldModelKey
+                                }
+                            }
+                        }
+                    }
+                    """)
+                .Build(),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await Snapshot
+            .Create()
+            .AddResult(result)
+            .MatchAsync(TestContext.Current.CancellationToken);
+    }
+
+    [Fact]
+    public async Task Create_Union_Single_Property_Pagination()
+    {
+        // arrange
+        var tester = _cache.CreateSchema(
+            s_inspectionDefinitions,
+            OnModelCreatingInspection,
+            usePaging: true,
+            configure: ConfigureInspectionSchema);
+
+        // act
+        var result = await tester.ExecuteAsync(
+            OperationRequestBuilder.New()
+                .SetDocument(
+                    """
+                    {
+                        root {
+                            nodes {
+                                trigger {
+                                    ... on FieldDateTimeInspectionTrigger {
+                                        fieldModelKey
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    """)
+                .Build(),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await Snapshot
+            .Create()
+            .AddResult(result)
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     private static void OnModelCreating(ModelBuilder modelBuilder)
@@ -228,6 +326,21 @@ public class QueryableProjectionUnionTypeTests
             .AddType(new ObjectType<Foo>())
             .AddType(new ObjectType<Bar>());
     }
+
+    private static void OnModelCreatingInspection(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<InspectionDefinition>()
+            .HasOne(x => x.Trigger)
+            .WithOne()
+            .HasForeignKey<InspectionDefinition>(x => x.TriggerId);
+
+        modelBuilder.Entity<InspectionTrigger>()
+            .HasDiscriminator<string>("d")
+            .HasValue<FieldDateTimeInspectionTrigger>("fieldDateTime");
+    }
+
+    private static void ConfigureInspectionSchema(ISchemaBuilder schemaBuilder)
+        => schemaBuilder.AddType(new ObjectType<FieldDateTimeInspectionTrigger>());
 
     public class NestedList
     {
@@ -259,5 +372,25 @@ public class QueryableProjectionUnionTypeTests
     public class Bar : AbstractType
     {
         public string BarProp { get; set; } = null!;
+    }
+
+    public class InspectionDefinition
+    {
+        public int Id { get; set; }
+
+        public int TriggerId { get; set; }
+
+        public InspectionTrigger Trigger { get; set; } = null!;
+    }
+
+    [UnionType]
+    public abstract class InspectionTrigger
+    {
+        public int Id { get; set; }
+    }
+
+    public class FieldDateTimeInspectionTrigger : InspectionTrigger
+    {
+        public string FieldModelKey { get; set; } = null!;
     }
 }

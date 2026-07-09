@@ -14,7 +14,7 @@ public class BindingBehaviorTests
                 .AddQueryType()
                 .AddType<Query1>()
                 .ModifyOptions(o => o.DefaultBindingBehavior = BindingBehavior.Explicit)
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         schema.MatchInlineSnapshot(
             """
@@ -22,13 +22,13 @@ public class BindingBehaviorTests
               query: Query
             }
 
-            type Book1 {
-              title: String
-              category: BookCategory1!
+            type Query {
+              books: Book1!
             }
 
-            type Query {
-              books: Book1
+            type Book1 {
+              title: String!
+              category: BookCategory1!
             }
 
             enum BookCategory1 {
@@ -104,7 +104,7 @@ public class BindingBehaviorTests
                 .AddType<Query3>()
                 .AddType<BookCategory3Type>()
                 .ModifyOptions(o => o.DefaultBindingBehavior = BindingBehavior.Explicit)
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         schema.MatchInlineSnapshot(
             """
@@ -112,13 +112,13 @@ public class BindingBehaviorTests
               query: Query
             }
 
-            type Book3 {
-              title: String
-              category: BookCategory3!
+            type Query {
+              books: Book3!
             }
 
-            type Query {
-              books: Book3
+            type Book3 {
+              title: String!
+              category: BookCategory3!
             }
 
             enum BookCategory3 {

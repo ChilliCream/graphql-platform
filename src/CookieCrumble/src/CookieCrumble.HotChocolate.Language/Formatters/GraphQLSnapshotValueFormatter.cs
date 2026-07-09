@@ -9,7 +9,7 @@ internal sealed class GraphQLSyntaxNodeSnapshotValueFormatter : SnapshotValueFor
 {
     protected override void Format(IBufferWriter<byte> snapshot, ISyntaxNode value)
     {
-        var serialized = value.Print().AsSpan();
+        var serialized = value.Print(indented: true).AsSpan();
         var buffer = ArrayPool<char>.Shared.Rent(serialized.Length);
         var span = buffer.AsSpan()[..serialized.Length];
         var written = 0;

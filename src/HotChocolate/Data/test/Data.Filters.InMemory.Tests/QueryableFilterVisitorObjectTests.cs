@@ -159,21 +159,24 @@ public class QueryableFilterVisitorObjectTests : IClassFixture<SchemaCache>
             .SetDocument(
                 "{ root(where: { foo: { barShort: { eq: 12}}}) "
                 + "{ foo{ barShort}}}")
-            .Build());
+            .Build(),
+            TestContext.Current.CancellationToken);
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
             .SetDocument(
                 "{ root(where: { foo: { barShort: { eq: 13}}}) "
                 + "{ foo{ barShort}}}")
-            .Build());
+            .Build(),
+            TestContext.Current.CancellationToken);
 
         var res3 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
             .SetDocument(
                 "{ root(where: { foo: { barShort: { eq: null}}}) "
                 + "{ foo{ barShort}}}")
-            .Build());
+            .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
@@ -181,7 +184,7 @@ public class QueryableFilterVisitorObjectTests : IClassFixture<SchemaCache>
             .Add(res1, "12")
             .Add(res2, "13")
             .Add(res3, "null")
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -194,23 +197,26 @@ public class QueryableFilterVisitorObjectTests : IClassFixture<SchemaCache>
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(where: { foo: { barShort: { in: [ 12, 13 ]}}}) "
+                    "{ root(where: { foo: { barShort: { in: [12, 13]}}}) "
                     + "{ foo{ barShort}}}")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(where: { foo: { barShort: { in: [ 13, 14 ]}}}) "
+                    "{ root(where: { foo: { barShort: { in: [13, 14]}}}) "
                     + "{ foo{ barShort}}}")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         var res3 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(where: { foo: { barShort: { in: [ null, 14 ]}}}) "
+                    "{ root(where: { foo: { barShort: { in: [null, 14]}}}) "
                     + "{ foo{ barShort}}}")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
@@ -218,7 +224,7 @@ public class QueryableFilterVisitorObjectTests : IClassFixture<SchemaCache>
             .Add(res1, "12and13")
             .Add(res2, "13and14")
             .Add(res3, "nullAnd14")
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -233,21 +239,24 @@ public class QueryableFilterVisitorObjectTests : IClassFixture<SchemaCache>
             .SetDocument(
                 "{ root(where: { foo: { barShort: { eq: 12}}}) "
                 + "{ foo{ barShort}}}")
-            .Build());
+            .Build(),
+            TestContext.Current.CancellationToken);
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
             .SetDocument(
                 "{ root(where: { foo: { barShort: { eq: 13}}}) "
                 + "{ foo{ barShort}}}")
-            .Build());
+            .Build(),
+            TestContext.Current.CancellationToken);
 
         var res3 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
             .SetDocument(
                 "{ root(where: { foo: { barShort: { eq: null}}}) "
                 + "{ foo{ barShort}}}")
-            .Build());
+            .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
@@ -255,7 +264,7 @@ public class QueryableFilterVisitorObjectTests : IClassFixture<SchemaCache>
             .Add(res1, "12")
             .Add(res2, "13")
             .Add(res3, "null")
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -268,23 +277,26 @@ public class QueryableFilterVisitorObjectTests : IClassFixture<SchemaCache>
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
             .SetDocument(
-                "{ root(where: { foo: { barShort: { in: [ 12, 13 ]}}}) "
+                "{ root(where: { foo: { barShort: { in: [12, 13]}}}) "
                 + "{ foo{ barShort}}}")
-            .Build());
+            .Build(),
+            TestContext.Current.CancellationToken);
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
             .SetDocument(
-                "{ root(where: { foo: { barShort: { in: [ 13, 14 ]}}}) "
+                "{ root(where: { foo: { barShort: { in: [13, 14]}}}) "
                 + "{ foo{ barShort}}}")
-            .Build());
+            .Build(),
+            TestContext.Current.CancellationToken);
 
         var res3 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
             .SetDocument(
-                "{ root(where: { foo: { barShort: { in: [ 13, null ]}}}) "
+                "{ root(where: { foo: { barShort: { in: [13, null]}}}) "
                 + "{ foo{ barShort}}}")
-            .Build());
+            .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
@@ -292,7 +304,7 @@ public class QueryableFilterVisitorObjectTests : IClassFixture<SchemaCache>
             .Add(res1, "12and13")
             .Add(res2, "13and14")
             .Add(res3, "13andNull")
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -307,21 +319,23 @@ public class QueryableFilterVisitorObjectTests : IClassFixture<SchemaCache>
             .SetDocument(
                 "{ root(where: { foo: { barBool: { eq: true}}}) "
                 + "{ foo{ barBool}}}")
-            .Build());
+            .Build(),
+            TestContext.Current.CancellationToken);
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
             .SetDocument(
                 "{ root(where: { foo: { barBool: { eq: false}}}) "
                 + "{ foo{ barBool}}}")
-            .Build());
+            .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
             .Create()
             .Add(res1, "true")
             .Add(res2, "false")
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -336,21 +350,24 @@ public class QueryableFilterVisitorObjectTests : IClassFixture<SchemaCache>
             .SetDocument(
                 "{ root(where: { foo: { barBool: { eq: true}}}) "
                 + "{ foo{ barBool}}}")
-            .Build());
+            .Build(),
+            TestContext.Current.CancellationToken);
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
             .SetDocument(
                 "{ root(where: { foo: { barBool: { eq: false}}}) "
                 + "{ foo{ barBool}}}")
-            .Build());
+            .Build(),
+            TestContext.Current.CancellationToken);
 
         var res3 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
             .SetDocument(
                 "{ root(where: { foo: { barBool: { eq: null}}}) "
                 + "{ foo{ barBool}}}")
-            .Build());
+            .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
@@ -358,7 +375,7 @@ public class QueryableFilterVisitorObjectTests : IClassFixture<SchemaCache>
             .Add(res1, "true")
             .Add(res2, "false")
             .Add(res3, "null")
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -373,21 +390,24 @@ public class QueryableFilterVisitorObjectTests : IClassFixture<SchemaCache>
                 .SetDocument(
                     "{ root(where: { foo: { barEnum: { eq: BAR}}}) "
                     + "{ foo{ barEnum}}}")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(where: { foo: { barEnum: { eq: FOO}}}) "
                     + "{ foo{ barEnum}}}")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         var res3 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(where: { foo: { barEnum: { eq: null}}}) "
                     + "{ foo{ barEnum}}}")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
@@ -395,7 +415,7 @@ public class QueryableFilterVisitorObjectTests : IClassFixture<SchemaCache>
             .Add(res1, "BAR")
             .Add(res2, "FOO")
             .Add(res3, "null")
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -408,23 +428,26 @@ public class QueryableFilterVisitorObjectTests : IClassFixture<SchemaCache>
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(where: { foo: { barEnum: { in: [ BAR FOO ]}}}) "
+                    "{ root(where: { foo: { barEnum: { in: [BAR FOO]}}}) "
                     + "{ foo{ barEnum}}}")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(where: { foo: { barEnum: { in: [ FOO ]}}}) "
+                    "{ root(where: { foo: { barEnum: { in: [FOO]}}}) "
                     + "{ foo{ barEnum}}}")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         var res3 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(where: { foo: { barEnum: { in: [ null FOO ]}}}) "
+                    "{ root(where: { foo: { barEnum: { in: [null FOO]}}}) "
                     + "{ foo{ barEnum}}}")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
@@ -432,7 +455,7 @@ public class QueryableFilterVisitorObjectTests : IClassFixture<SchemaCache>
             .Add(res1, "BarAndFoo")
             .Add(res2, "FOO")
             .Add(res3, "nullAndFoo")
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -447,21 +470,24 @@ public class QueryableFilterVisitorObjectTests : IClassFixture<SchemaCache>
                 .SetDocument(
                     "{ root(where: { foo: { barEnum: { eq: BAR}}}) "
                     + "{ foo{ barEnum}}}")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(where: { foo: { barEnum: { eq: FOO}}}) "
                     + "{ foo{ barEnum}}}")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         var res3 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(where: { foo: { barEnum: { eq: null}}}) "
                     + "{ foo{ barEnum}}}")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
@@ -469,7 +495,7 @@ public class QueryableFilterVisitorObjectTests : IClassFixture<SchemaCache>
             .Add(res1, "BAR")
             .Add(res2, "FOO")
             .Add(res3, "null")
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -482,23 +508,26 @@ public class QueryableFilterVisitorObjectTests : IClassFixture<SchemaCache>
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(where: { foo: { barEnum: { in: [ BAR FOO ]}}}) "
+                    "{ root(where: { foo: { barEnum: { in: [BAR FOO]}}}) "
                     + "{ foo{ barEnum}}}")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         var res2 = await tester.ExecuteAsync(
-        OperationRequestBuilder.New()
+            OperationRequestBuilder.New()
             .SetDocument(
-                "{ root(where: { foo: { barEnum: { in: [ FOO ]}}}) "
+                "{ root(where: { foo: { barEnum: { in: [FOO]}}}) "
                 + "{ foo{ barEnum}}}")
-            .Build());
+            .Build(),
+            TestContext.Current.CancellationToken);
 
         var res3 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(where: { foo: { barEnum: { in: [ null FOO ]}}}) "
+                    "{ root(where: { foo: { barEnum: { in: [null FOO]}}}) "
                     + "{ foo{ barEnum}}}")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
@@ -506,7 +535,7 @@ public class QueryableFilterVisitorObjectTests : IClassFixture<SchemaCache>
             .Add(res1, "BarAndFoo")
             .Add(res2, "FOO")
             .Add(res3, "nullAndFoo")
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -521,20 +550,23 @@ public class QueryableFilterVisitorObjectTests : IClassFixture<SchemaCache>
                 .SetDocument(
                     "{ root(where: { foo: { barString: { eq: \"testatest\"}}}) "
                     + "{ foo{ barString}}}")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(where: { foo: { barString: { eq: \"testbtest\"}}}) "
                     + "{ foo{ barString}}}")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         var res3 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(where: { foo: { barString: { eq: null}}}){ foo{ barString}}}")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
@@ -542,7 +574,7 @@ public class QueryableFilterVisitorObjectTests : IClassFixture<SchemaCache>
             .Add(res1, "testatest")
             .Add(res2, "testbtest")
             .Add(res3, "null")
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -555,23 +587,26 @@ public class QueryableFilterVisitorObjectTests : IClassFixture<SchemaCache>
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(where: { foo: { barString: { in: [ \"testatest\"  \"testbtest\" ]}}}) "
+                    "{ root(where: { foo: { barString: { in: [\"testatest\"  \"testbtest\"]}}}) "
                     + "{ foo{ barString}}}")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(where: { foo: { barString: { in: [\"testbtest\" null]}}}) "
                     + "{ foo{ barString}}}")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         var res3 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(where: { foo: { barString: { in: [ \"testatest\" ]}}}) "
+                    "{ root(where: { foo: { barString: { in: [\"testatest\"]}}}) "
                     + "{ foo{ barString}}}")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
@@ -579,7 +614,7 @@ public class QueryableFilterVisitorObjectTests : IClassFixture<SchemaCache>
             .Add(res1, "testatestAndtestb")
             .Add(res2, "testbtestAndNull")
             .Add(res3, "testatest")
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -595,7 +630,8 @@ public class QueryableFilterVisitorObjectTests : IClassFixture<SchemaCache>
                     "{ root(where: { foo:{ objectArray: { "
                     + "some: { foo: { barString: { eq: \"a\"}}}}}}) "
                     + "{ foo { objectArray { foo { barString}}}}}")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
@@ -603,7 +639,8 @@ public class QueryableFilterVisitorObjectTests : IClassFixture<SchemaCache>
                     "{ root(where: { foo:{ objectArray: { "
                     + "some: { foo: { barString: { eq: \"d\"}}}}}}) "
                     + "{ foo { objectArray { foo { barString}}}}}")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         var res3 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
@@ -611,7 +648,8 @@ public class QueryableFilterVisitorObjectTests : IClassFixture<SchemaCache>
                     "{ root(where: { foo:{ objectArray: { "
                     + "some: { foo: { barString: { eq: null}}}}}}) "
                     + "{ foo { objectArray { foo {barString}}}}}")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
@@ -619,7 +657,7 @@ public class QueryableFilterVisitorObjectTests : IClassFixture<SchemaCache>
             .Add(res1, "a")
             .Add(res2, "d")
             .Add(res3, "null")
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -634,21 +672,24 @@ public class QueryableFilterVisitorObjectTests : IClassFixture<SchemaCache>
                 .SetDocument(
                     "{ root(where: { foo: { objectArray: { any: false}}}) "
                     + "{ foo { objectArray  { foo { barString }}}}}")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(where: { foo: { objectArray: { any: true}}}) "
                     + "{ foo { objectArray  { foo { barString }}}}}")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         var res3 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(where: { foo: { objectArray: { any: null}}}) "
                     + "{ foo { objectArray  { foo { barString }}}}}")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
@@ -656,7 +697,7 @@ public class QueryableFilterVisitorObjectTests : IClassFixture<SchemaCache>
             .Add(res1, "false")
             .Add(res2, "true")
             .Add(res3, "null")
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -671,15 +712,18 @@ public class QueryableFilterVisitorObjectTests : IClassFixture<SchemaCache>
                 .SetDocument(
                     "{ root(where: { foo: { barEnum: { neq: BAR}}}) "
                     + "{ foo{ barEnum}}}")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { foo: null}) { foo{ barEnum}}}")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
         var res3 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument("{ root { foo{ barEnum}}}")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
@@ -687,7 +731,7 @@ public class QueryableFilterVisitorObjectTests : IClassFixture<SchemaCache>
             .Add(res1, "selected")
             .Add(res2, "null")
             .Add(res3, "all")
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     public class Foo

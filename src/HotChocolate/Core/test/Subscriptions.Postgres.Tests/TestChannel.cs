@@ -7,7 +7,11 @@ public class TestChannel : IDisposable
     private readonly NpgsqlConnection _connection;
     private readonly string _channelName;
     private readonly Func<NpgsqlConnection> _connectionFactory;
+#if NET9_0_OR_GREATER
+    private readonly Lock _lock = new();
+#else
     private readonly object _lock = new();
+#endif
 
     public List<string> ReceivedMessages { get; } = [];
 

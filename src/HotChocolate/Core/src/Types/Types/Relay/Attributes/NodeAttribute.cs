@@ -12,6 +12,11 @@ namespace HotChocolate.Types.Relay;
 /// </summary>
 public class NodeAttribute : ObjectTypeDescriptorAttribute
 {
+    public NodeAttribute()
+    {
+        RequiresAttributeProvider = true;
+    }
+
     /// <summary>
     /// The name of the member representing the ID field of the node.
     /// </summary>
@@ -30,8 +35,13 @@ public class NodeAttribute : ObjectTypeDescriptorAttribute
     protected override void OnConfigure(
         IDescriptorContext context,
         IObjectTypeDescriptor descriptor,
-        Type type)
+        Type? type)
     {
+        if (type is null)
+        {
+            return;
+        }
+
         var nodeDescriptor = new NodeDescriptor(descriptor, type);
 
         descriptor.Extend().OnBeforeCreate(
@@ -50,8 +60,10 @@ public class NodeAttribute : ObjectTypeDescriptorAttribute
                 // first we try to resolve the id field.
                 if (IdField is not null)
                 {
+#pragma warning disable IL2070
                     var idField = type.GetMember(IdField).FirstOrDefault(
                         t => t.MemberType is MemberTypes.Method or MemberTypes.Property);
+#pragma warning restore IL2070
 
                     if (idField is null)
                     {
@@ -87,9 +99,11 @@ public class NodeAttribute : ObjectTypeDescriptorAttribute
             {
                 if (NodeResolver is not null)
                 {
+#pragma warning disable IL2075
                     var method = NodeResolverType.GetMethod(
                         NodeResolver,
                         Instance | Static | Public | FlattenHierarchy);
+#pragma warning restore IL2075
 
                     if (method is not null)
                     {
@@ -103,9 +117,11 @@ public class NodeAttribute : ObjectTypeDescriptorAttribute
             }
             else if (NodeResolver is not null)
             {
+#pragma warning disable IL2070
                 var method = type.GetMethod(
                     NodeResolver,
                     Instance | Static | Public | FlattenHierarchy);
+#pragma warning restore IL2070
 
                 if (method is not null)
                 {
@@ -114,9 +130,13 @@ public class NodeAttribute : ObjectTypeDescriptorAttribute
             }
             else if (definition.RuntimeType != typeof(object) && definition.RuntimeType != type)
             {
+#pragma warning disable IL2072 // 'nodeType'/'resolverType' does not satisfy DAM requirements
+#pragma warning disable IL2067
                 var method = completionContext.TypeInspector.GetNodeResolverMethod(
                     definition.RuntimeType,
                     type);
+#pragma warning restore IL2067
+#pragma warning restore IL2072
 
                 if (method is not null)
                 {

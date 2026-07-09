@@ -17,4 +17,7 @@ public class QueryableSpatialNotTouchesOperationHandler
     protected override int Operation => SpatialFilterOperations.NotTouches;
 
     protected override bool IsTrue => false;
+
+    public static QueryableSpatialNotTouchesOperationHandler Create(FilterProviderContext context) =>
+        new(context.FilterConvention, context.TypeInspector, context.InputParser);
 }

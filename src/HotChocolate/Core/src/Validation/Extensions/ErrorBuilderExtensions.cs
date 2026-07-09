@@ -27,7 +27,7 @@ internal static class ErrorBuilderExtensions
         {
             errorBuilder.SetExtension(
                 "specifiedBy",
-                "https://spec.graphql.org/October2021/#" + section);
+                "https://spec.graphql.org/September2025/#" + section);
         }
 
         return errorBuilder;
@@ -37,9 +37,15 @@ internal static class ErrorBuilderExtensions
         this ErrorBuilder errorBuilder,
         ISyntaxNode node)
     {
-        if (node.Kind == SyntaxKind.FragmentDefinition)
+        switch (node.Kind)
         {
-            errorBuilder.SetExtension("fragment", ((FragmentDefinitionNode)node).Name.Value);
+            case SyntaxKind.FragmentDefinition:
+                errorBuilder.SetExtension("fragment", ((FragmentDefinitionNode)node).Name.Value);
+                break;
+
+            case SyntaxKind.FragmentSpread:
+                errorBuilder.SetExtension("fragment", ((FragmentSpreadNode)node).Name.Value);
+                break;
         }
         return errorBuilder;
     }

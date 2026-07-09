@@ -2,8 +2,6 @@ using HotChocolate.Execution;
 using HotChocolate.Tests;
 using Microsoft.Extensions.DependencyInjection;
 
-#nullable enable
-
 namespace HotChocolate;
 
 public class GenericTypeNamingTests
@@ -14,7 +12,7 @@ public class GenericTypeNamingTests
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
-            .BuildSchemaAsync()
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 

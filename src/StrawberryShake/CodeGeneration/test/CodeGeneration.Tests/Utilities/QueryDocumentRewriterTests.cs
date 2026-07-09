@@ -3,7 +3,6 @@ using HotChocolate.Language;
 using HotChocolate.Language.Utilities;
 using HotChocolate.StarWars;
 using Microsoft.Extensions.DependencyInjection;
-using Snapshooter.Xunit;
 
 namespace StrawberryShake.CodeGeneration.Utilities;
 
@@ -18,7 +17,7 @@ public class QueryDocumentRewriterTests
                 .AddStarWarsRepositories()
                 .AddGraphQL()
                 .AddStarWars()
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         schema =
             SchemaHelper.Load(
@@ -28,9 +27,10 @@ public class QueryDocumentRewriterTests
                 ]);
 
         var document =
-            Utf8GraphQLParser.Parse(@"
+            Utf8GraphQLParser.Parse(
+                """
                 query GetHero {
-                    hero(episode: NEW_HOPE) @returns(fragment: ""Hero"") {
+                    hero(episode: NEW_HOPE) @returns(fragment: "Hero") {
                         ... Characters
                     }
                 }
@@ -52,7 +52,8 @@ public class QueryDocumentRewriterTests
                 fragment Droid on Droid {
                     ... Hero
                     primaryFunction
-                }");
+                }
+                """);
 
         // act
         document = QueryDocumentRewriter.Rewrite(document, schema);

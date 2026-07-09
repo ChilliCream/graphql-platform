@@ -16,7 +16,7 @@ public class InterfaceTypeSelectionSetAnalyzerTests
                 .AddStarWarsRepositories()
                 .AddGraphQL()
                 .AddStarWars()
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var document =
             Utf8GraphQLParser.Parse(@"
@@ -57,7 +57,7 @@ public class InterfaceTypeSelectionSetAnalyzerTests
                 .AddStarWarsRepositories()
                 .AddGraphQL()
                 .AddStarWars()
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var document =
             Utf8GraphQLParser.Parse(@"
@@ -101,7 +101,7 @@ public class InterfaceTypeSelectionSetAnalyzerTests
                 .AddStarWarsRepositories()
                 .AddGraphQL()
                 .AddStarWars()
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var document =
             Utf8GraphQLParser.Parse(@"
@@ -144,7 +144,7 @@ public class InterfaceTypeSelectionSetAnalyzerTests
                 .AddStarWarsRepositories()
                 .AddGraphQL()
                 .AddStarWars()
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var document =
             Utf8GraphQLParser.Parse(@"
@@ -197,12 +197,13 @@ public class InterfaceTypeSelectionSetAnalyzerTests
                 .AddStarWarsRepositories()
                 .AddGraphQL()
                 .AddStarWars()
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var document =
-            Utf8GraphQLParser.Parse(@"
+            Utf8GraphQLParser.Parse(
+                """
                 query GetHero {
-                    search(text: ""hello"") {
+                    search(text: "hello") {
                         ... Hero
                         ... Starship
                     }
@@ -224,7 +225,8 @@ public class InterfaceTypeSelectionSetAnalyzerTests
 
                 fragment Starship on Starship {
                     length
-                }");
+                }
+                """);
 
         var context = new DocumentAnalyzerContext(schema, document);
         var selectionSetVariants = context.CollectFields();

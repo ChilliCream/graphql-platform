@@ -4,7 +4,11 @@ namespace HotChocolate.Internal;
 
 internal sealed class TypeCache
 {
+#if NET9_0_OR_GREATER
+    private readonly Lock _sync = new();
+#else
     private readonly object _sync = new();
+#endif
     private readonly Dictionary<ExtendedTypeId, ExtendedType> _types = [];
     private readonly Dictionary<object, ExtendedType> _typeMemberLookup = [];
     private readonly Dictionary<ExtendedTypeId, TypeInfo> _typeInfos = [];
@@ -74,6 +78,7 @@ internal sealed class TypeCache
                 return true;
             }
         }
+
         return false;
     }
 
@@ -90,6 +95,7 @@ internal sealed class TypeCache
                 typeInfo = create();
                 _typeInfos.Add(id, typeInfo);
             }
+
             return typeInfo;
         }
     }

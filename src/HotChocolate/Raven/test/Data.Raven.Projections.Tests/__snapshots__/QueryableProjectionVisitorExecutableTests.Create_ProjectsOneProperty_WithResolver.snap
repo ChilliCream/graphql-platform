@@ -1,22 +1,26 @@
+Result:
+---------------
 {
-  "errors": [
-    {
-      "message": "The field `foo` does not exist on the type `Foo`.",
-      "locations": [
-        {
-          "line": 1,
-          "column": 23
-        }
-      ],
-      "path": [
-        "rootExecutable"
-      ],
-      "extensions": {
-        "type": "Foo",
-        "field": "foo",
-        "responseName": "foo",
-        "specifiedBy": "https://spec.graphql.org/October2021/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
+  "data": {
+    "rootExecutable": [
+      {
+        "baz": "a",
+        "foo": [
+          "foo"
+        ]
+      },
+      {
+        "baz": "b",
+        "foo": [
+          "foo"
+        ]
       }
-    }
-  ]
+    ]
+  }
 }
+---------------
+
+SQL:
+---------------
+from 'Foos' select Baz
+---------------

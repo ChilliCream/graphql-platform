@@ -4,7 +4,7 @@ using HotChocolate.Types.Descriptors.Configurations;
 
 namespace HotChocolate.Configuration;
 
-internal sealed partial class RegisteredType : IHasRuntimeType
+internal sealed partial class RegisteredType : IRuntimeTypeProvider
 {
     private readonly TypeRegistry _typeRegistry;
     private readonly TypeLookup _typeLookup;
@@ -47,7 +47,7 @@ internal sealed partial class RegisteredType : IHasRuntimeType
     public TypeKind? Kind { get; }
 
     public Type RuntimeType
-        => Type is IHasRuntimeType hasClrType
+        => Type is IRuntimeTypeProvider hasClrType
             ? hasClrType.RuntimeType
             : typeof(object);
 

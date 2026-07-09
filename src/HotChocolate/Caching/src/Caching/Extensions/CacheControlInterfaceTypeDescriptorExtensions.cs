@@ -3,6 +3,10 @@ using HotChocolate.Caching;
 
 namespace HotChocolate.Types;
 
+/// <summary>
+/// Provides extension methods for <see cref="IInterfaceTypeDescriptor"/>
+/// to apply <c>@cacheControl</c> directives to interface types.
+/// </summary>
 public static class CacheControlInterfaceTypeDescriptorExtensions
 {
     /// <summary>

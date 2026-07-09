@@ -3,8 +3,6 @@ using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
 using Microsoft.Extensions.DependencyInjection;
 
-#nullable enable
-
 namespace HotChocolate.Types;
 
 public class InputObjectTypeTests : TypeTestBase
@@ -372,7 +370,7 @@ public class InputObjectTypeTests : TypeTestBase
             => InputObjectTypeDescriptorExtensions.Ignore<SimpleInput>(null!, t => t.Id);
 
         // assert
-        Assert.Throws<ArgumentNullException>(Action);
+        Assert.Throws<NullReferenceException>(Action);
     }
 
     [Fact]
@@ -440,11 +438,12 @@ public class InputObjectTypeTests : TypeTestBase
             .AddQueryType<QueryType>()
             .AddTypeConverter<Baz, Bar>(from => new Bar { Text = from.Text })
             .AddTypeConverter<Bar, Baz>(from => new Baz { Text = from.Text })
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
-            "{ foo(a: { bar: { text: \"abc\" } }) }");
+            "{ foo(a: { bar: { text: \"abc\" } }) }",
+            TestContext.Current.CancellationToken);
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -480,7 +479,8 @@ public class InputObjectTypeTests : TypeTestBase
 
         // act
         var result = await executor.ExecuteAsync(
-            "{ do(input: { baz: \"abc\" }) { isBarSet bar baz } }");
+            "{ do(input: { baz: \"abc\" }) { isBarSet bar baz } }",
+            TestContext.Current.CancellationToken);
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -500,7 +500,8 @@ public class InputObjectTypeTests : TypeTestBase
 
         // act
         var result = await executor.ExecuteAsync(
-            "{ do(input: { bar: " + value + " }) { isBarSet } }");
+            "{ do(input: { bar: " + value + " }) { isBarSet } }",
+            TestContext.Current.CancellationToken);
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -518,7 +519,8 @@ public class InputObjectTypeTests : TypeTestBase
 
         // act
         var result = await executor.ExecuteAsync(
-            "{ do(input: { bar: \"abc\" baz: \"def\" qux: \"ghi\" }) { bar baz qux } }");
+            "{ do(input: { bar: \"abc\" baz: \"def\" qux: \"ghi\" }) { bar baz qux } }",
+            TestContext.Current.CancellationToken);
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -550,7 +552,7 @@ public class InputObjectTypeTests : TypeTestBase
             .AddGraphQL()
             .AddQueryType<QueryWithInterfaceInput>()
             .AddType<InputWithInterfaceType>()
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         schema.ToString().MatchSnapshot();
@@ -607,14 +609,14 @@ public class InputObjectTypeTests : TypeTestBase
             .AddGraphQL()
             .AddInputObjectType<FieldNameInput>()
             .ModifyOptions(o => o.StrictValidation = false)
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         schema.ToString().MatchSnapshot();
     }
 
     [Fact]
-    public async Task AnnotationBased_DepreactedInputTypes_NullableFields_Valid()
+    public async Task AnnotationBased_DeprecatedInputTypes_NullableFields_Valid()
     {
         // arrange
         // act
@@ -622,14 +624,14 @@ public class InputObjectTypeTests : TypeTestBase
             .AddGraphQL()
             .AddInputObjectType<DeprecatedInputFields>()
             .AddQueryType(x => x.Name("Query").Field("bar").Resolve("asd"))
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         schema.ToString().MatchSnapshot();
     }
 
     [Fact]
-    public async Task AnnotationBased_DepreactedInputTypes_NonNullableField_Invalid()
+    public async Task AnnotationBased_DeprecatedInputTypes_NonNullableField_Invalid()
     {
         // arrange
         // act
@@ -645,7 +647,7 @@ public class InputObjectTypeTests : TypeTestBase
     }
 
     [Fact]
-    public async Task CodeFirst_DepreactedInputTypes_NullableFields_Valid()
+    public async Task CodeFirst_DeprecatedInputTypes_NullableFields_Valid()
     {
         // arrange
         // act
@@ -653,14 +655,14 @@ public class InputObjectTypeTests : TypeTestBase
             .AddGraphQL()
             .AddQueryType(x => x.Name("Query").Field("bar").Resolve("asd"))
             .AddInputObjectType(x => x.Name("Foo").Field("bar").Type<IntType>().Deprecated("b"))
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         schema.ToString().MatchSnapshot();
     }
 
     [Fact]
-    public async Task CodeFirst_DepreactedInputTypes_NonNullableField_Invalid()
+    public async Task CodeFirst_DeprecatedInputTypes_NonNullableField_Invalid()
     {
         // arrange
         // act
@@ -680,37 +682,39 @@ public class InputObjectTypeTests : TypeTestBase
     }
 
     [Fact]
-    public async Task SchemaFirst_DepreactedInputTypes_NullableFields_Valid()
+    public async Task SchemaFirst_DeprecatedInputTypes_NullableFields_Valid()
     {
         // arrange
         // act
         var schema = await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType(x => x.Name("Query").Field("bar").Resolve("asd"))
-            .AddDocumentFromString(@"
-                    input Foo {
-                        bar: String @deprecated(reason: ""reason"")
-                    }
-                ")
-            .BuildSchemaAsync();
+            .AddDocumentFromString(
+                """
+                input Foo {
+                    bar: String @deprecated(reason: "reason")
+                }
+                """)
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         schema.ToString().MatchSnapshot();
     }
 
     [Fact]
-    public async Task SchemaFirst_DepreactedInputTypes_NonNullableField_Invalid()
+    public async Task SchemaFirst_DeprecatedInputTypes_NonNullableField_Invalid()
     {
         // arrange
         // act
         Func<Task> call = async () => await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType(x => x.Name("Query").Field("bar").Resolve("asd"))
-            .AddDocumentFromString(@"
-                    input Foo {
-                        bar: String! @deprecated(reason: ""reason"")
-                    }
-                ")
+            .AddDocumentFromString(
+                """
+                input Foo {
+                    bar: String! @deprecated(reason: "reason")
+                }
+                """)
             .BuildSchemaAsync();
 
         // assert
@@ -723,7 +727,7 @@ public class InputObjectTypeTests : TypeTestBase
     {
         void Fail() => InputObjectTypeDescriptorExtensions.OneOf(null!);
 
-        Assert.Throws<ArgumentNullException>(Fail);
+        Assert.Throws<NullReferenceException>(Fail);
     }
 
     [Fact]
@@ -731,7 +735,7 @@ public class InputObjectTypeTests : TypeTestBase
     {
         void Fail() => InputObjectTypeDescriptorExtensions.OneOf<object>(null!);
 
-        Assert.Throws<ArgumentNullException>(Fail);
+        Assert.Throws<NullReferenceException>(Fail);
     }
 
     [Fact]
@@ -794,7 +798,7 @@ public class InputObjectTypeTests : TypeTestBase
 
     public interface IDoesNotWork
     {
-        public double? Member { get; set; }
+        double? Member { get; set; }
     }
 
     public class SimpleInput
@@ -948,7 +952,7 @@ public class InputObjectTypeTests : TypeTestBase
         [DefaultValue(FooEnum.Bar)]
         public FooEnum Enum { get; set; }
 
-        [DefaultValueSyntax("[[{ foo: 1 } ]]")]
+        [DefaultValueSyntax("[[{ foo: 1 }]]")]
         public List<List<ComplexInput>> ComplexInput { get; set; } = null!;
 
         public string? WithoutDefault { get; set; }

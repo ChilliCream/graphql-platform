@@ -18,7 +18,7 @@ public interface ISocketConnectionInterceptor
     /// <returns>
     /// Returns the initial payload of the connection
     /// </returns>
-    public ValueTask<object?> CreateConnectionInitPayload(
+    ValueTask<object?> CreateConnectionInitPayload(
         ISocketProtocol protocol,
         CancellationToken cancellationToken);
 
@@ -28,7 +28,7 @@ public interface ISocketConnectionInterceptor
     /// <param name="client">
     /// The client that opened the connection.
     /// </param>
-    public void OnConnectionOpened(ISocketClient client);
+    void OnConnectionOpened(ISocketClient client);
 
     /// <summary>
     /// This method is called when the socket connection is closed.
@@ -36,5 +36,5 @@ public interface ISocketConnectionInterceptor
     /// <param name="client">
     /// The client that closed the connection.
     /// </param>
-    public void OnConnectionClosed(ISocketClient client);
+    void OnConnectionClosed(ISocketClient client);
 }

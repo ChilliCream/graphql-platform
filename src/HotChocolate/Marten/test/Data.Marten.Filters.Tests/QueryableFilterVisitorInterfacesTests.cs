@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 using HotChocolate.Data.Filters;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
@@ -37,21 +38,24 @@ public class QueryableFilterVisitorInterfacesTests
                 .SetDocument(
                     "{ root(where: { test: { prop: { eq: \"a\"}}}) "
                     + "{ test{ prop }}}")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(where: { test: { prop: { eq: \"b\"}}}) "
                     + "{ test{ prop }}}")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         var res3 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(where: { test: { prop: { eq: null}}}) "
                     + "{ test{ prop}}}")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
@@ -62,7 +66,7 @@ public class QueryableFilterVisitorInterfacesTests
                 "ba").AddResult(
                 res3,
                 "null")
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     private static void Configure(IRequestExecutorBuilder builder)
@@ -71,6 +75,8 @@ public class QueryableFilterVisitorInterfacesTests
             .AddObjectType<InterfaceImpl2>(x => x.Implements<InterfaceType<Test>>())
             .AddInterfaceType<Test>();
 
+    [JsonDerivedType(typeof(InterfaceImpl1), typeDiscriminator: "impl1")]
+    [JsonDerivedType(typeof(InterfaceImpl2), typeDiscriminator: "impl2")]
     public abstract class Test
     {
         [Key]

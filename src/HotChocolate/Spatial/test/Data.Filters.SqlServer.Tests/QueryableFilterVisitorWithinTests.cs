@@ -60,7 +60,7 @@ public class QueryableFilterVisitorWithinTests : SchemaCache
                                                 [20 20],
                                                 [140 20],
                                                 [120 100],
-                                                [20 100 ],
+                                                [20 100],
                                                 [20 20]
                                             ]
                                         ]
@@ -71,7 +71,8 @@ public class QueryableFilterVisitorWithinTests : SchemaCache
                             id
                         }
                     }")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
@@ -87,7 +88,7 @@ public class QueryableFilterVisitorWithinTests : SchemaCache
                                                 [20 20],
                                                 [140 20],
                                                 [120 100],
-                                                [20 100 ],
+                                                [20 100],
                                                 [20 20]
                                             ]
                                         ]
@@ -98,7 +99,8 @@ public class QueryableFilterVisitorWithinTests : SchemaCache
                             id
                         }
                     }")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
@@ -108,7 +110,7 @@ public class QueryableFilterVisitorWithinTests : SchemaCache
                     : null)
             .AddResult(res1, "true")
             .AddResult(res2, "false")
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     public class Foo

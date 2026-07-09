@@ -11,6 +11,8 @@ internal sealed class SyntaxTypeReferenceHandler : ITypeRegistrarHandler
 
     public SyntaxTypeReferenceHandler(IDescriptorContext context)
     {
+        ArgumentNullException.ThrowIfNull(context);
+
         _typeInspector = context.TypeInspector;
         _scalarTypes = context.Features.Get<TypeSystemFeature>()?.ScalarNameOverrides ?? [];
     }

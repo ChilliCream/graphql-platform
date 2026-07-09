@@ -52,13 +52,14 @@ public class QueryableProjectionVisitorTests(PostgreSqlResource<PostgisConfig> r
                         }
                     }
                     """)
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
             .Create()
             .AddResult(result)
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     public class Foo

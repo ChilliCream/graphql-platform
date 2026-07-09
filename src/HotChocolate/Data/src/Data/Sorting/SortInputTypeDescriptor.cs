@@ -1,4 +1,5 @@
 using System.Reflection;
+using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
@@ -55,17 +56,21 @@ public class SortInputTypeDescriptor
     protected BindableList<SortFieldDescriptor> Fields { get; } =
         [];
 
-    Type IHasRuntimeType.RuntimeType => Configuration.RuntimeType;
+    Type IRuntimeTypeProvider.RuntimeType => Configuration.RuntimeType;
 
     protected override void OnCreateConfiguration(
         SortInputTypeConfiguration configuration)
     {
         Context.Descriptors.Push(this);
 
-        if (Configuration is { AttributesAreApplied: false, EntityType: not null })
+        if (!Configuration.ConfigurationsAreApplied)
         {
-            Context.TypeInspector.ApplyAttributes(Context, this, Configuration.EntityType);
-            Configuration.AttributesAreApplied = true;
+            DescriptorAttributeHelper.ApplyConfiguration(
+                Context,
+                this,
+                Configuration.EntityType);
+
+            Configuration.ConfigurationsAreApplied = true;
         }
 
         var fields = new Dictionary<string, SortFieldConfiguration>(StringComparer.Ordinal);

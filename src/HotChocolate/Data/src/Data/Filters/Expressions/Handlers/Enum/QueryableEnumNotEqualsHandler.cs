@@ -23,4 +23,7 @@ public class QueryableEnumNotEqualsHandler
             && fieldConfiguration is FilterOperationFieldConfiguration operationField
             && operationField.Id == Operation;
     }
+
+    public static new QueryableEnumNotEqualsHandler Create(FilterProviderContext context)
+        => new(context.TypeConverter, context.InputParser);
 }

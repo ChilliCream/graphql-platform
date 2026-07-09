@@ -35,7 +35,7 @@ public class NumberTokenReaderTests
     public void InvalidNumberToken()
     {
         // arrange
-        var source = Encoding.UTF8.GetBytes(".1");
+        var source = ".1"u8.ToArray();
 
         // act
         void Fail() => new Utf8GraphQLReader(source).Read();

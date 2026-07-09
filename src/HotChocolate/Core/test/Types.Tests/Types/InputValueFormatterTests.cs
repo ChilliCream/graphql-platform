@@ -12,7 +12,9 @@ public class InputValueFormatterTests
             .AddQueryType<QueryType>()
             .Create()
             .MakeExecutable()
-            .ExecuteAsync("{ one(arg: \"abc\") }")
+            .ExecuteAsync(
+                "{ one(arg: \"abc\") }",
+                TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -23,7 +25,9 @@ public class InputValueFormatterTests
             .AddQueryType<QueryType>()
             .Create()
             .MakeExecutable()
-            .ExecuteAsync("{ two(arg: \"abc\") }")
+            .ExecuteAsync(
+                "{ two(arg: \"abc\") }",
+                TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -34,7 +38,9 @@ public class InputValueFormatterTests
             .AddQueryType<QueryType>()
             .Create()
             .MakeExecutable()
-            .ExecuteAsync("{ one_input(arg: { bar: \"abc\" }) }")
+            .ExecuteAsync(
+                "{ one_input(arg: { bar: \"abc\" }) }",
+                TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -45,7 +51,9 @@ public class InputValueFormatterTests
             .AddQueryType<QueryType>()
             .Create()
             .MakeExecutable()
-            .ExecuteAsync("{ two_input(arg: { baz: \"abc\" }) }")
+            .ExecuteAsync(
+                "{ two_input(arg: { baz: \"abc\" }) }",
+                TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -105,14 +113,14 @@ public class InputValueFormatterTests
 
     public class Foo
     {
-        public string Bar { get; set; }
+        public string? Bar { get; set; }
 
-        public string Baz { get; set; }
+        public string? Baz { get; set; }
     }
 
     public class UpperCaseInputValueFormatter : IInputValueFormatter
     {
-        public object Format(object originalValue)
+        public object? Format(object? originalValue)
         {
             return originalValue is string s ? s.ToUpperInvariant() : originalValue;
         }
@@ -120,7 +128,7 @@ public class InputValueFormatterTests
 
     public class AddTwoInputValueFormatter : IInputValueFormatter
     {
-        public object Format(object originalValue)
+        public object? Format(object? originalValue)
         {
             return originalValue is string s ? s + "2" : originalValue;
         }

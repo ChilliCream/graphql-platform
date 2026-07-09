@@ -107,7 +107,7 @@ public class SchemaTypeReferenceTests
         var x = TypeReference.Create(type);
 
         // act
-        var result = x.Equals((TypeReference)null);
+        var result = x.Equals((TypeReference)null!);
 
         // assert
         Assert.False(result);
@@ -164,7 +164,7 @@ public class SchemaTypeReferenceTests
         var x = TypeReference.Create(type);
 
         // act
-        var result = x.Equals((object)null);
+        var result = x.Equals((object)null!);
 
         // assert
         Assert.False(result);
@@ -402,7 +402,7 @@ public class SchemaTypeReferenceTests
             scope: "foo");
 
         // act
-        Action action = () => typeReference1.With(null);
+        Action action = () => typeReference1.With(null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(action);
@@ -532,6 +532,6 @@ public class SchemaTypeReferenceTests
 
     public class Bar
     {
-        public string Baz { get; set; }
+        public required string Baz { get; set; }
     }
 }

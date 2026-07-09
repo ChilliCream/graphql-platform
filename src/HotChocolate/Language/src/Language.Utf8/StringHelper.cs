@@ -61,7 +61,7 @@ internal static class StringHelper
 
         if (trimmedData.Length > next)
         {
-            trimmedData[next] = GraphQLConstants.LineFeed;
+            trimmedData[next] = GraphQLCharacters.LineFeed;
             writePosition = next;
         }
 
@@ -81,7 +81,7 @@ internal static class StringHelper
             next = writePosition + 1;
             if (trimmedData.Length > next)
             {
-                trimmedData[next] = GraphQLConstants.LineFeed;
+                trimmedData[next] = GraphQLCharacters.LineFeed;
                 writePosition = next;
             }
         }
@@ -127,8 +127,8 @@ internal static class StringHelper
     {
         var i = 0;
         while (position < chunk.Length
-            && (chunk[position] == GraphQLConstants.Space
-                || chunk[position] == GraphQLConstants.HorizontalTab))
+            && (chunk[position] == GraphQLCharacters.Space
+                || chunk[position] == GraphQLCharacters.HorizontalTab))
         {
             i++;
             position++;
@@ -141,8 +141,8 @@ internal static class StringHelper
     {
         var position = chunk.Length - 1;
         while (position > 0
-            && (chunk[position] == GraphQLConstants.Space
-                || chunk[position] == GraphQLConstants.HorizontalTab))
+            && (chunk[position] == GraphQLCharacters.Space
+                || chunk[position] == GraphQLCharacters.HorizontalTab))
         {
             position--;
         }
@@ -182,17 +182,17 @@ internal static class StringHelper
         var i = 0;
         while (position < data.Length)
         {
-            if (data[position] == GraphQLConstants.LineFeed)
+            if (data[position] == GraphQLCharacters.LineFeed)
             {
                 position++;
                 break;
             }
 
-            if (data[position] == GraphQLConstants.Return)
+            if (data[position] == GraphQLCharacters.Return)
             {
                 var next = position + 1;
                 if (next < data.Length
-                    && data[next] == GraphQLConstants.LineFeed)
+                    && data[next] == GraphQLCharacters.LineFeed)
                 {
                     position = next;
                 }
@@ -213,17 +213,17 @@ internal static class StringHelper
         var i = 0;
         while (position < data.Length)
         {
-            if (data[position] == GraphQLConstants.LineFeed)
+            if (data[position] == GraphQLCharacters.LineFeed)
             {
                 position++;
                 break;
             }
 
-            if (data[position] == GraphQLConstants.Return)
+            if (data[position] == GraphQLCharacters.Return)
             {
                 var next = position + 1;
                 if (next < data.Length
-                    && data[next] == GraphQLConstants.LineFeed)
+                    && data[next] == GraphQLCharacters.LineFeed)
                 {
                     position = next;
                 }
@@ -244,17 +244,17 @@ internal static class StringHelper
         var i = 0;
         while (position >= 0)
         {
-            if (data[position] == GraphQLConstants.LineFeed)
+            if (data[position] == GraphQLCharacters.LineFeed)
             {
                 position--;
                 break;
             }
 
-            if (data[position] == GraphQLConstants.Return)
+            if (data[position] == GraphQLCharacters.Return)
             {
                 var next = position - 1;
                 if (next > 0
-                    && data[next] == GraphQLConstants.LineFeed)
+                    && data[next] == GraphQLCharacters.LineFeed)
                 {
                     position = next;
                 }

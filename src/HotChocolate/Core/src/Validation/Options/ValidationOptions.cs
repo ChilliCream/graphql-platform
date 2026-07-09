@@ -8,21 +8,16 @@ public sealed class ValidationOptions
     , IErrorOptionsAccessor
     , IIntrospectionOptionsAccessor
 {
-    private int? _maxAllowedExecutionDepth;
-    private int _maxErrors = 5;
-    private ushort _maxAllowedOfTypeDepth = 16;
-    private ushort _maxAllowedListRecursiveDepth = 1;
-
     /// <summary>
     /// Gets the maximum allowed depth of a query. The default value is
     /// <see langword="null"/>. The minimum allowed value is <c>1</c>.
     /// </summary>
     public int? MaxAllowedExecutionDepth
     {
-        get => _maxAllowedExecutionDepth;
+        get;
         set
         {
-            _maxAllowedExecutionDepth = value < 1 ? 1 : value;
+            field = value < 1 ? 1 : value;
         }
     }
 
@@ -34,21 +29,41 @@ public sealed class ValidationOptions
 
     /// <summary>
     /// Specifies how many errors are allowed before the validation is aborted.
+    /// Defaults to <c>5</c>.
     /// </summary>
     public int MaxAllowedErrors
     {
-        get => _maxErrors;
+        get;
         set
         {
-            // if the value is lover than 1 we will set it to the default.
+            // if the value is lower than 1 we will set it to the default.
             if (value < 1)
             {
                 value = 5;
             }
 
-            _maxErrors = value;
+            field = value;
         }
-    }
+    } = 5;
+
+    /// <summary>
+    /// Specifies the maximum number of locations added to a validation error.
+    /// Defaults to <c>5</c>.
+    /// </summary>
+    public int MaxLocationsPerError
+    {
+        get;
+        set
+        {
+            // if the value is lower than 1 we will set it to the default.
+            if (value < 1)
+            {
+                value = 5;
+            }
+
+            field = value;
+        }
+    } = 5;
 
     public bool DisableIntrospection { get; set; }
 
@@ -56,13 +71,59 @@ public sealed class ValidationOptions
 
     public ushort MaxAllowedOfTypeDepth
     {
-        get => _maxAllowedOfTypeDepth;
-        set => _maxAllowedOfTypeDepth = value > 0 ? value : (ushort)1;
-    }
+        get;
+        set => field = value > 0 ? value : (ushort)1;
+    } = 16;
 
     public ushort MaxAllowedListRecursiveDepth
     {
-        get => _maxAllowedListRecursiveDepth;
-        set => _maxAllowedListRecursiveDepth = value > 0 ? value : (ushort)16;
-    }
+        get;
+        set => field = value > 0 ? value : (ushort)16;
+    } = 1;
+
+    /// <summary>
+    /// <para>
+    /// The maximum number of field-merge comparisons allowed during
+    /// overlapping-fields-can-be-merged validation. This prevents
+    /// adversarial queries with deeply nested inline fragments from
+    /// consuming unbounded CPU.
+    /// </para>
+    /// <para>Default: <c>100,000</c></para>
+    /// </summary>
+    public int MaxAllowedFieldMergeComparisons
+    {
+        get;
+        set
+        {
+            if (value < 1)
+            {
+                value = 100_000;
+            }
+
+            field = value;
+        }
+    } = 100_000;
+
+    /// <summary>
+    /// <para>
+    /// The maximum number of fragment visits allowed during validation.
+    /// Each time a fragment spread is entered counts as one visit.
+    /// This prevents adversarial queries with deeply nested or repeated
+    /// fragment spreads from consuming unbounded CPU.
+    /// </para>
+    /// <para>Default: <c>1,000</c></para>
+    /// </summary>
+    public int MaxAllowedFragmentVisits
+    {
+        get;
+        set
+        {
+            if (value < 1)
+            {
+                value = 1_000;
+            }
+
+            field = value;
+        }
+    } = 1_000;
 }

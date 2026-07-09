@@ -2,12 +2,6 @@
   "errors": [
     {
       "message": "Could not resolve the actual object type from `System.String` for the abstract type `foo`.",
-      "locations": [
-        {
-          "line": 1,
-          "column": 3
-        }
-      ],
       "path": [
         "foo"
       ]

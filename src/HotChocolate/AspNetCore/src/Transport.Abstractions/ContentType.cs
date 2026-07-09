@@ -1,4 +1,8 @@
+#if FUSION
+namespace HotChocolate.Fusion.Transport;
+#else
 namespace HotChocolate.Transport;
+#endif
 
 /// <summary>
 /// This class provides the default content types for GraphQL requests and responses.

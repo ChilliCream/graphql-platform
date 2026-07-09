@@ -1,5 +1,7 @@
+using System.Diagnostics;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using HotChocolate.Internal;
 using static HotChocolate.Resolvers.Expressions.Parameters.ParameterExpressionBuilderHelpers;
 
@@ -23,14 +25,22 @@ internal sealed class SchemaParameterExpressionBuilder
         => typeof(ISchemaDefinition) == parameter.ParameterType
             || typeof(Schema) == parameter.ParameterType;
 
+    public bool CanHandle(ParameterDescriptor parameter)
+        => typeof(ISchemaDefinition) == parameter.Type
+            || typeof(Schema) == parameter.Type;
+
     public Expression Build(ParameterExpressionBuilderContext context)
         => Expression.Convert(
             Expression.Property(context.ResolverContext, s_schema),
             context.Parameter.ParameterType);
 
-    public IParameterBinding Create(ParameterBindingContext context)
+    public IParameterBinding Create(ParameterDescriptor parameter)
         => this;
 
     public T Execute<T>(IResolverContext context)
-        => (T)(object)context.Schema;
+    {
+        Debug.Assert(typeof(T) == typeof(Schema) || typeof(T) == typeof(ISchemaDefinition));
+        var schema = context.Schema;
+        return Unsafe.As<Schema, T>(ref schema);
+    }
 }

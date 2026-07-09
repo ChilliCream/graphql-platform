@@ -107,7 +107,7 @@ public class GeoJsonLineStringInputTests
 
         // act
         // assert
-        Assert.Throws<SerializationException>(
+        Assert.Throws<LeafCoercionException>(
             () => inputParser.ParseLiteral(new ListValueNode(), type));
     }
 
@@ -120,7 +120,7 @@ public class GeoJsonLineStringInputTests
 
         // act
         // assert
-        Assert.Throws<SerializationException>(
+        Assert.Throws<LeafCoercionException>(
             () => inputParser.ParseLiteral(
                 new ObjectValueNode(
                     new ObjectFieldNode("coordinates", _linestring),
@@ -137,7 +137,7 @@ public class GeoJsonLineStringInputTests
 
         // act
         // assert
-        Assert.Throws<SerializationException>(
+        Assert.Throws<LeafCoercionException>(
             () => inputParser.ParseLiteral(
                 new ObjectValueNode(
                     new ObjectFieldNode(
@@ -156,7 +156,7 @@ public class GeoJsonLineStringInputTests
 
         // act
         // assert
-        Assert.Throws<SerializationException>(
+        Assert.Throws<LeafCoercionException>(
             () => inputParser.ParseLiteral(
                 new ObjectValueNode(
                     new ObjectFieldNode("type", new EnumValueNode("POLYGON")),
@@ -180,7 +180,8 @@ public class GeoJsonLineStringInputTests
 
         // act
         var result = await executor.ExecuteAsync(
-            "{ test(arg: { type: LineString, coordinates: [[30, 10], [10, 30], [40, 40]]})}");
+            "{ test(arg: { type: LineString, coordinates: [[30, 10], [10, 30], [40, 40]]})}",
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();

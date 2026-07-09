@@ -25,7 +25,11 @@ public abstract partial class DataLoaderBase<TKey, TValue>
     : IDataLoader<TKey, TValue>
     where TKey : notnull
 {
+#if NET9_0_OR_GREATER
+    private readonly Lock _sync = new();
+#else
     private readonly object _sync = new();
+#endif
     private readonly IBatchScheduler _batchScheduler;
     private readonly int _maxBatchSize;
     private readonly IDataLoaderDiagnosticEvents _diagnosticEvents;
@@ -100,7 +104,12 @@ public abstract partial class DataLoaderBase<TKey, TValue>
     /// Gets the options of this DataLoader.
     /// </summary>
     protected internal DataLoaderOptions Options
-        => new() { MaxBatchSize = _maxBatchSize, Cache = Cache, DiagnosticEvents = _diagnosticEvents };
+        => new()
+        {
+            MaxBatchSize = _maxBatchSize,
+            Cache = Cache,
+            DiagnosticEvents = _diagnosticEvents
+        };
 
     /// <inheritdoc />
     public Task<TValue?> LoadAsync(

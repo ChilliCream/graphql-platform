@@ -1,14 +1,68 @@
+#if FUSION
+using System.Collections.Immutable;
+using HotChocolate.Language;
+using HotChocolate.Fusion.Execution;
+using HotChocolate.Fusion.Transport.Http;
+using HotChocolate.Fusion.Transport.Serialization;
+using HotChocolate.Text.Json;
+
+namespace HotChocolate.Fusion.Transport;
+#else
 using System.Text.Json;
 using HotChocolate.Language;
 using HotChocolate.Transport.Serialization;
 
 namespace HotChocolate.Transport;
+#endif
 
 /// <summary>
 /// Represents a GraphQL operation request that can be sent over a WebSocket or HTTP connection.
 /// </summary>
 public sealed class OperationRequest : IEquatable<OperationRequest>, IOperationRequest
 {
+#if FUSION
+    /// <summary>
+    /// Initializes a new instance of the <see cref="OperationRequest"/> struct.
+    /// </summary>
+    /// <param name="query">
+    /// The query document containing the operation to execute.
+    /// </param>
+    /// <param name="id">
+    /// The ID of a previously persisted operation that should be executed.
+    /// </param>
+    /// <param name="operationName">
+    /// The name of the operation to execute.
+    /// </param>
+    /// <param name="onError">
+    /// The requested error handling mode.
+    /// </param>
+    /// <param name="variables">
+    /// The pre-serialized variable values to use when executing the operation.
+    /// </param>
+    /// <param name="extensions">
+    /// The pre-serialized extension values to include with the operation.
+    /// </param>
+    /// <param name="fileMap">
+    /// The file map entries for multipart file uploads. Default is empty.
+    /// </param>
+    public OperationRequest(
+        string? query,
+        string? id,
+        string? operationName,
+        ErrorHandlingMode? onError,
+        VariableValues variables,
+        JsonSegment extensions,
+        ImmutableArray<FileEntry> fileMap = default)
+    {
+        Query = query;
+        Id = id;
+        OperationName = operationName;
+        OnError = onError;
+        Variables = variables;
+        Extensions = extensions;
+        FileMap = fileMap;
+    }
+#else
     /// <summary>
     /// Initializes a new instance of the <see cref="OperationRequest"/> struct.
     /// </summary>
@@ -88,11 +142,7 @@ public sealed class OperationRequest : IEquatable<OperationRequest>, IOperationR
         Variables = variables;
         Extensions = extensions;
     }
-
-    /// <summary>
-    /// Empty Operation Request.
-    /// </summary>
-    public static OperationRequest Empty { get; } = new();
+#endif
 
     /// <summary>
     /// Gets the ID of a previously persisted operation that should be executed.
@@ -114,6 +164,25 @@ public sealed class OperationRequest : IEquatable<OperationRequest>, IOperationR
     /// </summary>
     public ErrorHandlingMode? OnError { get; }
 
+#if FUSION
+    /// <summary>
+    /// Gets the pre-serialized variable values to use when executing the operation.
+    /// </summary>
+    public VariableValues Variables { get; }
+
+    /// <summary>
+    /// Gets the pre-serialized extension values to include with the operation.
+    /// </summary>
+    public JsonSegment Extensions { get; }
+
+    /// <summary>
+    /// Gets the file map entries for multipart file uploads.
+    /// Each entry maps a file key in the variable JSON to the actual file stream,
+    /// enabling the transport layer to construct the multipart form per the
+    /// GraphQL multipart request specification.
+    /// </summary>
+    public ImmutableArray<FileEntry> FileMap { get; }
+#else
     /// <summary>
     /// Gets a dictionary containing the variable values to use when executing the operation.
     /// </summary>
@@ -135,14 +204,19 @@ public sealed class OperationRequest : IEquatable<OperationRequest>, IOperationR
     /// operation.
     /// </summary>
     public ObjectValueNode? ExtensionsNode { get; }
+#endif
 
     /// <summary>
-    /// Writes a serialized version of this request to a <see cref="Utf8JsonWriter"/>.
+    /// Writes a serialized version of this request to a JSON writer.
     /// </summary>
     /// <param name="writer">
     /// The JSON writer.
     /// </param>
+#if FUSION
+    public void WriteTo(JsonWriter writer)
+#else
     public void WriteTo(Utf8JsonWriter writer)
+#endif
     {
         ArgumentNullException.ThrowIfNull(writer);
 
@@ -158,6 +232,28 @@ public sealed class OperationRequest : IEquatable<OperationRequest>, IOperationR
     /// <returns>
     /// <see langword="true"/> if the two objects are equal; otherwise, <see langword="false"/>.
     /// </returns>
+#if FUSION
+    public bool Equals(OperationRequest? other)
+    {
+        if (other is null)
+        {
+            return false;
+        }
+
+        return Id == other.Id
+            && Query == other.Query
+            && Variables.Equals(other.Variables)
+            && Extensions.Equals(other.Extensions);
+    }
+
+    /// <inheritdoc/>
+    public override bool Equals(object? obj)
+        => obj is OperationRequest other && Equals(other);
+
+    /// <inheritdoc/>
+    public override int GetHashCode()
+        => HashCode.Combine(Id, Query, Variables, Extensions);
+#else
     public bool Equals(OperationRequest? other)
     {
         if (other is null)
@@ -180,6 +276,7 @@ public sealed class OperationRequest : IEquatable<OperationRequest>, IOperationR
     /// <inheritdoc/>
     public override int GetHashCode()
         => HashCode.Combine(Id, Query, Variables, Extensions, VariablesNode, ExtensionsNode);
+#endif
 
     /// <summary>
     /// Determines whether two <see cref="OperationRequest"/> objects are equal.

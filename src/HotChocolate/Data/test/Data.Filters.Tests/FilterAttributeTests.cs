@@ -152,7 +152,7 @@ public class FilterAttributeTests
         public override void OnConfigure(
             IDescriptorContext context,
             IFilterInputTypeDescriptor descriptor,
-            Type type)
+            Type? type)
         {
             descriptor.Name("ItWorks");
         }
@@ -163,7 +163,7 @@ public class FilterAttributeTests
         public override void OnConfigure(
             IDescriptorContext context,
             IFilterFieldDescriptor descriptor,
-            MemberInfo member)
+            MemberInfo? member)
         {
             descriptor.Ignore();
         }

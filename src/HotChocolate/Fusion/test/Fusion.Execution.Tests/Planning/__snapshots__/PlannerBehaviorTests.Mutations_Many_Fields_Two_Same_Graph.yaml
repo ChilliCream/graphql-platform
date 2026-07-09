@@ -1,0 +1,40 @@
+operation:
+  - document: |
+      mutation {
+        five: add(num: 5)
+        ten: multiply(by: 2)
+        twelve: add(num: 2)
+        final: delete
+      }
+    hash: 123456789101112
+    searchSpace: 1
+    expandedNodes: 1
+nodes:
+  - id: 1
+    type: Operation
+    schema: c
+    operation: |
+      mutation Op_123456789101112_1 {
+        five: add(num: 5)
+      }
+  - id: 2
+    type: Operation
+    schema: a
+    operation: |
+      mutation Op_123456789101112_2 {
+        ten: multiply(by: 2)
+      }
+  - id: 3
+    type: Operation
+    schema: c
+    operation: |
+      mutation Op_123456789101112_3 {
+        twelve: add(num: 2)
+      }
+  - id: 4
+    type: Operation
+    schema: b
+    operation: |
+      mutation Op_123456789101112_4 {
+        final: delete
+      }

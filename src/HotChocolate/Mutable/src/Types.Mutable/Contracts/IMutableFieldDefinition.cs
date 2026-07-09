@@ -24,7 +24,6 @@ public interface IMutableFieldDefinition : IFieldDefinition
     /// <summary>
     /// Gets or sets the type of the field.
     /// </summary>
-    /// <value></value>
     new IType Type { get; set; }
 
     /// <summary>
@@ -41,4 +40,7 @@ public interface IMutableFieldDefinition : IFieldDefinition
     /// Gets the deprecation reason of this <see cref="ITypeSystemMember"/>.
     /// </summary>
     new string? DeprecationReason { get; set; }
+
+    /// <inheritdoc cref="IFieldDefinition.IsIntrospectionField" />
+    new bool IsIntrospectionField { get; set; }
 }

@@ -1,29 +1,29 @@
-﻿schema {
+schema {
   query: Query
   mutation: Mutation
   subscription: Subscription
 }
 
-"The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text."
+"The `String` scalar type represents textual data, represented as a sequence of Unicode code points."
 scalar String
 
-"The `ID` scalar type represents a unique identifier, often used to refetch an object or as key for a cache. The ID type appears in a JSON response as a String; however, it is not intended to be human-readable. When expected as an input type, any string (such as `\"4\"`) or integer (such as `4`) input value will be accepted as an ID."
+"The `ID` scalar type represents a unique identifier, often used to refetch an object or as the key for a cache."
 scalar ID
 
 "The `Boolean` scalar type represents `true` or `false`."
 scalar Boolean
 
-"The `Int` scalar type represents non-fractional signed whole numeric values. Int can represent values between -(2^31) and 2^31 - 1."
+"The `Int` scalar type represents a signed 32-bit numeric non-fractional value."
 scalar Int
 
-"The `Float` scalar type represents signed double-precision fractional values as specified by [IEEE 754](http:\/\/en.wikipedia.org\/wiki\/IEEE_floating_point)."
+"The `Float` scalar type represents signed double-precision finite values as specified by [IEEE 754](https://en.wikipedia.org/wiki/IEEE_floating_point)."
 scalar Float
 
 scalar Decimal
 
 scalar Long
 
-"The `DateTime` scalar represents an ISO-8601 compliant date time type."
+"The `DateTime` scalar represents an exact point in time. This point in time is specified by having an offset to UTC and does not use a time zone."
 scalar DateTime
 
 "The `Date` scalar represents an ISO-8601 compliant date type."
@@ -130,10 +130,10 @@ type __Type {
   kind: __TypeKind!
   name: String
   description: String
-  fields(includeDeprecated: Boolean = false): [__Field!]
+  fields(includeDeprecated: Boolean! = false): [__Field!]
   interfaces: [__Type!]
   possibleTypes: [__Type!]
-  enumValues(includeDeprecated: Boolean = false): [__EnumValue!]
+  enumValues(includeDeprecated: Boolean! = false): [__EnumValue!]
   inputFields: [__InputValue!]
   ofType: __Type
 }
@@ -167,7 +167,7 @@ type Query {
 }
 
 type Mutation {
-  createReview(episode: Episode! review: ReviewInput!): Review!
+  createReview(episode: Episode!, review: ReviewInput!): Review!
 }
 
 type Subscription {
@@ -230,7 +230,15 @@ type Starship {
 }
 
 "Directs the executor to skip this field or fragment when the `if` argument is true."
-directive @skip("Skipped when true." if: Boolean!) on FIELD | FIELD_DEFINITION | INLINE_FRAGMENT | FRAGMENT_SPREAD
+directive @skip("Skipped when true." if: Boolean!) on
+  | FIELD
+  | FIELD_DEFINITION
+  | INLINE_FRAGMENT
+  | FRAGMENT_SPREAD
 
 "Directs the executor to include this field or fragment only when the `if` argument is true."
-directive @include("Included when true." if: Boolean!) on FIELD | FIELD_DEFINITION | INLINE_FRAGMENT | FRAGMENT_SPREAD
+directive @include("Included when true." if: Boolean!) on
+  | FIELD
+  | FIELD_DEFINITION
+  | INLINE_FRAGMENT
+  | FRAGMENT_SPREAD

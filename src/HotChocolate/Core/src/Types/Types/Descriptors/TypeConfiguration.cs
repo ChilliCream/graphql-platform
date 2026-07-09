@@ -6,7 +6,11 @@ namespace HotChocolate.Types.Descriptors;
 /// </summary>
 public sealed class TypeConfigurationContainer
 {
+#if NET9_0_OR_GREATER
+    private readonly Lock _sync = new();
+#else
     private readonly object _sync = new();
+#endif
     private readonly HashSet<string> _created = [];
     private readonly Dictionary<Type, List<object>> _configurations = [];
     private readonly Dictionary<string, List<object>> _namedConfigurations = [];

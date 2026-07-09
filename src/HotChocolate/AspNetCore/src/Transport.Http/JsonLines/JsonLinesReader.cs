@@ -1,12 +1,28 @@
+#if FUSION
+using System.Buffers;
+using System.IO.Pipelines;
+using System.Runtime.CompilerServices;
+using HotChocolate.Buffers;
+using HotChocolate.Fusion.Text.Json;
+#else
 using System.Buffers;
 using System.IO.Pipelines;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 using HotChocolate.Buffers;
+#endif
 
+#if FUSION
+namespace HotChocolate.Fusion.Transport.Http;
+#else
 namespace HotChocolate.Transport.Http;
+#endif
 
+#if FUSION
+internal class JsonLinesReader(HttpResponseMessage message, IMemoryArenaSource arenaSource) : IAsyncEnumerable<SourceResultDocument>
+#else
 internal class JsonLinesReader(HttpResponseMessage message) : IAsyncEnumerable<OperationResult>
+#endif
 {
     private static readonly StreamPipeReaderOptions s_options = new(
         pool: MemoryPool<byte>.Shared,
@@ -15,11 +31,14 @@ internal class JsonLinesReader(HttpResponseMessage message) : IAsyncEnumerable<O
         leaveOpen: true,
         useZeroByteReads: true);
 
+#if FUSION
+    public async IAsyncEnumerator<SourceResultDocument> GetAsyncEnumerator(
+#else
     public async IAsyncEnumerator<OperationResult> GetAsyncEnumerator(
+#endif
         CancellationToken cancellationToken = default)
     {
-        using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-        await using var stream = await message.Content.ReadAsStreamAsync(cts.Token);
+        await using var stream = await message.Content.ReadAsStreamAsync(cancellationToken);
         var reader = PipeReader.Create(stream, s_options);
 
         try
@@ -27,7 +46,7 @@ internal class JsonLinesReader(HttpResponseMessage message) : IAsyncEnumerable<O
             ReadResult result;
             do
             {
-                result = await reader.ReadAsync(cts.Token).ConfigureAwait(false);
+                result = await reader.ReadAsync(cancellationToken).ConfigureAwait(false);
                 if (result.IsCanceled)
                 {
                     yield break;
@@ -52,10 +71,12 @@ internal class JsonLinesReader(HttpResponseMessage message) : IAsyncEnumerable<O
                     // Skip empty lines
                     if (!IsEmptyLine(line))
                     {
-                        var jsonBuffer = CreateJsonBuffer(line);
-                        var document = JsonDocument.Parse(jsonBuffer.WrittenMemory);
-                        var documentOwner = new JsonDocumentOwner(document, jsonBuffer);
-                        yield return OperationResult.Parse(documentOwner);
+#if FUSION
+                        yield return ParseDocument(arenaSource.GetNextArena(), line);
+#else
+                        var document = ParseDocument(line);
+                        yield return OperationResult.Parse(document);
+#endif
                     }
 
                     // Move past the processed line
@@ -70,34 +91,73 @@ internal class JsonLinesReader(HttpResponseMessage message) : IAsyncEnumerable<O
         }
         finally
         {
-            await cts.CancelAsync().ConfigureAwait(false);
             await reader.CompleteAsync().ConfigureAwait(false);
         }
     }
 
-    private static PooledArrayWriter CreateJsonBuffer(ReadOnlySequence<byte> lineBuffer)
+#if FUSION
+    private static SourceResultDocument ParseDocument(IMemoryArena arena, ReadOnlySequence<byte> lineBuffer)
     {
-        var jsonBuffer = new PooledArrayWriter(4096);
+        // Each record is one newline-delimited line. Its content bytes are filled once, directly into
+        // the arena's geometric segments using the same per-record mechanic as the SSE reader, then
+        // parsed in place via ParseFilled so no bytes are copied a second time.
+        var chunks = arena.RentSegmentTable(64);
+        var chunkIndex = 0;
+        var chunkSize = SourceResultDocument.GetDataChunkSize(chunkIndex);
+        var current = chunks[chunkIndex] = arena.Rent(chunkSize);
+        var currentChunkPosition = 0;
 
-        if (lineBuffer.IsSingleSegment)
+        foreach (var segment in lineBuffer)
         {
-            var span = lineBuffer.First.Span;
-            span.CopyTo(jsonBuffer.GetSpan(span.Length));
-            jsonBuffer.Advance(span.Length);
-        }
-        else
-        {
-            var position = lineBuffer.Start;
-            while (lineBuffer.TryGet(ref position, out var memory))
+            var source = segment.Span;
+            var segmentOffset = 0;
+
+            while (segmentOffset < source.Length)
             {
-                var span = memory.Span;
-                span.CopyTo(jsonBuffer.GetSpan(span.Length));
-                jsonBuffer.Advance(span.Length);
+                var spaceInCurrentChunk = chunkSize - currentChunkPosition;
+                var bytesToCopy = Math.Min(spaceInCurrentChunk, source.Length - segmentOffset);
+
+                source.Slice(segmentOffset, bytesToCopy).CopyTo(current.Span.Slice(currentChunkPosition));
+                currentChunkPosition += bytesToCopy;
+                segmentOffset += bytesToCopy;
+
+                if (currentChunkPosition == chunkSize)
+                {
+                    if (chunkIndex + 1 >= SourceResultDocument.DataMaxChunks)
+                    {
+                        throw new InvalidOperationException(
+                            "The source result document has exceeded its maximum data capacity.");
+                    }
+
+                    if (chunkIndex + 1 >= chunks.Length)
+                    {
+                        arena.GrowSegmentTable(ref chunks);
+                    }
+
+                    chunkIndex++;
+                    chunkSize = SourceResultDocument.GetDataChunkSize(chunkIndex);
+                    current = chunks[chunkIndex] = arena.Rent(chunkSize);
+                    currentChunkPosition = 0;
+                }
             }
         }
 
-        return jsonBuffer;
+        return SourceResultDocument.ParseFilled(
+            arena,
+            chunks,
+            usedChunks: chunkIndex + 1,
+            lastLength: currentChunkPosition);
     }
+#else
+    private static JsonDocumentOwner ParseDocument(ReadOnlySequence<byte> lineBuffer)
+    {
+        var requiredSize = (int)lineBuffer.Length;
+        var buffer = new PooledArrayWriter(requiredSize);
+        lineBuffer.CopyTo(buffer.GetSpan(requiredSize));
+        buffer.Advance(requiredSize);
+        return new JsonDocumentOwner(JsonDocument.Parse(buffer.WrittenMemory), buffer);
+    }
+#endif
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static bool IsEmptyLine(ReadOnlySequence<byte> lineBuffer)

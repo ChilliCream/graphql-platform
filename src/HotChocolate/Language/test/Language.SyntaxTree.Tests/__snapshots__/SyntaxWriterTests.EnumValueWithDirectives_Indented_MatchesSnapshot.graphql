@@ -1,0 +1,5 @@
+enum Role {
+  ADMIN @description(text: "Administrator role")
+  USER @description(text: "Regular user")
+  GUEST @deprecated(reason: "Use USER instead") @internal
+}

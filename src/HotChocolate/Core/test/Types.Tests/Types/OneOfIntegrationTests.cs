@@ -1,12 +1,9 @@
 using HotChocolate.Configuration.Validation;
 using HotChocolate.Execution;
-using HotChocolate.Language;
 using HotChocolate.Tests;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Types;
-
-#nullable enable
 
 public class OneOfIntegrationTests : TypeValidationTestBase
 {
@@ -17,8 +14,13 @@ public class OneOfIntegrationTests : TypeValidationTestBase
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
-            .ModifyOptions(o => o.EnableOneOf = true)
-            .ExecuteRequestAsync("{ example(input: { a: \"abc\", b: 123 }) }")
+            .ExecuteRequestAsync(
+                """
+                {
+                    example(input: { a: "abc", b: 123 })
+                }
+                """,
+                cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -29,8 +31,13 @@ public class OneOfIntegrationTests : TypeValidationTestBase
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
-            .ModifyOptions(o => o.EnableOneOf = true)
-            .ExecuteRequestAsync("{ example(input: { a: null, b: 123 }) }")
+            .ExecuteRequestAsync(
+                """
+                {
+                    example(input: { a: null, b: 123 })
+                }
+                """,
+                cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -41,8 +48,13 @@ public class OneOfIntegrationTests : TypeValidationTestBase
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
-            .ModifyOptions(o => o.EnableOneOf = true)
-            .ExecuteRequestAsync("{ example(input: { a: null, b: null }) }")
+            .ExecuteRequestAsync(
+                """
+                {
+                    example(input: { a: null, b: null })
+                }
+                """,
+                cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -53,8 +65,13 @@ public class OneOfIntegrationTests : TypeValidationTestBase
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
-            .ModifyOptions(o => o.EnableOneOf = true)
-            .ExecuteRequestAsync("{ example(input: { a: null }) }")
+            .ExecuteRequestAsync(
+                """
+                {
+                    example(input: { a: null })
+                }
+                """,
+                cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -64,8 +81,13 @@ public class OneOfIntegrationTests : TypeValidationTestBase
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
-            .ModifyOptions(o => o.EnableOneOf = true)
-            .ExecuteRequestAsync("{ example(input: { b: 123 }) }")
+            .ExecuteRequestAsync(
+                """
+                {
+                    example(input: { b: 123 })
+                }
+                """,
+                cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -76,8 +98,13 @@ public class OneOfIntegrationTests : TypeValidationTestBase
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
-            .ModifyOptions(o => o.EnableOneOf = true)
-            .ExecuteRequestAsync("{ example(input: { }) }")
+            .ExecuteRequestAsync(
+                """
+                {
+                    example(input: { })
+                }
+                """,
+                cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -88,12 +115,22 @@ public class OneOfIntegrationTests : TypeValidationTestBase
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
-            .ModifyOptions(o => o.EnableOneOf = true)
             .ExecuteRequestAsync(
                 OperationRequestBuilder.New()
-                    .SetDocument("query($a: String!) { example(input: { a: $a, b: 123 }) }")
-                    .SetVariableValues(new Dictionary<string, object?> { { "a", null } })
-                    .Build())
+                    .SetDocument(
+                        """
+                        query($a: String!) {
+                            example(input: { a: $a, b: 123 })
+                        }
+                        """)
+                    .SetVariableValues(
+                        """
+                        {
+                            "a": null
+                        }
+                        """)
+                    .Build(),
+                cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -104,11 +141,16 @@ public class OneOfIntegrationTests : TypeValidationTestBase
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
-            .ModifyOptions(o => o.EnableOneOf = true)
             .ExecuteRequestAsync(
                 OperationRequestBuilder.New()
-                    .SetDocument("query($a: String!) { example(input: { a: $a, b: 123 }) }")
-                    .Build())
+                    .SetDocument(
+                        """
+                        query($a: String!) {
+                            example(input: { a: $a, b: 123 })
+                        }
+                        """)
+                    .Build(),
+                cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -119,13 +161,22 @@ public class OneOfIntegrationTests : TypeValidationTestBase
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
-            .ModifyOptions(o => o.EnableOneOf = true)
             .ExecuteRequestAsync(
                 OperationRequestBuilder.New()
                     .SetDocument(
-                        "query($a: String!, $b: Int!) { example(input: { a: $a, b: $b }) }")
-                    .SetVariableValues(new Dictionary<string, object?> { { "a", "abc" } })
-                    .Build())
+                        """
+                        query($a: String!, $b: Int!) {
+                            example(input: { a: $a, b: $b })
+                        }
+                        """)
+                    .SetVariableValues(
+                        """
+                        {
+                            "a": "abc"
+                        }
+                        """)
+                    .Build(),
+                cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -135,12 +186,22 @@ public class OneOfIntegrationTests : TypeValidationTestBase
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
-            .ModifyOptions(o => o.EnableOneOf = true)
             .ExecuteRequestAsync(
                 OperationRequestBuilder.New()
-                    .SetDocument("query($b: Int!) { example(input: { b: $b }) }")
-                    .SetVariableValues(new Dictionary<string, object?> { { "b", 123 } })
-                    .Build())
+                    .SetDocument(
+                        """
+                        query($b: Int!) {
+                            example(input: { b: $b })
+                        }
+                        """)
+                    .SetVariableValues(
+                        """
+                        {
+                            "b": 123
+                        }
+                        """)
+                    .Build(),
+                cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -150,14 +211,22 @@ public class OneOfIntegrationTests : TypeValidationTestBase
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
-            .ModifyOptions(o => o.EnableOneOf = true)
             .ExecuteRequestAsync(
                 OperationRequestBuilder.New()
-                    .SetDocument("query($var: ExampleInput!) { example(input: $var) }")
+                    .SetDocument(
+                        """
+                        query($var: ExampleInput!) {
+                            example(input: $var)
+                        }
+                        """)
                     .SetVariableValues(
-                        new Dictionary<string, object?>
-                            { { "var", new ObjectValueNode(new ObjectFieldNode("b", 123)) } })
-                    .Build())
+                        """
+                        {
+                            "var": { "b": 123 }
+                        }
+                        """)
+                    .Build(),
+                cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -168,21 +237,22 @@ public class OneOfIntegrationTests : TypeValidationTestBase
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
-            .ModifyOptions(o => o.EnableOneOf = true)
             .ExecuteRequestAsync(
                 OperationRequestBuilder.New()
-                    .SetDocument("query($var: ExampleInput!) { example(input: $var) }")
+                    .SetDocument(
+                        """
+                        query($var: ExampleInput!) {
+                            example(input: $var)
+                        }
+                        """)
                     .SetVariableValues(
-                        new Dictionary<string, object?>
+                        """
                         {
-                            {
-                                "var",
-                                new ObjectValueNode(
-                                    new ObjectFieldNode("a", "abc"),
-                                    new ObjectFieldNode("b", 123))
-                            }
-                        })
-                    .Build())
+                            "var": { "a": "abc", "b": 123 }
+                        }
+                        """)
+                    .Build(),
+                cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -193,21 +263,22 @@ public class OneOfIntegrationTests : TypeValidationTestBase
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
-            .ModifyOptions(o => o.EnableOneOf = true)
             .ExecuteRequestAsync(
                 OperationRequestBuilder.New()
-                    .SetDocument("query($var: ExampleInput!) { example(input: $var) }")
+                    .SetDocument(
+                        """
+                        query($var: ExampleInput!) {
+                            example(input: $var)
+                        }
+                        """)
                     .SetVariableValues(
-                        new Dictionary<string, object?>
+                        """
                         {
-                            {
-                                "var",
-                                new ObjectValueNode(
-                                    new ObjectFieldNode("a", "abc"),
-                                    new ObjectFieldNode("b", NullValueNode.Default))
-                            }
-                        })
-                    .Build())
+                            "var": { "a": "abc", "b": null }
+                        }
+                        """)
+                    .Build(),
+                cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -218,19 +289,23 @@ public class OneOfIntegrationTests : TypeValidationTestBase
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
-            .ModifyOptions(o => o.EnableOneOf = true)
             .ExecuteRequestAsync(
                 OperationRequestBuilder.New()
-                    .SetDocument("query($var: ExampleInput!) { example(input: $var) }")
+                    .SetDocument(
+                        """
+                        query($var: ExampleInput!) {
+                          example(input: $var)
+                        }
+                        """
+                        )
                     .SetVariableValues(
-                        new Dictionary<string, object?>
+                        """
                         {
-                            {
-                                "var",
-                                new ObjectValueNode(new ObjectFieldNode("a", NullValueNode.Default))
-                            }
-                        })
-                    .Build())
+                          "var": { "a": null }
+                        }
+                        """)
+                    .Build(),
+                cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -241,13 +316,22 @@ public class OneOfIntegrationTests : TypeValidationTestBase
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
-            .ModifyOptions(o => o.EnableOneOf = true)
             .ExecuteRequestAsync(
                 OperationRequestBuilder.New()
-                    .SetDocument("query($var: ExampleInput!) { example(input: $var) }")
+                    .SetDocument(
+                        """
+                        query($var: ExampleInput!) {
+                          example(input: $var)
+                        }
+                        """)
                     .SetVariableValues(
-                        new Dictionary<string, object?> { { "var", new ObjectValueNode() } })
-                    .Build())
+                        """
+                        {
+                          "var": { }
+                        }
+                        """)
+                    .Build(),
+                cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -258,11 +342,16 @@ public class OneOfIntegrationTests : TypeValidationTestBase
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
-            .ModifyOptions(o => o.EnableOneOf = true)
             .ExecuteRequestAsync(
                 OperationRequestBuilder.New()
-                    .SetDocument("{ example(input: \"abc123\") }")
-                    .Build())
+                    .SetDocument(
+                        """
+                        {
+                            example(input: "abc123")
+                        }
+                        """)
+                    .Build(),
+                cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -273,12 +362,22 @@ public class OneOfIntegrationTests : TypeValidationTestBase
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
-            .ModifyOptions(o => o.EnableOneOf = true)
             .ExecuteRequestAsync(
                 OperationRequestBuilder.New()
-                    .SetDocument("query($var: String!) { example(input: $var) }")
-                    .SetVariableValues(new Dictionary<string, object?> { { "var", "abc123" } })
-                    .Build())
+                    .SetDocument(
+                        """
+                        query($var: String!) {
+                            example(input: $var)
+                        }
+                        """)
+                    .SetVariableValues(
+                        """
+                        {
+                            "var": "abc123"
+                        }
+                        """)
+                    .Build(),
+                cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -289,8 +388,13 @@ public class OneOfIntegrationTests : TypeValidationTestBase
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
-            .ModifyOptions(o => o.EnableOneOf = true)
-            .ExecuteRequestAsync("{ example(input: { a: \"abc\", b: \"123\" }) }")
+            .ExecuteRequestAsync(
+                """
+                {
+                    example(input: { a: "abc", b: "123" })
+                }
+                """,
+                cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -301,8 +405,13 @@ public class OneOfIntegrationTests : TypeValidationTestBase
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
-            .ModifyOptions(o => o.EnableOneOf = true)
-            .ExecuteRequestAsync("{ example(input: { b: \"123\" }) }")
+            .ExecuteRequestAsync(
+                """
+                {
+                    example(input: { b: "123" })
+                }
+                """,
+                cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -313,19 +422,22 @@ public class OneOfIntegrationTests : TypeValidationTestBase
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
-            .ModifyOptions(o => o.EnableOneOf = true)
             .ExecuteRequestAsync(
                 OperationRequestBuilder.New()
-                    .SetDocument("query($var: ExampleInput!) { example(input: $var) }")
+                    .SetDocument(
+                        """
+                        query($var: ExampleInput!) {
+                            example(input: $var)
+                        }
+                        """)
                     .SetVariableValues(
-                        new Dictionary<string, object?>
+                        """
                         {
-                            {
-                                "var",
-                                new ObjectValueNode(new ObjectFieldNode("b", "abc"))
-                            }
-                        })
-                    .Build())
+                            "var": { "b": "abc" }
+                        }
+                        """)
+                    .Build(),
+                cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -335,8 +447,13 @@ public class OneOfIntegrationTests : TypeValidationTestBase
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
-            .ModifyOptions(o => o.EnableOneOf = true)
-            .ExecuteRequestAsync("{ example(input: { a: \"abc\" }) }")
+            .ExecuteRequestAsync(
+                """
+                {
+                    example(input: { a: "abc" })
+                }
+                """,
+                cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -347,11 +464,16 @@ public class OneOfIntegrationTests : TypeValidationTestBase
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
-            .ModifyOptions(o => o.EnableOneOf = true)
             .ExecuteRequestAsync(
                 OperationRequestBuilder.New()
-                    .SetDocument("query($b: Int!) { example(input: { b: $b }) }")
-                    .Build())
+                    .SetDocument(
+                        """
+                        query($b: Int!) {
+                            example(input: { b: $b })
+                        }
+                        """)
+                    .Build(),
+                cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -361,14 +483,22 @@ public class OneOfIntegrationTests : TypeValidationTestBase
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
-            .ModifyOptions(o => o.EnableOneOf = true)
             .ExecuteRequestAsync(
                 OperationRequestBuilder.New()
-                    .SetDocument("query($var: ExampleInput!) { example(input: $var) }")
+                    .SetDocument(
+                        """
+                        query($var: ExampleInput!) {
+                            example(input: $var)
+                        }
+                        """)
                     .SetVariableValues(
-                        new Dictionary<string, object?>
-                            { { "var", new ObjectValueNode(new ObjectFieldNode("a", "abc")) } })
-                    .Build())
+                        """
+                        {
+                            "var": { "a": "abc" }
+                        }
+                        """)
+                    .Build(),
+                cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -379,8 +509,13 @@ public class OneOfIntegrationTests : TypeValidationTestBase
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
-            .ModifyOptions(o => o.EnableOneOf = true)
-            .ExecuteRequestAsync("{ example(input: { a: \"abc\", b: null }) }")
+            .ExecuteRequestAsync(
+                """
+                {
+                    example(input: { a: "abc", b: null })
+                }
+                """,
+                cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -391,12 +526,22 @@ public class OneOfIntegrationTests : TypeValidationTestBase
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
-            .ModifyOptions(o => o.EnableOneOf = true)
             .ExecuteRequestAsync(
                 OperationRequestBuilder.New()
-                    .SetDocument("query($b: Int) { example(input: { b: $b }) }")
-                    .SetVariableValues(new Dictionary<string, object?> { { "b", null } })
-                    .Build())
+                    .SetDocument(
+                        """
+                        query($b: Int) {
+                            example(input: { b: $b })
+                        }
+                        """)
+                    .SetVariableValues(
+                        """
+                        {
+                            "b": null
+                        }
+                        """)
+                    .Build(),
+                cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -407,8 +552,13 @@ public class OneOfIntegrationTests : TypeValidationTestBase
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
-            .ModifyOptions(o => o.EnableOneOf = true)
-            .ExecuteRequestAsync("{ example(input: { b: 123, c: \"xyz\" }) }")
+            .ExecuteRequestAsync(
+                """
+                {
+                    example(input: { b: 123, c: "xyz" })
+                }
+                """,
+                cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -419,21 +569,22 @@ public class OneOfIntegrationTests : TypeValidationTestBase
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
-            .ModifyOptions(o => o.EnableOneOf = true)
             .ExecuteRequestAsync(
                 OperationRequestBuilder.New()
-                    .SetDocument("query($var: ExampleInput!) { example(input: $var) }")
+                    .SetDocument(
+                        """
+                        query($var: ExampleInput!) {
+                            example(input: $var)
+                        }
+                        """)
                     .SetVariableValues(
-                        new Dictionary<string, object?>
+                        """
                         {
-                            {
-                                "var",
-                                new ObjectValueNode(
-                                    new ObjectFieldNode("b", 123),
-                                    new ObjectFieldNode("c", "xyz"))
-                            }
-                        })
-                    .Build())
+                            "var": { "b": 123, "c": "xyz" }
+                        }
+                        """)
+                    .Build(),
+                cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -476,32 +627,35 @@ public class OneOfIntegrationTests : TypeValidationTestBase
     [Fact]
     public void OneOf_Input_Objects_must_have_nullable_fields_with_one_field_has_default()
         => ExpectError(
-            @"type Query {
+            """
+            type Query {
                 foo(f: FooInput): String
             }
 
             input FooInput @oneOf {
-                a: String = ""a""
+                a: String = "a"
                 b: Int
-            }");
+            }
+            """);
 
     [Fact]
     public void OneOf_Input_Objects_must_have_nullable_fields_with_two_fields_that_have_default()
         => ExpectError(
-            @"type Query {
+            """
+            type Query {
                 foo(f: FooInput): String
             }
 
             input FooInput @oneOf {
-                a: String = ""a""
+                a: String = "a"
                 b: Int = 1
-            }");
+            }
+            """);
 
     [Fact]
     public void OneOf_generic_code_first_schema()
         => SchemaBuilder.New()
             .AddQueryType<QueryType>()
-            .ModifyOptions(o => o.EnableOneOf = true)
             .Create()
             .ToString()
             .MatchSnapshot();
@@ -512,29 +666,27 @@ public class OneOfIntegrationTests : TypeValidationTestBase
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
-            .ModifyOptions(
-                o =>
-                {
-                    o.EnableOneOf = true;
-                    o.StrictValidation = true;
-                })
+            .ModifyOptions(o => o.StrictValidation = true)
             .ExecuteRequestAsync(
-                @"{
-                    oneOf_input: __type(name: ""ExampleInput"") {
+                """
+                {
+                    oneOf_input: __type(name: "ExampleInput") {
                         # should be true
                         isOneOf
                     }
 
-                    input: __type(name: ""StandardInput"") {
+                    input: __type(name: "StandardInput") {
                         # should be false
                         isOneOf
                     }
 
-                    object: __type(name: ""Query"") {
+                    object: __type(name: "Query") {
                         # should be null
                         isOneOf
                     }
-                }")
+                }
+                """,
+                cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -551,8 +703,7 @@ public class OneOfIntegrationTests : TypeValidationTestBase
                 }
                 """)
             .AddResolver("Query", "foo", "abc")
-            .ModifyOptions(o => o.EnableOneOf = true)
-            .BuildSchemaAsync()
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -570,8 +721,7 @@ public class OneOfIntegrationTests : TypeValidationTestBase
                 }
                 """)
             .AddResolver("Query", "foo", "abc")
-            .ModifyOptions(o => o.EnableOneOf = true)
-            .BuildSchemaAsync()
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 

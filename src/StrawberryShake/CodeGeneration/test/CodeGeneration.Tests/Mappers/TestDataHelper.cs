@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution;
 using HotChocolate.Language;
@@ -5,7 +6,7 @@ using HotChocolate.StarWars;
 using StrawberryShake.CodeGeneration.Analyzers;
 using StrawberryShake.CodeGeneration.Analyzers.Models;
 using StrawberryShake.CodeGeneration.Utilities;
-using static ChilliCream.Testing.FileResource;
+using static CookieCrumble.FileResource;
 
 namespace StrawberryShake.CodeGeneration.Mappers;
 
@@ -30,7 +31,7 @@ public static class TestDataHelper
             .Analyze();
     }
 
-    public static async Task<ClientModel> CreateClientModelAsync(string query)
+    public static async Task<ClientModel> CreateClientModelAsync([StringSyntax("graphql")] string query)
     {
         var schema =
             await new ServiceCollection()

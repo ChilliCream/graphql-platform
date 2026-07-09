@@ -8,8 +8,6 @@ using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Utilities;
 using Microsoft.Extensions.DependencyInjection;
 
-#nullable enable
-
 namespace HotChocolate.Types.Relay;
 
 public class IdAttributeTests
@@ -85,7 +83,8 @@ public class IdAttributeTests
                                 { "guidId", guidId },
                                 { "customId", customId }
                             })
-                        .Build());
+                        .Build(),
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -108,7 +107,8 @@ public class IdAttributeTests
                                 interceptedId(id: 1)
                                 interceptedIds(ids: [1, 2])
                             }")
-                        .Build());
+                        .Build(),
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -158,7 +158,8 @@ public class IdAttributeTests
                                 { "someId", someId },
                                 { "someIntId", someIntId }
                             })
-                        .Build());
+                        .Build(),
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         new
@@ -218,7 +219,8 @@ public class IdAttributeTests
                                 { "someIntId", someIntId },
                                 { "someNullableIntId", null }
                             })
-                        .Build());
+                        .Build(),
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         new
@@ -238,7 +240,7 @@ public class IdAttributeTests
             .AddQueryType<Query>()
             .AddType<FooPayload>()
             .AddGlobalObjectIdentification(false)
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var someId = Convert.ToBase64String("Some:1"u8);
         var someIntId = Convert.ToBase64String("Some:1"u8);
@@ -267,7 +269,8 @@ public class IdAttributeTests
                             {"someId", someId },
                             {"someIntId", someIntId}
                         })
-                    .Build());
+                    .Build(),
+                TestContext.Current.CancellationToken);
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -300,7 +303,8 @@ public class IdAttributeTests
                             }
                             """)
                         .SetVariableValues(new Dictionary<string, object?> { { "someId", someId } })
-                        .Build());
+                        .Build(),
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         new
@@ -337,7 +341,8 @@ public class IdAttributeTests
                             }
                             """)
                         .SetVariableValues(new Dictionary<string, object?> { { "someId", someId } })
-                        .Build());
+                        .Build(),
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         new
@@ -379,7 +384,8 @@ public class IdAttributeTests
                             {"someId", legacySomeStringId},
                             {"someIntId", legacySomeIntId}
                         })
-                        .Build());
+                        .Build(),
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         new
@@ -419,7 +425,8 @@ public class IdAttributeTests
                         {
                             {"customId", legacyStronglyTypedId}
                         })
-                        .Build());
+                        .Build(),
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         new
@@ -438,7 +445,7 @@ public class IdAttributeTests
                 .AddQueryType<Query>()
                 .AddType<FooPayload>()
                 .AddGlobalObjectIdentification(false)
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         schema.ToString().MatchSnapshot();
     }
@@ -457,12 +464,147 @@ public class IdAttributeTests
             })
             .AddGlobalObjectIdentification(false)
             .TryAddTypeInterceptor(inspector)
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         Assert.Equal(1, inspector.Count);
     }
 
     [SuppressMessage("Performance", "CA1822:Mark members as static")]
+    [Fact]
+    public async Task Bare_Id_On_Properties_With_Different_Runtime_Types()
+    {
+        // arrange & act
+        var result =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType<ThingQuery>()
+                .AddGlobalObjectIdentification(false)
+                .ExecuteRequestAsync(
+                    OperationRequestBuilder.New()
+                        .SetDocument(
+                            """
+                            {
+                                thing {
+                                    id
+                                    anotherTypeId
+                                }
+                            }
+                            """)
+                        .Build(),
+                    cancellationToken: TestContext.Current.CancellationToken);
+
+        // assert
+        result.ToJson().MatchInlineSnapshot(
+            """
+            {
+              "errors": [
+                {
+                  "message": "The value could not be formatted into an ID for the type `Thing`.",
+                  "path": [
+                    "thing",
+                    "anotherTypeId"
+                  ],
+                  "extensions": {
+                    "originalValue": "26a2dc8f-4dab-408c-88c6-523a0a89a2b5"
+                  }
+                }
+              ],
+              "data": null
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task Invalid_Id_Does_Not_Erase_Sibling_Data()
+    {
+        // arrange & act
+        var result =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType<ProbeQuery>()
+                .AddGlobalObjectIdentification(false)
+                .ExecuteRequestAsync(
+                    """
+                    {
+                      byId(id: "invalid")
+                      unrelated
+                    }
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
+
+        // assert
+        result.ToJson().MatchInlineSnapshot(
+            """
+            {
+              "errors": [
+                {
+                  "message": "The node ID string has an invalid format.",
+                  "path": [
+                    "byId"
+                  ],
+                  "extensions": {
+                    "originalValue": "invalid"
+                  }
+                }
+              ],
+              "data": {
+                "byId": null,
+                "unrelated": "value"
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task Invalid_Id_On_Skipped_Field_Does_Not_Error()
+    {
+        // arrange & act
+        var result =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType<ProbeQuery>()
+                .AddGlobalObjectIdentification(false)
+                .ExecuteRequestAsync(
+                    """
+                    {
+                      byId(id: "invalid") @skip(if: true)
+                      unrelated
+                    }
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
+
+        // assert
+        result.ToJson().MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "unrelated": "value"
+              }
+            }
+            """);
+    }
+
+    public class ProbeQuery
+    {
+        public int? GetById([ID] int id) => id;
+
+        public string GetUnrelated() => "value";
+    }
+
+    public class ThingQuery
+    {
+        public Thing GetThing() => new();
+    }
+
+    public class Thing
+    {
+        [ID]
+        public int Id { get; set; } = 1;
+
+        [ID]
+        public Guid AnotherTypeId { get; set; } = new("26a2dc8f-4dab-408c-88c6-523a0a89a2b5");
+    }
+
     public class Query
     {
         public int IntId([ID] int id) => id;
@@ -620,7 +762,7 @@ public class IdAttributeTests
     {
         [ID] string SomeId { get; }
 
-        [ID] public string? SomeNullableId { get; }
+        [ID] string? SomeNullableId { get; }
 
         [ID] IReadOnlyList<int> SomeIds { get; }
 
@@ -683,14 +825,14 @@ public class IdAttributeTests
         protected internal override void TryConfigure(
             IDescriptorContext context,
             IDescriptor descriptor,
-            ICustomAttributeProvider element)
+            ICustomAttributeProvider? attributeProvider)
         {
             switch (descriptor)
             {
-                case IInputFieldDescriptor dc when element is PropertyInfo:
+                case IInputFieldDescriptor dc when attributeProvider is PropertyInfo:
                     dc.Extend().OnBeforeCompletion((_, d) => AddInterceptingSerializer(d));
                     break;
-                case IArgumentDescriptor dc when element is ParameterInfo:
+                case IArgumentDescriptor dc when attributeProvider is ParameterInfo:
                     dc.Extend().OnBeforeCompletion((_, d) => AddInterceptingSerializer(d));
                     break;
             }

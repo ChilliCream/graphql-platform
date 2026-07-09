@@ -26,12 +26,24 @@ public sealed class DataLoaderDefaultsInfo(
     public override bool Equals(SyntaxInfo? other)
         => other is DataLoaderDefaultsInfo info && Equals(info);
 
-    private bool Equals(DataLoaderDefaultsInfo other)
-        => Scoped.Equals(other.Scoped)
+    private bool Equals(DataLoaderDefaultsInfo? other)
+    {
+        if (other is null)
+        {
+            return false;
+        }
+
+        if (ReferenceEquals(this, other))
+        {
+            return true;
+        }
+
+        return Scoped.Equals(other.Scoped)
             && IsPublic.Equals(other.IsPublic)
             && IsInterfacePublic.Equals(other.IsInterfacePublic)
             && RegisterServices.Equals(other.RegisterServices)
             && GenerateInterfaces.Equals(other.GenerateInterfaces);
+    }
 
     public override int GetHashCode()
         => HashCode.Combine(Scoped, IsPublic, IsInterfacePublic, RegisterServices, GenerateInterfaces);

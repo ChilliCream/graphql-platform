@@ -46,7 +46,7 @@ public class ExecutableDefinitionsRuleTests
     }
 
     [Fact]
-    public void GoodExecuableDefinitionsWithOnlyOperation()
+    public void GoodExecutableDefinitionsWithOnlyOperation()
     {
         ExpectValid(
             """

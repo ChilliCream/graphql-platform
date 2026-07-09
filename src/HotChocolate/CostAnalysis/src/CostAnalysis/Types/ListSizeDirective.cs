@@ -86,5 +86,5 @@ public sealed class ListSizeDirective
     /// <seealso href="https://ibm.github.io/graphql-specs/cost-spec.html#sec-requireOneSlicingArgument">
     /// Specification URL
     /// </seealso>
-    public bool RequireOneSlicingArgument { get; }
+    public bool? RequireOneSlicingArgument { get; }
 }

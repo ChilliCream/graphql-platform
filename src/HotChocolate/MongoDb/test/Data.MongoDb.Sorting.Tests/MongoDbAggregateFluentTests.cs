@@ -41,19 +41,21 @@ public class MongoDbAggregateFluentTests(MongoResource resource) : IClassFixture
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument("{ root(order: { bar: ASC}){ bar}}")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument("{ root(order: { bar: DESC}){ bar}}")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
             .Create()
             .AddResult(res1, "ASC")
             .AddResult(res2, "DESC")
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -79,19 +81,21 @@ public class MongoDbAggregateFluentTests(MongoResource resource) : IClassFixture
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument("{ root(order: { baz: ASC}){ baz}}")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument("{ root(order: { baz: DESC}){ baz}}")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
             .Create()
             .AddResult(res1, "ASC")
             .AddResult(res2, "DESC")
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     public class Foo
@@ -142,11 +146,8 @@ public class MongoDbAggregateFluentTests(MongoResource resource) : IClassFixture
                     await next(context);
                     if (context.ContextData.TryGetValue("query", out var queryString))
                     {
-                        context.Result =
-                            OperationResultBuilder
-                                .FromResult(context.Result!.ExpectOperationResult())
-                                .SetContextData("query", queryString)
-                                .Build();
+                        var result = context.Result.ExpectOperationResult();
+                        result.ContextData = result.ContextData.SetItem("query", queryString);
                     }
                 })
             .UseDefaultPipeline()

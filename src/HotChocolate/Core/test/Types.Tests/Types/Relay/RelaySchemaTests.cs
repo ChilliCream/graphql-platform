@@ -14,7 +14,7 @@ public class RelaySchemaTests
             .AddGraphQL()
             .AddQueryType<QueryType>()
             .AddGlobalObjectIdentification()
-            .BuildSchemaAsync()
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -25,7 +25,7 @@ public class RelaySchemaTests
             .AddGraphQL()
             .AddQueryType<QueryType>()
             .AddGlobalObjectIdentification(o => o.AddNodesField = false)
-            .BuildSchemaAsync()
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -36,7 +36,7 @@ public class RelaySchemaTests
             .AddGraphQL()
             .AddQueryType<QueryType>()
             .AddGlobalObjectIdentification(o => o.MarkNodeFieldAsLookup = true)
-            .BuildSchemaAsync()
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -47,7 +47,7 @@ public class RelaySchemaTests
             .AddGraphQL()
             .AddQueryType<QueryType>()
             .AddGlobalObjectIdentification(o => o.MarkNodeFieldAsLookup = false)
-            .BuildSchemaAsync()
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -59,7 +59,7 @@ public class RelaySchemaTests
             .AddQueryType<QueryType>()
             .AddMutationType<Mutation>()
             .AddQueryFieldToMutationPayloads()
-            .BuildSchemaAsync()
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -72,7 +72,7 @@ public class RelaySchemaTests
             .AddMutationType(d => d.Name("Mutation"))
             .AddTypeExtension<MutationExtension>()
             .AddQueryFieldToMutationPayloads()
-            .BuildSchemaAsync()
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -84,7 +84,7 @@ public class RelaySchemaTests
             .AddQueryType<QueryType>()
             .AddMutationType<Mutation>()
             .AddQueryFieldToMutationPayloads(o => o.QueryFieldName = "rootQuery")
-            .BuildSchemaAsync()
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -97,7 +97,7 @@ public class RelaySchemaTests
             .AddMutationType<Mutation2>()
             .AddQueryFieldToMutationPayloads(
                 o => o.MutationPayloadPredicate = type => type.Name.EndsWith("Result"))
-            .BuildSchemaAsync()
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -110,7 +110,9 @@ public class RelaySchemaTests
             .AddMutationType<Mutation>()
             .AddQueryFieldToMutationPayloads()
             .AddGlobalObjectIdentification()
-            .ExecuteRequestAsync("mutation { foo { query { some { id } } } }")
+            .ExecuteRequestAsync(
+                "mutation { foo { query { some { id } } } }",
+                cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -123,7 +125,9 @@ public class RelaySchemaTests
             .AddMutationType<Mutation>()
             .AddQueryFieldToMutationPayloads()
             .AddGlobalObjectIdentification()
-            .ExecuteRequestAsync("mutation { foo { query { some { id } } } }")
+            .ExecuteRequestAsync(
+                "mutation { foo { query { some { id } } } }",
+                cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -137,15 +141,17 @@ public class RelaySchemaTests
                 .Type<UserType>()
                 .Resolve(_ => new User { Name = "TEST" }))
             .AddGlobalObjectIdentification()
-            .ExecuteRequestAsync("query { user { id name } } ")
+            .ExecuteRequestAsync(
+                "query { user { id name } } ",
+                cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
     public class User
     {
-        public string Id { get; set; }
+        public string? Id { get; set; }
 
-        public string Name { get; set; }
+        public required string Name { get; set; }
     }
 
     public class UserType : ObjectType<User>
@@ -158,9 +164,9 @@ public class RelaySchemaTests
                 .ResolveNode(ResolveNode);
         }
 
-        private Task<User> ResolveNode(IResolverContext context, string id)
+        private Task<User?> ResolveNode(IResolverContext context, string? id)
         {
-            return Task.FromResult(new User { Name = "TEST" });
+            return Task.FromResult<User?>(new User { Name = "TEST" });
         }
     }
 
@@ -182,7 +188,7 @@ public class RelaySchemaTests
             descriptor
                 .Name("Some")
                 .ImplementsNode()
-                .ResolveNode<object>((_, _) => Task.FromResult(new object()));
+                .ResolveNode<object?>((_, _) => Task.FromResult<object?>(new object()));
 
             descriptor
                 .Field("id")
@@ -226,7 +232,7 @@ public class RelaySchemaTests
 
     public class BazPayload
     {
-        public string Some { get; set; }
+        public string? Some { get; set; }
     }
 
     public class BarResult;

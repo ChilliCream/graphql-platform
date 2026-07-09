@@ -62,7 +62,7 @@ public static class TestServerExtensions
             {
                 await using (section.Body)
                 {
-                    using var mem = new MemoryStream();
+                    await using var mem = new MemoryStream();
                     await section.Body.CopyToAsync(mem);
 
                     var item =
@@ -114,7 +114,7 @@ public static class TestServerExtensions
                 {
                     await using (section.Body)
                     {
-                        using var mem = new MemoryStream();
+                        await using var mem = new MemoryStream();
                         await section.Body.CopyToAsync(mem);
 
                         var item =

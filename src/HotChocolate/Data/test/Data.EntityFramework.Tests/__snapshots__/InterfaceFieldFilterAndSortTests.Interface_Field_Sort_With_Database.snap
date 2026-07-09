@@ -1,0 +1,18 @@
+{
+  "data": {
+    "animals": [
+      {
+        "name": "Dog Charlie"
+      },
+      {
+        "name": "Dog Bob"
+      },
+      {
+        "name": "Cat Daisy"
+      },
+      {
+        "name": "Cat Alice"
+      }
+    ]
+  }
+}

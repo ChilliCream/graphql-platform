@@ -73,8 +73,8 @@ public class PersistedOperationTests(TestServerFactory serverFactory)
 
         var server = CreateStarWarsServer(
             configureServices: s => s
-                .AddSha1DocumentHashProvider(HashFormat.Hex)
                 .AddGraphQL("StarWars")
+                .AddSha1DocumentHashProvider(HashFormat.Hex)
                 .ConfigureSchemaServices(c => c.AddSingleton<IOperationDocumentStorage>(storage))
                 .UsePersistedOperationPipeline());
 
@@ -100,8 +100,8 @@ public class PersistedOperationTests(TestServerFactory serverFactory)
 
         var server = CreateStarWarsServer(
             configureServices: s => s
-                .AddSha256DocumentHashProvider(HashFormat.Hex)
                 .AddGraphQL("StarWars")
+                .AddSha256DocumentHashProvider(HashFormat.Hex)
                 .ConfigureSchemaServices(c => c.AddSingleton<IOperationDocumentStorage>(storage))
                 .UsePersistedOperationPipeline());
 
@@ -127,8 +127,8 @@ public class PersistedOperationTests(TestServerFactory serverFactory)
 
         var server = CreateStarWarsServer(
             configureServices: s => s
-                .AddSha256DocumentHashProvider(HashFormat.Hex)
                 .AddGraphQL("StarWars")
+                .AddSha256DocumentHashProvider(HashFormat.Hex)
                 .ConfigureSchemaServices(c => c.AddSingleton<IOperationDocumentStorage>(storage))
                 .UsePersistedOperationPipeline());
 
@@ -211,8 +211,8 @@ public class PersistedOperationTests(TestServerFactory serverFactory)
 
         var server = CreateStarWarsServer(
             configureServices: s => s
-                .AddSha1DocumentHashProvider(HashFormat.Hex)
                 .AddGraphQL("StarWars")
+                .AddSha1DocumentHashProvider(HashFormat.Hex)
                 .ConfigureSchemaServices(c => c.AddSingleton<IOperationDocumentStorage>(storage))
                 .UsePersistedOperationPipeline());
 
@@ -238,8 +238,8 @@ public class PersistedOperationTests(TestServerFactory serverFactory)
 
         var server = CreateStarWarsServer(
             configureServices: s => s
-                .AddSha256DocumentHashProvider(HashFormat.Hex)
                 .AddGraphQL("StarWars")
+                .AddSha256DocumentHashProvider(HashFormat.Hex)
                 .ConfigureSchemaServices(c => c.AddSingleton<IOperationDocumentStorage>(storage))
                 .UsePersistedOperationPipeline());
 
@@ -401,7 +401,11 @@ public class PersistedOperationTests(TestServerFactory serverFactory)
         var server = CreateStarWarsServer(
             configureServices: s => s
                 .AddGraphQL("StarWars")
-                .ModifyRequestOptions(o => o.PersistedOperations.OnlyAllowPersistedDocuments = true)
+                .ModifyRequestOptions(o =>
+                {
+                    o.PersistedOperations.OnlyAllowPersistedDocuments = true;
+                    o.PersistedOperations.AllowDocumentBody = true;
+                })
                 .ConfigureSchemaServices(c => c.AddSingleton<IOperationDocumentStorage>(storage))
                 .UsePersistedOperationPipeline()
                 .AddHttpRequestInterceptor<AllowNonPersistedOperationInterceptor>());
@@ -458,7 +462,7 @@ public class PersistedOperationTests(TestServerFactory serverFactory)
             .Add(result1ShouldBeOk, "Result 1 - Should be OK")
             .Add(result2ShouldBeOk, "Result 2 - Should be OK")
             .Add(result3ShouldFail, "Result 3 - Should fail")
-            .MatchMarkdownAsync();
+            .MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     private ClientQueryRequest CreateApolloStyleRequest(string hashName, string key)

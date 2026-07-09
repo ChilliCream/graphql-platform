@@ -1,6 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Language;
 using HotChocolate.Language.Utilities;
+using HotChocolate.Serialization;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Types.Relay;
@@ -20,7 +21,9 @@ public partial class Schema
     /// <summary>
     /// Gets the GraphQL object type that represents the query root.
     /// </summary>
+#pragma warning disable IDE0370 // Remove unnecessary suppression
     public ObjectType QueryType { get; private set; } = null!;
+#pragma warning restore IDE0370 // Remove unnecessary suppression
 
     IObjectTypeDefinition ISchemaDefinition.QueryType => QueryType;
 
@@ -41,14 +44,18 @@ public partial class Schema
     /// <summary>
     /// Gets all the schema types.
     /// </summary>
+#pragma warning disable IDE0370 // Remove unnecessary suppression
     public TypeDefinitionCollection Types { get; private set; } = null!;
+#pragma warning restore IDE0370 // Remove unnecessary suppression
 
     IReadOnlyTypeDefinitionCollection ISchemaDefinition.Types => Types;
 
     /// <summary>
     /// Gets all the directives that are supported by this schema.
     /// </summary>
+#pragma warning disable IDE0370 // Remove unnecessary suppression
     public DirectiveTypeCollection DirectiveTypes { get; private set; } = null!;
+#pragma warning restore IDE0370 // Remove unnecessary suppression
 
     IReadOnlyDirectiveDefinitionCollection ISchemaDefinition.DirectiveDefinitions
         => DirectiveTypes.AsReadOnlyDirectiveCollection();
@@ -56,8 +63,9 @@ public partial class Schema
     /// <summary>
     /// Gets the schema directives.
     /// </summary>
-    /// <value></value>
+#pragma warning disable IDE0370 // Remove unnecessary suppression
     public DirectiveCollection Directives { get; private set; } = null!;
+#pragma warning restore IDE0370 // Remove unnecessary suppression
 
     IReadOnlyDirectiveCollection IDirectivesProvider.Directives
         => Directives.AsReadOnlyDirectiveCollection();
@@ -65,7 +73,9 @@ public partial class Schema
     /// <summary>
     /// Gets the global schema services.
     /// </summary>
+#pragma warning disable IDE0370 // Remove unnecessary suppression
     public IServiceProvider Services { get; internal set; } = null!;
+#pragma warning restore IDE0370 // Remove unnecessary suppression
 
     /// <summary>
     /// Specifies the time the schema was created.
@@ -193,7 +203,7 @@ public partial class Schema
         ArgumentException.ThrowIfNullOrEmpty(typeName);
 
         if (Types.TryGetType(typeName, out var type)
-            && type is IHasRuntimeType ct
+            && type is IRuntimeTypeProvider ct
             && ct.RuntimeType != typeof(object))
         {
             runtimeType = ct.RuntimeType;
@@ -219,22 +229,11 @@ public partial class Schema
         return null;
     }
 
-    /// <summary>
-    /// Creates a schema document from the current schema.
-    /// </summary>
-    public DocumentNode ToSyntaxNode(bool includeSpecScalars = false)
-    {
-        _formatter ??= new AggregateSchemaDocumentFormatter(
-            Services.GetService<IEnumerable<ISchemaDocumentFormatter>>());
-        var document = SchemaPrinter.PrintSchema(this, includeSpecScalars);
-        return _formatter.Format(document);
-    }
+    public override string ToString() => ToSyntaxNode().Print();
+
+    public DocumentNode ToSyntaxNode()
+        => SchemaFormatter.FormatAsDocument(this);
 
     ISyntaxNode ISyntaxNodeProvider.ToSyntaxNode()
         => ToSyntaxNode();
-
-    /// <summary>
-    /// Returns the schema SDL representation.
-    /// </summary>
-    public override string ToString() => ToSyntaxNode().Print();
 }

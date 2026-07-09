@@ -1,7 +1,6 @@
 using System.Text;
 using HotChocolate.Types.Analyzers.Helpers;
 using HotChocolate.Types.Analyzers.Models;
-using Microsoft.CodeAnalysis.Text;
 
 namespace HotChocolate.Types.Analyzers.FileBuilders;
 
@@ -83,6 +82,7 @@ public sealed class OperationFieldFileBuilder : IDisposable
         _writer.WriteIndentedLine("descriptor.Name({0});", GetOperationConstant(type));
 
         var typeIndex = 0;
+        var operationIndex = 0;
         foreach (var group in operations.GroupBy(t => t.TypeName))
         {
             _writer.WriteLine();
@@ -92,10 +92,61 @@ public sealed class OperationFieldFileBuilder : IDisposable
 
             foreach (var operation in group)
             {
+                var memberName = $"member{++operationIndex}";
+                var fieldName = $"field{operationIndex}";
+                var methodName = $"method{operationIndex}";
+                var parametersName = $"parameters{operationIndex}";
+
                 _writer.WriteIndentedLine(
-                    "descriptor.Field({0}.GetMember(\"{1}\", bindingFlags)[0]);",
+                    "var {0} = {1}.GetMember(\"{2}\", bindingFlags)[0];",
+                    memberName,
                     typeName,
                     operation.MethodName);
+
+                _writer.WriteIndentedLine(
+                    "var {0} = descriptor.Field({1});",
+                    fieldName,
+                    memberName);
+
+                _writer.WriteIndentedLine(
+                    "if ({0}.IsDefined(typeof(global::HotChocolate.Types.Relay.NodeResolverAttribute), true)",
+                    memberName);
+                using (_writer.IncreaseIndent())
+                {
+                    _writer.WriteIndentedLine(
+                        "&& {0} is global::System.Reflection.MethodInfo {1})",
+                        memberName,
+                        methodName);
+                }
+
+                _writer.WriteIndentedLine("{");
+                using (_writer.IncreaseIndent())
+                {
+                    _writer.WriteIndentedLine(
+                        "var {0} = {1}.GetParameters();",
+                        parametersName,
+                        methodName);
+                    _writer.WriteIndentedLine(
+                        "if ({0}.Length > 0)",
+                        parametersName);
+                    _writer.WriteIndentedLine("{");
+                    using (_writer.IncreaseIndent())
+                    {
+                        _writer.WriteIndentedLine(
+                            "{0}.Argument({1}[0].Name!, static argument =>",
+                            fieldName,
+                            parametersName);
+                        using (_writer.IncreaseIndent())
+                        {
+                            _writer.WriteIndentedLine(
+                                "global::HotChocolate.Types.RelayIdFieldExtensions.ID(argument));");
+                        }
+                    }
+
+                    _writer.WriteIndentedLine("}");
+                }
+
+                _writer.WriteIndentedLine("}");
             }
         }
 
@@ -114,9 +165,6 @@ public sealed class OperationFieldFileBuilder : IDisposable
 
     public override string ToString()
         => _sb.ToString();
-
-    public SourceText ToSourceText()
-        => SourceText.From(ToString(), Encoding.UTF8);
 
     public void Dispose()
     {

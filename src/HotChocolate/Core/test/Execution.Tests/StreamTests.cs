@@ -5,14 +5,14 @@ public class StreamTests
     /// <summary>
     /// This test shows how IAsyncEnumerable is translated to SDL
     /// </summary>
-    [LocalFact]
+    [Fact]
     public async Task Schema()
     {
         var executor = await DeferAndStreamTestSchema.CreateAsync();
         executor.Schema.MatchSnapshot();
     }
 
-    [LocalFact]
+    [Fact]
     public async Task Stream()
     {
         // arrange
@@ -27,12 +27,13 @@ public class StreamTests
                 persons @stream {
                     id
                 }
-            }");
+            }",
+            TestContext.Current.CancellationToken);
 
         Assert.IsType<ResponseStream>(result).MatchSnapshot();
     }
 
-    [LocalFact]
+    [Fact]
     public async Task Stream_Nested_Defer()
     {
         // arrange
@@ -51,12 +52,13 @@ public class StreamTests
                         }
                     }
                 }
-            }");
+            }",
+            TestContext.Current.CancellationToken);
 
         Assert.IsType<ResponseStream>(result).MatchSnapshot();
     }
 
-    [LocalFact]
+    [Fact]
     public async Task Stream_InitialCount_Set_To_1()
     {
         // arrange
@@ -71,12 +73,34 @@ public class StreamTests
                 persons @stream(initialCount: 1) {
                     id
                 }
-            }");
+            }",
+            TestContext.Current.CancellationToken);
 
         Assert.IsType<ResponseStream>(result).MatchSnapshot();
     }
 
-    [LocalFact]
+    [Fact]
+    public async Task Stream_InitialCount_Exceeds_Total_Count()
+    {
+        // arrange
+        var executor = await DeferAndStreamTestSchema.CreateAsync();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            @"{
+                ... @defer {
+                    wait(m: 300)
+                }
+                persons @stream(initialCount: 7) {
+                    id
+                }
+            }",
+            TestContext.Current.CancellationToken);
+
+        Assert.IsType<ResponseStream>(result).MatchSnapshot();
+    }
+
+    [Fact]
     public async Task Stream_Label_Set_To_abc()
     {
         // arrange
@@ -93,12 +117,13 @@ public class StreamTests
                     id
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         Assert.IsType<ResponseStream>(result).MatchSnapshot();
     }
 
-    [LocalFact]
+    [Fact]
     public async Task Stream_If_Set_To_false()
     {
         // arrange
@@ -112,12 +137,13 @@ public class StreamTests
                     id
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         Assert.IsType<OperationResult>(result).MatchSnapshot();
     }
 
-    [LocalFact]
+    [Fact]
     public async Task Stream_If_Variable_Set_To_false()
     {
         // arrange
@@ -136,12 +162,13 @@ public class StreamTests
                     }
                     """)
                 .SetVariableValues(new Dictionary<string, object?> { { "stream", false } })
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         Assert.IsType<OperationResult>(result).MatchSnapshot();
     }
 
-    [LocalFact]
+    [Fact]
     public async Task AsyncEnumerable_Result()
     {
         // arrange
@@ -159,7 +186,8 @@ public class StreamTests
                         }
                     }
                     """)
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         Assert.IsType<OperationResult>(result).MatchSnapshot();
     }

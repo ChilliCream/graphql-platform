@@ -45,6 +45,22 @@ internal static class ErrorHelper
             .SetExtension(nameof(field), field)
             .Build();
 
+    public static IError MaxAllowedFilterOperationsExceeded(
+        IValueNode node,
+        int filterOperations,
+        int maxAllowedFilterOperations) =>
+        ErrorBuilder.New()
+            .SetMessage(
+                "The filter argument contains {0} operations, which exceeds the maximum allowed "
+                + "number of {1}.",
+                filterOperations,
+                maxAllowedFilterOperations)
+            .AddLocation(node)
+            .SetCode(ErrorCodes.Data.MaxFilterOperationsExceeded)
+            .SetExtension(nameof(filterOperations), filterOperations)
+            .SetExtension(nameof(maxAllowedFilterOperations), maxAllowedFilterOperations)
+            .Build();
+
     public static IError CreateNonNullError<T>(
         ISortField field,
         IValueNode value,
@@ -66,14 +82,13 @@ internal static class ErrorHelper
 
     public static ISchemaError ProjectionConvention_UnableToCreateFieldHandler(
         IProjectionProvider convention,
-        Type fieldHandler) =>
+        Exception exception) =>
         SchemaErrorBuilder.New()
             .SetMessage(
-                DataResources.FilterProvider_UnableToCreateFieldHandler,
-                fieldHandler.FullName ?? fieldHandler.Name,
+                DataResources.ProjectionProvider_UnableToCreateFieldHandler,
                 convention.GetType().FullName ?? convention.GetType().Name)
             .SetExtension(nameof(convention), convention)
-            .SetExtension(nameof(fieldHandler), fieldHandler)
+            .SetException(exception)
             .Build();
 
     public static IError ProjectionProvider_CouldNotProjectFiltering(IValueNode node) =>

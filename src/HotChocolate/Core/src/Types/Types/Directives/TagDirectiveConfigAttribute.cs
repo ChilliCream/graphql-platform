@@ -7,7 +7,7 @@ internal sealed class TagDirectiveConfigAttribute : DirectiveTypeDescriptorAttri
     protected override void OnConfigure(
         IDescriptorContext context,
         IDirectiveTypeDescriptor descriptor,
-        Type type)
+        Type? type)
     {
         if (context.Features.TryGet<TagOptions>(out var options)
             && options.Mode == TagMode.ApolloFederation)

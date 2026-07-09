@@ -3,8 +3,6 @@ using HotChocolate.Tests;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 
-#nullable enable
-
 namespace HotChocolate;
 
 public class IgnoreTests
@@ -15,7 +13,7 @@ public class IgnoreTests
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
-            .BuildSchemaAsync()
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -25,7 +23,7 @@ public class IgnoreTests
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<QueryType>()
-            .BuildSchemaAsync()
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 

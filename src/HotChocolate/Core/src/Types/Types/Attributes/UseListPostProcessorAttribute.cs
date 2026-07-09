@@ -10,6 +10,6 @@ public sealed class UseListPostProcessorAttribute<TElement>
     protected override void OnConfigure(
         IDescriptorContext context,
         IObjectFieldDescriptor descriptor,
-        MemberInfo member)
+        MemberInfo? member)
         => descriptor.ExtendWith(c => c.Configuration.ResultPostProcessor = ListPostProcessor<TElement>.Default);
 }

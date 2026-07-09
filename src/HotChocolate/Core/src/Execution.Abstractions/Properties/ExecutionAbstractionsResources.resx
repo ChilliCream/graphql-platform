@@ -48,4 +48,16 @@
   <data name="SubscriptionResult_ReadOnlyOnce" xml:space="preserve">
     <value>You can only read a response stream once.</value>
   </data>
+  <data name="OperationRequest_Variables_Must_Be_Object" xml:space="preserve">
+    <value>Variables must be a JSON Object.</value>
+  </data>
+  <data name="OperationRequest_Extensions_Must_Be_Object" xml:space="preserve">
+    <value>Extensions must be a JSON Object.</value>
+  </data>
+  <data name="VariableBatchRequest_Variables_Must_Be_Array" xml:space="preserve">
+    <value>VariableValues must be a JSON array or objects.</value>
+  </data>
+  <data name="OperationRequestBuilder_SetVariableValues_JSONDocumentMustBeObjectOrArray" xml:space="preserve">
+    <value>The JSON document must be either null or an array of variable sets.</value>
+  </data>
 </root>

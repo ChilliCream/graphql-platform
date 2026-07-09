@@ -7,8 +7,6 @@ using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 
-#nullable enable
-
 namespace HotChocolate;
 
 public class ResolverContextStateExtensionTests
@@ -33,7 +31,8 @@ public class ResolverContextStateExtensionTests
                 OperationRequestBuilder.New()
                     .SetDocument("{ foo }")
                     .SetUser(user)
-                    .Build())
+                    .Build(),
+                cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 

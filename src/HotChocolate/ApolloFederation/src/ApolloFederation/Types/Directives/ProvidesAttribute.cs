@@ -49,11 +49,11 @@ public sealed class ProvidesAttribute(string fieldSet) : ObjectFieldDescriptorAt
     protected override void OnConfigure(
         IDescriptorContext context,
         IObjectFieldDescriptor descriptor,
-        MemberInfo member)
+        MemberInfo? member)
     {
         if (FieldSet is null)
         {
-            throw Provides_FieldSet_CannotBeEmpty(member);
+            throw Provides_FieldSet_CannotBeEmpty(descriptor.Extend().Configuration.Name);
         }
 
         descriptor.Provides(FieldSet);

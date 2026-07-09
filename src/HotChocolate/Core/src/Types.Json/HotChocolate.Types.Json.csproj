@@ -9,11 +9,11 @@
     <AssemblyName>HotChocolate.Types.Json</AssemblyName>
     <RootNamespace>HotChocolate.Types</RootNamespace>
     <Description>This package provides extensions to deal with Json data.</Description>
+    <IsAotCompatible>true</IsAotCompatible>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Types\HotChocolate.Types.csproj" />
-    <ProjectReference Include="..\Execution\HotChocolate.Execution.csproj" />
   </ItemGroup>
 
 </Project>

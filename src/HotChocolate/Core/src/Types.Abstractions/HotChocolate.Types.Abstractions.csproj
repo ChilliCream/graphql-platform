@@ -7,8 +7,13 @@
     <Description>Contains the Hot Chocolate GraphQL type system interfaces.</Description>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <IsAotCompatible>true</IsAotCompatible>
+  </PropertyGroup>
+
   <ItemGroup>
     <InternalsVisibleTo Include="HotChocolate.Types.Tests" />
+    <InternalsVisibleTo Include="HotChocolate.Types.Abstractions.Tests" />
   </ItemGroup>
 
   <ItemGroup>

@@ -7,9 +7,14 @@ namespace HotChocolate.Types.Descriptors.Configurations;
 /// <summary>
 /// Defines the properties of a GraphQL directive.
 /// </summary>
-public class DirectiveTypeConfiguration : TypeSystemConfiguration, IHasRuntimeType
+public class DirectiveTypeConfiguration
+    : TypeSystemConfiguration
+    , IDeprecationConfiguration
+    , IDirectiveConfigurationProvider
+    , IRuntimeTypeProvider
 {
     private Type _clrType = typeof(object);
+    private List<DirectiveConfiguration>? _directives;
     private List<DirectiveMiddleware>? _middlewareComponents;
     private BindableList<DirectiveArgumentConfiguration>? _arguments;
 
@@ -43,6 +48,34 @@ public class DirectiveTypeConfiguration : TypeSystemConfiguration, IHasRuntimeTy
     /// Defines if this directive is visible when directive introspection is enabled.
     /// </summary>
     public bool IsPublic { get; set; }
+
+    /// <summary>
+    /// Gets the reason why this directive was deprecated.
+    /// </summary>
+    public string? DeprecationReason { get; set; }
+
+    /// <summary>
+    /// Defines if this directive is deprecated.
+    /// </summary>
+    public bool IsDeprecated => !string.IsNullOrEmpty(DeprecationReason);
+
+    /// <summary>
+    /// Gets the list of directives that are annotated to this directive.
+    /// </summary>
+    public IList<DirectiveConfiguration> Directives => _directives ??= [];
+
+    /// <summary>
+    /// Specifies if this directive has any annotated directives.
+    /// </summary>
+    public bool HasDirectives => _directives is { Count: > 0 };
+
+    /// <summary>
+    /// Gets the list of directives that are annotated to this directive.
+    /// </summary>
+    public IReadOnlyList<DirectiveConfiguration> GetDirectives()
+    {
+        return _directives ?? (IReadOnlyList<DirectiveConfiguration>)[];
+    }
 
     /// <summary>
     /// Gets or sets the .net type representation of this directive.

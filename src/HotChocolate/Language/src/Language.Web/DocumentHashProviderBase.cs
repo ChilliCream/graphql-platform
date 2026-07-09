@@ -15,6 +15,8 @@ public abstract class DocumentHashProviderBase : IDocumentHashProvider
 
     public abstract string Name { get; }
 
+    public abstract string AlgorithmName { get; }
+
     public HashFormat Format { get; }
 
     public OperationDocumentHash ComputeHash(ReadOnlySpan<byte> document)
@@ -27,7 +29,7 @@ public abstract class DocumentHashProviderBase : IDocumentHashProvider
         {
             var hash = ComputeHash(rented, document.Length);
             var formattedHash = FormatHash(hash, Format);
-            return new OperationDocumentHash(formattedHash, Name, Format);
+            return new OperationDocumentHash(formattedHash, AlgorithmName, Format);
         }
         finally
         {
@@ -35,7 +37,37 @@ public abstract class DocumentHashProviderBase : IDocumentHashProvider
         }
 #else
         var hash = ComputeHash(document, Format);
-        return new OperationDocumentHash(hash, Name, Format);
+        return new OperationDocumentHash(hash, AlgorithmName, Format);
+#endif
+    }
+
+    public OperationDocumentHash ComputeHash(ReadOnlySequence<byte> document)
+    {
+        if (document.IsSingleSegment)
+        {
+#if NETSTANDARD2_0
+            return ComputeHash(document.First.Span);
+#else
+            return ComputeHash(document.FirstSpan);
+#endif
+        }
+
+#if NETSTANDARD2_0
+        var length = checked((int)document.Length);
+        var rented = ArrayPool<byte>.Shared.Rent(length);
+
+        try
+        {
+            document.CopyTo(rented);
+            return ComputeHash(rented.AsSpan(0, length));
+        }
+        finally
+        {
+            ArrayPool<byte>.Shared.Return(rented);
+        }
+#else
+        var hash = ComputeHash(document, Format);
+        return new OperationDocumentHash(hash, AlgorithmName, Format);
 #endif
     }
 
@@ -43,13 +75,19 @@ public abstract class DocumentHashProviderBase : IDocumentHashProvider
     protected abstract byte[] ComputeHash(byte[] document, int length);
 #else
     protected abstract string ComputeHash(ReadOnlySpan<byte> document, HashFormat format);
+
+    protected abstract string ComputeHash(ReadOnlySequence<byte> document, HashFormat format);
 #endif
 
     protected static string FormatHash(ReadOnlySpan<byte> hash, HashFormat format)
         => format switch
         {
             HashFormat.Base64 => ToBase64UrlSafeString(hash),
+#if NET9_0_OR_GREATER
+            HashFormat.Hex => Convert.ToHexStringLower(hash),
+#else
             HashFormat.Hex => ToHexString(hash),
+#endif
             _ => throw new NotSupportedException(ComputeHash_FormatNotSupported)
         };
 
@@ -108,7 +146,7 @@ public abstract class DocumentHashProviderBase : IDocumentHashProvider
     {
         byte[]? rented = null;
         var initialSize = hash.Length * 3;
-        var buffer = initialSize <= GraphQLConstants.StackallocThreshold
+        var buffer = initialSize <= GraphQLCharacters.StackallocThreshold
             ? stackalloc byte[initialSize]
             : rented = ArrayPool<byte>.Shared.Rent(initialSize);
         int written;
@@ -129,15 +167,15 @@ public abstract class DocumentHashProviderBase : IDocumentHashProvider
         {
             switch (buffer[i])
             {
-                case GraphQLConstants.Plus:
-                    buffer[i] = GraphQLConstants.Minus;
+                case GraphQLCharacters.Plus:
+                    buffer[i] = GraphQLCharacters.Minus;
                     break;
 
-                case GraphQLConstants.ForwardSlash:
-                    buffer[i] = GraphQLConstants.Underscore;
+                case GraphQLCharacters.ForwardSlash:
+                    buffer[i] = GraphQLCharacters.Underscore;
                     break;
 
-                case GraphQLConstants.Equal:
+                case GraphQLCharacters.Equal:
                     written--;
                     break;
             }

@@ -1,3 +1,5 @@
+using static CookieCrumble.TestEnvironment;
+
 namespace HotChocolate.Data;
 
 public class EntityFrameworkExecutableTests(AuthorFixture authorFixture)
@@ -57,10 +59,7 @@ public class EntityFrameworkExecutableTests(AuthorFixture authorFixture)
         var result = await executable.SingleOrDefaultAsync(CancellationToken.None);
 
         // assert
-        new { result, executable = executable.Print() }.MatchSnapshot(
-            postFix: TestEnvironment.TargetFramework == "NET10_0"
-                ? TestEnvironment.TargetFramework
-                : null);
+        new { result, executable = executable.Print() }.MatchSnapshot(Postfix([NET8_0, NET9_0]));
     }
 
     [Fact]

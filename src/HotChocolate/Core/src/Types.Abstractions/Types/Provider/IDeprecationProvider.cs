@@ -1,4 +1,6 @@
 
+using System.Diagnostics.CodeAnalysis;
+
 #pragma warning disable IDE0130 // Namespace does not match folder structure
 // ReSharper disable once CheckNamespace
 namespace HotChocolate.Types;
@@ -12,6 +14,7 @@ public interface IDeprecationProvider : ITypeSystemMember
     /// <summary>
     /// Defines if this <see cref="ITypeSystemMember"/> is deprecated.
     /// </summary>
+    [MemberNotNullWhen(false, nameof(DeprecationReason))]
     bool IsDeprecated { get; }
 
     /// <summary>

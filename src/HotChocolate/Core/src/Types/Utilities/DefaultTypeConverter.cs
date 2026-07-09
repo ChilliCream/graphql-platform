@@ -9,6 +9,16 @@ public partial class DefaultTypeConverter : ITypeConverter
     private readonly ConcurrentDictionary<(Type, Type), ChangeType> _converters = new();
     private readonly List<IChangeTypeProvider> _changeTypeProvider = [];
 
+    [UnconditionalSuppressMessage(
+        "AOT",
+        "IL3050",
+        Justification =
+            "ListTypeConverter is used for runtime type conversion and requires dynamic code by design.")]
+    [UnconditionalSuppressMessage(
+        "ReflectionAnalysis",
+        "IL2026",
+        Justification =
+            "ListTypeConverter is used for runtime type conversion and requires unreferenced code by design.")]
     public DefaultTypeConverter(IEnumerable<IChangeTypeProvider>? providers = null)
     {
         if (providers is not null)
@@ -25,22 +35,29 @@ public partial class DefaultTypeConverter : ITypeConverter
 
     public object? Convert(Type from, Type to, object? source)
     {
-        if (!TryConvert(from, to, source, out var converted))
+        if (!TryConvert(from, to, source, out var converted, out var conversionException))
         {
             throw new NotSupportedException(
                 string.Format(
                     TypeResources.TypeConversion_ConvertNotSupported,
                     from.Name,
-                    to.Name));
+                    to.Name),
+                    conversionException);
         }
         return converted;
     }
 
-    public bool TryConvert(Type from, Type to, object? source, out object? converted)
+    [UnconditionalSuppressMessage(
+        "ReflectionAnalysis",
+        "IL2067",
+        Justification =
+            "Activator.CreateInstance is only used to create default value type instances for null source values.")]
+    public bool TryConvert(Type from, Type to, object? source, out object? converted, out Exception? conversionException)
     {
         ArgumentNullException.ThrowIfNull(from);
         ArgumentNullException.ThrowIfNull(to);
 
+        conversionException = null;
         if (from == to)
         {
             converted = source;
@@ -63,8 +80,9 @@ public partial class DefaultTypeConverter : ITypeConverter
                 fromInternal, to, source,
                 out converted);
         }
-        catch
+        catch (Exception convertException)
         {
+            conversionException = convertException;
             converted = null;
             return false;
         }

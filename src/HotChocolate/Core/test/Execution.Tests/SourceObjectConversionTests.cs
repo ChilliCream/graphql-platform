@@ -22,15 +22,16 @@ public class SourceObjectConversionTests
             .Services
             .BuildServiceProvider()
             .GetRequiredService<IRequestExecutorProvider>()
-            .GetExecutorAsync();
+            .GetExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
-        var result = await executor.ExecuteAsync("{ foo { qux } }");
+        var result = await executor.ExecuteAsync(
+            "{ foo { qux } }",
+            TestContext.Current.CancellationToken);
 
         // assert
-        Assert.True(
-            Assert.IsType<OperationResult>(result).Errors is null,
-            "There should be no errors.");
+        var operationResult = Assert.IsType<OperationResult>(result);
+        Assert.True(operationResult.Errors.IsEmpty, "There should be no errors.");
         Assert.True(
             conversionTriggered,
             "The custom converter should have been hit.");
@@ -53,7 +54,7 @@ public class SourceObjectConversionTests
                 .Build();
 
         var result =
-            await schema.MakeExecutable().ExecuteAsync(request);
+            await schema.MakeExecutable().ExecuteAsync(request, TestContext.Current.CancellationToken);
 
         // assert
         result.ToJson().MatchSnapshot();

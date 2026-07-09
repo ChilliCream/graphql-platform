@@ -20,5 +20,5 @@ internal sealed class SkipWarmupExecutionMiddleware(RequestDelegate next)
                 var middleware = new SkipWarmupExecutionMiddleware(next);
                 return context => middleware.InvokeAsync(context);
             },
-            nameof(SkipWarmupExecutionMiddleware));
+            WellKnownRequestMiddleware.SkipWarmupExecutionMiddleware);
 }

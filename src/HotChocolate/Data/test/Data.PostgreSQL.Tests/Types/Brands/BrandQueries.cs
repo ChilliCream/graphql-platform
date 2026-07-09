@@ -2,6 +2,7 @@ using GreenDonut.Data;
 using HotChocolate.Data.Models;
 using HotChocolate.Data.Services;
 using HotChocolate.Types;
+using HotChocolate.Types.Composite;
 using HotChocolate.Types.Relay;
 
 namespace HotChocolate.Data.Types.Brands;
@@ -20,6 +21,7 @@ public static partial class BrandQueries
         return new CatalogConnection<Brand>(page);
     }
 
+    [Lookup]
     [NodeResolver]
     public static async Task<Brand?> GetBrandByIdAsync(
         int id,
@@ -27,4 +29,13 @@ public static partial class BrandQueries
         BrandService brandService,
         CancellationToken cancellationToken)
         => await brandService.GetBrandByIdAsync(id, query, cancellationToken);
+
+    [Lookup]
+    [NodeResolver]
+    public static async Task<Brand?> GetBrandByIdWithDLAsync(
+        int id,
+        QueryContext<Brand> query,
+        IBrandByIdDataLoader brandById,
+        CancellationToken cancellationToken)
+        => await brandById.With(query).LoadAsync(id, cancellationToken);
 }

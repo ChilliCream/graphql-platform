@@ -1,8 +1,8 @@
 using System.Text;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using HotChocolate.Language;
 using HotChocolate.Transport.Http;
+using HotChocolate.Types;
 using static HotChocolate.Utilities.Introspection.CapabilityInspector;
 using static HotChocolate.Utilities.Introspection.IntrospectionQueryHelper;
 
@@ -13,11 +13,8 @@ namespace HotChocolate.Utilities.Introspection;
 /// </summary>
 public static class IntrospectionClient
 {
-    private static readonly JsonSerializerOptions s_serializerOptions = new()
-    {
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        Converters = { new JsonStringEnumConverter() }
-    };
+    private static readonly JsonSerializerOptions s_serializerOptions =
+        new(IntrospectionJsonSerializerContext.Default.Options);
 
     internal static JsonSerializerOptions SerializerOptions => s_serializerOptions;
 
@@ -245,12 +242,12 @@ public static class IntrospectionClient
 
         if (result.Data.ValueKind is JsonValueKind.Object)
         {
-            data = result.Data.Deserialize<IntrospectionData>(s_serializerOptions);
+            data = result.Data.Deserialize(IntrospectionJsonSerializerContext.Default.IntrospectionData);
         }
 
         if (result.Errors.ValueKind is JsonValueKind.Array)
         {
-            errors = result.Errors.Deserialize<IntrospectionError[]>(s_serializerOptions);
+            errors = result.Errors.Deserialize(IntrospectionJsonSerializerContext.Default.IntrospectionErrorArray);
         }
 
         return new IntrospectionResult(data, errors);

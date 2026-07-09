@@ -1,9 +1,12 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Test.props', '$(MSBuildThisFileDirectory)'))" />
+
   <PropertyGroup>
     <RootNamespace>HotChocolate.Data</RootNamespace>
     <InterceptorsPreviewNamespaces>$(InterceptorsPreviewNamespaces);HotChocolate.Execution.Generated</InterceptorsPreviewNamespaces>
-    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+    <CompilerGeneratedFilesOutputPath>.generated</CompilerGeneratedFilesOutputPath>
     <NoWarn>$(NoWarn);CS1591</NoWarn>
   </PropertyGroup>
 
@@ -25,6 +28,10 @@
     <None Update="__resources__\catalog.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="$(CompilerGeneratedFilesOutputPath)/**/*.cs" />
   </ItemGroup>
 
 </Project>

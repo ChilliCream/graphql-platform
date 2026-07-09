@@ -8,16 +8,17 @@ internal sealed class ProjectionOptimizer(IProjectionProvider provider)
     public void OptimizeSelectionSet(SelectionSetOptimizerContext context)
     {
         var processedSelections = new HashSet<string>();
-        while (!processedSelections.SetEquals(context.Selections.Keys))
+        while (!processedSelections.SetEquals(context.Selections.Select(t => t.ResponseName)))
         {
-            var selectionToProcess = new HashSet<string>(context.Selections.Keys);
+            var selectionToProcess = new HashSet<string>(context.Selections.Select(t => t.ResponseName));
             selectionToProcess.ExceptWith(processedSelections);
             foreach (var responseName in selectionToProcess)
             {
+                var selection = context.GetSelection(responseName);
                 var rewrittenSelection =
                     provider.RewriteSelection(
                         context,
-                        context.Selections[responseName]);
+                        selection);
 
                 context.ReplaceSelection(rewrittenSelection);
 

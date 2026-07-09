@@ -3,6 +3,7 @@
     <Project Path="src/Utilities.DependencyInjection/HotChocolate.Utilities.DependencyInjection.csproj" />
     <Project Path="src/Utilities.Introspection/HotChocolate.Utilities.Introspection.csproj" />
     <Project Path="src/Utilities/HotChocolate.Utilities.csproj" />
+    <Project Path="src/Utilities.Base36/HotChocolate.Utilities.Base36.csproj" />
   </Folder>
   <Folder Name="/src/Utilities.Buffers/">
     <Project Path="src/Utilities.Buffers/HotChocolate.Utilities.Buffers.csproj" />

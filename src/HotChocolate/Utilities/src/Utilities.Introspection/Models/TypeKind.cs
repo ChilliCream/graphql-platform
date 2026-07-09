@@ -1,7 +1,10 @@
 #nullable disable
 
+using System.Text.Json.Serialization;
+
 namespace HotChocolate.Utilities.Introspection;
 
+[JsonConverter(typeof(JsonStringEnumConverter<TypeKind>))]
 public enum TypeKind
 {
     INTERFACE = 0,

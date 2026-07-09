@@ -18,7 +18,7 @@ public class CacheControlDirectiveTypeTests
             .Use(_ => _)
             .Create();
         var directive =
-            schema.DirectiveTypes.OfType<CacheControlDirectiveType>().FirstOrDefault()!;
+            schema.DirectiveTypes.OfType<CacheControlDirectiveType>().FirstOrDefault();
 
         Assert.NotNull(directive);
         Assert.IsType<CacheControlDirectiveType>(directive);
@@ -428,7 +428,7 @@ public class CacheControlDirectiveTypeTests
     public interface IInterfaceType
     {
         [CacheControl(500, Scope = CacheControlScope.Private, InheritMaxAge = true)]
-        public string? Field { get; set; }
+        string? Field { get; set; }
     }
 
     public class InterfaceObjectType : IInterfaceType

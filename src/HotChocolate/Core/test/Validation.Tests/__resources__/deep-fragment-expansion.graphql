@@ -1,0 +1,12 @@
+query { me { ...F0 } }
+fragment F0 on User { a: friend { ...F1 } b: friend { ...F1 } }
+fragment F1 on User { a: friend { ...F2 } b: friend { ...F2 } }
+fragment F2 on User { a: friend { ...F3 } b: friend { ...F3 } }
+fragment F3 on User { a: friend { ...F4 } b: friend { ...F4 } }
+fragment F4 on User { a: friend { ...F5 } b: friend { ...F5 } }
+fragment F5 on User { a: friend { ...F6 } b: friend { ...F6 } }
+fragment F6 on User { a: friend { ...F7 } b: friend { ...F7 } }
+fragment F7 on User { a: friend { ...F8 } b: friend { ...F8 } }
+fragment F8 on User { a: friend { ...F9 } b: friend { ...F9 } }
+fragment F9 on User { a: friend { ...F10 } b: friend { ...F10 } }
+fragment F10 on User { a: id b: id}

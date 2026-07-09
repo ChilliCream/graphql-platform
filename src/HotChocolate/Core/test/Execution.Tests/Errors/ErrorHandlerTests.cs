@@ -21,10 +21,10 @@ public class ErrorHandlerTests
             .UseField(_ => _ => throw new Exception("Foo"))
 
             // build graphql executor
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
-        var result = await executor.ExecuteAsync("{ foo }");
+        var result = await executor.ExecuteAsync("{ foo }", TestContext.Current.CancellationToken);
 
         // assert
         snapshot.Add(result);
@@ -55,10 +55,12 @@ public class ErrorHandlerTests
                 })
 
             // build graphql executor
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
-        var result = await executor.ExecuteAsync("{ foo bar }");
+        var result = await executor.ExecuteAsync(
+            "{ foo bar }",
+            TestContext.Current.CancellationToken);
 
         // assert
         snapshot.Add(result);
@@ -81,10 +83,10 @@ public class ErrorHandlerTests
             .ModifyRequestOptions(o => o.IncludeExceptionDetails = false)
 
             // build graphql executor
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
-        var result = await executor.ExecuteAsync("{ foo }");
+        var result = await executor.ExecuteAsync("{ foo }", TestContext.Current.CancellationToken);
 
         // assert
         snapshot.Add(result);
@@ -105,10 +107,10 @@ public class ErrorHandlerTests
             .AddErrorFilter<DummyErrorFilter>()
 
             // build graphql executor
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
-        var result = await executor.ExecuteAsync("{ foo }");
+        var result = await executor.ExecuteAsync("{ foo }", TestContext.Current.CancellationToken);
 
         // assert
         snapshot.Add(result);
@@ -127,15 +129,16 @@ public class ErrorHandlerTests
             // general graphql configuration
             .AddGraphQL()
             .AddQueryType<Query>()
+            .AddApplicationService<SomeService>()
 
             // error filter configuration
             .AddErrorFilter<DummyErrorFilterWithDependency>()
 
             // build graphql executor
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
-        var result = await executor.ExecuteAsync("{ foo }");
+        var result = await executor.ExecuteAsync("{ foo }", TestContext.Current.CancellationToken);
 
         // assert
         snapshot.Add(result);
@@ -156,10 +159,10 @@ public class ErrorHandlerTests
             .AddErrorFilter(_ => new DummyErrorFilter())
 
             // build graphql executor
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
-        var result = await executor.ExecuteAsync("{ foo }");
+        var result = await executor.ExecuteAsync("{ foo }", TestContext.Current.CancellationToken);
 
         // assert
         snapshot.Add(result);
@@ -181,10 +184,10 @@ public class ErrorHandlerTests
             .AddResolver("Query", "foo", _ => throw new Exception("Foo"))
 
             // build graphql executor
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
-        var result = await executor.ExecuteAsync("{ foo }");
+        var result = await executor.ExecuteAsync("{ foo }", TestContext.Current.CancellationToken);
 
         // assert
         snapshot.Add(result);
@@ -206,10 +209,10 @@ public class ErrorHandlerTests
             .AddResolver("Query", "foo", _ => throw new Exception("Foo"))
 
             // build graphql executor
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
-        var result = await executor.ExecuteAsync("{ foo }");
+        var result = await executor.ExecuteAsync("{ foo }", TestContext.Current.CancellationToken);
 
         // assert
         snapshot.Add(result);
@@ -238,10 +241,10 @@ public class ErrorHandlerTests
                 })
 
             // build graphql executor
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
-        var result = await executor.ExecuteAsync("{ foo }");
+        var result = await executor.ExecuteAsync("{ foo }", TestContext.Current.CancellationToken);
 
         // assert
         snapshot.Add(result);

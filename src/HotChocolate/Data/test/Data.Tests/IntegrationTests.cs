@@ -5,10 +5,12 @@
 // ReSharper disable MoveLocalFunctionAfterJumpStatement
 
 using GreenDonut.Data;
+using HotChocolate.Configuration;
 using HotChocolate.Data.Filters;
 using HotChocolate.Data.Sorting;
 using HotChocolate.Execution;
 using HotChocolate.Types;
+using HotChocolate.Types.Pagination;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Data;
@@ -34,7 +36,7 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                     .UseProjection()
                     .UseFiltering()
                     .UseSorting())
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -44,7 +46,8 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                     name
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -69,7 +72,7 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                     .UseProjection()
                     .UseFiltering()
                     .UseSorting())
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -79,7 +82,8 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                     name
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -104,7 +108,7 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                     .UseProjection()
                     .UseFiltering()
                     .UseSorting())
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -114,7 +118,8 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                     name
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -139,7 +144,7 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                     .UseProjection()
                     .UseFiltering()
                     .UseSorting())
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -149,7 +154,8 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                     name
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -174,7 +180,7 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                     .UseProjection()
                     .UseFiltering()
                     .UseSorting())
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -184,7 +190,8 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                     name
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -209,7 +216,7 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                     .UseProjection()
                     .UseFiltering()
                     .UseSorting())
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -219,7 +226,8 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                     name
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -240,8 +248,8 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                 o =>
                     o.ImplementsNode()
                         .IdField(f => f.Id)
-                        .ResolveNode(_ => default!))
-            .BuildRequestExecutorAsync();
+                        .ResolveNode(_ => default))
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -258,7 +266,8 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                     }
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -279,8 +288,8 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                 o =>
                     o.ImplementsNode()
                         .IdField(f => f.Id)
-                        .ResolveNode(_ => default!))
-            .BuildRequestExecutorAsync();
+                        .ResolveNode(_ => default))
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -297,7 +306,8 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                     }
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -318,8 +328,8 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                 o =>
                     o.ImplementsNode()
                         .IdField(f => f.Id)
-                        .ResolveNode(_ => default!))
-            .BuildRequestExecutorAsync();
+                        .ResolveNode(_ => default))
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -338,7 +348,8 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                 title
                 id
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -359,8 +370,8 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                 o =>
                     o.ImplementsNode()
                         .IdField(f => f.Id)
-                        .ResolveNode(_ => default!))
-            .BuildRequestExecutorAsync();
+                        .ResolveNode(_ => default))
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -377,7 +388,8 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                 title
                 id
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -398,8 +410,8 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                 o =>
                     o.ImplementsNode()
                         .IdField(f => f.Id)
-                        .ResolveNode(_ => default!))
-            .BuildRequestExecutorAsync();
+                        .ResolveNode(_ => default))
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -419,7 +431,8 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
             fragment Test on Author {
                 name
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -440,8 +453,8 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                 o =>
                     o.ImplementsNode()
                         .IdField(f => f.Id)
-                        .ResolveNode(_ => default!))
-            .BuildRequestExecutorAsync();
+                        .ResolveNode(_ => default))
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -459,7 +472,8 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
             fragment Test on Author {
                 name
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -480,8 +494,8 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                 o =>
                     o.ImplementsNode()
                         .IdField(f => f.Id)
-                        .ResolveNode(_ => default!))
-            .BuildRequestExecutorAsync();
+                        .ResolveNode(_ => default))
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -497,10 +511,11 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
             fragment Test on Book {
                 title
                 author {
-                   name
+                    name
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -522,8 +537,8 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                 o =>
                     o.ImplementsNode()
                         .IdField(f => f.Id)
-                        .ResolveNode(_ => default!))
-            .BuildRequestExecutorAsync();
+                        .ResolveNode(_ => default))
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -539,17 +554,18 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
             fragment Test on Book {
                 title
                 author {
-                   name
+                    name
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
             .Create()
             .Add(result, "Result:")
             .Add(executor.Schema, "Schema:")
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -568,8 +584,8 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                 o =>
                     o.ImplementsNode()
                         .IdField(f => f.Id)
-                        .ResolveNode(_ => default!))
-            .BuildRequestExecutorAsync();
+                        .ResolveNode(_ => default))
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -581,14 +597,15 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                     }
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
             .Create()
             .Add(result, "Result:")
             .Add(executor.Schema, "Schema:")
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -599,7 +616,7 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
             .AddGraphQL()
             .AddFiltering()
             .AddQueryType<FooType>()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -609,14 +626,15 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                     qux
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
             .Create()
             .Add(result, "Result:")
             .Add(executor.Schema, "Schema:")
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -629,7 +647,7 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
             .AddSorting("Foo")
             .AddProjections("Foo")
             .AddQueryType<DifferentScope>()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -639,14 +657,15 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                     nodes { title }
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
             .Create()
             .Add(result, "Result:")
             .Add(executor.Schema, "Schema:")
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -659,7 +678,7 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
             .AddSorting("Foo")
             .AddProjections("Foo")
             .AddQueryType<DifferentScope>()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -685,7 +704,7 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
             .Create()
             .Add(result, "Result:")
             .Add(executor.Schema, "Schema:")
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -698,7 +717,7 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
             .AddSorting("Foo")
             .AddProjections("Foo")
             .AddQueryType<DifferentScope>()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -724,7 +743,7 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
             .Create()
             .Add(result, "Result:")
             .Add(executor.Schema, "Schema:")
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -737,7 +756,7 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
             .AddSorting()
             .AddProjections()
             .AddQueryType<FirstOrDefaultQuery>()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -747,7 +766,8 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                     title
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -764,7 +784,7 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
             .AddProjections()
             .AddQueryType<FirstOrDefaultQuery>()
             .AddMutationType<FirstOrDefaultMutationManyToMany>()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = executor.Schema.ToString();
@@ -784,7 +804,7 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
             .AddProjections()
             .AddQueryType<FirstOrDefaultQuery>()
             .AddMutationType<FirstOrDefaultMutationManyToOne>()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = executor.Schema.ToString();
@@ -801,7 +821,7 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
             .AddGraphQL()
             .AddQueryType()
             .AddTypeExtension(typeof(StaticQuery))
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = executor.Schema.ToString();
@@ -839,7 +859,7 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
             .AddSorting()
             .AddProjections()
             .AddQueryType<AsPredicateQuery>()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -849,7 +869,8 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                     name
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -865,7 +886,7 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
             .AddSorting()
             .AddProjections()
             .AddQueryType<AsPredicateQuery>()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -875,7 +896,8 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                     name
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -891,7 +913,7 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
             .AddSorting()
             .AddProjections()
             .AddQueryType<AsPredicateQuery>()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -901,7 +923,8 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                     name
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -917,7 +940,7 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
             .AddSorting()
             .AddProjections()
             .AddQueryType<AsPredicateQuery>()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -927,7 +950,8 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                     name
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -943,7 +967,7 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
             .AddSorting()
             .AddProjections()
             .AddQueryType<AsPredicateQuery>()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -954,7 +978,398 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                     name
                 }
             }
+            """,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        result.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task QueryContext_Should_Not_Throw_For_Record_Node_With_Paging_Filtering_And_Sorting()
+    {
+        // arrange
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddFiltering()
+            .AddSorting()
+            .AddQueryType<RecordQuery>()
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            {
+                users {
+                    edges {
+                        node {
+                            id
+                            firstName
+                        }
+                    }
+                }
+            }
+            """,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        var operationResult = result.ExpectOperationResult();
+        Assert.Empty(operationResult.Errors);
+    }
+
+    [Fact]
+    public async Task QueryContext_Selector_Respects_Include_Directive()
+    {
+        // arrange
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddFiltering()
+            .AddSorting()
+            .AddProjections()
+            .AddQueryType<AsPredicateQuery>()
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            {
+                conditionalAuthors {
+                    id
+                    name @include(if: false)
+                }
+            }
+            """,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        result.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task QueryContext_Selector_Respects_Skip_Directive()
+    {
+        // arrange
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddFiltering()
+            .AddSorting()
+            .AddProjections()
+            .AddQueryType<AsPredicateQuery>()
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            {
+                conditionalAuthors {
+                    id
+                    name @skip(if: true)
+                }
+            }
+            """,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        result.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task QueryContext_Selector_Respects_Variable_Include_Directive_Across_Requests()
+    {
+        // arrange
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddFiltering()
+            .AddSorting()
+            .AddProjections()
+            .AddQueryType<AsPredicateQuery>()
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        const string query =
+            """
+            query Test($withName: Boolean!, $empty: Boolean!) {
+                conditionalAuthors(empty: $empty) {
+                    id
+                    name @include(if: $withName)
+                }
+            }
+            """;
+
+        // act
+        var warmupResult = await executor.ExecuteAsync(
+            OperationRequestBuilder.New()
+                .SetDocument(query)
+                .SetVariableValues(
+                    new Dictionary<string, object?>
+                    {
+                        ["withName"] = true,
+                        ["empty"] = true
+                    })
+                .Build(),
+            TestContext.Current.CancellationToken);
+
+        var result = await executor.ExecuteAsync(
+            OperationRequestBuilder.New()
+                .SetDocument(query)
+                .SetVariableValues(
+                    new Dictionary<string, object?>
+                    {
+                        ["withName"] = false,
+                        ["empty"] = false
+                    })
+                .Build(),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Snapshot
+            .Create()
+            .Add(warmupResult, "Warmup")
+            .Add(result, "Result")
+            .Match();
+    }
+
+    [Fact]
+    public async Task QueryContext_Selector_Projects_Nested_Fields_When_Static_Include_Is_True()
+    {
+        // arrange
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddFiltering()
+            .AddSorting()
+            .AddProjections()
+            .AddQueryType<AsPredicateQuery>()
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            {
+                authorWithBooks {
+                    name
+                    books @include(if: true) {
+                        id
+                        title
+                    }
+                }
+            }
+            """,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "authorWithBooks": {
+                  "name": "Author1",
+                  "books": [
+                    {
+                      "id": 7,
+                      "title": "alpha"
+                    },
+                    {
+                      "id": 13,
+                      "title": "beta"
+                    }
+                  ]
+                }
+              }
+            }
             """);
+    }
+
+    [Fact]
+    public async Task QueryContext_Selector_Projects_Nested_Fields_When_Variable_Include_Is_True()
+    {
+        // arrange
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddFiltering()
+            .AddSorting()
+            .AddProjections()
+            .AddQueryType<AsPredicateQuery>()
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        var request = OperationRequestBuilder.New()
+            .SetDocument(
+                """
+                query Repro($includeBooks: Boolean!) {
+                    authorWithBooks {
+                        name
+                        books @include(if: $includeBooks) {
+                            id
+                            title
+                        }
+                    }
+                }
+                """)
+            .SetVariableValues(new Dictionary<string, object?> { ["includeBooks"] = true })
+            .Build();
+
+        // act
+        var result = await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "authorWithBooks": {
+                  "name": "Author1",
+                  "books": [
+                    {
+                      "id": 7,
+                      "title": "alpha"
+                    },
+                    {
+                      "id": 13,
+                      "title": "beta"
+                    }
+                  ]
+                }
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task QueryContext_Selector_Omits_Nested_Fields_When_Static_Include_Is_False()
+    {
+        // arrange
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddFiltering()
+            .AddSorting()
+            .AddProjections()
+            .AddQueryType<AsPredicateQuery>()
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            {
+                authorWithBooks {
+                    name
+                    books @include(if: false) {
+                        id
+                        title
+                    }
+                }
+            }
+            """,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "authorWithBooks": {
+                  "name": "Author1"
+                }
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task QueryContext_Selector_Omits_Nested_Fields_When_Variable_Include_Is_False()
+    {
+        // arrange
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddFiltering()
+            .AddSorting()
+            .AddProjections()
+            .AddQueryType<AsPredicateQuery>()
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        var request = OperationRequestBuilder.New()
+            .SetDocument(
+                """
+                query Repro($includeBooks: Boolean!) {
+                    authorWithBooks {
+                        name
+                        books @include(if: $includeBooks) {
+                            id
+                            title
+                        }
+                    }
+                }
+                """)
+            .SetVariableValues(new Dictionary<string, object?> { ["includeBooks"] = false })
+            .Build();
+
+        // act
+        var result = await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "authorWithBooks": {
+                  "name": "Author1"
+                }
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task QueryContext_Selector_For_Record_With_Init_Properties_Should_Not_Be_Identity()
+    {
+        // arrange
+        var capture = new QueryContextRecordSelectorCapture();
+        var executor = await new ServiceCollection()
+            .AddSingleton(capture)
+            .AddGraphQL()
+            .AddQueryContext()
+            .AddFiltering()
+            .AddSorting()
+            .AddQueryType<QueryContextRecordSelectorQuery>()
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            {
+                recordSelector {
+                    id
+                }
+            }
+            """,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        var operationResult = result.ExpectOperationResult();
+        Assert.Empty(operationResult.Errors);
+        Assert.False(
+            capture.IsIdentitySelector,
+            $"Expected a projected selector but got identity selector: {capture.Selector}");
+    }
+
+    [Fact]
+    public async Task AsSortDefinition_QueryContext_Custom_Field_Without_Member_Does_Not_Fail()
+    {
+        // arrange
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddSorting()
+            .AddQueryType<QueryContextCustomSortQuery>()
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            {
+                customSortBooks(order: [{ metadata: { fieldId: 42, direction: ASC } }]) {
+                    id
+                    title
+                }
+            }
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -1210,8 +1625,178 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                         Id = 5,
                         Name = "Author2",
                         Books = []
-                    }
-                }.AsQueryable()
+                }
+            }.AsQueryable()
                 .With(context, t => t with { Operations = t.Operations.Add(SortBy<Author>.Ascending(t => t.Id)) });
+
+        [UseSorting]
+        public IQueryable<ConditionalAuthor> GetConditionalAuthors(
+            QueryContext<ConditionalAuthor> context,
+            bool empty = false)
+            => (empty
+                    ? Array.Empty<ConditionalAuthor>()
+                    : [
+                        new ConditionalAuthor
+                        {
+                            Id = 1,
+                            ThrowOnNameRead = true
+                        }
+                    ])
+                .AsQueryable()
+                .With(context);
+
+        public AuthorWithBooks GetAuthorWithBooks() => new() { Name = "Author1" };
+    }
+
+    public class AuthorWithBooks
+    {
+        public string? Name { get; set; }
+
+        public IQueryable<Book> GetBooks(QueryContext<Book> context)
+            => new[]
+                {
+                    new Book { Id = 7, Title = "alpha" },
+                    new Book { Id = 13, Title = "beta" }
+                }.AsQueryable()
+                .With(context);
+    }
+
+    public class RecordQuery
+    {
+        [UsePaging]
+        [UseFiltering]
+        [UseSorting]
+        public Connection<UserRecord> GetUsers(
+            QueryContext<UserRecord> query)
+            => Connection.Empty<UserRecord>();
+
+        public record UserRecord(
+            string Id,
+            string FirstName);
+    }
+
+    public sealed class ConditionalAuthor
+    {
+        private string _name = "author";
+
+        public int Id { get; set; }
+
+        public bool ThrowOnNameRead { get; set; }
+
+        public string Name
+        {
+            get => ThrowOnNameRead
+                ? throw new InvalidOperationException("Name should not be accessed for skipped selections.")
+                : _name;
+            set => _name = value;
+        }
+    }
+
+    public sealed class QueryContextRecordSelectorCapture
+    {
+        public bool IsIdentitySelector { get; set; }
+
+        public string? Selector { get; set; }
+    }
+
+    public class QueryContextRecordSelectorQuery
+    {
+        public QueryContextRecordSelectorEntity GetRecordSelector(
+            QueryContext<QueryContextRecordSelectorEntity> query,
+            [Service] QueryContextRecordSelectorCapture capture)
+        {
+            var entity = new QueryContextRecordSelectorEntity
+            {
+                Id = Guid.NewGuid(),
+                FirstName = "A",
+                LastName = "B",
+                BirthDate = new DateOnly(2000, 1, 1)
+            };
+
+            capture.Selector = query.Selector?.ToString();
+            capture.IsIdentitySelector = query.Selector is not null
+                && ReferenceEquals(query.Selector.Compile()(entity), entity);
+
+            return entity;
+        }
+    }
+
+    public sealed record QueryContextRecordSelectorEntity
+    {
+        public Guid Id { get; init; }
+
+        public string FirstName { get; init; } = string.Empty;
+
+        public string LastName { get; init; } = string.Empty;
+
+        public DateOnly BirthDate { get; init; }
+    }
+
+    public class QueryContextCustomSortQuery
+    {
+        [UseSorting(typeof(CustomSortBookSortType))]
+        public IQueryable<CustomSortBook> GetCustomSortBooks(QueryContext<CustomSortBook> context)
+            => new[]
+                {
+                    new CustomSortBook
+                    {
+                        Id = 1,
+                        Title = "Zebra",
+                        Metadata = []
+                    },
+                    new CustomSortBook
+                    {
+                        Id = 2,
+                        Title = "Apple",
+                        Metadata = []
+                    }
+                }.AsQueryable().With(context);
+    }
+
+    public class CustomSortBook
+    {
+        public int Id { get; set; }
+
+        public string Title { get; set; } = string.Empty;
+
+        public List<CustomSortBookMetadata> Metadata { get; set; } = [];
+    }
+
+    public class CustomSortBookMetadata
+    {
+        public int FieldId { get; set; }
+
+        public string Value { get; set; } = string.Empty;
+    }
+
+    public class CustomSortMetadataInputType : InputObjectType
+    {
+        protected override void Configure(IInputObjectTypeDescriptor descriptor)
+        {
+            descriptor.Field("fieldId").Type<IntType>();
+            descriptor.Field("direction").Type<DefaultSortEnumType>();
+        }
+    }
+
+    public class CustomSortFieldHandler : ISortFieldHandler
+    {
+        public bool CanHandle(
+            ITypeCompletionContext context,
+            ISortInputTypeConfiguration typeConfiguration,
+            ISortFieldConfiguration fieldConfiguration)
+            => true;
+    }
+
+    public class CustomSortBookSortType : SortInputType<CustomSortBook>
+    {
+        protected override void Configure(ISortInputTypeDescriptor<CustomSortBook> descriptor)
+        {
+            descriptor.BindFieldsExplicitly();
+            descriptor.Field(b => b.Title);
+            descriptor.Field("metadata")
+                .Type<CustomSortMetadataInputType>()
+                .Extend()
+                .OnBeforeCreate(d => d.Handler = new CustomSortFieldHandler());
+        }
     }
 }

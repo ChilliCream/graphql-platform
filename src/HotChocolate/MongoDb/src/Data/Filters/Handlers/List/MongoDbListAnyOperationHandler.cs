@@ -19,6 +19,9 @@ public class MongoDbListAnyOperationHandler
         CanBeNull = false;
     }
 
+    public static MongoDbListAnyOperationHandler Create(FilterProviderContext context)
+        => new(context.InputParser);
+
     /// <inheritdoc />
     public override bool CanHandle(
         ITypeCompletionContext context,

@@ -1,3 +1,4 @@
+using HotChocolate.Features;
 using HotChocolate.Language;
 
 namespace HotChocolate.Types;
@@ -15,6 +16,9 @@ namespace HotChocolate.Types;
 public interface IDirectiveDefinition
     : INameProvider
     , IDescriptionProvider
+    , IDeprecationProvider
+    , IDirectivesProvider
+    , IFeatureProvider
     , ISyntaxNodeProvider<DirectiveDefinitionNode>
     , ISchemaCoordinateProvider
     , IRuntimeTypeProvider
@@ -28,6 +32,13 @@ public interface IDirectiveDefinition
     bool IsRepeatable { get; }
 
     /// <summary>
+    /// Defines if this directive is publicly visible through introspection
+    /// and external SDL output. Internal directives are part of the type system
+    /// but hidden from external observers.
+    /// </summary>
+    bool IsPublic => true;
+
+    /// <summary>
     /// Gets the directive arguments.
     /// </summary>
     IReadOnlyFieldDefinitionCollection<IInputValueDefinition> Arguments { get; }
@@ -37,6 +48,13 @@ public interface IDirectiveDefinition
     /// a type system member.
     /// </summary>
     DirectiveLocation Locations { get; }
+
+    IReadOnlyDirectiveCollection IDirectivesProvider.Directives
+        => EmptyCollections.Directives;
+
+    bool IDeprecationProvider.IsDeprecated => false;
+
+    string? IDeprecationProvider.DeprecationReason => null;
 
     /// <summary>
     /// Creates a <see cref="DirectiveDefinitionNode"/> from the current <see cref="IDirectiveDefinition"/>.

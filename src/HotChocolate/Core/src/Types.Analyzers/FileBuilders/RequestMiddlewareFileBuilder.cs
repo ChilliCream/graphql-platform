@@ -1,7 +1,6 @@
 using System.Text;
 using HotChocolate.Types.Analyzers.Helpers;
 using HotChocolate.Types.Analyzers.Models;
-using Microsoft.CodeAnalysis.Text;
 using static HotChocolate.Types.Analyzers.WellKnownTypes;
 
 namespace HotChocolate.Types.Analyzers.FileBuilders;
@@ -265,14 +264,17 @@ public sealed class RequestMiddlewareFileBuilder : IDisposable
         using (_writer.IncreaseIndent())
         {
             _writer.WriteIndentedLine("this {0} builder,", RequestExecutorBuilder);
-            _writer.WriteIndentedLine("string? key = null)");
+            _writer.WriteIndentedLine("string? key = null,");
+            _writer.WriteIndentedLine("string? before = null,");
+            _writer.WriteIndentedLine("string? after = null,");
+            _writer.WriteIndentedLine("bool allowMultiple = false)");
             _writer.WriteIndentedLine("where TMiddleware : class");
         }
 
         using (_writer.IncreaseIndent())
         {
             _writer.WriteIndentedLine(
-                "=> builder.UseRequest(CreateMiddleware{2}(), key);",
+                "=> builder.UseRequest(CreateMiddleware{2}(), key, before, after, allowMultiple);",
                 _moduleName,
                 "MiddlewareFactories",
                 middlewareIndex);
@@ -281,9 +283,6 @@ public sealed class RequestMiddlewareFileBuilder : IDisposable
 
     public override string ToString()
         => _sb.ToString();
-
-    public SourceText ToSourceText()
-        => SourceText.From(ToString(), Encoding.UTF8);
 
     public void Dispose()
     {

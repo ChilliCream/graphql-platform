@@ -78,7 +78,7 @@ public class SortEnumType : EnumType
             return null;
         }
 
-        throw new SerializationException(
+        throw new LeafCoercionException(
             string.Format(
                 CultureInfo.InvariantCulture,
                 DataResources.SortingEnumType_Cannot_ParseLiteral,
