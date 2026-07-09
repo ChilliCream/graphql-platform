@@ -1,171 +1,129 @@
-using System.Buffers;
-using System.IO.Pipelines;
-using System.Runtime.CompilerServices;
-using System.Text.Json;
+using System.Net.ServerSentEvents;
+#if FUSION
 using HotChocolate.Buffers;
+using HotChocolate.Fusion.Text.Json;
+#endif
 
+#if FUSION
+namespace HotChocolate.Fusion.Transport.Http;
+#else
 namespace HotChocolate.Transport.Http;
+#endif
 
-internal class SseReader(HttpResponseMessage message) : IAsyncEnumerable<OperationResult>
+#if FUSION
+internal sealed class SseReader(HttpResponseMessage message, IMemoryArenaSource arenaSource)
+    : IAsyncEnumerable<SourceResultDocument>
+#else
+internal sealed class SseReader(HttpResponseMessage message)
+    : IAsyncEnumerable<OperationResult>
+#endif
 {
-    private static readonly StreamPipeReaderOptions s_options = new(
-        pool: MemoryPool<byte>.Shared,
-        bufferSize: 4096,
-        minimumReadSize: 1,
-        leaveOpen: true,
-        useZeroByteReads: true);
+    // The GraphQL over SSE protocol uses the "next" event to carry a result and the "complete" event
+    // to terminate the subscription. Any other event type (and keep-alive comments) is ignored.
+    private const string NextEvent = "next";
+    private const string CompleteEvent = "complete";
 
+#if !FUSION
+    private static readonly SseItemParser<OperationResult?> s_itemParser =
+        static (eventType, data) =>
+            eventType == NextEvent && data.Length > 0
+                ? OperationResult.Parse(data)
+                : null;
+#endif
+
+#if FUSION
+    public async IAsyncEnumerator<SourceResultDocument> GetAsyncEnumerator(
+#else
     public async IAsyncEnumerator<OperationResult> GetAsyncEnumerator(
+#endif
         CancellationToken cancellationToken = default)
     {
-        using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-        await using var stream = await message.Content.ReadAsStreamAsync(cts.Token);
-        using var eventBuffer = new PooledArrayWriter(4096);
-        var reader = PipeReader.Create(stream, s_options);
+        await using var stream = await message.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
 
-        try
-        {
-            ReadResult result;
-            do
+#if FUSION
+        // Only a "next" event produces a document: its payload bytes are filled exactly once into the
+        // geometric arena segments of a freshly acquired arena and parsed in place. The parser is
+        // pull-based and never invokes this delegate for the following event before the current one has
+        // been consumed, so the arena acquired here pairs with the document the consumer is about to read.
+        var parser = SseParser.Create(
+            stream,
+            (eventType, data) =>
             {
-                result = await reader.ReadAsync(cts.Token).ConfigureAwait(false);
-                if (result.IsCanceled)
+                if (eventType != NextEvent || data.Length == 0)
                 {
-                    yield break;
+                    return (SourceResultDocument?)null;
                 }
 
-                var buffer = result.Buffer;
-                var consumed = buffer.Start;
-                var examined = buffer.End;
+                return FillAndParse(arenaSource.GetNextArena(), data);
+            });
+#else
+        var parser = SseParser.Create(stream, s_itemParser);
+#endif
 
-                do
-                {
-                    var position = buffer.PositionOf((byte)'\n');
-                    if (position is null)
-                    {
-                        // Mark what we've examined but not consumed
-                        examined = buffer.End;
-                        break;
-                    }
-
-                    WriteLineToMessage(eventBuffer, buffer.Slice(0, position.Value));
-
-                    if (IsMessageComplete(eventBuffer.WrittenSpan))
-                    {
-                        if (IsKeepAlive(eventBuffer.WrittenSpan))
-                        {
-                            eventBuffer.Reset();
-                        }
-                        else
-                        {
-                            var eventMessage = SseEventParser.Parse(eventBuffer.WrittenSpan);
-
-                            switch (eventMessage.Type)
-                            {
-                                case SseEventType.Complete:
-                                    reader.AdvanceTo(buffer.GetPosition(1, position.Value));
-                                    yield break;
-
-                                case SseEventType.Next when eventMessage.Data is not null:
-                                    eventBuffer.Reset();
-                                    var document = JsonDocument.Parse(eventMessage.Data.WrittenMemory);
-                                    var documentOwner = new JsonDocumentOwner(document, eventMessage.Data);
-                                    yield return OperationResult.Parse(documentOwner);
-                                    break;
-
-                                default:
-                                    throw new GraphQLHttpStreamException("Malformed message received.");
-                            }
-                        }
-                    }
-
-                    // Move past the processed line
-                    var nextPosition = buffer.GetPosition(1, position.Value);
-                    consumed = nextPosition;
-                    buffer = buffer.Slice(nextPosition);
-                } while (!buffer.IsEmpty);
-
-                // Tell the reader how much we've consumed and examined
-                reader.AdvanceTo(consumed, examined);
-            } while (!result.IsCompleted);
-        }
-        finally
+        await foreach (var item in parser.EnumerateAsync(cancellationToken).ConfigureAwait(false))
         {
-            await cts.CancelAsync().ConfigureAwait(false);
-            await reader.CompleteAsync().ConfigureAwait(false);
+            // A "complete" event terminates the stream; any accompanying data is ignored. A bare
+            // "complete" event carries no data, so it produces no item and the stream ends at the
+            // end of the response instead.
+            if (item.EventType == CompleteEvent)
+            {
+                yield break;
+            }
+
+            if (item.Data is { } result)
+            {
+                yield return result;
+            }
         }
     }
 
-    private static void WriteLineToMessage(PooledArrayWriter message, ReadOnlySequence<byte> buffer)
+#if FUSION
+    private static SourceResultDocument FillAndParse(IMemoryArena arena, ReadOnlySpan<byte> data)
     {
-        if (buffer.IsSingleSegment)
+        // The payload is filled once, directly into the arena's gap-free geometric segments using the
+        // same per-event mechanic as the other streaming readers, then parsed in place via ParseFilled
+        // so no bytes are copied a second time.
+        var chunks = arena.RentSegmentTable(64);
+        var chunkIndex = 0;
+        var chunkSize = SourceResultDocument.GetDataChunkSize(chunkIndex);
+        var current = chunks[chunkIndex] = arena.Rent(chunkSize);
+        var currentChunkPosition = 0;
+        var dataOffset = 0;
+
+        while (dataOffset < data.Length)
         {
-            var span = buffer.First.Span;
+            var spaceInCurrentChunk = chunkSize - currentChunkPosition;
+            var bytesToCopy = Math.Min(spaceInCurrentChunk, data.Length - dataOffset);
 
-            // normalize line breaks.
-            if (span.Length > 0 && span[^1] == (byte)'\r')
+            data.Slice(dataOffset, bytesToCopy).CopyTo(current.Span.Slice(currentChunkPosition));
+            currentChunkPosition += bytesToCopy;
+            dataOffset += bytesToCopy;
+
+            if (currentChunkPosition == chunkSize)
             {
-                span = span[..^1];
-            }
-
-            span.CopyTo(message.GetSpan(span.Length));
-            message.Advance(span.Length);
-        }
-        else
-        {
-            var position = buffer.Start;
-            while (buffer.TryGet(ref position, out var memory))
-            {
-                var span = memory.Span;
-
-                // normalize line breaks.
-                if (position.Equals(buffer.End) && span.Length > 0 && span[^1] == (byte)'\r')
+                if (chunkIndex + 1 >= SourceResultDocument.DataMaxChunks)
                 {
-                    span = span[..^1];
+                    throw new InvalidOperationException(
+                        "The source result document has exceeded its maximum data capacity.");
                 }
 
-                span.CopyTo(message.GetSpan(span.Length));
-                message.Advance(span.Length);
+                if (chunkIndex + 1 >= chunks.Length)
+                {
+                    arena.GrowSegmentTable(ref chunks);
+                }
+
+                chunkIndex++;
+                chunkSize = SourceResultDocument.GetDataChunkSize(chunkIndex);
+                current = chunks[chunkIndex] = arena.Rent(chunkSize);
+                currentChunkPosition = 0;
             }
         }
 
-        // re-add unified line break (LF only)
-        message.GetSpan(1)[0] = (byte)'\n';
-        message.Advance(1);
+        return SourceResultDocument.ParseFilled(
+            arena,
+            chunks,
+            usedChunks: chunkIndex + 1,
+            lastLength: currentChunkPosition);
     }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static bool IsMessageComplete(ReadOnlySpan<byte> message)
-        => message.Length >= 2 && message[^1] == (byte)'\n' && message[^2] == (byte)'\n';
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static bool IsKeepAlive(ReadOnlySpan<byte> message)
-    {
-        // The minimal keep alive message is 3 characters `:\n\n`.
-        // Any message not starting with `:` or shorter than 3 lines is invalid/
-        if (message.Length < 3 || message[0] != (byte)':')
-        {
-            return false;
-        }
-
-        // Each message must end with to new lines, if we find none it's an invalid message.
-        var firstNewline = message.IndexOf((byte)'\n');
-        if (firstNewline == -1)
-        {
-            return false;
-        }
-
-        // After the ':', it should either be:
-        // 1. End of line (just ":\n")
-        // 2. A space followed by arbitrary text (": some text\n")
-        // 3. Arbitrary text without space (":keep-alive\n")
-
-        // But it should NOT contain any SSE field syntax like "event:" or "data:"
-        // Check if the rest of the message (after this comment line) contains valid SSE fields
-        var remaining = message[(firstNewline + 1)..];
-
-        // If there's more content after the comment, it should be another \n (for message termination)
-        // or it should be empty. Keep-alive messages shouldn't have event/data fields.
-        return remaining.Length == 1 && remaining[0] == (byte)'\n';
-    }
+#endif
 }

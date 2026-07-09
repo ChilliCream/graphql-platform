@@ -1,0 +1,6 @@
+"GetBooksWithTitle1 description"
+query GetBooksWithTitle1 {
+  books {
+    title
+  }
+}

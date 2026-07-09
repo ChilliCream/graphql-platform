@@ -1,3 +1,4 @@
+using System.Numerics;
 using HotChocolate.Types;
 
 namespace HotChocolate.Configuration;
@@ -55,6 +56,16 @@ public class TypeDiscoveryTests
     }
 
     [Fact]
+    public void InferGenericRecordStructInput()
+    {
+        SchemaBuilder.New()
+            .AddQueryType<QueryTypeWithGenericRecordStructInput>()
+            .Create()
+            .ToString()
+            .MatchSnapshot();
+    }
+
+    [Fact]
     public void Custom_LocalDate_Should_Throw_SchemaException_When_Not_Bound()
     {
         static void Act() =>
@@ -103,7 +114,7 @@ public class TypeDiscoveryTests
 
     public class Model
     {
-        public string Foo { get; set; }
+        public required string Foo { get; set; }
 
         public int Bar { get; set; }
 
@@ -127,13 +138,13 @@ public class TypeDiscoveryTests
 
         public InferStruct? NullableStruct { get; set; }
 
-        public InferStruct[] StructArray { get; set; }
+        public required InferStruct[] StructArray { get; set; }
 
-        public InferStruct?[] NullableStructArray { get; set; }
+        public required InferStruct?[] NullableStructArray { get; set; }
 
-        public InferStruct[][] StructNestedArray { get; set; }
+        public required InferStruct[][] StructNestedArray { get; set; }
 
-        public InferStruct?[][] NullableStructNestedArray { get; set; }
+        public required InferStruct?[][] NullableStructNestedArray { get; set; }
 
         public Guid ScalarGuid { get; set; }
 
@@ -166,6 +177,16 @@ public class TypeDiscoveryTests
     {
         public int Foo(InputTypeWithReadOnlyProperties arg) => arg.Property1;
     }
+
+    public class QueryTypeWithGenericRecordStructInput
+    {
+        public string Foo(RangeSpec<int> range) => "bar";
+    }
+
+    public readonly record struct RangeSpec<T>(
+        T? Min,
+        T? Max)
+        where T : struct, IComparable<T>, IComparisonOperators<T, T, bool>;
 
     public class QueryTypeWithCustomLocalDate
     {

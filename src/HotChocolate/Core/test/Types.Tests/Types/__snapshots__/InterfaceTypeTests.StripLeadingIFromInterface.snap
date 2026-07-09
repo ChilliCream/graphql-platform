@@ -1,11 +1,11 @@
-﻿schema {
+schema {
   query: Query
-}
-
-interface FooNaming {
-  fooBarBaz: String
 }
 
 type Query {
   foo: FooNaming
+}
+
+interface FooNaming {
+  fooBarBaz: String!
 }

@@ -11,6 +11,13 @@ public class OutputFieldConfiguration : FieldConfiguration, IDeprecationConfigur
     /// </summary>
     public Type? ResultType { get; set; }
 
+    /// <summary>
+    /// Gets or sets the type on which this field's resolver was declared.
+    /// This value can be null when the field was not declared through a member,
+    /// for example when it was configured with a resolver delegate.
+    /// </summary>
+    public Type? DeclaringType { get; set; }
+
     public IList<ArgumentConfiguration> Arguments
         => _arguments ??= [];
 
@@ -34,6 +41,7 @@ public class OutputFieldConfiguration : FieldConfiguration, IDeprecationConfigur
         base.CopyTo(target);
 
         target.ResultType = ResultType;
+        target.DeclaringType = DeclaringType;
 
         if (_arguments?.Count > 0)
         {
@@ -57,6 +65,11 @@ public class OutputFieldConfiguration : FieldConfiguration, IDeprecationConfigur
         if (ResultType is not null)
         {
             target.ResultType = ResultType;
+        }
+
+        if (DeclaringType is not null)
+        {
+            target.DeclaringType = DeclaringType;
         }
 
         if (_arguments is { Count: > 0 })

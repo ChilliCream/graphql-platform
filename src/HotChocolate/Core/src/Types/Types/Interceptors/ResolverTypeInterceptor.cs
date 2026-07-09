@@ -174,6 +174,7 @@ internal sealed class ResolverTypeInterceptor : TypeInterceptor
                     && context.Members.TryGetValue(field.Name, out var member))
                 {
                     field.ResolverMember = member;
+                    field.DeclaringType = member.ReflectedType ?? member.DeclaringType;
 
                     ObjectFieldDescriptor.From(_context, field).CreateConfiguration();
 
@@ -244,10 +245,11 @@ internal sealed class ResolverTypeInterceptor : TypeInterceptor
                 initialized = true;
             }
 
-            if (field.Member is null
+            if (!HasOwnResolution(field)
                 && context.Members.TryGetValue(field.Name, out var member))
             {
                 field.Member = member;
+                field.DeclaringType = member.ReflectedType ?? member.DeclaringType;
 
                 TryBindArgumentRuntimeType(field, member);
                 ObjectFieldDescriptor.From(_context, field).CreateConfiguration();
@@ -284,6 +286,14 @@ internal sealed class ResolverTypeInterceptor : TypeInterceptor
         TypeMemHelper.Return(map);
         context.Members.Clear();
     }
+
+    // True if the field already resolves itself, so it must not be rebound to a
+    // same-named source member that would silently shadow it.
+    private static bool HasOwnResolution(ObjectFieldConfiguration field)
+        => field.Resolvers.HasResolvers
+            || field.ResolverMember is not null
+            || field.Member is not null
+            || field.Expression is not null;
 
     private void ApplyInputSourceMembers(
         CompletionContext context,
@@ -401,7 +411,8 @@ internal sealed class ResolverTypeInterceptor : TypeInterceptor
     {
         if (member is MethodInfo method)
         {
-            foreach (var parameter in _resolverCompiler.GetArgumentParameters(method.GetParameters()))
+            var parameters = _context.TypeInspector.GetParameters(method);
+            foreach (var parameter in _resolverCompiler.GetArgumentParameters(parameters))
             {
                 _parameters[parameter.Name!] = parameter;
             }

@@ -7,6 +7,7 @@ namespace HotChocolate.Types.Pagination;
 /// </summary>
 [GraphQLDescription(
     "Information about pagination in a connection.")]
+[ConditionalShareable]
 public abstract class PageInfo : IPageInfo
 {
     /// <summary>
@@ -79,16 +80,10 @@ public class PageInfo<TNode>(Page<TNode> page, int maxRelativeCursorCount = 5) :
     public override bool HasPreviousPage => page.HasPreviousPage;
 
     /// <inheritdoc />
-    public override string? StartCursor
-        => page.First is not null
-            ? page.CreateCursor(page.First)
-            : null;
+    public override string? StartCursor => page.CreateStartCursor();
 
     /// <inheritdoc />
-    public override string? EndCursor
-        => page.Last is not null
-            ? page.CreateCursor(page.Last)
-            : null;
+    public override string? EndCursor => page.CreateEndCursor();
 
     /// <inheritdoc />
     public override IReadOnlyList<PageCursor> ForwardCursors

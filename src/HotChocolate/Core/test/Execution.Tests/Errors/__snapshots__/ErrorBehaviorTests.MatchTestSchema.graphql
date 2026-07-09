@@ -2,10 +2,6 @@ schema {
   query: Query
 }
 
-type Foo {
-  bar: String
-}
-
 type Query {
   error3: String
   error6: String
@@ -22,4 +18,8 @@ type Query {
   error13: Foo
   error14: String
   error15: String!
+}
+
+type Foo {
+  bar: String
 }

@@ -6,7 +6,9 @@ namespace HotChocolate.Types.Analyzers.FileBuilders;
 
 public sealed class ObjectTypeFileBuilder(StringBuilder sb) : TypeFileBuilderBase(sb)
 {
-    public override void WriteInitializeMethod(IOutputTypeInfo type)
+    protected override string OutputFieldDescriptorType => WellKnownTypes.ObjectFieldDescriptor;
+
+    public override void WriteInitializeMethod(IOutputTypeInfo type, ILocalTypeLookup typeLookup)
     {
         if (type is not ObjectTypeInfo objectType)
         {
@@ -17,24 +19,24 @@ public sealed class ObjectTypeFileBuilder(StringBuilder sb) : TypeFileBuilderBas
         Writer.WriteIndentedLine(
             "internal static void Initialize(global::{0}<global::{1}> descriptor)",
             WellKnownTypes.IObjectTypeDescriptor,
-            objectType.RuntimeTypeFullName);
+            objectType.RuntimeTypeName.FullName);
 
         Writer.WriteIndentedLine("{");
 
         using (Writer.IncreaseIndent())
         {
-            if (objectType.Resolvers.Length > 0 || objectType.NodeResolver is not null)
+            WriteInitializationBase(
+                objectType.SchemaTypeName.FullName,
+                objectType.Resolvers.Length > 0 || objectType.NodeResolver is not null,
+                objectType.Resolvers.Any(t => t.RequiresParameterBindings)
+                    || (objectType.NodeResolver?.RequiresParameterBindings ?? false),
+                objectType.DescriptorAttributes,
+                objectType.Inaccessible);
+
+            if (objectType.Shareable is DirectiveScope.Type)
             {
-                Writer.WriteIndentedLine(
-                    "var thisType = typeof(global::{0});",
-                    objectType.SchemaTypeFullName);
-                Writer.WriteIndentedLine(
-                    "var bindingResolver = descriptor.Extend().Context.ParameterBindingResolver;");
-                Writer.WriteIndentedLine(
-                    objectType.Resolvers.Any(t => t.RequiresParameterBindings)
-                        || (objectType.NodeResolver?.RequiresParameterBindings ?? false)
-                        ? "var resolvers = new __Resolvers(bindingResolver);"
-                        : "var resolvers = new __Resolvers();");
+                Writer.WriteLine();
+                Writer.WriteIndentedLine("descriptor.Directive(global::{0}.Instance);", WellKnownTypes.Shareable);
             }
 
             if (objectType.NodeResolver is not null)
@@ -50,7 +52,7 @@ public sealed class ObjectTypeFileBuilder(StringBuilder sb) : TypeFileBuilderBas
                 }
             }
 
-            WriteResolverBindings(objectType);
+            WriteResolverBindings(objectType, typeLookup);
 
             Writer.WriteLine();
             Writer.WriteIndentedLine("Configure(descriptor);");
@@ -76,6 +78,8 @@ public sealed class ObjectTypeFileBuilder(StringBuilder sb) : TypeFileBuilderBas
             {
                 WriteResolverField(objectType.NodeResolver);
             }
+
+            WriteIsSelectedFields(objectType.NodeResolver);
         }
     }
 
@@ -90,9 +94,10 @@ public sealed class ObjectTypeFileBuilder(StringBuilder sb) : TypeFileBuilderBas
         WriteResolverConstructor(
             objectType,
             typeLookup,
-            $"global::{objectType.SchemaTypeFullName}",
             type.Resolvers.Any(t => t.RequiresParameterBindings)
-            || (objectType.NodeResolver?.RequiresParameterBindings ?? false));
+            || (objectType.NodeResolver?.RequiresParameterBindings ?? false),
+            type.Resolvers.Any(HasIsSelectedFields)
+            || HasIsSelectedFields(objectType.NodeResolver));
     }
 
     protected override void WriteResolversBindingInitialization(IOutputTypeInfo type, ILocalTypeLookup typeLookup)
@@ -109,8 +114,10 @@ public sealed class ObjectTypeFileBuilder(StringBuilder sb) : TypeFileBuilderBas
         {
             if (objectType.NodeResolver.RequiresParameterBindings)
             {
-                WriteResolverBindingInitialization(objectType.NodeResolver, typeLookup);
+                WriteResolverBindingInitialization(objectType.NodeResolver);
             }
+
+            WriteIsSelectedInitialization(objectType.NodeResolver);
         }
     }
 

@@ -25,7 +25,7 @@ public sealed class RequestMiddlewareParameterInfo(
         }
 
         return Kind == other.Kind
-            && TypeName == other.TypeName
+            && string.Equals(TypeName, other.TypeName, StringComparison.Ordinal)
             && IsNullable == other.IsNullable;
     }
 

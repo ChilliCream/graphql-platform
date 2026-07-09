@@ -9,6 +9,7 @@ using HotChocolate.Types.Helpers;
 using HotChocolate.Utilities;
 using static System.Reflection.BindingFlags;
 using static HotChocolate.Properties.TypeResources;
+using ThrowHelper = HotChocolate.Utilities.ThrowHelper;
 
 namespace HotChocolate.Types.Descriptors;
 
@@ -29,8 +30,7 @@ public class ObjectFieldDescriptor
     {
         Configuration.Name = fieldName;
         Configuration.ResultType = typeof(object);
-        Configuration.IsParallelExecutable =
-            context.Options.DefaultResolverStrategy is ExecutionStrategy.Parallel;
+        Configuration.IsParallelExecutable = context.Options.DefaultResolverStrategy is ExecutionStrategy.Parallel;
     }
 
     /// <summary>
@@ -45,30 +45,46 @@ public class ObjectFieldDescriptor
     {
         var naming = context.Naming;
         Configuration.Member = member ?? throw new ArgumentNullException(nameof(member));
+        Configuration.DeclaringType = member.ReflectedType ?? member.DeclaringType;
         Configuration.Name = naming.GetMemberName(member, MemberKind.ObjectField);
         Configuration.Description = naming.GetMemberDescription(member, MemberKind.ObjectField);
-        Configuration.Type = context.TypeInspector.GetOutputReturnTypeRef(member);
         Configuration.SourceType = sourceType;
-        Configuration.ResolverType = resolverType == sourceType
-            ? null
-            : resolverType;
-        Configuration.IsParallelExecutable =
-            context.Options.DefaultResolverStrategy is ExecutionStrategy.Parallel;
+        Configuration.ResolverType = resolverType == sourceType ? null : resolverType;
+        Configuration.IsParallelExecutable = context.Options.DefaultResolverStrategy is ExecutionStrategy.Parallel;
 
         if (naming.IsDeprecated(member, out var reason))
         {
             Deprecated(reason);
         }
 
-        if (member is MethodInfo m)
+        switch (member)
         {
-            _parameterInfos = m.GetParameters();
-            Parameters = _parameterInfos.ToDictionary(t => t.Name!, StringComparer.Ordinal);
-            Configuration.ResultType = m.ReturnType;
-        }
-        else if (member is PropertyInfo p)
-        {
-            Configuration.ResultType = p.PropertyType;
+            case MethodInfo m:
+                _parameterInfos = context.TypeInspector.GetParameters(m);
+                Parameters = _parameterInfos.ToDictionary(t => t.Name!, StringComparer.Ordinal);
+                if (m.IsDefined(typeof(BatchResolverAttribute)))
+                {
+                    Configuration.SetBatchResolverFlags();
+                    var elementType = BatchResolverCompiler.GetListElementType(m.ReturnType)
+                        ?? throw ThrowHelper.BatchResolver_ReturnTypeMustBeList(m);
+                    Configuration.ResultType = elementType;
+                    Configuration.Type = context.TypeInspector.GetTypeRef(elementType, TypeContext.Output);
+                }
+                else
+                {
+                    Configuration.ResultType = m.ReturnType;
+                    Configuration.Type = context.TypeInspector.GetOutputReturnTypeRef(member);
+                }
+                break;
+
+            case PropertyInfo p:
+                Configuration.ResultType = p.PropertyType;
+                Configuration.Type = context.TypeInspector.GetOutputReturnTypeRef(member);
+                break;
+
+            default:
+                Configuration.Type = context.TypeInspector.GetOutputReturnTypeRef(member);
+                break;
         }
     }
 
@@ -85,14 +101,14 @@ public class ObjectFieldDescriptor
         Configuration.Expression = expression ?? throw new ArgumentNullException(nameof(expression));
         Configuration.SourceType = sourceType;
         Configuration.ResolverType = resolverType;
-        Configuration.IsParallelExecutable =
-            context.Options.DefaultResolverStrategy is ExecutionStrategy.Parallel;
+        Configuration.IsParallelExecutable = context.Options.DefaultResolverStrategy is ExecutionStrategy.Parallel;
 
         var member = expression.TryExtractCallMember();
 
         if (member is not null)
         {
             var naming = context.Naming;
+            Configuration.DeclaringType = member.ReflectedType ?? member.DeclaringType;
             Configuration.Name = naming.GetMemberName(member, MemberKind.ObjectField);
             Configuration.Description = naming.GetMemberDescription(member, MemberKind.ObjectField);
             Configuration.Type = context.TypeInspector.GetOutputReturnTypeRef(member);
@@ -102,13 +118,26 @@ public class ObjectFieldDescriptor
                 Deprecated(reason);
             }
 
-            if (member is MethodInfo m)
+            switch (member)
             {
-                Configuration.ResultType = m.ReturnType;
-            }
-            else if (member is PropertyInfo p)
-            {
-                Configuration.ResultType = p.PropertyType;
+                case MethodInfo m:
+                    if (m.IsDefined(typeof(BatchResolverAttribute)))
+                    {
+                        Configuration.SetBatchResolverFlags();
+                        var elementType = BatchResolverCompiler.GetListElementType(m.ReturnType)
+                            ?? throw ThrowHelper.BatchResolver_ReturnTypeMustBeList(m);
+                        Configuration.Type = context.TypeInspector.GetTypeRef(elementType, TypeContext.Output);
+                        Configuration.ResultType = elementType;
+                    }
+                    else
+                    {
+                        Configuration.ResultType = m.ReturnType;
+                    }
+                    break;
+
+                case PropertyInfo p:
+                    Configuration.ResultType = p.PropertyType;
+                    break;
             }
         }
         else
@@ -138,10 +167,14 @@ public class ObjectFieldDescriptor
 
         var member = definition.ResolverMember ?? definition.Member;
 
-        if (!Configuration.AttributesAreApplied && member is not null)
+        if (!Configuration.ConfigurationsAreApplied)
         {
-            Context.TypeInspector.ApplyAttributes(Context, this, member);
-            Configuration.AttributesAreApplied = true;
+            DescriptorAttributeHelper.ApplyConfiguration(
+                Context,
+                this,
+                member);
+
+            Configuration.ConfigurationsAreApplied = true;
         }
 
         base.OnCreateConfiguration(definition);
@@ -166,13 +199,15 @@ public class ObjectFieldDescriptor
             {
                 var ownerType = definition.ResolverType ?? definition.SourceType;
 
+#pragma warning disable IL2075 // 'this' argument does not satisfy 'DynamicallyAccessedMembersAttribute' - ownerType is obtained from runtime configuration which cannot be statically annotated.
                 var subscribeMember = ownerType?.GetMember(
                     definition.SubscribeWith,
                     Public | NonPublic | Instance | Static)[0];
+#pragma warning restore IL2075
 
                 if (subscribeMember is MethodInfo subscribeMethod)
                 {
-                    var subscribeParameters = subscribeMethod.GetParameters();
+                    var subscribeParameters = Context.TypeInspector.GetParameters(subscribeMethod);
                     var parameterLength = _parameterInfos.Length + subscribeParameters.Length;
                     var parameters = new ParameterInfo[parameterLength];
 
@@ -188,10 +223,7 @@ public class ObjectFieldDescriptor
 
                     foreach (var parameter in subscribeParameters)
                     {
-                        if (!parameterLookup.ContainsKey(parameter.Name!))
-                        {
-                            parameterLookup.Add(parameter.Name!, parameter);
-                        }
+                        parameterLookup.TryAdd(parameter.Name!, parameter);
                     }
                 }
             }
@@ -205,26 +237,12 @@ public class ObjectFieldDescriptor
                 FieldDescriptorUtilities.DiscoverArguments(
                     Context,
                     definition.Arguments,
-                    definition.Member,
+                    definition.ResolverMember ?? definition.Member,
                     _parameterInfos,
-                    definition.GetParameterExpressionBuilders());
+                    definition.GetParameterExpressionBuilders(),
+                    IsBatchResolver());
 
-                foreach (var parameter in _parameterInfos)
-                {
-                    if (!parameter.IsDefined(typeof(ParentAttribute)))
-                    {
-                        continue;
-                    }
-
-                    var requirements = parameter.GetCustomAttribute<ParentAttribute>()?.Requires;
-                    if (!(requirements?.Length > 0))
-                    {
-                        continue;
-                    }
-
-                    Configuration.Flags |= CoreFieldFlags.WithRequirements;
-                    Configuration.Features.Set(new FieldRequirementFeature(requirements, parameter.ParameterType));
-                }
+                FieldDescriptorUtilities.DiscoverParentRequirements(_parameterInfos, Configuration);
             }
 
             _argumentsInitialized = true;
@@ -340,7 +358,7 @@ public class ObjectFieldDescriptor
             {
                 var resultTypeDef = resultType.GetGenericTypeDefinition();
 
-                var clrResultType = resultTypeDef == typeof(NativeType<>)
+                var clrResultType = resultTypeDef == typeof(NamedRuntimeType<>)
                     ? resultType.GetGenericArguments()[0]
                     : resultType;
 
@@ -371,6 +389,15 @@ public class ObjectFieldDescriptor
         return ResolveWithInternal(propertyOrMethod, propertyOrMethod.DeclaringType);
     }
 
+    /// <inheritdoc />
+    public IObjectFieldDescriptor ResolveWith(Delegate @delegate)
+    {
+        ArgumentNullException.ThrowIfNull(@delegate);
+
+        var method = @delegate.Method;
+        return ResolveWithInternal(method, method.IsStatic ? null : method.DeclaringType);
+    }
+
     private IObjectFieldDescriptor ResolveWithInternal(
         MemberInfo propertyOrMethod,
         Type? resolverType)
@@ -392,12 +419,18 @@ public class ObjectFieldDescriptor
 
             Configuration.ResolverType = resolverType;
             Configuration.ResolverMember = propertyOrMethod;
+            Configuration.DeclaringType = propertyOrMethod.ReflectedType ?? propertyOrMethod.DeclaringType;
             Configuration.Resolver = null;
             Configuration.ResultType = propertyOrMethod.GetReturnType();
 
+            if (Configuration.Member is not null)
+            {
+                Configuration.Flags |= CoreFieldFlags.MemberReplacement;
+            }
+
             if (propertyOrMethod is MethodInfo m)
             {
-                _parameterInfos = m.GetParameters();
+                _parameterInfos = Context.TypeInspector.GetParameters(m);
                 Parameters = _parameterInfos.ToDictionary(t => t.Name!, StringComparer.Ordinal);
             }
 
@@ -422,6 +455,104 @@ public class ObjectFieldDescriptor
         ArgumentNullException.ThrowIfNull(middleware);
 
         Configuration.MiddlewareConfigurations.Add(new(middleware));
+        return this;
+    }
+
+    /// <inheritdoc />
+    public IObjectFieldDescriptor ResolveBatch(BatchResolverDelegate batchResolver)
+    {
+        ArgumentNullException.ThrowIfNull(batchResolver);
+
+        Configuration.BatchResolver =
+            async contexts =>
+            {
+                var results = await batchResolver(contexts).ConfigureAwait(false);
+
+                if (results.Count != contexts.Length)
+                {
+                    throw ThrowHelper.BatchResolver_ResultCountMismatch(contexts.Length, results.Count);
+                }
+
+                for (var i = 0; i < contexts.Length; i++)
+                {
+                    var result = results[i];
+
+                    if (result.IsError)
+                    {
+                        contexts[i].ReportError(result.Error!);
+                        contexts[i].Result = null;
+                    }
+                    else
+                    {
+                        contexts[i].Result = result.Value;
+                    }
+                }
+            };
+        return this;
+    }
+
+    /// <inheritdoc />
+    public IObjectFieldDescriptor ResolveBatchWith<TResolver>(
+        Expression<Func<TResolver, object?>> propertyOrMethod)
+    {
+        ArgumentNullException.ThrowIfNull(propertyOrMethod);
+
+        return ResolveBatchWithInternal(propertyOrMethod.ExtractMember(), typeof(TResolver));
+    }
+
+    /// <inheritdoc />
+    public IObjectFieldDescriptor ResolveBatchWith(MemberInfo propertyOrMethod)
+    {
+        ArgumentNullException.ThrowIfNull(propertyOrMethod);
+
+        return ResolveBatchWithInternal(propertyOrMethod, propertyOrMethod.DeclaringType);
+    }
+
+    private IObjectFieldDescriptor ResolveBatchWithInternal(
+        MemberInfo propertyOrMethod,
+        Type? resolverType)
+    {
+        if (resolverType?.IsAbstract is true)
+        {
+            throw new ArgumentException(
+                string.Format(
+                    ObjectTypeDescriptor_ResolveWith_NonAbstract,
+                    resolverType.FullName),
+                nameof(resolverType));
+        }
+
+        if (propertyOrMethod is not MethodInfo method)
+        {
+            throw new ArgumentException(
+                ObjectTypeDescriptor_MustBePropertyOrMethod,
+                nameof(propertyOrMethod));
+        }
+
+        var elementType = BatchResolverCompiler.GetListElementType(method.ReturnType)
+            ?? throw ThrowHelper.BatchResolver_ReturnTypeMustBeList(method);
+
+        Configuration.SetBatchResolverFlags();
+        Configuration.SetMoreSpecificType(
+            Context.TypeInspector.GetType(elementType),
+            TypeContext.Output);
+        Configuration.ResolverType = resolverType;
+        Configuration.ResolverMember = propertyOrMethod;
+        Configuration.DeclaringType = propertyOrMethod.ReflectedType ?? propertyOrMethod.DeclaringType;
+        Configuration.Resolver = null;
+        Configuration.ResultType = elementType;
+
+        _parameterInfos = Context.TypeInspector.GetParameters(method);
+        Parameters = _parameterInfos.ToDictionary(t => t.Name!, StringComparer.Ordinal);
+
+        return this;
+    }
+
+    /// <inheritdoc />
+    public IObjectFieldDescriptor UseBatch(BatchFieldMiddleware middleware)
+    {
+        ArgumentNullException.ThrowIfNull(middleware);
+
+        Configuration.BatchMiddlewareConfigurations.Add(new BatchFieldMiddlewareConfiguration(middleware));
         return this;
     }
 
@@ -457,31 +588,18 @@ public class ObjectFieldDescriptor
     /// <inheritdoc />
     public IObjectFieldDescriptor ParentRequires<TParent>(string? requires)
     {
-        if (!(requires?.Length > 0))
-        {
-            Configuration.Flags &= ~CoreFieldFlags.WithRequirements;
-            Configuration.Features.Set<FieldRequirementFeature>(null);
-            return this;
-        }
-
-        Configuration.Flags |= CoreFieldFlags.WithRequirements;
-        Configuration.Features.Set(new FieldRequirementFeature(requires, typeof(TParent)));
+        Configuration.SetFieldRequirements(requires, typeof(TParent));
         return this;
     }
 
     public IObjectFieldDescriptor ParentRequires(string? requires)
     {
-        if (!(requires?.Length > 0))
-        {
-            Configuration.Flags &= ~CoreFieldFlags.WithRequirements;
-            Configuration.Features.Set<FieldRequirementFeature>(null);
-            return this;
-        }
-
-        Configuration.Flags |= CoreFieldFlags.WithRequirements;
-        Configuration.Features.Set(new FieldRequirementFeature(requires, Configuration.SourceType));
+        Configuration.SetFieldRequirements(requires, Configuration.SourceType);
         return this;
     }
+
+    private bool IsBatchResolver()
+        => (Configuration.Flags & CoreFieldFlags.BatchResolver) == CoreFieldFlags.BatchResolver;
 
     /// <summary>
     /// Creates a new instance of <see cref="ObjectFieldDescriptor"/>
@@ -501,7 +619,7 @@ public class ObjectFieldDescriptor
     /// <param name="member">The member this field represents</param>
     /// <param name="sourceType">The type of the member</param>
     /// <param name="resolverType">The resolved type</param>
-    /// <returns></returns>
+    /// <returns>A new <see cref="ObjectFieldDescriptor"/>.</returns>
     public static ObjectFieldDescriptor New(
         IDescriptorContext context,
         MemberInfo member,
@@ -516,7 +634,7 @@ public class ObjectFieldDescriptor
     /// <param name="expression">The expression this field is based on</param>
     /// <param name="sourceType">The type of the member</param>
     /// <param name="resolverType">The resolved type</param>
-    /// <returns></returns>
+    /// <returns>A new <see cref="ObjectFieldDescriptor"/>.</returns>
     public static ObjectFieldDescriptor New(
         IDescriptorContext context,
         LambdaExpression expression,
@@ -529,7 +647,7 @@ public class ObjectFieldDescriptor
     /// </summary>
     /// <param name="context">The descriptor context</param>
     /// <param name="definition">The definition of the field</param>
-    /// <returns></returns>
+    /// <returns>A new <see cref="ObjectFieldDescriptor"/>.</returns>
     public static ObjectFieldDescriptor From(
         IDescriptorContext context,
         ObjectFieldConfiguration definition)
@@ -551,6 +669,9 @@ public class ObjectFieldDescriptor
 
             switch (expression)
             {
+                case UnaryExpression { NodeType: ExpressionType.Convert } unaryExpr:
+                    return ProcessExpression(unaryExpr.Operand);
+
                 case MemberExpression memberExpr:
                     var parent = ProcessExpression(memberExpr.Expression);
                     return string.IsNullOrEmpty(parent)

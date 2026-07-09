@@ -1,0 +1,18 @@
+[
+  {
+    "Name": "get_with_non_nullable_variables",
+    "Title": "Get With Non Nullable Variables",
+    "Description": "GetWithNonNullableVariables description",
+    "Meta": {
+      "ui": {
+        "resourceUri": "ui://views/get-with-non-nullable-variables-A3466F8D1004DE6FF9F8786180799B3534129EE7ABD562AA77F9973EEC4D2898.html"
+      }
+    }
+  },
+  {
+    "Name": "get_with_nullable_variables",
+    "Title": "Get With Nullable Variables",
+    "Description": "GetWithNullableVariables description",
+    "Meta": null
+  }
+]

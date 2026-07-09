@@ -1,120 +1,113 @@
+using System.Text.Json;
+using HotChocolate.Features;
 using HotChocolate.Fusion.Language;
-using HotChocolate.Language;
+using HotChocolate.Text.Json;
+using static HotChocolate.Utilities.ThrowHelper;
+using StringValueNode = HotChocolate.Language.StringValueNode;
 
 namespace HotChocolate.Types.Composite;
 
+/// <summary>
+/// A scalar type that represents a field selection map used in GraphQL Fusion.
+/// This type parses and serializes field selection syntax as strings.
+/// </summary>
 public sealed class FieldSelectionMapType : ScalarType<IValueSelectionNode, StringValueNode>
 {
+    /// <summary>
+    /// Initializes a new instance of the <see cref="FieldSelectionMapType"/> class
+    /// with the default name "FieldSelectionMap".
+    /// </summary>
     public FieldSelectionMapType() : this("FieldSelectionMap")
     {
     }
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="FieldSelectionMapType"/> class.
+    /// </summary>
+    /// <param name="name">
+    /// The name that this scalar shall have.
+    /// </param>
+    /// <param name="bind">
+    /// Defines the binding behavior of this scalar type.
+    /// </param>
     public FieldSelectionMapType(string name, BindingBehavior bind = BindingBehavior.Explicit)
         : base(name, bind)
     {
     }
 
     /// <inheritdoc />
-    protected override IValueSelectionNode ParseLiteral(StringValueNode valueSyntax)
+    protected override bool ApplySerializeAsToScalars => false;
+
+    /// <inheritdoc />
+    protected override IValueSelectionNode OnCoerceInputLiteral(StringValueNode valueLiteral)
     {
+        if (string.IsNullOrEmpty(valueLiteral.Value))
+        {
+            throw Scalar_Cannot_CoerceInputLiteral(this, valueLiteral);
+        }
+
         try
         {
-            return ParseValueSelection(valueSyntax.Value);
+            return ParseValueSelection(valueLiteral.Value);
         }
-        catch (SyntaxException)
+        catch (FieldSelectionMapSyntaxException ex)
         {
-            throw new SchemaException(
-                SchemaErrorBuilder.New()
-                    .SetMessage("The field selection set syntax is invalid.")
-                    .Build());
+            throw Scalar_Cannot_CoerceInputLiteral(this, valueLiteral, ex);
         }
     }
 
     /// <inheritdoc />
-    protected override StringValueNode ParseValue(IValueSelectionNode runtimeValue)
-        => new(FormatValueSelection(runtimeValue));
-
-    /// <inheritdoc />
-    public override IValueNode ParseResult(object? resultValue)
+    protected override IValueSelectionNode OnCoerceInputValue(JsonElement inputValue, IFeatureProvider context)
     {
-        if (resultValue is null)
+        var sourceText = inputValue.GetString();
+
+        if (string.IsNullOrEmpty(sourceText))
         {
-            return NullValueNode.Default;
+            throw Scalar_Cannot_CoerceInputValue(this, inputValue);
         }
 
-        if (resultValue is string s)
+        try
         {
-            return new StringValueNode(s);
+            return ParseValueSelection(sourceText);
         }
-
-        if (resultValue is IValueSelectionNode valueSelection)
+        catch (FieldSelectionMapSyntaxException ex)
         {
-            return new StringValueNode(FormatValueSelection(valueSelection));
+            throw Scalar_Cannot_CoerceInputValue(this, inputValue, ex);
         }
-
-        throw new SerializationException(
-            ErrorBuilder.New()
-                .SetMessage("The field selection set syntax is invalid.")
-                .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
-                .Build(),
-            this);
     }
 
     /// <inheritdoc />
-    public override bool TrySerialize(object? runtimeValue, out object? resultValue)
-    {
-        if (runtimeValue is null)
-        {
-            resultValue = null;
-            return true;
-        }
-
-        if (runtimeValue is IValueSelectionNode valueSelection)
-        {
-            resultValue = FormatValueSelection(valueSelection);
-            return true;
-        }
-
-        resultValue = null;
-        return false;
-    }
+    protected override void OnCoerceOutputValue(IValueSelectionNode runtimeValue, ResultElement resultValue)
+        => resultValue.SetStringValue(FormatValueSelection(runtimeValue));
 
     /// <inheritdoc />
-    public override bool TryDeserialize(object? resultValue, out object? runtimeValue)
-    {
-        if (resultValue is null)
-        {
-            runtimeValue = null;
-            return true;
-        }
+    protected override StringValueNode OnValueToLiteral(IValueSelectionNode runtimeValue)
+        => new StringValueNode(FormatValueSelection(runtimeValue));
 
-        if (resultValue is IValueSelectionNode valueSelection)
-        {
-            runtimeValue = valueSelection;
-            return true;
-        }
-
-        if (resultValue is string serializedValueSelection)
-        {
-            try
-            {
-                runtimeValue = ParseValueSelection(serializedValueSelection);
-                return true;
-            }
-            catch (SyntaxException)
-            {
-                runtimeValue = null;
-                return false;
-            }
-        }
-
-        runtimeValue = null;
-        return false;
-    }
-
-    internal static IValueSelectionNode ParseValueSelection(string sourceText)
+    /// <summary>
+    /// Parses a field selection map from a string representation.
+    /// </summary>
+    /// <param name="sourceText">
+    /// The source text containing the field selection syntax.
+    /// </param>
+    /// <returns>
+    /// An <see cref="IValueSelectionNode"/> representing the parsed field selection.
+    /// </returns>
+    /// <exception cref="FieldSelectionMapSyntaxException">
+    /// Thrown when the source text contains invalid field selection syntax.
+    /// </exception>
+    private static IValueSelectionNode ParseValueSelection(string sourceText)
         => FieldSelectionMapParser.Parse(sourceText);
 
+    /// <summary>
+    /// Formats a field selection node into its string representation.
+    /// </summary>
+    /// <param name="valueSelection">
+    /// The value selection node to format.
+    /// </param>
+    /// <returns>
+    /// A string representation of the field selection.
+    /// </returns>
     private static string FormatValueSelection(IValueSelectionNode valueSelection)
         => valueSelection.ToString();
 }

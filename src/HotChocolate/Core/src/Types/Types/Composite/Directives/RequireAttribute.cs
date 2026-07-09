@@ -35,17 +35,16 @@ public class RequireAttribute : ArgumentDescriptorAttribute
     /// </summary>
     public string? Field { get; }
 
-    protected override void OnConfigure(
-        IDescriptorContext context,
+    protected override void OnConfigure(IDescriptorContext context,
         IArgumentDescriptor descriptor,
-        ParameterInfo parameter)
+        ParameterInfo? parameter)
     {
         var field = Field;
 
         if (string.IsNullOrEmpty(field))
         {
             // todo : this works only for leafs, we need to validate this.
-            field = context.Naming.GetArgumentName(parameter);
+            field = descriptor.Extend().Configuration.Name;
         }
 
         descriptor.Require(field);

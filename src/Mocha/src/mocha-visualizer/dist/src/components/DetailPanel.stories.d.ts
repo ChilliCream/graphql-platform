@@ -1,0 +1,15 @@
+import { Meta, StoryObj } from "@storybook/react";
+import { DetailPanel } from "./DetailPanel";
+declare const meta: Meta<typeof DetailPanel>;
+export default meta;
+type Story = StoryObj<typeof DetailPanel>;
+export declare const ConsumerNode: Story;
+export declare const EndpointNode: Story;
+export declare const EntityNode: Story;
+export declare const RouteNode: Story;
+export declare const SagaNode: Story;
+export declare const Closed: Story;
+export declare const BindingNode: Story;
+export declare const EntityNoProps: Story;
+export declare const NoFullData: Story;
+export declare const MessageNode: Story;

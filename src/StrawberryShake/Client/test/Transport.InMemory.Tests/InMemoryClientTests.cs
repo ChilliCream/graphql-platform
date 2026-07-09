@@ -46,7 +46,9 @@ public class InMemoryClientTests
 
         // act
         var ex =
-            await Record.ExceptionAsync(async () => await client.ExecuteAsync(null!));
+            await Record.ExceptionAsync(async () => await client.ExecuteAsync(
+                null!,
+                TestContext.Current.CancellationToken));
 
         // assert
         Assert.IsType<ArgumentNullException>(ex);
@@ -63,7 +65,7 @@ public class InMemoryClientTests
         // act
         var ex =
             await Record.ExceptionAsync(async () =>
-                await client.ExecuteAsync(operationRequest));
+                await client.ExecuteAsync(operationRequest, TestContext.Current.CancellationToken));
 
         // assert
         Assert.IsType<GraphQLClientException>(ex);
@@ -74,19 +76,18 @@ public class InMemoryClientTests
     {
         // arrange
         var client = new InMemoryClient("Foo");
-        var variables = new Dictionary<string, object?>();
-        var operationRequest = new OperationRequest("foo", new StubDocument(), variables);
+        var operationRequest = new OperationRequest("foo", new StubDocument(), new Dictionary<string, object?>());
         var executor = new StubExecutor();
         client.Executor = executor;
 
         // act
-        await client.ExecuteAsync(operationRequest);
+        await client.ExecuteAsync(operationRequest, TestContext.Current.CancellationToken);
 
         // assert
         var request = Assert.IsType<HotChocolate.Execution.OperationRequest>(executor.Request);
         Assert.Equal(operationRequest.Name, request.OperationName);
-        Assert.Equal(variables, request.VariableValues);
         Assert.Equal("{ foo }", Encoding.UTF8.GetString(request.Document!.AsSpan()));
+        request.VariableValues?.Document.MatchInlineSnapshot("{}");
     }
 
     [Fact]
@@ -109,7 +110,7 @@ public class InMemoryClientTests
                     It.IsAny<CancellationToken>()));
 
         // act
-        await client.ExecuteAsync(operationRequest);
+        await client.ExecuteAsync(operationRequest, TestContext.Current.CancellationToken);
 
         // assert
         interceptorMock
@@ -204,7 +205,7 @@ public class InMemoryClientTests
     {
         public OperationKind Kind => OperationKind.Query;
 
-        public ReadOnlySpan<byte> Body => Encoding.UTF8.GetBytes("{ foo }");
+        public ReadOnlySpan<byte> Body => "{ foo }"u8;
 
         public DocumentHash Hash { get; } = new("MD5", "ABC");
     }

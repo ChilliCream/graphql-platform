@@ -34,10 +34,8 @@ public class DataLoaderTests
                                 .GetRequiredService<IDataLoaderScope>()
                                 .GetDataLoader<TestDataLoader>(_ => throw new Exception());
 
-                        context.Result = OperationResultBuilder
-                            .FromResult((IOperationResult)context.Result!)
-                            .AddExtension("loads", dataLoader.Loads)
-                            .Build();
+                        var result = context.Result.ExpectOperationResult();
+                        result.Extensions = result.Extensions.SetItem("loads", dataLoader.Loads);
                     })
                 .UseDefaultPipeline());
 
@@ -47,33 +45,42 @@ public class DataLoaderTests
             await executor.ExecuteAsync(
                 OperationRequestBuilder.New()
                     .SetDocument(
-                        @"{
-                            a: withDataLoader(key: ""a"")
-                            b: withDataLoader(key: ""b"")
+                        """
+                        {
+                            a: withDataLoader(key: "a")
+                            b: withDataLoader(key: "b")
                             bar {
-                                c: withDataLoader(key: ""c"")
+                                c: withDataLoader(key: "c")
                             }
-                        }")
-                    .Build()));
+                        }
+                        """)
+                    .Build(),
+                TestContext.Current.CancellationToken));
         snapshot.Add(
             await executor.ExecuteAsync(
                 OperationRequestBuilder.New()
                     .SetDocument(
-                        @"{
-                            a: withDataLoader(key: ""a"")
-                        }")
-                    .Build()));
+                        """
+                        {
+                            a: withDataLoader(key: "a")
+                        }
+                        """)
+                    .Build(),
+                TestContext.Current.CancellationToken));
         snapshot.Add(
             await executor.ExecuteAsync(
                 OperationRequestBuilder.New()
                     .SetDocument(
-                        @"{
-                            c: withDataLoader(key: ""c"")
-                        }")
-                    .Build()));
+                        """
+                        {
+                            c: withDataLoader(key: "c")
+                        }
+                        """)
+                    .Build(),
+                TestContext.Current.CancellationToken));
 
         // assert
-        await snapshot.MatchMarkdownAsync();
+        await snapshot.MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -95,10 +102,8 @@ public class DataLoaderTests
                             .GetRequiredService<IDataLoaderScope>()
                             .GetDataLoader<TestDataLoader>(_ => throw new Exception());
 
-                    context.Result = OperationResultBuilder
-                        .FromResult((IOperationResult)context.Result!)
-                        .AddExtension("loads", dataLoader.Loads)
-                        .Build();
+                    var result = context.Result.ExpectOperationResult();
+                    result.Extensions = result.Extensions.SetItem("loads", dataLoader.Loads);
                 })
             .UseDefaultPipeline()
             .Services
@@ -107,7 +112,7 @@ public class DataLoaderTests
         // act
         using var serviceScope = services.CreateScope();
         var dataLoader = serviceScope.ServiceProvider.GetRequiredService<ITestDataLoader>();
-        var result = await dataLoader.LoadAsync("a");
+        var result = await dataLoader.LoadAsync("a", TestContext.Current.CancellationToken);
         Assert.Equal("a", result);
     }
 
@@ -130,10 +135,8 @@ public class DataLoaderTests
                             .GetRequiredService<IDataLoaderScope>()
                             .GetDataLoader<TestDataLoader>(_ => throw new Exception());
 
-                    context.Result = OperationResultBuilder
-                        .FromResult((IOperationResult)context.Result!)
-                        .AddExtension("loads", dataLoader.Loads)
-                        .Build();
+                    var result = context.Result.ExpectOperationResult();
+                    result.Extensions = result.Extensions.SetItem("loads", dataLoader.Loads);
                 })
             .UseDefaultPipeline()
             .Services
@@ -145,7 +148,7 @@ public class DataLoaderTests
         dataLoaderScopeFactory.BeginScope();
 
         var dataLoader = serviceScope.ServiceProvider.GetRequiredService<ITestDataLoader>();
-        var result = await dataLoader.LoadAsync("a");
+        var result = await dataLoader.LoadAsync("a", TestContext.Current.CancellationToken);
         Assert.Equal("a", result);
     }
 
@@ -168,10 +171,8 @@ public class DataLoaderTests
                             .GetRequiredService<IDataLoaderScope>()
                             .GetDataLoader<TestDataLoader>(_ => throw new Exception());
 
-                    context.Result = OperationResultBuilder
-                        .FromResult((IOperationResult)context.Result!)
-                        .AddExtension("loads", dataLoader.Loads)
-                        .Build();
+                    var result = context.Result.ExpectOperationResult();
+                    result.Extensions = result.Extensions.SetItem("loads", dataLoader.Loads);
                 })
             .UseDefaultPipeline()
             .Services
@@ -180,11 +181,11 @@ public class DataLoaderTests
         // act
         using var serviceScope = services.CreateScope();
         var dataLoader = serviceScope.ServiceProvider.GetRequiredService<ITestDataLoader>();
-        var result = await dataLoader.LoadAsync("a");
+        var result = await dataLoader.LoadAsync("a", TestContext.Current.CancellationToken);
         Assert.Equal("a", result);
     }
 
-    [LocalFact]
+    [Fact]
     public async Task StackedDataLoader()
     {
         var snapshot = new Snapshot();
@@ -201,32 +202,41 @@ public class DataLoaderTests
             await executor.ExecuteAsync(
                 OperationRequestBuilder.New()
                     .SetDocument(
-                        @"{
-                            a: withStackedDataLoader(key: ""a"")
-                            b: withStackedDataLoader(key: ""b"")
-                        }")
-                    .Build()));
+                        """
+                        {
+                            a: withStackedDataLoader(key: "a")
+                            b: withStackedDataLoader(key: "b")
+                        }
+                        """)
+                    .Build(),
+                TestContext.Current.CancellationToken));
 
         snapshot.Add(
             await executor.ExecuteAsync(
                 OperationRequestBuilder.New()
                     .SetDocument(
-                        @"{
-                            a: withStackedDataLoader(key: ""a"")
-                        }")
-                    .Build()));
+                        """
+                        {
+                            a: withStackedDataLoader(key: "a")
+                        }
+                        """)
+                    .Build(),
+                TestContext.Current.CancellationToken));
 
         snapshot.Add(
             await executor.ExecuteAsync(
                 OperationRequestBuilder.New()
                     .SetDocument(
-                        @"{
-                            c: withStackedDataLoader(key: ""c"")
-                        }")
-                    .Build()));
+                        """
+                        {
+                            c: withStackedDataLoader(key: "c")
+                        }
+                        """)
+                    .Build(),
+                TestContext.Current.CancellationToken));
 
         // assert
-        await snapshot.MatchMarkdownAsync();
+        await snapshot.MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -247,10 +257,8 @@ public class DataLoaderTests
 
                         var dataLoader = (TestDataLoader)context.RequestServices.GetRequiredService<ITestDataLoader>();
 
-                        context.Result = OperationResultBuilder
-                            .FromResult(((IOperationResult)context.Result!))
-                            .AddExtension("loads", dataLoader.Loads)
-                            .Build();
+                        var result = context.Result.ExpectOperationResult();
+                        result.Extensions = result.Extensions.SetItem("loads", dataLoader.Loads);
                     })
                 .UseDefaultPipeline());
 
@@ -259,32 +267,41 @@ public class DataLoaderTests
             await executor.ExecuteAsync(
                 OperationRequestBuilder.New()
                     .SetDocument(
-                        @"{
-                            a: dataLoaderWithInterface(key: ""a"")
-                            b: dataLoaderWithInterface(key: ""b"")
-                        }")
-                    .Build()));
+                        """
+                        {
+                            a: dataLoaderWithInterface(key: "a")
+                            b: dataLoaderWithInterface(key: "b")
+                        }
+                        """)
+                    .Build(),
+                TestContext.Current.CancellationToken));
 
         snapshot.Add(
             await executor.ExecuteAsync(
                 OperationRequestBuilder.New()
                     .SetDocument(
-                        @"{
-                            a: dataLoaderWithInterface(key: ""a"")
-                        }")
-                    .Build()));
+                        """
+                        {
+                            a: dataLoaderWithInterface(key: "a")
+                        }
+                        """)
+                    .Build(),
+                TestContext.Current.CancellationToken));
 
         snapshot.Add(
             await executor.ExecuteAsync(
                 OperationRequestBuilder.New()
                     .SetDocument(
-                        @"{
-                            c: dataLoaderWithInterface(key: ""c"")
-                        }")
-                    .Build()));
+                        """
+                        {
+                            c: dataLoaderWithInterface(key: "c")
+                        }
+                        """)
+                    .Build(),
+                TestContext.Current.CancellationToken));
 
         // assert
-        await snapshot.MatchMarkdownAsync();
+        await snapshot.MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -308,10 +325,8 @@ public class DataLoaderTests
 
                         var dataLoader = (TestDataLoader)context.RequestServices.GetRequiredService<ITestDataLoader>();
 
-                        context.Result = OperationResultBuilder
-                            .FromResult((IOperationResult)context.Result!)
-                            .AddExtension("loads", dataLoader.Loads)
-                            .Build();
+                        var result = context.Result.ExpectOperationResult();
+                        result.Extensions = result.Extensions.SetItem("loads", dataLoader.Loads);
                     })
                 .UseDefaultPipeline());
 
@@ -320,39 +335,47 @@ public class DataLoaderTests
             await executor.ExecuteAsync(
                 OperationRequestBuilder.New()
                     .SetDocument(
-                        @"{
-                            a: dataLoaderWithInterface(key: ""a"")
-                            b: dataLoaderWithInterface(key: ""b"")
-                        }")
-                    .Build()));
+                        """
+                        {
+                            a: dataLoaderWithInterface(key: "a")
+                            b: dataLoaderWithInterface(key: "b")
+                        }
+                        """)
+                    .Build(),
+                TestContext.Current.CancellationToken));
 
         snapshot.Add(
             await executor.ExecuteAsync(
                 OperationRequestBuilder.New()
                     .SetDocument(
-                        @"{
-                            a: dataLoaderWithInterface(key: ""a"")
-                        }")
-                    .Build()));
+                        """
+                        {
+                            a: dataLoaderWithInterface(key: "a")
+                        }
+                        """)
+                    .Build(),
+                TestContext.Current.CancellationToken));
 
         snapshot.Add(
             await executor.ExecuteAsync(
                 OperationRequestBuilder.New()
                     .SetDocument(
-                        @"{
-                            c: dataLoaderWithInterface(key: ""c"")
-                        }")
-                    .Build()));
+                        """
+                        {
+                            c: dataLoaderWithInterface(key: "c")
+                        }
+                        """)
+                    .Build(),
+                TestContext.Current.CancellationToken));
 
         // assert
-        await snapshot.MatchMarkdownAsync();
+        await snapshot.MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
-    [LocalFact]
+    [Fact]
     public async Task NestedDataLoader()
     {
         var snapshot = new Snapshot();
-        using var cts = new CancellationTokenSource(2000);
 
         snapshot.Add(
             await new ServiceCollection()
@@ -361,9 +384,11 @@ public class DataLoaderTests
                 .AddType<FooQueries>()
                 .AddDataLoader<FooDataLoader>()
                 .AddDataLoader<FooNestedDataLoader>()
-                .ExecuteRequestAsync("query Foo { foo { id field } }", cancellationToken: cts.Token));
+                .ExecuteRequestAsync(
+                    "query Foo { foo { id field } }",
+                    cancellationToken: TestContext.Current.CancellationToken));
 
-        await snapshot.MatchMarkdownAsync(cts.Token);
+        await snapshot.MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -378,7 +403,7 @@ public class DataLoaderTests
                 .AddMutationType<SerialMutation>()
                 .AddDataLoader<CustomDataLoader>()
                 .ModifyOptions(o => o.StrictValidation = false)
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         snapshot.Add(
             await executor.ExecuteAsync(
@@ -387,9 +412,10 @@ public class DataLoaderTests
                     a: doSomething(key: "a")
                     b: doSomething(key: "b")
                 }
-                """));
+                """,
+                cancellationToken: TestContext.Current.CancellationToken));
 
-        await snapshot.MatchMarkdownAsync();
+        await snapshot.MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]

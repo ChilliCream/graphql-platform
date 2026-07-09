@@ -19,6 +19,7 @@ public static class WellKnownAttributes
     public const string QueryAttribute = "HotChocolate.QueryAttribute";
     public const string MutationAttribute = "HotChocolate.MutationAttribute";
     public const string SubscriptionAttribute = "HotChocolate.SubscriptionAttribute";
+    public const string SubscribeAttribute = "HotChocolate.Types.SubscribeAttribute";
     public const string NodeResolverAttribute = "HotChocolate.Types.Relay.NodeResolverAttribute";
     public const string ParentAttribute = "HotChocolate.ParentAttribute";
     public const string EventMessageAttribute = "HotChocolate.EventMessageAttribute";
@@ -29,6 +30,17 @@ public static class WellKnownAttributes
     public const string GraphQLIgnoreAttribute = "HotChocolate.GraphQLIgnoreAttribute";
     public const string UseConnectionAttribute = "HotChocolate.Types.UseConnectionAttribute";
     public const string GraphQLNameAttribute = "HotChocolate.GraphQLNameAttribute";
+    public const string ShareableAttribute = "HotChocolate.Types.Composite.ShareableAttribute";
+    public const string InaccessibleAttribute = "HotChocolate.Types.Composite.InaccessibleAttribute";
+    public const string InternalAttribute = "HotChocolate.Types.Composite.InternalAttribute";
+    public const string RelayNodeResolverAttribute = "HotChocolate.Types.Relay.NodeResolverAttribute";
+    public const string LookupAttribute = "HotChocolate.Types.Composite.LookupAttribute";
+    public const string DescriptorAttribute = "HotChocolate.Types.DescriptorAttribute";
+    public const string GraphQLDeprecatedAttribute = "HotChocolate.GraphQLDeprecatedAttribute";
+    public const string ObsoleteAttribute = "System.ObsoleteAttribute";
+    public const string BatchResolverAttribute = "HotChocolate.Types.BatchResolverAttribute";
+    public const string GraphQLTypeAttribute = "HotChocolate.GraphQLTypeAttribute";
+    public const string IsSelectedAttribute = "HotChocolate.Types.IsSelectedAttribute";
 
     public static HashSet<string> BindAttributes { get; } =
     [

@@ -1,5 +1,5 @@
 using System.Buffers;
-using HotChocolate.Buffers;
+using System.IO.Pipelines;
 using HotChocolate.Execution;
 using static HotChocolate.Execution.ExecutionResultKind;
 
@@ -11,7 +11,7 @@ namespace HotChocolate.Transport.Formatters;
 /// </summary>
 public sealed class MultiPartResultFormatter : IExecutionResultFormatter
 {
-    private readonly IOperationResultFormatter _payloadFormatter;
+    private readonly JsonResultFormatter _payloadFormatter;
 
     /// <summary>
     /// Creates a new instance of <see cref="MultiPartResultFormatter" />.
@@ -27,46 +27,29 @@ public sealed class MultiPartResultFormatter : IExecutionResultFormatter
     /// <summary>
     /// Creates a new instance of <see cref="MultiPartResultFormatter" />.
     /// </summary>
-    /// <param name="operationResultFormatter">
+    /// <param name="jsonResultFormatter">
     /// The serializer that shall be used to serialize query results.
     /// </param>
     /// <exception cref="ArgumentNullException">
-    /// <paramref name="operationResultFormatter"/> is <c>null</c>.
+    /// <paramref name="jsonResultFormatter"/> is <c>null</c>.
     /// </exception>
-    public MultiPartResultFormatter(IOperationResultFormatter operationResultFormatter)
+    public MultiPartResultFormatter(JsonResultFormatter jsonResultFormatter)
     {
-        _payloadFormatter = operationResultFormatter ??
-            throw new ArgumentNullException(nameof(operationResultFormatter));
+        ArgumentNullException.ThrowIfNull(jsonResultFormatter);
+        _payloadFormatter = jsonResultFormatter;
     }
 
     /// <summary>
     /// Formats an <see cref="IExecutionResult"/> into a multipart stream.
     /// </summary>
-    /// <param name="result">
-    /// The result that shall be formatted.
-    /// </param>
-    /// <param name="outputStream">
-    /// The stream to which the result shall be written.
-    /// </param>
-    /// <param name="cancellationToken">
-    /// The cancellation token.
-    /// </param>
-    /// <returns>
-    /// A task representing the asynchronous operation.
-    /// </returns>
-    /// <exception cref="ArgumentNullException">
-    /// <paramref name="result"/> is <c>null</c>.
-    /// </exception>
-    /// <exception cref="NotSupportedException">
-    /// The formatter does not support the specified result.
-    /// </exception>
     public ValueTask FormatAsync(
         IExecutionResult result,
-        Stream outputStream,
+        PipeWriter writer,
+        ExecutionResultFormatFlags flags,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(result);
-        ArgumentNullException.ThrowIfNull(outputStream);
+        ArgumentNullException.ThrowIfNull(writer);
 
         if (result.Kind == SubscriptionResult)
         {
@@ -74,120 +57,169 @@ public sealed class MultiPartResultFormatter : IExecutionResultFormatter
                 "Subscriptions are not supported by this formatter.");
         }
 
+        var useIncrementalRfc1 = (flags & ExecutionResultFormatFlags.IncrementalRfc1) == ExecutionResultFormatFlags.IncrementalRfc1;
+
         return result switch
         {
-            IOperationResult operationResult
-                => FormatOperationResultAsync(operationResult, outputStream, cancellationToken),
+            OperationResult operationResult
+                => FormatOperationResultAsync(operationResult, writer, useIncrementalRfc1, cancellationToken),
             OperationResultBatch resultBatch
-                => FormatResultBatchAsync(resultBatch, outputStream, cancellationToken),
+                => FormatResultBatchAsync(resultBatch, writer, useIncrementalRfc1, cancellationToken),
             IResponseStream responseStream
-                => FormatResponseStreamAsync(responseStream, outputStream, cancellationToken),
+                => FormatResponseStreamAsync(
+                    responseStream,
+                    writer,
+                    useIncrementalRfc1,
+                    cancellationToken),
             _ => throw new NotSupportedException()
         };
     }
 
     private async ValueTask FormatOperationResultAsync(
-        IOperationResult result,
-        Stream outputStream,
+        OperationResult result,
+        PipeWriter writer,
+        bool useIncrementalRfc1,
         CancellationToken ct = default)
     {
-        using var buffer = new PooledArrayWriter();
-        MessageHelper.WriteNext(buffer);
+        OperationResultFormatterContext? formatContext = null;
+        try
+        {
+            MessageHelper.WriteNext(writer);
 
-        // First, we write the header of the part.
-        MessageHelper.WriteResultHeader(buffer);
+            // First, we write the header of the part.
+            MessageHelper.WriteResultHeader(writer);
 
-        // Next, we write the payload of the part.
-        MessageHelper.WritePayload(buffer, result, _payloadFormatter);
+            // Next, we write the payload of the part.
+            MessageHelper.WritePayload(
+                writer,
+                result,
+                _payloadFormatter,
+                useIncrementalRfc1,
+                ref formatContext);
 
-        // Last we write the end of the part.
-        MessageHelper.WriteEnd(buffer);
+            // Last we write the end of the part.
+            MessageHelper.WriteEnd(writer);
 
-        await outputStream.WriteAsync(buffer.WrittenMemory, ct).ConfigureAwait(false);
-        await outputStream.FlushAsync(ct).ConfigureAwait(false);
+            await writer.FlushAsync(ct).ConfigureAwait(false);
+        }
+        finally
+        {
+            formatContext?.Dispose();
+        }
     }
 
     private async ValueTask FormatResultBatchAsync(
         OperationResultBatch resultBatch,
-        Stream outputStream,
+        PipeWriter writer,
+        bool useIncrementalRfc1,
         CancellationToken ct = default)
     {
-        PooledArrayWriter? buffer = null;
         foreach (var result in resultBatch.Results)
         {
             switch (result)
             {
-                case IOperationResult operationResult:
-                    buffer ??= new PooledArrayWriter();
-                    MessageHelper.WriteNext(buffer);
-                    MessageHelper.WriteResultHeader(buffer);
-                    MessageHelper.WritePayload(buffer, operationResult, _payloadFormatter);
-                    MessageHelper.WriteEnd(buffer);
-                    await outputStream.WriteAsync(buffer.WrittenMemory, ct).ConfigureAwait(false);
-                    await outputStream.FlushAsync(ct).ConfigureAwait(false);
+                case OperationResult operationResult:
+                    try
+                    {
+                        OperationResultFormatterContext? formatContext = null;
+                        try
+                        {
+                            MessageHelper.WriteNext(writer);
+                            MessageHelper.WriteResultHeader(writer);
+                            MessageHelper.WritePayload(
+                                writer,
+                                operationResult,
+                                _payloadFormatter,
+                                useIncrementalRfc1,
+                                ref formatContext);
+                            MessageHelper.WriteEnd(writer);
+                            await writer.FlushAsync(ct).ConfigureAwait(false);
+                        }
+                        finally
+                        {
+                            formatContext?.Dispose();
+                        }
+                    }
+                    finally
+                    {
+                        await operationResult.DisposeAsync().ConfigureAwait(false);
+                    }
+
                     break;
 
                 case IResponseStream responseStream:
-                    await FormatResponseStreamAsync(responseStream, outputStream, ct).ConfigureAwait(false);
+                    await FormatResponseStreamAsync(
+                        responseStream,
+                        writer,
+                        useIncrementalRfc1,
+                        ct).ConfigureAwait(false);
                     break;
             }
         }
-
-        buffer?.Dispose();
     }
 
     private async ValueTask FormatResponseStreamAsync(
         IResponseStream responseStream,
-        Stream outputStream,
+        PipeWriter writer,
+        bool useIncrementalRfc1,
         CancellationToken ct = default)
     {
         // first, we create the iterator.
-        using var buffer = new PooledArrayWriter();
         await using var enumerator = responseStream.ReadResultsAsync().GetAsyncEnumerator(ct);
+        OperationResultFormatterContext? formatContext = null;
         var first = true;
 
-        while (await enumerator.MoveNextAsync().ConfigureAwait(false))
+        try
         {
-            try
+            while (await enumerator.MoveNextAsync().ConfigureAwait(false))
             {
-                buffer.Reset();
+                var current = enumerator.Current;
 
-                if (first || responseStream.Kind is not DeferredResult)
+                try
                 {
-                    MessageHelper.WriteNext(buffer);
-                    first = false;
+                    if (first || responseStream.Kind is not DeferredResult)
+                    {
+                        MessageHelper.WriteNext(writer);
+                        first = false;
+                    }
+
+                    // First, we write the header of the part.
+                    MessageHelper.WriteResultHeader(writer);
+
+                    // Next, we write the payload of the part.
+                    MessageHelper.WritePayload(
+                        writer,
+                        current,
+                        _payloadFormatter,
+                        useIncrementalRfc1,
+                        ref formatContext);
+
+                    if (responseStream.Kind is DeferredResult && (current.HasNext ?? false))
+                    {
+                        // If the result is a deferred result and has a next result, we need to
+                        // write a new part so that the client knows that there is more to come.
+                        MessageHelper.WriteNext(writer);
+                    }
+
+                    // Now we can write the part to the output stream and flush this chunk.
+                    await writer.FlushAsync(ct).ConfigureAwait(false);
                 }
-
-                // First, we write the header of the part.
-                MessageHelper.WriteResultHeader(buffer);
-
-                // Next, we write the payload of the part.
-                MessageHelper.WritePayload(buffer, enumerator.Current, _payloadFormatter);
-
-                if (responseStream.Kind is DeferredResult && (enumerator.Current.HasNext ?? false))
+                finally
                 {
-                    // If the result is a deferred result and has a next result, we need to
-                    // write a new part so that the client knows that there is more to come.
-                    MessageHelper.WriteNext(buffer);
+                    // The result objects use pooled memory, so we need to ensure that they
+                    // return the memory by disposing them.
+                    await current.DisposeAsync().ConfigureAwait(false);
                 }
-
-                // Now we can write the part to the output stream and flush this chunk.
-                await outputStream.WriteAsync(buffer.WrittenMemory, ct).ConfigureAwait(false);
-                await outputStream.FlushAsync(ct).ConfigureAwait(false);
             }
-            finally
-            {
-                // The result objects use pooled memory, so we need to ensure that they
-                // return the memory by disposing them.
-                await enumerator.Current.DisposeAsync().ConfigureAwait(false);
-            }
+        }
+        finally
+        {
+            formatContext?.Dispose();
         }
 
         // After all parts have been written, we need to write the final boundary.
-        buffer.Reset();
-        MessageHelper.WriteEnd(buffer);
-        await outputStream.WriteAsync(buffer.WrittenMemory, ct).ConfigureAwait(false);
-        await outputStream.FlushAsync(ct).ConfigureAwait(false);
+        MessageHelper.WriteEnd(writer);
+        await writer.FlushAsync(ct).ConfigureAwait(false);
     }
 
     private static class MessageHelper
@@ -212,9 +244,11 @@ public sealed class MultiPartResultFormatter : IExecutionResultFormatter
 
         public static void WritePayload(
             IBufferWriter<byte> writer,
-            IOperationResult result,
-            IOperationResultFormatter payloadFormatter)
-            => payloadFormatter.Format(result, writer);
+            OperationResult result,
+            JsonResultFormatter payloadFormatter,
+            bool useIncrementalRfc1,
+            ref OperationResultFormatterContext? context)
+            => payloadFormatter.Format(result, writer, useIncrementalRfc1, ref context);
 
         public static void WriteResultHeader(IBufferWriter<byte> writer)
         {

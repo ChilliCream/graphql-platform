@@ -1,27 +1,6 @@
 {
-  "Document": {
-    "SourceText": "{ foo }"
-  },
-  "DocumentId": {
-    "IsEmpty": true,
-    "Value": null
-  },
-  "DocumentHash": {
-    "Value": null,
-    "AlgorithmName": null,
-    "Format": "Base64",
-    "IsEmpty": true
-  },
-  "OperationName": null,
-  "ErrorHandlingMode": null,
-  "VariableValues": null,
-  "Extensions": null,
-  "ContextData": {
-    "HotChocolate.Execution.InitialValue": {
-      "a": "123"
-    }
-  },
-  "Features": [],
-  "Services": null,
-  "Flags": "AllowAll"
+  "document": "{ foo }",
+  "contextData": {
+    "HotChocolate.Execution.InitialValue": "[<>f__AnonymousType0`1]"
+  }
 }

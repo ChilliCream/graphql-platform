@@ -13,18 +13,20 @@ public class FilterContextParameterExpressionBuilderTests
             .AddGraphQL()
             .AddQueryType<Query>()
             .AddFiltering()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
-        const string query = @"
+        const string query =
+            // lang=graphql
+            """
             {
-                books(where: { title: { eq: ""test"" } }) {
+                books(where: { title: { eq: "test" } }) {
                     title
                 }
             }
-        ";
+            """;
 
-        await executor.ExecuteAsync(query);
+        await executor.ExecuteAsync(query, TestContext.Current.CancellationToken);
 
         // assert
         Assert.NotNull(Query.Context);

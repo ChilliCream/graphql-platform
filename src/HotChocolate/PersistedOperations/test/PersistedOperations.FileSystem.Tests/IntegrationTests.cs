@@ -16,7 +16,7 @@ public class IntegrationTests
         var cacheDirectory = IO.Path.GetTempPath();
         var cachedOperation = IO.Path.Combine(cacheDirectory, documentId + ".graphql");
 
-        await File.WriteAllTextAsync(cachedOperation, "{ __typename }");
+        await File.WriteAllTextAsync(cachedOperation, "{ __typename }", TestContext.Current.CancellationToken);
 
         var executor =
             await new ServiceCollection()
@@ -27,19 +27,19 @@ public class IntegrationTests
                 {
                     await n(c);
 
-                    if (c.IsPersistedOperationDocument() && c.Result is IOperationResult r)
+                    if (c.IsPersistedOperationDocument())
                     {
-                        c.Result = OperationResultBuilder
-                            .FromResult(r)
-                            .SetExtension("persistedDocument", true)
-                            .Build();
+                        var result = c.Result.ExpectOperationResult();
+                        result.Extensions = result.Extensions.SetItem("persistedDocument", true);
                     }
                 })
                 .UsePersistedOperationPipeline()
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
-        var result = await executor.ExecuteAsync(OperationRequest.FromId(documentId));
+        var result = await executor.ExecuteAsync(
+            OperationRequest.FromId(documentId),
+            TestContext.Current.CancellationToken);
 
         // assert
         File.Delete(cachedOperation);
@@ -54,7 +54,7 @@ public class IntegrationTests
         var cacheDirectory = IO.Path.GetTempPath();
         var cachedOperation = IO.Path.Combine(cacheDirectory, documentId + ".graphql");
 
-        await File.WriteAllTextAsync(cachedOperation, "{ __typename }");
+        await File.WriteAllTextAsync(cachedOperation, "{ __typename }", TestContext.Current.CancellationToken);
 
         var executor =
             await new ServiceCollection()
@@ -65,19 +65,19 @@ public class IntegrationTests
                 {
                     await n(c);
 
-                    if (c.IsPersistedOperationDocument() && c.Result is IOperationResult r)
+                    if (c.IsPersistedOperationDocument())
                     {
-                        c.Result = OperationResultBuilder
-                            .FromResult(r)
-                            .SetExtension("persistedDocument", true)
-                            .Build();
+                        var result = c.Result.ExpectOperationResult();
+                        result.Extensions = result.Extensions.SetItem("persistedDocument", true);
                     }
                 })
                 .UsePersistedOperationPipeline()
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
-        var result = await executor.ExecuteAsync(OperationRequest.FromId("does_not_exist"));
+        var result = await executor.ExecuteAsync(
+            OperationRequest.FromId("does_not_exist"),
+            TestContext.Current.CancellationToken);
 
         // assert
         File.Delete(cachedOperation);
@@ -100,24 +100,22 @@ public class IntegrationTests
                 {
                     await n(c);
 
-                    if (c.IsPersistedOperationDocument() && c.Result is IOperationResult r)
+                    if (c.IsPersistedOperationDocument())
                     {
-                        c.Result = OperationResultBuilder
-                            .FromResult(r)
-                            .SetExtension("persistedDocument", true)
-                            .Build();
+                        var result = c.Result.ExpectOperationResult();
+                        result.Extensions = result.Extensions.SetItem("persistedDocument", true);
                     }
                 })
                 .UseAutomaticPersistedOperationPipeline()
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
-            OperationRequest
-                .FromId(documentHash)
-                .WithDocument(new OperationDocument(Utf8GraphQLParser.Parse("{ __typename }")))
-                .WithDocumentHash(new OperationDocumentHash(documentHash, "MD5", HashFormat.Base64))
-                .WithExtensions(new Dictionary<string, object?>
+            OperationRequestBuilder.New()
+                .SetDocumentId(documentHash)
+                .SetDocument(Utf8GraphQLParser.Parse("{ __typename }"))
+                .SetDocumentHash(new OperationDocumentHash(documentHash, "MD5", HashFormat.Base64))
+                .SetExtensions(new Dictionary<string, object?>
                 {
                     {
                         "persistedQuery",
@@ -127,7 +125,9 @@ public class IntegrationTests
                             { "md5Hash", documentHash }
                         }
                     }
-                }));
+                })
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         File.Delete(IO.Path.Combine(cacheDirectory, documentHash + ".graphql"));
 

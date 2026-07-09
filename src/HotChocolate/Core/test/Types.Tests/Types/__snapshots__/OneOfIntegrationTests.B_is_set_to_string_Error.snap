@@ -4,8 +4,8 @@
       "message": "The specified value type of field `b` does not match the field type.",
       "locations": [
         {
-          "line": 1,
-          "column": 23
+          "line": 2,
+          "column": 25
         }
       ],
       "path": [
@@ -15,7 +15,7 @@
         "fieldName": "b",
         "fieldType": "Int",
         "locationType": "Int",
-        "specifiedBy": "https://spec.graphql.org/October2021/#sec-Values-of-Correct-Type"
+        "specifiedBy": "https://spec.graphql.org/September2025/#sec-Values-of-Correct-Type"
       }
     }
   ]

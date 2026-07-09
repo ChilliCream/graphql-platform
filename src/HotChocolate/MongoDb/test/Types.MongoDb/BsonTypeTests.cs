@@ -17,7 +17,7 @@ public class BsonTypeTests
             .AddGraphQL()
             .AddBsonType()
             .AddQueryType<OutputQuery>()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         executor.Schema.MatchSnapshot();
@@ -31,10 +31,10 @@ public class BsonTypeTests
             .AddGraphQL()
             .AddBsonType()
             .AddQueryType<OutputQuery>()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
-        var result = await executor.ExecuteAsync("{ document }");
+        var result = await executor.ExecuteAsync("{ document }", TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -59,31 +59,28 @@ public class BsonTypeTests
                             res = ctx.ArgumentValue<object>("val");
                             return "done";
                         }))
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         await executor.ExecuteAsync(
-            @"
-        {
-            in(val: {
-                  int32: 42,
-                  int64: 42,
-                  decimal: ""42.123456789123456789123456789"",
-                  double: 42.23,
-                  boolean: true,
-                  bsonArray: [
-                    false,
-                    true
-                  ],
-                  string: ""String"",
-                  null: null,
-                  nested: {
-                    int32: 42,
-                    int64: 42
-                  }
-                })
+            """
+            {
+                in(
+                    val: {
+                        int32: 42
+                        int64: 42
+                        decimal: "42.123456789123456789123456789"
+                        double: 42.23
+                        boolean: true
+                        bsonArray: [false, true]
+                        string: "String"
+                        null: null
+                        nested: { int32: 42, int64: 42 }
+                    }
+                )
             }
-        ");
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         Assert.IsType<BsonDocument>(res).ToString().MatchSnapshot();
@@ -108,7 +105,7 @@ public class BsonTypeTests
                             res = ctx.ArgumentValue<object>("val");
                             return "done";
                         }))
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         await executor.ExecuteAsync(
@@ -145,7 +142,7 @@ public class BsonTypeTests
                             res = ctx.ArgumentValue<object>("val");
                             return "done";
                         }))
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         await executor.ExecuteAsync(
@@ -180,10 +177,10 @@ public class BsonTypeTests
             .AddGraphQL()
             .AddBsonType()
             .AddQueryType<OutputQuery>()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
-        var result = await executor.ExecuteAsync($"{{ {fieldName} }}");
+        var result = await executor.ExecuteAsync($"{{ {fieldName} }}", TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot(fieldName);
@@ -191,18 +188,18 @@ public class BsonTypeTests
 
     [Theory]
     [InlineData("int", "42", typeof(BsonInt64))]
-    [InlineData("long", long.MaxValue, typeof(BsonInt64))]
+    [InlineData("long", "9223372036854775807", typeof(BsonInt64))]
     [InlineData(
         "decimal",
         "\"42.1234\"",
         typeof(BsonString))] // we do not know that it should be a BsonDecimal
-    [InlineData("double", 43.23, typeof(BsonDouble))]
-    [InlineData("boolean", true, typeof(BsonBoolean))]
+    [InlineData("double", "43.23", typeof(BsonDouble))]
+    [InlineData("boolean", "true", typeof(BsonBoolean))]
     [InlineData("array", "[true, false]", typeof(BsonArray))]
     [InlineData("string", "\"string\"", typeof(BsonString))]
     public async Task Input_Should_MatchSnapshotAndType_When_Passed(
         string fieldName,
-        object value,
+        string value,
         Type type)
     {
         // arrange
@@ -221,10 +218,10 @@ public class BsonTypeTests
                             res = ctx.ArgumentValue<object>("val");
                             return "done";
                         }))
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
-        await executor.ExecuteAsync($"{{ in(val:{value.ToString()!.ToLower()}) }}");
+        await executor.ExecuteAsync($"{{ in(val:{value}) }}", TestContext.Current.CancellationToken);
 
         // assert
         Assert.NotEqual("INVALID", res);
@@ -259,7 +256,7 @@ public class BsonTypeTests
                             res = ctx.ArgumentValue<object>("val");
                             return "done";
                         }))
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         await executor.ExecuteAsync(
@@ -276,38 +273,21 @@ public class BsonTypeTests
     }
 
     [Fact]
-    public async Task TrySerialize_Should_ReturnNull_When_CalledWithNull()
+    public async Task ValueToLiteral_Should_ReturnNullValueNode_When_CalledWithNull()
     {
         // arrange
         var type = (await new ServiceCollection()
             .AddGraphQL()
             .AddBsonType()
             .ModifyOptions(x => x.StrictValidation = false)
-            .BuildSchemaAsync()).Types.GetType<BsonType>("Bson");
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken))
+                .Types.GetType<BsonType>("Bson");
 
         // act
-        var serialize = type.TrySerialize(null, out var value);
+        var value = type.ValueToLiteral(null);
 
         // assert
-        Assert.True(serialize);
-        Assert.Null(value);
-    }
-
-    [Fact]
-    public async Task TrySerialize_Should_ReturnFalse_When_CalledWithNonBsonValue()
-    {
-        // arrange
-        var type = (await new ServiceCollection()
-            .AddGraphQL()
-            .AddBsonType()
-            .ModifyOptions(x => x.StrictValidation = false)
-            .BuildSchemaAsync()).Types.GetType<BsonType>("Bson");
-
-        // act
-        var result = type.TrySerialize("Failes", out _);
-
-        // assert
-        Assert.False(result);
+        Assert.IsType<NullValueNode>(value);
     }
 
     [Fact]
@@ -326,7 +306,7 @@ public class BsonTypeTests
         var executor = schema.MakeExecutable();
 
         // act
-        var result = await executor.ExecuteAsync("{ foo }");
+        var result = await executor.ExecuteAsync("{ foo }", TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -348,7 +328,7 @@ public class BsonTypeTests
         var executor = schema.MakeExecutable();
 
         // act
-        var result = await executor.ExecuteAsync("{ foo }");
+        var result = await executor.ExecuteAsync("{ foo }", TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -372,7 +352,8 @@ public class BsonTypeTests
 
         // act
         var result = await executor.ExecuteAsync(
-            "{ foo(input: { a: \"foo\" }) }");
+            "{ foo(input: { a: \"foo\" }) }",
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -395,8 +376,7 @@ public class BsonTypeTests
         var executor = schema.MakeExecutable();
 
         // act
-        var result = await executor.ExecuteAsync(
-            "{ foo(input: [ \"foo\" ]) }");
+        var result = await executor.ExecuteAsync("{ foo(input: [\"foo\"]) }", TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -420,7 +400,8 @@ public class BsonTypeTests
 
         // act
         var result = await executor.ExecuteAsync(
-            "{ foo(input: [ { a: \"foo\" } ]) }");
+            "{ foo(input: [{ a: \"foo\" }]) }",
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -443,8 +424,7 @@ public class BsonTypeTests
         var executor = schema.MakeExecutable();
 
         // act
-        var result = await executor.ExecuteAsync(
-            "{ foo(input: \"foo\") }");
+        var result = await executor.ExecuteAsync("{ foo(input: \"foo\") }", TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -467,8 +447,7 @@ public class BsonTypeTests
         var executor = schema.MakeExecutable();
 
         // act
-        var result = await executor.ExecuteAsync(
-            "{ foo(input: 123) }");
+        var result = await executor.ExecuteAsync("{ foo(input: 123) }", TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -491,7 +470,7 @@ public class BsonTypeTests
         var executor = schema.MakeExecutable();
 
         // act
-        var result = await executor.ExecuteAsync("{ foo(input: 1.2) }");
+        var result = await executor.ExecuteAsync("{ foo(input: 1.2) }", TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -514,8 +493,7 @@ public class BsonTypeTests
         var executor = schema.MakeExecutable();
 
         // act
-        var result = await executor.ExecuteAsync(
-            "{ foo(input: true) }");
+        var result = await executor.ExecuteAsync("{ foo(input: true) }", TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -538,8 +516,7 @@ public class BsonTypeTests
         var executor = schema.MakeExecutable();
 
         // act
-        var result = await executor.ExecuteAsync(
-            "{ foo(input: null) }");
+        var result = await executor.ExecuteAsync("{ foo(input: null) }", TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -566,11 +543,13 @@ public class BsonTypeTests
             OperationRequestBuilder.New()
                 .SetDocument("query ($foo: Bson) { foo(input: $foo) }")
                 .SetVariableValues(
-                    new Dictionary<string, object?>
+                    """
                     {
-                        { "foo", new List<object> { "abc" } }
-                    })
-                .Build());
+                      "foo": ["abc"]
+                    }
+                    """)
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -597,14 +576,17 @@ public class BsonTypeTests
             OperationRequestBuilder.New()
                 .SetDocument("query ($foo: Bson) { foo(input: $foo) }")
                 .SetVariableValues(
-                    new Dictionary<string, object?>
+                    """
                     {
+                      "foo": [
                         {
-                            "foo",
-                            new List<object> { new Dictionary<string, object> { { "abc", "def" } } }
+                          "abc": "def"
                         }
-                    })
-                .Build());
+                      ]
+                    }
+                    """)
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -630,8 +612,14 @@ public class BsonTypeTests
         var result = await executor.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument("query ($foo: Bson) { foo(input: $foo) }")
-                .SetVariableValues(new Dictionary<string, object?> { { "foo", "bar" } })
-                .Build());
+                .SetVariableValues(
+                    """
+                    {
+                      "foo": "bar"
+                    }
+                    """)
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -657,8 +645,14 @@ public class BsonTypeTests
         var result = await executor.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument("query ($foo: Bson) { foo(input: $foo) }")
-                .SetVariableValues(new Dictionary<string, object?> { { "foo", 123 } })
-                .Build());
+                .SetVariableValues(
+                    """
+                    {
+                      "foo": 123
+                    }
+                    """)
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -684,8 +678,14 @@ public class BsonTypeTests
         var result = await executor.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument("query ($foo: Bson) { foo(input: $foo) }")
-                .SetVariableValues(new Dictionary<string, object?> { { "foo", 1.2 } })
-                .Build());
+                .SetVariableValues(
+                    """
+                    {
+                      "foo": 1.2
+                    }
+                    """)
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -702,7 +702,7 @@ public class BsonTypeTests
                     .Field("foo")
                     .Type<BsonType>()
                     .Argument("input", a => a.Type<BsonType>())
-                    .Resolve(ctx => ctx.ArgumentLiteral<ObjectValueNode>("input")))
+                    .Resolve(ctx => ctx.ArgumentValue<object>("input")))
             .Create();
 
         var executor = schema.MakeExecutable();
@@ -712,11 +712,15 @@ public class BsonTypeTests
             OperationRequestBuilder.New()
                 .SetDocument("query ($foo: Bson) { foo(input: $foo) }")
                 .SetVariableValues(
-                    new Dictionary<string, object?>
+                    """
                     {
-                        { "foo", new BsonDocument { { "a", "b" } } }
-                    })
-                .Build());
+                      "foo": {
+                        "a": "b"
+                      }
+                    }
+                    """)
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -742,8 +746,14 @@ public class BsonTypeTests
         var result = await executor.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument("query ($foo: Bson) { foo(input: $foo) }")
-                .SetVariableValues(new Dictionary<string, object?> { { "foo", false } })
-                .Build());
+                .SetVariableValues(
+                    """
+                    {
+                      "foo": false
+                    }
+                    """)
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -769,8 +779,14 @@ public class BsonTypeTests
         var result = await executor.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument("query ($foo: Bson) { foo(input: $foo) }")
-                .SetVariableValues(new Dictionary<string, object?> { { "foo", null } })
-                .Build());
+                .SetVariableValues(
+                    """
+                    {
+                      "foo": null
+                    }
+                    """)
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -793,7 +809,7 @@ public class BsonTypeTests
         var type = schema.Types.GetType<BsonType>("Bson");
 
         // act
-        var result = type.IsInstanceOfType(new EnumValueNode("foo"));
+        var result = type.IsValueCompatible(new EnumValueNode("foo"));
 
         // assert
         Assert.False(result);
@@ -816,7 +832,7 @@ public class BsonTypeTests
         var type = schema.Types.GetType<BsonType>("Bson");
 
         // act
-        var result = type.IsInstanceOfType(new ObjectValueNode([]));
+        var result = type.IsValueCompatible(new ObjectValueNode([]));
 
         // assert
         Assert.True(result);
@@ -839,7 +855,7 @@ public class BsonTypeTests
         var type = schema.Types.GetType<BsonType>("Bson");
 
         // act
-        var result = type.IsInstanceOfType(new ListValueNode([]));
+        var result = type.IsValueCompatible(new ListValueNode([]));
 
         // assert
         Assert.True(result);
@@ -862,7 +878,7 @@ public class BsonTypeTests
         var type = schema.Types.GetType<BsonType>("Bson");
 
         // act
-        var result = type.IsInstanceOfType(new StringValueNode("foo"));
+        var result = type.IsValueCompatible(new StringValueNode("foo"));
 
         // assert
         Assert.True(result);
@@ -885,7 +901,7 @@ public class BsonTypeTests
         var type = schema.Types.GetType<BsonType>("Bson");
 
         // act
-        var result = type.IsInstanceOfType(new IntValueNode(123));
+        var result = type.IsValueCompatible(new IntValueNode(123));
 
         // assert
         Assert.True(result);
@@ -908,7 +924,7 @@ public class BsonTypeTests
         var type = schema.Types.GetType<BsonType>("Bson");
 
         // act
-        var result = type.IsInstanceOfType(new FloatValueNode(1.2));
+        var result = type.IsValueCompatible(new FloatValueNode(1.2));
 
         // assert
         Assert.True(result);
@@ -931,7 +947,7 @@ public class BsonTypeTests
         var type = schema.Types.GetType<BsonType>("Bson");
 
         // act
-        var result = type.IsInstanceOfType(new BooleanValueNode(true));
+        var result = type.IsValueCompatible(new BooleanValueNode(true));
 
         // assert
         Assert.True(result);
@@ -954,10 +970,10 @@ public class BsonTypeTests
         var type = schema.Types.GetType<BsonType>("Bson");
 
         // act
-        var result = type.IsInstanceOfType(NullValueNode.Default);
+        var result = type.IsValueCompatible(NullValueNode.Default);
 
         // assert
-        Assert.True(result);
+        Assert.False(result);
     }
 
     [Fact]
@@ -977,7 +993,7 @@ public class BsonTypeTests
         var type = schema.Types.GetType<BsonType>("Bson");
 
         // act
-        void Action() => type.IsInstanceOfType(null!);
+        void Action() => type.IsValueCompatible(null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(Action);
@@ -992,7 +1008,7 @@ public class BsonTypeTests
     [InlineData(true, typeof(BooleanValueNode))]
     [InlineData(false, typeof(BooleanValueNode))]
     [Theory]
-    public void ParseValue_ScalarValues(object value, Type expectedType)
+    public void ValueToLiteral_ScalarValues(object value, Type expectedType)
     {
         // arrange
         var schema = SchemaBuilder.New()
@@ -1008,14 +1024,14 @@ public class BsonTypeTests
         var type = schema.Types.GetType<BsonType>("Bson");
 
         // act
-        var literal = type.ParseValue(value);
+        var literal = type.ValueToLiteral(value);
 
         // assert
         Assert.IsType(expectedType, literal);
     }
 
     [Fact]
-    public void ParseValue_Decimal()
+    public void ValueToLiteral_Decimal()
     {
         // arrange
         var schema = SchemaBuilder.New()
@@ -1031,14 +1047,14 @@ public class BsonTypeTests
         var type = schema.Types.GetType<BsonType>("Bson");
 
         // act
-        var literal = type.ParseValue((decimal)1);
+        var literal = type.ValueToLiteral((decimal)1);
 
         // assert
         Assert.IsType<StringValueNode>(literal);
     }
 
     [Fact]
-    public void ParseValue_List_Of_Object()
+    public void ValueToLiteral_List_Of_Object()
     {
         // arrange
         var schema = SchemaBuilder.New()
@@ -1054,14 +1070,14 @@ public class BsonTypeTests
         var type = schema.Types.GetType<BsonType>("Bson");
 
         // act
-        var literal = type.ParseValue(new List<object>());
+        var literal = type.ValueToLiteral(new List<object>());
 
         // assert
         Assert.IsType<ListValueNode>(literal);
     }
 
     [Fact]
-    public void ParseValue_List_Of_String()
+    public void ValueToLiteral_List_Of_String()
     {
         // arrange
         var schema = SchemaBuilder.New()
@@ -1077,14 +1093,14 @@ public class BsonTypeTests
         var type = schema.Types.GetType<BsonType>("Bson");
 
         // act
-        var literal = type.ParseValue(new List<string>());
+        var literal = type.ValueToLiteral(new List<string>());
 
         // assert
         Assert.IsType<ListValueNode>(literal);
     }
 
     [Fact]
-    public void ParseValue_List_Of_Foo()
+    public void ValueToLiteral_List_Of_Foo()
     {
         // arrange
         var schema = SchemaBuilder.New()
@@ -1100,14 +1116,14 @@ public class BsonTypeTests
         var type = schema.Types.GetType<BsonType>("Bson");
 
         // act
-        var literal = type.ParseValue(new List<Foo>());
+        var literal = type.ValueToLiteral(new List<Foo>());
 
         // assert
         Assert.IsType<ListValueNode>(literal);
     }
 
     [Fact]
-    public void ParseValue_Dictionary()
+    public void ValueToLiteral_Dictionary()
     {
         // arrange
         var schema = SchemaBuilder.New()
@@ -1123,7 +1139,7 @@ public class BsonTypeTests
         var type = schema.Types.GetType<BsonType>("Bson");
 
         // act
-        var literal = type.ParseValue(
+        var literal = type.ValueToLiteral(
             new Dictionary<string, object>());
 
         // assert
@@ -1131,7 +1147,7 @@ public class BsonTypeTests
     }
 
     [Fact]
-    public void Deserialize_ValueNode()
+    public void CoerceInputLiteral_ValueNode()
     {
         // arrange
         var schema = SchemaBuilder.New()
@@ -1147,14 +1163,14 @@ public class BsonTypeTests
         var type = schema.Types.GetType<BsonType>("Bson");
 
         // act
-        var value = type.Deserialize(new StringValueNode("Foo"));
+        var value = type.CoerceInputLiteral(new StringValueNode("Foo"));
 
         // assert
         Assert.Equal("Foo", Assert.IsType<BsonString>(value).Value);
     }
 
     [Fact]
-    public void Deserialize_Dictionary()
+    public void CoerceInputLiteral_ObjectValueNode()
     {
         // arrange
         var schema = SchemaBuilder.New()
@@ -1169,20 +1185,18 @@ public class BsonTypeTests
 
         var type = schema.Types.GetType<BsonType>("Bson");
 
-        var toDeserialize = new Dictionary<string, object>
-        {
-            { "Foo", new StringValueNode("Bar") }
-        };
+        var toDeserialize = new ObjectValueNode(
+            new ObjectFieldNode("Foo", new StringValueNode("Bar")));
 
         // act
-        var value = type.Deserialize(toDeserialize);
+        var value = type.CoerceInputLiteral(toDeserialize);
 
         // assert
         Assert.Equal("Bar", Assert.IsType<BsonDocument>(value)["Foo"]);
     }
 
     [Fact]
-    public void Deserialize_NestedDictionary()
+    public void CoerceInputLiteral_NestedObjectValueNode()
     {
         // arrange
         var schema = SchemaBuilder.New()
@@ -1197,13 +1211,13 @@ public class BsonTypeTests
 
         var type = schema.Types.GetType<BsonType>("Bson");
 
-        var toDeserialize = new Dictionary<string, object>
-        {
-            { "Foo", new Dictionary<string, object> { { "Bar", new StringValueNode("Baz") } } }
-        };
+        var toDeserialize = new ObjectValueNode(
+            new ObjectFieldNode("Foo",
+                new ObjectValueNode(
+                    new ObjectFieldNode("Bar", new StringValueNode("Baz")))));
 
         // act
-        var value = type.Deserialize(toDeserialize);
+        var value = type.CoerceInputLiteral(toDeserialize);
 
         // assert
         var innerDictionary = Assert.IsType<BsonDocument>(value)["Foo"];
@@ -1211,7 +1225,7 @@ public class BsonTypeTests
     }
 
     [Fact]
-    public void Deserialize_List()
+    public void CoerceInputLiteral_ListValueNode()
     {
         // arrange
         var schema = SchemaBuilder.New()
@@ -1225,11 +1239,12 @@ public class BsonTypeTests
             .Create();
 
         var type = schema.Types.GetType<BsonType>("Bson");
-        var toDeserialize =
-            new List<object> { new StringValueNode("Foo"), new StringValueNode("Bar") };
+        var toDeserialize = new ListValueNode(
+            new StringValueNode("Foo"),
+            new StringValueNode("Bar"));
 
         // act
-        var value = type.Deserialize(toDeserialize);
+        var value = type.CoerceInputLiteral(toDeserialize);
 
         // assert
         Assert.Collection(
@@ -1317,7 +1332,7 @@ public class BsonTypeTests
                 ]),
             ["String"] = new BsonString("String"),
             ["Null"] = BsonNull.Value,
-            ["Nested"] = new BsonDocument()
+            ["Nested"] = new BsonDocument
             {
                 ["Int32"] = new BsonInt32(42),
                 ["Int64"] = new BsonInt64(42)

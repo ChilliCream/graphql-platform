@@ -6,6 +6,7 @@
     <RootNamespace>HotChocolate.Authorization</RootNamespace>
     <Description>This package contains the authorization abstractions for Hot Chocolate.</Description>
     <NoWarn>HC8001;$(NoWarn)</NoWarn>
+    <IsAotCompatible>true</IsAotCompatible>
   </PropertyGroup>
 
   <ItemGroup>
@@ -14,7 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\Core\src\Execution\HotChocolate.Execution.csproj" />
+    <ProjectReference Include="..\..\..\Core\src\Types\HotChocolate.Types.csproj" />
   </ItemGroup>
 
   <ItemGroup>

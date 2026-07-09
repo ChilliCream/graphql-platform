@@ -1,0 +1,121 @@
+#if !NET9_0_OR_GREATER
+using System.Diagnostics.CodeAnalysis;
+#endif
+using System.Text;
+using ChilliCream.Nitro.Client;
+using ChilliCream.Nitro.Client.FusionConfiguration;
+using ChilliCream.Nitro.CommandLine.Helpers;
+using ChilliCream.Nitro.CommandLine.Services;
+using ChilliCream.Nitro.CommandLine.Services.Sessions;
+using static ChilliCream.Nitro.CommandLine.ThrowHelper;
+
+namespace ChilliCream.Nitro.CommandLine.Commands.Fusion;
+
+#if !NET9_0_OR_GREATER
+[RequiresDynamicCode("JSON serialization and deserialization might require types that cannot be statically analyzed and might need runtime code generation. Use System.Text.Json source generation for native AOT applications.")]
+[RequiresUnreferencedCode("JSON serialization and deserialization might require types that cannot be statically analyzed. Use the overload that takes a JsonTypeInfo or JsonSerializerContext, or make sure all of the required types are preserved.")]
+#endif
+internal sealed class FusionUploadCommand : Command
+{
+    public FusionUploadCommand() : base("upload")
+    {
+        Description = "Upload a source schema for a later composition.";
+
+        Options.Add(Opt<ApiIdOption>.Instance);
+        Options.Add(Opt<TagOption>.Instance);
+        Options.Add(Opt<SourceSchemaFileOption>.Instance);
+        Options.Add(Opt<WorkingDirectoryOption>.Instance);
+        Options.Add(Opt<OptionalSourceMetadataOption>.Instance);
+        this.AddGlobalNitroOptions();
+
+        this.AddExamples(
+            """
+            fusion upload \
+              --api-id "<api-id>" \
+              --tag "v1" \
+              --source-schema-file ./products/schema.graphqls
+            """);
+
+        this.SetActionWithExceptionHandling(ExecuteAsync);
+    }
+
+    private static async Task<int> ExecuteAsync(
+        ICommandServices services,
+        ParseResult parseResult,
+        CancellationToken cancellationToken)
+    {
+        var console = services.GetRequiredService<INitroConsole>();
+        var fusionConfigurationClient = services.GetRequiredService<IFusionConfigurationClient>();
+        var fileSystem = services.GetRequiredService<IFileSystem>();
+        var sessionService = services.GetRequiredService<ISessionService>();
+
+        parseResult.AssertHasAuthentication(sessionService);
+
+        var workingDirectory = parseResult.GetValue(Opt<WorkingDirectoryOption>.Instance)
+            ?? fileSystem.GetCurrentDirectory();
+        var sourceSchemaFile = parseResult.GetRequiredValue(Opt<SourceSchemaFileOption>.Instance);
+        var apiId = parseResult.GetRequiredValue(Opt<ApiIdOption>.Instance);
+        var tag = parseResult.GetRequiredValue(Opt<TagOption>.Instance);
+        var sourceMetadataJson = parseResult.GetValue(Opt<OptionalSourceMetadataOption>.Instance);
+        var source = SourceMetadataParser.Parse(sourceMetadataJson);
+
+        var (sourceSchemaName, sourceText, settings) = await FusionCompositionHelpers.ReadSourceSchemaAsync(
+            fileSystem,
+            workingDirectory,
+            sourceSchemaFile,
+            cancellationToken);
+
+        await using var activity = console.StartActivity(
+            $"Uploading new version '{tag.EscapeMarkup()}' for source schema '{sourceSchemaName.EscapeMarkup()}' of API '{apiId.EscapeMarkup()}'",
+            "Failed to upload a new source schema version.");
+
+        var schemaExtensions = sourceText.ExtensionsSourceText is null
+            ? default
+            : Encoding.UTF8.GetBytes(sourceText.ExtensionsSourceText);
+
+        await using var archiveStream = await FusionSourceSchemaArchiveHelper.CreateArchiveStreamAsync(
+            Encoding.UTF8.GetBytes(sourceText.SourceText),
+            settings,
+            schemaExtensions,
+            cancellationToken);
+
+        var result = await fusionConfigurationClient.UploadFusionSubgraphAsync(
+            apiId,
+            tag,
+            archiveStream,
+            source,
+            cancellationToken);
+
+        if (result.Errors?.Count > 0)
+        {
+            await activity.FailAllAsync();
+
+            foreach (var error in result.Errors)
+            {
+                var errorMessage = error switch
+                {
+                    IUnauthorizedOperation err => err.Message,
+                    IInvalidSourceMetadataInputError err => err.Message,
+                    IDuplicatedTagError err => err.Message,
+                    IConcurrentOperationError err => err.Message,
+                    IInvalidFusionSourceSchemaArchiveError err => Messages.InvalidArchive(err.Message),
+                    IError err => Messages.UnexpectedMutationError(err),
+                    _ => Messages.UnexpectedMutationError()
+                };
+
+                console.Error.WriteErrorLine(errorMessage);
+            }
+
+            return ExitCodes.Error;
+        }
+
+        if (string.IsNullOrWhiteSpace(result.FusionSubgraphVersion?.Id))
+        {
+            throw Exit("Upload of source schema failed.");
+        }
+
+        activity.Success($"Uploaded new source schema version '{tag.EscapeMarkup()}'.");
+
+        return ExitCodes.Success;
+    }
+}

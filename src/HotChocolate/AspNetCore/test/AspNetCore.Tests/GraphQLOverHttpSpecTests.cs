@@ -61,7 +61,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
         request.Content = JsonContent.Create(new ClientQueryRequest { Query = "{ __typename }" });
         AddAcceptHeader(request, acceptHeader);
 
-        using var response = await client.SendAsync(request);
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
 
         // assert
         Snapshot
@@ -91,15 +91,16 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
         request.Content = JsonContent.Create(new ClientQueryRequest { Query = "{ __typename }" });
         request.Headers.Add("Accept", acceptHeader);
 
-        using var response = await client.SendAsync(request);
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
 
         // assert
         Snapshot
             .Create()
             .Add(response)
             .MatchInline(
-                @"Headers:
-                Content-Type: multipart/mixed; boundary=""-""
+                """
+                Headers:
+                Content-Type: multipart/mixed; boundary="-"
                 -------------------------->
                 Status Code: OK
                 -------------------------->
@@ -107,9 +108,10 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
                 ---
                 Content-Type: application/json; charset=utf-8
 
-                {""data"":{""__typename"":""Query""}}
+                {"data":{"__typename":"Query"}}
                 -----
-                ");
+
+                """);
     }
 
     [Theory]
@@ -119,7 +121,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
     [InlineData("*/*", Legacy, OK, ContentType.Json)]
     [InlineData("application/*", Latest, BadRequest, ContentType.GraphQLResponse)]
     [InlineData("application/*", Legacy, OK, ContentType.Json)]
-    [InlineData(ContentType.Json, Latest, OK, ContentType.Json)]
+    [InlineData(ContentType.Json, Latest, BadRequest, ContentType.Json)]
     [InlineData(ContentType.Json, Legacy, OK, ContentType.Json)]
     [InlineData(ContentType.GraphQLResponse, Latest, BadRequest, ContentType.GraphQLResponse)]
     [InlineData(ContentType.GraphQLResponse, Legacy, BadRequest, ContentType.GraphQLResponse)]
@@ -143,20 +145,21 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
         };
         AddAcceptHeader(request, acceptHeader);
 
-        using var response = await client.SendAsync(request);
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
 
         // assert
         Snapshot
             .Create()
             .Add(response)
             .MatchInline(
-                @$"Headers:
-                Content-Type: {expectedContentType}
+                $$$"""
+                Headers:
+                Content-Type: {{{expectedContentType}}}
                 -------------------------->
-                Status Code: {expectedStatusCode}
+                Status Code: {{{expectedStatusCode}}}
                 -------------------------->
-                "
-                + @"{""errors"":[{""message"":""The GraphQL request is empty."",""extensions"":{""code"":""HC0009""}}]}");
+                {"errors":[{"message":"Invalid JSON document.","extensions":{"code":"HC0012"}}]}
+                """);
     }
 
     [Theory]
@@ -181,7 +184,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
         request.Content = JsonContent.Create(new ClientQueryRequest { Query = "{ __typ$ename }" });
         AddAcceptHeader(request, acceptHeader);
 
-        using var response = await client.SendAsync(request);
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
 
         // assert
         Snapshot
@@ -221,7 +224,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
         request.Content = JsonContent.Create(new ClientQueryRequest { Query = "{ __type name }" });
         AddAcceptHeader(request, acceptHeader);
 
-        using var response = await client.SendAsync(request);
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal(
@@ -242,21 +245,21 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
         request.Content = JsonContent.Create(new ClientQueryRequest { Query = "{ __typename }" });
         request.Headers.TryAddWithoutValidation("Accept", "unsupported");
 
-        using var response = await client.SendAsync(request);
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
 
         // assert
         Snapshot
             .Create()
             .Add(response)
             .MatchInline(
-                @"Headers:
+                """
+                Headers:
                 Content-Type: application/graphql-response+json; charset=utf-8
                 -------------------------->
                 Status Code: BadRequest
                 -------------------------->
-                {""errors"":[{""message"":""Unable to parse the accept header value "
-                + @"`unsupported`."",""extensions"":{""code"":""HC0064"","
-                + @"""headerValue"":""unsupported""}}]}");
+                {"errors":[{"message":"Unable to parse the accept header value `unsupported`.","extensions":{"code":"HC0064","headerValue":"unsupported"}}]}
+                """);
     }
 
     [Fact]
@@ -272,137 +275,21 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
 
         request.Headers.TryAddWithoutValidation("Accept", "application/unsupported");
 
-        using var response = await client.SendAsync(request);
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
 
         // assert
         Snapshot
             .Create()
             .Add(response)
             .MatchInline(
-                @"Headers:
+                """
+                Headers:
                 Content-Type: application/graphql-response+json; charset=utf-8
                 -------------------------->
                 Status Code: NotAcceptable
                 -------------------------->
-                {""errors"":[{""message"":""None of the `Accept` header values is supported."","
-                + @"""extensions"":{""code"":""HC0063""}}]}");
-    }
-
-    [Theory]
-    [InlineData(null)]
-    [InlineData("*/*")]
-    [InlineData("multipart/mixed")]
-    [InlineData("multipart/*")]
-    [InlineData("application/graphql-response+json, multipart/mixed")]
-    [InlineData("text/event-stream, multipart/mixed")]
-    public async Task DeferredQuery_Multipart(string? acceptHeader)
-    {
-        // arrange
-        var server = CreateStarWarsServer();
-        var client = server.CreateClient();
-
-        // act
-        using var request = new HttpRequestMessage(HttpMethod.Post, s_url);
-        request.Content = JsonContent.Create(new ClientQueryRequest { Query = "{ ... @defer { __typename } }" });
-        AddAcceptHeader(request, acceptHeader);
-
-        using var response = await client.SendAsync(request);
-
-        // assert
-        Snapshot
-            .Create()
-            .Add(response)
-            .MatchInline(
-                @"Headers:
-                Cache-Control: no-cache
-                Content-Type: multipart/mixed; boundary=""-""
-                -------------------------->
-                Status Code: OK
-                -------------------------->
-
-                ---
-                Content-Type: application/json; charset=utf-8
-
-                {""data"":{},""hasNext"":true}
-                ---
-                Content-Type: application/json; charset=utf-8
-
-                {""incremental"":[{""data"":{""__typename"":""Query""},"
-                + @"""path"":[]}],""hasNext"":false}
-                -----
-                ");
-    }
-
-    [Theory]
-    [InlineData("text/event-stream")]
-    [InlineData("application/graphql-response+json, text/event-stream")]
-    public async Task DeferredQuery_EventStream(string acceptHeader)
-    {
-        // arrange
-        var server = CreateStarWarsServer();
-        var client = server.CreateClient();
-
-        // act
-        using var request = new HttpRequestMessage(HttpMethod.Post, s_url);
-        request.Content = JsonContent.Create(
-            new ClientQueryRequest
-            {
-                Query = "{ ... @defer { __typename } }"
-            });
-        request.Headers.Add("Accept", acceptHeader);
-
-        using var response = await client.SendAsync(request, ResponseHeadersRead);
-
-        // assert
-        Snapshot
-            .Create()
-            .Add(response)
-            .MatchInline(
-                @"Headers:
-                Cache-Control: no-cache
-                Content-Type: text/event-stream; charset=utf-8
-                -------------------------->
-                Status Code: OK
-                -------------------------->
-                event: next
-                data: {""data"":{},""hasNext"":true}
-
-                event: next
-                data: {""incremental"":[{""data"":{""__typename"":""Query""},"
-                + @"""path"":[]}],""hasNext"":false}
-
-                event: complete
-
-                ");
-    }
-
-    [Fact]
-    public async Task DeferredQuery_NoStreamableAcceptHeader()
-    {
-        // arrange
-        var server = CreateStarWarsServer();
-        var client = server.CreateClient();
-
-        // act
-        using var request = new HttpRequestMessage(HttpMethod.Post, s_url);
-        request.Content = JsonContent.Create(new ClientQueryRequest { Query = "{ ... @defer { __typename } }" });
-        request.Headers.Add("Accept", ContentType.GraphQLResponse);
-
-        using var response = await client.SendAsync(request, ResponseHeadersRead);
-
-        // assert
-        // we are rejecting the request since we have a streamed result and
-        // the user requests a JSON payload.
-        Snapshot
-            .Create()
-            .Add(response)
-            .MatchInline(
-                @"Headers:
-                Content-Type: application/graphql-response+json; charset=utf-8
-                -------------------------->
-                Status Code: MethodNotAllowed
-                -------------------------->
-                {""errors"":[{""message"":""The specified operation kind is not allowed.""}]}");
+                {"errors":[{"message":"None of the `Accept` header values is supported.","extensions":{"code":"HC0063"}}]}
+                """);
     }
 
     [Fact]
@@ -422,7 +309,10 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
             });
         request.Headers.Add("Accept", "text/event-stream");
 
-        using var response = await client.SendAsync(request, ResponseHeadersRead);
+        using var response = await client.SendAsync(
+            request,
+            ResponseHeadersRead,
+            TestContext.Current.CancellationToken);
 
         // assert
         Snapshot
@@ -469,7 +359,10 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
             });
         request.Headers.Add("Accept", "*/*");
 
-        using var response = await client.SendAsync(request, ResponseHeadersRead);
+        using var response = await client.SendAsync(
+            request,
+            ResponseHeadersRead,
+            TestContext.Current.CancellationToken);
 
         // assert
         Snapshot
@@ -516,7 +409,10 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
             });
         request.Headers.Add("Accept", "*/*");
 
-        using var response = await client.SendAsync(request, ResponseHeadersRead);
+        using var response = await client.SendAsync(
+            request,
+            ResponseHeadersRead,
+            TestContext.Current.CancellationToken);
 
         // assert
         Snapshot
@@ -577,7 +473,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
             ]),
             new Uri("http://localhost:5000/graphql"));
 
-        using var response = await client.SendAsync(request);
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal(OK, response.StatusCode);
@@ -594,7 +490,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
             snapshot.Add(result);
         }
 
-        await snapshot.MatchMarkdownAsync();
+        await snapshot.MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -622,7 +518,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
                 ]),
             new Uri("http://localhost:5000/graphql"));
 
-        using var response = await client.SendAsync(request);
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal(OK, response.StatusCode);
@@ -632,7 +528,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
             snapshot.Add(result);
         }
 
-        await snapshot.MatchMarkdownAsync();
+        await snapshot.MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -647,10 +543,31 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
             new OperationRequest("{ error }"),
             new Uri("http://localhost:5000/notnull"));
 
-        using var response = await client.SendAsync(request);
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal(OK, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Unknown_OnError_Value_Returns_BadRequest()
+    {
+        // arrange
+        var client = GetClient(Latest);
+
+        // act
+        using var request = new HttpRequestMessage(HttpMethod.Post, s_url);
+        request.Content = new StringContent(
+            """{"query":"{ __typename }","onError":"HALT"}""",
+            System.Text.Encoding.UTF8,
+            "application/json");
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(BadRequest, response.StatusCode);
+        var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+        Assert.Contains("onError", body, StringComparison.OrdinalIgnoreCase);
     }
 
     private HttpClient GetClient(HttpTransportVersion serverTransportVersion)

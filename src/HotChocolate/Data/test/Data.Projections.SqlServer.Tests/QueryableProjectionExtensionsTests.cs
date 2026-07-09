@@ -23,14 +23,15 @@ public class QueryableProjectionExtensionsTests
             .AddGraphQL()
             .AddQueryType<Query>()
             .AddProjections()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var res1 = await executor.ExecuteAsync(
             OperationRequestBuilder
                 .New()
                 .SetDocument("{ shouldWork { bar baz }}")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         res1.MatchSnapshot();
@@ -51,13 +52,14 @@ public class QueryableProjectionExtensionsTests
             OperationRequestBuilder
                 .New()
                 .SetDocument("{ typeMismatch { bar baz }}")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
             .Create()
             .AddResult(res1)
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -75,13 +77,14 @@ public class QueryableProjectionExtensionsTests
             OperationRequestBuilder
                 .New()
                 .SetDocument("{ missingMiddleware { bar baz }}")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
             .Create()
             .AddResult(res1)
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     public class Query
@@ -125,16 +128,16 @@ public class QueryableProjectionExtensionsTests
         protected override void OnConfigure(
             IDescriptorContext context,
             IObjectFieldDescriptor descriptor,
-            MemberInfo member)
+            MemberInfo? member)
         {
-            descriptor.Use(next => context =>
+            descriptor.Use(static next => ctx =>
             {
-                context.LocalContextData =
-                    context.LocalContextData.SetItem(
+                ctx.LocalContextData =
+                    ctx.LocalContextData.SetItem(
                         QueryableProjectionProvider.ContextApplyProjectionKey,
                         CreateApplicatorAsync<Foo>());
 
-                return next(context);
+                return next(ctx);
             });
         }
 

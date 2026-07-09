@@ -27,7 +27,8 @@ public class IntegrationTests : IClassFixture<RedisResource>
 
         await storage.SaveAsync(
             documentId,
-            new OperationDocumentSourceText("{ __typename }"));
+            new OperationDocumentSourceText("{ __typename }"),
+            TestContext.Current.CancellationToken);
 
         var executor =
             await new ServiceCollection()
@@ -39,19 +40,20 @@ public class IntegrationTests : IClassFixture<RedisResource>
                     await n(c);
 
                     var documentInfo = c.OperationDocumentInfo;
-                    if (documentInfo.Id == documentId && c.Result is IOperationResult r)
+                    if (documentInfo.Id == documentId)
                     {
-                        c.Result = OperationResultBuilder
-                            .FromResult(r)
-                            .SetExtension("persistedDocument", true)
-                            .Build();
+                        var result = c.Result.ExpectOperationResult();
+                        var extensions = result.Extensions;
+                        result.Extensions = extensions.SetItem("persistedDocument", true);
                     }
                 })
                 .UsePersistedOperationPipeline()
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
-        var result = await executor.ExecuteAsync(OperationRequest.FromId(documentId));
+        var result = await executor.ExecuteAsync(
+            OperationRequest.FromId(documentId),
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -73,30 +75,34 @@ public class IntegrationTests : IClassFixture<RedisResource>
                     await n(c);
 
                     var documentInfo = c.OperationDocumentInfo;
-                    if (documentInfo.Id == documentId && c.Result is IOperationResult r)
+                    if (documentInfo.Id == documentId)
                     {
-                        c.Result = OperationResultBuilder
-                            .FromResult(r)
-                            .SetExtension("persistedDocument", true)
-                            .Build();
+                        var result = c.Result.ExpectOperationResult();
+                        var extensions = result.Extensions;
+                        result.Extensions = extensions.SetItem("persistedDocument", true);
                     }
                 })
                 .UsePersistedOperationPipeline()
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // ... write document to cache
         var cache = executor.Schema.Services.GetRequiredService<IOperationDocumentStorage>();
-        await cache.SaveAsync(documentId, new OperationDocumentSourceText("{ __typename }"));
+        await cache.SaveAsync(
+            documentId,
+            new OperationDocumentSourceText("{ __typename }"),
+            TestContext.Current.CancellationToken);
 
         // ... wait for document to expire
-        await Task.Delay(100);
+        await Task.Delay(100, TestContext.Current.CancellationToken);
 
         // act
-        var result = await executor.ExecuteAsync(OperationRequest.FromId(documentId));
+        var result = await executor.ExecuteAsync(
+            OperationRequest.FromId(documentId),
+            TestContext.Current.CancellationToken);
 
         // assert
         Assert.Collection(
-            result.ExpectOperationResult().Errors!,
+            result.ExpectOperationResult().Errors,
             error =>
             {
                 Assert.Equal("The specified persisted operation key is invalid.", error.Message);
@@ -110,7 +116,10 @@ public class IntegrationTests : IClassFixture<RedisResource>
         // arrange
         var documentId = new OperationDocumentId(Guid.NewGuid().ToString("N"));
         var storage = new RedisOperationDocumentStorage(_database, TimeSpan.FromMilliseconds(10000));
-        await storage.SaveAsync(documentId, new OperationDocumentSourceText("{ __typename }"));
+        await storage.SaveAsync(
+            documentId,
+            new OperationDocumentSourceText("{ __typename }"),
+            TestContext.Current.CancellationToken);
 
         var executor =
             await new ServiceCollection()
@@ -122,22 +131,23 @@ public class IntegrationTests : IClassFixture<RedisResource>
                     await n(c);
 
                     var documentInfo = c.OperationDocumentInfo;
-                    if (documentInfo.Id == documentId && c.Result is IOperationResult r)
+                    if (documentInfo.Id == documentId)
                     {
-                        c.Result = OperationResultBuilder
-                            .FromResult(r)
-                            .SetExtension("persistedDocument", true)
-                            .Build();
+                        var result = c.Result.ExpectOperationResult();
+                        var extensions = result.Extensions;
+                        result.Extensions = extensions.SetItem("persistedDocument", true);
                     }
                 })
                 .UsePersistedOperationPipeline()
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
-        var result = await executor.ExecuteAsync(OperationRequest.FromId(documentId));
+        var result = await executor.ExecuteAsync(
+            OperationRequest.FromId(documentId),
+            TestContext.Current.CancellationToken);
 
         // assert
-        Assert.Null(result.ExpectOperationResult().Errors);
+        Assert.Empty(result.ExpectOperationResult().Errors);
         result.MatchSnapshot();
     }
 
@@ -147,13 +157,17 @@ public class IntegrationTests : IClassFixture<RedisResource>
         // arrange
         var documentId = new OperationDocumentId(Guid.NewGuid().ToString("N"));
         var storage = new RedisOperationDocumentStorage(_database);
-        await storage.SaveAsync(documentId, new OperationDocumentSourceText("{ __typename }"));
+        await storage.SaveAsync(
+            documentId,
+            new OperationDocumentSourceText("{ __typename }"),
+            TestContext.Current.CancellationToken);
 
         var executor =
             await new ServiceCollection()
                 // we register the multiplexer on the application services
                 .AddSingleton(_multiplexer)
                 .AddGraphQL()
+                .AddApplicationService<IConnectionMultiplexer>()
                 .AddQueryType(c => c.Name("Query").Field("a").Resolve("b"))
                 // and in the redis storage setup refer to that instance.
                 .AddRedisOperationDocumentStorage(sp => sp.GetRequiredService<IConnectionMultiplexer>())
@@ -162,20 +176,20 @@ public class IntegrationTests : IClassFixture<RedisResource>
                     await n(c);
 
                     var documentInfo = c.OperationDocumentInfo;
-                    if (documentInfo.Id == documentId && c.Result is IOperationResult r)
+                    if (documentInfo.Id == documentId)
                     {
-                        c.Result = OperationResultBuilder
-                            .FromResult(r)
-                            .SetExtension("persistedDocument", true)
-                            .Build();
+                        var result = c.Result.ExpectOperationResult();
+                        var extensions = result.Extensions;
+                        result.Extensions = extensions.SetItem("persistedDocument", true);
                     }
                 })
                 .UsePersistedOperationPipeline()
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
-        var result =
-            await executor.ExecuteAsync(OperationRequest.FromId(documentId));
+        var result = await executor.ExecuteAsync(
+            OperationRequest.FromId(documentId),
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -187,7 +201,10 @@ public class IntegrationTests : IClassFixture<RedisResource>
         // arrange
         var documentId = new OperationDocumentId(Guid.NewGuid().ToString("N"));
         var storage = new RedisOperationDocumentStorage(_database);
-        await storage.SaveAsync(documentId, new OperationDocumentSourceText("{ __typename }"));
+        await storage.SaveAsync(
+            documentId,
+            new OperationDocumentSourceText("{ __typename }"),
+            TestContext.Current.CancellationToken);
 
         var executor =
             await new ServiceCollection()
@@ -202,20 +219,20 @@ public class IntegrationTests : IClassFixture<RedisResource>
                     await n(c);
 
                     var documentInfo = c.OperationDocumentInfo;
-                    if (documentInfo.Id == documentId && c.Result is IOperationResult r)
+                    if (documentInfo.Id == documentId)
                     {
-                        c.Result = OperationResultBuilder
-                            .FromResult(r)
-                            .SetExtension("persistedDocument", true)
-                            .Build();
+                        var result = c.Result.ExpectOperationResult();
+                        var extensions = result.Extensions;
+                        result.Extensions = extensions.SetItem("persistedDocument", true);
                     }
                 })
                 .UsePersistedOperationPipeline()
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
-        var result =
-            await executor.ExecuteAsync(OperationRequest.FromId(documentId));
+        var result = await executor.ExecuteAsync(
+            OperationRequest.FromId(documentId),
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -227,7 +244,10 @@ public class IntegrationTests : IClassFixture<RedisResource>
         // arrange
         var documentId = new OperationDocumentId(Guid.NewGuid().ToString("N"));
         var storage = new RedisOperationDocumentStorage(_database);
-        await storage.SaveAsync(documentId, new OperationDocumentSourceText("{ __typename }"));
+        await storage.SaveAsync(
+            documentId,
+            new OperationDocumentSourceText("{ __typename }"),
+            TestContext.Current.CancellationToken);
 
         var executor =
             await new ServiceCollection()
@@ -239,20 +259,20 @@ public class IntegrationTests : IClassFixture<RedisResource>
                     await n(c);
 
                     var documentInfo = c.OperationDocumentInfo;
-                    if (documentInfo.Id == documentId && c.Result is IOperationResult r)
+                    if (documentInfo.Id == documentId)
                     {
-                        c.Result = OperationResultBuilder
-                            .FromResult(r)
-                            .SetExtension("persistedDocument", true)
-                            .Build();
+                        var result = c.Result.ExpectOperationResult();
+                        var extensions = result.Extensions;
+                        result.Extensions = extensions.SetItem("persistedDocument", true);
                     }
                 })
                 .UsePersistedOperationPipeline()
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
-        var result =
-            await executor.ExecuteAsync(OperationRequest.FromId("does_not_exist"));
+        var result = await executor.ExecuteAsync(
+            OperationRequest.FromId("does_not_exist"),
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();

@@ -1,0 +1,6 @@
+"the foo directive"
+directive @foo(arg: Int) @tag(name: "a") @onDirective repeatable on
+  | OBJECT
+  | DIRECTIVE_DEFINITION
+
+extend directive @foo @other

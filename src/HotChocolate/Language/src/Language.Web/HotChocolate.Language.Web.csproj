@@ -22,6 +22,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Language.Utf8\HotChocolate.Language.Utf8.csproj" />
+    <ProjectReference Include="..\Language.Visitors\HotChocolate.Language.Visitors.csproj" />
   </ItemGroup>
 
   <ItemGroup>

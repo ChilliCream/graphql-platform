@@ -1,0 +1,38 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <RootNamespace>eShop.Catalog</RootNamespace>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Using Include="eShop.Catalog" />
+    <Using Include="eShop.Catalog.Data" />
+    <Using Include="eShop.Catalog.Models" />
+    <Using Include="eShop.Catalog.Migrations" />
+    <Using Include="eShop.Catalog.Services" />
+    <Using Include="GreenDonut" />
+    <Using Include="GreenDonut.Data" />
+    <Using Include="HotChocolate" />
+    <Using Include="HotChocolate.Types" />
+    <Using Include="HotChocolate.Types.Pagination" />
+    <Using Include="HotChocolate.Data" />
+    <Using Include="Microsoft.EntityFrameworkCore" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\Diagnostics\src\Diagnostics\HotChocolate.Diagnostics.csproj" />
+    <ProjectReference Include="..\..\..\src\AspNetCore.CommandLine\HotChocolate.AspNetCore.CommandLine.csproj" />
+    <ProjectReference Include="..\..\..\src\AspNetCore\HotChocolate.AspNetCore.csproj" />
+    <ProjectReference Include="..\..\..\..\Core\src\Types\HotChocolate.Types.csproj" />
+    <ProjectReference Include="..\..\..\..\..\GreenDonut\src\GreenDonut.Data.EntityFramework\GreenDonut.Data.EntityFramework.csproj" />
+    <ProjectReference Include="..\..\..\..\Data\src\EntityFramework\HotChocolate.Data.EntityFramework.csproj" />
+    <ProjectReference Include="..\..\..\..\Core\src\Types.Analyzers\HotChocolate.Types.Analyzers.csproj" OutputItemType="Analyzer" />
+    <ProjectReference Include="..\Catalog.ServiceDefaults\eShop.Catalog.ServiceDefaults.csproj" />
+
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
+  </ItemGroup>
+
+</Project>

@@ -24,7 +24,7 @@ public class IsProjectedAttribute : ObjectFieldDescriptorAttribute
     protected override void OnConfigure(
         IDescriptorContext context,
         IObjectFieldDescriptor descriptor,
-        MemberInfo member)
+        MemberInfo? member)
     {
         descriptor.IsProjected(_isProjected);
     }

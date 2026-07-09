@@ -105,16 +105,16 @@ public class DictionaryToObjectConverterTests
 
     public class Foo
     {
-        public string Text { get; set; }
-        public Bar Bar { get; set; }
+        public required string Text { get; set; }
+        public required Bar Bar { get; set; }
     }
 
     public class Bar
     {
         public State State { get; set; }
-        public IReadOnlyCollection<Baz> Bazs { get; set; }
-        public Baz[] BazArray { get; set; }
-        public string[] StringArray { get; set; }
+        public required IReadOnlyCollection<Baz> Bazs { get; set; }
+        public required Baz[] BazArray { get; set; }
+        public required string[] StringArray { get; set; }
     }
 
     public class Baz

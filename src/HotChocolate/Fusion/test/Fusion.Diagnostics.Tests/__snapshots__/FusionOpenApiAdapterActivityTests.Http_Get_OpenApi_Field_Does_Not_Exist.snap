@@ -1,0 +1,44 @@
+{
+  "source": {
+    "name": "Microsoft.AspNetCore"
+  },
+  "activities": [
+    {
+      "OperationName": "Microsoft.AspNetCore.Hosting.HttpRequestIn",
+      "DisplayName": "GET /invalid-graphql-query",
+      "Kind": "Server",
+      "Status": "Error",
+      "tags": [
+        {
+          "Key": "server.address",
+          "Value": "localhost"
+        },
+        {
+          "Key": "http.request.method",
+          "Value": "GET"
+        },
+        {
+          "Key": "url.scheme",
+          "Value": "http"
+        },
+        {
+          "Key": "url.path",
+          "Value": "/invalid-graphql-query"
+        },
+        {
+          "Key": "network.protocol.version",
+          "Value": "1.1"
+        },
+        {
+          "Key": "http.route",
+          "Value": "/invalid-graphql-query"
+        },
+        {
+          "Key": "http.response.status_code",
+          "Value": 500
+        }
+      ],
+      "event": []
+    }
+  ]
+}

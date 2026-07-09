@@ -41,7 +41,7 @@ public partial class DocumentAnalyzer
 
         foreach (var inputField in inputObjectType.Fields)
         {
-            rename = inputField.Directives.SingleOrDefault<RenameDirective>();
+            rename = inputField.Directives.FirstOrDefault<RenameDirective>()?.ToValue<RenameDirective>();
 
             fields.Add(new InputFieldModel(
                 GetClassName(rename?.Name ?? inputField.Name),
@@ -55,7 +55,7 @@ public partial class DocumentAnalyzer
             context.RegisterType(inputField.Type.NamedType());
         }
 
-        rename = inputObjectType.Directives.SingleOrDefault<RenameDirective>();
+        rename = inputObjectType.Directives.FirstOrDefault<RenameDirective>()?.ToValue<RenameDirective>();
 
         var typeName = context.ResolveTypeName(
             GetClassName(rename?.Name ?? inputObjectType.Name));

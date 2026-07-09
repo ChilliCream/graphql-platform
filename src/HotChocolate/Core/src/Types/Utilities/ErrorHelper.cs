@@ -12,7 +12,7 @@ internal static class ErrorHelper
     private const string InterfaceTypeValidation = "sec-Interfaces.Type-Validation";
     private const string ObjectTypeValidation = "sec-Objects.Type-Validation";
     private const string InputObjectTypeValidation = "sec-Input-Objects.Type-Validation";
-    private const string DirectiveValidation = "sec-Type-System.Directives.Validation";
+    private const string DirectiveValidation = "sec-Type-System.Directives.Type-Validation";
 
     public static ISchemaError NeedsOneAtLeastField(ITypeDefinition type)
         => SchemaErrorBuilder.New()
@@ -62,6 +62,13 @@ internal static class ErrorHelper
     public static ISchemaError TwoUnderscoresNotAllowedOnDirectiveName(IDirectiveDefinition directiveDefinition)
         => SchemaErrorBuilder.New()
             .SetMessage(ErrorHelper_TwoUnderscoresNotAllowedOnDirectiveName)
+            .SetDirective(directiveDefinition)
+            .SetSpecifiedBy(TypeKind.Directive)
+            .Build();
+
+    public static ISchemaError DirectiveDefinitionSelfApplication(IDirectiveDefinition directiveDefinition)
+        => SchemaErrorBuilder.New()
+            .SetMessage(ErrorHelper_DirectiveDefinitionSelfApplication, directiveDefinition.Name)
             .SetDirective(directiveDefinition)
             .SetSpecifiedBy(TypeKind.Directive)
             .Build();
@@ -365,7 +372,7 @@ internal static class ErrorHelper
         DirectiveNode? syntaxNode,
         object source,
         Path path,
-        SerializationException exception)
+        LeafCoercionException exception)
     {
         var message = string.Format(
             ErrorHelper_DirectiveCollection_ArgumentValueTypeIsWrong,
@@ -452,11 +459,10 @@ internal static class ErrorHelper
             .SetTypeSystemObject(type)
             .Build();
 
-    public static IError Relay_NoNodeResolver(string typeName, Path path, IReadOnlyList<FieldNode> fieldNodes)
+    public static IError Relay_NoNodeResolver(string typeName, Path path)
         => ErrorBuilder.New()
             .SetMessage(ErrorHelper_Relay_NoNodeResolver, typeName)
             .SetPath(path)
-            .AddLocations(fieldNodes)
             .Build();
 
     public static ISchemaError NodeResolver_MustHaveExactlyOneIdArg(
@@ -494,7 +500,6 @@ internal static class ErrorHelper
             .Build();
 
     public static IError FetchedToManyNodesAtOnce(
-        IReadOnlyList<FieldNode> fieldNodes,
         Path path,
         int maxAllowedNodes,
         int requestNodes)
@@ -503,7 +508,6 @@ internal static class ErrorHelper
                 ErrorHelper_FetchedToManyNodesAtOnce,
                 maxAllowedNodes,
                 requestNodes)
-            .AddLocations(fieldNodes)
             .SetPath(path)
             .SetCode(ErrorCodes.Execution.FetchedToManyNodesAtOnce)
             .Build();
@@ -554,4 +558,33 @@ internal static class ErrorHelper
             .SetTypeSystemObject(type)
             .Build();
     }
+
+    public static ISchemaError RequiresOptInOnRequiredInputField(
+        IInputObjectTypeDefinition type,
+        IInputValueDefinition field)
+        => SchemaErrorBuilder.New()
+            .SetMessage(ErrorHelper_RequiresOptInOnRequiredInputField)
+            .SetType(type)
+            .SetField(field)
+            .Build();
+
+    public static ISchemaError RequiresOptInOnRequiredArgument(
+        IComplexTypeDefinition type,
+        IOutputFieldDefinition field,
+        IInputValueDefinition argument)
+        => SchemaErrorBuilder.New()
+            .SetMessage(ErrorHelper_RequiresOptInOnRequiredArgument)
+            .SetType(type)
+            .SetField(field)
+            .SetArgument(argument)
+            .Build();
+
+    public static ISchemaError RequiresOptInOnRequiredDirectiveArgument(
+        IDirectiveDefinition directive,
+        IInputValueDefinition argument)
+        => SchemaErrorBuilder.New()
+            .SetMessage(ErrorHelper_RequiresOptInOnRequiredArgument)
+            .SetDirective(directive)
+            .SetArgument(argument)
+            .Build();
 }

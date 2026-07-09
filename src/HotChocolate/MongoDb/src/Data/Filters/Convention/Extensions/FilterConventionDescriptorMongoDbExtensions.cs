@@ -22,34 +22,34 @@ public static class FilterConventionDescriptorMongoDbExtensions
         AddDefaultMongoDbFieldHandlers(
             this IFilterProviderDescriptor<MongoDbFilterVisitorContext> descriptor)
     {
-        descriptor.AddFieldHandler<MongoDbEqualsOperationHandler>();
-        descriptor.AddFieldHandler<MongoDbNotEqualsOperationHandler>();
+        descriptor.AddFieldHandler(MongoDbEqualsOperationHandler.Create);
+        descriptor.AddFieldHandler(MongoDbNotEqualsOperationHandler.Create);
 
-        descriptor.AddFieldHandler<MongoDbInOperationHandler>();
-        descriptor.AddFieldHandler<MongoDbNotInOperationHandler>();
+        descriptor.AddFieldHandler(MongoDbInOperationHandler.Create);
+        descriptor.AddFieldHandler(MongoDbNotInOperationHandler.Create);
 
-        descriptor.AddFieldHandler<MongoDbComparableGreaterThanHandler>();
-        descriptor.AddFieldHandler<MongoDbComparableNotGreaterThanHandler>();
-        descriptor.AddFieldHandler<MongoDbComparableGreaterThanOrEqualsHandler>();
-        descriptor.AddFieldHandler<MongoDbComparableNotGreaterThanOrEqualsHandler>();
-        descriptor.AddFieldHandler<MongoDbComparableLowerThanHandler>();
-        descriptor.AddFieldHandler<MongoDbComparableNotLowerThanHandler>();
-        descriptor.AddFieldHandler<MongoDbComparableLowerThanOrEqualsHandler>();
-        descriptor.AddFieldHandler<MongoDbComparableNotLowerThanOrEqualsHandler>();
+        descriptor.AddFieldHandler(MongoDbComparableGreaterThanHandler.Create);
+        descriptor.AddFieldHandler(MongoDbComparableNotGreaterThanHandler.Create);
+        descriptor.AddFieldHandler(MongoDbComparableGreaterThanOrEqualsHandler.Create);
+        descriptor.AddFieldHandler(MongoDbComparableNotGreaterThanOrEqualsHandler.Create);
+        descriptor.AddFieldHandler(MongoDbComparableLowerThanHandler.Create);
+        descriptor.AddFieldHandler(MongoDbComparableNotLowerThanHandler.Create);
+        descriptor.AddFieldHandler(MongoDbComparableLowerThanOrEqualsHandler.Create);
+        descriptor.AddFieldHandler(MongoDbComparableNotLowerThanOrEqualsHandler.Create);
 
-        descriptor.AddFieldHandler<MongoDbStringStartsWithHandler>();
-        descriptor.AddFieldHandler<MongoDbStringNotStartsWithHandler>();
-        descriptor.AddFieldHandler<MongoDbStringEndsWithHandler>();
-        descriptor.AddFieldHandler<MongoDbStringNotEndsWithHandler>();
-        descriptor.AddFieldHandler<MongoDbStringContainsHandler>();
-        descriptor.AddFieldHandler<MongoDbStringNotContainsHandler>();
+        descriptor.AddFieldHandler(MongoDbStringStartsWithHandler.Create);
+        descriptor.AddFieldHandler(MongoDbStringNotStartsWithHandler.Create);
+        descriptor.AddFieldHandler(MongoDbStringEndsWithHandler.Create);
+        descriptor.AddFieldHandler(MongoDbStringNotEndsWithHandler.Create);
+        descriptor.AddFieldHandler(MongoDbStringContainsHandler.Create);
+        descriptor.AddFieldHandler(MongoDbStringNotContainsHandler.Create);
 
-        descriptor.AddFieldHandler<MongoDbListAllOperationHandler>();
-        descriptor.AddFieldHandler<MongoDbListAnyOperationHandler>();
-        descriptor.AddFieldHandler<MongoDbListNoneOperationHandler>();
-        descriptor.AddFieldHandler<MongoDbListSomeOperationHandler>();
+        descriptor.AddFieldHandler(MongoDbListAllOperationHandler.Create);
+        descriptor.AddFieldHandler(MongoDbListAnyOperationHandler.Create);
+        descriptor.AddFieldHandler(MongoDbListNoneOperationHandler.Create);
+        descriptor.AddFieldHandler(MongoDbListSomeOperationHandler.Create);
 
-        descriptor.AddFieldHandler<MongoDbDefaultFieldHandler>();
+        descriptor.AddFieldHandler(MongoDbDefaultFieldHandler.Create);
 
         return descriptor;
     }

@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 
 namespace HotChocolate.Configuration.Validation;
@@ -9,18 +10,18 @@ public abstract class TypeValidationTestBase
         SchemaBuilder.New()
             .AddDocumentFromString(schema)
             .Use(_ => _ => default)
-            .ModifyOptions(o => o.EnableOneOf = true)
+            .ModifyOptions(o => o.EnableOptInFeatures = true)
             .Create();
     }
 
-    public static void ExpectError(string schema, params Action<ISchemaError>[] errorAssert)
+    public static void ExpectError([StringSyntax("graphql")] string schema, params Action<ISchemaError>[] errorAssert)
     {
         try
         {
             SchemaBuilder.New()
                 .AddDocumentFromString(schema)
                 .Use(_ => _ => default)
-                .ModifyOptions(o => o.EnableOneOf = true)
+                .ModifyOptions(o => o.EnableOptInFeatures = true)
                 .Create();
             Assert.Fail("Expected error!");
         }

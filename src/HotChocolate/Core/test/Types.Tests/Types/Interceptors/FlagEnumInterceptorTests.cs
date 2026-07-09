@@ -5,8 +5,6 @@ using static HotChocolate.Types.Interceptors.FlagEnumInterceptorTests.FlagsEnum;
 
 namespace HotChocolate.Types.Interceptors;
 
-#nullable enable
-
 public class FlagEnumInterceptorTests
 {
     [Fact]
@@ -16,7 +14,7 @@ public class FlagEnumInterceptorTests
             .AddGraphQL()
             .AddQueryType<OutputQuery>()
             .ModifyOptions(x => x.EnableFlagEnums = true)
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
         executor.Schema.ToString().MatchSnapshot();
     }
 
@@ -32,7 +30,7 @@ public class FlagEnumInterceptorTests
                         .Argument("input", x => x.Type(typeof(FlagsWithDescription)))
                         .Resolve(FlagsWithDescription.Bar))
             .ModifyOptions(x => x.EnableFlagEnums = true)
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
         executor.Schema.ToString().MatchSnapshot();
     }
 
@@ -46,7 +44,7 @@ public class FlagEnumInterceptorTests
                     => x.Name("Query").Field("asd").Resolve("baz").Type<InterfaceType<Interface>>())
             .AddType<Impl>()
             .ModifyOptions(x => x.EnableFlagEnums = true)
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
         executor.Schema.ToString().MatchSnapshot();
     }
 
@@ -59,14 +57,13 @@ public class FlagEnumInterceptorTests
                 x
                     => x.Name("Query").Field("asd").Resolve("baz"))
             .AddDirectiveType(
-                new DirectiveType(
-                    x
-                        => x.Name("Test")
-                            .Location(DirectiveLocation.FragmentSpread)
-                            .Argument("a")
-                            .Type(typeof(FlagsEnum))))
+                x
+                    => x.Name("Test")
+                        .Location(DirectiveLocation.FragmentSpread)
+                        .Argument("a")
+                        .Type(typeof(FlagsEnum)))
             .ModifyOptions(x => x.EnableFlagEnums = true)
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
         executor.Schema.ToString().MatchSnapshot();
     }
 
@@ -77,7 +74,7 @@ public class FlagEnumInterceptorTests
             .AddGraphQL()
             .AddQueryType<InputQuery>()
             .ModifyOptions(x => x.EnableFlagEnums = true)
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
         executor.Schema.ToString().MatchSnapshot();
     }
 
@@ -88,22 +85,28 @@ public class FlagEnumInterceptorTests
             .AddGraphQL()
             .AddQueryType(x => x.Name("Query").Field("test").Resolve(Bar))
             .ModifyOptions(x => x.EnableFlagEnums = true)
-            .BuildRequestExecutorAsync();
-        var result1 = await executor1.ExecuteAsync("{ test {isBar isBaz isFoo }}");
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+        var result1 = await executor1.ExecuteAsync(
+            "{ test {isBar isBaz isFoo }}",
+            TestContext.Current.CancellationToken);
 
         var executor2 = await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType(x => x.Name("Query").Field("test").Resolve(Baz | Bar))
             .ModifyOptions(x => x.EnableFlagEnums = true)
-            .BuildRequestExecutorAsync();
-        var result2 = await executor2.ExecuteAsync("{ test {isBar isBaz isFoo }}");
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+        var result2 = await executor2.ExecuteAsync(
+            "{ test {isBar isBaz isFoo }}",
+            TestContext.Current.CancellationToken);
 
         var executor3 = await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType(x => x.Name("Query").Field("test").Resolve(Baz | Bar | FlagsEnum.Foo))
             .ModifyOptions(x => x.EnableFlagEnums = true)
-            .BuildRequestExecutorAsync();
-        var result3 = await executor3.ExecuteAsync("{ test {isBar isBaz isFoo }}");
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+        var result3 = await executor3.ExecuteAsync(
+            "{ test {isBar isBaz isFoo }}",
+            TestContext.Current.CancellationToken);
 
         new StringBuilder()
             .AppendLine("Bar:")
@@ -123,15 +126,19 @@ public class FlagEnumInterceptorTests
             .AddGraphQL()
             .AddQueryType(x => x.Name("Query").Field("test").Resolve(new[] { Bar }))
             .ModifyOptions(x => x.EnableFlagEnums = true)
-            .BuildRequestExecutorAsync();
-        var result1 = await executor1.ExecuteAsync("{ test {isBar isBaz isFoo }}");
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+        var result1 = await executor1.ExecuteAsync(
+            "{ test {isBar isBaz isFoo }}",
+            TestContext.Current.CancellationToken);
 
         var executor2 = await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType(x => x.Name("Query").Field("test").Resolve(new[] { new[] { Baz | Bar } }))
             .ModifyOptions(x => x.EnableFlagEnums = true)
-            .BuildRequestExecutorAsync();
-        var result2 = await executor2.ExecuteAsync("{ test {isBar isBaz isFoo }}");
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+        var result2 = await executor2.ExecuteAsync(
+            "{ test {isBar isBaz isFoo }}",
+            TestContext.Current.CancellationToken);
 
         new StringBuilder()
             .AppendLine("List:")
@@ -149,15 +156,19 @@ public class FlagEnumInterceptorTests
             .AddGraphQL()
             .AddQueryType(x => x.Name("Query").Field("test").Resolve((FlagsEnum?)Bar))
             .ModifyOptions(x => x.EnableFlagEnums = true)
-            .BuildRequestExecutorAsync();
-        var result1 = await executor1.ExecuteAsync("{ test {isBar isBaz isFoo }}");
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+        var result1 = await executor1.ExecuteAsync(
+            "{ test {isBar isBaz isFoo }}",
+            TestContext.Current.CancellationToken);
 
         var executor2 = await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType(x => x.Name("Query").Field("test").Resolve((FlagsEnum?)Baz | Bar))
             .ModifyOptions(x => x.EnableFlagEnums = true)
-            .BuildRequestExecutorAsync();
-        var result2 = await executor2.ExecuteAsync("{ test {isBar isBaz isFoo }}");
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+        var result2 = await executor2.ExecuteAsync(
+            "{ test {isBar isBaz isFoo }}",
+            TestContext.Current.CancellationToken);
 
         var executor3 = await new ServiceCollection()
             .AddGraphQL()
@@ -165,15 +176,19 @@ public class FlagEnumInterceptorTests
                 x
                     => x.Name("Query").Field("test").Resolve((FlagsEnum?)Baz | Bar | FlagsEnum.Foo))
             .ModifyOptions(x => x.EnableFlagEnums = true)
-            .BuildRequestExecutorAsync();
-        var result3 = await executor3.ExecuteAsync("{ test {isBar isBaz isFoo }}");
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+        var result3 = await executor3.ExecuteAsync(
+            "{ test {isBar isBaz isFoo }}",
+            TestContext.Current.CancellationToken);
 
         var executor4 = await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType(x => x.Name("Query").Field("test").Resolve((FlagsEnum?)null))
             .ModifyOptions(x => x.EnableFlagEnums = true)
-            .BuildRequestExecutorAsync();
-        var result4 = await executor4.ExecuteAsync("{ test {isBar isBaz isFoo }}");
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+        var result4 = await executor4.ExecuteAsync(
+            "{ test {isBar isBaz isFoo }}",
+            TestContext.Current.CancellationToken);
 
         new StringBuilder()
             .AppendLine("Bar:")
@@ -195,8 +210,10 @@ public class FlagEnumInterceptorTests
             .AddGraphQL()
             .AddQueryType(x => x.Name("Query").Field("test").Resolve(new FlagsEnum?[] { Bar }))
             .ModifyOptions(x => x.EnableFlagEnums = true)
-            .BuildRequestExecutorAsync();
-        var result1 = await executor1.ExecuteAsync("{ test {isBar isBaz isFoo }}");
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+        var result1 = await executor1.ExecuteAsync(
+            "{ test {isBar isBaz isFoo }}",
+            TestContext.Current.CancellationToken);
 
         var executor2 = await new ServiceCollection()
             .AddGraphQL()
@@ -205,15 +222,19 @@ public class FlagEnumInterceptorTests
                     => x.Name("Query").Field("test")
                         .Resolve(new[] { new FlagsEnum?[] { Baz | Bar } }))
             .ModifyOptions(x => x.EnableFlagEnums = true)
-            .BuildRequestExecutorAsync();
-        var result2 = await executor2.ExecuteAsync("{ test {isBar isBaz isFoo }}");
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+        var result2 = await executor2.ExecuteAsync(
+            "{ test {isBar isBaz isFoo }}",
+            TestContext.Current.CancellationToken);
 
         var executor3 = await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType(x => x.Name("Query").Field("test").Resolve(new FlagsEnum?[] { null }))
             .ModifyOptions(x => x.EnableFlagEnums = true)
-            .BuildRequestExecutorAsync();
-        var result3 = await executor3.ExecuteAsync("{ test {isBar isBaz isFoo }}");
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+        var result3 = await executor3.ExecuteAsync(
+            "{ test {isBar isBaz isFoo }}",
+            TestContext.Current.CancellationToken);
 
         new StringBuilder()
             .AppendLine("List:")
@@ -245,8 +266,10 @@ public class FlagEnumInterceptorTests
                             return "";
                         }))
             .ModifyOptions(x => x.EnableFlagEnums = true)
-            .BuildRequestExecutorAsync();
-        await executor1.ExecuteAsync("{ test(input: {isBar: true, isBaz: false, isFoo: false}) }");
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+        await executor1.ExecuteAsync(
+            "{ test(input: {isBar: true, isBaz: false, isFoo: false}) }",
+            TestContext.Current.CancellationToken);
 
         FlagsEnum? result2 = null;
         var executor2 = await new ServiceCollection()
@@ -264,8 +287,10 @@ public class FlagEnumInterceptorTests
                             return "";
                         }))
             .ModifyOptions(x => x.EnableFlagEnums = true)
-            .BuildRequestExecutorAsync();
-        await executor2.ExecuteAsync("{ test(input: {isBar: true, isBaz: false, isFoo: true}) }");
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+        await executor2.ExecuteAsync(
+            "{ test(input: {isBar: true, isBaz: false, isFoo: true}) }",
+            TestContext.Current.CancellationToken);
 
         Assert.Equal(result1, Bar);
         Assert.Equal(result2, Bar | FlagsEnum.Foo);
@@ -290,8 +315,10 @@ public class FlagEnumInterceptorTests
                             return "";
                         }))
             .ModifyOptions(x => x.EnableFlagEnums = true)
-            .BuildRequestExecutorAsync();
-        await executor1.ExecuteAsync("{ test(input: {isBar: true, isBaz: false, isFoo: false}) }");
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+        await executor1.ExecuteAsync(
+            "{ test(input: {isBar: true, isBaz: false, isFoo: false}) }",
+            TestContext.Current.CancellationToken);
 
         FlagsEnum? result2 = null;
         var executor2 = await new ServiceCollection()
@@ -309,8 +336,10 @@ public class FlagEnumInterceptorTests
                             return "";
                         }))
             .ModifyOptions(x => x.EnableFlagEnums = true)
-            .BuildRequestExecutorAsync();
-        await executor2.ExecuteAsync("{ test(input: {isBar: true, isBaz: false, isFoo: true}) }");
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+        await executor2.ExecuteAsync(
+            "{ test(input: {isBar: true, isBaz: false, isFoo: true}) }",
+            TestContext.Current.CancellationToken);
 
         Assert.Equal(result1, Bar);
         Assert.Equal(result2, Bar | FlagsEnum.Foo);
@@ -335,9 +364,10 @@ public class FlagEnumInterceptorTests
                             return "";
                         }))
             .ModifyOptions(x => x.EnableFlagEnums = true)
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
         await executor1.ExecuteAsync(
-            "{ test(input: {single: {isBar: true, isBaz: false, isFoo: true}}) }");
+            "{ test(input: {single: {isBar: true, isBaz: false, isFoo: true}}) }",
+            TestContext.Current.CancellationToken);
 
         Assert.Equal(result1, Bar | FlagsEnum.Foo);
     }
@@ -361,8 +391,10 @@ public class FlagEnumInterceptorTests
                             return "";
                         }))
             .ModifyOptions(x => x.EnableFlagEnums = true)
-            .BuildRequestExecutorAsync();
-        var result = await executor.ExecuteAsync("{ test(input: {}) }");
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+        var result = await executor.ExecuteAsync(
+            "{ test(input: {}) }",
+            TestContext.Current.CancellationToken);
 
         Assert.Null(enumValue);
         result.ToJson().MatchSnapshot();
@@ -388,8 +420,10 @@ public class FlagEnumInterceptorTests
                         }))
             .AddDocumentFromString("extend input FlagsEnumFlagsInput { isAsd : Boolean }")
             .ModifyOptions(x => x.EnableFlagEnums = true)
-            .BuildRequestExecutorAsync();
-        var result = await executor.ExecuteAsync("{ test(input: {isAsd:true}) }");
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+        var result = await executor.ExecuteAsync(
+            "{ test(input: {isAsd:true}) }",
+            TestContext.Current.CancellationToken);
 
         Assert.Null(enumValue);
         result.ToJson().MatchSnapshot();
@@ -422,9 +456,10 @@ public class FlagEnumInterceptorTests
                             return "";
                         }))
             .ModifyOptions(x => x.EnableFlagEnums = true)
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
         await executor.ExecuteAsync(
-            "{ test(input: {isBar: true, isBaz: false, isFoo: true}) }");
+            "{ test(input: {isBar: true, isBaz: false, isFoo: true}) }",
+            TestContext.Current.CancellationToken);
 
         result.MatchSnapshot();
     }

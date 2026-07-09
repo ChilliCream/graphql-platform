@@ -24,14 +24,15 @@ public class QueryableSortingExtensionsTests
             .AddGraphQL()
             .AddQueryType<Query>()
             .AddSorting()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var res1 = await executor.ExecuteAsync(
             OperationRequestBuilder
                 .New()
                 .SetDocument("{ shouldWork(order: {bar: DESC}) { bar baz }}")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         res1.MatchSnapshot();
@@ -52,13 +53,14 @@ public class QueryableSortingExtensionsTests
             OperationRequestBuilder
                 .New()
                 .SetDocument("{ typeMismatch(order: {bar: DESC}) { bar baz }}")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
             .Create()
             .AddResult(res1)
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -76,13 +78,14 @@ public class QueryableSortingExtensionsTests
             OperationRequestBuilder
                 .New()
                 .SetDocument("{ missingMiddleware { bar baz }}")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
             .Create()
             .AddResult(res1)
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     public class Query
@@ -126,20 +129,21 @@ public class QueryableSortingExtensionsTests
         protected override void OnConfigure(
             IDescriptorContext context,
             IObjectFieldDescriptor descriptor,
-            MemberInfo member)
+            MemberInfo? member)
         {
-            descriptor.Use(next => context =>
-            {
-                context.LocalContextData =
-                    context.LocalContextData.SetItem(
-                        QueryableSortProvider.ContextApplySortingKey,
-                        CreateApplicatorAsync<Foo>());
+            descriptor.Use(
+                static next => ctx =>
+                {
+                    ctx.LocalContextData =
+                        ctx.LocalContextData.SetItem(
+                            QueryableSortProvider.ContextApplySortingKey,
+                            CreateApplicatorAsync());
 
-                return next(context);
-            });
+                    return next(ctx);
+                });
         }
 
-        private static ApplySorting CreateApplicatorAsync<TEntityType>() =>
-            (context, input) => new object();
+        private static ApplySorting CreateApplicatorAsync() =>
+            (_, _) => new object();
     }
 }

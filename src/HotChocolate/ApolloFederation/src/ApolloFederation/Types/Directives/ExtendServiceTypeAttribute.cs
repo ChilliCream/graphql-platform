@@ -26,6 +26,6 @@ public sealed class ExtendServiceTypeAttribute : ObjectTypeDescriptorAttribute
     protected override void OnConfigure(
         IDescriptorContext context,
         IObjectTypeDescriptor descriptor,
-        Type type)
+        Type? type)
         => descriptor.ExtendServiceType();
 }

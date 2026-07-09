@@ -188,7 +188,7 @@ internal sealed class FieldCollector
         }
     }
 
-    private static bool IsConditional(IHasDirectives hasDirectives) => false;
+    private static bool IsConditional(IHasDirectives _) => false;
 
     private void ResolveFragmentSpread(
         FragmentSpreadNode fragmentSpreadSyntax,
@@ -207,9 +207,10 @@ internal sealed class FieldCollector
 
         if (DoesTypeApply(fragment.TypeCondition, type))
         {
-            var deferDirective = fragmentSpreadSyntax.Directives.GetDeferDirectiveNode();
+            // TODO : DEFER
+            // var deferDirective = fragmentSpreadSyntax.Directives.GetDeferDirectiveNode();
             var nodes = new List<FragmentNode>();
-            var fragmentNode = new FragmentNode(fragment, nodes, deferDirective);
+            var fragmentNode = new FragmentNode(fragment, nodes, null);
             fragmentNodes.Add(fragmentNode);
 
             CollectFields(
@@ -232,9 +233,9 @@ internal sealed class FieldCollector
 
         if (DoesTypeApply(fragment.TypeCondition, type))
         {
-            var deferDirective = inlineFragmentSyntax.Directives.GetDeferDirectiveNode();
+            // var deferDirective = inlineFragmentSyntax.Directives.GetDeferDirectiveNode();
             var nodes = new List<FragmentNode>();
-            var fragmentNode = new FragmentNode(fragment, nodes, deferDirective);
+            var fragmentNode = new FragmentNode(fragment, nodes, null);
             fragmentNodes.Add(fragmentNode);
 
             CollectFields(

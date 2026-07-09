@@ -167,18 +167,33 @@ file static class Extensions
         var attributes = member.GetCustomAttributesData();
         foreach (var attribute in attributes)
         {
-            if (attribute.AttributeType == typeof(IDAttribute))
-            {
-                return true;
-            }
-
-            if (attribute.AttributeType.IsGenericType
-                && attribute.AttributeType.GetGenericTypeDefinition() == typeof(IDAttribute<>))
+            if (IsIdAttribute(attribute.AttributeType))
             {
                 return true;
             }
         }
 
         return false;
+
+        static bool IsIdAttribute(Type? type)
+        {
+            while (type is not null)
+            {
+                if (type == typeof(IDAttribute))
+                {
+                    return true;
+                }
+
+                if (type.IsGenericType
+                    && type.GetGenericTypeDefinition() == typeof(IDAttribute<>))
+                {
+                    return true;
+                }
+
+                type = type.BaseType;
+            }
+
+            return false;
+        }
     }
 }

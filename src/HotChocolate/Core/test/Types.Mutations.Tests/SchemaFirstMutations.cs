@@ -24,7 +24,7 @@ public class SchemaFirstMutations
                         ApplyToAllMutations = true
                     })
                 .ModifyOptions(o => o.StrictValidation = false)
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         schema.MatchSnapshot();
     }
@@ -35,11 +35,13 @@ public class SchemaFirstMutations
         var schema =
             await new ServiceCollection()
                 .AddGraphQL()
-                .AddDocumentFromString(@"
+                .AddDocumentFromString(
+                    """
                     type Mutation {
-                        doSomething(something: String) : String
-                            @mutation(payloadFieldName: ""something"")
-                    }")
+                        doSomething(something: String): String
+                            @mutation(payloadFieldName: "something")
+                    }
+                    """)
                 .BindRuntimeType<Mutation>()
                 .AddMutationConventions(
                     new MutationConventionOptions
@@ -47,7 +49,7 @@ public class SchemaFirstMutations
                         ApplyToAllMutations = true
                     })
                 .ModifyOptions(o => o.StrictValidation = false)
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         schema.MatchSnapshot();
     }
@@ -167,11 +169,14 @@ public class SchemaFirstMutations
                     new MutationConventionOptions { ApplyToAllMutations = true })
                 .ModifyOptions(o => o.StrictValidation = false)
                 .ExecuteRequestAsync(
-                    @"mutation {
-                        doSomething(input: { something: ""abc"" }) {
+                    """
+                    mutation {
+                        doSomething(input: { something: "abc" }) {
                             string
                         }
-                    }");
+                    }
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchSnapshot();
     }

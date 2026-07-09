@@ -14,7 +14,6 @@ public abstract class DocumentValidatorVisitorTestBase
 
         StarWars = SchemaBuilder.New()
             .AddStarWarsTypes()
-            .ModifyOptions(o => o.EnableOneOf = true)
             .Create();
     }
 
@@ -70,6 +69,13 @@ public abstract class DocumentValidatorVisitorTestBase
             Assert.Collection(context.Errors, elementInspectors);
         }
 
-        context.Errors.MatchSnapshot();
+        var snapshot = Snapshot.Create();
+
+        foreach (var error in context.Errors)
+        {
+            snapshot.Add(error);
+        }
+
+        snapshot.Match();
     }
 }

@@ -1,0 +1,11 @@
+{
+  "data": {
+    "inspectionDefinitions": [
+      {
+        "trigger": {
+          "fieldModelKey": "field-1"
+        }
+      }
+    ]
+  }
+}

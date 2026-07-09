@@ -9,19 +9,16 @@ public class SchemaBuilderExtensionsResolversTests
     [Fact]
     public void AddResolverContextObject_BuilderIsNull_ArgNullExcept()
     {
-        // arrange
-        var builder = SchemaBuilder.New();
-
-        // act
+        // arrange & act
         Action action = () => SchemaBuilderExtensions
             .AddResolver(
-                null,
+                null!,
                 "A",
                 "B",
                 new Func<IResolverContext, object>(c => new object()));
 
         // assert
-        Assert.Throws<ArgumentNullException>(action);
+        Assert.Throws<NullReferenceException>(action);
     }
 
     [Fact]
@@ -36,7 +33,7 @@ public class SchemaBuilderExtensionsResolversTests
                 builder,
                 "A",
                 "B",
-                (Func<IResolverContext, object>)null);
+                (Func<IResolverContext, object>)null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(action);
@@ -58,27 +55,24 @@ public class SchemaBuilderExtensionsResolversTests
         // assert
         await builder.Create()
             .MakeExecutable()
-            .ExecuteAsync("{ foo }")
+            .ExecuteAsync("{ foo }", TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
     [Fact]
     public void AddResolverContextTaskObject_BuilderIsNull_ArgNullExcept()
     {
-        // arrange
-        var builder = SchemaBuilder.New();
-
-        // act
+        // arrange & act
         Action action = () => SchemaBuilderExtensions
             .AddResolver(
-                null,
+                null!,
                 "A",
                 "B",
                 new Func<IResolverContext, Task<object>>(
                     c => Task.FromResult(new object())));
 
         // assert
-        Assert.Throws<ArgumentNullException>(action);
+        Assert.Throws<NullReferenceException>(action);
     }
 
     [Fact]
@@ -93,7 +87,7 @@ public class SchemaBuilderExtensionsResolversTests
                 builder,
                 "A",
                 "B",
-                (Func<IResolverContext, Task<object>>)null);
+                (Func<IResolverContext, Task<object>>)null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(action);
@@ -112,33 +106,29 @@ public class SchemaBuilderExtensionsResolversTests
                 builder,
                 "Query",
                 "foo",
-                new Func<IResolverContext, ValueTask<object>>(
-                    c => new ValueTask<object>("bar")));
+                c => new ValueTask<object?>("bar"));
 
         // assert
         await builder.Create()
             .MakeExecutable()
-            .ExecuteAsync("{ foo }")
+            .ExecuteAsync("{ foo }", TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
     [Fact]
     public void AddResolverContextTResult_BuilderIsNull_ArgNullExcept()
     {
-        // arrange
-        var builder = SchemaBuilder.New();
-
-        // act
+        // arrange & act
         Action action = () => SchemaBuilderExtensions
             .AddResolver(
-                null,
+                null!,
                 "A",
                 "B",
                 new Func<IResolverContext, string>(
                     c => "abc"));
 
         // assert
-        Assert.Throws<ArgumentNullException>(action);
+        Assert.Throws<NullReferenceException>(action);
     }
 
     [Fact]
@@ -153,7 +143,7 @@ public class SchemaBuilderExtensionsResolversTests
                 builder,
                 "A",
                 "B",
-                (Func<IResolverContext, string>)null);
+                (Func<IResolverContext, string>)null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(action);
@@ -178,27 +168,24 @@ public class SchemaBuilderExtensionsResolversTests
         // assert
         await builder.Create()
             .MakeExecutable()
-            .ExecuteAsync("{ foo }")
+            .ExecuteAsync("{ foo }", TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
     [Fact]
     public void AddResolverContextTaskTResult_BuilderIsNull_ArgNullExcept()
     {
-        // arrange
-        var builder = SchemaBuilder.New();
-
-        // act
+        // arrange & act
         Action action = () => SchemaBuilderExtensions
             .AddResolver(
-                null,
+                null!,
                 "A",
                 "B",
                 new Func<IResolverContext, Task<string>>(
                     c => Task.FromResult("abc")));
 
         // assert
-        Assert.Throws<ArgumentNullException>(action);
+        Assert.Throws<NullReferenceException>(action);
     }
 
     [Fact]
@@ -213,7 +200,7 @@ public class SchemaBuilderExtensionsResolversTests
                 builder,
                 "A",
                 "B",
-                (Func<IResolverContext, Task<string>>)null);
+                (Func<IResolverContext, Task<string>>)null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(action);
@@ -238,26 +225,23 @@ public class SchemaBuilderExtensionsResolversTests
         // assert
         await builder.Create()
             .MakeExecutable()
-            .ExecuteAsync("{ foo }")
+            .ExecuteAsync("{ foo }", TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
     [Fact]
     public void AddResolverObject_BuilderIsNull_ArgNullExcept()
     {
-        // arrange
-        var builder = SchemaBuilder.New();
-
-        // act
+        // arrange & act
         Action action = () => SchemaBuilderExtensions
             .AddResolver(
-                null,
+                null!,
                 "A",
                 "B",
                 new Func<object>(() => "abc"));
 
         // assert
-        Assert.Throws<ArgumentNullException>(action);
+        Assert.Throws<NullReferenceException>(action);
     }
 
     [Fact]
@@ -272,7 +256,7 @@ public class SchemaBuilderExtensionsResolversTests
                 builder,
                 "A",
                 "B",
-                (Func<object>)null);
+                (Func<object>)null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(action);
@@ -296,7 +280,7 @@ public class SchemaBuilderExtensionsResolversTests
         // assert
         await builder.Create()
             .MakeExecutable()
-            .ExecuteAsync("{ foo }")
+            .ExecuteAsync("{ foo }", TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 }

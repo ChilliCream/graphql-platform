@@ -77,20 +77,20 @@ public sealed class TypeDefinitionCollection : IReadOnlyTypeDefinitionCollection
     /// Tries to get a type by its name and kind.
     /// </summary>
     /// <param name="name">The name of the type.</param>
-    /// <param name="type">The resolved type.</param>
+    /// <param name="typeDefinition">The resolved type.</param>
     /// <returns>
     /// <c>true</c>, if a type with the name exists and is of the specified
     /// kind, <c>false</c> otherwise.
     /// </returns>
-    public bool TryGetType(string name, [NotNullWhen(true)] out ITypeDefinition? type)
+    public bool TryGetType(string name, [NotNullWhen(true)] out ITypeDefinition? typeDefinition)
     {
         if (_typeLookup.TryGetValue(name, out var t))
         {
-            type = t;
+            typeDefinition = t;
             return true;
         }
 
-        type = null;
+        typeDefinition = null;
         return false;
     }
 

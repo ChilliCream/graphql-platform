@@ -209,7 +209,7 @@ public class FragmentSpreadsMustNotFormCyclesRuleTests
     }
 
     [Fact]
-    public void SpeardingRecursivelyWithinFieldFails()
+    public void SpreadingRecursivelyWithinFieldFails()
     {
         ExpectErrors(
             """

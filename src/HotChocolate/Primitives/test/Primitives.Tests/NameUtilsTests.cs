@@ -15,9 +15,9 @@ public class NameUtilsTests
         var message = Assert.Throws<ArgumentException>(() => name.EnsureGraphQLName()).Message;
         Assert.Equal(
             $"`{name}` is not a valid GraphQL name.{Environment.NewLine}"
-            + $"https://spec.graphql.org/October2021/#sec-Names{Environment.NewLine}"
-            + $" (Parameter 'name')",
-            message);
+            + $"https://spec.graphql.org/September2025/#sec-Names{Environment.NewLine}"
+            + " (Parameter 'name')",
+            message.ReplaceLineEndings());
     }
 
     [Theory]

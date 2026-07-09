@@ -4,8 +4,6 @@ using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Tests;
 
-#nullable enable
-
 namespace HotChocolate.Resolvers;
 
 public class CustomResolverCompilerTests
@@ -21,7 +19,8 @@ public class CustomResolverCompilerTests
                 OperationRequestBuilder.New()
                     .SetDocument("{ sayHello }")
                     .AddGlobalState("someState", new SayHelloState("Hello"))
-                    .Build())
+                    .Build(),
+                cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 

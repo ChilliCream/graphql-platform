@@ -19,6 +19,8 @@ internal interface ITypeRegistrar
 
     bool IsResolved(TypeReference typeReference);
 
+    bool HasRuntimeTypeBinding(ExtendedTypeReference typeReference);
+
     TypeSystemObject CreateInstance(Type namedSchemaType);
 
     IReadOnlyCollection<TypeReference> Unresolved { get; }

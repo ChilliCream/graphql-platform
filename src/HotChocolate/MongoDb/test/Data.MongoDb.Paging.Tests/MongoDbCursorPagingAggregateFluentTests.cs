@@ -55,13 +55,14 @@ public class MongoDbCursorPagingAggregateFluentTests : IClassFixture<MongoResour
                         endCursor
                     }
                 }
-            }");
+            }",
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
             .Create()
             .AddResult(result)
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -90,13 +91,14 @@ public class MongoDbCursorPagingAggregateFluentTests : IClassFixture<MongoResour
                         endCursor
                     }
                 }
-            }");
+            }",
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
             .Create()
             .AddResult(result)
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -107,8 +109,9 @@ public class MongoDbCursorPagingAggregateFluentTests : IClassFixture<MongoResour
 
         // act
         var result = await executor.ExecuteAsync(
-            @"{
-                foos(first: 2 after: ""MQ=="") {
+            """
+            {
+                foos(first: 2, after: "MQ==") {
                     edges {
                         node {
                             bar
@@ -125,13 +128,15 @@ public class MongoDbCursorPagingAggregateFluentTests : IClassFixture<MongoResour
                         endCursor
                     }
                 }
-            }");
+            }
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
             .Create()
             .AddResult(result)
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -160,13 +165,14 @@ public class MongoDbCursorPagingAggregateFluentTests : IClassFixture<MongoResour
                         endCursor
                     }
                 }
-            }");
+            }",
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
             .Create()
             .AddResult(result)
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -181,13 +187,14 @@ public class MongoDbCursorPagingAggregateFluentTests : IClassFixture<MongoResour
                 foos {
                     totalCount
                 }
-            }");
+            }",
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
             .Create()
             .AddResult(result)
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -205,13 +212,14 @@ public class MongoDbCursorPagingAggregateFluentTests : IClassFixture<MongoResour
                     }
                     totalCount
                 }
-            }");
+            }",
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
             .Create()
             .AddResult(result)
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     public class Foo
@@ -268,11 +276,8 @@ public class MongoDbCursorPagingAggregateFluentTests : IClassFixture<MongoResour
                     await next(context);
                     if (context.ContextData.TryGetValue("query", out var queryString))
                     {
-                        context.Result =
-                            OperationResultBuilder
-                                .FromResult(context.Result!.ExpectOperationResult())
-                                .SetContextData("query", queryString)
-                                .Build();
+                        var result = context.Result.ExpectOperationResult();
+                        result.ContextData = result.ContextData.SetItem("query", queryString);
                     }
                 })
             .ModifyRequestOptions(x => x.IncludeExceptionDetails = true)

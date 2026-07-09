@@ -58,7 +58,14 @@ public sealed partial class SyntaxSerializer
             writer.WriteSpace();
             writer.Write(Keywords.Implements);
             writer.WriteSpace();
-            writer.WriteMany(node.Interfaces, (n, _) => writer.WriteNamedType(n), " & ");
+            WriteSeparatedList(
+                node.Interfaces,
+                " & ",
+                " &",
+                SeparatedListBreakStyle.Trailing,
+                string.Empty,
+                (n, w) => w.WriteNamedType(n),
+                writer);
         }
 
         WriteDirectives(node.Directives, writer);
@@ -105,10 +112,14 @@ public sealed partial class SyntaxSerializer
             writer.WriteSpace();
             writer.Write(Keywords.Implements);
             writer.WriteSpace();
-            writer.WriteMany(
+            WriteSeparatedList(
                 node.Interfaces,
-                (n, _) => writer.WriteNamedType(n),
-                " & ");
+                " & ",
+                " &",
+                SeparatedListBreakStyle.Trailing,
+                string.Empty,
+                (n, w) => w.WriteNamedType(n),
+                writer);
         }
 
         WriteDirectives(node.Directives, writer);
@@ -154,9 +165,15 @@ public sealed partial class SyntaxSerializer
 
         writer.WriteSpace();
         writer.Write('=');
-        writer.WriteSpace();
 
-        writer.WriteMany(node.Types, (n, _) => writer.WriteNamedType(n), " | ");
+        WriteSeparatedList(
+            node.Types,
+            " | ",
+            "| ",
+            SeparatedListBreakStyle.Leading,
+            " ",
+            (n, w) => w.WriteNamedType(n),
+            writer);
     }
 
     private void VisitEnumTypeDefinition(
@@ -313,12 +330,7 @@ public sealed partial class SyntaxSerializer
 
         if (node.Arguments.Count > 0)
         {
-            writer.Write("(");
-            writer.WriteMany(
-                node.Arguments,
-                VisitArgumentValueDefinition,
-                w => w.WriteSpace());
-            writer.Write(")");
+            WriteArgumentDefinitions(node.Arguments, writer);
         }
 
         writer.Write(":");
@@ -327,6 +339,58 @@ public sealed partial class SyntaxSerializer
         writer.WriteType(node.Type);
 
         WriteDirectives(node.Directives, writer);
+    }
+
+    private void WriteArgumentDefinitions(
+        IReadOnlyList<InputValueDefinitionNode> arguments,
+        ISyntaxWriter writer)
+    {
+        if (!_indented)
+        {
+            writer.Write("(");
+            writer.WriteMany(
+                arguments,
+                VisitArgumentValueDefinition,
+                w => w.WriteSpace());
+            writer.Write(")");
+            return;
+        }
+
+        var flatWidth = MeasureFlatArgumentDefinitions(arguments);
+
+        if (!ArgumentDefinitionsContainBlockString(arguments)
+            && writer.Column + flatWidth <= _printWidth)
+        {
+            writer.Write("(");
+
+            for (var i = 0; i < arguments.Count; i++)
+            {
+                if (i > 0)
+                {
+                    writer.Write(", ");
+                }
+
+                WriteFlatInputValueDefinition(arguments[i], writer);
+            }
+
+            writer.Write(")");
+        }
+        else
+        {
+            writer.Write("(");
+            writer.Indent();
+
+            foreach (var argument in arguments)
+            {
+                writer.WriteLine();
+                VisitInputValueDefinition(argument, writer);
+            }
+
+            writer.WriteLine();
+            writer.Unindent();
+            writer.WriteIndent();
+            writer.Write(")");
+        }
     }
 
     private void VisitInputValueDefinition(
@@ -353,13 +417,10 @@ public sealed partial class SyntaxSerializer
 
         if (node.Arguments.Count > 0)
         {
-            writer.Write("(");
-            writer.WriteMany(
-                node.Arguments,
-                VisitArgumentValueDefinition,
-                w => w.WriteSpace());
-            writer.Write(")");
+            WriteArgumentDefinitions(node.Arguments, writer);
         }
+
+        WriteDirectives(node.Directives, writer);
 
         writer.WriteSpace();
 
@@ -370,9 +431,29 @@ public sealed partial class SyntaxSerializer
         }
 
         writer.Write(Keywords.On);
-        writer.WriteSpace();
 
-        writer.WriteMany(node.Locations, (n, _) => writer.WriteName(n), " | ");
+        WriteSeparatedList(
+            node.Locations,
+            " | ",
+            "| ",
+            SeparatedListBreakStyle.Leading,
+            " ",
+            (n, w) => w.WriteName(n),
+            writer);
+    }
+
+    private void VisitDirectiveExtension(
+        DirectiveExtensionNode node,
+        ISyntaxWriter writer)
+    {
+        writer.Write(Keywords.Extend);
+        writer.WriteSpace();
+        writer.Write(Keywords.Directive);
+        writer.WriteSpace();
+        writer.Write('@');
+        writer.WriteName(node.Name);
+
+        WriteDirectives(node.Directives, writer);
     }
 
     private void VisitArgumentValueDefinition(
@@ -403,10 +484,17 @@ public sealed partial class SyntaxSerializer
             writer.WriteSpace();
             writer.Write("=");
             writer.WriteSpace();
-            writer.WriteValue(value);
+            WriteValue(value, writer);
         }
 
-        WriteDirectives(node.Directives, writer);
+        if (node.Directives.Count > 0)
+        {
+            writer.WriteSpace();
+            writer.WriteMany(
+                node.Directives,
+                (n, w) => w.WriteDirective(n),
+                w => w.WriteSpace());
+        }
     }
 
     private void VisitEnumValueDefinition(
@@ -439,6 +527,21 @@ public sealed partial class SyntaxSerializer
         IReadOnlyList<DirectiveNode> directives,
         ISyntaxWriter writer)
     {
+        if (directives.Count == 0)
+        {
+            return;
+        }
+
+        if (!_indented)
+        {
+            writer.WriteSpace();
+            writer.WriteMany(
+                directives,
+                (n, w) => w.WriteDirective(n),
+                w => w.WriteSpace());
+            return;
+        }
+
         if (_maxDirectivesPerLine < directives.Count)
         {
             writer.WriteLine();
@@ -446,7 +549,35 @@ public sealed partial class SyntaxSerializer
             writer.WriteIndent();
             writer.WriteMany(
                 directives,
+                (n, w) => WriteDirective(n, w),
+                w =>
+                {
+                    w.WriteLine();
+                    w.WriteIndent();
+                });
+            writer.Unindent();
+            return;
+        }
+
+        var flatWidth = MeasureFlatDirectives(directives);
+
+        if (!DirectivesContainBlockString(directives)
+            && writer.Column + flatWidth <= _printWidth)
+        {
+            writer.WriteSpace();
+            writer.WriteMany(
+                directives,
                 (n, w) => w.WriteDirective(n),
+                w => w.WriteSpace());
+        }
+        else
+        {
+            writer.WriteLine();
+            writer.Indent();
+            writer.WriteIndent();
+            writer.WriteMany(
+                directives,
+                (n, w) => WriteDirective(n, w),
                 w =>
                 {
                     w.WriteLine();
@@ -454,13 +585,80 @@ public sealed partial class SyntaxSerializer
                 });
             writer.Unindent();
         }
-        else if (directives.Count > 0)
+    }
+
+    private int MeasureFlatArgumentDefinitions(
+        IReadOnlyList<InputValueDefinitionNode> arguments)
+    {
+        var writer = StringSyntaxWriter.Rent();
+
+        try
+        {
+            writer.Write("(");
+
+            for (var i = 0; i < arguments.Count; i++)
+            {
+                if (i > 0)
+                {
+                    writer.Write(", ");
+                }
+
+                WriteFlatInputValueDefinition(arguments[i], writer);
+            }
+
+            writer.Write(")");
+            return writer.Column;
+        }
+        finally
+        {
+            StringSyntaxWriter.Return(writer);
+        }
+    }
+
+    private void WriteFlatInputValueDefinition(
+        InputValueDefinitionNode node,
+        ISyntaxWriter writer)
+    {
+        if (node.Description is { })
+        {
+            writer.WriteStringValue(node.Description);
+            writer.WriteSpace();
+        }
+
+        writer.WriteName(node.Name);
+        writer.Write(": ");
+        writer.WriteType(node.Type);
+
+        if (node.DefaultValue is { Kind: not SyntaxKind.NullValue } value)
+        {
+            writer.Write(" = ");
+            writer.WriteValue(value, false);
+        }
+
+        foreach (var directive in node.Directives)
         {
             writer.WriteSpace();
-            writer.WriteMany(
-                directives,
-                (n, w) => w.WriteDirective(n),
-                w => w.WriteSpace());
+            writer.WriteDirective(directive);
+        }
+    }
+
+    private int MeasureFlatDirectives(IReadOnlyList<DirectiveNode> directives)
+    {
+        var writer = StringSyntaxWriter.Rent();
+
+        try
+        {
+            for (var i = 0; i < directives.Count; i++)
+            {
+                writer.WriteSpace();
+                writer.WriteDirective(directives[i]);
+            }
+
+            return writer.Column;
+        }
+        finally
+        {
+            StringSyntaxWriter.Return(writer);
         }
     }
 

@@ -1,0 +1,13 @@
+{
+  "name": "A",
+  "transports": {
+    "http": {
+      "url": "http://localhost/graphql"
+    }
+  },
+  "satisfiability": {
+    "ignoredNonAccessibleFields": {
+      "Tag.name": ["B:Query.tagById<Tag>"]
+    }
+  }
+}

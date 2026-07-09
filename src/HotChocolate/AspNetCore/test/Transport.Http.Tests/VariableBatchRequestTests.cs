@@ -5,7 +5,7 @@ using static HotChocolate.AspNetCore.Tests.Utilities.TestServerExtensions;
 
 namespace HotChocolate.Transport.Http;
 
-public class VariableBatchRequestTestss(TestServerFactory serverFactory) : ServerTestBase(serverFactory)
+public class VariableBatchRequestTests(TestServerFactory serverFactory) : ServerTestBase(serverFactory)
 {
     [Fact]
     public async Task Should_WriteNullValues()
@@ -29,12 +29,12 @@ public class VariableBatchRequestTestss(TestServerFactory serverFactory) : Serve
                 }
             ]);
 
-        using var memory = new MemoryStream();
+        await using var memory = new MemoryStream();
         await using var writer = new Utf8JsonWriter(memory);
 
         // act
         request.WriteTo(writer);
-        await writer.FlushAsync();
+        await writer.FlushAsync(TestContext.Current.CancellationToken);
 
         // assert
         var result = JsonDocument.Parse(Encoding.UTF8.GetString(memory.ToArray())).RootElement;

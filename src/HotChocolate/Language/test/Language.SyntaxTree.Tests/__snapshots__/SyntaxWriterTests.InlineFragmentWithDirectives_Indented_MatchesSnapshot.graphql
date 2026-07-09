@@ -1,0 +1,12 @@
+{
+  search {
+    ... on User @defer {
+      id
+      name
+    }
+    ... on Post @defer @stream {
+      title
+      content
+    }
+  }
+}

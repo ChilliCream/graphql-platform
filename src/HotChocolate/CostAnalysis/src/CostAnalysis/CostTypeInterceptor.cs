@@ -1,10 +1,10 @@
 using System.Collections.Immutable;
 using HotChocolate.Configuration;
 using HotChocolate.CostAnalysis.Types;
+using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Configurations;
-using HotChocolate.Types.Helpers;
 using HotChocolate.Types.Pagination;
 using Microsoft.Extensions.DependencyInjection;
 using static HotChocolate.Types.Pagination.PagingDefaults;
@@ -45,10 +45,20 @@ internal sealed class CostTypeInterceptor : TypeInterceptor
 
     public override void OnAfterCompleteName(ITypeCompletionContext completionContext, TypeSystemConfiguration configuration)
     {
+        if (completionContext.IsIntrospectionType)
+        {
+            return;
+        }
+
         if (configuration is ObjectTypeConfiguration objectTypeDef)
         {
             foreach (var fieldDef in objectTypeDef.Fields)
             {
+                if (fieldDef.IsIntrospectionField)
+                {
+                    continue;
+                }
+
                 if (fieldDef.Features.TryGet(out PagingOptions? options)
                     && !fieldDef.HasListSizeDirective()
                     && ((fieldDef.Flags & CoreFieldFlags.Connection) == CoreFieldFlags.Connection
@@ -151,10 +161,20 @@ internal sealed class CostTypeInterceptor : TypeInterceptor
 
     public override void OnBeforeCompleteType(ITypeCompletionContext completionContext, TypeSystemConfiguration configuration)
     {
+        if (completionContext.IsIntrospectionType)
+        {
+            return;
+        }
+
         if (configuration is ObjectTypeConfiguration objectTypeDef)
         {
             foreach (var fieldDef in objectTypeDef.Fields)
             {
+                if (fieldDef.IsIntrospectionField)
+                {
+                    continue;
+                }
+
                 if ((fieldDef.PureResolver is null
                         || (fieldDef.Flags & CoreFieldFlags.TotalCount) == CoreFieldFlags.TotalCount)
                     && _options.DefaultResolverCost.HasValue

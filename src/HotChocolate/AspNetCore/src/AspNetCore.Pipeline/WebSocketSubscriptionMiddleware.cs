@@ -8,8 +8,9 @@ public sealed class WebSocketSubscriptionMiddleware : MiddlewareBase
 {
     public WebSocketSubscriptionMiddleware(
         HttpRequestDelegate next,
-        HttpRequestExecutorProxy executor)
-        : base(next, executor)
+        HttpRequestExecutorProxy executor,
+        GraphQLServerOptions baseOptions)
+        : base(next, executor, baseOptions)
     {
     }
 
@@ -23,12 +24,13 @@ public sealed class WebSocketSubscriptionMiddleware : MiddlewareBase
     private async Task HandleWebSocketSessionAsync(HttpContext context)
     {
         var session = await Executor.GetOrCreateSessionAsync(context.RequestAborted);
+        var options = GetOptions(context);
 
         using (session.DiagnosticEvents.WebSocketSession(context))
         {
             try
             {
-                await WebSocketSession.AcceptAsync(context, session);
+                await WebSocketSession.AcceptAsync(context, session, options);
             }
             catch (Exception ex)
             {

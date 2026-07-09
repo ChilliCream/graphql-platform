@@ -1,0 +1,65 @@
+[
+  {
+    "name": "code_review",
+    "title": "Code Review",
+    "description": "Asks the LLM to analyze code quality and suggest improvements.",
+    "arguments": [
+      {
+        "name": "code",
+        "title": "Code to Review",
+        "description": "The code to review",
+        "required": true
+      }
+    ],
+    "icons": [
+      {
+        "src": "https://example.com/icon.png",
+        "mimeType": "image/png",
+        "sizes": [
+          "48x48"
+        ],
+        "theme": "light"
+      }
+    ],
+    "_meta": null
+  },
+  {
+    "name": "bug_finder",
+    "title": "Bug Finder",
+    "description": "Asks the LLM to find bugs in the provided code.",
+    "arguments": [
+      {
+        "name": "code",
+        "title": "Code to Analyze",
+        "description": "The code to analyze for bugs",
+        "required": true
+      }
+    ],
+    "icons": null,
+    "_meta": null
+  },
+  {
+    "name": "code_review",
+    "title": "Code Review",
+    "description": "Asks the LLM to analyze code quality and suggest improvements.",
+    "arguments": [
+      {
+        "name": "code",
+        "title": "Code to Review",
+        "description": "The code to review",
+        "required": true
+      }
+    ],
+    "icons": [
+      {
+        "src": "https://example.com/icon.png",
+        "mimeType": "image/png",
+        "sizes": [
+          "48x48"
+        ],
+        "theme": "light"
+      }
+    ],
+    "_meta": null
+  }
+]

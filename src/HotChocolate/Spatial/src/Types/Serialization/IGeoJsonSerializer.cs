@@ -1,43 +1,100 @@
+using System.Text.Json;
+using HotChocolate.Features;
 using HotChocolate.Language;
+using HotChocolate.Text.Json;
 
 namespace HotChocolate.Types.Spatial.Serialization;
 
 /// <summary>
-/// A serializable type can serialize its runtime value to the result value
-/// format and deserialize the result value format back to its runtime value.
+/// A serializer for GeoJSON types that handles coercion between GraphQL literals,
+/// JSON elements, runtime values, and result values.
 /// </summary>
 internal interface IGeoJsonSerializer
 {
     /// <summary>
-    /// Defines if the given <paramref name="valueSyntax"/> is possibly of this type.
+    /// Determines if the given <paramref name="valueLiteral"/> is compatible with this type.
     /// </summary>
     /// <param name="type">
     /// The type for which we serialize.
     /// </param>
-    /// <param name="valueSyntax">
-    /// The GraphQL value syntax which shall be validated.
+    /// <param name="valueLiteral">
+    /// The GraphQL value literal which shall be validated.
     /// </param>
     /// <returns>
-    /// <c>true</c> if the given <paramref name="valueSyntax"/> is possibly of this type.
+    /// <c>true</c> if the given <paramref name="valueLiteral"/> is compatible with this type.
     /// </returns>
-    bool IsInstanceOfType(IType type, IValueNode valueSyntax);
+    bool IsValueCompatible(IType type, IValueNode valueLiteral);
 
     /// <summary>
-    /// Defines if the given <paramref name="runtimeValue"/> is possibly of this type.
+    /// Determines if the given <paramref name="inputValue"/> is compatible with this type.
+    /// </summary>
+    /// <param name="type">
+    /// The type for which we serialize.
+    /// </param>
+    /// <param name="inputValue">
+    /// The JSON element which shall be validated.
+    /// </param>
+    /// <returns>
+    /// <c>true</c> if the given <paramref name="inputValue"/> is compatible with this type.
+    /// </returns>
+    bool IsValueCompatible(IType type, JsonElement inputValue);
+
+    /// <summary>
+    /// Coerces a GraphQL value literal into a runtime value.
+    /// </summary>
+    /// <param name="type">
+    /// The type for which we serialize.
+    /// </param>
+    /// <param name="valueLiteral">
+    /// A GraphQL value literal representation of this type.
+    /// </param>
+    /// <returns>
+    /// Returns a runtime value representation of this type.
+    /// </returns>
+    /// <exception cref="LeafCoercionException">
+    /// Unable to coerce the given <paramref name="valueLiteral"/>.
+    /// </exception>
+    object? CoerceInputLiteral(IType type, IValueNode valueLiteral);
+
+    /// <summary>
+    /// Coerces a JSON input value into a runtime value.
+    /// </summary>
+    /// <param name="type">
+    /// The type for which we serialize.
+    /// </param>
+    /// <param name="inputValue">
+    /// A JSON element representing the input value.
+    /// </param>
+    /// <param name="context">
+    /// The feature provider context for accessing additional services.
+    /// </param>
+    /// <returns>
+    /// Returns a runtime value representation of this type.
+    /// </returns>
+    /// <exception cref="LeafCoercionException">
+    /// Unable to coerce the given <paramref name="inputValue"/>.
+    /// </exception>
+    object? CoerceInputValue(IType type, JsonElement inputValue, IFeatureProvider context);
+
+    /// <summary>
+    /// Coerces a runtime value into a result value and writes it to the result element.
     /// </summary>
     /// <param name="type">
     /// The type for which we serialize.
     /// </param>
     /// <param name="runtimeValue">
-    /// The runtime value which shall be validated.
+    /// A runtime value representation of this type.
     /// </param>
-    /// <returns>
-    /// <c>true</c> if the given <paramref name="runtimeValue"/> is possibly of this type.
-    /// </returns>
-    bool IsInstanceOfType(IType type, object? runtimeValue);
+    /// <param name="resultValue">
+    /// The result element to write the output value to.
+    /// </param>
+    /// <exception cref="LeafCoercionException">
+    /// Unable to coerce the given <paramref name="runtimeValue"/>.
+    /// </exception>
+    void CoerceOutputValue(IType type, object runtimeValue, ResultElement resultValue);
 
     /// <summary>
-    /// Serializes a runtime value of this type to the result value format.
+    /// Converts a runtime value into a GraphQL value literal.
     /// </summary>
     /// <param name="type">
     /// The type for which we serialize.
@@ -46,109 +103,13 @@ internal interface IGeoJsonSerializer
     /// A runtime value representation of this type.
     /// </param>
     /// <returns>
-    /// Returns a result value representation of this type.
+    /// Returns a GraphQL value literal representation of the <paramref name="runtimeValue"/>.
     /// </returns>
-    /// <exception cref="SerializationException">
-    /// Unable to serialize the given <paramref name="runtimeValue"/>.
+    /// <exception cref="LeafCoercionException">
+    /// Unable to convert the given <paramref name="runtimeValue"/>
+    /// into a GraphQL value literal representation of this type.
     /// </exception>
-    object? Serialize(IType type, object? runtimeValue);
-
-    /// <summary>
-    /// Deserializes a result value of this type to the runtime value format.
-    /// </summary>
-    /// <param name="type">
-    /// The type for which we serialize.
-    /// </param>
-    /// <param name="resultValue">
-    /// A result value representation of this type.
-    /// </param>
-    /// <returns>
-    /// Returns a runtime value representation of this type.
-    /// </returns>
-    object? Deserialize(IType type, object? resultValue);
-
-    /// <summary>
-    /// Try to deserialize a result value of this type to the runtime value format.
-    /// </summary>
-    /// <param name="type">
-    /// The type for which we serialize.
-    /// </param>
-    /// <param name="resultValue">
-    /// A result value representation of this type.
-    /// </param>
-    /// <param name="runtimeValue">
-    /// Returns a runtime value representation of this type.
-    /// </param>
-    /// <returns>True if deserializing was successful</returns>
-    bool TryDeserialize(IType type, object? resultValue, out object? runtimeValue);
-
-    /// <summary>
-    /// Serializes a runtime value of this type to the result value format.
-    /// </summary>
-    /// <param name="type">
-    /// The type for which we serialize.
-    /// </param>
-    /// <param name="runtimeValue">
-    /// Returns a result value representation of this type.
-    /// </param>
-    /// <param name="resultValue">
-    /// A runtime value representation of this type.
-    /// </param>
-    /// <returns>True if serializing was successful</returns>
-    bool TrySerialize(
-        IType type,
-        object? runtimeValue,
-        out object? resultValue);
-
-    /// <summary>
-    /// Parses the GraphQL value syntax of this type into a runtime value representation.
-    /// </summary>
-    /// <param name="type">
-    /// The type for which we serialize.
-    /// </param>
-    /// <param name="valueSyntax">
-    /// A GraphQL value syntax representation of this type.
-    /// </param>
-    /// <returns>
-    /// Returns a runtime value representation of this type.
-    /// </returns>
-    object? ParseLiteral(IType type, IValueNode valueSyntax);
-
-    /// <summary>
-    /// Parses a runtime value of this type into a GraphQL value syntax representation.
-    /// </summary>
-    /// <param name="type">
-    /// The type for which we serialize.
-    /// </param>
-    /// <param name="runtimeValue">
-    /// A result value representation of this type.
-    /// </param>
-    /// <returns>
-    /// Returns a GraphQL value syntax representation of the <paramref name="runtimeValue"/>.
-    /// </returns>
-    /// <exception cref="SerializationException">
-    /// Unable to parse the given <paramref name="runtimeValue"/>
-    /// into a GraphQL value syntax representation of this type.
-    /// </exception>
-    IValueNode ParseValue(IType type, object? runtimeValue);
-
-    /// <summary>
-    /// Parses a result value of this into a GraphQL value syntax representation.
-    /// </summary>
-    /// <param name="type">
-    /// The type for which we serialize.
-    /// </param>
-    /// <param name="resultValue">
-    /// A result value representation of this type.
-    /// </param>
-    /// <returns>
-    /// Returns a GraphQL value syntax representation of the <paramref name="resultValue"/>.
-    /// </returns>
-    /// <exception cref="SerializationException">
-    /// Unable to parse the given <paramref name="resultValue"/>
-    /// into a GraphQL value syntax representation of this type.
-    /// </exception>
-    IValueNode ParseResult(IType type, object? resultValue);
+    IValueNode ValueToLiteral(IType type, object? runtimeValue);
 
     /// <summary>
     /// Creates a new runtime value from already parsed field values.
@@ -173,39 +134,36 @@ internal interface IGeoJsonSerializer
     void GetFieldData(IType type, object runtimeValue, object?[] fieldValues);
 
     /// <summary>
-    /// Tries to serialize the `coordinates` field of the geometry
+    /// Converts the coordinates of a geometry into a GraphQL value literal.
     /// </summary>
     /// <remarks>
-    /// This is used for serializing complex geometries that consist of other geometries
+    /// This is used for serializing complex geometries that consist of other geometries.
     /// </remarks>
-    /// <param name="type"></param>
-    /// <param name="runtimeValue"></param>
-    /// <param name="serialized"></param>
-    /// <returns></returns>
-    bool TrySerializeCoordinates(
-        IType type,
-        object runtimeValue,
-        out object? serialized);
+    /// <param name="type">
+    /// The type for which we serialize.
+    /// </param>
+    /// <param name="runtimeValue">
+    /// A runtime value representation of this type.
+    /// </param>
+    /// <returns>
+    /// Returns a GraphQL value literal representing the coordinates.
+    /// </returns>
+    IValueNode CoordinateToLiteral(IType type, object? runtimeValue);
 
     /// <summary>
-    /// Tries to parse the `coordinates` field of the geometry
+    /// Coerces the coordinates of a geometry and writes them to the result element.
     /// </summary>
     /// <remarks>
-    /// This is used for serializing complex geometries that consist of other geometries
+    /// This is used for serializing complex geometries that consist of other geometries.
     /// </remarks>
-    /// <param name="type"></param>
-    /// <param name="runtimeValue"></param>
-    /// <returns></returns>
-    IValueNode ParseCoordinateValue(IType type, object? runtimeValue);
-
-    /// <summary>
-    /// Tries to parse the `coordinates` field of the geometry
-    /// </summary>
-    /// <remarks>
-    /// This is used for serializing complex geometries that consist of other geometries
-    /// </remarks>
-    /// <param name="type"></param>
-    /// <param name="runtimeValue"></param>
-    /// <returns></returns>
-    IValueNode ParseCoordinateResult(IType type, object? runtimeValue);
+    /// <param name="type">
+    /// The type for which we serialize.
+    /// </param>
+    /// <param name="runtimeValue">
+    /// A runtime value representation of this type.
+    /// </param>
+    /// <param name="resultElement">
+    /// The result element to write the coordinates to.
+    /// </param>
+    void CoerceOutputCoordinates(IType type, object runtimeValue, ResultElement resultElement);
 }

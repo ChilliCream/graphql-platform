@@ -32,10 +32,7 @@ public static class TestHelper
             mock.SetupGet(c => c.ObjectType).Returns(type);
         }
 
-        if (additionalMockSetup is not null)
-        {
-            additionalMockSetup(mock);
-        }
+        additionalMockSetup?.Invoke(mock);
 
         var context = mock.Object;
         context.ScopedContextData = ImmutableDictionary<string, object?>.Empty;

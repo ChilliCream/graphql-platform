@@ -15,7 +15,7 @@ public class WarmupRequestTests
         var executor = await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         const string documentId = "f614e9a2ed367399e87751d41ca09105";
         var warmupRequest = OperationRequestBuilder.New()
@@ -30,25 +30,24 @@ public class WarmupRequestTests
             .Build();
 
         // act 1
-        var warmupResult = await executor.ExecuteAsync(warmupRequest);
+        var warmupResult = await executor.ExecuteAsync(warmupRequest, TestContext.Current.CancellationToken);
 
         // assert 1
         Assert.IsType<WarmupExecutionResult>(warmupResult);
 
-        var documentCache = executor.Schema.Services.GetCombinedServices().GetRequiredService<IDocumentCache>();
+        var documentCache = executor.Schema.Services.GetRequiredService<IDocumentCache>();
         var operationCache = executor.Schema.Services.GetRequiredService<IPreparedOperationCache>();
 
         Assert.True(documentCache.TryGetDocument(documentId, out _));
         Assert.Equal(1, operationCache.Count);
 
         // act 2
-        var regularResult = await executor.ExecuteAsync(regularRequest);
+        var regularResult = await executor.ExecuteAsync(regularRequest, TestContext.Current.CancellationToken);
         var regularOperationResult = regularResult.ExpectOperationResult();
 
         // assert 2
-        Assert.Null(regularOperationResult.Errors);
-        Assert.NotNull(regularOperationResult.Data);
-        Assert.NotEmpty(regularOperationResult.Data);
+        Assert.Empty(regularOperationResult.Errors);
+        Assert.True(regularOperationResult.UnwrapData().EnumerateObject().Any());
 
         Assert.True(documentCache.TryGetDocument(documentId, out _));
         Assert.Equal(1, operationCache.Count);
@@ -67,7 +66,7 @@ public class WarmupRequestTests
             .ModifyRequestOptions(
                 options => options.PersistedOperations.OnlyAllowPersistedDocuments = true)
             .UsePersistedOperationPipeline()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         const string documentId = "f614e9a2ed367399e87751d41ca09105";
         var warmupRequest = OperationRequestBuilder.New()
@@ -77,12 +76,12 @@ public class WarmupRequestTests
             .Build();
 
         // act
-        var warmupResult = await executor.ExecuteAsync(warmupRequest);
+        var warmupResult = await executor.ExecuteAsync(warmupRequest, TestContext.Current.CancellationToken);
 
         // assert
         Assert.IsType<WarmupExecutionResult>(warmupResult);
 
-        var provider = executor.Schema.Services.GetCombinedServices();
+        var provider = executor.Schema.Services;
         var documentCache = provider.GetRequiredService<IDocumentCache>();
         var operationCache = provider.GetRequiredService<IPreparedOperationCache>();
 

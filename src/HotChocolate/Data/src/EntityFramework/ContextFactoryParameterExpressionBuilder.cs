@@ -1,35 +1,36 @@
+using System.Runtime.CompilerServices;
 using HotChocolate.Internal;
 using HotChocolate.Resolvers;
 using Microsoft.EntityFrameworkCore;
 
 namespace HotChocolate.Data;
 
-internal sealed class ContextFactoryParameterExpressionBuilder<T>()
-    : CustomParameterExpressionBuilder<T>(ctx => CreateDbContext(ctx))
+internal sealed class ContextFactoryParameterExpressionBuilder<TDbContext>()
+    : CustomParameterExpressionBuilder<TDbContext>(ctx => CreateDbContext(ctx))
     , IParameterBindingFactory
     , IParameterBinding
-    where T : DbContext
+    where TDbContext : DbContext
 {
     public ArgumentKind Kind => ArgumentKind.Custom;
 
     public bool IsPure => false;
 
-    public IParameterBinding Create(ParameterBindingContext context)
+    public bool IsDefaultHandler => false;
+
+    public bool CanHandle(ParameterDescriptor parameter)
+        => parameter.Type == typeof(TDbContext);
+
+    public IParameterBinding Create(ParameterDescriptor parameter) => this;
+
+    public T Execute<T>(IResolverContext context)
     {
-        return this;
+        var dbContext = CreateDbContext(context);
+        return Unsafe.As<TDbContext, T>(ref dbContext);
     }
 
-    public TCast Execute<TCast>(IResolverContext context)
+    private static TDbContext CreateDbContext(IResolverContext context)
     {
-        var factory = context.Service<IDbContextFactory<T>>();
-        var dbContext = factory.CreateDbContext();
-        ((IMiddlewareContext)context).RegisterForCleanup(dbContext.DisposeAsync);
-        return (TCast)(object)dbContext;
-    }
-
-    private static T CreateDbContext(IResolverContext context)
-    {
-        var factory = context.Service<IDbContextFactory<T>>();
+        var factory = context.Service<IDbContextFactory<TDbContext>>();
         var dbContext = factory.CreateDbContext();
         ((IMiddlewareContext)context).RegisterForCleanup(dbContext.DisposeAsync);
         return dbContext;

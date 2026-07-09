@@ -60,9 +60,32 @@ public class ArgumentNamesRuleTests
             }
             """,
             t => Assert.Equal(
-                $"The argument `command` does not exist.", t.Message),
+                "The argument `command` does not exist.", t.Message),
             t => Assert.Equal(
-                $"The argument `dogCommand` is required.", t.Message));
+                "The argument `dogCommand` is required.", t.Message));
+    }
+
+    // The rule must fire once per lexical argument, not once per fragment spread.
+    [Fact]
+    public void InvalidFieldArgNameInReusedFragment()
+    {
+        ExpectErrors(
+            """
+            query {
+              dog {
+                ... invalidArgName
+                ... invalidArgName
+              }
+            }
+
+            fragment invalidArgName on Dog {
+              doesKnowCommand(command: CLEAN_UP_HOUSE)
+            }
+            """,
+            t => Assert.Equal(
+                "The argument `command` does not exist.", t.Message),
+            t => Assert.Equal(
+                "The argument `dogCommand` is required.", t.Message));
     }
 
     [Fact]
@@ -81,9 +104,9 @@ public class ArgumentNamesRuleTests
             }
             """,
             t => Assert.Equal(
-                $"The argument `unless` does not exist.", t.Message),
+                "The argument `unless` does not exist.", t.Message),
             t => Assert.Equal(
-                $"The argument `if` is required.", t.Message));
+                "The argument `if` is required.", t.Message));
     }
 
     [Fact]

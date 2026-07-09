@@ -11,13 +11,16 @@ public class EnumTypeSchemaFirstTests
     {
         // arrange
         const string sdl =
-            @"type Query {
-                    hello(greetings: Greetings): Greetings
-                }
+            // lang=graphql
+            """
+            type Query {
+                hello(greetings: Greetings): Greetings
+            }
 
-                enum Greetings {
-                    GOOD @bind(to: ""GoodMorning"")
-                }";
+            enum Greetings {
+                GOOD @bind(to: "GoodMorning")
+            }
+            """;
 
         // act
         // assert
@@ -90,13 +93,16 @@ public class EnumTypeSchemaFirstTests
     {
         // arrange
         const string sdl =
-            @"type Query {
-                    hello(greetings: Greetings): Greetings
-                }
+            // lang=graphql
+            """
+            type Query {
+                hello(greetings: Greetings): Greetings
+            }
 
-                enum Greetings {
-                    GOOD @bind(to: ""GoodMorning"")
-                }";
+            enum Greetings {
+                GOOD @bind(to: "GoodMorning")
+            }
+            """;
 
         // act
         // assert
@@ -104,7 +110,9 @@ public class EnumTypeSchemaFirstTests
             .AddGraphQL()
             .AddDocumentFromString(sdl)
             .BindRuntimeType<Query>()
-            .ExecuteRequestAsync("{ hello(greetings: GOOD) }")
+            .ExecuteRequestAsync(
+                "{ hello(greetings: GOOD) }",
+                cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -127,7 +135,9 @@ public class EnumTypeSchemaFirstTests
             .AddGraphQL()
             .AddDocumentFromString(sdl)
             .BindRuntimeType<Query>()
-            .ExecuteRequestAsync("{ hello(greetings: GOOD_MORNING) }")
+            .ExecuteRequestAsync(
+                "{ hello(greetings: GOOD_MORNING) }",
+                cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -154,7 +164,9 @@ public class EnumTypeSchemaFirstTests
             .AddGraphQL()
             .AddDocumentFromString(sdl)
             .BindRuntimeType<Query>()
-            .ExecuteRequestAsync("{ hello(greetings: GOOD_EVENING) }")
+            .ExecuteRequestAsync(
+                "{ hello(greetings: GOOD_EVENING) }",
+                cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -181,7 +193,9 @@ public class EnumTypeSchemaFirstTests
             .AddDocumentFromString(sdl)
             .AddResolver<Query>()
             .BindRuntimeType<Greetings>()
-            .ExecuteRequestAsync($"{{ hello(greetings: \"{value}\") }}")
+            .ExecuteRequestAsync(
+                $"{{ hello(greetings: \"{value}\") }}",
+                cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync(postFix: value);
     }
 

@@ -33,4 +33,3 @@ The specified pattern on field `BrokenQuery.user_2` is invalid:
 
 The type condition `String` of the inline fragment is not assignable from the parent field type `Category`.
 ```
-

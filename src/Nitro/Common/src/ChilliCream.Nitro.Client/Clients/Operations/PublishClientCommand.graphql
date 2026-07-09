@@ -1,0 +1,26 @@
+mutation publishClientVersion($input: PublishClientInput!) {
+  publishClient(input: $input) {
+    id
+    errors {
+      ...UnauthorizedOperation
+      ...InvalidSourceMetadataInputError
+      ...StageNotFoundError
+      ...ClientNotFoundError
+      ...ClientVersionNotFoundError
+      ...Error
+    }
+  }
+}
+
+subscription onClientVersionPublishUpdated($requestId: ID!) {
+  onClientVersionPublishingUpdate(requestId: $requestId) {
+    __typename
+    ...ClientVersionPublishFailed
+    ...ClientVersionPublishSuccess
+    ...OperationInProgress
+    ...WaitForApproval
+    ...ProcessingTaskApproved
+    ...ProcessingTaskIsReady
+    ...ProcessingTaskIsQueued
+  }
+}

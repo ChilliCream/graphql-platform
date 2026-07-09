@@ -14,6 +14,9 @@ public class RavenStringInHandler : QueryableStringOperationHandler
 
     protected override int Operation => DefaultFilterOperations.In;
 
+    public static RavenStringInHandler Create(FilterProviderContext context)
+        => new(context.InputParser);
+
     public override Expression HandleOperation(
         QueryableFilterContext context,
         IFilterOperationField field,

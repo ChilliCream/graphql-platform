@@ -1,0 +1,14 @@
+{
+  "errors": [
+    {
+      "message": "Error 1",
+      "path": [
+        "withErrors"
+      ],
+      "extensions": {
+        "code": "Code 1"
+      }
+    }
+  ],
+  "data": null
+}

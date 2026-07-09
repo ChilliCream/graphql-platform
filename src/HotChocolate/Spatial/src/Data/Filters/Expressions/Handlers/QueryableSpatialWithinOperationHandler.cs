@@ -17,4 +17,7 @@ public class QueryableSpatialWithinOperationHandler
     protected override int Operation => SpatialFilterOperations.Within;
 
     protected override bool IsTrue => true;
+
+    public static QueryableSpatialWithinOperationHandler Create(FilterProviderContext context) =>
+        new(context.FilterConvention, context.TypeInspector, context.InputParser);
 }

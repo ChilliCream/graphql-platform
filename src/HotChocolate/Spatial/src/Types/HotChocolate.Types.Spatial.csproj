@@ -5,6 +5,7 @@
     <AssemblyName>HotChocolate.Types.Spatial</AssemblyName>
     <RootNamespace>HotChocolate.Types.Spatial</RootNamespace>
     <Description>Contains types for HotChocolate to expose NetTopologySuite as GeoJSON</Description>
+    <IsAotCompatible>true</IsAotCompatible>
   </PropertyGroup>
 
   <ItemGroup>
@@ -12,7 +13,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\Core\src\Execution\HotChocolate.Execution.csproj" />
     <ProjectReference Include="..\..\..\Core\src\Types\HotChocolate.Types.csproj" />
   </ItemGroup>
 

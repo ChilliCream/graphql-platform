@@ -37,26 +37,29 @@ public readonly ref struct TypeDiscoveryInfo
                     TypeDiscoveryInfo_TypeRefKindNotSupported);
         }
 
-        RuntimeType = extendedType.Type;
+        ExtendedRuntimeType = extendedType;
 
-        var attributes = RuntimeType.Attributes;
-        IsPublic = IsPublicInternal(RuntimeType);
+        var attributes = extendedType.Type.Attributes;
+        IsPublic = IsPublicInternal(extendedType.Type);
         IsComplex = IsComplexTypeInternal(extendedType, IsPublic);
         IsInterface = (attributes & TypeAttributes.Interface) == TypeAttributes.Interface;
         IsAbstract = (attributes & TypeAttributes.Abstract) == TypeAttributes.Abstract;
         IsStatic = IsAbstract && (attributes & TypeAttributes.Sealed) == TypeAttributes.Sealed;
-        IsEnum = RuntimeType.IsEnum;
-        Attribute = GetTypeAttributeInternal(RuntimeType);
+        IsEnum = extendedType.Type.IsEnum;
+        IsKeyValuePair = extendedType.IsGeneric && extendedType.Definition == typeof(KeyValuePair<,>);
+        Attribute = GetTypeAttributeInternal(extendedType.Type);
         Context = typeReference.Context;
     }
+
+    public IExtendedType ExtendedRuntimeType { get; }
 
     /// <summary>
     /// Gets the runtime type.
     /// </summary>
-    public Type RuntimeType { get; }
+    public Type RuntimeType => ExtendedRuntimeType.Type;
 
     /// <summary>
-    /// The the type attribute if one was annotated to the <see cref="RuntimeType"/>.
+    /// The type attribute if one was annotated to the <see cref="RuntimeType"/>.
     /// </summary>
     public ITypeAttribute? Attribute { get; }
 
@@ -94,6 +97,11 @@ public readonly ref struct TypeDiscoveryInfo
     /// Specifies if the reference is a directive reference.
     /// </summary>
     public bool IsDirectiveRef { get; }
+
+    /// <summary>
+    /// Specifies if the <see cref="RuntimeType"/> is a <see cref="KeyValuePair{TKey, TValue}"/>.
+    /// </summary>
+    public bool IsKeyValuePair { get; }
 
     /// <summary>
     /// Specifies the <see cref="TypeContext"/> of the type reference.
@@ -142,12 +150,6 @@ public readonly ref struct TypeDiscoveryInfo
                 IsEnum: false,
                 IsByRefLike: false
             };
-
-        if (isComplexValueType && unresolvedType.IsGeneric)
-        {
-            var typeDefinition = unresolvedType.Definition;
-            return typeDefinition == typeof(KeyValuePair<,>);
-        }
 
         return isComplexClass || isComplexValueType;
     }

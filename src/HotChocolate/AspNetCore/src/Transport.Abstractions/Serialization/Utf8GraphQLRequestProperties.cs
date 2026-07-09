@@ -1,13 +1,14 @@
+#if FUSION
+namespace HotChocolate.Fusion.Transport.Serialization;
+#else
 namespace HotChocolate.Transport.Serialization;
+#endif
 
 /// <summary>
 /// A helper class that contains the default names of the GraphQL request properties.
 /// </summary>
 public static class Utf8GraphQLRequestProperties
 {
-    // This uses C# compiler's ability to refer to static data directly.
-    // For more information see https://vcsjones.dev/2019/02/01/csharp-readonly-span-bytes-static
-
     /// <summary>
     /// Gets the name of the id property.
     /// </summary>

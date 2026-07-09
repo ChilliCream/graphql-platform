@@ -44,12 +44,14 @@ public class DirectiveParserTests
     public void ParseDescription()
     {
         // arrange
-        const string text = @"
-            """"""
+        const string text =
+            // lang=graphql
+            """"
+            """
             Description
-            """"""
-            directive @foo(bar:String!) on FIELD_DEFINITION
-            ";
+            """
+            directive @foo(bar: String!) on FIELD_DEFINITION
+            """";
         var parser = new Utf8GraphQLParser(Encoding.UTF8.GetBytes(text));
 
         // assert
@@ -60,6 +62,25 @@ public class DirectiveParserTests
             .OfType<DirectiveDefinitionNode>().FirstOrDefault();
         Assert.NotNull(directiveDefinition);
         Assert.Equal("Description", directiveDefinition.Description!.Value);
+    }
+
+    [Fact]
+    public void ParseDirectiveDefinitionLocation()
+    {
+        // arrange
+        const string text = "directive @onDirective on DIRECTIVE_DEFINITION";
+        var parser = new Utf8GraphQLParser(Encoding.UTF8.GetBytes(text));
+
+        // act
+        var document = parser.Parse();
+
+        // assert
+        var directiveDefinition = document.Definitions
+            .OfType<DirectiveDefinitionNode>().FirstOrDefault();
+        Assert.NotNull(directiveDefinition);
+        Assert.Equal(
+            "DIRECTIVE_DEFINITION",
+            Assert.Single(directiveDefinition.Locations).Value);
     }
 
     [Fact]
@@ -98,5 +119,78 @@ public class DirectiveParserTests
 
         // assert
         document.MatchSnapshot();
+    }
+
+    [Fact]
+    public void ParseDirectivesOnDirectiveDefinition()
+    {
+        // arrange
+        const string text =
+            "directive @foo(arg: Int) @tag(name: \"a\") repeatable on OBJECT";
+        var parser = new Utf8GraphQLParser(Encoding.UTF8.GetBytes(text));
+
+        // act
+        var document = parser.Parse();
+
+        // assert
+        var directiveDefinition = document.Definitions
+            .OfType<DirectiveDefinitionNode>().FirstOrDefault();
+        Assert.NotNull(directiveDefinition);
+        var directive = Assert.Single(directiveDefinition.Directives);
+        Assert.Equal("tag", directive.Name.Value);
+        Assert.True(directiveDefinition.IsRepeatable);
+    }
+
+    [Fact]
+    public void ParseDirectivesOnDirectiveDefinitionWithoutArguments()
+    {
+        // arrange
+        const string text = "directive @foo @a @b on FIELD";
+        var parser = new Utf8GraphQLParser(Encoding.UTF8.GetBytes(text));
+
+        // act
+        var document = parser.Parse();
+
+        // assert
+        var directiveDefinition = document.Definitions
+            .OfType<DirectiveDefinitionNode>().FirstOrDefault();
+        Assert.NotNull(directiveDefinition);
+        Assert.Collection(
+            directiveDefinition.Directives,
+            d => Assert.Equal("a", d.Name.Value),
+            d => Assert.Equal("b", d.Name.Value));
+    }
+
+    [Fact]
+    public void ParseDirectiveExtension()
+    {
+        // arrange
+        const string text = "extend directive @foo @tag(name: \"a\")";
+        var parser = new Utf8GraphQLParser(Encoding.UTF8.GetBytes(text));
+
+        // act
+        var document = parser.Parse();
+
+        // assert
+        var extension = document.Definitions
+            .OfType<DirectiveExtensionNode>().FirstOrDefault();
+        Assert.NotNull(extension);
+        Assert.Equal("foo", extension.Name.Value);
+        var directive = Assert.Single(extension.Directives);
+        Assert.Equal("tag", directive.Name.Value);
+    }
+
+    [Fact]
+    public void ParseDirectiveExtensionWithoutDirectives()
+    {
+        // arrange
+        // per the grammar, Directives[Const] is required on a directive extension
+        const string text = "extend directive @foo";
+
+        // act
+        static void Action() => Utf8GraphQLParser.Parse(text);
+
+        // assert
+        Assert.Throws<SyntaxException>(Action);
     }
 }

@@ -1,5 +1,3 @@
-#nullable enable
-
 using HotChocolate.Execution;
 using HotChocolate.Resolvers;
 using Microsoft.Extensions.DependencyInjection;
@@ -18,7 +16,7 @@ public class ArgumentTests
             .AddGraphQL()
             .AddQueryType<Query>()
             .UseField<Middleware>()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -34,7 +32,8 @@ public class ArgumentTests
                         listOfObjectsA: listOfObjects(values: { bar: 1 }) { bar }
                         listOfObjectsB: listOfObjects(values: [{ bar: 1 }, { bar: 2 }]) { bar }
                     }")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         result.ToJson().MatchSnapshot();

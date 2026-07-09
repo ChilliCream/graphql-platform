@@ -10,11 +10,9 @@ namespace HotChocolate.Execution;
 /// <param name="document">
 /// The parsed GraphQL operation document.
 /// </param>
-public sealed class OperationDocument(DocumentNode document) : IOperationDocument
+public sealed class OperationDocument(DocumentNode document) : IOperationDocument, IOperationDocumentNodeProvider
 {
-    /// <summary>
-    /// Gets the parsed GraphQL operation document.
-    /// </summary>
+    /// <inheritdoc />
     public DocumentNode Document { get; } = document ?? throw new ArgumentNullException(nameof(document));
 
     /// <summary>

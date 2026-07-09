@@ -9,11 +9,11 @@
 
 12 SQL:
 ---------------
-.param set @__p_0 12
+.param set @p 12
 
 SELECT "d"."Id", "d"."BarDecimal", "d"."BarDouble", "d"."BarFloat", "d"."BarInt", "d"."BarLong", "d"."BarShort"
 FROM "Data" AS "d"
-WHERE "d"."BarShort" < @__p_0
+WHERE "d"."BarShort" < @p
 ---------------
 
 13 Result:
@@ -31,11 +31,11 @@ WHERE "d"."BarShort" < @__p_0
 
 13 SQL:
 ---------------
-.param set @__p_0 13
+.param set @p 13
 
 SELECT "d"."Id", "d"."BarDecimal", "d"."BarDouble", "d"."BarFloat", "d"."BarInt", "d"."BarLong", "d"."BarShort"
 FROM "Data" AS "d"
-WHERE "d"."BarShort" < @__p_0
+WHERE "d"."BarShort" < @p
 ---------------
 
 14 Result:
@@ -56,11 +56,11 @@ WHERE "d"."BarShort" < @__p_0
 
 14 SQL:
 ---------------
-.param set @__p_0 14
+.param set @p 14
 
 SELECT "d"."Id", "d"."BarDecimal", "d"."BarDouble", "d"."BarFloat", "d"."BarInt", "d"."BarLong", "d"."BarShort"
 FROM "Data" AS "d"
-WHERE "d"."BarShort" < @__p_0
+WHERE "d"."BarShort" < @p
 ---------------
 
 null

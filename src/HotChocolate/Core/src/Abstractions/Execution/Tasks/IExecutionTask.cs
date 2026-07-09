@@ -11,6 +11,11 @@ public interface IExecutionTask
     uint Id { get; set; }
 
     /// <summary>
+    /// Gets the execution branch id.
+    /// </summary>
+    int BranchId { get; }
+
+    /// <summary>
     /// Defines the kind of task.
     /// The task kind is used to apply the correct execution strategy.
     /// </summary>
@@ -43,6 +48,11 @@ public interface IExecutionTask
     /// executed in a serial context.
     /// </summary>
     bool IsSerial { get; set; }
+
+    /// <summary>
+    /// Gets a value indicating whether this task is deprioritized.
+    /// </summary>
+    bool IsDeferred { get; }
 
     /// <summary>
     /// Specifies if the task was fully registered with the scheduler.

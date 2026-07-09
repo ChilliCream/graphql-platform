@@ -1,0 +1,64 @@
+operation:
+  - document: |
+      {
+        product {
+          id
+          name {
+            id
+            brand
+            model
+          }
+          category {
+            id
+            name
+          }
+          price {
+            id
+            amount
+            currency
+          }
+        }
+      }
+    hash: 123456789101112
+    searchSpace: 3
+    expandedNodes: 3
+nodes:
+  - id: 1
+    type: Operation
+    schema: category
+    operation: |
+      query Op_123456789101112_1 {
+        product {
+          id
+          category {
+            id
+            name
+          }
+        }
+      }
+  - id: 2
+    type: Operation
+    schema: name
+    operation: |
+      query Op_123456789101112_2 {
+        product {
+          name {
+            id
+            brand
+            model
+          }
+        }
+      }
+  - id: 3
+    type: Operation
+    schema: price
+    operation: |
+      query Op_123456789101112_3 {
+        product {
+          price {
+            id
+            amount
+            currency
+          }
+        }
+      }

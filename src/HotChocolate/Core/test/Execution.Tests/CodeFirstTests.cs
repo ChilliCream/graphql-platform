@@ -20,10 +20,10 @@ public class CodeFirstTests
             .Create();
 
         // act
-        var result = await schema.MakeExecutable().ExecuteAsync("{ test }");
+        var result = await schema.MakeExecutable().ExecuteAsync("{ test }", TestContext.Current.CancellationToken);
 
         // assert
-        Assert.Null(Assert.IsType<OperationResult>(result).Errors);
+        Assert.Empty(Assert.IsType<OperationResult>(result).Errors);
         result.MatchSnapshot();
     }
 
@@ -36,13 +36,13 @@ public class CodeFirstTests
                 .AddSingleton(new ParserOptions(maxAllowedTokens: 5))
                 .AddGraphQL()
                 .AddQueryType<QueryTypeWithProperty>()
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
-        var result = await executor.ExecuteAsync("{ a: test }");
+        var result = await executor.ExecuteAsync("{ a: test }", TestContext.Current.CancellationToken);
 
         // assert
-        Assert.Null(Assert.IsType<OperationResult>(result).Errors);
+        Assert.Empty(Assert.IsType<OperationResult>(result).Errors);
     }
 
     [Fact]
@@ -54,14 +54,14 @@ public class CodeFirstTests
                 .AddSingleton(new ParserOptions(maxAllowedTokens: 5))
                 .AddGraphQL()
                 .AddQueryType<QueryTypeWithProperty>()
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
-        var result = await executor.ExecuteAsync("{ a: test b: test }");
+        var result = await executor.ExecuteAsync("{ a: test b: test }", TestContext.Current.CancellationToken);
 
         // assert
         Assert.Collection(
-            Assert.IsType<OperationResult>(result).Errors!,
+            Assert.IsType<OperationResult>(result).Errors,
             e => Assert.Equal("Document contains more than 5 tokens. Parsing aborted.", e.Message));
     }
 
@@ -74,13 +74,13 @@ public class CodeFirstTests
                 .AddSingleton(new ParserOptions(maxAllowedNodes: 6))
                 .AddGraphQL()
                 .AddQueryType<QueryTypeWithProperty>()
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
-        var result = await executor.ExecuteAsync("{ a: test }");
+        var result = await executor.ExecuteAsync("{ a: test }", TestContext.Current.CancellationToken);
 
         // assert
-        Assert.Null(Assert.IsType<OperationResult>(result).Errors);
+        Assert.Empty(Assert.IsType<OperationResult>(result).Errors);
     }
 
     [Fact]
@@ -92,14 +92,14 @@ public class CodeFirstTests
                 .AddSingleton(new ParserOptions(maxAllowedNodes: 6))
                 .AddGraphQL()
                 .AddQueryType<QueryTypeWithProperty>()
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
-        var result = await executor.ExecuteAsync("{ a: test b: test }");
+        var result = await executor.ExecuteAsync("{ a: test b: test }", TestContext.Current.CancellationToken);
 
         // assert
         Assert.Collection(
-            Assert.IsType<OperationResult>(result).Errors!,
+            Assert.IsType<OperationResult>(result).Errors,
             e => Assert.Equal("Document contains more than 6 nodes. Parsing aborted.", e.Message));
     }
 
@@ -113,10 +113,10 @@ public class CodeFirstTests
 
         // act
         var result =
-            await schema.MakeExecutable().ExecuteAsync("{ test }");
+            await schema.MakeExecutable().ExecuteAsync("{ test }", TestContext.Current.CancellationToken);
 
         // assert
-        Assert.Null(Assert.IsType<OperationResult>(result).Errors);
+        Assert.Empty(Assert.IsType<OperationResult>(result).Errors);
         result.MatchSnapshot();
     }
 
@@ -130,10 +130,10 @@ public class CodeFirstTests
 
         // act
         var result =
-            await schema.MakeExecutable().ExecuteAsync("{ query }");
+            await schema.MakeExecutable().ExecuteAsync("{ query }", TestContext.Current.CancellationToken);
 
         // assert
-        Assert.Null(Assert.IsType<OperationResult>(result).Errors);
+        Assert.Empty(Assert.IsType<OperationResult>(result).Errors);
         result.MatchSnapshot();
     }
 
@@ -154,10 +154,11 @@ public class CodeFirstTests
                                 ... on Foo { nameFoo }
                             }
                         }
-                        ");
+                        ",
+                    TestContext.Current.CancellationToken);
 
         // assert
-        Assert.Null(Assert.IsType<OperationResult>(result).Errors);
+        Assert.Empty(Assert.IsType<OperationResult>(result).Errors);
         result.MatchSnapshot();
     }
 
@@ -244,10 +245,11 @@ public class CodeFirstTests
         // act
         var result =
             await schema.MakeExecutable().ExecuteAsync(
-                "{ drink { ... on Tea { kind } } }");
+                "{ drink { ... on Tea { kind } } }",
+                TestContext.Current.CancellationToken);
 
         // assert
-        Assert.Null(Assert.IsType<OperationResult>(result).Errors);
+        Assert.Empty(Assert.IsType<OperationResult>(result).Errors);
         result.MatchSnapshot();
     }
 
@@ -277,11 +279,10 @@ public class CodeFirstTests
 
         // act
         var result =
-            await schema.MakeExecutable().ExecuteAsync(
-                "{ dog { name } }");
+            await schema.MakeExecutable().ExecuteAsync("{ dog { name } }", TestContext.Current.CancellationToken);
 
         // assert
-        Assert.Null(Assert.IsType<OperationResult>(result).Errors);
+        Assert.Empty(Assert.IsType<OperationResult>(result).Errors);
         result.MatchSnapshot();
     }
 
@@ -293,11 +294,10 @@ public class CodeFirstTests
 
         // act
         var result =
-            await schema.MakeExecutable().ExecuteAsync(
-                "{ dog { desc } }");
+            await schema.MakeExecutable().ExecuteAsync("{ dog { desc } }", TestContext.Current.CancellationToken);
 
         // assert
-        Assert.Null(Assert.IsType<OperationResult>(result).Errors);
+        Assert.Empty(Assert.IsType<OperationResult>(result).Errors);
         result.MatchSnapshot();
     }
 
@@ -309,11 +309,10 @@ public class CodeFirstTests
 
         // act
         var result =
-            await schema.MakeExecutable().ExecuteAsync(
-                "{ dog { name2 } }");
+            await schema.MakeExecutable().ExecuteAsync("{ dog { name2 } }", TestContext.Current.CancellationToken);
 
         // assert
-        Assert.Null(Assert.IsType<OperationResult>(result).Errors);
+        Assert.Empty(Assert.IsType<OperationResult>(result).Errors);
         result.MatchSnapshot();
     }
 
@@ -325,11 +324,10 @@ public class CodeFirstTests
 
         // act
         var result =
-            await schema.MakeExecutable().ExecuteAsync(
-                "{ dog { names } }");
+            await schema.MakeExecutable().ExecuteAsync("{ dog { names } }", TestContext.Current.CancellationToken);
 
         // assert
-        Assert.Null(Assert.IsType<OperationResult>(result).Errors);
+        Assert.Empty(Assert.IsType<OperationResult>(result).Errors);
         result.MatchSnapshot();
     }
 
@@ -339,7 +337,9 @@ public class CodeFirstTests
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<QueryPrivateConstructor>()
-            .ExecuteRequestAsync("{ hello }")
+            .ExecuteRequestAsync(
+                "{ hello }",
+                cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -350,7 +350,7 @@ public class CodeFirstTests
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<QueryFieldCasing>()
-            .BuildSchemaAsync()
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -366,7 +366,9 @@ public class CodeFirstTests
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<QueryWithDefaultValue>()
-            .ExecuteRequestAsync(request)
+            .ExecuteRequestAsync(
+                request,
+                cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -377,7 +379,7 @@ public class CodeFirstTests
         var executor = await new ServiceCollection()
             .AddGraphQLServer()
             .AddQueryType<QueryLists>()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         const string query =
             """
@@ -386,7 +388,7 @@ public class CodeFirstTests
             }
             """;
 
-        await executor.ExecuteAsync(query).MatchSnapshotAsync();
+        await executor.ExecuteAsync(query, TestContext.Current.CancellationToken).MatchSnapshotAsync();
     }
 
     private static Schema CreateSchema()

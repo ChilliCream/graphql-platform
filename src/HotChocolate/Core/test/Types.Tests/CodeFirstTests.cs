@@ -1,5 +1,3 @@
-#nullable enable
-
 using System.Collections;
 using HotChocolate.Execution;
 using HotChocolate.Types;
@@ -109,7 +107,9 @@ public class CodeFirstTests
                 })
                 .AddType<Dog>()
                 .AddType<Cat>()
-                .ExecuteRequestAsync("{ shouldBeCat { __typename } shouldBeDog { __typename } }");
+                .ExecuteRequestAsync(
+                    "{ shouldBeCat { __typename } shouldBeDog { __typename } }",
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchSnapshot();
     }
@@ -128,7 +128,7 @@ public class CodeFirstTests
                 })
                 .AddType<Dog>()
                 .AddType<Cat>()
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchSnapshot();
     }
@@ -140,7 +140,7 @@ public class CodeFirstTests
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType<QueryStructEquals>()
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         schema.MatchSnapshot();
     }
@@ -152,7 +152,7 @@ public class CodeFirstTests
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType<QueryComparableEntity>()
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         schema.MatchSnapshot();
     }
@@ -164,7 +164,7 @@ public class CodeFirstTests
             await new ServiceCollection()
                 .AddGraphQLServer()
                 .AddQueryType<PascalCaseQuery>()
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         schema.MatchSnapshot();
     }
@@ -181,7 +181,8 @@ public class CodeFirstTests
                     {
                         testResolver(testArgument: "abc")
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchInlineSnapshot(
             """
@@ -200,7 +201,7 @@ public class CodeFirstTests
             await new ServiceCollection()
                 .AddGraphQLServer()
                 .AddQueryType<QueryNestedClassNullableString>()
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         schema.MatchSnapshot();
     }
@@ -212,7 +213,7 @@ public class CodeFirstTests
             await new ServiceCollection()
                 .AddGraphQLServer()
                 .AddQueryType<QueryWithEnumerableArg>()
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         schema.MatchInlineSnapshot(
             """
@@ -233,7 +234,7 @@ public class CodeFirstTests
             await new ServiceCollection()
                 .AddGraphQLServer("abc-def")
                 .AddQueryType<QueryWithEnumerableArg>()
-                .BuildSchemaAsync("abc-def");
+                .BuildSchemaAsync("abc-def", TestContext.Current.CancellationToken);
 
         schema.MatchInlineSnapshot(
             """
@@ -252,6 +253,42 @@ public class CodeFirstTests
     {
         Assert.Throws<ArgumentException>(
             () => SchemaBuilder.New().BindRuntimeType<object, StringType>());
+    }
+
+    [Fact]
+    public async Task DisposeSchemaService()
+    {
+        // arrange
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(60));
+        var customService = new CustomService();
+        var customAsyncService = new CustomAsyncService();
+
+        var services = new ServiceCollection()
+            .AddGraphQLServer()
+            .AddQueryType(c => c.Field("a").Resolve("b"))
+            .ConfigureSchemaServices(s =>
+            {
+                s.AddSingleton(_ => customService);
+                s.AddSingleton(_ => customAsyncService);
+            })
+            .Configure(s => s.EvictionTimeout = TimeSpan.FromSeconds(3))
+            .Services
+            .BuildServiceProvider();
+
+        var manager = services.GetRequiredService<IRequestExecutorManager>();
+        var executor = await manager.GetExecutorAsync(cancellationToken: cts.Token);
+        Assert.NotNull(executor.Schema.Services.GetService<CustomService>());
+        Assert.NotNull(executor.Schema.Services.GetService<CustomAsyncService>());
+
+        // act
+        manager.EvictExecutor();
+
+        // assert
+        await customService.WaitAsync(cts.Token);
+        await customAsyncService.WaitAsync(cts.Token);
+
+        Assert.True(customService.Triggered);
+        Assert.True(customAsyncService.Triggered);
     }
 
     public class Query
@@ -438,6 +475,45 @@ public class CodeFirstTests
         public Example NestedClassNullableString()
         {
             return new Example();
+        }
+    }
+
+    public class CustomService : IDisposable
+    {
+        private readonly TaskCompletionSource _tcs = new();
+
+        public bool Triggered { get; set; }
+
+        public async Task WaitAsync(CancellationToken cancellationToken)
+        {
+            cancellationToken.Register(() => _tcs.TrySetCanceled());
+            await _tcs.Task;
+        }
+
+        public void Dispose()
+        {
+            Triggered = true;
+            _tcs.TrySetResult();
+        }
+    }
+
+    public class CustomAsyncService : IAsyncDisposable
+    {
+        private readonly TaskCompletionSource _tcs = new();
+
+        public bool Triggered { get; set; }
+
+        public async Task WaitAsync(CancellationToken cancellationToken)
+        {
+            cancellationToken.Register(() => _tcs.TrySetCanceled());
+            await _tcs.Task;
+        }
+
+        public ValueTask DisposeAsync()
+        {
+            Triggered = true;
+            _tcs.TrySetResult();
+            return default;
         }
     }
 }

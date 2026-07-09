@@ -10,7 +10,7 @@ public class MessagePipelineTests
     {
         // arrange
         ProcessAsync a = (_, _) => default;
-        ISocketClient socketClient = new SocketClientStub() { IsClosed = false };
+        ISocketClient socketClient = new SocketClientStub { IsClosed = false };
 
         // act
         await using var messagePipeline = new MessagePipeline(socketClient, a);
@@ -94,7 +94,7 @@ public class MessagePipelineTests
         // act
         messagePipeline.Start();
         await socketClient.WaitTillFinished();
-        await processed.WaitAsync();
+        await processed.WaitAsync(TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal("ab", result);

@@ -26,7 +26,8 @@ public class IntegrationTests : IClassFixture<AzureStorageBlobResource>
 
         await storage.SaveAsync(
             documentId,
-            new OperationDocumentSourceText("{ __typename }"));
+            new OperationDocumentSourceText("{ __typename }"),
+            TestContext.Current.CancellationToken);
 
         var executor =
             await new ServiceCollection()
@@ -37,19 +38,19 @@ public class IntegrationTests : IClassFixture<AzureStorageBlobResource>
                 {
                     await n(c);
 
-                    if (c.IsPersistedOperationDocument() && c.Result is IOperationResult r)
+                    if (c.IsPersistedOperationDocument())
                     {
-                        c.Result = OperationResultBuilder
-                            .FromResult(r)
-                            .SetExtension("persistedDocument", true)
-                            .Build();
+                        var result = c.Result.ExpectOperationResult();
+                        result.Extensions = result.Extensions.SetItem("persistedDocument", true);
                     }
                 })
                 .UsePersistedOperationPipeline()
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
-        var result = await executor.ExecuteAsync(OperationRequest.FromId(documentId));
+        var result = await executor.ExecuteAsync(
+            OperationRequest.FromId(documentId),
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -61,7 +62,10 @@ public class IntegrationTests : IClassFixture<AzureStorageBlobResource>
         // arrange
         var documentId = new OperationDocumentId(Guid.NewGuid().ToString("N"));
         var storage = new AzureBlobOperationDocumentStorage(_client);
-        await storage.SaveAsync(documentId, new OperationDocumentSourceText("{ __typename }"));
+        await storage.SaveAsync(
+            documentId,
+            new OperationDocumentSourceText("{ __typename }"),
+            TestContext.Current.CancellationToken);
 
         var executor =
             await new ServiceCollection()
@@ -72,20 +76,20 @@ public class IntegrationTests : IClassFixture<AzureStorageBlobResource>
                 {
                     await n(c);
 
-                    if (c.IsPersistedOperationDocument() && c.Result is IOperationResult r)
+                    if (c.IsPersistedOperationDocument())
                     {
-                        c.Result = OperationResultBuilder
-                            .FromResult(r)
-                            .SetExtension("persistedDocument", true)
-                            .Build();
+                        var result = c.Result.ExpectOperationResult();
+                        result.Extensions = result.Extensions.SetItem("persistedDocument", true);
                     }
                 })
                 .UsePersistedOperationPipeline()
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result =
-            await executor.ExecuteAsync(OperationRequest.FromId("does_not_exist"));
+            await executor.ExecuteAsync(
+                OperationRequest.FromId("does_not_exist"),
+                TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();

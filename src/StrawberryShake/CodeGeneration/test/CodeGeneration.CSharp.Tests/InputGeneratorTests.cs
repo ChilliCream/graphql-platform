@@ -1,4 +1,3 @@
-using ChilliCream.Testing;
 using static StrawberryShake.CodeGeneration.CSharp.GeneratorTestHelper;
 
 namespace StrawberryShake.CodeGeneration.CSharp;
@@ -33,23 +32,25 @@ public class InputGeneratorTests
             @"query test($single: Bar!, $list: [Bar!]!, $nestedList: [[Bar!]]) {
                     foo(single: $single, list: $list, nestedList:$nestedList)
                 }",
-            @"type Query {
-                    foo(single: Bar!, list: [Bar!]!, nestedList: [[Bar]]): String
-                }
+            """
+            type Query {
+                foo(single: Bar!, list: [Bar!]!, nestedList: [[Bar]]): String
+            }
 
-                ""Bar InputType""
-                input Bar {
-                    ""Field str""
-                    str: String
-                    ""Field strNonNullable""
-                    strNonNullable: String!
-                    ""Field nested""
-                    nested: Bar
-                    ""Field nestedList""
-                    nestedList: [Bar!]!
-                    ""Field nestedMatrix""
-                    nestedMatrix: [[Bar]]
-                }",
+            "Bar InputType"
+            input Bar {
+                "Field str"
+                str: String
+                "Field strNonNullable"
+                strNonNullable: String!
+                "Field nested"
+                nested: Bar
+                "Field nestedList"
+                nestedList: [Bar!]!
+                "Field nestedMatrix"
+                nestedMatrix: [[Bar]]
+            }
+            """,
             "extend schema @key(fields: \"id\")");
     }
 
@@ -61,23 +62,25 @@ public class InputGeneratorTests
             @"query test($single: Bar!, $list: [Bar!]!, $nestedList: [[Bar!]]) {
                     foo(single: $single, list: $list, nestedList:$nestedList)
                 }",
-            @"type Query {
-                    foo(single: Bar!, list: [Bar!]!, nestedList: [[Bar]]): String
-                }
+            """
+            type Query {
+                foo(single: Bar!, list: [Bar!]!, nestedList: [[Bar]]): String
+            }
 
-                ""Bar InputType""
-                input Bar {
-                    ""Field str""
-                    str: String
-                    ""Field strNonNullable""
-                    strNonNullable: String!
-                    ""Field nested""
-                    nested: Bar
-                    ""Field nestedList""
-                    nestedList: [Bar!]!
-                    ""Field nestedMatrix""
-                    nestedMatrix: [[Bar]]
-                }",
+            "Bar InputType"
+            input Bar {
+                "Field str"
+                str: String
+                "Field strNonNullable"
+                strNonNullable: String!
+                "Field nested"
+                nested: Bar
+                "Field nestedList"
+                nestedList: [Bar!]!
+                "Field nestedMatrix"
+                nestedMatrix: [[Bar]]
+            }
+            """,
             "extend schema @key(fields: \"id\")");
     }
 

@@ -14,9 +14,9 @@ public abstract class FilterVisitorTestBase : IAsyncLifetime
 {
     public RavenDBResource<CustomRavenDBDefaultOptions> Resource { get; } = new();
 
-    public Task InitializeAsync() => Resource.InitializeAsync();
+    public ValueTask InitializeAsync() => Resource.InitializeAsync();
 
-    public Task DisposeAsync() => Resource.DisposeAsync();
+    public ValueTask DisposeAsync() => Resource.DisposeAsync();
 
     protected T[] CreateEntity<T>(params T[] entities) => entities;
 
@@ -60,11 +60,8 @@ public abstract class FilterVisitorTestBase : IAsyncLifetime
                     await next(context);
                     if (context.ContextData.TryGetValue("sql", out var queryString))
                     {
-                        context.Result =
-                            OperationResultBuilder
-                                .FromResult(context.Result!.ExpectOperationResult())
-                                .SetContextData("sql", queryString)
-                                .Build();
+                        var result = context.Result.ExpectOperationResult();
+                        result.ContextData = result.ContextData.SetItem("sql", queryString);
                     }
                 })
             .ModifyRequestOptions(x => x.IncludeExceptionDetails = true)

@@ -1,9 +1,12 @@
+using System.IO.Pipelines;
 using System.Net;
 using HotChocolate.AspNetCore.Formatters;
 using HotChocolate.AspNetCore.Instrumentation;
 using HotChocolate.AspNetCore.Parsers;
+using HotChocolate.AspNetCore.Utilities;
 using HotChocolate.Features;
 using HotChocolate.Language;
+using HotChocolate.PersistedOperations;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -21,6 +24,8 @@ public sealed class ExecutorSession
     private readonly IHttpRequestParser _requestParser;
     private readonly IHttpResponseFormatter _responseFormatter;
     private readonly IServerDiagnosticEvents _diagnosticEvents;
+    private readonly bool _skipDocumentBody;
+    private readonly IError? _operationNotAllowedError;
 
     public ExecutorSession(IRequestExecutor executor)
     {
@@ -33,13 +38,12 @@ public sealed class ExecutorSession
         _responseFormatter = executor.Schema.Services.GetRequiredService<IHttpResponseFormatter>();
         _requestParser = executor.Schema.Services.GetRequiredService<IHttpRequestParser>();
         _diagnosticEvents = executor.Schema.Services.GetRequiredService<IServerDiagnosticEvents>();
+        var persistedOps = executor.Schema.Services.GetService<PersistedOperationOptions>();
+        _skipDocumentBody = persistedOps is { OnlyAllowPersistedDocuments: true, AllowDocumentBody: false };
+        _operationNotAllowedError = persistedOps?.OperationNotAllowedError;
     }
 
     public ISocketSessionInterceptor SocketSessionInterceptor => _socketSessionInterceptor;
-
-    public IHttpResponseFormatter ResponseFormatter => _responseFormatter;
-
-    public IHttpRequestParser RequestParser => _requestParser;
 
     public IServerDiagnosticEvents DiagnosticEvents => _diagnosticEvents;
 
@@ -78,16 +82,37 @@ public sealed class ExecutorSession
     public async Task<IExecutionResult> ExecuteSingleAsync(
         HttpContext context,
         GraphQLRequest request,
-        RequestFlags flags)
+        RequestFlags flags,
+        GraphQLServerOptions options)
     {
         _diagnosticEvents.StartSingleRequest(context, request);
 
         var requestBuilder = OperationRequestBuilder.From(request);
         requestBuilder.SetFlags(flags);
+        requestBuilder.SetServices(context.RequestServices);
 
         await _requestInterceptor.OnCreateAsync(context, _executor, requestBuilder, context.RequestAborted);
 
-        return await _executor.ExecuteAsync(requestBuilder.Build(), context.RequestAborted);
+        var operationRequest = requestBuilder.Build();
+
+        if (operationRequest is VariableBatchRequest variableBatch)
+        {
+            if (!options.Batching.HasFlag(AllowedBatching.VariableBatching))
+            {
+                var error = Handle(ErrorHelper.InvalidRequest());
+                return OperationResult.FromError(error);
+            }
+
+            var maxBatchSize = options.MaxBatchSize;
+            if (maxBatchSize > 0
+                && variableBatch.VariableValues.Document.RootElement.GetArrayLength() > maxBatchSize)
+            {
+                var error = Handle(ErrorHelper.BatchSizeExceeded(maxBatchSize));
+                return OperationResult.FromError(error);
+            }
+        }
+
+        return await _executor.ExecuteAsync(operationRequest, context.RequestAborted);
     }
 
     public async Task<IResponseStream> ExecuteOperationBatchAsync(
@@ -105,6 +130,7 @@ public sealed class ExecutorSession
             var requestBuilder = OperationRequestBuilder.From(request);
             requestBuilder.SetOperationName(operationNames[i]);
             requestBuilder.SetFlags(flags);
+            requestBuilder.SetServices(context.RequestServices);
 
             await _requestInterceptor.OnCreateAsync(context, _executor, requestBuilder, context.RequestAborted);
 
@@ -118,17 +144,26 @@ public sealed class ExecutorSession
 
     public async Task<IResponseStream> ExecuteBatchAsync(
         HttpContext context,
-        IReadOnlyList<GraphQLRequest> requests,
-        RequestFlags flags)
+        GraphQLRequest[] requests,
+        RequestFlags flags,
+        GraphQLServerOptions options)
     {
+        var maxBatchSize = options.MaxBatchSize;
+        if (maxBatchSize > 0 && requests.Length > maxBatchSize)
+        {
+            var error = Handle(ErrorHelper.BatchSizeExceeded(maxBatchSize));
+            throw new GraphQLException(error);
+        }
+
         _diagnosticEvents.StartBatchRequest(context, requests);
 
-        var requestBatch = new IOperationRequest[requests.Count];
+        var requestBatch = new IOperationRequest[requests.Length];
 
-        for (var i = 0; i < requests.Count; i++)
+        for (var i = 0; i < requests.Length; i++)
         {
             var requestBuilder = OperationRequestBuilder.From(requests[i]);
             requestBuilder.SetFlags(flags);
+            requestBuilder.SetServices(context.RequestServices);
 
             await _requestInterceptor.OnCreateAsync(context, _executor, requestBuilder, context.RequestAborted);
 
@@ -138,6 +173,63 @@ public sealed class ExecutorSession
         return await _executor.ExecuteBatchAsync(
             new OperationRequestBatch(requestBatch, services: context.RequestServices),
             cancellationToken: context.RequestAborted);
+    }
+
+    public async ValueTask<GraphQLRequest[]> ParseRequestAsync(
+        PipeReader requestBody,
+        CancellationToken cancellationToken)
+    {
+        var requests = await _requestParser.ParseRequestAsync(requestBody, _skipDocumentBody, cancellationToken);
+        ThrowIfDocumentBodyNotAllowed(requests);
+        return requests;
+    }
+
+    public async ValueTask<GraphQLRequest> ParsePersistedOperationRequestAsync(
+        string documentId,
+        string? operationName,
+        PipeReader requestBody,
+        CancellationToken cancellationToken)
+    {
+        var request = await _requestParser.ParsePersistedOperationRequestAsync(
+            documentId, operationName, requestBody, _skipDocumentBody, cancellationToken);
+        ThrowIfDocumentBodyNotAllowed(request);
+        return request;
+    }
+
+    public GraphQLRequest ParseRequestFromParams(IQueryCollection parameters)
+    {
+        var request = _requestParser.ParseRequestFromParams(parameters, _skipDocumentBody);
+        ThrowIfDocumentBodyNotAllowed(request);
+        return request;
+    }
+
+    public GraphQLRequest ParsePersistedOperationRequestFromParams(
+        string operationId,
+        string? operationName,
+        IQueryCollection parameters)
+        => _requestParser.ParsePersistedOperationRequestFromParams(operationId, operationName, parameters);
+
+    public GraphQLRequest[] ParseRequest(string sourceText)
+    {
+        var requests = _requestParser.ParseRequest(sourceText, _skipDocumentBody);
+        ThrowIfDocumentBodyNotAllowed(requests);
+        return requests;
+    }
+
+    private void ThrowIfDocumentBodyNotAllowed(GraphQLRequest request)
+    {
+        if (_skipDocumentBody && request.HasDocumentBody && request.DocumentId is null)
+        {
+            throw new GraphQLRequestException(_operationNotAllowedError!);
+        }
+    }
+
+    private void ThrowIfDocumentBodyNotAllowed(GraphQLRequest[] requests)
+    {
+        foreach (var request in requests)
+        {
+            ThrowIfDocumentBodyNotAllowed(request);
+        }
     }
 
     public ValueTask WriteResultAsync(
@@ -155,6 +247,14 @@ public sealed class ExecutorSession
     public async Task WriteSchemaAsync(
         HttpContext context)
         => await _responseFormatter.FormatAsync(
+            context.Response,
+            Schema,
+            Version,
+            context.RequestAborted);
+
+    public async Task WriteSemanticNonNullSchemaAsync(
+        HttpContext context)
+        => await _responseFormatter.FormatSemanticNonNullSchemaAsync(
             context.Response,
             Schema,
             Version,

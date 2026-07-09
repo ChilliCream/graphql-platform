@@ -14,9 +14,21 @@ public sealed class ModuleInfo(string moduleName, ModuleOptions options) : Synta
     public override bool Equals(SyntaxInfo? obj)
         => obj is ModuleInfo other && Equals(other);
 
-    private bool Equals(ModuleInfo other)
-        => Options.Equals(other.Options)
+    private bool Equals(ModuleInfo? other)
+    {
+        if (other is null)
+        {
+            return false;
+        }
+
+        if (ReferenceEquals(this, other))
+        {
+            return true;
+        }
+
+        return Options.Equals(other.Options)
             && string.Equals(ModuleName, other.ModuleName, StringComparison.Ordinal);
+    }
 
     public override int GetHashCode()
         => HashCode.Combine(Options, ModuleName);

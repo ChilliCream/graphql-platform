@@ -126,17 +126,19 @@ public class QueryableProjectionFilterTests
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    @"{
+                    """
+                    {
                         root {
                             foo {
                                 objectArray(
                                     where: {
                                         foo: {
                                             barString: {
-                                                eq: ""a""
+                                                eq: "a"
                                             }
                                         }
-                                    }) {
+                                    }
+                                ) {
                                     foo {
                                         barString
                                         barShort
@@ -144,13 +146,15 @@ public class QueryableProjectionFilterTests
                                 }
                             }
                         }
-                    }")
-                .Build());
+                    }
+                    """)
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
             .Create().AddResult(res1)
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -163,33 +167,36 @@ public class QueryableProjectionFilterTests
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    @"
-                        {
-                            root {
-                                foo {
-                                    barString
-                                    objectArray(
-                                        where: {
-                                            foo: {
-                                                barString: {
-                                                    eq: ""a""
-                                                }
+                    """
+                    {
+                        root {
+                            foo {
+                                barString
+                                objectArray(
+                                    where: {
+                                        foo: {
+                                            barString: {
+                                                eq: "a"
                                             }
-                                        }) {
-                                        foo {
-                                            barString
-                                            barShort
                                         }
+                                    }
+                                ) {
+                                    foo {
+                                        barString
+                                        barShort
                                     }
                                 }
                             }
-                        }")
-                .Build());
+                        }
+                    }
+                    """)
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
             .Create().AddResult(res1)
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -202,17 +209,19 @@ public class QueryableProjectionFilterTests
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    @"{
+                    """
+                    {
                         root {
                             foo {
                                 objectArray(
                                     where: {
                                         foo: {
                                             barString: {
-                                                eq: ""a""
+                                                eq: "a"
                                             }
                                         }
-                                    }) {
+                                    }
+                                ) {
                                     foo {
                                         barString
                                         barShort
@@ -220,13 +229,15 @@ public class QueryableProjectionFilterTests
                                 }
                             }
                         }
-                    }")
-                .Build());
+                    }
+                    """)
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
             .Create().AddResult(res1)
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -239,7 +250,8 @@ public class QueryableProjectionFilterTests
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    @"{
+                    """
+                    {
                         root {
                             foo {
                                 barString
@@ -247,10 +259,11 @@ public class QueryableProjectionFilterTests
                                     where: {
                                         foo: {
                                             barString: {
-                                                eq: ""a""
+                                                eq: "a"
                                             }
                                         }
-                                    }) {
+                                    }
+                                ) {
                                     foo {
                                         barString
                                         barShort
@@ -258,13 +271,15 @@ public class QueryableProjectionFilterTests
                                 }
                             }
                         }
-                    }")
-                .Build());
+                    }
+                    """)
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
             .Create().AddResult(res1)
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -284,12 +299,13 @@ public class QueryableProjectionFilterTests
                             }
                         }
                     }")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
             .Create().AddResult(res1)
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -311,12 +327,13 @@ public class QueryableProjectionFilterTests
                             }
                         }
                     }")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
             .Create().AddResult(res1)
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -343,13 +360,14 @@ public class QueryableProjectionFilterTests
                             }
                         }
                     }")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
             .Create()
             .AddResult(res1)
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     public class Foo

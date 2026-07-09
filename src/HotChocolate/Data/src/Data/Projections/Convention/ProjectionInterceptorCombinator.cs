@@ -20,11 +20,11 @@ internal class ProjectionInterceptorCombinator<T>
         _next = next;
     }
 
-    public bool CanHandle(ISelection selection) => true;
+    public bool CanHandle(Selection selection) => true;
 
     public void BeforeProjection(
         T context,
-        ISelection selection)
+        Selection selection)
     {
         if (_current is IProjectionFieldInterceptor<T> currentHandler)
         {
@@ -37,7 +37,7 @@ internal class ProjectionInterceptorCombinator<T>
         }
     }
 
-    public void AfterProjection(T context, ISelection selection)
+    public void AfterProjection(T context, Selection selection)
     {
         if (_next is IProjectionFieldInterceptor<T> nextHandler)
         {

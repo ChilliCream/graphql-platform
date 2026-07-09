@@ -1,4 +1,3 @@
-using HotChocolate.Language;
 using HotChocolate.Tests;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
@@ -12,19 +11,28 @@ public class VariableCoercionIntegrationTests
     {
         var executor = await CreateSchemaAsync();
 
-        var user = new ObjectValueNode(
-            new ObjectFieldNode("name", "Oliver"),
-            new ObjectFieldNode("surname", "Smith"),
-            new ObjectFieldNode("gender", "MALE"));
-
         var request =
             OperationRequestBuilder
                 .New()
-                .SetDocument("mutation($user: UserInput!) { addUser(user: $user) }")
-                .SetVariableValues(new Dictionary<string, object?> { { "user", user } })
+                .SetDocument(
+                    """
+                    mutation($user: UserInput!) {
+                        addUser(user: $user)
+                    }
+                    """)
+                .SetVariableValues(
+                    """
+                    {
+                        "user": {
+                            "name": "Oliver",
+                            "surname": "Smith",
+                            "gender": "MALE"
+                        }
+                    }
+                    """)
                 .Build();
 
-        await executor.ExecuteAsync(request).MatchSnapshotAsync();
+        await executor.ExecuteAsync(request, TestContext.Current.CancellationToken).MatchSnapshotAsync();
     }
 
     [Fact]
@@ -32,17 +40,26 @@ public class VariableCoercionIntegrationTests
     {
         var executor = await CreateSchemaAsync();
 
-        var user = new ObjectValueNode(
-            new ObjectFieldNode("name", "Oliver"));
-
         var request =
             OperationRequestBuilder
                 .New()
-                .SetDocument("mutation($user: UserInput!) { addUser(user: $user) }")
-                .SetVariableValues(new Dictionary<string, object?> { { "user", user } })
+                .SetDocument(
+                    """
+                    mutation($user: UserInput!) {
+                        addUser(user: $user)
+                    }
+                    """)
+                .SetVariableValues(
+                    """
+                    {
+                        "user": {
+                            "name": "Oliver"
+                        }
+                    }
+                    """)
                 .Build();
 
-        await executor.ExecuteAsync(request).MatchSnapshotAsync();
+        await executor.ExecuteAsync(request, TestContext.Current.CancellationToken).MatchSnapshotAsync();
     }
 
     [Fact]
@@ -50,19 +67,28 @@ public class VariableCoercionIntegrationTests
     {
         var executor = await CreateSchemaAsync();
 
-        var user = new ObjectValueNode(
-            new ObjectFieldNode("name", NullValueNode.Default),
-            new ObjectFieldNode("surname", "Smith"),
-            new ObjectFieldNode("gender", "MALE"));
-
         var request =
             OperationRequestBuilder
                 .New()
-                .SetDocument("mutation($user: UserInput!) { addUser(user: $user) }")
-                .SetVariableValues(new Dictionary<string, object?> { { "user", user } })
+                .SetDocument(
+                    """
+                    mutation($user: UserInput!) {
+                        addUser(user: $user)
+                    }
+                    """)
+                .SetVariableValues(
+                    """
+                    {
+                        "user": {
+                            "name": null,
+                            "surname": "Smith",
+                            "gender": "MALE"
+                        }
+                    }
+                    """)
                 .Build();
 
-        await executor.ExecuteAsync(request).MatchSnapshotAsync();
+        await executor.ExecuteAsync(request, TestContext.Current.CancellationToken).MatchSnapshotAsync();
     }
 
     [Fact]
@@ -70,18 +96,27 @@ public class VariableCoercionIntegrationTests
     {
         var executor = await CreateSchemaAsync();
 
-        var user = new ObjectValueNode(
-            new ObjectFieldNode("surname", "Smith"),
-            new ObjectFieldNode("gender", "MALE"));
-
         var request =
             OperationRequestBuilder
                 .New()
-                .SetDocument("mutation($user: UserInput!) { addUser(user: $user) }")
-                .SetVariableValues(new Dictionary<string, object?> { { "user", user } })
+                .SetDocument(
+                    """
+                    mutation($user: UserInput!) {
+                        addUser(user: $user)
+                    }
+                    """)
+                .SetVariableValues(
+                    """
+                    {
+                        "user": {
+                            "surname": "Smith",
+                            "gender": "MALE"
+                        }
+                    }
+                    """)
                 .Build();
 
-        await executor.ExecuteAsync(request).MatchSnapshotAsync();
+        await executor.ExecuteAsync(request, TestContext.Current.CancellationToken).MatchSnapshotAsync();
     }
 
     [Fact]
@@ -89,16 +124,24 @@ public class VariableCoercionIntegrationTests
     {
         var executor = await CreateSchemaAsync();
 
-        var user = new ObjectValueNode();
-
         var request =
             OperationRequestBuilder
                 .New()
-                .SetDocument("mutation($user: UserInput!) { addUser(user: $user) }")
-                .SetVariableValues(new Dictionary<string, object?> { { "user", user } })
+                .SetDocument(
+                    """
+                    mutation($user: UserInput!) {
+                        addUser(user: $user)
+                    }
+                    """)
+                .SetVariableValues(
+                    """
+                    {
+                        "user": {}
+                    }
+                    """)
                 .Build();
 
-        await executor.ExecuteAsync(request).MatchSnapshotAsync();
+        await executor.ExecuteAsync(request, TestContext.Current.CancellationToken).MatchSnapshotAsync();
     }
 
     [Fact]
@@ -109,11 +152,21 @@ public class VariableCoercionIntegrationTests
         var request =
             OperationRequestBuilder
                 .New()
-                .SetDocument("mutation($user: UserInput!) { addUser(user: $user) }")
-                .SetVariableValues(new Dictionary<string, object?> { { "user", null } })
+                .SetDocument(
+                    """
+                    mutation($user: UserInput!) {
+                        addUser(user: $user)
+                    }
+                    """)
+                .SetVariableValues(
+                    """
+                    {
+                        "user": null
+                    }
+                    """)
                 .Build();
 
-        await executor.ExecuteAsync(request).MatchSnapshotAsync();
+        await executor.ExecuteAsync(request, TestContext.Current.CancellationToken).MatchSnapshotAsync();
     }
 
     [Fact]
@@ -124,10 +177,15 @@ public class VariableCoercionIntegrationTests
         var request =
             OperationRequestBuilder
                 .New()
-                .SetDocument("mutation($user: UserInput!) { addUser(user: $user) }")
+                .SetDocument(
+                    """
+                    mutation($user: UserInput!) {
+                        addUser(user: $user)
+                    }
+                    """)
                 .Build();
 
-        await executor.ExecuteAsync(request).MatchSnapshotAsync();
+        await executor.ExecuteAsync(request, TestContext.Current.CancellationToken).MatchSnapshotAsync();
     }
 
     [Fact]
@@ -135,19 +193,28 @@ public class VariableCoercionIntegrationTests
     {
         var executor = await CreateSchemaAsync();
 
-        var user = new ObjectValueNode(
-            new ObjectFieldNode("name", "Oliver"),
-            new ObjectFieldNode("surname", "Smith"),
-            new ObjectFieldNode("foo", "bar"));
-
         var request =
             OperationRequestBuilder
                 .New()
-                .SetDocument("mutation($user: UserInput!) { addUser(user: $user) }")
-                .SetVariableValues(new Dictionary<string, object?> { { "user", user } })
+                .SetDocument(
+                    """
+                    mutation($user: UserInput!) {
+                        addUser(user: $user)
+                    }
+                    """)
+                .SetVariableValues(
+                    """
+                    {
+                        "user": {
+                            "name": "Oliver",
+                            "surname": "Smith",
+                            "foo": "bar"
+                        }
+                    }
+                    """)
                 .Build();
 
-        await executor.ExecuteAsync(request).MatchSnapshotAsync();
+        await executor.ExecuteAsync(request, TestContext.Current.CancellationToken).MatchSnapshotAsync();
     }
 
     [Fact]
@@ -155,20 +222,29 @@ public class VariableCoercionIntegrationTests
     {
         var executor = await CreateSchemaAsync();
 
-        var user = new ObjectValueNode(
-            new ObjectFieldNode("name", "Oliver"),
-            new ObjectFieldNode("surname", "Smith"),
-            new ObjectFieldNode("gender", "MALE"),
-            new ObjectFieldNode("foo", "bar"));
-
         var request =
             OperationRequestBuilder
                 .New()
-                .SetDocument("mutation($user: UserInput!) { addUser(user: $user) }")
-                .SetVariableValues(new Dictionary<string, object?> { { "user", user } })
+                .SetDocument(
+                    """
+                    mutation($user: UserInput!) {
+                        addUser(user: $user)
+                    }
+                    """)
+                .SetVariableValues(
+                    """
+                    {
+                        "user": {
+                            "name": "Oliver",
+                            "surname": "Smith",
+                            "gender": "MALE",
+                            "foo": "bar"
+                        }
+                    }
+                    """)
                 .Build();
 
-        await executor.ExecuteAsync(request).MatchSnapshotAsync();
+        await executor.ExecuteAsync(request, TestContext.Current.CancellationToken).MatchSnapshotAsync();
     }
 
     [Fact]
@@ -176,18 +252,27 @@ public class VariableCoercionIntegrationTests
     {
         var executor = await CreateSchemaAsync();
 
-        var user = new ObjectValueNode(
-            new ObjectFieldNode("name", "Oliver"),
-            new ObjectFieldNode("gender", "FOO"));
-
         var request =
             OperationRequestBuilder
                 .New()
-                .SetDocument("mutation($user: UserInput!) { addUser(user: $user) }")
-                .SetVariableValues(new Dictionary<string, object?> { { "user", user } })
+                .SetDocument(
+                    """
+                    mutation($user: UserInput!) {
+                        addUser(user: $user)
+                    }
+                    """)
+                .SetVariableValues(
+                    """
+                    {
+                        "user": {
+                            "name": "Oliver",
+                            "gender": "FOO"
+                        }
+                    }
+                    """)
                 .Build();
 
-        await executor.ExecuteAsync(request).MatchSnapshotAsync();
+        await executor.ExecuteAsync(request, TestContext.Current.CancellationToken).MatchSnapshotAsync();
     }
 
     private static async Task<IRequestExecutor> CreateSchemaAsync()

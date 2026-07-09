@@ -14,7 +14,7 @@ public class IntrospectionTests
         var executor = CreateSchema().MakeExecutable();
 
         // act
-        var result = await executor.ExecuteAsync(query);
+        var result = await executor.ExecuteAsync(query, TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -28,7 +28,7 @@ public class IntrospectionTests
         var executor = CreateSchema().MakeExecutable();
 
         // act
-        var result = await executor.ExecuteAsync(query);
+        var result = await executor.ExecuteAsync(query, TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -51,7 +51,7 @@ public class IntrospectionTests
                 .MakeExecutable();
 
         // act
-        var result = await executor.ExecuteAsync(query);
+        var result = await executor.ExecuteAsync(query, TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -65,7 +65,7 @@ public class IntrospectionTests
         var executor = CreateSchema().MakeExecutable();
 
         // act
-        var result = await executor.ExecuteAsync(query);
+        var result = await executor.ExecuteAsync(query, TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -81,7 +81,7 @@ public class IntrospectionTests
         var executor = CreateSchema().MakeExecutable();
 
         // act
-        var result = await executor.ExecuteAsync(query);
+        var result = await executor.ExecuteAsync(query, TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -95,7 +95,7 @@ public class IntrospectionTests
         var executor = CreateSchema().MakeExecutable();
 
         // act
-        var result = await executor.ExecuteAsync(query);
+        var result = await executor.ExecuteAsync(query, TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -109,7 +109,7 @@ public class IntrospectionTests
         var executor = CreateSchema().MakeExecutable();
 
         // act
-        var result = await executor.ExecuteAsync(query);
+        var result = await executor.ExecuteAsync(query, TestContext.Current.CancellationToken);
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -135,7 +135,9 @@ public class IntrospectionTests
         var executor = schema.MakeExecutable();
 
         // act
-        var result = await executor.ExecuteAsync("{ __typename a }");
+        var result = await executor.ExecuteAsync(
+            "{ __typename a }",
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -165,7 +167,7 @@ public class IntrospectionTests
         var executor = schema.MakeExecutable();
 
         // act
-        var result = await executor.ExecuteAsync(query);
+        var result = await executor.ExecuteAsync(query, TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -183,7 +185,9 @@ public class IntrospectionTests
         var executor = schema.MakeExecutable();
 
         // act
-        var result = await executor.ExecuteAsync("{ __typename @upper a }");
+        var result = await executor.ExecuteAsync(
+            "{ __typename @upper a }",
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -201,7 +205,7 @@ public class IntrospectionTests
             .MakeExecutable();
 
         // act
-        var result = await executor.ExecuteAsync(query);
+        var result = await executor.ExecuteAsync(query, TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -214,13 +218,14 @@ public class IntrospectionTests
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddDocumentFromString(
-                    @"type Query {
+                    """
+                    type Query {
                         foo: String
                             @foo
-                            @bar(baz: ""ABC"")
+                            @bar(baz: "ABC")
                             @bar(baz: null)
-                            @bar(quox: { a: ""ABC"" })
-                            @bar(quox: { a: ""DEF"" })
+                            @bar(quox: { a: "ABC" })
+                            @bar(quox: { a: "DEF" })
                             @bar
                     }
 
@@ -230,7 +235,8 @@ public class IntrospectionTests
 
                     directive @foo on FIELD_DEFINITION
 
-                    directive @bar(baz: String quox: SomeInput) repeatable on FIELD_DEFINITION")
+                    directive @bar(baz: String, quox: SomeInput) repeatable on FIELD_DEFINITION
+                    """)
                 .UseField(next => next)
                 .ModifyOptions(o => o.EnableDirectiveIntrospection = true)
                 .ExecuteRequestAsync(
@@ -248,7 +254,8 @@ public class IntrospectionTests
                                 }
                             }
                         }
-                    }");
+                    }",
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchSnapshot();
     }
@@ -260,13 +267,14 @@ public class IntrospectionTests
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddDocumentFromString(
-                    @"type Query {
+                    """
+                    type Query {
                         foo: String
                             @foo
-                            @bar(baz: ""ABC"")
+                            @bar(baz: "ABC")
                             @bar(baz: null)
-                            @bar(quox: { a: ""ABC"" })
-                            @bar(quox: { a: ""DEF"" })
+                            @bar(quox: { a: "ABC" })
+                            @bar(quox: { a: "DEF" })
                             @bar
                     }
 
@@ -276,7 +284,8 @@ public class IntrospectionTests
 
                     directive @foo on FIELD_DEFINITION
 
-                    directive @bar(baz: String quox: SomeInput) repeatable on FIELD_DEFINITION")
+                    directive @bar(baz: String, quox: SomeInput) repeatable on FIELD_DEFINITION
+                    """)
                 .UseField(next => next)
                 .ModifyOptions(o => o.EnableDirectiveIntrospection = true)
                 .ModifyOptions(o => o.DefaultDirectiveVisibility = DirectiveVisibility.Internal)
@@ -295,7 +304,8 @@ public class IntrospectionTests
                                 }
                             }
                         }
-                    }");
+                    }",
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchSnapshot();
     }
@@ -307,13 +317,14 @@ public class IntrospectionTests
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddDocumentFromString(
-                    @"type Query {
+                    """
+                    type Query {
                         foo: String
                             @foo
-                            @bar(baz: ""ABC"")
+                            @bar(baz: "ABC")
                             @bar(baz: null)
-                            @bar(quox: { a: ""ABC"" })
-                            @bar(quox: { a: ""DEF"" })
+                            @bar(quox: { a: "ABC" })
+                            @bar(quox: { a: "DEF" })
                             @bar
                     }
 
@@ -321,15 +332,16 @@ public class IntrospectionTests
                         a: String!
                     }
 
-                    directive @bar(baz: String quox: SomeInput) repeatable on FIELD_DEFINITION")
+                    directive @bar(baz: String, quox: SomeInput) repeatable on FIELD_DEFINITION
+                    """)
                 .UseField(next => next)
                 .ModifyOptions(o => o.EnableDirectiveIntrospection = true)
-                .AddDirectiveType(new DirectiveType(d =>
+                .AddDirectiveType(d =>
                 {
                     d.Name("foo");
                     d.Location(DirectiveLocation.FieldDefinition);
                     d.Internal();
-                }))
+                })
                 .ExecuteRequestAsync(
                     @"{
                         __schema {
@@ -345,8 +357,186 @@ public class IntrospectionTests
                                 }
                             }
                         }
-                    }");
+                    }",
+                    cancellationToken: TestContext.Current.CancellationToken);
 
+        result.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task DirectiveIntrospection_AllDirectives_Public_When_DisableInternalDirectives_Is_True()
+    {
+        var result =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddDocumentFromString(
+                    """
+                    type Query {
+                        foo: String
+                            @foo
+                            @bar(baz: "ABC")
+                            @bar(baz: null)
+                            @bar(quox: { a: "ABC" })
+                            @bar(quox: { a: "DEF" })
+                            @bar
+                    }
+
+                    input SomeInput {
+                        a: String!
+                    }
+
+                    directive @bar(baz: String, quox: SomeInput) repeatable on FIELD_DEFINITION
+                    """)
+                .UseField(next => next)
+                .ModifyOptions(o => o.EnableDirectiveIntrospection = true)
+                .ModifyOptions(o => o.DefaultDirectiveVisibility = DirectiveVisibility.Internal)
+                .ModifyOptions(o => o.DisableInternalDirectives = true)
+                .AddDirectiveType(d =>
+                {
+                    d.Name("foo");
+                    d.Location(DirectiveLocation.FieldDefinition);
+                    d.Internal();
+                })
+                .ExecuteRequestAsync(
+                    @"{
+                        __schema {
+                            types {
+                                fields {
+                                    appliedDirectives {
+                                        name
+                                        args {
+                                            name
+                                            value
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }",
+                    cancellationToken: TestContext.Current.CancellationToken);
+
+        result.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task DirectiveDeprecationIsExposed()
+    {
+        // arrange
+        const string query =
+            """
+            {
+                __schema {
+                    directives {
+                        name
+                        isDeprecated
+                        deprecationReason
+                    }
+                }
+            }
+            """;
+
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddDocumentFromString(
+                """
+                type Query @current {
+                    field: String
+                }
+
+                directive @current on OBJECT
+                """)
+            .UseField(next => next)
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // act
+        var result = await executor.ExecuteAsync(query, TestContext.Current.CancellationToken);
+
+        // assert
+        result.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task DeprecatedDirectivesAreFilteredByDefault()
+    {
+        // arrange
+        const string query =
+            """
+            {
+                defaultDirectives: __schema {
+                    directives {
+                        name
+                    }
+                }
+                allDirectives: __schema {
+                    directives(includeDeprecated: true) {
+                        name
+                        deprecationReason
+                    }
+                }
+            }
+            """;
+
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddDocumentFromString(
+                """
+                type Query @old @current {
+                    field: String
+                }
+
+                directive @old @deprecated(reason: "Use @current.") on OBJECT
+
+                directive @current on OBJECT
+                """)
+            .UseField(next => next)
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // act
+        var result = await executor.ExecuteAsync(query, TestContext.Current.CancellationToken);
+
+        // assert
+        // @old must only appear in the allDirectives list.
+        result.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task DirectiveDefinitionLocationIsExposed()
+    {
+        // arrange
+        const string query =
+            """
+            {
+                __type(name: "__DirectiveLocation") {
+                    enumValues {
+                        name
+                    }
+                }
+                __schema {
+                    directives {
+                        name
+                        locations
+                    }
+                }
+            }
+            """;
+
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddDocumentFromString(
+                """
+                type Query {
+                    field: String
+                }
+
+                directive @onDirectiveDefinition on DIRECTIVE_DEFINITION
+                """)
+            .UseField(next => next)
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // act
+        var result = await executor.ExecuteAsync(query, TestContext.Current.CancellationToken);
+
+        // assert
         result.MatchSnapshot();
     }
 

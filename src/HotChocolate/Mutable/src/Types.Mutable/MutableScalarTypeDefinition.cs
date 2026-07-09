@@ -9,12 +9,19 @@ namespace HotChocolate.Types.Mutable;
 /// <summary>
 /// Represents a GraphQL scalar type definition.
 /// </summary>
-public class MutableScalarTypeDefinition(string name)
-    : INamedTypeSystemMemberDefinition<MutableScalarTypeDefinition>
+public class MutableScalarTypeDefinition : INamedTypeSystemMemberDefinition<MutableScalarTypeDefinition>
     , IScalarTypeDefinition
     , IMutableTypeDefinition
 {
     private DirectiveCollection? _directives;
+
+    /// <summary>
+    /// Represents a GraphQL scalar type definition.
+    /// </summary>
+    public MutableScalarTypeDefinition(string name)
+    {
+        Name = name.EnsureGraphQLName();
+    }
 
     /// <inheritdoc />
     public TypeKind Kind => TypeKind.Scalar;
@@ -24,13 +31,18 @@ public class MutableScalarTypeDefinition(string name)
     {
         get;
         set => field = value.EnsureGraphQLName();
-    } = name.EnsureGraphQLName();
+    }
 
     /// <inheritdoc cref="IMutableTypeDefinition.Description" />
     public string? Description { get; set; }
 
     /// <inheritdoc />
     public SchemaCoordinate Coordinate => new(Name, ofDirective: false);
+
+    Type IRuntimeTypeProvider.RuntimeType => typeof(object);
+
+    /// <inheritdoc cref="IMutableTypeDefinition.IsIntrospectionType" />
+    public bool IsIntrospectionType { get; set; }
 
     /// <summary>
     /// Gets or sets a value indicating whether this scalar type is a spec scalar.
@@ -77,7 +89,7 @@ public class MutableScalarTypeDefinition(string name)
         return false;
     }
 
-    public Uri? SpecifiedBy
+    public string? SpecifiedBy
     {
         get
         {
@@ -90,19 +102,20 @@ public class MutableScalarTypeDefinition(string name)
 
             var url = specifiedBy.Arguments.First(t => t.Name.Equals("url", StringComparison.Ordinal));
 
-            if (url.Value is not StringValueNode urlValue)
-            {
-                throw new InvalidOperationException("The specified URL is not a valid URI.");
-            }
-
-            return new Uri(urlValue.Value);
+            return url.Value is StringValueNode urlValue ? urlValue.Value : null;
         }
     }
 
     /// <inheritdoc />
-    public bool IsInstanceOfType(IValueNode value)
+    public ScalarSerializationType SerializationType { get; set; }
+
+    /// <inheritdoc />
+    public string? Pattern { get; set; }
+
+    /// <inheritdoc />
+    public bool IsValueCompatible(IValueNode valueLiteral)
     {
-        ArgumentNullException.ThrowIfNull(value);
+        ArgumentNullException.ThrowIfNull(valueLiteral);
         return true;
     }
 

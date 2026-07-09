@@ -115,7 +115,7 @@ public class InputObjectTypeSchemaFirstTests
 
     public class HelloInput
     {
-        public string Hello { get; set; }
-        public string World { get; set; }
+        public required string Hello { get; set; }
+        public required string World { get; set; }
     }
 }

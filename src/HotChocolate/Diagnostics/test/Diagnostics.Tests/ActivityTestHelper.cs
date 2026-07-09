@@ -1,99 +1,216 @@
 using System.Diagnostics;
-using HotChocolate.Utilities;
+using System.Text.RegularExpressions;
+using Newtonsoft.Json;
+using OpenTelemetry;
+using OpenTelemetry.Trace;
 
 namespace HotChocolate.Diagnostics;
 
-public static class ActivityTestHelper
+public static partial class ActivityTestHelper
 {
-    public static IDisposable CaptureActivities(out object activities)
+    [GeneratedRegex(@" in (?<path>.+?):line (?<line>\d+)", RegexOptions.CultureInvariant)]
+    private static partial Regex StackTracePathRegex();
+    [GeneratedRegex(@"lambda_method\d+", RegexOptions.CultureInvariant)]
+    private static partial Regex LambdaMethodRegex();
+    // Async resumption markers depend on whether an await completes synchronously, which the
+    // JIT decides differently under coverage instrumentation. Removing them keeps the snapshot
+    // stable regardless of those JIT/coverage differences.
+    [GeneratedRegex(@"\n--- End of stack trace from previous location ---", RegexOptions.CultureInvariant)]
+    private static partial Regex StackTraceResumptionMarkerRegex();
+
+    public static IDisposable CaptureActivities(out Capture activities)
     {
-        var sync = new object();
-        var listener = new ActivityListener();
-        var root = new OrderedDictionary<string, object?>();
-        var lookup = new Dictionary<Activity, OrderedDictionary<string, object?>>();
-        Activity rootActivity = null!;
+        var exported = new List<Activity>();
+        var quiescence = new QuiescenceProcessor();
 
-        listener.ShouldListenTo = source => source.Name.EqualsOrdinal("HotChocolate.Diagnostics");
-        listener.ActivityStarted = a =>
+        var tracerProvider = Sdk.CreateTracerProviderBuilder()
+            .AddHotChocolateInstrumentation()
+            .AddAspNetCoreInstrumentation()
+            .AddHttpClientInstrumentation()
+            .AddSource("Experimental.ModelContextProtocol")
+            .SetSampler(new AlwaysOnSampler())
+            .AddInMemoryExporter(exported)
+            // Registered after the exporter so the exporter's OnEnd appends the span before
+            // this processor signals idle.
+            .AddProcessor(quiescence)
+            .Build();
+
+        var capture = new Capture(tracerProvider, exported, quiescence);
+        activities = capture;
+        return capture;
+    }
+
+    private static OrderedDictionary<string, object?> SerializeActivity(
+        Activity activity,
+        IReadOnlyDictionary<ActivitySpanId, List<Activity>> byParent)
+    {
+        var data = new OrderedDictionary<string, object?>
         {
-            lock (sync)
+            ["OperationName"] = activity.OperationName,
+            ["DisplayName"] = activity.DisplayName,
+            ["Kind"] = activity.Kind,
+            ["Status"] = activity.Status,
+            ["tags"] = activity.TagObjects,
+            ["event"] = activity.Events.Select(e => new
             {
-                if (a.Parent is null
-                    && a.OperationName.EqualsOrdinal("ExecuteHttpRequest")
-                    && lookup.TryGetValue(rootActivity, out var parentData))
-                {
-                    RegisterActivity(a, parentData);
-                    lookup[a] = (OrderedDictionary<string, object?>)a.GetCustomProperty("test.data")!;
-                }
+                e.Name,
+                Tags = ScrubEventTags(e.Tags)
+            })
+        };
 
-                if (a.Parent is not null
-                    && lookup.TryGetValue(a.Parent, out parentData))
+        if (byParent.TryGetValue(activity.SpanId, out var children) && children.Count > 0)
+        {
+            data["activities"] = children
+                .Select(c => SerializeActivity(c, byParent))
+                .ToList();
+        }
+
+        return data;
+    }
+
+    private static IEnumerable<KeyValuePair<string, object?>> ScrubEventTags(
+        IEnumerable<KeyValuePair<string, object?>>? tags)
+    {
+        if (tags is null)
+        {
+            yield break;
+        }
+
+        foreach (var tag in tags)
+        {
+            if (tag.Value is string stackTrace
+                && (tag.Key.Equals("exception.stacktrace", StringComparison.Ordinal)
+                    || tag.Key.EndsWith(".stacktrace", StringComparison.Ordinal)))
+            {
+                var scrubbedStackTrace = StackTracePathRegex().Replace(stackTrace, match =>
                 {
-                    RegisterActivity(a, parentData);
-                    lookup[a] = (OrderedDictionary<string, object?>)a.GetCustomProperty("test.data")!;
+                    var fileName = System.IO.Path.GetFileName(match.Groups["path"].Value);
+                    return $" in {fileName}";
+                });
+
+                scrubbedStackTrace = StackTraceResumptionMarkerRegex().Replace(scrubbedStackTrace, "");
+
+                yield return new KeyValuePair<string, object?>(
+                    tag.Key,
+                    LambdaMethodRegex().Replace(scrubbedStackTrace, "lambda_method"));
+            }
+            else
+            {
+                yield return tag;
+            }
+        }
+    }
+
+    public sealed class Capture : IDisposable
+    {
+        private readonly TracerProvider _tracerProvider;
+        private readonly List<Activity> _exported;
+        private readonly QuiescenceProcessor _quiescence;
+        private IReadOnlyList<Activity>? _settled;
+
+        public Capture(
+            TracerProvider tracerProvider,
+            List<Activity> exported,
+            QuiescenceProcessor quiescence)
+        {
+            _tracerProvider = tracerProvider;
+            _exported = exported;
+            _quiescence = quiescence;
+        }
+
+        // Spans are exported as they stop, and server-side spans can finish on background
+        // continuations after the awaited call returns. Wait until no spans are in flight so
+        // those late spans are included, then read the snapshot.
+        private IReadOnlyList<Activity> Settled => _settled ??= CollectSettledActivities();
+
+        private IReadOnlyList<Activity> CollectSettledActivities()
+        {
+            _quiescence.WaitForIdle(TimeSpan.FromSeconds(5));
+            return _exported.ToArray();
+        }
+
+        [JsonIgnore]
+        public IReadOnlyList<Activity> Exported => _exported;
+
+        [JsonProperty("source", Order = 0)]
+        public OrderedDictionary<string, object?> Source
+            => new()
+            {
+                // The first source name in stable (ordinal) order. Using the first exported
+                // activity is not deterministic once nested transport spans are involved,
+                // because the order in which sibling spans complete can vary between runs.
+                ["name"] = Settled
+                    .Select(a => a.Source.Name)
+                    .OrderBy(name => name, StringComparer.Ordinal)
+                    .FirstOrDefault()
+            };
+
+        [JsonProperty("activities", Order = 1)]
+        public IReadOnlyList<OrderedDictionary<string, object?>> Activities
+        {
+            get
+            {
+                var exported = Settled;
+                var spanIds = new HashSet<ActivitySpanId>(exported.Select(a => a.SpanId));
+                var byParent = exported
+                    .GroupBy(a => a.ParentSpanId)
+                    .ToDictionary(g => g.Key, g => g.OrderBy(a => a.StartTimeUtc).ToList());
+
+                return exported
+                    .Where(a => a.ParentSpanId == default || !spanIds.Contains(a.ParentSpanId))
+                    .OrderBy(a => a.StartTimeUtc)
+                    .Select(root => SerializeActivity(root, byParent))
+                    .ToList();
+            }
+        }
+
+        public void Dispose() => _tracerProvider.Dispose();
+    }
+
+    /// <summary>
+    /// Tracks how many activities are currently in flight and lets a caller block until
+    /// tracing has gone idle, so a captured trace is read only after every span (including
+    /// server-side spans that complete after the awaited call returns) has finished.
+    /// </summary>
+    public sealed class QuiescenceProcessor : BaseProcessor<Activity>
+    {
+        private readonly object _gate = new();
+        private readonly ManualResetEventSlim _idle = new(initialState: true);
+        private int _inFlight;
+
+        public override void OnStart(Activity data)
+        {
+            lock (_gate)
+            {
+                _inFlight++;
+                _idle.Reset();
+            }
+        }
+
+        public override void OnEnd(Activity data)
+        {
+            lock (_gate)
+            {
+                if (--_inFlight == 0)
+                {
+                    _idle.Set();
                 }
             }
-        };
-        listener.ActivityStopped = SerializeActivity;
-        listener.Sample = (ref ActivityCreationOptions<ActivityContext> _) =>
-            ActivitySamplingResult.AllData;
-        ActivitySource.AddActivityListener(listener);
-
-        rootActivity = HotChocolateActivitySource.Source.StartActivity()!;
-        rootActivity.SetCustomProperty("test.data", root);
-        lookup[rootActivity] = root;
-
-        activities = root;
-        return new Session(rootActivity, listener);
-    }
-
-    private static void RegisterActivity(
-        Activity activity,
-        OrderedDictionary<string, object?> parent)
-    {
-        if (!(parent.TryGetValue("activities", out var value) && value is List<object> children))
-        {
-            children = [];
-            parent["activities"] = children;
         }
 
-        var data = new OrderedDictionary<string, object?>();
-        activity.SetCustomProperty("test.data", data);
-        SerializeActivity(activity);
-        children.Add(data);
-    }
+        // Block until no spans are in flight, so late-completing server-side spans are
+        // captured. Bounded by the timeout so a stuck span surfaces as a snapshot mismatch
+        // rather than hanging the test.
+        public bool WaitForIdle(TimeSpan timeout) => _idle.Wait(timeout);
 
-    private static void SerializeActivity(Activity activity)
-    {
-        var data = (OrderedDictionary<string, object?>?)activity.GetCustomProperty("test.data");
-
-        if (data is null)
+        protected override void Dispose(bool disposing)
         {
-            return;
-        }
+            if (disposing)
+            {
+                _idle.Dispose();
+            }
 
-        data["OperationName"] = activity.OperationName;
-        data["DisplayName"] = activity.DisplayName;
-        data["Status"] = activity.Status;
-        data["tags"] = activity.Tags;
-        data["event"] = activity.Events.Select(t => new { t.Name, t.Tags });
-    }
-
-    private sealed class Session : IDisposable
-    {
-        private readonly Activity _activity;
-        private readonly ActivityListener _listener;
-
-        public Session(Activity activity, ActivityListener listener)
-        {
-            _activity = activity;
-            _listener = listener;
-        }
-
-        public void Dispose()
-        {
-            _activity.Dispose();
-            _listener.Dispose();
+            base.Dispose(disposing);
         }
     }
 }

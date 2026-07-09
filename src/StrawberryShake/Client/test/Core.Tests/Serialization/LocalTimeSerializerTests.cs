@@ -22,6 +22,24 @@ public class LocalTimeSerializerTests
     }
 
     [Fact]
+    public void Parse_With_Fractional_Seconds()
+    {
+        // arrange
+        const string value = "13:22:53.123456789";
+
+        // act
+        var result = Serializer.Parse(value);
+
+        // assert
+        Assert.Equal(13, result.Hour);
+        Assert.Equal(22, result.Minute);
+        Assert.Equal(53, result.Second);
+        Assert.Equal(123, result.Millisecond);
+        Assert.Equal(456, result.Microsecond);
+        Assert.Equal(800, result.Nanosecond);
+    }
+
+    [Fact]
     public void Format_Null()
     {
         // arrange
@@ -44,6 +62,19 @@ public class LocalTimeSerializerTests
 
         // assert
         Assert.Equal("13:22:53", result);
+    }
+
+    [Fact]
+    public void Format_Value_With_Fractional_Seconds()
+    {
+        // arrange
+        var value = new TimeOnly(13, 22, 53, 123, 456).Add(TimeSpan.FromTicks(7));
+
+        // act
+        var result = Serializer.Format(value);
+
+        // assert
+        Assert.Equal("13:22:53.1234567", result);
     }
 
     [Fact]

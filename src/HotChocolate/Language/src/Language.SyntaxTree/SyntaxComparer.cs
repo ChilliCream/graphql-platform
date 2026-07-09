@@ -5,6 +5,9 @@ public static class SyntaxComparer
     public static IEqualityComparer<ISyntaxNode> BySyntax { get; }
         = new SyntaxEqualityComparer();
 
+    public static IEqualityComparer<ISyntaxNode> BySyntaxIgnoreDescriptions { get; }
+        = new SyntaxEqualityComparer(ignoreDescriptions: true);
+
     public static IEqualityComparer<ISyntaxNode> ByReference { get; }
         = new DefaultSyntaxEqualityComparer();
 

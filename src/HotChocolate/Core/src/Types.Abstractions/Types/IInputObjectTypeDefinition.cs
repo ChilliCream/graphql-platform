@@ -24,4 +24,9 @@ public interface IInputObjectTypeDefinition
     /// Gets the fields of this input object type.
     /// </summary>
     IReadOnlyFieldDefinitionCollection<IInputValueDefinition> Fields { get; }
+
+    /// <summary>
+    /// Defines if this input object type is a oneOf input object.
+    /// </summary>
+    bool IsOneOf { get; }
 }

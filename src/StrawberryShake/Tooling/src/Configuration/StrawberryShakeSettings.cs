@@ -26,11 +26,6 @@ public class StrawberryShakeSettings
     public string? AccessModifier { get; set; }
 
     /// <summary>
-    /// Defines if the generator shall generate dependency injection code.
-    /// </summary>
-    public bool? DependencyInjection { get; set; }
-
-    /// <summary>
     /// Defines if the generator shall validate the schema.
     /// </summary>
     public bool? StrictSchemaValidation { get; set; }

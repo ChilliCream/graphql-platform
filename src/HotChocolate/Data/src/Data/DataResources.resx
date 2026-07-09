@@ -170,13 +170,13 @@
     <value>The provided value for filter `{0}` of type {1} is invalid. Null values are not supported.</value>
   </data>
   <data name="FilterProvider_UnableToCreateFieldHandler" xml:space="preserve">
-    <value>Unable to create field handler `{0}` for filter provider `{1}`.</value>
+    <value>Unable to create field handler for filter provider `{0}`.</value>
   </data>
   <data name="SortProvider_UnableToCreateFieldHandler" xml:space="preserve">
-    <value>Unable to create field handler `{0}` for sort provider `{1}`.</value>
+    <value>Unable to create field handler for sort provider `{0}`.</value>
   </data>
   <data name="SortProvider_UnableToCreateOperationHandler" xml:space="preserve">
-    <value>Unable to create operation handler `{0}` for sort provider `{1}`.</value>
+    <value>Unable to create operation handler for sort provider `{0}`.</value>
   </data>
   <data name="SortEnumValue_ValueIsNull" xml:space="preserve">
     <value>The inner value of enum value cannot be null or empty</value>
@@ -197,7 +197,7 @@
     <value>No configuration was specified.</value>
   </data>
   <data name="ProjectionProvider_UnableToCreateFieldHandler" xml:space="preserve">
-    <value>Unable to create field handler `{0}` for projection convention `{1}`.</value>
+    <value>Unable to create field handler for projection provider `{0}`.</value>
   </data>
   <data name="ProjectionProvider_NoHandlersConfigured" xml:space="preserve">
     <value>The projection convention `{0}` does not specify and field handler.</value>

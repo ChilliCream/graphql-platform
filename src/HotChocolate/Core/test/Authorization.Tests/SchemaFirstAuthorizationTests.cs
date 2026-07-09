@@ -13,13 +13,13 @@ public class SchemaFirstAuthorizationTests
             .AddGraphQLServer()
             .AddDocumentFromString(
                 """
-                type Query @authorize(roles: [ "policy_tester_noupdate", "policy_tester_update_noread", "authorizationHandlerTester" ])  {
+                type Query @authorize(roles: ["policy_tester_noupdate", "policy_tester_update_noread", "authorizationHandlerTester"])  {
                     hello: String @authorize(roles: ["admin"])
                 }
                 """)
             .AddResolver("Query", "hello", "world")
             .AddAuthorizationHandler<MockAuth>()
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         schema.MatchSnapshot();
     }

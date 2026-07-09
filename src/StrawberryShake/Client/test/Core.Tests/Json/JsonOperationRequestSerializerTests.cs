@@ -98,6 +98,7 @@ public class JsonOperationRequestSerializerTests
         operationRequest.Extensions.Add(nameof(String), "def");
         operationRequest.Extensions.Add("null", null);
 
+        operationRequest.Extensions.Add(nameof(SByte), (sbyte)123);
         operationRequest.Extensions.Add(nameof(Byte), (byte)123);
         operationRequest.Extensions.Add(nameof(Int16), (short)123);
         operationRequest.Extensions.Add(nameof(UInt16), (ushort)123);
@@ -139,7 +140,7 @@ public class JsonOperationRequestSerializerTests
     {
         public OperationKind Kind => OperationKind.Query;
 
-        public ReadOnlySpan<byte> Body => Encoding.UTF8.GetBytes("{ __typename }");
+        public ReadOnlySpan<byte> Body => "{ __typename }"u8;
 
         public DocumentHash Hash { get; } = new("MD5", "ABCDEF");
     }

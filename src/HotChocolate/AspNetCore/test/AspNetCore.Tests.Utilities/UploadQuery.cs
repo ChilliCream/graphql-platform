@@ -12,6 +12,18 @@ public class UploadQuery
         return await sr.ReadToEndAsync();
     }
 
+    public async Task<FileInfoOutput> SingleInfoUpload(IFile file)
+    {
+        await using var stream = file.OpenReadStream();
+        using var sr = new StreamReader(stream, Encoding.UTF8);
+        return new FileInfoOutput
+        {
+            Content = await sr.ReadToEndAsync(),
+            ContentType = file.ContentType ?? string.Empty,
+            Name = file.Name
+        };
+    }
+
     public async Task<string> ObjectUpload(
         InputWithFile input)
     {
@@ -28,9 +40,34 @@ public class UploadQuery
         return await sr.ReadToEndAsync();
     }
 
-    public async Task<string> OptionalUpload([GraphQLType(typeof(UploadType))] Optional<IFile> file)
+    public async Task<string> UploadWithText(IFile file, string text)
     {
-        await using var stream = file.Value!.OpenReadStream();
+        await using var stream = file.OpenReadStream();
+        using var sr = new StreamReader(stream, Encoding.UTF8);
+        await sr.ReadToEndAsync();
+        return text;
+    }
+
+    public async Task<string?> NullableUpload(IFile? file)
+    {
+        if (file is null)
+        {
+            return null;
+        }
+
+        await using var stream = file.OpenReadStream();
+        using var sr = new StreamReader(stream, Encoding.UTF8);
+        return await sr.ReadToEndAsync();
+    }
+
+    public async Task<string?> OptionalUpload([GraphQLType(typeof(UploadType))] Optional<IFile> file)
+    {
+        if (!file.HasValue || file.Value is null)
+        {
+            return null;
+        }
+
+        await using var stream = file.Value.OpenReadStream();
         using var sr = new StreamReader(stream, Encoding.UTF8);
         return await sr.ReadToEndAsync();
     }
@@ -41,12 +78,19 @@ public class UploadQuery
         using var sr = new StreamReader(stream, Encoding.UTF8);
         return await sr.ReadToEndAsync();
     }
+
+    public class FileInfoOutput
+    {
+        public string? Content { get; init; }
+        public string? ContentType { get; init; }
+        public string? Name { get; init; }
+    }
 }
 
 public class InputWithOptionalFile
 {
     [GraphQLType(typeof(UploadType))]
-    public Optional<IFile> File { get; set; } = default!;
+    public Optional<IFile> File { get; set; }
 }
 
 public class InputWithFile

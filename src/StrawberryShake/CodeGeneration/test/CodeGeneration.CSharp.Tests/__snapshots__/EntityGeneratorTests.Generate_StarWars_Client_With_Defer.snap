@@ -772,7 +772,7 @@ namespace Foo.Bar
     ///     }
     ///   }
     /// }
-    /// 
+    ///
     /// fragment HeroName on Character {
     ///   name
     ///   friends {
@@ -790,12 +790,12 @@ namespace Foo.Bar
     ///     }
     ///   }
     /// }
-    /// 
+    ///
     /// fragment HeroAppearsIn2 on Character {
     ///   _isHeroAppearsIn2Fulfilled: __typename
     ///   appearsIn
     /// }
-    /// 
+    ///
     /// fragment HeroAppearsIn on Character {
     ///   _isHeroAppearsInFulfilled: __typename
     ///   appearsIn
@@ -840,7 +840,7 @@ namespace Foo.Bar
     ///     }
     ///   }
     /// }
-    /// 
+    ///
     /// fragment HeroName on Character {
     ///   name
     ///   friends {
@@ -858,12 +858,12 @@ namespace Foo.Bar
     ///     }
     ///   }
     /// }
-    /// 
+    ///
     /// fragment HeroAppearsIn2 on Character {
     ///   _isHeroAppearsIn2Fulfilled: __typename
     ///   appearsIn
     /// }
-    /// 
+    ///
     /// fragment HeroAppearsIn on Character {
     ///   _isHeroAppearsInFulfilled: __typename
     ///   appearsIn
@@ -925,7 +925,7 @@ namespace Foo.Bar
     ///     }
     ///   }
     /// }
-    /// 
+    ///
     /// fragment HeroName on Character {
     ///   name
     ///   friends {
@@ -943,12 +943,12 @@ namespace Foo.Bar
     ///     }
     ///   }
     /// }
-    /// 
+    ///
     /// fragment HeroAppearsIn2 on Character {
     ///   _isHeroAppearsIn2Fulfilled: __typename
     ///   appearsIn
     /// }
-    /// 
+    ///
     /// fragment HeroAppearsIn on Character {
     ///   _isHeroAppearsInFulfilled: __typename
     ///   appearsIn
@@ -1795,7 +1795,7 @@ namespace Microsoft.Extensions.DependencyInjection
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.DateTimeSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.DateSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.ByteArraySerializer>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.TimeSpanSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.DurationSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.JsonSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializerResolver>(services, sp => new global::StrawberryShake.Serialization.SerializerResolver(global::System.Linq.Enumerable.Concat(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::System.Collections.Generic.IEnumerable<global::StrawberryShake.Serialization.ISerializer>>(parentServices), global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::System.Collections.Generic.IEnumerable<global::StrawberryShake.Serialization.ISerializer>>(sp))));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultDataFactory<global::Foo.Bar.IGetHeroResult>, global::Foo.Bar.State.GetHeroResultFactory>(services);

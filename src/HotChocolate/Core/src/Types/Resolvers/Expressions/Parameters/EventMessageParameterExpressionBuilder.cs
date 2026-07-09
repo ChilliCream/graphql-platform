@@ -7,9 +7,7 @@ using static HotChocolate.Properties.TypeResources;
 namespace HotChocolate.Resolvers.Expressions.Parameters;
 
 internal sealed class EventMessageParameterExpressionBuilder()
-    : LambdaParameterExpressionBuilder<object>(
-        ctx => GetEventMessage(ctx.ScopedContextData),
-        isPure: true)
+    : LambdaParameterExpressionBuilder<object>(ctx => GetEventMessage(ctx.ScopedContextData), isPure: true)
     , IParameterBindingFactory
     , IParameterBinding
 {
@@ -18,10 +16,13 @@ internal sealed class EventMessageParameterExpressionBuilder()
     public override bool CanHandle(ParameterInfo parameter)
         => parameter.IsDefined(typeof(EventMessageAttribute));
 
+    public bool CanHandle(ParameterDescriptor parameter)
+        => parameter.Attributes.Any(t => t is EventMessageAttribute);
+
     public override Expression Build(ParameterExpressionBuilderContext context)
         => Expression.Convert(base.Build(context), context.Parameter.ParameterType);
 
-    public IParameterBinding Create(ParameterBindingContext context)
+    public IParameterBinding Create(ParameterDescriptor parameter)
         => this;
 
     public T Execute<T>(IResolverContext context)

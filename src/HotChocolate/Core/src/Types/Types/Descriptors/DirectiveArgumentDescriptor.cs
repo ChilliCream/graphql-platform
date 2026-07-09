@@ -64,10 +64,14 @@ public class DirectiveArgumentDescriptor
     {
         Context.Descriptors.Push(this);
 
-        if (Configuration is { AttributesAreApplied: false, Property: not null })
+        if (!Configuration.ConfigurationsAreApplied)
         {
-            Context.TypeInspector.ApplyAttributes(Context, this, Configuration.Property);
-            Configuration.AttributesAreApplied = true;
+            DescriptorAttributeHelper.ApplyConfiguration(
+                Context,
+                this,
+                Configuration.Property);
+
+            Configuration.ConfigurationsAreApplied = true;
         }
 
         base.OnCreateConfiguration(definition);
@@ -93,6 +97,31 @@ public class DirectiveArgumentDescriptor
     public new IDirectiveArgumentDescriptor Deprecated()
     {
         base.Deprecated();
+        return this;
+    }
+
+    /// <inheritdoc />
+    public new IDirectiveArgumentDescriptor Directive<T>(T directiveInstance)
+        where T : class
+    {
+        base.Directive(directiveInstance);
+        return this;
+    }
+
+    /// <inheritdoc />
+    public new IDirectiveArgumentDescriptor Directive<T>()
+        where T : class, new()
+    {
+        base.Directive<T>();
+        return this;
+    }
+
+    /// <inheritdoc />
+    public new IDirectiveArgumentDescriptor Directive(
+        string name,
+        params ArgumentNode[] arguments)
+    {
+        base.Directive(name, arguments);
         return this;
     }
 

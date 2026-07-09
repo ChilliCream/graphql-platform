@@ -1,0 +1,20 @@
+mutation DeleteMcpFeatureCollectionByIdCommandMutation(
+  $input: DeleteMcpFeatureCollectionByIdInput!
+) {
+  deleteMcpFeatureCollectionById(input: $input) {
+    mcpFeatureCollection {
+      ...DeleteMcpFeatureCollectionByIdCommandMutation_McpFeatureCollection
+    }
+    errors {
+      ...Error
+      ...McpFeatureCollectionNotFoundError
+      ...UnauthorizedOperation
+    }
+  }
+}
+
+fragment DeleteMcpFeatureCollectionByIdCommandMutation_McpFeatureCollection on McpFeatureCollection {
+  name
+  id
+  ...McpFeatureCollectionDetailPrompt_McpFeatureCollection
+}

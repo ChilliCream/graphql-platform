@@ -144,41 +144,38 @@ internal static class ThrowHelper
 
     public static SchemaException FilterProvider_UnableToCreateFieldHandler(
         IFilterProvider filterProvider,
-        Type fieldHandler) =>
+        Exception exception) =>
         new SchemaException(
             SchemaErrorBuilder.New()
                 .SetMessage(
                     DataResources.FilterProvider_UnableToCreateFieldHandler,
-                    fieldHandler.FullName ?? fieldHandler.Name,
                     filterProvider.GetType().FullName ?? filterProvider.GetType().Name)
                 .SetExtension(nameof(filterProvider), filterProvider)
-                .SetExtension(nameof(fieldHandler), fieldHandler)
+                .SetException(exception)
                 .Build());
 
     public static SchemaException SortProvider_UnableToCreateFieldHandler(
         ISortProvider sortProvider,
-        Type fieldHandler) =>
+        Exception exception) =>
         new SchemaException(
             SchemaErrorBuilder.New()
                 .SetMessage(
                     DataResources.SortProvider_UnableToCreateFieldHandler,
-                    fieldHandler.FullName ?? fieldHandler.Name,
                     sortProvider.GetType().FullName ?? sortProvider.GetType().Name)
                 .SetExtension(nameof(sortProvider), sortProvider)
-                .SetExtension(nameof(fieldHandler), fieldHandler)
+                .SetException(exception)
                 .Build());
 
     public static SchemaException SortProvider_UnableToCreateOperationHandler(
         ISortProvider sortProvider,
-        Type operationHandler) =>
+        Exception exception) =>
         new SchemaException(
             SchemaErrorBuilder.New()
                 .SetMessage(
                     DataResources.SortProvider_UnableToCreateOperationHandler,
-                    operationHandler.FullName ?? operationHandler.Name,
                     sortProvider.GetType().FullName ?? sortProvider.GetType().Name)
                 .SetExtension(nameof(sortProvider), sortProvider)
-                .SetExtension(nameof(operationHandler), operationHandler)
+                .SetException(exception)
                 .Build());
 
     public static SchemaException SortProvider_NoFieldHandlersConfigured(

@@ -30,7 +30,6 @@ public class SortFieldDescriptor
         {
             var convention = context.GetSortConvention(scope);
             Configuration.Type = convention.GetFieldType(lambda.ReturnType);
-            Configuration.RuntimeType = lambda.ReturnType;
         }
     }
 
@@ -46,6 +45,11 @@ public class SortFieldDescriptor
         Configuration.Type = convention.GetFieldType(member);
         Configuration.Scope = scope;
         Configuration.Flags = CoreFieldFlags.SortOperationField;
+
+        if (context.Naming.IsDeprecated(member, out var reason))
+        {
+            Deprecated(reason);
+        }
     }
 
     protected internal SortFieldDescriptor(IDescriptorContext context, string? scope)
@@ -66,10 +70,14 @@ public class SortFieldDescriptor
     {
         Context.Descriptors.Push(this);
 
-        if (Configuration is { AttributesAreApplied: false, Member: not null })
+        if (!Configuration.ConfigurationsAreApplied)
         {
-            Context.TypeInspector.ApplyAttributes(Context, this, Configuration.Member);
-            Configuration.AttributesAreApplied = true;
+            DescriptorAttributeHelper.ApplyConfiguration(
+                Context,
+                this,
+                Configuration.Member);
+
+            Configuration.ConfigurationsAreApplied = true;
         }
 
         base.OnCreateConfiguration(configuration);
