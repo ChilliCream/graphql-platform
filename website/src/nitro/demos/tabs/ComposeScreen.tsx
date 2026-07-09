@@ -62,13 +62,13 @@ const TL = timeline([
   { name: "insertBlock", ms: 700 },
   { name: "moveToRun", ms: 1300 },
   { name: "runClick", ms: 120 },
-  { name: "runLoad", ms: 450 },
-  { name: "response", ms: 1400 },
-  { name: "statusResolve", ms: 550 },
+  { name: "runLoad", ms: 750 },
+  { name: "response", ms: 2600 },
+  { name: "statusResolve", ms: 1000 },
   { name: "moveToLens", ms: 1300 },
   { name: "lensClick", ms: 120 },
-  { name: "lensReveal", ms: 650 },
-  { name: "lensDwell", ms: 2000 },
+  { name: "lensReveal", ms: 1150 },
+  { name: "lensDwell", ms: 3600 },
 ]);
 
 export const COMPOSE_MS = TL.total;

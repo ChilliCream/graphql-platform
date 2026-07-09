@@ -1445,7 +1445,7 @@ function Hero({ reduced }: HeroProps) {
                   "0 0 24px rgba(22,185,228,0.5), 0 0 52px rgba(240,120,106,0.28)",
               }}
             >
-              <SolidButton href="/get-started">See it in action</SolidButton>
+              <SolidButton href="/docs/nitro">See it in action</SolidButton>
             </span>
             <OutlineButton href="https://nitro.chillicream.com">
               Launch Nitro
@@ -1675,7 +1675,7 @@ export function ClientPage() {
         eyebrow="Workspace"
         title="Give teams a shared workspace."
         body="Explore schemas, run operations, validate documents, and keep important API work connected to the rest of Nitro."
-        visual={<NitroCompose className="w-full" />}
+        visual={<NitroCompose className="w-full" durationMs={23000} />}
       />
 
       <section className="border-cc-card-border border-t py-24 text-center sm:py-32">
