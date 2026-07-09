@@ -2,7 +2,7 @@ using System.Collections.Immutable;
 using System.Dynamic;
 using System.Numerics;
 using System.Text.Json;
-using CookieCrumble.Xunit.Attributes;
+using CookieCrumble.Xunit3.Attributes;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Tests;
@@ -32,10 +32,10 @@ public class AnyTypeTests
                         .Type<AnyType>()
                         .Resolve(_ => foo))
                 .AddJsonTypeConverter()
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
-        var result = await executor.ExecuteAsync("{ foo }");
+        var result = await executor.ExecuteAsync("{ foo }", TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -60,10 +60,12 @@ public class AnyTypeTests
                         .Type<AnyType>()
                         .Resolve(_ => fooCyclic))
                 .AddJsonTypeConverter()
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
-        var result = (await executor.ExecuteAsync("{ fooCyclic }")).ExpectOperationResult();
+        var result = (await executor.ExecuteAsync(
+            "{ fooCyclic }",
+            TestContext.Current.CancellationToken)).ExpectOperationResult();
 
         // assert
         Assert.Equal(
@@ -91,10 +93,10 @@ public class AnyTypeTests
                         .Type<AnyType>()
                         .Resolve(_ => new List<Foo> { foo, foo }))
                 .AddJsonTypeConverter()
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
-        var result = await executor.ExecuteAsync("{ foo }");
+        var result = await executor.ExecuteAsync("{ foo }", TestContext.Current.CancellationToken);
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -119,10 +121,12 @@ public class AnyTypeTests
                         .Type<AnyType>()
                         .Resolve(_ => new List<FooCyclic> { fooCyclic, fooCyclic }))
                 .AddJsonTypeConverter()
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
-        var result = (await executor.ExecuteAsync("{ fooCyclic }")).ExpectOperationResult();
+        var result = (await executor.ExecuteAsync(
+            "{ fooCyclic }",
+            TestContext.Current.CancellationToken)).ExpectOperationResult();
 
         // assert
         Assert.Equal(
@@ -146,10 +150,10 @@ public class AnyTypeTests
                         .Type<AnyType>()
                         .Resolve(_ => new List<FooRecord> { new(), new() }))
                 .AddJsonTypeConverter()
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
-        var result = await executor.ExecuteAsync("{ foo }");
+        var result = await executor.ExecuteAsync("{ foo }", TestContext.Current.CancellationToken);
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -169,10 +173,12 @@ public class AnyTypeTests
                         .Type<AnyType>()
                         .Resolve(_ => new Dictionary<string, object?> { [""] = null }))
                 .AddJsonTypeConverter()
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
-        var result = (await executor.ExecuteAsync("{ foo }")).ExpectOperationResult();
+        var result = (await executor.ExecuteAsync(
+            "{ foo }",
+            TestContext.Current.CancellationToken)).ExpectOperationResult();
 
         // assert
         Assert.Empty(result.Errors);
@@ -205,10 +211,10 @@ public class AnyTypeTests
                                 new DateTime(2016, 01, 01),
                                 TimeSpan.Zero)))
                 .AddJsonTypeConverter()
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
-        var result = await executor.ExecuteAsync("{ foo }");
+        var result = await executor.ExecuteAsync("{ foo }", TestContext.Current.CancellationToken);
 
         // assert
         result.MatchInlineSnapshot(
@@ -235,10 +241,10 @@ public class AnyTypeTests
                         .Type<AnyType>()
                         .Resolve(_ => "abc"))
                 .AddJsonTypeConverter()
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
-        var result = await executor.ExecuteAsync("{ foo }");
+        var result = await executor.ExecuteAsync("{ foo }", TestContext.Current.CancellationToken);
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -258,10 +264,10 @@ public class AnyTypeTests
                         .Type<AnyType>()
                         .Resolve(_ => 123))
                 .AddJsonTypeConverter()
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
-        var result = await executor.ExecuteAsync("{ foo }");
+        var result = await executor.ExecuteAsync("{ foo }", TestContext.Current.CancellationToken);
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -281,10 +287,10 @@ public class AnyTypeTests
                         .Type<AnyType>()
                         .Resolve(_ => 1.2))
                 .AddJsonTypeConverter()
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
-        var result = await executor.ExecuteAsync("{ foo }");
+        var result = await executor.ExecuteAsync("{ foo }", TestContext.Current.CancellationToken);
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -304,10 +310,10 @@ public class AnyTypeTests
                         .Type<AnyType>()
                         .Resolve(_ => true))
                 .AddJsonTypeConverter()
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
-        var result = await executor.ExecuteAsync("{ foo }");
+        var result = await executor.ExecuteAsync("{ foo }", TestContext.Current.CancellationToken);
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -328,11 +334,12 @@ public class AnyTypeTests
                         .Argument("input", a => a.Type<AnyType>())
                         .Resolve(ctx => ctx.ArgumentValue<object>("input")))
                 .AddJsonTypeConverter()
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
-            "{ foo(input: { a: \"foo\" }) }");
+            "{ foo(input: { a: \"foo\" }) }",
+            TestContext.Current.CancellationToken);
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -353,11 +360,12 @@ public class AnyTypeTests
                         .Argument("input", a => a.Type<AnyType>())
                         .Resolve(ctx => ctx.ArgumentValue<object>("input")))
                 .AddJsonTypeConverter()
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
-            "{ foo(input: [\"foo\"]) }");
+            "{ foo(input: [\"foo\"]) }",
+            TestContext.Current.CancellationToken);
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -378,11 +386,12 @@ public class AnyTypeTests
                         .Argument("input", a => a.Type<AnyType>())
                         .Resolve(ctx => ctx.ArgumentValue<object>("input")))
                 .AddJsonTypeConverter()
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
-            "{ foo(input: [{ a: \"foo\" }]) }");
+            "{ foo(input: [{ a: \"foo\" }]) }",
+            TestContext.Current.CancellationToken);
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -403,11 +412,12 @@ public class AnyTypeTests
                         .Argument("input", a => a.Type<AnyType>())
                         .Resolve(ctx => ctx.ArgumentValue<Foo>("input")))
                 .AddJsonTypeConverter()
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
-            "{ foo(input: { bar: { baz: \"FooBar\" } }) }");
+            "{ foo(input: { bar: { baz: \"FooBar\" } }) }",
+            TestContext.Current.CancellationToken);
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -428,11 +438,12 @@ public class AnyTypeTests
                         .Argument("input", a => a.Type<AnyType>())
                         .Resolve(ctx => ctx.ArgumentValue<object>("input")))
                 .AddJsonTypeConverter()
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
-            "{ foo(input: \"foo\") }");
+            "{ foo(input: \"foo\") }",
+            TestContext.Current.CancellationToken);
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -453,11 +464,12 @@ public class AnyTypeTests
                         .Argument("input", a => a.Type<AnyType>())
                         .Resolve(ctx => ctx.ArgumentValue<object>("input")))
                 .AddJsonTypeConverter()
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
-            "{ foo(input: 123) }");
+            "{ foo(input: 123) }",
+            TestContext.Current.CancellationToken);
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -478,11 +490,12 @@ public class AnyTypeTests
                         .Argument("input", a => a.Type<AnyType>())
                         .Resolve(ctx => ctx.ArgumentValue<object>("input")))
                 .AddJsonTypeConverter()
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
-            "{ foo(input: 1.2) }");
+            "{ foo(input: 1.2) }",
+            TestContext.Current.CancellationToken);
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -503,11 +516,12 @@ public class AnyTypeTests
                         .Argument("input", a => a.Type<AnyType>())
                         .Resolve(ctx => ctx.ArgumentValue<object>("input")))
                 .AddJsonTypeConverter()
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
-            "{ foo(input: true) }");
+            "{ foo(input: true) }",
+            TestContext.Current.CancellationToken);
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -528,11 +542,12 @@ public class AnyTypeTests
                         .Argument("input", a => a.Type<AnyType>())
                         .Resolve(ctx => ctx.ArgumentValue<object>("input")))
                 .AddJsonTypeConverter()
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
-            "{ foo(input: null) }");
+            "{ foo(input: null) }",
+            TestContext.Current.CancellationToken);
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -553,14 +568,15 @@ public class AnyTypeTests
                         .Argument("input", a => a.Type<AnyType>())
                         .Resolve(ctx => ctx.ArgumentValue<object>("input")))
                 .AddJsonTypeConverter()
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument("query ($foo: Any) { foo(input: $foo) }")
                 .SetVariableValues(new Dictionary<string, object?> { { "foo", new List<object> { "abc" } } })
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -581,7 +597,7 @@ public class AnyTypeTests
                         .Argument("input", a => a.Type<AnyType>())
                         .Resolve(ctx => ctx.ArgumentValue<object>("input")))
                 .AddJsonTypeConverter()
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -600,7 +616,8 @@ public class AnyTypeTests
                             }
                         }
                     })
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -621,14 +638,15 @@ public class AnyTypeTests
                         .Argument("input", a => a.Type<AnyType>())
                         .Resolve(ctx => ctx.ArgumentValue<object>("input")))
                 .AddJsonTypeConverter()
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument("query ($foo: Any) { foo(input: $foo) }")
                 .SetVariableValues(new Dictionary<string, object?> { { "foo", "bar" } })
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -649,14 +667,15 @@ public class AnyTypeTests
                         .Argument("input", a => a.Type<AnyType>())
                         .Resolve(ctx => ctx.ArgumentValue<object>("input")))
                 .AddJsonTypeConverter()
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument("query ($foo: Any) { foo(input: $foo) }")
                 .SetVariableValues(new Dictionary<string, object?> { { "foo", 123 } })
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -677,14 +696,15 @@ public class AnyTypeTests
                         .Argument("input", a => a.Type<AnyType>())
                         .Resolve(ctx => ctx.ArgumentValue<object>("input")))
                 .AddJsonTypeConverter()
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument("query ($foo: Any) { foo(input: $foo) }")
                 .SetVariableValues(new Dictionary<string, object?> { { "foo", 1.2 } })
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -705,14 +725,15 @@ public class AnyTypeTests
                         .Argument("input", a => a.Type<AnyType>())
                         .Resolve(ctx => ctx.ArgumentLiteral<ObjectValueNode>("input")))
                 .AddJsonTypeConverter()
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument("query ($foo: Any) { foo(input: $foo) }")
                 .SetVariableValues(new Dictionary<string, object?> { { "foo", new { a = "b" } } })
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -733,7 +754,7 @@ public class AnyTypeTests
                         .Argument("input", a => a.Type<AnyType>())
                         .Resolve(ctx => ctx.ArgumentLiteral<ObjectValueNode>("input")))
                 .AddJsonTypeConverter()
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -744,7 +765,8 @@ public class AnyTypeTests
                     {
                         { "foo", new Dictionary<string, object> { { "a", "b" } } }
                     })
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -765,7 +787,7 @@ public class AnyTypeTests
                         .Argument("input", a => a.Type<AnyType>())
                         .Resolve(ctx => ctx.ArgumentKind("input").ToString()))
                 .AddJsonTypeConverter()
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -776,7 +798,8 @@ public class AnyTypeTests
                     {
                         { "foo", new Dictionary<string, object> { { "a", "b" } } }
                     })
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -797,14 +820,15 @@ public class AnyTypeTests
                         .Argument("input", a => a.Type<AnyType>())
                         .Resolve(ctx => ctx.ArgumentValue<object>("input")))
                 .AddJsonTypeConverter()
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument("query ($foo: Any) { foo(input: $foo) }")
                 .SetVariableValues(new Dictionary<string, object?> { { "foo", false } })
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -825,14 +849,15 @@ public class AnyTypeTests
                         .Argument("input", a => a.Type<AnyType>())
                         .Resolve(ctx => ctx.ArgumentValue<object>("input")))
                 .AddJsonTypeConverter()
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument("query ($foo: Any) { foo(input: $foo) }")
                 .SetVariableValues(new Dictionary<string, object?> { { "foo", null } })
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -853,7 +878,7 @@ public class AnyTypeTests
                         .Argument("input", a => a.Type<AnyType>())
                         .Resolve(ctx => ctx.ArgumentValue<object>("input")))
                 .AddJsonTypeConverter()
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var type = schema.Types.GetType<AnyType>("Any");
 
@@ -879,7 +904,7 @@ public class AnyTypeTests
                         .Argument("input", a => a.Type<AnyType>())
                         .Resolve(ctx => ctx.ArgumentValue<object>("input")))
                 .AddJsonTypeConverter()
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var type = schema.Types.GetType<AnyType>("Any");
 
@@ -905,7 +930,7 @@ public class AnyTypeTests
                         .Argument("input", a => a.Type<AnyType>())
                         .Resolve(ctx => ctx.ArgumentValue<object>("input")))
                 .AddJsonTypeConverter()
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var type = schema.Types.GetType<AnyType>("Any");
 
@@ -931,7 +956,7 @@ public class AnyTypeTests
                         .Argument("input", a => a.Type<AnyType>())
                         .Resolve(ctx => ctx.ArgumentValue<object>("input")))
                 .AddJsonTypeConverter()
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var type = schema.Types.GetType<AnyType>("Any");
 
@@ -957,7 +982,7 @@ public class AnyTypeTests
                         .Argument("input", a => a.Type<AnyType>())
                         .Resolve(ctx => ctx.ArgumentValue<object>("input")))
                 .AddJsonTypeConverter()
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var type = schema.Types.GetType<AnyType>("Any");
 
@@ -983,7 +1008,7 @@ public class AnyTypeTests
                         .Argument("input", a => a.Type<AnyType>())
                         .Resolve(ctx => ctx.ArgumentValue<object>("input")))
                 .AddJsonTypeConverter()
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var type = schema.Types.GetType<AnyType>("Any");
 
@@ -1009,7 +1034,7 @@ public class AnyTypeTests
                         .Argument("input", a => a.Type<AnyType>())
                         .Resolve(ctx => ctx.ArgumentValue<object>("input")))
                 .AddJsonTypeConverter()
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var type = schema.Types.GetType<AnyType>("Any");
 
@@ -1035,7 +1060,7 @@ public class AnyTypeTests
                         .Argument("input", a => a.Type<AnyType>())
                         .Resolve(ctx => ctx.ArgumentValue<object>("input")))
                 .AddJsonTypeConverter()
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var type = schema.Types.GetType<AnyType>("Any");
 
@@ -1061,7 +1086,7 @@ public class AnyTypeTests
                         .Argument("input", a => a.Type<AnyType>())
                         .Resolve(ctx => ctx.ArgumentValue<object>("input")))
                 .AddJsonTypeConverter()
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var type = schema.Types.GetType<AnyType>("Any");
 
@@ -1087,7 +1112,7 @@ public class AnyTypeTests
                         .Argument("input", a => a.Type<AnyType>())
                         .Resolve(ctx => ctx.ArgumentValue<object>("input")))
                 .AddJsonTypeConverter()
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var type = schema.Types.GetType<AnyType>("Any");
         var value = JsonSerializer.SerializeToElement("abc");
@@ -1114,7 +1139,7 @@ public class AnyTypeTests
                         .Argument("input", a => a.Type<AnyType>())
                         .Resolve(ctx => ctx.ArgumentValue<object>("input")))
                 .AddJsonTypeConverter()
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var type = schema.Types.GetType<AnyType>("Any");
         var value = JsonSerializer.SerializeToElement(123);
@@ -1141,7 +1166,7 @@ public class AnyTypeTests
                         .Argument("input", a => a.Type<AnyType>())
                         .Resolve(ctx => ctx.ArgumentValue<object>("input")))
                 .AddJsonTypeConverter()
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var type = schema.Types.GetType<AnyType>("Any");
         var value = JsonSerializer.SerializeToElement(1.5);
@@ -1168,7 +1193,7 @@ public class AnyTypeTests
                         .Argument("input", a => a.Type<AnyType>())
                         .Resolve(ctx => ctx.ArgumentValue<object>("input")))
                 .AddJsonTypeConverter()
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var type = schema.Types.GetType<AnyType>("Any");
         var value = JsonSerializer.SerializeToElement(true);
@@ -1195,7 +1220,7 @@ public class AnyTypeTests
                         .Argument("input", a => a.Type<AnyType>())
                         .Resolve(ctx => ctx.ArgumentValue<object>("input")))
                 .AddJsonTypeConverter()
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var type = schema.Types.GetType<AnyType>("Any");
         var value = JsonSerializer.SerializeToElement(false);
@@ -1222,7 +1247,7 @@ public class AnyTypeTests
                         .Argument("input", a => a.Type<AnyType>())
                         .Resolve(ctx => ctx.ArgumentValue<object>("input")))
                 .AddJsonTypeConverter()
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var type = schema.Types.GetType<AnyType>("Any");
         var value = JsonSerializer.SerializeToElement(1.0m);
@@ -1249,7 +1274,7 @@ public class AnyTypeTests
                         .Argument("input", a => a.Type<AnyType>())
                         .Resolve(ctx => ctx.ArgumentValue<object>("input")))
                 .AddJsonTypeConverter()
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var type = schema.Types.GetType<AnyType>("Any");
         var value = JsonSerializer.SerializeToElement(new List<object>());
@@ -1276,7 +1301,7 @@ public class AnyTypeTests
                         .Argument("input", a => a.Type<AnyType>())
                         .Resolve(ctx => ctx.ArgumentValue<object>("input")))
                 .AddJsonTypeConverter()
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var type = schema.Types.GetType<AnyType>("Any");
         var value = JsonSerializer.SerializeToElement(new List<string>());
@@ -1303,7 +1328,7 @@ public class AnyTypeTests
                         .Argument("input", a => a.Type<AnyType>())
                         .Resolve(ctx => ctx.ArgumentValue<object>("input")))
                 .AddJsonTypeConverter()
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var type = schema.Types.GetType<AnyType>("Any");
         var foo = new Foo();
@@ -1334,7 +1359,7 @@ public class AnyTypeTests
                         .Argument("input", a => a.Type<AnyType>())
                         .Resolve(ctx => ctx.ArgumentValue<object>("input")))
                 .AddJsonTypeConverter()
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var type = schema.Types.GetType<AnyType>("Any");
         var value = JsonSerializer.SerializeToElement(new List<FooRecord> { new(), new() });
@@ -1361,7 +1386,7 @@ public class AnyTypeTests
                         .Argument("input", a => a.Type<AnyType>())
                         .Resolve(ctx => ctx.ArgumentValue<object>("input")))
                 .AddJsonTypeConverter()
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var type = schema.Types.GetType<AnyType>("Any");
         var value = JsonSerializer.SerializeToElement(new Foo());
@@ -1388,7 +1413,7 @@ public class AnyTypeTests
                         .Argument("input", a => a.Type<AnyType>())
                         .Resolve(ctx => ctx.ArgumentValue<object>("input")))
                 .AddJsonTypeConverter()
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var type = schema.Types.GetType<AnyType>("Any");
         var value = JsonSerializer.SerializeToElement(new Dictionary<string, object>());
@@ -1415,7 +1440,7 @@ public class AnyTypeTests
                         .Argument("input", a => a.Type<AnyType>())
                         .Resolve(ctx => ctx.ArgumentValue<object>("input")))
                 .AddJsonTypeConverter()
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var type = schema.Types.GetType<AnyType>("Any");
 
@@ -1470,7 +1495,7 @@ public class AnyTypeTests
             await new ServiceCollection()
                 .AddGraphQLServer()
                 .AddQueryType<QueryJsonElement>()
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         schema.MatchInlineSnapshot(
             """
@@ -1502,7 +1527,8 @@ public class AnyTypeTests
                     {
                         someJson
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchInlineSnapshot(
             """
@@ -1530,7 +1556,8 @@ public class AnyTypeTests
                     {
                         manyJson
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchInlineSnapshot(
             """
@@ -1565,7 +1592,8 @@ public class AnyTypeTests
                     {
                         inputJson(input: { a: "abc" })
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchInlineSnapshot(
             """
@@ -1597,7 +1625,8 @@ public class AnyTypeTests
                     {
                         inputJson(input: {{value}})
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchInlineSnapshot(
             $$"""
@@ -1623,7 +1652,8 @@ public class AnyTypeTests
                     {
                         inputJson(input: {{value}})
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchInlineSnapshot(
             $$"""
@@ -1647,7 +1677,8 @@ public class AnyTypeTests
                     {
                         inputJson(input: 1e1345)
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchInlineSnapshot(
             """
@@ -1673,7 +1704,8 @@ public class AnyTypeTests
                     {
                         inputJson(input: {{value}})
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchInlineSnapshot(
             $$"""
@@ -1697,7 +1729,8 @@ public class AnyTypeTests
                     {
                         inputJson(input: { a: ["abc"] })
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchInlineSnapshot(
             """
@@ -1738,7 +1771,8 @@ public class AnyTypeTests
                             }
                             """)
                         .SetVariableValues(new Dictionary<string, object?> { { "input", input } })
-                        .Build());
+                        .Build(),
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchInlineSnapshot(
             """
@@ -1766,7 +1800,8 @@ public class AnyTypeTests
                     {
                         jsonFromString
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchInlineSnapshot(
             """

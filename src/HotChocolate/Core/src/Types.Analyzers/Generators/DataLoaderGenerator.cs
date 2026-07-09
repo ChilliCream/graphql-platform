@@ -157,7 +157,8 @@ public sealed class DataLoaderGenerator : ISyntaxGenerator
             kind,
             keyType,
             valueType,
-            dataLoader.GetLookups(keyType, valueType));
+            dataLoader.GetLookups(keyType, valueType),
+            dataLoader.MaxBatchSize);
         generator.WriteLine();
         generator.WriteDataLoaderLoadMethod(
             dataLoader.ContainingType,

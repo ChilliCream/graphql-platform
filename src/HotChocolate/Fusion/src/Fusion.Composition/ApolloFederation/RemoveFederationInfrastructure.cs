@@ -1,3 +1,4 @@
+using HotChocolate.Types;
 using HotChocolate.Types.Mutable;
 
 namespace HotChocolate.Fusion.ApolloFederation;
@@ -47,16 +48,6 @@ internal static class RemoveFederationInfrastructure
             schema.DirectiveDefinitions.Remove(name);
         }
 
-        // Remove federation scalar types.
-        foreach (var name in s_federationScalarNames)
-        {
-            schema.Types.Remove(name);
-        }
-
-        // Remove _Service type and _Entity union.
-        schema.Types.Remove(FederationTypeNames.Service);
-        schema.Types.Remove(FederationTypeNames.Entity);
-
         // Remove _entities and _service fields from query type.
         if (schema.QueryType is not null)
         {
@@ -71,5 +62,75 @@ internal static class RemoveFederationInfrastructure
         {
             schema.Directives.Remove(directive);
         }
+
+        // Collect the type names still referenced after the federation directives and fields
+        // above have been removed. Federation types such as FieldSet are exported vocabulary and
+        // may be used by user-defined members (for example as a custom directive argument type).
+        // Once referenced by a surviving member the type is part of the user's schema, so removing
+        // it here would leave a dangling reference; those types are kept while unreferenced
+        // federation types continue to be stripped.
+        var referencedTypeNames = CollectReferencedTypeNames(schema);
+
+        // Remove federation scalar types that are no longer referenced.
+        foreach (var name in s_federationScalarNames)
+        {
+            if (!referencedTypeNames.Contains(name))
+            {
+                schema.Types.Remove(name);
+            }
+        }
+
+        // Remove the _Service type and _Entity union when no longer referenced.
+        if (!referencedTypeNames.Contains(FederationTypeNames.Service))
+        {
+            schema.Types.Remove(FederationTypeNames.Service);
+        }
+
+        if (!referencedTypeNames.Contains(FederationTypeNames.Entity))
+        {
+            schema.Types.Remove(FederationTypeNames.Entity);
+        }
+    }
+
+    private static HashSet<string> CollectReferencedTypeNames(MutableSchemaDefinition schema)
+    {
+        var referencedTypeNames = new HashSet<string>(StringComparer.Ordinal);
+
+        foreach (var type in schema.Types)
+        {
+            switch (type)
+            {
+                case MutableComplexTypeDefinition complexType:
+                    foreach (var field in complexType.Fields)
+                    {
+                        referencedTypeNames.Add(field.Type.NamedType().Name);
+
+                        foreach (var argument in field.Arguments)
+                        {
+                            referencedTypeNames.Add(argument.Type.NamedType().Name);
+                        }
+                    }
+
+                    break;
+
+                case MutableInputObjectTypeDefinition inputObjectType:
+                    foreach (var field in inputObjectType.Fields)
+                    {
+                        referencedTypeNames.Add(field.Type.NamedType().Name);
+                    }
+
+                    break;
+            }
+        }
+
+        foreach (var directiveDefinition in schema.DirectiveDefinitions)
+        {
+            foreach (var argument in directiveDefinition.Arguments)
+            {
+                referencedTypeNames.Add(argument.Type.NamedType().Name);
+            }
+        }
+
+        return referencedTypeNames;
     }
 }

@@ -48,6 +48,12 @@
   <data name="HttpSourceSchemaClient_SubscriptionBatchNotSupported" xml:space="preserve">
     <value>Subscription requests are not supported by batch execution.</value>
   </data>
+  <data name="SourceSchemaClient_SubscriptionsNotSupportedByExecute" xml:space="preserve">
+    <value>Subscription requests must be executed through SubscribeAsync.</value>
+  </data>
+  <data name="SourceSchemaClient_SubscriptionsNotSupported" xml:space="preserve">
+    <value>The source schema client does not support subscription requests.</value>
+  </data>
   <data name="HttpSourceSchemaClient_InvalidRequestIndex" xml:space="preserve">
     <value>The batch response contains an invalid requestIndex '{0}'.</value>
   </data>
@@ -86,5 +92,8 @@
   </data>
   <data name="JsonOperationPlanParser_SingleOperationRequired" xml:space="preserve">
     <value>There must be exactly one operation definition in the operation document of the operation plan.</value>
+  </data>
+  <data name="NodeFieldExecutionNode_InvalidNodeIdFormat" xml:space="preserve">
+    <value>The node ID string has an invalid format.</value>
   </data>
 </root>

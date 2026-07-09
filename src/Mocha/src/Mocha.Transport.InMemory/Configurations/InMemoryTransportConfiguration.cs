@@ -26,6 +26,7 @@ public class InMemoryTransportConfiguration : MessagingTransportConfiguration
     {
         Name = DefaultName;
         Schema = DefaultSchema;
+        RoutingStrategyFactory = static _ => new InMemoryRoutingStrategy();
     }
 
     public List<InMemoryTopicConfiguration> Topics { get; set; } = [];

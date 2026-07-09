@@ -105,6 +105,18 @@ namespace HotChocolate.Fusion.Properties {
             }
         }
 
+        internal static string SourceSchemaClient_SubscriptionsNotSupportedByExecute {
+            get {
+                return ResourceManager.GetString("SourceSchemaClient_SubscriptionsNotSupportedByExecute", resourceCulture);
+            }
+        }
+
+        internal static string SourceSchemaClient_SubscriptionsNotSupported {
+            get {
+                return ResourceManager.GetString("SourceSchemaClient_SubscriptionsNotSupported", resourceCulture);
+            }
+        }
+
         internal static string HttpSourceSchemaClient_InvalidRequestIndex {
             get {
                 return ResourceManager.GetString("HttpSourceSchemaClient_InvalidRequestIndex", resourceCulture);
@@ -180,6 +192,12 @@ namespace HotChocolate.Fusion.Properties {
         internal static string JsonOperationPlanParser_SingleOperationRequired {
             get {
                 return ResourceManager.GetString("JsonOperationPlanParser_SingleOperationRequired", resourceCulture);
+            }
+        }
+
+        internal static string NodeFieldExecutionNode_InvalidNodeIdFormat {
+            get {
+                return ResourceManager.GetString("NodeFieldExecutionNode_InvalidNodeIdFormat", resourceCulture);
             }
         }
     }

@@ -6,6 +6,211 @@ namespace HotChocolate.Fusion;
 public sealed class SchemaComposerTests
 {
     [Fact]
+    public void Compose_Should_Succeed_When_CursorFieldAndArgumentAreValid()
+    {
+        // arrange
+        var schemaComposer = new SchemaComposer(
+            [
+                new SourceSchemaText(
+                    "Events",
+                    """
+                    type Query {
+                        version: String
+                    }
+
+                    type Subscription {
+                        onUserChanged(after: String @eventCursor): UserChangedEvent
+                            @eventStream(message: "{ id changeType }")
+                    }
+
+                    type UserChangedEvent {
+                        id: ID!
+                        changeType: String!
+                        cursor: String @eventCursor
+                    }
+                    """)
+            ],
+            new SchemaComposerOptions { Merger = { AddFusionDefinitions = false } },
+            new CompositionLog());
+
+        // act
+        var result = schemaComposer.Compose();
+
+        // assert
+        Assert.True(result.IsSuccess);
+        result.Value.MatchInlineSnapshot(
+            """
+            schema {
+                query: Query
+                subscription: Subscription
+            }
+
+            type Query @fusion__type(schema: EVENTS) {
+                version: String @fusion__field(schema: EVENTS)
+            }
+
+            type Subscription @fusion__type(schema: EVENTS) {
+                onUserChanged(after: String @fusion__inputField(schema: EVENTS)): UserChangedEvent
+                    @fusion__field(schema: EVENTS)
+                    @fusion__eventStream(
+                        schema: EVENTS
+                        topics: ["onUserChanged"]
+                        message: "{ id changeType }"
+                        cursorField: "cursor"
+                        cursorArgument: "after"
+                    )
+            }
+
+            type UserChangedEvent @fusion__type(schema: EVENTS) {
+                changeType: String! @fusion__field(schema: EVENTS)
+                cursor: String @fusion__field(schema: EVENTS)
+                id: ID! @fusion__field(schema: EVENTS)
+            }
+            """);
+    }
+
+    [Fact]
+    public void Compose_Should_Succeed_When_InvalidFieldDeprecationIsWarning()
+    {
+        // arrange
+        // 'User.name' is deprecated but the 'Node.name' it implements is not, which the schema
+        // validator reports as HCV0011. It defaults to a warning, so composition proceeds.
+        var log = new CompositionLog();
+        var schemaComposer = new SchemaComposer(
+            [
+                new SourceSchemaText(
+                    "A",
+                    """
+                    interface Node {
+                        id: ID!
+                        name: String
+                    }
+
+                    type User implements Node {
+                        id: ID!
+                        name: String @deprecated(reason: "Use fullName.")
+                    }
+
+                    type Query {
+                        user: User
+                    }
+                    """)
+            ],
+            new SchemaComposerOptions { Merger = { AddFusionDefinitions = false } },
+            log);
+
+        // act
+        var result = schemaComposer.Compose();
+
+        // assert
+        Assert.True(result.IsSuccess);
+        Assert.Contains(log, e => e.Code == "HCV0011" && e.Severity == LogSeverity.Warning);
+    }
+
+    [Fact]
+    public void Compose_Should_Fail_When_InvalidFieldDeprecationIsError()
+    {
+        // arrange
+        // The same deprecation inconsistency, but the source schema opts into treating it as an
+        // error, so composition fails.
+        var log = new CompositionLog();
+        var schemaComposer = new SchemaComposer(
+            [
+                new SourceSchemaText(
+                    "A",
+                    """
+                    interface Node {
+                        id: ID!
+                        name: String
+                    }
+
+                    type User implements Node {
+                        id: ID!
+                        name: String @deprecated(reason: "Use fullName.")
+                    }
+
+                    type Query {
+                        user: User
+                    }
+                    """)
+            ],
+            new SchemaComposerOptions
+            {
+                Merger = { AddFusionDefinitions = false },
+                SourceSchemas =
+                {
+                    ["A"] = new SourceSchemaOptions
+                    {
+                        InvalidFieldDeprecationSeverity = LogSeverity.Error
+                    }
+                }
+            },
+            log);
+
+        // act
+        var result = schemaComposer.Compose();
+
+        // assert
+        Assert.True(result.IsFailure);
+        Assert.Contains(log, e => e.Code == "HCV0011" && e.Severity == LogSeverity.Error);
+    }
+
+    [Fact]
+    public void Compose_Should_Fail_When_SatisfiabilityEnabledAndSchemaUnsatisfiable()
+    {
+        // arrange
+        // 'User' is reachable from both schemas, but neither exposes a lookup, so the field owned by
+        // the other schema cannot be reached. Satisfiability validation is enabled by default.
+        var log = new CompositionLog();
+        var schemaComposer = new SchemaComposer(
+            [
+                new SourceSchemaText(
+                    "A",
+                    """
+                    type Query {
+                        profileById(id: ID!): Profile
+                    }
+
+                    type Profile {
+                        id: ID!
+                        user: User
+                    }
+
+                    type User {
+                        id: ID! @shareable
+                        name: String
+                    }
+                    """),
+                new SourceSchemaText(
+                    "B",
+                    """
+                    type Query {
+                        orders: [Order]
+                    }
+
+                    type Order {
+                        id: ID!
+                        user: User
+                    }
+
+                    type User {
+                        id: ID! @shareable
+                        membershipStatus: String
+                    }
+                    """)
+            ],
+            new SchemaComposerOptions { Merger = { AddFusionDefinitions = false } },
+            log);
+
+        // act
+        var result = schemaComposer.Compose();
+
+        // assert
+        Assert.True(result.IsFailure);
+        Assert.Contains(log, e => e.Code == LogEntryCodes.UnsatisfiableQueryPath);
+    }
+
+    [Fact]
     public void Compose_LookupFieldWithoutArguments_FailsWithLookupMustHaveArgumentsError()
     {
         // arrange

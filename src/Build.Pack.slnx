@@ -80,7 +80,6 @@
     <Project Path="HotChocolate/Fusion/src/Fusion.Aspire/HotChocolate.Fusion.Aspire.csproj" />
     <Project Path="HotChocolate/Fusion/src/Fusion.Caching/HotChocolate.Fusion.Caching.csproj" />
     <Project Path="HotChocolate/Fusion/src/Fusion.Composition/HotChocolate.Fusion.Composition.csproj" />
-    <Project Path="HotChocolate/Fusion/src/Fusion.Connectors.ApolloFederation/HotChocolate.Fusion.Connectors.ApolloFederation.csproj" />
     <Project Path="HotChocolate/Fusion/src/Fusion.Connectors.InMemory/HotChocolate.Fusion.Connectors.InMemory.csproj" />
     <Project Path="HotChocolate/Fusion/src/Fusion.Diagnostics/HotChocolate.Fusion.Diagnostics.csproj" />
     <Project Path="HotChocolate/Fusion/src/Fusion.Execution.Types/HotChocolate.Fusion.Execution.Types.csproj" />
@@ -88,6 +87,11 @@
     <Project Path="HotChocolate/Fusion/src/Fusion.Language/HotChocolate.Fusion.Language.csproj" />
     <Project Path="HotChocolate/Fusion/src/Fusion.Packaging/HotChocolate.Fusion.Packaging.csproj" />
     <Project Path="HotChocolate/Fusion/src/Fusion.SourceSchema.Packaging/HotChocolate.Fusion.SourceSchema.Packaging.csproj" />
+    <Project Path="HotChocolate/Fusion/src/Fusion.Subscriptions.AmazonSqs/HotChocolate.Fusion.Subscriptions.AmazonSqs.csproj" />
+    <Project Path="HotChocolate/Fusion/src/Fusion.Subscriptions.AzureEventHubs/HotChocolate.Fusion.Subscriptions.AzureEventHubs.csproj" />
+    <Project Path="HotChocolate/Fusion/src/Fusion.Subscriptions.Kafka/HotChocolate.Fusion.Subscriptions.Kafka.csproj" />
+    <Project Path="HotChocolate/Fusion/src/Fusion.Subscriptions.Redis/HotChocolate.Fusion.Subscriptions.Redis.csproj" />
+    <Project Path="HotChocolate/Fusion/src/Fusion.Subscriptions.NATS/HotChocolate.Fusion.Subscriptions.NATS.csproj" />
     <Project Path="HotChocolate/Fusion/src/Fusion.Utilities/HotChocolate.Fusion.Utilities.csproj" />
     <Project Path="HotChocolate/Fusion/test/Fusion.Tests.Shared/HotChocolate.Fusion.Tests.Shared.csproj" />
     <Project Path="HotChocolate/Json/src/Json/HotChocolate.Text.Json.csproj" />

@@ -42,10 +42,13 @@ public class GatewayBuilderInterceptorTests : FusionTestBase
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
         // act
-        using var result = await client.PostAsync("{ field }", new Uri("http://localhost:5000/graphql"));
+        using var result = await client.PostAsync(
+            "{ field }",
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
 
         // assert
-        using var response = await result.ReadAsResultAsync();
+        using var response = await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
         Assert.Equal("from-http-interceptor", response.Extensions.GetProperty(ExtensionKey).GetString());
     }
 
@@ -70,10 +73,13 @@ public class GatewayBuilderInterceptorTests : FusionTestBase
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
         // act
-        using var result = await client.PostAsync("{ field }", new Uri("http://localhost:5000/graphql"));
+        using var result = await client.PostAsync(
+            "{ field }",
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
 
         // assert
-        using var response = await result.ReadAsResultAsync();
+        using var response = await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
         Assert.Equal("from-http-interceptor", response.Extensions.GetProperty(ExtensionKey).GetString());
         Assert.True(factoryInvoked);
     }

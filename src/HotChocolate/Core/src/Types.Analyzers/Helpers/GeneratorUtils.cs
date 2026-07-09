@@ -86,7 +86,7 @@ internal static class GeneratorUtils
 
         if (type.SpecialType == SpecialType.System_Boolean)
         {
-            return defaultValue.ToString()!.ToLower();
+            return defaultValue.ToString().ToLower();
         }
 
         if (type.SpecialType == SpecialType.System_Double
@@ -123,7 +123,7 @@ internal static class GeneratorUtils
                 }
 
                 // Fallback to integer value if no matching member found
-                return defaultValue.ToString()!;
+                return defaultValue.ToString();
             }
 
             if (type.IsNullableValueType())

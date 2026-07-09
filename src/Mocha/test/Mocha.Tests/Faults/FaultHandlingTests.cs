@@ -25,7 +25,7 @@ public class FaultHandlingTests
 
         // Task.Delay: allows async pipeline to complete; deterministic sync not possible for
         // fire-and-forget publish
-        await Task.Delay(500, default);
+        await Task.Delay(500, TestContext.Current.CancellationToken);
 
         // assert - runtime should still be functional after swallowed fault.
         // No observable side-effect beyond runtime stability; IsStarted is the
@@ -96,7 +96,7 @@ public class FaultHandlingTests
         }
 
         // Task.Delay: allows async pipeline to complete; deterministic sync not possible for fire-and-forget publish
-        await Task.Delay(1000, default);
+        await Task.Delay(1000, TestContext.Current.CancellationToken);
 
         // assert - no observable side-effect beyond runtime stability after
         // swallowed faults; IsStarted confirms the runtime survived.
@@ -142,7 +142,7 @@ public class FaultHandlingTests
         await bus.SendAsync(new TestSendRequest { Data = "will-fail" }, CancellationToken.None);
 
         // Task.Delay: allows async pipeline to complete; deterministic sync not possible for fire-and-forget send
-        await Task.Delay(500, default);
+        await Task.Delay(500, TestContext.Current.CancellationToken);
 
         // assert - no observable side-effect beyond runtime stability after
         // swallowed fault; IsStarted confirms the runtime survived.

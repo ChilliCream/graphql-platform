@@ -22,7 +22,7 @@ public class PagingHelperTests(PostgreSqlResource resource)
         var arguments = new PagingArguments(2);
         await using var context = new CatalogContext(connectionString);
         var page = await context.Products.OrderBy(t => t.Name).ThenBy(t => t.Id)
-            .ToPageAsync(arguments);
+            .ToPageAsync(arguments, Xunit.TestContext.Current.CancellationToken);
 
         // Assert
         page.MatchMarkdownSnapshot();
@@ -38,11 +38,15 @@ public class PagingHelperTests(PostgreSqlResource resource)
         // -> get first page
         var arguments = new PagingArguments(2);
         await using var context = new CatalogContext(connectionString);
-        var page = await context.Products.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(arguments);
+        var page = await context.Products.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(
+            arguments,
+            Xunit.TestContext.Current.CancellationToken);
 
         // Act
         arguments = new PagingArguments(2, after: page.CreateEndCursor());
-        page = await context.Products.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(arguments);
+        page = await context.Products.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(
+            arguments,
+            Xunit.TestContext.Current.CancellationToken);
 
         // Assert
         page.MatchMarkdownSnapshot();
@@ -58,12 +62,16 @@ public class PagingHelperTests(PostgreSqlResource resource)
         // -> get first page
         var arguments = new PagingArguments(2) { EnableRelativeCursors = true };
         await using var context = new CatalogContext(connectionString);
-        var page = await context.Products.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(arguments);
+        var page = await context.Products.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(
+            arguments,
+            Xunit.TestContext.Current.CancellationToken);
 
         // Act
         var cursor = page.CreateCursor(page.Last!.Value, 2);
         arguments = new PagingArguments(2, after: cursor);
-        page = await context.Products.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(arguments);
+        page = await context.Products.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(
+            arguments,
+            Xunit.TestContext.Current.CancellationToken);
 
         // Assert
         page.MatchMarkdownSnapshot();
@@ -80,17 +88,23 @@ public class PagingHelperTests(PostgreSqlResource resource)
 
         // -> get first page
         var arguments = new PagingArguments(2) { EnableRelativeCursors = true };
-        var first = await context.Products.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(arguments);
+        var first = await context.Products.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(
+            arguments,
+            Xunit.TestContext.Current.CancellationToken);
 
         // -> get second page
         var cursor = first.CreateCursor(first.Last!.Value, 0);
         arguments = new PagingArguments(2, after: cursor) { EnableRelativeCursors = true };
-        var page = await context.Products.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(arguments);
+        var page = await context.Products.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(
+            arguments,
+            Xunit.TestContext.Current.CancellationToken);
 
         // -> get third page
         cursor = page.CreateCursor(page.Last!.Value, 0);
         arguments = new PagingArguments(2, after: cursor) { EnableRelativeCursors = true };
-        page = await context.Products.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(arguments);
+        page = await context.Products.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(
+            arguments,
+            Xunit.TestContext.Current.CancellationToken);
 
         // Act
         /*
@@ -107,7 +121,9 @@ public class PagingHelperTests(PostgreSqlResource resource)
         */
         cursor = page.CreateCursor(page.Last!.Value, -1);
         arguments = new PagingArguments(last: 2, before: cursor);
-        page = await context.Products.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(arguments);
+        page = await context.Products.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(
+            arguments,
+            Xunit.TestContext.Current.CancellationToken);
 
         // Assert
         /*
@@ -141,14 +157,18 @@ public class PagingHelperTests(PostgreSqlResource resource)
         var arguments = new PagingArguments(2);
         await using var context = new CatalogContext(connectionString);
         var page = await context.Products.OrderBy(t => t.Name).ThenBy(t => t.Id)
-            .ToPageAsync(arguments);
+            .ToPageAsync(arguments, Xunit.TestContext.Current.CancellationToken);
 
         arguments = new PagingArguments(2, after: page.CreateEndCursor());
-        page = await context.Products.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(arguments);
+        page = await context.Products.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(
+            arguments,
+            Xunit.TestContext.Current.CancellationToken);
 
         // Act
         arguments = new PagingArguments(2, after: page.CreateEndCursor());
-        page = await context.Products.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(arguments);
+        page = await context.Products.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(
+            arguments,
+            Xunit.TestContext.Current.CancellationToken);
 
         // Assert
         page.MatchMarkdownSnapshot();
@@ -165,11 +185,13 @@ public class PagingHelperTests(PostgreSqlResource resource)
         var arguments = new PagingArguments(4);
         await using var context = new CatalogContext(connectionString);
         var page = await context.Products.OrderBy(t => t.Name).ThenBy(t => t.Id)
-            .ToPageAsync(arguments);
+            .ToPageAsync(arguments, Xunit.TestContext.Current.CancellationToken);
 
         // Act
         arguments = new PagingArguments(2, after: page.CreateStartCursor(), before: page.CreateEndCursor());
-        page = await context.Products.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(arguments);
+        page = await context.Products.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(
+            arguments,
+            Xunit.TestContext.Current.CancellationToken);
 
         // Assert
         page.MatchMarkdownSnapshot();
@@ -188,7 +210,7 @@ public class PagingHelperTests(PostgreSqlResource resource)
         var page = await context.Products
             .OrderBy(t => t.Name)
             .ThenBy(t => t.Id)
-            .ToPageAsync(arguments);
+            .ToPageAsync(arguments, Xunit.TestContext.Current.CancellationToken);
 
         // Assert
         page.MatchMarkdownSnapshot();
@@ -213,7 +235,7 @@ public class PagingHelperTests(PostgreSqlResource resource)
 
         await context.Products
             .With(query)
-            .ToPageAsync(arguments);
+            .ToPageAsync(arguments, Xunit.TestContext.Current.CancellationToken);
 
         // Assert
         Snapshot
@@ -243,7 +265,7 @@ public class PagingHelperTests(PostgreSqlResource resource)
 
         await context.Products
             .With(query)
-            .ToPageAsync(arguments);
+            .ToPageAsync(arguments, Xunit.TestContext.Current.CancellationToken);
 
         // Assert
         Snapshot
@@ -273,7 +295,7 @@ public class PagingHelperTests(PostgreSqlResource resource)
 
         await context.Products
             .With(query)
-            .ToPageAsync(arguments);
+            .ToPageAsync(arguments, Xunit.TestContext.Current.CancellationToken);
 
         // Assert
         Snapshot
@@ -303,7 +325,7 @@ public class PagingHelperTests(PostgreSqlResource resource)
 
         await context.Brands
             .With(query)
-            .ToPageAsync(arguments);
+            .ToPageAsync(arguments, Xunit.TestContext.Current.CancellationToken);
 
         // Assert
         Snapshot
@@ -553,11 +575,13 @@ public class PagingHelperTests(PostgreSqlResource resource)
         var page = await context.Products
             .OrderBy(t => t.Name)
             .ThenBy(t => t.Id)
-            .ToPageAsync(arguments);
+            .ToPageAsync(arguments, Xunit.TestContext.Current.CancellationToken);
 
         // Act
         arguments = arguments with { Before = page.CreateStartCursor() };
-        page = await context.Products.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(arguments);
+        page = await context.Products.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(
+            arguments,
+            Xunit.TestContext.Current.CancellationToken);
 
         // Assert
         page.MatchMarkdownSnapshot();
@@ -576,11 +600,13 @@ public class PagingHelperTests(PostgreSqlResource resource)
         var page = await context.Products
             .OrderBy(t => t.Name)
             .ThenBy(t => t.Id)
-            .ToPageAsync(arguments);
+            .ToPageAsync(arguments, Xunit.TestContext.Current.CancellationToken);
 
         // Act
         arguments = new PagingArguments(after: page.CreateStartCursor(), last: 2, before: page.CreateEndCursor());
-        page = await context.Products.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(arguments);
+        page = await context.Products.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(
+            arguments,
+            Xunit.TestContext.Current.CancellationToken);
 
         // Assert
         page.MatchMarkdownSnapshot();
@@ -601,7 +627,7 @@ public class PagingHelperTests(PostgreSqlResource resource)
             .Where(t => brandIds.Contains(t.BrandId))
             .OrderBy(p => p.Name)
             .ThenBy(p => p.Id)
-            .ToBatchPageAsync(t => t.BrandId, arguments);
+            .ToBatchPageAsync(t => t.BrandId, arguments, Xunit.TestContext.Current.CancellationToken);
 
         // Assert
         var snapshot = Snapshot.Create();
@@ -663,11 +689,15 @@ public class PagingHelperTests(PostgreSqlResource resource)
         {
             // Get 1st page.
             var arguments = new PagingArguments(2);
-            var page = await query.ThenByDescending(t => t.Id).ToPageAsync(arguments);
+            var page = await query.ThenByDescending(t => t.Id).ToPageAsync(
+                arguments,
+                Xunit.TestContext.Current.CancellationToken);
 
             // Get 2nd page.
             arguments = new PagingArguments(2, after: page.CreateEndCursor());
-            pages.Add(label, await query.ThenByDescending(t => t.Id).ToPageAsync(arguments));
+            pages.Add(label, await query.ThenByDescending(t => t.Id).ToPageAsync(
+                arguments,
+                Xunit.TestContext.Current.CancellationToken));
         }
 
         // Assert

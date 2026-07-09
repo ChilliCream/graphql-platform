@@ -12,7 +12,7 @@ public static class LookupTests
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType<Query1>()
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         schema.MatchInlineSnapshot(
             """"
@@ -45,7 +45,7 @@ public static class LookupTests
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType<Query2>()
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         schema.MatchInlineSnapshot(
             """"
@@ -87,7 +87,7 @@ public static class LookupTests
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType<Query3>()
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         schema.MatchInlineSnapshot(
             """"
@@ -140,7 +140,7 @@ public static class LookupTests
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType<Query4>()
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         schema.MatchInlineSnapshot(
             """"
@@ -199,7 +199,7 @@ public static class LookupTests
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType<Query5>()
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         schema.MatchInlineSnapshot(
             """"

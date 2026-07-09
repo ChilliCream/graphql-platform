@@ -14,6 +14,16 @@ using HotChocolate.Fusion.Text.Json;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Text.Json;
+using IntValueNode = HotChocolate.Language.IntValueNode;
+using FloatValueNode = HotChocolate.Language.FloatValueNode;
+using StringValueNode = HotChocolate.Language.StringValueNode;
+using BooleanValueNode = HotChocolate.Language.BooleanValueNode;
+using NullValueNode = HotChocolate.Language.NullValueNode;
+using EnumValueNode = HotChocolate.Language.EnumValueNode;
+using ListValueNode = HotChocolate.Language.ListValueNode;
+using ObjectValueNode = HotChocolate.Language.ObjectValueNode;
+using ObjectFieldNode = HotChocolate.Language.ObjectFieldNode;
+using IValueNode = HotChocolate.Language.IValueNode;
 
 namespace HotChocolate.Fusion.Execution.Results;
 
@@ -41,6 +51,7 @@ internal sealed partial class FetchResultStore : IDisposable
     private CompositeResultElement[] _collectTargetB = ArrayPool<CompositeResultElement>.Shared.Rent(64);
     private CompositeResultElement[] _collectTargetCombined = ArrayPool<CompositeResultElement>.Shared.Rent(64);
     private PathSegmentLocalPool _pathPool = default!;
+    private IMemoryArena _arena = default!;
     private HashSet<int[]> _seenPaths = new(ReferenceEqualityComparer.Instance);
     private CompositeResultDocument _result = default!;
     private ValueCompletion _valueCompletion = default!;
@@ -127,6 +138,8 @@ internal sealed partial class FetchResultStore : IDisposable
 
             lock (_lock)
             {
+                var i = 0;
+
                 try
                 {
                     if (rootErrors is not null)
@@ -136,8 +149,7 @@ internal sealed partial class FetchResultStore : IDisposable
                     }
 
                     var resultData = _result.Data;
-
-                    for (var i = 0; i < results.Length; i++)
+                    for (i = 0; i < results.Length; i++)
                     {
                         var result = results[i];
                         _memory.Add(result);
@@ -150,11 +162,17 @@ internal sealed partial class FetchResultStore : IDisposable
                                 errorTriesSpan[i],
                                 resultSelectionSet))
                         {
+                            RegisterRemainingResults(_memory, results, i);
                             return false;
                         }
                     }
 
                     return true;
+                }
+                catch
+                {
+                    RegisterRemainingResults(_memory, results, i);
+                    throw;
                 }
                 finally
                 {
@@ -168,6 +186,22 @@ internal sealed partial class FetchResultStore : IDisposable
             errorTriesSpan.Clear();
             ArrayPool<SourceResultElement>.Shared.Return(dataElements);
             ArrayPool<ErrorTrie?>.Shared.Return(errorTries);
+        }
+
+        static void RegisterRemainingResults(
+            List<IDisposable> _memory,
+            ReadOnlySpan<SourceSchemaResult> results,
+            int i)
+        {
+            i++;
+
+            if (i < results.Length)
+            {
+                for (; i < results.Length; i++)
+                {
+                    _memory.Add(results[i]);
+                }
+            }
         }
     }
 
@@ -188,11 +222,13 @@ internal sealed partial class FetchResultStore : IDisposable
 
             lock (_lock)
             {
+                var i = 0;
+
                 try
                 {
                     var resultData = _result.Data;
 
-                    for (var i = 0; i < results.Length; i++)
+                    for (i = 0; i < results.Length; i++)
                     {
                         var result = results[i];
                         _memory.Add(result);
@@ -205,11 +241,17 @@ internal sealed partial class FetchResultStore : IDisposable
                                 errorTrie: null,
                                 resultSelectionSet))
                         {
+                            RegisterRemainingResults(_memory, results, i);
                             return false;
                         }
                     }
 
                     return true;
+                }
+                catch
+                {
+                    RegisterRemainingResults(_memory, results, i);
+                    throw;
                 }
                 finally
                 {
@@ -221,6 +263,22 @@ internal sealed partial class FetchResultStore : IDisposable
         {
             dataElementsSpan.Clear();
             ArrayPool<SourceResultElement>.Shared.Return(dataElements);
+        }
+
+        static void RegisterRemainingResults(
+            List<IDisposable> _memory,
+            ReadOnlySpan<SourceSchemaResult> results,
+            int i)
+        {
+            i++;
+
+            if (i < results.Length)
+            {
+                for (; i < results.Length; i++)
+                {
+                    _memory.Add(results[i]);
+                }
+            }
         }
     }
 
@@ -408,7 +466,7 @@ AddErrors_Next:
                 }
 
 AddErrors_Next:
-                path = ref Unsafe.Add(ref path, 1)!;
+                path = ref Unsafe.Add(ref path, 1);
             }
         }
 
@@ -744,12 +802,30 @@ AddErrors_Next:
 
             if (segment.Kind is SelectionPathSegmentKind.InlineFragment)
             {
+                IOutputTypeDefinition? segmentType = null;
+
                 for (var j = 0; j < currentCount; j++)
                 {
                     var element = current[j];
-                    if (element.TryGetProperty(IntrospectionFieldNames.TypeNameSpan, out var value)
-                        && value.ValueKind is JsonValueKind.String
-                        && value.TextEqualsHelper(segment.Name, isPropertyName: false))
+
+                    if (!element.TryGetProperty(IntrospectionFieldNames.TypeNameSpan, out var value)
+                        || value.ValueKind is not JsonValueKind.String)
+                    {
+                        continue;
+                    }
+
+                    // Fast path: the runtime __typename equals the type condition exactly.
+                    if (value.TextEqualsHelper(segment.Name, isPropertyName: false))
+                    {
+                        AddToBuffer(ref next, ref nextCount, element);
+                        continue;
+                    }
+
+                    // The type condition names an abstract type; accept elements whose
+                    // runtime type is a subtype of it.
+                    segmentType ??= _schema.Types.GetType<IOutputTypeDefinition>(segment.Name);
+
+                    if (segmentType.IsAssignableFrom(element.AssertSelectionSet().Type))
                     {
                         AddToBuffer(ref next, ref nextCount, element);
                     }
@@ -933,11 +1009,18 @@ AddErrors_Next:
             // Write requirement fields.
             var failed = false;
 
-            foreach (var requirement in requiredData)
+            for (var i = 0; i < requiredData.Length; i++)
             {
+                var requirement = requiredData[i];
                 _jsonWriter.WritePropertyName(requirement.Key);
 
-                if (!ResultDataMapper.TryMap(result, requirement.Map, _schema, _jsonWriter))
+                if (!ResultDataMapper.TryMap(
+                    result,
+                    requirement.Map,
+                    requirement.Type,
+                    _schema,
+                    requirement.InternalAlias,
+                    _jsonWriter))
                 {
                     failed = true;
                     break;
@@ -979,7 +1062,11 @@ AddErrors_Next:
         ReadOnlySpan<CompositeResultElement> elements,
         OperationRequirement requirement)
     {
-        if (TryGetSimpleRequirementFieldName(requirement.Map, out var fieldName))
+        // The fast path copies values verbatim and only guards top-level nulls,
+        // so list-typed requirements take the slow path where the mapper checks
+        // element nullability.
+        if (TryGetSimpleRequirementFieldName(requirement, out var fieldName)
+            && !requirement.Type.IsListType())
         {
             return BuildVariableValueSetsSingleRequirementFastPath(elements, requirement, fieldName);
         }
@@ -1001,7 +1088,7 @@ AddErrors_Next:
         {
             var result = elements[i];
 
-            if (!result.TryGetProperty(fieldName, out var value))
+            if (!result.TryGetProperty(requirement.InternalAlias ?? fieldName, out var value))
             {
                 continue;
             }
@@ -1052,6 +1139,7 @@ AddErrors_Next:
         VariableValues[]? variableValueSets = null;
         var additionalPaths = new AdditionalPathAccumulator();
         var nextIndex = 0;
+        var requirementType = requirement.Type;
 
         foreach (var result in elements)
         {
@@ -1062,7 +1150,13 @@ AddErrors_Next:
             _jsonWriter.WriteStartObject();
             _jsonWriter.WritePropertyName(requirement.Key);
 
-            if (!ResultDataMapper.TryMap(result, requirement.Map, _schema, _jsonWriter))
+            if (!ResultDataMapper.TryMap(
+                result,
+                requirement.Map,
+                requirementType,
+                _schema,
+                requirement.InternalAlias,
+                _jsonWriter))
             {
                 _variableWriter.ResetTo(startPosition);
                 continue;
@@ -1090,8 +1184,13 @@ AddErrors_Next:
         OperationRequirement requirement1,
         OperationRequirement requirement2)
     {
-        if (TryGetSimpleRequirementFieldName(requirement1.Map, out var fieldName1)
-            && TryGetSimpleRequirementFieldName(requirement2.Map, out var fieldName2))
+        // The fast path copies values verbatim and only guards top-level nulls,
+        // so list-typed requirements take the slow path where the mapper checks
+        // element nullability.
+        if (TryGetSimpleRequirementFieldName(requirement1, out var fieldName1)
+            && !requirement1.Type.IsListType()
+            && TryGetSimpleRequirementFieldName(requirement2, out var fieldName2)
+            && !requirement2.Type.IsListType())
         {
             return BuildVariableValueSetsTwoRequirementsFastPath(
                 elements,
@@ -1120,7 +1219,7 @@ AddErrors_Next:
 
         foreach (var result in elements)
         {
-            if (!result.TryGetProperty(fieldName1, out var value1)
+            if (!result.TryGetProperty(requirement1.InternalAlias ?? fieldName1, out var value1)
                 || value1.ValueKind is JsonValueKind.Undefined
                 || (value1.ValueKind is JsonValueKind.Null
                     && requirement1.Type.Kind == SyntaxKind.NonNullType))
@@ -1128,7 +1227,7 @@ AddErrors_Next:
                 continue;
             }
 
-            if (!result.TryGetProperty(fieldName2, out var value2)
+            if (!result.TryGetProperty(requirement2.InternalAlias ?? fieldName2, out var value2)
                 || value2.ValueKind is JsonValueKind.Undefined
                 || (value2.ValueKind is JsonValueKind.Null
                     && requirement2.Type.Kind == SyntaxKind.NonNullType))
@@ -1170,6 +1269,8 @@ AddErrors_Next:
         VariableValues[]? variableValueSets = null;
         var additionalPaths = new AdditionalPathAccumulator();
         var nextIndex = 0;
+        var requirementType1 = requirement1.Type;
+        var requirementType2 = requirement2.Type;
 
         foreach (var result in elements)
         {
@@ -1181,7 +1282,13 @@ AddErrors_Next:
 
             _jsonWriter.WritePropertyName(requirement1.Key);
 
-            if (!ResultDataMapper.TryMap(result, requirement1.Map, _schema, _jsonWriter))
+            if (!ResultDataMapper.TryMap(
+                result,
+                requirement1.Map,
+                requirementType1,
+                _schema,
+                requirement1.InternalAlias,
+                _jsonWriter))
             {
                 _variableWriter.ResetTo(startPosition);
                 continue;
@@ -1189,7 +1296,13 @@ AddErrors_Next:
 
             _jsonWriter.WritePropertyName(requirement2.Key);
 
-            if (!ResultDataMapper.TryMap(result, requirement2.Map, _schema, _jsonWriter))
+            if (!ResultDataMapper.TryMap(
+                result,
+                requirement2.Map,
+                requirementType2,
+                _schema,
+                requirement2.InternalAlias,
+                _jsonWriter))
             {
                 _variableWriter.ResetTo(startPosition);
                 continue;
@@ -1217,9 +1330,15 @@ AddErrors_Next:
         OperationRequirement requirement2,
         OperationRequirement requirement3)
     {
-        if (TryGetSimpleRequirementFieldName(requirement1.Map, out var fieldName1)
-            && TryGetSimpleRequirementFieldName(requirement2.Map, out var fieldName2)
-            && TryGetSimpleRequirementFieldName(requirement3.Map, out var fieldName3))
+        // The fast path copies values verbatim and only guards top-level nulls,
+        // so list-typed requirements take the slow path where the mapper checks
+        // element nullability.
+        if (TryGetSimpleRequirementFieldName(requirement1, out var fieldName1)
+            && !requirement1.Type.IsListType()
+            && TryGetSimpleRequirementFieldName(requirement2, out var fieldName2)
+            && !requirement2.Type.IsListType()
+            && TryGetSimpleRequirementFieldName(requirement3, out var fieldName3)
+            && !requirement3.Type.IsListType())
         {
             return BuildVariableValueSetsThreeRequirementsFastPath(
                 elements,
@@ -1253,7 +1372,7 @@ AddErrors_Next:
 
         foreach (var result in elements)
         {
-            if (!result.TryGetProperty(fieldName1, out var value1)
+            if (!result.TryGetProperty(requirement1.InternalAlias ?? fieldName1, out var value1)
                 || value1.ValueKind is JsonValueKind.Undefined
                 || (value1.ValueKind is JsonValueKind.Null
                     && requirement1.Type.Kind == SyntaxKind.NonNullType))
@@ -1261,7 +1380,7 @@ AddErrors_Next:
                 continue;
             }
 
-            if (!result.TryGetProperty(fieldName2, out var value2)
+            if (!result.TryGetProperty(requirement2.InternalAlias ?? fieldName2, out var value2)
                 || value2.ValueKind is JsonValueKind.Undefined
                 || (value2.ValueKind is JsonValueKind.Null
                     && requirement2.Type.Kind == SyntaxKind.NonNullType))
@@ -1269,7 +1388,7 @@ AddErrors_Next:
                 continue;
             }
 
-            if (!result.TryGetProperty(fieldName3, out var value3)
+            if (!result.TryGetProperty(requirement3.InternalAlias ?? fieldName3, out var value3)
                 || value3.ValueKind is JsonValueKind.Undefined
                 || (value3.ValueKind is JsonValueKind.Null
                     && requirement3.Type.Kind == SyntaxKind.NonNullType))
@@ -1313,6 +1432,9 @@ AddErrors_Next:
         VariableValues[]? variableValueSets = null;
         var additionalPaths = new AdditionalPathAccumulator();
         var nextIndex = 0;
+        var requirementType1 = requirement1.Type;
+        var requirementType2 = requirement2.Type;
+        var requirementType3 = requirement3.Type;
 
         foreach (var result in elements)
         {
@@ -1324,7 +1446,13 @@ AddErrors_Next:
 
             _jsonWriter.WritePropertyName(requirement1.Key);
 
-            if (!ResultDataMapper.TryMap(result, requirement1.Map, _schema, _jsonWriter))
+            if (!ResultDataMapper.TryMap(
+                result,
+                requirement1.Map,
+                requirementType1,
+                _schema,
+                requirement1.InternalAlias,
+                _jsonWriter))
             {
                 _variableWriter.ResetTo(startPosition);
                 continue;
@@ -1332,7 +1460,13 @@ AddErrors_Next:
 
             _jsonWriter.WritePropertyName(requirement2.Key);
 
-            if (!ResultDataMapper.TryMap(result, requirement2.Map, _schema, _jsonWriter))
+            if (!ResultDataMapper.TryMap(
+                result,
+                requirement2.Map,
+                requirementType2,
+                _schema,
+                requirement2.InternalAlias,
+                _jsonWriter))
             {
                 _variableWriter.ResetTo(startPosition);
                 continue;
@@ -1340,7 +1474,13 @@ AddErrors_Next:
 
             _jsonWriter.WritePropertyName(requirement3.Key);
 
-            if (!ResultDataMapper.TryMap(result, requirement3.Map, _schema, _jsonWriter))
+            if (!ResultDataMapper.TryMap(
+                result,
+                requirement3.Map,
+                requirementType3,
+                _schema,
+                requirement3.InternalAlias,
+                _jsonWriter))
             {
                 _variableWriter.ResetTo(startPosition);
                 continue;
@@ -1363,10 +1503,10 @@ AddErrors_Next:
     }
 
     private static bool TryGetSimpleRequirementFieldName(
-        IValueSelectionNode map,
+        OperationRequirement requirement,
         [NotNullWhen(true)] out string? fieldName)
     {
-        if (map is PathNode
+        if (requirement.Map is PathNode
             {
                 TypeName: null,
                 PathSegment:
@@ -1376,7 +1516,7 @@ AddErrors_Next:
                 } pathSegment
             })
         {
-            fieldName = pathSegment.FieldName.Value;
+            fieldName = requirement.InternalAlias ?? pathSegment.FieldName.Value;
             return true;
         }
 
@@ -1748,7 +1888,7 @@ AddErrors_Next:
         return buffer;
     }
 
-    private static SourceResultElement GetDataElement(SelectionPath sourcePath, SourceResultElement data)
+    private SourceResultElement GetDataElement(SelectionPath sourcePath, SourceResultElement data)
     {
         if (sourcePath.IsRoot)
         {
@@ -1761,7 +1901,10 @@ AddErrors_Next:
         {
             if (current.ValueKind != JsonValueKind.Object)
             {
-                return default;
+                // An intermediate value on the path is not an object. If it is null, the target
+                // value null-propagates from here, so we surface the null element (not Undefined)
+                // and let value completion integrate it together with any source error.
+                return current.ValueKind is JsonValueKind.Null ? current : default;
             }
 
             var segment = sourcePath[i];
@@ -1778,10 +1921,15 @@ AddErrors_Next:
 
                 case SelectionPathSegmentKind.InlineFragment:
                     if (!current.TryGetProperty(IntrospectionFieldNames.TypeNameSpan, out var typeNameProperty)
-                            || typeNameProperty.ValueKind != JsonValueKind.String
-                            || !typeNameProperty.TextEqualsHelper(
-                                segment.Name,
-                                isPropertyName: false))
+                            || typeNameProperty.ValueKind != JsonValueKind.String)
+                    {
+                        return default;
+                    }
+
+                    // Fast path: exact __typename match. On a miss the type condition may name an
+                    // abstract type, so accept the element when its runtime type is a subtype.
+                    if (!typeNameProperty.TextEqualsHelper(segment.Name, isPropertyName: false)
+                        && !IsRuntimeTypeAssignableTo(segment.Name, typeNameProperty.GetString()))
                     {
                         return default;
                     }
@@ -1796,6 +1944,18 @@ AddErrors_Next:
         return current;
     }
 
+    private bool IsRuntimeTypeAssignableTo(string typeCondition, string? runtimeTypeName)
+    {
+        if (runtimeTypeName is null
+            || !_schema.Types.TryGetType<IOutputTypeDefinition>(typeCondition, out var conditionType)
+            || !_schema.Types.TryGetType<IOutputTypeDefinition>(runtimeTypeName, out var runtimeType))
+        {
+            return false;
+        }
+
+        return conditionType.IsAssignableFrom(runtimeType);
+    }
+
     private static ErrorTrie? GetErrorTrie(SelectionPath sourcePath, ErrorTrie? errors)
     {
         if (errors is null || sourcePath.IsRoot)
@@ -1808,6 +1968,13 @@ AddErrors_Next:
         for (var i = 0; i < sourcePath.Length; i++)
         {
             var segment = sourcePath[i];
+
+            // Source schema error paths only carry response names and list indices, never type
+            // conditions, so inline-fragment segments have no corresponding level in the trie.
+            if (segment.Kind is SelectionPathSegmentKind.InlineFragment)
+            {
+                continue;
+            }
 
             if (!current.TryGetValue(segment.Name, out current))
             {

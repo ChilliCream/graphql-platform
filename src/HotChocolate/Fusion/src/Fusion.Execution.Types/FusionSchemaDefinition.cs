@@ -20,6 +20,7 @@ public sealed class FusionSchemaDefinition : ISchemaDefinition, IAsyncDisposable
     private readonly object _lock = new();
 #endif
     private readonly ConcurrentDictionary<string, ImmutableArray<FusionObjectTypeDefinition>> _possibleTypes = new();
+    private readonly ConcurrentDictionary<string, ImmutableArray<FusionObjectTypeDefinition>> _possibleTypesWithInaccessible = new();
     private readonly ConcurrentDictionary<(string, string?), ImmutableArray<Lookup>> _possibleLookups = new();
     private readonly IServiceProvider _services;
     private readonly ImmutableDictionary<string, SourceSchemaInfo> _sourceSchemaLookup;
@@ -144,8 +145,8 @@ public sealed class FusionSchemaDefinition : ISchemaDefinition, IAsyncDisposable
     /// </summary>
     /// <param name="sourceSchemaName">The source schema name.</param>
     /// <returns>
-    /// The connector kind (for example <c>"Apollo"</c>) declared via
-    /// <c>@fusion__connector(kind:)</c> on the corresponding <c>fusion__Schema</c>
+    /// The connector kind (for example <c>"ApolloFederation"</c>) declared via
+    /// <c>@fusion__schema_metadata(kind:)</c> on the corresponding <c>fusion__Schema</c>
     /// enum value, or <see langword="null"/> if the source schema has no
     /// connector kind associated with it. Callers that want to default
     /// treat <see langword="null"/> as <c>"GraphQL"</c>.
@@ -220,11 +221,17 @@ public sealed class FusionSchemaDefinition : ISchemaDefinition, IAsyncDisposable
     /// an abstract type (union type or interface type).
     /// </summary>
     /// <param name="abstractType">The abstract type.</param>
+    /// <param name="includeInaccessible">
+    /// When true, inaccessible object types are included. Otherwise only publicly accessible possible
+    /// types are returned.
+    /// </param>
     /// <returns>
     /// Returns a collection with all possible object types
     /// for the given abstract type.
     /// </returns>
-    public ImmutableArray<FusionObjectTypeDefinition> GetPossibleTypes(ITypeDefinition abstractType)
+    public ImmutableArray<FusionObjectTypeDefinition> GetPossibleTypes(
+        ITypeDefinition abstractType,
+        bool includeInaccessible = false)
     {
         if (abstractType.Kind is not TypeKind.Union and not TypeKind.Interface and not TypeKind.Object)
         {
@@ -233,14 +240,16 @@ public sealed class FusionSchemaDefinition : ISchemaDefinition, IAsyncDisposable
                 nameof(abstractType));
         }
 
-        if (!_possibleTypes.TryGetValue(abstractType.Name, out var possibleTypes))
+        var cache = includeInaccessible ? _possibleTypesWithInaccessible : _possibleTypes;
+
+        if (!cache.TryGetValue(abstractType.Name, out var possibleTypes))
         {
             lock (_lock)
             {
-                if (!_possibleTypes.TryGetValue(abstractType.Name, out possibleTypes))
+                if (!cache.TryGetValue(abstractType.Name, out possibleTypes))
                 {
-                    possibleTypes = BuildPossibleTypes(abstractType, Types);
-                    _possibleTypes.TryAdd(abstractType.Name, possibleTypes);
+                    possibleTypes = BuildPossibleTypes(abstractType, Types, includeInaccessible);
+                    cache.TryAdd(abstractType.Name, possibleTypes);
                 }
             }
         }
@@ -249,18 +258,19 @@ public sealed class FusionSchemaDefinition : ISchemaDefinition, IAsyncDisposable
 
         static ImmutableArray<FusionObjectTypeDefinition> BuildPossibleTypes(
             ITypeDefinition abstractType,
-            FusionTypeDefinitionCollection types)
+            FusionTypeDefinitionCollection types,
+            bool includeInaccessible)
         {
             if (abstractType is FusionUnionTypeDefinition unionType)
             {
-                return [.. unionType.Types.AsEnumerable().OrderBy(t => t.Name, StringComparer.Ordinal)];
+                return [.. unionType.Types.AsEnumerable(includeInaccessible).OrderBy(t => t.Name, StringComparer.Ordinal)];
             }
 
             if (abstractType is FusionInterfaceTypeDefinition interfaceType)
             {
                 var builder = ImmutableArray.CreateBuilder<FusionObjectTypeDefinition>();
 
-                foreach (var type in types)
+                foreach (var type in types.AsEnumerable(includeInaccessible))
                 {
                     if (type is FusionObjectTypeDefinition obj && obj.Implements.ContainsName(interfaceType.Name))
                     {

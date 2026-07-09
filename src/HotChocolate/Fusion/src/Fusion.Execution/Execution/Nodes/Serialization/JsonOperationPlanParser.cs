@@ -2,8 +2,12 @@ using System.Collections.Immutable;
 using System.Text.Json;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Language;
+using HotChocolate.Fusion.Types;
+using HotChocolate.Fusion.Types.Directives;
 using HotChocolate.Language;
 using HotChocolate.Types;
+using StringValueNode = HotChocolate.Language.StringValueNode;
+using IValueNode = HotChocolate.Language.IValueNode;
 
 namespace HotChocolate.Fusion.Execution.Nodes.Serialization;
 
@@ -181,13 +185,19 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
                     var requirementName = requirementElement.GetProperty("name").GetString()!;
                     var requirementType = requirementElement.GetProperty("type").GetString()!;
                     var requirementPath = requirementElement.GetProperty("path").GetString()!;
+                    var internalAlias =
+                        requirementElement.TryGetProperty("internalAlias", out var internalAliasElement)
+                            ? internalAliasElement.GetString()
+                            : null;
                     var selectionMap = requirementElement.GetProperty("selectionMap").GetString()!;
+                    var requirementTypeNode = Utf8GraphQLParser.Syntax.ParseTypeReference(requirementType);
 
                     requirementsBuilder.Add(new OperationRequirement(
                         requirementName,
-                        Utf8GraphQLParser.Syntax.ParseTypeReference(requirementType),
+                        requirementTypeNode,
                         SelectionPath.Parse(requirementPath),
-                        FieldSelectionMapParser.Parse(selectionMap)));
+                        FieldSelectionMapParser.Parse(selectionMap),
+                        internalAlias));
                 }
 
                 incrementalPlanRequirements = requirementsBuilder.ToImmutable();
@@ -235,7 +245,7 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
 
         foreach (var nodeElement in nodesElement.EnumerateArray())
         {
-            var nodeType = nodeElement.GetProperty("type").GetString()!;
+            var nodeType = nodeElement.GetProperty("type").GetString();
             var id = nodeElement.GetProperty("id").GetInt32();
 
             var schema = _operationCompiler.Schema;
@@ -248,6 +258,15 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
 
                 case "OperationBatch":
                     parsedNodes.Add(ParseOperationBatchNodeInfo(nodeElement, id, schema));
+                    break;
+
+                case "ApolloOperation":
+                case "ApolloOperationBatch":
+                    parsedNodes.Add(ParseApolloOperationNodeInfo(nodeElement, id, schema));
+                    break;
+
+                case "EventStream":
+                    parsedNodes.Add(ParseEventStreamNodeInfo(nodeElement, id, schema));
                     break;
 
                 case "Introspection":
@@ -294,7 +313,7 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
         var allNodes = new List<(ExecutionNode Node, int[]? Dependencies, Dictionary<string, int>? Branches, int? Fallback)>();
         var nodeMap = new Dictionary<int, ExecutionNode>();
 
-        // Merge each batch group into a single OperationBatchExecutionNode.
+        // Merge each batch group into a single batch execution node.
         // The group identifier becomes the node identifier, and every member
         // operation becomes an entry in the batch node's operation list.
         foreach (var (groupId, groupMembers) in batchGroups)
@@ -315,7 +334,15 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
                 }
             }
 
-            var batchNode = new OperationBatchExecutionNode(groupId, operations.ToArray());
+            // Apollo entity lookups group into their own batch node type because
+            // each member operation is rewritten into an _entities request.
+            ExecutionNode batchNode = groupMembers[0] is ParsedApolloOperationNodeInfo
+                ? ApolloOperationBatchExecutionNode.Create(
+                    groupId,
+                    operations.Cast<SingleOperationDefinition>().ToArray(),
+                    _operationCompiler.Schema)
+                : new OperationBatchExecutionNode(groupId, operations.ToArray());
+
             allNodes.Add((batchNode, allDeps.Count > 0 ? allDeps.ToArray() : null, null, null));
             nodeMap[groupId] = batchNode;
         }
@@ -370,7 +397,8 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
                         // does not block the entire batch when only one member's
                         // dependency is missing. Single-operation nodes (and
                         // non-batch nodes) need a strict dependency instead.
-                        if (node is OperationBatchExecutionNode { Operations.Length: > 1 })
+                        if (node is OperationBatchExecutionNode { Operations.Length: > 1 }
+                            or ApolloOperationBatchExecutionNode { Operations.Length: > 1 })
                         {
                             node.AddOptionalDependency(dependencyNode);
                         }
@@ -442,6 +470,14 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
                     planNodeMap[op.Id] = op;
                 }
             }
+
+            if (node is ApolloOperationBatchExecutionNode abn)
+            {
+                foreach (var op in abn.Operations)
+                {
+                    planNodeMap[op.Id] = op;
+                }
+            }
         }
 
         // Each operation definition inside a batch node tracks its own
@@ -450,16 +486,26 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
         // dependencies using the original identifiers from the JSON.
         foreach (var (groupId, groupMembers) in batchGroups)
         {
-            if (nodeMap.TryGetValue(groupId, out var batchNode) && batchNode is OperationBatchExecutionNode batch)
+            if (!nodeMap.TryGetValue(groupId, out var groupNode))
             {
-                var memberIndex = 0;
+                continue;
+            }
 
-                foreach (var member in groupMembers)
+            var memberIndex = 0;
+
+            foreach (var member in groupMembers)
+            {
+                if (member.Dependencies is { Length: > 0 })
                 {
-                    if (member.Dependencies is { Length: > 0 })
+                    var opDef = groupNode switch
                     {
-                        var opDef = batch.Operations[memberIndex];
+                        OperationBatchExecutionNode batch => batch.Operations[memberIndex],
+                        ApolloOperationBatchExecutionNode apolloBatch => apolloBatch.Operations[memberIndex],
+                        _ => null
+                    };
 
+                    if (opDef is not null)
+                    {
                         foreach (var depId in member.Dependencies)
                         {
                             if (planNodeMap.TryGetValue(depId, out var depNode))
@@ -468,9 +514,9 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
                             }
                         }
                     }
-
-                    memberIndex++;
                 }
+
+                memberIndex++;
             }
         }
 
@@ -485,11 +531,11 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
     }
 
     private static ParsedOperationNodeInfo ParseOperationNodeInfo(
-        JsonElement nodeElement, int id, ISchemaDefinition schema)
+        JsonElement nodeElement, int id, FusionSchemaDefinition schema)
     {
         var (schemaName, opSource, source, requirements, forwardedVariables,
             resultSelectionSet, dependencies, parentDependencies, batchingGroupId, conditions,
-            requiresFileUpload) = ParseCommonOperationFields(nodeElement, schema);
+            requiresFileUpload) = ParseCommonOperationFields(nodeElement);
 
         SelectionPath? target = null;
 
@@ -517,12 +563,129 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
         };
     }
 
-    private static ParsedOperationNodeInfo ParseOperationBatchNodeInfo(
-        JsonElement nodeElement, int id, ISchemaDefinition schema)
+    private static ParsedOperationNodeInfo ParseApolloOperationNodeInfo(
+        JsonElement nodeElement, int id, FusionSchemaDefinition schema)
     {
         var (schemaName, opSource, source, requirements, forwardedVariables,
             resultSelectionSet, dependencies, parentDependencies, batchingGroupId, conditions,
-            requiresFileUpload) = ParseCommonOperationFields(nodeElement, schema);
+            requiresFileUpload) = ParseCommonOperationFields(nodeElement);
+
+        SelectionPath? target = null;
+
+        if (nodeElement.TryGetProperty("target", out var targetElement))
+        {
+            target = SelectionPath.Parse(targetElement.GetString()!);
+        }
+
+        return new ParsedApolloOperationNodeInfo
+        {
+            Id = id,
+            SchemaName = schemaName,
+            OperationSource = opSource,
+            Source = source ?? SelectionPath.Root,
+            Target = target ?? SelectionPath.Root,
+            Requirements = requirements?.ToArray() ?? [],
+            ForwardedVariables = forwardedVariables ?? [],
+            ResultSelectionSet = ResultSelectionSet.Create(resultSelectionSet!, schema),
+            Dependencies = dependencies,
+            ParentDependencies = parentDependencies,
+            BatchingGroupId = batchingGroupId,
+            Conditions = conditions,
+            RequiresFileUpload = requiresFileUpload,
+            Schema = schema,
+            FusionSchema = schema
+        };
+    }
+
+    private static ParsedEventStreamNodeInfo ParseEventStreamNodeInfo(
+        JsonElement nodeElement, int id, ISchemaDefinition schema)
+    {
+        var resultSelectionSet = Utf8GraphQLParser.Syntax.ParseSelectionSet(
+            nodeElement.GetProperty("resultSelectionSet").GetString()!);
+        var source = nodeElement.TryGetProperty("source", out var sourceElement)
+            ? SelectionPath.Parse(sourceElement.GetString()!)
+            : SelectionPath.Root;
+        var target = nodeElement.TryGetProperty("target", out var targetElement)
+            ? SelectionPath.Parse(targetElement.GetString()!)
+            : SelectionPath.Root;
+        var dependencies = TryParseDependencies(nodeElement, out var parentDependencies);
+        var conditions = TryParseConditions(nodeElement);
+        var fieldName = nodeElement.GetProperty("fieldName").GetString()!;
+        var message = nodeElement.GetProperty("eventStream").GetProperty("message").GetString()!;
+        var eventStreamSource = ParseEventStreamSource(nodeElement, fieldName, message);
+
+        return new ParsedEventStreamNodeInfo
+        {
+            Id = id,
+            FieldName = fieldName,
+            Source = source,
+            Target = target,
+            ResultSelectionSet = ResultSelectionSet.Create(resultSelectionSet, schema),
+            EventStreamSource = eventStreamSource,
+            Message = message,
+            Dependencies = dependencies,
+            ParentDependencies = parentDependencies,
+            Conditions = conditions
+        };
+    }
+
+    private static EventStreamSource ParseEventStreamSource(
+        JsonElement nodeElement,
+        string fieldName,
+        string message)
+    {
+        var eventStreamElement = nodeElement.GetProperty("eventStream");
+        var topics = ParseTopics(eventStreamElement, fieldName);
+        var broker = eventStreamElement.TryGetProperty("broker", out var brokerElement)
+            ? brokerElement.GetString()
+            : null;
+        var cursorField = eventStreamElement.TryGetProperty("cursorField", out var cursorFieldElement)
+            ? cursorFieldElement.GetString()
+            : null;
+        var cursorArgument = eventStreamElement.TryGetProperty("cursorArgument", out var cursorArgumentElement)
+            ? cursorArgumentElement.GetString()
+            : null;
+
+        return new EventStreamSource
+        {
+            SchemaName = eventStreamElement.GetProperty("schema").GetString()!,
+            FieldName = fieldName,
+            Topics = topics,
+            Broker = broker,
+            Message = FieldDirectiveParser.ParseSelectionSet(message),
+            CursorField = cursorField,
+            CursorArgument = cursorArgument
+        };
+    }
+
+    private static ImmutableArray<string> ParseTopics(JsonElement eventStreamElement, string fieldName)
+    {
+        if (!eventStreamElement.TryGetProperty("topics", out var topicsElement))
+        {
+            return [fieldName];
+        }
+
+        var builder = ImmutableArray.CreateBuilder<string>();
+
+        foreach (var topicElement in topicsElement.EnumerateArray())
+        {
+            if (topicElement.GetString() is { } topic)
+            {
+                builder.Add(topic);
+            }
+        }
+
+        return builder.Count == 0
+            ? [fieldName]
+            : builder.ToImmutable();
+    }
+
+    private static ParsedOperationNodeInfo ParseOperationBatchNodeInfo(
+        JsonElement nodeElement, int id, FusionSchemaDefinition schema)
+    {
+        var (schemaName, opSource, source, requirements, forwardedVariables,
+            resultSelectionSet, dependencies, parentDependencies, batchingGroupId, conditions,
+            requiresFileUpload) = ParseCommonOperationFields(nodeElement);
 
         var targets = nodeElement.TryGetProperty("targets", out var targetsElement)
             ? targetsElement.EnumerateArray().Select(e => SelectionPath.Parse(e.GetString()!)).ToArray()
@@ -551,7 +714,7 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
         List<OperationRequirement>? requirements, string[]? forwardedVariables,
         SelectionSetNode? resultSelectionSet, int[]? dependencies, int[]? parentDependencies,
         int? batchingGroupId, ExecutionNodeCondition[] conditions, bool requiresFileUpload)
-        ParseCommonOperationFields(JsonElement nodeElement, ISchemaDefinition _)
+        ParseCommonOperationFields(JsonElement nodeElement)
     {
         string? schemaName = null;
 
@@ -589,13 +752,19 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
                 var requirementName = requirementElement.GetProperty("name").GetString()!;
                 var requirementType = requirementElement.GetProperty("type").GetString()!;
                 var requirementPath = requirementElement.GetProperty("path").GetString()!;
+                var internalAlias =
+                    requirementElement.TryGetProperty("internalAlias", out var internalAliasElement)
+                        ? internalAliasElement.GetString()
+                        : null;
                 var selectionMap = requirementElement.GetProperty("selectionMap").GetString()!;
+                var requirementTypeNode = Utf8GraphQLParser.Syntax.ParseTypeReference(requirementType);
 
                 requirements.Add(new OperationRequirement(
                     requirementName,
-                    Utf8GraphQLParser.Syntax.ParseTypeReference(requirementType),
+                    requirementTypeNode,
                     SelectionPath.Parse(requirementPath),
-                    FieldSelectionMapParser.Parse(selectionMap)));
+                    FieldSelectionMapParser.Parse(selectionMap),
+                    internalAlias));
             }
         }
 
@@ -617,6 +786,28 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
         {
             throw new InvalidOperationException("The resultSelectionSet is required in a valid operation plan.");
         }
+
+        dependencies = TryParseDependencies(nodeElement, out parentDependencies);
+
+        if (nodeElement.TryGetProperty("batchingGroupId", out var batchingGroupIdElement))
+        {
+            batchingGroupId = batchingGroupIdElement.GetInt32();
+        }
+
+        var conditions = TryParseConditions(nodeElement);
+
+        var requiresFileUpload = nodeElement.TryGetProperty("requiresFileUpload", out var requiresFileUploadElement)
+            && requiresFileUploadElement.ValueKind == JsonValueKind.True;
+
+        return (schemaName, opSource, source, requirements, forwardedVariables,
+            resultSelectionSet, dependencies, parentDependencies, batchingGroupId, conditions, requiresFileUpload);
+    }
+
+    private static int[]? TryParseDependencies(
+        JsonElement nodeElement,
+        out int[]? parentDependencies)
+    {
+        parentDependencies = null;
 
         if (nodeElement.TryGetProperty("dependencies", out var dependenciesElement))
         {
@@ -643,22 +834,11 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
                 }
             }
 
-            dependencies = intDeps?.ToArray();
             parentDependencies = parentDeps?.ToArray();
+            return intDeps?.ToArray();
         }
 
-        if (nodeElement.TryGetProperty("batchingGroupId", out var batchingGroupIdElement))
-        {
-            batchingGroupId = batchingGroupIdElement.GetInt32();
-        }
-
-        var conditions = TryParseConditions(nodeElement);
-
-        var requiresFileUpload = nodeElement.TryGetProperty("requiresFileUpload", out var requiresFileUploadElement)
-            && requiresFileUploadElement.ValueKind == JsonValueKind.True;
-
-        return (schemaName, opSource, source, requirements, forwardedVariables,
-            resultSelectionSet, dependencies, parentDependencies, batchingGroupId, conditions, requiresFileUpload);
+        return null;
     }
 
     private static ParsedNodeInfo ParseIntrospectionNodeInfo(
@@ -842,6 +1022,105 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
                 ResultSelectionSet,
                 Conditions,
                 RequiresFileUpload);
+
+            if (ParentDependencies is not null)
+            {
+                foreach (var parentId in ParentDependencies)
+                {
+                    node.AddParentDependency(parentId);
+                }
+            }
+
+            return (node, Dependencies, null, null);
+        }
+    }
+
+    private sealed class ParsedApolloOperationNodeInfo : ParsedOperationNodeInfo
+    {
+        public required SelectionPath Target { get; init; }
+
+        public required FusionSchemaDefinition FusionSchema { get; init; }
+
+        public override OperationDefinition ToOperationDefinition()
+        {
+            var definition = new SingleOperationDefinition(
+                Id,
+                OperationSource,
+                SchemaName,
+                Target,
+                Source,
+                Requirements,
+                ForwardedVariables,
+                ResultSelectionSet,
+                Conditions,
+                RequiresFileUpload);
+
+            if (ParentDependencies is not null)
+            {
+                foreach (var parentId in ParentDependencies)
+                {
+                    definition.AddParentDependency(parentId);
+                }
+            }
+
+            return definition;
+        }
+
+        public override (ExecutionNode, int[]?, Dictionary<string, int>?, int?) ToExecutionNodeTuple()
+        {
+            var node = ApolloOperationExecutionNode.Create(
+                Id,
+                OperationSource,
+                SchemaName,
+                Target,
+                Requirements,
+                ForwardedVariables,
+                ResultSelectionSet,
+                Conditions,
+                RequiresFileUpload,
+                FusionSchema);
+
+            if (ParentDependencies is not null)
+            {
+                foreach (var parentId in ParentDependencies)
+                {
+                    node.AddParentDependency(parentId);
+                }
+            }
+
+            return (node, Dependencies, null, null);
+        }
+    }
+
+    private sealed class ParsedEventStreamNodeInfo : ParsedNodeInfo
+    {
+        public required string FieldName { get; init; }
+
+        public required SelectionPath Source { get; init; }
+
+        public required SelectionPath Target { get; init; }
+
+        public required ResultSelectionSet ResultSelectionSet { get; init; }
+
+        public required EventStreamSource EventStreamSource { get; init; }
+
+        public required string Message { get; init; }
+
+        public int[]? ParentDependencies { get; init; }
+
+        public ExecutionNodeCondition[] Conditions { get; init; } = [];
+
+        public override (ExecutionNode, int[]?, Dictionary<string, int>?, int?) ToExecutionNodeTuple()
+        {
+            var node = new EventStreamExecutionNode(
+                Id,
+                FieldName,
+                Target,
+                Source,
+                ResultSelectionSet,
+                EventStreamSource,
+                Message,
+                Conditions);
 
             if (ParentDependencies is not null)
             {

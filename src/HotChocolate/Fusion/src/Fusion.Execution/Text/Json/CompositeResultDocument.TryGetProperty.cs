@@ -1,5 +1,6 @@
 using System.Buffers;
 using System.Diagnostics;
+using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Text.Json;
 
 namespace HotChocolate.Fusion.Text.Json;
@@ -162,6 +163,59 @@ public sealed partial class CompositeResultDocument
             out value);
     }
 
+    internal bool TryGetNamedPropertyValue(
+        Cursor startCursor,
+        ReadOnlySpan<byte> propertyName,
+        out CompositeResultElement value,
+        out Selection selection)
+    {
+        ObjectDisposedException.ThrowIf(_disposed != 0, this);
+
+        var row = _metaDb.GetValue(ref startCursor);
+        CheckExpectedType(ElementTokenType.StartObject, row.TokenType);
+
+        var numberOfRows = row.NumberOfRows;
+
+        // Only one row means it was EndObject.
+        if (numberOfRows == 1)
+        {
+            value = default;
+            selection = null!;
+            return false;
+        }
+
+        if (row.OperationReferenceType is OperationReferenceType.SelectionSet)
+        {
+            var selectionSet = _operation.GetSelectionSetById(row.OperationReferenceId);
+            if (selectionSet.TryGetSelection(propertyName, out var found))
+            {
+                selection = found;
+                var propertyIndex = found.Id - selectionSet.Id - 1;
+                var propertyRowIndex = (propertyIndex * 2) + 1;
+                var propertyCursor = startCursor + propertyRowIndex;
+                Debug.Assert(_metaDb.GetElementTokenType(propertyCursor) is ElementTokenType.PropertyName);
+                Debug.Assert(_metaDb.Get(propertyCursor).OperationReferenceId == found.Id);
+                value = new CompositeResultElement(this, propertyCursor + 1);
+                return true;
+            }
+
+            value = default;
+            selection = null!;
+            return false;
+        }
+
+        var endCursor = startCursor + (numberOfRows - 1);
+
+        if (TryGetNamedPropertyValue(startCursor + 1, endCursor, propertyName, out value))
+        {
+            selection = value.AssertSelection();
+            return true;
+        }
+
+        selection = null!;
+        return false;
+    }
+
     private bool TryGetNamedPropertyValue(
         Cursor startCursor,
         Cursor endCursor,
@@ -240,6 +294,35 @@ public sealed partial class CompositeResultDocument
         value = default;
         return false;
     }
+
+    internal CompositeObjectContext GetObjectContext(Cursor startCursor)
+    {
+        ObjectDisposedException.ThrowIf(_disposed != 0, this);
+
+        // Resolves the target object once (StartObject row, type check, selection-set
+        // metadata) so each property lookup only joins the name and computes the cursor.
+        // This is safe because the StartObject row does not change while its child values
+        // are written and the document cannot be disposed while an object is completed.
+        var row = _metaDb.GetValue(ref startCursor);
+        CheckExpectedType(ElementTokenType.StartObject, row.TokenType);
+
+        var numberOfRows = row.NumberOfRows;
+        SelectionSet? selectionSet = null;
+
+        if (row.OperationReferenceType is OperationReferenceType.SelectionSet)
+        {
+            selectionSet = _operation.GetSelectionSetById(row.OperationReferenceId);
+        }
+
+        return new CompositeObjectContext(this, startCursor, selectionSet, numberOfRows);
+    }
+
+    internal bool TryFindPropertyLinear(
+        Cursor startCursor,
+        Cursor endCursor,
+        ReadOnlySpan<byte> propertyName,
+        out CompositeResultElement value)
+        => TryGetNamedPropertyValue(startCursor, endCursor, propertyName, out value);
 
     internal CompositeResultElement GetPropertyBySelectionId(
         Cursor startCursor,

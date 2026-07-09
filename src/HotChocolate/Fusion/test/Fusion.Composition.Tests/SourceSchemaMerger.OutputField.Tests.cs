@@ -397,4 +397,102 @@ public sealed class SourceSchemaMergerOutputFieldTests : SourceSchemaMergerTestB
             }
             """);
     }
+
+    // When one schema returns an object type and another returns a composite supertype of that
+    // object type, the composed field uses the supertype, regardless of source schema order.
+    [Fact]
+    public void Merge_OutputFieldsCompositeSupertype_MatchesSnapshot()
+    {
+        AssertMatches(
+            [
+                """
+                # Schema A
+                type Query {
+                    featured: FeaturedItem
+                }
+
+                union FeaturedItem = Product
+
+                type Product {
+                    id: ID
+                }
+                """,
+                """
+                # Schema B
+                type Query {
+                    featured: Product
+                }
+
+                type Product {
+                    id: ID
+                }
+                """
+            ],
+            """
+            schema {
+              query: Query
+            }
+
+            type Query @fusion__type(schema: A) @fusion__type(schema: B) {
+              featured: FeaturedItem
+                @fusion__field(schema: A)
+                @fusion__field(schema: B, sourceType: "Product")
+            }
+
+            type Product @fusion__type(schema: A) @fusion__type(schema: B) {
+              id: ID @fusion__field(schema: A) @fusion__field(schema: B)
+            }
+
+            union FeaturedItem
+              @fusion__type(schema: A)
+              @fusion__unionMember(schema: A, member: "Product") = Product
+            """);
+    }
+
+    // When an argument uses @require with a field selection map that contains a constant argument
+    // (e.g. dimension(unit: METRIC).length), the composed @fusion__requires directive preserves the
+    // constant argument in the requirements selection string.
+    [Fact]
+    public void Merge_OutputFieldsWithRequireAndConstantArgument_MatchesSnapshot()
+    {
+        AssertMatches(
+            [
+                """
+                # Schema A
+                type Product {
+                    dimension(unit: String): Dimension
+                    weight(unit: String @require(field: "dimension(unit: METRIC).length")): Float
+                }
+
+                type Dimension {
+                    length: Float
+                }
+                """,
+                """
+                # Schema B
+                type Product {
+                    weight(unit: String): Float
+                }
+                """
+            ],
+            """
+            type Dimension @fusion__type(schema: A) {
+              length: Float @fusion__field(schema: A)
+            }
+
+            type Product @fusion__type(schema: A) @fusion__type(schema: B) {
+              dimension(unit: String @fusion__inputField(schema: A)): Dimension
+                @fusion__field(schema: A)
+              weight: Float
+                @fusion__field(schema: A)
+                @fusion__field(schema: B)
+                @fusion__requires(
+                  schema: A
+                  requirements: "dimension(unit: METRIC) { length }"
+                  field: "weight(unit: String): Float"
+                  map: ["dimension(unit: METRIC).length"]
+                )
+            }
+            """);
+    }
 }

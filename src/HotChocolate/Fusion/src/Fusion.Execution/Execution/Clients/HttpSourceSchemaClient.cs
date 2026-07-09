@@ -20,7 +20,6 @@ namespace HotChocolate.Fusion.Execution.Clients;
 /// </summary>
 public sealed class HttpSourceSchemaClient : ISourceSchemaClient
 {
-    private static readonly Uri s_unknownUri = new("http://unknown");
     private static ReadOnlySpan<byte> VariableIndex => "variableIndex"u8;
     private static ReadOnlySpan<byte> RequestIndex => "requestIndex"u8;
 
@@ -57,44 +56,70 @@ public sealed class HttpSourceSchemaClient : ISourceSchemaClient
     public SourceSchemaClientCapabilities Capabilities { get; }
 
     /// <inheritdoc />
-    public async ValueTask<SourceSchemaClientResponse> ExecuteAsync(
+    public IAsyncEnumerable<SourceSchemaResult> ExecuteAsync(
         OperationPlanContext context,
         SourceSchemaClientRequest request,
         CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(context);
 
+        if (request.OperationType is OperationType.Subscription)
+        {
+            throw new InvalidOperationException(
+                FusionExecutionResources.SourceSchemaClient_SubscriptionsNotSupportedByExecute);
+        }
+
         Debug.WriteLine(request.SchemaName);
 
-        ChunkedArrayWriter? buffer = null;
+        return CreateStreamAsync(context, request, cancellationToken);
 
-        try
+        async IAsyncEnumerable<SourceSchemaResult> CreateStreamAsync(
+            OperationPlanContext context,
+            SourceSchemaClientRequest request,
+            [EnumeratorCancellation] CancellationToken cancellationToken)
         {
-            var httpRequest = CreateHttpRequest(context, request, ref buffer);
-            ConfigureCallbacks(httpRequest, context, request.Node);
+            ChunkedArrayWriter? buffer = null;
+            GraphQLHttpResponse? httpResponse = null;
 
-            var httpResponse = await _client.SendAsync(httpRequest, cancellationToken).ConfigureAwait(false);
+            try
+            {
+                var httpRequest = CreateHttpRequest(context, request, ref buffer);
+                ConfigureCallbacks(httpRequest, context, request.Node);
 
-            return new Response(
-                context,
-                _configuration,
-                _supportsVariableBatching,
-                request.Node,
-                request.OperationType,
-                httpRequest.Uri ?? s_unknownUri,
-                request.Variables,
-                httpResponse,
-                buffer);
-        }
-        catch
-        {
-            buffer?.Dispose();
-            throw;
+                httpResponse = await _client.SendAsync(httpRequest, cancellationToken).ConfigureAwait(false);
+                context.TrackTransport(request.Node, httpRequest.Uri, httpResponse.RawContentType);
+
+                var results = ReadAsResultStreamAsync(
+                    context,
+                    request.Variables,
+                    httpResponse,
+                    cancellationToken);
+
+                if (_configuration.OnSourceSchemaResult is not null)
+                {
+                    results = WithResultCallback(
+                        results,
+                        context,
+                        request.Node,
+                        _configuration.OnSourceSchemaResult,
+                        cancellationToken);
+                }
+
+                await foreach (var result in results.WithCancellation(cancellationToken).ConfigureAwait(false))
+                {
+                    yield return result;
+                }
+            }
+            finally
+            {
+                httpResponse?.Dispose();
+                buffer?.Dispose();
+            }
         }
     }
 
     /// <inheritdoc />
-    public IAsyncEnumerable<BatchStreamResult> ExecuteBatchStreamAsync(
+    public IAsyncEnumerable<SourceSchemaBatchResult> ExecuteBatchAsync(
         OperationPlanContext context,
         ImmutableArray<SourceSchemaClientRequest> requests,
         CancellationToken cancellationToken)
@@ -106,6 +131,14 @@ public sealed class HttpSourceSchemaClient : ISourceSchemaClient
         {
             throw new InvalidOperationException(
                 FusionExecutionResources.HttpSourceSchemaClient_SubscriptionBatchNotSupported);
+        }
+
+        // A source schema that does not support request batching still accepts
+        // each operation on its own, so we fall back to individual requests and
+        // stream the results back in request order.
+        if (!Capabilities.HasFlag(SourceSchemaClientCapabilities.RequestBatching))
+        {
+            return ExecuteBatchAsSingleRequestsAsync(context, requests, cancellationToken);
         }
 
         var requiresFileUpload = requests[0].RequiresFileUpload;
@@ -120,7 +153,7 @@ public sealed class HttpSourceSchemaClient : ISourceSchemaClient
                 ref buffer);
             ConfigureCallbacks(httpRequest, context, requests[0].Node);
 
-            var results = ExecuteBatchStreamAsync(requests, httpRequest, cancellationToken);
+            var results = ExecuteBatchStreamAsync(context, requests, httpRequest, buffer, cancellationToken);
 
             return _configuration.OnSourceSchemaResult is null
                 ? results
@@ -138,19 +171,111 @@ public sealed class HttpSourceSchemaClient : ISourceSchemaClient
         }
     }
 
-    private async IAsyncEnumerable<BatchStreamResult> ExecuteBatchStreamAsync(
-        ImmutableArray<SourceSchemaClientRequest> requests,
-        GraphQLHttpRequest httpRequest,
+    /// <inheritdoc />
+    public async IAsyncEnumerable<SourceSchemaResult> SubscribeAsync(
+        OperationPlanContext context,
+        SourceSchemaClientRequest request,
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
-        var httpResponse = await _client.SendAsync(httpRequest, cancellationToken).ConfigureAwait(false);
+        ArgumentNullException.ThrowIfNull(context);
+
+        // Each event is read through the active memory source, which hands out a fresh arena for
+        // every event so that each event document is backed by its own arena.
+        var arenaSource = context.MemorySource;
+        ChunkedArrayWriter? buffer = null;
+        GraphQLHttpResponse? httpResponse = null;
+
+        try
+        {
+            var httpRequest = CreateHttpRequest(context, request, ref buffer);
+            ConfigureCallbacks(httpRequest, context, request.Node);
+
+            httpResponse = await _client.SendAsync(httpRequest, cancellationToken).ConfigureAwait(false);
+            context.TrackTransport(request.Node, httpRequest.Uri, httpResponse.RawContentType);
+
+            await foreach (var document in httpResponse.ReadAsResultStreamAsync(arenaSource, requireStreaming: true)
+                .WithCancellation(cancellationToken).ConfigureAwait(false))
+            {
+                var result = new SourceSchemaResult(CompactPath.Root, document);
+                _configuration.OnSourceSchemaResult?.Invoke(context, request.Node, result);
+                yield return result;
+            }
+        }
+        finally
+        {
+            httpResponse?.Dispose();
+            buffer?.Dispose();
+        }
+    }
+
+    private async IAsyncEnumerable<SourceSchemaBatchResult> ExecuteBatchAsSingleRequestsAsync(
+        OperationPlanContext context,
+        ImmutableArray<SourceSchemaClientRequest> requests,
+        [EnumeratorCancellation] CancellationToken cancellationToken)
+    {
+        // Each request is its own HTTP round-trip, so a transport failure of one
+        // request must not abort the batch. We isolate each request: if it fails
+        // we record the cause against its index and continue with the next one,
+        // leaving results already produced by sibling requests untouched.
+        for (var i = 0; i < requests.Length; i++)
+        {
+            var request = requests[i];
+            var enumerator = ExecuteAsync(context, request, cancellationToken)
+                .WithCancellation(cancellationToken).ConfigureAwait(false).GetAsyncEnumerator();
+
+            try
+            {
+                while (true)
+                {
+                    try
+                    {
+                        if (!await enumerator.MoveNextAsync())
+                        {
+                            break;
+                        }
+                    }
+                    catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+                    {
+                        // Caller-driven cancellation aborts the whole batch.
+                        throw;
+                    }
+                    catch (Exception exception)
+                    {
+                        // The consuming node attaches the recorded cause to the
+                        // request that produced no result.
+                        context.TrackBatchRequestError(request.Node, i, exception);
+                        break;
+                    }
+
+                    yield return new SourceSchemaBatchResult(i, enumerator.Current);
+                }
+            }
+            finally
+            {
+                await enumerator.DisposeAsync();
+            }
+        }
+    }
+
+    internal async IAsyncEnumerable<SourceSchemaBatchResult> ExecuteBatchStreamAsync(
+        OperationPlanContext context,
+        ImmutableArray<SourceSchemaClientRequest> requests,
+        GraphQLHttpRequest httpRequest,
+        ChunkedArrayWriter? buffer,
+        [EnumeratorCancellation] CancellationToken cancellationToken)
+    {
+        var arenaSource = context.MemorySource;
+        GraphQLHttpResponse? httpResponse = null;
         bool? didFirstResultHaveRequestIndex = null;
         var currentRequestIndex = 0;
         var currentVariableIndex = 0;
 
         try
         {
-            await foreach (var result in httpResponse.ReadAsResultStreamAsync().WithCancellation(cancellationToken))
+            httpResponse = await _client.SendAsync(httpRequest, cancellationToken).ConfigureAwait(false);
+            context.TrackTransport(requests[0].Node, httpRequest.Uri, httpResponse.RawContentType);
+
+            await foreach (var result in httpResponse.ReadAsResultStreamAsync(arenaSource).WithCancellation(cancellationToken))
             {
                 // Check if the first result has a requestIndex.
                 // If it does we can assume all others will have one as well and we know we need to check for it.
@@ -191,7 +316,7 @@ public sealed class HttpSourceSchemaClient : ISourceSchemaClient
                             ? new SourceSchemaResult(p, result)
                             : new SourceSchemaResult(p, result, additionalPaths: ap);
 
-                        yield return new BatchStreamResult(requestIndex, ssr);
+                        yield return new SourceSchemaBatchResult(requestIndex, ssr);
                     }
                 }
                 else
@@ -213,7 +338,7 @@ public sealed class HttpSourceSchemaClient : ISourceSchemaClient
                                 ? new SourceSchemaResult(p, result)
                                 : new SourceSchemaResult(p, result, additionalPaths: ap);
 
-                            yield return new BatchStreamResult(i, ssr);
+                            yield return new SourceSchemaBatchResult(i, ssr);
                         }
 
                         continue;
@@ -235,7 +360,7 @@ public sealed class HttpSourceSchemaClient : ISourceSchemaClient
                                 ? new SourceSchemaResult(vp, result)
                                 : new SourceSchemaResult(vp, result, additionalPaths: vap);
 
-                            yield return new BatchStreamResult(requestIndex, vssr);
+                            yield return new SourceSchemaBatchResult(requestIndex, vssr);
                         }
 
                         continue;
@@ -255,18 +380,19 @@ public sealed class HttpSourceSchemaClient : ISourceSchemaClient
                         ? new SourceSchemaResult(path, result)
                         : new SourceSchemaResult(path, result, additionalPaths: additionalPaths);
 
-                    yield return new BatchStreamResult(requestIndex, sourceSchemaResult);
+                    yield return new SourceSchemaBatchResult(requestIndex, sourceSchemaResult);
                 }
             }
         }
         finally
         {
-            httpResponse.Dispose();
+            httpResponse?.Dispose();
+            buffer?.Dispose();
         }
     }
 
-    private static async IAsyncEnumerable<BatchStreamResult> WithBatchCallback(
-        IAsyncEnumerable<BatchStreamResult> results,
+    private static async IAsyncEnumerable<SourceSchemaBatchResult> WithBatchCallback(
+        IAsyncEnumerable<SourceSchemaBatchResult> results,
         OperationPlanContext context,
         ImmutableArray<SourceSchemaClientRequest> requests,
         Action<OperationPlanContext, ExecutionNode, SourceSchemaResult> onSourceSchemaResult,
@@ -759,160 +885,109 @@ public sealed class HttpSourceSchemaClient : ISourceSchemaClient
         return false;
     }
 
-    /// <summary>
-    /// A live response backed by an in-flight HTTP response. Used for single (non-batched)
-    /// requests where the response stream is read lazily on enumeration.
-    /// </summary>
-    private sealed class Response(
+    private async IAsyncEnumerable<SourceSchemaResult> ReadAsResultStreamAsync(
         OperationPlanContext context,
-        HttpSourceSchemaClientConfiguration configuration,
-        bool supportsVariableBatching,
-        ExecutionNode node,
-        OperationType operation,
-        Uri uri,
         ImmutableArray<VariableValues> variables,
         GraphQLHttpResponse response,
-        ChunkedArrayWriter? buffer)
-        : SourceSchemaClientResponse
+        [EnumeratorCancellation] CancellationToken cancellationToken)
     {
-        public override Uri Uri => uri;
-
-        public override string ContentType => response.RawContentType ?? "unknown";
-
-        public override bool IsSuccessful => response.IsSuccessStatusCode;
-
-        public override IAsyncEnumerable<SourceSchemaResult> ReadAsResultStreamAsync(
-            CancellationToken cancellationToken = default)
+        switch (variables.Length)
         {
-            var results = ReadAsResultStreamCoreAsync(cancellationToken);
-
-            return configuration.OnSourceSchemaResult is null
-                ? results
-                : WithResultCallback(
-                    results,
-                    context,
-                    node,
-                    configuration.OnSourceSchemaResult,
-                    cancellationToken);
-        }
-
-        private async IAsyncEnumerable<SourceSchemaResult> ReadAsResultStreamCoreAsync(
-            [EnumeratorCancellation] CancellationToken cancellationToken = default)
-        {
-            if (operation is OperationType.Subscription)
+            case 0:
             {
-                await foreach (var result in response.ReadAsResultStreamAsync().WithCancellation(cancellationToken))
-                {
-                    yield return new SourceSchemaResult(CompactPath.Root, result);
-                }
+                var result = await response.ReadAsResultAsync(context.Memory, cancellationToken);
+                yield return new SourceSchemaResult(CompactPath.Root, result);
+                break;
             }
-            else
-            {
-                switch (variables.Length)
-                {
-                    case 0:
-                    {
-                        var result = await response.ReadAsResultAsync(cancellationToken);
-                        yield return new SourceSchemaResult(CompactPath.Root, result);
-                        break;
-                    }
 
-                    case 1:
+            case 1:
+            {
+                var result = await response.ReadAsResultAsync(context.Memory, cancellationToken);
+                var variable = variables[0];
+                yield return new SourceSchemaResult(
+                    variable.Path,
+                    result,
+                    additionalPaths: variable.AdditionalPaths);
+                break;
+            }
+
+            default:
+            {
+                SourceSchemaResult? errorResult = null;
+
+                if (_supportsVariableBatching)
+                {
+                    await foreach (var result in response.ReadAsResultStreamAsync(context.MemorySource)
+                        .WithCancellation(cancellationToken))
                     {
-                        var result = await response.ReadAsResultAsync(cancellationToken);
-                        var variable = variables[0];
+                        if (!result.Root.TryGetProperty(VariableIndex, out var variableIndex)
+                            || variableIndex.ValueKind is not JsonValueKind.Number)
+                        {
+                            // if we do not get a variable index we have a protocol error
+                            // and must terminate the request.
+                            errorResult = new SourceSchemaResult(variables[0].Path, result);
+                            break;
+                        }
+
+                        var index = variableIndex.GetInt32();
+                        if ((uint)index >= (uint)variables.Length)
+                        {
+                            // if the variable index is larger than the amount of variable sets we have
+                            // we also have a protocol issue and must terminate the request.
+                            errorResult = new SourceSchemaResult(variables[0].Path, result);
+                            break;
+                        }
+
+                        var variable = variables[index];
                         yield return new SourceSchemaResult(
-                            variable.Path,
-                            result,
-                            additionalPaths: variable.AdditionalPaths);
-                        break;
-                    }
-
-                    default:
-                    {
-                        SourceSchemaResult? errorResult = null;
-
-                        if (supportsVariableBatching)
-                        {
-                            await foreach (var result in response.ReadAsResultStreamAsync()
-                                .WithCancellation(cancellationToken))
-                            {
-                                if (!result.Root.TryGetProperty(VariableIndex, out var variableIndex)
-                                    || variableIndex.ValueKind is not JsonValueKind.Number)
-                                {
-                                    // if we do not get a variable index we have a protocol error
-                                    // and must terminate the request.
-                                    errorResult = new SourceSchemaResult(variables[0].Path, result);
-                                    break;
-                                }
-
-                                var index = variableIndex.GetInt32();
-                                if ((uint)index >= (uint)variables.Length)
-                                {
-                                    // if the variable index is larger than the amount of variable sets we have
-                                    // we also have a protocol issue and must terminate the request.
-                                    errorResult = new SourceSchemaResult(variables[0].Path, result);
-                                    break;
-                                }
-
-                                var variable = variables[index];
-                                yield return new SourceSchemaResult(
-                                    variable.Path, result, additionalPaths: variable.AdditionalPaths);
-                            }
-                        }
-                        else
-                        {
-                            var requestIndex = 0;
-                            await foreach (var result in response.ReadAsResultStreamAsync()
-                                .WithCancellation(cancellationToken))
-                            {
-                                if ((uint)requestIndex >= (uint)variables.Length)
-                                {
-                                    errorResult = new SourceSchemaResult(variables[0].Path, result);
-                                    break;
-                                }
-
-                                var variable = variables[requestIndex];
-                                yield return new SourceSchemaResult(
-                                    variable.Path, result, additionalPaths: variable.AdditionalPaths);
-
-                                requestIndex++;
-                            }
-                        }
-
-                        if (errorResult is not null)
-                        {
-                            for (var i = 0; i < variables.Length; i++)
-                            {
-                                var variable = variables[i];
-                                yield return errorResult.WithPath(variable.Path, variable.AdditionalPaths);
-                            }
-                        }
-
-                        break;
+                            variable.Path, result, additionalPaths: variable.AdditionalPaths);
                     }
                 }
+                else
+                {
+                    var requestIndex = 0;
+                    await foreach (var result in response.ReadAsResultStreamAsync(context.MemorySource)
+                        .WithCancellation(cancellationToken))
+                    {
+                        if ((uint)requestIndex >= (uint)variables.Length)
+                        {
+                            errorResult = new SourceSchemaResult(variables[0].Path, result);
+                            break;
+                        }
+
+                        var variable = variables[requestIndex];
+                        yield return new SourceSchemaResult(
+                            variable.Path, result, additionalPaths: variable.AdditionalPaths);
+
+                        requestIndex++;
+                    }
+                }
+
+                if (errorResult is not null)
+                {
+                    for (var i = 0; i < variables.Length; i++)
+                    {
+                        var variable = variables[i];
+                        yield return errorResult.WithPath(variable.Path, variable.AdditionalPaths);
+                    }
+                }
+
+                break;
             }
         }
+    }
 
-        private static async IAsyncEnumerable<SourceSchemaResult> WithResultCallback(
-            IAsyncEnumerable<SourceSchemaResult> results,
-            OperationPlanContext context,
-            ExecutionNode node,
-            Action<OperationPlanContext, ExecutionNode, SourceSchemaResult> onSourceSchemaResult,
-            [EnumeratorCancellation] CancellationToken cancellationToken)
+    private static async IAsyncEnumerable<SourceSchemaResult> WithResultCallback(
+        IAsyncEnumerable<SourceSchemaResult> results,
+        OperationPlanContext context,
+        ExecutionNode node,
+        Action<OperationPlanContext, ExecutionNode, SourceSchemaResult> onSourceSchemaResult,
+        [EnumeratorCancellation] CancellationToken cancellationToken)
+    {
+        await foreach (var sourceSchemaResult in results.WithCancellation(cancellationToken))
         {
-            await foreach (var sourceSchemaResult in results.WithCancellation(cancellationToken))
-            {
-                onSourceSchemaResult(context, node, sourceSchemaResult);
-                yield return sourceSchemaResult;
-            }
-        }
-
-        public override void Dispose()
-        {
-            response.Dispose();
-            buffer?.Dispose();
+            onSourceSchemaResult(context, node, sourceSchemaResult);
+            yield return sourceSchemaResult;
         }
     }
 }

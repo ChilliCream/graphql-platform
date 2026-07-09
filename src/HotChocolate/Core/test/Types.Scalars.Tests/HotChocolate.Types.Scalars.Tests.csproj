@@ -1,5 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
 
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Test.props', '$(MSBuildThisFileDirectory)'))" />
+
   <PropertyGroup>
     <AssemblyName>HotChocolate.Types.Scalars.Tests</AssemblyName>
     <RootNamespace>HotChocolate.Types</RootNamespace>
@@ -8,6 +10,10 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\Types.Scalars\HotChocolate.Types.Scalars.csproj" />
     <ProjectReference Include="..\..\src\Types\HotChocolate.Types.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Moq" />
   </ItemGroup>
 
   <ItemGroup>

@@ -13,10 +13,10 @@ public interface IInMemoryMessagingTransportDescriptor : IMessagingTransportDesc
     new IInMemoryMessagingTransportDescriptor Schema(string schema);
 
     /// <inheritdoc />
-    new IInMemoryMessagingTransportDescriptor BindHandlersImplicitly();
+    new IInMemoryMessagingTransportDescriptor BindImplicitly();
 
     /// <inheritdoc />
-    new IInMemoryMessagingTransportDescriptor BindHandlersExplicitly();
+    new IInMemoryMessagingTransportDescriptor BindExplicitly();
 
     /// <summary>
     /// Declares or retrieves a receive endpoint with the specified name.
@@ -37,14 +37,14 @@ public interface IInMemoryMessagingTransportDescriptor : IMessagingTransportDesc
     /// </summary>
     /// <param name="name">The topic name.</param>
     /// <returns>A descriptor for further configuring the topic.</returns>
-    IInMemoryTopicDescriptor DeclareTopic(string name);
+    IInMemoryTopicTopologyDescriptor DeclareTopic(string name);
 
     /// <summary>
     /// Declares a queue in the in-memory topology.
     /// </summary>
     /// <param name="name">The queue name.</param>
-    /// <returns>A descriptor for further configuring the queue.</returns>
-    IInMemoryQueueDescriptor DeclareQueue(string name);
+    /// <returns>A queue topology descriptor for further configuring the queue.</returns>
+    IInMemoryQueueTopologyDescriptor DeclareQueue(string name);
 
     /// <summary>
     /// Declares a binding that routes messages from a topic to a queue in the in-memory topology.
@@ -52,7 +52,7 @@ public interface IInMemoryMessagingTransportDescriptor : IMessagingTransportDesc
     /// <param name="topic">The source topic name.</param>
     /// <param name="queue">The destination queue name.</param>
     /// <returns>A descriptor for further configuring the binding.</returns>
-    IInMemoryBindingDescriptor DeclareBinding(string topic, string queue);
+    IInMemoryBindingTopologyDescriptor DeclareBinding(string topic, string queue);
 
     /// <inheritdoc />
     new IInMemoryMessagingTransportDescriptor Name(string name);
@@ -62,6 +62,9 @@ public interface IInMemoryMessagingTransportDescriptor : IMessagingTransportDesc
 
     /// <inheritdoc />
     new IInMemoryMessagingTransportDescriptor IsDefaultTransport();
+
+    /// <inheritdoc cref="IMessagingTransportDescriptor.UseRoutingStrategy(Func{IServiceProvider, RoutingStrategy})" />
+    new IInMemoryMessagingTransportDescriptor UseRoutingStrategy(Func<IServiceProvider, RoutingStrategy> factory);
 
     /// <inheritdoc />
     new IInMemoryMessagingTransportDescriptor UseDispatch(
@@ -92,4 +95,13 @@ public interface IInMemoryMessagingTransportDescriptor : IMessagingTransportDesc
     /// <returns>A configurator that allows configuring the consumer's receive endpoint.</returns>
     IMessagingTransportConsumerDescriptor<IInMemoryReceiveEndpointDescriptor> Consumer<TConsumer>()
         where TConsumer : class, IConsumer;
+
+    /// <summary>
+    /// Gets or creates the queue descriptor for the given queue name. The queue is declared
+    /// in the topology and has a receive endpoint using the same identity. Calling this method
+    /// multiple times with the same name returns the same descriptor.
+    /// </summary>
+    /// <param name="name">The queue name. Also serves as the endpoint identity.</param>
+    /// <returns>A queue descriptor for further configuration.</returns>
+    IInMemoryQueueDescriptor Queue(string name);
 }

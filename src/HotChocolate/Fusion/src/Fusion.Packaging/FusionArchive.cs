@@ -562,6 +562,47 @@ public sealed class FusionArchive : IDisposable
     }
 
     /// <summary>
+    /// Removes a source schema configuration from the archive, deleting its files and
+    /// removing it from the archive metadata.
+    /// </summary>
+    /// <param name="schemaName">The name of the source schema to remove.</param>
+    /// <param name="cancellationToken">Token to cancel the operation.</param>
+    /// <returns>
+    /// <c>true</c> if the source schema was present and removed; otherwise, <c>false</c>.
+    /// </returns>
+    /// <exception cref="ArgumentException">Thrown when schemaName is null or empty.</exception>
+    /// <exception cref="ObjectDisposedException">Thrown when the archive has been disposed.</exception>
+    /// <exception cref="InvalidOperationException">Thrown when the archive is read-only.</exception>
+    public async Task<bool> RemoveSourceSchemaConfigurationAsync(
+        string schemaName,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrEmpty(schemaName);
+        ObjectDisposedException.ThrowIf(_disposed, this);
+        EnsureMutable();
+
+        var metadata = await GetArchiveMetadataAsync(cancellationToken);
+
+        if (metadata is null || !metadata.SourceSchemas.Contains(schemaName))
+        {
+            return false;
+        }
+
+        _session.Delete(FileNames.GetSourceSchemaPath(schemaName));
+        _session.Delete(FileNames.GetSourceSchemaSettingsPath(schemaName));
+        _session.Delete(FileNames.GetSourceSchemaExtensionsPath(schemaName));
+
+        var updatedMetadata = metadata with
+        {
+            SourceSchemas = metadata.SourceSchemas.Remove(schemaName)
+        };
+
+        await SetArchiveMetadataAsync(updatedMetadata, cancellationToken);
+
+        return true;
+    }
+
+    /// <summary>
     /// Sets the legacy archive file in the archive by copying the content from the provided stream.
     /// </summary>
     /// <param name="content">The stream containing the legacy archive content.</param>

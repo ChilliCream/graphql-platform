@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors.Configurations;
 
@@ -26,10 +27,35 @@ public interface IDirectiveTypeDescriptor
     IDirectiveTypeDescriptor Description(string value);
 
     /// <summary>
+    /// Deprecates the directive.
+    /// </summary>
+    /// <param name="reason">The reason why this directive is deprecated.</param>
+    IDirectiveTypeDescriptor Deprecated(string? reason);
+
+    /// <summary>
+    /// Deprecates the directive.
+    /// </summary>
+    IDirectiveTypeDescriptor Deprecated();
+
+    /// <summary>
     /// Specifies a directive argument.
     /// </summary>
     /// <param name="name">The name of the argument.</param>
     IDirectiveArgumentDescriptor Argument(string name);
+
+    /// <summary>
+    /// Specifies a directive argument and applies the
+    /// <paramref name="configure"/> delegate.
+    /// </summary>
+    /// <param name="name">
+    /// The name of the argument.
+    /// </param>
+    /// <param name="configure">
+    /// The argument descriptor to specify the argument configuration.
+    /// </param>
+    IDirectiveTypeDescriptor Argument(
+        string name,
+        Action<IDirectiveArgumentDescriptor> configure);
 
     /// <summary>
     /// Specifies in which location the directive belongs in.
@@ -72,4 +98,21 @@ public interface IDirectiveTypeDescriptor
     /// Directive is internal and only visible within the type system.
     /// </summary>
     IDirectiveTypeDescriptor Internal();
+
+    /// <summary>
+    /// Annotates a directive to this directive definition.
+    /// </summary>
+    IDirectiveTypeDescriptor Directive<T>(T directiveInstance)
+        where T : class;
+
+    /// <summary>
+    /// Annotates a directive to this directive definition.
+    /// </summary>
+    IDirectiveTypeDescriptor Directive<T>()
+        where T : class, new();
+
+    /// <summary>
+    /// Annotates a directive to this directive definition.
+    /// </summary>
+    IDirectiveTypeDescriptor Directive(string name, params ArgumentNode[] arguments);
 }

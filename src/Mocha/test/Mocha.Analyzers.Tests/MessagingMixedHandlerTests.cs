@@ -52,6 +52,6 @@ public class MessagingMixedHandlerTests
                 protected override void Configure(ISagaDescriptor<OrderState> descriptor) { }
             }
             """
-        ]).MatchMarkdownAsync();
+        ]).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 }

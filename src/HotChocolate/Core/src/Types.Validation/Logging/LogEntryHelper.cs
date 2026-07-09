@@ -55,6 +55,17 @@ internal static class LogEntryHelper
             .Build();
     }
 
+    public static LogEntry DirectiveDefinitionSelfApplication(IDirectiveDefinition directiveDefinition)
+    {
+        return LogEntryBuilder.New()
+            .SetMessage(LogEntryHelper_DirectiveDefinitionSelfApplication, directiveDefinition.Name)
+            .SetCode(LogEntryCodes.DirectiveDefinitionSelfApplication)
+            .SetSeverity(LogSeverity.Error)
+            .SetTypeSystemMember(directiveDefinition)
+            .SetSpecifiedBy(TypeKind.Directive)
+            .Build();
+    }
+
     public static LogEntry EmptyEnumType(IEnumTypeDefinition enumType)
     {
         return LogEntryBuilder.New()

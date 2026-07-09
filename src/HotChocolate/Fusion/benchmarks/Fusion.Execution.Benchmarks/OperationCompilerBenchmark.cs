@@ -3,8 +3,8 @@ using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Diagnostics.dotMemory;
 using BenchmarkDotNet.Jobs;
 using HotChocolate.Fusion.Execution.Nodes;
+using HotChocolate.Fusion.Execution.Rewriters;
 using HotChocolate.Fusion.Planning;
-using HotChocolate.Fusion.Rewriters;
 using HotChocolate.Language;
 using Microsoft.Extensions.ObjectPool;
 
@@ -18,11 +18,11 @@ public class OperationCompilerBenchmark : FusionBenchmarkBase
 {
     private const string Id = "123456789101112";
 
-    private OperationCompiler _compiler = null!;
+    private OperationCompiler _compiler;
 
-    private OperationDefinitionNode _simpleQueryWithRequirements = null!;
-    private OperationDefinitionNode _complexQuery = null!;
-    private OperationDefinitionNode _conditionalRedundancyQuery = null!;
+    private OperationDefinitionNode _simpleQueryWithRequirements;
+    private OperationDefinitionNode _complexQuery;
+    private OperationDefinitionNode _conditionalRedundancyQuery;
 
     [GlobalSetup]
     public void GlobalSetup()

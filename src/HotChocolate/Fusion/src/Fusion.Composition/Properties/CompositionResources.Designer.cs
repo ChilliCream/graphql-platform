@@ -9,8 +9,8 @@
 
 namespace HotChocolate.Fusion.Properties {
     using System;
-    
-    
+
+
     /// <summary>
     ///   A strongly-typed resource class, for looking up localized strings, etc.
     /// </summary>
@@ -22,15 +22,15 @@ namespace HotChocolate.Fusion.Properties {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class CompositionResources {
-        
+
         private static global::System.Resources.ResourceManager resourceMan;
-        
+
         private static global::System.Globalization.CultureInfo resourceCulture;
-        
+
         [global::System.Diagnostics.CodeAnalysis.SuppressMessageAttribute("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode")]
         internal CompositionResources() {
         }
-        
+
         /// <summary>
         ///   Returns the cached ResourceManager instance used by this class.
         /// </summary>
@@ -44,7 +44,7 @@ namespace HotChocolate.Fusion.Properties {
                 return resourceMan;
             }
         }
-        
+
         /// <summary>
         ///   Overrides the current thread's CurrentUICulture property for all
         ///   resource lookups using this strongly typed resource class.
@@ -58,7 +58,7 @@ namespace HotChocolate.Fusion.Properties {
                 resourceCulture = value;
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The &apos;apply&apos; argument of the @authorize directive must be of type ApplyPolicy..
         /// </summary>
@@ -67,7 +67,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("AuthorizeDirective_ApplyArgument_Invalid", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The value &apos;{0}&apos; for argument &apos;apply&apos; in the @authorize directive is invalid..
         /// </summary>
@@ -76,7 +76,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("AuthorizeDirective_ApplyArgument_InvalidEnumValue", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The &apos;policy&apos; argument of the @authorize directive must be of type String..
         /// </summary>
@@ -85,7 +85,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("AuthorizeDirective_PolicyArgument_Invalid", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The &apos;roles&apos; argument of the @authorize directive must be of type [String!]..
         /// </summary>
@@ -94,31 +94,13 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("AuthorizeDirective_RolesArgument_Invalid", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to {0} (Schema: &apos;{1}&apos;).
         /// </summary>
         internal static string CompositionLogExtensions_EntryMessageWithSchemaName {
             get {
                 return ResourceManager.GetString("CompositionLogExtensions_EntryMessageWithSchemaName", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   Looks up a localized string similar to The kind of connector that backs this source schema..
-        /// </summary>
-        internal static string ConnectorMutableDirectiveDefinition_Argument_Kind_Description {
-            get {
-                return ResourceManager.GetString("ConnectorMutableDirectiveDefinition_Argument_Kind_Description", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   Looks up a localized string similar to The @fusion__connector directive declares which connector kind handles this source schema..
-        /// </summary>
-        internal static string ConnectorMutableDirectiveDefinition_Description {
-            get {
-                return ResourceManager.GetString("ConnectorMutableDirectiveDefinition_Description", resourceCulture);
             }
         }
 
@@ -130,7 +112,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("CostDirective_WeightArgument_Invalid", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Post-merge validation failed..
         /// </summary>
@@ -139,7 +121,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("ErrorHelper_PostMergeValidationFailed", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Pre-merge validation failed..
         /// </summary>
@@ -148,7 +130,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("ErrorHelper_PreMergeValidationFailed", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Satisfiability validation failed..
         /// </summary>
@@ -157,7 +139,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("ErrorHelper_SatisfiabilityValidationFailed", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Source schema parsing failed..
         /// </summary>
@@ -166,7 +148,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("ErrorHelper_SourceSchemaParsingFailed", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Source schema preprocessing failed..
         /// </summary>
@@ -175,7 +157,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("ErrorHelper_SourceSchemaPreprocessingFailed", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Source schema validation failed..
         /// </summary>
@@ -184,31 +166,13 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("ErrorHelper_SourceSchemaValidationFailed", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The @external directive indicates that a field is recognized by the current source schema but is not directly contributed (resolved) by it..
         /// </summary>
         internal static string ExternalMutableDirectiveDefinition_Description {
             get {
                 return ResourceManager.GetString("ExternalMutableDirectiveDefinition_Description", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The kind of connector that handles the source schema represented by this enum value..
-        /// </summary>
-        internal static string FusionConnectorMutableDirectiveDefinition_Argument_Kind_Description {
-            get {
-                return ResourceManager.GetString("FusionConnectorMutableDirectiveDefinition_Argument_Kind_Description", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   Looks up a localized string similar to The @fusion__connector directive declares which connector kind handles a source schema..
-        /// </summary>
-        internal static string FusionConnectorMutableDirectiveDefinition_Description {
-            get {
-                return ResourceManager.GetString("FusionConnectorMutableDirectiveDefinition_Description", resourceCulture);
             }
         }
 
@@ -220,7 +184,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("FusionCostMutableDirectiveDefinition_Argument_Schema_Description", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The weight defined in the source schema..
         /// </summary>
@@ -229,7 +193,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("FusionCostMutableDirectiveDefinition_Argument_Weight_Description", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The @fusion__cost directive specifies cost metadata for each source schema..
         /// </summary>
@@ -238,7 +202,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("FusionCostMutableDirectiveDefinition_Description", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The name of the source schema that provides the specified enum value..
         /// </summary>
@@ -247,7 +211,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("FusionEnumValueMutableDirectiveDefinition_Argument_Schema_Description", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The @fusion__enumValue directive specifies which source schema provides an enum value..
         /// </summary>
@@ -256,7 +220,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("FusionEnumValueMutableDirectiveDefinition_Description", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The fusion__FieldDefinition scalar is used to represent a GraphQL field definition specified in the GraphQL spec..
         /// </summary>
@@ -265,7 +229,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("FusionFieldDefinitionMutableScalarTypeDefinition_Description", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Indicates that this field is only partially provided and must be combined with `provides`..
         /// </summary>
@@ -274,7 +238,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("FusionFieldMutableDirectiveDefinition_Argument_Partial_Description", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to A selection set of fields this field provides in the composite schema..
         /// </summary>
@@ -283,7 +247,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("FusionFieldMutableDirectiveDefinition_Argument_Provides_Description", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The name of the source schema that originally provided this field..
         /// </summary>
@@ -292,7 +256,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("FusionFieldMutableDirectiveDefinition_Argument_Schema_Description", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The field type in the source schema if it differs in nullability or structure..
         /// </summary>
@@ -301,7 +265,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("FusionFieldMutableDirectiveDefinition_Argument_SourceType_Description", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The @fusion__field directive specifies which source schema provides a field in a composite type and what execution behavior it has..
         /// </summary>
@@ -310,7 +274,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("FusionFieldMutableDirectiveDefinition_Description", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The fusion__FieldSelectionMap scalar is used to represent the FieldSelectionMap type specified in the GraphQL Composite Schemas Spec..
         /// </summary>
@@ -319,7 +283,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("FusionFieldSelectionMapMutableScalarTypeDefinition_Description", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The fusion__FieldSelectionPath scalar is used to represent a path of field names relative to the Query type..
         /// </summary>
@@ -328,7 +292,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("FusionFieldSelectionPathMutableScalarTypeDefinition_Description", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The fusion__FieldSelectionSet scalar is used to represent a GraphQL selection set. To simplify the syntax, the outermost selection set is not wrapped in curly braces..
         /// </summary>
@@ -337,7 +301,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("FusionFieldSelectionSetMutableScalarTypeDefinition_Description", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The name of the interface type..
         /// </summary>
@@ -346,7 +310,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("FusionImplementsMutableDirectiveDefinition_Argument_Interface_Description", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The name of the source schema on which the annotated type implements the specified interface..
         /// </summary>
@@ -355,7 +319,16 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("FusionImplementsMutableDirectiveDefinition_Argument_Schema_Description", resourceCulture);
             }
         }
-        
+
+        /// <summary>
+        ///   Looks up a localized string similar to The @fusion__gateway_field directive marks a field that is implemented by the gateway itself rather than resolved from an underlying source schema, such as the global object identification node field..
+        /// </summary>
+        internal static string FusionGatewayFieldMutableDirectiveDefinition_Description {
+            get {
+                return ResourceManager.GetString("FusionGatewayFieldMutableDirectiveDefinition_Description", resourceCulture);
+            }
+        }
+
         /// <summary>
         ///   Looks up a localized string similar to The @fusion__implements directive specifies on which source schema an interface is implemented by an object or interface type..
         /// </summary>
@@ -364,7 +337,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("FusionImplementsMutableDirectiveDefinition_Description", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The @fusion__inaccessible directive is used to prevent specific type system members from being accessible through the client-facing composite schema, even if they are accessible in the underlying source schemas..
         /// </summary>
@@ -373,7 +346,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("FusionInaccessibleMutableDirectiveDefinition_Description", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The name of the source schema that originally provided this input field..
         /// </summary>
@@ -382,7 +355,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("FusionInputFieldMutableDirectiveDefinition_Argument_Schema_Description", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The field type in the source schema if it differs in nullability or structure..
         /// </summary>
@@ -391,7 +364,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("FusionInputFieldMutableDirectiveDefinition_Argument_SourceType_Description", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The @fusion__inputField directive specifies which source schema provides an input field in a composite input type..
         /// </summary>
@@ -400,7 +373,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("FusionInputFieldMutableDirectiveDefinition_Description", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The assumed size of the list as defined in the source schema..
         /// </summary>
@@ -409,7 +382,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("FusionListSizeMutableDirectiveDefinition_Argument_AssumedSize_Description", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The single slicing argument requirement of the list as defined in the source schema..
         /// </summary>
@@ -419,7 +392,7 @@ namespace HotChocolate.Fusion.Properties {
                         "iption"), resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The name of the source schema that defined the list size metadata..
         /// </summary>
@@ -428,7 +401,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("FusionListSizeMutableDirectiveDefinition_Argument_Schema_Description", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The sized fields of the list as defined in the source schema..
         /// </summary>
@@ -437,7 +410,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("FusionListSizeMutableDirectiveDefinition_Argument_SizedFields_Description", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The slicing argument default value of the list as defined in the source schema..
         /// </summary>
@@ -447,7 +420,7 @@ namespace HotChocolate.Fusion.Properties {
                         "cription"), resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The slicing arguments of the list as defined in the source schema..
         /// </summary>
@@ -456,7 +429,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("FusionListSizeMutableDirectiveDefinition_Argument_SlicingArguments_Description", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The @fusion__listSize directive specifies list size metadata for each source schema..
         /// </summary>
@@ -465,7 +438,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("FusionListSizeMutableDirectiveDefinition_Description", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The GraphQL field definition in the source schema that can be used to look up the entity..
         /// </summary>
@@ -474,7 +447,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("FusionLookupMutableDirectiveDefinition_Argument_Field_Description", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Is the lookup meant as an entry point or just to provide more data..
         /// </summary>
@@ -483,7 +456,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("FusionLookupMutableDirectiveDefinition_Argument_Internal_Description", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to A selection set on the annotated entity type that describes the stable key for the lookup..
         /// </summary>
@@ -492,7 +465,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("FusionLookupMutableDirectiveDefinition_Argument_Key_Description", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The map describes how the key values are resolved from the annotated entity type..
         /// </summary>
@@ -501,7 +474,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("FusionLookupMutableDirectiveDefinition_Argument_Map_Description", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The path to the lookup field relative to the Query type..
         /// </summary>
@@ -510,7 +483,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("FusionLookupMutableDirectiveDefinition_Argument_Path_Description", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The name of the source schema where the annotated entity type can be looked up from..
         /// </summary>
@@ -519,7 +492,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("FusionLookupMutableDirectiveDefinition_Argument_Schema_Description", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The @fusion__lookup directive specifies how the distributed executor can resolve data for an entity type from a source schema by a stable key..
         /// </summary>
@@ -528,7 +501,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("FusionLookupMutableDirectiveDefinition_Description", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The @fusion__requires directive specifies if a field has requirements on a source schema..
         /// </summary>
@@ -537,7 +510,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("FusionRequiresMutableDirectiveDefinition_Description", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The GraphQL field definition in the source schema that this field depends on..
         /// </summary>
@@ -546,7 +519,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("FusionRequiresMutableDirectiveDefinition_Field_Description", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The map describes how the argument values for the source schema are resolved from the arguments of the field exposed in the client-facing composite schema and from required data relative to the current type..
         /// </summary>
@@ -555,7 +528,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("FusionRequiresMutableDirectiveDefinition_Map_Description", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to A selection set on the annotated field that describes its requirements..
         /// </summary>
@@ -564,7 +537,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("FusionRequiresMutableDirectiveDefinition_Requirements_Description", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The name of the source schema where this field has requirements to data on other source schemas..
         /// </summary>
@@ -573,7 +546,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("FusionRequiresMutableDirectiveDefinition_Schema_Description", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The name of the source schema..
         /// </summary>
@@ -582,7 +555,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("FusionSchemaMetadataMutableDirectiveDefinition_Argument_Name_Description", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The @fusion__schema_metadata directive is used to provide additional metadata for a source schema..
         /// </summary>
@@ -591,7 +564,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("FusionSchemaMetadataMutableDirectiveDefinition_Description", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The fusion__Schema enum is a generated type used within an execution schema document to refer to a source schema in a type-safe manner..
         /// </summary>
@@ -600,7 +573,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("FusionSchemaMutableEnumTypeDefinition_Description", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The name of the source schema that originally provided part of the annotated type..
         /// </summary>
@@ -609,7 +582,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("FusionTypeMutableDirectiveDefinition_Argument_Schema_Description", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The @fusion__type directive specifies which source schemas provide parts of a composite type..
         /// </summary>
@@ -618,7 +591,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("FusionTypeMutableDirectiveDefinition_Description", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The name of the member type..
         /// </summary>
@@ -627,7 +600,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("FusionUnionMemberMutableDirectiveDefinition_Argument_Member_Description", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The name of the source schema that provides the specified member type..
         /// </summary>
@@ -636,7 +609,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("FusionUnionMemberMutableDirectiveDefinition_Argument_Schema_Description", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The @fusion__unionMember directive specifies which source schema provides a member type of a union..
         /// </summary>
@@ -645,7 +618,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("FusionUnionMemberMutableDirectiveDefinition_Description", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The @inaccessible directive is used to prevent specific type system members from being accessible through the client-facing composite schema, even if they are accessible in the underlying source schemas..
         /// </summary>
@@ -654,7 +627,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("InaccessibleMutableDirectiveDefinition_Description", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The @internal directive is used to mark types and fields as internal within a source schema..
         /// </summary>
@@ -663,7 +636,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("InternalMutableDirectiveDefinition_Description", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Represents a selection path map syntax..
         /// </summary>
@@ -672,7 +645,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("IsMutableDirectiveDefinition_Argument_Field_Description", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The @is directive is utilized on lookup fields to describe how the arguments can be mapped from the entity type that the lookup field resolves..
         /// </summary>
@@ -681,7 +654,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("IsMutableDirectiveDefinition_Description", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Represents a selection set syntax..
         /// </summary>
@@ -690,7 +663,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("KeyMutableDirectiveDefinition_Argument_Fields_Description", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The @key directive is used to designate an entity’s unique key, which identifies how to uniquely reference an instance of an entity across different source schemas..
         /// </summary>
@@ -699,7 +672,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("KeyMutableDirectiveDefinition_Description", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The @listSize directive argument &apos;assumedSize&apos; must be of type Int..
         /// </summary>
@@ -708,7 +681,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("ListSizeDirective_AssumedSizeArgument_Invalid", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The @listSize directive argument &apos;requireOneSlicingArgument&apos; must be of type Boolean..
         /// </summary>
@@ -717,7 +690,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("ListSizeDirective_RequireOneSlicingArgumentArgument_Invalid", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The @listSize directive argument &apos;sizedFields&apos; must be of type [String]..
         /// </summary>
@@ -726,7 +699,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("ListSizeDirective_SizedFieldsArgument_Invalid", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The @listSize directive argument &apos;slicingArgumentDefaultValue&apos; must be of type Int..
         /// </summary>
@@ -735,7 +708,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("ListSizeDirective_SlicingArgumentDefaultValueArgument_Invalid", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The @listSize directive argument &apos;slicingArguments&apos; must be of type [String]..
         /// </summary>
@@ -744,7 +717,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("ListSizeDirective_SlicingArgumentsArgument_Invalid", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The built-in scalar type &apos;{0}&apos; in schema &apos;{1}&apos; is not accessible..
         /// </summary>
@@ -753,7 +726,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("LogEntryHelper_DisallowedInaccessibleBuiltInScalar", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The built-in directive argument &apos;{0}&apos; in schema &apos;{1}&apos; is not accessible..
         /// </summary>
@@ -762,7 +735,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("LogEntryHelper_DisallowedInaccessibleDirectiveArgument", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The introspection argument &apos;{0}&apos; in schema &apos;{1}&apos; is not accessible..
         /// </summary>
@@ -771,7 +744,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("LogEntryHelper_DisallowedInaccessibleIntrospectionArgument", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The introspection field &apos;{0}&apos; in schema &apos;{1}&apos; is not accessible..
         /// </summary>
@@ -780,7 +753,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("LogEntryHelper_DisallowedInaccessibleIntrospectionField", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The introspection type &apos;{0}&apos; in schema &apos;{1}&apos; is not accessible..
         /// </summary>
@@ -789,7 +762,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("LogEntryHelper_DisallowedInaccessibleIntrospectionType", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The merged enum type &apos;{0}&apos; is empty..
         /// </summary>
@@ -798,7 +771,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("LogEntryHelper_EmptyMergedEnumType", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The merged input object type &apos;{0}&apos; is empty..
         /// </summary>
@@ -807,7 +780,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("LogEntryHelper_EmptyMergedInputObjectType", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The merged interface type &apos;{0}&apos; is empty..
         /// </summary>
@@ -816,7 +789,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("LogEntryHelper_EmptyMergedInterfaceType", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The merged object type &apos;{0}&apos; is empty..
         /// </summary>
@@ -825,7 +798,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("LogEntryHelper_EmptyMergedObjectType", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The merged union type &apos;{0}&apos; is empty..
         /// </summary>
@@ -834,7 +807,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("LogEntryHelper_EmptyMergedUnionType", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The default value of &apos;{0}&apos; references the inaccessible enum value &apos;{1}&apos;..
         /// </summary>
@@ -843,7 +816,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("LogEntryHelper_EnumTypeDefaultValueInaccessible", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The enum type &apos;{0}&apos; in schema &apos;{1}&apos; must define the value &apos;{2}&apos;..
         /// </summary>
@@ -852,7 +825,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("LogEntryHelper_EnumValuesMismatch", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The default value &apos;{0}&apos; of external argument &apos;{1}&apos; in schema &apos;{2}&apos; differs from the default value of &apos;{3}&apos; in schema &apos;{4}&apos;..
         /// </summary>
@@ -861,7 +834,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("LogEntryHelper_ExternalArgumentDefaultMismatch", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The external field &apos;{0}&apos; in schema &apos;{1}&apos; must define the argument &apos;{2}&apos;..
         /// </summary>
@@ -870,7 +843,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("LogEntryHelper_ExternalArgumentMissing", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The argument &apos;{0}&apos; on external field &apos;{1}&apos; in schema &apos;{2}&apos; has a different type ({3}) than it does in schema &apos;{4}&apos; ({5})..
         /// </summary>
@@ -879,7 +852,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("LogEntryHelper_ExternalArgumentTypeMismatch", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The external field &apos;{0}&apos; in schema &apos;{1}&apos; is not defined (non-external) in any other schema..
         /// </summary>
@@ -888,7 +861,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("LogEntryHelper_ExternalMissingOnBase", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The interface field &apos;{0}&apos; in schema &apos;{1}&apos; must not be marked as external..
         /// </summary>
@@ -897,7 +870,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("LogEntryHelper_ExternalOnInterface", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The external field &apos;{0}&apos; in schema &apos;{1}&apos; must not be annotated with the @override directive..
         /// </summary>
@@ -906,7 +879,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("LogEntryHelper_ExternalOverrideCollision", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The external field &apos;{0}&apos; in schema &apos;{1}&apos; must not be annotated with the @provides directive..
         /// </summary>
@@ -915,7 +888,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("LogEntryHelper_ExternalProvidesCollision", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The external field &apos;{0}&apos; in schema &apos;{1}&apos; must not have arguments that are annotated with the @require directive..
         /// </summary>
@@ -924,7 +897,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("LogEntryHelper_ExternalRequireCollision", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The external field &apos;{0}&apos; in schema &apos;{1}&apos; has a different type ({2}) than it does in schema &apos;{3}&apos; ({4})..
         /// </summary>
@@ -933,7 +906,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("LogEntryHelper_ExternalTypeMismatch", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The external field &apos;{0}&apos; in schema &apos;{1}&apos; is not referenced by a @provides directive in the schema..
         /// </summary>
@@ -942,7 +915,43 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("LogEntryHelper_ExternalUnused", resourceCulture);
             }
         }
-        
+
+        /// <summary>
+        ///   Looks up a localized string similar to The @eventCursor argument &apos;{0}&apos; in schema &apos;{1}&apos; must be of type String..
+        /// </summary>
+        internal static string LogEntryHelper_EventCursorArgumentNotString {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_EventCursorArgumentNotString", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The @eventCursor argument on field &apos;{0}&apos; in schema &apos;{1}&apos; requires an @eventCursor field on the event payload type..
+        /// </summary>
+        internal static string LogEntryHelper_EventCursorArgumentRequiresCursorField {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_EventCursorArgumentRequiresCursorField", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The @eventCursor field &apos;{0}&apos; in schema &apos;{1}&apos; must be of type String..
+        /// </summary>
+        internal static string LogEntryHelper_EventCursorFieldNotString {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_EventCursorFieldNotString", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The @eventCursor marker &apos;{0}&apos; in schema &apos;{1}&apos; must be reachable from an @eventStream subscription field..
+        /// </summary>
+        internal static string LogEntryHelper_EventCursorMarkerOnNonSubscriptionField {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_EventCursorMarkerOnNonSubscriptionField", resourceCulture);
+            }
+        }
+
         /// <summary>
         ///   Looks up a localized string similar to The argument &apos;{0}&apos; has a different type shape in schema &apos;{1}&apos; than it does in schema &apos;{2}&apos;..
         /// </summary>
@@ -951,7 +960,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("LogEntryHelper_FieldArgumentTypesNotMergeable", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The argument &apos;{0}&apos; must be defined as required in schema &apos;{1}&apos;. Arguments marked with @require are treated as non-required..
         /// </summary>
@@ -960,7 +969,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("LogEntryHelper_FieldWithMissingRequiredArgument", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The field &apos;{0}&apos; implementing interface field &apos;{1}&apos; is inaccessible in the composed schema..
         /// </summary>
@@ -969,7 +978,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("LogEntryHelper_ImplementedByInaccessible", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The default value &apos;{0}&apos; of input field &apos;{1}&apos; in schema &apos;{2}&apos; differs from the default value of &apos;{3}&apos; in schema &apos;{4}&apos;..
         /// </summary>
@@ -978,7 +987,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("LogEntryHelper_InputFieldDefaultMismatch", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The input field &apos;{0}&apos; has a different type shape in schema &apos;{1}&apos; than it does in schema &apos;{2}&apos;..
         /// </summary>
@@ -987,7 +996,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("LogEntryHelper_InputFieldTypesNotMergeable", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The input type &apos;{0}&apos; in schema &apos;{1}&apos; must be annotated with the &apos;@oneOf` directive, since the same type has been annotated with it in schema &apos;{2}&apos;..
         /// </summary>
@@ -996,7 +1005,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("LogEntryHelper_InputWithMissingOneOf", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The input type &apos;{0}&apos; in schema &apos;{1}&apos; must define the required field &apos;{2}&apos;..
         /// </summary>
@@ -1005,7 +1014,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("LogEntryHelper_InputWithMissingRequiredFields", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The merged object type &apos;{0}&apos; must implement the field &apos;{1}&apos; on interface &apos;{2}&apos;..
         /// </summary>
@@ -1014,7 +1023,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("LogEntryHelper_InterfaceFieldNoImplementation", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The field &apos;{0}&apos; in schema &apos;{1}&apos; must be shareable..
         /// </summary>
@@ -1023,7 +1032,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("LogEntryHelper_InvalidFieldSharing", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Invalid GraphQL in source schema. Exception message: {0}..
         /// </summary>
@@ -1032,7 +1041,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("LogEntryHelper_InvalidGraphQL", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Invalid GraphQL in source schema extensions. Exception message: {0}..
         /// </summary>
@@ -1041,7 +1050,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("LogEntryHelper_InvalidGraphQLInExtensions", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The field &apos;{0}&apos; in schema &apos;{1}&apos; must not be marked as shareable..
         /// </summary>
@@ -1050,7 +1059,52 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("LogEntryHelper_InvalidShareableUsage", resourceCulture);
             }
         }
-        
+
+        /// <summary>
+        ///   Looks up a localized string similar to The shareable subscription field &apos;{0}&apos; in schema &apos;{1}&apos; must declare the same @eventStream source in every source schema..
+        /// </summary>
+        internal static string LogEntryHelper_MultipleEventStreamSources {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_MultipleEventStreamSources", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The @eventStream field &apos;{0}&apos; in schema &apos;{1}&apos; must not declare more than one @eventCursor argument..
+        /// </summary>
+        internal static string LogEntryHelper_MultipleCursorArguments {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_MultipleCursorArguments", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The @eventStream directive on field &apos;{0}&apos; in schema &apos;{1}&apos; must not declare an empty list of topics. Omit the &apos;topics&apos; argument to derive topics automatically..
+        /// </summary>
+        internal static string LogEntryHelper_EventStreamTopicsEmpty {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_EventStreamTopicsEmpty", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The @eventStream directive on field &apos;{0}&apos; in schema &apos;{1}&apos; selects an abstract type but its message does not include &apos;__typename&apos; at that level, which is required to resolve the concrete type at runtime..
+        /// </summary>
+        internal static string LogEntryHelper_EventStreamMessageAbstractTypeRequiresTypeName {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_EventStreamMessageAbstractTypeRequiresTypeName", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The @eventStream field &apos;{0}&apos; in schema &apos;{1}&apos; must not declare more than one @eventCursor field on its return type..
+        /// </summary>
+        internal static string LogEntryHelper_MultipleCursorFields {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_MultipleCursorFields", resourceCulture);
+            }
+        }
+
         /// <summary>
         ///   Looks up a localized string similar to The @is directive on argument &apos;{0}&apos; in schema &apos;{1}&apos; specifies an invalid field selection against the composed schema..
         /// </summary>
@@ -1059,7 +1113,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("LogEntryHelper_IsInvalidFields", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The @is directive on argument &apos;{0}&apos; in schema &apos;{1}&apos; must specify a string value for the &apos;field&apos; argument..
         /// </summary>
@@ -1068,7 +1122,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("LogEntryHelper_IsInvalidFieldType", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The @is directive on argument &apos;{0}&apos; in schema &apos;{1}&apos; contains invalid syntax in the &apos;field&apos; argument..
         /// </summary>
@@ -1077,7 +1131,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("LogEntryHelper_IsInvalidSyntax", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The @is directive on argument &apos;{0}&apos; in schema &apos;{1}&apos; is invalid because the declaring field is not a lookup field..
         /// </summary>
@@ -1086,7 +1140,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("LogEntryHelper_IsInvalidUsage", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to A @key directive on type &apos;{0}&apos; in schema &apos;{1}&apos; references field &apos;{2}&apos;, which must not include directive applications..
         /// </summary>
@@ -1095,22 +1149,22 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("LogEntryHelper_KeyDirectiveInFieldsArgument", resourceCulture);
             }
         }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to A @key directive on type &apos;{0}&apos; in schema &apos;{1}&apos; references field &apos;{2}&apos;, which must not have arguments..
-        /// </summary>
-        internal static string LogEntryHelper_KeyFieldsHasArguments {
-            get {
-                return ResourceManager.GetString("LogEntryHelper_KeyFieldsHasArguments", resourceCulture);
-            }
-        }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to A @key directive on type &apos;{0}&apos; in schema &apos;{1}&apos; references field &apos;{2}&apos;, which must not be a list, interface, or union type..
         /// </summary>
         internal static string LogEntryHelper_KeyFieldsSelectInvalidType {
             get {
                 return ResourceManager.GetString("LogEntryHelper_KeyFieldsSelectInvalidType", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to A @key directive on type &apos;{0}&apos; in schema &apos;{1}&apos; specifies invalid arguments. {2}.
+        /// </summary>
+        internal static string LogEntryHelper_KeyInvalidArguments {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_KeyInvalidArguments", resourceCulture);
             }
         }
         
@@ -1122,7 +1176,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("LogEntryHelper_KeyInvalidFields", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to A @key directive on type &apos;{0}&apos; in schema &apos;{1}&apos; must specify a string value for the &apos;fields&apos; argument..
         /// </summary>
@@ -1131,7 +1185,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("LogEntryHelper_KeyInvalidFieldsType", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to A @key directive on type &apos;{0}&apos; in schema &apos;{1}&apos; contains invalid syntax in the &apos;fields&apos; argument..
         /// </summary>
@@ -1140,7 +1194,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("LogEntryHelper_KeyInvalidSyntax", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The lookup field &apos;{0}&apos; in schema &apos;{1}&apos; must declare at least one argument..
         /// </summary>
@@ -1158,7 +1212,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("LogEntryHelper_LookupReturnsList", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The lookup field &apos;{0}&apos; in schema &apos;{1}&apos; should return a nullable type..
         /// </summary>
@@ -1167,7 +1221,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("LogEntryHelper_LookupReturnsNonNullableType", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The non-null input field &apos;{0}&apos; in schema &apos;{1}&apos; must be accessible in the composed schema..
         /// </summary>
@@ -1176,7 +1230,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("LogEntryHelper_NonNullInputFieldIsInaccessible", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The merged query type has no accessible fields..
         /// </summary>
@@ -1185,7 +1239,16 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("LogEntryHelper_NoQueries", resourceCulture);
             }
         }
-        
+
+        /// <summary>
+        ///   Looks up a localized string similar to The opt-in feature &apos;{0}&apos; has a different stability in schema &apos;{1}&apos; ({2}) than it does in schema &apos;{3}&apos; ({4})..
+        /// </summary>
+        internal static string LogEntryHelper_OptInFeatureStabilityMismatch {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_OptInFeatureStabilityMismatch", resourceCulture);
+            }
+        }
+
         /// <summary>
         ///   Looks up a localized string similar to The output field &apos;{0}&apos; has a different type shape in schema &apos;{1}&apos; than it does in schema &apos;{2}&apos;..
         /// </summary>
@@ -1194,7 +1257,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("LogEntryHelper_OutputFieldTypesNotMergeable", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The @override directive on field &apos;{0}&apos; in schema &apos;{1}&apos; must not reference the same schema..
         /// </summary>
@@ -1203,7 +1266,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("LogEntryHelper_OverrideFromSelf", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The interface field &apos;{0}&apos; in schema &apos;{1}&apos; must not be annotated with the @override directive..
         /// </summary>
@@ -1212,7 +1275,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("LogEntryHelper_OverrideOnInterface", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The @provides directive on field &apos;{0}&apos; in schema &apos;{1}&apos; references field &apos;{2}&apos;, which must not include directive applications..
         /// </summary>
@@ -1221,7 +1284,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("LogEntryHelper_ProvidesDirectiveInFieldsArgument", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The @provides directive on field &apos;{0}&apos; in schema &apos;{1}&apos; references field &apos;{2}&apos;, which must not have arguments..
         /// </summary>
@@ -1230,7 +1293,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("LogEntryHelper_ProvidesFieldsHasArguments", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The @provides directive on field &apos;{0}&apos; in schema &apos;{1}&apos; references field &apos;{2}&apos;, which must be marked as external..
         /// </summary>
@@ -1239,7 +1302,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("LogEntryHelper_ProvidesFieldsMissingExternal", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The @provides directive on field &apos;{0}&apos; in schema &apos;{1}&apos; specifies an invalid field selection..
         /// </summary>
@@ -1248,7 +1311,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("LogEntryHelper_ProvidesInvalidFields", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The @provides directive on field &apos;{0}&apos; in schema &apos;{1}&apos; must specify a string value for the &apos;fields&apos; argument..
         /// </summary>
@@ -1257,7 +1320,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("LogEntryHelper_ProvidesInvalidFieldsType", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The @provides directive on field &apos;{0}&apos; in schema &apos;{1}&apos; contains invalid syntax in the &apos;fields&apos; argument..
         /// </summary>
@@ -1266,7 +1329,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("LogEntryHelper_ProvidesInvalidSyntax", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The field &apos;{0}&apos; in schema &apos;{1}&apos; includes a @provides directive, but does not return a composite type..
         /// </summary>
@@ -1275,7 +1338,16 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("LogEntryHelper_ProvidesOnNonCompositeField", resourceCulture);
             }
         }
-        
+
+        /// <summary>
+        ///   Looks up a localized string similar to The @eventStream directive on field &apos;{0}&apos; in schema &apos;{1}&apos; specifies an invalid message selection..
+        /// </summary>
+        internal static string LogEntryHelper_EventStreamMessageInvalidFields {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_EventStreamMessageInvalidFields", resourceCulture);
+            }
+        }
+
         /// <summary>
         ///   Looks up a localized string similar to The root query type in schema &apos;{0}&apos; must be accessible..
         /// </summary>
@@ -1284,7 +1356,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("LogEntryHelper_QueryRootTypeInaccessible", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The merged field argument &apos;{0}&apos; on field &apos;{1}&apos; cannot reference the inaccessible type &apos;{2}&apos;..
         /// </summary>
@@ -1293,7 +1365,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("LogEntryHelper_ReferenceToInaccessibleTypeFromFieldArgument", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The merged input field &apos;{0}&apos; in type &apos;{1}&apos; cannot reference the inaccessible type &apos;{2}&apos;..
         /// </summary>
@@ -1302,7 +1374,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("LogEntryHelper_ReferenceToInaccessibleTypeFromInputField", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The merged output field &apos;{0}&apos; in type &apos;{1}&apos; cannot reference the inaccessible type &apos;{2}&apos;..
         /// </summary>
@@ -1311,7 +1383,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("LogEntryHelper_ReferenceToInaccessibleTypeFromOutputField", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The merged field &apos;{0}&apos; in type &apos;{1}&apos; cannot reference the internal type &apos;{2}&apos;..
         /// </summary>
@@ -1320,7 +1392,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("LogEntryHelper_ReferenceToInternalType", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The @require directive on argument &apos;{0}&apos; in schema &apos;{1}&apos; specifies an invalid field selection against the composed schema..
         /// </summary>
@@ -1329,7 +1401,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("LogEntryHelper_RequireInvalidFields", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The @require directive on argument &apos;{0}&apos; in schema &apos;{1}&apos; must specify a string value for the &apos;field&apos; argument..
         /// </summary>
@@ -1338,7 +1410,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("LogEntryHelper_RequireInvalidFieldType", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The @require directive on argument &apos;{0}&apos; in schema &apos;{1}&apos; contains invalid syntax in the &apos;field&apos; argument..
         /// </summary>
@@ -1347,7 +1419,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("LogEntryHelper_RequireInvalidSyntax", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The root mutation type in schema &apos;{0}&apos; must be named &apos;Mutation&apos;..
         /// </summary>
@@ -1356,7 +1428,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("LogEntryHelper_RootMutationUsed", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The root query type in schema &apos;{0}&apos; must be named &apos;Query&apos;..
         /// </summary>
@@ -1365,7 +1437,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("LogEntryHelper_RootQueryUsed", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The root subscription type in schema &apos;{0}&apos; must be named &apos;Subscription&apos;..
         /// </summary>
@@ -1374,7 +1446,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("LogEntryHelper_RootSubscriptionUsed", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The scalar type &apos;{0}&apos; has a different specified-by URL in schema &apos;{1}&apos; ({2}) than it does in schema &apos;{3}&apos; ({4})..
         /// </summary>
@@ -1383,7 +1455,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("LogEntryHelper_SpecifiedByUrlMismatch", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The type &apos;{0}&apos; has a different kind in schema &apos;{1}&apos; ({2}) than it does in schema &apos;{3}&apos; ({4})..
         /// </summary>
@@ -1392,7 +1464,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("LogEntryHelper_TypeKindMismatch", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The @lookup directive is used within a source schema to specify output fields that can be used by the distributed GraphQL executor to resolve an entity by a stable key..
         /// </summary>
@@ -1401,7 +1473,16 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("LookupMutableDirectiveDefinition_Description", resourceCulture);
             }
         }
-        
+
+        /// <summary>
+        ///   Looks up a localized string similar to The @optInFeatureStability directive must have a &apos;feature&apos; argument and a &apos;stability&apos; argument, both of type String..
+        /// </summary>
+        internal static string OptInFeatureStabilityDirective_Arguments_Invalid {
+            get {
+                return ResourceManager.GetString("OptInFeatureStabilityDirective_Arguments_Invalid", resourceCulture);
+            }
+        }
+
         /// <summary>
         ///   Looks up a localized string similar to The name of the source schema that originally provided this field..
         /// </summary>
@@ -1410,7 +1491,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("OverrideMutableDirectiveDefinition_Argument_From_Description", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The @override directive is used to migrate a field from one source schema to another..
         /// </summary>
@@ -1419,7 +1500,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("OverrideMutableDirectiveDefinition_Description", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Represents a selection set syntax describing the subfields of the returned type that can be provided by the current source schema..
         /// </summary>
@@ -1428,7 +1509,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("ProvidesMutableDirectiveDefinition_Argument_Fields_Description", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The @provides directive indicates that a field can provide certain subfields of its return type from the same source schema, without requiring an additional resolution step elsewhere..
         /// </summary>
@@ -1437,7 +1518,25 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("ProvidesMutableDirectiveDefinition_Description", resourceCulture);
             }
         }
-        
+
+        /// <summary>
+        ///   Looks up a localized string similar to The fields that are required from another source schema..
+        /// </summary>
+        internal static string RequiresMutableDirectiveDefinition_Argument_Fields_Description {
+            get {
+                return ResourceManager.GetString("RequiresMutableDirectiveDefinition_Argument_Fields_Description", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The @requires directive expresses that a field depends on the given selection of fields from the same entity, resolved by another source schema..
+        /// </summary>
+        internal static string RequiresMutableDirectiveDefinition_Description {
+            get {
+                return ResourceManager.GetString("RequiresMutableDirectiveDefinition_Description", resourceCulture);
+            }
+        }
+
         /// <summary>
         ///   Looks up a localized string similar to The required field &apos;{0}&apos; must not be defined in schema &apos;{1}&apos;..
         /// </summary>
@@ -1446,7 +1545,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("RequireInvalidFieldsRule_RequiredFieldMustNotBeDefinedInSameSchema", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Cycle detected in requirement: {0} -&gt; {1}..
         /// </summary>
@@ -1455,7 +1554,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("RequirementsValidator_CycleDetected", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The field &apos;{0}&apos; does not exist on the type &apos;{1}&apos;..
         /// </summary>
@@ -1464,7 +1563,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("RequirementsValidator_FieldDoesNotExistOnType", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to No lookups found for type &apos;{0}&apos; in schema &apos;{1}&apos;..
         /// </summary>
@@ -1473,7 +1572,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("RequirementsValidator_NoLookupsFoundForType", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to No other schemas contain the field &apos;{0}.{1}&apos;..
         /// </summary>
@@ -1482,7 +1581,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("RequirementsValidator_NoOtherSchemasContainField", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Unable to access the required field &apos;{0}.{1}&apos;..
         /// </summary>
@@ -1491,7 +1590,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("RequirementsValidator_UnableToAccessField", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Unable to access the required field &apos;{0}.{1}&apos; on path &apos;{2}&apos;..
         /// </summary>
@@ -1500,7 +1599,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("RequirementsValidator_UnableToAccessFieldOnPath", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Unable to satisfy the requirement &apos;{0}&apos;..
         /// </summary>
@@ -1509,7 +1608,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("RequirementsValidator_UnableToSatisfyRequirement", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Unable to satisfy the requirement &apos;{0}&apos; for lookup &apos;{1}&apos; in schema &apos;{2}&apos;..
         /// </summary>
@@ -1518,7 +1617,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("RequirementsValidator_UnableToSatisfyRequirementForLookup", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Unable to transition between schemas &apos;{0}&apos; and &apos;{1}&apos; for access to required field &apos;{2}&apos;..
         /// </summary>
@@ -1527,7 +1626,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("RequirementsValidator_UnableToTransitionBetweenSchemas", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Represents a selection path map syntax..
         /// </summary>
@@ -1536,7 +1635,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("RequireMutableDirectiveDefinition_Argument_Field_Description", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The @require directive is used to express data requirements with other source schemas..
         /// </summary>
@@ -1545,7 +1644,16 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("RequireMutableDirectiveDefinition_Description", resourceCulture);
             }
         }
-        
+
+        /// <summary>
+        ///   Looks up a localized string similar to The @requiresOptIn directive must have a &apos;feature&apos; argument of type String..
+        /// </summary>
+        internal static string RequiresOptInDirective_FeatureArgument_Invalid {
+            get {
+                return ResourceManager.GetString("RequiresOptInDirective_FeatureArgument_Invalid", resourceCulture);
+            }
+        }
+
         /// <summary>
         ///   Looks up a localized string similar to Cycle detected: {0} -&gt; {1}..
         /// </summary>
@@ -1554,7 +1662,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("SatisfiabilityValidator_CycleDetected", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Type &apos;{0}&apos; implements the &apos;Node&apos; interface, but no source schema provides a non-internal &apos;Query.node&lt;Node&gt;&apos; lookup field for this type..
         /// </summary>
@@ -1563,7 +1671,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("SatisfiabilityValidator_NodeTypeHasNoNodeLookup", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to No lookups found for type &apos;{0}&apos; in schema &apos;{1}&apos;..
         /// </summary>
@@ -1572,7 +1680,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("SatisfiabilityValidator_NoLookupsFoundForType", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Unable to access the field &apos;{0}.{1}&apos;..
         /// </summary>
@@ -1581,7 +1689,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("SatisfiabilityValidator_UnableToAccessField", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Unable to access the field &apos;{0}.{1}&apos; on path &apos;{2}&apos;..
         /// </summary>
@@ -1590,7 +1698,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("SatisfiabilityValidator_UnableToAccessFieldOnPath", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Unable to satisfy the requirement &apos;{0}&apos; on field &apos;{1}&apos;..
         /// </summary>
@@ -1599,7 +1707,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("SatisfiabilityValidator_UnableToSatisfyRequirement", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Unable to satisfy the requirement &apos;{0}&apos; for lookup &apos;{1}&apos; in schema &apos;{2}&apos;..
         /// </summary>
@@ -1608,7 +1716,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("SatisfiabilityValidator_UnableToSatisfyRequirementForLookup", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Unable to transition between schemas &apos;{0}&apos; and &apos;{1}&apos; for access to field &apos;{2}&apos;..
         /// </summary>
@@ -1617,7 +1725,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("SatisfiabilityValidator_UnableToTransitionBetweenSchemas", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The @shareable directive allows multiple source schemas to define the same field, ensuring that this decision is both intentional and coordinated by requiring fields to be explicitly marked..
         /// </summary>
@@ -1626,7 +1734,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("ShareableMutableDirectiveDefinition_Description", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The @specifiedBy directive must have a &apos;url&apos; argument of type String..
         /// </summary>
@@ -1635,7 +1743,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("SpecifiedByDirective_UrlArgument_Invalid", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The @tag directive must have a &apos;name&apos; argument of type String..
         /// </summary>
@@ -1644,7 +1752,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("TagDirective_NameArgument_Invalid", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The specified type is not an abstract type..
         /// </summary>

@@ -39,7 +39,8 @@ public class PersistedOperationTests : FusionTestBase
             new GraphQLHttpRequest(request, new Uri("http://localhost:5000/graphql"))
             {
                 Method = GraphQLHttpMethod.Post
-            });
+            },
+            TestContext.Current.CancellationToken);
 
         // arrange
         result.HttpResponseMessage.MatchSnapshot();
@@ -70,7 +71,8 @@ public class PersistedOperationTests : FusionTestBase
             new GraphQLHttpRequest(request, new Uri("http://localhost:5000/graphql"))
             {
                 Method = GraphQLHttpMethod.Post
-            });
+            },
+            TestContext.Current.CancellationToken);
 
         // assert
         result.HttpResponseMessage.MatchSnapshot();
@@ -101,7 +103,8 @@ public class PersistedOperationTests : FusionTestBase
             new GraphQLHttpRequest(request, new Uri("http://localhost:5000/graphql"))
             {
                 Method = GraphQLHttpMethod.Post
-            });
+            },
+            TestContext.Current.CancellationToken);
 
         // assert
         result.HttpResponseMessage.MatchSnapshot();
@@ -132,7 +135,8 @@ public class PersistedOperationTests : FusionTestBase
             new GraphQLHttpRequest(request, new Uri("http://localhost:5000/graphql"))
             {
                 Method = GraphQLHttpMethod.Post
-            });
+            },
+            TestContext.Current.CancellationToken);
 
         // assert
         result.HttpResponseMessage.MatchSnapshot();
@@ -163,7 +167,8 @@ public class PersistedOperationTests : FusionTestBase
             new GraphQLHttpRequest(request, new Uri("http://localhost:5000/graphql"))
             {
                 Method = GraphQLHttpMethod.Post
-            });
+            },
+            TestContext.Current.CancellationToken);
 
         // assert
         result.HttpResponseMessage.MatchSnapshot();
@@ -193,7 +198,8 @@ public class PersistedOperationTests : FusionTestBase
             new GraphQLHttpRequest(request, new Uri("http://localhost:5000/graphql"))
             {
                 Method = GraphQLHttpMethod.Post
-            });
+            },
+            TestContext.Current.CancellationToken);
 
         // assert
         result.HttpResponseMessage.MatchSnapshot();
@@ -224,7 +230,8 @@ public class PersistedOperationTests : FusionTestBase
             new GraphQLHttpRequest(request, new Uri("http://localhost:5000/graphql"))
             {
                 Method = GraphQLHttpMethod.Post
-            });
+            },
+            TestContext.Current.CancellationToken);
 
         // assert
         result.HttpResponseMessage.MatchSnapshot();
@@ -255,7 +262,8 @@ public class PersistedOperationTests : FusionTestBase
             new GraphQLHttpRequest(request, new Uri("http://localhost:5000/graphql"))
             {
                 Method = GraphQLHttpMethod.Post
-            });
+            },
+            TestContext.Current.CancellationToken);
 
         // assert
         result.HttpResponseMessage.MatchSnapshot();
@@ -286,7 +294,8 @@ public class PersistedOperationTests : FusionTestBase
             new GraphQLHttpRequest(request, new Uri("http://localhost:5000/graphql"))
             {
                 Method = GraphQLHttpMethod.Post
-            });
+            },
+            TestContext.Current.CancellationToken);
 
         // assert
         result.HttpResponseMessage.MatchSnapshot();
@@ -313,7 +322,8 @@ public class PersistedOperationTests : FusionTestBase
             new GraphQLHttpRequest(request, new Uri("http://localhost:5000/graphql"))
             {
                 Method = GraphQLHttpMethod.Post
-            });
+            },
+            TestContext.Current.CancellationToken);
 
         // assert
         result.HttpResponseMessage.MatchSnapshot();
@@ -341,7 +351,8 @@ public class PersistedOperationTests : FusionTestBase
             new GraphQLHttpRequest(request, new Uri("http://localhost:5000/graphql"))
             {
                 Method = GraphQLHttpMethod.Post
-            });
+            },
+            TestContext.Current.CancellationToken);
 
         // assert
         result.HttpResponseMessage.MatchSnapshot();
@@ -372,7 +383,8 @@ public class PersistedOperationTests : FusionTestBase
             new GraphQLHttpRequest(request, new Uri("http://localhost:5000/graphql"))
             {
                 Method = GraphQLHttpMethod.Post
-            });
+            },
+            TestContext.Current.CancellationToken);
 
         // assert
         result.HttpResponseMessage.MatchSnapshot();
@@ -407,7 +419,8 @@ public class PersistedOperationTests : FusionTestBase
             new GraphQLHttpRequest(request, new Uri("http://localhost:5000/graphql"))
             {
                 Method = GraphQLHttpMethod.Post
-            });
+            },
+            TestContext.Current.CancellationToken);
 
         // assert
         result.HttpResponseMessage.MatchSnapshot();
@@ -442,7 +455,8 @@ public class PersistedOperationTests : FusionTestBase
             new GraphQLHttpRequest(request, new Uri("http://localhost:5000/graphql"))
             {
                 Method = GraphQLHttpMethod.Post
-            });
+            },
+            TestContext.Current.CancellationToken);
 
         // assert
         result.HttpResponseMessage.MatchSnapshot();
@@ -475,7 +489,8 @@ public class PersistedOperationTests : FusionTestBase
             new GraphQLHttpRequest(request, new Uri("http://localhost:5000/graphql"))
             {
                 Method = GraphQLHttpMethod.Post
-            });
+            },
+            TestContext.Current.CancellationToken);
 
         // assert
         result.HttpResponseMessage.MatchSnapshot();

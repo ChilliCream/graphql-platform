@@ -22,7 +22,8 @@ public class EnumFlagsTests
                             isBaz
                         }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchInlineSnapshot(
             """
@@ -51,7 +52,7 @@ public class EnumFlagsTests
                     o.EnableDefer = false;
                     o.EnableStream = false;
                 })
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         schema.MatchInlineSnapshot(
             """

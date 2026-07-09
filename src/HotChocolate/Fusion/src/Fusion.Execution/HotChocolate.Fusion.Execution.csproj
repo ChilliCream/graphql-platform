@@ -5,11 +5,14 @@
     <RootNamespace>HotChocolate.Fusion</RootNamespace>
     <LangVersion>preview</LangVersion>
     <DefineConstants>$(DefineConstants);FUSION</DefineConstants>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
   <ItemGroup>
     <InternalsVisibleTo Include="HotChocolate.Fusion.Connectors.InMemory.Tests" />
     <InternalsVisibleTo Include="HotChocolate.Fusion.Connectors.ApolloFederation.Tests" />
+    <InternalsVisibleTo Include="HotChocolate.Fusion.Subscriptions.NATS.Tests" />
+    <InternalsVisibleTo Include="HotChocolate.Fusion.Subscriptions.Kafka.Tests" />
     <InternalsVisibleTo Include="HotChocolate.Fusion.Execution.Tests" />
     <InternalsVisibleTo Include="HotChocolate.Fusion.Execution.Benchmarks" />
     <InternalsVisibleTo Include="HotChocolate.Fusion.AspNetCore.Tests" />
@@ -17,14 +20,17 @@
     <InternalsVisibleTo Include="ChilliCream.Nitro.Fusion" />
     <InternalsVisibleTo Include="HotChocolate.Fusion.AspNetCore" />
     <InternalsVisibleTo Include="HotChocolate.Fusion.Connectors.InMemory" />
-    <InternalsVisibleTo Include="HotChocolate.Fusion.Connectors.ApolloFederation" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
     <PackageReference Include="Microsoft.Extensions.Http" />
     <PackageReference Include="System.Reactive" />
     <PackageReference Include="System.IO.Hashing" />
+    <PackageReference Include="System.Net.ServerSentEvents" Condition="'$(TargetFramework)' == 'net8.0' or '$(TargetFramework)' == 'net9.0'" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'net8.0' or '$(TargetFramework)' == 'net9.0' or '$(TargetFramework)' == 'net10.0'">
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
   </ItemGroup>
 
   <ItemGroup>
@@ -143,15 +149,6 @@
     </Compile>
     <Compile Include="..\..\..\AspNetCore\src\Transport.Http\JsonLines\JsonLinesReader.cs">
       <Link>Transport\Http\JsonLines\JsonLinesReader.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\AspNetCore\src\Transport.Http\Sse\SseEventData.cs">
-      <Link>Transport\Http\Sse\SseEventData.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\AspNetCore\src\Transport.Http\Sse\SseEventParser.cs">
-      <Link>Transport\Http\Sse\SseEventParser.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\AspNetCore\src\Transport.Http\Sse\SseEventType.cs">
-      <Link>Transport\Http\Sse\SseEventType.cs</Link>
     </Compile>
     <Compile Include="..\..\..\AspNetCore\src\Transport.Http\Sse\SseReader.cs">
       <Link>Transport\Http\Sse\SseReader.cs</Link>

@@ -10,8 +10,8 @@ operation:
             name @fusion__requirement
             nameInB
             compositeId @fusion__requirement {
-              two
-              three
+              two @fusion__requirement
+              three @fusion__requirement
             }
           }
         }

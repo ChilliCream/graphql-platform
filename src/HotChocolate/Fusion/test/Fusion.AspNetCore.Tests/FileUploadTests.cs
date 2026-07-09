@@ -52,7 +52,55 @@ public class FileUploadTests : FusionTestBase
         };
 
         // act
-        var result = await client.SendAsync(request);
+        var result = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, operation, result, rawRequest: rawRequest);
+    }
+
+    [Fact]
+    public async Task Upload_Single_File_Should_Forward_Parameterized_ContentType()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "A",
+            b => b.AddQueryType<SourceSchema1.Query>().AddUploadType());
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var stream = new MemoryStream("abc"u8.ToArray());
+
+        var operation = new OperationRequest(
+            """
+            query ($file: Upload!) {
+              singleUpload(file: $file) {
+                fileName
+                contentType
+                content
+              }
+            }
+            """,
+            variables: new Dictionary<string, object?>
+            {
+                ["file"] = new FileReference(() => stream, "test.txt", "text/plain; charset=utf-8")
+            });
+
+        RawRequest? rawRequest = null;
+        var request = new GraphQLHttpRequest(operation, new Uri("http://localhost:5000/graphql"))
+        {
+            Method = GraphQLHttpMethod.Post,
+            EnableFileUploads = true,
+            OnMessageCreated = (_, request, _) => rawRequest = GetRawRequest(request)
+        };
+
+        // act
+        var result = await client.SendAsync(request, TestContext.Current.CancellationToken);
 
         // assert
         await MatchSnapshotAsync(gateway, operation, result, rawRequest: rawRequest);
@@ -103,7 +151,7 @@ public class FileUploadTests : FusionTestBase
         };
 
         // act
-        var result = await client.SendAsync(request);
+        var result = await client.SendAsync(request, TestContext.Current.CancellationToken);
 
         // assert
         await MatchSnapshotAsync(gateway, operation, result, rawRequest: rawRequest);
@@ -151,7 +199,7 @@ public class FileUploadTests : FusionTestBase
         };
 
         // act
-        var result = await client.SendAsync(request);
+        var result = await client.SendAsync(request, TestContext.Current.CancellationToken);
 
         // assert
         await MatchSnapshotAsync(gateway, operation, result, rawRequest: rawRequest);
@@ -204,7 +252,7 @@ public class FileUploadTests : FusionTestBase
         };
 
         // act
-        var result = await client.SendAsync(request);
+        var result = await client.SendAsync(request, TestContext.Current.CancellationToken);
 
         // assert
         await MatchSnapshotAsync(gateway, operation, result, rawRequest: rawRequest);
@@ -260,7 +308,7 @@ public class FileUploadTests : FusionTestBase
         };
 
         // act
-        var result = await client.SendAsync(request);
+        var result = await client.SendAsync(request, TestContext.Current.CancellationToken);
 
         // assert
         await MatchSnapshotAsync(gateway, operation, result, rawRequest: rawRequest);
@@ -313,7 +361,7 @@ public class FileUploadTests : FusionTestBase
         };
 
         // act
-        var result = await client.SendAsync(request);
+        var result = await client.SendAsync(request, TestContext.Current.CancellationToken);
 
         // assert
         await MatchSnapshotAsync(gateway, operation, result, rawRequest: rawRequest);
@@ -356,7 +404,7 @@ public class FileUploadTests : FusionTestBase
         };
 
         // act
-        var result = await client.SendAsync(request);
+        var result = await client.SendAsync(request, TestContext.Current.CancellationToken);
 
         // assert
         await MatchSnapshotAsync(gateway, operation, result);
@@ -404,7 +452,7 @@ public class FileUploadTests : FusionTestBase
         };
 
         // act
-        var result = await client.SendAsync(request);
+        var result = await client.SendAsync(request, TestContext.Current.CancellationToken);
 
         // assert
         await MatchSnapshotAsync(gateway, operation, result, rawRequest: rawRequest);
@@ -447,8 +495,8 @@ public class FileUploadTests : FusionTestBase
         using var client = gateway.CreateClient();
 
         // act
-        using var response = await client.PostAsync("graphql", form);
-        var content = await response.Content.ReadAsStringAsync();
+        using var response = await client.PostAsync("graphql", form, TestContext.Current.CancellationToken);
+        var content = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
 
         // assert
         // The file must be bound from the multipart part instead of being rejected because the
@@ -495,8 +543,8 @@ public class FileUploadTests : FusionTestBase
         using var client = gateway.CreateClient();
 
         // act
-        using var response = await client.PostAsync("graphql", form);
-        var content = await response.Content.ReadAsStringAsync();
+        using var response = await client.PostAsync("graphql", form, TestContext.Current.CancellationToken);
+        var content = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
 
         // assert
         // The request is rejected because a non-null value sits at the file's variable location:
@@ -554,8 +602,8 @@ public class FileUploadTests : FusionTestBase
         using var client = gateway.CreateClient();
 
         // act
-        using var response = await client.PostAsync("graphql", form);
-        var content = await response.Content.ReadAsStringAsync();
+        using var response = await client.PostAsync("graphql", form, TestContext.Current.CancellationToken);
+        var content = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
 
         // assert
         // The file must be bound from the multipart part instead of being rejected because the
@@ -602,8 +650,8 @@ public class FileUploadTests : FusionTestBase
         using var client = gateway.CreateClient();
 
         // act
-        using var response = await client.PostAsync("graphql", form);
-        var content = await response.Content.ReadAsStringAsync();
+        using var response = await client.PostAsync("graphql", form, TestContext.Current.CancellationToken);
+        var content = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
 
         // assert
         // The request is rejected because a non-null value sits at the file's variable location:

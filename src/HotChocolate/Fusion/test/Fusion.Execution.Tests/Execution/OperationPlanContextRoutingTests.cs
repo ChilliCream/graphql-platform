@@ -1,19 +1,30 @@
 using System.Text.Json;
+using HotChocolate.Buffers;
 using HotChocolate.Execution;
+using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Execution.Results;
 using HotChocolate.Fusion.Language;
+using HotChocolate.Fusion.Planning;
 using HotChocolate.Fusion.Text.Json;
+using HotChocolate.Fusion.Transport.Http;
+using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.ObjectPool;
 using FusionNameNode = HotChocolate.Fusion.Language.NameNode;
+using IntValueNode = HotChocolate.Language.IntValueNode;
+using StringValueNode = HotChocolate.Language.StringValueNode;
+using ObjectFieldNode = HotChocolate.Language.ObjectFieldNode;
+using IValueNode = HotChocolate.Language.IValueNode;
 
 namespace HotChocolate.Fusion.Execution;
 
 public sealed class OperationPlanContextRoutingTests : FusionTestBase
 {
+    private static readonly FusionSchemaDefinition s_schema = CreateCompositeSchema();
+
     [Fact]
     public async Task CreateVariableValueSets_Should_RouteThroughResultStore_When_RequirementKeysIsNull()
     {
@@ -71,6 +82,41 @@ public sealed class OperationPlanContextRoutingTests : FusionTestBase
         // assert
         Assert.Contains("__fusion_1_id", exception.Message);
         Assert.Contains("__fusion_2_other", exception.Message);
+    }
+
+    [Fact]
+    public async Task Complete_Should_SealArena_When_ResultIsCompleted()
+    {
+        // arrange
+        // A completed buffered result no longer writes into its arena, so the arena is sealed and its
+        // pages are returned to the pool when the result is disposed.
+        await using var fixture = await RoutingTestFixture.CreateAsync();
+        var context = fixture.CreateContext();
+        var arena = context.Memory;
+
+        // act
+        context.Complete();
+
+        // assert
+        Assert.True(arena.IsSealed);
+    }
+
+    [Fact]
+    public async Task Complete_Should_SealEventArena_When_SubscriptionEventIsCompleted()
+    {
+        // arrange
+        // Each subscription event is backed by its own arena; once the event result is completed
+        // nothing writes into that arena, so it is sealed and its pages can be returned on dispose.
+        await using var fixture = await RoutingTestFixture.CreateAsync();
+        var context = fixture.CreateContext();
+        var eventArena = new MemoryArena();
+        context.SetActiveEventArena(eventArena);
+
+        // act
+        context.Complete(reusable: true);
+
+        // assert
+        Assert.True(eventArena.IsSealed);
     }
 
     [Fact]
@@ -193,6 +239,38 @@ public sealed class OperationPlanContextRoutingTests : FusionTestBase
         Assert.Contains("__fusion_2_other", exception.Message);
     }
 
+    [Fact]
+    public async Task ExecuteAsync_Should_Throw_When_RequestIsSubscription()
+    {
+        // arrange
+        await using var fixture = await RoutingTestFixture.CreateAsync();
+        var context = fixture.CreateContext();
+        await using var client = new HttpSourceSchemaClient(
+            GraphQLHttpClient.Create(new HttpClient()),
+            new HttpSourceSchemaClientConfiguration("a", new Uri("http://localhost:5000/graphql")));
+
+        var request = new SourceSchemaClientRequest
+        {
+            Node = fixture.GetRootNode(),
+            SchemaName = "a",
+            OperationType = OperationType.Subscription,
+            OperationSourceText = "subscription { field }",
+            OperationHash = 0
+        };
+
+        // act
+        async Task Act()
+        {
+            await foreach (var _ in client.ExecuteAsync(context, request, TestContext.Current.CancellationToken))
+            {
+            }
+        }
+
+        // assert
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(Act);
+        Assert.Contains("SubscribeAsync", exception.Message);
+    }
+
     private static ObjectFieldNode Field(string name, IValueNode value)
         => new(name, value);
 
@@ -201,7 +279,8 @@ public sealed class OperationPlanContextRoutingTests : FusionTestBase
             key,
             new NamedTypeNode("String"),
             SelectionPath.Root,
-            new PathNode(new PathSegmentNode(new FusionNameNode(key))));
+            new PathNode(new PathSegmentNode(new FusionNameNode(key))),
+            null);
 
     private static HashSet<string> ImportedKeys(params string[] keys)
         => new(keys, StringComparer.Ordinal);
@@ -280,6 +359,8 @@ public sealed class OperationPlanContextRoutingTests : FusionTestBase
                 new VariableValueCollection(coercedVariables));
         }
 
+        public ExecutionNode GetRootNode() => _operationPlan.RootNodes[0];
+
         public OperationPlanContext CreateContext()
         {
             var pool = _executor.Schema.Services.GetRequiredService<OperationPlanContextPool>();
@@ -310,7 +391,10 @@ public sealed class OperationPlanContextRoutingTests : FusionTestBase
                 requestServices: _services,
                 requestAborted: CancellationToken.None);
 
-            context.Initialize(requestContext, _variables, _operationPlan, cts);
+            // The request executor always attaches a memory arena to the request before a plan
+            // runs. The arena is supplied explicitly here because this fixture does not go through
+            // the request executor that would otherwise attach it to the request context.
+            context.Initialize(requestContext, _variables, _operationPlan, cts, new MemoryArena());
             _rentedContexts.Add(context);
             return context;
         }

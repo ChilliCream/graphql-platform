@@ -1,4 +1,6 @@
 using System.Collections.Immutable;
+using System.Diagnostics;
+using HotChocolate.Buffers;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Diagnostics;
 using HotChocolate.Fusion.Execution.Nodes;
@@ -24,7 +26,8 @@ public sealed partial class OperationPlanContext
         RequestContext requestContext,
         IVariableValueCollection variables,
         IOperationPlan operationPlan,
-        CancellationTokenSource cancellationTokenSource)
+        CancellationTokenSource cancellationTokenSource,
+        MemoryArena? memory = null)
     {
         ArgumentNullException.ThrowIfNull(requestContext);
         ArgumentNullException.ThrowIfNull(variables);
@@ -32,14 +35,24 @@ public sealed partial class OperationPlanContext
 
         _disposed = 0;
         RequestContext = requestContext;
+
+        _memory = memory
+            ?? requestContext.Memory
+            ?? throw new InvalidOperationException(
+                "The operation plan context requires a memory arena.");
+        _memorySource.Set(_memory);
+        _currentMemorySource = _memorySource;
+
         Variables = variables;
         OperationPlan = operationPlan;
         IncludeFlags = operationPlan.Operation.CreateIncludeFlags(variables);
         DeferFlags = operationPlan.Operation.CreateDeferFlags(variables);
         _collectTelemetry = requestContext.CollectOperationPlanTelemetry();
         _clientScope = requestContext.CreateClientScope();
+        _clientScopeCreatedAt = Stopwatch.GetTimestamp();
 
         _resultStore.Initialize(
+            Memory,
             requestContext.Schema,
             _errorHandler,
             operationPlan.Operation,
@@ -66,6 +79,7 @@ public sealed partial class OperationPlanContext
             Array.Clear(_nodesToComplete, 0, _nodeSlotCapacity);
             Array.Clear(_schemaNames, 0, _nodeSlotCapacity);
             Array.Clear(_skippedDefinitions, 0, _nodeSlotCapacity);
+            Array.Clear(_batchRequestErrors, 0, _nodeSlotCapacity);
             Array.Clear(_variableValueSets, 0, _nodeSlotCapacity);
             Array.Clear(_transportUris, 0, _nodeSlotCapacity);
             Array.Clear(_transportContentTypes, 0, _nodeSlotCapacity);
@@ -75,6 +89,9 @@ public sealed partial class OperationPlanContext
         _executionState.Clean();
 
         RequestContext = default!;
+        _memory = null;
+        _memorySource.Clear();
+        _currentMemorySource = null!;
         Variables = default!;
         OperationPlan = default!;
         DeferFlags = 0;
@@ -89,6 +106,7 @@ public sealed partial class OperationPlanContext
 #endif
         _traceId = null;
         _start = 0;
+        _clientScopeCreatedAt = 0;
     }
 
     /// <summary>
@@ -125,6 +143,7 @@ public sealed partial class OperationPlanContext
             _nodesToComplete = new NodeCompletionSet?[nodeSlotCount];
             _schemaNames = new string?[nodeSlotCount];
             _skippedDefinitions = new List<IOperationPlanNode>?[nodeSlotCount];
+            _batchRequestErrors = new Dictionary<int, Exception>?[nodeSlotCount];
             _variableValueSets = new ImmutableArray<VariableValues>[nodeSlotCount];
             _transportUris = new Uri?[nodeSlotCount];
             _transportContentTypes = new string?[nodeSlotCount];

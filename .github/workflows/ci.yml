@@ -19,12 +19,12 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       website_changes: ${{ steps.check-website.outputs.website_changes }}
-      website_next_changes: ${{ steps.check-website-next.outputs.website_next_changes }}
       library_changes: ${{ steps.check-library.outputs.library_changes }}
       src_changes: ${{ steps.check-src.outputs.src_changes }}
+      nitro_client_changes: ${{ steps.check-nitro-client.outputs.nitro_client_changes }}
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
           fetch-depth: 2
           show-progress: false
@@ -39,20 +39,10 @@ jobs:
             echo "website_changes=false" >> $GITHUB_OUTPUT
           fi
 
-      - name: Check for changes in website-next directory
-        id: check-website-next
-        run: |
-          changes=$(git diff --name-only HEAD~1 HEAD -- ./website-next)
-          if [[ -n "$changes" ]]; then
-            echo "website_next_changes=true" >> $GITHUB_OUTPUT
-          else
-            echo "website_next_changes=false" >> $GITHUB_OUTPUT
-          fi
-
       - name: Check for changes outside website directory
         id: check-library
         run: |
-          changes=$(git diff --name-only HEAD~1 HEAD -- ':!./website' ':!./website-next')
+          changes=$(git diff --name-only HEAD~1 HEAD -- ':!./website')
           if [[ -n "$changes" ]]; then
             echo "library_changes=true" >> $GITHUB_OUTPUT
           else
@@ -71,13 +61,23 @@ jobs:
             echo "src_changes=false" >> $GITHUB_OUTPUT
           fi
 
+      - name: Check for changes in ChilliCream.Nitro.Client package
+        id: check-nitro-client
+        run: |
+          changes=$(git diff --name-only HEAD~1 HEAD -- ./src/Nitro/Common/src/ChilliCream.Nitro.Client)
+          if [[ -n "$changes" ]]; then
+            echo "nitro_client_changes=true" >> $GITHUB_OUTPUT
+          else
+            echo "nitro_client_changes=false" >> $GITHUB_OUTPUT
+          fi
+
   spellcheck:
     name: "Spellcheck Documentation"
     runs-on: ubuntu-latest
     needs: check-changes
-    if: needs.check-changes.outputs.website_changes == 'true' || needs.check-changes.outputs.website_next_changes == 'true'
+    if: needs.check-changes.outputs.website_changes == 'true'
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         name: Check out the code
         with:
           show-progress: false
@@ -88,21 +88,16 @@ jobs:
           node-version: 24
 
       - name: Install cspell
-        run: npm install -g cspell@10.0.0
+        run: npm install -g cspell@10.0.1
 
       - name: run cspell (website)
-        if: needs.check-changes.outputs.website_changes == 'true'
-        run: cspell --config ./cspell.json "website/src/**/*.md" --no-progress --no-cache
-
-      - name: run cspell (website-next)
-        if: needs.check-changes.outputs.website_next_changes == 'true'
-        run: cspell --config ./cspell.json "website-next/content/**/*.md" --no-progress --no-cache
+        run: cspell --config ./cspell.json "website/content/**/*.md" --no-progress --no-cache
 
   linting:
     name: "Markdown linting"
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         name: Check out the code
         with:
           show-progress: false
@@ -110,9 +105,9 @@ jobs:
         name: Setup node
         with:
           node-version: 24
-      - run: npm install -g markdownlint-cli2@0.22.0
+      - run: npm install -g markdownlint-cli2@0.22.1
         name: Install markdownlint-cli2
-      - run: markdownlint-cli2 "*.md" "website/src/**/*.md"
+      - run: markdownlint-cli2 "*.md" "website/content/**/*.md"
         name: run Markdownlint
 
   website-tests:
@@ -122,7 +117,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
           show-progress: false
 
@@ -143,65 +138,39 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-yarn-
 
-      - name: Cache Optimized Images
-        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
-        with:
-          path: website/.next/cache/images
-          key: ${{ runner.os }}-optimized-images-${{ hashFiles('website/public/images/**', 'website/public/docs/**/*.png', 'website/public/docs/**/*.jpg', 'website/public/docs/**/*.webp') }}
-          restore-keys: |
-            ${{ runner.os }}-optimized-images-
-
       - name: Install Packages
         run: yarn --immutable --network-timeout 100000
         working-directory: website
-
-      - name: Build Website
-        run: yarn build
-        working-directory: website
-
-  website-next-tests:
-    name: "Website Next Tests"
-    needs: check-changes
-    if: needs.check-changes.outputs.website_next_changes == 'true'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
-        with:
-          show-progress: false
-
-      - name: Install Node.js
-        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
-        with:
-          node-version: 24
-          cache: "yarn"
-          cache-dependency-path: "website-next/yarn.lock"
-
-      - name: Cache Yarn Packages
-        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
-        with:
-          path: |
-            website-next/.yarn/cache
-            website-next/.next/cache
-          key: ${{ runner.os }}-yarn-next-${{ hashFiles('website-next/yarn.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-yarn-next-
-
-      - name: Install Packages
-        run: yarn --immutable --network-timeout 100000
-        working-directory: website-next
+        env:
+          CHILLICREAM_FRONTEND_ENV: ci
 
       - name: Install Playwright Chromium
         run: yarn playwright install --with-deps chromium
-        working-directory: website-next
+        working-directory: website
+
+      - name: Format Check
+        run: yarn format:check
+        working-directory: website
 
       - name: Lint
         run: yarn lint
-        working-directory: website-next
+        working-directory: website
 
       - name: Build
         run: yarn build
-        working-directory: website-next
+        working-directory: website
+
+      - name: Visual Regression Tests
+        run: yarn test:visual
+        working-directory: website
+
+      - name: Upload Playwright Report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: playwright-report
+          path: website/playwright-report/
+          retention-days: 7
 
   configure:
     name: Generate Test Matrix
@@ -214,7 +183,7 @@ jobs:
 
     steps:
       - name: Checkout to repository
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
           show-progress: false
 
@@ -236,21 +205,22 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
           show-progress: false
 
       - name: Install .NET
-        uses: actions/setup-dotnet@c2fa09f4bde5ebb9d1777cf28262a3eb3db3ced7 # v5
+        uses: actions/setup-dotnet@9a946fdbd5fb07b82b2f5a4466058b876ab72bb2 # v5.3.0
         with:
           dotnet-version: |
             8.x
             9.x
             10.x
+            11.0.100-preview.5.26302.115
 
       - name: Run Build
         id: run-build
-        run: dotnet build ${{ matrix.path }} --framework net10.0 --verbosity q
+        run: dotnet build ${{ matrix.path }} --framework net11.0 --verbosity q
         timeout-minutes: 5
 
       - name: Log in to Docker Hub
@@ -259,7 +229,7 @@ jobs:
           github.event_name != 'pull_request' ||
           (github.event_name == 'pull_request' &&
            github.event.pull_request.head.repo.full_name == github.repository)
-        uses: docker/login-action@4907a6ddec9925e35a0a9e82d7399ccc52663121 # v4
+        uses: docker/login-action@650006c6eb7dba73a995cc03b0b2d7f5ca915bee # v4.2.0
         with:
           username: ${{ vars.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
@@ -269,13 +239,14 @@ jobs:
         timeout-minutes: 15
         continue-on-error: false
         run: >
-          dotnet test ${{ matrix.path }}
-          --collect:"XPlat Code Coverage;Format=opencover"
-          --framework net10.0
-          --logger trx
+          dotnet test
+          --project ${{ matrix.path }}
+          --framework net11.0
           --no-build
-          --
-          DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.ExcludeByFile="**/test/**"
+          --coverage
+          --coverage-output-format cobertura
+          --report-trx
+          --results-directory ${{ matrix.directoryPath }}/TestResults
         env:
           CI_BUILD: true
 
@@ -289,9 +260,7 @@ jobs:
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: coverage-${{ matrix.name }}
-          # The * matches a single directory that is named with a GUID.
-          # Take note of https://github.com/microsoft/vstest/issues/2334.
-          path: ${{ matrix.directoryPath }}/TestResults/*/coverage.opencover.xml
+          path: ${{ matrix.directoryPath }}/TestResults/*.cobertura.xml
 
       - name: Upload mismatch files as Artifact
         if: steps.run-tests.outcome == 'failure'
@@ -300,44 +269,100 @@ jobs:
           name: mismatch-files-${{ matrix.name }}
           path: ${{ matrix.directoryPath }}/**/__mismatch__/*
 
-  upload-coverage:
-    name: Upload Coverage
-    needs: library-tests
+  patch-coverage:
+    name: Patch Coverage
     runs-on: ubuntu-latest
+    needs: [check-changes, library-tests]
+    if: needs.check-changes.outputs.library_changes == 'true'
+    permissions:
+      contents: read
+      pull-requests: write
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          show-progress: false
+          fetch-depth: 0
+          # PR-authored patch-coverage.cs runs in this job; keep the job token out of the workspace.
+          persist-credentials: false
+
+      - name: Install .NET
+        uses: actions/setup-dotnet@9a946fdbd5fb07b82b2f5a4466058b876ab72bb2 # v5.3.0
+        with:
+          dotnet-version: 11.0.100-preview.5.26302.115
+
       - name: Download all coverage artifacts
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           path: ./output/download
           pattern: coverage-*
 
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@75cd11691c0faa626561e295848008c8a7dddffe # v5
-        timeout-minutes: 10
+      - name: Install dotnet-coverage
+        run: |
+          dotnet tool install --global dotnet-coverage --version 18.8.0
+          echo "$HOME/.dotnet/tools" >> "$GITHUB_PATH"
+
+      - name: Merge coverage reports
+        run: >
+          dotnet-coverage merge
+          --output ./output/merged.cobertura.xml
+          --output-format cobertura
+          "./output/download/**/*.cobertura.xml"
+
+      - name: Compute changed lines
+        # HEAD is the PR merge commit. The three-dot "^1...^2" diffs merge-base(base, head)..head,
+        # i.e. only the PR's own changes, matching GitHub's "Files changed" even when behind main.
+        run: >
+          git diff --unified=0 --diff-filter=d
+          "HEAD^1...HEAD^2"
+          -- '*.cs' > ./output/pr.diff
+
+      - name: Generate patch coverage report
+        id: report
+        env:
+          GITHUB_SHA: ${{ github.event.pull_request.head.sha }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          dotnet .github/scripts/patch-coverage.cs -- ./output/merged.cobertura.xml ./output/pr.diff > ./output/report.md
+          if [ -s ./output/report.md ]; then
+            echo "has_content=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_content=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Write job summary
+        if: steps.report.outputs.has_content == 'true'
+        run: cat ./output/report.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Post sticky comment
+        # Fork PRs get a read-only token and cannot post comments; coverage still
+        # appears in the job summary above for those PRs.
+        if: >
+          steps.report.outputs.has_content == 'true' &&
+          github.event.pull_request.head.repo.full_name == github.repository
+        uses: marocchino/sticky-pull-request-comment@0ea0beb66eb9baf113663a64ec522f60e49231c0 # v3.0.4
         with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          name: graphql-platform
-          files: "./output/download/coverage-*/*/coverage.opencover.xml"
-          disable_search: true
-          flags: unittests
-          fail_ci_if_error: true
+          header: patch-coverage
+          path: ./output/report.md
 
   validate-nitro-client:
     name: Validate Nitro Client
     runs-on: ubuntu-latest
     needs: check-changes
-    if: needs.check-changes.outputs.src_changes == 'true'
+    if: >-
+      needs.check-changes.outputs.nitro_client_changes == 'true' &&
+      !github.event.pull_request.head.repo.fork
     permissions:
       contents: read
       pull-requests: write
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
           show-progress: false
 
       - name: Validate Client
-        uses: ChilliCream/nitro-client-validate@e9856650fe21377cd2a7f0c82002cf121dbe9a30 # v16.0.13
+        uses: ChilliCream/nitro-client-validate@4b817b3f65b7fcc09eeea7b8fa901e7abf69945c # v16.1.3
         with:
           client-id: ${{ secrets.NITRO_API_CLIENT_ID }}
           operations-file: src/Nitro/Common/src/ChilliCream.Nitro.Client/persisted/operations.json
@@ -352,7 +377,7 @@ jobs:
     if: needs.check-changes.outputs.src_changes == 'true'
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
           show-progress: false
 
@@ -400,7 +425,6 @@ jobs:
       [
         library-tests,
         website-tests,
-        website-next-tests,
         validate-nitro-client,
         verify-nitro-npm-package,
       ]
@@ -413,5 +437,4 @@ jobs:
           always() &&
           (needs.library-tests.result == 'failure' ||
            needs.website-tests.result == 'failure' ||
-           needs.website-next-tests.result == 'failure' ||
            needs.verify-nitro-npm-package.result == 'failure')

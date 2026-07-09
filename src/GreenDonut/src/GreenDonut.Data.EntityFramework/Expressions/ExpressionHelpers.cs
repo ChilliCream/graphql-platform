@@ -154,6 +154,7 @@ internal static class ExpressionHelpers
         Expression cursorExpr)
     {
         var keyExpr = ReplaceParameter(cursorKey.Expression, parameter);
+        keyExpr = LiftValueTypeIfNullable(keyExpr, keyIsNullable);
 
         // Access the value of the key if it is a nullable value type.
         var keyValueExpr = cursorKey.Expression.ReturnType.IsValueType && keyIsNullable
@@ -197,6 +198,7 @@ internal static class ExpressionHelpers
         Expression cursorExpr)
     {
         var keyExpr = ReplaceParameter(cursorKey.Expression, parameter);
+        keyExpr = LiftValueTypeIfNullable(keyExpr, keyIsNullable);
 
         // Access the value of the key if it is a nullable value type.
         var keyValueExpr =
@@ -255,6 +257,7 @@ internal static class ExpressionHelpers
         Expression cursorExpr)
     {
         var keyExpr = ReplaceParameter(cursorKey.Expression, parameter);
+        keyExpr = LiftValueTypeIfNullable(keyExpr, keyIsNullable);
 
         // Access the value of the key if it is a nullable value type.
         var keyValueExpr =
@@ -306,38 +309,37 @@ internal static class ExpressionHelpers
 
     private static bool IsNullable(LambdaExpression expression)
     {
-        if (expression.ReturnType.IsValueType)
+        // A nullable value-type return (for example an explicit cast to int?).
+        if (expression.ReturnType.IsValueType
+            && Nullable.GetUnderlyingType(expression.ReturnType) is not null)
         {
-            return Nullable.GetUnderlyingType(expression.ReturnType) is not null;
+            return true;
         }
 
-        var member = expression.Body switch
-        {
-            MemberExpression { Member: PropertyInfo or FieldInfo } m => m.Member,
-            BinaryExpression
-            {
-                NodeType: ExpressionType.Coalesce,
-                Right: MemberExpression { Member: PropertyInfo or FieldInfo } m
-            } => m.Member,
-            _ => null
-        };
+        var current = StripConvert(expression.Body);
 
-        if (member is not null)
+        // (a ?? b) is null only when the fallback b is null.
+        if (current is BinaryExpression { NodeType: ExpressionType.Coalesce, Right: var right })
         {
-            var state = member switch
-            {
-                PropertyInfo p => GetNullabilityInfoState(p),
-                FieldInfo f => GetNullabilityInfoState(f),
-                _ => throw new InvalidOperationException()
-            };
+            current = StripConvert(right);
+        }
 
-            return state switch
+        // The key value is nullable if the leaf or any intermediate navigation along
+        // the member-access path is nullable (for example x.Meter.Id is null when
+        // x.Meter is null).
+        while (current is MemberExpression { Member: PropertyInfo or FieldInfo } member)
+        {
+            if (IsMemberNullable(member))
             {
-                NullabilityState.Nullable => true,
-                // Unknown means the assembly was compiled without NRT annotations;
-                // treat as non-nullable (safe default).
-                _ => false
-            };
+                return true;
+            }
+
+            if (member.Expression is null)
+            {
+                break;
+            }
+
+            current = StripConvert(member.Expression);
         }
 
         // For computed key expressions (method calls, concatenation, etc.) we cannot inspect
@@ -622,6 +624,53 @@ internal static class ExpressionHelpers
         Expression<Func<T>> lambda = () => value;
         return lambda.Body;
     }
+
+    /// <summary>
+    /// Determines whether a member access can yield <c>null</c>: a value-type member
+    /// only when it is <see cref="Nullable{T}"/>, and a reference-type member according
+    /// to its nullable reference type annotation.
+    /// </summary>
+    private static bool IsMemberNullable(MemberExpression member)
+    {
+        if (member.Type.IsValueType)
+        {
+            return Nullable.GetUnderlyingType(member.Type) is not null;
+        }
+
+        // Unknown means the assembly was compiled without NRT annotations;
+        // treat as non-nullable (safe default).
+        return member.Member switch
+        {
+            PropertyInfo p => GetNullabilityInfoState(p) == NullabilityState.Nullable,
+            FieldInfo f => GetNullabilityInfoState(f) == NullabilityState.Nullable,
+            _ => false
+        };
+    }
+
+    /// <summary>
+    /// Removes any <see cref="ExpressionType.Convert"/> or
+    /// <see cref="ExpressionType.ConvertChecked"/> wrappers from an expression and
+    /// returns the underlying operand.
+    /// </summary>
+    private static Expression StripConvert(Expression expression)
+        => expression is UnaryExpression
+        {
+            NodeType: ExpressionType.Convert or ExpressionType.ConvertChecked
+        } unary
+            ? StripConvert(unary.Operand)
+            : expression;
+
+    /// <summary>
+    /// Lifts a non-nullable value-type key (for example <c>int</c> for
+    /// <c>x.Meter.Id</c>) to its <see cref="Nullable{T}"/> form when the key is
+    /// nullable because of an intermediate navigation, so the key can be compared
+    /// against <c>null</c>. Keys that are already nullable or are reference types
+    /// are returned unchanged.
+    /// </summary>
+    private static Expression LiftValueTypeIfNullable(Expression keyExpr, bool keyIsNullable)
+        => keyIsNullable && keyExpr.Type.IsValueType && Nullable.GetUnderlyingType(keyExpr.Type) is null
+            ? Expression.Convert(keyExpr, typeof(Nullable<>).MakeGenericType(keyExpr.Type))
+            : keyExpr;
 
     private static Expression BuildEqualComparison(
         CursorKey cursorKey,

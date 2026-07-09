@@ -33,7 +33,7 @@ public class ConnectionRecoveryTests
         var messageBus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
 
         // act - publish message 1, verify received
-        await messageBus.PublishAsync(new OrderCreated { OrderId = "ORD-1" }, default);
+        await messageBus.PublishAsync(new OrderCreated { OrderId = "ORD-1" }, TestContext.Current.CancellationToken);
         Assert.True(await recorder.WaitAsync(s_timeout), "Handler did not receive message 1");
 
         // drop all connections
@@ -64,12 +64,12 @@ public class ConnectionRecoveryTests
         var messageBus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
 
         // act - publish message 1
-        await messageBus.PublishAsync(new OrderCreated { OrderId = "ORD-1" }, default);
+        await messageBus.PublishAsync(new OrderCreated { OrderId = "ORD-1" }, TestContext.Current.CancellationToken);
         Assert.True(await recorder.WaitAsync(s_timeout), "Handler did not receive message 1");
 
         // drop connections twice
         await _fixture.CloseAllConnectionsAsync("recovery-test-1");
-        await Task.Delay(TimeSpan.FromSeconds(2));
+        await Task.Delay(TimeSpan.FromSeconds(2), TestContext.Current.CancellationToken);
         await _fixture.CloseAllConnectionsAsync("recovery-test-2");
 
         // wait for recovery and verify message 2
@@ -97,7 +97,9 @@ public class ConnectionRecoveryTests
         var messageBus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
 
         // send message 1
-        await messageBus.SendAsync(new ProcessPayment { OrderId = "ORD-1", Amount = 50.00m }, default);
+        await messageBus.SendAsync(
+            new ProcessPayment { OrderId = "ORD-1", Amount = 50.00m },
+            TestContext.Current.CancellationToken);
         Assert.True(await recorder.WaitAsync(s_timeout), "Handler did not receive message 1");
 
         // drop connections

@@ -145,22 +145,18 @@ public sealed partial class SourceResultDocument
 
         if (row.IsSimpleValue)
         {
-            if (includeQuotes && row.TokenType == JsonTokenType.String)
+            // Strings are stored quote-inclusive, so the quoted form is the stored span and the
+            // unquoted form slices one byte in on each side.
+            if (!includeQuotes && row.TokenType == JsonTokenType.String)
             {
-                // Start one character earlier than the value (the open quote)
-                // End one character after the value (the close quote)
-                return ReadRawValue(row.Location - 1, row.SizeOrLength + 2);
+                return ReadRawValue(row.Location, row.SizeOrLength)[1..^1];
             }
 
-            return ReadRawValue(row, includeQuotes: false);
+            return ReadRawValue(row.Location, row.SizeOrLength);
         }
 
-        var start = row.Location;
-        var endCursor = GetEndIndex(cursor, includeEndElement: false);
-        var endRow = _parsedData.Get(endCursor);
-        var endRowLength = GetEndRowLength(endRow);
-
-        return ReadRawValue(start, endRow.Location - start + endRowLength);
+        var (start, length) = GetCompositeRange(cursor, row);
+        return ReadRawValue(start, length);
     }
 
     internal ReadOnlyMemory<byte> GetRawValueAsMemory(Cursor cursor, bool includeQuotes)
@@ -171,22 +167,16 @@ public sealed partial class SourceResultDocument
 
         if (row.IsSimpleValue)
         {
-            if (includeQuotes && row.TokenType == JsonTokenType.String)
+            if (!includeQuotes && row.TokenType == JsonTokenType.String)
             {
-                // Start one character earlier than the value (the open quote)
-                // End one character after the value (the close quote)
-                return ReadRawValueAsMemory(row.Location - 1, row.SizeOrLength + 2);
+                return ReadRawValueAsMemory(row.Location, row.SizeOrLength)[1..^1];
             }
 
             return ReadRawValueAsMemory(row.Location, row.SizeOrLength);
         }
 
-        var start = row.Location;
-        var endCursor = GetEndIndex(cursor, includeEndElement: false);
-        var endRow = _parsedData.Get(endCursor);
-        var endRowLength = GetEndRowLength(endRow);
-
-        return ReadRawValueAsMemory(start, endRow.Location - start + endRowLength);
+        var (start, length) = GetCompositeRange(cursor, row);
+        return ReadRawValueAsMemory(start, length);
     }
 
     internal ValueRange GetRawValuePointer(Cursor cursor, bool includeQuotes)
@@ -197,22 +187,57 @@ public sealed partial class SourceResultDocument
 
         if (row.IsSimpleValue)
         {
-            if (includeQuotes && row.TokenType == JsonTokenType.String)
+            // Strings are stored quote-inclusive, so the quote-inclusive pointer is the stored
+            // location and size; the unquoted pointer steps one byte in on each side. Because the
+            // value is gap-free, the inner byte sits at the next linear position.
+            if (!includeQuotes && row.TokenType == JsonTokenType.String)
             {
-                // Start one character earlier than the value (the open quote)
-                // End one character after the value (the close quote)
-                return new ValueRange(row.Location - 1, row.SizeOrLength + 2);
+                // A single chunk holds the whole value gap-free, so the inner byte is the next
+                // offset in the same chunk. Multi-chunk documents follow the chunk schedule, so the
+                // inner byte only rolls into the next chunk when the quote ends its chunk.
+                int innerStart;
+                if (_usedChunks == 1)
+                {
+                    innerStart = row.Location + 1;
+                }
+                else
+                {
+                    var chunk = row.Location >>> DataOffsetBits;
+                    var offset = row.Location & DataOffsetMask;
+                    innerStart = offset + 1 < GetDataChunkSize(chunk)
+                        ? row.Location + 1
+                        : EncodeDataLocation(chunk + 1, 0);
+                }
+
+                return new ValueRange(innerStart, row.SizeOrLength - 2);
             }
 
             return new ValueRange(row.Location, row.SizeOrLength);
         }
 
+        var (start, length) = GetCompositeRange(cursor, row);
+        return new ValueRange(start, length);
+    }
+
+    /// <summary>
+    /// Gets the packed start location and byte length of the raw JSON that backs a composite value
+    /// (object or array). The length is measured over the gap-free linear positions of the start
+    /// and end rows, so no arithmetic is performed on the packed location values.
+    /// </summary>
+    private (int Start, int Length) GetCompositeRange(Cursor cursor, DbRow row)
+    {
         var start = row.Location;
         var endCursor = GetEndIndex(cursor, includeEndElement: false);
         var endRow = _parsedData.Get(endCursor);
         var endRowLength = GetEndRowLength(endRow);
+        var end = endRow.Location;
 
-        return new ValueRange(start, endRow.Location - start + endRowLength);
+        // When start and end share a data chunk the gap-free distance is the plain offset difference,
+        // so the linear mapping is only needed when the value spans a chunk boundary.
+        var length = (start >>> DataOffsetBits) == (end >>> DataOffsetBits)
+            ? (end & DataOffsetMask) - (start & DataOffsetMask) + endRowLength
+            : (int)(PackedToLinear(end) - PackedToLinear(start) + endRowLength);
+        return (start, length);
     }
 
     private ReadOnlySpan<byte> GetPropertyRawValue(Cursor valueCursor)
@@ -223,27 +248,32 @@ public sealed partial class SourceResultDocument
         var nameRow = _parsedData.Get(valueCursor - 1);
         Debug.Assert(nameRow.TokenType == JsonTokenType.PropertyName);
 
-        // Subtract one for the open quote.
-        var start = nameRow.Location - 1;
+        // Property names are stored quote-inclusive, so the open quote is the stored location.
+        var start = nameRow.Location;
 
         var valueRow = _parsedData.Get(valueCursor);
 
         if (valueRow.IsSimpleValue)
         {
-            var end = valueRow.Location + valueRow.SizeOrLength;
-
-            if (valueRow.TokenType == JsonTokenType.String)
-            {
-                end++; // include closing quote for strings
-            }
-
-            return ReadRawValue(start, end - start);
+            // Strings and property names are stored quote-inclusive, so the size already covers the
+            // quotes; numbers and literals end at their stored length. When the name and value share
+            // a data chunk the distance is the plain offset difference, otherwise map to linear.
+            var end = valueRow.Location;
+            var length = (start >>> DataOffsetBits) == (end >>> DataOffsetBits)
+                ? (end & DataOffsetMask) - (start & DataOffsetMask) + valueRow.SizeOrLength
+                : (int)(PackedToLinear(end) + valueRow.SizeOrLength - PackedToLinear(start));
+            return ReadRawValue(start, length);
         }
 
         var endCursor = GetEndIndex(valueCursor, includeEndElement: false);
         var endRow = _parsedData.Get(endCursor);
-        var endOffset = endRow.Location + GetEndRowLength(endRow);
-        return ReadRawValue(start, endOffset - start);
+        var endRowLength = GetEndRowLength(endRow);
+        var endLocation = endRow.Location;
+
+        var compositeLength = (start >>> DataOffsetBits) == (endLocation >>> DataOffsetBits)
+            ? (endLocation & DataOffsetMask) - (start & DataOffsetMask) + endRowLength
+            : (int)(PackedToLinear(endLocation) + endRowLength - PackedToLinear(start));
+        return ReadRawValue(start, compositeLength);
     }
 
     internal Cursor GetEndIndex(Cursor cursor, bool includeEndElement)
@@ -271,6 +301,10 @@ public sealed partial class SourceResultDocument
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal DbRow GetDbRow(Cursor cursor) => _parsedData.Get(cursor);
+
+    // Reads the value row once so callers can derive the token type and value range from a single row read.
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal DbRow GetValueRow(Cursor cursor) => _parsedData.Get(cursor);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static int GetEndRowLength(DbRow endRow)

@@ -1,8 +1,8 @@
 using System.Buffers;
 using System.Diagnostics;
+using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Text;
-using System.Text.Json;
 using HotChocolate.Buffers;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Processing;
@@ -13,13 +13,16 @@ namespace HotChocolate.Text.Json;
 public sealed partial class ResultDocument : IDisposable
 {
     private static readonly Encoding s_utf8Encoding = Encoding.UTF8;
+    private static readonly ArrayPool<MemorySegment> s_arrayPool = ArrayPool<MemorySegment>.Shared;
+    private readonly IMemoryArena _arena;
     private readonly Operation _operation;
     private readonly ulong _includeFlags;
     private readonly Path _rootPath = Path.Root;
     internal MetaDb _metaDb;
-    private int _nextDataIndex;
-    private int _rentedDataSize;
-    private readonly List<byte[]> _data = [];
+    private long _dataHead;
+    private int _rentedDataChunks;
+    private MemorySegment[] _data;
+
 #if NET10_0_OR_GREATER
     private readonly Lock _dataChunkLock = new();
 #else
@@ -27,18 +30,25 @@ public sealed partial class ResultDocument : IDisposable
 #endif
     private int _disposed;
 
-    public ResultDocument(Operation operation, ulong includeFlags)
+    public ResultDocument(
+        IMemoryArena arena,
+        Operation operation,
+        ulong includeFlags)
     {
+        ArgumentNullException.ThrowIfNull(arena);
         ArgumentNullException.ThrowIfNull(operation);
 
-        _metaDb = MetaDb.CreateForEstimatedRows(Cursor.RowsPerChunk);
+        _arena = arena;
+        _metaDb = MetaDb.Create(arena);
+        _data = RentDataChunks();
         _operation = operation;
         _includeFlags = includeFlags;
 
-        Data = CreateObject(Cursor.Zero, operation.RootSelectionSet);
+        Data = CreateObject(Cursor.CreateZero(), operation.RootSelectionSet);
     }
 
-    public ResultDocument(
+    internal ResultDocument(
+        IMemoryArena arena,
         Operation operation,
         SelectionSet selectionSet,
         Path path,
@@ -46,19 +56,54 @@ public sealed partial class ResultDocument : IDisposable
         ulong deferFlags,
         DeferUsage deferUsage)
     {
+        ArgumentNullException.ThrowIfNull(arena);
         ArgumentNullException.ThrowIfNull(operation);
         ArgumentNullException.ThrowIfNull(selectionSet);
         ArgumentNullException.ThrowIfNull(deferUsage);
 
-        _metaDb = MetaDb.CreateForEstimatedRows(Cursor.RowsPerChunk);
+        _arena = arena;
+        _metaDb = MetaDb.Create(arena);
+        _data = RentDataChunks();
         _operation = operation;
         _includeFlags = includeFlags;
         _rootPath = path;
 
-        Data = CreateObject(Cursor.Zero, selectionSet, includeFlags, deferFlags, deferUsage);
+        Data = CreateObject(Cursor.CreateZero(), selectionSet, includeFlags, deferFlags, deferUsage);
+    }
+
+    private static MemorySegment[] RentDataChunks()
+    {
+        var data = s_arrayPool.Rent(4);
+
+        // Clear pooled slots so unallocated chunks are recognizable by a null buffer.
+        data.AsSpan().Clear();
+        return data;
     }
 
     public ResultElement Data { get; }
+
+    // A data location packs the chunk index in the high 12 bits and the byte offset within the
+    // chunk in the low 17 bits, fitting the 29-bit location field of a metadb row. The chunk size
+    // follows the same geometric schedule as the metadb, so it is derived from the chunk index.
+    private const int DataOffsetBits = 17;
+    private const int DataChunkBits = 12;
+    private const int DataOffsetMask = (1 << DataOffsetBits) - 1;
+    private const int DataMaxChunks = 1 << DataChunkBits;
+    private const int DataMaxChunkOrdinal = (int)ChunkSize.Size128K;
+
+    // The geometric ramp covers chunks 0..7 (Size1K..Size128K); chunk 8 and beyond stay at
+    // Size128K. The ramp holds 1024 * (2^0 + ... + 2^7) = 255 KB before the constant tail begins.
+    private const int RampChunkCount = DataMaxChunkOrdinal + 1;
+    private const int LargestChunkBytes = 1 << (10 + DataMaxChunkOrdinal);
+    private const long RampTotalBytes = (long)255 * 1024;
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static int GetDataChunkSize(int chunkIndex)
+        => 1 << (10 + Math.Min(chunkIndex, DataMaxChunkOrdinal));
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static int EncodeDataLocation(int chunkIndex, int offset)
+        => (chunkIndex << DataOffsetBits) | offset;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal ElementTokenType GetElementTokenType(Cursor cursor)
@@ -79,7 +124,7 @@ public sealed partial class ResultDocument : IDisposable
 
     internal Selection? GetSelection(Cursor cursor)
     {
-        if (cursor == Cursor.Zero)
+        if (cursor.IsZero)
         {
             return null;
         }
@@ -160,13 +205,13 @@ public sealed partial class ResultDocument : IDisposable
         {
             chain[written++] = c;
 
-            var parentIndex = _metaDb.GetParent(c);
-            if (parentIndex <= 0)
+            var parent = _metaDb.GetParentCursor(c);
+            if (parent.IsZero)
             {
                 break;
             }
 
-            c = Cursor.FromIndex(parentIndex);
+            c = parent;
 
             if (written >= 64)
             {
@@ -196,9 +241,7 @@ public sealed partial class ResultDocument : IDisposable
                 if (parentTokenType is ElementTokenType.StartArray)
                 {
                     // arrayIndex = abs(child) - (abs(parent) + 1)
-                    var absChild = (c.Chunk * Cursor.RowsPerChunk) + c.Row;
-                    var absParent = (parentCursor.Chunk * Cursor.RowsPerChunk) + parentCursor.Row;
-                    var arrayIndex = absChild - (absParent + 1);
+                    var arrayIndex = c.Index - (parentCursor.Index + 1);
                     path = path.Append(arrayIndex);
                 }
             }
@@ -213,7 +256,7 @@ public sealed partial class ResultDocument : IDisposable
     {
         // The null cursor represents the data object, which is the utmost root.
         // If we have reached that we simply return an undefined element
-        if (current == Cursor.Zero)
+        if (current.IsZero)
         {
             return default;
         }
@@ -230,7 +273,7 @@ public sealed partial class ResultDocument : IDisposable
         // if we have not yet reached the root and the element type of the parent is an object or an array
         // then we need to get still the parent of this row as we want to get the logical parent
         // which is the value level of the property or the element in an array.
-        if (parent != Cursor.Zero
+        if (!parent.IsZero
             && _metaDb.GetElementTokenType(parent) is ElementTokenType.StartObject or ElementTokenType.StartArray)
         {
             parent = _metaDb.GetParentCursor(parent);
@@ -352,66 +395,6 @@ public sealed partial class ResultDocument : IDisposable
         Debug.Fail("Only objects can be invalidated.");
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private void WriteRawValueTo(Utf8JsonWriter writer, DbRow row)
-    {
-        switch (row.TokenType)
-        {
-            case ElementTokenType.Null:
-                writer.WriteNullValue();
-                return;
-
-            case ElementTokenType.True:
-                writer.WriteBooleanValue(true);
-                return;
-
-            case ElementTokenType.False:
-                writer.WriteBooleanValue(false);
-                return;
-
-            case ElementTokenType.String:
-            case ElementTokenType.Number:
-                writer.WriteRawValue(ReadRawValue(row), skipInputValidation: true);
-                return;
-
-            default:
-                throw new NotSupportedException();
-        }
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static void WriteToBuffer(IBufferWriter<byte> writer, ReadOnlySpan<byte> data)
-    {
-        var span = writer.GetSpan(data.Length);
-        data.CopyTo(span);
-        writer.Advance(data.Length);
-    }
-
-    /// <summary>
-    /// Writes local data to the buffer, handling chunk boundaries.
-    /// </summary>
-    private void WriteLocalDataTo(IBufferWriter<byte> writer, int location, int size)
-    {
-        var remaining = size;
-        var currentPos = location;
-
-        while (remaining > 0)
-        {
-            var chunkIndex = currentPos / JsonMemory.BufferSize;
-            var offset = currentPos % JsonMemory.BufferSize;
-            var availableInChunk = JsonMemory.BufferSize - offset;
-            var toWrite = Math.Min(remaining, availableInChunk);
-
-            var source = _data[chunkIndex].AsSpan(offset, toWrite);
-            var dest = writer.GetSpan(toWrite);
-            source.CopyTo(dest);
-            writer.Advance(toWrite);
-
-            currentPos += toWrite;
-            remaining -= toWrite;
-        }
-    }
-
     private ReadOnlySpan<byte> ReadRawValue(DbRow row)
     {
         switch (row.TokenType)
@@ -439,12 +422,9 @@ public sealed partial class ResultDocument : IDisposable
     }
 
     /// <summary>
-    /// Reads local data from the data chunks.
+    /// Reads local data from the data chunks. Data contained in a single chunk is returned as a
+    /// slice over that chunk; data that spans chunk boundaries is copied into a fresh buffer.
     /// </summary>
-    /// <remarks>
-    /// This method only supports data that fits within a single chunk.
-    /// Data that spans chunk boundaries should use <see cref="WriteLocalDataTo"/> instead.
-    /// </remarks>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private ReadOnlySpan<byte> ReadLocalData(int location, int size)
     {
@@ -453,31 +433,32 @@ public sealed partial class ResultDocument : IDisposable
             return [];
         }
 
-        var startChunkIndex = location / JsonMemory.BufferSize;
-        var offsetInStartChunk = location % JsonMemory.BufferSize;
+        var startChunkIndex = location >>> DataOffsetBits;
+        var offsetInStartChunk = location & DataOffsetMask;
 
         // Fast path: data fits in a single chunk
-        if (offsetInStartChunk + size <= JsonMemory.BufferSize)
+        if (offsetInStartChunk + size <= GetDataChunkSize(startChunkIndex))
         {
-            return _data[startChunkIndex].AsSpan(offsetInStartChunk, size);
+            var seg = _data[startChunkIndex];
+            return seg.Buffer.AsSpan(seg.Offset + offsetInStartChunk, size);
         }
 
         Span<byte> buffer = new byte[size];
         var bytesRead = 0;
-        var currentLocation = location;
+        var chunkIndex = startChunkIndex;
+        var offsetInChunk = offsetInStartChunk;
 
         while (bytesRead < size)
         {
-            var chunkIndex = currentLocation / JsonMemory.BufferSize;
-            var offsetInChunk = currentLocation % JsonMemory.BufferSize;
             var chunk = _data[chunkIndex];
 
-            var bytesToCopyFromThisChunk = Math.Min(size - bytesRead, JsonMemory.BufferSize - offsetInChunk);
-            var chunkSpan = chunk.AsSpan(offsetInChunk, bytesToCopyFromThisChunk);
+            var bytesToCopyFromThisChunk = Math.Min(size - bytesRead, GetDataChunkSize(chunkIndex) - offsetInChunk);
+            var chunkSpan = chunk.Buffer.AsSpan(chunk.Offset + offsetInChunk, bytesToCopyFromThisChunk);
 
             chunkSpan.CopyTo(buffer[bytesRead..]);
             bytesRead += bytesToCopyFromThisChunk;
-            currentLocation += bytesToCopyFromThisChunk;
+            chunkIndex++;
+            offsetInChunk = 0;
         }
 
         return buffer;
@@ -571,8 +552,8 @@ public sealed partial class ResultDocument : IDisposable
         _metaDb.Replace(
             cursor: target.Cursor,
             tokenType: ElementTokenType.Reference,
-            location: value.Cursor.ToIndex(),
-            parentRow: _metaDb.GetParent(target.Cursor));
+            location: value.Cursor.Value,
+            parent: _metaDb.GetParent(target.Cursor));
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -587,7 +568,7 @@ public sealed partial class ResultDocument : IDisposable
             tokenType: ElementTokenType.String,
             location: position,
             sizeOrLength: totalSize,
-            parentRow: _metaDb.GetParent(target.Cursor),
+            parent: _metaDb.GetParent(target.Cursor),
             flags: isEncoded ? ElementFlags.IsEncoded : ElementFlags.None);
     }
 
@@ -608,7 +589,7 @@ public sealed partial class ResultDocument : IDisposable
             tokenType: ElementTokenType.PropertyName,
             location: position,
             sizeOrLength: totalSize,
-            parentRow: row.ParentRow);
+            parent: row.Parent);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -622,7 +603,7 @@ public sealed partial class ResultDocument : IDisposable
             tokenType: ElementTokenType.Number,
             location: position,
             sizeOrLength: value.Length,
-            parentRow: _metaDb.GetParent(target.Cursor));
+            parent: _metaDb.GetParent(target.Cursor));
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -631,7 +612,7 @@ public sealed partial class ResultDocument : IDisposable
         _metaDb.Replace(
             cursor: target.Cursor,
             tokenType: value ? ElementTokenType.True : ElementTokenType.False,
-            parentRow: _metaDb.GetParent(target.Cursor));
+            parent: _metaDb.GetParent(target.Cursor));
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -640,7 +621,7 @@ public sealed partial class ResultDocument : IDisposable
         _metaDb.Replace(
             cursor: target.Cursor,
             tokenType: ElementTokenType.Null,
-            parentRow: _metaDb.GetParent(target.Cursor));
+            parent: _metaDb.GetParent(target.Cursor));
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -659,131 +640,188 @@ public sealed partial class ResultDocument : IDisposable
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private int ClaimDataSpace(int size)
     {
-        // Atomically claim space
-        var endPosition = Interlocked.Add(ref _nextDataIndex, size);
-        var startPosition = endPosition - size;
-
-        // Fast path: we check if we already have enough rented memory
-        // if so we can directly return and write the data without locking.
-        if (endPosition <= Volatile.Read(ref _rentedDataSize))
-        {
-            return startPosition;
-        }
-
-        // Slow path: we need to rent more chunks so in this case
-        // we will need to do a proper synchronization.
-        EnsureDataCapacity(endPosition);
-        return startPosition;
+        // The data store is a single linear byte space, so a claim is one atomic add on the head.
+        // The start is the head before the add; the schedule decode below maps it to (chunk, offset).
+        var end = Interlocked.Add(ref _dataHead, size);
+        var (location, lastChunk) = ComputeDataClaim(end - size, size);
+        EnsureDataChunks(lastChunk);
+        return location;
     }
 
-    private void EnsureDataCapacity(int requiredSize)
+    /// <summary>
+    /// Computes the claim for <paramref name="size"/> bytes starting at the linear byte
+    /// position <paramref name="start"/>: the encoded start location and the chunk holding the
+    /// last byte.
+    /// </summary>
+    /// <exception cref="InvalidOperationException">
+    /// The claim would exceed the document's data capacity.
+    /// </exception>
+    internal static (int Location, int LastChunk) ComputeDataClaim(long start, int size)
     {
+        // A value always starts exactly at the head so the data store is written without gaps;
+        // a value that does not fit the remaining space of the current chunk spans into the
+        // following chunks, and the read and write paths walk the boundaries.
+        var (chunk, offset) = DecodeDataLocation(start);
+
+        // The last byte of the value (size == 0 claims occupy no byte, so they stay in chunk).
+        var lastChunk = size > 0 ? DecodeDataLocation(start + size - 1).Chunk : chunk;
+
+        if (lastChunk >= DataMaxChunks)
+        {
+            throw new InvalidOperationException(
+                "The result document has exceeded its maximum data capacity.");
+        }
+
+        return (EncodeDataLocation(chunk, offset), lastChunk);
+    }
+
+    /// <summary>
+    /// Maps a linear byte position to a (chunk, offset) location following the geometric schedule.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static (int Chunk, int Offset) DecodeDataLocation(long pos)
+    {
+        // Ramp (chunks 0..7): each chunk c holds 1024 << c bytes, so the cumulative bytes before
+        // chunk c are 1024 * ((1 << c) - 1). The chunk index is the highest bit set in
+        // (pos >> 10) + 1, which Log2 returns branch-free.
+        if (pos < RampTotalBytes)
+        {
+            var chunk = BitOperations.Log2((uint)((pos >> 10) + 1));
+            var offset = (int)(pos - ((1L << (10 + chunk)) - 1024));
+            return (chunk, offset);
+        }
+
+        // Tail (chunk 8+): every chunk holds the largest size (128K), so the index is closed-form.
+        var tail = pos - RampTotalBytes;
+        return (RampChunkCount + (int)(tail >> 17), (int)(tail & (LargestChunkBytes - 1)));
+    }
+
+    private void EnsureDataChunks(int requiredChunkIndex)
+    {
+        // Fast path: the chunk has already been rented.
+        if (requiredChunkIndex < Volatile.Read(ref _rentedDataChunks))
+        {
+            return;
+        }
+
         lock (_dataChunkLock)
         {
-            // Double-check after acquiring lock
-            var currentSize = _rentedDataSize;
-            if (requiredSize <= currentSize)
+            var data = _data;
+            var rented = _rentedDataChunks;
+
+            if (requiredChunkIndex >= data.Length)
             {
-                return;
+                // Grow the tracking array to cover the required chunk, copy the rented segments,
+                // and clear the new slots so unallocated chunks are recognizable by a null buffer.
+                // The arena owns the chunk memory itself, so only the pooled tracking array is
+                // grown here.
+                var nextLength = Math.Max(data.Length * 2, requiredChunkIndex + 1);
+                var newData = s_arrayPool.Rent(nextLength);
+                Array.Copy(data, newData, rented);
+                newData.AsSpan(rented).Clear();
+                s_arrayPool.Return(data);
+                _data = data = newData;
             }
 
-            // Rent chunks until we have enough
-            while (currentSize < requiredSize)
+            while (rented <= requiredChunkIndex)
             {
-                _data.Add(JsonMemory.Rent(JsonMemoryKind.Json));
-                currentSize += JsonMemory.BufferSize;
+                data[rented] = _arena.Rent(GetDataChunkSize(rented));
+                rented++;
             }
 
-            // Publish new size (volatile write)
-            Volatile.Write(ref _rentedDataSize, currentSize);
+            Volatile.Write(ref _rentedDataChunks, rented);
         }
     }
 
     /// <summary>
     /// Writes data to the data chunks, handling chunk boundaries.
     /// </summary>
-    /// <param name="position">The position to start writing at.</param>
+    /// <param name="location">The encoded (chunk, offset) location to start writing at.</param>
     /// <param name="data">The data to write.</param>
     /// <param name="withQuotes">If true, wraps the data with JSON quotes.</param>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private void WriteData(int position, ReadOnlySpan<byte> data, bool withQuotes = false)
+    private void WriteData(int location, ReadOnlySpan<byte> data, bool withQuotes = false)
     {
+        var chunk = location >>> DataOffsetBits;
+        var offset = location & DataOffsetMask;
+
         if (withQuotes)
         {
-            WriteByte(position, JsonConstants.Quote);
-            WriteDataCore(position + 1, data);
-            WriteByte(position + 1 + data.Length, JsonConstants.Quote);
+            (chunk, offset) = WriteByte(chunk, offset, JsonConstants.Quote);
+            (chunk, offset) = WriteDataCore(chunk, offset, data);
+            WriteByte(chunk, offset, JsonConstants.Quote);
         }
         else
         {
-            WriteDataCore(position, data);
+            WriteDataCore(chunk, offset, data);
         }
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private void WriteByte(int position, byte value)
+    private (int Chunk, int Offset) WriteByte(int chunk, int offset, byte value)
     {
-        var chunkIndex = position / JsonMemory.BufferSize;
-        var offset = position % JsonMemory.BufferSize;
-        _data[chunkIndex][offset] = value;
+        if (offset == GetDataChunkSize(chunk))
+        {
+            chunk++;
+            offset = 0;
+        }
+
+        var segment = _data[chunk];
+        segment.Buffer[segment.Offset + offset] = value;
+        return (chunk, offset + 1);
     }
 
-    private void WriteDataCore(int position, ReadOnlySpan<byte> data)
+    private (int Chunk, int Offset) WriteDataCore(int chunk, int offset, ReadOnlySpan<byte> data)
     {
         if (data.Length == 0)
         {
-            return;
+            return (chunk, offset);
         }
 
-        var chunkIndex = position / JsonMemory.BufferSize;
-        var offset = position % JsonMemory.BufferSize;
-        var availableInChunk = JsonMemory.BufferSize - offset;
+        var availableInChunk = GetDataChunkSize(chunk) - offset;
 
-        // Fast path: we can write all the data into single chunk
+        // Fast path: we can write all the data into a single chunk
         if (data.Length <= availableInChunk)
         {
-            data.CopyTo(_data[chunkIndex].AsSpan(offset, data.Length));
-            return;
+            var seg = _data[chunk];
+            data.CopyTo(seg.Buffer.AsSpan(seg.Offset + offset, data.Length));
+            return (chunk, offset + data.Length);
         }
 
         // Slow path: data spans multiple chunks so we need to loop
         var remaining = data;
-        var currentPos = position;
 
         while (remaining.Length > 0)
         {
-            chunkIndex = currentPos / JsonMemory.BufferSize;
-            offset = currentPos % JsonMemory.BufferSize;
-            availableInChunk = JsonMemory.BufferSize - offset;
+            availableInChunk = GetDataChunkSize(chunk) - offset;
             var toWrite = Math.Min(remaining.Length, availableInChunk);
 
-            remaining[..toWrite].CopyTo(_data[chunkIndex].AsSpan(offset, toWrite));
+            var seg = _data[chunk];
+            remaining[..toWrite].CopyTo(seg.Buffer.AsSpan(seg.Offset + offset, toWrite));
 
-            currentPos += toWrite;
             remaining = remaining[toWrite..];
+            offset += toWrite;
+
+            if (offset == GetDataChunkSize(chunk))
+            {
+                chunk++;
+                offset = 0;
+            }
         }
+
+        return (chunk, offset);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private Cursor WriteStartObject(Cursor parent, int selectionSetId = 0, bool isSelectionSet = true)
     {
-        var flags = ElementFlags.None;
-        var parentRow = ToIndex(parent);
-
-        if (parentRow < 0)
-        {
-            parentRow = 0;
-            flags = ElementFlags.IsRoot;
-        }
-
         return _metaDb.Append(
             ElementTokenType.StartObject,
-            parentRow: parentRow,
+            parent: parent.Value,
             operationReferenceId: selectionSetId,
             operationReferenceType: isSelectionSet
                 ? OperationReferenceType.SelectionSet
-                : OperationReferenceType.None,
-            flags: flags);
+                : OperationReferenceType.None);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -798,21 +836,11 @@ public sealed partial class ResultDocument : IDisposable
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private Cursor WriteStartArray(Cursor parent, int length = 0)
     {
-        var flags = ElementFlags.None;
-        var parentRow = ToIndex(parent);
-
-        if (parentRow < 0)
-        {
-            parentRow = 0;
-            flags = ElementFlags.IsRoot;
-        }
-
         return _metaDb.Append(
             ElementTokenType.StartArray,
             sizeOrLength: length,
-            parentRow: parentRow,
-            numberOfRows: length + 1,
-            flags: flags);
+            parent: parent.Value,
+            numberOfRows: length + 1);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -850,14 +878,14 @@ public sealed partial class ResultDocument : IDisposable
 
         var prop = _metaDb.Append(
             ElementTokenType.PropertyName,
-            parentRow: ToIndex(parent),
+            parent: parent.Value,
             operationReferenceId: selection.Id,
             operationReferenceType: OperationReferenceType.Selection,
             flags: flags);
 
         _metaDb.Append(
             ElementTokenType.None,
-            parentRow: ToIndex(prop));
+            parent: prop.Value);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -865,11 +893,11 @@ public sealed partial class ResultDocument : IDisposable
     {
         var prop = _metaDb.Append(
             ElementTokenType.PropertyName,
-            parentRow: ToIndex(parent));
+            parent: parent.Value);
 
         _metaDb.Append(
             ElementTokenType.None,
-            parentRow: ToIndex(prop));
+            parent: prop.Value);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -877,11 +905,8 @@ public sealed partial class ResultDocument : IDisposable
     {
         _metaDb.Append(
             ElementTokenType.None,
-            parentRow: ToIndex(parent));
+            parent: parent.Value);
     }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static int ToIndex(Cursor c) => (c.Chunk * Cursor.RowsPerChunk) + c.Row;
 
     private static void CheckExpectedType(ElementTokenType expected, ElementTokenType actual)
     {
@@ -893,24 +918,25 @@ public sealed partial class ResultDocument : IDisposable
 
     public void Dispose()
     {
-        ReturnRentedMemory();
+        ReleaseTrackingArrays();
         GC.SuppressFinalize(this);
     }
 
-    private void ReturnRentedMemory()
+    private void ReleaseTrackingArrays()
     {
         if (Interlocked.Exchange(ref _disposed, 1) != 0)
         {
             return;
         }
 
+        // The arena owns the chunk memory and frees it as a whole when it is disposed, so the
+        // data segments are simply dropped here. The metadb only releases its pooled tracking
+        // arrays, not the chunk memory.
         _metaDb.Dispose();
-
-        if (_data.Count > 0)
-        {
-            JsonMemory.Return(JsonMemoryKind.Json, _data);
-        }
+        _data.AsSpan().Clear();
+        s_arrayPool.Return(_data);
+        _data = [];
     }
 
-    ~ResultDocument() => ReturnRentedMemory();
+    ~ResultDocument() => ReleaseTrackingArrays();
 }

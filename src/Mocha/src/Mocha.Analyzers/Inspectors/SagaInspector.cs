@@ -52,19 +52,22 @@ public sealed class SagaInspector : ISyntaxInspector
         }
 
         // Walk the base type chain looking for Saga<TState>
-        if (!DerivesFromSaga(namedTypeSymbol, knownSymbols.Saga))
+        if (!TryGetSagaStateType(namedTypeSymbol, knownSymbols.Saga, out var stateType))
         {
             return false;
         }
 
         var sagaFullName = namedTypeSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
         var sagaNamespace = namedTypeSymbol.ContainingNamespace?.ToDisplayString() ?? string.Empty;
+        var stateTypeName = stateType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+        var xmlDocumentation = namedTypeSymbol.GetXmlDocumentation(cancellationToken);
+        var location = typeDeclaration.ToDeclarationLocationInfo();
 
         // Check for public parameterless constructor (MO0014)
         if (!HasPublicParameterlessConstructor(namedTypeSymbol))
         {
             var locationInfo = typeDeclaration.Identifier.GetLocation().ToLocationInfo();
-            syntaxInfo = new SagaInfo(sagaFullName, sagaNamespace)
+            syntaxInfo = new SagaInfo(sagaFullName, sagaNamespace, stateTypeName, xmlDocumentation, location)
             {
                 Diagnostics = new([
                     new DiagnosticInfo(
@@ -76,11 +79,14 @@ public sealed class SagaInspector : ISyntaxInspector
             return true;
         }
 
-        syntaxInfo = new SagaInfo(sagaFullName, sagaNamespace);
+        syntaxInfo = new SagaInfo(sagaFullName, sagaNamespace, stateTypeName, xmlDocumentation, location);
         return true;
     }
 
-    private static bool DerivesFromSaga(INamedTypeSymbol type, INamedTypeSymbol sagaSymbol)
+    private static bool TryGetSagaStateType(
+        INamedTypeSymbol type,
+        INamedTypeSymbol sagaSymbol,
+        out ITypeSymbol stateType)
     {
         var current = type.BaseType;
         while (current is not null)
@@ -88,12 +94,14 @@ public sealed class SagaInspector : ISyntaxInspector
             if (current.IsGenericType
                 && SymbolEqualityComparer.Default.Equals(current.OriginalDefinition, sagaSymbol))
             {
+                stateType = current.TypeArguments[0];
                 return true;
             }
 
             current = current.BaseType;
         }
 
+        stateType = null!;
         return false;
     }
 

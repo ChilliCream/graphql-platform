@@ -1,5 +1,4 @@
 <Project>
-
   <PropertyGroup>
     <LangVersion>preview</LangVersion>
     <Version Condition="$(Version) == ''">0.0.0</Version>
@@ -9,6 +8,10 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <NeutralLanguage>en</NeutralLanguage>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net11.0'">
+    <Features>$(Features);runtime-async=on</Features>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(TreatWarningsAsErrors)' == ''">
@@ -39,9 +42,9 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <TargetFrameworks>net10.0; net9.0; net8.0</TargetFrameworks>
-    <ExtendedTargetFrameworks>net10.0; net9.0; net8.0; netstandard2.0</ExtendedTargetFrameworks>
-    <OpenApiTargetFrameworks>net10.0; net9.0</OpenApiTargetFrameworks>
+    <TargetFrameworks>net11.0; net10.0; net9.0; net8.0</TargetFrameworks>
+    <ExtendedTargetFrameworks>net11.0; net10.0; net9.0; net8.0; netstandard2.0</ExtendedTargetFrameworks>
+    <OpenApiTargetFrameworks>net11.0; net10.0; net9.0</OpenApiTargetFrameworks>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -49,8 +52,26 @@
     <DebugSymbols>true</DebugSymbols>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(DOTNET_LOCAL_DEV)' == '1'">
+    <CreateHardLinksForCopyLocalIfPossible>true</CreateHardLinksForCopyLocalIfPossible>
+    <CreateHardLinksForAdditionalFilesIfPossible>true</CreateHardLinksForAdditionalFilesIfPossible>
+    <CreateHardLinksForPublishFilesIfPossible>true</CreateHardLinksForPublishFilesIfPossible>
+    <CreateHardLinksForCopyFilesToOutputDirectoryIfPossible>true</CreateHardLinksForCopyFilesToOutputDirectoryIfPossible>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(DOTNET_LOCAL_DEV)' == '1' AND '$(RuntimeIdentifier)' == '' AND '$(RuntimeIdentifiers)' == ''">
+    <RuntimeIdentifier>$([System.Runtime.InteropServices.RuntimeInformation]::RuntimeIdentifier)</RuntimeIdentifier>
+    <SelfContained>false</SelfContained>
+    <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
+  </PropertyGroup>
+
   <ItemGroup Condition="'$(PackageIcon)' != ''">
-    <None Include="$(MSBuildThisFileDirectory)..\website\static\resources\$(PackageIcon)" Pack="true" PackagePath="$(PackageIcon)" Visible="false" />
+    <None
+      Include="$(MSBuildThisFileDirectory)..\website\static\resources\$(PackageIcon)"
+      Pack="true"
+      PackagePath="$(PackageIcon)"
+      Visible="false"
+    />
     <None Include="$(MSBuildThisFileDirectory)..\LICEN*" Pack="true" PackagePath="" Visible="false" />
   </ItemGroup>
 

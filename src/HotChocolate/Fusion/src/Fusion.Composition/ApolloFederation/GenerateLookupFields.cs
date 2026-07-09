@@ -24,6 +24,8 @@ namespace HotChocolate.Fusion.ApolloFederation;
 internal static class GenerateLookupFields
 {
     private const string NestedLookupArgumentName = "key";
+    // Namespaces synthetic lookup fields so user-authored Query fields cannot collide.
+    private const string ReservedLookupFieldPrefix = "fusion__lookup_";
 
     /// <summary>
     /// Applies the lookup field generation to the schema.
@@ -33,9 +35,23 @@ internal static class GenerateLookupFields
     /// </param>
     public static void Apply(MutableSchemaDefinition schema)
     {
+        // A source schema can declare resolvable @key entities without a Query type (e.g. a
+        // mutation-only subgraph). Those entities still need lookups to be routable, so synthesize a
+        // Query type to host the generated @internal @lookup fields. It is removed again below if no
+        // lookup ends up being generated so an empty Query is never introduced.
+        var synthesizedQuery = false;
+
         if (schema.QueryType is null)
         {
-            return;
+            if (!HasResolvableKeyEntity(schema))
+            {
+                return;
+            }
+
+            var syntheticQuery = new MutableObjectTypeDefinition("Query");
+            schema.Types.Add(syntheticQuery);
+            schema.QueryType = syntheticQuery;
+            synthesizedQuery = true;
         }
 
         var internalDef = new MutableDirectiveDefinition("internal");
@@ -137,6 +153,44 @@ internal static class GenerateLookupFields
                 }
             }
         }
+
+        // If a Query type was synthesized but no lookup field was ultimately generated, drop it so
+        // the schema does not carry an empty Query type.
+        if (synthesizedQuery && schema.QueryType is { } synthetic && synthetic.Fields.Count == 0)
+        {
+            schema.Types.Remove(synthetic);
+            schema.QueryType = null;
+        }
+    }
+
+    private static bool HasResolvableKeyEntity(MutableSchemaDefinition schema)
+    {
+        foreach (var type in schema.Types)
+        {
+            if (type is not MutableComplexTypeDefinition complexType)
+            {
+                continue;
+            }
+
+            foreach (var keyDirective in complexType.Directives["key"])
+            {
+                if (!keyDirective.Arguments.TryGetValue("fields", out var fieldsValue)
+                    || fieldsValue is not StringValueNode)
+                {
+                    continue;
+                }
+
+                if (keyDirective.Arguments.TryGetValue("resolvable", out var resolvableValue)
+                    && resolvableValue is BooleanValueNode { Value: false })
+                {
+                    continue;
+                }
+
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private static GenerateLookupFieldResult? GenerateLookupField(
@@ -222,7 +276,7 @@ internal static class GenerateLookupFields
             return null;
         }
 
-        lookupField.Name = fieldName;
+        lookupField.Name = ReservedLookupFieldPrefix + fieldName;
         lookupField.Directives.Add(new Directive(internalDef));
         lookupField.Directives.Add(new Directive(lookupDef));
 

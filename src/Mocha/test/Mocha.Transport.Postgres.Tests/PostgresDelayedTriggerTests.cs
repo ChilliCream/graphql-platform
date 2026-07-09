@@ -15,7 +15,7 @@ public class PostgresDelayedTriggerTests
 
         // act
         await signal.WaitAsync(CancellationToken.None)
-            .WaitAsync(TimeSpan.FromSeconds(5));
+            .WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
 
         // assert
         Assert.True(trigger.IsSet);
@@ -65,7 +65,7 @@ public class PostgresDelayedTriggerTests
 
         // act
         await signal.WaitAsync(CancellationToken.None)
-            .WaitAsync(TimeSpan.FromSeconds(5));
+            .WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
 
         // assert
         Assert.True(trigger.IsSet);

@@ -118,7 +118,7 @@ public readonly partial struct CompositeResultElement
         {
             CheckValidInstance();
 
-            if (_cursor == Cursor.Zero)
+            if (_cursor.IsZero)
             {
                 return null;
             }
@@ -136,7 +136,7 @@ public readonly partial struct CompositeResultElement
     {
         get
         {
-            if (_cursor == Cursor.Zero)
+            if (_cursor.IsZero)
             {
                 return null;
             }
@@ -237,7 +237,7 @@ public readonly partial struct CompositeResultElement
         {
             CheckValidInstance();
 
-            if (_cursor == Cursor.Zero)
+            if (_cursor.IsZero)
             {
                 return false;
             }
@@ -257,6 +257,22 @@ public readonly partial struct CompositeResultElement
             CheckValidInstance();
 
             return _parent.IsInternalProperty(_cursor);
+        }
+    }
+
+    /// <summary>
+    /// Gets a value indicating whether this element represents an enum value.
+    /// </summary>
+    public bool IsEnumValue
+    {
+        get
+        {
+            if (_parent is null)
+            {
+                return false;
+            }
+
+            return _parent.IsEnumValueProperty(_cursor);
         }
     }
 
@@ -432,11 +448,30 @@ public readonly partial struct CompositeResultElement
         return _parent.TryGetNamedPropertyValue(_cursor, utf8PropertyName, out value);
     }
 
+    internal bool TryGetProperty(
+        ReadOnlySpan<byte> utf8PropertyName,
+        out CompositeResultElement value,
+        out Selection selection)
+    {
+        CheckValidInstance();
+
+        return _parent.TryGetNamedPropertyValue(_cursor, utf8PropertyName, out value, out selection);
+    }
+
     internal CompositeResultElement GetPropertyBySelectionId(int selectionId)
     {
         CheckValidInstance();
 
         return _parent.GetPropertyBySelectionId(_cursor, selectionId);
+    }
+
+    internal CompositeObjectContext GetObjectContext()
+    {
+        // The validity guard is hoisted here so it is paid once per object instead
+        // of once per property. See CompositeResultDocument.GetObjectContext.
+        CheckValidInstance();
+
+        return _parent.GetObjectContext(_cursor);
     }
 
     /// <summary>

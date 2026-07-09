@@ -25,15 +25,14 @@ public class MessageTypeDescriptor : MessagingDescriptorBase<MessageTypeConfigur
     /// <returns>The configured <see cref="MessageTypeConfiguration"/>.</returns>
     public MessageTypeConfiguration CreateConfiguration()
     {
-        var routes = _routes.Select(r => r.CreateConfiguration()).ToList();
-        Configuration.Routes = routes;
+        Configuration.Routes = _routes.ConvertAll(r => r.CreateConfiguration());
         return Configuration;
     }
 
     /// <inheritdoc />
     public IMessageTypeDescriptor AddSerializer(IMessageSerializer messageSerializer)
     {
-        Configuration.MessageSerializer.Add(messageSerializer.ContentType, messageSerializer);
+        Configuration.MessageSerializer[messageSerializer.ContentType] = messageSerializer;
         return this;
     }
 
