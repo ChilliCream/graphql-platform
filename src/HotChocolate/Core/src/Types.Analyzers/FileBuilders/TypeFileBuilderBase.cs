@@ -234,9 +234,18 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
 
             using (Writer.IncreaseIndent())
             {
-                Writer.WriteIndentedLine(
-                    ".Field(naming.GetMemberName(\"{0}\", global::HotChocolate.Types.MemberKind.ObjectField))",
-                    fieldName);
+                var fieldBinding = resolver.Bindings.FirstOrDefault(b => b.Kind is MemberBindingKind.Field);
+
+                if (fieldBinding.Name is not null)
+                {
+                    Writer.WriteIndentedLine(".Field(\"{0}\")", fieldBinding.Name);
+                }
+                else
+                {
+                    Writer.WriteIndentedLine(
+                        ".Field(naming.GetMemberName(\"{0}\", global::HotChocolate.Types.MemberKind.ObjectField))",
+                        fieldName);
+                }
 
                 if (resolver.Kind is ResolverKind.ConnectionResolver)
                 {
