@@ -129,14 +129,14 @@ public sealed class MediatorGenerator : IIncrementalGenerator
             static (options, _) =>
             {
                 options.GlobalOptions.TryGetValue("build_property.MochaEmitSourceMetadata", out var emit);
-                options.GlobalOptions.TryGetValue("build_property.ProjectDir", out var projectDir);
                 options.GlobalOptions.TryGetValue("build_property.RepositoryUrl", out var repositoryUrl);
                 options.GlobalOptions.TryGetValue("build_property.SourceRevisionId", out var commit);
+                options.GlobalOptions.TryGetValue("build_property._MochaSourceRoots", out var sourceRoots);
                 return new SourceMetadataOptionsInfo(
                     !string.Equals(emit, "false", StringComparison.OrdinalIgnoreCase),
-                    string.IsNullOrWhiteSpace(projectDir) ? null : projectDir,
                     string.IsNullOrWhiteSpace(repositoryUrl) ? null : repositoryUrl,
-                    string.IsNullOrWhiteSpace(commit) ? null : commit);
+                    string.IsNullOrWhiteSpace(commit) ? null : commit,
+                    string.IsNullOrWhiteSpace(sourceRoots) ? null : sourceRoots);
             });
 
         context.RegisterSourceOutput(
