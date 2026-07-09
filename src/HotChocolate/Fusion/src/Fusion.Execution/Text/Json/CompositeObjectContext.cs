@@ -26,20 +26,25 @@ internal readonly struct CompositeObjectContext
         _numberOfRows = numberOfRows;
     }
 
-    public bool TryGetProperty(ReadOnlySpan<byte> propertyName, out CompositeResultElement value)
+    public bool TryGetProperty(
+        ReadOnlySpan<byte> propertyName,
+        out CompositeResultElement value,
+        out Selection selection)
     {
         // Only one row means it was EndObject.
         if (_numberOfRows == 1)
         {
             value = default;
+            selection = null!;
             return false;
         }
 
         if (_selectionSet is { } selectionSet)
         {
-            if (selectionSet.TryGetSelection(propertyName, out var selection))
+            if (selectionSet.TryGetSelection(propertyName, out var found))
             {
-                var propertyIndex = selection.Id - selectionSet.Id - 1;
+                selection = found;
+                var propertyIndex = found.Id - selectionSet.Id - 1;
                 var propertyRowIndex = (propertyIndex * 2) + 1;
                 var propertyCursor = _objectStartCursor + propertyRowIndex;
                 value = new CompositeResultElement(_document, propertyCursor + 1);
@@ -47,14 +52,23 @@ internal readonly struct CompositeObjectContext
             }
 
             value = default;
+            selection = null!;
             return false;
         }
 
         var endCursor = _objectStartCursor + (_numberOfRows - 1);
-        return _document.TryFindPropertyLinear(
+
+        if (_document.TryFindPropertyLinear(
             _objectStartCursor + 1,
             endCursor,
             propertyName,
-            out value);
+            out value))
+        {
+            selection = value.AssertSelection();
+            return true;
+        }
+
+        selection = null!;
+        return false;
     }
 }

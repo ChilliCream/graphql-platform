@@ -163,6 +163,59 @@ public sealed partial class CompositeResultDocument
             out value);
     }
 
+    internal bool TryGetNamedPropertyValue(
+        Cursor startCursor,
+        ReadOnlySpan<byte> propertyName,
+        out CompositeResultElement value,
+        out Selection selection)
+    {
+        ObjectDisposedException.ThrowIf(_disposed != 0, this);
+
+        var row = _metaDb.GetValue(ref startCursor);
+        CheckExpectedType(ElementTokenType.StartObject, row.TokenType);
+
+        var numberOfRows = row.NumberOfRows;
+
+        // Only one row means it was EndObject.
+        if (numberOfRows == 1)
+        {
+            value = default;
+            selection = null!;
+            return false;
+        }
+
+        if (row.OperationReferenceType is OperationReferenceType.SelectionSet)
+        {
+            var selectionSet = _operation.GetSelectionSetById(row.OperationReferenceId);
+            if (selectionSet.TryGetSelection(propertyName, out var found))
+            {
+                selection = found;
+                var propertyIndex = found.Id - selectionSet.Id - 1;
+                var propertyRowIndex = (propertyIndex * 2) + 1;
+                var propertyCursor = startCursor + propertyRowIndex;
+                Debug.Assert(_metaDb.GetElementTokenType(propertyCursor) is ElementTokenType.PropertyName);
+                Debug.Assert(_metaDb.Get(propertyCursor).OperationReferenceId == found.Id);
+                value = new CompositeResultElement(this, propertyCursor + 1);
+                return true;
+            }
+
+            value = default;
+            selection = null!;
+            return false;
+        }
+
+        var endCursor = startCursor + (numberOfRows - 1);
+
+        if (TryGetNamedPropertyValue(startCursor + 1, endCursor, propertyName, out value))
+        {
+            selection = value.AssertSelection();
+            return true;
+        }
+
+        selection = null!;
+        return false;
+    }
+
     private bool TryGetNamedPropertyValue(
         Cursor startCursor,
         Cursor endCursor,
