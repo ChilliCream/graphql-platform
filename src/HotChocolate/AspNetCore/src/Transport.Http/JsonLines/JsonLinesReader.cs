@@ -102,7 +102,7 @@ internal class JsonLinesReader(HttpResponseMessage message) : IAsyncEnumerable<O
 #if FUSION
     private static SourceResultDocument ParseDocument(IMemoryArena arena, ReadOnlySequence<byte> lineBuffer)
     {
-        var lineLength = (int)lineBuffer.Length;
+        var length = lineBuffer.Length;
 
         // A record whose length fits within MaxSingleSpanRecordLength is filled once into a single
         // exact-length arena chunk and parsed in place as one span. This skips the geometric ramp fill
@@ -114,8 +114,9 @@ internal class JsonLinesReader(HttpResponseMessage message) : IAsyncEnumerable<O
         // not fit the current page strands the whole remaining page tail for the rest of the request,
         // while the geometric ramp's small leading chunks can fill those tails. Small records, which
         // cover all realistic traffic, get the single-span win. Large records keep the tail-filling ramp.
-        if (lineLength > 0 && lineLength <= MaxSingleSpanRecordLength)
+        if (length > 0 && length <= MaxSingleSpanRecordLength)
         {
+            var lineLength = (int)length;
             var buffer = arena.Rent(lineLength);
             lineBuffer.CopyTo(buffer.Span);
 
