@@ -299,15 +299,10 @@ public sealed partial class CompositeResultDocument
     {
         ObjectDisposedException.ThrowIf(_disposed != 0, this);
 
-        // Hoists the object-invariant work out of per-property lookups. The target
-        // slot is resolved to its StartObject once (following a Reference), its row
-        // type is checked once, and its selection-set metadata is decoded once. Each
-        // per-property lookup then only performs the name join and the cursor
-        // arithmetic. This is valid because the StartObject row and its metadata do
-        // not change while the object's child values are written, and the document
-        // cannot be disposed during the synchronous, single-threaded completion of
-        // one object. The disposed and validity guards are therefore checked once
-        // here instead of on every property.
+        // Resolves the target object once (StartObject row, type check, selection-set
+        // metadata) so each property lookup only joins the name and computes the cursor.
+        // This is safe because the StartObject row does not change while its child values
+        // are written and the document cannot be disposed while an object is completed.
         var row = _metaDb.GetValue(ref startCursor);
         CheckExpectedType(ElementTokenType.StartObject, row.TokenType);
 

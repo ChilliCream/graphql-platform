@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using HotChocolate.Fusion.Execution.Nodes;
 
 namespace HotChocolate.Fusion.Text.Json;
@@ -47,6 +48,8 @@ internal readonly struct CompositeObjectContext
                 var propertyIndex = found.Id - selectionSet.Id - 1;
                 var propertyRowIndex = (propertyIndex * 2) + 1;
                 var propertyCursor = _objectStartCursor + propertyRowIndex;
+                Debug.Assert(_document._metaDb.GetElementTokenType(propertyCursor) is ElementTokenType.PropertyName);
+                Debug.Assert(_document._metaDb.Get(propertyCursor).OperationReferenceId == found.Id);
                 value = new CompositeResultElement(_document, propertyCursor + 1);
                 return true;
             }
