@@ -52,8 +52,8 @@ public class RequirementReentrancyTests : FusionTestBase
                   }
                 name: getProducts
                 hash: 123456789101112
-                searchSpace: 2
-                expandedNodes: 8
+                searchSpace: 3
+                expandedNodes: 9
             nodes:
               - id: 1
                 type: Operation

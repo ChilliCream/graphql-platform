@@ -80,7 +80,7 @@ public sealed class CallSiteMessageTypeInspector : ISyntaxInspector
         if (knownSymbols.IPublisher is not null
             && SymbolEqualityComparer.Default.Equals(receiverType, knownSymbols.IPublisher))
         {
-            return TryHandlePublisher(methodSymbol, invocation, out syntaxInfo);
+            return TryHandlePublisher(methodSymbol, invocation, cancellationToken, out syntaxInfo);
         }
 
         return false;
@@ -130,7 +130,11 @@ public sealed class CallSiteMessageTypeInspector : ISyntaxInspector
             {
                 var argTypeName = argType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
                 var argLocation = invocation.GetLocation().ToLocationInfo();
-                syntaxInfo = new CallSiteMessageTypeInfo(argTypeName, kind, argLocation);
+                syntaxInfo = new CallSiteMessageTypeInfo(
+                    argTypeName,
+                    kind,
+                    argLocation,
+                    DeclaredMessageType: argType.ToDeclaredTypeInfo(cancellationToken));
                 return true;
             }
 
@@ -161,15 +165,23 @@ public sealed class CallSiteMessageTypeInspector : ISyntaxInspector
 
                 // The response type is the type argument TResponse from RequestAsync<TResponse>.
                 string? responseTypeName = null;
+                DeclaredTypeInfo? declaredResponseType = null;
                 if (methodSymbol.TypeArguments.Length > 0
                     && !IsOpenTypeParameter(methodSymbol.TypeArguments[0]))
                 {
                     responseTypeName = methodSymbol
                         .TypeArguments[0]
                         .ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+                    declaredResponseType = methodSymbol.TypeArguments[0].ToDeclaredTypeInfo(cancellationToken);
                 }
 
-                syntaxInfo = new CallSiteMessageTypeInfo(requestTypeName, kind, location, responseTypeName);
+                syntaxInfo = new CallSiteMessageTypeInfo(
+                    requestTypeName,
+                    kind,
+                    location,
+                    responseTypeName,
+                    firstArgType.ToDeclaredTypeInfo(cancellationToken),
+                    declaredResponseType);
                 return true;
             }
 
@@ -183,7 +195,11 @@ public sealed class CallSiteMessageTypeInspector : ISyntaxInspector
 
         var typeName = messageType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
         var locationInfo = invocation.GetLocation().ToLocationInfo();
-        syntaxInfo = new CallSiteMessageTypeInfo(typeName, kind, locationInfo);
+        syntaxInfo = new CallSiteMessageTypeInfo(
+            typeName,
+            kind,
+            locationInfo,
+            DeclaredMessageType: messageType.ToDeclaredTypeInfo(cancellationToken));
         return true;
     }
 
@@ -234,13 +250,18 @@ public sealed class CallSiteMessageTypeInspector : ISyntaxInspector
 
         var typeName = messageType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
         var locationInfo = invocation.GetLocation().ToLocationInfo();
-        syntaxInfo = new CallSiteMessageTypeInfo(typeName, kind, locationInfo);
+        syntaxInfo = new CallSiteMessageTypeInfo(
+            typeName,
+            kind,
+            locationInfo,
+            DeclaredMessageType: messageType.ToDeclaredTypeInfo(cancellationToken));
         return true;
     }
 
     private static bool TryHandlePublisher(
         IMethodSymbol methodSymbol,
         InvocationExpressionSyntax invocation,
+        CancellationToken cancellationToken,
         out SyntaxInfo? syntaxInfo)
     {
         syntaxInfo = null;
@@ -264,7 +285,11 @@ public sealed class CallSiteMessageTypeInspector : ISyntaxInspector
 
         var typeName = messageType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
         var locationInfo = invocation.GetLocation().ToLocationInfo();
-        syntaxInfo = new CallSiteMessageTypeInfo(typeName, CallSiteKind.MediatorPublish, locationInfo);
+        syntaxInfo = new CallSiteMessageTypeInfo(
+            typeName,
+            CallSiteKind.MediatorPublish,
+            locationInfo,
+            DeclaredMessageType: messageType.ToDeclaredTypeInfo(cancellationToken));
         return true;
     }
 

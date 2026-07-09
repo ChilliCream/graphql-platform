@@ -122,7 +122,7 @@ Invocations on `IMessageBus`, `ISender`, and `IPublisher` are inspected to disco
 
 When code calls a method annotated with `[MessagingModuleInfo]` (e.g., `builder.AddOrders()`), the inspector reads the `MessageTypes` array from the attribute. These types are treated as "already registered" and:
 
-- Excluded from local serializer registration (no duplicate `AddMessageConfiguration`)
+- Excluded from local serializer registration (no duplicate generated message configuration)
 - Counted as "covered" in AOT validation (MO0015, MO0016, MO0018)
 
 ---
@@ -154,19 +154,18 @@ Registrations are emitted in this order:
 1. **AOT Configuration** (if JsonContext specified)
    - `ModifyOptions(builder, o => o.IsAotCompatible = true)`
    - `AddJsonTypeInfoResolver(builder, {JsonContext}.Default)`
-2. **Message Type Serializers** - `AddMessageConfiguration` per type
-3. **Saga Configuration** - `AddSagaConfiguration<TSaga>` with state serializer
+2. **Message Types** - `AddMessage<TMessage>` plus descriptor context configuration per type
+3. **Saga Configuration** - `AddSaga<TSaga>` plus descriptor context configuration
 4. **Batch Handlers** - sorted by handler type name
 5. **Consumers** - sorted by handler type name
 6. **Request Handlers** (RequestResponse + Send) - sorted by handler type name
 7. **Event Handlers** - sorted by handler type name
-8. **Saga Registrations** - `AddSaga<TSaga>`
 
 ### Handler Registration
 
-Each handler emits `AddHandlerConfiguration<THandler>` with a factory:
+Each handler emits `AddConsumer(builder, ConsumerFactory...)` plus descriptor context configuration that points at a generated initializer type:
 
-| Kind | Factory |
+| Kind | Consumer helper |
 |------|---------|
 | Event | `ConsumerFactory.Subscribe<THandler, TMessage>()` |
 | Send | `ConsumerFactory.Send<THandler, TMessage>()` |
@@ -176,7 +175,7 @@ Each handler emits `AddHandlerConfiguration<THandler>` with a factory:
 
 ### `[MessagingModuleInfo]` Attribute Population
 
-The `MessageTypes` array on the generated method contains **only types that receive `AddMessageConfiguration` calls** in the method body. This means:
+The `MessageTypes` array on the generated method contains **only types that receive generated serializer configuration** in the method body. This means:
 
 - Only types present in the **local** `JsonSerializerContext` (not from referenced assemblies)
 - Excluding types already covered by imported modules
@@ -198,7 +197,7 @@ Validation diagnostics fire when **`PublishAot` is true**. Serializer code gener
 
 ### What changes when JsonContext is specified
 
-1. **Serializer registrations are emitted** - `AddMessageConfiguration` with pre-built `JsonMessageSerializer` for each message type in the local JsonContext.
+1. **Serializer registrations are emitted** - `AddMessage<TMessage>` with generated descriptor configuration for each message type in the local JsonContext.
 
 2. **JsonTypeInfoResolver is registered** - the specified `JsonSerializerContext` is added as a resolver.
 
@@ -208,14 +207,14 @@ Validation diagnostics fire when **`PublishAot` is true**. Serializer code gener
 
 ### Which types get serializer registrations
 
-A type gets an `AddMessageConfiguration` call if **all** of these are true:
+A type gets generated message configuration if **all** of these are true:
 - It is declared as `[JsonSerializable(typeof(T))]` on the **local** `JsonSerializerContext`
 - It is NOT already imported from a referenced module
 - It is either a handler message/response type OR a context-only type
 
 ### Context-Only Types
 
-Types declared in the `JsonSerializerContext` that have no corresponding handler or saga in the current assembly still receive `AddMessageConfiguration` registrations. These are types the module needs to serialize but doesn't consume.
+Types declared in the `JsonSerializerContext` that have no corresponding handler or saga in the current assembly still receive generated message configuration. These are types the module needs to serialize but doesn't consume.
 
 ### Enclosed Types
 
@@ -281,7 +280,7 @@ For each message type registration, the generator computes an "enclosed types" a
 | MO0016 | `PublishAot == true` |
 | MO0018 | `PublishAot == true` |
 
-Handlers or sagas that carry a diagnostic (e.g., MO0012, MO0013, MO0014) are **excluded from code generation** - no `AddHandlerConfiguration` or `AddSagaConfiguration` is emitted for them. Only entries with zero diagnostics flow to the generator.
+Handlers or sagas that carry a diagnostic (e.g., MO0012, MO0013, MO0014) are **excluded from code generation**. Only entries with zero diagnostics flow to the generator.
 
 ---
 
@@ -305,4 +304,4 @@ The module system enables multiple assemblies to register their handlers indepen
 
 ### Key constraint
 
-The `[MessagingModuleInfo]` attribute only advertises types for which the module emits `AddMessageConfiguration` calls. Types that are handled but don't have local serializer support (not in the local JsonContext) are **not** included in the attribute. This prevents downstream modules from incorrectly assuming serialization is covered.
+The `[MessagingModuleInfo]` attribute only advertises types for which the module emits generated message configuration. Types that are handled but don't have local serializer support (not in the local JsonContext) are **not** included in the attribute. This prevents downstream modules from incorrectly assuming serialization is covered.

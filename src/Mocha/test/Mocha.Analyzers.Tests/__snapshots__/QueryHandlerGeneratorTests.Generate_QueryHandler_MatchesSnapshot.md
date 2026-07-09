@@ -9,7 +9,7 @@
 namespace Microsoft.Extensions.DependencyInjection
 {
     [global::System.CodeDom.Compiler.GeneratedCode("Mocha.Analyzers", "1.0.0")]
-    public static class TestsMediatorBuilderExtensions
+    public static partial class TestsMediatorBuilderExtensions
     {
         [global::Mocha.Mediator.MediatorModuleInfo(
             MessageTypes = new global::System.Type[]
@@ -25,18 +25,32 @@ namespace Microsoft.Extensions.DependencyInjection
             this global::Mocha.Mediator.IMediatorHostBuilder builder)
         {
 
-            // Register handler configurations
-            global::Mocha.Mediator.MediatorHostBuilderHandlerExtensions.AddHandlerConfiguration<global::TestApp.GetUserHandler>(builder,
-                new global::Mocha.Mediator.MediatorHandlerConfiguration
-                {
-                    HandlerType = typeof(global::TestApp.GetUserHandler),
-                    MessageType = typeof(global::TestApp.GetUserQuery),
-                    ResponseType = typeof(global::TestApp.UserDto),
-                    Kind = global::Mocha.Mediator.MediatorHandlerKind.Query,
-                    Delegate = global::Mocha.Mediator.PipelineBuilder.BuildQueryPipeline<global::TestApp.GetUserHandler, global::TestApp.GetUserQuery, global::TestApp.UserDto>()
-                });
+            // Register handlers
+            global::Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions.TryAdd(
+                builder.Services,
+                new global::Microsoft.Extensions.DependencyInjection.ServiceDescriptor(
+                    typeof(global::TestApp.GetUserHandler),
+                    typeof(global::TestApp.GetUserHandler),
+                    builder.Options.ServiceLifetime));
+            global::Mocha.Mediator.MediatorHostBuilderExtensions.ConfigureMediator(
+                builder,
+                static b => b.AddHandler<global::TestApp.GetUserHandler>(__Initialize_GetUserHandler_Handler_WY8BBSWjPahujA2CwnpZTA));
 
             return builder;
+        }
+
+        private static void __Initialize_GetUserHandler_Handler_WY8BBSWjPahujA2CwnpZTA(global::Mocha.Mediator.IMediatorHandlerDescriptor descriptor)
+        {
+            var configuration = descriptor.Extend().Configuration;
+            configuration.MessageType = typeof(global::TestApp.GetUserQuery);
+            configuration.ResponseType = typeof(global::TestApp.UserDto);
+            configuration.Kind = global::Mocha.Mediator.MediatorHandlerKind.Query;
+            configuration.Delegate = global::Mocha.Mediator.PipelineBuilder.BuildQueryPipeline<global::TestApp.GetUserHandler, global::TestApp.GetUserQuery, global::TestApp.UserDto>();
+            configuration.Source = new global::Mocha.SourceMetadata
+            {
+                Assembly = "Tests",
+                DeclarationLocation = new global::Mocha.DeclarationLocation("", 9, 1, 13, 2)
+            };
         }
     }
 }

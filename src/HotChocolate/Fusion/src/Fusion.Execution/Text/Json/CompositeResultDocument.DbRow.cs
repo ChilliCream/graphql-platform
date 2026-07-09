@@ -22,7 +22,7 @@ public sealed partial class CompositeResultDocument
         // 29 bits parent cursor value + 3 reserved
         private readonly int _parent;
 
-        // 15 bits OperationReferenceId + 2 bits OperationReferenceType + 6 bits Flags + 9 reserved
+        // 15 bits OperationReferenceId + 2 bits OperationReferenceType + 7 bits Flags + 8 reserved
         private readonly int _selectionAndFlags;
 
         // 1 bit HasComplexChildren (sign) + 31 bits SizeOrLength
@@ -52,7 +52,7 @@ public sealed partial class CompositeResultDocument
             Debug.Assert(parentRow is >= 0 and <= 0x1FFFFFFF); // 29 bits (cursor value)
             Debug.Assert(operationReferenceId is >= 0 and <= 0x7FFF); // 15 bits
             Debug.Assert(numberOfRows is >= 0 and <= 0x1FFFFFFF); // 29 bits
-            Debug.Assert((byte)flags <= 63); // 6 bits (0x3F)
+            Debug.Assert((byte)flags <= 127); // 7 bits (0x7F)
             Debug.Assert((byte)operationReferenceType <= 3); // 2 bits
             Debug.Assert(Unsafe.SizeOf<DbRow>() == Size);
 
@@ -146,9 +146,9 @@ public sealed partial class CompositeResultDocument
         /// Element metadata flags.
         /// </summary>
         /// <remarks>
-        /// 6 bits = 64 combinations
+        /// 7 bits = 128 combinations
         /// </remarks>
-        public ElementFlags Flags => (ElementFlags)((_selectionAndFlags >> 17) & 0x3F);
+        public ElementFlags Flags => (ElementFlags)((_selectionAndFlags >> 17) & 0x7F);
 
         /// <summary>
         /// True for primitive JSON values (strings, numbers, booleans, null).
@@ -172,6 +172,7 @@ public sealed partial class CompositeResultDocument
         IsNullable = 4,
         IsRoot = 8,
         IsInternal = 16,
-        IsExcluded = 32
+        IsExcluded = 32,
+        IsEnumValue = 64
     }
 }

@@ -43,7 +43,9 @@ internal sealed class SelectionSetByTypePartitioner(FusionSchemaDefinition schem
 
             indexBuilder.Register(input.SelectionSet.Id, selectionSetNode);
 
-            selectionSetByType.Add(new SelectionSetByType((FusionObjectTypeDefinition)schema.Types[type], selectionSetNode));
+            selectionSetByType.Add(new SelectionSetByType(
+                (FusionObjectTypeDefinition)schema.Types.GetType(type, allowInaccessibleFields: true),
+                selectionSetNode));
         }
 
         return new SelectionSetByTypePartitionerResult(sharedSelectionSet, selectionSetByType.ToImmutable(), indexBuilder);
@@ -70,7 +72,7 @@ internal sealed class SelectionSetByTypePartitioner(FusionSchemaDefinition schem
 
                     if (inlineFragmentNode.TypeCondition is { Name.Value: { } name })
                     {
-                        typeCondition = schema.Types[name].AsTypeDefinition();
+                        typeCondition = schema.Types.GetType(name, allowInaccessibleFields: true).AsTypeDefinition();
                     }
 
                     var hasDirectives = inlineFragmentNode.Directives.Any();
@@ -118,7 +120,7 @@ internal sealed class SelectionSetByTypePartitioner(FusionSchemaDefinition schem
             }
             else
             {
-                foreach (var possibleType in schema.GetPossibleTypes(type))
+                foreach (var possibleType in schema.GetPossibleTypes(type, includeInaccessible: true))
                 {
                     AddSelectionsForConcreteType(context, possibleType, selectionsWithPath, cloneSelectionSets: true);
                 }

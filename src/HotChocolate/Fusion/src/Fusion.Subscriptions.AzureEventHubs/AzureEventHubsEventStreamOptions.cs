@@ -39,8 +39,11 @@ public sealed class AzureEventHubsEventStreamOptions
     /// Gets or sets the Event Hubs consumer group.
     /// </summary>
     /// <remarks>
-    /// Event Hubs allows a limited number of non-exclusive readers per partition and consumer group.
-    /// Use separate consumer groups for independent capacity when the service quota requires it.
+    /// A cursor-tracked subscription opens one reader per (hub, partition) pair, so a subscription
+    /// over H hubs with P partitions each opens H times P readers against this consumer group.
+    /// Event Hubs allows at most 5 concurrent non-exclusive readers per partition per consumer
+    /// group, which is about 5 concurrent tracked subscribers per hub on one group. Use separate
+    /// consumer groups to scale beyond that limit.
     /// </remarks>
     public string ConsumerGroup { get; set; } = EventHubConsumerClient.DefaultConsumerGroupName;
 
@@ -48,7 +51,33 @@ public sealed class AzureEventHubsEventStreamOptions
     /// Gets or sets a value indicating whether subscriptions without a cursor start at the earliest
     /// retained event.
     /// </summary>
+    /// <remarks>
+    /// For a cursor-enabled subscription this also determines where a fresh subscribe begins.
+    /// <c>true</c> starts at each partition's beginning sequence number so the subscription replays
+    /// retained history, while <c>false</c> starts at each partition's last enqueued sequence number
+    /// plus one so only future events are delivered. In both cases the emitted resume cursor
+    /// reflects the chosen start position.
+    /// </remarks>
     public bool StartFromEarliest { get; set; }
+
+    /// <summary>
+    /// Gets or sets the maximum time a single partition metadata lookup may take while a
+    /// cursor-tracking subscription establishes its initial position.
+    /// </summary>
+    public TimeSpan SeedingQueryTimeout { get; set; } = TimeSpan.FromSeconds(2);
+
+    /// <summary>
+    /// Gets or sets the overall budget for establishing initial positions for every partition when
+    /// a cursor-tracking subscription starts. If any partition still has no position the
+    /// subscription fails rather than start from an incomplete cursor.
+    /// </summary>
+    public TimeSpan SeedingDeadline { get; set; } = TimeSpan.FromSeconds(5);
+
+    /// <summary>
+    /// Gets or sets the interval used to discover partitions added after a cursor-tracking
+    /// subscription starts.
+    /// </summary>
+    public TimeSpan PartitionDiscoveryInterval { get; set; } = TimeSpan.FromSeconds(30);
 
     /// <summary>
     /// Gets or sets the maximum wait time used by Event Hubs read operations.
@@ -76,10 +105,11 @@ public sealed class AzureEventHubsEventStreamOptions
     /// Gets or sets the factory used to create the per-subscription message channel.
     /// </summary>
     /// <remarks>
-    /// The channel is only used for multi-hub subscriptions. Single-hub subscriptions read directly
-    /// from the Event Hubs SDK stream. The default channel buffers five messages and waits when
-    /// full. It uses a single reader and multiple writers because multi-hub subscriptions run one
-    /// pump per Event Hub.
+    /// The channel carries a subscription's merged output. Passthrough single-hub subscriptions
+    /// (no cursor required and no resume cursor) read directly from the Event Hubs SDK stream,
+    /// while all cursor-tracking subscriptions use the channel. The default channel buffers five
+    /// messages and waits when full. It uses a single reader and multiple writers because
+    /// subscriptions that merge output can run multiple pumps.
     /// Use <see cref="CreateBoundedMessageChannel"/> for bounded drop modes so dropped
     /// <see cref="EventMessage"/> instances dispose their pooled buffers.
     /// </remarks>
@@ -90,6 +120,8 @@ public sealed class AzureEventHubsEventStreamOptions
     }
 
     internal Action? OnReceiverReady { get; set; }
+
+    internal Action<IReadOnlyList<HubPartition>>? OnPartitionsSeeded { get; set; }
 
     public static Channel<EventMessage> CreateDefaultMessageChannel()
         => CreateBoundedMessageChannel(capacity: 5, BoundedChannelFullMode.Wait);

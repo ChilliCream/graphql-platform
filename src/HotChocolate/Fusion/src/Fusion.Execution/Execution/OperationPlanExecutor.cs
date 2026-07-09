@@ -587,8 +587,22 @@ internal static class OperationPlanExecutor
                     AppendRequirements(op.Requirements, collected, seen);
                     break;
 
+                case ApolloOperationExecutionNode apolloOp when !apolloOp.ParentDependencies.IsEmpty:
+                    AppendRequirements(apolloOp.Requirements, collected, seen);
+                    break;
+
                 case OperationBatchExecutionNode batch:
                     foreach (var definition in batch.Operations)
+                    {
+                        if (!definition.ParentDependencies.IsEmpty)
+                        {
+                            AppendRequirements(definition.Requirements, collected, seen);
+                        }
+                    }
+                    break;
+
+                case ApolloOperationBatchExecutionNode apolloBatch:
+                    foreach (var definition in apolloBatch.Operations)
                     {
                         if (!definition.ParentDependencies.IsEmpty)
                         {

@@ -69,6 +69,11 @@ public abstract class ReceiveEndpoint(MessagingTransport transport) : IReceiveEn
     public Uri Address { get; protected set; } = null!;
 
     /// <summary>
+    /// Gets the stable URN identity of this receive endpoint.
+    /// </summary>
+    public string Urn { get; private set; } = null!;
+
+    /// <summary>
     /// Gets the classification of this receive endpoint.
     /// </summary>
     public ReceiveEndpointKind Kind { get; protected set; }
@@ -152,6 +157,7 @@ public abstract class ReceiveEndpoint(MessagingTransport transport) : IReceiveEn
         Configuration = configuration;
         Kind = configuration.Kind;
         Name = configuration.Name ?? throw ThrowHelper.EndpointNameRequired();
+        Urn = MochaUrn.ReceiveEndpoint(context.Host.EffectiveServiceName, Transport.Schema, Transport.Name, Name);
         configuration.Features.CopyTo(Features);
 
         OnInitialize(context, Configuration);
@@ -344,7 +350,7 @@ public abstract class ReceiveEndpoint(MessagingTransport transport) : IReceiveEn
     /// </returns>
     public ReceiveEndpointDescription Describe()
     {
-        return new ReceiveEndpointDescription(Name, Kind, Address?.ToString(), Source?.Address?.ToString());
+        return new ReceiveEndpointDescription(Urn, Name, Kind, Address?.ToString(), Source?.Address?.ToString());
     }
 
     private static async ValueTask DefaultPipeline(IReceiveContext context)

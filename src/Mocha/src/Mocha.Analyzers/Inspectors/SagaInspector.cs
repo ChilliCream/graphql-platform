@@ -60,12 +60,14 @@ public sealed class SagaInspector : ISyntaxInspector
         var sagaFullName = namedTypeSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
         var sagaNamespace = namedTypeSymbol.ContainingNamespace?.ToDisplayString() ?? string.Empty;
         var stateTypeName = stateType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+        var xmlDocumentation = namedTypeSymbol.GetXmlDocumentation(cancellationToken);
+        var location = typeDeclaration.ToDeclarationLocationInfo();
 
         // Check for public parameterless constructor (MO0014)
         if (!HasPublicParameterlessConstructor(namedTypeSymbol))
         {
             var locationInfo = typeDeclaration.Identifier.GetLocation().ToLocationInfo();
-            syntaxInfo = new SagaInfo(sagaFullName, sagaNamespace, stateTypeName)
+            syntaxInfo = new SagaInfo(sagaFullName, sagaNamespace, stateTypeName, xmlDocumentation, location)
             {
                 Diagnostics = new([
                     new DiagnosticInfo(
@@ -77,7 +79,7 @@ public sealed class SagaInspector : ISyntaxInspector
             return true;
         }
 
-        syntaxInfo = new SagaInfo(sagaFullName, sagaNamespace, stateTypeName);
+        syntaxInfo = new SagaInfo(sagaFullName, sagaNamespace, stateTypeName, xmlDocumentation, location);
         return true;
     }
 

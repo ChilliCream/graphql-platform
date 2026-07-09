@@ -79,6 +79,7 @@ public sealed partial class OperationPlanContext
             Array.Clear(_nodesToComplete, 0, _nodeSlotCapacity);
             Array.Clear(_schemaNames, 0, _nodeSlotCapacity);
             Array.Clear(_skippedDefinitions, 0, _nodeSlotCapacity);
+            Array.Clear(_batchRequestErrors, 0, _nodeSlotCapacity);
             Array.Clear(_variableValueSets, 0, _nodeSlotCapacity);
             Array.Clear(_transportUris, 0, _nodeSlotCapacity);
             Array.Clear(_transportContentTypes, 0, _nodeSlotCapacity);
@@ -142,6 +143,7 @@ public sealed partial class OperationPlanContext
             _nodesToComplete = new NodeCompletionSet?[nodeSlotCount];
             _schemaNames = new string?[nodeSlotCount];
             _skippedDefinitions = new List<IOperationPlanNode>?[nodeSlotCount];
+            _batchRequestErrors = new Dictionary<int, Exception>?[nodeSlotCount];
             _variableValueSets = new ImmutableArray<VariableValues>[nodeSlotCount];
             _transportUris = new Uri?[nodeSlotCount];
             _transportContentTypes = new string?[nodeSlotCount];
