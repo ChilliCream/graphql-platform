@@ -78,9 +78,11 @@ internal sealed class ValueCompletion
             InitializeTargetObject(source, target);
         }
 
+        var objectContext = target.GetObjectContext();
+
         foreach (var property in source.EnumerateObject())
         {
-            if (!target.TryGetProperty(property.NameSpan, out var resultField, out var selection))
+            if (!objectContext.TryGetProperty(property.NameSpan, out var resultField, out var selection))
             {
                 continue;
             }
@@ -880,9 +882,11 @@ TryCompleteList_MoveNext:
             target.SetObjectValue(objectSelectionSet);
         }
 
+        var objectContext = target.GetObjectContext();
+
         foreach (var property in source.EnumerateObject())
         {
-            if (!target.TryGetProperty(property.NameSpan, out var targetProperty, out var selection))
+            if (!objectContext.TryGetProperty(property.NameSpan, out var targetProperty, out var selection))
             {
                 continue;
             }

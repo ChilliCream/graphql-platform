@@ -295,6 +295,35 @@ public sealed partial class CompositeResultDocument
         return false;
     }
 
+    internal CompositeObjectContext GetObjectContext(Cursor startCursor)
+    {
+        ObjectDisposedException.ThrowIf(_disposed != 0, this);
+
+        // Resolves the target object once (StartObject row, type check, selection-set
+        // metadata) so each property lookup only joins the name and computes the cursor.
+        // This is safe because the StartObject row does not change while its child values
+        // are written and the document cannot be disposed while an object is completed.
+        var row = _metaDb.GetValue(ref startCursor);
+        CheckExpectedType(ElementTokenType.StartObject, row.TokenType);
+
+        var numberOfRows = row.NumberOfRows;
+        SelectionSet? selectionSet = null;
+
+        if (row.OperationReferenceType is OperationReferenceType.SelectionSet)
+        {
+            selectionSet = _operation.GetSelectionSetById(row.OperationReferenceId);
+        }
+
+        return new CompositeObjectContext(this, startCursor, selectionSet, numberOfRows);
+    }
+
+    internal bool TryFindPropertyLinear(
+        Cursor startCursor,
+        Cursor endCursor,
+        ReadOnlySpan<byte> propertyName,
+        out CompositeResultElement value)
+        => TryGetNamedPropertyValue(startCursor, endCursor, propertyName, out value);
+
     internal CompositeResultElement GetPropertyBySelectionId(
         Cursor startCursor,
         int selectionId)

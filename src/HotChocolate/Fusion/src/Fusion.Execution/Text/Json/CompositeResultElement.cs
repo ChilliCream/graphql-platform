@@ -465,6 +465,15 @@ public readonly partial struct CompositeResultElement
         return _parent.GetPropertyBySelectionId(_cursor, selectionId);
     }
 
+    internal CompositeObjectContext GetObjectContext()
+    {
+        // The validity guard is hoisted here so it is paid once per object instead
+        // of once per property. See CompositeResultDocument.GetObjectContext.
+        CheckValidInstance();
+
+        return _parent.GetObjectContext(_cursor);
+    }
+
     /// <summary>
     /// Gets the value as a <see cref="bool"/>.
     /// </summary>
