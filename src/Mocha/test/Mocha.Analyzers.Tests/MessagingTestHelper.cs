@@ -23,10 +23,16 @@ internal static class MessagingTestHelper
         string? assemblyName = "Tests",
         bool publishAot = false,
         bool emitSourceMetadata = true,
-        string? projectDir = null,
-        string[]? sourcePaths = null)
+        string[]? sourcePaths = null,
+        string? sourceRoots = null)
     {
-        var driver = RunGenerator(sourceTexts, assemblyName, publishAot, emitSourceMetadata, projectDir, sourcePaths);
+        var driver = RunGenerator(
+            sourceTexts,
+            assemblyName,
+            publishAot,
+            emitSourceMetadata,
+            sourcePaths,
+            sourceRoots);
 
         return CreateSnapshot(driver);
     }
@@ -39,7 +45,7 @@ internal static class MessagingTestHelper
         bool publishAot = false)
     {
         var compilation = CreateCompilation(sourceTexts, assemblyName);
-        var driver = CreateDriver(publishAot, emitSourceMetadata: true, projectDir: null, trackIncrementalSteps: true)
+        var driver = CreateDriver(publishAot, emitSourceMetadata: true, trackIncrementalSteps: true)
             .RunGenerators(compilation);
 
         // Replacing a single tree preserves the other tree instances, so Roslyn can reuse the cached
@@ -119,10 +125,9 @@ internal static class MessagingTestHelper
         string? assemblyName = "Tests",
         bool publishAot = false,
         bool emitSourceMetadata = true,
-        string? projectDir = null,
         string[]? sourcePaths = null)
     {
-        var driver = RunGenerator(sourceTexts, assemblyName, publishAot, emitSourceMetadata, projectDir, sourcePaths);
+        var driver = RunGenerator(sourceTexts, assemblyName, publishAot, emitSourceMetadata, sourcePaths);
 
         return driver.GetRunResult().Results
             .SelectMany(static r => r.Diagnostics)
@@ -134,11 +139,10 @@ internal static class MessagingTestHelper
         string? assemblyName = "Tests",
         bool publishAot = false,
         bool emitSourceMetadata = true,
-        string? projectDir = null,
         string[]? sourcePaths = null)
     {
         var compilation = CreateCompilation(sourceTexts, assemblyName, sourcePaths);
-        var driver = CreateDriver(publishAot, emitSourceMetadata, projectDir);
+        var driver = CreateDriver(publishAot, emitSourceMetadata);
 
         driver = driver.RunGeneratorsAndUpdateCompilation(
             compilation,
@@ -156,10 +160,9 @@ internal static class MessagingTestHelper
         string? assemblyName = "Tests",
         bool publishAot = false,
         bool emitSourceMetadata = true,
-        string? projectDir = null,
         string[]? sourcePaths = null)
     {
-        var driver = RunGenerator(sourceTexts, assemblyName, publishAot, emitSourceMetadata, projectDir, sourcePaths);
+        var driver = RunGenerator(sourceTexts, assemblyName, publishAot, emitSourceMetadata, sourcePaths);
 
         return driver.GetRunResult().Results
             .SelectMany(static r => r.GeneratedSources)
@@ -173,12 +176,13 @@ internal static class MessagingTestHelper
         string? assemblyName,
         bool publishAot,
         bool emitSourceMetadata,
-        string? projectDir,
-        string[]? sourcePaths)
+        string[]? sourcePaths,
+        string? sourceRoots = null)
     {
         var compilation = CreateCompilation(sourceTexts, assemblyName, sourcePaths);
 
-        return CreateDriver(publishAot, emitSourceMetadata, projectDir).RunGenerators(compilation);
+        return CreateDriver(publishAot, emitSourceMetadata, sourceRoots: sourceRoots)
+            .RunGenerators(compilation);
     }
 
     private static CSharpCompilation CreateCompilation(
@@ -242,8 +246,8 @@ internal static class MessagingTestHelper
     private static GeneratorDriver CreateDriver(
         bool publishAot,
         bool emitSourceMetadata,
-        string? projectDir,
-        bool trackIncrementalSteps = false)
+        bool trackIncrementalSteps = false,
+        string? sourceRoots = null)
     {
         var globalOptions = new Dictionary<string, string>
         {
@@ -251,9 +255,9 @@ internal static class MessagingTestHelper
             ["build_property.MochaEmitSourceMetadata"] = emitSourceMetadata ? "true" : "false"
         };
 
-        if (projectDir is not null)
+        if (sourceRoots is not null)
         {
-            globalOptions["build_property.ProjectDir"] = projectDir;
+            globalOptions["build_property._MochaSourceRoots"] = sourceRoots;
         }
 
         var generator = new MessagingGenerator();

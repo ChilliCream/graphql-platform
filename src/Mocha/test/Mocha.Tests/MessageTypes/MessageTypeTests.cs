@@ -27,7 +27,7 @@ public class MessageTypeTests
             RepositoryUrl = "https://github.com/example/mocha",
             Commit = "abc123",
             XmlDocumentation = "<summary>Raised when an order is created.</summary>",
-            DeclarationLocation = new DeclarationLocation("OrderCreated.cs", 1, 1, 3, 2)
+            DeclarationLocation = new DeclarationLocation("OrderCreated.cs", null, 1, 1, 3, 2)
         };
         var runtime = CreateRuntime(b =>
         {

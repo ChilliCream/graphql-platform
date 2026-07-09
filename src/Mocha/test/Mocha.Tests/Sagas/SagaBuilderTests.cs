@@ -104,7 +104,7 @@ public class SagaBuilderTests
     {
         // arrange
         const string xmlDocumentation = "<member name=\"T:Mocha.Tests.SagaBuilderTests.SourceMetadataSaga\" />";
-        var declarationLocation = new DeclarationLocation("SourceMetadataSaga.cs", 1, 2, 3, 4);
+        var declarationLocation = new DeclarationLocation("SourceMetadataSaga.cs", null, 1, 2, 3, 4);
         var sourceMetadata = new SourceMetadata
         {
             XmlDocumentation = xmlDocumentation,
