@@ -1,5 +1,6 @@
 using System.Buffers;
 using System.Diagnostics;
+using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Text.Json;
 
 namespace HotChocolate.Fusion.Text.Json;
@@ -240,6 +241,40 @@ public sealed partial class CompositeResultDocument
         value = default;
         return false;
     }
+
+    internal CompositeObjectContext GetObjectContext(Cursor startCursor)
+    {
+        ObjectDisposedException.ThrowIf(_disposed != 0, this);
+
+        // Hoists the object-invariant work out of per-property lookups. The target
+        // slot is resolved to its StartObject once (following a Reference), its row
+        // type is checked once, and its selection-set metadata is decoded once. Each
+        // per-property lookup then only performs the name join and the cursor
+        // arithmetic. This is valid because the StartObject row and its metadata do
+        // not change while the object's child values are written, and the document
+        // cannot be disposed during the synchronous, single-threaded completion of
+        // one object. The disposed and validity guards are therefore checked once
+        // here instead of on every property.
+        var row = _metaDb.GetValue(ref startCursor);
+        CheckExpectedType(ElementTokenType.StartObject, row.TokenType);
+
+        var numberOfRows = row.NumberOfRows;
+        SelectionSet? selectionSet = null;
+
+        if (row.OperationReferenceType is OperationReferenceType.SelectionSet)
+        {
+            selectionSet = _operation.GetSelectionSetById(row.OperationReferenceId);
+        }
+
+        return new CompositeObjectContext(this, startCursor, selectionSet, numberOfRows);
+    }
+
+    internal bool TryFindPropertyLinear(
+        Cursor startCursor,
+        Cursor endCursor,
+        ReadOnlySpan<byte> propertyName,
+        out CompositeResultElement value)
+        => TryGetNamedPropertyValue(startCursor, endCursor, propertyName, out value);
 
     internal CompositeResultElement GetPropertyBySelectionId(
         Cursor startCursor,
