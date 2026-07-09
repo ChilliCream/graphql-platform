@@ -106,6 +106,7 @@ internal sealed class PlanQueue(FusionSchemaDefinition schema)
         PlanNode planNodeTemplate,
         OperationWorkItem workItem)
     {
+        var queueCountBefore = Count;
         var backlog = planNodeTemplate.Backlog.Pop(out _);
         var allCandidateSchemas = planNodeTemplate.GetCandidateSchemas(workItem.SelectionSet.Id);
         var type = (FusionComplexTypeDefinition)workItem.SelectionSet.Type;
@@ -131,7 +132,12 @@ internal sealed class PlanQueue(FusionSchemaDefinition schema)
         // before falling through to the standard abstract-type lookup path.
         if (type.Kind is TypeKind.Interface or TypeKind.Union)
         {
-            TryEnqueueConcreteTypeLookupPlanNodes(planNodeTemplate, workItem, backlog, allCandidateSchemas, type);
+            TryEnqueueConcreteTypeLookupPlanNodes(
+                planNodeTemplate,
+                workItem,
+                backlog,
+                allCandidateSchemas,
+                type);
         }
 
         // Each branch starts from the same popped template and mutates a local copy
@@ -204,6 +210,65 @@ internal sealed class PlanQueue(FusionSchemaDefinition schema)
                 EnqueueParentPathLookupPlanNodes(planNodeTemplate, workItem, backlog, toSchema, resolutionCost);
             }
         }
+
+        if (Count == queueCountBefore
+            && schema.IsAllowedNonResolvableInterfaceObjectSelection(
+                type,
+                workItem.SelectionSet.Node))
+        {
+            EnqueueFieldErrorPlanNode(planNodeTemplate, workItem, backlog);
+        }
+    }
+
+    private void EnqueueFieldErrorPlanNode(
+        PlanNode planNodeTemplate,
+        OperationWorkItem workItem,
+        Backlog backlog)
+    {
+        var stepId = planNodeTemplate.Steps.NextId();
+        var steps = planNodeTemplate.Steps;
+        var hasProducer = false;
+
+        foreach (var (candidate, index, _) in
+            planNodeTemplate.GetCandidateSteps(workItem.SelectionSet.Id))
+        {
+            if (!candidate.Target.IsParentOfOrSame(workItem.SelectionSet.Path))
+            {
+                continue;
+            }
+
+            steps = steps.SetItem(
+                index,
+                candidate with { Dependents = candidate.Dependents.Add(stepId) });
+            hasProducer = true;
+        }
+
+        if (!hasProducer)
+        {
+            return;
+        }
+
+        steps = steps.Add(
+            new FieldErrorPlanStep
+            {
+                Id = stepId,
+                SelectionSet = workItem.SelectionSet.Node,
+                Type = workItem.SelectionSet.Type,
+                Target = workItem.SelectionSet.Path,
+                Conditions = workItem.Conditions,
+                Dependents = workItem.Dependents
+            });
+
+        var remainingCost = EstimateRemainingCost(planNodeTemplate, backlog);
+
+        Enqueue(
+            planNodeTemplate with
+            {
+                Steps = steps,
+                Backlog = backlog,
+                RemainingCost = remainingCost,
+                ResolutionCost = 0
+            });
     }
 
     /// <summary>
@@ -293,6 +358,7 @@ internal sealed class PlanQueue(FusionSchemaDefinition schema)
         FusionComplexTypeDefinition type)
     {
         var enqueued = false;
+        var hasCoveringAbstractLookup = false;
 
         // Phase 1: we try to find a single schema that can resolve all concrete types as
         // this would allow us to batch all requests to these into a single GraphQL batch request.
@@ -304,14 +370,20 @@ internal sealed class PlanQueue(FusionSchemaDefinition schema)
                 continue;
             }
 
-            // if the target schema already has a lookup returning the abstract type,
-            // let the normal lookup path handle it.
+            // If the target schema already has a lookup returning the abstract type, or exposes the
+            // interface as an @interfaceObject stand-in (whose single interface lookup covers every
+            // possible type), let the normal lookup path handle it instead of requiring a lookup for
+            // every concrete type.
             var hasAbstractLookups = schema
                 .GetPossibleLookupsOrdered(type, toSchema)
-                .Any(t => t.FieldType.Name.Equals(type.Name, StringComparison.Ordinal));
+                .Any(t => t.FieldType.Name.Equals(type.Name, StringComparison.Ordinal))
+                || (type is FusionInterfaceTypeDefinition interfaceType
+                    && interfaceType.Sources.TryGetMember(toSchema, out var interfaceObjectSource)
+                    && interfaceObjectSource.IsInterfaceObject);
 
             if (hasAbstractLookups)
             {
+                hasCoveringAbstractLookup = true;
                 continue;
             }
 
@@ -370,9 +442,9 @@ internal sealed class PlanQueue(FusionSchemaDefinition schema)
             enqueued = true;
         }
 
-        if (enqueued)
+        if (enqueued || hasCoveringAbstractLookup)
         {
-            return true;
+            return enqueued;
         }
 
         // Phase 2: if we do not find a single schema that can can resolve all concrete types we

@@ -49,7 +49,9 @@ internal sealed class FusionLookupDirectiveCache
         MutableComplexTypeDefinition type,
         string? schemaName = null)
     {
-        if (!string.IsNullOrEmpty(schemaName) && !type.ExistsInSchema(schemaName))
+        if (!string.IsNullOrEmpty(schemaName)
+            && !type.ExistsInSchema(schemaName)
+            && !MutableSchemaDefinitionExtensions.ReachesInterfaceObjectStandIn(_schema, type, schemaName))
         {
             return [];
         }

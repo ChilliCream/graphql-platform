@@ -269,6 +269,10 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
                     parsedNodes.Add(ParseEventStreamNodeInfo(nodeElement, id, schema));
                     break;
 
+                case "FieldError":
+                    parsedNodes.Add(ParseFieldErrorNodeInfo(nodeElement, id, schema));
+                    break;
+
                 case "Introspection":
                     parsedNodes.Add(ParseIntrospectionNodeInfo(nodeElement, id, operation));
                     break;
@@ -544,6 +548,8 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
             target = SelectionPath.Parse(targetElement.GetString()!);
         }
 
+        var parentType = ResolveResultSelectionSetType(schema, opSource.Type, source ?? SelectionPath.Root);
+
         return new ParsedSingleOperationNodeInfo
         {
             Id = id,
@@ -553,7 +559,7 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
             Target = target ?? SelectionPath.Root,
             Requirements = requirements?.ToArray() ?? [],
             ForwardedVariables = forwardedVariables ?? [],
-            ResultSelectionSet = ResultSelectionSet.Create(resultSelectionSet!, schema),
+            ResultSelectionSet = ResultSelectionSet.Create(resultSelectionSet!, schema, parentType, schemaName),
             Dependencies = dependencies,
             ParentDependencies = parentDependencies,
             BatchingGroupId = batchingGroupId,
@@ -577,6 +583,8 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
             target = SelectionPath.Parse(targetElement.GetString()!);
         }
 
+        var parentType = ResolveResultSelectionSetType(schema, opSource.Type, source ?? SelectionPath.Root);
+
         return new ParsedApolloOperationNodeInfo
         {
             Id = id,
@@ -586,7 +594,7 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
             Target = target ?? SelectionPath.Root,
             Requirements = requirements?.ToArray() ?? [],
             ForwardedVariables = forwardedVariables ?? [],
-            ResultSelectionSet = ResultSelectionSet.Create(resultSelectionSet!, schema),
+            ResultSelectionSet = ResultSelectionSet.Create(resultSelectionSet!, schema, parentType, schemaName),
             Dependencies = dependencies,
             ParentDependencies = parentDependencies,
             BatchingGroupId = batchingGroupId,
@@ -691,6 +699,8 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
             ? targetsElement.EnumerateArray().Select(e => SelectionPath.Parse(e.GetString()!)).ToArray()
             : [];
 
+        var parentType = ResolveResultSelectionSetType(schema, opSource.Type, source ?? SelectionPath.Root);
+
         return new ParsedBatchOperationNodeInfo
         {
             Id = id,
@@ -700,7 +710,7 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
             Targets = targets,
             Requirements = requirements?.ToArray() ?? [],
             ForwardedVariables = forwardedVariables ?? [],
-            ResultSelectionSet = ResultSelectionSet.Create(resultSelectionSet!, schema),
+            ResultSelectionSet = ResultSelectionSet.Create(resultSelectionSet!, schema, parentType, schemaName),
             Dependencies = dependencies,
             ParentDependencies = parentDependencies,
             BatchingGroupId = batchingGroupId,
@@ -708,6 +718,47 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
             RequiresFileUpload = requiresFileUpload,
             Schema = schema
         };
+    }
+
+    // Reconstructs the type that declares a fetch node's result selection set by walking the
+    // source path from the operation root type, mirroring how BuildExecutionTree passes
+    // operationStep.Type into ResultSelectionSet.Create. This is what lets a rehydrated plan
+    // re-derive @interfaceObject opacity, so a cached plan behaves like a freshly built one.
+    private static ITypeDefinition? ResolveResultSelectionSetType(
+        FusionSchemaDefinition schema,
+        OperationType operationType,
+        SelectionPath source)
+    {
+        ITypeDefinition current = schema.GetOperationType(operationType);
+
+        for (var i = 0; i < source.Length; i++)
+        {
+            var segment = source[i];
+
+            switch (segment.Kind)
+            {
+                case SelectionPathSegmentKind.Field:
+                    if (current is not IComplexTypeDefinition complexType
+                        || !complexType.Fields.TryGetField(segment.Name, out var field))
+                    {
+                        return null;
+                    }
+
+                    current = field.Type.NamedType();
+                    break;
+
+                case SelectionPathSegmentKind.InlineFragment:
+                    if (!schema.Types.TryGetType(segment.Name, out var fragmentType))
+                    {
+                        return null;
+                    }
+
+                    current = fragmentType;
+                    break;
+            }
+        }
+
+        return current;
     }
 
     private static (string? schemaName, OperationSourceText opSource, SelectionPath? source,
@@ -878,6 +929,28 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
             throw new InvalidOperationException(
                 $"Root selection with response name '{responseName}' not found in operation '{operation.Id}'.");
         }
+    }
+
+    private static ParsedNodeInfo ParseFieldErrorNodeInfo(
+        JsonElement nodeElement,
+        int id,
+        FusionSchemaDefinition schema)
+    {
+        var target = SelectionPath.Parse(nodeElement.GetProperty("target").GetString()!);
+        var selectionSet = Utf8GraphQLParser.Syntax.ParseSelectionSet(
+            nodeElement.GetProperty("selectionSet").GetString()!);
+        var resultSelectionSet = ResultSelectionSet.Create(selectionSet, schema);
+        var dependencies = TryParseDependencies(nodeElement, out _);
+        var conditions = TryParseConditions(nodeElement);
+
+        return new ParsedFieldErrorNodeInfo
+        {
+            Id = id,
+            Target = target,
+            ResultSelectionSet = resultSelectionSet,
+            Conditions = conditions,
+            Dependencies = dependencies
+        };
     }
 
     private static ParsedNodeInfo ParseNodeFieldNodeInfo(
@@ -1184,6 +1257,24 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
         public override (ExecutionNode, int[]?, Dictionary<string, int>?, int?) ToExecutionNodeTuple()
         {
             var node = new IntrospectionExecutionNode(Id, Selections, Conditions);
+
+            return (node, Dependencies, null, null);
+        }
+    }
+
+    private sealed class ParsedFieldErrorNodeInfo : ParsedNodeInfo
+    {
+        public required SelectionPath Target { get; init; }
+        public required ResultSelectionSet ResultSelectionSet { get; init; }
+        public ExecutionNodeCondition[] Conditions { get; init; } = [];
+
+        public override (ExecutionNode, int[]?, Dictionary<string, int>?, int?) ToExecutionNodeTuple()
+        {
+            var node = new FieldErrorExecutionNode(
+                Id,
+                Target,
+                ResultSelectionSet,
+                Conditions);
 
             return (node, Dependencies, null, null);
         }

@@ -17,6 +17,12 @@ public struct GraphQLCompositionSettings
     public bool? IncludeSatisfiabilityPaths { get; set; }
 
     /// <summary>
+    /// Gets or sets whether Apollo Federation non-resolvable interface objects are accepted and
+    /// unresolved projected fields are reported as field errors at runtime.
+    /// </summary>
+    public bool? AllowNonResolvableInterfaceObjects { get; set; }
+
+    /// <summary>
     /// Gets or sets the set of tags whose annotated schema elements shall be excluded from
     /// composition.
     /// </summary>

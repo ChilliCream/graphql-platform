@@ -43,7 +43,22 @@ internal static class FusionGatewayBuilder
             capture: null,
             sourceSchemaSettings: null,
             NodeResolution.Gateway,
+            allowNonResolvableInterfaceObjects: false,
             subgraphs);
+
+    public static Task<FusionGateway> ComposeAsync(
+        ApolloFederationCompatibilityOptions compatibility,
+        params (string Name, Func<Task<SubgraphHost>> Factory)[] subgraphs)
+    {
+        ArgumentNullException.ThrowIfNull(compatibility);
+
+        return ComposeAsync(
+            capture: null,
+            sourceSchemaSettings: null,
+            NodeResolution.Gateway,
+            compatibility.AllowNonResolvableInterfaceObjects,
+            subgraphs);
+    }
 
     /// <summary>
     /// Composes a Fusion gateway around the supplied Apollo Federation subgraphs.
@@ -55,7 +70,12 @@ internal static class FusionGatewayBuilder
     public static Task<FusionGateway> ComposeAsync(
         NodeResolution nodeResolution,
         params (string Name, Func<Task<SubgraphHost>> Factory)[] subgraphs)
-        => ComposeAsync(capture: null, sourceSchemaSettings: null, nodeResolution, subgraphs);
+        => ComposeAsync(
+            capture: null,
+            sourceSchemaSettings: null,
+            nodeResolution,
+            allowNonResolvableInterfaceObjects: false,
+            subgraphs);
 
     /// <summary>
     /// Composes a Fusion gateway around the supplied Apollo Federation subgraphs,
@@ -69,7 +89,12 @@ internal static class FusionGatewayBuilder
     public static Task<FusionGateway> ComposeAsync(
         SubgraphRequestCapture? capture,
         params (string Name, Func<Task<SubgraphHost>> Factory)[] subgraphs)
-        => ComposeAsync(capture, sourceSchemaSettings: null, NodeResolution.Gateway, subgraphs);
+        => ComposeAsync(
+            capture,
+            sourceSchemaSettings: null,
+            NodeResolution.Gateway,
+            allowNonResolvableInterfaceObjects: false,
+            subgraphs);
 
     /// <summary>
     /// Composes a Fusion gateway around the supplied Apollo Federation subgraphs,
@@ -90,7 +115,12 @@ internal static class FusionGatewayBuilder
         SubgraphRequestCapture? capture,
         IReadOnlyDictionary<string, string>? sourceSchemaSettings,
         params (string Name, Func<Task<SubgraphHost>> Factory)[] subgraphs)
-        => ComposeAsync(capture, sourceSchemaSettings, NodeResolution.Gateway, subgraphs);
+        => ComposeAsync(
+            capture,
+            sourceSchemaSettings,
+            NodeResolution.Gateway,
+            allowNonResolvableInterfaceObjects: false,
+            subgraphs);
 
     /// <summary>
     /// Composes a Fusion gateway around the supplied Apollo Federation subgraphs,
@@ -114,6 +144,7 @@ internal static class FusionGatewayBuilder
         SubgraphRequestCapture? capture,
         IReadOnlyDictionary<string, string>? sourceSchemaSettings,
         NodeResolution nodeResolution,
+        bool allowNonResolvableInterfaceObjects,
         params (string Name, Func<Task<SubgraphHost>> Factory)[] subgraphs)
     {
         ArgumentNullException.ThrowIfNull(subgraphs);
@@ -152,7 +183,8 @@ internal static class FusionGatewayBuilder
             var enableGlobalObjectIdentification = nodeResolution != NodeResolution.Gateway;
             var schemaDocument = ComposeSchema(
                 sourceSchemaTexts,
-                enableGlobalObjectIdentification);
+                enableGlobalObjectIdentification,
+                allowNonResolvableInterfaceObjects);
             var settings = BuildGatewaySettings(subgraphInfos, sourceSchemaSettings);
 
             var gatewayServices = new ServiceCollection();
@@ -233,10 +265,13 @@ internal static class FusionGatewayBuilder
 
     private static DocumentNode ComposeSchema(
         IReadOnlyList<SourceSchemaText> sourceSchemas,
-        bool enableGlobalObjectIdentification)
+        bool enableGlobalObjectIdentification,
+        bool allowNonResolvableInterfaceObjects)
     {
         var compositionLog = new CompositionLog();
         var options = new SchemaComposerOptions();
+        options.ApolloFederationCompatibility.AllowNonResolvableInterfaceObjects =
+            allowNonResolvableInterfaceObjects;
 
         // The Apollo Federation transformer already emits every resolvable
         // '@key' as an explicit '@lookup' field with '@is' metadata. Turning

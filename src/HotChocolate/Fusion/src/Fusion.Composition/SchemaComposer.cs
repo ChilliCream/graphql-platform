@@ -76,6 +76,30 @@ public sealed class SchemaComposer
             return preprocessingResult.Errors;
         }
 
+        var apolloFederationSchemaNames = schemas
+            .Where(static schema =>
+                schema.Features.Get<ApolloFederation.ConnectorKindMetadata>()?.Kind
+                    == "ApolloFederation")
+            .Select(static schema => StringUtilities.ToConstantCase(schema.Name))
+            .ToHashSet(StringComparer.Ordinal);
+
+        if (_schemaComposerOptions.ApolloFederationCompatibility
+                .AllowNonResolvableInterfaceObjects)
+        {
+            foreach (var schema in schemas)
+            {
+                if (schema.Features.Get<ApolloFederation.ConnectorKindMetadata>()?.Kind
+                    == "ApolloFederation")
+                {
+                    schema.Features.Set(
+                        new ApolloFederation.ApolloFederationCompatibilityMetadata
+                        {
+                            AllowNonResolvableInterfaceObjects = true
+                        });
+                }
+            }
+        }
+
         // Enrich Source Schemas
         var enrichmentResult =
             schemas.Select(schema => new SourceSchemaEnricher(schema, schemas).Enrich()).Combine();
@@ -139,7 +163,9 @@ public sealed class SchemaComposer
             new SatisfiabilityValidator(
                 mergedSchema,
                 _log,
-                _schemaComposerOptions.Satisfiability).Validate();
+                _schemaComposerOptions.Satisfiability,
+                _schemaComposerOptions.ApolloFederationCompatibility,
+                apolloFederationSchemaNames).Validate();
 
         if (satisfiabilityResult.IsFailure)
         {
@@ -158,6 +184,7 @@ public sealed class SchemaComposer
         new ExternalRequireCollisionRule(),
         new ExternalUnusedRule(),
         new EventCursorMarkerRule(),
+        new InterfaceObjectKeyMissingRule(),
         new InvalidShareableUsageRule(),
         new IsInvalidFieldTypeRule(),
         new IsInvalidSyntaxRule(),
@@ -203,6 +230,8 @@ public sealed class SchemaComposer
         new InputFieldTypesMergeableRule(),
         new InputWithMissingRequiredFieldsRule(),
         new InputWithMissingOneOfRule(),
+        new InterfaceObjectKeyMismatchRule(),
+        new InterfaceObjectNoInterfaceRule(),
         new InvalidFieldSharingRule(),
         new MultipleEventStreamSourcesRule(),
         new OptInFeatureStabilityMismatchRule(),
@@ -221,7 +250,10 @@ public sealed class SchemaComposer
         new EnumTypeDefaultValueInaccessibleRule(),
         new EventStreamMessageAbstractTypeRequiresTypeNameRule(),
         new ImplementedByInaccessibleRule(),
+        new ImplementWithoutDefaultRule(),
         new InterfaceFieldNoImplementationRule(),
+        new InterfaceObjectFieldRequiresImplementRule(),
+        new InvalidProjectedFieldSharingRule(),
         new IsInvalidFieldsRule(),
         new KeyInvalidFieldsRule(),
         new NonNullInputFieldIsInaccessibleRule(),

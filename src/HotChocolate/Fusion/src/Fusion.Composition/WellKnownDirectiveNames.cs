@@ -16,6 +16,7 @@ internal static class WellKnownDirectiveNames
     public const string FusionImplements = "fusion__implements";
     public const string FusionInaccessible = "fusion__inaccessible";
     public const string FusionInputField = "fusion__inputField";
+    public const string FusionInterfaceObject = "fusion__interfaceObject";
     public const string FusionListSize = "fusion__listSize";
     public const string FusionLookup = "fusion__lookup";
     public const string FusionRequires = "fusion__requires";
@@ -23,7 +24,9 @@ internal static class WellKnownDirectiveNames
     public const string FusionEventStream = "fusion__eventStream";
     public const string FusionType = "fusion__type";
     public const string FusionUnionMember = "fusion__unionMember";
+    public const string Implement = DirectiveNames.Implement.Name;
     public const string Inaccessible = DirectiveNames.Inaccessible.Name;
+    public const string InterfaceObject = DirectiveNames.InterfaceObject.Name;
     public const string Internal = DirectiveNames.Internal.Name;
     public const string Is = DirectiveNames.Is.Name;
     public const string Key = DirectiveNames.Key.Name;

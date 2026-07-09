@@ -15,9 +15,11 @@ using static HotChocolate.Language.Utf8GraphQLParser.Syntax;
 
 namespace HotChocolate.Fusion;
 
-internal sealed class SatisfiabilityValidator
+internal sealed partial class SatisfiabilityValidator
 {
     private readonly SatisfiabilityOptions _options;
+    private readonly ApolloFederationCompatibilityOptions _apolloFederationCompatibility;
+    private readonly IReadOnlySet<string> _apolloFederationSchemaNames;
     private readonly RequirementsValidator _requirementsValidator;
     private readonly FusionLookupDirectiveCache _lookupCache;
     private readonly SatisfiabilityFacts _facts;
@@ -27,11 +29,16 @@ internal sealed class SatisfiabilityValidator
     public SatisfiabilityValidator(
         MutableSchemaDefinition schema,
         ICompositionLog log,
-        SatisfiabilityOptions? options = null)
+        SatisfiabilityOptions? options = null,
+        ApolloFederationCompatibilityOptions? apolloFederationCompatibility = null,
+        IReadOnlySet<string>? apolloFederationSchemaNames = null)
     {
         _schema = schema;
         _log = log;
         _options = options ?? new SatisfiabilityOptions();
+        _apolloFederationCompatibility =
+            apolloFederationCompatibility ?? new ApolloFederationCompatibilityOptions();
+        _apolloFederationSchemaNames = apolloFederationSchemaNames ?? new HashSet<string>();
         _lookupCache = new FusionLookupDirectiveCache(schema);
         _facts = new SatisfiabilityFactsBuilder(schema, _lookupCache).Build();
         _requirementsValidator =
@@ -70,6 +77,8 @@ internal sealed class SatisfiabilityValidator
 
             VisitObjectType(work.ObjectType, work.Path, worklist, visited);
         }
+
+        ValidateInterfaceObjectBindings();
 
         return _log.HasErrors
             ? ErrorHelper.SatisfiabilityValidationFailed()
@@ -266,6 +275,11 @@ internal sealed class SatisfiabilityValidator
         // (f.e. relatedProduct.relatedProduct.relatedProduct)
         if (optionCount == 0 && !cycle)
         {
+            if (CanReportAtRuntimeForNonResolvableInterfaceObject(type, field))
+            {
+                return;
+            }
+
             var qualifiedFieldName = $"{type.Name}.{field.Name}";
 
             if (_options.IgnoredNonAccessibleFields.TryGetValue(qualifiedFieldName, out var ignoredPaths)
@@ -296,6 +310,61 @@ internal sealed class SatisfiabilityValidator
                     .SetExtension("error", error)
                     .Build());
         }
+    }
+
+    private bool CanReportAtRuntimeForNonResolvableInterfaceObject(
+        MutableObjectTypeDefinition objectType,
+        MutableOutputFieldDefinition field)
+    {
+        if (!_apolloFederationCompatibility.AllowNonResolvableInterfaceObjects)
+        {
+            return false;
+        }
+
+        var hasSource = false;
+
+        foreach (var directive in field.Directives.AsEnumerable())
+        {
+            if (directive.Name != WellKnownDirectiveNames.FusionField
+                || directive.Arguments[WellKnownArgumentNames.Schema]
+                    is not EnumValueNode { Value: var schemaName })
+            {
+                continue;
+            }
+
+            hasSource = true;
+
+            if (!_apolloFederationSchemaNames.Contains(schemaName)
+                || objectType.ExistsInSchema(schemaName)
+                || !IsProjectedFromInterfaceObject(objectType, field.Name, schemaName))
+            {
+                return false;
+            }
+        }
+
+        return hasSource;
+    }
+
+    private static bool IsProjectedFromInterfaceObject(
+        MutableObjectTypeDefinition objectType,
+        string fieldName,
+        string schemaName)
+    {
+        foreach (var interfaceType in objectType.Implements)
+        {
+            if (!MutableSchemaDefinitionExtensions
+                    .GetInterfaceObjectSchemaNames(interfaceType)
+                    .Contains(schemaName, StringComparer.Ordinal)
+                || !interfaceType.Fields.TryGetField(fieldName, out var interfaceField)
+                || !FieldHasSource(interfaceField, schemaName))
+            {
+                continue;
+            }
+
+            return true;
+        }
+
+        return false;
     }
 
     private void VisitNodeField(

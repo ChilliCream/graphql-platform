@@ -1,4 +1,5 @@
 using System.Runtime.CompilerServices;
+using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
@@ -20,6 +21,15 @@ internal abstract class ResultSelectionSet(
     /// and error result building where over-approximation is safe.
     /// </summary>
     public ReadOnlySpan<string> ResponseNames => allResponseNames;
+
+    /// <summary>
+    /// Gets a value indicating whether the objects described by this selection set are opaque
+    /// interface values produced by an <c>@interfaceObject</c> stand-in. Such values initialize
+    /// interface-typed and only recover their concrete identity through a covering lookup.
+    /// </summary>
+    public bool ProducesOpaqueElements { get; private set; }
+
+    private void MarkProducesOpaqueElements() => ProducesOpaqueElements = true;
 
     /// <summary>
     /// Gets the direct selections at this level.
@@ -44,7 +54,7 @@ internal abstract class ResultSelectionSet(
     /// Used in <c>TryCompleteObjectValue</c> where the runtime type is known.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public ResultSelectionSet? TryGetChild(string responseName, IObjectTypeDefinition objectType)
+    public ResultSelectionSet? TryGetChild(string responseName, IComplexTypeDefinition objectType)
         => TryGetDirectChild(responseName, out var selectionSet)
             ? selectionSet
             : TryGetFragmentChild(responseName, objectType);
@@ -71,7 +81,7 @@ internal abstract class ResultSelectionSet(
         return null;
     }
 
-    private ResultSelectionSet? TryGetFragmentChild(string responseName, IObjectTypeDefinition objectType)
+    private ResultSelectionSet? TryGetFragmentChild(string responseName, IComplexTypeDefinition objectType)
     {
         for (var i = 0; i < fragments.Length; i++)
         {
@@ -138,7 +148,20 @@ internal abstract class ResultSelectionSet(
     /// Optional schema used to resolve inline fragment type conditions to
     /// <see cref="ITypeDefinition"/> instances. When <c>null</c>, type conditions are not resolved.
     /// </param>
-    public static ResultSelectionSet Create(SelectionSetNode selectionSet, ISchemaDefinition? schema = null)
+    /// <param name="parentType">
+    /// The named type that declares this selection set. When provided together with
+    /// <paramref name="sourceSchemaName"/>, it is used to detect fields that return opaque
+    /// <c>@interfaceObject</c> stand-in values so the corresponding child set can be marked.
+    /// </param>
+    /// <param name="sourceSchemaName">
+    /// The source schema that resolves this selection set. When it stands in for an interface a
+    /// field returns, that field's child set produces opaque interface values.
+    /// </param>
+    public static ResultSelectionSet Create(
+        SelectionSetNode selectionSet,
+        ISchemaDefinition? schema = null,
+        ITypeDefinition? parentType = null,
+        string? sourceSchemaName = null)
     {
         var directSelections = new List<ResultSelection>();
         var fragments = new List<ResultFragment>();
@@ -151,14 +174,23 @@ internal abstract class ResultSelectionSet(
                 case FieldNode field:
                     var name = field.Alias?.Value ?? field.Name.Value;
                     allResponseNames.Add(name);
-                    directSelections.Add(new ResultSelection(
-                        name,
-                        field.SelectionSet is { } childSet ? Create(childSet, schema) : null));
+
+                    ResultSelectionSet? child = null;
+                    if (field.SelectionSet is { } childSet)
+                    {
+                        var fieldType = ResolveFieldType(parentType, field.Name.Value);
+                        child = Create(childSet, schema, fieldType, sourceSchemaName);
+
+                        if (IsOpaqueStandIn(fieldType, sourceSchemaName))
+                        {
+                            child.MarkProducesOpaqueElements();
+                        }
+                    }
+
+                    directSelections.Add(new ResultSelection(name, child));
                     break;
 
                 case InlineFragmentNode inlineFragment:
-                    var body = Create(inlineFragment.SelectionSet, schema);
-
                     ITypeDefinition? typeCondition = null;
                     if (inlineFragment.TypeCondition is not null)
                     {
@@ -166,6 +198,12 @@ internal abstract class ResultSelectionSet(
                             inlineFragment.TypeCondition.Name.Value,
                             out typeCondition);
                     }
+
+                    var body = Create(
+                        inlineFragment.SelectionSet,
+                        schema,
+                        typeCondition ?? parentType,
+                        sourceSchemaName);
 
                     fragments.Add(new ResultFragment(typeCondition, body));
 
@@ -197,4 +235,16 @@ internal abstract class ResultSelectionSet(
             fragmentsArray,
             responseNamesArray);
     }
+
+    private static ITypeDefinition? ResolveFieldType(ITypeDefinition? parentType, string fieldName)
+        => parentType is IComplexTypeDefinition complexType
+            && complexType.Fields.TryGetField(fieldName, out var field)
+            ? field.Type.NamedType()
+            : null;
+
+    private static bool IsOpaqueStandIn(ITypeDefinition? namedType, string? sourceSchemaName)
+        => sourceSchemaName is not null
+            && namedType is FusionInterfaceTypeDefinition interfaceType
+            && interfaceType.Sources.TryGetMember(sourceSchemaName, out var source)
+            && source.IsInterfaceObject;
 }

@@ -153,6 +153,10 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
                     WriteEventStreamNode(jsonWriter, operation, eventStreamNode, nodeTrace);
                     break;
 
+                case FieldErrorExecutionNode fieldErrorNode:
+                    WriteFieldErrorNode(jsonWriter, operation, fieldErrorNode, nodeTrace);
+                    break;
+
                 case OperationExecutionNode operationNode:
                     WriteOperationNode(jsonWriter, operation, operationNode, nodeTrace);
                     break;
@@ -1074,6 +1078,33 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
 
         TryWriteConditions(jsonWriter, node);
 
+        TryWriteNodeTrace(jsonWriter, operation, trace);
+
+        jsonWriter.WriteEndObject();
+    }
+
+    private static void WriteFieldErrorNode(
+        JsonWriter jsonWriter,
+        Operation operation,
+        FieldErrorExecutionNode node,
+        ExecutionNodeTrace? trace)
+    {
+        jsonWriter.WriteStartObject();
+
+        jsonWriter.WritePropertyName("id");
+        jsonWriter.WriteNumberValue(node.Id);
+
+        jsonWriter.WritePropertyName("type");
+        jsonWriter.WriteStringValue(node.Type.ToString());
+
+        jsonWriter.WritePropertyName("target");
+        jsonWriter.WriteStringValue(node.Target.ToString());
+
+        jsonWriter.WritePropertyName("selectionSet");
+        jsonWriter.WriteStringValue(node.ResultSelectionSet.ToString(indented: false));
+
+        TryWriteConditions(jsonWriter, node);
+        WriteDependencies(jsonWriter, node.Dependencies, node.ParentDependencies);
         TryWriteNodeTrace(jsonWriter, operation, trace);
 
         jsonWriter.WriteEndObject();

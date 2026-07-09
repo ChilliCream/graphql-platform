@@ -200,5 +200,11 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("NodeFieldExecutionNode_InvalidNodeIdFormat", resourceCulture);
             }
         }
+
+        internal static string FetchResultStore_InvalidTargetValueKind {
+            get {
+                return ResourceManager.GetString("FetchResultStore_InvalidTargetValueKind", resourceCulture);
+            }
+        }
     }
 }

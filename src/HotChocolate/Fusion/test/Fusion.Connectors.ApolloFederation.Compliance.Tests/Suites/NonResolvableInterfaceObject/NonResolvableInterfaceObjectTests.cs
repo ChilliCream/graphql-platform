@@ -1,5 +1,6 @@
 using HotChocolate.Fusion.Suites.NonResolvableInterfaceObject.A;
 using HotChocolate.Fusion.Suites.NonResolvableInterfaceObject.B;
+using HotChocolate.Fusion.Options;
 
 namespace HotChocolate.Fusion.Suites;
 
@@ -16,6 +17,10 @@ public sealed class NonResolvableInterfaceObjectTests : ComplianceTestBase
 {
     protected override Task<FusionGateway> BuildGatewayAsync()
         => FusionGatewayBuilder.ComposeAsync(
+            new ApolloFederationCompatibilityOptions
+            {
+                AllowNonResolvableInterfaceObjects = true
+            },
             (ASubgraph.Name, ASubgraph.BuildAsync),
             (BSubgraph.Name, BSubgraph.BuildAsync));
 
@@ -39,16 +44,52 @@ public sealed class NonResolvableInterfaceObjectTests : ComplianceTestBase
             """);
 
     [Fact]
-    public Task A_Field_Errors_WhenInterfaceObjectNotResolvable() => RunAsync(
+    public Task A_Field_ReturnsNullWithErrorAndPreservesSiblings() => RunAsync(
         query: """
             query {
               a {
+                id
                 field
+              }
+              b {
+                id
               }
             }
             """,
-        expectedData: null,
-        expectsErrors: true);
+        expectedData: """
+            {
+              "a": {
+                "id": "n1",
+                "field": null
+              },
+              "b": {
+                "id": "n1"
+              }
+            }
+            """,
+        expectsErrors: true,
+        expectedErrorPath: """["a","field"]""");
+
+    [Fact]
+    public Task A_AliasedField_ReturnsNullWithAliasedErrorPath() => RunAsync(
+        query: """
+            query {
+              aliasedA: a {
+                id
+                aliasedField: field
+              }
+            }
+            """,
+        expectedData: """
+            {
+              "aliasedA": {
+                "id": "n1",
+                "aliasedField": null
+              }
+            }
+            """,
+        expectsErrors: true,
+        expectedErrorPath: """["aliasedA","aliasedField"]""");
 
     [Fact]
     public Task B_ReturnsId() => RunAsync(
@@ -68,7 +109,7 @@ public sealed class NonResolvableInterfaceObjectTests : ComplianceTestBase
             """);
 
     [Fact]
-    public Task A_Id_ReturnsNullWithError() => RunAsync(
+    public Task A_Id_ReturnsDirectly() => RunAsync(
         query: """
             query {
               a {
@@ -78,10 +119,12 @@ public sealed class NonResolvableInterfaceObjectTests : ComplianceTestBase
             """,
         expectedData: """
             {
-              "a": null
+              "a": {
+                "id": "n1"
+              }
             }
             """,
-        expectsErrors: true);
+        expectsErrors: false);
 
     [Fact]
     public Task Product_ReturnsId() => RunAsync(
@@ -110,8 +153,9 @@ public sealed class NonResolvableInterfaceObjectTests : ComplianceTestBase
               }
             }
             """,
-        expectedData: null,
-        expectsErrors: true);
+        expectedData: "null",
+        expectsErrors: true,
+        expectedErrorPath: """["product","name"]""");
 
     [Fact]
     public Task Product_BreadFragment_ReturnsId() => RunAsync(

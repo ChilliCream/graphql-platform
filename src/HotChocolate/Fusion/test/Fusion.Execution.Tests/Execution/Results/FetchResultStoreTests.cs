@@ -25,6 +25,54 @@ public sealed class FetchResultStoreTests : FusionTestBase
     private static readonly byte[] s_fieldPayload = """{"data":{"field":"value"}}"""u8.ToArray();
     private static readonly FusionSchemaDefinition s_schema = CreateCompositeSchema();
 
+    [Fact]
+    public void GetResultPaths_Should_ThrowInvalidOperationException_When_TargetTraversesScalar()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: test
+            type Query {
+              field: String
+            }
+            """);
+        var plan = PlanOperation(schema, "{ field }");
+        var node = Assert.IsType<OperationExecutionNode>(Assert.Single(plan.RootNodes));
+
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+        using var store = new FetchResultStore();
+        store.Initialize(
+            resultArena,
+            schema,
+            DefaultErrorHandler.Default,
+            plan.Operation,
+            ErrorHandlingMode.Propagate,
+            includeFlags: 0,
+            deferFlags: 0,
+            pathSegmentLocalPoolCapacity: 16);
+
+        var document = SourceResultDocument.Parse(
+            sourceArena,
+            s_fieldPayload,
+            s_fieldPayload.Length);
+        store.AddPartialResult(
+            SelectionPath.Root,
+            new SourceSchemaResult(CompactPath.Root, document),
+            node.ResultSelectionSet,
+            containsErrors: false);
+
+        // act
+        var exception = Assert.Throws<InvalidOperationException>(
+            () => store.GetResultPaths(SelectionPath.Root.AppendField("field")));
+
+        // assert
+        Assert.Equal(
+            "Expected the value at result path 'field' for selection path '$.field' to be an object or list, "
+                + "but found 'String'.",
+            exception.Message);
+    }
+
     [Theory]
     [InlineData(false)]
     [InlineData(true)]

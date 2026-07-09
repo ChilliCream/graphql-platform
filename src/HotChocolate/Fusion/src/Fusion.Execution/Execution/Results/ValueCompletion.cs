@@ -77,6 +77,10 @@ internal sealed class ValueCompletion
         {
             InitializeTargetObject(source, target);
         }
+        else
+        {
+            TryUpgradeOpaqueTarget(target, source);
+        }
 
         foreach (var property in source.EnumerateObject())
         {
@@ -147,10 +151,34 @@ internal sealed class ValueCompletion
                 "Cannot initialize a result object without selection metadata.");
         }
 
-        var objectType = GetType(type, source);
+        var objectType = GetType(type, source, isOpaque: false);
         var objectSelectionSet = selection.GetSelectionSet(objectType)!;
 
         target.SetObjectValue(objectSelectionSet);
+    }
+
+    /// <summary>
+    /// When a covering lookup imports concrete data (carrying a <c>__typename</c>) into an element
+    /// that is still interface-typed from an <c>@interfaceObject</c> stand-in, upgrades the element
+    /// to its concrete type so the identity-dependent fields have slots to complete into.
+    /// </summary>
+    private void TryUpgradeOpaqueTarget(CompositeResultElement target, SourceResultElement source)
+    {
+        if (target.SelectionSet is not { Type.Kind: TypeKind.Interface } interfaceSet
+            || interfaceSet.DeclaringSelection is not { } parentSelection)
+        {
+            return;
+        }
+
+        if (!source.TryGetProperty(IntrospectionFieldNames.TypeNameSpan, out var typeName)
+            || typeName.ValueKind is not JsonValueKind.String)
+        {
+            return;
+        }
+
+        var concreteType = _schema.Types.GetType<IObjectTypeDefinition>(typeName.AssertString());
+        var concreteSelectionSet = parentSelection.GetSelectionSet(concreteType)!;
+        _store.Result.UpgradeObject(target, concreteSelectionSet);
     }
 
     /// <summary>
@@ -371,7 +399,7 @@ internal sealed class ValueCompletion
     private static bool TryInitializeTargetObject(CompositeResultElement target)
     {
         if (!TryGetSelectionContext(target, out var selection, out var type)
-            || type.NamedType() is not IObjectTypeDefinition objectType)
+            || type.NamedType() is not IComplexTypeDefinition complexType)
         {
             return false;
         }
@@ -381,7 +409,7 @@ internal sealed class ValueCompletion
             return false;
         }
 
-        target.SetObjectValue(selection.GetSelectionSet(objectType)!);
+        target.SetObjectValue(selection.GetSelectionSet(complexType)!);
         return true;
     }
 
@@ -865,7 +893,7 @@ TryCompleteList_MoveNext:
         CompositeResultElement target,
         ErrorTrie? errorTrie,
         Selection parentSelection,
-        IObjectTypeDefinition objectType,
+        IComplexTypeDefinition objectType,
         int depth,
         ResultSelectionSet? resultSelectionSet)
     {
@@ -937,16 +965,34 @@ TryCompleteList_MoveNext:
         IType type,
         int depth,
         ResultSelectionSet? resultSelectionSet)
-        => TryCompleteObjectValue(source, target, errorTrie, selection, GetType(type, source), depth, resultSelectionSet);
+    {
+        var isOpaque = resultSelectionSet?.ProducesOpaqueElements ?? false;
+        return TryCompleteObjectValue(
+            source,
+            target,
+            errorTrie,
+            selection,
+            GetType(type, source, isOpaque),
+            depth,
+            resultSelectionSet);
+    }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private IObjectTypeDefinition GetType(IType type, SourceResultElement data)
+    private IComplexTypeDefinition GetType(IType type, SourceResultElement data, bool isOpaque)
     {
         var namedType = type.NamedType();
 
         if (namedType is IObjectTypeDefinition objectType)
         {
             return objectType;
+        }
+
+        // An opaque @interfaceObject value carries no authoritative __typename in the stand-in's
+        // result, so it completes interface-typed against the interface's declared fields and only
+        // recovers its concrete identity through the covering lookup.
+        if (isOpaque)
+        {
+            return (IComplexTypeDefinition)namedType;
         }
 
         var typeName = data.GetProperty(IntrospectionFieldNames.TypeNameSpan).AssertString();

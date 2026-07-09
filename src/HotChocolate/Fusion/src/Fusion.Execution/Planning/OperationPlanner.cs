@@ -3978,6 +3978,24 @@ internal static class PlannerExtensions
                     case FieldNode fieldNode:
                         if (fieldNode.Name.Value == IntrospectionFieldNames.TypeName)
                         {
+                            // __typename is resolvable on any schema, so it normally does not
+                            // constrain schema choice. The exception is an @interfaceObject-opaque
+                            // position: the stand-in cannot provide an authoritative concrete
+                            // __typename, so identity recovery requires a concrete-aware source
+                            // (one where the interface is not a stand-in), reached through its
+                            // covering interface lookup.
+                            if (complexType is FusionInterfaceTypeDefinition interfaceType
+                                && interfaceType.Sources.Any(t => t.IsInterfaceObject))
+                            {
+                                foreach (var source in interfaceType.Sources)
+                                {
+                                    if (!source.IsInterfaceObject)
+                                    {
+                                        candidateSchemas.Add(source.SchemaName);
+                                    }
+                                }
+                            }
+
                             continue;
                         }
 
@@ -4008,6 +4026,25 @@ internal static class PlannerExtensions
                             typeCondition = compositeSchema.Types.GetType(
                                 inlineFragmentNode.TypeCondition.Name.Value,
                                 allowInaccessibleFields: true);
+                        }
+
+                        // Narrowing an @interfaceObject-opaque interface to a concrete possible type
+                        // observes identity: the stand-in cannot authoritatively tell whether a
+                        // value is that concrete type, so a concrete-aware source (one where the
+                        // interface is not a stand-in) must recover it through its covering
+                        // interface lookup. Mirrors the interface-level __typename handling above so
+                        // a fragment that selects only __typename still yields a candidate schema.
+                        if (complexType is FusionInterfaceTypeDefinition fragmentParentInterface
+                            && typeCondition is FusionObjectTypeDefinition
+                            && fragmentParentInterface.Sources.Any(t => t.IsInterfaceObject))
+                        {
+                            foreach (var source in fragmentParentInterface.Sources)
+                            {
+                                if (!source.IsInterfaceObject)
+                                {
+                                    candidateSchemas.Add(source.SchemaName);
+                                }
+                            }
                         }
 
                         CollectCandidateSchemas(

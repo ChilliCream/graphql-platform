@@ -398,6 +398,37 @@ public sealed partial class CompositeResultDocument : IDisposable
         return new CompositeResultElement(this, startObjectCursor);
     }
 
+    /// <summary>
+    /// Upgrades an interface-typed element produced by an <c>@interfaceObject</c> stand-in to its
+    /// recovered concrete type. A new object is created with the concrete selection set, the
+    /// interface-declared fields already completed on the old object are carried over by response
+    /// name, and <paramref name="element"/> is re-pointed at the concrete object so the covering
+    /// lookup can complete the identity-dependent fields.
+    /// </summary>
+    internal void UpgradeObject(CompositeResultElement element, SelectionSet concreteSelectionSet)
+    {
+        var newObject = CreateObject(element.Cursor, concreteSelectionSet);
+
+        foreach (var property in element.EnumerateObject())
+        {
+            var selection = property.Selection;
+
+            // __typename is synthesized from the concrete selection set; the interface-named
+            // placeholder on the opaque object must never overwrite it.
+            if (selection is null || selection.Field.IsIntrospectionField)
+            {
+                continue;
+            }
+
+            if (newObject.TryGetProperty(selection.Utf8ResponseName, out var slot))
+            {
+                AssignCompositeValue(slot, property.Value);
+            }
+        }
+
+        AssignCompositeValue(element, newObject);
+    }
+
     internal CompositeResultElement CreateArray(Cursor parent, int length)
     {
         var cursor = WriteStartArray(parent, length);

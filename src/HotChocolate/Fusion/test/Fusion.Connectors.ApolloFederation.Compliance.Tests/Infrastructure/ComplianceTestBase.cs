@@ -34,16 +34,20 @@ public abstract class ComplianceTestBase : IAsyncLifetime
     /// When not <see langword="null"/>, asserts whether an <c>errors</c> array is
     /// present on the response.
     /// </param>
+    /// <param name="expectedErrorPath">
+    /// When not <see langword="null"/>, asserts that an error has this JSON path array.
+    /// </param>
     protected async Task RunAsync(
         [StringSyntax("GraphQL")] string query,
         [StringSyntax("Json")] string? expectedData = null,
-        bool? expectsErrors = null)
+        bool? expectsErrors = null,
+        [StringSyntax("Json")] string? expectedErrorPath = null)
     {
         _gateway ??= await BuildGatewayAsync();
         var result = await _gateway.Executor.ExecuteAsync(query);
         var json = result.ToJson(withIndentations: false);
 
-        AuditAssertions.Assert(json, expectedData, expectsErrors);
+        AuditAssertions.Assert(json, expectedData, expectsErrors, expectedErrorPath);
     }
 
     /// <inheritdoc />

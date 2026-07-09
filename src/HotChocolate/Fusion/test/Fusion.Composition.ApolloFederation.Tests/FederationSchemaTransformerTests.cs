@@ -610,7 +610,7 @@ public sealed class FederationSchemaTransformerTests
     }
 
     [Fact]
-    public void Transform_InterfaceObject_Should_ReturnError()
+    public void Transform_InterfaceObject_Should_Preserve()
     {
         // arrange
         const string federationSdl =
@@ -643,13 +643,16 @@ public sealed class FederationSchemaTransformerTests
             """;
 
         // act
+        // @interfaceObject maps 1:1 to the native construct, so it is translated rather than
+        // rejected: the transform keeps the directive and its application on the stand-in.
         var result = FederationSchemaTransformer.Transform(federationSdl);
 
         // assert
-        Assert.True(result.IsFailure);
-        Assert.Contains(
-            result.Errors,
-            e => e.Message.Contains("@interfaceObject"));
+        Assert.True(result.IsSuccess);
+        Snapshot.Create()
+            .Add(federationSdl, "Apollo Federation SDL", "graphql")
+            .Add(result.Value, "Transformed SDL", "graphql")
+            .MatchMarkdownSnapshot();
     }
 
     [Fact]

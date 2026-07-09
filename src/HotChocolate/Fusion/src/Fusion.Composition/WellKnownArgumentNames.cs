@@ -3,6 +3,7 @@ namespace HotChocolate.Fusion;
 internal static class WellKnownArgumentNames
 {
     public const string Apply = "apply";
+    public const string AllowNonResolvableInterfaceObjects = "allowNonResolvableInterfaceObjects";
     public const string AssumedSize = "assumedSize";
     public const string Broker = "broker";
     public const string CursorArgument = "cursorArgument";

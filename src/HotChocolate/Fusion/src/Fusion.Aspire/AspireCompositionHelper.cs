@@ -25,6 +25,10 @@ internal static class AspireCompositionHelper
         {
             Merger = { EnableGlobalObjectIdentification = settings.EnableGlobalObjectIdentification },
             Satisfiability = { IncludeSatisfiabilityPaths = settings.IncludeSatisfiabilityPaths },
+            ApolloFederationCompatibility =
+            {
+                AllowNonResolvableInterfaceObjects = settings.AllowNonResolvableInterfaceObjects
+            },
             Preprocessor = { ExcludeByTag = settings.ExcludeByTag?.ToHashSet() }
         };
         var sourceSchemas = newSourceSchemas.ToDictionary(

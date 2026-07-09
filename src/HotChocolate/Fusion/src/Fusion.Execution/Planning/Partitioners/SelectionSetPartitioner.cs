@@ -84,6 +84,15 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
         List<ISelectionNode>? resolvableSelections = null;
         List<ISelectionNode>? unresolvableSelections = null;
 
+        // When the selection set type is an @interfaceObject stand-in in this schema, values here
+        // are opaque: the schema holds no authoritative concrete type. Both __typename and any type
+        // condition are spilled and recovered through the covering interface lookup on a
+        // concrete-aware schema rather than resolved from the stand-in.
+        var isInterfaceObjectContext =
+            type is FusionInterfaceTypeDefinition interfaceContextType
+            && interfaceContextType.Sources.TryGetMember(context.SchemaName, out var interfaceContextSource)
+            && interfaceContextSource.IsInterfaceObject;
+
         providedSelectionSetNode = GetProvidedSelectionSet(type, schema, providedSelectionSetNode);
 
         context.Nodes.Push(selectionSetNode);
@@ -96,9 +105,18 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
                 {
                     // The __typename field is available on all subgraphs, so we always treat it as resolvable.
                     // We need to check it like this to also handle the union { __typename } case.
+                    // The one exception is an @interfaceObject stand-in context, where __typename is
+                    // opaque and must be recovered through the covering interface lookup.
                     if (fieldNode.Name.Value.Equals(IntrospectionFieldNames.TypeName))
                     {
-                        CompleteSelection(fieldNode, fieldNode, null, i);
+                        if (isInterfaceObjectContext)
+                        {
+                            CompleteSelection(fieldNode, null, fieldNode, i);
+                        }
+                        else
+                        {
+                            CompleteSelection(fieldNode, fieldNode, null, i);
+                        }
                     }
                     else
                     {
@@ -191,7 +209,7 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
 
         resolvableSelections ??= [.. selectionSetNode.Selections];
 
-        if (isAbstractType && !resolvableSelections.Any(IsTypeNameSelection))
+        if (isAbstractType && !isInterfaceObjectContext && !resolvableSelections.Any(IsTypeNameSelection))
         {
             resolvableSelections = [
                 new FieldNode(IntrospectionFieldNames.TypeName),
@@ -495,39 +513,51 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
                     + "does not exist in the composite schema.");
             }
 
-            if (narrowedType is not FusionObjectTypeDefinition narrowedObject)
+            // An @interfaceObject stand-in narrows to the interface itself and covers every possible
+            // type through its single opaque source, so there is no per-concrete coverage to check
+            // and nothing to spill. The concrete __typename is recovered through the covering
+            // interface lookup on a concrete-aware schema.
+            var isInterfaceObjectNarrowing =
+                narrowedType is FusionInterfaceTypeDefinition narrowedInterface
+                && narrowedInterface.Sources.TryGetMember(context.SchemaName, out var standInSource)
+                && standInSource.IsInterfaceObject;
+
+            if (!isInterfaceObjectNarrowing)
             {
-                throw new NotSupportedException(
-                    $"Supertype narrowing of field '{complexType.Name}.{field.Name}' in source schema "
-                    + $"'{context.SchemaName}' to the abstract type '{narrowedTypeName}' "
-                    + "is not yet supported. Only narrowing to a concrete object type is currently supported.");
-            }
-
-            var coverageSelectionSet = GetCoverageSelectionSet(context.SelectionSetIndex, fieldNode.SelectionSet);
-            var fieldNodeForSpill = coverageSelectionSet is not null
-                && !ReferenceEquals(coverageSelectionSet, fieldNode.SelectionSet)
-                    ? fieldNode.WithSelectionSet(coverageSelectionSet)
-                    : fieldNode;
-
-            if (!narrowedObject.Sources.TryGetMember(context.SchemaName, out var narrowedObjectSource))
-            {
-                throw new InvalidOperationException(
-                    $"The narrowed source type '{narrowedTypeName}' for field "
-                    + $"'{complexType.Name}.{field.Name}' is not declared in source schema "
-                    + $"'{context.SchemaName}'.");
-            }
-
-            foreach (var typeCondition in GetTopLevelTypeConditions(coverageSelectionSet))
-            {
-                var conditionName = typeCondition.Name.Value;
-                var covered =
-                    string.Equals(conditionName, narrowedTypeName, StringComparison.Ordinal)
-                    || narrowedObjectSource.Implements.Contains(conditionName)
-                    || narrowedObjectSource.MemberOf.Contains(conditionName);
-
-                if (!covered)
+                if (narrowedType is not FusionObjectTypeDefinition narrowedObject)
                 {
-                    return (null, fieldNodeForSpill);
+                    throw new NotSupportedException(
+                        $"Supertype narrowing of field '{complexType.Name}.{field.Name}' in source schema "
+                        + $"'{context.SchemaName}' to the abstract type '{narrowedTypeName}' "
+                        + "is not yet supported. Only narrowing to a concrete object type is currently supported.");
+                }
+
+                var coverageSelectionSet = GetCoverageSelectionSet(context.SelectionSetIndex, fieldNode.SelectionSet);
+                var fieldNodeForSpill = coverageSelectionSet is not null
+                    && !ReferenceEquals(coverageSelectionSet, fieldNode.SelectionSet)
+                        ? fieldNode.WithSelectionSet(coverageSelectionSet)
+                        : fieldNode;
+
+                if (!narrowedObject.Sources.TryGetMember(context.SchemaName, out var narrowedObjectSource))
+                {
+                    throw new InvalidOperationException(
+                        $"The narrowed source type '{narrowedTypeName}' for field "
+                        + $"'{complexType.Name}.{field.Name}' is not declared in source schema "
+                        + $"'{context.SchemaName}'.");
+                }
+
+                foreach (var typeCondition in GetTopLevelTypeConditions(coverageSelectionSet))
+                {
+                    var conditionName = typeCondition.Name.Value;
+                    var covered =
+                        string.Equals(conditionName, narrowedTypeName, StringComparison.Ordinal)
+                        || narrowedObjectSource.Implements.Contains(conditionName)
+                        || narrowedObjectSource.MemberOf.Contains(conditionName);
+
+                    if (!covered)
+                    {
+                        return (null, fieldNodeForSpill);
+                    }
                 }
             }
         }
@@ -673,6 +703,15 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
 
         if (!typeCondition.ExistsInSchema(context.SchemaName))
         {
+            // In an @interfaceObject stand-in context the concrete type is opaque and not defined
+            // in this schema, but the type condition still narrows a possible type of the
+            // interface. Spill it so the covering interface lookup on a concrete-aware schema
+            // recovers it, rather than dropping the selection.
+            if (IsInterfaceObjectPossibleType(type, typeCondition, context.SchemaName))
+            {
+                return (null, inlineFragmentNode);
+            }
+
             return (null, null);
         }
 
@@ -698,6 +737,18 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
             inlineFragmentNode.WithSelectionSet(resolvable),
             unresolvable is null ? null : inlineFragmentNode.WithSelectionSet(unresolvable)
         );
+    }
+
+    private bool IsInterfaceObjectPossibleType(
+        ITypeDefinition parentType,
+        ITypeDefinition typeCondition,
+        string schemaName)
+    {
+        return parentType is FusionInterfaceTypeDefinition interfaceType
+            && interfaceType.Sources.TryGetMember(schemaName, out var source)
+            && source.IsInterfaceObject
+            && typeCondition is FusionObjectTypeDefinition
+            && interfaceType.IsAssignableFrom(typeCondition);
     }
 
     private sealed class Context

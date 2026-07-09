@@ -39,8 +39,32 @@ internal static class SettingsExtensions
                     IncludeSatisfiabilityPaths =
                         compositionSettings.Satisfiability.IncludeSatisfiabilityPaths
                         ?? settings.Satisfiability.IncludeSatisfiabilityPaths
-                }
+                },
+                ApolloFederationCompatibility =
+                    new CompositionSettings.ApolloFederationCompatibilitySettings
+                    {
+                        AllowNonResolvableInterfaceObjects =
+                            compositionSettings.ApolloFederationCompatibility
+                                .AllowNonResolvableInterfaceObjects
+                            ?? settings.ApolloFederationCompatibility
+                                .AllowNonResolvableInterfaceObjects
+                    }
             };
+        }
+    }
+
+    extension(CompositionSettings.ApolloFederationCompatibilitySettings compatibilitySettings)
+    {
+        public ApolloFederationCompatibilityOptions ToOptions()
+        {
+            var options = new ApolloFederationCompatibilityOptions();
+
+            if (compatibilitySettings.AllowNonResolvableInterfaceObjects is { } allow)
+            {
+                options.AllowNonResolvableInterfaceObjects = allow;
+            }
+
+            return options;
         }
     }
 

@@ -91,6 +91,12 @@ directive @fusion__inputField(
   sourceType: String
 ) repeatable on ARGUMENT_DEFINITION | INPUT_FIELD_DEFINITION
 
+"The @fusion__interfaceObject directive specifies the source schemas that expose an interface as an @interfaceObject stand-in, so values of the interface produced by those schemas are opaque."
+directive @fusion__interfaceObject(
+  "The name of the source schema that exposes this interface as an @interfaceObject stand-in."
+  schema: fusion__Schema!
+) repeatable on INTERFACE
+
 "The @fusion__listSize directive specifies list size metadata for each source schema."
 directive @fusion__listSize(
   "The assumed size of the list as defined in the source schema."

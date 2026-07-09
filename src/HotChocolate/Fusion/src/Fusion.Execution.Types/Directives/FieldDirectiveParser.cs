@@ -59,7 +59,12 @@ internal static class FieldDirectiveParser
                 "The `schema` argument is required on the @field directive.");
         }
 
-        return new FieldDirective(new SchemaKey(schemaKey), sourceName, sourceType, provides, isExternal);
+        return new FieldDirective(
+            new SchemaKey(schemaKey),
+            sourceName,
+            sourceType,
+            provides,
+            isExternal);
     }
 
     public static SelectionSetNode ParseSelectionSet(string value)
