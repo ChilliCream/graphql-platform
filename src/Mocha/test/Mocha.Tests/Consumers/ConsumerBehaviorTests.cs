@@ -32,7 +32,7 @@ public sealed class ConsumerBehaviorTests
             RepositoryUrl = "https://github.com/example/mocha",
             Commit = "abc123",
             XmlDocumentation = "<summary>Handles order created events.</summary>",
-            DeclarationLocation = new DeclarationLocation("OrderCreatedHandler.cs", 1, 1, 5, 2)
+            DeclarationLocation = new DeclarationLocation("OrderCreatedHandler.cs", null, 1, 1, 5, 2)
         };
         var runtime = CreateRuntime(
             b => b.AddEventHandler<OrderCreatedHandler>(d => d.Extend().Configuration.Source = source));

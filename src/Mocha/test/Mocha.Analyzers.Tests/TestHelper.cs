@@ -19,10 +19,10 @@ internal static class TestHelper
         string[] sourceTexts,
         string? assemblyName = "Tests",
         bool emitSourceMetadata = true,
-        string? projectDir = null,
         string? repositoryUrl = null,
         string? commit = null,
-        string[]? sourcePaths = null)
+        string[]? sourcePaths = null,
+        string? sourceRoots = null)
     {
         IEnumerable<PortableExecutableReference> references =
         [
@@ -64,11 +64,6 @@ internal static class TestHelper
             ["build_property.MochaEmitSourceMetadata"] = emitSourceMetadata ? "true" : "false"
         };
 
-        if (projectDir is not null)
-        {
-            globalOptions["build_property.ProjectDir"] = projectDir;
-        }
-
         if (repositoryUrl is not null)
         {
             globalOptions["build_property.RepositoryUrl"] = repositoryUrl;
@@ -77,6 +72,11 @@ internal static class TestHelper
         if (commit is not null)
         {
             globalOptions["build_property.SourceRevisionId"] = commit;
+        }
+
+        if (sourceRoots is not null)
+        {
+            globalOptions["build_property._MochaSourceRoots"] = sourceRoots;
         }
 
         var generator = new MediatorGenerator();
