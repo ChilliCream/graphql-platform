@@ -1653,7 +1653,7 @@ export function ClientPage() {
         eyebrow="Compose"
         title="Understand how your operations are executed."
         body="Inspect distributed execution plans, see how work is split across services, and understand how one request becomes one response."
-        visual={<NitroFusion className="w-full" />}
+        visual={<NitroFusion className="w-full" durationMs={16500} />}
         reverse
       />
 
@@ -1675,7 +1675,7 @@ export function ClientPage() {
         eyebrow="Workspace"
         title="Give teams a shared workspace."
         body="Explore schemas, run operations, validate documents, and keep important API work connected to the rest of Nitro."
-        visual={<NitroCompose className="w-full" durationMs={23000} />}
+        visual={<NitroCompose className="w-full" durationMs={10000} />}
       />
 
       <section className="border-cc-card-border border-t py-24 text-center sm:py-32">

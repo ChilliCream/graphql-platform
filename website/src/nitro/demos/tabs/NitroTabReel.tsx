@@ -12,6 +12,9 @@ import { DiagnoseScreen, DIAGNOSE_MS } from "./DiagnoseScreen";
 import { SchemaScreen } from "./SchemaScreen";
 import { FusionScreen, FUSION_MS } from "./FusionScreen";
 
+// Play the whole reel 1.5x faster than the authored per-tab timings.
+const REEL_RATE = 1.5;
+
 export const NITRO_TABS: TabReelTab[] = [
   {
     id: "trace",
@@ -63,7 +66,7 @@ export const NITRO_TABS: TabReelTab[] = [
       "Schema-aware autocomplete finishes your query, then real federated data streams back.",
     Screen: ComposeScreen,
   },
-];
+].map((tab) => ({ ...tab, durationMs: tab.durationMs / REEL_RATE }));
 
 export interface NitroTabReelProps {
   staticTab?: number;
