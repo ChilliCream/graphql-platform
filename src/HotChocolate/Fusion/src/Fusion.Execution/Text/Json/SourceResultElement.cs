@@ -490,6 +490,12 @@ public readonly partial struct SourceResultElement
         return _parent.GetRawValuePointer(_cursor, includeQuotes: true);
     }
 
+    internal SourceResultDocument.DbRow GetValueRow()
+    {
+        CheckValidInstance();
+        return _parent.GetValueRow(_cursor);
+    }
+
     /// <summary>
     /// Compares the string value of this element to <paramref name="text"/> without allocation.
     /// </summary>

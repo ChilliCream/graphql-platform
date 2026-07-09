@@ -410,6 +410,46 @@ public sealed partial class CompositeResultDocument
             MemoryMarshal.Write(RowSpan(cursor), in row);
         }
 
+        // Overwrites an existing row's value payload in place, preserving only its parent pointer
+        // (int 0). Every other packed field is fully rewritten so no stale bits survive from a
+        // prior value written into this slot.
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal readonly void ReplacePreserveParent(
+            Cursor cursor,
+            ElementTokenType tokenType,
+            int location = 0,
+            int sizeOrLength = 0,
+            int sourceDocumentId = 0,
+            int operationReferenceId = 0,
+            OperationReferenceType operationReferenceType = OperationReferenceType.None,
+            int numberOfRows = 0,
+            ElementFlags flags = ElementFlags.None)
+        {
+            AssertValidCursor(cursor);
+
+            ref var row = ref RowRef(cursor);
+
+            // int 1: OperationReferenceId + OperationReferenceType + Flags
+            Unsafe.WriteUnaligned(
+                ref Unsafe.Add(ref row, DbRow.SelectionAndFlagsOffset),
+                operationReferenceId
+                | ((int)operationReferenceType << 15)
+                | ((int)flags << 17));
+
+            // int 2: SizeOrLength (full 32 bits; preserves the sign bit / UnknownSize sentinel)
+            Unsafe.WriteUnaligned(ref Unsafe.Add(ref row, DbRow.SizeOffset), sizeOrLength);
+
+            // int 3: Location or NumberOfRows (they share this slot)
+            Unsafe.WriteUnaligned(
+                ref Unsafe.Add(ref row, DbRow.LocationOrRowsOffset),
+                (location != 0 ? location : numberOfRows) & 0x1FFFFFFF);
+
+            // int 4: SourceDocumentId + TokenType. int 0 (parent) is intentionally left untouched.
+            Unsafe.WriteUnaligned(
+                ref Unsafe.Add(ref row, DbRow.SourceAndTypeOffset),
+                (sourceDocumentId & 0x7FFF) | (((int)tokenType & 0x0F) << 15));
+        }
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal readonly DbRow Get(Cursor cursor)
         {
