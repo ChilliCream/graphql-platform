@@ -8,7 +8,7 @@ namespace Mocha;
 /// <param name="File">
 /// Name of the declaring source file.
 /// </param>
-/// <param name="Path">
+/// <param name="Directory">
 /// Directory of the declaring source file relative to the repository root, empty when the file is
 /// at the repository root, or null when the build does not provide source root information.
 /// </param>
@@ -18,7 +18,7 @@ namespace Mocha;
 /// <param name="EndColumn">The 1-based column number where the declaration ends.</param>
 public sealed record DeclarationLocation(
     string File,
-    string? Path,
+    string? Directory,
     int StartLine,
     int StartColumn,
     int EndLine,

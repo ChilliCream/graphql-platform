@@ -26,7 +26,7 @@ internal static class GeneratedMetadataWriter
             return;
         }
 
-        var path = DeriveDeclarationPath(location?.FilePath, options.SourceRoots);
+        var directory = DeriveDeclarationDirectory(location?.FilePath, options.SourceRoots);
         var suffix = trailingComma ? "," : string.Empty;
 
         writer.WriteIndentedLine("Source = new {0}", metadataTypeName);
@@ -43,7 +43,7 @@ internal static class GeneratedMetadataWriter
                 writer,
                 locationTypeName,
                 GetFileName(location.FilePath),
-                path,
+                directory,
                 location.StartLine,
                 location.StartColumn,
                 location.EndLine,
@@ -75,7 +75,7 @@ internal static class GeneratedMetadataWriter
             return;
         }
 
-        var path = DeriveDeclarationPath(location?.FilePath, options.SourceRoots);
+        var directory = DeriveDeclarationDirectory(location?.FilePath, options.SourceRoots);
 
         writer.WriteIndentedLine("{0} = new {1}", target, metadataTypeName);
         writer.WriteIndentedLine("{");
@@ -91,7 +91,7 @@ internal static class GeneratedMetadataWriter
                 writer,
                 locationTypeName,
                 GetFileName(location.FilePath),
-                path,
+                directory,
                 location.StartLine,
                 location.StartColumn,
                 location.EndLine,
@@ -166,7 +166,7 @@ internal static class GeneratedMetadataWriter
         CodeWriter writer,
         string locationTypeName,
         string file,
-        string? path,
+        string? directory,
         int startLine,
         int startColumn,
         int endLine,
@@ -174,13 +174,13 @@ internal static class GeneratedMetadataWriter
         bool trailingComma = true)
     {
         var suffix = trailingComma ? "," : string.Empty;
-        var pathLiteral = path is null ? "null" : path.ToSourceStringLiteral();
+        var directoryLiteral = directory is null ? "null" : directory.ToSourceStringLiteral();
 
         writer.WriteIndentedLine(
             "DeclarationLocation = new {0}({1}, {2}, {3}, {4}, {5}, {6}){7}",
             locationTypeName,
             file.ToSourceStringLiteral(),
-            pathLiteral,
+            directoryLiteral,
             startLine,
             startColumn,
             endLine,
@@ -229,7 +229,7 @@ internal static class GeneratedMetadataWriter
     // Derives the declaration file's directory path relative to the repository root from the
     // flattened SourceLink source roots. Returns null when no root information is available, no root
     // matches, or the matched suffix is empty.
-    private static string? DeriveDeclarationPath(string? declarationFilePath, string? sourceRoots)
+    private static string? DeriveDeclarationDirectory(string? declarationFilePath, string? sourceRoots)
     {
         if (string.IsNullOrEmpty(declarationFilePath) || string.IsNullOrEmpty(sourceRoots))
         {

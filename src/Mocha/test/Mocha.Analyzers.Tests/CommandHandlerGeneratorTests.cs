@@ -134,7 +134,7 @@ public class CommandHandlerGeneratorTests
     }
 
     [Fact]
-    public async Task Generate_Should_EmitEmptyPath_When_FileAtRepositoryRoot()
+    public async Task Generate_Should_EmitEmptyDirectory_When_FileAtRepositoryRoot()
     {
         await TestHelper.GetGeneratedSourceSnapshot(
         [
@@ -192,7 +192,7 @@ public class CommandHandlerGeneratorTests
     }
 
     [Fact]
-    public async Task Generate_Should_EmitPath_When_SourceRootMatches()
+    public async Task Generate_Should_EmitDirectory_When_SourceRootMatches()
     {
         await TestHelper.GetGeneratedSourceSnapshot(
         [
@@ -221,7 +221,7 @@ public class CommandHandlerGeneratorTests
     }
 
     [Fact]
-    public async Task Generate_Should_EmitPath_When_SourceRootMappedPathMatches()
+    public async Task Generate_Should_EmitDirectory_When_SourceRootMappedPathMatches()
     {
         await TestHelper.GetGeneratedSourceSnapshot(
         [
@@ -250,7 +250,7 @@ public class CommandHandlerGeneratorTests
     }
 
     [Fact]
-    public async Task Generate_Should_OmitPath_When_NoSourceRootsProvided()
+    public async Task Generate_Should_OmitDirectory_When_NoSourceRootsProvided()
     {
         await TestHelper.GetGeneratedSourceSnapshot(
         [
@@ -278,7 +278,7 @@ public class CommandHandlerGeneratorTests
     }
 
     [Fact]
-    public async Task Generate_Should_OmitPath_When_FileOutsideEveryRoot()
+    public async Task Generate_Should_OmitDirectory_When_FileOutsideEveryRoot()
     {
         await TestHelper.GetGeneratedSourceSnapshot(
         [

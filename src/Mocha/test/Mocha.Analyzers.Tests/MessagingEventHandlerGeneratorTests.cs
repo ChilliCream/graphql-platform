@@ -197,7 +197,7 @@ public class MessagingEventHandlerGeneratorTests
     }
 
     [Fact]
-    public async Task Generate_Should_EmitPath_When_SourceRootMatches()
+    public async Task Generate_Should_EmitDirectory_When_SourceRootMatches()
     {
         await MessagingTestHelper.GetGeneratedSourceSnapshot(
         [
