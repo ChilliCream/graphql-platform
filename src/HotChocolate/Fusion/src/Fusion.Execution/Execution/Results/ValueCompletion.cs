@@ -78,9 +78,11 @@ internal sealed class ValueCompletion
             InitializeTargetObject(source, target);
         }
 
+        var objectContext = target.GetObjectContext();
+
         foreach (var property in source.EnumerateObject())
         {
-            if (!target.TryGetProperty(property.NameSpan, out var resultField))
+            if (!objectContext.TryGetProperty(property.NameSpan, out var resultField, out var selection))
             {
                 continue;
             }
@@ -93,9 +95,9 @@ internal sealed class ValueCompletion
             // going through the full TryCompleteValue type-dispatch chain.
             if (errorTrie is null && propertyValueKind.IsScalarValue())
             {
-                if (propertyValueKind is JsonValueKind.String && resultField.IsEnumValue)
+                if (propertyValueKind is JsonValueKind.String && selection.IsEnumValue)
                 {
-                    CompleteEnumValue(propertyValue, resultField, resultField.AssertSelection());
+                    CompleteEnumValue(propertyValue, resultField, selection);
                     continue;
                 }
 
@@ -103,7 +105,6 @@ internal sealed class ValueCompletion
                 continue;
             }
 
-            var selection = resultField.AssertSelection();
             ErrorTrie? errorTrieForResponseName = null;
             errorTrie?.TryGetValue(selection.ResponseName, out errorTrieForResponseName);
 
@@ -881,9 +882,11 @@ TryCompleteList_MoveNext:
             target.SetObjectValue(objectSelectionSet);
         }
 
+        var objectContext = target.GetObjectContext();
+
         foreach (var property in source.EnumerateObject())
         {
-            if (!target.TryGetProperty(property.NameSpan, out var targetProperty))
+            if (!objectContext.TryGetProperty(property.NameSpan, out var targetProperty, out var selection))
             {
                 continue;
             }
@@ -896,17 +899,15 @@ TryCompleteList_MoveNext:
             // going through the full TryCompleteValue type-dispatch chain.
             if (errorTrie is null && propertyValueKind.IsScalarValue())
             {
-                if (propertyValueKind is JsonValueKind.String && targetProperty.IsEnumValue)
+                if (propertyValueKind is JsonValueKind.String && selection.IsEnumValue)
                 {
-                    CompleteEnumValue(propertyValue, targetProperty, targetProperty.AssertSelection());
+                    CompleteEnumValue(propertyValue, targetProperty, selection);
                     continue;
                 }
 
                 targetProperty.SetLeafValue(propertyValue);
                 continue;
             }
-
-            var selection = targetProperty.AssertSelection();
 
             ErrorTrie? errorTrieForResponseName = null;
             errorTrie?.TryGetValue(selection.ResponseName, out errorTrieForResponseName);

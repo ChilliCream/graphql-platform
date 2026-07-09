@@ -14,25 +14,25 @@ using Microsoft.Extensions.ObjectPool;
 
 namespace Fusion.Execution.Benchmarks;
 
-// One-shot feasibility probe for the composed Netflix corpus (Phase A).
+// One-shot feasibility probe for the composed corpus (Phase A).
 // Not a BenchmarkDotNet benchmark: it measures cold-start schema build and a
 // single plan per query with wall time + allocation deltas, so it can report a
 // "wall" (non-termination / crash) on any layer as a first-class finding.
-internal static class NetflixPlanningProbe
+internal static class CorpusPlanningProbe
 {
     public static void Run(string[] args)
     {
         var schemaPath = args.Length > 1
             ? args[1]
-            : NetflixCorpusPaths.SchemaPath;
+            : CorpusPaths.SchemaPath;
         var query1Path = args.Length > 2
             ? args[2]
-            : NetflixCorpusPaths.Query1Path;
+            : CorpusPaths.Query1Path;
         var query2Path = args.Length > 3
             ? args[3]
-            : NetflixCorpusPaths.Query2Path;
+            : CorpusPaths.Query2Path;
 
-        Console.WriteLine("=== Netflix planning feasibility probe ===");
+        Console.WriteLine("=== corpus planning feasibility probe ===");
         Console.WriteLine($"runtime          : {Environment.Version}, ServerGC={System.Runtime.GCSettings.IsServerGC}");
         Console.WriteLine($"processors       : {Environment.ProcessorCount}");
         Console.WriteLine($"schema           : {schemaPath}");

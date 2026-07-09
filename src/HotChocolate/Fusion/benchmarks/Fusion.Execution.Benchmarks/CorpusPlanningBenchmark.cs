@@ -15,21 +15,21 @@ using Microsoft.Extensions.ObjectPool;
 
 namespace Fusion.Execution.Benchmarks;
 
-// Planning benchmarks for the composed Netflix corpus (edge0-v2, 745 sources).
+// Planning benchmarks for the composed corpus (edge0-v2, 745 sources).
 //
 // One iteration is a full plan creation: OperationPlanner.CreatePlan compiles the
 // rewritten operation and searches the plan space from scratch (there is no plan
 // cache at this layer, so every iteration plans anew). The FusionSchemaDefinition,
 // which is expensive to build on this corpus, is built once in GlobalSetup; its
 // cost is reported separately on the console rather than folded into the per-plan
-// numbers. See NetflixPlanningProbe for the single-shot feasibility profile.
+// numbers. See CorpusPlanningProbe for the single-shot feasibility profile.
 [MemoryDiagnoser]
 [Config(typeof(InProcessConfig))]
-public class NetflixPlanningBenchmark
+public class CorpusPlanningBenchmark
 {
-    private static readonly string SchemaPath = NetflixCorpusPaths.SchemaPath;
-    private static readonly string Query1Path = NetflixCorpusPaths.Query1Path;
-    private static readonly string Query2Path = NetflixCorpusPaths.Query2Path;
+    private static readonly string SchemaPath = CorpusPaths.SchemaPath;
+    private static readonly string Query1Path = CorpusPaths.Query1Path;
+    private static readonly string Query2Path = CorpusPaths.Query2Path;
 
     // A name-safe, at-least-eight-character identifier: it is threaded into the
     // names of synthesized lookup operations (Op_{shortHash}_{stepId}) and sliced
