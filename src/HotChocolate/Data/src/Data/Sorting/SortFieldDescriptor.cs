@@ -30,7 +30,6 @@ public class SortFieldDescriptor
         {
             var convention = context.GetSortConvention(scope);
             Configuration.Type = convention.GetFieldType(lambda.ReturnType);
-            Configuration.RuntimeType = lambda.ReturnType;
         }
     }
 

@@ -9,23 +9,47 @@
 namespace Microsoft.Extensions.DependencyInjection
 {
     [global::System.CodeDom.Compiler.GeneratedCode("Mocha.Analyzers", "1.0.0")]
-    public static class UnknownMediatorBuilderExtensions
+    public static partial class UnknownMediatorBuilderExtensions
     {
+        [global::Mocha.Mediator.MediatorModuleInfo(
+            MessageTypes = new global::System.Type[]
+            {
+                typeof(global::TestApp.PingCommand),
+            },
+            HandlerTypes = new global::System.Type[]
+            {
+                typeof(global::TestApp.PingHandler),
+            }
+        )]
         public static global::Mocha.Mediator.IMediatorHostBuilder AddUnknown(
             this global::Mocha.Mediator.IMediatorHostBuilder builder)
         {
 
-            // Register handler configurations
-            global::Mocha.Mediator.MediatorHostBuilderHandlerExtensions.AddHandlerConfiguration<global::TestApp.PingHandler>(builder,
-                new global::Mocha.Mediator.MediatorHandlerConfiguration
-                {
-                    HandlerType = typeof(global::TestApp.PingHandler),
-                    MessageType = typeof(global::TestApp.PingCommand),
-                    Kind = global::Mocha.Mediator.MediatorHandlerKind.Command,
-                    Delegate = global::Mocha.Mediator.PipelineBuilder.BuildCommandPipeline<global::TestApp.PingHandler, global::TestApp.PingCommand>()
-                });
+            // Register handlers
+            global::Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions.TryAdd(
+                builder.Services,
+                new global::Microsoft.Extensions.DependencyInjection.ServiceDescriptor(
+                    typeof(global::TestApp.PingHandler),
+                    typeof(global::TestApp.PingHandler),
+                    builder.Options.ServiceLifetime));
+            global::Mocha.Mediator.MediatorHostBuilderExtensions.ConfigureMediator(
+                builder,
+                static b => b.AddHandler<global::TestApp.PingHandler>(__Initialize_PingHandler_Handler_VW8RW4fIZL9gExGjRWZPKA));
 
             return builder;
+        }
+
+        private static void __Initialize_PingHandler_Handler_VW8RW4fIZL9gExGjRWZPKA(global::Mocha.Mediator.IMediatorHandlerDescriptor descriptor)
+        {
+            var configuration = descriptor.Extend().Configuration;
+            configuration.MessageType = typeof(global::TestApp.PingCommand);
+            configuration.Kind = global::Mocha.Mediator.MediatorHandlerKind.Command;
+            configuration.Delegate = global::Mocha.Mediator.PipelineBuilder.BuildCommandPipeline<global::TestApp.PingHandler, global::TestApp.PingCommand>();
+            configuration.Source = new global::Mocha.SourceMetadata
+            {
+                Assembly = "Unknown",
+                DeclarationLocation = new global::Mocha.DeclarationLocation("", null, 7, 1, 11, 2)
+            };
         }
     }
 }

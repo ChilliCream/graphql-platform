@@ -21,13 +21,48 @@ namespace HotChocolate.Fusion;
 
 public abstract partial class FusionTestBase
 {
-    protected async Task MatchSnapshotAsync(
+    protected Task MatchSnapshotAsync(
         Gateway gateway,
         OperationRequest request,
         GraphQLHttpResponse response,
         string? postFix = null,
         RawRequest? rawRequest = null,
         bool stableStream = false)
+        => MatchSnapshotCoreAsync(
+            gateway,
+            request,
+            response,
+            assertResults: null,
+            postFix,
+            rawRequest,
+            stableStream);
+
+    protected Task AssertAndMatchSnapshotAsync(
+        Gateway gateway,
+        OperationRequest request,
+        GraphQLHttpResponse response,
+        Action<IReadOnlyList<OperationResult>> assertResults)
+    {
+        ArgumentNullException.ThrowIfNull(assertResults);
+
+        return MatchSnapshotCoreAsync(
+            gateway,
+            request,
+            response,
+            assertResults,
+            postFix: null,
+            rawRequest: null,
+            stableStream: false);
+    }
+
+    private async Task MatchSnapshotCoreAsync(
+        Gateway gateway,
+        OperationRequest request,
+        GraphQLHttpResponse response,
+        Action<IReadOnlyList<OperationResult>>? assertResults,
+        string? postFix,
+        RawRequest? rawRequest,
+        bool stableStream)
     {
         var snapshot = new Snapshot(postFix, ".yaml");
 
@@ -61,6 +96,8 @@ public abstract partial class FusionTestBase
                 results.Add(result);
             }
         }
+
+        assertResults?.Invoke(results);
 
         var testServerRegistrations = gateway.Services
             .GetServices<TestServerRegistration>()
@@ -580,7 +617,7 @@ public abstract partial class FusionTestBase
     {
         var streamReader = new StreamReader(body);
         var rawRequestString = streamReader.ReadToEnd();
-        var contentTypeString = contentType.MediaType!;
+        var contentTypeString = contentType.MediaType;
 
         var boundary = contentType.Parameters
             .FirstOrDefault(

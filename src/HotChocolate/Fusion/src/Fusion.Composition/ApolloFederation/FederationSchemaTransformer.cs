@@ -92,12 +92,14 @@ public static class FederationSchemaTransformer
                 .ToImmutableArray();
         }
 
+        SourceExternalFieldMetadata.Capture(schema);
         RemoveFederationInfrastructure.Apply(schema);
         GenerateLookupFields.Apply(schema);
         RewriteKeyDirectives.Apply(schema);
         TransformRequiresToRequire.Apply(schema);
         RemoveExternalFields.Apply(schema);
-        StampConnectorKind.Apply(schema);
+        GenerateNodeLookup.Apply(schema);
+        SourceExternalFieldMetadata.WriteMarker(schema);
 
         return SchemaFormatter.FormatAsString(schema);
     }

@@ -14,6 +14,7 @@ public sealed class MediatorRuntime : IMediatorRuntime
     private readonly FrozenDictionary<Type, MediatorDelegate> _pipelines;
     private readonly FrozenDictionary<Type, ImmutableArray<MediatorDelegate>> _notificationPipelines;
     private readonly ObjectPool<MediatorContext> _contextPool;
+    private readonly MediatorDescription _description;
 
     [ThreadStatic]
     private static MediatorContext? s_cached;
@@ -23,13 +24,15 @@ public sealed class MediatorRuntime : IMediatorRuntime
         FrozenDictionary<Type, ImmutableArray<MediatorDelegate>> notificationPipelines,
         IMediatorPools pools,
         IFeatureCollection features,
-        NotificationPublishMode notificationPublishMode)
+        NotificationPublishMode notificationPublishMode,
+        MediatorDescription description)
     {
         _pipelines = pipelines;
         _notificationPipelines = notificationPipelines;
         _contextPool = pools.MediatorContext;
         Features = features;
         NotificationPublishMode = notificationPublishMode;
+        _description = description;
     }
 
     /// <summary>
@@ -41,6 +44,9 @@ public sealed class MediatorRuntime : IMediatorRuntime
     /// Gets the notification publish mode for this mediator runtime.
     /// </summary>
     internal NotificationPublishMode NotificationPublishMode { get; }
+
+    /// <inheritdoc />
+    public MediatorDescription Describe() => _description;
 
     /// <summary>
     /// Gets the compiled pipeline delegate for the specified message type.

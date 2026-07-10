@@ -62,7 +62,7 @@ public sealed class FieldSelectionMapValidator(
     {
         if (node.TypeName is { } typeName)
         {
-            if (!schema.Types.TryGetType(typeName.Value, out var concreteType))
+            if (!schema.Types.TryGetType(typeName.Value, out var conditionType))
             {
                 context.Errors.Add(
                     string.Format(
@@ -75,16 +75,16 @@ public sealed class FieldSelectionMapValidator(
 
             var type = context.OutputTypes.Peek();
 
-            if (schema.GetPossibleTypes(type.AsTypeDefinition()).Contains(concreteType))
+            if (HasPossibleTypeOverlap(type.AsTypeDefinition(), conditionType))
             {
-                context.OutputTypes.Push(concreteType);
+                context.OutputTypes.Push(conditionType);
             }
             else
             {
                 context.Errors.Add(
                     string.Format(
                         FieldSelectionMapValidator_InvalidTypeCondition,
-                        concreteType.Name,
+                        conditionType.Name,
                         type.AsTypeDefinition().Name));
 
                 return Break;
@@ -246,7 +246,7 @@ public sealed class FieldSelectionMapValidator(
 
         if (node.TypeName is { } typeName)
         {
-            if (!schema.Types.TryGetType(typeName.Value, out var concreteType))
+            if (!schema.Types.TryGetType(typeName.Value, out var conditionType))
             {
                 context.Errors.Add(
                     string.Format(
@@ -259,17 +259,17 @@ public sealed class FieldSelectionMapValidator(
 
             var type = context.OutputTypes.Peek();
 
-            if (schema.GetPossibleTypes(type.AsTypeDefinition()).Contains(concreteType))
+            if (HasPossibleTypeOverlap(type.AsTypeDefinition(), conditionType))
             {
                 context.OutputTypes.Pop();
-                context.OutputTypes.Push(concreteType);
+                context.OutputTypes.Push(conditionType);
             }
             else
             {
                 context.Errors.Add(
                     string.Format(
                         FieldSelectionMapValidator_InvalidTypeCondition,
-                        concreteType.Name,
+                        conditionType.Name,
                         type.AsTypeDefinition().Name));
 
                 return Break;
@@ -277,6 +277,39 @@ public sealed class FieldSelectionMapValidator(
         }
 
         return Continue;
+    }
+
+    private bool HasPossibleTypeOverlap(
+        ITypeDefinition currentType,
+        ITypeDefinition conditionType)
+    {
+        if (ReferenceEquals(currentType, conditionType)
+            || currentType.Name.Equals(conditionType.Name, StringComparison.Ordinal))
+        {
+            return true;
+        }
+
+        if (conditionType is IObjectTypeDefinition conditionObject)
+        {
+            return schema.GetPossibleTypes(currentType).Contains(conditionObject);
+        }
+
+        if (currentType is IObjectTypeDefinition currentObject)
+        {
+            return schema.GetPossibleTypes(conditionType).Contains(currentObject);
+        }
+
+        var possibleConditionTypes = schema.GetPossibleTypes(conditionType).ToHashSet();
+
+        foreach (var possibleCurrentType in schema.GetPossibleTypes(currentType))
+        {
+            if (possibleConditionTypes.Contains(possibleCurrentType))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     protected override ISyntaxVisitorAction Leave(

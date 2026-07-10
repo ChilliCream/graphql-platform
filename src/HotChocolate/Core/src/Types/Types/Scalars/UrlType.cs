@@ -30,7 +30,7 @@ public class UrlType : ScalarType<Uri, StringValueNode>
         : base(name, bind)
     {
         Description = description;
-        SpecifiedBy = new Uri(SpecifiedByUri);
+        SpecifiedBy = SpecifiedByUri;
         _allowRelativeUris = allowRelativeUris;
     }
 

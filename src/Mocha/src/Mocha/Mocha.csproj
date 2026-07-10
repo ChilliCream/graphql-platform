@@ -3,6 +3,7 @@
     <AssemblyName>Mocha</AssemblyName>
     <RootNamespace>Mocha</RootNamespace>
     <ImplicitUsings>enable</ImplicitUsings>
+    <IsAotCompatible>true</IsAotCompatible>
   </PropertyGroup>
 
   <ItemGroup>
@@ -10,6 +11,7 @@
     <PackageReference Include="Npgsql" />
     <PackageReference Include="OpenTelemetry" />
     <PackageReference Include="Polly" />
+    <PackageReference Include="System.IO.Hashing" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'net8.0' or '$(TargetFramework)' == 'net9.0' or '$(TargetFramework)' == 'net10.0'">

@@ -7,7 +7,7 @@ operation:
           }
           id @fusion__requirement
           comments @fusion__requirement {
-            authorId
+            authorId @fusion__requirement
             id @fusion__requirement
           }
         }

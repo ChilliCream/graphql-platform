@@ -1,12 +1,12 @@
 <Solution>
   <Folder Name="/benchmarks/">
+    <Project Path="benchmarks/Composition/HotChocolate.Fusion.Composition.Benchmarks.csproj" />
     <Project Path="benchmarks/Fusion.Execution.Benchmarks/HotChocolate.Fusion.Execution.Benchmarks.csproj" />
   </Folder>
   <Folder Name="/src/">
     <Project Path="src/Fusion.Aspire/HotChocolate.Fusion.Aspire.csproj" />
     <Project Path="src/Fusion.AspNetCore/HotChocolate.Fusion.AspNetCore.csproj" />
     <Project Path="src/Fusion.Composition/HotChocolate.Fusion.Composition.csproj" />
-    <Project Path="src/Fusion.Connectors.ApolloFederation/HotChocolate.Fusion.Connectors.ApolloFederation.csproj" />
     <Project Path="src/Fusion.Caching/HotChocolate.Fusion.Caching.csproj" />
     <Project Path="src/Fusion.Diagnostics/HotChocolate.Fusion.Diagnostics.csproj" />
     <Project Path="src/Fusion.Execution.Types/HotChocolate.Fusion.Execution.Types.csproj" />
@@ -23,6 +23,7 @@
     <Project Path="src/Fusion.Utilities/HotChocolate.Fusion.Utilities.csproj" />
   </Folder>
   <Folder Name="/test/">
+    <Project Path="test/Fusion.Aspire.Tests/HotChocolate.Fusion.Aspire.Tests.csproj" />
     <Project Path="test/Fusion.AspNetCore.Tests/HotChocolate.Fusion.AspNetCore.Tests.csproj" />
     <Project Path="test/Fusion.Composition.Tests/HotChocolate.Fusion.Composition.Tests.csproj" />
     <Project Path="test/Fusion.Composition.ApolloFederation.Tests/HotChocolate.Fusion.Composition.ApolloFederation.Tests.csproj" />

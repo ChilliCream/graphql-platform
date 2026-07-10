@@ -472,7 +472,7 @@ public class SchemaFirstTests
             .AddDocumentFromString(
                 """
                 type Query {
-                   book(input: Foo): String
+                    book(input: Foo): String
                 }
 
                 input Foo { bar: String = "baz" }

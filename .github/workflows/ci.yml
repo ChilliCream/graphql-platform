@@ -19,7 +19,6 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       website_changes: ${{ steps.check-website.outputs.website_changes }}
-      website_next_changes: ${{ steps.check-website-next.outputs.website_next_changes }}
       library_changes: ${{ steps.check-library.outputs.library_changes }}
       src_changes: ${{ steps.check-src.outputs.src_changes }}
       nitro_client_changes: ${{ steps.check-nitro-client.outputs.nitro_client_changes }}
@@ -40,20 +39,10 @@ jobs:
             echo "website_changes=false" >> $GITHUB_OUTPUT
           fi
 
-      - name: Check for changes in website-next directory
-        id: check-website-next
-        run: |
-          changes=$(git diff --name-only HEAD~1 HEAD -- ./website-next)
-          if [[ -n "$changes" ]]; then
-            echo "website_next_changes=true" >> $GITHUB_OUTPUT
-          else
-            echo "website_next_changes=false" >> $GITHUB_OUTPUT
-          fi
-
       - name: Check for changes outside website directory
         id: check-library
         run: |
-          changes=$(git diff --name-only HEAD~1 HEAD -- ':!./website' ':!./website-next')
+          changes=$(git diff --name-only HEAD~1 HEAD -- ':!./website')
           if [[ -n "$changes" ]]; then
             echo "library_changes=true" >> $GITHUB_OUTPUT
           else
@@ -86,7 +75,7 @@ jobs:
     name: "Spellcheck Documentation"
     runs-on: ubuntu-latest
     needs: check-changes
-    if: needs.check-changes.outputs.website_changes == 'true' || needs.check-changes.outputs.website_next_changes == 'true'
+    if: needs.check-changes.outputs.website_changes == 'true'
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         name: Check out the code
@@ -102,12 +91,7 @@ jobs:
         run: npm install -g cspell@10.0.1
 
       - name: run cspell (website)
-        if: needs.check-changes.outputs.website_changes == 'true'
-        run: cspell --config ./cspell.json "website/src/**/*.md" --no-progress --no-cache
-
-      - name: run cspell (website-next)
-        if: needs.check-changes.outputs.website_next_changes == 'true'
-        run: cspell --config ./cspell.json "website-next/content/**/*.md" --no-progress --no-cache
+        run: cspell --config ./cspell.json "website/content/**/*.md" --no-progress --no-cache
 
   linting:
     name: "Markdown linting"
@@ -123,7 +107,7 @@ jobs:
           node-version: 24
       - run: npm install -g markdownlint-cli2@0.22.1
         name: Install markdownlint-cli2
-      - run: markdownlint-cli2 "*.md" "website/src/**/*.md"
+      - run: markdownlint-cli2 "*.md" "website/content/**/*.md"
         name: run Markdownlint
 
   website-tests:
@@ -154,80 +138,38 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-yarn-
 
-      - name: Cache Optimized Images
-        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
-        with:
-          path: website/.next/cache/images
-          key: ${{ runner.os }}-optimized-images-${{ hashFiles('website/public/images/**', 'website/public/docs/**/*.png', 'website/public/docs/**/*.jpg', 'website/public/docs/**/*.webp') }}
-          restore-keys: |
-            ${{ runner.os }}-optimized-images-
-
       - name: Install Packages
         run: yarn --immutable --network-timeout 100000
         working-directory: website
-
-      - name: Build Website
-        run: yarn build
-        working-directory: website
-
-  website-next-tests:
-    name: "Website Next Tests"
-    needs: check-changes
-    if: needs.check-changes.outputs.website_next_changes == 'true'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
-        with:
-          show-progress: false
-
-      - name: Install Node.js
-        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
-        with:
-          node-version: 24
-          cache: "yarn"
-          cache-dependency-path: "website-next/yarn.lock"
-
-      - name: Cache Yarn Packages
-        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
-        with:
-          path: |
-            website-next/.yarn/cache
-            website-next/.next/cache
-          key: ${{ runner.os }}-yarn-next-${{ hashFiles('website-next/yarn.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-yarn-next-
-
-      - name: Install Packages
-        run: yarn --immutable --network-timeout 100000
-        working-directory: website-next
+        env:
+          CHILLICREAM_FRONTEND_ENV: ci
 
       - name: Install Playwright Chromium
         run: yarn playwright install --with-deps chromium
-        working-directory: website-next
+        working-directory: website
 
       - name: Format Check
         run: yarn format:check
-        working-directory: website-next
+        working-directory: website
 
       - name: Lint
         run: yarn lint
-        working-directory: website-next
+        working-directory: website
 
       - name: Build
         run: yarn build
-        working-directory: website-next
+        working-directory: website
 
       - name: Visual Regression Tests
         run: yarn test:visual
-        working-directory: website-next
+        working-directory: website
 
       - name: Upload Playwright Report
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: playwright-report
-          path: website-next/playwright-report/
+          path: website/playwright-report/
           retention-days: 7
 
   configure:
@@ -368,9 +310,11 @@ jobs:
           "./output/download/**/*.cobertura.xml"
 
       - name: Compute changed lines
+        # HEAD is the PR merge commit. The three-dot "^1...^2" diffs merge-base(base, head)..head,
+        # i.e. only the PR's own changes, matching GitHub's "Files changed" even when behind main.
         run: >
           git diff --unified=0 --diff-filter=d
-          "${{ github.event.pull_request.base.sha }}...HEAD"
+          "HEAD^1...HEAD^2"
           -- '*.cs' > ./output/pr.diff
 
       - name: Generate patch coverage report
@@ -481,7 +425,6 @@ jobs:
       [
         library-tests,
         website-tests,
-        website-next-tests,
         validate-nitro-client,
         verify-nitro-npm-package,
       ]
@@ -494,5 +437,4 @@ jobs:
           always() &&
           (needs.library-tests.result == 'failure' ||
            needs.website-tests.result == 'failure' ||
-           needs.website-next-tests.result == 'failure' ||
            needs.verify-nitro-npm-package.result == 'failure')

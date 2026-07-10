@@ -224,7 +224,10 @@ public sealed class EventStreamExecutionNode : ExecutionNode
             _subscriptionScope = diagnosticEvents.ExecuteSubscription(context.RequestContext, _subscriptionId);
 
             var source = node._eventStreamSource;
-            var subscriptionContext = new SubscriptionFieldContext(context, node.FieldName);
+            var subscriptionContext = new SubscriptionFieldContext(
+                context,
+                node.FieldName,
+                requiresCursor: !string.IsNullOrEmpty(source.CursorField));
             var cursor = ResolveCursor(source.CursorArgument, subscriptionContext);
             var broker = context.RequestContext.RequestServices
                 .GetRequiredService<IEventStreamBrokerFactory>()

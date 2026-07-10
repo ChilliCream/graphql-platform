@@ -15,10 +15,11 @@ namespace Mocha;
 /// completes. This preserves existing middleware semantics (ACK, fault, circuit breaker)
 /// without any modifications to the middleware chain.
 /// </remarks>
-internal sealed class BatchConsumer<THandler, TEvent>(
-    Action<IConsumerDescriptor>? configure = null)
-    : Consumer where THandler : IBatchEventHandler<TEvent>
+internal sealed class BatchConsumer<THandler, TEvent> : Consumer
+    where THandler : class, IBatchEventHandler<TEvent>
 {
+    public BatchConsumer() : base(typeof(THandler)) { }
+
     private BatchCollector<TEvent> _collector = null!;
     private Channel<MessageBatch<TEvent>> _channel = null!;
     private ChannelProcessor<MessageBatch<TEvent>> _processor = null!;
@@ -31,14 +32,11 @@ internal sealed class BatchConsumer<THandler, TEvent>(
         descriptor
             .Name(typeof(THandler).Name)
             .AddRoute(r => r.MessageType(typeof(TEvent)).Kind(InboundRouteKind.Subscribe));
-
-        configure?.Invoke(descriptor);
     }
 
     protected override void OnAfterInitialize(IMessagingSetupContext context)
     {
         base.OnAfterInitialize(context);
-        SetIdentity(typeof(THandler));
 
         var options = Configuration!.Features.Get<BatchOptions>() ?? new BatchOptions();
         options.Validate();
@@ -157,7 +155,14 @@ internal sealed class BatchConsumer<THandler, TEvent>(
 
     public override ConsumerDescription Describe()
     {
-        return new ConsumerDescription(Name, DescriptionHelpers.GetTypeName(Identity), Identity.FullName, null, true);
+        return new ConsumerDescription(
+            Urn,
+            Name,
+            DescriptionHelpers.GetTypeName(Identity),
+            Identity.FullName,
+            null,
+            true,
+            Configuration?.Source);
     }
 
     public override async ValueTask DisposeAsync()

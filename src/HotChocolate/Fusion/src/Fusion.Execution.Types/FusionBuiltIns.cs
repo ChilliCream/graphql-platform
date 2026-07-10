@@ -8,19 +8,22 @@ internal static class FusionBuiltIns
     public const string FieldSelectionMap = "fusion__FieldSelectionMap";
     public const string FieldSelectionSet = "fusion__FieldSelectionSet";
     public const string SelectionPath = "fusion__FieldSelectionPath";
+    public const string NodeResolution = "fusion__NodeResolution";
     public const string Schema = "fusion__Schema";
 
     public const string Type = "fusion__type";
-    public const string Connector = "fusion__connector";
     public const string Field = "fusion__field";
     public const string InputField = "fusion__inputField";
     public const string Requires = "fusion__requires";
     public const string Lookup = "fusion__lookup";
     public const string Policy = "fusion__policy";
     public const string Implements = "fusion__implements";
+    public const string InterfaceObject = "fusion__interfaceObject";
     public const string UnionMember = "fusion__unionMember";
     public const string EnumValue = "fusion__enumValue";
+    public const string Execution = "fusion__execution";
     public const string Inaccessible = "fusion__inaccessible";
+    public const string GatewayField = "fusion__gateway_field";
     public const string SchemaMetadata = "fusion__schema_metadata";
     public const string EventStream = "fusion__eventStream";
 

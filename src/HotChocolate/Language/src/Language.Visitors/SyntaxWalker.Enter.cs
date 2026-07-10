@@ -277,19 +277,19 @@ public partial class SyntaxWalker
         DefaultAction;
 
     protected virtual ISyntaxVisitorAction Enter(
-       EnumTypeExtensionNode node,
-       object? context) =>
-       DefaultAction;
+        EnumTypeExtensionNode node,
+        object? context) =>
+        DefaultAction;
 
     protected virtual ISyntaxVisitorAction Enter(
-       InputObjectTypeExtensionNode node,
-       object? context) =>
-       DefaultAction;
+        InputObjectTypeExtensionNode node,
+        object? context) =>
+        DefaultAction;
 
     protected virtual ISyntaxVisitorAction Enter(
-       SchemaCoordinateNode node,
-       object? context) =>
-       DefaultAction;
+        SchemaCoordinateNode node,
+        object? context) =>
+        DefaultAction;
 
     protected virtual ISyntaxVisitorAction Enter(
         DirectiveExtensionNode node,

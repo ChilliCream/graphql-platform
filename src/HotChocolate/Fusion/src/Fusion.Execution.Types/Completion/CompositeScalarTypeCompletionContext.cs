@@ -6,7 +6,7 @@ namespace HotChocolate.Fusion.Types.Completion;
 internal readonly ref struct CompositeScalarTypeCompletionContext(
     ScalarValueKind valueKind,
     FusionDirectiveCollection directives,
-    Uri? specifiedBy,
+    string? specifiedBy,
     ScalarSerializationType serializationType,
     string? pattern)
 {
@@ -14,7 +14,7 @@ internal readonly ref struct CompositeScalarTypeCompletionContext(
 
     public FusionDirectiveCollection Directives { get; } = directives;
 
-    public Uri? SpecifiedBy { get; } = specifiedBy;
+    public string? SpecifiedBy { get; } = specifiedBy;
 
     public ScalarSerializationType SerializationType { get; } = serializationType;
 

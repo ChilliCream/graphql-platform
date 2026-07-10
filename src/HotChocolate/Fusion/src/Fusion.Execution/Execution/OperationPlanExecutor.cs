@@ -20,35 +20,48 @@ internal static class OperationPlanExecutor
         OperationPlan operationPlan,
         CancellationToken cancellationToken)
     {
-        // We create a new CancellationTokenSource that can be used to halt the execution engine,
-        // without also cancelling the entire request pipeline.
-        using var executionCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-
         await using var context = requestContext.Schema.Services.GetRequiredService<OperationPlanContextPool>().Rent();
-        context.Initialize(requestContext, variables, operationPlan, executionCts);
 
-        context.Begin();
+        // We reuse a pooled CancellationTokenSource that can halt the execution engine without
+        // cancelling the entire request pipeline. The request token is linked in so that
+        // client-abort / server-shutdown still propagates.
+        var (executionCts, cancellationRegistration) = context.RentEngineCancellation(cancellationToken);
 
-        switch (operationPlan.Operation.Definition.Operation)
+        try
         {
-            case OperationType.Query:
-                await ExecuteQueryAsync(context, operationPlan, executionCts.Token);
-                break;
+            context.Initialize(requestContext, variables, operationPlan, executionCts);
 
-            case OperationType.Mutation:
-                await ExecuteMutationAsync(context, operationPlan, executionCts.Token);
-                break;
+            context.Begin();
 
-            default:
-                throw new InvalidOperationException("Only queries and mutations can be executed.");
+            switch (operationPlan.Operation.Definition.Operation)
+            {
+                case OperationType.Query:
+                    await ExecuteQueryAsync(context, operationPlan, executionCts.Token);
+                    break;
+
+                case OperationType.Mutation:
+                    await ExecuteMutationAsync(context, operationPlan, executionCts.Token);
+                    break;
+
+                default:
+                    throw new InvalidOperationException("Only queries and mutations can be executed.");
+            }
+
+            // If the original CancellationToken of the request was cancelled,
+            // the Execution nodes and the PlanExecutor should have been gracefully cancelled,
+            // so we throw here to properly cancel the request execution.
+            cancellationToken.ThrowIfCancellationRequested();
+
+            return context.Complete();
         }
-
-        // If the original CancellationToken of the request was cancelled,
-        // the Execution nodes and the PlanExecutor should have been gracefully cancelled,
-        // so we throw here to properly cancel the request execution.
-        cancellationToken.ThrowIfCancellationRequested();
-
-        return context.Complete();
+        finally
+        {
+            // Dispose the parent-token registration BEFORE returning the source for reuse so a
+            // stale registration can never fire into a reset source. DisposeAsync waits for an
+            // in-flight cancel callback to finish.
+            await cancellationRegistration.DisposeAsync();
+            context.ReturnEngineCancellation();
+        }
     }
 
     public static async Task<IExecutionResult> ExecuteWithDeferAsync(
@@ -587,8 +600,22 @@ internal static class OperationPlanExecutor
                     AppendRequirements(op.Requirements, collected, seen);
                     break;
 
+                case ApolloOperationExecutionNode apolloOp when !apolloOp.ParentDependencies.IsEmpty:
+                    AppendRequirements(apolloOp.Requirements, collected, seen);
+                    break;
+
                 case OperationBatchExecutionNode batch:
                     foreach (var definition in batch.Operations)
+                    {
+                        if (!definition.ParentDependencies.IsEmpty)
+                        {
+                            AppendRequirements(definition.Requirements, collected, seen);
+                        }
+                    }
+                    break;
+
+                case ApolloOperationBatchExecutionNode apolloBatch:
+                    foreach (var definition in apolloBatch.Operations)
                     {
                         if (!definition.ParentDependencies.IsEmpty)
                         {
@@ -953,6 +980,8 @@ internal static class OperationPlanExecutor
             await executionState.Signal;
         }
 
+        await DrainActiveNodesAsync(plan, executionState);
+
         if (context.CollectTelemetry)
         {
             context.Traces = executionState.Traces.ToImmutableDictionary();
@@ -1025,6 +1054,8 @@ internal static class OperationPlanExecutor
             }
         }
 
+        await DrainActiveNodesAsync(plan, executionState);
+
         if (context.CollectTelemetry)
         {
             context.Traces = executionState.Traces.ToImmutableDictionary();
@@ -1047,13 +1078,12 @@ internal static class OperationPlanExecutor
             static state => Unsafe.As<AsyncAutoResetEvent>(state)!.TryResetToIdle(),
             executionState.Signal);
 
-        // We allocate a single CancellationTokenSource per subscription and reuse it
-        // across all events via TryReset(). The execution token is linked in so that
-        // client-abort / server-shutdown still propagates.
-        var eventCts = new CancellationTokenSource();
-        var eventCtsRegistration = executionCancellationToken.UnsafeRegister(
-            static state => Unsafe.As<CancellationTokenSource>(state)!.Cancel(),
-            eventCts);
+        // We allocate one CancellationTokenSource per subscription and reuse it across
+        // healthy events via TryReset(). If a cancellation is requested because of
+        // null-propagation to the root, we replace the source before the next event.
+        // The execution token is linked in so that client-abort / server-shutdown still
+        // propagates.
+        var (eventCts, eventCtsRegistration) = CreateEventCancellation();
 
         var schemaName = GetSubscriptionSchemaName(context, subscriptionNode);
 
@@ -1135,14 +1165,25 @@ internal static class OperationPlanExecutor
                         await executionState.Signal;
                     }
 
+                    // The context is shared across events and the next event resets the
+                    // execution state, so we must let this event's in-flight sibling nodes
+                    // finish and account for their completions before that reset. Otherwise
+                    // a late completion would poison the next event.
+                    await DrainActiveNodesAsync(plan, executionState);
+
                     // If the original CancellationToken of the request was cancelled,
                     // the Execution nodes and the PlanExecutor should have been gracefully cancelled,
                     // so we throw here to properly cancel the request execution.
                     requestCancellationToken.ThrowIfCancellationRequested();
 
-                    // If the event budget was exhausted, surface it as a cancellation so the
-                    // stream tears down and the caller can observe the timeout.
-                    eventToken.ThrowIfCancellationRequested();
+                    // If the event token was cancelled by a genuine timeout or abort, tear the
+                    // stream down. A root-null halt also cancels the event token, but that is benign
+                    // (the result is a settled {data: null, errors: [...]}), so we keep the stream
+                    // alive and let context.Complete() produce it.
+                    if (!executionState.ProcessingCompletedEarly)
+                    {
+                        eventToken.ThrowIfCancellationRequested();
+                    }
 
                     result = context.Complete(reusable: true);
                 }
@@ -1166,11 +1207,24 @@ internal static class OperationPlanExecutor
                         concurrencyGate!.Release();
                     }
 
-                    // Reset the shared CTS so the next event can start with a fresh budget.
-                    // If TryReset() returns false the source was cancelled (timeout or
-                    // client-abort); the thrown OperationCanceledException has already
-                    // propagated and the enumerator surfaces the teardown.
-                    eventCts.TryReset();
+                    if (executionState.ProcessingCompletedEarly)
+                    {
+                        // A root-null halt cancelled the event source. A cancelled source cannot be
+                        // reset, so swap in a fresh one (and re-link client-abort / shutdown) for the
+                        // next event. This only happens on events that null-propagate to the root.
+                        await eventCtsRegistration.DisposeAsync();
+                        eventCts.Dispose();
+                        (eventCts, eventCtsRegistration) = CreateEventCancellation();
+                    }
+                    else
+                    {
+                        // Healthy event: reset the shared source so the next event starts with a
+                        // fresh timeout budget and no allocation. If TryReset() returns false the
+                        // source was cancelled by a timeout or client-abort; the thrown
+                        // OperationCanceledException has already propagated and the enumerator
+                        // surfaces the teardown.
+                        eventCts.TryReset();
+                    }
                 }
 
                 yield return result;
@@ -1180,6 +1234,45 @@ internal static class OperationPlanExecutor
         {
             await eventCtsRegistration.DisposeAsync();
             eventCts?.Dispose();
+        }
+
+        // Creates a fresh event-scoped cancellation source, links client-abort / shutdown into it,
+        // and installs it as the engine's cancellation source for the next event.
+        (CancellationTokenSource Source, CancellationTokenRegistration Registration) CreateEventCancellation()
+        {
+            var cts = new CancellationTokenSource();
+            var registration = executionCancellationToken.UnsafeRegister(
+                static state => Unsafe.As<CancellationTokenSource>(state)!.Cancel(),
+                cts);
+            executionState.SetCancellationSource(cts);
+            return (cts, registration);
+        }
+    }
+
+    private static async ValueTask DrainActiveNodesAsync(
+        IOperationPlan plan,
+        ExecutionState executionState)
+    {
+        // When execution halts early (a field error null-bubbled to the root and
+        // cancelled the execution, or the request itself was cancelled) sibling node
+        // tasks may still be in flight. They close over the pooled context, so we
+        // must let them finish and account for their completions before the context
+        // returns to the pool. Otherwise a late completion would mutate the state of
+        // the next request that reuses this context.
+        while (executionState.HasActiveNodes())
+        {
+            while (executionState.TryDequeueCompletedResult(out var result))
+            {
+                var node = plan.GetNodeById(result.Id);
+                executionState.CompleteNode(plan, node, result);
+            }
+
+            if (!executionState.HasActiveNodes())
+            {
+                break;
+            }
+
+            await executionState.Signal;
         }
     }
 

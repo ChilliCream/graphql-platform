@@ -1,28 +1,39 @@
-import React from "react";
+import { FromOurBlog } from "@/src/components/FromOurBlog";
+import { BuildYourWay } from "@/src/components/home/BuildYourWay";
+import { FusionFlow } from "@/src/components/home/FusionFlow";
+import { GrabADrink } from "@/src/components/home/GrabADrink";
+import { HomeHero } from "@/src/components/home/HomeHero";
+import { LogoCloud } from "@/src/components/home/LogoCloud";
+import { NitroPricing } from "@/src/components/home/NitroPricing";
+import { NitroSection } from "@/src/components/home/nitro/NitroSection";
+import { ProtocolCards } from "@/src/components/home/ProtocolCards";
+import { pageMetadata } from "@/src/helpers/pageMetadata";
+import { SITE_TITLE } from "@/src/helpers/site";
 
-import { getRecentBlogPostTeasers } from "@/lib/blog";
-import { createOrganizationJsonLd } from "@/lib/jsonld";
-import { createMetadata } from "@/lib/metadata";
-import { siteMetadata } from "@/lib/site-config";
-import IndexPage from "@/page-components/index";
-
-export const metadata = createMetadata({
-  title: "Home",
-  pageUrl: `${siteMetadata.siteUrl}/`,
-  canonicalUrl: `${siteMetadata.siteUrl}/`,
+export const metadata = pageMetadata({
+  title: SITE_TITLE,
+  description:
+    "The ChilliCream GraphQL Platform: build, connect, and observe GraphQL APIs with Hot Chocolate, Fusion, Strawberry Shake, and Nitro.",
+  path: "/",
+  absoluteTitle: true,
 });
 
-export default function HomePage() {
-  const recentPosts = getRecentBlogPostTeasers();
-  const jsonLd = createOrganizationJsonLd();
-
+export default function Home() {
   return (
     <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
-      <IndexPage recentPosts={recentPosts} />
+      <HomeHero />
+      <LogoCloud />
+      <BuildYourWay />
+      <FusionFlow />
+      <ProtocolCards />
+      <NitroSection />
+      <NitroPricing />
+      <GrabADrink />
+      <div className="px-5 py-8 sm:px-12">
+        <div className="mx-auto flex max-w-7xl flex-col gap-12">
+          <FromOurBlog />
+        </div>
+      </div>
     </>
   );
 }

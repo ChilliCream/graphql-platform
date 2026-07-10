@@ -58,7 +58,7 @@ public class PostgresDescriptorTests
         Assert.IsType<PostgresQueue>(endpoint.Destination);
         Assert.Equal("my-q", ((PostgresQueue)endpoint.Destination).Name);
         Assert.NotNull(endpoint.Queue);
-        Assert.Equal("my-q", endpoint.Queue!.Name);
+        Assert.Equal("my-q", endpoint.Queue.Name);
     }
 
     [Fact]
@@ -79,7 +79,7 @@ public class PostgresDescriptorTests
         Assert.IsType<PostgresTopic>(endpoint.Destination);
         Assert.Equal("my-t", ((PostgresTopic)endpoint.Destination).Name);
         Assert.NotNull(endpoint.Topic);
-        Assert.Equal("my-t", endpoint.Topic!.Name);
+        Assert.Equal("my-t", endpoint.Topic.Name);
     }
 
     [Fact]

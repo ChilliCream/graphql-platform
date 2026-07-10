@@ -35,8 +35,8 @@ public sealed class DataTypeDescriptor : ICodeDescriptor
     {
         var allProperties = new Dictionary<string, PropertyDescriptor>();
 
-        foreach (var namedTypeReferenceDescriptor in
-                 operationTypes.SelectMany(operationType => operationType.Properties))
+        foreach (
+            var namedTypeReferenceDescriptor in operationTypes.SelectMany(operationType => operationType.Properties))
         {
             if (!allProperties.ContainsKey(namedTypeReferenceDescriptor.Name))
             {

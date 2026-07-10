@@ -82,9 +82,51 @@ public sealed class RequireInvalidFieldsRuleTests : RuleTestBase
             """,
             """
             type CartDiscount {
-               id: ID!
-               name: String!
-               channelIds: [ID!]!
+                id: ID!
+                name: String!
+                channelIds: [ID!]!
+            }
+            """
+        ]);
+    }
+
+    // In the following example, the @require directive traverses a list-typed intermediate
+    // ("lines") using FieldSelectionMap list syntax ("lines[{ ... }]"). This is the shape generated
+    // for an Apollo @requires whose selection path crosses a list, and it satisfies the rule.
+    [Fact]
+    public void Validate_RequireValidFieldsNestedListIntermediate_Succeeds()
+    {
+        AssertValid(
+        [
+            """
+            type Order @key(fields: "id") {
+                id: ID!
+                summary(
+                    info: OrderInfoInput
+                        @require(field: "{ lines: info.lines[{ sku: sku }] }")
+                ): Boolean
+            }
+
+            input OrderInfoInput {
+                lines: [OrderLineInput]
+            }
+
+            input OrderLineInput {
+                sku: ID
+            }
+            """,
+            """
+            type Order @key(fields: "id") {
+                id: ID!
+                info: Info
+            }
+
+            type Info {
+                lines: [Line]
+            }
+
+            type Line {
+                sku: ID
             }
             """
         ]);

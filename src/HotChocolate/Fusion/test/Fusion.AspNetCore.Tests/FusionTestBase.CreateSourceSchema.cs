@@ -21,6 +21,7 @@ public abstract partial class FusionTestBase
         Action<IServiceCollection>? configureServices = null,
         Action<IApplicationBuilder>? configureApplication = null,
         Action<HttpClient>? configureHttpClient = null,
+        HttpClient? httpClient = null,
         bool isOffline = false,
         bool isTimingOut = false,
         SourceSchemaClientCapabilities capabilities = SourceSchemaClientCapabilities.All,
@@ -54,6 +55,7 @@ public abstract partial class FusionTestBase
                     opt.IsOffline = isOffline;
                     opt.IsTimingOut = isTimingOut;
                     opt.ConfigureHttpClient = configureHttpClient;
+                    opt.HttpClient = httpClient;
                     opt.MockHttpResponse = mockHttpResponse;
                     opt.Capabilities = capabilities;
                     opt.OnError = onError;
@@ -134,6 +136,8 @@ public abstract partial class FusionTestBase
                 yield return typeInspector.GetTypeRef(typeof(Composite.Is));
                 yield return typeInspector.GetTypeRef(typeof(Composite.Provides));
                 yield return typeInspector.GetTypeRef(typeof(Composite.Shareable));
+                yield return typeInspector.GetTypeRef(typeof(Composite.InterfaceObject));
+                yield return typeInspector.GetTypeRef(typeof(Composite.External));
 
                 _registeredTypes = true;
             }

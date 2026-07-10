@@ -17,8 +17,8 @@ internal static class AuditAssertions
     /// The full gateway response serialized as JSON (i.e. <c>result.ToJson()</c>).
     /// </param>
     /// <param name="expectedDataJson">
-    /// The expected <c>data</c> payload. When <see langword="null"/>, the <c>data</c>
-    /// payload is not asserted.
+    /// The expected <c>data</c> payload. A <see langword="null"/> value expects the response
+    /// data to be absent or explicitly <see langword="null"/>, matching the official audit runner.
     /// </param>
     /// <param name="expectsErrors">
     /// When not <see langword="null"/>, the presence of an <c>errors</c> array is
@@ -34,31 +34,30 @@ internal static class AuditAssertions
         var actual = JsonNode.Parse(actualJson)
             ?? throw new InvalidOperationException("Gateway response JSON parsed to null.");
 
-        if (expectedDataJson is not null)
+        var actualData = actual["data"];
+        var expectedData = expectedDataJson is null
+            ? null
+            : JsonNode.Parse(expectedDataJson);
+
+        if (!JsonNode.DeepEquals(actualData, expectedData))
         {
-            var actualData = actual["data"];
-            var expectedData = JsonNode.Parse(expectedDataJson);
+            var actualDataText = actualData?.ToJsonString(s_indented) ?? "null";
+            var expectedDataText = expectedData?.ToJsonString(s_indented) ?? "null";
+            var errorsText = actual["errors"]?.ToJsonString(s_indented) ?? "<none>";
 
-            if (!JsonNode.DeepEquals(actualData, expectedData))
-            {
-                var actualDataText = actualData?.ToJsonString(s_indented) ?? "null";
-                var expectedDataText = expectedData?.ToJsonString(s_indented) ?? "null";
-                var errorsText = actual["errors"]?.ToJsonString(s_indented) ?? "<none>";
+            Xunit.Assert.Fail(
+                $"""
+                 Data payload did not match.
 
-                Xunit.Assert.Fail(
-                    $"""
-                     Data payload did not match.
+                 Expected:
+                 {expectedDataText}
 
-                     Expected:
-                     {expectedDataText}
+                 Actual:
+                 {actualDataText}
 
-                     Actual:
-                     {actualDataText}
-
-                     Errors:
-                     {errorsText}
-                     """);
-            }
+                 Errors:
+                 {errorsText}
+                 """);
         }
 
         if (expectsErrors is not null)

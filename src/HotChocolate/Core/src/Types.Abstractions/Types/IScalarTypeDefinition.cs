@@ -11,9 +11,9 @@ public interface IScalarTypeDefinition
     , ISyntaxNodeProvider<ScalarTypeDefinitionNode>
 {
     /// <summary>
-    /// Gets the URI that specifies the behavior and constraints of this scalar type.
+    /// Gets the URL that specifies the behavior and constraints of this scalar type.
     /// </summary>
-    Uri? SpecifiedBy { get; }
+    string? SpecifiedBy { get; }
 
     /// <summary>
     /// Gets the possible types that this scalar can serialize to.

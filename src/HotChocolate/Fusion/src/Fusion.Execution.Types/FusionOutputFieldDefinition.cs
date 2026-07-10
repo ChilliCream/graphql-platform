@@ -17,6 +17,7 @@ namespace HotChocolate.Fusion.Types;
 public sealed class FusionOutputFieldDefinition : IOutputFieldDefinition, IInaccessibleProvider
 {
     private bool _completed;
+    private readonly FieldDefinitionFlags _flags;
 
     /// <summary>
     /// Initializes a new instance of <see cref="FusionOutputFieldDefinition"/>.
@@ -26,6 +27,7 @@ public sealed class FusionOutputFieldDefinition : IOutputFieldDefinition, IInacc
     /// <param name="isDeprecated">A value indicating whether the field is deprecated.</param>
     /// <param name="deprecationReason">The deprecation reason if the field is deprecated.</param>
     /// <param name="isInaccessible">A value indicating whether the field is marked as inaccessible.</param>
+    /// <param name="isGatewayField">A value indicating whether the field is implemented by the gateway rather than resolved from a source schema.</param>
     /// <param name="arguments">The collection of arguments for this field.</param>
     public FusionOutputFieldDefinition(
         string name,
@@ -33,6 +35,7 @@ public sealed class FusionOutputFieldDefinition : IOutputFieldDefinition, IInacc
         bool isDeprecated,
         string? deprecationReason,
         bool isInaccessible,
+        bool isGatewayField,
         FusionInputFieldDefinitionCollection arguments)
     {
         name.EnsureGraphQLName();
@@ -40,11 +43,32 @@ public sealed class FusionOutputFieldDefinition : IOutputFieldDefinition, IInacc
 
         Name = name;
         Description = description;
-        IsDeprecated = isDeprecated;
-        IsIntrospectionField = name.StartsWith("__");
         DeprecationReason = deprecationReason;
-        IsInaccessible = isInaccessible;
         Arguments = arguments;
+
+        var flags = FieldDefinitionFlags.None;
+
+        if (isDeprecated)
+        {
+            flags |= FieldDefinitionFlags.Deprecated;
+        }
+
+        if (name.StartsWith("__"))
+        {
+            flags |= FieldDefinitionFlags.Introspection;
+        }
+
+        if (isInaccessible)
+        {
+            flags |= FieldDefinitionFlags.Inaccessible;
+        }
+
+        if (isGatewayField)
+        {
+            flags |= FieldDefinitionFlags.GatewayField;
+        }
+
+        _flags = flags;
 
         // these properties are initialized
         // in the type complete step.
@@ -90,12 +114,12 @@ public sealed class FusionOutputFieldDefinition : IOutputFieldDefinition, IInacc
     /// <summary>
     /// Gets a value indicating whether this field is deprecated.
     /// </summary>
-    public bool IsDeprecated { get; }
+    public bool IsDeprecated => (_flags & FieldDefinitionFlags.Deprecated) == FieldDefinitionFlags.Deprecated;
 
     /// <summary>
     /// Gets a value indicating whether this field is an introspection field.
     /// </summary>
-    public bool IsIntrospectionField { get; }
+    public bool IsIntrospectionField => (_flags & FieldDefinitionFlags.Introspection) == FieldDefinitionFlags.Introspection;
 
     /// <summary>
     /// Gets the deprecation reason if the field is deprecated.
@@ -105,7 +129,13 @@ public sealed class FusionOutputFieldDefinition : IOutputFieldDefinition, IInacc
     /// <summary>
     /// Gets a value indicating whether this field is marked as inaccessible.
     /// </summary>
-    public bool IsInaccessible { get; }
+    public bool IsInaccessible => (_flags & FieldDefinitionFlags.Inaccessible) == FieldDefinitionFlags.Inaccessible;
+
+    /// <summary>
+    /// Gets a value indicating whether this field is implemented by the gateway rather than
+    /// resolved from a source schema.
+    /// </summary>
+    public bool IsGatewayField => (_flags & FieldDefinitionFlags.GatewayField) == FieldDefinitionFlags.GatewayField;
 
     /// <summary>
     /// Gets the directives applied to this field.
@@ -251,4 +281,14 @@ public sealed class FusionOutputFieldDefinition : IOutputFieldDefinition, IInacc
 
     ISyntaxNode ISyntaxNodeProvider.ToSyntaxNode()
         => Format(this);
+
+    [Flags]
+    private enum FieldDefinitionFlags : byte
+    {
+        None = 0,
+        Deprecated = 1,
+        Introspection = 2,
+        Inaccessible = 4,
+        GatewayField = 8
+    }
 }

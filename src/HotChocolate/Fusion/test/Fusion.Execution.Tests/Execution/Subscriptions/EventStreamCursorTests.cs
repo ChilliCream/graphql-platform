@@ -13,6 +13,8 @@ namespace HotChocolate.Fusion.Subscriptions;
 
 public sealed class EventStreamCursorTests
 {
+    private const string RecordingBrokerName = "recording";
+
     [Fact]
     public async Task Subscribe_Should_EmitBase64CursorPerEvent_When_BrokerProvidesCursor()
     {
@@ -115,6 +117,62 @@ public sealed class EventStreamCursorTests
               }
             }
             """);
+    }
+
+    [Fact]
+    public async Task Subscribe_Should_SetRequiresCursorTrue_When_CursorFieldIsConfigured()
+    {
+        // arrange
+        var hub = new RecordingEventStreamBrokerHub();
+        var services = CreateRecordingServices(
+            CreateRequiresCursorExecutionSchemaDocument(includeCursor: true),
+            hub);
+        var executor = await services.BuildGatewayAsync(TestContext.Current.CancellationToken);
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+
+        // act
+        await CollectEventsAsync(
+            executor,
+            """
+            subscription {
+              onBookChanged {
+                id
+              }
+            }
+            """,
+            count: 1,
+            cts.Token);
+
+        // assert
+        Assert.True(hub.RequiresCursor);
+    }
+
+    [Fact]
+    public async Task Subscribe_Should_SetRequiresCursorFalse_When_CursorFieldIsNotConfigured()
+    {
+        // arrange
+        var hub = new RecordingEventStreamBrokerHub();
+        var services = CreateRecordingServices(
+            CreateRequiresCursorExecutionSchemaDocument(includeCursor: false),
+            hub);
+        var executor = await services.BuildGatewayAsync(TestContext.Current.CancellationToken);
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+
+        // act
+        await CollectEventsAsync(
+            executor,
+            """
+            subscription {
+              onBookChanged {
+                id
+              }
+            }
+            """,
+            count: 1,
+            cts.Token);
+
+        // assert
+        Assert.False(hub.RequiresCursor);
     }
 
     private static ServiceCollection CreateServices(
@@ -268,6 +326,137 @@ public sealed class EventStreamCursorTests
               cursorArgument: String
             ) on FIELD_DEFINITION
             """);
+
+    private static ServiceCollection CreateRecordingServices(
+        DocumentNode executionSchemaDocument,
+        RecordingEventStreamBrokerHub hub)
+    {
+        var services = new ServiceCollection();
+        services.AddHttpClient();
+        services.AddSingleton<IEventStreamBrokerFactory, DefaultEventStreamBrokerFactory>();
+        services.AddKeyedSingleton<IEventStreamBrokerProvider>(
+            RecordingBrokerName,
+            (_, _) => new RecordingEventStreamBrokerProvider(hub));
+
+        var builder = services
+            .AddGraphQLGateway()
+            .AddInMemoryConfiguration(executionSchemaDocument);
+
+        builder.Services.AddSingleton<ISourceSchemaClientFactory>(
+            new TestSourceSchemaClientFactory());
+
+        FusionSetupUtilities.Configure(
+            builder,
+            setup => setup.ClientConfigurationModifiers.Add(
+                _ => new TestSourceSchemaClientConfiguration("EVENTS")));
+
+        return services;
+    }
+
+    private static DocumentNode CreateRequiresCursorExecutionSchemaDocument(bool includeCursor)
+    {
+        var fieldArguments = includeCursor ? "(after: String)" : "";
+        var cursorDirectiveArguments = includeCursor
+            ? "cursorField: \"cursor\" cursorArgument: \"after\""
+            : "";
+
+        return Utf8GraphQLParser.Parse(
+            $$"""
+            schema {
+              query: Query
+              subscription: Subscription
+            }
+
+            type Query
+              @fusion__type(schema: EVENTS) {
+              field: String
+                @fusion__field(schema: EVENTS)
+            }
+
+            type Subscription
+              @fusion__type(schema: EVENTS) {
+              onBookChanged{{fieldArguments}}: BookChanged
+                @fusion__field(schema: EVENTS)
+                @fusion__eventStream(
+                  schema: EVENTS
+                  topics: ["events"]
+                  broker: "{{RecordingBrokerName}}"
+                  message: "{ id }"
+                  {{cursorDirectiveArguments}}
+                )
+            }
+
+            type BookChanged
+              @fusion__type(schema: EVENTS) {
+              id: Int!
+                @fusion__field(schema: EVENTS)
+            }
+
+            enum fusion__Schema {
+              EVENTS
+            }
+
+            scalar fusion__FieldDefinition
+            scalar fusion__FieldSelectionMap
+            scalar fusion__FieldSelectionSet
+
+            directive @fusion__type(
+              schema: fusion__Schema!
+            ) repeatable on OBJECT | INTERFACE | UNION | ENUM | INPUT_OBJECT | SCALAR
+
+            directive @fusion__field(
+              schema: fusion__Schema!
+              sourceName: String
+              sourceType: String
+              provides: fusion__FieldSelectionSet
+              external: Boolean! = false
+            ) repeatable on FIELD_DEFINITION
+
+            directive @fusion__eventStream(
+              schema: fusion__Schema!
+              topics: [String!]
+              broker: String
+              message: fusion__FieldSelectionSet!
+              cursorField: String
+              cursorArgument: String
+            ) on FIELD_DEFINITION
+            """);
+    }
+
+    private sealed class RecordingEventStreamBrokerHub
+    {
+        public bool RequiresCursor { get; private set; }
+
+        public void Capture(ISubscriptionFieldContext context)
+            => RequiresCursor = context.RequiresCursor;
+    }
+
+    private sealed class RecordingEventStreamBroker(RecordingEventStreamBrokerHub hub) : IEventStreamBroker
+    {
+        public IAsyncEnumerable<EventMessage> SubscribeAsync(
+            ISubscriptionFieldContext context,
+            string[] topics,
+            string? cursor,
+            CancellationToken cancellationToken)
+        {
+            hub.Capture(context);
+            return SubscribeCoreAsync();
+        }
+
+        private static async IAsyncEnumerable<EventMessage> SubscribeCoreAsync()
+        {
+            await Task.Yield();
+            yield return CreateMessage("""{"id":1}"""u8, cursor: default);
+        }
+
+        public ValueTask DisposeAsync() => ValueTask.CompletedTask;
+    }
+
+    private sealed class RecordingEventStreamBrokerProvider(RecordingEventStreamBrokerHub hub)
+        : IEventStreamBrokerProvider
+    {
+        public IEventStreamBroker Create() => new RecordingEventStreamBroker(hub);
+    }
 
     private sealed class TestSourceSchemaClientFactory : ISourceSchemaClientFactory
     {
