@@ -165,12 +165,12 @@ public sealed partial class OperationPlanContext
             return;
         }
 
-        // if a custom scope is used we cannot reset it and will dispose it instead.
+        // If Initialize fails before creating a scope, _clientScope can be null.
         if (_clientScope is DefaultSourceSchemaClientScope reusableClientScope)
         {
             await reusableClientScope.ResetAsync();
         }
-        else
+        else if (_clientScope is not null)
         {
             await _clientScope.DisposeAsync();
         }
