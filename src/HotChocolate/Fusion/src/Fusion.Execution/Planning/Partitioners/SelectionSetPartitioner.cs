@@ -79,7 +79,8 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
         ITypeDefinition type,
         SelectionSetNode selectionSetNode,
         SelectionSetNode? providedSelectionSetNode,
-        ProvidedCoverage coverage)
+        ProvidedCoverage coverage,
+        FusionObjectTypeDefinition? narrowedSourceType = null)
     {
         var complexType = type as FusionComplexTypeDefinition;
         List<ISelectionNode>? resolvableSelections = null;
@@ -162,7 +163,8 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
                                 type,
                                 inlineFragmentNode,
                                 providedSelectionSetNode,
-                                coverage);
+                                coverage,
+                                narrowedSourceType);
 
                         CompleteSelection(inlineFragmentNode, resolvable, unresolvable, i);
                     }
@@ -503,6 +505,8 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
             return (null, fieldNode);
         }
 
+        FusionObjectTypeDefinition? narrowedSourceType = null;
+
         if (source?.SourceTypeName is { } narrowedTypeName
             && field.Type.NamedType().IsAbstractType())
         {
@@ -535,6 +539,8 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
                         + $"'{context.SchemaName}' to the abstract type '{narrowedTypeName}' "
                         + "is not yet supported. Only narrowing to a concrete object type is currently supported.");
                 }
+
+                narrowedSourceType = narrowedObject;
 
                 var coverageSelectionSet = GetCoverageSelectionSet(context.SelectionSetIndex, fieldNode.SelectionSet);
                 var fieldNodeForSpill = coverageSelectionSet is not null
@@ -598,7 +604,8 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
                 // @provides also stays complete (at worst an extra lookup).
                 coverage is ProvidedCoverage.Complete && providedFieldNode is not null
                     ? ProvidedCoverage.Complete
-                    : ProvidedCoverage.Partial);
+                    : ProvidedCoverage.Partial,
+                narrowedSourceType);
 
             context.Nodes.Pop();
 
@@ -685,9 +692,9 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
         ITypeDefinition type,
         InlineFragmentNode inlineFragmentNode,
         SelectionSetNode? providedFieldNode,
-        ProvidedCoverage coverage)
+        ProvidedCoverage coverage,
+        FusionObjectTypeDefinition? narrowedSourceType)
     {
-        // TODO: we need to implement proper type routing here later.
         var typeCondition = type;
 
         if (inlineFragmentNode.TypeCondition is not null)
@@ -705,17 +712,37 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
             return (null, null);
         }
 
-        if (!typeCondition.ExistsInSchema(context.SchemaName))
+        var typeConditionExistsInSource = typeCondition.ExistsInSchema(context.SchemaName);
+
+        if (!typeConditionExistsInSource
+            && IsInterfaceObjectPossibleType(type, typeCondition, context.SchemaName))
         {
             // In an @interfaceObject stand-in context the concrete type is opaque and not defined
             // in this schema, but the type condition still narrows a possible type of the
             // interface. Spill it so the covering interface lookup on a concrete-aware schema
             // recovers it, rather than dropping the selection.
-            if (IsInterfaceObjectPossibleType(type, typeCondition, context.SchemaName))
-            {
-                return (null, inlineFragmentNode);
-            }
+            return (null, inlineFragmentNode);
+        }
 
+        if (inlineFragmentNode.TypeCondition is not null
+            && TryGetSourceTypeExpansion(
+                type,
+                typeCondition,
+                context.SchemaName,
+                narrowedSourceType,
+                out var possibleTypes))
+        {
+            return RewriteExpandedFragmentNode(
+                context,
+                inlineFragmentNode,
+                possibleTypes,
+                providedFieldNode,
+                coverage,
+                narrowedSourceType);
+        }
+
+        if (!typeConditionExistsInSource)
+        {
             return (null, null);
         }
 
@@ -727,7 +754,8 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
                 typeCondition,
                 inlineFragmentNode.SelectionSet,
                 providedFieldNode,
-                coverage);
+                coverage,
+                narrowedSourceType);
 
         context.Nodes.Pop();
 
@@ -741,6 +769,217 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
             inlineFragmentNode.WithSelectionSet(resolvable),
             unresolvable is null ? null : inlineFragmentNode.WithSelectionSet(unresolvable)
         );
+    }
+
+    private (InlineFragmentNode?, InlineFragmentNode?) RewriteExpandedFragmentNode(
+        Context context,
+        InlineFragmentNode inlineFragmentNode,
+        IReadOnlyList<FusionObjectTypeDefinition> possibleTypes,
+        SelectionSetNode? providedFieldNode,
+        ProvidedCoverage coverage,
+        FusionObjectTypeDefinition? narrowedSourceType)
+    {
+        if (possibleTypes.Count == 0)
+        {
+            return (null, null);
+        }
+
+        List<InlineFragmentNode>? resolvable = null;
+        List<InlineFragmentNode>? unresolvable = null;
+
+        context.Nodes.Push(inlineFragmentNode);
+
+        foreach (var possibleType in possibleTypes)
+        {
+            var concreteFragment = new InlineFragmentNode(
+                inlineFragmentNode.Location,
+                new NamedTypeNode(possibleType.Name),
+                [],
+                inlineFragmentNode.SelectionSet);
+
+            context.Nodes.Push(concreteFragment);
+
+            var (resolvedSelectionSet, unresolvedSelectionSet) =
+                RewriteSelectionSet(
+                    context,
+                    possibleType,
+                    inlineFragmentNode.SelectionSet,
+                    providedFieldNode,
+                    coverage,
+                    narrowedSourceType ?? possibleType);
+
+            context.Nodes.Pop();
+
+            if (resolvedSelectionSet is not null)
+            {
+                resolvable ??= new List<InlineFragmentNode>(possibleTypes.Count);
+                resolvable.Add(concreteFragment.WithSelectionSet(resolvedSelectionSet));
+            }
+
+            if (unresolvedSelectionSet is not null)
+            {
+                unresolvable ??= new List<InlineFragmentNode>(possibleTypes.Count);
+                unresolvable.Add(concreteFragment.WithSelectionSet(unresolvedSelectionSet));
+            }
+        }
+
+        context.Nodes.Pop();
+
+        return
+        (
+            WrapExpandedFragments(context, inlineFragmentNode, resolvable),
+            WrapExpandedFragments(context, inlineFragmentNode, unresolvable)
+        );
+    }
+
+    private static InlineFragmentNode? WrapExpandedFragments(
+        Context context,
+        InlineFragmentNode original,
+        List<InlineFragmentNode>? fragments)
+    {
+        if (fragments is null)
+        {
+            return null;
+        }
+
+        if (fragments.Count == 1)
+        {
+            var fragment = fragments[0];
+            return new InlineFragmentNode(
+                original.Location,
+                fragment.TypeCondition,
+                original.Directives,
+                fragment.SelectionSet);
+        }
+
+        var selectionSet = new SelectionSetNode(fragments);
+        context.Register(original.SelectionSet, selectionSet);
+
+        return new InlineFragmentNode(
+            original.Location,
+            null,
+            original.Directives,
+            selectionSet);
+    }
+
+    private bool TryGetSourceTypeExpansion(
+        ITypeDefinition parentType,
+        ITypeDefinition typeCondition,
+        string schemaName,
+        FusionObjectTypeDefinition? narrowedSourceType,
+        [NotNullWhen(true)] out IReadOnlyList<FusionObjectTypeDefinition>? possibleTypes)
+    {
+        if (parentType is not FusionInterfaceTypeDefinition
+                and not FusionUnionTypeDefinition
+            || narrowedSourceType is null && !parentType.ExistsInSchema(schemaName)
+            || parentType is FusionInterfaceTypeDefinition parentInterface
+                && parentInterface.Sources.TryGetMember(schemaName, out var parentSource)
+                && parentSource.IsInterfaceObject)
+        {
+            possibleTypes = null;
+            return false;
+        }
+
+        var parentPossibleTypes = schema.GetPossibleTypes(parentType, includeInaccessible: true);
+        var conditionPossibleTypes = schema.GetPossibleTypes(typeCondition, includeInaccessible: true);
+
+        if (narrowedSourceType is not null)
+        {
+            if (!ContainsType(parentPossibleTypes, narrowedSourceType)
+                || !ContainsType(conditionPossibleTypes, narrowedSourceType))
+            {
+                possibleTypes = Array.Empty<FusionObjectTypeDefinition>();
+                return true;
+            }
+
+            if (IsPossibleTypeInSource(typeCondition, narrowedSourceType, schemaName))
+            {
+                possibleTypes = null;
+                return false;
+            }
+
+            possibleTypes = new[] { narrowedSourceType };
+            return true;
+        }
+
+        var matchingTypeCount = 0;
+        var requiresExpansion = false;
+
+        foreach (var possibleType in parentPossibleTypes)
+        {
+            if (!IsPossibleTypeInSource(parentType, possibleType, schemaName)
+                || !ContainsType(conditionPossibleTypes, possibleType))
+            {
+                continue;
+            }
+
+            matchingTypeCount++;
+
+            if (!IsPossibleTypeInSource(typeCondition, possibleType, schemaName))
+            {
+                requiresExpansion = true;
+            }
+        }
+
+        if (matchingTypeCount > 0 && !requiresExpansion)
+        {
+            possibleTypes = null;
+            return false;
+        }
+
+        if (matchingTypeCount == 0)
+        {
+            possibleTypes = Array.Empty<FusionObjectTypeDefinition>();
+            return true;
+        }
+
+        var expandedTypes = new List<FusionObjectTypeDefinition>(matchingTypeCount);
+
+        foreach (var possibleType in parentPossibleTypes)
+        {
+            if (IsPossibleTypeInSource(parentType, possibleType, schemaName)
+                && ContainsType(conditionPossibleTypes, possibleType))
+            {
+                expandedTypes.Add(possibleType);
+            }
+        }
+
+        possibleTypes = expandedTypes;
+        return true;
+    }
+
+    private static bool IsPossibleTypeInSource(
+        ITypeDefinition abstractType,
+        FusionObjectTypeDefinition possibleType,
+        string schemaName)
+    {
+        if (!possibleType.Sources.TryGetMember(schemaName, out var source))
+        {
+            return false;
+        }
+
+        return abstractType switch
+        {
+            FusionObjectTypeDefinition objectType => ReferenceEquals(objectType, possibleType),
+            FusionInterfaceTypeDefinition interfaceType => source.Implements.Contains(interfaceType.Name),
+            FusionUnionTypeDefinition unionType => source.MemberOf.Contains(unionType.Name),
+            _ => false
+        };
+    }
+
+    private static bool ContainsType(
+        ImmutableArray<FusionObjectTypeDefinition> possibleTypes,
+        FusionObjectTypeDefinition type)
+    {
+        foreach (var possibleType in possibleTypes)
+        {
+            if (ReferenceEquals(possibleType, type))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private bool IsInterfaceObjectPossibleType(

@@ -493,6 +493,119 @@ public sealed class SupertypeNarrowingPlanningTests : FusionTestBase
             fieldWithRequirements.FieldSelection.Path);
     }
 
+    [Fact]
+    public void Partition_Should_Expand_InterfaceFragment_When_SourceMembershipIsNarrower()
+    {
+        // arrange
+        var schema = CreateDistributedInterfaceMembershipSchema();
+
+        // act
+        var (resolvable, unresolvable, _, _) = PartitionSchemaA(
+            schema,
+            """
+            query {
+              products {
+                ... on Node {
+                  id
+                }
+              }
+            }
+            """);
+
+        // assert
+        resolvable.MatchInlineSnapshot(
+            """
+            {
+              products {
+                __typename
+                ... {
+                  ... on Oven {
+                    id
+                  }
+                  ... on Toaster {
+                    id
+                  }
+                }
+              }
+            }
+            """);
+        Assert.True(unresolvable.IsEmpty);
+    }
+
+    [Fact]
+    public void Partition_Should_NotExpandInterfaceFragment_When_SourceFieldNarrowsRuntimeType()
+    {
+        // arrange
+        var schema = CreateNarrowedDistributedInterfaceMembershipSchema();
+        AssertSourceTypeName(schema, "item", "S", "B");
+
+        // act
+        var (resolvable, unresolvable, _, _) = PartitionSchema(
+            schema,
+            """
+            query {
+              item {
+                ... on Node {
+                  id
+                }
+              }
+            }
+            """,
+            "S");
+
+        // assert
+        resolvable.MatchInlineSnapshot(
+            """
+            {
+              item {
+                __typename
+                ... on Node {
+                  __typename
+                  id
+                }
+              }
+            }
+            """);
+        Assert.True(unresolvable.IsEmpty);
+    }
+
+    [Fact]
+    public void Partition_Should_PruneConcreteFragment_When_SourceParentCannotProduceType()
+    {
+        // arrange
+        var schema = CreateDistributedInterfaceMembershipSchema();
+
+        // act
+        var (resolvable, unresolvable, _, _) = PartitionSchemaA(
+            schema,
+            """
+            query {
+              nodes {
+                ... on Toaster {
+                  warranty
+                }
+                ... on Oven {
+                  id
+                }
+              }
+            }
+            """);
+
+        // assert
+        resolvable.MatchInlineSnapshot(
+            """
+            {
+              nodes {
+                __typename
+                ... on Toaster {
+                  warranty
+                }
+              }
+            }
+            """);
+        Assert.True(unresolvable.IsEmpty);
+    }
+
     private static FusionSchemaDefinition CreateFeaturedItemSchema()
         => CreateExecutionSchema(
             """
@@ -885,12 +998,109 @@ public sealed class SupertypeNarrowingPlanningTests : FusionTestBase
               @fusion__unionMember(schema: B, member: "Product") = Product
             """);
 
+    private static FusionSchemaDefinition CreateDistributedInterfaceMembershipSchema()
+        => CreateExecutionSchema(
+            """
+            type Query
+              @fusion__type(schema: A) {
+              products: [Product]
+                @fusion__field(schema: A)
+              nodes: [Node]
+                @fusion__field(schema: A)
+            }
+
+            union Product
+              @fusion__type(schema: A)
+              @fusion__unionMember(schema: A, member: "Oven")
+              @fusion__unionMember(schema: A, member: "Toaster") = Oven | Toaster
+
+            interface Node
+              @fusion__type(schema: A)
+              @fusion__type(schema: B) {
+              id: ID!
+                @fusion__field(schema: A)
+                @fusion__field(schema: B)
+            }
+
+            type Oven implements Node
+              @fusion__type(schema: A)
+              @fusion__type(schema: B)
+              @fusion__implements(schema: B, interface: "Node") {
+              id: ID!
+                @fusion__field(schema: A)
+                @fusion__field(schema: B)
+            }
+
+            type Toaster implements Node
+              @fusion__type(schema: A)
+              @fusion__implements(schema: A, interface: "Node") {
+              id: ID!
+                @fusion__field(schema: A)
+              warranty: Int
+                @fusion__field(schema: A)
+            }
+            """);
+
+    private static FusionSchemaDefinition CreateNarrowedDistributedInterfaceMembershipSchema()
+        => CreateExecutionSchema(
+            """
+            type Query
+              @fusion__type(schema: S) {
+              item: AB
+                @fusion__field(schema: S, sourceType: "B!")
+            }
+
+            union AB
+              @fusion__type(schema: S)
+              @fusion__unionMember(schema: S, member: "B")
+              @fusion__unionMember(schema: S, member: "C") = B | C
+
+            interface Node
+              @fusion__type(schema: S)
+              @fusion__type(schema: A)
+              {
+              id: ID!
+                @fusion__field(schema: S)
+                @fusion__field(schema: A)
+            }
+
+            type B implements Node
+              @fusion__type(schema: S)
+              @fusion__type(schema: A)
+              @fusion__implements(schema: S, interface: "Node")
+              @fusion__implements(schema: A, interface: "Node") {
+              id: ID!
+                @fusion__field(schema: S)
+                @fusion__field(schema: A)
+            }
+
+            type C implements Node
+              @fusion__type(schema: S)
+              @fusion__type(schema: A)
+              @fusion__implements(schema: A, interface: "Node") {
+              id: ID!
+                @fusion__field(schema: S)
+                @fusion__field(schema: A)
+            }
+            """);
+
     private static FusionSchemaDefinition CreateExecutionSchema(string schema)
         => CreateCompositeSchema(schema + FusionDefinitions);
+
+    private static SelectionSetPartitionerResult PartitionSchemaA(
+        FusionSchemaDefinition schema,
+        string operationText)
+        => PartitionSchema(schema, operationText, "A");
 
     private static SelectionSetPartitionerResult PartitionSchemaB(
         FusionSchemaDefinition schema,
         string operationText)
+        => PartitionSchema(schema, operationText, "B");
+
+    private static SelectionSetPartitionerResult PartitionSchema(
+        FusionSchemaDefinition schema,
+        string operationText,
+        string schemaName)
     {
         var document = Utf8GraphQLParser.Parse(operationText);
         var rewriter = new DocumentRewriter(schema);
@@ -903,7 +1113,7 @@ public sealed class SupertypeNarrowingPlanningTests : FusionTestBase
         return partitioner.Partition(
             new SelectionSetPartitionerInput
             {
-                SchemaName = "B",
+                SchemaName = schemaName,
                 SelectionSet = new SelectionSet(
                     index.GetId(operation.SelectionSet),
                     operation.SelectionSet,
