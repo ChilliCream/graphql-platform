@@ -19,8 +19,7 @@ internal static class FederationSchemaAnalyzer
         FederationDirectiveNames.ComposeDirective,
         FederationDirectiveNames.Authenticated,
         FederationDirectiveNames.RequiresScopes,
-        FederationDirectiveNames.Policy,
-        FederationDirectiveNames.InterfaceObject
+        FederationDirectiveNames.Policy
     ];
 
     /// <summary>

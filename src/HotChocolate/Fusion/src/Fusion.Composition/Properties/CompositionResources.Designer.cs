@@ -375,6 +375,24 @@ namespace HotChocolate.Fusion.Properties {
         }
 
         /// <summary>
+        ///   Looks up a localized string similar to The name of the source schema that exposes this interface as an @interfaceObject stand-in..
+        /// </summary>
+        internal static string FusionInterfaceObjectMutableDirectiveDefinition_Argument_Schema_Description {
+            get {
+                return ResourceManager.GetString("FusionInterfaceObjectMutableDirectiveDefinition_Argument_Schema_Description", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The @fusion__interfaceObject directive specifies the source schemas that expose an interface as an @interfaceObject stand-in, so values of the interface produced by those schemas are opaque..
+        /// </summary>
+        internal static string FusionInterfaceObjectMutableDirectiveDefinition_Description {
+            get {
+                return ResourceManager.GetString("FusionInterfaceObjectMutableDirectiveDefinition_Description", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to The assumed size of the list as defined in the source schema..
         /// </summary>
         internal static string FusionListSizeMutableDirectiveDefinition_Argument_AssumedSize_Description {
@@ -620,11 +638,29 @@ namespace HotChocolate.Fusion.Properties {
         }
 
         /// <summary>
+        ///   Looks up a localized string similar to The @implement directive marks a field as an explicit implementation that replaces a default field implementation contributed by an @interfaceObject stand-in..
+        /// </summary>
+        internal static string ImplementMutableDirectiveDefinition_Description {
+            get {
+                return ResourceManager.GetString("ImplementMutableDirectiveDefinition_Description", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to The @inaccessible directive is used to prevent specific type system members from being accessible through the client-facing composite schema, even if they are accessible in the underlying source schemas..
         /// </summary>
         internal static string InaccessibleMutableDirectiveDefinition_Description {
             get {
                 return ResourceManager.GetString("InaccessibleMutableDirectiveDefinition_Description", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The @interfaceObject directive declares an object type that acts as a stand-in for an interface of the same name defined in other source schemas, letting a source schema contribute fields to that interface without defining its implementing types..
+        /// </summary>
+        internal static string InterfaceObjectMutableDirectiveDefinition_Description {
+            get {
+                return ResourceManager.GetString("InterfaceObjectMutableDirectiveDefinition_Description", resourceCulture);
             }
         }
 
@@ -1025,11 +1061,65 @@ namespace HotChocolate.Fusion.Properties {
         }
 
         /// <summary>
+        ///   Looks up a localized string similar to The field &apos;{0}&apos; is marked with @implement in schema &apos;{1}&apos;, but no applicable default implementation exists for it..
+        /// </summary>
+        internal static string LogEntryHelper_ImplementWithoutDefault {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_ImplementWithoutDefault", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The field &apos;{0}&apos; provided by schema &apos;{1}&apos; replaces the default implementation contributed to interface &apos;{2}&apos;. Mark it with @implement to keep this implementation, or remove it to adopt the default..
+        /// </summary>
+        internal static string LogEntryHelper_InterfaceObjectFieldRequiresImplement {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_InterfaceObjectFieldRequiresImplement", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The @interfaceObject stand-in &apos;{0}&apos; in schema &apos;{1}&apos; declares the key &apos;{2}&apos;, which does not match any key declared on the interface it stands in for..
+        /// </summary>
+        internal static string LogEntryHelper_InterfaceObjectKeyMismatch {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_InterfaceObjectKeyMismatch", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The @interfaceObject stand-in &apos;{0}&apos; in schema &apos;{1}&apos; must declare at least one @key directive..
+        /// </summary>
+        internal static string LogEntryHelper_InterfaceObjectKeyMissing {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_InterfaceObjectKeyMissing", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The type &apos;{0}&apos; is declared as an @interfaceObject stand-in, but no source schema defines &apos;{0}&apos; as an interface..
+        /// </summary>
+        internal static string LogEntryHelper_InterfaceObjectNoInterface {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_InterfaceObjectNoInterface", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to The field &apos;{0}&apos; in schema &apos;{1}&apos; must be shareable..
         /// </summary>
         internal static string LogEntryHelper_InvalidFieldSharing {
             get {
                 return ResourceManager.GetString("LogEntryHelper_InvalidFieldSharing", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The default field &apos;{0}&apos; on type &apos;{1}&apos; is contributed by unrelated interfaces {2}; every contributing @interfaceObject declaration must be marked @shareable..
+        /// </summary>
+        internal static string LogEntryHelper_InvalidProjectedFieldSharing {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_InvalidProjectedFieldSharing", resourceCulture);
             }
         }
 
@@ -1660,6 +1750,24 @@ namespace HotChocolate.Fusion.Properties {
         internal static string SatisfiabilityValidator_CycleDetected {
             get {
                 return ResourceManager.GetString("SatisfiabilityValidator_CycleDetected", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The query path &apos;{0}&apos; cannot be satisfied: values of &apos;{1}&apos; produced by source schema &apos;{2}&apos; are opaque, and no source schema provides a lookup for &apos;{1}&apos; that covers the possible type(s) {3} introduced by source schema(s) {4}..
+        /// </summary>
+        internal static string SatisfiabilityValidator_InterfaceObjectNoCoveringLookup {
+            get {
+                return ResourceManager.GetString("SatisfiabilityValidator_InterfaceObjectNoCoveringLookup", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Source schema &apos;{0}&apos; contributes fields to &apos;{1}&apos; but provides no lookup to resolve them..
+        /// </summary>
+        internal static string SatisfiabilityValidator_InterfaceObjectNoLookup {
+            get {
+                return ResourceManager.GetString("SatisfiabilityValidator_InterfaceObjectNoLookup", resourceCulture);
             }
         }
 

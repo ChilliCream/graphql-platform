@@ -39,6 +39,7 @@ internal sealed partial class FetchResultStore
         var dataElement = GetDataElement(sourcePath, result.Data);
         var errors = containsErrors ? result.Errors : null;
         var errorTrie = containsErrors ? GetErrorTrie(sourcePath, errors?.Trie) : null;
+        var resultPaths = representation.ResultPaths.AsSpan();
 
         lock (_lock)
         {
@@ -46,17 +47,68 @@ internal sealed partial class FetchResultStore
 
             try
             {
+                var hasSourceErrors = errors is not null
+                    && (!errors.RootErrors.IsDefaultOrEmpty
+                        || errorTrie?.FindFirstError() is not null);
+
+                if (dataElement.ValueKind is not JsonValueKind.Array)
+                {
+                    if (hasSourceErrors)
+                    {
+                        return SaveRepresentationSourceErrors(
+                            _result.Data,
+                            errors!,
+                            errorTrie,
+                            resultPaths,
+                            resultSelectionSet);
+                    }
+
+                    return SaveRepresentationProtocolError(
+                        _result.Data,
+                        ThrowHelper.InvalidRepresentationResultKind(sourcePath, dataElement.ValueKind),
+                        resultPaths,
+                        resultSelectionSet);
+                }
+
+                var resultCount = dataElement.GetArrayLength();
+                if (resultPaths.IsEmpty || resultCount != resultPaths.Length)
+                {
+                    if (hasSourceErrors
+                        && !SaveRepresentationSourceErrors(
+                            _result.Data,
+                            errors!,
+                            errorTrie,
+                            resultPaths,
+                            resultSelectionSet))
+                    {
+                        return false;
+                    }
+
+                    return SaveRepresentationProtocolError(
+                        _result.Data,
+                        ThrowHelper.RepresentationResultCountMismatch(
+                            sourcePath,
+                            resultCount,
+                            resultPaths.Length),
+                        resultPaths,
+                        resultSelectionSet);
+                }
+
                 if (errors?.RootErrors is { Length: > 0 } rootErrors)
                 {
                     _errors ??= [];
-                    _errors.AddRange(rootErrors);
+
+                    foreach (var rootError in rootErrors)
+                    {
+                        _errors.Add(_errorHandler.Handle(rootError));
+                    }
                 }
 
                 return SaveRepresentationResult(
                     _result.Data,
                     dataElement,
                     errorTrie,
-                    representation.ResultPaths.AsSpan(),
+                    resultPaths,
                     resultSelectionSet);
             }
             finally
@@ -1383,16 +1435,6 @@ internal sealed partial class FetchResultStore
         ReadOnlySpan<EntityResultPath> resultPaths,
         ResultSelectionSet resultSelectionSet)
     {
-        Debug.Assert(
-            !resultPaths.IsEmpty,
-            "Representation result paths should not be empty.");
-        Debug.Assert(
-            dataElement.ValueKind is JsonValueKind.Array,
-            "Representation result data should be an array.");
-        Debug.Assert(
-            resultPaths.Length == dataElement.GetArrayLength(),
-            "Representation result paths length should match the data array length.");
-
         if (errorTrie is null)
         {
             var i = 0;
@@ -1439,6 +1481,326 @@ internal sealed partial class FetchResultStore
 
         return true;
     }
+
+    private bool SaveRepresentationSourceErrors(
+        CompositeResultElement resultData,
+        SourceSchemaErrors errors,
+        ErrorTrie? errorTrie,
+        ReadOnlySpan<EntityResultPath> resultPaths,
+        ResultSelectionSet resultSelectionSet)
+    {
+        if (!errors.RootErrors.IsDefaultOrEmpty)
+        {
+            _errors ??= [];
+
+            foreach (var rootError in errors.RootErrors)
+            {
+                _errors.Add(_errorHandler.Handle(rootError));
+            }
+
+            if (!CompleteRepresentationErrorTargets(
+                    resultData,
+                    resultPaths,
+                    resultSelectionSet))
+            {
+                return false;
+            }
+        }
+
+        return errorTrie is null
+            || AddRepresentationErrors(resultData, errorTrie, resultPaths);
+    }
+
+    private bool CompleteRepresentationErrorTargets(
+        CompositeResultElement resultData,
+        ReadOnlySpan<EntityResultPath> resultPaths,
+        ResultSelectionSet resultSelectionSet)
+    {
+        for (var i = 0; i < resultPaths.Length; i++)
+        {
+            ref readonly var resultPath = ref resultPaths[i];
+
+            if (!Complete(resultPath.Path))
+            {
+                return false;
+            }
+
+            foreach (var additionalPath in resultPath.AdditionalPaths)
+            {
+                if (!Complete(additionalPath))
+                {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+
+        bool Complete(CompactPath targetPath)
+        {
+            if (resultData.IsInvalidated)
+            {
+                return false;
+            }
+
+            var target = targetPath.IsRoot ? resultData : GetStartObjectResult(targetPath);
+            return target.IsNullOrInvalidated
+                || _valueCompletion.CompleteErrorResult(target, resultSelectionSet);
+        }
+    }
+
+    private bool AddRepresentationErrors(
+        CompositeResultElement resultData,
+        ErrorTrie errorTrie,
+        ReadOnlySpan<EntityResultPath> resultPaths)
+    {
+        if (resultPaths.IsEmpty)
+        {
+            AddOriginalRepresentationErrors(errorTrie);
+            return true;
+        }
+
+        if (errorTrie.Error is { } rootError)
+        {
+            for (var i = 0; i < resultPaths.Length; i++)
+            {
+                if (!AddRepresentationError(resultData, rootError, resultPaths[i], null, null))
+                {
+                    return false;
+                }
+            }
+        }
+
+        foreach (var (segment, childTrie) in errorTrie)
+        {
+            if (segment is int index && (uint)index < (uint)resultPaths.Length)
+            {
+                if (!AddRepresentationError(resultData, null, resultPaths[index], null, childTrie))
+                {
+                    return false;
+                }
+                continue;
+            }
+
+            if (segment is int)
+            {
+                AddOriginalRepresentationErrors(childTrie);
+                continue;
+            }
+
+            for (var i = 0; i < resultPaths.Length; i++)
+            {
+                if (!AddRepresentationError(resultData, null, resultPaths[i], segment, childTrie))
+                {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
+    private void AddOriginalRepresentationErrors(ErrorTrie errorTrie)
+    {
+        if (errorTrie.Error is { } error)
+        {
+            _errors ??= [];
+            _errors.Add(_errorHandler.Handle(error));
+        }
+
+        foreach (var childTrie in errorTrie.Values)
+        {
+            AddOriginalRepresentationErrors(childTrie);
+        }
+    }
+
+    private bool AddRepresentationError(
+        CompositeResultElement resultData,
+        IError? error,
+        EntityResultPath resultPath,
+        object? segment,
+        ErrorTrie? suffixTrie)
+    {
+        var path = resultPath.Path.ToPath(resultData.Operation);
+        if (segment is not null)
+        {
+            path = AppendPathSegment(path, segment);
+        }
+
+        if (!AddRepresentationError(error, suffixTrie, path))
+        {
+            return false;
+        }
+
+        foreach (var additionalPath in resultPath.AdditionalPaths)
+        {
+            path = additionalPath.ToPath(resultData.Operation);
+            if (segment is not null)
+            {
+                path = AppendPathSegment(path, segment);
+            }
+
+            if (!AddRepresentationError(error, suffixTrie, path))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private bool AddRepresentationError(IError? error, ErrorTrie? errorTrie, Path path)
+    {
+        if (error is not null && !_valueCompletion.BuildErrorResult(path, error))
+        {
+            return false;
+        }
+
+        if (errorTrie is null)
+        {
+            return true;
+        }
+
+        if (errorTrie.Error is { } trieError
+            && !_valueCompletion.BuildErrorResult(path, trieError))
+        {
+            return false;
+        }
+
+        foreach (var (segment, childTrie) in errorTrie)
+        {
+            if (!AddRepresentationError(null, childTrie, AppendPathSegment(path, segment)))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private bool SaveRepresentationError(
+        CompositeResultElement resultData,
+        IError error,
+        ReadOnlySpan<EntityResultPath> resultPaths,
+        ResultSelectionSet resultSelectionSet)
+    {
+        if (resultPaths.IsEmpty)
+        {
+            _errors ??= [];
+            _errors.Add(_errorHandler.Handle(error));
+            return true;
+        }
+
+        for (var i = 0; i < resultPaths.Length; i++)
+        {
+            ref readonly var resultPath = ref resultPaths[i];
+
+            if (!SaveRepresentationError(
+                    resultData,
+                    resultPath.Path,
+                    resultPath.AdditionalPaths.AsSpan(),
+                    error,
+                    resultSelectionSet))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private bool SaveRepresentationProtocolError(
+        CompositeResultElement resultData,
+        Exception exception,
+        ReadOnlySpan<EntityResultPath> resultPaths,
+        ResultSelectionSet resultSelectionSet)
+    {
+        var error = ErrorBuilder.New()
+            .SetMessage(exception.Message)
+            .SetException(exception)
+            .Build();
+
+        if (resultPaths.IsEmpty)
+        {
+            _errors ??= [];
+            _errors.Add(_errorHandler.Handle(error));
+            return true;
+        }
+
+        for (var i = 0; i < resultPaths.Length; i++)
+        {
+            ref readonly var resultPath = ref resultPaths[i];
+
+            if (!SaveRepresentationError(
+                    resultData,
+                    resultPath.Path,
+                    resultPath.AdditionalPaths.AsSpan(),
+                    error,
+                    resultSelectionSet))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private bool SaveRepresentationError(
+        CompositeResultElement resultData,
+        CompactPath path,
+        ReadOnlySpan<CompactPath> additionalPaths,
+        IError error,
+        ResultSelectionSet resultSelectionSet)
+    {
+        if (!AddError(path))
+        {
+            return false;
+        }
+
+        for (var i = 0; i < additionalPaths.Length; i++)
+        {
+            if (!AddError(additionalPaths[i]))
+            {
+                return false;
+            }
+        }
+
+        return true;
+
+        bool AddError(CompactPath targetPath)
+        {
+            if (resultData.IsInvalidated)
+            {
+                return false;
+            }
+
+            var target = targetPath.IsRoot ? resultData : GetStartObjectResult(targetPath);
+            if (target.IsNullOrInvalidated)
+            {
+                return true;
+            }
+
+            if (_valueCompletion.BuildErrorResult(
+                    target,
+                    resultSelectionSet,
+                    error,
+                    target.CompactPath))
+            {
+                return true;
+            }
+
+            resultData.Invalidate();
+            return false;
+        }
+    }
+
+    private static Path AppendPathSegment(Path path, object segment)
+        => segment switch
+        {
+            string name => path.Append(name),
+            int index => path.Append(index),
+            _ => throw new UnreachableException()
+        };
 
     private void ReturnRepresentationPathSegments(RepresentationValue representation)
     {

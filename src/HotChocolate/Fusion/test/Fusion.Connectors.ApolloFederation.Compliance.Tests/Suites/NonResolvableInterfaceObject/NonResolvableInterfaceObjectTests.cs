@@ -1,3 +1,6 @@
+using HotChocolate.Execution;
+using HotChocolate.Fusion.Execution;
+using HotChocolate.Fusion.Options;
 using HotChocolate.Fusion.Suites.NonResolvableInterfaceObject.A;
 using HotChocolate.Fusion.Suites.NonResolvableInterfaceObject.B;
 
@@ -16,6 +19,10 @@ public sealed class NonResolvableInterfaceObjectTests : ComplianceTestBase
 {
     protected override Task<FusionGateway> BuildGatewayAsync()
         => FusionGatewayBuilder.ComposeAsync(
+            new ApolloFederationCompatibilityOptions
+            {
+                AllowNonResolvableInterfaceObjects = true
+            },
             (ASubgraph.Name, ASubgraph.BuildAsync),
             (BSubgraph.Name, BSubgraph.BuildAsync));
 
@@ -39,16 +46,37 @@ public sealed class NonResolvableInterfaceObjectTests : ComplianceTestBase
             """);
 
     [Fact]
-    public Task A_Field_Errors_WhenInterfaceObjectNotResolvable() => RunAsync(
-        query: """
+    public async Task A_Field_Errors_WhenInterfaceObjectNotResolvable()
+    {
+        // arrange
+        var capture = new SubgraphRequestCapture();
+        await using var gateway = await FusionGatewayBuilder.ComposeAsync(
+            capture,
+            sourceSchemaSettings: null,
+            NodeResolution.Gateway,
+            allowNonResolvableInterfaceObjects: true,
+            ShareableFieldRuntimeTypeRouting.SourceLocal,
+            (ASubgraph.Name, ASubgraph.BuildAsync),
+            (BSubgraph.Name, BSubgraph.BuildAsync));
+        const string query =
+            """
             query {
               a {
                 field
               }
             }
-            """,
-        expectedData: null,
-        expectsErrors: true);
+            """;
+
+        // act
+        var result = await gateway.Executor.ExecuteAsync(
+            query,
+            TestContext.Current.CancellationToken);
+        var json = result.ToJson(withIndentations: false);
+
+        // assert
+        AuditAssertions.Assert(json, expectedDataJson: "null", expectsErrors: true);
+        Assert.Empty(capture.Requests);
+    }
 
     [Fact]
     public Task B_ReturnsId() => RunAsync(
@@ -101,7 +129,7 @@ public sealed class NonResolvableInterfaceObjectTests : ComplianceTestBase
             """);
 
     [Fact]
-    public Task Product_IdAndName_Errors_WhenNotResolvable() => RunAsync(
+    public Task Product_IdAndName_ReturnsNullWithError_WhenNotResolvable() => RunAsync(
         query: """
             query {
               product {

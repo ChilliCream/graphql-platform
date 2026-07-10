@@ -1,10 +1,197 @@
 using HotChocolate.Fusion.Logging;
 using HotChocolate.Fusion.Options;
+using HotChocolate.Language;
 
 namespace HotChocolate.Fusion;
 
 public sealed class SchemaComposerTests
 {
+    [Theory]
+    [InlineData(NodeResolution.Gateway)]
+    [InlineData(NodeResolution.SourceSchema)]
+    public void Compose_Should_EmitExecutionMetadata(NodeResolution nodeResolution)
+    {
+        var options = new SchemaComposerOptions
+        {
+            Merger =
+            {
+                EnableGlobalObjectIdentification = nodeResolution is NodeResolution.SourceSchema,
+                NodeResolution = nodeResolution
+            }
+        };
+        var composer = new SchemaComposer(
+            [new SourceSchemaText("A", "type Query { ping: String }")],
+            options,
+            new CompositionLog());
+
+        var result = composer.Compose();
+
+        Assert.True(result.IsSuccess);
+        var document = result.Value.ToSyntaxNode();
+        var executionMetadataDefinitions = new DocumentNode(
+        [
+            document.Definitions.Single(
+                definition => definition is EnumTypeDefinitionNode
+                {
+                    Name.Value: "fusion__NodeResolution"
+                }),
+            document.Definitions.Single(
+                definition => definition is EnumTypeDefinitionNode
+                {
+                    Name.Value: "fusion__ShareableFieldRuntimeTypeRouting"
+                }),
+            document.Definitions.Single(
+                definition => definition is DirectiveDefinitionNode
+                {
+                    Name.Value: "fusion__execution"
+                })
+        ]);
+
+        executionMetadataDefinitions.ToString().MatchInlineSnapshot(
+            """
+            enum fusion__NodeResolution {
+              GATEWAY
+              SOURCE_SCHEMA
+            }
+
+            enum fusion__ShareableFieldRuntimeTypeRouting {
+              SOURCE_LOCAL
+              COMMON_RUNTIME_TYPES
+            }
+
+            directive @fusion__execution(
+              nodeResolution: fusion__NodeResolution! = GATEWAY
+              shareableFieldRuntimeTypeRouting: fusion__ShareableFieldRuntimeTypeRouting! = SOURCE_LOCAL
+            ) on SCHEMA
+            """);
+
+        var schemaDefinition = document.Definitions
+            .OfType<SchemaDefinitionNode>()
+            .Single();
+        var executionApplication = schemaDefinition.Directives.Single(
+            directive => directive.Name.Value == "fusion__execution");
+
+        executionApplication.ToString().MatchInlineSnapshot(
+            nodeResolution is NodeResolution.Gateway
+                ? """
+                @fusion__execution(
+                  nodeResolution: GATEWAY
+                  shareableFieldRuntimeTypeRouting: SOURCE_LOCAL
+                )
+                """
+                : """
+                @fusion__execution(
+                  nodeResolution: SOURCE_SCHEMA
+                  shareableFieldRuntimeTypeRouting: SOURCE_LOCAL
+                )
+                """);
+    }
+
+    [Theory]
+    [InlineData(ShareableFieldRuntimeTypeRouting.SourceLocal, "SOURCE_LOCAL")]
+    [InlineData(ShareableFieldRuntimeTypeRouting.CommonRuntimeTypes, "COMMON_RUNTIME_TYPES")]
+    public void Compose_Should_EmitShareableFieldRuntimeTypeRouting(
+        ShareableFieldRuntimeTypeRouting routing,
+        string expectedValue)
+    {
+        var options = new SchemaComposerOptions
+        {
+            ApolloFederationCompatibility = { ShareableFieldRuntimeTypeRouting = routing }
+        };
+        var composer = new SchemaComposer(
+            [new SourceSchemaText("A", "type Query { ping: String }")],
+            options,
+            new CompositionLog());
+
+        var result = composer.Compose();
+
+        Assert.True(result.IsSuccess);
+        var document = result.Value.ToSyntaxNode();
+        var enumType = Assert.Single(
+            document.Definitions.OfType<EnumTypeDefinitionNode>(),
+            definition => definition.Name.Value == "fusion__ShareableFieldRuntimeTypeRouting");
+        Assert.Equal(
+            ["SOURCE_LOCAL", "COMMON_RUNTIME_TYPES"],
+            enumType.Values.Select(value => value.Name.Value));
+        var schemaDefinition = Assert.Single(document.Definitions.OfType<SchemaDefinitionNode>());
+        var directive = Assert.Single(
+            schemaDefinition.Directives,
+            application => application.Name.Value == "fusion__execution");
+        Assert.Equal(expectedValue, Assert.IsType<EnumValueNode>(
+            directive.Arguments[1].Value).Value);
+    }
+
+    [Fact]
+    public void Compose_Should_Fail_When_SourceSchemaNodeResolutionIsDisabled()
+    {
+        var log = new CompositionLog();
+        var options = new SchemaComposerOptions
+        {
+            Merger = { NodeResolution = NodeResolution.SourceSchema }
+        };
+        var composer = new SchemaComposer(
+            [new SourceSchemaText("A", "type Query { ping: String }")],
+            options,
+            log);
+
+        var result = composer.Compose();
+
+        Assert.True(result.IsFailure);
+        var entry = Assert.Single(log);
+        Assert.Equal(LogEntryCodes.InvalidNodeResolution, entry.Code);
+        Assert.Equal(LogSeverity.Error, entry.Severity);
+        Assert.Equal(
+            "Source-schema node resolution requires global object identification to be enabled.",
+            entry.Message);
+    }
+
+    [Fact]
+    public void Compose_Should_Fail_When_NodeResolutionIsInvalid()
+    {
+        var log = new CompositionLog();
+        var options = new SchemaComposerOptions
+        {
+            Merger = { NodeResolution = (NodeResolution)42 }
+        };
+        var composer = new SchemaComposer(
+            [new SourceSchemaText("A", "type Query { ping: String }")],
+            options,
+            log);
+
+        var result = composer.Compose();
+
+        Assert.True(result.IsFailure);
+        var entry = Assert.Single(log);
+        Assert.Equal(LogEntryCodes.InvalidNodeResolution, entry.Code);
+        Assert.Equal("The node resolution mode '42' is invalid.", entry.Message);
+    }
+
+    [Fact]
+    public void Compose_Should_Fail_When_ShareableFieldRuntimeTypeRoutingIsInvalid()
+    {
+        var log = new CompositionLog();
+        var options = new SchemaComposerOptions
+        {
+            ApolloFederationCompatibility =
+            {
+                ShareableFieldRuntimeTypeRouting = (ShareableFieldRuntimeTypeRouting)42
+            }
+        };
+        var composer = new SchemaComposer(
+            [new SourceSchemaText("A", "type Query { ping: String }")],
+            options,
+            log);
+
+        var result = composer.Compose();
+
+        Assert.True(result.IsFailure);
+        var entry = Assert.Single(log);
+        Assert.Equal(LogEntryCodes.InvalidShareableFieldRuntimeTypeRouting, entry.Code);
+        Assert.Equal(
+            "The shareable field runtime type routing mode '42' is invalid.",
+            entry.Message);
+    }
+
     [Fact]
     public void Compose_Should_Succeed_When_CursorFieldAndArgumentAreValid()
     {
