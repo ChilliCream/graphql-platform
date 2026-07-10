@@ -711,12 +711,10 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
         {
             foreach (var parameter in resolver.Parameters)
             {
-                if (parameter.RequiresBinding || parameter.SupportsCustomBinding)
+                if (parameter.RequiresBinding)
                 {
                     Writer.WriteIndentedLine(
-                        parameter.SupportsCustomBinding
-                            ? "private readonly global::{0}? _binding_{1}_{2};"
-                            : "private readonly global::{0} _binding_{1}_{2};",
+                        "private readonly global::{0} _binding_{1}_{2};",
                         WellKnownTypes.ParameterBinding,
                         resolver.Member.Name,
                         parameter.Name);
@@ -838,13 +836,6 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
                         parameter.Name);
                 }
             }
-            else if (parameter.SupportsCustomBinding)
-            {
-                Writer.WriteIndentedLine(
-                    "_binding_{0}_{1} = bindingResolver.GetCustomBinding(CreateParameterDescriptor_{0}_{1}());",
-                    resolverMethod.Name,
-                    parameter.Name);
-            }
         }
     }
 
@@ -870,7 +861,7 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
         {
             foreach (var parameter in resolver.Parameters)
             {
-                if (parameter.RequiresBinding || parameter.SupportsCustomBinding)
+                if (parameter.RequiresBinding)
                 {
                     Writer.WriteIndentedLine(
                         "public global::{0} CreateParameterDescriptor_{1}_{2}()",
@@ -1039,7 +1030,7 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
 
                 foreach (var parameter in resolver.Parameters)
                 {
-                    if (!parameter.RequiresBinding && !parameter.SupportsCustomBinding)
+                    if (!parameter.RequiresBinding)
                     {
                         continue;
                     }
@@ -1051,21 +1042,10 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
 
                     firstParam = false;
 
-                    if (parameter.SupportsCustomBinding)
-                    {
-                        Writer.Write(
-                            "(_binding_{0}_{1}?.IsPure ?? {2})",
-                            resolver.Member.Name,
-                            parameter.Name,
-                            parameter.IsPure ? "true" : "false");
-                    }
-                    else
-                    {
-                        Writer.Write(
-                            "_binding_{0}_{1}.IsPure",
-                            resolver.Member.Name,
-                            parameter.Name);
-                    }
+                    Writer.Write(
+                        "_binding_{0}_{1}.IsPure",
+                        resolver.Member.Name,
+                        parameter.Name);
                 }
 
                 Writer.WriteLine(";");
@@ -1160,18 +1140,6 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
             {
                 var parameter = resolver.Parameters[i];
 
-                if (parameter.SupportsCustomBinding)
-                {
-                    WriteCustomBindingArgument(
-                        resolver,
-                        resolverMethod,
-                        typeLookup,
-                        parameter,
-                        i,
-                        "contexts[0]");
-                    continue;
-                }
-
                 switch (parameter.Kind)
                 {
                     case ResolverParameterKind.Parent:
@@ -1230,6 +1198,27 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
                             i);
                         break;
 
+                    case ResolverParameterKind.ClaimsPrincipal:
+                        Writer.WriteIndentedLine(
+                            "var args{0} = contexts[0].GetGlobalState<global::{1}>(\"ClaimsPrincipal\");",
+                            i,
+                            WellKnownTypes.ClaimsPrincipal);
+                        break;
+
+                    case ResolverParameterKind.DocumentNode:
+                        Writer.WriteIndentedLine("var args{0} = contexts[0].Operation.Document;", i);
+                        break;
+
+                    case ResolverParameterKind.FieldNode:
+                        Writer.WriteIndentedLine(
+                            "var args{0} = contexts[0].Selection.SyntaxNodes[0].Node;",
+                            i);
+                        break;
+
+                    case ResolverParameterKind.OutputField:
+                        Writer.WriteIndentedLine("var args{0} = contexts[0].Selection.Field;", i);
+                        break;
+
                     case ResolverParameterKind.Service:
                         if (parameter.Key is null)
                         {
@@ -1285,6 +1274,13 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
                         Writer.WriteIndentedLine(
                             "var args{0} = contexts[0].Selection;",
                             i);
+                        break;
+
+                    case ResolverParameterKind.ConnectionFlags:
+                        Writer.WriteIndentedLine(
+                            "var args{0} = global::{1}.GetConnectionFlags(contexts[0]);",
+                            i,
+                            WellKnownTypes.ConnectionFlagsHelper);
                         break;
 
                     case ResolverParameterKind.QueryContext:
@@ -1564,18 +1560,6 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
                     i,
                     ToFullyQualifiedString(optionalInnerType, resolverMethod, typeLookup),
                     parameter.Key ?? parameter.Name);
-                continue;
-            }
-
-            if (parameter.SupportsCustomBinding)
-            {
-                WriteCustomBindingArgument(
-                    resolver,
-                    resolverMethod,
-                    typeLookup,
-                    parameter,
-                    i,
-                    "context");
                 continue;
             }
 
@@ -1987,50 +1971,6 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
                 default:
                     throw new ArgumentOutOfRangeException();
             }
-        }
-    }
-
-    private void WriteCustomBindingArgument(
-        Resolver resolver,
-        IMethodSymbol resolverMethod,
-        ILocalTypeLookup typeLookup,
-        ResolverParameter parameter,
-        int parameterIndex,
-        string contextExpression)
-    {
-        var fallback = parameter.Kind switch
-        {
-            ResolverParameterKind.CancellationToken
-                => $"{contextExpression}.RequestAborted",
-            ResolverParameterKind.ClaimsPrincipal
-                => $"{contextExpression}.GetGlobalState<global::{WellKnownTypes.ClaimsPrincipal}>(\"ClaimsPrincipal\")",
-            ResolverParameterKind.DocumentNode
-                => $"{contextExpression}.Operation.Document",
-            ResolverParameterKind.FieldNode
-                => $"{contextExpression}.Selection.SyntaxNodes[0].Node",
-            ResolverParameterKind.OutputField
-                => $"{contextExpression}.Selection.Field",
-            ResolverParameterKind.ConnectionFlags
-                => $"global::{WellKnownTypes.ConnectionFlagsHelper}.GetConnectionFlags({contextExpression})",
-            ResolverParameterKind.Selection
-                => $"{contextExpression}.Selection",
-            _ => throw new ArgumentOutOfRangeException(nameof(parameter))
-        };
-
-        Writer.WriteIndentedLine(
-            "var args{0} = _binding_{1}_{2} is null",
-            parameterIndex,
-            resolver.Member.Name,
-            parameter.Name);
-        using (Writer.IncreaseIndent())
-        {
-            Writer.WriteIndentedLine("? {0}", fallback);
-            Writer.WriteIndentedLine(
-                ": _binding_{0}_{1}.Execute<{2}>({3});",
-                resolver.Member.Name,
-                parameter.Name,
-                ToFullyQualifiedString(parameter.Type, resolverMethod, typeLookup),
-                contextExpression);
         }
     }
 

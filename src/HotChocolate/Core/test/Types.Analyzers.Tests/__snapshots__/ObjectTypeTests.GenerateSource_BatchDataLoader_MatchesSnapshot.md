@@ -26,7 +26,7 @@ namespace TestNamespace
             var configuration = extension.Configuration;
             var thisType = typeof(global::TestNamespace.BookNode);
             var bindingResolver = extension.Context.ParameterBindingResolver;
-            var resolvers = new __Resolvers(bindingResolver);
+            var resolvers = new __Resolvers();
 
             var naming = descriptor.Extend().Context.Naming;
             var ignoredFields = new global::System.Collections.Generic.HashSet<string>();
@@ -81,29 +81,13 @@ namespace TestNamespace
 
         private sealed class __Resolvers
         {
-            private readonly global::HotChocolate.Internal.IParameterBinding? _binding_GetAuthorAsync_cancellationToken;
-
-            public __Resolvers(global::HotChocolate.Resolvers.ParameterBindingResolver bindingResolver)
-            {
-                _binding_GetAuthorAsync_cancellationToken = bindingResolver.GetCustomBinding(CreateParameterDescriptor_GetAuthorAsync_cancellationToken());
-            }
-
-            public global::HotChocolate.Internal.ParameterDescriptor CreateParameterDescriptor_GetAuthorAsync_cancellationToken()
-                => new HotChocolate.Internal.ParameterDescriptor(
-                    "cancellationToken",
-                    typeof(global::System.Threading.CancellationToken),
-                    isNullable: false,
-                    []);
-
             public HotChocolate.Resolvers.FieldResolverDelegates GetAuthorAsync()
                 => new global::HotChocolate.Resolvers.FieldResolverDelegates(resolver: GetAuthorAsync);
 
             private async global::System.Threading.Tasks.ValueTask<global::System.Object?> GetAuthorAsync(global::HotChocolate.Resolvers.IResolverContext context)
             {
                 var args0 = context.Parent<global::TestNamespace.Book>();
-                var args1 = _binding_GetAuthorAsync_cancellationToken is null
-                    ? context.RequestAborted
-                    : _binding_GetAuthorAsync_cancellationToken.Execute<global::System.Threading.CancellationToken>(context);
+                var args1 = context.RequestAborted;
                 var result = await global::TestNamespace.BookNode.GetAuthorAsync(args0, args1);
                 return result;
             }

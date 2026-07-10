@@ -78,7 +78,6 @@ type Query {
     "Returns the elements in the list that come before the specified cursor."
     before: String
   ): IntConnection
-  areCustomParametersInjected: Boolean!
   products(
     "Returns the elements in the list that come after the specified cursor."
     after: Version2

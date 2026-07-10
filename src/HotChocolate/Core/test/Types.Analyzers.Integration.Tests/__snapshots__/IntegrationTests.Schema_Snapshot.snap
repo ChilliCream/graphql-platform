@@ -119,7 +119,6 @@ type Query {
       sizedFields: ["edges", "nodes"]
       requireOneSlicingArgument: false
     )
-  areCustomParametersInjected: Boolean! @cost(weight: "10")
   products(
     "Returns the elements in the list that come after the specified cursor."
     after: Version2

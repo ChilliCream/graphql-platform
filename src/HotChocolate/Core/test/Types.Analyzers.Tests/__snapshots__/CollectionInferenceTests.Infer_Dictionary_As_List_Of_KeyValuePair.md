@@ -62,7 +62,7 @@ namespace TestNamespace
             var configuration = extension.Configuration;
             var thisType = typeof(global::TestNamespace.Query);
             var bindingResolver = extension.Context.ParameterBindingResolver;
-            var resolvers = new __Resolvers(bindingResolver);
+            var resolvers = new __Resolvers();
 
             HotChocolate.Internal.ConfigurationHelper.ApplyConfiguration(
                 extension.Context,
@@ -102,28 +102,12 @@ namespace TestNamespace
 
         private sealed class __Resolvers
         {
-            private readonly global::HotChocolate.Internal.IParameterBinding? _binding_GetStuffAsync_cancellationToken;
-
-            public __Resolvers(global::HotChocolate.Resolvers.ParameterBindingResolver bindingResolver)
-            {
-                _binding_GetStuffAsync_cancellationToken = bindingResolver.GetCustomBinding(CreateParameterDescriptor_GetStuffAsync_cancellationToken());
-            }
-
-            public global::HotChocolate.Internal.ParameterDescriptor CreateParameterDescriptor_GetStuffAsync_cancellationToken()
-                => new HotChocolate.Internal.ParameterDescriptor(
-                    "cancellationToken",
-                    typeof(global::System.Threading.CancellationToken),
-                    isNullable: false,
-                    []);
-
             public HotChocolate.Resolvers.FieldResolverDelegates GetStuffAsync()
                 => new global::HotChocolate.Resolvers.FieldResolverDelegates(resolver: GetStuffAsync);
 
             private async global::System.Threading.Tasks.ValueTask<global::System.Object?> GetStuffAsync(global::HotChocolate.Resolvers.IResolverContext context)
             {
-                var args0 = _binding_GetStuffAsync_cancellationToken is null
-                    ? context.RequestAborted
-                    : _binding_GetStuffAsync_cancellationToken.Execute<global::System.Threading.CancellationToken>(context);
+                var args0 = context.RequestAborted;
                 var result = await global::TestNamespace.Query.GetStuffAsync(args0);
                 return result;
             }

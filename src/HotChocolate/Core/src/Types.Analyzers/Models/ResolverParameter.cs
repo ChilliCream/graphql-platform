@@ -95,15 +95,6 @@ public sealed class ResolverParameter
     public bool RequiresBinding
         => Kind == ResolverParameterKind.Unknown;
 
-    public bool SupportsCustomBinding
-        => Kind is ResolverParameterKind.CancellationToken or
-            ResolverParameterKind.ClaimsPrincipal or
-            ResolverParameterKind.DocumentNode or
-            ResolverParameterKind.FieldNode or
-            ResolverParameterKind.OutputField or
-            ResolverParameterKind.ConnectionFlags or
-            ResolverParameterKind.Selection;
-
     public bool HasConfiguration => Attributes.Length > 0;
 
     public bool IsNullable { get; }

@@ -299,7 +299,7 @@ namespace TestNamespace.Types.Nodes
             var configuration = extension.Configuration;
             var thisType = typeof(global::TestNamespace.Types.Nodes.AuthorNode);
             var bindingResolver = extension.Context.ParameterBindingResolver;
-            var resolvers = new __Resolvers(bindingResolver);
+            var resolvers = new __Resolvers();
 
             var naming = descriptor.Extend().Context.Naming;
 
@@ -352,20 +352,6 @@ namespace TestNamespace.Types.Nodes
 
         private sealed class __Resolvers
         {
-            private readonly global::HotChocolate.Internal.IParameterBinding? _binding_GetAuthorsAsync_cancellationToken;
-
-            public __Resolvers(global::HotChocolate.Resolvers.ParameterBindingResolver bindingResolver)
-            {
-                _binding_GetAuthorsAsync_cancellationToken = bindingResolver.GetCustomBinding(CreateParameterDescriptor_GetAuthorsAsync_cancellationToken());
-            }
-
-            public global::HotChocolate.Internal.ParameterDescriptor CreateParameterDescriptor_GetAuthorsAsync_cancellationToken()
-                => new HotChocolate.Internal.ParameterDescriptor(
-                    "cancellationToken",
-                    typeof(global::System.Threading.CancellationToken),
-                    isNullable: false,
-                    []);
-
             public HotChocolate.Resolvers.FieldResolverDelegates GetAuthorsAsync()
                 => new global::HotChocolate.Resolvers.FieldResolverDelegates(resolver: GetAuthorsAsync);
 
@@ -406,9 +392,7 @@ namespace TestNamespace.Types.Nodes
                         EnableRelativeCursors = args1_flags.HasFlag(global::HotChocolate.Types.Pagination.ConnectionFlags.RelativeCursor),
                         NullOrdering = args1_options.NullOrdering
                     };
-                var args2 = _binding_GetAuthorsAsync_cancellationToken is null
-                    ? context.RequestAborted
-                    : _binding_GetAuthorsAsync_cancellationToken.Execute<global::System.Threading.CancellationToken>(context);
+                var args2 = context.RequestAborted;
                 var result = await global::TestNamespace.Types.Nodes.AuthorNode.GetAuthorsAsync(args0, args1, args2);
                 return result;
             }
@@ -445,7 +429,7 @@ namespace TestNamespace.Types.Root
             var configuration = extension.Configuration;
             var thisType = typeof(global::TestNamespace.Types.Root.AuthorQueries);
             var bindingResolver = extension.Context.ParameterBindingResolver;
-            var resolvers = new __Resolvers(bindingResolver);
+            var resolvers = new __Resolvers();
 
             HotChocolate.Internal.ConfigurationHelper.ApplyConfiguration(
                 extension.Context,
@@ -545,22 +529,6 @@ namespace TestNamespace.Types.Root
 
         private sealed class __Resolvers
         {
-            private readonly global::HotChocolate.Internal.IParameterBinding? _binding_GetAuthorsAsync_cancellationToken;
-            private readonly global::HotChocolate.Internal.IParameterBinding? _binding_GetAuthors2Async_cancellationToken;
-
-            public __Resolvers(global::HotChocolate.Resolvers.ParameterBindingResolver bindingResolver)
-            {
-                _binding_GetAuthorsAsync_cancellationToken = bindingResolver.GetCustomBinding(CreateParameterDescriptor_GetAuthorsAsync_cancellationToken());
-                _binding_GetAuthors2Async_cancellationToken = bindingResolver.GetCustomBinding(CreateParameterDescriptor_GetAuthors2Async_cancellationToken());
-            }
-
-            public global::HotChocolate.Internal.ParameterDescriptor CreateParameterDescriptor_GetAuthorsAsync_cancellationToken()
-                => new HotChocolate.Internal.ParameterDescriptor(
-                    "cancellationToken",
-                    typeof(global::System.Threading.CancellationToken),
-                    isNullable: false,
-                    []);
-
             public HotChocolate.Resolvers.FieldResolverDelegates GetAuthorsAsync()
                 => new global::HotChocolate.Resolvers.FieldResolverDelegates(resolver: GetAuthorsAsync);
 
@@ -600,19 +568,10 @@ namespace TestNamespace.Types.Root
                         EnableRelativeCursors = args0_flags.HasFlag(global::HotChocolate.Types.Pagination.ConnectionFlags.RelativeCursor),
                         NullOrdering = args0_options.NullOrdering
                     };
-                var args1 = _binding_GetAuthorsAsync_cancellationToken is null
-                    ? context.RequestAborted
-                    : _binding_GetAuthorsAsync_cancellationToken.Execute<global::System.Threading.CancellationToken>(context);
+                var args1 = context.RequestAborted;
                 var result = await global::TestNamespace.Types.Root.AuthorQueries.GetAuthorsAsync(args0, args1);
                 return result;
             }
-
-            public global::HotChocolate.Internal.ParameterDescriptor CreateParameterDescriptor_GetAuthors2Async_cancellationToken()
-                => new HotChocolate.Internal.ParameterDescriptor(
-                    "cancellationToken",
-                    typeof(global::System.Threading.CancellationToken),
-                    isNullable: false,
-                    []);
 
             public HotChocolate.Resolvers.FieldResolverDelegates GetAuthors2Async()
                 => new global::HotChocolate.Resolvers.FieldResolverDelegates(resolver: GetAuthors2Async);
@@ -653,9 +612,7 @@ namespace TestNamespace.Types.Root
                         EnableRelativeCursors = args0_flags.HasFlag(global::HotChocolate.Types.Pagination.ConnectionFlags.RelativeCursor),
                         NullOrdering = args0_options.NullOrdering
                     };
-                var args1 = _binding_GetAuthors2Async_cancellationToken is null
-                    ? context.RequestAborted
-                    : _binding_GetAuthors2Async_cancellationToken.Execute<global::System.Threading.CancellationToken>(context);
+                var args1 = context.RequestAborted;
                 var result = await global::TestNamespace.Types.Root.AuthorQueries.GetAuthors2Async(args0, args1);
                 return result;
             }

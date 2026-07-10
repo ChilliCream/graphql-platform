@@ -96,11 +96,6 @@ public static partial class Query
         return [];
     }
 
-    public static bool AreCustomParametersInjected(
-        CancellationToken cancellationToken,
-        IResolverContext resolverContext)
-        => cancellationToken.IsCancellationRequested && resolverContext is null;
-
     [UsePaging]
     [RewriteAfterToVersion]
     public static IQueryable<Product> GetProducts([GraphQLType<NonNullType<VersionType>>] long after)

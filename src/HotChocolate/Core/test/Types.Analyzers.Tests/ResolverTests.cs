@@ -237,7 +237,7 @@ public class ResolverTests
     }
 
     [Fact]
-    public async Task GenerateSource_ResolverWithOverrideableImplicitParameters_MatchesSnapshot()
+    public async Task GenerateSource_ResolverWithNativeImplicitParameters_MatchesSnapshot()
     {
         await TestHelper.GetGeneratedSourceSnapshot(
             """

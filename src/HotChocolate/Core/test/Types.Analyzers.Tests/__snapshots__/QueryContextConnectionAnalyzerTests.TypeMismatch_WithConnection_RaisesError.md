@@ -109,24 +109,16 @@ namespace TestNamespace
         private sealed class __Resolvers
         {
             private readonly global::HotChocolate.Internal.IParameterBinding _binding_GetProductsAsync_productService;
-            private readonly global::HotChocolate.Internal.IParameterBinding? _binding_GetProductsAsync_cancellationToken;
 
             public __Resolvers(global::HotChocolate.Resolvers.ParameterBindingResolver bindingResolver)
             {
                 _binding_GetProductsAsync_productService = bindingResolver.GetBinding(CreateParameterDescriptor_GetProductsAsync_productService());
-                _binding_GetProductsAsync_cancellationToken = bindingResolver.GetCustomBinding(CreateParameterDescriptor_GetProductsAsync_cancellationToken());
             }
 
             public global::HotChocolate.Internal.ParameterDescriptor CreateParameterDescriptor_GetProductsAsync_productService()
                 => new HotChocolate.Internal.ParameterDescriptor(
                     "productService",
                     typeof(global::TestNamespace.ProductService),
-                    isNullable: false,
-                    []);
-            public global::HotChocolate.Internal.ParameterDescriptor CreateParameterDescriptor_GetProductsAsync_cancellationToken()
-                => new HotChocolate.Internal.ParameterDescriptor(
-                    "cancellationToken",
-                    typeof(global::System.Threading.CancellationToken),
                     isNullable: false,
                     []);
 
@@ -177,9 +169,7 @@ namespace TestNamespace
                     args1_filter?.AsPredicate<global::TestNamespace.Brand>(),
                     args1_sorting?.AsSortDefinition<global::TestNamespace.Brand>());
                 var args2 = _binding_GetProductsAsync_productService.Execute<global::TestNamespace.ProductService>(context);
-                var args3 = _binding_GetProductsAsync_cancellationToken is null
-                    ? context.RequestAborted
-                    : _binding_GetProductsAsync_cancellationToken.Execute<global::System.Threading.CancellationToken>(context);
+                var args3 = context.RequestAborted;
                 var result = await global::TestNamespace.ProductResolvers.GetProductsAsync(args0, args1, args2, args3);
                 return result;
             }

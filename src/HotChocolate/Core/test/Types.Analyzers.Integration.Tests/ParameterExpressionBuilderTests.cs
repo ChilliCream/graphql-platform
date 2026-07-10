@@ -142,40 +142,4 @@ public class ParameterExpressionBuilderTests
             + "parameters by type.",
             predicateException.Errors.Single().Message);
     }
-
-    [Fact]
-    public async Task AddParameterExpressionBuilder_Should_OverrideBuiltInBindings_When_ResolverIsSourceGenerated()
-    {
-        // arrange
-        using var source = new CancellationTokenSource();
-        source.Cancel();
-
-        var executor = await new ServiceCollection()
-            .AddGraphQLServer()
-            .AddIntegrationTestTypes()
-            .AddPagingArguments()
-            .AddParameterExpressionBuilder(
-                static (IResolverContext ctx) =>
-                    ctx.GetGlobalState<CancellationToken>("customCancellationToken"))
-            .AddParameterExpressionBuilder(static _ => (IResolverContext)null!)
-            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
-
-        // act
-        var result = await executor.ExecuteAsync(
-            OperationRequestBuilder.New()
-                .SetDocument("{ areCustomParametersInjected }")
-                .SetGlobalState("customCancellationToken", source.Token)
-                .Build(),
-            TestContext.Current.CancellationToken);
-
-        // assert
-        result.MatchInlineSnapshot(
-            """
-            {
-              "data": {
-                "areCustomParametersInjected": true
-              }
-            }
-            """);
-    }
 }
