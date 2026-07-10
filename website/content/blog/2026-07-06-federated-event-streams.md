@@ -2,7 +2,15 @@
 date: "2026-07-06"
 title: "Introducing Federated Event Streams for Fusion 16.4"
 description: "Federated Event Streams add broker-backed, resumable GraphQL subscriptions to Fusion 16.4, with stateless gateway scaling and client-owned resume cursors."
-tags: ["fusion", "graphql", "federation", "subscriptions", "event-streams", "dotnet"]
+tags:
+  [
+    "fusion",
+    "graphql",
+    "federation",
+    "subscriptions",
+    "event-streams",
+    "dotnet",
+  ]
 category: "Release"
 featuredImage: "header.png"
 author: Michael Staib
