@@ -227,6 +227,21 @@ internal sealed class ValueCompletion
         return true;
     }
 
+    public bool BuildErrorResult(Path path, IError error)
+    {
+        if (_store.TryGetResult(path, out var fieldResult)
+            && fieldResult.Selection is { } selection)
+        {
+            return ApplyFieldError(fieldResult, selection, error, path);
+        }
+
+        var errorWithPath = ErrorBuilder.FromError(error)
+            .SetPath(path)
+            .Build();
+        _store.AddError(_errorHandler.Handle(errorWithPath));
+        return true;
+    }
+
     public void FinalizePocketedErrors(CompositeResultElement resultData)
     {
         if (!_store.HasPocketedErrors)

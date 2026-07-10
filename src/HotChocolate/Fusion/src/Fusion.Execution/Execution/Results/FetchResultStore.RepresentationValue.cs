@@ -47,26 +47,20 @@ internal sealed partial class FetchResultStore
 
             try
             {
-                if (errors?.RootErrors is { Length: > 0 } rootErrors)
-                {
-                    _errors ??= [];
-                    _errors.AddRange(rootErrors);
-                }
-
                 var hasSourceErrors = errors is not null
                     && (!errors.RootErrors.IsDefaultOrEmpty
                         || errorTrie?.FindFirstError() is not null);
 
                 if (dataElement.ValueKind is not JsonValueKind.Array)
                 {
-                    if (errorTrie is not null)
-                    {
-                        AddRepresentationErrors(_result.Data, errorTrie, resultPaths);
-                    }
-
                     if (hasSourceErrors)
                     {
-                        return true;
+                        return SaveRepresentationSourceErrors(
+                            _result.Data,
+                            errors!,
+                            errorTrie,
+                            resultPaths,
+                            resultSelectionSet);
                     }
 
                     return SaveRepresentationProtocolError(
@@ -79,9 +73,15 @@ internal sealed partial class FetchResultStore
                 var resultCount = dataElement.GetArrayLength();
                 if (resultPaths.IsEmpty || resultCount != resultPaths.Length)
                 {
-                    if (errorTrie is not null)
+                    if (hasSourceErrors
+                        && !SaveRepresentationSourceErrors(
+                            _result.Data,
+                            errors!,
+                            errorTrie,
+                            resultPaths,
+                            resultSelectionSet))
                     {
-                        AddRepresentationErrors(_result.Data, errorTrie, resultPaths);
+                        return false;
                     }
 
                     return SaveRepresentationProtocolError(
@@ -92,6 +92,16 @@ internal sealed partial class FetchResultStore
                             resultPaths.Length),
                         resultPaths,
                         resultSelectionSet);
+                }
+
+                if (errors?.RootErrors is { Length: > 0 } rootErrors)
+                {
+                    _errors ??= [];
+
+                    foreach (var rootError in rootErrors)
+                    {
+                        _errors.Add(_errorHandler.Handle(rootError));
+                    }
                 }
 
                 return SaveRepresentationResult(
@@ -1472,7 +1482,30 @@ internal sealed partial class FetchResultStore
         return true;
     }
 
-    private void AddRepresentationErrors(
+    private bool SaveRepresentationSourceErrors(
+        CompositeResultElement resultData,
+        SourceSchemaErrors errors,
+        ErrorTrie? errorTrie,
+        ReadOnlySpan<EntityResultPath> resultPaths,
+        ResultSelectionSet resultSelectionSet)
+    {
+        foreach (var rootError in errors.RootErrors)
+        {
+            if (!SaveRepresentationError(
+                    resultData,
+                    rootError,
+                    resultPaths,
+                    resultSelectionSet))
+            {
+                return false;
+            }
+        }
+
+        return errorTrie is null
+            || AddRepresentationErrors(resultData, errorTrie, resultPaths);
+    }
+
+    private bool AddRepresentationErrors(
         CompositeResultElement resultData,
         ErrorTrie errorTrie,
         ReadOnlySpan<EntityResultPath> resultPaths)
@@ -1480,14 +1513,17 @@ internal sealed partial class FetchResultStore
         if (resultPaths.IsEmpty)
         {
             AddOriginalRepresentationErrors(errorTrie);
-            return;
+            return true;
         }
 
         if (errorTrie.Error is { } rootError)
         {
             for (var i = 0; i < resultPaths.Length; i++)
             {
-                AddRepresentationError(resultData, rootError, resultPaths[i], null, null);
+                if (!AddRepresentationError(resultData, rootError, resultPaths[i], null, null))
+                {
+                    return false;
+                }
             }
         }
 
@@ -1495,7 +1531,10 @@ internal sealed partial class FetchResultStore
         {
             if (segment is int index && (uint)index < (uint)resultPaths.Length)
             {
-                AddRepresentationError(resultData, null, resultPaths[index], null, childTrie);
+                if (!AddRepresentationError(resultData, null, resultPaths[index], null, childTrie))
+                {
+                    return false;
+                }
                 continue;
             }
 
@@ -1507,9 +1546,14 @@ internal sealed partial class FetchResultStore
 
             for (var i = 0; i < resultPaths.Length; i++)
             {
-                AddRepresentationError(resultData, null, resultPaths[i], segment, childTrie);
+                if (!AddRepresentationError(resultData, null, resultPaths[i], segment, childTrie))
+                {
+                    return false;
+                }
             }
         }
+
+        return true;
     }
 
     private void AddOriginalRepresentationErrors(ErrorTrie errorTrie)
@@ -1517,7 +1561,7 @@ internal sealed partial class FetchResultStore
         if (errorTrie.Error is { } error)
         {
             _errors ??= [];
-            _errors.Add(error);
+            _errors.Add(_errorHandler.Handle(error));
         }
 
         foreach (var childTrie in errorTrie.Values)
@@ -1526,7 +1570,7 @@ internal sealed partial class FetchResultStore
         }
     }
 
-    private void AddRepresentationError(
+    private bool AddRepresentationError(
         CompositeResultElement resultData,
         IError? error,
         EntityResultPath resultPath,
@@ -1539,7 +1583,10 @@ internal sealed partial class FetchResultStore
             path = AppendPathSegment(path, segment);
         }
 
-        AddRepresentationError(error, suffixTrie, path);
+        if (!AddRepresentationError(error, suffixTrie, path))
+        {
+            return false;
+        }
 
         foreach (var additionalPath in resultPath.AdditionalPaths)
         {
@@ -1549,33 +1596,73 @@ internal sealed partial class FetchResultStore
                 path = AppendPathSegment(path, segment);
             }
 
-            AddRepresentationError(error, suffixTrie, path);
+            if (!AddRepresentationError(error, suffixTrie, path))
+            {
+                return false;
+            }
         }
+
+        return true;
     }
 
-    private void AddRepresentationError(IError? error, ErrorTrie? errorTrie, Path path)
+    private bool AddRepresentationError(IError? error, ErrorTrie? errorTrie, Path path)
     {
-        if (error is not null)
+        if (error is not null && !_valueCompletion.BuildErrorResult(path, error))
         {
-            _errors ??= [];
-            _errors.Add(ErrorBuilder.FromError(error).SetPath(path).Build());
+            return false;
         }
 
         if (errorTrie is null)
         {
-            return;
+            return true;
         }
 
-        if (errorTrie.Error is { } trieError)
+        if (errorTrie.Error is { } trieError
+            && !_valueCompletion.BuildErrorResult(path, trieError))
         {
-            _errors ??= [];
-            _errors.Add(ErrorBuilder.FromError(trieError).SetPath(path).Build());
+            return false;
         }
 
         foreach (var (segment, childTrie) in errorTrie)
         {
-            AddRepresentationError(null, childTrie, AppendPathSegment(path, segment));
+            if (!AddRepresentationError(null, childTrie, AppendPathSegment(path, segment)))
+            {
+                return false;
+            }
         }
+
+        return true;
+    }
+
+    private bool SaveRepresentationError(
+        CompositeResultElement resultData,
+        IError error,
+        ReadOnlySpan<EntityResultPath> resultPaths,
+        ResultSelectionSet resultSelectionSet)
+    {
+        if (resultPaths.IsEmpty)
+        {
+            _errors ??= [];
+            _errors.Add(_errorHandler.Handle(error));
+            return true;
+        }
+
+        for (var i = 0; i < resultPaths.Length; i++)
+        {
+            ref readonly var resultPath = ref resultPaths[i];
+
+            if (!SaveRepresentationError(
+                    resultData,
+                    resultPath.Path,
+                    resultPath.AdditionalPaths.AsSpan(),
+                    error,
+                    resultSelectionSet))
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     private bool SaveRepresentationProtocolError(
@@ -1592,7 +1679,7 @@ internal sealed partial class FetchResultStore
         if (resultPaths.IsEmpty)
         {
             _errors ??= [];
-            _errors.Add(error);
+            _errors.Add(_errorHandler.Handle(error));
             return true;
         }
 
@@ -1600,7 +1687,7 @@ internal sealed partial class FetchResultStore
         {
             ref readonly var resultPath = ref resultPaths[i];
 
-            if (!SaveRepresentationProtocolError(
+            if (!SaveRepresentationError(
                     resultData,
                     resultPath.Path,
                     resultPath.AdditionalPaths.AsSpan(),
@@ -1614,7 +1701,7 @@ internal sealed partial class FetchResultStore
         return true;
     }
 
-    private bool SaveRepresentationProtocolError(
+    private bool SaveRepresentationError(
         CompositeResultElement resultData,
         CompactPath path,
         ReadOnlySpan<CompactPath> additionalPaths,
