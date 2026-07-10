@@ -589,6 +589,50 @@ public sealed class SupertypeNarrowingPlanningTests : FusionTestBase
     }
 
     [Fact]
+    public void Partition_Should_CloneNestedSelectionSets_When_ParentExpandsToConcreteTypes()
+    {
+        // arrange
+        var schema = CreateDistributedInterfaceMembershipSchema();
+
+        // act
+        var (_, unresolvable, _, index) = PartitionSchemaA(
+            schema,
+            """
+            query {
+              products {
+                ... on Node {
+                  details {
+                    __typename
+                    warranty
+                  }
+                }
+              }
+            }
+            """);
+
+        // assert
+        var unresolved = unresolvable.ToArray();
+        Assert.Equal(2, unresolved.Length);
+        Assert.All(unresolved, entry => Assert.Equal("Details", entry.SelectionSet.Type.Name));
+
+        var firstId = unresolved[0].SelectionSet.Id;
+        var secondId = unresolved[1].SelectionSet.Id;
+        Assert.NotEqual(firstId, secondId);
+        Assert.True(index.TryGetOriginalIdFromCloned(firstId, out var firstOriginalId));
+        Assert.True(index.TryGetOriginalIdFromCloned(secondId, out var secondOriginalId));
+        Assert.Equal(firstOriginalId, secondOriginalId);
+
+        Assert.All(
+            unresolved,
+            entry => entry.SelectionSet.Node.MatchInlineSnapshot(
+                """
+                {
+                  warranty
+                }
+                """));
+    }
+
+    [Fact]
     public void Plan_Should_FetchNestedInterfaceField_When_SyntheticBranchIsOwnedByOtherSource()
     {
         // arrange
@@ -1160,9 +1204,19 @@ public sealed class SupertypeNarrowingPlanningTests : FusionTestBase
               id: ID!
                 @fusion__field(schema: A)
                 @fusion__field(schema: B)
+              details: Details
+                @fusion__field(schema: A)
+                @fusion__field(schema: B)
             }
 
             interface WithWarranty
+              @fusion__type(schema: B) {
+              warranty: Int
+                @fusion__field(schema: B)
+            }
+
+            type Details
+              @fusion__type(schema: A)
               @fusion__type(schema: B) {
               warranty: Int
                 @fusion__field(schema: B)
@@ -1182,6 +1236,9 @@ public sealed class SupertypeNarrowingPlanningTests : FusionTestBase
               id: ID!
                 @fusion__field(schema: A)
                 @fusion__field(schema: B)
+              details: Details
+                @fusion__field(schema: A)
+                @fusion__field(schema: B)
               warranty: Int
                 @fusion__field(schema: B)
             }
@@ -1192,6 +1249,9 @@ public sealed class SupertypeNarrowingPlanningTests : FusionTestBase
               @fusion__implements(schema: A, interface: "Node")
               @fusion__implements(schema: B, interface: "WithWarranty") {
               id: ID!
+                @fusion__field(schema: A)
+                @fusion__field(schema: B)
+              details: Details
                 @fusion__field(schema: A)
                 @fusion__field(schema: B)
               warranty: Int

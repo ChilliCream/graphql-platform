@@ -791,8 +791,7 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
 
         foreach (var possibleType in possibleTypes)
         {
-            var branchSelectionSet = new SelectionSetNode(inlineFragmentNode.SelectionSet.Selections);
-            context.RegisterCloned(inlineFragmentNode.SelectionSet, branchSelectionSet);
+            var branchSelectionSet = context.CloneSelectionSet(inlineFragmentNode.SelectionSet);
 
             var concreteFragment = new InlineFragmentNode(
                 inlineFragmentNode.Location,
@@ -1109,15 +1108,8 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
             SelectionSetIndexBuilder.Register(original, branch);
         }
 
-        public void RegisterCloned(SelectionSetNode original, SelectionSetNode cloned)
-        {
-            if (SelectionSetIndex.IsRegistered(cloned))
-            {
-                return;
-            }
-
-            SelectionSetIndexBuilder.RegisterCloned(original, cloned);
-        }
+        public SelectionSetNode CloneSelectionSet(SelectionSetNode original)
+            => SelectionSetCloner.Clone(original, SelectionSetIndexBuilder);
     }
 
     private bool CanMessageShapeProvideType(
