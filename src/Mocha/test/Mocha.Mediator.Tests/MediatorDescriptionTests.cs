@@ -35,7 +35,7 @@ public sealed class MediatorDescriptionTests
             RepositoryUrl = "https://github.com/example/mocha",
             Commit = "abc123",
             XmlDocumentation = "<summary>Manual query handler.</summary>",
-            DeclarationLocation = new DeclarationLocation("ManualQueryHandler.cs", 1, 1, 5, 2)
+            DeclarationLocation = new DeclarationLocation("ManualQueryHandler.cs", null, 1, 1, 5, 2)
         };
         var services = new ServiceCollection();
         services.AddMediator()

@@ -91,7 +91,7 @@ namespace Microsoft.Extensions.DependencyInjection
             configuration.Source = new global::Mocha.SourceMetadata
             {
                 Assembly = "Tests",
-                DeclarationLocation = new global::Mocha.DeclarationLocation("", 23, 1, 27, 2)
+                DeclarationLocation = new global::Mocha.DeclarationLocation("", null, 23, 1, 27, 2)
             };
         }
 
@@ -105,7 +105,7 @@ namespace Microsoft.Extensions.DependencyInjection
             configuration.Source = new global::Mocha.SourceMetadata
             {
                 Assembly = "Tests",
-                DeclarationLocation = new global::Mocha.DeclarationLocation("", 17, 1, 21, 2)
+                DeclarationLocation = new global::Mocha.DeclarationLocation("", null, 17, 1, 21, 2)
             };
         }
 
@@ -119,7 +119,7 @@ namespace Microsoft.Extensions.DependencyInjection
             configuration.Source = new global::Mocha.SourceMetadata
             {
                 Assembly = "Tests",
-                DeclarationLocation = new global::Mocha.DeclarationLocation("", 29, 1, 33, 2)
+                DeclarationLocation = new global::Mocha.DeclarationLocation("", null, 29, 1, 33, 2)
             };
         }
 
@@ -132,7 +132,7 @@ namespace Microsoft.Extensions.DependencyInjection
             configuration.Source = new global::Mocha.SourceMetadata
             {
                 Assembly = "Tests",
-                DeclarationLocation = new global::Mocha.DeclarationLocation("", 35, 1, 39, 2)
+                DeclarationLocation = new global::Mocha.DeclarationLocation("", null, 35, 1, 39, 2)
             };
         }
 
@@ -145,7 +145,7 @@ namespace Microsoft.Extensions.DependencyInjection
             configuration.Source = new global::Mocha.SourceMetadata
             {
                 Assembly = "Tests",
-                DeclarationLocation = new global::Mocha.DeclarationLocation("", 41, 1, 45, 2)
+                DeclarationLocation = new global::Mocha.DeclarationLocation("", null, 41, 1, 45, 2)
             };
         }
     }
