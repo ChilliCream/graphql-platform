@@ -8,6 +8,7 @@ import { ChilliCreamText } from "@/src/icons/ChilliCreamText";
 import { ChilliCreamWinking } from "@/src/icons/ChilliCreamWinking";
 import { GitHubIcon } from "@/src/icons/GitHub";
 
+import { HeaderShell } from "./HeaderShell";
 import { HeaderNav } from "./header/HeaderNav";
 import {
   CONTACT_HREF,
@@ -35,7 +36,7 @@ export default async function Header() {
   ) : null;
 
   return (
-    <header className="border-cc-white/10 bg-cc-card-bg sticky top-0 z-40 flex h-18 w-full justify-center border-b shadow-[inset_0_1px_0_var(--cc-highlight)] backdrop-blur-[18px] backdrop-saturate-150">
+    <HeaderShell>
       <div className="relative flex h-full w-full max-w-7xl items-center justify-between px-4 lg:gap-8">
         <Link
           href="/"
@@ -95,6 +96,6 @@ export default async function Header() {
           nitroHref={TOOLS.nitro}
         />
       </div>
-    </header>
+    </HeaderShell>
   );
 }
