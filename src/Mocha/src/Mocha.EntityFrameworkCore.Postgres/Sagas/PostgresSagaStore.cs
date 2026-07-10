@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.DependencyInjection;
@@ -13,6 +14,7 @@ internal sealed class PostgresSagaStore(DbContext context, PostgresSagaStoreQuer
     , IDisposable
 {
     private readonly object _lock = new();
+    private readonly ConcurrentDictionary<SagaStateKey, Guid> _versions = new();
     private PooledArrayWriter? _arrayWriter;
 
     /// <summary>
@@ -28,7 +30,7 @@ internal sealed class PostgresSagaStore(DbContext context, PostgresSagaStoreQuer
         var dbContext = (DbContext)services.GetRequiredService(contextType);
         var optionsMonitor = services.GetRequiredService<IOptionsMonitor<PostgresSagaStoreOptions>>();
         var options = optionsMonitor.Get(optionsName);
-        var timeProvider = services.GetRequiredService<TimeProvider>();
+        var timeProvider = services.GetService<TimeProvider>() ?? TimeProvider.System;
 
         return new PostgresSagaStore(dbContext, options.Queries, timeProvider);
     }
@@ -55,8 +57,9 @@ internal sealed class PostgresSagaStore(DbContext context, PostgresSagaStoreQuer
     }
 
     /// <summary>
-    /// Persists the saga state using raw SQL against Postgres, inserting a new record or updating
-    /// the existing one with optimistic concurrency control via the version column.
+    /// Persists the saga state using raw SQL against Postgres. States loaded by this store are
+    /// updated with optimistic concurrency control using the version captured at load time. States
+    /// that were not loaded by this store are inserted and conflict if a row already exists.
     /// </summary>
     /// <typeparam name="T">The saga state type derived from <see cref="SagaStateBase"/>.</typeparam>
     /// <param name="saga">The saga definition providing name and serialization metadata.</param>
@@ -75,22 +78,13 @@ internal sealed class PostgresSagaStore(DbContext context, PostgresSagaStoreQuer
             await connection.OpenAsync(cancellationToken);
         }
 
-        // Check if record exists
-        var existingVersion = await GetExistingVersionAsync(
-            connection,
-            transaction,
-            saga.Name,
-            state.Id,
-            cancellationToken);
-
-        // Serialize state to JSON
         var jsonData = SerializeState(saga, state);
         var newVersion = NewVersion();
         var now = timeProvider.GetUtcNow();
+        var key = new SagaStateKey(saga.Name, state.Id);
 
-        if (existingVersion is null)
+        if (!_versions.TryGetValue(key, out var version))
         {
-            // Insert new record
             await using var cmd = connection.CreateCommand();
             cmd.CommandText = queries.InsertState;
             cmd.Transaction = transaction;
@@ -102,11 +96,21 @@ internal sealed class PostgresSagaStore(DbContext context, PostgresSagaStoreQuer
             cmd.Parameters.AddWithValue("@version", newVersion);
             await cmd.PrepareAsync(cancellationToken);
 
-            await cmd.ExecuteNonQueryAsync(cancellationToken);
+            try
+            {
+                await cmd.ExecuteNonQueryAsync(cancellationToken);
+            }
+            catch (PostgresException ex) when (ex.SqlState == PostgresErrorCodes.UniqueViolation)
+            {
+                throw new DbUpdateConcurrencyException(
+                    "The saga state was concurrently created or already exists.",
+                    ex);
+            }
+
+            _versions[key] = newVersion;
         }
         else
         {
-            // Update existing record with optimistic concurrency
             await using var cmd = connection.CreateCommand();
             cmd.CommandText = queries.UpdateState;
             cmd.Transaction = transaction;
@@ -115,7 +119,7 @@ internal sealed class PostgresSagaStore(DbContext context, PostgresSagaStoreQuer
             cmd.Parameters.AddWithValue("@newVersion", newVersion);
             cmd.Parameters.AddWithValue("@id", state.Id);
             cmd.Parameters.AddWithValue("@sagaName", saga.Name);
-            cmd.Parameters.AddWithValue("@oldVersion", existingVersion.Value);
+            cmd.Parameters.AddWithValue("@oldVersion", version);
             await cmd.PrepareAsync(cancellationToken);
 
             var rowsAffected = await cmd.ExecuteNonQueryAsync(cancellationToken);
@@ -123,6 +127,8 @@ internal sealed class PostgresSagaStore(DbContext context, PostgresSagaStoreQuer
             {
                 throw new DbUpdateConcurrencyException("The saga state was modified by another process.");
             }
+
+            _versions[key] = newVersion;
         }
     }
 
@@ -148,6 +154,7 @@ internal sealed class PostgresSagaStore(DbContext context, PostgresSagaStoreQuer
         await cmd.PrepareAsync(cancellationToken);
 
         await cmd.ExecuteNonQueryAsync(cancellationToken);
+        _versions.TryRemove(new SagaStateKey(saga.Name, id), out _);
     }
 
     /// <summary>
@@ -182,25 +189,15 @@ internal sealed class PostgresSagaStore(DbContext context, PostgresSagaStoreQuer
         }
 
         var stateJson = reader.GetFieldValue<ReadOnlyMemory<byte>>(0);
-        return saga.StateSerializer.Deserialize<T>(stateJson);
-    }
+        var version = reader.GetFieldValue<Guid>(1);
+        var state = saga.StateSerializer.Deserialize<T>(stateJson);
 
-    private async Task<Guid?> GetExistingVersionAsync(
-        NpgsqlConnection connection,
-        NpgsqlTransaction? transaction,
-        string sagaName,
-        Guid id,
-        CancellationToken cancellationToken)
-    {
-        await using var cmd = connection.CreateCommand();
-        cmd.CommandText = queries.SelectVersion;
-        cmd.Transaction = transaction;
-        cmd.Parameters.AddWithValue("@id", id);
-        cmd.Parameters.AddWithValue("@sagaName", sagaName);
-        await cmd.PrepareAsync(cancellationToken);
+        if (state is SagaStateBase)
+        {
+            _versions[new SagaStateKey(saga.Name, id)] = version;
+        }
 
-        var result = await cmd.ExecuteScalarAsync(cancellationToken);
-        return result is Guid version ? version : null;
+        return state;
     }
 
     private byte[] SerializeState(Saga saga, SagaStateBase state)
@@ -232,4 +229,6 @@ internal sealed class PostgresSagaStore(DbContext context, PostgresSagaStoreQuer
     {
         _arrayWriter?.Dispose();
     }
+
+    private readonly record struct SagaStateKey(string SagaName, Guid Id);
 }
