@@ -364,7 +364,7 @@ public class PagingHelperTests(PostgreSqlResource resource)
 
         var page = await context.Brands
             .With(query)
-            .ToPageAsync(arguments);
+            .ToPageAsync(arguments, Xunit.TestContext.Current.CancellationToken);
 
         // a cursor must be creatable for each edge. this evaluates the cursor keys against
         // the projected Brand, which fails if a nested projection order key was collected.
@@ -407,7 +407,7 @@ public class PagingHelperTests(PostgreSqlResource resource)
 
         var page = await context.Brands
             .With(query)
-            .ToPageAsync(arguments);
+            .ToPageAsync(arguments, Xunit.TestContext.Current.CancellationToken);
 
         // a cursor must be creatable for each edge. this evaluates the cursor keys against
         // the projected Brand, which fails if a nested projection order key was collected.
@@ -443,7 +443,7 @@ public class PagingHelperTests(PostgreSqlResource resource)
 
         var page = await context.Brands
             .With(query)
-            .ToPageAsync(arguments);
+            .ToPageAsync(arguments, Xunit.TestContext.Current.CancellationToken);
 
         // a cursor must be creatable for each edge. this evaluates the cursor keys against
         // the projected Brand, which fails if the predicate's nested order key was collected.
@@ -479,7 +479,7 @@ public class PagingHelperTests(PostgreSqlResource resource)
 
         var page = await context.Brands
             .With(query)
-            .ToPageAsync(arguments);
+            .ToPageAsync(arguments, Xunit.TestContext.Current.CancellationToken);
 
         // a cursor must be creatable for each edge. this evaluates the cursor keys against
         // the projected Brand, which fails if the predicate's nested order key was collected.
@@ -516,7 +516,7 @@ public class PagingHelperTests(PostgreSqlResource resource)
 
         var page = await context.Brands
             .With(query)
-            .ToPageAsync(arguments);
+            .ToPageAsync(arguments, Xunit.TestContext.Current.CancellationToken);
 
         // a cursor must be creatable for each edge. this evaluates the computed
         // order key against the projected Brand and requires Products to be loaded.
@@ -547,13 +547,13 @@ public class PagingHelperTests(PostgreSqlResource resource)
 
         // -> get first page
         var arguments = new PagingArguments(first: 2);
-        var page = await context.Brands.With(query).ToPageAsync(arguments);
+        var page = await context.Brands.With(query).ToPageAsync(arguments, Xunit.TestContext.Current.CancellationToken);
 
         // Act
         // paging to the second page builds a keyset predicate from the computed
         // order key, which must translate to SQL.
         arguments = new PagingArguments(first: 2, after: page.CreateEndCursor());
-        page = await context.Brands.With(query).ToPageAsync(arguments);
+        page = await context.Brands.With(query).ToPageAsync(arguments, Xunit.TestContext.Current.CancellationToken);
 
         // Assert
         Snapshot
