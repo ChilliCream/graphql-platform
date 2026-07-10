@@ -15,7 +15,7 @@ namespace HotChocolate.Fusion.Execution.Results;
 internal sealed class ValueCompletion
 {
     private readonly FetchResultStore _store;
-    private readonly ISchemaDefinition _schema;
+    private readonly FusionSchemaDefinition _schema;
     private readonly IErrorHandler _errorHandler;
     private readonly ErrorHandlingMode _errorHandlingMode;
     private readonly bool _propagateNullValues;
@@ -31,7 +31,7 @@ internal sealed class ValueCompletion
         ArgumentNullException.ThrowIfNull(schema);
 
         _store = store;
-        _schema = schema;
+        _schema = (FusionSchemaDefinition)schema;
         _errorHandler = errorHandler;
         _errorHandlingMode = errorHandlingMode;
         _propagateNullValues = errorHandlingMode is not ErrorHandlingMode.Null;
@@ -961,7 +961,25 @@ TryCompleteList_MoveNext:
             return objectType;
         }
 
-        var typeName = data.GetProperty(IntrospectionFieldNames.TypeNameSpan).AssertString();
+        var typeNameElement = data.GetProperty(IntrospectionFieldNames.TypeNameSpan);
+        var possibleTypes = _schema.GetPossibleTypes(namedType);
+
+        // Small implementer sets resolve the type by comparing the raw UTF-8 __typename
+        // bytes, which is allocation free. Beyond 8 candidates the linear scan loses to
+        // the dictionary lookup, so larger sets, escaped values, and non-string values
+        // use the existing fallback below.
+        if (possibleTypes.Length <= 8 && typeNameElement.TryGetRawStringValue(out var typeNameSpan))
+        {
+            for (var i = 0; i < possibleTypes.Length; i++)
+            {
+                if (typeNameSpan.SequenceEqual(possibleTypes[i].Utf8Name))
+                {
+                    return possibleTypes[i];
+                }
+            }
+        }
+
+        var typeName = typeNameElement.AssertString();
         return _schema.Types.GetType<IObjectTypeDefinition>(typeName);
     }
 

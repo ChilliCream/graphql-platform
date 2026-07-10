@@ -1,4 +1,5 @@
 using System.Runtime.CompilerServices;
+using System.Text;
 using HotChocolate.Fusion.Types.Collections;
 using HotChocolate.Fusion.Types.Completion;
 using HotChocolate.Fusion.Types.Metadata;
@@ -18,10 +19,16 @@ public sealed class FusionObjectTypeDefinition(
     : FusionComplexTypeDefinition(name, description, isInaccessible, fieldsDefinition)
     , IObjectTypeDefinition
 {
+    private readonly byte[] _utf8Name = Encoding.UTF8.GetBytes(name);
     private FusionTypeFlags _flags;
 
     /// <inheritdoc />
     public override TypeKind Kind => TypeKind.Object;
+
+    /// <summary>
+    /// Gets the UTF-8 encoded name of this object type.
+    /// </summary>
+    internal ReadOnlySpan<byte> Utf8Name => _utf8Name;
 
     /// <inheritdoc />
     public override bool IsSharedType => (_flags & FusionTypeFlags.Shared) != 0;
