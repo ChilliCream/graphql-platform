@@ -84,7 +84,8 @@ public sealed class OperationCompiler
                 fields,
                 rootType,
                 compilationContext,
-                ref lastId);
+                ref lastId,
+                declaringSelection: null);
 
             compilationContext.Register(selectionSet, selectionSet.Id);
 
@@ -111,7 +112,7 @@ public sealed class OperationCompiler
 
     internal SelectionSet CompileSelectionSet(
         Selection selection,
-        FusionObjectTypeDefinition objectType,
+        FusionComplexTypeDefinition objectType,
         IncludeConditionCollection includeConditions,
         IReadOnlyDictionary<InlineFragmentNode, DeliveryGroup> deliveryGroupByFragment,
         ref object[] elementsById,
@@ -152,7 +153,7 @@ public sealed class OperationCompiler
                 }
             }
 
-            var selectionSet = BuildSelectionSet(fields, objectType, compilationContext, ref lastId);
+            var selectionSet = BuildSelectionSet(fields, objectType, compilationContext, ref lastId, selection);
             compilationContext.Register(selectionSet, selectionSet.Id);
             elementsById = compilationContext.ElementsById;
             return selectionSet;
@@ -166,7 +167,7 @@ public sealed class OperationCompiler
     private void CollectFields(
         ulong parentIncludeFlags,
         IReadOnlyList<ISelectionNode> selections,
-        IObjectTypeDefinition typeContext,
+        IComplexTypeDefinition typeContext,
         OrderedDictionary<string, List<FieldSelectionNode>> fields,
         IncludeConditionCollection includeConditions,
         IReadOnlyDictionary<InlineFragmentNode, DeliveryGroup> deliveryGroupByFragment,
@@ -228,9 +229,10 @@ public sealed class OperationCompiler
 
     private SelectionSet BuildSelectionSet(
         OrderedDictionary<string, List<FieldSelectionNode>> fieldMap,
-        FusionObjectTypeDefinition typeContext,
+        FusionComplexTypeDefinition typeContext,
         CompilationContext compilationContext,
-        ref int lastId)
+        ref int lastId,
+        Selection? declaringSelection)
     {
         var i = 0;
         var selections = new Selection[fieldMap.Count];
@@ -348,7 +350,13 @@ public sealed class OperationCompiler
             }
         }
 
-        return new SelectionSet(selectionSetId, typeContext, selections, isConditional, hasIncrementalParts);
+        return new SelectionSet(
+            selectionSetId,
+            typeContext,
+            selections,
+            isConditional,
+            hasIncrementalParts,
+            declaringSelection);
     }
 
     private static void CollapseIncludeFlags(List<ulong> includeFlags)
@@ -441,7 +449,7 @@ public sealed class OperationCompiler
         return true;
     }
 
-    private bool DoesTypeApply(NamedTypeNode? typeCondition, IObjectTypeDefinition typeContext)
+    private bool DoesTypeApply(NamedTypeNode? typeCondition, IComplexTypeDefinition typeContext)
     {
         if (typeCondition is null)
         {

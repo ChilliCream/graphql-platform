@@ -39,19 +39,21 @@ public sealed class FusionComposeCommandTests(NitroCommandFixture fixture)
               nitro fusion compose [options]
 
             Options:
-              -f, --source-schema-file <source-schema-file>  One or more paths to a source schema file (.graphqls) or directory containing a source schema file
-              -a, --archive, --configuration <archive>       The path to a Fusion archive file (the '--configuration' alias is deprecated) [env: NITRO_FUSION_CONFIG_FILE]
-              -e, --env, --environment <environment>         The name of the environment used for value substitution in the schema-settings.json files
-              --enable-global-object-identification          Add the 'Query.node' field for global object identification
-              --include-satisfiability-paths                 Include paths in satisfiability error messages
-              --watch                                        Watch for file changes and recompose automatically
-              -w, --working-directory <working-directory>    Set the working directory for the command
-              --exclude-by-tag <exclude-by-tag>              One or more tags to exclude from the composition
-              --remove-source-schema <remove-source-schema>  One or more source schemas to remove from the archive before composing.
-              --cloud-url <cloud-url>                        The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL]
-              --api-key <api-key>                            The API key or PAT used for authentication [env: NITRO_API_KEY]
-              --output <json>                                The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
-              -?, -h, --help                                 Show help and usage information
+              -f, --source-schema-file <source-schema-file>                               One or more paths to a source schema file (.graphqls) or directory containing a source schema file
+              -a, --archive, --configuration <archive>                                    The path to a Fusion archive file (the '--configuration' alias is deprecated) [env: NITRO_FUSION_CONFIG_FILE]
+              -e, --env, --environment <environment>                                      The name of the environment used for value substitution in the schema-settings.json files
+              --enable-global-object-identification                                       Add the 'Query.node' field for global object identification
+              --node-resolution <gateway|source-schema>                                   Choose whether Query.node identifiers are resolved by the gateway or a source schema
+              --shareable-field-runtime-type-routing <common-runtime-types|source-local>  Choose how runtime types are routed for Apollo Federation shareable abstract fields
+              --include-satisfiability-paths                                              Include paths in satisfiability error messages
+              --watch                                                                     Watch for file changes and recompose automatically
+              -w, --working-directory <working-directory>                                 Set the working directory for the command
+              --exclude-by-tag <exclude-by-tag>                                           One or more tags to exclude from the composition
+              --remove-source-schema <remove-source-schema>                               One or more source schemas to remove from the archive before composing.
+              --cloud-url <cloud-url>                                                     The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL]
+              --api-key <api-key>                                                         The API key or PAT used for authentication [env: NITRO_API_KEY]
+              --output <json>                                                             The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
+              -?, -h, --help                                                              Show help and usage information
 
             Example:
               nitro fusion compose \
@@ -827,6 +829,203 @@ public sealed class FusionComposeCommandTests(NitroCommandFixture fixture)
         // assert
         Assert.Equal(0, result.ExitCode);
         Assert.True(File.Exists(archiveFileName));
+    }
+
+    [Fact]
+    public async Task Compose_Should_EmitExecutionMetadata_When_SourceSchemaNodeResolution()
+    {
+        var archiveFileName = CreateTempFile();
+        SetupSourceSchemaFromResources("valid-example-1/source-schema-1.graphqls");
+        SetupSourceSchemaFromResources("valid-example-1/source-schema-2.graphqls");
+
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "compose",
+            "--source-schema-file",
+            Path.Combine(s_resourcesDir, "valid-example-1/source-schema-1.graphqls"),
+            "--source-schema-file",
+            Path.Combine(s_resourcesDir, "valid-example-1/source-schema-2.graphqls"),
+            "--archive",
+            archiveFileName,
+            "--enable-global-object-identification",
+            "--node-resolution",
+            "source-schema");
+
+        Assert.Equal(0, result.ExitCode);
+        using var archive = FusionArchive.Open(archiveFileName);
+        var schema = await GetFusionSchemaAsync(archive);
+        Assert.Contains("nodeResolution: SOURCE_SCHEMA", schema);
+    }
+
+    [Fact]
+    public async Task Compose_Should_PersistShareableFieldRuntimeTypeRouting()
+    {
+        var archiveFileName = CreateTempFile();
+        SetupSourceSchemaFromResources("valid-example-1/source-schema-1.graphqls");
+        SetupSourceSchemaFromResources("valid-example-1/source-schema-2.graphqls");
+
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "compose",
+            "--source-schema-file",
+            Path.Combine(s_resourcesDir, "valid-example-1/source-schema-1.graphqls"),
+            "--source-schema-file",
+            Path.Combine(s_resourcesDir, "valid-example-1/source-schema-2.graphqls"),
+            "--archive",
+            archiveFileName,
+            "--shareable-field-runtime-type-routing",
+            "common-runtime-types");
+
+        Assert.Equal(0, result.ExitCode);
+        using var archive = FusionArchive.Open(archiveFileName);
+        var settings = await archive.GetCompositionSettingsAsync(
+            TestContext.Current.CancellationToken);
+        Assert.NotNull(settings);
+        Assert.Contains(
+            "\"shareableFieldRuntimeTypeRouting\": \"CommonRuntimeTypes\"",
+            settings.RootElement.ToString());
+        var schema = await GetFusionSchemaAsync(archive);
+        Assert.Contains(
+            "shareableFieldRuntimeTypeRouting: COMMON_RUNTIME_TYPES",
+            schema);
+    }
+
+    [Fact]
+    public async Task Compose_Should_ReturnError_When_SourceSchemaResolutionWithoutGlobalIdentification()
+    {
+        var archiveFileName = CreateTempFile();
+        SetupSourceSchemaFromResources("valid-example-1/source-schema-1.graphqls");
+        SetupSourceSchemaFromResources("valid-example-1/source-schema-2.graphqls");
+
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "compose",
+            "--source-schema-file",
+            Path.Combine(s_resourcesDir, "valid-example-1/source-schema-1.graphqls"),
+            "--source-schema-file",
+            Path.Combine(s_resourcesDir, "valid-example-1/source-schema-2.graphqls"),
+            "--archive",
+            archiveFileName,
+            "--node-resolution",
+            "source-schema");
+
+        Assert.Equal(1, result.ExitCode);
+        Assert.Contains(
+            "Source-schema node resolution requires global object identification to be enabled.",
+            result.StdErr);
+    }
+
+    [Fact]
+    public async Task Compose_Should_PreserveArchiveSetting_When_NodeResolutionIsOmitted()
+    {
+        var archiveFileName = CreateTempFile();
+        SetupSourceSchemaFromResources("valid-example-1/source-schema-1.graphqls");
+        SetupSourceSchemaFromResources("valid-example-1/source-schema-2.graphqls");
+        var schemaFiles = new[]
+        {
+            Path.Combine(s_resourcesDir, "valid-example-1/source-schema-1.graphqls"),
+            Path.Combine(s_resourcesDir, "valid-example-1/source-schema-2.graphqls")
+        };
+
+        var first = await ExecuteCommandAsync(
+            "fusion",
+            "compose",
+            "--source-schema-file",
+            schemaFiles[0],
+            "--source-schema-file",
+            schemaFiles[1],
+            "--archive",
+            archiveFileName,
+            "--enable-global-object-identification",
+            "--node-resolution",
+            "source-schema");
+        Assert.Equal(0, first.ExitCode);
+        using (var firstArchive = FusionArchive.Open(archiveFileName))
+        {
+            var settings = await firstArchive.GetCompositionSettingsAsync(
+                TestContext.Current.CancellationToken);
+            Assert.NotNull(settings);
+            Assert.Contains("\"nodeResolution\": \"SourceSchema\"", settings.RootElement.ToString());
+        }
+        SetupFile(archiveFileName, new MemoryStream(File.ReadAllBytes(archiveFileName)));
+
+        var second = await ExecuteCommandAsync(
+            "fusion",
+            "compose",
+            "--source-schema-file",
+            schemaFiles[0],
+            "--source-schema-file",
+            schemaFiles[1],
+            "--archive",
+            archiveFileName);
+
+        Assert.Equal(0, second.ExitCode);
+        using var archive = FusionArchive.Open(archiveFileName);
+        var finalSettings = await archive.GetCompositionSettingsAsync(
+            TestContext.Current.CancellationToken);
+        Assert.NotNull(finalSettings);
+        Assert.Contains("\"nodeResolution\": \"SourceSchema\"", finalSettings.RootElement.ToString());
+        var schema = await GetFusionSchemaAsync(archive);
+        Assert.Contains("nodeResolution: SOURCE_SCHEMA", schema);
+    }
+
+    [Fact]
+    public async Task Compose_Should_PreserveArchiveSetting_When_ShareableFieldRuntimeTypeRoutingIsOmitted()
+    {
+        var archiveFileName = CreateTempFile();
+        SetupSourceSchemaFromResources("valid-example-1/source-schema-1.graphqls");
+        SetupSourceSchemaFromResources("valid-example-1/source-schema-2.graphqls");
+        var schemaFiles = new[]
+        {
+            Path.Combine(s_resourcesDir, "valid-example-1/source-schema-1.graphqls"),
+            Path.Combine(s_resourcesDir, "valid-example-1/source-schema-2.graphqls")
+        };
+
+        var first = await ExecuteCommandAsync(
+            "fusion",
+            "compose",
+            "--source-schema-file",
+            schemaFiles[0],
+            "--source-schema-file",
+            schemaFiles[1],
+            "--archive",
+            archiveFileName,
+            "--shareable-field-runtime-type-routing",
+            "common-runtime-types");
+        Assert.Equal(0, first.ExitCode);
+        using (var firstArchive = FusionArchive.Open(archiveFileName))
+        {
+            var settings = await firstArchive.GetCompositionSettingsAsync(
+                TestContext.Current.CancellationToken);
+            Assert.NotNull(settings);
+            Assert.Contains(
+                "\"shareableFieldRuntimeTypeRouting\": \"CommonRuntimeTypes\"",
+                settings.RootElement.ToString());
+        }
+        SetupFile(archiveFileName, new MemoryStream(File.ReadAllBytes(archiveFileName)));
+
+        var second = await ExecuteCommandAsync(
+            "fusion",
+            "compose",
+            "--source-schema-file",
+            schemaFiles[0],
+            "--source-schema-file",
+            schemaFiles[1],
+            "--archive",
+            archiveFileName);
+
+        Assert.Equal(0, second.ExitCode);
+        using var archive = FusionArchive.Open(archiveFileName);
+        var finalSettings = await archive.GetCompositionSettingsAsync(
+            TestContext.Current.CancellationToken);
+        Assert.NotNull(finalSettings);
+        Assert.Contains(
+            "\"shareableFieldRuntimeTypeRouting\": \"CommonRuntimeTypes\"",
+            finalSettings.RootElement.ToString());
+        var schema = await GetFusionSchemaAsync(archive);
+        Assert.Contains(
+            "shareableFieldRuntimeTypeRouting: COMMON_RUNTIME_TYPES",
+            schema);
     }
 
     [Fact]

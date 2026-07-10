@@ -1,0 +1,69 @@
+operation:
+  - document: |
+      {
+        node(id: "a1") {
+          __typename @fusion__requirement
+          id @fusion__requirement
+          ... on Account {
+            displayName
+          }
+        }
+      }
+    hash: 123456789101112
+    searchSpace: 2
+    expandedNodes: 7
+nodes:
+  - id: 1
+    type: Node
+    idValue: "a1"
+    responseName: node
+    branches:
+      - Account: 3
+    fallback: 2
+  - id: 2
+    type: Operation
+    operation: |
+      query Op_123456789101112_2 {
+        node(id: "a1") {
+          __typename
+        }
+      }
+    dependencies:
+      - id: 1
+  - id: 3
+    type: Operation
+    schema: b
+    operation: |
+      query Op_123456789101112_3 {
+        node(id: "a1") {
+          __typename
+          ... on Account {
+            __typename
+            id
+          }
+        }
+      }
+    dependencies:
+      - id: 1
+      - id: 2
+  - id: 4
+    type: ApolloOperation
+    schema: a
+    operation: |
+      query Op_123456789101112_4($__fusion_1_id: ID!, $__fusion_2_id: ID) {
+        fusion__lookup_accountById(id: $__fusion_1_id) {
+          __typename
+          displayName(id: $__fusion_2_id)
+        }
+      }
+    source: $._entities
+    target: $.node<Account>
+    requirements:
+      - name: __fusion_1_id
+        selectionMap: >-
+          id
+      - name: __fusion_2_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 3

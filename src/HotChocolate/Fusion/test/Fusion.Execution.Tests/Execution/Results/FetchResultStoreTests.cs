@@ -25,6 +25,54 @@ public sealed class FetchResultStoreTests : FusionTestBase
     private static readonly byte[] s_fieldPayload = """{"data":{"field":"value"}}"""u8.ToArray();
     private static readonly FusionSchemaDefinition s_schema = CreateCompositeSchema();
 
+    [Fact]
+    public void GetResultPaths_Should_ThrowInvalidOperationException_When_TargetTraversesScalar()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: test
+            type Query {
+              field: String
+            }
+            """);
+        var plan = PlanOperation(schema, "{ field }");
+        var node = Assert.IsType<OperationExecutionNode>(Assert.Single(plan.RootNodes));
+
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+        using var store = new FetchResultStore();
+        store.Initialize(
+            resultArena,
+            schema,
+            DefaultErrorHandler.Default,
+            plan.Operation,
+            ErrorHandlingMode.Propagate,
+            includeFlags: 0,
+            deferFlags: 0,
+            pathSegmentLocalPoolCapacity: 16);
+
+        var document = SourceResultDocument.Parse(
+            sourceArena,
+            s_fieldPayload,
+            s_fieldPayload.Length);
+        store.AddPartialResult(
+            SelectionPath.Root,
+            new SourceSchemaResult(CompactPath.Root, document),
+            node.ResultSelectionSet,
+            containsErrors: false);
+
+        // act
+        var exception = Assert.Throws<InvalidOperationException>(
+            () => store.GetResultPaths(SelectionPath.Root.AppendField("field")));
+
+        // assert
+        Assert.Equal(
+            "Expected the value at result path 'field' for selection path '$.field' to be an object or list, "
+                + "but found 'String'.",
+            exception.Message);
+    }
+
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
@@ -77,7 +125,7 @@ public sealed class FetchResultStoreTests : FusionTestBase
     }
 
     [Fact]
-    public void AddErrors_Should_NullParentAndSkipSiblings_When_ErrorOnNonNullFieldNullsParent()
+    public void AddErrors_Should_UseAliasesAndPreserveSiblings_When_NonNullFieldNullsParent()
     {
         // arrange
         var schema = ComposeSchema(
@@ -93,10 +141,12 @@ public sealed class FetchResultStoreTests : FusionTestBase
               sku: String!
             }
             """);
-        var plan = PlanOperation(schema, "{ foos { id name sku } }");
+        var plan = PlanOperation(
+            schema,
+            "{ aliasedFoos: foos { aliasedId: id name aliasedSku: sku } }");
         var node = Assert.IsType<OperationExecutionNode>(Assert.Single(plan.RootNodes));
         var elementSelectionSet = ResultSelectionSet.Create(
-            Utf8GraphQLParser.Parse("{ id name sku }")
+            Utf8GraphQLParser.Parse("{ aliasedId: id name aliasedSku: sku }")
                 .Definitions
                 .OfType<OperationDefinitionNode>()
                 .Single()
@@ -116,7 +166,9 @@ public sealed class FetchResultStoreTests : FusionTestBase
             deferFlags: 0,
             pathSegmentLocalPoolCapacity: 16);
 
-        var payload = """{"data":{"foos":[{"name":"one"},{"id":"2","name":"two","sku":"sku-2"}]}}"""u8.ToArray();
+        var payload =
+            """{"data":{"aliasedFoos":[{"name":"one","aliasedSku":"sku-1"},{"aliasedId":"2","name":"two","aliasedSku":"sku-2"}]}}"""u8
+                .ToArray();
         var document = SourceResultDocument.Parse(sourceArena, payload, payload.Length);
         var added = store.AddPartialResults(
             SelectionPath.Root,
@@ -132,20 +184,169 @@ public sealed class FetchResultStoreTests : FusionTestBase
         var completed = store.AddErrors(
             error,
             elementSelectionSet,
-            global::HotChocolate.Path.Root.Append("foos").Append(0));
+            global::HotChocolate.Path.Root.Append("aliasedFoos").Append(0));
 
         // assert
         Assert.True(added);
         Assert.True(completed);
         Assert.NotNull(store.Errors);
-        Assert.Contains(
+        Assert.Collection(
             store.Errors,
-            error => error.Message == "boom"
-                && error.Path?.Print() is "foos[0].id" or "foos[0].sku");
+            error =>
+            {
+                Assert.Equal("boom", error.Message);
+                Assert.Equal("aliasedFoos[0].aliasedId", error.Path?.Print());
+            });
         RenderData(store).MatchInlineSnapshot(
             """
-            {"foos":[null,{"id":"2","name":"two","sku":"sku-2"}]}
+            {"aliasedFoos":[null,{"aliasedId":"2","name":"two","aliasedSku":"sku-2"}]}
             """);
+    }
+
+    [Fact]
+    public void AddErrors_Should_NullFieldAndPreserveSiblings_When_FieldIsNullable()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: test
+            type Query {
+              foo: Foo
+              sibling: String
+            }
+
+            type Foo {
+              id: ID!
+              value: String
+            }
+            """);
+        var plan = PlanOperation(
+            schema,
+            "{ foo { id value } sibling }");
+        var node = Assert.IsType<OperationExecutionNode>(Assert.Single(plan.RootNodes));
+        var fieldSelectionSet = ResultSelectionSet.Create(
+            Utf8GraphQLParser.Parse("{ value }")
+                .Definitions
+                .OfType<OperationDefinitionNode>()
+                .Single()
+                .SelectionSet,
+            schema);
+
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+        using var store = new FetchResultStore();
+        store.Initialize(
+            resultArena,
+            schema,
+            DefaultErrorHandler.Default,
+            plan.Operation,
+            ErrorHandlingMode.Propagate,
+            includeFlags: 0,
+            deferFlags: 0,
+            pathSegmentLocalPoolCapacity: 16);
+
+        var payload =
+            """{"data":{"foo":{"id":"1"},"sibling":"sibling"}}"""u8
+                .ToArray();
+        var document = SourceResultDocument.Parse(sourceArena, payload, payload.Length);
+        var added = store.AddPartialResults(
+            SelectionPath.Root,
+            [new SourceSchemaResult(CompactPath.Root, document)],
+            node.ResultSelectionSet,
+            containsErrors: false);
+
+        var error = ErrorBuilder.New()
+            .SetMessage("boom")
+            .Build();
+
+        // act
+        var completed = store.AddErrors(
+            error,
+            fieldSelectionSet,
+            global::HotChocolate.Path.Root.Append("foo"));
+
+        // assert
+        Assert.True(added);
+        Assert.True(completed);
+        Assert.Collection(
+            store.Errors!,
+            error =>
+            {
+                Assert.Equal("boom", error.Message);
+                Assert.Equal("foo.value", error.Path?.Print());
+            });
+        RenderData(store).MatchInlineSnapshot(
+            """
+            {"foo":{"id":"1","value":null},"sibling":"sibling"}
+            """);
+    }
+
+    [Fact]
+    public void AddErrors_Should_UseAliasesInErrorPath()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: test
+            type Query {
+              foo: Foo
+            }
+
+            type Foo {
+              id: ID!
+              value: String
+            }
+            """);
+        var plan = PlanOperation(
+            schema,
+            "{ aliasedFoo: foo { id aliasedValue: value } }");
+        var node = Assert.IsType<OperationExecutionNode>(Assert.Single(plan.RootNodes));
+        var fieldSelectionSet = ResultSelectionSet.Create(
+            Utf8GraphQLParser.Parse("{ aliasedValue: value }")
+                .Definitions
+                .OfType<OperationDefinitionNode>()
+                .Single()
+                .SelectionSet,
+            schema);
+
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+        using var store = new FetchResultStore();
+        store.Initialize(
+            resultArena,
+            schema,
+            DefaultErrorHandler.Default,
+            plan.Operation,
+            ErrorHandlingMode.Propagate,
+            includeFlags: 0,
+            deferFlags: 0,
+            pathSegmentLocalPoolCapacity: 16);
+
+        var payload =
+            """{"data":{"aliasedFoo":{"id":"1","aliasedValue":"value"}}}"""u8.ToArray();
+        var document = SourceResultDocument.Parse(sourceArena, payload, payload.Length);
+        var added = store.AddPartialResults(
+            SelectionPath.Root,
+            [new SourceSchemaResult(CompactPath.Root, document)],
+            node.ResultSelectionSet,
+            containsErrors: false);
+
+        var error = ErrorBuilder.New()
+            .SetMessage("boom")
+            .Build();
+
+        // act
+        var completed = store.AddErrors(
+            error,
+            fieldSelectionSet,
+            global::HotChocolate.Path.Root.Append("aliasedFoo"));
+
+        // assert
+        Assert.True(added);
+        Assert.True(completed);
+        Assert.Collection(
+            store.Errors!,
+            error => Assert.Equal("aliasedFoo.aliasedValue", error.Path?.Print()));
     }
 
     [Fact]

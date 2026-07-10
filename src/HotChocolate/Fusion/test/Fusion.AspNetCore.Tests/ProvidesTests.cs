@@ -13,8 +13,6 @@ public class ProvidesTests : FusionTestBase
         using var serverReviews = CreateSourceSchema(
             "reviews",
             """
-            directive @external on FIELD_DEFINITION
-
             schema {
               query: Query
             }
@@ -89,8 +87,6 @@ public class ProvidesTests : FusionTestBase
         using var serverReviews = CreateSourceSchema(
             "reviews",
             """
-            directive @external on FIELD_DEFINITION
-
             schema {
               query: Query
             }
@@ -166,8 +162,6 @@ public class ProvidesTests : FusionTestBase
         using var serverA = CreateSourceSchema(
             "a",
             """
-            directive @external on FIELD_DEFINITION
-
             schema {
               query: Query
             }
@@ -269,8 +263,6 @@ public class ProvidesTests : FusionTestBase
         using var serverReviews = CreateSourceSchema(
             "reviews",
             """
-            directive @external on FIELD_DEFINITION
-
             schema {
               query: Query
             }
@@ -345,8 +337,6 @@ public class ProvidesTests : FusionTestBase
         using var serverA = CreateSourceSchema(
             "a",
             """
-            directive @external on FIELD_DEFINITION
-
             schema {
               query: Query
             }
@@ -449,8 +439,6 @@ public class ProvidesTests : FusionTestBase
         using var serverReviews = CreateSourceSchema(
             "reviews",
             """
-            directive @external on FIELD_DEFINITION
-
             schema {
               query: Query
             }

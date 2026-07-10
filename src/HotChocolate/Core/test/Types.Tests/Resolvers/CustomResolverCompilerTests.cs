@@ -25,6 +25,37 @@ public class CustomResolverCompilerTests
     }
 
     [Fact]
+    public async Task AddParameterExpressionBuilder_Should_UseParameterInfoPredicate_When_ResolverIsReflectionCompiled()
+    {
+        // arrange
+        var request = OperationRequestBuilder.New()
+            .SetDocument("{ sayHello }")
+            .AddGlobalState("someState", new SayHelloState("Hello"))
+            .Build();
+
+        // act
+        var result = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<QueryWellKnownState>()
+            .AddParameterExpressionBuilder(
+                ctx => (SayHelloState)ctx.ContextData["someState"]!,
+                parameter => parameter.Name == "state")
+            .ExecuteRequestAsync(
+                request,
+                cancellationToken: TestContext.Current.CancellationToken);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "sayHello": "Hello"
+              }
+            }
+            """);
+    }
+
+    [Fact]
     public void AddParameterEnsureBuilderIsNotNull_New()
     {
         void Configure()

@@ -527,3 +527,33 @@ svg[role="graphics-document"][id^="mermaid-"] {
     display: none !important;
   }
 }
+
+@keyframes logo-in {
+  from {
+    opacity: 0;
+    transform: translateY(50%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes logo-out {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-50%);
+  }
+}
+
+.animate-logo-in {
+  animation: logo-in 900ms cubic-bezier(1, 0, 0, 1) both;
+}
+
+.animate-logo-out {
+  animation: logo-out 900ms cubic-bezier(1, 0, 0, 1) both;
+}

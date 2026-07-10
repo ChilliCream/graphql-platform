@@ -105,6 +105,7 @@ type Query {
 type Mutation {
   saveShapes(shapes: [ShapeInput!]!): Boolean!
   setOptionalValue(value: String): String!
+  createExport(currentUser: CurrentUserInput!, name: String!): String!
 }
 
 type Subscription {
@@ -146,6 +147,7 @@ type AuthorEdge {
 }
 
 type Book implements Product {
+  batchGreeting: String!
   title: String!
   id: String!
   kind: String!
@@ -298,6 +300,10 @@ interface Node {
 interface Product {
   kind: String!
   id: String!
+}
+
+input CurrentUserInput {
+  name: String!
 }
 
 input ShapeInput {

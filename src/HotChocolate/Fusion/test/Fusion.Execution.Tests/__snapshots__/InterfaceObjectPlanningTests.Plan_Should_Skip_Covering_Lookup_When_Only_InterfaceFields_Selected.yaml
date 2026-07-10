@@ -1,0 +1,21 @@
+operation:
+  - document: |
+      {
+        trendingMedia {
+          __typename @fusion__requirement
+          id
+        }
+      }
+    hash: 123456789101112
+    searchSpace: 1
+    expandedNodes: 1
+nodes:
+  - id: 1
+    type: Operation
+    schema: b
+    operation: |
+      query Op_123456789101112_1 {
+        trendingMedia {
+          id
+        }
+      }

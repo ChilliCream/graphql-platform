@@ -5,24 +5,26 @@ description: "Reference for Fusion composition directives like @key, @lookup, @r
 
 Fusion implements the [GraphQL Composite Schemas Specification](https://graphql.github.io/composite-schemas-spec/draft/). The directives defined in this specification are applied to source schemas (subgraph schemas) to control how they compose into a unified composite schema. Each directive entry below shows its SDL definition, what it does, and a practical example with the resulting composed output.
 
-In HotChocolate, these directives are expressed using C# attributes. See the individual guide pages for attribute usage and tutorials.
+In Hot Chocolate, many of these directives are expressed using C# attributes. See the individual guide pages for supported C# usage and tutorials.
 
 # Quick Reference
 
-| Directive                        | Locations                                 | Repeatable | Purpose                                           |
-| -------------------------------- | ----------------------------------------- | :--------: | ------------------------------------------------- |
-| [`@key`](#key)                   | `OBJECT`, `INTERFACE`                     |    Yes     | Define entity identity                            |
-| [`@lookup`](#lookup)             | `FIELD_DEFINITION`                        |     No     | Mark entity lookup resolvers                      |
-| [`@is`](#is)                     | `ARGUMENT_DEFINITION`                     |     No     | Map lookup arguments to entity fields             |
-| [`@require`](#require)           | `ARGUMENT_DEFINITION`                     |     No     | Declare cross-subgraph data dependencies          |
-| [`@shareable`](#shareable)       | `OBJECT`, `FIELD_DEFINITION`              |    Yes     | Allow multiple subgraphs to define the same field |
-| [`@provides`](#provides)         | `FIELD_DEFINITION`                        |     No     | Declare locally-resolvable subfields              |
-| [`@external`](#external)         | `FIELD_DEFINITION`                        |     No     | Mark field as owned by another subgraph           |
-| [`@override`](#override)         | `FIELD_DEFINITION`                        |     No     | Migrate field ownership between subgraphs         |
-| [`@internal`](#internal)         | `OBJECT`, `FIELD_DEFINITION`              |     No     | Hide from composite schema and merge process      |
-| [`@inaccessible`](#inaccessible) | 10 locations                              |     No     | Hide from client-facing composite schema          |
-| [`@eventStream`](#eventstream)   | `FIELD_DEFINITION`                        |     No     | Back a subscription field with a message broker   |
-| [`@eventCursor`](#eventcursor)   | `ARGUMENT_DEFINITION`, `FIELD_DEFINITION` |     No     | Mark the resume cursor for resumable streams      |
+| Directive                              | Locations                                 | Repeatable | Purpose                                           |
+| -------------------------------------- | ----------------------------------------- | :--------: | ------------------------------------------------- |
+| [`@key`](#key)                         | `OBJECT`, `INTERFACE`                     |    Yes     | Define entity identity                            |
+| [`@lookup`](#lookup)                   | `FIELD_DEFINITION`                        |     No     | Mark entity lookup resolvers                      |
+| [`@is`](#is)                           | `ARGUMENT_DEFINITION`                     |     No     | Map lookup arguments to entity fields             |
+| [`@interfaceObject`](#interfaceobject) | `OBJECT`                                  |     No     | Contribute fields to an interface                 |
+| [`@implement`](#implement)             | `FIELD_DEFINITION`                        |     No     | Replace a projected interface-object default      |
+| [`@require`](#require)                 | `ARGUMENT_DEFINITION`                     |     No     | Declare cross-subgraph data dependencies          |
+| [`@shareable`](#shareable)             | `OBJECT`, `FIELD_DEFINITION`              |    Yes     | Allow multiple subgraphs to define the same field |
+| [`@provides`](#provides)               | `FIELD_DEFINITION`                        |     No     | Declare locally-resolvable subfields              |
+| [`@external`](#external)               | `FIELD_DEFINITION`                        |     No     | Mark field as owned by another subgraph           |
+| [`@override`](#override)               | `FIELD_DEFINITION`                        |     No     | Migrate field ownership between subgraphs         |
+| [`@internal`](#internal)               | `OBJECT`, `FIELD_DEFINITION`              |     No     | Hide from composite schema and merge process      |
+| [`@inaccessible`](#inaccessible)       | 10 locations                              |     No     | Hide from client-facing composite schema          |
+| [`@eventStream`](#eventstream)         | `FIELD_DEFINITION`                        |     No     | Back a subscription field with a message broker   |
+| [`@eventCursor`](#eventcursor)         | `ARGUMENT_DEFINITION`, `FIELD_DEFINITION` |     No     | Mark the resume cursor for resumable streams      |
 
 ---
 
@@ -182,6 +184,99 @@ type Query {
 ```
 
 > **In C#:** The `@is` mapping is inferred automatically from the argument name. When it does not match, use the field parameter convention described in [Entities and Lookups](./entities-and-lookups.md).
+
+---
+
+# Interface Objects
+
+## `@interfaceObject`
+
+Declares an object type as a stand-in for an interface with the same name in another source schema. The stand-in can contribute fields to the interface without declaring its concrete implementations.
+
+```graphql
+directive @interfaceObject on OBJECT
+```
+
+The stand-in must declare at least one `@key`, and each key must match a key on the interface entity. A source that contributes non-key fields through the stand-in must also provide a lookup returning the stand-in.
+
+**Example:**
+
+```graphql
+# Catalog source schema
+interface Media @key(fields: "id") {
+  id: ID!
+  title: String!
+}
+
+type Book implements Media @key(fields: "id") {
+  id: ID!
+  title: String!
+}
+```
+
+```graphql
+# Analytics source schema
+type Query {
+  mediaByKey(id: ID!): Media @lookup @internal
+}
+
+type Media @interfaceObject @key(fields: "id") {
+  id: ID!
+  views: Int!
+}
+```
+
+```graphql
+# Composed schema
+interface Media {
+  id: ID!
+  title: String!
+  views: Int!
+}
+
+type Book implements Media {
+  id: ID!
+  title: String!
+  views: Int!
+}
+```
+
+See [Interface Objects](./interface-objects.md) for lookup requirements, projected fields, and concrete type recovery.
+
+---
+
+## `@implement`
+
+Marks a field as an explicit implementation that replaces a default projected from an interface object.
+
+```graphql
+directive @implement on FIELD_DEFINITION
+```
+
+Use `@implement` only when a concrete object or a more-specific interface stand-in declares a field that would otherwise adopt a projected default. Composition rejects an unmarked replacement and rejects `@implement` when there is no applicable default.
+
+**Example:**
+
+```graphql
+# Catalog source schema
+type Book implements Media @key(fields: "id") {
+  id: ID!
+  title: String!
+  views: Int! @implement
+}
+```
+
+```graphql
+# Analytics source schema
+type Media @interfaceObject @key(fields: "id") {
+  id: ID!
+  views: Int!
+}
+```
+
+In the composed schema, Catalog owns `Book.views`. Other `Media` implementations continue to use the Analytics default.
+
+See [Replace a Projected Default](./interface-objects.md#replace-a-projected-default) for the complete pattern.
 
 ---
 

@@ -5,7 +5,7 @@ namespace HotChocolate.Fusion.Suites.InterfaceObjectWithRequires.A;
 /// federated <c>NodeWithName</c> interface (<c>@key(fields: "id")</c>) and owns
 /// the <c>name</c> and <c>age</c> fields.
 /// </summary>
-public sealed class User
+public sealed class User : INodeWithName
 {
     public string Id { get; init; } = default!;
 
