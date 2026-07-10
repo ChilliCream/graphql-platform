@@ -419,6 +419,17 @@ internal sealed class ValueCompletion
         [NotNullWhen(true)] out Selection? selection,
         [NotNullWhen(true)] out IType? type)
     {
+        // Fast path: a direct-field target carries its own selection on the
+        // preceding property row. Reading that selection once lets us derive
+        // the type from it, avoiding a second metadb read via the Type getter.
+        selection = target.Selection;
+
+        if (selection is not null)
+        {
+            type = selection.Type;
+            return true;
+        }
+
         type = target.Type;
 
         if (type is null)

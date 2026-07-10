@@ -96,7 +96,7 @@ export const HERO_DRINKS: readonly HeroDrink[] = [
   },
   {
     Drink: Fusion,
-    left: "55%",
+    left: "65%",
     top: "85%",
     rotate: "-4deg",
     heroWidth: "clamp(2.25rem,3.4vw,3.25rem)",
