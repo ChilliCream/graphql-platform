@@ -4582,6 +4582,8 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
               provides: fusion__FieldSelectionSet
               "The name of the source schema that originally provided this field."
               schema: fusion__Schema!
+              "Indicates that the source field was declared as external before connector preprocessing."
+              sourceExternal: Boolean! = false
               "The field type in the source schema if it differs in nullability or structure."
               sourceType: String
             ) repeatable on FIELD_DEFINITION
@@ -4617,6 +4619,12 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
               "The field type in the source schema if it differs in nullability or structure."
               sourceType: String
             ) repeatable on ARGUMENT_DEFINITION | INPUT_FIELD_DEFINITION
+
+            "The @fusion__interfaceObject directive specifies the source schemas that expose an interface as an @interfaceObject stand-in, so values of the interface produced by those schemas are opaque."
+            directive @fusion__interfaceObject(
+              "The name of the source schema that exposes this interface as an @interfaceObject stand-in."
+              schema: fusion__Schema!
+            ) repeatable on INTERFACE
 
             "The @fusion__listSize directive specifies list size metadata for each source schema."
             directive @fusion__listSize(
@@ -4664,6 +4672,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
 
             "The @fusion__schema_metadata directive is used to provide additional metadata for a source schema."
             directive @fusion__schema_metadata(
+              allowNonResolvableInterfaceObjects: Boolean
               kind: String
               "The name of the source schema."
               name: String!
@@ -4752,6 +4761,8 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
               provides: fusion__FieldSelectionSet
               "The name of the source schema that originally provided this field."
               schema: fusion__Schema!
+              "Indicates that the source field was declared as external before connector preprocessing."
+              sourceExternal: Boolean! = false
               "The field type in the source schema if it differs in nullability or structure."
               sourceType: String
             ) repeatable on FIELD_DEFINITION
@@ -4787,6 +4798,12 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
               "The field type in the source schema if it differs in nullability or structure."
               sourceType: String
             ) repeatable on ARGUMENT_DEFINITION | INPUT_FIELD_DEFINITION
+
+            "The @fusion__interfaceObject directive specifies the source schemas that expose an interface as an @interfaceObject stand-in, so values of the interface produced by those schemas are opaque."
+            directive @fusion__interfaceObject(
+              "The name of the source schema that exposes this interface as an @interfaceObject stand-in."
+              schema: fusion__Schema!
+            ) repeatable on INTERFACE
 
             "The @fusion__listSize directive specifies list size metadata for each source schema."
             directive @fusion__listSize(
@@ -4834,6 +4851,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
 
             "The @fusion__schema_metadata directive is used to provide additional metadata for a source schema."
             directive @fusion__schema_metadata(
+              allowNonResolvableInterfaceObjects: Boolean
               kind: String
               "The name of the source schema."
               name: String!
@@ -5026,6 +5044,8 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
               provides: fusion__FieldSelectionSet
               "The name of the source schema that originally provided this field."
               schema: fusion__Schema!
+              "Indicates that the source field was declared as external before connector preprocessing."
+              sourceExternal: Boolean! = false
               "The field type in the source schema if it differs in nullability or structure."
               sourceType: String
             ) repeatable on FIELD_DEFINITION
@@ -5061,6 +5081,12 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
               "The field type in the source schema if it differs in nullability or structure."
               sourceType: String
             ) repeatable on ARGUMENT_DEFINITION | INPUT_FIELD_DEFINITION
+
+            "The @fusion__interfaceObject directive specifies the source schemas that expose an interface as an @interfaceObject stand-in, so values of the interface produced by those schemas are opaque."
+            directive @fusion__interfaceObject(
+              "The name of the source schema that exposes this interface as an @interfaceObject stand-in."
+              schema: fusion__Schema!
+            ) repeatable on INTERFACE
 
             "The @fusion__listSize directive specifies list size metadata for each source schema."
             directive @fusion__listSize(
@@ -5108,6 +5134,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
 
             "The @fusion__schema_metadata directive is used to provide additional metadata for a source schema."
             directive @fusion__schema_metadata(
+              allowNonResolvableInterfaceObjects: Boolean
               kind: String
               "The name of the source schema."
               name: String!
