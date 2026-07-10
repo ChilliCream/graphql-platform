@@ -189,6 +189,12 @@ namespace HotChocolate.Fusion.Properties {
             }
         }
 
+        internal static string PlanQueue_NodeLookupNotFound {
+            get {
+                return ResourceManager.GetString("PlanQueue_NodeLookupNotFound", resourceCulture);
+            }
+        }
+
         internal static string JsonOperationPlanParser_SingleOperationRequired {
             get {
                 return ResourceManager.GetString("JsonOperationPlanParser_SingleOperationRequired", resourceCulture);

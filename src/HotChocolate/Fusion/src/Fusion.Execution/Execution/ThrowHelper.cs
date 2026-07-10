@@ -26,6 +26,11 @@ internal static class ThrowHelper
             FusionExecutionResources.OperationBatchExecutionNode_MissingBatchResult,
             operationId));
 
+    public static InvalidOperationException NodeLookupNotFound(string typeName)
+        => new(string.Format(
+            FusionExecutionResources.PlanQueue_NodeLookupNotFound,
+            typeName));
+
     public static InvalidOperationException SingleOperationRequired()
         => new(FusionExecutionResources.JsonOperationPlanParser_SingleOperationRequired);
 

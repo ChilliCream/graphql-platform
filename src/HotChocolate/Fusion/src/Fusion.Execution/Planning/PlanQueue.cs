@@ -4,6 +4,7 @@ using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using Lookup = HotChocolate.Fusion.Types.Metadata.Lookup;
+using ThrowHelper = HotChocolate.Fusion.Execution.ThrowHelper;
 
 namespace HotChocolate.Fusion.Planning;
 
@@ -586,8 +587,7 @@ internal sealed class PlanQueue(FusionSchemaDefinition schema)
                     return;
                 }
 
-                throw new InvalidOperationException(
-                    $"Expected to have at least one lookup with just an 'id' argument for type '{type.Name}'.");
+                throw ThrowHelper.NodeLookupNotFound(type.Name);
             }
 
             var policy = workItem.SourceSchemaNodePolicy;
