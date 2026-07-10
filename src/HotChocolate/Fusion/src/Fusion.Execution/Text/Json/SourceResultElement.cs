@@ -507,7 +507,7 @@ public readonly partial struct SourceResultElement
     {
         CheckValidInstance();
 
-        var row = GetValueRow();
+        var row = _parent.GetValueRow(_cursor);
 
         if (row.TokenType is not JsonTokenType.String || row.HasComplexChildren)
         {
@@ -515,7 +515,7 @@ public readonly partial struct SourceResultElement
             return false;
         }
 
-        utf8Value = ValueSpan;
+        utf8Value = _parent.GetRawValue(_cursor, includeQuotes: false);
         return true;
     }
 
