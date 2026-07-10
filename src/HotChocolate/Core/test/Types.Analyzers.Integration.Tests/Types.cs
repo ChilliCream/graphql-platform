@@ -29,6 +29,27 @@ public class Book : Product
     public required string Title { get; set; }
 }
 
+[ObjectType<Book>]
+public static partial class BookBatchType
+{
+    [BatchResolver]
+    public static List<string> GetBatchGreeting(
+        [Parent] List<Book> books,
+        BatchCurrentUser currentUser)
+    {
+        var result = new List<string>(books.Count);
+
+        foreach (var book in books)
+        {
+            result.Add($"{currentUser.Name}:{book.Title}");
+        }
+
+        return result;
+    }
+}
+
+public sealed record BatchCurrentUser(string Name);
+
 public class Television : Product;
 
 [ObjectType<Television>]

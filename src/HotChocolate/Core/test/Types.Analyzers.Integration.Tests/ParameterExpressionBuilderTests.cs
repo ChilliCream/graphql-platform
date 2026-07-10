@@ -7,6 +7,62 @@ namespace HotChocolate.Types;
 public class ParameterExpressionBuilderTests
 {
     [Fact]
+    public async Task AddParameterExpressionBuilder_Should_InjectScalarIntoBatchResolver_When_ResolverIsSourceGenerated()
+    {
+        // arrange
+        var executor = await new ServiceCollection()
+            .AddGraphQLServer()
+            .AddIntegrationTestTypes()
+            .AddPagingArguments()
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // act
+        var result = await executor.ExecuteAsync(
+            OperationRequestBuilder.New()
+                .SetDocument("{ product { ... on Book { batchGreeting } } }")
+                .SetGlobalState("batchCurrentUser", new BatchCurrentUser("alice"))
+                .Build(),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "product": {
+                  "batchGreeting": "alice:GraphQL in Action"
+                }
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task BuildSchema_Should_RejectScalarBatchArgument_When_NoCustomBindingExists()
+    {
+        // arrange
+        var services = new ServiceCollection()
+            .AddGraphQLServer()
+            .AddIntegrationTestTypesCore()
+            .AddPagingArguments();
+
+        // act
+        var exception = await Assert.ThrowsAsync<SchemaException>(
+            () => services
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken)
+                .AsTask());
+
+        // assert
+        var invalidOperationException = Assert.IsType<InvalidOperationException>(
+            exception.Errors.Single().Exception);
+        Assert.Equal(
+            "Batch resolver parameter 'currentUser' must be a list type "
+            + "(List<T>, IReadOnlyList<T>, T[], or ImmutableArray<T>). "
+            + "Got: HotChocolate.Types.BatchCurrentUser.",
+            invalidOperationException.Message);
+    }
+
+    [Fact]
     public async Task AddParameterExpressionBuilder_Should_NotExposeParameterAsArgument_When_ResolverIsSourceGenerated()
     {
         // arrange

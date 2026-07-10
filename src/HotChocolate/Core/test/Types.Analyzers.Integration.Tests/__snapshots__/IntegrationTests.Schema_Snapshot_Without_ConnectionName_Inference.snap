@@ -148,6 +148,7 @@ type AuthorEdge {
 }
 
 type Book implements Product {
+  batchGreeting: String!
   title: String!
   id: String!
   kind: String!

@@ -809,6 +809,26 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
                         "_binding_{0}_{1} = bindingResolver.GetBinding(CreateParameterDescriptor_{0}_{1}(), out _binding_{0}_{1}_kind);",
                         resolverMethod.Name,
                         parameter.Name);
+
+                    if (!IsSupportedBatchParameterType(parameter.Type))
+                    {
+                        Writer.WriteIndentedLine(
+                            "if (_binding_{0}_{1}_kind is global::{2}.Argument)",
+                            resolverMethod.Name,
+                            parameter.Name,
+                            WellKnownTypes.ArgumentKind);
+                        Writer.WriteIndentedLine("{");
+                        using (Writer.IncreaseIndent())
+                        {
+                            Writer.WriteIndentedLine(
+                                "throw new global::{0}(\"Batch resolver parameter '{1}' must be a list type (List<T>, IReadOnlyList<T>, T[], or ImmutableArray<T>). Got: {2}.\");",
+                                WellKnownTypes.InvalidOperationException,
+                                GeneratorUtils.EscapeForStringLiteral(parameter.Name),
+                                GeneratorUtils.EscapeForStringLiteral(parameter.Type.ToDisplayString()));
+                        }
+
+                        Writer.WriteIndentedLine("}");
+                    }
                 }
                 else
                 {
@@ -1457,6 +1477,21 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
         }
 
         return type.ToFullyQualified();
+    }
+
+    private static bool IsSupportedBatchParameterType(ITypeSymbol type)
+    {
+        if (type is IArrayTypeSymbol)
+        {
+            return true;
+        }
+
+        return type is INamedTypeSymbol { IsGenericType: true } namedType
+            && namedType.OriginalDefinition.ToDisplayString() is
+                "System.Collections.Generic.List<T>"
+                or "System.Collections.Generic.IReadOnlyList<T>"
+                or "System.Collections.Generic.IList<T>"
+                or "System.Collections.Immutable.ImmutableArray<T>";
     }
 
     private void WritePropertyResolver(Resolver resolver)
