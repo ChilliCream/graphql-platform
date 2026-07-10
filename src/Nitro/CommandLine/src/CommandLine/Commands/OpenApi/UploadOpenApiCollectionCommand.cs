@@ -63,51 +63,50 @@ internal sealed class UploadOpenApiCollectionCommand : Command
                 files,
                 cancellationToken);
 
-        await using (var activity = console.StartActivity(
-            $"Uploading new OpenAPI collection version '{tag.EscapeMarkup()}' for collection '{openApiCollectionId.EscapeMarkup()}'",
-            "Failed to upload a new OpenAPI collection version."))
+        await using var activity = console.StartActivity(
+            $"Uploading new version '{tag.EscapeMarkup()}' for OpenAPI collection '{openApiCollectionId.EscapeMarkup()}'",
+            "Failed to upload a new OpenAPI collection version.");
+
+        var data = await client.UploadOpenApiCollectionVersionAsync(
+            openApiCollectionId,
+            tag,
+            archiveStream,
+            source,
+            cancellationToken);
+
+        if (data.Errors?.Count > 0)
         {
-            var data = await client.UploadOpenApiCollectionVersionAsync(
-                openApiCollectionId,
-                tag,
-                archiveStream,
-                source,
-                cancellationToken);
+            await activity.FailAllAsync();
 
-            if (data.Errors?.Count > 0)
+            foreach (var error in data.Errors)
             {
-                activity.Fail();
-
-                foreach (var error in data.Errors)
+                var errorMessage = error switch
                 {
-                    var errorMessage = error switch
-                    {
-                        IOpenApiCollectionNotFoundError err => err.Message,
-                        IUnauthorizedOperation err => err.Message,
-                        IUploadOpenApiCollectionCommandMutation_UploadOpenApiCollection_Errors_InvalidSourceMetadataInputError err => err.Message,
-                        IDuplicatedTagError err => err.Message,
-                        IConcurrentOperationError err => err.Message,
-                        IInvalidOpenApiCollectionArchiveError err => Messages.InvalidArchive(err.Message),
-                        IError err => Messages.UnexpectedMutationError(err),
-                        _ => Messages.UnexpectedMutationError()
-                    };
+                    IOpenApiCollectionNotFoundError err => err.Message,
+                    IUnauthorizedOperation err => err.Message,
+                    IUploadOpenApiCollectionCommandMutation_UploadOpenApiCollection_Errors_InvalidSourceMetadataInputError err => err.Message,
+                    IDuplicatedTagError err => err.Message,
+                    IConcurrentOperationError err => err.Message,
+                    IInvalidOpenApiCollectionArchiveError err => Messages.InvalidArchive(err.Message),
+                    IError err => Messages.UnexpectedMutationError(err),
+                    _ => Messages.UnexpectedMutationError()
+                };
 
-                    console.Error.WriteErrorLine(errorMessage);
-                }
-
-                return ExitCodes.Error;
+                console.Error.WriteErrorLine(errorMessage);
             }
 
-            if (data.OpenApiCollectionVersion is null)
-            {
-                activity.Fail();
-                console.Error.WriteErrorLine("Could not upload OpenAPI collection version.");
-                return ExitCodes.Error;
-            }
-
-            activity.Success($"Uploaded new OpenAPI collection version '{tag.EscapeMarkup()}'.");
-
-            return ExitCodes.Success;
+            return ExitCodes.Error;
         }
+
+        if (data.OpenApiCollectionVersion is null)
+        {
+            await activity.FailAllAsync();
+            console.Error.WriteErrorLine("Could not upload OpenAPI collection version.");
+            return ExitCodes.Error;
+        }
+
+        activity.Success($"Uploaded new OpenAPI collection version '{tag.EscapeMarkup()}'.");
+
+        return ExitCodes.Success;
     }
 }

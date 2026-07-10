@@ -33,6 +33,10 @@ sourceSchemas:
         query: Query
       }
 
+      type Query {
+        post: Post
+      }
+
       type Discussion {
         id: ID!
         product: Product
@@ -45,10 +49,6 @@ sourceSchemas:
 
       type Product @key(fields: "id") {
         id: ID!
-      }
-
-      type Query {
-        post: Post
       }
 
       union Post = Photo | Discussion
@@ -90,21 +90,19 @@ sourceSchemas:
         query: Query
       }
 
+      type Query {
+        productById(id: ID!): Product @lookup
+      }
+
       type Product {
         id: ID!
         subgraph2: String!
-      }
-
-      type Query {
-        productById(id: ID!): Product @lookup
       }
     interactions:
       - request:
           accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
-            query testQuery_7d12de3b_2(
-              $__fusion_1_id: ID!
-            ) {
+            query testQuery_7d12de3b_2($__fusion_1_id: ID!) {
               productById(id: $__fusion_1_id) {
                 subgraph2
               }
@@ -171,9 +169,7 @@ operationPlan:
       type: OperationBatch
       schema: B
       operation: |
-        query testQuery_7d12de3b_2(
-          $__fusion_1_id: ID!
-        ) {
+        query testQuery_7d12de3b_2($__fusion_1_id: ID!) {
           productById(id: $__fusion_1_id) {
             subgraph2
           }

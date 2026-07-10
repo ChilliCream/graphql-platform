@@ -1,6 +1,3 @@
-using ChilliCream.Nitro.Client.Apis;
-using ChilliCream.Nitro.CommandLine.Commands.Apis.Components;
-
 namespace ChilliCream.Nitro.CommandLine.Services.Sessions;
 
 internal static class ParseResultExtensions
@@ -18,7 +15,7 @@ internal static class ParseResultExtensions
 
         throw new ExitException(
             "This command requires an authenticated user. "
-            + $"Either specify '{OptionalApiKeyOption.OptionName}' or run 'nitro login'.");
+            + $"Either specify '{OptionalApiKeyOption.OptionName}' or run `nitro login`.");
     }
 
     public static string GetWorkspaceId(
@@ -27,31 +24,50 @@ internal static class ParseResultExtensions
     {
         return sessionService.Session?.Workspace?.Id
             ?? parseResult.GetValue(Opt<OptionalWorkspaceIdOption>.Instance)
-            ?? throw ThrowHelper.NoDefaultWorkspace();
+            ?? throw new ExitException($"Could not determine workspace. Either login via `nitro login` or specify the '{OptionalWorkspaceIdOption.OptionName}' option.");
     }
 
-    public static async Task<string> GetOrPromptForApiIdAsync(
+    public static T? GetRequiredValueIfNotInteractive<T>(
         this ParseResult parseResult,
-        string message,
-        INitroConsole console,
-        IApisClient apisClient,
-        ISessionService sessionService,
-        CancellationToken cancellationToken)
+        Option<T> option,
+        INitroConsole console)
     {
-        var apiId = parseResult.GetValue(Opt<OptionalApiIdOption>.Instance);
+        var value = parseResult.GetValue(option);
 
-        if (apiId is null)
+        if (value is null && !console.IsInteractive)
         {
-            var workspaceId = parseResult.GetWorkspaceId(sessionService);
-            var selectedApi = await SelectApiPrompt
-                .New(apisClient, workspaceId)
-                .Title(message)
-                .RenderAsync(console, cancellationToken) ?? throw ThrowHelper.NoApiSelected();
-            apiId = selectedApi.Id;
+            throw ThrowHelper.MissingRequiredOption(option.Name);
         }
 
-        console.OkQuestion(message, apiId);
+        return value;
+    }
 
-        return apiId;
+    public static T? GetRequiredValueIfNotInteractive<T>(
+        this ParseResult parseResult,
+        Argument<T> argument,
+        INitroConsole console)
+    {
+        var value = parseResult.GetValue(argument);
+
+        if (value is null && !console.IsInteractive)
+        {
+            throw ThrowHelper.MissingRequiredArgument(argument.Name);
+        }
+
+        return value;
+    }
+
+    public static T GetRequiredOptionalValue<T>(
+        this ParseResult parseResult,
+        Option<T> option)
+    {
+        var value = parseResult.GetValue(option);
+
+        if (value is null)
+        {
+            throw ThrowHelper.MissingRequiredOption(option.Name);
+        }
+
+        return value;
     }
 }

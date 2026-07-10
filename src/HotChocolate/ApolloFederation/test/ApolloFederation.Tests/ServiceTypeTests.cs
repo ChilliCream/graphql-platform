@@ -19,7 +19,7 @@ public class ServiceTypeTests
             .AddApolloFederation()
             .AddQueryType()
             .AddType<Address>()
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var entityType = schema.Types.GetType<ObjectType>(ServiceType_Name);
         var sdlResolver = entityType.Fields[WellKnownFieldNames.Sdl].Resolver!;
@@ -32,12 +32,12 @@ public class ServiceTypeTests
             .Parse((string)value!)
             .MatchInlineSnapshot(
                 """
-                schema @link(url: "https://specs.apollo.dev/federation/v2.6", import: ["@key", "@tag", "FieldSet"]) {
+                schema
+                  @link(
+                    url: "https://specs.apollo.dev/federation/v2.6"
+                    import: ["@key", "@tag", "FieldSet"]
+                  ) {
                   query: Query
-                }
-
-                type Address @key(fields: "matchCode") {
-                  matchCode: String
                 }
 
                 type Query {
@@ -50,20 +50,31 @@ public class ServiceTypeTests
                   sdl: String!
                 }
 
+                type Address @key(fields: "matchCode") {
+                  matchCode: String
+                }
+
                 "Union of all types that key directive applied. This information is needed by the Apollo federation gateway."
                 union _Entity = Address
 
-                "Used to indicate a combination of fields that can be used to uniquely identify and fetch an object or interface."
-                directive @key(fields: FieldSet! resolvable: Boolean = true) repeatable on OBJECT | INTERFACE
-
-                "Links definitions within the document to external schemas."
-                directive @link("Gets imported specification url." url: String! "Gets optional list of imported element names." import: [String!]) repeatable on SCHEMA
+                "The _Any scalar is used to pass representations of entities from external services into the root _entities field for execution. Validation of the _Any scalar is done by matching the __typename and @external fields defined in the schema."
+                scalar _Any
 
                 "Scalar representing a set of fields."
                 scalar FieldSet
 
-                "The _Any scalar is used to pass representations of entities from external services into the root _entities field for execution. Validation of the _Any scalar is done by matching the __typename and @external fields defined in the schema."
-                scalar _Any
+                "Used to indicate a combination of fields that can be used to uniquely identify and fetch an object or interface."
+                directive @key(fields: FieldSet!, resolvable: Boolean = true) repeatable on
+                  | OBJECT
+                  | INTERFACE
+
+                "Links definitions within the document to external schemas."
+                directive @link(
+                  "Gets imported specification url."
+                  url: String!
+                  "Gets optional list of imported element names."
+                  import: [String!]
+                ) repeatable on SCHEMA
                 """);
     }
 
@@ -75,7 +86,7 @@ public class ServiceTypeTests
             .AddGraphQL()
             .AddApolloFederation(FederationVersion.Federation22)
             .AddQueryType<Query>()
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var entityType = schema.Types.GetType<ObjectType>(ServiceType_Name);
         var sdlResolver = entityType.Fields[WellKnownFieldNames.Sdl].Resolver!;
@@ -88,12 +99,12 @@ public class ServiceTypeTests
             .Parse((string)value!)
             .MatchInlineSnapshot(
                 """
-                schema @link(url: "https://specs.apollo.dev/federation/v2.2", import: ["@key", "@tag", "FieldSet"]) {
+                schema
+                  @link(
+                    url: "https://specs.apollo.dev/federation/v2.2"
+                    import: ["@key", "@tag", "FieldSet"]
+                  ) {
                   query: Query
-                }
-
-                type Address @key(fields: "matchCode") {
-                  matchCode: String
                 }
 
                 type Query {
@@ -107,20 +118,31 @@ public class ServiceTypeTests
                   sdl: String!
                 }
 
+                type Address @key(fields: "matchCode") {
+                  matchCode: String
+                }
+
                 "Union of all types that key directive applied. This information is needed by the Apollo federation gateway."
                 union _Entity = Address
 
-                "Used to indicate a combination of fields that can be used to uniquely identify and fetch an object or interface."
-                directive @key(fields: FieldSet! resolvable: Boolean = true) repeatable on OBJECT | INTERFACE
-
-                "Links definitions within the document to external schemas."
-                directive @link("Gets imported specification url." url: String! "Gets optional list of imported element names." import: [String!]) repeatable on SCHEMA
+                "The _Any scalar is used to pass representations of entities from external services into the root _entities field for execution. Validation of the _Any scalar is done by matching the __typename and @external fields defined in the schema."
+                scalar _Any
 
                 "Scalar representing a set of fields."
                 scalar FieldSet
 
-                "The _Any scalar is used to pass representations of entities from external services into the root _entities field for execution. Validation of the _Any scalar is done by matching the __typename and @external fields defined in the schema."
-                scalar _Any
+                "Used to indicate a combination of fields that can be used to uniquely identify and fetch an object or interface."
+                directive @key(fields: FieldSet!, resolvable: Boolean = true) repeatable on
+                  | OBJECT
+                  | INTERFACE
+
+                "Links definitions within the document to external schemas."
+                directive @link(
+                  "Gets imported specification url."
+                  url: String!
+                  "Gets optional list of imported element names."
+                  import: [String!]
+                ) repeatable on SCHEMA
                 """);
     }
 

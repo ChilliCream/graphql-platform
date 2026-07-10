@@ -5,12 +5,14 @@ internal static class FileNames
     private const string GatewaySchemaFormat = "gateway/{0}/gateway.graphqls";
     private const string GatewaySettingsFormat = "gateway/{0}/gateway-settings.json";
     private const string SourceSchemaFormat = "source-schemas/{0}/schema.graphqls";
+    private const string SourceSchemaExtensionsFormat = "source-schemas/{0}/schema-extensions.graphqls";
     private const string SourceSchemaSettingsFormat = "source-schemas/{0}/schema-settings.json";
 
     public const string ArchiveMetadata = "archive-metadata.json";
     public const string CompositionSettings = "composition-settings.json";
     public const string SignatureManifest = ".signature/manifest.json";
     public const string Signature = ".signature/signature.p7s";
+    public const string LegacyArchive = "legacy-v1-archive.fgp";
 
     public static string GetGatewaySchemaPath(Version version)
         => string.Format(GatewaySchemaFormat, version);
@@ -21,6 +23,9 @@ internal static class FileNames
     public static string GetSourceSchemaPath(string schemaName)
         => string.Format(SourceSchemaFormat, schemaName);
 
+    public static string GetSourceSchemaExtensionsPath(string schemaName)
+        => string.Format(SourceSchemaExtensionsFormat, schemaName);
+
     public static string GetSourceSchemaSettingsPath(string schemaName)
         => string.Format(SourceSchemaSettingsFormat, schemaName);
 
@@ -30,6 +35,7 @@ internal static class FileNames
         {
             case "gateway.graphqls":
             case "schema.graphqls":
+            case "schema-extensions.graphqls":
                 return FileKind.Schema;
 
             case "schema-settings.json":
@@ -45,6 +51,9 @@ internal static class FileNames
 
             case "signature.json":
                 return FileKind.Signature;
+
+            case "legacy-v1-archive.fgp":
+                return FileKind.LegacyArchive;
 
             default:
                 return FileKind.Settings;

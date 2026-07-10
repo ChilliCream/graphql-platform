@@ -23,7 +23,12 @@ public sealed class OperationPlannerGuardrailTests : FusionTestBase
 
         // act
         var error = Assert.Throws<OperationPlannerGuardrailException>(
-            () => planner.CreatePlan("guardrail-expanded", "hash", "hash", operation));
+            () => planner.CreatePlan(
+                "guardrail-expanded",
+                "hash",
+                "hash",
+                operation,
+                TestContext.Current.CancellationToken));
 
         // assert
         Assert.Equal(OperationPlannerGuardrailReason.MaxExpandedNodesExceeded, error.Reason);
@@ -46,7 +51,12 @@ public sealed class OperationPlannerGuardrailTests : FusionTestBase
 
         // act
         var error = Assert.Throws<OperationPlannerGuardrailException>(
-            () => planner.CreatePlan("guardrail-queue", "guardrail-queue", "12345678", operation));
+            () => planner.CreatePlan(
+                "guardrail-queue",
+                "guardrail-queue",
+                "12345678",
+                operation,
+                TestContext.Current.CancellationToken));
 
         // assert
         Assert.Equal(OperationPlannerGuardrailReason.MaxQueueSizeExceeded, error.Reason);
@@ -69,7 +79,12 @@ public sealed class OperationPlannerGuardrailTests : FusionTestBase
 
         // act
         var error = Assert.Throws<OperationPlannerGuardrailException>(
-            () => planner.CreatePlan("guardrail-time", "hash", "hash", operation));
+            () => planner.CreatePlan(
+                "guardrail-time",
+                "hash",
+                "hash",
+                operation,
+                TestContext.Current.CancellationToken));
 
         // assert
         Assert.Equal(OperationPlannerGuardrailReason.MaxPlanningTimeExceeded, error.Reason);
@@ -92,7 +107,12 @@ public sealed class OperationPlannerGuardrailTests : FusionTestBase
 
         // act
         var error = Assert.Throws<OperationPlannerGuardrailException>(
-            () => planner.CreatePlan("guardrail-generated", "guardrail-generated", "12345678", operation));
+            () => planner.CreatePlan(
+                "guardrail-generated",
+                "guardrail-generated",
+                "12345678",
+                operation,
+                TestContext.Current.CancellationToken));
 
         // assert
         Assert.Equal(

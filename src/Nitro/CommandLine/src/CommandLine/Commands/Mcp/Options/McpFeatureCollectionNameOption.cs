@@ -1,5 +1,3 @@
-using ChilliCream.Nitro.CommandLine;
-
 namespace ChilliCream.Nitro.CommandLine.Commands.Mcp.Options;
 
 internal sealed class McpFeatureCollectionNameOption : Option<string>

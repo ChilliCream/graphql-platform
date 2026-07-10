@@ -27,8 +27,8 @@ public sealed class UploadOpenApiCollectionCommandTests(NitroCommandFixture fixt
               --openapi-collection-id <openapi-collection-id> (REQUIRED)  The ID of the OpenAPI collection [env: NITRO_OPENAPI_COLLECTION_ID]
               --tag <tag> (REQUIRED)                                      The tag of the schema version to deploy [env: NITRO_TAG]
               -p, --pattern <pattern> (REQUIRED)                          One or more glob patterns for selecting OpenAPI document files
-              --cloud-url <cloud-url>                                     The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL] [default: api.chillicream.com]
-              --api-key <api-key>                                         The API key used for authentication [env: NITRO_API_KEY]
+              --cloud-url <cloud-url>                                     The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL]
+              --api-key <api-key>                                         The API key or PAT used for authentication [env: NITRO_API_KEY]
               --output <json>                                             The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
               -?, -h, --help                                              Show help and usage information
 
@@ -63,7 +63,7 @@ public sealed class UploadOpenApiCollectionCommandTests(NitroCommandFixture fixt
         // assert
         result.AssertError(
             """
-            This command requires an authenticated user. Either specify '--api-key' or run 'nitro login'.
+            This command requires an authenticated user. Either specify '--api-key' or run `nitro login`.
             """);
     }
 
@@ -138,7 +138,7 @@ public sealed class UploadOpenApiCollectionCommandTests(NitroCommandFixture fixt
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Uploading new OpenAPI collection version 'v1' for collection 'oa-1'
+            Uploading new version 'v1' for OpenAPI collection 'oa-1'
             └── ✕ Failed to upload a new OpenAPI collection version.
             """);
         Assert.Equal(1, result.ExitCode);
@@ -168,7 +168,7 @@ public sealed class UploadOpenApiCollectionCommandTests(NitroCommandFixture fixt
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Uploading new OpenAPI collection version 'v1' for collection 'oa-1'
+            Uploading new version 'v1' for OpenAPI collection 'oa-1'
             └── ✕ Failed to upload a new OpenAPI collection version.
             """);
         result.StdErr.MatchInlineSnapshot(expectedStdErr);
@@ -196,7 +196,7 @@ public sealed class UploadOpenApiCollectionCommandTests(NitroCommandFixture fixt
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Uploading new OpenAPI collection version 'v1' for collection 'oa-1'
+            Uploading new version 'v1' for OpenAPI collection 'oa-1'
             └── ✕ Failed to upload a new OpenAPI collection version.
             """);
         result.StdErr.MatchInlineSnapshot(
@@ -228,7 +228,7 @@ public sealed class UploadOpenApiCollectionCommandTests(NitroCommandFixture fixt
         await AssertOpenApiCollectionArchive(capturedStream);
         result.AssertSuccess(
             """
-            Uploading new OpenAPI collection version 'v1' for collection 'oa-1'
+            Uploading new version 'v1' for OpenAPI collection 'oa-1'
             └── ✓ Uploaded new OpenAPI collection version 'v1'.
             """);
     }

@@ -14,7 +14,7 @@ public class InMemoryHandlerClaimTests
             .AddEventHandler<OrderCreatedHandler>()
             .AddInMemory(t =>
             {
-                t.BindHandlersExplicitly();
+                t.BindExplicitly();
                 t.Handler<OrderCreatedHandler>();
             })
             .BuildRuntime();
@@ -38,7 +38,7 @@ public class InMemoryHandlerClaimTests
             .AddEventHandler<OrderCreatedHandler>()
             .AddInMemory(t =>
             {
-                t.BindHandlersExplicitly();
+                t.BindExplicitly();
                 t.Handler<OrderCreatedHandler>()
                     .ConfigureEndpoint(e => e.MaxConcurrency(5));
             })
@@ -62,7 +62,7 @@ public class InMemoryHandlerClaimTests
             .AddConsumer<TestOrderConsumer>()
             .AddInMemory(t =>
             {
-                t.BindHandlersExplicitly();
+                t.BindExplicitly();
                 t.Consumer<TestOrderConsumer>();
             })
             .BuildRuntime();
@@ -86,7 +86,7 @@ public class InMemoryHandlerClaimTests
             .AddEventHandler<OrderCreatedHandler>()
             .AddInMemory(t =>
             {
-                t.BindHandlersExplicitly();
+                t.BindExplicitly();
                 t.Endpoint("order-created").MaxConcurrency(10);
                 t.Handler<OrderCreatedHandler>();
             })
@@ -114,7 +114,7 @@ public class InMemoryHandlerClaimTests
             .AddEventHandler<OrderCreatedHandler2>()
             .AddInMemory(t =>
             {
-                t.BindHandlersExplicitly();
+                t.BindExplicitly();
                 t.Handler<OrderCreatedHandler>();
                 t.Handler<OrderCreatedHandler2>();
             })
@@ -152,7 +152,7 @@ public class InMemoryHandlerClaimTests
             .AddInMemory(t =>
             {
                 t.Name("inmemory");
-                t.BindHandlersExplicitly();
+                t.BindExplicitly();
                 t.Handler<OrderCreatedHandler>();
             })
             .BuildRuntime();
@@ -190,8 +190,93 @@ public class InMemoryHandlerClaimTests
             e => e.Name == "order-created");
     }
 
+    [Fact]
+    public void Send_Should_RouteToExplicitDestination_When_HandlerForSameMessageBoundExplicitly()
+    {
+        // arrange & act
+        // the same bus handles ProcessPayment via an explicitly bound handler endpoint and
+        // also sends ProcessPayment to an explicit destination queue.
+        var runtime = new ServiceCollection()
+            .AddMessageBus()
+            .AddRequestHandler<ProcessPaymentHandler>()
+            .AddMessage<ProcessPayment>(d => d.Send(r => r.ToInMemoryQueue("my-queue")))
+            .AddInMemory(t =>
+            {
+                t.BindExplicitly();
+                t.DeclareQueue("my-queue");
+                t.Queue("payment-q").Handler<ProcessPaymentHandler>();
+            })
+            .BuildRuntime();
+
+        // assert - the send route resolves to the explicit destination instead of the convention endpoint
+        var route = runtime.Router.OutboundRoutes.Single(r =>
+            r.Kind == OutboundRouteKind.Send && r.MessageType.RuntimeType == typeof(ProcessPayment));
+
+        Assert.Contains("q/my-queue", route.Endpoint.Address.ToString());
+    }
+
+    [Fact]
+    public void Receives_Should_NotAutoDiscoverClaimedType_OntoSecondEndpoint()
+    {
+        // arrange & act
+        // In implicit mode OrderCreated is claimed by the configured "test-order" endpoint through
+        // TestOrderConsumer. A second, unplaced handler of OrderCreated must not auto-discover its own
+        // framework endpoint; the claimed type converges onto the claiming endpoint instead.
+        var runtime = new ServiceCollection()
+            .AddMessageBus()
+            .AddConsumer<TestOrderConsumer>()
+            .AddEventHandler<OrderCreatedHandler2>()
+            .AddInMemory(t => t.Consumer<TestOrderConsumer>())
+            .BuildRuntime();
+        var transport = runtime.Transports.OfType<InMemoryMessagingTransport>().Single();
+
+        // assert - no framework endpoint was fabricated for the unplaced second handler
+        Assert.DoesNotContain(
+            transport.ReceiveEndpoints.OfType<InMemoryReceiveEndpoint>(),
+            e => e.Name.EndsWith("order-created-handler-2"));
+
+        // assert - the unplaced handler's route converged onto the claiming endpoint
+        var handler2 = runtime.Consumers.Single(c => c.Name == nameof(OrderCreatedHandler2));
+        var route = runtime.Router.GetInboundByConsumer(handler2).Single();
+        Assert.Equal("test-order", route.Endpoint!.Name);
+    }
+
+    [Fact]
+    public void BindExplicitly_Should_SuppressConventionTopology_When_TransportExplicit()
+    {
+        // arrange & act
+        // BindExplicitly suppresses both discovery and convention binds. The queue exists
+        // but no topic-to-queue binding is generated because the transport default bind is off.
+        var runtime = new ServiceCollection()
+            .AddMessageBus()
+            .AddConsumer<TestOrderConsumer>()
+            .AddInMemory(t =>
+            {
+                t.BindExplicitly();
+                t.Consumer<TestOrderConsumer>();
+            })
+            .BuildRuntime();
+        var transport = runtime.Transports.OfType<InMemoryMessagingTransport>().Single();
+        var topology = (InMemoryMessagingTopology)transport.Topology;
+
+        var consumer = runtime.Consumers.Single(c => c.Name == nameof(TestOrderConsumer));
+        var queueName = runtime.Router.GetInboundByConsumer(consumer).Single().Endpoint!.Name;
+
+        // assert - the queue exists but no topic-to-queue binding was generated (transport Explicit)
+        Assert.Contains(topology.Queues, q => q.Name == queueName);
+        Assert.DoesNotContain(topology.Bindings.OfType<InMemoryQueueBinding>(), b => b.Destination.Name == queueName);
+    }
+
     public sealed class TestOrderConsumer : IConsumer<OrderCreated>
     {
         public ValueTask ConsumeAsync(IConsumeContext<OrderCreated> context) => default;
+    }
+
+    public sealed class ProcessPaymentHandler : IEventRequestHandler<ProcessPayment>
+    {
+        public ValueTask HandleAsync(ProcessPayment request, CancellationToken cancellationToken)
+        {
+            return default;
+        }
     }
 }

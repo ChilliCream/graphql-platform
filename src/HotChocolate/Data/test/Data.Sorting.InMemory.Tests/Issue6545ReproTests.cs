@@ -1,14 +1,13 @@
 using HotChocolate.Execution;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
-using System.Text.Json;
 
 namespace HotChocolate.Data.Sorting;
 
 public class Issue6545ReproTests
 {
     [Fact]
-    public async Task Sorting_With_Variables_Works_For_Custom_Object_Sort_Field_Without_Default_Constructor()
+    public async Task ExecuteAsync_Should_Sort_When_ExpressionObjectFieldIsPassedAsVariable()
     {
         Subject[] subjects =
         [
@@ -36,18 +35,9 @@ public class Issue6545ReproTests
                         .Resolve(subjects)
                         .UseSorting<SubjectSortInputType>();
                 })
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
-        var inlineResult = await executor.ExecuteAsync(
-            """
-            {
-              root(order: { legalResidentialAddress: { cityName: ASC } }) {
-                name
-              }
-            }
-            """);
-
-        var variableResult = await executor.ExecuteAsync(
+        var result = await executor.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
                     """
@@ -58,45 +48,35 @@ public class Issue6545ReproTests
                     }
                     """)
                 .SetVariableValues(
-                    new Dictionary<string, object?>
+                    """
                     {
+                      "order": [
                         {
-                            "order",
-                            new object[]
-                            {
-                                new Dictionary<string, object?>
-                                {
-                                    {
-                                        "legalResidentialAddress",
-                                        new Dictionary<string, object?>
-                                        {
-                                            { "cityName", "ASC" }
-                                        }
-                                    }
-                                }
-                            }
+                          "legalResidentialAddress": {
+                            "cityName": "ASC"
+                          }
                         }
-                    })
-                .Build());
+                      ]
+                    }
+                    """)
+                .Build(),
+            TestContext.Current.CancellationToken);
 
-        Assert.False(
-            inlineResult.ExpectOperationResult().Errors?.Count > 0,
-            inlineResult.ToJson());
-        Assert.False(
-            variableResult.ExpectOperationResult().Errors?.Count > 0,
-            variableResult.ToJson());
-
-        using var inlineJson = JsonDocument.Parse(inlineResult.ToJson());
-        using var variableJson = JsonDocument.Parse(variableResult.ToJson());
-
-        var inlineData = inlineJson.RootElement.GetProperty("data").GetProperty("root");
-        var variableData = variableJson.RootElement.GetProperty("data").GetProperty("root");
-
-        Assert.Equal(inlineData.GetArrayLength(), variableData.GetArrayLength());
-        Assert.Equal(
-            inlineData[0].GetProperty("name").GetString(),
-            variableData[0].GetProperty("name").GetString());
-        Assert.Equal("Subject-A", variableData[0].GetProperty("name").GetString());
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "root": [
+                  {
+                    "name": "Subject-A"
+                  },
+                  {
+                    "name": "Subject-B"
+                  }
+                ]
+              }
+            }
+            """);
     }
 
     public class SubjectSortInputType : SortInputType<Subject>

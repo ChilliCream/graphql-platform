@@ -26,7 +26,7 @@ public class UnsignedLongType : IntegerTypeBase<ulong>
         : base(name, ulong.MinValue, ulong.MaxValue, bind)
     {
         Description = description;
-        SpecifiedBy = new Uri(SpecifiedByUri);
+        SpecifiedBy = SpecifiedByUri;
     }
 
     /// <summary>

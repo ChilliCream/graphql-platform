@@ -1,3 +1,5 @@
+using Mocha.Features;
+
 namespace Mocha.Transport.RabbitMQ;
 
 /// <summary>
@@ -9,9 +11,10 @@ public sealed class RabbitMQMessagingTransportDescriptor
 {
     private readonly List<RabbitMQReceiveEndpointDescriptor> _receiveEndpoints = [];
     private readonly List<RabbitMQDispatchEndpointDescriptor> _dispatchEndpoints = [];
-    private readonly List<RabbitMQExchangeDescriptor> _exchanges = [];
+    private readonly List<RabbitMQExchangeTopologyDescriptor> _exchanges = [];
     private readonly List<RabbitMQQueueDescriptor> _queues = [];
-    private readonly List<RabbitMQBindingDescriptor> _bindings = [];
+    private readonly List<RabbitMQQueueTopologyDescriptor> _queueTopology = [];
+    private readonly List<RabbitMQBindingTopologyDescriptor> _bindings = [];
 
     /// <summary>
     /// Creates a new RabbitMQ transport descriptor bound to the given setup context.
@@ -57,6 +60,14 @@ public sealed class RabbitMQMessagingTransportDescriptor
     }
 
     /// <inheritdoc />
+    public new IRabbitMQMessagingTransportDescriptor UseRoutingStrategy(Func<IServiceProvider, RoutingStrategy> factory)
+    {
+        base.UseRoutingStrategy(factory);
+
+        return this;
+    }
+
+    /// <inheritdoc />
     public new IRabbitMQMessagingTransportDescriptor UseDispatch(
         DispatchMiddlewareConfiguration configuration,
         string? before = null,
@@ -87,17 +98,17 @@ public sealed class RabbitMQMessagingTransportDescriptor
     }
 
     /// <inheritdoc />
-    public new IRabbitMQMessagingTransportDescriptor BindHandlersImplicitly()
+    public new IRabbitMQMessagingTransportDescriptor BindImplicitly()
     {
-        base.BindHandlersImplicitly();
+        base.BindImplicitly();
 
         return this;
     }
 
     /// <inheritdoc />
-    public new IRabbitMQMessagingTransportDescriptor BindHandlersExplicitly()
+    public new IRabbitMQMessagingTransportDescriptor BindExplicitly()
     {
-        base.BindHandlersExplicitly();
+        base.BindExplicitly();
 
         return this;
     }
@@ -149,9 +160,7 @@ public sealed class RabbitMQMessagingTransportDescriptor
     /// <inheritdoc />
     public IRabbitMQReceiveEndpointDescriptor Endpoint(string name)
     {
-        var endpoint = _receiveEndpoints.FirstOrDefault(e =>
-            e.Extend().Configuration.Name.EqualsOrdinal(name) || e.Extend().Configuration.QueueName.EqualsOrdinal(name)
-        );
+        var endpoint = _receiveEndpoints.FirstOrDefault(e => e.Configuration.Name.EqualsOrdinal(name));
 
         if (endpoint is null)
         {
@@ -165,7 +174,7 @@ public sealed class RabbitMQMessagingTransportDescriptor
     /// <inheritdoc />
     public IRabbitMQDispatchEndpointDescriptor DispatchEndpoint(string name)
     {
-        var endpoint = _dispatchEndpoints.FirstOrDefault(e => e.Extend().Configuration.Name.EqualsOrdinal(name));
+        var endpoint = _dispatchEndpoints.FirstOrDefault(e => e.Configuration.Name.EqualsOrdinal(name));
         if (endpoint is null)
         {
             endpoint = RabbitMQDispatchEndpointDescriptor.New(Context, name);
@@ -176,44 +185,49 @@ public sealed class RabbitMQMessagingTransportDescriptor
     }
 
     /// <inheritdoc />
-    public IRabbitMQExchangeDescriptor DeclareExchange(string name)
+    public IRabbitMQExchangeTopologyDescriptor DeclareExchange(string name)
     {
-        var exchange = _exchanges.FirstOrDefault(e => e.Extend().Configuration.Name.EqualsOrdinal(name));
+        var exchange = _exchanges.FirstOrDefault(e => e.Configuration.Name.EqualsOrdinal(name));
         if (exchange is null)
         {
-            exchange = RabbitMQExchangeDescriptor.New(Context, name);
+            exchange = RabbitMQExchangeTopologyDescriptor.New(Context, name);
             _exchanges.Add(exchange);
         }
         return exchange;
     }
 
     /// <inheritdoc />
-    public IRabbitMQQueueDescriptor DeclareQueue(string name)
+    public IRabbitMQQueueTopologyDescriptor DeclareQueue(string name)
     {
-        var queue = _queues.FirstOrDefault(q => q.Extend().Configuration.Name.EqualsOrdinal(name));
+        var queue = _queueTopology.FirstOrDefault(q => q.Configuration.Name.EqualsOrdinal(name));
         if (queue is null)
         {
-            queue = RabbitMQQueueDescriptor.New(Context, name);
-            _queues.Add(queue);
+            queue = RabbitMQQueueTopologyDescriptor.New(Context, name);
+            _queueTopology.Add(queue);
         }
         return queue;
     }
 
     /// <inheritdoc />
-    public IRabbitMQBindingDescriptor DeclareBinding(string exchange, string queue)
+    public IRabbitMQBindingTopologyDescriptor DeclareBinding(string exchange, string queue)
     {
-        var binding = _bindings.FirstOrDefault(b =>
-            b.Extend().Configuration.Source.EqualsOrdinal(exchange)
-            && b.Extend().Configuration.Destination.EqualsOrdinal(queue)
-        );
+        var binding = RabbitMQBindingTopologyDescriptor.New(Context, exchange, queue);
+        _bindings.Add(binding);
+        return binding;
+    }
 
-        if (binding is null)
+    /// <inheritdoc />
+    public IRabbitMQQueueDescriptor Queue(string name)
+    {
+        var queue = _queues.FirstOrDefault(q => q.Configuration.Name.EqualsOrdinal(name));
+        if (queue is not null)
         {
-            binding = RabbitMQBindingDescriptor.New(Context, exchange, queue);
-            _bindings.Add(binding);
+            return queue;
         }
 
-        return binding;
+        queue = RabbitMQQueueDescriptor.New(Context, name);
+        _queues.Add(queue);
+        return queue;
     }
 
     /// <summary>
@@ -222,21 +236,158 @@ public sealed class RabbitMQMessagingTransportDescriptor
     /// <returns>A fully populated <see cref="RabbitMQTransportConfiguration"/> ready for transport initialization.</returns>
     public RabbitMQTransportConfiguration CreateConfiguration()
     {
-        Configuration.ReceiveEndpoints = _receiveEndpoints
-            .Select(ReceiveEndpointConfiguration (e) => e.CreateConfiguration())
+        foreach (var queue in _queues.Select(q => q.CreateConfiguration()))
+        {
+            ConfigureQueueTopology(queue);
+            ConfigureQueueEndpoint(queue);
+        }
+
+        var exchanges = _exchanges.Select(e => e.CreateConfiguration()).ToList();
+        var queues = _queueTopology.Select(q => q.CreateConfiguration()).ToList();
+        var bindings = _bindings.Select(b => b.CreateConfiguration()).ToList();
+
+        var receiveEndpoints = _receiveEndpoints.Select(e => e.CreateConfiguration()).ToList();
+
+        Configuration.Exchanges = exchanges;
+        Configuration.Queues = queues;
+        Configuration.Bindings = bindings;
+
+        Configuration.ReceiveEndpoints = receiveEndpoints
+            .Select(ReceiveEndpointConfiguration (e) => e)
             .ToList();
 
         Configuration.DispatchEndpoints = _dispatchEndpoints
             .Select(DispatchEndpointConfiguration (e) => e.CreateConfiguration())
             .ToList();
 
-        Configuration.Exchanges = _exchanges.Select(e => e.CreateConfiguration()).ToList();
-
-        Configuration.Queues = _queues.Select(q => q.CreateConfiguration()).ToList();
-
-        Configuration.Bindings = _bindings.Select(b => b.CreateConfiguration()).ToList();
-
         return Configuration;
+    }
+
+    private void ConfigureQueueTopology(RabbitMQQueueDescriptorConfiguration configuration)
+    {
+        var queue = DeclareQueue(configuration.Name!);
+        ApplyQueueConfiguration(configuration.Queue, queue);
+
+        var schema = Configuration.Schema ?? RabbitMQTransportConfiguration.DefaultSchema;
+        foreach (var binding in configuration.SourceBindings)
+        {
+            if (!RabbitMQDestinations.TryResolveSourceExchange(schema, binding.Source, out var exchangeName))
+            {
+                throw new InvalidOperationException(
+                    $"BindFrom source '{binding.Source}' could not be resolved to a RabbitMQ exchange name.");
+            }
+
+            DeclareExchange(exchangeName);
+            var descriptor = DeclareBinding(exchangeName, configuration.Name!);
+            if (binding.RoutingKey is not null)
+            {
+                descriptor.RoutingKey(binding.RoutingKey);
+            }
+        }
+    }
+
+    private void ConfigureQueueEndpoint(RabbitMQQueueDescriptorConfiguration configuration)
+    {
+        var endpoint = Endpoint(configuration.Name!);
+        var target = endpoint.Extend().Configuration;
+
+        target.ConsumerIdentities.AddRange(configuration.ConsumerIdentities);
+        target.ReceivedMessageTypes.AddRange(configuration.ReceivedMessageTypes);
+
+        target.BindMode = configuration.BindMode ?? target.BindMode;
+
+        if (configuration.Kind is not null && target.Kind == ReceiveEndpointKind.Default)
+        {
+            target.Kind = configuration.Kind.Value;
+        }
+
+        if (configuration.MaxConcurrency is not null)
+        {
+            target.MaxConcurrency ??= configuration.MaxConcurrency;
+        }
+
+        if (configuration.MaxPrefetch is not null)
+        {
+            target.MaxPrefetch = configuration.MaxPrefetch.Value;
+        }
+
+        target.ReceiveMiddlewares.AddRange(configuration.ReceiveMiddlewares);
+        target.ReceivePipelineModifiers.AddRange(configuration.ReceivePipelineModifiers);
+        CopyFaultEndpointFeature(configuration, target);
+        CopySkippedEndpointFeature(configuration, target);
+    }
+
+    private static void CopyFaultEndpointFeature(
+        RabbitMQQueueDescriptorConfiguration configuration,
+        RabbitMQReceiveEndpointConfiguration target)
+    {
+        var source = configuration.Features.Get<ReceiveFaultEndpointFeature>();
+        if (source is null)
+        {
+            return;
+        }
+
+        var targetFeature = target.Features.GetOrSet<ReceiveFaultEndpointFeature>();
+        if (targetFeature is { Address: not null } or { IsDisabled: true })
+        {
+            return;
+        }
+
+        targetFeature.Address = source.Address;
+        targetFeature.IsDisabled = source.IsDisabled;
+    }
+
+    private static void CopySkippedEndpointFeature(
+        RabbitMQQueueDescriptorConfiguration configuration,
+        RabbitMQReceiveEndpointConfiguration target)
+    {
+        var source = configuration.Features.Get<ReceiveSkippedEndpointFeature>();
+        if (source is null)
+        {
+            return;
+        }
+
+        var targetFeature = target.Features.GetOrSet<ReceiveSkippedEndpointFeature>();
+        if (targetFeature is { Address: not null } or { IsDisabled: true })
+        {
+            return;
+        }
+
+        targetFeature.Address = source.Address;
+        targetFeature.IsDisabled = source.IsDisabled;
+    }
+
+    private static void ApplyQueueConfiguration(
+        RabbitMQQueueConfiguration configuration,
+        IRabbitMQQueueTopologyDescriptor descriptor)
+    {
+        if (configuration.Durable is { } durable)
+        {
+            descriptor.Durable(durable);
+        }
+
+        if (configuration.Exclusive is { } exclusive)
+        {
+            descriptor.Exclusive(exclusive);
+        }
+
+        if (configuration.AutoDelete is { } autoDelete)
+        {
+            descriptor.AutoDelete(autoDelete);
+        }
+
+        if (configuration.Arguments is not null)
+        {
+            foreach (var (key, value) in configuration.Arguments)
+            {
+                descriptor.WithArgument(key, value);
+            }
+        }
+
+        if (configuration.AutoProvision is { } autoProvision)
+        {
+            descriptor.AutoProvision(autoProvision);
+        }
     }
 
     /// <summary>

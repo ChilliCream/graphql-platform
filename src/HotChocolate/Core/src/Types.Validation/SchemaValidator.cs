@@ -38,6 +38,7 @@ public sealed class SchemaValidator
     public void AddDefaultRules()
     {
         _rules.Add(new DirectiveDefinitionIncludesLocationRule());
+        _rules.Add(new DirectiveDefinitionNoSelfReferenceRule());
         _rules.Add(new DirectiveIsDefinedRule());
         _rules.Add(new EnumValueIsDefinedRule());
         _rules.Add(new NoInputObjectCycleRule());
@@ -60,7 +61,9 @@ public sealed class SchemaValidator
     /// </summary>
     /// <param name="schema">The schema to validate.</param>
     /// <param name="log">The log to which validation issues will be reported.</param>
-    /// <returns></returns>
+    /// <returns>
+    /// <c>true</c> if the schema is valid; otherwise, <c>false</c>.
+    /// </returns>
     public bool Validate(ISchemaDefinition schema, IValidationLog log)
     {
         ArgumentNullException.ThrowIfNull(schema);
@@ -159,6 +162,8 @@ public sealed class SchemaValidator
         {
             PublishEvent(new DirectiveDefinitionEvent(directiveDefinition), context);
             PublishEvent(new NamedMemberEvent(directiveDefinition), context);
+
+            PublishDirectiveEvents(directiveDefinition, context);
 
             foreach (var argument in directiveDefinition.Arguments)
             {

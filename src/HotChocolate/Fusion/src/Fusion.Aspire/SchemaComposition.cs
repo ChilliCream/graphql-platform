@@ -269,16 +269,25 @@ internal sealed class SchemaComposition(
     {
         var sourceSchemaName = resource.GetGraphQLSourceSchemaName() ?? resource.Name;
 
-        var schemaFromFile = await ReadSchemaFromProjectDirectoryAsync(resource, annotation.SchemaPath, cancellationToken);
-        if (schemaFromFile == null)
+        var schemaPath = annotation.SchemaPath ?? "schema.graphql";
+
+        if (IsExtensionsSchemaPath(schemaPath))
+        {
+            logger.LogWarning(
+                "Schema extensions file '{SchemaPath}' cannot be used as a source schema file. Provide the base schema file instead.",
+                schemaPath);
+            return null;
+        }
+
+        var schemaFromFile = await ReadSchemaFromProjectDirectoryAsync(resource, schemaPath, cancellationToken);
+        if (schemaFromFile is not { } schemaFiles)
         {
             return null;
         }
 
         // For file schemas, settings file is named after the schema file
         // e.g., "foo.graphql" -> "foo-settings.json"
-        var schemaFileName = annotation.SchemaPath ?? "schema.graphql";
-        var settingsFileName = $"{IOPath.GetFileNameWithoutExtension(schemaFileName)}-settings.json";
+        var settingsFileName = $"{IOPath.GetFileNameWithoutExtension(schemaPath)}-settings.json";
 
         var schemaSettings = await GetSourceSchemaSettingsAsync(resource, settingsFileName, cancellationToken);
         if (schemaSettings == null)
@@ -291,7 +300,7 @@ internal sealed class SchemaComposition(
             Name = sourceSchemaName,
             ResourceName = resource.Name,
             HttpEndpointUrl = null, // No HTTP endpoint for file-based schemas
-            Schema = new SourceSchemaText(sourceSchemaName, schemaFromFile),
+            Schema = new SourceSchemaText(sourceSchemaName, schemaFiles.Schema, schemaFiles.Extensions),
             SchemaSettings = schemaSettings
         };
     }
@@ -359,7 +368,7 @@ internal sealed class SchemaComposition(
         }
     }
 
-    private async Task<string?> ReadSchemaFromProjectDirectoryAsync(
+    private async Task<(string Schema, string? Extensions)?> ReadSchemaFromProjectDirectoryAsync(
         IResourceWithEndpoints resource,
         string? fileName,
         CancellationToken cancellationToken)
@@ -383,7 +392,21 @@ internal sealed class SchemaComposition(
                 return null;
             }
 
-            return await File.ReadAllTextAsync(schemaFile, cancellationToken);
+            var schemaText = await File.ReadAllTextAsync(schemaFile, cancellationToken);
+
+            var extensionsFile = IOPath.Combine(
+                IOPath.GetDirectoryName(schemaFile)!,
+                IOPath.GetFileNameWithoutExtension(schemaFile)
+                + "-extensions"
+                + IOPath.GetExtension(schemaFile));
+
+            string? extensionsText = null;
+            if (File.Exists(extensionsFile))
+            {
+                extensionsText = await File.ReadAllTextAsync(extensionsFile, cancellationToken);
+            }
+
+            return (schemaText, extensionsText);
         }
         catch (Exception ex)
         {
@@ -518,4 +541,9 @@ internal sealed class SchemaComposition(
 
         return false;
     }
+
+    private static bool IsExtensionsSchemaPath(string filePath)
+        => IOPath.GetFileNameWithoutExtension(filePath).EndsWith(
+            "-extensions",
+            StringComparison.OrdinalIgnoreCase);
 }

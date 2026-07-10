@@ -10,9 +10,9 @@ operation:
                   id @fusion__requirement
                   weight @fusion__requirement
                   dimension @fusion__requirement {
-                    length
-                    width
-                    height
+                    length @fusion__requirement
+                    width @fusion__requirement
+                    height @fusion__requirement
                   }
                 }
               }
@@ -40,9 +40,7 @@ nodes:
     type: Operation
     schema: f
     operation: |
-      query Op_123456789101112_2(
-        $__fusion_1_id: ID!
-      ) {
+      query Op_123456789101112_2($__fusion_1_id: ID!) {
         userById(id: $__fusion_1_id) {
           reviews {
             nodes {
@@ -94,9 +92,7 @@ nodes:
     type: Operation
     schema: e
     operation: |
-      query Op_123456789101112_5(
-        $__fusion_5_id: ID!
-      ) {
+      query Op_123456789101112_5($__fusion_5_id: ID!) {
         productById(id: $__fusion_5_id) {
           weight
           dimension {

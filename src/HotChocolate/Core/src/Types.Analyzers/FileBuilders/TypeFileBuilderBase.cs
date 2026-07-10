@@ -48,6 +48,21 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
         Writer.IncreaseIndent();
     }
 
+    /// <summary>
+    /// Builds the C# expression that yields the receiver for an instance resolver call.
+    /// </summary>
+    /// <param name="fullyQualifiedTypeName">
+    /// The fully qualified type name of the resolver class (already prefixed with <c>global::</c>).
+    /// </param>
+    /// <param name="contextExpression">
+    /// The C# expression that yields the resolver context (e.g. <c>"context"</c> for
+    /// single resolvers, <c>"contexts[0]"</c> for batch resolvers).
+    /// </param>
+    protected virtual string GetInstanceReceiver(
+        string fullyQualifiedTypeName,
+        string contextExpression = "context")
+        => $"{contextExpression}.Parent<{fullyQualifiedTypeName}>()";
+
     public void WriteEndClass()
     {
         Writer.DecreaseIndent();
@@ -95,7 +110,7 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
             {
                 Writer.WriteIndentedLine("extension.Context,");
                 Writer.WriteIndentedLine("descriptor,");
-                Writer.WriteIndentedLine("null,");
+                Writer.WriteIndentedLine("typeof(global::{0}),", schemaFullTypeName);
 
                 var first = true;
                 foreach (var attribute in attributes)
@@ -219,9 +234,18 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
 
             using (Writer.IncreaseIndent())
             {
-                Writer.WriteIndentedLine(
-                    ".Field(naming.GetMemberName(\"{0}\", global::HotChocolate.Types.MemberKind.ObjectField))",
-                    fieldName);
+                var fieldBinding = resolver.Bindings.FirstOrDefault(b => b.Kind is MemberBindingKind.Field);
+
+                if (fieldBinding.Name is not null)
+                {
+                    Writer.WriteIndentedLine(".Field(\"{0}\")", fieldBinding.Name);
+                }
+                else
+                {
+                    Writer.WriteIndentedLine(
+                        ".Field(naming.GetMemberName(\"{0}\", global::HotChocolate.Types.MemberKind.ObjectField))",
+                        fieldName);
+                }
 
                 if (resolver.Kind is ResolverKind.ConnectionResolver)
                 {
@@ -295,6 +319,14 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
 
         WriteResolverBindingDescriptor(type, resolver);
 
+        if (resolver.SubscribeWith is not null)
+        {
+            Writer.WriteIndentedLine(
+                "configuration.SubscribeWith = \"{0}\";",
+                GeneratorUtils.EscapeForStringLiteral(resolver.SubscribeWith));
+            Writer.WriteIndentedLine("configuration.SourceType = context.ThisType;");
+        }
+
         if (resolver.Kind is ResolverKind.BatchResolver)
         {
             // For batch resolvers, the return type is a list (e.g. List<string>).
@@ -310,6 +342,8 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
                 "configuration.ResultType = typeof({0});",
                 resolver.ReturnType.ToClassNonNullableFullyQualifiedWithNullRefQualifier());
         }
+
+        Writer.WriteIndentedLine("configuration.DeclaringType = context.ThisType;");
 
         WriteFieldFlags(resolver);
 
@@ -666,6 +700,8 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
             {
                 WriteResolverField(resolver);
             }
+
+            WriteIsSelectedFields(resolver);
         }
     }
 
@@ -692,23 +728,34 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
         WriteResolverConstructor(
             type,
             typeLookup,
-            type.Resolvers.Any(t => t.RequiresParameterBindings));
+            type.Resolvers.Any(t => t.RequiresParameterBindings),
+            type.Resolvers.Any(HasIsSelectedFields));
     }
 
     protected void WriteResolverConstructor(
         IOutputTypeInfo type,
         ILocalTypeLookup typeLookup,
-        bool requiresParameterBindings)
+        bool requiresParameterBindings,
+        bool requiresIsSelectedInit = false)
     {
-        if (!requiresParameterBindings)
+        if (!requiresParameterBindings && !requiresIsSelectedInit)
         {
             return;
         }
 
         Writer.WriteLine();
-        Writer.WriteIndentedLine(
-            "public __Resolvers(global::{0} bindingResolver)",
-            WellKnownTypes.ParameterBindingResolver);
+
+        if (requiresParameterBindings)
+        {
+            Writer.WriteIndentedLine(
+                "public __Resolvers(global::{0} bindingResolver)",
+                WellKnownTypes.ParameterBindingResolver);
+        }
+        else
+        {
+            Writer.WriteIndentedLine("public __Resolvers()");
+        }
+
         Writer.WriteIndentedLine("{");
 
         using (Writer.IncreaseIndent())
@@ -724,11 +771,12 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
     {
         foreach (var resolver in type.Resolvers)
         {
-            WriteResolverBindingInitialization(resolver, typeLookup);
+            WriteResolverBindingInitialization(resolver);
+            WriteIsSelectedInitialization(resolver);
         }
     }
 
-    protected void WriteResolverBindingInitialization(Resolver resolver, ILocalTypeLookup typeLookup)
+    protected void WriteResolverBindingInitialization(Resolver resolver)
     {
         if (resolver.Member is not IMethodSymbol resolverMethod)
         {
@@ -898,13 +946,14 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
         {
             WriteResolverArguments(resolver, resolverMethod, typeLookup);
 
+            var typeName = resolver.Member.ContainingType.ToFullyQualified();
+            var receiver = resolver.IsStatic ? typeName : GetInstanceReceiver(typeName);
+
             if (async)
             {
                 Writer.WriteIndentedLine(
-                    resolver.IsStatic
-                        ? "var result = await {0}.{1}({2});"
-                        : "var result = await context.Parent<{0}>().{1}({2});",
-                    resolver.Member.ContainingType.ToFullyQualified(),
+                    "var result = await {0}.{1}({2});",
+                    receiver,
                     resolver.Member.Name,
                     GetResolverArgumentAssignments(resolver.Parameters.Length));
 
@@ -913,10 +962,8 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
             else
             {
                 Writer.WriteIndentedLine(
-                    resolver.IsStatic
-                        ? "var result = {0}.{1}({2});"
-                        : "var result = context.Parent<{0}>().{1}({2});",
-                    resolver.Member.ContainingType.ToFullyQualified(),
+                    "var result = {0}.{1}({2});",
+                    receiver,
                     resolver.Member.Name,
                     GetResolverArgumentAssignments(resolver.Parameters.Length));
 
@@ -1000,11 +1047,12 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
         {
             WriteResolverArguments(resolver, resolverMethod, typeLookup);
 
+            var typeName = resolver.Member.ContainingType.ToFullyQualified();
+            var receiver = resolver.IsStatic ? typeName : GetInstanceReceiver(typeName);
+
             Writer.WriteIndentedLine(
-                resolver.IsStatic
-                    ? "var result = {0}.{1}({2});"
-                    : "var result = context.Parent<{0}>().{1}({2});",
-                resolver.Member.ContainingType.ToFullyQualified(),
+                "var result = {0}.{1}({2});",
+                receiver,
                 resolver.Member.Name,
                 GetResolverArgumentAssignments(resolver.Parameters.Length));
 
@@ -1231,12 +1279,17 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
 
             Writer.WriteLine();
 
-            // Call the user's batch resolver method
+            // Call the user's batch resolver method.
+            var batchTypeName = resolver.Member.ContainingType.ToFullyQualified();
+            var batchReceiver = resolver.IsStatic
+                ? batchTypeName
+                : GetInstanceReceiver(batchTypeName, "contexts[0]");
+
             if (isAsync)
             {
                 Writer.WriteIndentedLine(
                     "var result = await {0}.{1}({2});",
-                    resolver.Member.ContainingType.ToFullyQualified(),
+                    batchReceiver,
                     resolver.Member.Name,
                     GetResolverArgumentAssignments(resolver.Parameters.Length));
 
@@ -1261,7 +1314,7 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
             {
                 Writer.WriteIndentedLine(
                     "var result = {0}.{1}({2});",
-                    resolver.Member.ContainingType.ToFullyQualified(),
+                    batchReceiver,
                     resolver.Member.Name,
                     GetResolverArgumentAssignments(resolver.Parameters.Length));
 
@@ -1325,11 +1378,12 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
         Writer.WriteIndentedLine("{");
         using (Writer.IncreaseIndent())
         {
+            var typeName = resolver.Member.ContainingType.ToFullyQualified();
+            var receiver = resolver.IsStatic ? typeName : GetInstanceReceiver(typeName);
+
             Writer.WriteIndentedLine(
-                resolver.IsStatic
-                    ? "var result = {0}.{1};"
-                    : "var result = context.Parent<{0}>().{1};",
-                resolver.Member.ContainingType.ToFullyQualified(),
+                "var result = {0}.{1};",
+                receiver,
                 resolver.Member.Name);
 
             Writer.WriteIndentedLine("return result;");
@@ -1358,6 +1412,20 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
                     + "global::HotChocolate.WellKnownContextData.InternalId);",
                     i,
                     parameter.Type.ToFullyQualified());
+                continue;
+            }
+
+            // Optional<T> arguments bind through ArgumentOptional<T>, which coerces the inner T
+            // and preserves whether the argument was supplied. This mirrors the reflection-based
+            // binding in ArgumentParameterExpressionBuilder.
+            if (parameter.Kind is ResolverParameterKind.Argument or ResolverParameterKind.Unknown
+                && parameter.Type.IsOptional(out var optionalInnerType))
+            {
+                Writer.WriteIndentedLine(
+                    "var args{0} = context.ArgumentOptional<{1}>(\"{2}\");",
+                    i,
+                    ToFullyQualifiedString(optionalInnerType, resolverMethod, typeLookup),
+                    parameter.Key ?? parameter.Name);
                 continue;
             }
 
@@ -1700,6 +1768,63 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
                         i);
                     break;
 
+                case ResolverParameterKind.IsSelected:
+                    var (variant, fieldNames, _) = GetIsSelectedInfo(parameter);
+
+                    switch (variant)
+                    {
+                        case IsSelectedVariant.SingleField:
+                            Writer.WriteIndentedLine(
+                                "var args{0} = context.Select().IsSelected(\"{1}\");",
+                                i,
+                                fieldNames[0]);
+                            break;
+
+                        case IsSelectedVariant.MultipleFields:
+                            var sb = new StringBuilder();
+                            for (var j = 0; j < fieldNames.Length; j++)
+                            {
+                                if (j > 0)
+                                {
+                                    sb.Append(", ");
+                                }
+
+                                sb.Append('"');
+                                sb.Append(fieldNames[j]);
+                                sb.Append('"');
+                            }
+
+                            Writer.WriteIndentedLine(
+                                "var args{0} = context.Select().IsSelected({1});",
+                                i,
+                                sb.ToString());
+                            break;
+
+                        case IsSelectedVariant.FieldSet:
+                            Writer.WriteIndentedLine(
+                                "var args{0} = context.Select().IsSelected(_isSelected_{1}_{2});",
+                                i,
+                                resolver.Member.Name,
+                                parameter.Name);
+                            break;
+
+                        case IsSelectedVariant.Pattern:
+                            Writer.WriteIndentedLine(
+                                "var args{0}_selectionContext = new global::HotChocolate.Resolvers.IsSelectedContext(context.Schema, context.Select());",
+                                i);
+                            Writer.WriteIndentedLine(
+                                "global::HotChocolate.Resolvers.IsSelectedVisitor.Instance.Visit(_isSelected_{0}_{1}, args{2}_selectionContext);",
+                                resolver.Member.Name,
+                                parameter.Name,
+                                i);
+                            Writer.WriteIndentedLine(
+                                "var args{0} = args{0}_selectionContext.AllSelected;",
+                                i);
+                            break;
+                    }
+
+                    break;
+
                 case ResolverParameterKind.Unknown:
                     Writer.WriteIndentedLine(
                         "var args{0} = _binding_{1}_{2}.Execute<{3}>(context);",
@@ -1899,8 +2024,7 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
                 return FormatPrimitive(constant.Value);
 
             case TypedConstantKind.Enum:
-                var enumType = constant.Type?.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
-                return $"{enumType}.{constant.Value}";
+                return FormatEnumConstant(constant);
 
             case TypedConstantKind.Type:
                 var typeArg = ((ITypeSymbol)constant.Value!).ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
@@ -1944,6 +2068,30 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
         };
     }
 
+    private static string FormatEnumConstant(TypedConstant constant)
+    {
+        if (constant.Type is not INamedTypeSymbol enumSymbol)
+        {
+            return FormatPrimitive(constant.Value);
+        }
+
+        var enumType = enumSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+
+        if (constant.Value is not null)
+        {
+            foreach (var member in enumSymbol.GetMembers())
+            {
+                if (member is IFieldSymbol { HasConstantValue: true } field
+                    && Equals(field.ConstantValue, constant.Value))
+                {
+                    return $"{enumType}.{field.Name}";
+                }
+            }
+        }
+
+        return $"({enumType}){constant.Value}";
+    }
+
     private static string EscapeString(string s)
     {
         return s.Replace("\\", "\\\\")
@@ -1964,6 +2112,165 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
             '\t' => "\\t",
             _ => c.ToString()
         };
+    }
+
+    protected void WriteIsSelectedFields(Resolver resolver)
+    {
+        foreach (var parameter in resolver.Parameters)
+        {
+            if (parameter.Kind != ResolverParameterKind.IsSelected)
+            {
+                continue;
+            }
+
+            var (variant, _, _) = GetIsSelectedInfo(parameter);
+
+            switch (variant)
+            {
+                case IsSelectedVariant.FieldSet:
+                    Writer.WriteIndentedLine(
+                        "private readonly global::System.Collections.Generic.HashSet<string> _isSelected_{0}_{1};",
+                        resolver.Member.Name,
+                        parameter.Name);
+                    break;
+
+                case IsSelectedVariant.Pattern:
+                    Writer.WriteIndentedLine(
+                        "private readonly global::HotChocolate.Language.SelectionSetNode _isSelected_{0}_{1};",
+                        resolver.Member.Name,
+                        parameter.Name);
+                    break;
+            }
+        }
+    }
+
+    protected void WriteIsSelectedInitialization(Resolver resolver)
+    {
+        foreach (var parameter in resolver.Parameters)
+        {
+            if (parameter.Kind != ResolverParameterKind.IsSelected)
+            {
+                continue;
+            }
+
+            var (variant, fieldNames, patternString) = GetIsSelectedInfo(parameter);
+
+            switch (variant)
+            {
+                case IsSelectedVariant.FieldSet:
+                    var sb = new StringBuilder();
+                    for (var i = 0; i < fieldNames.Length; i++)
+                    {
+                        if (i > 0)
+                        {
+                            sb.Append(", ");
+                        }
+
+                        sb.Append('"');
+                        sb.Append(fieldNames[i]);
+                        sb.Append('"');
+                    }
+
+                    Writer.WriteIndentedLine(
+                        "_isSelected_{0}_{1} = new global::System.Collections.Generic.HashSet<string>([{2}]);",
+                        resolver.Member.Name,
+                        parameter.Name,
+                        sb.ToString());
+                    break;
+
+                case IsSelectedVariant.Pattern:
+                    Writer.WriteIndentedLine(
+                        $"_isSelected_{resolver.Member.Name}_{parameter.Name} = global::HotChocolate.Language.Utf8GraphQLParser.Syntax.ParseSelectionSet(\"{{ {patternString} }}\");");
+                    break;
+            }
+        }
+    }
+
+    protected static bool HasIsSelectedFields(Resolver? resolver)
+    {
+        if (resolver is null)
+        {
+            return false;
+        }
+
+        foreach (var parameter in resolver.Parameters)
+        {
+            if (parameter.Kind != ResolverParameterKind.IsSelected)
+            {
+                continue;
+            }
+
+            var (variant, _, _) = GetIsSelectedInfo(parameter);
+            if (variant is IsSelectedVariant.FieldSet or IsSelectedVariant.Pattern)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static (IsSelectedVariant Variant, string[] FieldNames, string? PatternString) GetIsSelectedInfo(
+        ResolverParameter parameter)
+    {
+        AttributeData? attr = null;
+        foreach (var a in parameter.Attributes)
+        {
+            if (a.AttributeClass?.ToDisplayString() == WellKnownAttributes.IsSelectedAttribute)
+            {
+                attr = a;
+                break;
+            }
+        }
+
+        if (attr is null)
+        {
+            throw new InvalidOperationException("The parameter does not have an IsSelectedAttribute.");
+        }
+
+        var args = attr.ConstructorArguments;
+
+        // params string[] constructor (4+ fields)
+        if (args.Length == 1 && args[0].Kind == TypedConstantKind.Array)
+        {
+            var names = new string[args[0].Values.Length];
+            for (var i = 0; i < names.Length; i++)
+            {
+                names[i] = (string)args[0].Values[i].Value!;
+            }
+
+            return (IsSelectedVariant.FieldSet, names, null);
+        }
+
+        // Single string constructor
+        if (args.Length == 1)
+        {
+            var fieldName = (string)args[0].Value!;
+
+            if (fieldName.IndexOf(' ') < 0 && fieldName.IndexOf('{') < 0)
+            {
+                return (IsSelectedVariant.SingleField, [fieldName], null);
+            }
+
+            return (IsSelectedVariant.Pattern, [], fieldName);
+        }
+
+        // 2 or 3 explicit string args
+        var fieldNames = new string[args.Length];
+        for (var i = 0; i < fieldNames.Length; i++)
+        {
+            fieldNames[i] = (string)args[i].Value!;
+        }
+
+        return (IsSelectedVariant.MultipleFields, fieldNames, null);
+    }
+
+    private enum IsSelectedVariant
+    {
+        SingleField,
+        MultipleFields,
+        FieldSet,
+        Pattern
     }
 
     public void Flush() => Writer.Flush();

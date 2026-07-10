@@ -40,16 +40,6 @@ sourceSchemas:
         query: Query
       }
 
-      interface IInterface @key(fields: "id") {
-        id: Int!
-      }
-
-      type Product implements IInterface {
-        id: Int!
-        schema1: String!
-        shared: SharedProduct @shareable
-      }
-
       type Query {
         productById(id: Int!): Product @lookup
         viewer: Viewer! @shareable
@@ -58,6 +48,12 @@ sourceSchemas:
         unsharedInterface: IInterface!
         union: IUnion! @shareable
         topReview: Review! @shareable
+      }
+
+      type Product implements IInterface @key(fields: "id") {
+        id: Int!
+        schema1: String!
+        shared: SharedProduct @shareable
       }
 
       type Review implements IInterface {
@@ -81,6 +77,10 @@ sourceSchemas:
 
       type ViewerSettings {
         schema1: String!
+      }
+
+      interface IInterface @key(fields: "id") {
+        id: Int!
       }
 
       union IUnion = Product | Review
@@ -123,16 +123,6 @@ sourceSchemas:
         query: Query
       }
 
-      interface IInterface @key(fields: "id") {
-        id: Int!
-      }
-
-      type Product implements IInterface {
-        id: Int!
-        schema2: String!
-        shared: SharedProduct @shareable
-      }
-
       type Query {
         product(id: Int!): Product @lookup
         viewer: Viewer! @shareable
@@ -140,6 +130,12 @@ sourceSchemas:
         interface: IInterface! @shareable
         union: IUnion! @shareable
         topReview: Review! @shareable
+      }
+
+      type Product implements IInterface @key(fields: "id") {
+        id: Int!
+        schema2: String!
+        shared: SharedProduct @shareable
       }
 
       type Review implements IInterface {
@@ -165,6 +161,10 @@ sourceSchemas:
         schema2: String!
       }
 
+      interface IInterface @key(fields: "id") {
+        id: Int!
+      }
+
       union IUnion = Product | Review
     interactions:
       - request:
@@ -172,9 +172,7 @@ sourceSchemas:
           kind: OperationBatch
           items:
             - document: |
-                query Op_b3a5d887_2(
-                  $__fusion_1_id: Int!
-                ) {
+                query Op_b3a5d887_2($__fusion_1_id: Int!) {
                   product(id: $__fusion_1_id) {
                     schema2
                   }
@@ -184,9 +182,7 @@ sourceSchemas:
                   "__fusion_1_id": 1
                 }
             - document: |
-                query Op_b3a5d887_3(
-                  $__fusion_2_id: Int!
-                ) {
+                query Op_b3a5d887_3($__fusion_2_id: Int!) {
                   product(id: $__fusion_2_id) {
                     shared {
                       schema2
@@ -198,9 +194,7 @@ sourceSchemas:
                   "__fusion_2_id": 1
                 }
             - document: |
-                query Op_b3a5d887_4(
-                  $__fusion_3_id: Int!
-                ) {
+                query Op_b3a5d887_4($__fusion_3_id: Int!) {
                   product(id: $__fusion_3_id) {
                     shared {
                       shared2 {
@@ -288,9 +282,7 @@ operationPlan:
       type: Operation
       schema: B
       operation: |
-        query Op_b3a5d887_2(
-          $__fusion_1_id: Int!
-        ) {
+        query Op_b3a5d887_2($__fusion_1_id: Int!) {
           product(id: $__fusion_1_id) {
             schema2
           }
@@ -308,9 +300,7 @@ operationPlan:
       type: Operation
       schema: B
       operation: |
-        query Op_b3a5d887_3(
-          $__fusion_2_id: Int!
-        ) {
+        query Op_b3a5d887_3($__fusion_2_id: Int!) {
           product(id: $__fusion_2_id) {
             shared {
               schema2
@@ -330,9 +320,7 @@ operationPlan:
       type: Operation
       schema: B
       operation: |
-        query Op_b3a5d887_4(
-          $__fusion_3_id: Int!
-        ) {
+        query Op_b3a5d887_4($__fusion_3_id: Int!) {
           product(id: $__fusion_3_id) {
             shared {
               shared2 {

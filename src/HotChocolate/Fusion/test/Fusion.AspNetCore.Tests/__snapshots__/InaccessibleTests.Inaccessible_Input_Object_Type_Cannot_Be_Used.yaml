@@ -32,15 +32,15 @@ sourceSchemas:
         query: Query
       }
 
-      type InternalMetadata @inaccessible {
-        version: String!
-        buildNumber: String!
-      }
-
       type Query {
         metadata: InternalMetadata! @inaccessible
         statusField(status: InternalStatus! = ACTIVE @inaccessible): String!
         filterData(filter: InternalFilterInput @inaccessible): String!
+      }
+
+      type InternalMetadata @inaccessible {
+        version: String!
+        buildNumber: String!
       }
 
       input InternalFilterInput @inaccessible {

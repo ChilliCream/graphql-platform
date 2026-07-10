@@ -22,6 +22,8 @@ internal static class ServiceCollectionExtensions
         services.TryAddSingleton<IResultHolder, ResultHolder>();
         services.TryAddSingleton<IResultFormatter, JsonResultFormatter>();
 
+        services.TryAddSingleton<IBrowserLauncher, SystemBrowserLauncher>();
+
         return services;
     }
 }

@@ -61,7 +61,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
         request.Content = JsonContent.Create(new ClientQueryRequest { Query = "{ __typename }" });
         AddAcceptHeader(request, acceptHeader);
 
-        using var response = await client.SendAsync(request);
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
 
         // assert
         Snapshot
@@ -91,7 +91,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
         request.Content = JsonContent.Create(new ClientQueryRequest { Query = "{ __typename }" });
         request.Headers.Add("Accept", acceptHeader);
 
-        using var response = await client.SendAsync(request);
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
 
         // assert
         Snapshot
@@ -121,7 +121,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
     [InlineData("*/*", Legacy, OK, ContentType.Json)]
     [InlineData("application/*", Latest, BadRequest, ContentType.GraphQLResponse)]
     [InlineData("application/*", Legacy, OK, ContentType.Json)]
-    [InlineData(ContentType.Json, Latest, OK, ContentType.Json)]
+    [InlineData(ContentType.Json, Latest, BadRequest, ContentType.Json)]
     [InlineData(ContentType.Json, Legacy, OK, ContentType.Json)]
     [InlineData(ContentType.GraphQLResponse, Latest, BadRequest, ContentType.GraphQLResponse)]
     [InlineData(ContentType.GraphQLResponse, Legacy, BadRequest, ContentType.GraphQLResponse)]
@@ -145,7 +145,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
         };
         AddAcceptHeader(request, acceptHeader);
 
-        using var response = await client.SendAsync(request);
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
 
         // assert
         Snapshot
@@ -184,7 +184,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
         request.Content = JsonContent.Create(new ClientQueryRequest { Query = "{ __typ$ename }" });
         AddAcceptHeader(request, acceptHeader);
 
-        using var response = await client.SendAsync(request);
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
 
         // assert
         Snapshot
@@ -224,7 +224,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
         request.Content = JsonContent.Create(new ClientQueryRequest { Query = "{ __type name }" });
         AddAcceptHeader(request, acceptHeader);
 
-        using var response = await client.SendAsync(request);
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal(
@@ -245,7 +245,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
         request.Content = JsonContent.Create(new ClientQueryRequest { Query = "{ __typename }" });
         request.Headers.TryAddWithoutValidation("Accept", "unsupported");
 
-        using var response = await client.SendAsync(request);
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
 
         // assert
         Snapshot
@@ -275,7 +275,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
 
         request.Headers.TryAddWithoutValidation("Accept", "application/unsupported");
 
-        using var response = await client.SendAsync(request);
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
 
         // assert
         Snapshot
@@ -309,7 +309,10 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
             });
         request.Headers.Add("Accept", "text/event-stream");
 
-        using var response = await client.SendAsync(request, ResponseHeadersRead);
+        using var response = await client.SendAsync(
+            request,
+            ResponseHeadersRead,
+            TestContext.Current.CancellationToken);
 
         // assert
         Snapshot
@@ -356,7 +359,10 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
             });
         request.Headers.Add("Accept", "*/*");
 
-        using var response = await client.SendAsync(request, ResponseHeadersRead);
+        using var response = await client.SendAsync(
+            request,
+            ResponseHeadersRead,
+            TestContext.Current.CancellationToken);
 
         // assert
         Snapshot
@@ -403,7 +409,10 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
             });
         request.Headers.Add("Accept", "*/*");
 
-        using var response = await client.SendAsync(request, ResponseHeadersRead);
+        using var response = await client.SendAsync(
+            request,
+            ResponseHeadersRead,
+            TestContext.Current.CancellationToken);
 
         // assert
         Snapshot
@@ -464,7 +473,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
             ]),
             new Uri("http://localhost:5000/graphql"));
 
-        using var response = await client.SendAsync(request);
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal(OK, response.StatusCode);
@@ -481,7 +490,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
             snapshot.Add(result);
         }
 
-        await snapshot.MatchMarkdownAsync();
+        await snapshot.MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -509,7 +518,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
                 ]),
             new Uri("http://localhost:5000/graphql"));
 
-        using var response = await client.SendAsync(request);
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal(OK, response.StatusCode);
@@ -519,7 +528,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
             snapshot.Add(result);
         }
 
-        await snapshot.MatchMarkdownAsync();
+        await snapshot.MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -534,7 +543,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
             new OperationRequest("{ error }"),
             new Uri("http://localhost:5000/notnull"));
 
-        using var response = await client.SendAsync(request);
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal(OK, response.StatusCode);
@@ -553,11 +562,11 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
             System.Text.Encoding.UTF8,
             "application/json");
 
-        using var response = await client.SendAsync(request);
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal(BadRequest, response.StatusCode);
-        var body = await response.Content.ReadAsStringAsync();
+        var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
         Assert.Contains("onError", body, StringComparison.OrdinalIgnoreCase);
     }
 

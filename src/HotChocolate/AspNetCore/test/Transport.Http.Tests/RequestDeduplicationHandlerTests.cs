@@ -29,11 +29,11 @@ public class RequestDeduplicationHandlerTests
         var request2 = CreateQueryRequest("http://localhost/graphql", "{\"query\":\"{ hello }\"}");
 
         // act
-        var task1 = client.SendAsync(request1);
-        var task2 = client.SendAsync(request2);
+        var task1 = client.SendAsync(request1, TestContext.Current.CancellationToken);
+        var task2 = client.SendAsync(request2, TestContext.Current.CancellationToken);
 
         // Let both requests enter the handler before releasing
-        await Task.Delay(50);
+        await Task.Delay(50, TestContext.Current.CancellationToken);
         gate.SetResult();
 
         var response1 = await task1;
@@ -44,8 +44,8 @@ public class RequestDeduplicationHandlerTests
         Assert.Equal(HttpStatusCode.OK, response1.StatusCode);
         Assert.Equal(HttpStatusCode.OK, response2.StatusCode);
 
-        var body1 = await response1.Content.ReadAsStringAsync();
-        var body2 = await response2.Content.ReadAsStringAsync();
+        var body1 = await response1.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+        var body2 = await response2.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
         Assert.Equal("{\"data\":{\"hello\":\"world\"}}", body1);
         Assert.Equal("{\"data\":{\"hello\":\"world\"}}", body2);
     }
@@ -74,10 +74,10 @@ public class RequestDeduplicationHandlerTests
         var request2 = CreateQueryRequest("http://localhost/graphql", "{\"query\":\"{ goodbye }\"}");
 
         // act
-        var task1 = client.SendAsync(request1);
-        var task2 = client.SendAsync(request2);
+        var task1 = client.SendAsync(request1, TestContext.Current.CancellationToken);
+        var task2 = client.SendAsync(request2, TestContext.Current.CancellationToken);
 
-        await Task.Delay(50);
+        await Task.Delay(50, TestContext.Current.CancellationToken);
         gate.SetResult();
 
         await task1;
@@ -114,10 +114,10 @@ public class RequestDeduplicationHandlerTests
         request2.Headers.TryAddWithoutValidation("Authorization", "Bearer token-b");
 
         // act
-        var task1 = client.SendAsync(request1);
-        var task2 = client.SendAsync(request2);
+        var task1 = client.SendAsync(request1, TestContext.Current.CancellationToken);
+        var task2 = client.SendAsync(request2, TestContext.Current.CancellationToken);
 
-        await Task.Delay(50);
+        await Task.Delay(50, TestContext.Current.CancellationToken);
         gate.SetResult();
 
         await task1;
@@ -152,7 +152,7 @@ public class RequestDeduplicationHandlerTests
         request.Options.Set(GraphQLHttpRequest.OperationKindOptionsKey, OperationType.Mutation);
 
         // act
-        await client.SendAsync(request);
+        await client.SendAsync(request, TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal(1, callCount);
@@ -183,7 +183,7 @@ public class RequestDeduplicationHandlerTests
         };
 
         // act
-        await client.SendAsync(request);
+        await client.SendAsync(request, TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal(1, callCount);
@@ -214,7 +214,7 @@ public class RequestDeduplicationHandlerTests
         request.Options.Set(GraphQLHttpRequest.OperationKindOptionsKey, OperationType.Subscription);
 
         // act
-        await client.SendAsync(request);
+        await client.SendAsync(request, TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal(1, callCount);
@@ -239,10 +239,10 @@ public class RequestDeduplicationHandlerTests
         var request2 = CreateQueryRequest("http://localhost/graphql", "{\"query\":\"{ hello }\"}");
 
         // act
-        var task1 = client.SendAsync(request1);
-        var task2 = client.SendAsync(request2);
+        var task1 = client.SendAsync(request1, TestContext.Current.CancellationToken);
+        var task2 = client.SendAsync(request2, TestContext.Current.CancellationToken);
 
-        await Task.Delay(50);
+        await Task.Delay(50, TestContext.Current.CancellationToken);
         gate.SetResult();
 
         // assert
@@ -268,9 +268,11 @@ public class RequestDeduplicationHandlerTests
         using var handler = new RequestDeduplicationHandler { InnerHandler = innerHandler };
         using var client = new HttpClient(handler);
 
-        var multipart = new MultipartFormDataContent();
-        multipart.Add(new StringContent("{\"query\":\"{ hello }\"}"), "operations");
-        multipart.Add(new ByteArrayContent(new byte[] { 1, 2, 3 }), "file", "test.txt");
+        var multipart = new MultipartFormDataContent
+        {
+            { new StringContent("{\"query\":\"{ hello }\"}"), "operations" },
+            { new ByteArrayContent([1, 2, 3]), "file", "test.txt" }
+        };
 
         var request = new HttpRequestMessage(HttpMethod.Post, "http://localhost/graphql")
         {
@@ -279,7 +281,7 @@ public class RequestDeduplicationHandlerTests
         request.Options.Set(GraphQLHttpRequest.OperationKindOptionsKey, OperationType.Query);
 
         // act
-        await client.SendAsync(request);
+        await client.SendAsync(request, TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal(1, callCount);
@@ -305,10 +307,10 @@ public class RequestDeduplicationHandlerTests
 
         // act - send two identical requests sequentially
         var request1 = CreateQueryRequest("http://localhost/graphql", "{\"query\":\"{ hello }\"}");
-        await client.SendAsync(request1);
+        await client.SendAsync(request1, TestContext.Current.CancellationToken);
 
         var request2 = CreateQueryRequest("http://localhost/graphql", "{\"query\":\"{ hello }\"}");
-        await client.SendAsync(request2);
+        await client.SendAsync(request2, TestContext.Current.CancellationToken);
 
         // assert - both should hit the inner handler since the first completed before the second started
         Assert.Equal(2, callCount);
@@ -341,10 +343,10 @@ public class RequestDeduplicationHandlerTests
         request2.Headers.TryAddWithoutValidation("Authorization", "Bearer same-token");
 
         // act
-        var task1 = client.SendAsync(request1);
-        var task2 = client.SendAsync(request2);
+        var task1 = client.SendAsync(request1, TestContext.Current.CancellationToken);
+        var task2 = client.SendAsync(request2, TestContext.Current.CancellationToken);
 
-        await Task.Delay(50);
+        await Task.Delay(50, TestContext.Current.CancellationToken);
         gate.SetResult();
 
         await task1;

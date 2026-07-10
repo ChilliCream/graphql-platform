@@ -31,7 +31,9 @@ nodes:
           $__fusion_3_id: ID!
       ) {
         productById(id: $__fusion_3_id) {
-          canAffordWithDiscount(isExpensiveWithDiscount: $__fusion_2_isExpensiveWithDiscount)
+          canAffordWithDiscount(
+            isExpensiveWithDiscount: $__fusion_2_isExpensiveWithDiscount
+          )
         }
       }
     source: $.productById

@@ -13,7 +13,9 @@ public static class MongoDbSchemaBuilderExtensions
     /// <param name="builder">
     /// The <see cref="ISchemaBuilder"/>.
     /// </param>
-    /// <param name="name"></param>
+    /// <param name="name">
+    /// The name of the filtering convention.
+    /// </param>
     /// <param name="compatibilityMode">Uses the old behavior of naming the filters</param>
     /// <returns>
     /// Returns the <see cref="ISchemaBuilder"/>.
@@ -30,7 +32,9 @@ public static class MongoDbSchemaBuilderExtensions
     /// <param name="builder">
     /// The <see cref="ISchemaBuilder"/>.
     /// </param>
-    /// <param name="name"></param>
+    /// <param name="name">
+    /// The name of the sorting convention.
+    /// </param>
     /// <returns>
     /// Returns the <see cref="ISchemaBuilder"/>.
     /// </returns>
@@ -45,7 +49,9 @@ public static class MongoDbSchemaBuilderExtensions
     /// <param name="builder">
     /// The <see cref="ISchemaBuilder"/>.
     /// </param>
-    /// <param name="name"></param>
+    /// <param name="name">
+    /// The name of the projections convention.
+    /// </param>
     /// <returns>
     /// Returns the <see cref="ISchemaBuilder"/>.
     /// </returns>

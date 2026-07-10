@@ -118,10 +118,13 @@ public sealed class DataLoaderFileBuilder : IDisposable
         DataLoaderKind kind,
         ITypeSymbol keyType,
         ITypeSymbol valueType,
-        ImmutableArray<CacheLookup> lookupMethods)
+        ImmutableArray<CacheLookup> lookupMethods,
+        int? maxBatchSize)
     {
         _writer.WriteIndentedLine("private readonly global::System.IServiceProvider _services;");
         _writer.WriteLine();
+
+        var optionsArgument = maxBatchSize is null ? "options" : "CreateOptions(options)";
 
         if (kind is DataLoaderKind.Batch or DataLoaderKind.Group)
         {
@@ -132,7 +135,7 @@ public sealed class DataLoaderFileBuilder : IDisposable
                 _writer.WriteIndentedLine("global::System.IServiceProvider services,");
                 _writer.WriteIndentedLine("global::GreenDonut.IBatchScheduler batchScheduler,");
                 _writer.WriteIndentedLine("global::GreenDonut.DataLoaderOptions options)");
-                _writer.WriteIndentedLine(": base(batchScheduler, options)");
+                _writer.WriteIndentedLine(": base(batchScheduler, {0})", optionsArgument);
             }
         }
         else
@@ -143,7 +146,7 @@ public sealed class DataLoaderFileBuilder : IDisposable
             {
                 _writer.WriteIndentedLine("global::System.IServiceProvider services,");
                 _writer.WriteIndentedLine("global::GreenDonut.DataLoaderOptions options)");
-                _writer.WriteIndentedLine(": base(AutoBatchScheduler.Default, options)");
+                _writer.WriteIndentedLine(": base(AutoBatchScheduler.Default, {0})", optionsArgument);
             }
         }
 
@@ -197,6 +200,24 @@ public sealed class DataLoaderFileBuilder : IDisposable
         }
 
         _writer.WriteIndentedLine("}");
+
+        if (maxBatchSize is not null)
+        {
+            _writer.WriteLine();
+            _writer.WriteIndentedLine("private static global::GreenDonut.DataLoaderOptions CreateOptions(");
+            using (_writer.IncreaseIndent())
+            {
+                _writer.WriteIndentedLine("global::GreenDonut.DataLoaderOptions options)");
+            }
+            _writer.WriteIndentedLine("{");
+            using (_writer.IncreaseIndent())
+            {
+                _writer.WriteIndentedLine("var local = options.Copy();");
+                _writer.WriteIndentedLine("local.MaxBatchSize = {0};", maxBatchSize.Value);
+                _writer.WriteIndentedLine("return local;");
+            }
+            _writer.WriteIndentedLine("}");
+        }
     }
 
     public void WriteDataLoaderLoadMethod(

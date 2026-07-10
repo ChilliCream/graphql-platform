@@ -1,4 +1,4 @@
-﻿"abc"
+"abc"
 interface Foo @a {
   "abc"
   bar: String

@@ -182,7 +182,10 @@ public sealed partial class JsonWriter
     /// Writes the UTF-8 text value (as a JSON string) as an element of a JSON array.
     /// </summary>
     /// <param name="utf8Value">The UTF-8 encoded value to be written as a JSON string element of a JSON array.</param>
-    /// <param name="skipEscaping">If true, the value is assumed to be already escaped and will be written directly.</param>
+    /// <param name="skipEscaping">
+    /// When <see langword="true"/> the value is written without re-escaping, and the surrounding
+    /// quotes are added automatically if the value is not already wrapped in them.
+    /// </param>
     /// <exception cref="ArgumentException">
     /// Thrown when the specified value is too large.
     /// </exception>
@@ -200,7 +203,8 @@ public sealed partial class JsonWriter
 
         if (skipEscaping)
         {
-            // Value is already escaped and includes quotes, write directly without adding quotes
+            // Value is already escaped; written directly. The surrounding quotes are added
+            // automatically when the value is not already wrapped in them.
             WriteStringValueRaw(utf8Value);
         }
         else
@@ -214,19 +218,25 @@ public sealed partial class JsonWriter
 
     private void WriteStringValueRaw(ReadOnlySpan<byte> utf8Value)
     {
+        // The content slice of a JSON string can never start with a raw quote because a literal
+        // quote inside a string is always backslash-escaped. A leading quote can therefore only be
+        // the opening delimiter of an already-framed literal, so we only add quotes when absent.
+        var addQuotes = utf8Value.IsEmpty || utf8Value[0] != JsonConstants.Quote;
+
         if (_indented)
         {
-            WriteStringValueRawIndented(utf8Value);
+            WriteStringValueRawIndented(utf8Value, addQuotes);
         }
         else
         {
-            WriteStringValueRawMinimized(utf8Value);
+            WriteStringValueRawMinimized(utf8Value, addQuotes);
         }
     }
 
-    private void WriteStringValueRawMinimized(ReadOnlySpan<byte> utf8Value)
+    private void WriteStringValueRawMinimized(ReadOnlySpan<byte> utf8Value, bool addQuotes)
     {
-        var maxRequired = utf8Value.Length + 1; // Optionally, 1 list separator
+        // Optionally, 1 list separator and 2 quotes
+        var maxRequired = utf8Value.Length + 1 + (addQuotes ? 2 : 0);
         var bytesWritten = 0;
 
         var output = _writer.GetSpan(maxRequired);
@@ -236,18 +246,29 @@ public sealed partial class JsonWriter
             output[bytesWritten++] = JsonConstants.Comma;
         }
 
+        if (addQuotes)
+        {
+            output[bytesWritten++] = JsonConstants.Quote;
+        }
+
         utf8Value.CopyTo(output[bytesWritten..]);
         bytesWritten += utf8Value.Length;
+
+        if (addQuotes)
+        {
+            output[bytesWritten++] = JsonConstants.Quote;
+        }
 
         _writer.Advance(bytesWritten);
     }
 
-    private void WriteStringValueRawIndented(ReadOnlySpan<byte> utf8Value)
+    private void WriteStringValueRawIndented(ReadOnlySpan<byte> utf8Value, bool addQuotes)
     {
         var indent = Indentation;
         Debug.Assert(indent <= _indentLength * _maxDepth);
 
-        var maxRequired = indent + utf8Value.Length + 1 + _newLineLength; // Optionally, 1 list separator and 1-2 bytes for new line
+        // Optionally, 1 list separator, 1-2 bytes for new line, and 2 quotes
+        var maxRequired = indent + utf8Value.Length + 1 + _newLineLength + (addQuotes ? 2 : 0);
         var bytesWritten = 0;
 
         var output = _writer.GetSpan(maxRequired);
@@ -268,8 +289,18 @@ public sealed partial class JsonWriter
             bytesWritten += indent;
         }
 
+        if (addQuotes)
+        {
+            output[bytesWritten++] = JsonConstants.Quote;
+        }
+
         utf8Value.CopyTo(output[bytesWritten..]);
         bytesWritten += utf8Value.Length;
+
+        if (addQuotes)
+        {
+            output[bytesWritten++] = JsonConstants.Quote;
+        }
 
         _writer.Advance(bytesWritten);
     }
@@ -393,7 +424,7 @@ public sealed partial class JsonWriter
     /// <summary>
     /// Writes a number as a JSON string. The string value is not escaped.
     /// </summary>
-    /// <param name="utf8Value"></param>
+    /// <param name="utf8Value">The UTF-8 encoded number value to write as a string.</param>
     internal void WriteNumberValueAsStringUnescaped(ReadOnlySpan<byte> utf8Value)
     {
         FlushDeferredPropertyName();

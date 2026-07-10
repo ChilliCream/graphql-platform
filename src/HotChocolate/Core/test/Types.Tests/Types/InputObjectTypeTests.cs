@@ -438,11 +438,12 @@ public class InputObjectTypeTests : TypeTestBase
             .AddQueryType<QueryType>()
             .AddTypeConverter<Baz, Bar>(from => new Bar { Text = from.Text })
             .AddTypeConverter<Bar, Baz>(from => new Baz { Text = from.Text })
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
-            "{ foo(a: { bar: { text: \"abc\" } }) }");
+            "{ foo(a: { bar: { text: \"abc\" } }) }",
+            TestContext.Current.CancellationToken);
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -478,7 +479,8 @@ public class InputObjectTypeTests : TypeTestBase
 
         // act
         var result = await executor.ExecuteAsync(
-            "{ do(input: { baz: \"abc\" }) { isBarSet bar baz } }");
+            "{ do(input: { baz: \"abc\" }) { isBarSet bar baz } }",
+            TestContext.Current.CancellationToken);
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -498,7 +500,8 @@ public class InputObjectTypeTests : TypeTestBase
 
         // act
         var result = await executor.ExecuteAsync(
-            "{ do(input: { bar: " + value + " }) { isBarSet } }");
+            "{ do(input: { bar: " + value + " }) { isBarSet } }",
+            TestContext.Current.CancellationToken);
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -516,7 +519,8 @@ public class InputObjectTypeTests : TypeTestBase
 
         // act
         var result = await executor.ExecuteAsync(
-            "{ do(input: { bar: \"abc\" baz: \"def\" qux: \"ghi\" }) { bar baz qux } }");
+            "{ do(input: { bar: \"abc\" baz: \"def\" qux: \"ghi\" }) { bar baz qux } }",
+            TestContext.Current.CancellationToken);
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -548,7 +552,7 @@ public class InputObjectTypeTests : TypeTestBase
             .AddGraphQL()
             .AddQueryType<QueryWithInterfaceInput>()
             .AddType<InputWithInterfaceType>()
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         schema.ToString().MatchSnapshot();
@@ -605,7 +609,7 @@ public class InputObjectTypeTests : TypeTestBase
             .AddGraphQL()
             .AddInputObjectType<FieldNameInput>()
             .ModifyOptions(o => o.StrictValidation = false)
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         schema.ToString().MatchSnapshot();
@@ -620,7 +624,7 @@ public class InputObjectTypeTests : TypeTestBase
             .AddGraphQL()
             .AddInputObjectType<DeprecatedInputFields>()
             .AddQueryType(x => x.Name("Query").Field("bar").Resolve("asd"))
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         schema.ToString().MatchSnapshot();
@@ -651,7 +655,7 @@ public class InputObjectTypeTests : TypeTestBase
             .AddGraphQL()
             .AddQueryType(x => x.Name("Query").Field("bar").Resolve("asd"))
             .AddInputObjectType(x => x.Name("Foo").Field("bar").Type<IntType>().Deprecated("b"))
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         schema.ToString().MatchSnapshot();
@@ -691,7 +695,7 @@ public class InputObjectTypeTests : TypeTestBase
                     bar: String @deprecated(reason: "reason")
                 }
                 """)
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         schema.ToString().MatchSnapshot();

@@ -6,7 +6,6 @@
 using Mocha;
 using Mocha.Transport.RabbitMQ;
 using RabbitMQ.Client;
-using Mocha.Hosting;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -28,14 +27,14 @@ builder.Services
     .AddEventHandler<OrderPlacedHandler>()
     .AddRabbitMQ(transport =>
     {
-        // BindHandlersExplicitly() means you control exactly which handlers
+        // BindExplicitly() means you control exactly which handlers
         // go to which endpoints. Auto-discovery is disabled.
-        transport.BindHandlersExplicitly();
+        transport.BindExplicitly();
 
         // Configure a receive endpoint with a quorum queue for production use.
         // Quorum queues replicate across nodes via Raft consensus and are the
         // recommended queue type since RabbitMQ 4.0 (classic mirrored queues removed).
-        transport.Endpoint("order-processing")
+        transport
             .Queue("orders.processing")
             // MaxPrefetch controls how many unacknowledged messages RabbitMQ
             // delivers at once. For quorum queues, avoid prefetch=1 as it
@@ -95,11 +94,6 @@ app.MapGet("/orders", async (IMessageBus bus) =>
 
     return Results.Ok(new { OrderId = orderId, Status = "Published" });
 });
-
-if (app.Environment.IsDevelopment())
-{
-    app.MapMessageBusDeveloperTopology();
-}
 
 app.Run();
 

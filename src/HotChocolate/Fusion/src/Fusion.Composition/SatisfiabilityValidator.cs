@@ -12,7 +12,6 @@ using HotChocolate.Types;
 using HotChocolate.Types.Mutable;
 using static HotChocolate.Fusion.Properties.CompositionResources;
 using static HotChocolate.Language.Utf8GraphQLParser.Syntax;
-using FieldNames = HotChocolate.Fusion.WellKnownFieldNames;
 
 namespace HotChocolate.Fusion;
 
@@ -20,6 +19,8 @@ internal sealed class SatisfiabilityValidator
 {
     private readonly SatisfiabilityOptions _options;
     private readonly RequirementsValidator _requirementsValidator;
+    private readonly FusionLookupDirectiveCache _lookupCache;
+    private readonly SatisfiabilityFacts _facts;
     private readonly MutableSchemaDefinition _schema;
     private readonly ICompositionLog _log;
 
@@ -31,7 +32,14 @@ internal sealed class SatisfiabilityValidator
         _schema = schema;
         _log = log;
         _options = options ?? new SatisfiabilityOptions();
-        _requirementsValidator = new RequirementsValidator(schema, _options.IncludeSatisfiabilityPaths);
+        _lookupCache = new FusionLookupDirectiveCache(schema);
+        _facts = new SatisfiabilityFactsBuilder(schema, _lookupCache).Build();
+        _requirementsValidator =
+            new RequirementsValidator(
+                schema,
+                _lookupCache,
+                _facts,
+                _options.IncludeSatisfiabilityPaths);
     }
 
     public CompositionResult Validate()
@@ -81,21 +89,16 @@ internal sealed class SatisfiabilityValidator
                 continue;
             }
 
-            // The node and nodes fields are "virtual" fields that might not directly map
-            // to an underlying source schema, so we have to validate them differently.
-            if (field.Name is FieldNames.Node or FieldNames.Nodes
-                && objectType == _schema.QueryType
-                && _schema.Types.TryGetType<IInterfaceTypeDefinition>(WellKnownTypeNames.Node, out var nodeType)
-                && field.Type.NamedType() == nodeType)
+            // Fields implemented by the gateway are marked with @fusion__gateway_field and are
+            // not resolved from a single source schema, so ordinary source-schema satisfiability
+            // does not apply. When such a field returns the Node interface, its resolvability is
+            // validated against the per-type node lookups instead.
+            if (field.HasFusionGatewayFieldDirective())
             {
-                if (field.Name == FieldNames.Nodes)
+                if (field.Type.NamedType() is IInterfaceTypeDefinition { Name: WellKnownTypeNames.Node } nodeType)
                 {
-                    // The node and nodes fields always appear in pairs, so we can skip nodes entirely
-                    // and only do the validation once for the node field.
-                    continue;
+                    VisitNodeField(objectType, field, nodeType, path, worklist);
                 }
-
-                VisitNodeField(objectType, field, nodeType, path, worklist);
 
                 continue;
             }
@@ -113,6 +116,15 @@ internal sealed class SatisfiabilityValidator
     {
         var previousSchemaName = path?.Item.SchemaName;
         var schemaNames = field.GetSchemaNames(first: previousSchemaName);
+        var eventStreamSchemaNames = field.GetFusionEventStreamSchemaNames();
+
+        if (!eventStreamSchemaNames.IsDefaultOrEmpty)
+        {
+            schemaNames = previousSchemaName is not null && eventStreamSchemaNames.Contains(previousSchemaName)
+                ? eventStreamSchemaNames.Remove(previousSchemaName).Insert(0, previousSchemaName)
+                : eventStreamSchemaNames;
+        }
+
         var cycle = false;
         var errors = new List<SatisfiabilityError>();
         var optionCount = 0;
@@ -120,15 +132,37 @@ internal sealed class SatisfiabilityValidator
 
         foreach (var schemaName in schemaNames)
         {
-            // If the field is marked as partial, it must be provided by the current schema for it
-            // to be an option.
-            if (field.IsPartial(schemaName)
-                && path?.Item.Provides(field, type, schemaName, _schema) != true)
+            SelectionSetNode? providedSelectionSet = null;
+
+            if (path?.Item.ProvidedSelectionSet is not null
+                && previousSchemaName == schemaName
+                && !path.Item.TryGetProvidedSelectionSet(
+                    field,
+                    type,
+                    schemaName,
+                    _schema,
+                    out providedSelectionSet))
             {
                 continue;
             }
 
-            var pathItem = new SatisfiabilityPathItem(field, type, schemaName);
+            // A partial (@external) field is never a resolution candidate in its declaring schema;
+            // only an event stream message can make it an option. @provides never does (PR #231).
+            if (field.IsPartial(schemaName)
+                && path?.Item.ProvidesViaEventStream(field, type, schemaName, _schema) != true)
+            {
+                continue;
+            }
+
+            var eventStreamMessage = field.GetFusionEventStreamMessage(schemaName);
+            var pathItem = new SatisfiabilityPathItem(
+                field,
+                type,
+                schemaName)
+            {
+                ProvidedSelectionSet = eventStreamMessage ?? providedSelectionSet,
+                ProvidedByEventStream = eventStreamMessage is not null
+            };
 
             // Validate that we are not in a cycle by checking if this path item
             // already appears in the ancestor chain.
@@ -138,8 +172,15 @@ internal sealed class SatisfiabilityValidator
                 continue;
             }
 
-            // Validate transition between source schemas.
-            if (previousSchemaName is not null && previousSchemaName != schemaName)
+            // Validate transition between source schemas. The fixpoint answers the direct-lookup
+            // route in O(1); only when it cannot confirm the transition do we fall back to the full
+            // recursion, which also covers the parent-call and one-to-one routes and builds the error.
+            // A provided selection set (event stream message or @provides) narrows the context in a
+            // way the fixpoint does not model, so we always defer to the recursion in that case.
+            if (previousSchemaName is not null
+                && previousSchemaName != schemaName
+                && (path?.Item.ProvidedSelectionSet is not null
+                    || !_facts.CanTransition(type, schemaName, previousSchemaName)))
             {
                 var transitionErrors = ValidateSourceSchemaTransition(type, path, schemaName);
 
@@ -158,17 +199,22 @@ internal sealed class SatisfiabilityValidator
                 }
             }
 
-            // Validate field requirements (@require).
+            // Validate field requirements (@require). The fixpoint answers whether the requirement
+            // holds in O(1); only when it does not, or when a provided selection set narrows the
+            // context, do we re-run the recursion to build the error tree.
             var requirements = field.GetFusionRequiresRequirements(schemaName);
 
-            if (requirements is not null)
+            if (requirements is not null
+                && (path?.Item.ProvidedSelectionSet is not null
+                    || !_facts.IsFieldResolvableOn(type, field, schemaName)))
             {
                 var requirementErrors =
                     _requirementsValidator.Validate(
                         requirements,
                         type,
                         path?.Item,
-                        excludeSchemaName: schemaName);
+                        excludeSchemaName: schemaName,
+                        allowIntermediatesFromExcludedSchema: true);
 
                 if (requirementErrors.Length != 0)
                 {
@@ -191,6 +237,13 @@ internal sealed class SatisfiabilityValidator
             {
                 var fieldPath = new PathNode(pathItem, path);
                 var possibleTypes = fieldType.GetPossibleTypes(schemaName, _schema);
+
+                if (pathItem.ProvidedSelectionSet is { } pathItemProvidedSelectionSet)
+                {
+                    possibleTypes = FilterPossibleTypesByProvidedSelectionSet(
+                        possibleTypes,
+                        pathItemProvidedSelectionSet);
+                }
 
                 foreach (var possibleType in possibleTypes)
                 {
@@ -238,7 +291,7 @@ internal sealed class SatisfiabilityValidator
             _log.Write(
                 LogEntryBuilder.New()
                     .SetMessage(error.ToString())
-                    .SetCode(LogEntryCodes.Unsatisfiable)
+                    .SetCode(LogEntryCodes.UnsatisfiableQueryPath)
                     .SetSeverity(LogSeverity.Error)
                     .SetExtension("error", error)
                     .Build());
@@ -254,8 +307,7 @@ internal sealed class SatisfiabilityValidator
     {
         foreach (var possibleType in _schema.GetPossibleTypes(nodeType))
         {
-            var byIdLookups = _schema
-                .GetPossibleFusionLookupDirectivesById(possibleType);
+            var byIdLookups = _lookupCache.GetPossibleFusionLookupDirectivesById(possibleType);
 
             var hasNodeLookup = false;
 
@@ -297,7 +349,7 @@ internal sealed class SatisfiabilityValidator
                 _log.Write(
                     LogEntryBuilder.New()
                         .SetMessage(error.ToString())
-                        .SetCode(LogEntryCodes.Unsatisfiable)
+                        .SetCode(LogEntryCodes.UnsatisfiableQueryPath)
                         .SetSeverity(LogSeverity.Error)
                         .SetExtension("error", error)
                         .Build());
@@ -310,93 +362,67 @@ internal sealed class SatisfiabilityValidator
         PathNode? path,
         string transitionToSchemaName)
     {
-        var errors = new List<SatisfiabilityError>();
-
-        var lookupDirectives =
-            _schema.GetPossibleFusionLookupDirectives(type, transitionToSchemaName);
-
-        if (lookupDirectives.Count == 0 && !CanTransitionToSchemaThroughPath(path, transitionToSchemaName))
-        {
-            errors.Add(
-                new SatisfiabilityError(
-                    string.Format(
-                        SatisfiabilityValidator_NoLookupsFoundForType,
-                        type.Name,
-                        transitionToSchemaName)));
-
-            return [.. errors];
-        }
-
-        foreach (var lookupDirective in lookupDirectives)
-        {
-            var lookupKeyArg = (string)lookupDirective.Arguments["key"].Value!;
-            var lookupFieldArg = (string)lookupDirective.Arguments["field"].Value!;
-            var lookupPathArg = (string?)lookupDirective.Arguments["path"].Value;
-
-            var lookupRequirements = ParseSelectionSet($"{{ {lookupKeyArg} }}");
-            var lookupFieldName = ParseFieldDefinition(lookupFieldArg).Name.Value;
-
-            // Ensure that lookup requirements are satisfied.
-            var requirementErrors =
+        return SourceSchemaTransitionHelper.ValidateSourceSchemaTransition(
+            _lookupCache,
+            type,
+            transitionToSchemaName,
+            [.. path.EnumerateFromLeaf()],
+            (contextType, parentPathItem, lookupRequirements) =>
                 _requirementsValidator.Validate(
                     lookupRequirements,
-                    type,
-                    path?.Item,
-                    excludeSchemaName: transitionToSchemaName);
-
-            if (requirementErrors.IsEmpty)
-            {
-                return [];
-            }
-
-            var lookupName = lookupPathArg is null
-                ? lookupFieldName
-                : $"{lookupPathArg}.{lookupFieldName}";
-
-            errors.Add(
-                new SatisfiabilityError(
-                    string.Format(
-                        SatisfiabilityValidator_UnableToSatisfyRequirementForLookup,
-                        lookupRequirements.ToString(indented: false),
-                        lookupName,
-                        transitionToSchemaName),
-                    requirementErrors));
-        }
-
-        return [.. errors];
+                    contextType,
+                    parentPathItem,
+                    excludeSchemaName: transitionToSchemaName),
+            SatisfiabilityValidator_NoLookupsFoundForType,
+            SatisfiabilityValidator_UnableToSatisfyRequirementForLookup);
     }
 
-    /// <summary>
-    /// We check whether the path we're currently on exists one-to-one
-    /// on the given schema or whether a type on the path has a lookup
-    /// on the given schema.
-    /// </summary>
-    private bool CanTransitionToSchemaThroughPath(
-        PathNode? path,
-        string schemaName)
+    private IEnumerable<MutableObjectTypeDefinition> FilterPossibleTypesByProvidedSelectionSet(
+        IEnumerable<MutableObjectTypeDefinition> possibleTypes,
+        SelectionSetNode selectionSet)
     {
-        for (var node = path; node is not null; node = node.Parent)
+        HashSet<string>? providedTypeNames = null;
+
+        CollectRootTypeConditions(selectionSet, ref providedTypeNames);
+
+        if (providedTypeNames is null)
         {
-            var lookupDirectives =
-                _schema.GetPossibleFusionLookupDirectives(
-                    node.Item.Type,
-                    schemaName);
-
-            var hasLookups = lookupDirectives.Count > 0;
-            var fieldExists = node.Item.Field.ExistsInSchema(schemaName);
-
-            if (hasLookups && fieldExists)
-            {
-                return true;
-            }
-
-            if (!fieldExists)
-            {
-                return false;
-            }
+            return possibleTypes;
         }
 
-        return true;
+        return possibleTypes.Where(t => providedTypeNames.Contains(t.Name));
+    }
+
+    private void CollectRootTypeConditions(
+        SelectionSetNode selectionSet,
+        ref HashSet<string>? providedTypeNames)
+    {
+        foreach (var selection in selectionSet.Selections)
+        {
+            if (selection is not InlineFragmentNode inlineFragment)
+            {
+                continue;
+            }
+
+            if (inlineFragment.TypeCondition is { } typeCondition)
+            {
+                if (!_schema.Types.TryGetType(typeCondition.Name.Value, out var type))
+                {
+                    continue;
+                }
+
+                providedTypeNames ??= [];
+
+                foreach (var possibleType in _schema.GetPossibleTypes(type))
+                {
+                    providedTypeNames.Add(possibleType.Name);
+                }
+            }
+            else
+            {
+                CollectRootTypeConditions(inlineFragment.SelectionSet, ref providedTypeNames);
+            }
+        }
     }
 
     private static IType CreateType(ITypeNode typeNode, ITypeDefinition namedType)

@@ -47,6 +47,7 @@ internal sealed class ActivityDataLoaderDiagnosticListener(
         {
             activity.SetStatus(ActivityStatusCode.Error);
             activity.AddException(error);
+            activity.SetErrorType(error);
 
             enricher.EnrichBatchDispatchError(error, activity);
         }
@@ -58,7 +59,7 @@ internal sealed class ActivityDataLoaderDiagnosticListener(
             "BatchEvaluated",
             tags: new ActivityTagsCollection
             {
-                { "openBatches", openBatches }
+                { "graphql.dataloader.batches.open", openBatches }
             }));
     }
 
@@ -68,7 +69,7 @@ internal sealed class ActivityDataLoaderDiagnosticListener(
             "BatchDispatched",
             tags: new ActivityTagsCollection
             {
-                { "dispatchedBatches", dispatchedBatches }
+                { "graphql.dataloader.batches.dispatched", dispatchedBatches }
             }));
     }
 }

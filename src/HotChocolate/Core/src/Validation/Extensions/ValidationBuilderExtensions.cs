@@ -9,13 +9,13 @@ namespace Microsoft.Extensions.DependencyInjection;
 /// <summary>
 /// Extension methods for configuring an <see cref="DocumentValidatorBuilder"/>
 /// </summary>
-public static partial class HotChocolateValidationBuilderExtensions
+public static class HotChocolateValidationBuilderExtensions
 {
     /// <summary>
     /// Every argument provided to a field or directive must be defined
     /// in the set of possible arguments of that field or directive.
     ///
-    /// https://spec.graphql.org/June2018/#sec-Argument-Names
+    /// https://spec.graphql.org/September2025/#sec-Argument-Names
     ///
     /// AND
     ///
@@ -25,7 +25,7 @@ public static partial class HotChocolateValidationBuilderExtensions
     /// More than one argument with the same name in an argument set
     /// is ambiguous and invalid.
     ///
-    /// https://spec.graphql.org/June2018/#sec-Argument-Uniqueness
+    /// https://spec.graphql.org/September2025/#sec-Argument-Uniqueness
     ///
     /// AND
     ///
@@ -33,7 +33,7 @@ public static partial class HotChocolateValidationBuilderExtensions
     /// type is non‐null and does not have a default value. Otherwise,
     /// the argument is optional.
     ///
-    /// https://spec.graphql.org/June2018/#sec-Required-Arguments
+    /// https://spec.graphql.org/September2025/#sec-Required-Arguments
     /// </summary>
     public static DocumentValidatorBuilder AddArgumentRules(
         this DocumentValidatorBuilder builder)
@@ -46,7 +46,7 @@ public static partial class HotChocolateValidationBuilderExtensions
     /// For each usage of a directive, the directive must be available
     /// on that server.
     ///
-    /// https://spec.graphql.org/June2018/#sec-Directives-Are-Defined
+    /// https://spec.graphql.org/September2025/#sec-Directives-Are-Defined
     ///
     /// AND
     ///
@@ -56,7 +56,7 @@ public static partial class HotChocolateValidationBuilderExtensions
     /// For each usage of a directive, the directive must be used in a
     /// location that the server has declared support for.
     ///
-    /// https://spec.graphql.org/June2018/#sec-Directives-Are-In-Valid-Locations
+    /// https://spec.graphql.org/September2025/#sec-Directives-Are-in-Valid-Locations
     ///
     /// AND
     ///
@@ -67,7 +67,7 @@ public static partial class HotChocolateValidationBuilderExtensions
     /// same name is used, the expected metadata or behavior becomes ambiguous,
     /// therefore only one of each directive is allowed per location.
     ///
-    /// https://spec.graphql.org/draft/#sec-Directives-Are-Unique-Per-Location
+    /// https://spec.graphql.org/September2025/#sec-Directives-Are-Unique-per-Location
     /// </summary>
     public static DocumentValidatorBuilder AddDirectiveRules(
         this DocumentValidatorBuilder builder)
@@ -88,7 +88,7 @@ public static partial class HotChocolateValidationBuilderExtensions
     /// GraphQL documents not intended to be directly executed may
     /// include TypeSystemDefinition.
     ///
-    /// https://spec.graphql.org/June2018/#sec-Executable-Definitions
+    /// https://spec.graphql.org/September2025/#sec-Executable-Definitions
     /// </summary>
     public static DocumentValidatorBuilder AddDocumentRules(
         this DocumentValidatorBuilder builder)
@@ -100,7 +100,7 @@ public static partial class HotChocolateValidationBuilderExtensions
     /// The target field of a field selection must be defined on the scoped
     /// type of the selection set. There are no limitations on alias names.
     ///
-    /// https://spec.graphql.org/June2018/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types
+    /// https://spec.graphql.org/September2025/#sec-Field-Selections
     ///
     /// AND
     ///
@@ -111,7 +111,7 @@ public static partial class HotChocolateValidationBuilderExtensions
     /// must be of type scalar or enum. Leaf selections on objects,
     /// interfaces, and unions without subfields are disallowed.
     ///
-    /// https://spec.graphql.org/June2018/#sec-Leaf-Field-Selections
+    /// https://spec.graphql.org/September2025/#sec-Leaf-Field-Selections
     /// </summary>
     public static DocumentValidatorBuilder AddFieldRules(
         this DocumentValidatorBuilder builder)
@@ -119,7 +119,7 @@ public static partial class HotChocolateValidationBuilderExtensions
         return builder
             .AddRule<FieldSelectionsRule>()
             .AddRule<LeafFieldSelectionsRule>()
-            .AddRule<OverlappingFieldsCanBeMergedRule>();
+            .AddRule((_, o) => new OverlappingFieldsCanBeMergedRule(o.MaxAllowedFieldMergeComparisons));
     }
 
     /// <summary>
@@ -127,13 +127,13 @@ public static partial class HotChocolateValidationBuilderExtensions
     /// To avoid ambiguity, each fragment’s name must be unique within a
     /// document.
     ///
-    /// https://spec.graphql.org/June2018/#sec-Fragment-Name-Uniqueness
+    /// https://spec.graphql.org/September2025/#sec-Fragment-Name-Uniqueness
     ///
     /// AND
     ///
     /// Defined fragments must be used within a document.
     ///
-    /// https://spec.graphql.org/June2018/#sec-Fragments-Must-Be-Used
+    /// https://spec.graphql.org/September2025/#sec-Fragments-Must-Be-Used
     ///
     /// AND
     ///
@@ -142,7 +142,7 @@ public static partial class HotChocolateValidationBuilderExtensions
     /// They can only be applied on non‐leaf fields.
     /// This rule applies to both inline and named fragments.
     ///
-    /// https://spec.graphql.org/June2018/#sec-Fragments-On-Composite-Types
+    /// https://spec.graphql.org/September2025/#sec-Fragments-on-Object-Interface-or-Union-Types
     ///
     /// AND
     ///
@@ -154,7 +154,7 @@ public static partial class HotChocolateValidationBuilderExtensions
     /// A fragment spread is only valid if its type condition could ever
     /// apply within the parent type.
     ///
-    /// https://spec.graphql.org/June2018/#sec-Fragment-spread-is-possible
+    /// https://spec.graphql.org/September2025/#sec-Fragment-Spread-Is-Possible
     ///
     /// AND
     ///
@@ -163,7 +163,7 @@ public static partial class HotChocolateValidationBuilderExtensions
     ///
     /// It is a validation error if the target of a spread is not defined.
     ///
-    /// https://spec.graphql.org/June2018/#sec-Fragment-spread-target-defined
+    /// https://spec.graphql.org/September2025/#sec-Fragment-Spread-Target-Defined
     ///
     /// AND
     ///
@@ -171,7 +171,7 @@ public static partial class HotChocolateValidationBuilderExtensions
     /// spreading itself. Otherwise, an operation could infinitely spread or
     /// infinitely execute on cycles in the underlying data.
     ///
-    /// https://spec.graphql.org/June2018/#sec-Fragment-spreads-must-not-form-cycles
+    /// https://spec.graphql.org/September2025/#sec-Fragment-Spreads-Must-Not-Form-Cycles
     ///
     /// AND
     ///
@@ -179,7 +179,7 @@ public static partial class HotChocolateValidationBuilderExtensions
     /// This applies for both named and inline fragments.
     /// If they are not defined in the schema, the query does not validate.
     ///
-    /// https://spec.graphql.org/June2018/#sec-Fragment-Spread-Type-Existence
+    /// https://spec.graphql.org/September2025/#sec-Fragment-Spread-Type-Existence
     /// </summary>
     public static DocumentValidatorBuilder AddFragmentRules(
         this DocumentValidatorBuilder builder)
@@ -191,7 +191,7 @@ public static partial class HotChocolateValidationBuilderExtensions
     /// Every input field provided in an input object value must be defined in
     /// the set of possible fields of that input object’s expected type.
     ///
-    /// https://spec.graphql.org/June2018/#sec-Input-Object-Field-Names
+    /// https://spec.graphql.org/September2025/#sec-Input-Object-Field-Names
     ///
     /// AND
     ///
@@ -199,7 +199,7 @@ public static partial class HotChocolateValidationBuilderExtensions
     /// otherwise an ambiguity would exist which includes an ignored portion
     /// of syntax.
     ///
-    /// https://spec.graphql.org/June2018/#sec-Input-Object-Field-Uniqueness
+    /// https://spec.graphql.org/September2025/#sec-Input-Object-Field-Uniqueness
     ///
     /// AND
     ///
@@ -209,7 +209,7 @@ public static partial class HotChocolateValidationBuilderExtensions
     /// An input field is required if it has a non‐null type and does not have
     /// a default value. Otherwise, the input object field is optional.
     ///
-    /// https://spec.graphql.org/June2018/#sec-Input-Object-Required-Fields
+    /// https://spec.graphql.org/September2025/#sec-Input-Object-Required-Fields
     ///
     /// AND
     ///
@@ -217,7 +217,7 @@ public static partial class HotChocolateValidationBuilderExtensions
     /// they are found as per the coercion rules defined in the Type System
     /// chapter.
     ///
-    /// https://spec.graphql.org/June2018/#sec-Values-of-Correct-Type
+    /// https://spec.graphql.org/September2025/#sec-Values-of-Correct-Type
     /// </summary>
     public static DocumentValidatorBuilder AddValueRules(
         this DocumentValidatorBuilder builder)
@@ -230,14 +230,14 @@ public static partial class HotChocolateValidationBuilderExtensions
     /// it is ambiguous and invalid. It is invalid even if the type of the
     /// duplicate variable is the same.
     ///
-    /// https://spec.graphql.org/June2018/#sec-Validation.Variables
+    /// https://spec.graphql.org/September2025/#sec-Validation.Variables
     ///
     /// AND
     ///
     /// Variables can only be input types. Objects,
     /// unions, and interfaces cannot be used as inputs.
     ///
-    /// https://spec.graphql.org/June2018/#sec-Variables-Are-Input-Types
+    /// https://spec.graphql.org/September2025/#sec-Variables-Are-Input-Types
     ///
     /// AND
     ///
@@ -246,7 +246,7 @@ public static partial class HotChocolateValidationBuilderExtensions
     ///
     /// Unused variables cause a validation error.
     ///
-    /// https://spec.graphql.org/June2018/#sec-All-Variables-Used
+    /// https://spec.graphql.org/September2025/#sec-All-Variables-Used
     ///
     /// AND
     ///
@@ -254,7 +254,7 @@ public static partial class HotChocolateValidationBuilderExtensions
     /// any variable used within the context of an operation must be defined
     /// at the top level of that operation
     ///
-    /// https://spec.graphql.org/June2018/#sec-All-Variable-Uses-Defined
+    /// https://spec.graphql.org/September2025/#sec-All-Variable-Uses-Defined
     ///
     /// AND
     ///
@@ -265,7 +265,7 @@ public static partial class HotChocolateValidationBuilderExtensions
     /// of types that are complete mismatches, or if a nullable type in a
     ///  variable is passed to a non‐null argument type.
     ///
-    /// https://spec.graphql.org/June2018/#sec-All-Variable-Usages-are-Allowed
+    /// https://spec.graphql.org/September2025/#sec-All-Variable-Usages-Are-Allowed
     /// </summary>
     public static DocumentValidatorBuilder AddVariableRules(
         this DocumentValidatorBuilder builder)
@@ -277,20 +277,20 @@ public static partial class HotChocolateValidationBuilderExtensions
     /// GraphQL allows a short‐hand form for defining query operations
     /// when only that one operation exists in the document.
     ///
-    /// https://spec.graphql.org/June2018/#sec-Lone-Anonymous-Operation
+    /// https://spec.graphql.org/September2025/#sec-Lone-Anonymous-Operation
     ///
     /// AND
     ///
     /// Each named operation definition must be unique within a document
     /// when referred to by its name.
     ///
-    /// https://spec.graphql.org/June2018/#sec-Operation-Name-Uniqueness
+    /// https://spec.graphql.org/September2025/#sec-Operation-Name-Uniqueness
     ///
     /// AND
     ///
     /// Subscription operations must have exactly one root field.
     ///
-    /// https://spec.graphql.org/June2018/#sec-Single-root-field
+    /// https://spec.graphql.org/September2025/#sec-Single-Root-Field
     /// </summary>
     public static DocumentValidatorBuilder AddOperationRules(
         this DocumentValidatorBuilder builder)

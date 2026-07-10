@@ -1,5 +1,4 @@
 using ChilliCream.Nitro.Client;
-using ChilliCream.Nitro.Client.Apis;
 using Moq;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Apis;
@@ -29,8 +28,8 @@ public sealed class CreateApiCommandTests(NitroCommandFixture fixture) : ApisCom
               --name <name>                        The name of the API [env: NITRO_API_NAME]
               --workspace-id <workspace-id>        The ID of the workspace [env: NITRO_WORKSPACE_ID]
               --kind <collection|gateway|service>  The kind of the API [env: NITRO_API_KIND]
-              --cloud-url <cloud-url>              The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL] [default: api.chillicream.com]
-              --api-key <api-key>                  The API key used for authentication [env: NITRO_API_KEY]
+              --cloud-url <cloud-url>              The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL]
+              --api-key <api-key>                  The API key or PAT used for authentication [env: NITRO_API_KEY]
               --output <json>                      The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
               -?, -h, --help                       Show help and usage information
 
@@ -63,7 +62,7 @@ public sealed class CreateApiCommandTests(NitroCommandFixture fixture) : ApisCom
         // assert
         result.AssertError(
             """
-            This command requires an authenticated user. Either specify '--api-key' or run 'nitro login'.
+            This command requires an authenticated user. Either specify '--api-key' or run `nitro login`.
             """);
     }
 
@@ -88,7 +87,7 @@ public sealed class CreateApiCommandTests(NitroCommandFixture fixture) : ApisCom
         // assert
         result.AssertError(
             """
-            You are not logged in. Run `[bold blue]nitro login[/]` to sign in or manually specify the '--workspace-id' option (if available).
+            Could not determine workspace. Either login via `nitro login` or specify the '--workspace-id' option.
             """);
     }
 
@@ -353,7 +352,7 @@ public sealed class CreateApiCommandTests(NitroCommandFixture fixture) : ApisCom
         command.Input(ApiName);
         command.Input("/products");
 
-        var result = await command.RunToCompletionAsync();
+        var result = await command.RunToCompletionAsync(TestContext.Current.CancellationToken);
 
         // assert
         result.AssertSuccess();
@@ -379,7 +378,7 @@ public sealed class CreateApiCommandTests(NitroCommandFixture fixture) : ApisCom
         // act
         command.Input("/products");
 
-        var result = await command.RunToCompletionAsync();
+        var result = await command.RunToCompletionAsync(TestContext.Current.CancellationToken);
 
         // assert
         result.AssertSuccess();
@@ -475,6 +474,28 @@ public sealed class CreateApiCommandTests(NitroCommandFixture fixture) : ApisCom
               }
             }
             """);
+    }
+
+    [Theory]
+    [InlineData("products")]
+    [InlineData("C:/Program Files/Git/test")]
+    public async Task Create_Should_ReturnError_When_PathDoesNotStartWithSlash(string path)
+    {
+        // arrange
+        SetupSessionWithWorkspace();
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "api",
+            "create",
+            "--name",
+            ApiName,
+            "--path",
+            path);
+
+        // assert
+        result.AssertError(
+            $"The path '{path}' is invalid. It must start with '/'.");
     }
 
     [Fact]

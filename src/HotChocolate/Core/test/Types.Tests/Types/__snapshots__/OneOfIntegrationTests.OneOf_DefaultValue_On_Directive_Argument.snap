@@ -12,6 +12,3 @@ input DefaultValueInput @oneOf {
 }
 
 directive @defaultValue(value: DefaultValueInput) on FIELD_DEFINITION
-
-"The `@oneOf` directive is used within the type system definition language to indicate that an Input Object is a OneOf Input Object."
-directive @oneOf on INPUT_OBJECT

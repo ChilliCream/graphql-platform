@@ -7,6 +7,7 @@ using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using HotChocolate.AspNetCore.Utilities;
+using HotChocolate.Serialization;
 using HotChocolate.Transport.Formatters;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Net.Http.Headers;
@@ -24,6 +25,7 @@ namespace HotChocolate.AspNetCore.Formatters;
 public class DefaultHttpResponseFormatter : IHttpResponseFormatter
 {
     private readonly ConcurrentDictionary<string, CachedSchemaOutput> _schemaCache = new(StringComparer.Ordinal);
+    private readonly ConcurrentDictionary<string, CachedSemanticNonNullSchemaOutput> _semanticNonNullSchemaCache = new(StringComparer.Ordinal);
     private readonly ITimeProvider _timeProvider;
     private readonly FormatInfo _defaultFormat;
     private readonly FormatInfo _graphqlResponseFormat;
@@ -32,6 +34,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
     private readonly FormatInfo _eventStreamFormat;
     private readonly FormatInfo _jsonLinesFormat;
     private readonly FormatInfo _legacyFormat;
+    private readonly bool _isLegacyTransport;
     private readonly IncrementalDeliveryFormat _incrementalDeliveryDefaultFormat;
 
     /// <summary>
@@ -120,7 +123,8 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
             ContentType.JsonLines,
             ResponseContentType.JsonLines,
             jsonLinesResultFormatter);
-        _defaultFormat = options.HttpTransportVersion is HttpTransportVersion.Legacy
+        _isLegacyTransport = options.HttpTransportVersion is HttpTransportVersion.Legacy;
+        _defaultFormat = _isLegacyTransport
             ? _legacyFormat
             : _graphqlResponseFormat;
 
@@ -344,6 +348,40 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
             => new(schema, version, _timeProvider.UtcNow);
     }
 
+    public async ValueTask FormatSemanticNonNullSchemaAsync(
+        HttpResponse response,
+        ISchemaDefinition schema,
+        ulong version,
+        CancellationToken cancellationToken)
+    {
+        var output = _semanticNonNullSchemaCache.GetOrAdd(schema.Name, Update);
+
+        if (output.Version < version)
+        {
+            lock (_semanticNonNullSchemaCache)
+            {
+                if (!_semanticNonNullSchemaCache.TryGetValue(schema.Name, out output)
+                    || output.Version < version)
+                {
+                    _semanticNonNullSchemaCache[schema.Name] = output = Update(schema.Name);
+                }
+            }
+        }
+
+        var memory = output.AsMemory();
+        response.ContentType = ContentType.GraphQL;
+        response.Headers.SetContentDisposition(output.FileName);
+        response.Headers.ETag = output.ETag;
+        response.Headers.LastModified = output.LastModified;
+        response.Headers.CacheControl = "public, max-age=3600, must-revalidate";
+        response.Headers.ContentLength = memory.Length;
+        await response.Body.WriteAsync(memory, cancellationToken);
+        return;
+
+        CachedSemanticNonNullSchemaOutput Update(string _)
+            => new(schema, version, _timeProvider.UtcNow);
+    }
+
     /// <summary>
     /// Determines which status code shall be returned for this result.
     /// </summary>
@@ -364,11 +402,23 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
         FormatInfo format,
         HttpStatusCode? proposedStatusCode)
     {
-        // the current spec proposal strongly recommends to always return OK
-        // when using the legacy application/json response content-type.
         if (format.Kind is ResponseContentType.Json)
         {
-            return HttpStatusCode.OK;
+            // the legacy transport preserves the pre-spec behavior of always returning
+            // 200 for the application/json response content-type.
+            if (_isLegacyTransport)
+            {
+                return HttpStatusCode.OK;
+            }
+
+            // per graphql-over-http §6.4.1, the application/json response content-type
+            // should return 200 for every well-formed request regardless of errors
+            // raised. the only 4xx is 400 for requests the server cannot interpret
+            // (§6.4.1.1.1 JSON parse, §6.4.1.1.2 invalid parameters). honor a proposed
+            // 400; everything else, including an unexpected 500, stays 200.
+            return proposedStatusCode is HttpStatusCode.BadRequest
+                ? HttpStatusCode.BadRequest
+                : HttpStatusCode.OK;
         }
 
         // if we are sending a single result with the multipart/mixed header or
@@ -835,7 +885,57 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
 
         public CachedSchemaOutput(ISchemaDefinition schema, ulong version, DateTimeOffset lastModifiedTime)
         {
-            _schema = Encoding.UTF8.GetBytes(schema.ToString());
+            _schema = Encoding.UTF8.GetBytes(
+                SchemaFormatter.FormatAsString(
+                    schema,
+                    new SchemaFormatterOptions
+                    {
+                        IncludeInternalDirectives = false
+                    }));
+            FileName = GetSchemaFileName(schema);
+            ETag = CreateETag(_schema, version);
+            LastModified = lastModifiedTime.ToString("R");
+            Version = version;
+        }
+
+        public string FileName { get; }
+
+        public string ETag { get; }
+
+        public ulong Version { get; }
+
+        public string LastModified { get; }
+
+        public ReadOnlyMemory<byte> AsMemory() => _schema;
+
+        private static string CreateETag(byte[] schema, ulong version)
+        {
+            Span<byte> hashBytes = stackalloc byte[32];
+            SHA256.HashData(schema, hashBytes);
+            var hash = Convert.ToBase64String(hashBytes);
+            return $"\"{version}-{hash}\"";
+        }
+
+        private static string GetSchemaFileName(ISchemaDefinition schema)
+            => schema.Name.Equals(ISchemaDefinition.DefaultName, StringComparison.OrdinalIgnoreCase)
+                ? "schema.graphql"
+                : schema.Name + ".schema.graphql";
+    }
+
+    private sealed class CachedSemanticNonNullSchemaOutput
+    {
+        private readonly byte[] _schema;
+
+        public CachedSemanticNonNullSchemaOutput(ISchemaDefinition schema, ulong version, DateTimeOffset lastModifiedTime)
+        {
+            _schema = Encoding.UTF8.GetBytes(
+                SchemaFormatter.FormatAsString(
+                    schema,
+                    new SchemaFormatterOptions
+                    {
+                        IncludeInternalDirectives = false,
+                        RewriteToSemanticNonNull = true
+                    }));
             FileName = GetSchemaFileName(schema);
             ETag = CreateETag(_schema, version);
             LastModified = lastModifiedTime.ToString("R");

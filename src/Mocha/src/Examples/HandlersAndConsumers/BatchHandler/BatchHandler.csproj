@@ -2,6 +2,6 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\Mocha\Mocha.csproj" />
     <ProjectReference Include="..\..\..\Mocha.Transport.InMemory\Mocha.Transport.InMemory.csproj" />
-      <ProjectReference Include="..\..\..\Mocha.Hosting\Mocha.Hosting.csproj" />
+    <ProjectReference Include="..\..\..\Mocha.Hosting\Mocha.Hosting.csproj" />
   </ItemGroup>
 </Project>

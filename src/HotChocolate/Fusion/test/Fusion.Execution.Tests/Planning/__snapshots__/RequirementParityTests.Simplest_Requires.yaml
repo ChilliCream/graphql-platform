@@ -25,10 +25,7 @@ nodes:
     type: Operation
     schema: inventory
     operation: |
-      query Op_123456789101112_2(
-        $__fusion_1_upc: String!
-          $__fusion_2_price: Int
-      ) {
+      query Op_123456789101112_2($__fusion_1_upc: String!, $__fusion_2_price: Int) {
         productByUpc(upc: $__fusion_1_upc) {
           isExpensive(price: $__fusion_2_price)
         }

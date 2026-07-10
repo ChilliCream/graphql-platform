@@ -1,9 +1,7 @@
 title: Root_Skip_On_Field
 request:
   document: |
-    query testQuery(
-      $skip: Boolean!
-    ) {
+    query testQuery($skip: Boolean!) {
       productBySlug(slug: "product") @skip(if: $skip) {
         name
       }
@@ -24,20 +22,18 @@ sourceSchemas:
         query: Query
       }
 
+      type Query {
+        productBySlug(slug: String!): Product
+      }
+
       type Product {
         id: ID!
         name: String!
       }
-
-      type Query {
-        productBySlug(slug: String!): Product
-      }
 operationPlan:
   operation:
     - document: |
-        query testQuery(
-          $skip: Boolean!
-        ) {
+        query testQuery($skip: Boolean!) {
           productBySlug(slug: "product") @skip(if: $skip) {
             name
           }

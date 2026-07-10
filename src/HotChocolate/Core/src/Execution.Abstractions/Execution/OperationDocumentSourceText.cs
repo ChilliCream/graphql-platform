@@ -5,7 +5,7 @@ namespace HotChocolate.Execution;
 /// <summary>
 /// Represents a GraphQL operation document source texts that needs parsing before it can be executed.
 /// </summary>
-/// <param name="sourceText"></param>
+/// <param name="sourceText">The GraphQL operation document source text.</param>
 public sealed class OperationDocumentSourceText(string sourceText) : IOperationDocument
 {
     /// <summary>

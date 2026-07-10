@@ -106,10 +106,7 @@ public sealed class PostgresNotificationListener : IAsyncDisposable
         }
         finally
         {
-            if (_connection is not null)
-            {
-                _connection.Notification -= OnNotification;
-            }
+            _connection?.Notification -= OnNotification;
         }
     }
 

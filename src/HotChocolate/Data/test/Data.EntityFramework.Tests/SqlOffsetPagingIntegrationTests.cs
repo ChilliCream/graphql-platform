@@ -30,7 +30,8 @@ public class SqlOffsetPagingIntegrationTests : SqlLiteOffsetTestBase
                         hasPreviousPage
                     }
                 }
-            }");
+            }",
+            Xunit.TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -54,7 +55,8 @@ public class SqlOffsetPagingIntegrationTests : SqlLiteOffsetTestBase
                         hasPreviousPage
                     }
                 }
-            }");
+            }",
+            Xunit.TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -78,7 +80,8 @@ public class SqlOffsetPagingIntegrationTests : SqlLiteOffsetTestBase
                         hasPreviousPage
                     }
                 }
-            }");
+            }",
+            Xunit.TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -102,7 +105,8 @@ public class SqlOffsetPagingIntegrationTests : SqlLiteOffsetTestBase
                         hasPreviousPage
                     }
                 }
-            }");
+            }",
+            Xunit.TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -126,7 +130,8 @@ public class SqlOffsetPagingIntegrationTests : SqlLiteOffsetTestBase
                         hasPreviousPage
                     }
                 }
-            }");
+            }",
+            Xunit.TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -150,7 +155,8 @@ public class SqlOffsetPagingIntegrationTests : SqlLiteOffsetTestBase
                         hasPreviousPage
                     }
                 }
-            }");
+            }",
+            Xunit.TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -174,7 +180,8 @@ public class SqlOffsetPagingIntegrationTests : SqlLiteOffsetTestBase
                         hasPreviousPage
                     }
                 }
-            }");
+            }",
+            Xunit.TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -198,7 +205,8 @@ public class SqlOffsetPagingIntegrationTests : SqlLiteOffsetTestBase
                         hasPreviousPage
                     }
                 }
-            }");
+            }",
+            Xunit.TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -222,7 +230,8 @@ public class SqlOffsetPagingIntegrationTests : SqlLiteOffsetTestBase
                         hasPreviousPage
                     }
                 }
-            }");
+            }",
+            Xunit.TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -240,7 +249,8 @@ public class SqlOffsetPagingIntegrationTests : SqlLiteOffsetTestBase
                 root {
                     totalCount
                 }
-            }");
+            }",
+            Xunit.TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();

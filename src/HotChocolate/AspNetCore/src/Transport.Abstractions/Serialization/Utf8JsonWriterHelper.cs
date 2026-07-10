@@ -337,6 +337,10 @@ internal static class Utf8JsonWriterHelper
                 writer.WriteStringValue(s);
                 break;
 
+            case sbyte sb:
+                writer.WriteNumberValue(sb);
+                break;
+
             case byte b:
                 writer.WriteNumberValue(b);
                 break;

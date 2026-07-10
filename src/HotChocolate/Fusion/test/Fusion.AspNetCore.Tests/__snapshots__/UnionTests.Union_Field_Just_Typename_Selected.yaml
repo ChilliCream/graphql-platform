@@ -22,6 +22,10 @@ sourceSchemas:
         query: Query
       }
 
+      type Query {
+        post: Post
+      }
+
       type Discussion {
         id: ID!
         title: String
@@ -30,10 +34,6 @@ sourceSchemas:
       type Photo {
         id: ID!
         imageUrl: String!
-      }
-
-      type Query {
-        post: Post
       }
 
       union Post = Photo | Discussion

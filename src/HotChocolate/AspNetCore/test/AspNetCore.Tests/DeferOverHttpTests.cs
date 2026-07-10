@@ -45,13 +45,16 @@ public class DeferOverHttpTests(TestServerFactory serverFactory) : ServerTestBas
             request.Headers.Add("Accept", acceptHeader);
         }
 
-        using var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
+        using var response = await client.SendAsync(
+            request,
+            HttpCompletionOption.ResponseHeadersRead,
+            TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Equal("multipart/mixed", response.Content.Headers.ContentType?.MediaType);
 
-        var content = await response.Content.ReadAsStringAsync();
+        var content = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
 
         Snapshot
             .Create()
@@ -98,13 +101,16 @@ public class DeferOverHttpTests(TestServerFactory serverFactory) : ServerTestBas
         });
         request.Headers.Add("Accept", acceptHeader);
 
-        using var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
+        using var response = await client.SendAsync(
+            request,
+            HttpCompletionOption.ResponseHeadersRead,
+            TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Equal("multipart/mixed", response.Content.Headers.ContentType?.MediaType);
 
-        var content = await response.Content.ReadAsStringAsync();
+        var content = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
 
         Snapshot
             .Create()
@@ -151,13 +157,16 @@ public class DeferOverHttpTests(TestServerFactory serverFactory) : ServerTestBas
         });
         request.Headers.Add("Accept", acceptHeader);
 
-        using var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
+        using var response = await client.SendAsync(
+            request,
+            HttpCompletionOption.ResponseHeadersRead,
+            TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Equal("multipart/mixed", response.Content.Headers.ContentType?.MediaType);
 
-        var content = await response.Content.ReadAsStringAsync();
+        var content = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
 
         Snapshot
             .Create()
@@ -204,13 +213,16 @@ public class DeferOverHttpTests(TestServerFactory serverFactory) : ServerTestBas
         });
         request.Headers.Add("Accept", acceptHeader);
 
-        using var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
+        using var response = await client.SendAsync(
+            request,
+            HttpCompletionOption.ResponseHeadersRead,
+            TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Equal("text/event-stream", response.Content.Headers.ContentType?.MediaType);
 
-        var content = await response.Content.ReadAsStringAsync();
+        var content = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
 
         Snapshot
             .Create()
@@ -256,13 +268,16 @@ public class DeferOverHttpTests(TestServerFactory serverFactory) : ServerTestBas
         });
         request.Headers.Add("Accept", acceptHeader);
 
-        using var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
+        using var response = await client.SendAsync(
+            request,
+            HttpCompletionOption.ResponseHeadersRead,
+            TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Equal("multipart/mixed", response.Content.Headers.ContentType?.MediaType);
 
-        var content = await response.Content.ReadAsStringAsync();
+        var content = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
 
         Snapshot
             .Create()
@@ -309,13 +324,16 @@ public class DeferOverHttpTests(TestServerFactory serverFactory) : ServerTestBas
         });
         request.Headers.Add("Accept", acceptHeader);
 
-        using var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
+        using var response = await client.SendAsync(
+            request,
+            HttpCompletionOption.ResponseHeadersRead,
+            TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Equal("text/event-stream", response.Content.Headers.ContentType?.MediaType);
 
-        var content = await response.Content.ReadAsStringAsync();
+        var content = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
 
         Snapshot
             .Create()
@@ -358,13 +376,16 @@ public class DeferOverHttpTests(TestServerFactory serverFactory) : ServerTestBas
         });
         request.Headers.Add("Accept", "text/event-stream; incrementalSpec=v0.1");
 
-        using var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
+        using var response = await client.SendAsync(
+            request,
+            HttpCompletionOption.ResponseHeadersRead,
+            TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Equal("text/event-stream", response.Content.Headers.ContentType?.MediaType);
 
-        var content = await response.Content.ReadAsStringAsync();
+        var content = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
 
         Snapshot
             .Create()
@@ -409,13 +430,16 @@ public class DeferOverHttpTests(TestServerFactory serverFactory) : ServerTestBas
         });
         request.Headers.Add("Accept", acceptHeader);
 
-        using var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
+        using var response = await client.SendAsync(
+            request,
+            HttpCompletionOption.ResponseHeadersRead,
+            TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Equal("text/event-stream", response.Content.Headers.ContentType?.MediaType);
 
-        var content = await response.Content.ReadAsStringAsync();
+        var content = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
 
         Snapshot
             .Create()
@@ -460,13 +484,16 @@ public class DeferOverHttpTests(TestServerFactory serverFactory) : ServerTestBas
         });
         request.Headers.Add("Accept", acceptHeader);
 
-        using var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
+        using var response = await client.SendAsync(
+            request,
+            HttpCompletionOption.ResponseHeadersRead,
+            TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Equal("text/event-stream", response.Content.Headers.ContentType?.MediaType);
 
-        var content = await response.Content.ReadAsStringAsync();
+        var content = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
 
         Snapshot
             .Create()
@@ -509,13 +536,16 @@ public class DeferOverHttpTests(TestServerFactory serverFactory) : ServerTestBas
         });
         request.Headers.Add("Accept", "multipart/mixed; incrementalSpec=v0.1");
 
-        using var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
+        using var response = await client.SendAsync(
+            request,
+            HttpCompletionOption.ResponseHeadersRead,
+            TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Equal("multipart/mixed", response.Content.Headers.ContentType?.MediaType);
 
-        var content = await response.Content.ReadAsStringAsync();
+        var content = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
 
         Snapshot
             .Create()
@@ -570,13 +600,16 @@ public class DeferOverHttpTests(TestServerFactory serverFactory) : ServerTestBas
             request.Headers.Add("Accept", acceptHeader);
         }
 
-        using var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
+        using var response = await client.SendAsync(
+            request,
+            HttpCompletionOption.ResponseHeadersRead,
+            TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Equal("multipart/mixed", response.Content.Headers.ContentType?.MediaType);
 
-        var content = await response.Content.ReadAsStringAsync();
+        var content = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
 
         Snapshot
             .Create()
@@ -631,7 +664,10 @@ public class DeferOverHttpTests(TestServerFactory serverFactory) : ServerTestBas
             request.Headers.Add("Accept", acceptHeader);
         }
 
-        using var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
+        using var response = await client.SendAsync(
+            request,
+            HttpCompletionOption.ResponseHeadersRead,
+            TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -639,7 +675,7 @@ public class DeferOverHttpTests(TestServerFactory serverFactory) : ServerTestBas
         // When defer is disabled, should get a regular JSON response, not multipart
         Assert.Equal("application/graphql-response+json", response.Content.Headers.ContentType?.MediaType);
 
-        var content = await response.Content.ReadAsStringAsync();
+        var content = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
 
         Snapshot
             .Create()
@@ -674,7 +710,10 @@ public class DeferOverHttpTests(TestServerFactory serverFactory) : ServerTestBas
         });
         request.Headers.Add("Accept", "application/graphql-response+json");
 
-        using var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
+        using var response = await client.SendAsync(
+            request,
+            HttpCompletionOption.ResponseHeadersRead,
+            TestContext.Current.CancellationToken);
 
         // assert
         // Should reject the request since we have a deferred result but
@@ -682,7 +721,7 @@ public class DeferOverHttpTests(TestServerFactory serverFactory) : ServerTestBas
         Assert.Equal(HttpStatusCode.MethodNotAllowed, response.StatusCode);
         Assert.Equal("application/graphql-response+json", response.Content.Headers.ContentType?.MediaType);
 
-        var content = await response.Content.ReadAsStringAsync();
+        var content = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
 
         Snapshot
             .Create()
@@ -727,13 +766,16 @@ public class DeferOverHttpTests(TestServerFactory serverFactory) : ServerTestBas
             request.Headers.Add("Accept", acceptHeader);
         }
 
-        using var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
+        using var response = await client.SendAsync(
+            request,
+            HttpCompletionOption.ResponseHeadersRead,
+            TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Equal("multipart/mixed", response.Content.Headers.ContentType?.MediaType);
 
-        var content = await response.Content.ReadAsStringAsync();
+        var content = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
 
         Snapshot
             .Create()
@@ -789,13 +831,16 @@ public class DeferOverHttpTests(TestServerFactory serverFactory) : ServerTestBas
             request.Headers.Add("Accept", acceptHeader);
         }
 
-        using var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
+        using var response = await client.SendAsync(
+            request,
+            HttpCompletionOption.ResponseHeadersRead,
+            TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Equal("multipart/mixed", response.Content.Headers.ContentType?.MediaType);
 
-        var content = await response.Content.ReadAsStringAsync();
+        var content = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
 
         Snapshot
             .Create()
@@ -849,7 +894,10 @@ public class DeferOverHttpTests(TestServerFactory serverFactory) : ServerTestBas
             request.Headers.Add("Accept", acceptHeader);
         }
 
-        using var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
+        using var response = await client.SendAsync(
+            request,
+            HttpCompletionOption.ResponseHeadersRead,
+            TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -857,7 +905,7 @@ public class DeferOverHttpTests(TestServerFactory serverFactory) : ServerTestBas
         // When defer is disabled, should get a regular JSON response
         Assert.Equal("application/graphql-response+json", response.Content.Headers.ContentType?.MediaType);
 
-        var content = await response.Content.ReadAsStringAsync();
+        var content = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
 
         Snapshot
             .Create()
@@ -894,13 +942,16 @@ public class DeferOverHttpTests(TestServerFactory serverFactory) : ServerTestBas
         });
         request.Headers.Add("Accept", acceptHeader);
 
-        using var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
+        using var response = await client.SendAsync(
+            request,
+            HttpCompletionOption.ResponseHeadersRead,
+            TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Equal("application/jsonl", response.Content.Headers.ContentType?.MediaType);
 
-        var content = await response.Content.ReadAsStringAsync();
+        var content = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
 
         Snapshot
             .Create()
@@ -939,13 +990,16 @@ public class DeferOverHttpTests(TestServerFactory serverFactory) : ServerTestBas
         });
         request.Headers.Add("Accept", acceptHeader);
 
-        using var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
+        using var response = await client.SendAsync(
+            request,
+            HttpCompletionOption.ResponseHeadersRead,
+            TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Equal("application/jsonl", response.Content.Headers.ContentType?.MediaType);
 
-        var content = await response.Content.ReadAsStringAsync();
+        var content = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
 
         Snapshot
             .Create()
@@ -982,13 +1036,16 @@ public class DeferOverHttpTests(TestServerFactory serverFactory) : ServerTestBas
         });
         request.Headers.Add("Accept", "application/jsonl; incrementalSpec=v0.1");
 
-        using var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
+        using var response = await client.SendAsync(
+            request,
+            HttpCompletionOption.ResponseHeadersRead,
+            TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Equal("application/jsonl", response.Content.Headers.ContentType?.MediaType);
 
-        var content = await response.Content.ReadAsStringAsync();
+        var content = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
 
         Snapshot
             .Create()
@@ -1027,13 +1084,16 @@ public class DeferOverHttpTests(TestServerFactory serverFactory) : ServerTestBas
         });
         request.Headers.Add("Accept", acceptHeader);
 
-        using var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
+        using var response = await client.SendAsync(
+            request,
+            HttpCompletionOption.ResponseHeadersRead,
+            TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Equal("application/jsonl", response.Content.Headers.ContentType?.MediaType);
 
-        var content = await response.Content.ReadAsStringAsync();
+        var content = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
 
         Snapshot
             .Create()
@@ -1072,13 +1132,16 @@ public class DeferOverHttpTests(TestServerFactory serverFactory) : ServerTestBas
         });
         request.Headers.Add("Accept", acceptHeader);
 
-        using var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
+        using var response = await client.SendAsync(
+            request,
+            HttpCompletionOption.ResponseHeadersRead,
+            TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Equal("application/jsonl", response.Content.Headers.ContentType?.MediaType);
 
-        var content = await response.Content.ReadAsStringAsync();
+        var content = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
 
         Snapshot
             .Create()
@@ -1106,7 +1169,6 @@ public class DeferOverHttpTests(TestServerFactory serverFactory) : ServerTestBas
                 {
                     product {
                         name
-                        description
                     }
                     ... @defer(label: "foo") {
                         product {
@@ -1122,13 +1184,16 @@ public class DeferOverHttpTests(TestServerFactory serverFactory) : ServerTestBas
         });
         request.Headers.Add("Accept", "multipart/mixed; incrementalSpec=v0.1");
 
-        using var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
+        using var response = await client.SendAsync(
+            request,
+            HttpCompletionOption.ResponseHeadersRead,
+            TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Equal("multipart/mixed", response.Content.Headers.ContentType?.MediaType);
 
-        var content = await response.Content.ReadAsStringAsync();
+        var content = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
 
         Snapshot
             .Create()
@@ -1139,7 +1204,7 @@ public class DeferOverHttpTests(TestServerFactory serverFactory) : ServerTestBas
                 ---
                 Content-Type: application/json; charset=utf-8
 
-                {"data":{"product":{"name":"Abc","description":"Abc desc"}},"hasNext":true}
+                {"data":{"product":{"name":"Abc"}},"hasNext":true}
                 ---
                 Content-Type: application/json; charset=utf-8
 
@@ -1164,7 +1229,6 @@ public class DeferOverHttpTests(TestServerFactory serverFactory) : ServerTestBas
                 {
                     product {
                         name
-                        description
                     }
                     ... @defer(label: "foo") {
                         product {
@@ -1180,16 +1244,19 @@ public class DeferOverHttpTests(TestServerFactory serverFactory) : ServerTestBas
         });
         request.Headers.Add("Accept", "text/event-stream; incrementalSpec=v0.1");
 
-        using var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
+        using var response = await client.SendAsync(
+            request,
+            HttpCompletionOption.ResponseHeadersRead,
+            TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Equal("text/event-stream", response.Content.Headers.ContentType?.MediaType);
 
-        var content = await response.Content.ReadAsStringAsync();
+        var content = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
 
         Assert.Contains(
-            "\"data\":{\"product\":{\"name\":\"Abc\",\"description\":\"Abc desc\"}}",
+            "\"data\":{\"product\":{\"name\":\"Abc\"}},\"hasNext\":true",
             content,
             StringComparison.Ordinal);
         Assert.Contains(
@@ -1214,7 +1281,6 @@ public class DeferOverHttpTests(TestServerFactory serverFactory) : ServerTestBas
                 {
                     product {
                         name
-                        description
                     }
                     ... @defer(label: "foo") {
                         product {
@@ -1230,20 +1296,23 @@ public class DeferOverHttpTests(TestServerFactory serverFactory) : ServerTestBas
         });
         request.Headers.Add("Accept", "application/jsonl; incrementalSpec=v0.1");
 
-        using var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
+        using var response = await client.SendAsync(
+            request,
+            HttpCompletionOption.ResponseHeadersRead,
+            TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Equal("application/jsonl", response.Content.Headers.ContentType?.MediaType);
 
-        var content = await response.Content.ReadAsStringAsync();
+        var content = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
 
         Snapshot
             .Create()
             .Add(content, "Response")
             .MatchInline(
                 """
-                {"data":{"product":{"name":"Abc","description":"Abc desc"}},"hasNext":true}
+                {"data":{"product":{"name":"Abc"}},"hasNext":true}
                 {"incremental":[{"data":{"product":{"name":"Abc","description":"Abc desc","reviews":[{"rating":5}]}},"path":[],"label":"foo"}],"hasNext":false}
 
                 """);
@@ -1277,13 +1346,16 @@ public class DeferOverHttpTests(TestServerFactory serverFactory) : ServerTestBas
         });
         request.Headers.Add("Accept", "multipart/mixed; incrementalSpec=v0.1");
 
-        using var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
+        using var response = await client.SendAsync(
+            request,
+            HttpCompletionOption.ResponseHeadersRead,
+            TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Equal("multipart/mixed", response.Content.Headers.ContentType?.MediaType);
 
-        var content = await response.Content.ReadAsStringAsync();
+        var content = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
 
         Assert.Contains("\"label\":\"a\"", content, StringComparison.Ordinal);
         Assert.Contains("\"label\":\"b\"", content, StringComparison.Ordinal);

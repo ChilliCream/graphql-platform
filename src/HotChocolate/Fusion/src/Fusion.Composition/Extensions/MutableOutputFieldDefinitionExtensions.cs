@@ -60,6 +60,49 @@ internal static class MutableOutputFieldDefinitionExtensions
             return null;
         }
 
+        public ImmutableArray<string> GetFusionEventStreamSchemaNames()
+        {
+            ImmutableArray<string>.Builder? builder = null;
+
+            foreach (var directive in field.Directives.AsEnumerable())
+            {
+                if (directive.Name != DirectiveNames.FusionEventStream)
+                {
+                    continue;
+                }
+
+                builder ??= ImmutableArray.CreateBuilder<string>();
+                builder.Add((string)directive.Arguments[ArgumentNames.Schema].Value!);
+            }
+
+            return builder?.ToImmutable() ?? [];
+        }
+
+        public SelectionSetNode? GetFusionEventStreamMessage(string schemaName)
+        {
+            var fusionEventStreamDirective =
+                field.Directives.AsEnumerable().FirstOrDefault(
+                    d =>
+                        d.Name == DirectiveNames.FusionEventStream
+                        && (string)d.Arguments[ArgumentNames.Schema].Value! == schemaName);
+
+            if (fusionEventStreamDirective?.Arguments.TryGetValue(ArgumentNames.Message, out var message) == true)
+            {
+                var selectionSet = ParseSelectionSet((string)message.Value!);
+
+                if (fusionEventStreamDirective.Arguments.TryGetValue(ArgumentNames.CursorField, out var cursorField)
+                    && cursorField.Value is string cursorFieldName)
+                {
+                    return selectionSet.WithSelections(
+                        [.. selectionSet.Selections, new FieldNode(cursorFieldName)]);
+                }
+
+                return selectionSet;
+            }
+
+            return null;
+        }
+
         public List<string> GetFusionLookupMap()
         {
             var items = new List<string>();

@@ -43,6 +43,10 @@ sourceSchemas:
         query: Query
       }
 
+      type Query {
+        postEdges: [PostEdge]
+      }
+
       type Discussion {
         id: ID!
         subgraph1: String
@@ -54,10 +58,6 @@ sourceSchemas:
 
       type PostEdge {
         node: Post
-      }
-
-      type Query {
-        postEdges: [PostEdge]
       }
 
       union Post = Photo | Discussion
@@ -111,21 +111,19 @@ sourceSchemas:
         query: Query
       }
 
+      type Query {
+        photoById(id: ID!): Photo @lookup
+      }
+
       type Photo {
         id: ID!
         subgraph2: String!
-      }
-
-      type Query {
-        photoById(id: ID!): Photo @lookup
       }
     interactions:
       - request:
           accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
           document: |
-            query testQuery_30e5fe2d_2(
-              $__fusion_1_id: ID!
-            ) {
+            query testQuery_30e5fe2d_2($__fusion_1_id: ID!) {
               photoById(id: $__fusion_1_id) {
                 subgraph2
               }
@@ -212,9 +210,7 @@ operationPlan:
       type: Operation
       schema: B
       operation: |
-        query testQuery_30e5fe2d_2(
-          $__fusion_1_id: ID!
-        ) {
+        query testQuery_30e5fe2d_2($__fusion_1_id: ID!) {
           photoById(id: $__fusion_1_id) {
             subgraph2
           }

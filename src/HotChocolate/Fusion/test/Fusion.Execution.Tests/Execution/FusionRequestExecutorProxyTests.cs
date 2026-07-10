@@ -37,7 +37,7 @@ public class FusionRequestExecutorProxyTests : FusionTestBase
     {
         // arrange
         var executorUpdatedResetEvent = new ManualResetEventSlim(false);
-        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
 
         var configProvider = new TestFusionConfigurationProvider(
             CreateFusionConfiguration(

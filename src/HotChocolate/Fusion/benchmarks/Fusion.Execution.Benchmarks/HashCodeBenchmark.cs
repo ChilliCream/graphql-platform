@@ -10,7 +10,7 @@ namespace Fusion.Execution.Benchmarks;
 [InProcess]
 public class HashCodeBenchmark
 {
-    private byte[] _data = null!;
+    private byte[] _data;
 
     [Params(8, 16, 24, 32, 48, 64, 96, 128, 256, 512)]
     public int Size { get; set; }

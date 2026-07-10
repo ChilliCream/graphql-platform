@@ -19,7 +19,9 @@ internal static class FusionBuiltIns
     public const string UnionMember = "fusion__unionMember";
     public const string EnumValue = "fusion__enumValue";
     public const string Inaccessible = "fusion__inaccessible";
+    public const string GatewayField = "fusion__gateway_field";
     public const string SchemaMetadata = "fusion__schema_metadata";
+    public const string EventStream = "fusion__eventStream";
 
     public static bool IsBuiltInType(string typeName)
         => typeName.StartsWith(Prefix, StringComparison.Ordinal);

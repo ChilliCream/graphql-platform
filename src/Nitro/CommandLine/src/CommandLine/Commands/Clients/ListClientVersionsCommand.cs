@@ -1,7 +1,6 @@
 using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.Client.Apis;
 using ChilliCream.Nitro.Client.Clients;
-using ChilliCream.Nitro.CommandLine;
 using ChilliCream.Nitro.CommandLine.Commands.Clients.Components;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Results;
@@ -63,7 +62,7 @@ internal sealed class ListClientVersionsCommand : Command
         if (clientId is null)
         {
             var apiId = await console.GetOrPromptForApiIdAsync(
-                "For which API do you want to list client versions?",
+                Prompts.SelectApiForListClientVersions,
                 parseResult, apisClient, sessionService, ct);
 
             var selectedClient = await SelectClientPrompt
@@ -78,8 +77,7 @@ internal sealed class ListClientVersionsCommand : Command
             .CreateConnectionData(async (after, first, cancellationToken) =>
             {
                 var page = await client.ListClientVersionsAsync(
-                    clientId, after ?? cursor, first, cancellationToken)
-                    ?? throw ThereWasAnIssueWithTheRequest("The client was not found.");
+                    clientId, after ?? cursor, first, cancellationToken);
 
                 return new ConnectionPage<ClientVersionResult>(
                     page.Items.Select(ToResult).ToArray(),
@@ -111,14 +109,9 @@ internal sealed class ListClientVersionsCommand : Command
         string? cursor,
         CancellationToken ct)
     {
-        var clientId = parseResult.GetValue(Opt<OptionalClientIdOption>.Instance);
-        if (clientId is null)
-        {
-            throw MissingRequiredOption("--client-id");
-        }
+        var clientId = parseResult.GetRequiredOptionalValue(Opt<OptionalClientIdOption>.Instance);
 
-        var page = await client.ListClientVersionsAsync(clientId, cursor, 10, ct)
-            ?? throw ThereWasAnIssueWithTheRequest("The client was not found.");
+        var page = await client.ListClientVersionsAsync(clientId, cursor, 10, ct);
 
         var items = page.Items
             .Select(ToResult)

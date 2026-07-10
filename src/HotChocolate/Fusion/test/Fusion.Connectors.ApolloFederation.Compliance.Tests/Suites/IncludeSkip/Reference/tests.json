@@ -1,0 +1,34 @@
+[
+  {
+    "query": "query ($bool: Boolean = false) {\n  product {\n    price\n    neverCalledInclude @include(if: $bool)\n  }\n}\n",
+    "expected": {
+      "data": {
+        "product": { "price": 699.99 }
+      }
+    }
+  },
+  {
+    "query": "query ($bool: Boolean = true) {\n  product {\n    price\n    neverCalledSkip @skip(if: $bool)\n  }\n}\n",
+    "expected": {
+      "data": {
+        "product": { "price": 699.99 }
+      }
+    }
+  },
+  {
+    "query": "query ($bool: Boolean = true) {\n  product {\n    price\n    include @include(if: $bool)\n  }\n}\n",
+    "expected": {
+      "data": {
+        "product": { "price": 699.99, "include": true }
+      }
+    }
+  },
+  {
+    "query": "query ($bool: Boolean = false) {\n  product {\n    price\n    skip @skip(if: $bool)\n  }\n}\n",
+    "expected": {
+      "data": {
+        "product": { "price": 699.99, "skip": true }
+      }
+    }
+  }
+]

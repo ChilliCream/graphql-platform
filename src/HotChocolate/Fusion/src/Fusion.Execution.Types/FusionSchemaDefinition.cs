@@ -20,8 +20,10 @@ public sealed class FusionSchemaDefinition : ISchemaDefinition, IAsyncDisposable
     private readonly object _lock = new();
 #endif
     private readonly ConcurrentDictionary<string, ImmutableArray<FusionObjectTypeDefinition>> _possibleTypes = new();
+    private readonly ConcurrentDictionary<string, ImmutableArray<FusionObjectTypeDefinition>> _possibleTypesWithInaccessible = new();
     private readonly ConcurrentDictionary<(string, string?), ImmutableArray<Lookup>> _possibleLookups = new();
     private readonly IServiceProvider _services;
+    private readonly ImmutableDictionary<string, SourceSchemaInfo> _sourceSchemaLookup;
     private PlannerTopologyCache? _plannerTopologyCache;
     private ImmutableArray<FusionUnionTypeDefinition> _unionTypes;
     private IFeatureCollection _features;
@@ -38,7 +40,8 @@ public sealed class FusionSchemaDefinition : ISchemaDefinition, IAsyncDisposable
         FusionDirectiveCollection directives,
         FusionTypeDefinitionCollection types,
         FusionDirectiveDefinitionCollection directiveDefinitions,
-        IFeatureCollection features)
+        IFeatureCollection features,
+        ImmutableDictionary<string, SourceSchemaInfo> sourceSchemaLookup)
     {
         Name = name;
         Description = description;
@@ -50,6 +53,7 @@ public sealed class FusionSchemaDefinition : ISchemaDefinition, IAsyncDisposable
         Types = types;
         DirectiveDefinitions = directiveDefinitions;
         _features = features;
+        _sourceSchemaLookup = sourceSchemaLookup;
     }
 
     public static FusionSchemaDefinition Create(
@@ -136,6 +140,32 @@ public sealed class FusionSchemaDefinition : ISchemaDefinition, IAsyncDisposable
 
     public IFeatureCollection Features => _features;
 
+    /// <summary>
+    /// Gets the connector kind declared by the specified source schema.
+    /// </summary>
+    /// <param name="sourceSchemaName">The source schema name.</param>
+    /// <returns>
+    /// The connector kind (for example <c>"ApolloFederation"</c>) declared via
+    /// <c>@fusion__schema_metadata(kind:)</c> on the corresponding <c>fusion__Schema</c>
+    /// enum value, or <see langword="null"/> if the source schema has no
+    /// connector kind associated with it. Callers that want to default
+    /// treat <see langword="null"/> as <c>"GraphQL"</c>.
+    /// </returns>
+    public string? GetSourceSchemaConnectorKind(string sourceSchemaName)
+    {
+        ArgumentException.ThrowIfNullOrEmpty(sourceSchemaName);
+
+        foreach (var info in _sourceSchemaLookup.Values)
+        {
+            if (string.Equals(info.Name, sourceSchemaName, StringComparison.Ordinal))
+            {
+                return info.ConnectorKind;
+            }
+        }
+
+        return null;
+    }
+
     public FusionObjectTypeDefinition GetOperationType(OperationType operation)
     {
         var type = operation switch
@@ -191,11 +221,17 @@ public sealed class FusionSchemaDefinition : ISchemaDefinition, IAsyncDisposable
     /// an abstract type (union type or interface type).
     /// </summary>
     /// <param name="abstractType">The abstract type.</param>
+    /// <param name="includeInaccessible">
+    /// When true, inaccessible object types are included. Otherwise only publicly accessible possible
+    /// types are returned.
+    /// </param>
     /// <returns>
     /// Returns a collection with all possible object types
     /// for the given abstract type.
     /// </returns>
-    public ImmutableArray<FusionObjectTypeDefinition> GetPossibleTypes(ITypeDefinition abstractType)
+    public ImmutableArray<FusionObjectTypeDefinition> GetPossibleTypes(
+        ITypeDefinition abstractType,
+        bool includeInaccessible = false)
     {
         if (abstractType.Kind is not TypeKind.Union and not TypeKind.Interface and not TypeKind.Object)
         {
@@ -204,14 +240,16 @@ public sealed class FusionSchemaDefinition : ISchemaDefinition, IAsyncDisposable
                 nameof(abstractType));
         }
 
-        if (!_possibleTypes.TryGetValue(abstractType.Name, out var possibleTypes))
+        var cache = includeInaccessible ? _possibleTypesWithInaccessible : _possibleTypes;
+
+        if (!cache.TryGetValue(abstractType.Name, out var possibleTypes))
         {
             lock (_lock)
             {
-                if (!_possibleTypes.TryGetValue(abstractType.Name, out possibleTypes))
+                if (!cache.TryGetValue(abstractType.Name, out possibleTypes))
                 {
-                    possibleTypes = BuildPossibleTypes(abstractType, Types);
-                    _possibleTypes.TryAdd(abstractType.Name, possibleTypes);
+                    possibleTypes = BuildPossibleTypes(abstractType, Types, includeInaccessible);
+                    cache.TryAdd(abstractType.Name, possibleTypes);
                 }
             }
         }
@@ -220,18 +258,19 @@ public sealed class FusionSchemaDefinition : ISchemaDefinition, IAsyncDisposable
 
         static ImmutableArray<FusionObjectTypeDefinition> BuildPossibleTypes(
             ITypeDefinition abstractType,
-            FusionTypeDefinitionCollection types)
+            FusionTypeDefinitionCollection types,
+            bool includeInaccessible)
         {
             if (abstractType is FusionUnionTypeDefinition unionType)
             {
-                return [.. unionType.Types.AsEnumerable().OrderBy(t => t.Name, StringComparer.Ordinal)];
+                return [.. unionType.Types.AsEnumerable(includeInaccessible).OrderBy(t => t.Name, StringComparer.Ordinal)];
             }
 
             if (abstractType is FusionInterfaceTypeDefinition interfaceType)
             {
                 var builder = ImmutableArray.CreateBuilder<FusionObjectTypeDefinition>();
 
-                foreach (var type in types)
+                foreach (var type in types.AsEnumerable(includeInaccessible))
                 {
                     if (type is FusionObjectTypeDefinition obj && obj.Implements.ContainsName(interfaceType.Name))
                     {
@@ -395,8 +434,10 @@ public sealed class FusionSchemaDefinition : ISchemaDefinition, IAsyncDisposable
     }
 
     /// <summary>
-    /// Tries to get the best direct lookup to transition from one schema to another without intermediary transitions.
-    /// The best lookup algorithm will try to find the smallest possible key that does not require any intermediary transitions.
+    /// Tries to get the best direct lookup to transition from one schema
+    /// to another without intermediary transitions.
+    /// The best lookup algorithm will try to find the smallest possible key that does not
+    /// require any intermediary transitions.
     /// </summary>
     /// <param name="type">The type to get the best direct lookup for.</param>
     /// <param name="fromSchemas">The schemas to get the best direct lookup from.</param>
@@ -413,7 +454,7 @@ public sealed class FusionSchemaDefinition : ISchemaDefinition, IAsyncDisposable
         ArgumentNullException.ThrowIfNull(fromSchemas);
         ArgumentException.ThrowIfNullOrEmpty(toSchema);
 
-        foreach (var fromSchema in fromSchemas)
+        foreach (var fromSchema in fromSchemas.OrderBy(static t => t, StringComparer.Ordinal))
         {
             if (TryGetBestDirectLookup(type, fromSchema, toSchema, out lookup))
             {
@@ -501,7 +542,7 @@ public sealed class FusionSchemaDefinition : ISchemaDefinition, IAsyncDisposable
         => SchemaFormatter.FormatAsDocument(this);
 
     ISyntaxNode ISyntaxNodeProvider.ToSyntaxNode()
-        => SchemaFormatter.FormatAsDocument(this);
+        => ToSyntaxNode();
 
     public async ValueTask DisposeAsync()
     {

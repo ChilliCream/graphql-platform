@@ -15,5 +15,5 @@ public class QueryableListSomeOperationHandler : QueryableListOperationHandlerBa
         LambdaExpression lambda) =>
         FilterExpressionBuilder.Any(closureType, context.GetInstance(), lambda);
 
-    public static QueryableListSomeOperationHandler Create(FilterProviderContext context) => new();
+    public static QueryableListSomeOperationHandler Create(FilterProviderContext _) => new();
 }

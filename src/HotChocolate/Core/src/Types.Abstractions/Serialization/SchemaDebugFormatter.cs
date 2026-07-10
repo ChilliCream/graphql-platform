@@ -67,7 +67,22 @@ public static class SchemaDebugFormatter
             type.Directives.Select(Format).ToArray());
 
     public static DirectiveDefinitionNode Format(IDirectiveDefinition directiveDefinition)
-        => new DirectiveDefinitionNode(
+    {
+        var directives = directiveDefinition.Directives.Select(Format).ToList();
+
+        if (directiveDefinition.IsDeprecated)
+        {
+            var deprecatedDirective = new DirectiveNode(
+                DirectiveNames.Deprecated.Name,
+                new ArgumentNode(
+                    DirectiveNames.Deprecated.Arguments.Reason,
+                    directiveDefinition.DeprecationReason
+                        ?? DirectiveNames.Deprecated.Arguments.DefaultReason));
+
+            directives.Insert(0, deprecatedDirective);
+        }
+
+        return new DirectiveDefinitionNode(
             null,
             new NameNode(directiveDefinition.Name),
             directiveDefinition.Description is null
@@ -75,7 +90,9 @@ public static class SchemaDebugFormatter
                 : new StringValueNode(directiveDefinition.Description),
             directiveDefinition.IsRepeatable,
             directiveDefinition.Arguments.Select(Format).ToArray(),
+            directives,
             DirectiveLocationUtils.AsEnumerable(directiveDefinition.Locations).Select(Format).ToArray());
+    }
 
     public static FieldDefinitionNode Format(IOutputFieldDefinition field)
     {

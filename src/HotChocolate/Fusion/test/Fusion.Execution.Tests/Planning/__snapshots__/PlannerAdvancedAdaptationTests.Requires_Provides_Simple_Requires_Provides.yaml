@@ -33,9 +33,7 @@ nodes:
     type: Operation
     schema: reviews
     operation: |
-      query Op_123456789101112_2(
-        $__fusion_1_id: ID!
-      ) {
+      query Op_123456789101112_2($__fusion_1_id: ID!) {
         userById(id: $__fusion_1_id) {
           reviews {
             id
@@ -61,9 +59,7 @@ nodes:
     type: Operation
     schema: inventory
     operation: |
-      query Op_123456789101112_3(
-        $__fusion_2_upc: String!
-      ) {
+      query Op_123456789101112_3($__fusion_2_upc: String!) {
         productByUpc(upc: $__fusion_2_upc) {
           inStock
         }

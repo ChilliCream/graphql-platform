@@ -1,0 +1,22 @@
+using HotChocolate.ApolloFederation.Types;
+using HotChocolate.Types;
+
+namespace HotChocolate.Fusion.Suites.ParentEntityCall.B;
+
+/// <summary>
+/// Root <c>Query</c> placeholder for the <c>b</c> subgraph. The audit's
+/// SDL exposes no user-facing root fields on <c>b</c>; HotChocolate still
+/// requires a <c>Query</c> type so the Apollo Federation interceptor can
+/// attach <c>_service</c> and <c>_entities</c>.
+/// <see cref="ApolloFederationObjectTypeDescriptorExtensions.ExtendServiceType"/>
+/// marks this type as extending the federated <c>Query</c>.
+/// </summary>
+public sealed class QueryType : ObjectType
+{
+    protected override void Configure(IObjectTypeDescriptor descriptor)
+    {
+        descriptor
+            .ExtendServiceType()
+            .Name(OperationTypeNames.Query);
+    }
+}

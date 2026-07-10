@@ -3,16 +3,12 @@ schema {
   mutation: MutationWithInterfaces
 }
 
-interface Error {
-  message: String!
+type Query {
+  abc: String
 }
 
-interface IInterfaceError {
-  name: String!
-}
-
-interface IInterfaceError2 {
-  name: String!
+type MutationWithInterfaces {
+  doSomething(input: DoSomethingInput!): DoSomethingPayload!
 }
 
 type DoSomethingPayload {
@@ -25,12 +21,16 @@ type ErrorWithInterface implements Error & IInterfaceError & IInterfaceError2 {
   message: String!
 }
 
-type MutationWithInterfaces {
-  doSomething(input: DoSomethingInput!): DoSomethingPayload!
+interface Error {
+  message: String!
 }
 
-type Query {
-  abc: String
+interface IInterfaceError {
+  name: String!
+}
+
+interface IInterfaceError2 {
+  name: String!
 }
 
 union DoSomethingError = ErrorWithInterface

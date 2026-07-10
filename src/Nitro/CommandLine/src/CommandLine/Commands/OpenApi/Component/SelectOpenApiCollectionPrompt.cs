@@ -19,8 +19,7 @@ internal sealed class SelectOpenApiCollectionPrompt(IOpenApiClient client, strin
         CancellationToken cancellationToken)
     {
         var paginationContainer = PaginationContainer.CreateConnectionData(
-            async (after, first, ct) => await client.ListOpenApiCollectionsAsync(apiId, after, first, ct)
-                ?? throw ThrowHelper.ThereWasAnIssueWithTheRequest("The API was not found."));
+            async (after, first, ct) => await client.ListOpenApiCollectionsAsync(apiId, after, first, ct));
 
         return await PagedSelectionPrompt
             .New(paginationContainer)

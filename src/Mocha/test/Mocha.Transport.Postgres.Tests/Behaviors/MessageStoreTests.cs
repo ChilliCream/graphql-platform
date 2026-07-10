@@ -32,14 +32,14 @@ public class MessageStoreTests
 
         // assert
         await using var conn = new NpgsqlConnection(db.ConnectionString);
-        await conn.OpenAsync();
+        await conn.OpenAsync(TestContext.Current.CancellationToken);
         await using var cmd = conn.CreateCommand();
         cmd.CommandText = """
             SELECT COUNT(*) FROM mocha_message m
             JOIN mocha_queue q ON m.queue_id = q.id
             WHERE q.name = 'test-queue'
             """;
-        var count = (long)(await cmd.ExecuteScalarAsync())!;
+        var count = (long)(await cmd.ExecuteScalarAsync(TestContext.Current.CancellationToken))!;
         Assert.Equal(1, count);
 
         await connectionManager.DisposeAsync();
@@ -86,11 +86,11 @@ public class MessageStoreTests
 
         // assert
         await using var conn = new NpgsqlConnection(db.ConnectionString);
-        await conn.OpenAsync();
+        await conn.OpenAsync(TestContext.Current.CancellationToken);
         await using var cmd = conn.CreateCommand();
         cmd.CommandText = "SELECT COUNT(*) FROM mocha_message WHERE transport_message_id = @id";
         cmd.Parameters.AddWithValue("id", messageId);
-        var count = (long)(await cmd.ExecuteScalarAsync())!;
+        var count = (long)(await cmd.ExecuteScalarAsync(TestContext.Current.CancellationToken))!;
         Assert.Equal(0, count);
 
         await connectionManager.DisposeAsync();
@@ -115,11 +115,11 @@ public class MessageStoreTests
 
         // assert - message should be available again (consumer_id cleared)
         await using var conn = new NpgsqlConnection(db.ConnectionString);
-        await conn.OpenAsync();
+        await conn.OpenAsync(TestContext.Current.CancellationToken);
         await using var cmd = conn.CreateCommand();
         cmd.CommandText = "SELECT consumer_id FROM mocha_message WHERE transport_message_id = @id";
         cmd.Parameters.AddWithValue("id", messageId);
-        var result = await cmd.ExecuteScalarAsync();
+        var result = await cmd.ExecuteScalarAsync(TestContext.Current.CancellationToken);
         Assert.True(result is DBNull, "consumer_id should be null after release");
 
         await connectionManager.DisposeAsync();
@@ -146,11 +146,11 @@ public class MessageStoreTests
 
         // assert
         await using var conn = new NpgsqlConnection(db.ConnectionString);
-        await conn.OpenAsync();
+        await conn.OpenAsync(TestContext.Current.CancellationToken);
         await using var cmd = conn.CreateCommand();
         cmd.CommandText = "SELECT error_reason::text FROM mocha_message WHERE transport_message_id = @id";
         cmd.Parameters.AddWithValue("id", messageId);
-        var errorReasonJson = (string?)(await cmd.ExecuteScalarAsync());
+        var errorReasonJson = (string?)(await cmd.ExecuteScalarAsync(TestContext.Current.CancellationToken));
         Assert.NotNull(errorReasonJson);
         Assert.Contains("TestException", errorReasonJson);
         Assert.Contains("Something went wrong", errorReasonJson);
@@ -181,11 +181,11 @@ public class MessageStoreTests
 
         // assert
         await using var conn = new NpgsqlConnection(db.ConnectionString);
-        await conn.OpenAsync();
+        await conn.OpenAsync(TestContext.Current.CancellationToken);
         await using var cmd = conn.CreateCommand();
         cmd.CommandText = "SELECT error_reason::text FROM mocha_message WHERE transport_message_id = @id";
         cmd.Parameters.AddWithValue("id", messageId);
-        var errorReasonJson = (string?)(await cmd.ExecuteScalarAsync());
+        var errorReasonJson = (string?)(await cmd.ExecuteScalarAsync(TestContext.Current.CancellationToken));
         Assert.NotNull(errorReasonJson);
         Assert.Contains("Error1", errorReasonJson);
         Assert.Contains("Error2", errorReasonJson);
@@ -212,10 +212,10 @@ public class MessageStoreTests
 
         // assert
         await using var conn = new NpgsqlConnection(db.ConnectionString);
-        await conn.OpenAsync();
+        await conn.OpenAsync(TestContext.Current.CancellationToken);
         await using var cmd = conn.CreateCommand();
         cmd.CommandText = "SELECT COUNT(*) FROM mocha_message";
-        var count = (long)(await cmd.ExecuteScalarAsync())!;
+        var count = (long)(await cmd.ExecuteScalarAsync(TestContext.Current.CancellationToken))!;
         Assert.Equal(2, count);
 
         await connectionManager.DisposeAsync();
@@ -271,10 +271,10 @@ public class MessageStoreTests
 
         // assert
         await using var conn = new NpgsqlConnection(db.ConnectionString);
-        await conn.OpenAsync();
+        await conn.OpenAsync(TestContext.Current.CancellationToken);
         await using var cmd = conn.CreateCommand();
         cmd.CommandText = "SELECT COUNT(*) FROM mocha_message";
-        var count = (long)(await cmd.ExecuteScalarAsync())!;
+        var count = (long)(await cmd.ExecuteScalarAsync(TestContext.Current.CancellationToken))!;
         Assert.Equal(0, count);
 
         await connectionManager.DisposeAsync();
@@ -321,10 +321,10 @@ public class MessageStoreTests
         // Set max_delivery_count to 1 so first read exceeds it
         await using (var conn = new NpgsqlConnection(db.ConnectionString))
         {
-            await conn.OpenAsync();
+            await conn.OpenAsync(TestContext.Current.CancellationToken);
             await using var cmd = conn.CreateCommand();
             cmd.CommandText = "UPDATE mocha_message SET max_delivery_count = 1";
-            await cmd.ExecuteNonQueryAsync();
+            await cmd.ExecuteNonQueryAsync(TestContext.Current.CancellationToken);
         }
 
         // act
@@ -388,11 +388,11 @@ public class MessageStoreTests
         // Clear the backoff delay so the message is immediately eligible
         await using (var conn = new NpgsqlConnection(db.ConnectionString))
         {
-            await conn.OpenAsync();
+            await conn.OpenAsync(TestContext.Current.CancellationToken);
             await using var cmd = conn.CreateCommand();
             cmd.CommandText = "UPDATE mocha_message SET last_delivered = NULL WHERE transport_message_id = @id";
             cmd.Parameters.AddWithValue("id", messageId);
-            await cmd.ExecuteNonQueryAsync();
+            await cmd.ExecuteNonQueryAsync(TestContext.Current.CancellationToken);
         }
 
         // act - second read
@@ -423,11 +423,11 @@ public class MessageStoreTests
         var scheduledTime = DateTime.UtcNow.AddMinutes(5);
         await using (var conn = new NpgsqlConnection(db.ConnectionString))
         {
-            await conn.OpenAsync();
+            await conn.OpenAsync(TestContext.Current.CancellationToken);
             await using var cmd = conn.CreateCommand();
             cmd.CommandText = "UPDATE mocha_message SET scheduled_time = @time";
             cmd.Parameters.AddWithValue("time", scheduledTime);
-            await cmd.ExecuteNonQueryAsync();
+            await cmd.ExecuteNonQueryAsync(TestContext.Current.CancellationToken);
         }
 
         // act

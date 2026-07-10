@@ -23,7 +23,9 @@ internal static class AspireCompositionHelper
         var environment = settings.EnvironmentName ?? "Aspire";
         var compositionSettings = new CompositionSettings
         {
-            Merger = { EnableGlobalObjectIdentification = settings.EnableGlobalObjectIdentification }
+            Merger = { EnableGlobalObjectIdentification = settings.EnableGlobalObjectIdentification },
+            Satisfiability = { IncludeSatisfiabilityPaths = settings.IncludeSatisfiabilityPaths },
+            Preprocessor = { ExcludeByTag = settings.ExcludeByTag?.ToHashSet() }
         };
         var sourceSchemas = newSourceSchemas.ToDictionary(
             s => s.Name,
@@ -35,6 +37,7 @@ internal static class AspireCompositionHelper
             archive,
             environment,
             compositionSettings,
+            legacyArchive: null,
             cancellationToken);
 
         var output = new StringBuilder();

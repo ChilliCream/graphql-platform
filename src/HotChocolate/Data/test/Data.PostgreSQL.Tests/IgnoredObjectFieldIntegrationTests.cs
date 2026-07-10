@@ -10,6 +10,7 @@ using HotChocolate.Types;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Squadron;
+using static CookieCrumble.TestEnvironment;
 
 namespace HotChocolate.Data;
 
@@ -27,9 +28,10 @@ public sealed class IgnoredObjectFieldIntegrationTests(PostgreSqlResource resour
         await using var scope = services.CreateAsyncScope();
         var context = scope.ServiceProvider.GetRequiredService<CatalogContext>();
         var seeder = scope.ServiceProvider.GetRequiredService<IDbSeeder<CatalogContext>>();
-        await context.Database.EnsureCreatedAsync();
+        await context.Database.EnsureCreatedAsync(TestContext.Current.CancellationToken);
         await seeder.SeedAsync(context);
-        var executor = await services.GetRequiredService<IRequestExecutorProvider>().GetExecutorAsync();
+        var executor = await services.GetRequiredService<IRequestExecutorProvider>().GetExecutorAsync(
+            cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -41,7 +43,8 @@ public sealed class IgnoredObjectFieldIntegrationTests(PostgreSqlResource resour
                     }
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         using var document = JsonDocument.Parse(result.ToJson());
@@ -64,7 +67,7 @@ public sealed class IgnoredObjectFieldIntegrationTests(PostgreSqlResource resour
             interceptor.Queries,
             query => query.Contains("\"Name\"", StringComparison.Ordinal));
 
-        MatchSnapshot(result, interceptor);
+        MatchSnapshot(result, interceptor, Postfix([NET8_0, NET9_0]));
     }
 
     [Fact]
@@ -78,9 +81,10 @@ public sealed class IgnoredObjectFieldIntegrationTests(PostgreSqlResource resour
         await using var scope = services.CreateAsyncScope();
         var context = scope.ServiceProvider.GetRequiredService<CatalogContext>();
         var seeder = scope.ServiceProvider.GetRequiredService<IDbSeeder<CatalogContext>>();
-        await context.Database.EnsureCreatedAsync();
+        await context.Database.EnsureCreatedAsync(TestContext.Current.CancellationToken);
         await seeder.SeedAsync(context);
-        var executor = await services.GetRequiredService<IRequestExecutorProvider>().GetExecutorAsync();
+        var executor = await services.GetRequiredService<IRequestExecutorProvider>().GetExecutorAsync(
+            cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -92,7 +96,8 @@ public sealed class IgnoredObjectFieldIntegrationTests(PostgreSqlResource resour
                     }
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         using var document = JsonDocument.Parse(result.ToJson());
@@ -115,7 +120,7 @@ public sealed class IgnoredObjectFieldIntegrationTests(PostgreSqlResource resour
             interceptor.Queries,
             query => query.Contains("\"Name\"", StringComparison.Ordinal));
 
-        MatchSnapshot(result, interceptor);
+        MatchSnapshot(result, interceptor, Postfix([NET8_0, NET9_0], [NET10_0]));
     }
 
     private static ServiceProvider CreateServer(string connectionString)
@@ -146,9 +151,10 @@ public sealed class IgnoredObjectFieldIntegrationTests(PostgreSqlResource resour
 
     private static void MatchSnapshot(
         IExecutionResult result,
-        TestQueryInterceptor queryInterceptor)
+        TestQueryInterceptor queryInterceptor,
+        string? postfix)
     {
-        var snapshot = Snapshot.Create(postFix: TestEnvironment.TargetFramework);
+        var snapshot = Snapshot.Create(postfix);
 
         snapshot.Add(result.ToJson(), "Result", MarkdownLanguages.Json);
 

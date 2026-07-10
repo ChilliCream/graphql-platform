@@ -1,5 +1,3 @@
-using ChilliCream.Nitro.CommandLine;
-
 namespace ChilliCream.Nitro.CommandLine.Commands.Apis.Options;
 
 internal sealed class ApiKindOption : Option<string>

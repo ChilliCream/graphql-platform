@@ -24,8 +24,8 @@ public sealed class ListClientVersionsCommandTests(NitroCommandFixture fixture) 
             Options:
               --client-id <client-id>  The ID of the client [env: NITRO_CLIENT_ID]
               --cursor <cursor>        The pagination cursor to resume from [env: NITRO_CURSOR]
-              --cloud-url <cloud-url>  The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL] [default: api.chillicream.com]
-              --api-key <api-key>      The API key used for authentication [env: NITRO_API_KEY]
+              --cloud-url <cloud-url>  The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL]
+              --api-key <api-key>      The API key or PAT used for authentication [env: NITRO_API_KEY]
               --output <json>          The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
               -?, -h, --help           Show help and usage information
 
@@ -52,7 +52,7 @@ public sealed class ListClientVersionsCommandTests(NitroCommandFixture fixture) 
         // assert
         result.AssertError(
             """
-            This command requires an authenticated user. Either specify '--api-key' or run 'nitro login'.
+            This command requires an authenticated user. Either specify '--api-key' or run `nitro login`.
             """);
     }
 
@@ -72,7 +72,7 @@ public sealed class ListClientVersionsCommandTests(NitroCommandFixture fixture) 
         // assert
         result.AssertError(
             """
-            The '--client-id' option is required in non-interactive mode.
+            Missing required option '--client-id'.
             """);
     }
 
@@ -167,7 +167,7 @@ public sealed class ListClientVersionsCommandTests(NitroCommandFixture fixture) 
 
         // act
         command.SelectOption(0);
-        var result = await command.RunToCompletionAsync();
+        var result = await command.RunToCompletionAsync(TestContext.Current.CancellationToken);
 
         // assert
         result.AssertSuccess();
@@ -189,7 +189,7 @@ public sealed class ListClientVersionsCommandTests(NitroCommandFixture fixture) 
 
         // act
         command.SelectOption(0);
-        var result = await command.RunToCompletionAsync();
+        var result = await command.RunToCompletionAsync(TestContext.Current.CancellationToken);
 
         // assert
         result.AssertSuccess();
@@ -215,7 +215,7 @@ public sealed class ListClientVersionsCommandTests(NitroCommandFixture fixture) 
 
         // act
         command.SelectOption(0);
-        var result = await command.RunToCompletionAsync();
+        var result = await command.RunToCompletionAsync(TestContext.Current.CancellationToken);
 
         // assert
         result.AssertSuccess();
@@ -303,8 +303,9 @@ public sealed class ListClientVersionsCommandTests(NitroCommandFixture fixture) 
         // assert
         result.AssertError(
             """
-            There was an issue with the request to the server.
             The client was not found.
+            This may mean the entity does not exist, or that you do not have permission to view it.
+            If you are targeting a dedicated or self-hosted instance, make sure you supply the correct '--cloud-url'. Currently targeting 'https://api.chillicream.com'.
             """);
     }
 }

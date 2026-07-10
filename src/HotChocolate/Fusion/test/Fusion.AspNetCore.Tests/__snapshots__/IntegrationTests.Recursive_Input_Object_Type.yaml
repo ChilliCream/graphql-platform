@@ -1,9 +1,7 @@
 title: Recursive_Input_Object_Type
 request:
   document: |
-    query testQuery(
-      $input: RecursiveInput!
-    ) {
+    query testQuery($input: RecursiveInput!) {
       field(input: $input)
     }
   variables: |
@@ -37,9 +35,7 @@ sourceSchemas:
       - request:
           accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
-            query testQuery_4b201a4f_1(
-              $input: RecursiveInput!
-            ) {
+            query testQuery_4b201a4f_1($input: RecursiveInput!) {
               field(input: $input)
             }
           variables: |
@@ -59,9 +55,7 @@ sourceSchemas:
 operationPlan:
   operation:
     - document: |
-        query testQuery(
-          $input: RecursiveInput!
-        ) {
+        query testQuery($input: RecursiveInput!) {
           field(input: $input)
         }
       name: testQuery
@@ -73,9 +67,7 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query testQuery_4b201a4f_1(
-          $input: RecursiveInput!
-        ) {
+        query testQuery_4b201a4f_1($input: RecursiveInput!) {
           field(input: $input)
         }
       forwardedVariables:

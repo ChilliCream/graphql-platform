@@ -31,7 +31,7 @@ public class CompositeResultDocumentTests : FusionTestBase
             """);
 
         // act
-        var compositeResult = new CompositeResultDocument(plan.Operation, 0);
+        var compositeResult = new CompositeResultDocument(CommonTestExtensions.CreateArena(), plan.Operation, 0);
 
         // assert
         Assert.Equal(1, compositeResult.Data.GetPropertyCount());
@@ -63,7 +63,7 @@ public class CompositeResultDocumentTests : FusionTestBase
             }
             """);
 
-        var compositeResult = new CompositeResultDocument(plan.Operation, 0);
+        var compositeResult = new CompositeResultDocument(CommonTestExtensions.CreateArena(), plan.Operation, 0);
         var operation = compositeResult.Data.Operation;
 
         var productBySlug = compositeResult.Data.GetProperty("productBySlug");
@@ -101,7 +101,7 @@ public class CompositeResultDocumentTests : FusionTestBase
             }
             """);
 
-        var compositeResult = new CompositeResultDocument(plan.Operation, 0);
+        var compositeResult = new CompositeResultDocument(CommonTestExtensions.CreateArena(), plan.Operation, 0);
         var operation = compositeResult.Data.Operation;
 
         var productBySlug = compositeResult.Data.GetProperty("productBySlug");
@@ -116,7 +116,7 @@ public class CompositeResultDocumentTests : FusionTestBase
               "name": "Abc"
             }
             """u8.ToArray();
-        var sourceResult = SourceResultDocument.Parse(result, result.Length);
+        var sourceResult = SourceResultDocument.Parse(CommonTestExtensions.CreateArena(), result, result.Length);
 
         // act
         productBySlug.GetProperty("id").SetLeafValue(sourceResult.Root.GetProperty("id"));
@@ -148,7 +148,7 @@ public class CompositeResultDocumentTests : FusionTestBase
             }
             """);
 
-        var compositeResult = new CompositeResultDocument(plan.Operation, 0);
+        var compositeResult = new CompositeResultDocument(CommonTestExtensions.CreateArena(), plan.Operation, 0);
         var operation = compositeResult.Data.Operation;
 
         var productBySlug = compositeResult.Data.GetProperty("productBySlug");
@@ -184,7 +184,7 @@ public class CompositeResultDocumentTests : FusionTestBase
             }
             """);
 
-        var compositeResult = new CompositeResultDocument(plan.Operation, 0);
+        var compositeResult = new CompositeResultDocument(CommonTestExtensions.CreateArena(), plan.Operation, 0);
 
         // act
         compositeResult.Data.Invalidate();
@@ -214,7 +214,7 @@ public class CompositeResultDocumentTests : FusionTestBase
             }
             """);
 
-        var compositeResult = new CompositeResultDocument(plan.Operation, 0);
+        var compositeResult = new CompositeResultDocument(CommonTestExtensions.CreateArena(), plan.Operation, 0);
         var operation = compositeResult.Data.Operation;
 
         var productBySlug = compositeResult.Data.GetProperty("productBySlug");
@@ -230,7 +230,7 @@ public class CompositeResultDocumentTests : FusionTestBase
                 }
                 """u8.ToArray();
 
-        var sourceResult = SourceResultDocument.Parse(result, result.Length);
+        var sourceResult = SourceResultDocument.Parse(CommonTestExtensions.CreateArena(), result, result.Length);
         productBySlug.GetProperty("id").SetLeafValue(sourceResult.Root.GetProperty("id"));
         productBySlug.GetProperty("name").SetLeafValue(sourceResult.Root.GetProperty("name"));
 
@@ -267,7 +267,7 @@ public class CompositeResultDocumentTests : FusionTestBase
             }
             """);
 
-        var compositeResult = new CompositeResultDocument(plan.Operation, 0);
+        var compositeResult = new CompositeResultDocument(CommonTestExtensions.CreateArena(), plan.Operation, 0);
         var operation = compositeResult.Data.Operation;
 
         var users = compositeResult.Data.GetProperty("users");
@@ -289,7 +289,7 @@ public class CompositeResultDocumentTests : FusionTestBase
                 }
                 """u8.ToArray();
 
-        var sourceResult = SourceResultDocument.Parse(result, result.Length);
+        var sourceResult = SourceResultDocument.Parse(CommonTestExtensions.CreateArena(), result, result.Length);
         var i = 0;
 
         // act
@@ -336,7 +336,7 @@ public class CompositeResultDocumentTests : FusionTestBase
             }
             """);
 
-        var compositeResult = new CompositeResultDocument(plan.Operation, 0);
+        var compositeResult = new CompositeResultDocument(CommonTestExtensions.CreateArena(), plan.Operation, 0);
         var operation = compositeResult.Data.Operation;
 
         var productBySlug = compositeResult.Data.GetProperty("productBySlug");
@@ -352,7 +352,7 @@ public class CompositeResultDocumentTests : FusionTestBase
                 }
                 """u8.ToArray();
 
-        var sourceResult = SourceResultDocument.Parse(result, result.Length);
+        var sourceResult = SourceResultDocument.Parse(CommonTestExtensions.CreateArena(), result, result.Length);
         productBySlug.GetProperty("id").SetLeafValue(sourceResult.Root.GetProperty("id"));
         productBySlug.GetProperty("name").SetLeafValue(sourceResult.Root.GetProperty("name"));
 
@@ -381,7 +381,7 @@ public class CompositeResultDocumentTests : FusionTestBase
             }
             """);
 
-        var compositeResult = new CompositeResultDocument(plan.Operation, 0);
+        var compositeResult = new CompositeResultDocument(CommonTestExtensions.CreateArena(), plan.Operation, 0);
         var operation = compositeResult.Data.Operation;
 
         var users = compositeResult.Data.GetProperty("users");
@@ -406,7 +406,7 @@ public class CompositeResultDocumentTests : FusionTestBase
                 }
                 """u8.ToArray();
 
-        var sourceResult = SourceResultDocument.Parse(result, result.Length);
+        var sourceResult = SourceResultDocument.Parse(CommonTestExtensions.CreateArena(), result, result.Length);
         name.SetLeafValue(sourceResult.Root.GetProperty("name"));
 
         // act
@@ -436,7 +436,7 @@ public class CompositeResultDocumentTests : FusionTestBase
             }
             """);
 
-        var compositeResult = new CompositeResultDocument(plan.Operation, 0);
+        var compositeResult = new CompositeResultDocument(CommonTestExtensions.CreateArena(), plan.Operation, 0);
         var operation = compositeResult.Data.Operation;
 
         var users = compositeResult.Data.GetProperty("users");
@@ -458,7 +458,7 @@ public class CompositeResultDocumentTests : FusionTestBase
                 }
                 """u8.ToArray();
 
-        var sourceResult = SourceResultDocument.Parse(result, result.Length);
+        var sourceResult = SourceResultDocument.Parse(CommonTestExtensions.CreateArena(), result, result.Length);
         var i = 0;
 
         foreach (var element in nodes.EnumerateArray())
@@ -502,7 +502,7 @@ public class CompositeResultDocumentTests : FusionTestBase
             }
             """);
 
-        var compositeResult = new CompositeResultDocument(plan.Operation, 0);
+        var compositeResult = new CompositeResultDocument(CommonTestExtensions.CreateArena(), plan.Operation, 0);
         var operation = compositeResult.Data.Operation;
 
         var users = compositeResult.Data.GetProperty("users");
@@ -524,7 +524,7 @@ public class CompositeResultDocumentTests : FusionTestBase
                 }
                 """u8.ToArray();
 
-        var sourceResult = SourceResultDocument.Parse(result, result.Length);
+        var sourceResult = SourceResultDocument.Parse(CommonTestExtensions.CreateArena(), result, result.Length);
         var i = 0;
 
         foreach (var element in nodes.EnumerateArray())
@@ -547,7 +547,7 @@ public class CompositeResultDocumentTests : FusionTestBase
 
         new JsonResultFormatter(indented: true).Format(operationResult, writer);
 
-        await writer.FlushAsync();
+        await writer.FlushAsync(TestContext.Current.CancellationToken);
         await writer.CompleteAsync();
 
         // assert

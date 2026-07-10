@@ -23,14 +23,9 @@ public sealed class SourceSchemaMergerEnumValueTests : SourceSchemaMergerTestBas
                 """
             ],
             """
-            enum Status
-                @fusion__type(schema: A)
-                @fusion__type(schema: B) {
-                ACTIVE
-                    @fusion__enumValue(schema: A)
-                INACTIVE
-                    @fusion__enumValue(schema: B)
-                    @fusion__inaccessible
+            enum Status @fusion__type(schema: A) @fusion__type(schema: B) {
+              ACTIVE @fusion__enumValue(schema: A)
+              INACTIVE @fusion__enumValue(schema: B) @fusion__inaccessible
             }
             """);
     }
@@ -57,13 +52,9 @@ public sealed class SourceSchemaMergerEnumValueTests : SourceSchemaMergerTestBas
                 """
             ],
             """
-            enum Status
-                @fusion__type(schema: A)
-                @fusion__type(schema: B) {
-                "The first non-null description."
-                ACTIVE
-                    @fusion__enumValue(schema: A)
-                    @fusion__enumValue(schema: B)
+            enum Status @fusion__type(schema: A) @fusion__type(schema: B) {
+              "The first non-null description."
+              ACTIVE @fusion__enumValue(schema: A) @fusion__enumValue(schema: B)
             }
             """);
     }
@@ -89,13 +80,11 @@ public sealed class SourceSchemaMergerEnumValueTests : SourceSchemaMergerTestBas
                 """
             ],
             """
-            enum Status
-                @fusion__type(schema: A)
-                @fusion__type(schema: B) {
-                ACTIVE
-                    @fusion__enumValue(schema: A)
-                    @fusion__enumValue(schema: B)
-                    @deprecated(reason: "Some reason")
+            enum Status @fusion__type(schema: A) @fusion__type(schema: B) {
+              ACTIVE
+                @fusion__enumValue(schema: A)
+                @fusion__enumValue(schema: B)
+                @deprecated(reason: "Some reason")
             }
             """);
     }
@@ -121,13 +110,11 @@ public sealed class SourceSchemaMergerEnumValueTests : SourceSchemaMergerTestBas
                 """
             ],
             """
-            enum Status
-                @fusion__type(schema: A)
-                @fusion__type(schema: B) {
-                ACTIVE
-                    @fusion__enumValue(schema: A)
-                    @fusion__enumValue(schema: B)
-                    @deprecated(reason: "Some reason")
+            enum Status @fusion__type(schema: A) @fusion__type(schema: B) {
+              ACTIVE
+                @fusion__enumValue(schema: A)
+                @fusion__enumValue(schema: B)
+                @deprecated(reason: "Some reason")
             }
             """);
     }
@@ -153,13 +140,11 @@ public sealed class SourceSchemaMergerEnumValueTests : SourceSchemaMergerTestBas
                 """
             ],
             """
-            enum Status
-                @fusion__type(schema: A)
-                @fusion__type(schema: B) {
-                ACTIVE
-                    @fusion__enumValue(schema: A)
-                    @fusion__enumValue(schema: B)
-                    @deprecated(reason: "No longer supported.")
+            enum Status @fusion__type(schema: A) @fusion__type(schema: B) {
+              ACTIVE
+                @fusion__enumValue(schema: A)
+                @fusion__enumValue(schema: B)
+                @deprecated(reason: "No longer supported.")
             }
             """);
     }

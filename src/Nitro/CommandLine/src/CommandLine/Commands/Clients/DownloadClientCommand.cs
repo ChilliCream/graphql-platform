@@ -1,10 +1,10 @@
 using System.Text.Json;
+using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.Client.Clients;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Configuration;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
-using static ChilliCream.Nitro.CommandLine.ThrowHelper;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Clients;
 
@@ -54,11 +54,14 @@ internal sealed class DownloadClientCommand : Command
             output = Path.Combine(fileSystem.GetCurrentDirectory(), output);
         }
 
-        var stream = await client.DownloadPersistedQueriesAsync(apiId, stageName, ct);
-
-        if (stream is null)
+        Stream stream;
+        try
         {
-            throw new ExitException($"Could not find a published client on stage '{stageName}'.");
+            stream = await client.DownloadPersistedQueriesAsync(apiId, stageName, ct);
+        }
+        catch (NitroClientNotFoundException ex)
+        {
+            throw new ExitException(ex.Message);
         }
 
         await using (stream)
@@ -153,7 +156,7 @@ internal sealed class DownloadClientCommand : Command
 
 internal sealed class PersistedQueryStreamResult
 {
-    public Guid ApiId { get; init; } = default!;
+    public Guid ApiId { get; init; }
 
     public string[] DocumentIds { get; init; } = default!;
 

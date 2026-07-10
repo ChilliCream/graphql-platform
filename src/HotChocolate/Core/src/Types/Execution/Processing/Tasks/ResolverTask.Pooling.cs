@@ -29,7 +29,7 @@ internal sealed partial class ResolverTask
     /// <summary>
     /// Resets the resolver task before returning it to the pool.
     /// </summary>
-    /// <returns></returns>
+    /// <returns>Always <c>true</c>.</returns>
     internal bool Reset()
     {
         _completionStatus = ExecutionTaskStatus.Completed;

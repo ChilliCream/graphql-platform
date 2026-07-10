@@ -148,16 +148,12 @@ sourceSchemas:
         query: Query
       }
 
-      interface Node {
-        id: ID!
-      }
-
       type Query {
         node(id: ID!): Node @lookup @shareable
         nodes(ids: [ID!]!): [Node]! @shareable
         userById(id: ID!): User!
         users: [User!]!
-        testWithTwoArgumentsDifferingNullability(first: Int! second: Int): String!
+        testWithTwoArgumentsDifferingNullability(first: Int!, second: Int): String!
       }
 
       type User implements Node {
@@ -165,6 +161,10 @@ sourceSchemas:
         name: String!
         username: String!
         birthdate: String!
+      }
+
+      interface Node {
+        id: ID!
       }
     interactions:
       - request:
@@ -200,9 +200,7 @@ sourceSchemas:
       - request:
           accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
           document: |
-            query GetUser_c03cccb0_4(
-              $__fusion_2_id: ID!
-            ) {
+            query GetUser_c03cccb0_4($__fusion_2_id: ID!) {
               node(id: $__fusion_2_id) {
                 __typename
                 ... on User {
@@ -366,20 +364,16 @@ sourceSchemas:
         query: Query
       }
 
-      interface Node {
-        id: ID!
+      type Query {
+        node(id: ID!): Node @lookup @shareable
+        nodes(ids: [ID!]!): [Node]! @shareable
+        reviews: [Review!]!
       }
 
       type Product implements Node {
         id: ID!
         reviews: [Review!]!
         reviewCount: Int!
-      }
-
-      type Query {
-        node(id: ID!): Node @lookup @shareable
-        nodes(ids: [ID!]!): [Node]! @shareable
-        reviews: [Review!]!
       }
 
       type Review implements Node {
@@ -393,6 +387,10 @@ sourceSchemas:
         id: ID!
         reviews: [Review!]!
         errorField: String @error
+      }
+
+      interface Node {
+        id: ID!
       }
     interactions:
       - request:
@@ -462,9 +460,7 @@ sourceSchemas:
       - request:
           accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
           document: |
-            query GetUser_c03cccb0_3(
-              $__fusion_1_id: ID!
-            ) {
+            query GetUser_c03cccb0_3($__fusion_1_id: ID!) {
               node(id: $__fusion_1_id) {
                 __typename
                 ... on User {
@@ -643,9 +639,7 @@ operationPlan:
       type: Operation
       schema: B
       operation: |
-        query GetUser_c03cccb0_3(
-          $__fusion_1_id: ID!
-        ) {
+        query GetUser_c03cccb0_3($__fusion_1_id: ID!) {
           node(id: $__fusion_1_id) {
             __typename
             ... on User {
@@ -670,9 +664,7 @@ operationPlan:
       type: OperationBatch
       schema: A
       operation: |
-        query GetUser_c03cccb0_4(
-          $__fusion_2_id: ID!
-        ) {
+        query GetUser_c03cccb0_4($__fusion_2_id: ID!) {
           node(id: $__fusion_2_id) {
             __typename
             ... on User {

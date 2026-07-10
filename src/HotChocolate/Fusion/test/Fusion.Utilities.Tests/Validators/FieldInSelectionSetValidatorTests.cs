@@ -93,6 +93,13 @@ public sealed class FieldInSelectionSetValidatorTests
                 "B",
                 false
             },
+            // Nested through list (matching type).
+            {
+                "{ a { categories { subCategories { name } } } }",
+                "name",
+                "SubCategory",
+                true
+            },
             // Inline fragment (matching type).
             {
                 "{ a { b { c { ... on D { d } } } } }",
@@ -125,10 +132,19 @@ public sealed class FieldInSelectionSetValidatorTests
 
         type A {
             b: B!
+            categories: [Category]
         }
 
         type B {
             c: C!
+        }
+
+        type Category {
+            subCategories: [SubCategory]
+        }
+
+        type SubCategory {
+            name: String
         }
 
         union C = D | E

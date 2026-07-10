@@ -51,7 +51,8 @@ public class BatchResolverTests
                             greeting
                         }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         result.MatchInlineSnapshot(
@@ -110,7 +111,8 @@ public class BatchResolverTests
                             greeting
                         }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchInlineSnapshot(
             """
@@ -169,7 +171,8 @@ public class BatchResolverTests
                             greeting
                         }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchInlineSnapshot(
             """
@@ -228,7 +231,8 @@ public class BatchResolverTests
                             greeting
                         }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchInlineSnapshot(
             """
@@ -286,7 +290,8 @@ public class BatchResolverTests
                             greeting(prefix: "Hi")
                         }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchInlineSnapshot(
             """
@@ -348,7 +353,8 @@ public class BatchResolverTests
                             }
                             """)
                         .SetGlobalState("prefix", "Hey")
-                        .Build());
+                        .Build(),
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchInlineSnapshot(
             """
@@ -406,7 +412,8 @@ public class BatchResolverTests
                             greeting
                         }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchInlineSnapshot(
             """
@@ -448,7 +455,8 @@ public class BatchResolverTests
                             greeting
                         }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         result.MatchInlineSnapshot(
@@ -490,7 +498,8 @@ public class BatchResolverTests
                             greeting(prefix: "Hi")
                         }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchInlineSnapshot(
             """
@@ -532,7 +541,8 @@ public class BatchResolverTests
                             greeting
                         }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchInlineSnapshot(
             """
@@ -577,7 +587,8 @@ public class BatchResolverTests
                             }
                             """)
                         .SetGlobalState("prefix", "Hey")
-                        .Build());
+                        .Build(),
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchInlineSnapshot(
             """
@@ -633,7 +644,8 @@ public class BatchResolverTests
                             greeting
                         }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchInlineSnapshot(
             """
@@ -674,7 +686,8 @@ public class BatchResolverTests
                             greeting
                         }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchInlineSnapshot(
             """
@@ -733,7 +746,8 @@ public class BatchResolverTests
                             greeting
                         }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchInlineSnapshot(
             """
@@ -792,7 +806,8 @@ public class BatchResolverTests
                             greeting(prefix: "Hi")
                         }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchInlineSnapshot(
             """
@@ -852,7 +867,8 @@ public class BatchResolverTests
                             greeting
                         }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchInlineSnapshot(
             """
@@ -915,7 +931,8 @@ public class BatchResolverTests
                             }
                             """)
                         .SetGlobalState("prefix", "Hey")
-                        .Build());
+                        .Build(),
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchInlineSnapshot(
             """
@@ -978,7 +995,8 @@ public class BatchResolverTests
                             greeting
                         }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchInlineSnapshot(
             """
@@ -1037,7 +1055,8 @@ public class BatchResolverTests
                             greeting
                         }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchInlineSnapshot(
             """

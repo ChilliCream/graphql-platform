@@ -1,9 +1,7 @@
 title: Root_Skip_Around_Fields_Of_Same_Source_Schema
 request:
   document: |
-    query testQuery(
-      $skip: Boolean!
-    ) {
+    query testQuery($skip: Boolean!) {
       ... @skip(if: $skip) {
         productBySlug(slug: "product") {
           name
@@ -29,14 +27,14 @@ sourceSchemas:
         query: Query
       }
 
-      type Product {
-        id: ID!
-        name: String!
-      }
-
       type Query {
         productBySlug(slug: String!): Product
         viewer: Viewer
+      }
+
+      type Product {
+        id: ID!
+        name: String!
       }
 
       type Viewer {
@@ -45,9 +43,7 @@ sourceSchemas:
 operationPlan:
   operation:
     - document: |
-        query testQuery(
-          $skip: Boolean!
-        ) {
+        query testQuery($skip: Boolean!) {
           ... @skip(if: $skip) {
             productBySlug(slug: "product") {
               name

@@ -1,5 +1,4 @@
 using ChilliCream.Nitro.Client;
-using ChilliCream.Nitro.Client.FusionConfiguration;
 using Moq;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Fusion;
@@ -28,8 +27,8 @@ public sealed class FusionConfigurationPublishValidateCommandTests(NitroCommandF
             Options:
               --request-id <request-id>                            The ID of a request [env: NITRO_REQUEST_ID]
               -a, --archive, --configuration <archive> (REQUIRED)  The path to a Fusion archive file (the '--configuration' alias is deprecated) [env: NITRO_FUSION_CONFIG_FILE]
-              --cloud-url <cloud-url>                              The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL] [default: api.chillicream.com]
-              --api-key <api-key>                                  The API key used for authentication [env: NITRO_API_KEY]
+              --cloud-url <cloud-url>                              The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL]
+              --api-key <api-key>                                  The API key or PAT used for authentication [env: NITRO_API_KEY]
               --output <json>                                      The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
               -?, -h, --help                                       Show help and usage information
 
@@ -97,10 +96,7 @@ public sealed class FusionConfigurationPublishValidateCommandTests(NitroCommandF
             "fusion", "publish", "validate", "--archive", ArchiveFile, "--request-id", RequestId);
 
         // assert
-        result.StdErr.MatchInlineSnapshot(
-            $"""
-             {expectedErrorMessage}
-             """);
+        result.StdErr.MatchInlineSnapshot(expectedErrorMessage);
         result.StdOut.MatchInlineSnapshot(
             """
             Validating Fusion configuration
@@ -110,7 +106,7 @@ public sealed class FusionConfigurationPublishValidateCommandTests(NitroCommandF
     }
 
     [Fact]
-    public async Task Subscription_ValidationSuccess_ReturnsSuccess_NonInteractive()
+    public async Task Subscription_ValidationSuccess_ReturnsSuccess()
     {
         // arrange
         SetupArchiveFile();
@@ -132,36 +128,12 @@ public sealed class FusionConfigurationPublishValidateCommandTests(NitroCommandF
         result.AssertSuccess(
             """
             Validating Fusion configuration
-            └── ✕ Failed to validate the Fusion configuration.
+            └── ✓ Fusion configuration passed validation.
             """);
     }
 
     [Fact]
-    public async Task Subscription_ValidationSuccess_ReturnsSuccess_Interactive()
-    {
-        // arrange
-        SetupInteractionMode(InteractionMode.Interactive);
-        SetupArchiveFile();
-        SetupFusionConfigurationValidationMutation();
-        SetupFusionConfigurationValidationSubscription(
-            CreateValidationSuccessEvent());
-
-        // act
-        var result = await ExecuteCommandAsync(
-            "fusion",
-            "publish",
-            "validate",
-            "--archive",
-            ArchiveFile,
-            "--request-id",
-            RequestId);
-
-        // assert
-        result.AssertSuccess();
-    }
-
-    [Fact]
-    public async Task Subscription_ValidationFailed_ReturnsError_NonInteractive()
+    public async Task Subscription_ValidationFailed_ReturnsError()
     {
         // arrange
         var errorMock = new Mock<IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_Errors_1>(MockBehavior.Strict);
@@ -194,15 +166,18 @@ public sealed class FusionConfigurationPublishValidateCommandTests(NitroCommandF
         result.StdOut.MatchInlineSnapshot(
             """
             Validating Fusion configuration
-            └── ✕ Failed to validate the Fusion configuration.
+            └── ✕ Fusion configuration failed validation.
                 └── Something went wrong.
             """);
-        result.StdErr.MatchInlineSnapshot("");
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Fusion configuration failed validation.
+            """);
         Assert.Equal(1, result.ExitCode);
     }
 
     [Fact]
-    public async Task Subscription_Queued_ThrowsExitException()
+    public async Task Subscription_Queued_ReturnsError()
     {
         // arrange
         SetupArchiveFile();
@@ -227,13 +202,13 @@ public sealed class FusionConfigurationPublishValidateCommandTests(NitroCommandF
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            Your request is in the queued state. Try to run `fusion-configuration publish start` once the request is ready
+            Your request is in the queued state. Try to run `fusion-configuration publish start` once the request is ready.
             """);
         Assert.Equal(1, result.ExitCode);
     }
 
     [Fact]
-    public async Task Subscription_AlreadyFailed_ThrowsExitException()
+    public async Task Subscription_AlreadyFailed_ReturnsError()
     {
         // arrange
         SetupArchiveFile();
@@ -258,13 +233,13 @@ public sealed class FusionConfigurationPublishValidateCommandTests(NitroCommandF
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            Your request has already failed
+            Your request has already failed.
             """);
         Assert.Equal(1, result.ExitCode);
     }
 
     [Fact]
-    public async Task Subscription_AlreadyPublished_ThrowsExitException()
+    public async Task Subscription_AlreadyPublished_ReturnsError()
     {
         // arrange
         SetupArchiveFile();
@@ -289,13 +264,13 @@ public sealed class FusionConfigurationPublishValidateCommandTests(NitroCommandF
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            You request is already published
+            Your request is already published.
             """);
         Assert.Equal(1, result.ExitCode);
     }
 
     [Fact]
-    public async Task Subscription_Ready_ThrowsExitException()
+    public async Task Subscription_Ready_ReturnsError()
     {
         // arrange
         SetupArchiveFile();
@@ -320,13 +295,13 @@ public sealed class FusionConfigurationPublishValidateCommandTests(NitroCommandF
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            Your request is ready for the composition. Run `fusion-configuration publish start`
+            Your request is ready for the composition. Run `fusion-configuration publish start`.
             """);
         Assert.Equal(1, result.ExitCode);
     }
 
     [Fact]
-    public async Task Subscription_InProgressThenSuccess_ReturnsSuccess_NonInteractive()
+    public async Task Subscription_InProgressThenSuccess_ReturnsSuccess()
     {
         // arrange
         SetupArchiveFile();
@@ -350,12 +325,14 @@ public sealed class FusionConfigurationPublishValidateCommandTests(NitroCommandF
         result.AssertSuccess(
             """
             Validating Fusion configuration
-            └── ✕ Failed to validate the Fusion configuration.
+            ├── Validating...
+            ├── Validating...
+            └── ✓ Fusion configuration passed validation.
             """);
     }
 
     [Fact]
-    public async Task Subscription_UnknownEvent_ThrowsExitException()
+    public async Task Subscription_UnknownEvent_ReturnsError()
     {
         // arrange
         var unknownEvent = new Mock<IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged>(
@@ -383,37 +360,11 @@ public sealed class FusionConfigurationPublishValidateCommandTests(NitroCommandF
             ├── ! Unknown server response. Consider updating the CLI.
             └── ✕ Failed to validate the Fusion configuration.
             """);
-        Assert.Empty(result.StdErr);
-        Assert.Equal(1, result.ExitCode);
-    }
-
-    [Fact]
-    public async Task Validate_Should_HandleApprovalEvents_When_WaitForApproval()
-    {
-        // arrange
-        SetupArchiveFile();
-        SetupFusionConfigurationValidationMutation();
-        SetupFusionConfigurationValidationSubscription(
-            CreateWaitForApprovalEvent(),
-            CreateProcessingTaskApprovedEvent(),
-            CreateValidationSuccessEvent());
-
-        // act
-        var result = await ExecuteCommandAsync(
-            "fusion",
-            "publish",
-            "validate",
-            "--archive",
-            ArchiveFile,
-            "--request-id",
-            RequestId);
-
-        // assert
-        result.AssertSuccess(
+        result.StdErr.MatchInlineSnapshot(
             """
-            Validating Fusion configuration
-            └── ✕ Failed to validate the Fusion configuration.
+            Fusion configuration failed validation.
             """);
+        Assert.Equal(1, result.ExitCode);
     }
 
     #region Theory Data

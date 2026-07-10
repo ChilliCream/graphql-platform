@@ -1,5 +1,6 @@
 using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
+using System.Text.Json.Serialization.Metadata;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Mocha.Middlewares;
@@ -18,6 +19,8 @@ public static class MessageBusHostBuilderExtensions
     /// <typeparam name="THandler">The event handler type.</typeparam>
     /// <param name="builder">The host builder.</param>
     /// <returns>The builder for method chaining.</returns>
+    [RequiresDynamicCode("Use source-generated AddConsumer(ConsumerFactory...) for AOT compatibility.")]
+    [RequiresUnreferencedCode("Use source-generated AddConsumer(ConsumerFactory...) for AOT compatibility.")]
     public static IMessageBusHostBuilder AddEventHandler<
         [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] THandler>(
         this IMessageBusHostBuilder builder)
@@ -30,21 +33,55 @@ public static class MessageBusHostBuilderExtensions
     }
 
     /// <summary>
-    /// Registers a handler using pre-built configuration from the source generator.
+    /// Registers an event handler with the message bus and adds it to the service collection,
+    /// with additional consumer configuration.
     /// </summary>
-    /// <typeparam name="THandler">The handler type.</typeparam>
+    /// <typeparam name="THandler">The event handler type.</typeparam>
     /// <param name="builder">The host builder.</param>
-    /// <param name="configuration">The pre-built handler configuration.</param>
+    /// <param name="configure">The action to configure the consumer descriptor.</param>
     /// <returns>The builder for method chaining.</returns>
-    [EditorBrowsable(EditorBrowsableState.Never)]
-    public static IMessageBusHostBuilder AddHandlerConfiguration<
+    [RequiresDynamicCode("Use source-generated AddConsumer(ConsumerFactory...) for AOT compatibility.")]
+    [RequiresUnreferencedCode("Use source-generated AddConsumer(ConsumerFactory...) for AOT compatibility.")]
+    public static IMessageBusHostBuilder AddEventHandler<
         [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] THandler>(
         this IMessageBusHostBuilder builder,
-        MessagingHandlerConfiguration configuration)
-        where THandler : class, IHandler
+        Action<IConsumerDescriptor> configure)
+        where THandler : class, IEventHandler
     {
         builder.Services.TryAddScoped<THandler>();
-        builder.ConfigureMessageBus(h => h.AddHandlerConfiguration(configuration));
+        builder.ConfigureMessageBus(h => h.AddHandler<THandler>(configure));
+
+        return builder;
+    }
+
+    /// <summary>
+    /// Registers a consumer with the message bus using a factory. The factory is invoked on each
+    /// message bus build so every build receives a fresh consumer instance.
+    /// </summary>
+    /// <param name="builder">The host builder.</param>
+    /// <param name="consumerFactory">The factory that creates the consumer to register.</param>
+    /// <returns>The builder for method chaining.</returns>
+    public static IMessageBusHostBuilder AddConsumer(this IMessageBusHostBuilder builder, Func<Consumer> consumerFactory)
+    {
+        ArgumentNullException.ThrowIfNull(consumerFactory);
+
+        builder.ConfigureMessageBus(h => h.AddConsumer(consumerFactory()));
+
+        return builder;
+    }
+
+    /// <summary>
+    /// Registers a JSON type info resolver for AOT-compatible serialization.
+    /// </summary>
+    /// <param name="builder">The host builder.</param>
+    /// <param name="resolver">The JSON type info resolver to register.</param>
+    /// <returns>The builder for method chaining.</returns>
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    public static IMessageBusHostBuilder AddJsonTypeInfoResolver(
+        this IMessageBusHostBuilder builder,
+        IJsonTypeInfoResolver resolver)
+    {
+        builder.ConfigureMessageBus(h => h.ConfigureServices(services => services.AddSingleton(resolver)));
         return builder;
     }
 
@@ -55,6 +92,8 @@ public static class MessageBusHostBuilderExtensions
     /// <param name="builder">The host builder.</param>
     /// <param name="configure">Optional action to configure batch options.</param>
     /// <returns>The builder for method chaining.</returns>
+    [RequiresDynamicCode("Use source-generated AddConsumer(ConsumerFactory...) for AOT compatibility.")]
+    [RequiresUnreferencedCode("Use source-generated AddConsumer(ConsumerFactory...) for AOT compatibility.")]
     public static IMessageBusHostBuilder AddBatchHandler<
         [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] THandler>(
         this IMessageBusHostBuilder builder,
@@ -73,7 +112,9 @@ public static class MessageBusHostBuilderExtensions
     /// <typeparam name="TSaga">The saga type.</typeparam>
     /// <param name="builder">The host builder.</param>
     /// <returns>The builder for method chaining.</returns>
-    public static IMessageBusHostBuilder AddSaga<TSaga>(this IMessageBusHostBuilder builder) where TSaga : Saga, new()
+    public static IMessageBusHostBuilder AddSaga<TSaga>(
+        this IMessageBusHostBuilder builder)
+        where TSaga : Saga, new()
     {
         builder.ConfigureMessageBus(static h => h.AddSaga<TSaga>());
         return builder;
@@ -85,11 +126,37 @@ public static class MessageBusHostBuilderExtensions
     /// <typeparam name="THandler">The request handler type.</typeparam>
     /// <param name="builder">The host builder.</param>
     /// <returns>The builder for method chaining.</returns>
-    public static IMessageBusHostBuilder AddRequestHandler<THandler>(this IMessageBusHostBuilder builder)
+    [RequiresDynamicCode("Use source-generated AddConsumer(ConsumerFactory...) for AOT compatibility.")]
+    [RequiresUnreferencedCode("Use source-generated AddConsumer(ConsumerFactory...) for AOT compatibility.")]
+    public static IMessageBusHostBuilder AddRequestHandler<
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] THandler>(
+        this IMessageBusHostBuilder builder)
         where THandler : class, IEventRequestHandler
     {
         builder.Services.TryAddScoped<THandler>();
         builder.ConfigureMessageBus(static h => h.AddHandler<THandler>());
+
+        return builder;
+    }
+
+    /// <summary>
+    /// Registers a request handler with the message bus and adds it to the service collection,
+    /// with additional consumer configuration.
+    /// </summary>
+    /// <typeparam name="THandler">The request handler type.</typeparam>
+    /// <param name="builder">The host builder.</param>
+    /// <param name="configure">The action to configure the consumer descriptor.</param>
+    /// <returns>The builder for method chaining.</returns>
+    [RequiresDynamicCode("Use source-generated AddConsumer(ConsumerFactory...) for AOT compatibility.")]
+    [RequiresUnreferencedCode("Use source-generated AddConsumer(ConsumerFactory...) for AOT compatibility.")]
+    public static IMessageBusHostBuilder AddRequestHandler<
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] THandler>(
+        this IMessageBusHostBuilder builder,
+        Action<IConsumerDescriptor> configure)
+        where THandler : class, IEventRequestHandler
+    {
+        builder.Services.TryAddScoped<THandler>();
+        builder.ConfigureMessageBus(h => h.AddHandler<THandler>(configure));
 
         return builder;
     }
@@ -100,6 +167,8 @@ public static class MessageBusHostBuilderExtensions
     /// <typeparam name="TConsumer">The consumer type implementing <see cref="IConsumer"/>.</typeparam>
     /// <param name="builder">The host builder.</param>
     /// <returns>The builder for method chaining.</returns>
+    [RequiresDynamicCode("Use source-generated AddConsumer(ConsumerFactory...) for AOT compatibility.")]
+    [RequiresUnreferencedCode("Use source-generated AddConsumer(ConsumerFactory...) for AOT compatibility.")]
     public static IMessageBusHostBuilder AddConsumer<
         [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TConsumer>(
         this IMessageBusHostBuilder builder)
@@ -107,6 +176,28 @@ public static class MessageBusHostBuilderExtensions
     {
         builder.Services.TryAddScoped<TConsumer>();
         builder.ConfigureMessageBus(static h => h.AddHandler<TConsumer>());
+
+        return builder;
+    }
+
+    /// <summary>
+    /// Registers a consumer with the message bus and adds it to the service collection,
+    /// with additional consumer configuration.
+    /// </summary>
+    /// <typeparam name="TConsumer">The consumer type implementing <see cref="IConsumer"/>.</typeparam>
+    /// <param name="builder">The host builder.</param>
+    /// <param name="configure">The action to configure the consumer descriptor.</param>
+    /// <returns>The builder for method chaining.</returns>
+    [RequiresDynamicCode("Use source-generated AddConsumer(ConsumerFactory...) for AOT compatibility.")]
+    [RequiresUnreferencedCode("Use source-generated AddConsumer(ConsumerFactory...) for AOT compatibility.")]
+    public static IMessageBusHostBuilder AddConsumer<
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TConsumer>(
+        this IMessageBusHostBuilder builder,
+        Action<IConsumerDescriptor> configure)
+        where TConsumer : class, IConsumer
+    {
+        builder.Services.TryAddScoped<TConsumer>();
+        builder.ConfigureMessageBus(h => h.AddHandler<TConsumer>(configure));
 
         return builder;
     }
@@ -142,6 +233,19 @@ public static class MessageBusHostBuilderExtensions
     }
 
     /// <summary>
+    /// Registers a message type through the host builder.
+    /// </summary>
+    /// <typeparam name="TMessage">The message type to register.</typeparam>
+    /// <param name="builder">The host builder.</param>
+    /// <returns>The builder for method chaining.</returns>
+    public static IMessageBusHostBuilder AddMessage<TMessage>(this IMessageBusHostBuilder builder)
+        where TMessage : notnull
+    {
+        builder.ConfigureMessageBus(static h => h.AddMessage<TMessage>());
+        return builder;
+    }
+
+    /// <summary>
     /// Registers a message type with custom configuration through the host builder.
     /// </summary>
     /// <typeparam name="TMessage">The message type to register.</typeparam>
@@ -151,7 +255,7 @@ public static class MessageBusHostBuilderExtensions
     public static IMessageBusHostBuilder AddMessage<TMessage>(
         this IMessageBusHostBuilder builder,
         Action<IMessageTypeDescriptor> configure)
-        where TMessage : class
+        where TMessage : notnull
     {
         builder.ConfigureMessageBus(h => h.AddMessage<TMessage>(configure));
         return builder;
@@ -192,7 +296,20 @@ public static class MessageBusHostBuilderExtensions
     /// <param name="configure">The action to configure the message bus builder.</param>
     public static void ConfigureMessageBus(this IMessageBusHostBuilder builder, Action<IMessageBusBuilder> configure)
     {
-        builder.Configure<MessageBusSetup>(options => options.ConfigureMessageBus.Add(configure));
+        builder.Configure<MessageBusSetup>(options => options.ConfigureMessageBus.Add(b => configure(b)));
+    }
+
+    /// <summary>
+    /// Applies a configuration action to the descriptor context used during message bus setup.
+    /// </summary>
+    /// <param name="builder">The host builder.</param>
+    /// <param name="configure">The action to configure the descriptor context.</param>
+    public static void ConfigureDescriptorContext(
+        this IMessageBusHostBuilder builder,
+        Action<IMessagingConfigurationContext> configure)
+    {
+        builder.Configure<MessageBusSetup>(options =>
+            options.ConfigureMessageBus.Add(b => b.ConfigureDescriptorContext(configure)));
     }
 
     private static void Configure<TOptions>(this IMessageBusHostBuilder builder, Action<TOptions> configure)

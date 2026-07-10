@@ -1,8 +1,6 @@
 using ChilliCream.Nitro.Client;
-using ChilliCream.Nitro.Client.Clients;
 using Moq;
 using Moq.Language;
-using static ChilliCream.Nitro.CommandLine.Tests.TestHelpers;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Clients;
 
@@ -329,7 +327,7 @@ public abstract class ClientsCommandTestBase(NitroCommandFixture fixture) : Comm
     {
         ClientsClientMock.Setup(x => x.ListClientsAsync(
                 ApiId, null, 10, It.IsAny<CancellationToken>()))
-            .ReturnsAsync((ConnectionPage<IListClientCommandQuery_Node_Clients_Edges_Node>?)null);
+            .ThrowsAsync(new NitroClientNotFoundException("The API was not found."));
     }
 
     private static IListClientCommandQuery_Node_Clients_Edges_Node CreateListClientNode(
@@ -378,7 +376,7 @@ public abstract class ClientsCommandTestBase(NitroCommandFixture fixture) : Comm
     {
         ClientsClientMock.Setup(x => x.ListClientVersionsAsync(
                 ClientId, cursor, 10, It.IsAny<CancellationToken>()))
-            .ReturnsAsync((ConnectionPage<IClientDetailPrompt_ClientVersionEdge>?)null);
+            .ThrowsAsync(new NitroClientNotFoundException("The client was not found."));
     }
 
     protected static ConnectionPage<IClientDetailPrompt_ClientVersionEdge> CreateListClientVersionsPage(
@@ -424,13 +422,73 @@ public abstract class ClientsCommandTestBase(NitroCommandFixture fixture) : Comm
 
     #endregion
 
+    #region ListClientPublishedVersions
+
+    protected void SetupListClientPublishedVersionsQuery(
+        string? cursor = null,
+        string? endCursor = null,
+        bool hasNextPage = false,
+        params (string Tag, DateTimeOffset PublishedAt)[] versions)
+    {
+        var items = versions
+            .Select(static v => CreatePublishedVersionEdge(v.Tag, v.PublishedAt))
+            .ToArray();
+
+        var page = new ConnectionPage<IListClientPublishedVersionsCommand_PublishedClientVersionEdge>(
+            items, endCursor, hasNextPage);
+
+        ClientsClientMock.Setup(x => x.ListClientPublishedVersionsAsync(
+                ClientId, Stage, cursor, 10, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(page);
+    }
+
+    protected void SetupListClientPublishedVersionsQueryException()
+    {
+        ClientsClientMock.Setup(x => x.ListClientPublishedVersionsAsync(
+                ClientId, Stage, null, 10, It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new InvalidOperationException("Something unexpected happened."));
+    }
+
+    protected void SetupListClientPublishedVersionsQueryNotFound(string? cursor = null)
+    {
+        ClientsClientMock.Setup(x => x.ListClientPublishedVersionsAsync(
+                ClientId, Stage, cursor, 10, It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new NitroClientNotFoundException("The client was not found."));
+    }
+
+    protected static IListClientPublishedVersionsCommand_PublishedClientVersionEdge CreatePublishedVersionEdge(
+        string tag,
+        DateTimeOffset publishedAt)
+    {
+        var version = new Mock<IListClientPublishedVersionsCommandQuery_Node_PublishedVersions_Edges_Node_Version>(MockBehavior.Strict);
+        version.SetupGet(x => x.Tag).Returns(tag);
+
+        var node = new Mock<IListClientPublishedVersionsCommandQuery_Node_PublishedVersions_Edges_Node>(MockBehavior.Strict);
+        node.SetupGet(x => x.PublishedAt).Returns(publishedAt);
+        node.SetupGet(x => x.Version).Returns(version.Object);
+
+        var edge = new Mock<IListClientPublishedVersionsCommand_PublishedClientVersionEdge>(MockBehavior.Strict);
+        edge.SetupGet(x => x.Node).Returns(node.Object);
+
+        return edge.Object;
+    }
+
+    #endregion
+
     #region Download
 
-    protected void SetupDownloadPersistedQueries(Stream? result)
+    protected void SetupDownloadPersistedQueries(Stream result)
     {
         ClientsClientMock.Setup(x => x.DownloadPersistedQueriesAsync(
                 ApiId, Stage, It.IsAny<CancellationToken>()))
             .ReturnsAsync(result);
+    }
+
+    protected void SetupMissingDownloadPersistedQueries()
+    {
+        ClientsClientMock.Setup(x => x.DownloadPersistedQueriesAsync(
+                ApiId, Stage, It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new NitroClientNotFoundException($"Could not find a published client on stage '{Stage}'."));
     }
 
     protected void SetupDownloadPersistedQueriesException()

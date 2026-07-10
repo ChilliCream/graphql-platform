@@ -74,7 +74,8 @@ public class FusionRequestExecutorManagerTests : FusionTestBase
 
         // act
         var executorProvider = services.GetRequiredService<IRequestExecutorProvider>();
-        var executor = await executorProvider.GetExecutorAsync();
+        var executor = await executorProvider.GetExecutorAsync(
+            cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal(ISchemaDefinition.DefaultName, executor.Schema.Name);
@@ -115,7 +116,8 @@ public class FusionRequestExecutorManagerTests : FusionTestBase
                 .BuildServiceProvider();
 
         var executorProvider = services.GetRequiredService<IRequestExecutorProvider>();
-        var executor = await executorProvider.GetExecutorAsync();
+        var executor = await executorProvider.GetExecutorAsync(
+            cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -126,7 +128,8 @@ public class FusionRequestExecutorManagerTests : FusionTestBase
                         foo
                     }
                     """)
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         var operationResult = result.ExpectOperationResult();
@@ -171,7 +174,7 @@ public class FusionRequestExecutorManagerTests : FusionTestBase
 
         // act
         // assert
-        var initialExecutor = await manager.GetExecutorAsync();
+        var initialExecutor = await manager.GetExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
         warmupResetEvent.Reset();
 
         configProvider.UpdateConfiguration(
@@ -182,13 +185,15 @@ public class FusionRequestExecutorManagerTests : FusionTestBase
                 }
                 """));
 
-        var executorAfterEviction = await manager.GetExecutorAsync();
+        var executorAfterEviction = await manager.GetExecutorAsync(
+            cancellationToken: TestContext.Current.CancellationToken);
 
         Assert.Same(initialExecutor, executorAfterEviction);
 
         warmupResetEvent.Set();
         executorEvictedResetEvent.Wait(cts.Token);
-        var executorAfterWarmup = await manager.GetExecutorAsync();
+        var executorAfterWarmup = await manager.GetExecutorAsync(
+            cancellationToken: TestContext.Current.CancellationToken);
 
         Assert.NotSame(initialExecutor, executorAfterWarmup);
 
@@ -371,7 +376,7 @@ public class FusionRequestExecutorManagerTests : FusionTestBase
         var manager = services.GetRequiredService<FusionRequestExecutorManager>();
 
         // act
-        var executor = await manager.GetExecutorAsync();
+        var executor = await manager.GetExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         var clientConfigs = executor.Schema.Features.GetRequired<SourceSchemaClientConfigurations>();
@@ -379,9 +384,9 @@ public class FusionRequestExecutorManagerTests : FusionTestBase
         Assert.True(clientConfigs.TryGet("a", OperationType.Mutation, out _));
         Assert.True(clientConfigs.TryGet("a", OperationType.Subscription, out _));
 
-        var httpConfig = Assert.IsType<SourceSchemaHttpClientConfiguration>(queryConfig);
+        var httpConfig = Assert.IsType<HttpSourceSchemaClientConfiguration>(queryConfig);
         Assert.Equal("a", httpConfig.Name);
-        Assert.Equal(SourceSchemaHttpClientConfiguration.DefaultClientName, httpConfig.HttpClientName);
+        Assert.Equal(HttpSourceSchemaClientConfiguration.DefaultClientName, httpConfig.HttpClientName);
         Assert.Equal(new Uri("http://localhost:5000/graphql"), httpConfig.BaseAddress);
         Assert.Equal(SourceSchemaClientCapabilities.All, httpConfig.Capabilities);
         Assert.Equal(SupportedOperationType.All, httpConfig.SupportedOperations);
@@ -422,13 +427,13 @@ public class FusionRequestExecutorManagerTests : FusionTestBase
         var manager = services.GetRequiredService<FusionRequestExecutorManager>();
 
         // act
-        var executor = await manager.GetExecutorAsync();
+        var executor = await manager.GetExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         var clientConfigs = executor.Schema.Features.GetRequired<SourceSchemaClientConfigurations>();
         Assert.True(clientConfigs.TryGet("a", OperationType.Query, out var queryConfig));
 
-        var httpConfig = Assert.IsType<SourceSchemaHttpClientConfiguration>(queryConfig);
+        var httpConfig = Assert.IsType<HttpSourceSchemaClientConfiguration>(queryConfig);
         Assert.Equal("a", httpConfig.Name);
         Assert.Equal("my-custom-client", httpConfig.HttpClientName);
         Assert.Equal(new Uri("http://localhost:5000/graphql"), httpConfig.BaseAddress);
@@ -475,15 +480,15 @@ public class FusionRequestExecutorManagerTests : FusionTestBase
         var manager = services.GetRequiredService<FusionRequestExecutorManager>();
 
         // act
-        var executor = await manager.GetExecutorAsync();
+        var executor = await manager.GetExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         var clientConfigs = executor.Schema.Features.GetRequired<SourceSchemaClientConfigurations>();
         Assert.True(clientConfigs.TryGet("a", OperationType.Query, out var queryConfig));
 
-        var httpConfig = Assert.IsType<SourceSchemaHttpClientConfiguration>(queryConfig);
+        var httpConfig = Assert.IsType<HttpSourceSchemaClientConfiguration>(queryConfig);
         Assert.Equal("a", httpConfig.Name);
-        Assert.Equal(SourceSchemaHttpClientConfiguration.DefaultClientName, httpConfig.HttpClientName);
+        Assert.Equal(HttpSourceSchemaClientConfiguration.DefaultClientName, httpConfig.HttpClientName);
         Assert.Equal(new Uri("http://localhost:5000/graphql"), httpConfig.BaseAddress);
         Assert.Equal(SourceSchemaClientCapabilities.RequestBatching, httpConfig.Capabilities);
         Assert.Equal(SupportedOperationType.All, httpConfig.SupportedOperations);
@@ -528,15 +533,15 @@ public class FusionRequestExecutorManagerTests : FusionTestBase
         var manager = services.GetRequiredService<FusionRequestExecutorManager>();
 
         // act
-        var executor = await manager.GetExecutorAsync();
+        var executor = await manager.GetExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         var clientConfigs = executor.Schema.Features.GetRequired<SourceSchemaClientConfigurations>();
         Assert.True(clientConfigs.TryGet("a", OperationType.Query, out var queryConfig));
 
-        var httpConfig = Assert.IsType<SourceSchemaHttpClientConfiguration>(queryConfig);
+        var httpConfig = Assert.IsType<HttpSourceSchemaClientConfiguration>(queryConfig);
         Assert.Equal("a", httpConfig.Name);
-        Assert.Equal(SourceSchemaHttpClientConfiguration.DefaultClientName, httpConfig.HttpClientName);
+        Assert.Equal(HttpSourceSchemaClientConfiguration.DefaultClientName, httpConfig.HttpClientName);
         Assert.Equal(new Uri("http://localhost:5000/graphql"), httpConfig.BaseAddress);
         Assert.Equal(SourceSchemaClientCapabilities.VariableBatching, httpConfig.Capabilities);
         Assert.Equal(SupportedOperationType.All, httpConfig.SupportedOperations);
@@ -581,15 +586,15 @@ public class FusionRequestExecutorManagerTests : FusionTestBase
         var manager = services.GetRequiredService<FusionRequestExecutorManager>();
 
         // act
-        var executor = await manager.GetExecutorAsync();
+        var executor = await manager.GetExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         var clientConfigs = executor.Schema.Features.GetRequired<SourceSchemaClientConfigurations>();
         Assert.True(clientConfigs.TryGet("a", OperationType.Query, out var queryConfig));
 
-        var httpConfig = Assert.IsType<SourceSchemaHttpClientConfiguration>(queryConfig);
+        var httpConfig = Assert.IsType<HttpSourceSchemaClientConfiguration>(queryConfig);
         Assert.Equal("a", httpConfig.Name);
-        Assert.Equal(SourceSchemaHttpClientConfiguration.DefaultClientName, httpConfig.HttpClientName);
+        Assert.Equal(HttpSourceSchemaClientConfiguration.DefaultClientName, httpConfig.HttpClientName);
         Assert.Equal(new Uri("http://localhost:5000/graphql"), httpConfig.BaseAddress);
         Assert.Equal(SourceSchemaClientCapabilities.All, httpConfig.Capabilities);
         Assert.Equal(SupportedOperationType.Query | SupportedOperationType.Mutation, httpConfig.SupportedOperations);
@@ -642,15 +647,15 @@ public class FusionRequestExecutorManagerTests : FusionTestBase
         var manager = services.GetRequiredService<FusionRequestExecutorManager>();
 
         // act
-        var executor = await manager.GetExecutorAsync();
+        var executor = await manager.GetExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         var clientConfigs = executor.Schema.Features.GetRequired<SourceSchemaClientConfigurations>();
         Assert.True(clientConfigs.TryGet("a", OperationType.Query, out var queryConfig));
 
-        var httpConfig = Assert.IsType<SourceSchemaHttpClientConfiguration>(queryConfig);
+        var httpConfig = Assert.IsType<HttpSourceSchemaClientConfiguration>(queryConfig);
         Assert.Equal("a", httpConfig.Name);
-        Assert.Equal(SourceSchemaHttpClientConfiguration.DefaultClientName, httpConfig.HttpClientName);
+        Assert.Equal(HttpSourceSchemaClientConfiguration.DefaultClientName, httpConfig.HttpClientName);
         Assert.Equal(new Uri("http://localhost:5000/graphql"), httpConfig.BaseAddress);
         Assert.Equal(SourceSchemaClientCapabilities.All, httpConfig.Capabilities);
         Assert.Equal(SupportedOperationType.All, httpConfig.SupportedOperations);

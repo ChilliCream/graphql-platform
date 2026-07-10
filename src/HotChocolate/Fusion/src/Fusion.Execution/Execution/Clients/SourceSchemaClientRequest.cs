@@ -30,6 +30,12 @@ public readonly record struct SourceSchemaClientRequest()
     public required string OperationSourceText { get; init; }
 
     /// <summary>
+    /// Gets the xxhash64 of the operation source text.
+    /// Precomputed during planning for use as a cache key by connectors.
+    /// </summary>
+    public required ulong OperationHash { get; init; }
+
+    /// <summary>
     /// Gets the variable value sets for this operation. Multiple entries indicate
     /// that the operation should be executed once per variable set (variable batching).
     /// </summary>
