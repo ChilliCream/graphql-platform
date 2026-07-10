@@ -101,19 +101,23 @@ public class QueryableProjectionFieldHandler
 
         var nullabilityInfo = context.NullabilityInfoContext.Create(propertyInfo);
         var memberInit = queryableScope.CreateMemberInit();
+        Expression value = memberInit;
 
-        if (context.InMemory && nullabilityInfo.ReadState == NullabilityState.Nullable)
+        if (nullabilityInfo.ReadState == NullabilityState.Nullable)
         {
-            parentScope.Level
-                .Peek()
-                .Enqueue(Expression.Bind(field.Member, NotNullAndAlso(nestedProperty, memberInit)));
+            if (context.InMemory)
+            {
+                value = NotNullAndAlso(nestedProperty, memberInit);
+            }
+            else if (context.SupportsNullChecksByKey)
+            {
+                value = NotNullByKeyAndAlso(nestedProperty, memberInit);
+            }
         }
-        else
-        {
-            parentScope.Level
-                .Peek()
-                .Enqueue(Expression.Bind(field.Member, NotNullByKeyAndAlso(nestedProperty, memberInit)));
-        }
+
+        parentScope.Level
+            .Peek()
+            .Enqueue(Expression.Bind(field.Member, value));
 
         action = SelectionVisitor.Continue;
 

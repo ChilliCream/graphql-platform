@@ -49,8 +49,7 @@ public class QueryableProjectionProvider : ProjectionProvider
         => new QueryableQueryBuilder(CreateApplicator<TEntityType>());
 
     /// <summary>
-    /// Checks if the input has to be computed in memory. Null checks are only applied when the
-    /// query is executed in memory
+    /// Determines whether projection expressions should use in-memory behavior for the input.
     /// </summary>
     /// <param name="input">The result that is on <see cref="IResolverContext"/></param>
     /// <typeparam name="TEntityType">
@@ -65,6 +64,11 @@ public class QueryableProjectionProvider : ProjectionProvider
             ? inMemory
             : input is not IQueryable or EnumerableQuery;
     }
+
+    /// <summary>
+    /// Defines whether null checks on projected objects can use a non-null key member.
+    /// </summary>
+    protected virtual bool SupportsNullChecksByKey => true;
 
     /// <summary>
     /// Applies the projection to the result
@@ -109,7 +113,10 @@ public class QueryableProjectionProvider : ProjectionProvider
                 context,
                 context.ObjectType,
                 context.Selection.Type.UnwrapRuntimeType(),
-                inMemory);
+                inMemory)
+            {
+                SupportsNullChecksByKey = SupportsNullChecksByKey
+            };
 
             var visitor = new QueryableProjectionVisitor();
 

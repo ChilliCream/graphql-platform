@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Linq.Expressions;
 using System.Reflection;
 
@@ -7,6 +8,7 @@ internal static class ProjectionExpressionBuilder
 {
     private static readonly ConstantExpression s_null =
         Expression.Constant(null, typeof(object));
+    private static readonly ConcurrentDictionary<Type, KeyMember> s_keyMembers = new();
 
     public static MemberInitExpression CreateMemberInit(
         Type type,
@@ -76,28 +78,10 @@ internal static class ProjectionExpressionBuilder
 
     private static bool TryGetKeyMember(Type type, out MemberInfo keyMember)
     {
-        const BindingFlags flags = BindingFlags.Public | BindingFlags.Instance | BindingFlags.IgnoreCase;
-
-        var idProperty = type.GetProperty("Id", flags);
-        if (idProperty is not null && IsKeyLike(idProperty))
+        var result = s_keyMembers.GetOrAdd(type, static type => InferKeyMember(type));
+        if (result.Property is { } property)
         {
-            keyMember = idProperty;
-            return true;
-        }
-
-        var typeNameIdProperty = type.GetProperty(type.Name + "Id", flags);
-        if (typeNameIdProperty is not null && IsKeyLike(typeNameIdProperty))
-        {
-            keyMember = typeNameIdProperty;
-            return true;
-        }
-
-        var keyProperty = type.GetProperties(flags)
-            .FirstOrDefault(p => p.Name.EndsWith("Id", StringComparison.OrdinalIgnoreCase) && IsKeyLike(p));
-
-        if (keyProperty is not null)
-        {
-            keyMember = keyProperty;
+            keyMember = property;
             return true;
         }
 
@@ -105,7 +89,56 @@ internal static class ProjectionExpressionBuilder
         return false;
     }
 
-    private static bool IsKeyLike(PropertyInfo property)
-        => property.CanRead
-            && (property.PropertyType.IsValueType || property.PropertyType == typeof(string));
+    private static KeyMember InferKeyMember(Type type)
+    {
+        var properties = type.GetProperties(BindingFlags.Public | BindingFlags.Instance);
+        var result = FindKeyMember(properties, "Id");
+
+        if (result.Matched)
+        {
+            return result;
+        }
+
+        return FindKeyMember(properties, type.Name + "Id");
+    }
+
+    private static KeyMember FindKeyMember(PropertyInfo[] properties, string name)
+    {
+        PropertyInfo? match = null;
+        var count = 0;
+
+        foreach (var property in properties)
+        {
+            if (string.Equals(property.Name, name, StringComparison.OrdinalIgnoreCase))
+            {
+                match = property;
+                count++;
+            }
+        }
+
+        if (count != 1 || !IsNonNullKey(match!))
+        {
+            return new KeyMember(null, count > 0);
+        }
+
+        return new KeyMember(match, true);
+    }
+
+    private static bool IsNonNullKey(PropertyInfo property)
+    {
+        if (property.GetMethod is not { IsPublic: true }
+            || property.GetIndexParameters().Length != 0)
+        {
+            return false;
+        }
+
+        if (property.PropertyType.IsValueType)
+        {
+            return Nullable.GetUnderlyingType(property.PropertyType) is null;
+        }
+
+        return new NullabilityInfoContext().Create(property).ReadState is NullabilityState.NotNull;
+    }
+
+    private readonly record struct KeyMember(PropertyInfo? Property, bool Matched);
 }
