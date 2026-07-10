@@ -147,6 +147,18 @@ namespace HotChocolate.Fusion.Properties {
             }
         }
 
+        internal static string FetchResultStore_InvalidRepresentationResultKind {
+            get {
+                return ResourceManager.GetString("FetchResultStore_InvalidRepresentationResultKind", resourceCulture);
+            }
+        }
+
+        internal static string FetchResultStore_RepresentationResultCountMismatch {
+            get {
+                return ResourceManager.GetString("FetchResultStore_RepresentationResultCountMismatch", resourceCulture);
+            }
+        }
+
         internal static string SourceSchemaRequestDispatcher_DuplicateNodeSubmission {
             get {
                 return ResourceManager.GetString("SourceSchemaRequestDispatcher_DuplicateNodeSubmission", resourceCulture);

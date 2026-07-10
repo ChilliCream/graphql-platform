@@ -56,4 +56,22 @@ internal static class ThrowHelper
             selectionPath,
             resultPath,
             valueKind));
+
+    public static InvalidOperationException InvalidRepresentationResultKind(
+        SelectionPath sourcePath,
+        JsonValueKind valueKind)
+        => new(string.Format(
+            FusionExecutionResources.FetchResultStore_InvalidRepresentationResultKind,
+            sourcePath,
+            valueKind));
+
+    public static InvalidOperationException RepresentationResultCountMismatch(
+        SelectionPath sourcePath,
+        int actualCount,
+        int expectedCount)
+        => new(string.Format(
+            FusionExecutionResources.FetchResultStore_RepresentationResultCountMismatch,
+            sourcePath,
+            actualCount,
+            expectedCount));
 }

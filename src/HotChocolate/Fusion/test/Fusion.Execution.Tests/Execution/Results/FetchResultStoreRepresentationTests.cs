@@ -2435,6 +2435,170 @@ public sealed class FetchResultStoreRepresentationTests : FusionTestBase
             """);
     }
 
+    [Fact]
+    public void AddRepresentationResult_Should_PreserveRootErrorWithoutMerging_When_EntitiesDataIsMissing()
+    {
+        // arrange
+        var schema = ComposeSchema(MergeSchemaA, MergeSchemaB);
+        var plan = PlanOperation(schema, "{ foos { id name } bars { id title } }");
+        var fooDefinition = GetLookupDefinition(plan, "fooById");
+
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+        using var store = CreateMergeStore(
+            schema,
+            plan,
+            """{"data":{"foos":[{"id":"1"}],"bars":[]}}""",
+            resultArena,
+            sourceArena);
+
+        var representation = CreateLookupRepresentation(store, schema, "Foo", fooDefinition);
+        var response = CreateResponse(
+            sourceArena,
+            """{"errors":[{"message":"boom"}]}""");
+        var before = RenderData(store);
+        var added = false;
+
+        // act
+        var exception = Record.Exception(
+            () => added = store.AddRepresentationResult(
+                SelectionPath.Root.AppendField("_entities"),
+                response,
+                representation,
+                fooDefinition.ResultSelectionSet,
+                containsErrors: true));
+
+        // assert
+        store.FinalizePocketedErrors();
+        var error = Assert.Single(store.Errors!);
+        Assert.Equal("boom", error.Message);
+        Assert.Null(error.Path);
+        Assert.Equal(before, RenderData(store));
+        Assert.Null(exception);
+        Assert.True(added);
+    }
+
+    [Fact]
+    public void AddRepresentationResult_Should_RebaseEntityErrorWithoutMerging_When_EntitiesDataIsMissing()
+    {
+        // arrange
+        var schema = ComposeSchema(MergeSchemaA, MergeSchemaB);
+        var plan = PlanOperation(schema, "{ foos { id name } bars { id title } }");
+        var fooDefinition = GetLookupDefinition(plan, "fooById");
+
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+        using var store = CreateMergeStore(
+            schema,
+            plan,
+            """{"data":{"foos":[{"id":"1"}],"bars":[]}}""",
+            resultArena,
+            sourceArena);
+
+        var representation = CreateLookupRepresentation(store, schema, "Foo", fooDefinition);
+        var response = CreateResponse(
+            sourceArena,
+            """{"errors":[{"message":"boom","path":["_entities",0,"name"]}]}""");
+        var before = RenderData(store);
+
+        // act
+        var added = store.AddRepresentationResult(
+            SelectionPath.Root.AppendField("_entities"),
+            response,
+            representation,
+            fooDefinition.ResultSelectionSet,
+            containsErrors: true);
+
+        // assert
+        store.FinalizePocketedErrors();
+        Assert.True(added);
+        var error = Assert.Single(store.Errors!);
+        Assert.Equal("boom", error.Message);
+        Assert.Equal("foos[0].name", error.Path!.Print());
+        Assert.Equal(before, RenderData(store));
+    }
+
+    [Fact]
+    public void AddRepresentationResult_Should_AddTargetedError_When_EntityCountDoesNotMatchRepresentations()
+    {
+        // arrange
+        var schema = ComposeSchema(MergeSchemaA, MergeSchemaB);
+        var plan = PlanOperation(schema, "{ foos { id name } bars { id title } }");
+        var fooDefinition = GetLookupDefinition(plan, "fooById");
+
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+        using var store = CreateMergeStore(
+            schema,
+            plan,
+            """{"data":{"foos":[{"id":"1"}],"bars":[]}}""",
+            resultArena,
+            sourceArena);
+
+        var representation = CreateLookupRepresentation(store, schema, "Foo", fooDefinition);
+        var response = CreateResponse(sourceArena, """{"data":{"_entities":[]}}""");
+
+        // act
+        var added = store.AddRepresentationResult(
+            SelectionPath.Root.AppendField("_entities"),
+            response,
+            representation,
+            fooDefinition.ResultSelectionSet,
+            containsErrors: false);
+
+        // assert
+        store.FinalizePocketedErrors();
+        Assert.True(added);
+        var error = Assert.Single(store.Errors!);
+        Assert.Equal(
+            "The representation result at '$._entities' contains 0 entries, but 1 were expected.",
+            error.Message);
+        Assert.Equal("foos[0].name", error.Path!.Print());
+    }
+
+    [Theory]
+    [InlineData("{}", "Undefined")]
+    [InlineData("{\"data\":{\"_entities\":null}}", "Null")]
+    [InlineData("{\"data\":{\"_entities\":{}}}", "Object")]
+    public void AddRepresentationResult_Should_AddTargetedError_When_EntitiesDataIsNotArray(
+        string responseJson,
+        string valueKind)
+    {
+        // arrange
+        var schema = ComposeSchema(MergeSchemaA, MergeSchemaB);
+        var plan = PlanOperation(schema, "{ foos { id name } bars { id title } }");
+        var fooDefinition = GetLookupDefinition(plan, "fooById");
+
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+        using var store = CreateMergeStore(
+            schema,
+            plan,
+            """{"data":{"foos":[{"id":"1"}],"bars":[]}}""",
+            resultArena,
+            sourceArena);
+
+        var representation = CreateLookupRepresentation(store, schema, "Foo", fooDefinition);
+        var response = CreateResponse(sourceArena, responseJson);
+
+        // act
+        var added = store.AddRepresentationResult(
+            SelectionPath.Root.AppendField("_entities"),
+            response,
+            representation,
+            fooDefinition.ResultSelectionSet,
+            containsErrors: false);
+
+        // assert
+        store.FinalizePocketedErrors();
+        Assert.True(added);
+        var error = Assert.Single(store.Errors!);
+        Assert.Equal(
+            $"The representation result at '$._entities' must be an array but was '{valueKind}'.",
+            error.Message);
+        Assert.Equal("foos[0].name", error.Path!.Print());
+    }
+
     private static FetchResultStore CreateMergeStore(
         FusionSchemaDefinition schema,
         OperationPlan plan,

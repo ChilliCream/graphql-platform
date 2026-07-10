@@ -9,6 +9,53 @@ namespace HotChocolate.Fusion.Planning;
 public sealed class SupertypeNarrowingPlanningTests : FusionTestBase
 {
     [Fact]
+    public void Plan_Should_Preserve_Interface_And_Union_Supertype_Directives_When_Parent_Is_Concrete_Object()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: A
+            type Query {
+              book: Book
+              publications: [Publication]
+            }
+
+            interface Media { id: ID! }
+            union Publication = Book | Magazine
+
+            type Book implements Media {
+              id: ID!
+              title: String
+            }
+
+            type Magazine implements Media {
+              id: ID!
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            query($includeMedia: Boolean!, $skipPublication: Boolean!) {
+              book {
+                ... on Media @include(if: $includeMedia) {
+                  id
+                }
+                ... on Publication @skip(if: $skipPublication) {
+                  ... on Book {
+                    title
+                  }
+                }
+              }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
     public void Plan_Should_SpillWholeFieldToCoveringSchema_When_UnionNarrowingCannotCoverRequestedMember()
     {
         // arrange

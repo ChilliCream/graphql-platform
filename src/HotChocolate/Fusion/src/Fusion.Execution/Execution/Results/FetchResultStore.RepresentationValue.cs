@@ -39,6 +39,7 @@ internal sealed partial class FetchResultStore
         var dataElement = GetDataElement(sourcePath, result.Data);
         var errors = containsErrors ? result.Errors : null;
         var errorTrie = containsErrors ? GetErrorTrie(sourcePath, errors?.Trie) : null;
+        var resultPaths = representation.ResultPaths.AsSpan();
 
         lock (_lock)
         {
@@ -52,11 +53,52 @@ internal sealed partial class FetchResultStore
                     _errors.AddRange(rootErrors);
                 }
 
+                var hasSourceErrors = errors is not null
+                    && (!errors.RootErrors.IsDefaultOrEmpty
+                        || errorTrie?.FindFirstError() is not null);
+
+                if (dataElement.ValueKind is not JsonValueKind.Array)
+                {
+                    if (errorTrie is not null)
+                    {
+                        AddRepresentationErrors(_result.Data, errorTrie, resultPaths);
+                    }
+
+                    if (hasSourceErrors)
+                    {
+                        return true;
+                    }
+
+                    return SaveRepresentationProtocolError(
+                        _result.Data,
+                        ThrowHelper.InvalidRepresentationResultKind(sourcePath, dataElement.ValueKind),
+                        resultPaths,
+                        resultSelectionSet);
+                }
+
+                var resultCount = dataElement.GetArrayLength();
+                if (resultPaths.IsEmpty || resultCount != resultPaths.Length)
+                {
+                    if (errorTrie is not null)
+                    {
+                        AddRepresentationErrors(_result.Data, errorTrie, resultPaths);
+                    }
+
+                    return SaveRepresentationProtocolError(
+                        _result.Data,
+                        ThrowHelper.RepresentationResultCountMismatch(
+                            sourcePath,
+                            resultCount,
+                            resultPaths.Length),
+                        resultPaths,
+                        resultSelectionSet);
+                }
+
                 return SaveRepresentationResult(
                     _result.Data,
                     dataElement,
                     errorTrie,
-                    representation.ResultPaths.AsSpan(),
+                    resultPaths,
                     resultSelectionSet);
             }
             finally
@@ -1383,16 +1425,6 @@ internal sealed partial class FetchResultStore
         ReadOnlySpan<EntityResultPath> resultPaths,
         ResultSelectionSet resultSelectionSet)
     {
-        Debug.Assert(
-            !resultPaths.IsEmpty,
-            "Representation result paths should not be empty.");
-        Debug.Assert(
-            dataElement.ValueKind is JsonValueKind.Array,
-            "Representation result data should be an array.");
-        Debug.Assert(
-            resultPaths.Length == dataElement.GetArrayLength(),
-            "Representation result paths length should match the data array length.");
-
         if (errorTrie is null)
         {
             var i = 0;
@@ -1439,6 +1471,205 @@ internal sealed partial class FetchResultStore
 
         return true;
     }
+
+    private void AddRepresentationErrors(
+        CompositeResultElement resultData,
+        ErrorTrie errorTrie,
+        ReadOnlySpan<EntityResultPath> resultPaths)
+    {
+        if (resultPaths.IsEmpty)
+        {
+            AddOriginalRepresentationErrors(errorTrie);
+            return;
+        }
+
+        if (errorTrie.Error is { } rootError)
+        {
+            for (var i = 0; i < resultPaths.Length; i++)
+            {
+                AddRepresentationError(resultData, rootError, resultPaths[i], null, null);
+            }
+        }
+
+        foreach (var (segment, childTrie) in errorTrie)
+        {
+            if (segment is int index && (uint)index < (uint)resultPaths.Length)
+            {
+                AddRepresentationError(resultData, null, resultPaths[index], null, childTrie);
+                continue;
+            }
+
+            if (segment is int)
+            {
+                AddOriginalRepresentationErrors(childTrie);
+                continue;
+            }
+
+            for (var i = 0; i < resultPaths.Length; i++)
+            {
+                AddRepresentationError(resultData, null, resultPaths[i], segment, childTrie);
+            }
+        }
+    }
+
+    private void AddOriginalRepresentationErrors(ErrorTrie errorTrie)
+    {
+        if (errorTrie.Error is { } error)
+        {
+            _errors ??= [];
+            _errors.Add(error);
+        }
+
+        foreach (var childTrie in errorTrie.Values)
+        {
+            AddOriginalRepresentationErrors(childTrie);
+        }
+    }
+
+    private void AddRepresentationError(
+        CompositeResultElement resultData,
+        IError? error,
+        EntityResultPath resultPath,
+        object? segment,
+        ErrorTrie? suffixTrie)
+    {
+        var path = resultPath.Path.ToPath(resultData.Operation);
+        if (segment is not null)
+        {
+            path = AppendPathSegment(path, segment);
+        }
+
+        AddRepresentationError(error, suffixTrie, path);
+
+        foreach (var additionalPath in resultPath.AdditionalPaths)
+        {
+            path = additionalPath.ToPath(resultData.Operation);
+            if (segment is not null)
+            {
+                path = AppendPathSegment(path, segment);
+            }
+
+            AddRepresentationError(error, suffixTrie, path);
+        }
+    }
+
+    private void AddRepresentationError(IError? error, ErrorTrie? errorTrie, Path path)
+    {
+        if (error is not null)
+        {
+            _errors ??= [];
+            _errors.Add(ErrorBuilder.FromError(error).SetPath(path).Build());
+        }
+
+        if (errorTrie is null)
+        {
+            return;
+        }
+
+        if (errorTrie.Error is { } trieError)
+        {
+            _errors ??= [];
+            _errors.Add(ErrorBuilder.FromError(trieError).SetPath(path).Build());
+        }
+
+        foreach (var (segment, childTrie) in errorTrie)
+        {
+            AddRepresentationError(null, childTrie, AppendPathSegment(path, segment));
+        }
+    }
+
+    private bool SaveRepresentationProtocolError(
+        CompositeResultElement resultData,
+        Exception exception,
+        ReadOnlySpan<EntityResultPath> resultPaths,
+        ResultSelectionSet resultSelectionSet)
+    {
+        var error = ErrorBuilder.New()
+            .SetMessage(exception.Message)
+            .SetException(exception)
+            .Build();
+
+        if (resultPaths.IsEmpty)
+        {
+            _errors ??= [];
+            _errors.Add(error);
+            return true;
+        }
+
+        for (var i = 0; i < resultPaths.Length; i++)
+        {
+            ref readonly var resultPath = ref resultPaths[i];
+
+            if (!SaveRepresentationProtocolError(
+                    resultData,
+                    resultPath.Path,
+                    resultPath.AdditionalPaths.AsSpan(),
+                    error,
+                    resultSelectionSet))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private bool SaveRepresentationProtocolError(
+        CompositeResultElement resultData,
+        CompactPath path,
+        ReadOnlySpan<CompactPath> additionalPaths,
+        IError error,
+        ResultSelectionSet resultSelectionSet)
+    {
+        if (!AddError(path))
+        {
+            return false;
+        }
+
+        for (var i = 0; i < additionalPaths.Length; i++)
+        {
+            if (!AddError(additionalPaths[i]))
+            {
+                return false;
+            }
+        }
+
+        return true;
+
+        bool AddError(CompactPath targetPath)
+        {
+            if (resultData.IsInvalidated)
+            {
+                return false;
+            }
+
+            var target = targetPath.IsRoot ? resultData : GetStartObjectResult(targetPath);
+            if (target.IsNullOrInvalidated)
+            {
+                return true;
+            }
+
+            if (_valueCompletion.BuildErrorResult(
+                    target,
+                    resultSelectionSet,
+                    error,
+                    target.CompactPath))
+            {
+                return true;
+            }
+
+            resultData.Invalidate();
+            return false;
+        }
+    }
+
+    private static Path AppendPathSegment(Path path, object segment)
+        => segment switch
+        {
+            string name => path.Append(name),
+            int index => path.Append(index),
+            _ => throw new UnreachableException()
+        };
 
     private void ReturnRepresentationPathSegments(RepresentationValue representation)
     {

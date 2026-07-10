@@ -69,6 +69,12 @@
   <data name="HttpSourceSchemaClient_NoResultForNode" xml:space="preserve">
     <value>The batch response does not contain any result for node '{0}'.</value>
   </data>
+  <data name="FetchResultStore_InvalidRepresentationResultKind" xml:space="preserve">
+    <value>The representation result at '{0}' must be an array but was '{1}'.</value>
+  </data>
+  <data name="FetchResultStore_RepresentationResultCountMismatch" xml:space="preserve">
+    <value>The representation result at '{0}' contains {1} entries, but {2} were expected.</value>
+  </data>
   <data name="SourceSchemaRequestDispatcher_DuplicateNodeSubmission" xml:space="preserve">
     <value>Node '{0}' was already submitted to its batching group.</value>
   </data>

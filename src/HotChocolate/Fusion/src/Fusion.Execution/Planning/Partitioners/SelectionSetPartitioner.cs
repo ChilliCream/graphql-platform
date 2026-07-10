@@ -702,6 +702,16 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
             typeCondition = schema.Types.GetType(
                 inlineFragmentNode.TypeCondition.Name.Value,
                 allowInaccessibleFields: true);
+
+            // Abstract selections are cloned into concrete branches during planning. Once the
+            // parent is concrete, discard sibling concrete fragments that can no longer apply.
+            // Supertype fragments remain applicable because their possible types include the
+            // concrete parent.
+            if (type is FusionObjectTypeDefinition objectType
+                && !ContainsType(schema.GetPossibleTypes(typeCondition, includeInaccessible: true), objectType))
+            {
+                return (null, null);
+            }
         }
 
         if (context.PruneUnprovidedAbstractBranches
