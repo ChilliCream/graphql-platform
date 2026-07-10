@@ -189,12 +189,17 @@ public sealed class ObjectField : OutputField
         var resolvers = definition.Resolvers;
         Resolver = resolvers.Resolver;
 
-        if (resolvers.PureResolver is not null && IsPureContext())
+        if (resolvers.PureResolver is not null)
         {
-            PureResolver = FieldMiddlewareCompiler.Compile(
-                definition.GetResultConverters(),
-                resolvers.PureResolver,
-                skipMiddleware);
+            Flags |= CoreFieldFlags.HasPureResolver;
+
+            if (IsPureContext())
+            {
+                PureResolver = FieldMiddlewareCompiler.Compile(
+                    definition.GetResultConverters(),
+                    resolvers.PureResolver,
+                    skipMiddleware);
+            }
         }
 
         // by definition, fields with pure resolvers are parallel executable.
