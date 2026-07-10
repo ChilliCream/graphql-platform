@@ -17,6 +17,8 @@ internal sealed class FusionComposeCommand : Command
         Options.Add(Opt<OptionalFusionArchiveFileOption>.Instance);
         Options.Add(Opt<FusionEnvironmentOption>.Instance);
         Options.Add(Opt<EnableGlobalObjectIdentificationOption>.Instance);
+        Options.Add(Opt<NodeResolutionOption>.Instance);
+        Options.Add(Opt<ShareableFieldRuntimeTypeRoutingOption>.Instance);
         Options.Add(Opt<IncludeSatisfiabilityPathsOption>.Instance);
         Options.Add(Opt<WatchModeOption>.Instance);
         Options.Add(Opt<WorkingDirectoryOption>.Instance);
@@ -66,6 +68,17 @@ internal sealed class FusionComposeCommand : Command
         var environment = parseResult.GetValue(Opt<FusionEnvironmentOption>.Instance);
         var enableGlobalObjectIdentification = parseResult.GetValue(
             Opt<EnableGlobalObjectIdentificationOption>.Instance);
+        var nodeResolutionOption = Opt<NodeResolutionOption>.Instance;
+        var nodeResolution = parseResult.Tokens.Any(
+            static token => token.Value == NodeResolutionOption.OptionName)
+            ? parseResult.GetValue(nodeResolutionOption)
+            : null;
+        var shareableFieldRuntimeTypeRoutingOption =
+            Opt<ShareableFieldRuntimeTypeRoutingOption>.Instance;
+        var shareableFieldRuntimeTypeRouting = parseResult.Tokens.Any(
+            static token => token.Value == ShareableFieldRuntimeTypeRoutingOption.OptionName)
+            ? parseResult.GetValue(shareableFieldRuntimeTypeRoutingOption)
+            : null;
         var includeSatisfiabilityPaths = parseResult.GetValue(
             Opt<IncludeSatisfiabilityPathsOption>.Instance);
         var watchMode = parseResult.GetValue(Opt<WatchModeOption>.Instance);
@@ -111,6 +124,8 @@ internal sealed class FusionComposeCommand : Command
                 archiveFile,
                 environment,
                 enableGlobalObjectIdentification,
+                nodeResolution,
+                shareableFieldRuntimeTypeRouting,
                 includeSatisfiabilityPaths,
                 tagsToExclude,
                 cancellationToken);
@@ -128,7 +143,8 @@ internal sealed class FusionComposeCommand : Command
             {
                 Merger = new CompositionSettings.MergerSettings
                 {
-                    EnableGlobalObjectIdentification = enableGlobalObjectIdentification
+                    EnableGlobalObjectIdentification = enableGlobalObjectIdentification,
+                    NodeResolution = nodeResolution
                 },
                 Satisfiability = new CompositionSettings.SatisfiabilitySettings
                 {
@@ -137,7 +153,12 @@ internal sealed class FusionComposeCommand : Command
                 Preprocessor = new CompositionSettings.PreprocessorSettings
                 {
                     ExcludeByTag = tagsToExclude?.ToHashSet()
-                }
+                },
+                ApolloFederationCompatibility =
+                    new CompositionSettings.ApolloFederationCompatibilitySettings
+                    {
+                        ShareableFieldRuntimeTypeRouting = shareableFieldRuntimeTypeRouting
+                    }
             },
             removeSourceSchemas,
             cancellationToken);
@@ -152,6 +173,8 @@ internal sealed class FusionComposeCommand : Command
         string archiveFile,
         string? environment,
         bool? enableGlobalObjectIdentification,
+        NodeResolution? nodeResolution,
+        ShareableFieldRuntimeTypeRouting? shareableFieldRuntimeTypeRouting,
         bool? includeSatisfiabilityPaths,
         List<string>? tagsToExclude,
         CancellationToken cancellationToken)
@@ -171,7 +194,8 @@ internal sealed class FusionComposeCommand : Command
             {
                 Merger = new CompositionSettings.MergerSettings
                 {
-                    EnableGlobalObjectIdentification = enableGlobalObjectIdentification
+                    EnableGlobalObjectIdentification = enableGlobalObjectIdentification,
+                    NodeResolution = nodeResolution
                 },
                 Satisfiability = new CompositionSettings.SatisfiabilitySettings
                 {
@@ -180,7 +204,12 @@ internal sealed class FusionComposeCommand : Command
                 Preprocessor = new CompositionSettings.PreprocessorSettings
                 {
                     ExcludeByTag = tagsToExclude?.ToHashSet()
-                }
+                },
+                ApolloFederationCompatibility =
+                    new CompositionSettings.ApolloFederationCompatibilitySettings
+                    {
+                        ShareableFieldRuntimeTypeRouting = shareableFieldRuntimeTypeRouting
+                    }
             },
             [],
             cancellationToken);
@@ -207,6 +236,8 @@ internal sealed class FusionComposeCommand : Command
             archiveFile,
             environment,
             enableGlobalObjectIdentification,
+            nodeResolution,
+            shareableFieldRuntimeTypeRouting,
             includeSatisfiabilityPaths,
             tagsToExclude,
             cancellationToken);
@@ -338,6 +369,8 @@ internal sealed class FusionComposeCommand : Command
         string archiveFile,
         string? environment,
         bool? enableGlobalObjectIdentification,
+        NodeResolution? nodeResolution,
+        ShareableFieldRuntimeTypeRouting? shareableFieldRuntimeTypeRouting,
         bool? includeSatisfiabilityPaths,
         List<string>? tagsToExclude,
         CancellationToken cancellationToken)
@@ -377,7 +410,8 @@ internal sealed class FusionComposeCommand : Command
                     {
                         Merger = new CompositionSettings.MergerSettings
                         {
-                            EnableGlobalObjectIdentification = enableGlobalObjectIdentification
+                            EnableGlobalObjectIdentification = enableGlobalObjectIdentification,
+                            NodeResolution = nodeResolution
                         },
                         Satisfiability = new CompositionSettings.SatisfiabilitySettings
                         {
@@ -386,7 +420,13 @@ internal sealed class FusionComposeCommand : Command
                         Preprocessor = new CompositionSettings.PreprocessorSettings
                         {
                             ExcludeByTag = tagsToExclude?.ToHashSet()
-                        }
+                        },
+                        ApolloFederationCompatibility =
+                            new CompositionSettings.ApolloFederationCompatibilitySettings
+                            {
+                                ShareableFieldRuntimeTypeRouting =
+                                    shareableFieldRuntimeTypeRouting
+                            }
                     },
                     [],
                     cancellationToken);

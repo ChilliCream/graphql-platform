@@ -16,6 +16,7 @@ internal static class FieldDirectiveParser
         ITypeNode? sourceType = null;
         SelectionSetNode? provides = null;
         var isExternal = false;
+        var isSourceExternal = false;
 
         foreach (var argument in directive.Arguments)
         {
@@ -47,6 +48,10 @@ internal static class FieldDirectiveParser
                     isExternal = ((BooleanValueNode)argument.Value).Value;
                     break;
 
+                case "sourceExternal":
+                    isSourceExternal = ((BooleanValueNode)argument.Value).Value;
+                    break;
+
                 default:
                     throw new DirectiveParserException(
                         $"The argument `{argument.Name.Value}` is not supported on @field.");
@@ -59,7 +64,13 @@ internal static class FieldDirectiveParser
                 "The `schema` argument is required on the @field directive.");
         }
 
-        return new FieldDirective(new SchemaKey(schemaKey), sourceName, sourceType, provides, isExternal);
+        return new FieldDirective(
+            new SchemaKey(schemaKey),
+            sourceName,
+            sourceType,
+            provides,
+            isExternal,
+            isSourceExternal);
     }
 
     public static SelectionSetNode ParseSelectionSet(string value)

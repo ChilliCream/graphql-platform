@@ -30,12 +30,13 @@ using IValueNode = HotChocolate.Language.IValueNode;
 
 namespace HotChocolate.Fusion;
 
-internal sealed class SourceSchemaMerger
+internal sealed partial class SourceSchemaMerger
 {
     private static readonly FusionFieldDefinitionSyntaxRewriter s_fieldDefinitionRewriter = new();
     private readonly ImmutableSortedSet<MutableSchemaDefinition> _schemas;
     private readonly FrozenDictionary<string, string> _schemaConstantNames;
     private readonly SourceSchemaMergerOptions _options;
+    private readonly ShareableFieldRuntimeTypeRouting _shareableFieldRuntimeTypeRouting;
     private readonly FrozenDictionary<string, ITypeDefinition> _fusionTypeDefinitions;
     private readonly FrozenDictionary<string, MutableDirectiveDefinition>
         _fusionDirectiveDefinitions;
@@ -48,10 +49,19 @@ internal sealed class SourceSchemaMerger
     public SourceSchemaMerger(
         ImmutableSortedSet<MutableSchemaDefinition> schemas,
         SourceSchemaMergerOptions? options = null)
+        : this(schemas, options, ShareableFieldRuntimeTypeRouting.SourceLocal)
+    {
+    }
+
+    public SourceSchemaMerger(
+        ImmutableSortedSet<MutableSchemaDefinition> schemas,
+        SourceSchemaMergerOptions? options,
+        ShareableFieldRuntimeTypeRouting shareableFieldRuntimeTypeRouting)
     {
         _schemas = schemas;
         _schemaConstantNames = schemas.ToFrozenDictionary(s => s.Name, s => ToConstantCase(s.Name));
         _options = options ?? new SourceSchemaMergerOptions();
+        _shareableFieldRuntimeTypeRouting = shareableFieldRuntimeTypeRouting;
         _fusionTypeDefinitions = CreateFusionTypeDefinitions();
         _fusionDirectiveDefinitions = CreateFusionDirectiveDefinitions();
         _directiveMergers =
@@ -108,9 +118,12 @@ internal sealed class SourceSchemaMerger
     {
         var mergedSchema = new MutableSchemaDefinition();
 
+        ApplyStandInOverrides();
         MergeTypes(mergedSchema);
         MergeDirectiveDefinitions(mergedSchema);
         ApplyDirectives();
+        ApplyImplementsClosure(mergedSchema);
+        ProjectInterfaceObjectFields(mergedSchema);
         SetOperationTypes(mergedSchema);
         AddFusionLookupDirectives(mergedSchema);
         AddNodeField(mergedSchema);
@@ -149,19 +162,37 @@ internal sealed class SourceSchemaMerger
         foreach (var (_, typeGroup) in typeGroupByName)
         {
             var typeGroupArr = typeGroup.ToImmutableArray();
-            var kind = typeGroupArr[0].Type.Kind;
 
-            Assert(typeGroupArr.All(i => i.Type.Kind == kind));
+            // An @interfaceObject stand-in is merged into the interface of the same name and never
+            // appears in the composed schema, so it is excluded from the group before the kind is
+            // determined. Its contributed fields are projected onto the interface and its
+            // implementing types by ProjectInterfaceObjectFields. When every declaration of the name
+            // is a stand-in, INTERFACE_OBJECT_NO_INTERFACE has already failed pre-merge.
+            var consideredTypes = typeGroupArr
+                .Where(i => !IsInterfaceObjectStandIn(i.Type))
+                .ToImmutableArray();
+
+            if (consideredTypes.Length == 0)
+            {
+                continue;
+            }
+
+            var kind = consideredTypes[0].Type.Kind;
+
+            Assert(consideredTypes.All(i => i.Type.Kind == kind));
 
             // ReSharper disable once SwitchExpressionHandlesSomeKnownEnumValuesWithExceptionInDefault
             ITypeDefinition? mergedType = kind switch
             {
-                TypeKind.Enum => MergeEnumTypes(typeGroupArr, mergedSchema),
-                TypeKind.InputObject => MergeInputTypes(typeGroupArr, mergedSchema),
+                TypeKind.Enum => MergeEnumTypes(consideredTypes, mergedSchema),
+                TypeKind.InputObject => MergeInputTypes(consideredTypes, mergedSchema),
+                // The full group (including @interfaceObject stand-ins) is merged into the
+                // interface, so each stand-in's contract fields flow through the ordinary output
+                // field merge and are attributed to their source schema.
                 TypeKind.Interface => MergeInterfaceTypes(typeGroupArr, mergedSchema),
-                TypeKind.Object => MergeObjectTypes(typeGroupArr, mergedSchema),
-                TypeKind.Scalar => MergeScalarTypes(typeGroupArr, mergedSchema),
-                TypeKind.Union => MergeUnionTypes(typeGroupArr, mergedSchema),
+                TypeKind.Object => MergeObjectTypes(consideredTypes, mergedSchema),
+                TypeKind.Scalar => MergeScalarTypes(consideredTypes, mergedSchema),
+                TypeKind.Union => MergeUnionTypes(consideredTypes, mergedSchema),
                 _ => throw new InvalidOperationException()
             };
 
@@ -709,10 +740,12 @@ internal sealed class SourceSchemaMerger
 
         interfaceType.Description = description;
 
-        // [InterfaceName: [{InterfaceType, Schema}, ...], ...].
+        // [InterfaceName: [{InterfaceType, Schema}, ...], ...]. The group may include
+        // @interfaceObject stand-ins, which are object types, so implements edges are read from the
+        // common complex-type base rather than the interface type.
         var interfaceGroupByName = typeGroup
             .SelectMany(
-                i => ((MutableInterfaceTypeDefinition)i.Type).Implements.AsEnumerable(),
+                i => ((MutableComplexTypeDefinition)i.Type).Implements.AsEnumerable(),
                 (i, it) => new InterfaceInfo(it, i.Schema))
             .GroupBy(i => i.InterfaceType.Name)
             .Where(g => !g.Any(i => i.InterfaceType.HasInaccessibleDirective()))
@@ -734,6 +767,7 @@ internal sealed class SourceSchemaMerger
                 _directiveMergers[DirectiveNames.Tag].MergeDirectives(interfaceType, memberDefinitions, mergedSchema);
 
                 AddFusionTypeDirectives(interfaceType, typeGroup);
+                AddFusionInterfaceObjectDirectives(interfaceType, typeGroup);
                 AddFusionImplementsDirectives(interfaceType, [.. interfaceGroupByName.SelectMany(g => g)]);
 
                 if (typeGroup.Any(i => i.Type.HasInaccessibleDirective()))
@@ -743,10 +777,11 @@ internal sealed class SourceSchemaMerger
                 }
             });
 
-        // [FieldName: [{Field, Type, Schema}, ...], ...].
+        // [FieldName: [{Field, Type, Schema}, ...], ...]. Stand-in contract fields are merged in
+        // alongside the interface-declared fields via the ordinary output field merge.
         var fieldGroupByName = typeGroup
             .SelectMany(
-                i => ((MutableInterfaceTypeDefinition)i.Type).Fields.AsEnumerable(),
+                i => ((MutableComplexTypeDefinition)i.Type).Fields.AsEnumerable(),
                 (i, f) => new OutputFieldInfo(f, (MutableComplexTypeDefinition)i.Type, i.Schema))
             .GroupBy(i => i.Field.Name)
             .ToImmutableArray();
@@ -1236,8 +1271,12 @@ internal sealed class SourceSchemaMerger
                 => new MissingType(m.Name),
             NonNullType n
                 => GetOrCreateType(mergedSchema, n.NullableType),
+            // A reference to an @interfaceObject stand-in is a reference to the interface it stands
+            // in for, which is what the merged schema exposes.
             MutableObjectTypeDefinition o
-                => GetOrCreateType<MutableObjectTypeDefinition>(mergedSchema, o.Name),
+                => IsInterfaceObjectStandIn(o)
+                    ? GetOrCreateType<MutableInterfaceTypeDefinition>(mergedSchema, o.Name)
+                    : GetOrCreateType<MutableObjectTypeDefinition>(mergedSchema, o.Name),
             MutableScalarTypeDefinition s
                 => GetOrCreateType<MutableScalarTypeDefinition>(mergedSchema, s.Name),
             MutableUnionTypeDefinition u
@@ -1320,6 +1359,14 @@ internal sealed class SourceSchemaMerger
             if (sourceField.IsExternal)
             {
                 arguments.Add(new ArgumentAssignment(ArgumentNames.Partial, true));
+            }
+
+            if (SourceExternalFieldMetadata.Contains(
+                    sourceSchema,
+                    sourceField.DeclaringMember!.Name,
+                    sourceField.Name))
+            {
+                arguments.Add(new ArgumentAssignment(ArgumentNames.SourceExternal, true));
             }
 
             field.Directives.Add(
@@ -1794,6 +1841,32 @@ internal sealed class SourceSchemaMerger
         }
     }
 
+    /// <summary>
+    /// Emits a <c>@fusion__interfaceObject(schema:)</c> directive for every source schema that
+    /// exposes <paramref name="interfaceType"/> as an <c>@interfaceObject</c> stand-in. Values of
+    /// the interface produced by such a schema are opaque, so the executor recovers their concrete
+    /// type through a covering interface lookup.
+    /// </summary>
+    private void AddFusionInterfaceObjectDirectives(
+        MutableInterfaceTypeDefinition interfaceType,
+        ImmutableArray<TypeInfo> typeGroup)
+    {
+        foreach (var (sourceType, sourceSchema) in typeGroup)
+        {
+            if (!IsInterfaceObjectStandIn(sourceType))
+            {
+                continue;
+            }
+
+            interfaceType.Directives.Add(
+                new Directive(
+                    _fusionDirectiveDefinitions[DirectiveNames.FusionInterfaceObject],
+                    new ArgumentAssignment(
+                        ArgumentNames.Schema,
+                        new EnumValueNode(_schemaConstantNames[sourceSchema.Name]))));
+        }
+    }
+
     private void AddFusionUnionMemberDirectives(
         MutableUnionTypeDefinition unionType,
         ImmutableArray<UnionMemberInfo> unionMemberGroup)
@@ -1833,8 +1906,16 @@ internal sealed class SourceSchemaMerger
             },
             // Enum type definitions.
             {
+                TypeNames.FusionNodeResolution,
+                new FusionNodeResolutionMutableEnumTypeDefinition()
+            },
+            {
                 TypeNames.FusionSchema,
                 new FusionSchemaMutableEnumTypeDefinition(_schemaConstantNames)
+            },
+            {
+                TypeNames.FusionShareableFieldRuntimeTypeRouting,
+                new FusionShareableFieldRuntimeTypeRoutingMutableEnumTypeDefinition()
             }
         }.ToFrozenDictionary();
     }
@@ -1843,6 +1924,11 @@ internal sealed class SourceSchemaMerger
     {
         var schemaEnumType =
             (MutableEnumTypeDefinition)_fusionTypeDefinitions[TypeNames.FusionSchema];
+        var nodeResolutionType =
+            (MutableEnumTypeDefinition)_fusionTypeDefinitions[TypeNames.FusionNodeResolution];
+        var shareableFieldRuntimeTypeRoutingType =
+            (MutableEnumTypeDefinition)_fusionTypeDefinitions[
+                TypeNames.FusionShareableFieldRuntimeTypeRouting];
         var fieldDefinitionType =
             (MutableScalarTypeDefinition)_fusionTypeDefinitions[TypeNames.FusionFieldDefinition];
         var fieldSelectionMapType =
@@ -1864,6 +1950,12 @@ internal sealed class SourceSchemaMerger
             {
                 DirectiveNames.FusionEnumValue,
                 new FusionEnumValueMutableDirectiveDefinition(schemaEnumType)
+            },
+            {
+                DirectiveNames.FusionExecution,
+                new FusionExecutionMutableDirectiveDefinition(
+                    nodeResolutionType,
+                    shareableFieldRuntimeTypeRoutingType)
             },
             {
                 DirectiveNames.FusionField,
@@ -1888,6 +1980,10 @@ internal sealed class SourceSchemaMerger
             {
                 DirectiveNames.FusionInputField,
                 new FusionInputFieldMutableDirectiveDefinition(schemaEnumType, stringType)
+            },
+            {
+                DirectiveNames.FusionInterfaceObject,
+                new FusionInterfaceObjectMutableDirectiveDefinition(schemaEnumType)
             },
             {
                 DirectiveNames.FusionListSize,
@@ -1917,7 +2013,7 @@ internal sealed class SourceSchemaMerger
             },
             {
                 DirectiveNames.FusionSchemaMetadata,
-                new FusionSchemaMetadataMutableDirectiveDefinition(stringType)
+                new FusionSchemaMetadataMutableDirectiveDefinition(stringType, booleanType)
             },
             {
                 DirectiveNames.FusionEventStream,
@@ -1948,6 +2044,32 @@ internal sealed class SourceSchemaMerger
         {
             mergedSchema.DirectiveDefinitions.Add(definition);
         }
+
+        mergedSchema.Directives.Add(
+            new Directive(
+                _fusionDirectiveDefinitions[DirectiveNames.FusionExecution],
+                new ArgumentAssignment(
+                    ArgumentNames.NodeResolution,
+                    new EnumValueNode(
+                        _options.NodeResolution switch
+                        {
+                            NodeResolution.Gateway => "GATEWAY",
+                            NodeResolution.SourceSchema => "SOURCE_SCHEMA",
+                            _ => throw new InvalidOperationException(
+                                $"The node resolution mode '{_options.NodeResolution}' is invalid.")
+                        })),
+                new ArgumentAssignment(
+                    ArgumentNames.ShareableFieldRuntimeTypeRouting,
+                    new EnumValueNode(
+                        _shareableFieldRuntimeTypeRouting switch
+                        {
+                            ShareableFieldRuntimeTypeRouting.SourceLocal => "SOURCE_LOCAL",
+                            ShareableFieldRuntimeTypeRouting.CommonRuntimeTypes =>
+                                "COMMON_RUNTIME_TYPES",
+                            _ => throw new InvalidOperationException(
+                                "The shareable field runtime type routing mode "
+                                + $"'{_shareableFieldRuntimeTypeRouting}' is invalid.")
+                        }))));
     }
 
     private void LiftConnectorKindOntoSchemaMetadata(MutableSchemaDefinition mergedSchema)
@@ -1981,6 +2103,17 @@ internal sealed class SourceSchemaMerger
                 if (arguments.All(static t => t.Name != ArgumentNames.Kind))
                 {
                     arguments.Add(new ArgumentAssignment(ArgumentNames.Kind, connectorKind.Kind));
+                }
+
+                if (schema.Features.Get<ApolloFederationCompatibilityMetadata>()
+                        is { AllowNonResolvableInterfaceObjects: true }
+                    && arguments.All(
+                        static t => t.Name != ArgumentNames.AllowNonResolvableInterfaceObjects))
+                {
+                    arguments.Add(
+                        new ArgumentAssignment(
+                            ArgumentNames.AllowNonResolvableInterfaceObjects,
+                            true));
                 }
 
                 var newMetadata = new Directive(metadataDirective, arguments);
@@ -2023,6 +2156,10 @@ internal sealed class SourceSchemaMerger
 
         return rewriter;
     }
+
+    private static bool IsInterfaceObjectStandIn(ITypeDefinition type)
+        => type is MutableObjectTypeDefinition objectType
+            && objectType.Directives.ContainsName(WellKnownDirectiveNames.InterfaceObject);
 
     private static void Assert(bool condition)
     {

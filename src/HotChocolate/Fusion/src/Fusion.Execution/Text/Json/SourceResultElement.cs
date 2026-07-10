@@ -501,22 +501,13 @@ public readonly partial struct SourceResultElement
     /// </summary>
     /// <param name="utf8Value">Receives the raw UTF-8 span when successful.</param>
     /// <returns>
-    /// <see langword="false"/> when the value is not a string or contains escape sequences.
+    /// <see langword="false"/> when the value is not a string, contains escape sequences,
+    /// or is not backed by contiguous memory.
     /// </returns>
     internal bool TryGetRawStringValue(out ReadOnlySpan<byte> utf8Value)
     {
         CheckValidInstance();
-
-        var row = _parent.GetValueRow(_cursor);
-
-        if (row.TokenType is not JsonTokenType.String || row.HasComplexChildren)
-        {
-            utf8Value = default;
-            return false;
-        }
-
-        utf8Value = _parent.GetRawValue(_cursor, includeQuotes: false);
-        return true;
+        return _parent.TryGetRawStringValue(_cursor, out utf8Value);
     }
 
     /// <summary>

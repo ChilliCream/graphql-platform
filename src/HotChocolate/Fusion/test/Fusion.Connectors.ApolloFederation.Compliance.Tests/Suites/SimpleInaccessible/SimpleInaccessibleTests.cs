@@ -9,10 +9,10 @@ namespace HotChocolate.Fusion.Suites;
 /// subgraphs share the <c>User</c> entity. Subgraph <c>age</c> owns
 /// <c>id</c> and <c>age</c> and exposes a shareable <c>usersInAge</c> list;
 /// subgraph <c>friends</c> owns the <c>friends</c> field, including a
-/// <c>type: FriendType = FAMILY @inaccessible</c> argument default and a
+/// <c>type: FriendType = FAMILY</c> argument marked <c>@inaccessible</c> and a
 /// <c>type: FriendType</c> field whose resolver always returns the
 /// inaccessible <c>FAMILY</c> value. The audit verifies that the supergraph
-/// hides the <c>@inaccessible</c> argument default and the inaccessible enum
+/// hides the <c>@inaccessible</c> argument and the inaccessible enum
 /// value while the source schemas continue to round-trip values internally.
 /// </summary>
 public sealed class SimpleInaccessibleTests : ComplianceTestBase
@@ -25,8 +25,8 @@ public sealed class SimpleInaccessibleTests : ComplianceTestBase
     /// <summary>
     /// <c>usersInAge</c> originates in subgraph <c>age</c>; the planner
     /// enriches each user with <c>friends { id }</c> from subgraph
-    /// <c>friends</c>, which uses the <c>@inaccessible</c> default to omit the
-    /// <c>type</c> argument from the entity call.
+    /// <c>friends</c>. The hidden <c>type</c> argument is omitted, so the source
+    /// schema applies its <c>FAMILY</c> default.
     /// </summary>
     [Fact]
     public Task UsersInAge_Friends_Id() => RunAsync(
@@ -77,15 +77,11 @@ public sealed class SimpleInaccessibleTests : ComplianceTestBase
             """);
 
     /// <summary>
-    /// Selecting <c>friends(type: FRIEND)</c> succeeds at validation because
-    /// <c>FRIEND</c> is the only accessible enum value. The audit expects
-    /// errors because the underlying resolver does not project the
-    /// <c>type</c> argument and returns <c>FAMILY</c> from <c>type</c>, which
-    /// is inaccessible at the supergraph and so must surface as a field
-    /// error.
+    /// The <c>type</c> argument is marked <c>@inaccessible</c> and is absent from
+    /// the public schema. Supplying it must fail validation with null response data.
     /// </summary>
     [Fact]
-    public Task UsersInFriends_Friends_Type_Friend_Errors() => RunAsync(
+    public Task UsersInFriends_Friends_Type_Friend_Is_Rejected() => RunAsync(
         query: """
             query {
               usersInFriends {

@@ -57,6 +57,8 @@ internal sealed class SourceSchemaEnricher(
     private static void EnrichObjectType(MutableObjectTypeDefinition objectType)
     {
         var sourceMetadata = objectType.Features.GetOrSet<SourceObjectTypeMetadata>();
+        sourceMetadata.HasInterfaceObjectDirective =
+            objectType.Directives.ContainsName(WellKnownDirectiveNames.InterfaceObject);
         sourceMetadata.HasShareableDirective = objectType.Directives.ContainsName(Shareable);
         sourceMetadata.IsInternal = objectType.Directives.ContainsName(WellKnownDirectiveNames.Internal);
     }
@@ -86,6 +88,7 @@ internal sealed class SourceSchemaEnricher(
         sourceMetadata.IsLookup = outputField.Directives.ContainsName(Lookup);
         sourceMetadata.HasExternalDirective = outputField.Directives.ContainsName(External);
         sourceMetadata.HasEventCursorDirective = outputField.Directives.ContainsName(EventCursor);
+        sourceMetadata.HasImplementDirective = outputField.Directives.ContainsName(WellKnownDirectiveNames.Implement);
         sourceMetadata.HasInternalDirective = outputField.Directives.ContainsName(WellKnownDirectiveNames.Internal);
         sourceMetadata.HasOverrideDirective = outputField.Directives.ContainsName(Override);
         sourceMetadata.HasProvidesDirective = outputField.Directives.ContainsName(Provides);

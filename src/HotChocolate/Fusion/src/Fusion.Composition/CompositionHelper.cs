@@ -88,6 +88,8 @@ internal static class CompositionHelper
         var sourceSchemaOptionsMap = new Dictionary<string, SourceSchemaOptions>();
         var mergerOptions = mergedCompositionSettings.Merger.ToOptions();
         var satisfiabilityOptions = mergedCompositionSettings.Satisfiability.ToOptions();
+        var apolloFederationCompatibilityOptions =
+            mergedCompositionSettings.ApolloFederationCompatibility.ToOptions();
 
         foreach (var (sourceSchemaName, (_, sourceSchemaSettings)) in sourceSchemas)
         {
@@ -105,7 +107,8 @@ internal static class CompositionHelper
         {
             SourceSchemas = sourceSchemaOptionsMap,
             Merger = mergerOptions,
-            Satisfiability = satisfiabilityOptions
+            Satisfiability = satisfiabilityOptions,
+            ApolloFederationCompatibility = apolloFederationCompatibilityOptions
         };
 
         var schemaComposer = new SchemaComposer(

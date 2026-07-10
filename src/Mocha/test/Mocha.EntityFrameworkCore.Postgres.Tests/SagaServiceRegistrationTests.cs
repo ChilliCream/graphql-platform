@@ -37,7 +37,6 @@ public sealed class SagaServiceRegistrationTests
 
         // Assert - verify all query strings are populated (non-null, non-empty).
         Assert.False(string.IsNullOrWhiteSpace(queries.SelectState));
-        Assert.False(string.IsNullOrWhiteSpace(queries.SelectVersion));
         Assert.False(string.IsNullOrWhiteSpace(queries.InsertState));
         Assert.False(string.IsNullOrWhiteSpace(queries.UpdateState));
         Assert.False(string.IsNullOrWhiteSpace(queries.DeleteState));
@@ -71,7 +70,6 @@ public sealed class SagaServiceRegistrationTests
 
         // Assert
         Assert.False(string.IsNullOrWhiteSpace(options.Queries.SelectState));
-        Assert.False(string.IsNullOrWhiteSpace(options.Queries.SelectVersion));
         Assert.False(string.IsNullOrWhiteSpace(options.Queries.InsertState));
         Assert.False(string.IsNullOrWhiteSpace(options.Queries.UpdateState));
         Assert.False(string.IsNullOrWhiteSpace(options.Queries.DeleteState));

@@ -4477,7 +4477,11 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
     {
         schema.MatchInlineSnapshot(
             """
-            schema {
+            schema
+              @fusion__execution(
+                nodeResolution: GATEWAY
+                shareableFieldRuntimeTypeRouting: SOURCE_LOCAL
+              ) {
               query: Query
             }
 
@@ -4519,10 +4523,20 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
               PRIVATE @fusion__enumValue(schema: REVIEWS)
             }
 
+            enum fusion__NodeResolution {
+              GATEWAY
+              SOURCE_SCHEMA
+            }
+
             "The fusion__Schema enum is a generated type used within an execution schema document to refer to a source schema in a type-safe manner."
             enum fusion__Schema {
               PRODUCTS @fusion__schema_metadata(name: "products")
               REVIEWS @fusion__schema_metadata(name: "reviews")
+            }
+
+            enum fusion__ShareableFieldRuntimeTypeRouting {
+              SOURCE_LOCAL
+              COMMON_RUNTIME_TYPES
             }
 
             "The fusion__FieldDefinition scalar is used to represent a GraphQL field definition specified in the GraphQL spec."
@@ -4574,6 +4588,11 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
               topics: [String!]
             ) on FIELD_DEFINITION
 
+            directive @fusion__execution(
+              nodeResolution: fusion__NodeResolution! = GATEWAY
+              shareableFieldRuntimeTypeRouting: fusion__ShareableFieldRuntimeTypeRouting! = SOURCE_LOCAL
+            ) on SCHEMA
+
             "The @fusion__field directive specifies which source schema provides a field in a composite type and what execution behavior it has."
             directive @fusion__field(
               "Indicates that this field is only partially provided and must be combined with `provides`."
@@ -4582,6 +4601,8 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
               provides: fusion__FieldSelectionSet
               "The name of the source schema that originally provided this field."
               schema: fusion__Schema!
+              "Indicates that the source field was declared as external before connector preprocessing."
+              sourceExternal: Boolean! = false
               "The field type in the source schema if it differs in nullability or structure."
               sourceType: String
             ) repeatable on FIELD_DEFINITION
@@ -4617,6 +4638,12 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
               "The field type in the source schema if it differs in nullability or structure."
               sourceType: String
             ) repeatable on ARGUMENT_DEFINITION | INPUT_FIELD_DEFINITION
+
+            "The @fusion__interfaceObject directive specifies the source schemas that expose an interface as an @interfaceObject stand-in, so values of the interface produced by those schemas are opaque."
+            directive @fusion__interfaceObject(
+              "The name of the source schema that exposes this interface as an @interfaceObject stand-in."
+              schema: fusion__Schema!
+            ) repeatable on INTERFACE
 
             "The @fusion__listSize directive specifies list size metadata for each source schema."
             directive @fusion__listSize(
@@ -4664,6 +4691,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
 
             "The @fusion__schema_metadata directive is used to provide additional metadata for a source schema."
             directive @fusion__schema_metadata(
+              allowNonResolvableInterfaceObjects: Boolean
               kind: String
               "The name of the source schema."
               name: String!
@@ -4690,7 +4718,11 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
     {
         schema.MatchInlineSnapshot(
             """
-            schema {
+            schema
+              @fusion__execution(
+                nodeResolution: GATEWAY
+                shareableFieldRuntimeTypeRouting: SOURCE_LOCAL
+              ) {
               query: Query
             }
 
@@ -4698,9 +4730,19 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
               field: String! @fusion__field(schema: REVIEWS)
             }
 
+            enum fusion__NodeResolution {
+              GATEWAY
+              SOURCE_SCHEMA
+            }
+
             "The fusion__Schema enum is a generated type used within an execution schema document to refer to a source schema in a type-safe manner."
             enum fusion__Schema {
               REVIEWS @fusion__schema_metadata(name: "reviews")
+            }
+
+            enum fusion__ShareableFieldRuntimeTypeRouting {
+              SOURCE_LOCAL
+              COMMON_RUNTIME_TYPES
             }
 
             "The fusion__FieldDefinition scalar is used to represent a GraphQL field definition specified in the GraphQL spec."
@@ -4744,6 +4786,11 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
               topics: [String!]
             ) on FIELD_DEFINITION
 
+            directive @fusion__execution(
+              nodeResolution: fusion__NodeResolution! = GATEWAY
+              shareableFieldRuntimeTypeRouting: fusion__ShareableFieldRuntimeTypeRouting! = SOURCE_LOCAL
+            ) on SCHEMA
+
             "The @fusion__field directive specifies which source schema provides a field in a composite type and what execution behavior it has."
             directive @fusion__field(
               "Indicates that this field is only partially provided and must be combined with `provides`."
@@ -4752,6 +4799,8 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
               provides: fusion__FieldSelectionSet
               "The name of the source schema that originally provided this field."
               schema: fusion__Schema!
+              "Indicates that the source field was declared as external before connector preprocessing."
+              sourceExternal: Boolean! = false
               "The field type in the source schema if it differs in nullability or structure."
               sourceType: String
             ) repeatable on FIELD_DEFINITION
@@ -4787,6 +4836,12 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
               "The field type in the source schema if it differs in nullability or structure."
               sourceType: String
             ) repeatable on ARGUMENT_DEFINITION | INPUT_FIELD_DEFINITION
+
+            "The @fusion__interfaceObject directive specifies the source schemas that expose an interface as an @interfaceObject stand-in, so values of the interface produced by those schemas are opaque."
+            directive @fusion__interfaceObject(
+              "The name of the source schema that exposes this interface as an @interfaceObject stand-in."
+              schema: fusion__Schema!
+            ) repeatable on INTERFACE
 
             "The @fusion__listSize directive specifies list size metadata for each source schema."
             directive @fusion__listSize(
@@ -4834,6 +4889,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
 
             "The @fusion__schema_metadata directive is used to provide additional metadata for a source schema."
             directive @fusion__schema_metadata(
+              allowNonResolvableInterfaceObjects: Boolean
               kind: String
               "The name of the source schema."
               name: String!
@@ -4930,7 +4986,11 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
     {
         schema.MatchInlineSnapshot(
             """
-            schema {
+            schema
+              @fusion__execution(
+                nodeResolution: GATEWAY
+                shareableFieldRuntimeTypeRouting: SOURCE_LOCAL
+              ) {
               query: Query
             }
 
@@ -4963,10 +5023,20 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
               PRIVATE @fusion__enumValue(schema: REVIEWS)
             }
 
+            enum fusion__NodeResolution {
+              GATEWAY
+              SOURCE_SCHEMA
+            }
+
             "The fusion__Schema enum is a generated type used within an execution schema document to refer to a source schema in a type-safe manner."
             enum fusion__Schema {
               PRODUCTS @fusion__schema_metadata(name: "products")
               REVIEWS @fusion__schema_metadata(name: "reviews")
+            }
+
+            enum fusion__ShareableFieldRuntimeTypeRouting {
+              SOURCE_LOCAL
+              COMMON_RUNTIME_TYPES
             }
 
             "The fusion__FieldDefinition scalar is used to represent a GraphQL field definition specified in the GraphQL spec."
@@ -5018,6 +5088,11 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
               topics: [String!]
             ) on FIELD_DEFINITION
 
+            directive @fusion__execution(
+              nodeResolution: fusion__NodeResolution! = GATEWAY
+              shareableFieldRuntimeTypeRouting: fusion__ShareableFieldRuntimeTypeRouting! = SOURCE_LOCAL
+            ) on SCHEMA
+
             "The @fusion__field directive specifies which source schema provides a field in a composite type and what execution behavior it has."
             directive @fusion__field(
               "Indicates that this field is only partially provided and must be combined with `provides`."
@@ -5026,6 +5101,8 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
               provides: fusion__FieldSelectionSet
               "The name of the source schema that originally provided this field."
               schema: fusion__Schema!
+              "Indicates that the source field was declared as external before connector preprocessing."
+              sourceExternal: Boolean! = false
               "The field type in the source schema if it differs in nullability or structure."
               sourceType: String
             ) repeatable on FIELD_DEFINITION
@@ -5061,6 +5138,12 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
               "The field type in the source schema if it differs in nullability or structure."
               sourceType: String
             ) repeatable on ARGUMENT_DEFINITION | INPUT_FIELD_DEFINITION
+
+            "The @fusion__interfaceObject directive specifies the source schemas that expose an interface as an @interfaceObject stand-in, so values of the interface produced by those schemas are opaque."
+            directive @fusion__interfaceObject(
+              "The name of the source schema that exposes this interface as an @interfaceObject stand-in."
+              schema: fusion__Schema!
+            ) repeatable on INTERFACE
 
             "The @fusion__listSize directive specifies list size metadata for each source schema."
             directive @fusion__listSize(
@@ -5108,6 +5191,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
 
             "The @fusion__schema_metadata directive is used to provide additional metadata for a source schema."
             directive @fusion__schema_metadata(
+              allowNonResolvableInterfaceObjects: Boolean
               kind: String
               "The name of the source schema."
               name: String!

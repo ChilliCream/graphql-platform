@@ -20,7 +20,7 @@ operation:
       }
     hash: 123456789101112
     searchSpace: 1
-    expandedNodes: 3
+    expandedNodes: 2
 nodes:
   - id: 1
     type: Operation
@@ -53,12 +53,12 @@ nodes:
           id
     dependencies:
       - id: 1
-  - id: 4
+  - id: 3
     type: Operation
     schema: r
     operation: |
-      query Op_123456789101112_4($__fusion_3_id: ID!) {
-        bookById(id: $__fusion_3_id) {
+      query Op_123456789101112_3($__fusion_2_id: ID!) {
+        bookById(id: $__fusion_2_id) {
           reviews {
             id
           }
@@ -71,32 +71,28 @@ nodes:
     target: $.products<Book>
     batchingGroupId: 2
     requirements:
-      - name: __fusion_3_id
+      - name: __fusion_2_id
         selectionMap: >-
           id
     dependencies:
       - id: 1
-  - id: 3
-    type: OperationBatch
+  - id: 4
+    type: Operation
     schema: books
     operation: |
-      query Op_123456789101112_3($__fusion_2_id: ID!) {
-        bookById(id: $__fusion_2_id) {
+      query Op_123456789101112_4($__fusion_3_id: ID!) {
+        bookById(id: $__fusion_3_id) {
           title
         }
       }
     source: $.bookById
-    targets:
-      - $.products<Magazine><Book>
-      - $.products<Book><Book>
-    batchingGroupId: 3
+    target: $.products<Book><Book>
     requirements:
-      - name: __fusion_2_id
+      - name: __fusion_3_id
         selectionMap: >-
           id
     conditions:
       - variable: $title
         passingValue: false
     dependencies:
-      - id: 1
-      - id: 4
+      - id: 2

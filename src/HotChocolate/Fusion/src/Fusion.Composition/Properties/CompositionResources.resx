@@ -123,6 +123,12 @@
   <data name="FusionInputFieldMutableDirectiveDefinition_Description" xml:space="preserve">
     <value>The @fusion__inputField directive specifies which source schema provides an input field in a composite input type.</value>
   </data>
+  <data name="FusionInterfaceObjectMutableDirectiveDefinition_Argument_Schema_Description" xml:space="preserve">
+    <value>The name of the source schema that exposes this interface as an @interfaceObject stand-in.</value>
+  </data>
+  <data name="FusionInterfaceObjectMutableDirectiveDefinition_Description" xml:space="preserve">
+    <value>The @fusion__interfaceObject directive specifies the source schemas that expose an interface as an @interfaceObject stand-in, so values of the interface produced by those schemas are opaque.</value>
+  </data>
   <data name="FusionListSizeMutableDirectiveDefinition_Argument_AssumedSize_Description" xml:space="preserve">
     <value>The assumed size of the list as defined in the source schema.</value>
   </data>
@@ -204,8 +210,14 @@
   <data name="FusionUnionMemberMutableDirectiveDefinition_Description" xml:space="preserve">
     <value>The @fusion__unionMember directive specifies which source schema provides a member type of a union.</value>
   </data>
+  <data name="ImplementMutableDirectiveDefinition_Description" xml:space="preserve">
+    <value>The @implement directive marks a field as an explicit implementation that replaces a default field implementation contributed by an @interfaceObject stand-in.</value>
+  </data>
   <data name="InaccessibleMutableDirectiveDefinition_Description" xml:space="preserve">
     <value>The @inaccessible directive is used to prevent specific type system members from being accessible through the client-facing composite schema, even if they are accessible in the underlying source schemas.</value>
+  </data>
+  <data name="InterfaceObjectMutableDirectiveDefinition_Description" xml:space="preserve">
+    <value>The @interfaceObject directive declares an object type that acts as a stand-in for an interface of the same name defined in other source schemas, letting a source schema contribute fields to that interface without defining its implementing types.</value>
   </data>
   <data name="InternalMutableDirectiveDefinition_Description" xml:space="preserve">
     <value>The @internal directive is used to mark types and fields as internal within a source schema.</value>
@@ -333,11 +345,29 @@
   <data name="LogEntryHelper_InputWithMissingRequiredFields" xml:space="preserve">
     <value>The input type '{0}' in schema '{1}' must define the required field '{2}'.</value>
   </data>
+  <data name="LogEntryHelper_ImplementWithoutDefault" xml:space="preserve">
+    <value>The field '{0}' is marked with @implement in schema '{1}', but no applicable default implementation exists for it.</value>
+  </data>
   <data name="LogEntryHelper_InterfaceFieldNoImplementation" xml:space="preserve">
     <value>The merged object type '{0}' must implement the field '{1}' on interface '{2}'.</value>
   </data>
+  <data name="LogEntryHelper_InterfaceObjectFieldRequiresImplement" xml:space="preserve">
+    <value>The field '{0}' provided by schema '{1}' replaces the default implementation contributed to interface '{2}'. Mark it with @implement to keep this implementation, or remove it to adopt the default.</value>
+  </data>
+  <data name="LogEntryHelper_InterfaceObjectKeyMismatch" xml:space="preserve">
+    <value>The @interfaceObject stand-in '{0}' in schema '{1}' declares the key '{2}', which does not match any key declared on the interface it stands in for.</value>
+  </data>
+  <data name="LogEntryHelper_InterfaceObjectKeyMissing" xml:space="preserve">
+    <value>The @interfaceObject stand-in '{0}' in schema '{1}' must declare at least one @key directive.</value>
+  </data>
+  <data name="LogEntryHelper_InterfaceObjectNoInterface" xml:space="preserve">
+    <value>The type '{0}' is declared as an @interfaceObject stand-in, but no source schema defines '{0}' as an interface.</value>
+  </data>
   <data name="LogEntryHelper_InvalidFieldSharing" xml:space="preserve">
     <value>The field '{0}' in schema '{1}' must be shareable.</value>
+  </data>
+  <data name="LogEntryHelper_InvalidProjectedFieldSharing" xml:space="preserve">
+    <value>The default field '{0}' on type '{1}' is contributed by unrelated interfaces {2}; every contributing @interfaceObject declaration must be marked @shareable.</value>
   </data>
   <data name="LogEntryHelper_InvalidGraphQL" xml:space="preserve">
     <value>Invalid GraphQL in source schema. Exception message: {0}.</value>
@@ -548,6 +578,12 @@
   </data>
   <data name="SatisfiabilityValidator_CycleDetected" xml:space="preserve">
     <value>Cycle detected: {0} -&gt; {1}.</value>
+  </data>
+  <data name="SatisfiabilityValidator_InterfaceObjectNoCoveringLookup" xml:space="preserve">
+    <value>The query path '{0}' cannot be satisfied: values of '{1}' produced by source schema '{2}' are opaque, and no source schema provides a lookup for '{1}' that covers the possible type(s) {3} introduced by source schema(s) {4}.</value>
+  </data>
+  <data name="SatisfiabilityValidator_InterfaceObjectNoLookup" xml:space="preserve">
+    <value>Source schema '{0}' contributes fields to '{1}' but provides no lookup to resolve them.</value>
   </data>
   <data name="SatisfiabilityValidator_NodeTypeHasNoNodeLookup" xml:space="preserve">
     <value>Type '{0}' implements the 'Node' interface, but no source schema provides a non-internal 'Query.node&lt;Node&gt;' lookup field for this type.</value>
