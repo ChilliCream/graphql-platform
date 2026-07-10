@@ -83,12 +83,15 @@ nitro fusion compose [options]
 | `--archive <path>` (alias: `-a`)              | Output path for the Fusion archive              | `./gateway.far`                                              |
 | `--environment <name>` (alias: `--env`, `-e`) | Environment name for variable substitution      | `ASPNETCORE_ENVIRONMENT` or `Development`                    |
 | `--enable-global-object-identification`       | Enable Relay-style global object identification | `false`                                                      |
+| `--node-resolution <gateway\|source-schema>`  | Choose who resolves `Query.node` identifiers    | `gateway`                                                    |
 | `--include-satisfiability-paths`              | Include satisfiability diagnostic paths         | `false`                                                      |
 | `--watch`                                     | Recompose on file changes                       | `false`                                                      |
 | `--exclude-by-tag <tag>`                      | Exclude fields/types by tag. Can be repeated.   | --                                                           |
 | `--working-directory <path>` (alias: `-w`)    | Working directory for resolving paths           | Current directory                                            |
 
 Each `.graphqls` file must have a companion `-settings.json` file (for example, `schema.graphqls` requires `schema-settings.json`). If no `--source-schema-file` is specified, the CLI scans the working directory for all `.graphql` and `.graphqls` files.
+
+When an archive has no stored node-resolution setting, composition uses `gateway`. If you recompose an existing archive without `--node-resolution`, Nitro preserves the stored value.
 
 ## Examples
 
@@ -387,16 +390,18 @@ nitro fusion settings set <SETTING_NAME> <SETTING_VALUE> [options]
 | Setting                        | Values                                 | Description                             |
 | ------------------------------ | -------------------------------------- | --------------------------------------- |
 | `global-object-identification` | `true`, `false`                        | Enable Relay-style node queries         |
+| `node-resolution`              | `gateway`, `source-schema`             | Choose who resolves `Query.node` IDs    |
 | `cache-control-merge-behavior` | `ignore`, `include`, `include-private` | How to merge `@cacheControl` directives |
 | `tag-merge-behavior`           | `ignore`, `include`, `include-private` | How to merge `@tag` directives          |
 | `exclude-by-tag`               | Comma-separated tags                   | Exclude fields/types by tag             |
 
 ## Examples
 
-Enable global object identification:
+Enable source-schema node resolution on an existing archive:
 
 ```shell
 nitro fusion settings set global-object-identification true --archive gateway.far
+nitro fusion settings set node-resolution source-schema --archive gateway.far
 ```
 
 Configure cache control merging:

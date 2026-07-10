@@ -84,23 +84,65 @@ Composition resolves Apollo Federation constructs before clients see the schema.
 
 # Global Object Identification
 
-If your Apollo Federation subgraphs implement the Relay `node` field (a `Query.node(id: ID!): Node` field over a `Node` interface), the connector turns it into a lookup during composition. The gateway can then resolve any `Node` type through that lookup.
+If your Apollo Federation subgraphs implement the Relay `node` field (a `Query.node(id: ID!): Node` field over a `Node` interface), the connector turns it into a lookup during composition. Keep the Apollo Federation SDL as exported. You do not need to add Fusion's `@lookup` directive to the field.
 
-Configure how the gateway resolves `node(id:)` at runtime with the `NodeResolution` option on `FusionOptions`:
+## Configure node resolution
 
-| Value                         | Behavior                                                                                                                                                                                                                                                                                |
-| ----------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `NodeResolution.Gateway`      | The gateway decodes the `id`, determines the object's type from it, and routes the lookup to the source schema that owns that type. This is the default.                                                                                                                                |
-| `NodeResolution.SourceSchema` | The gateway does not interpret the `id`. It forwards `node(id:)` to a source schema that owns a node lookup, and that subgraph resolves the type. Use this when identifiers are opaque to the gateway, which is often the case for Apollo Federation subgraphs that mint their own IDs. |
+Choose how the gateway resolves `node(id:)` when you compose the gateway archive. Fusion records the mode in the execution schema, so every compatible gateway that loads the archive uses the same behavior.
 
-Set the option on the gateway builder with `ModifyOptions`:
+| CLI value       | Execution-schema value | Behavior                                                                                                                                                                                                                                                                      |
+| --------------- | ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `gateway`       | `GATEWAY`              | The gateway decodes the ID, determines the object type, and routes the lookup to the source schema that owns that type. This is the default.                                                                                                                                  |
+| `source-schema` | `SOURCE_SCHEMA`        | The gateway forwards the opaque ID to a source schema with a public root `Query.node(id: ID!): Node` lookup. That source schema determines the object type and can resolve the concrete `Node` implementations that it declares. Use this mode when the gateway cannot decode your identifiers. |
 
-```csharp
-builder
-    .AddGraphQLGateway()
-    .ModifyOptions(options => options.NodeResolution = NodeResolution.SourceSchema)
-    .AddFileSystemConfiguration("./gateway.far");
+To use source-schema resolution, enable Global Object Identification and select the mode in the compose command:
+
+```bash
+nitro fusion compose \
+  --source-schema-file ./accounts/schema.graphqls \
+  --source-schema-file ./reviews/schema.graphqls \
+  --archive gateway.far \
+  --enable-global-object-identification \
+  --node-resolution source-schema
 ```
+
+To update an existing archive, enable Global Object Identification before changing the node-resolution setting:
+
+```bash
+nitro fusion settings set global-object-identification true \
+  --archive gateway.far
+
+nitro fusion settings set node-resolution source-schema \
+  --archive gateway.far
+```
+
+For the settings command reference, see [nitro fusion settings set](../cli.md#nitro-fusion-settings-set). If you compose through Aspire, set `EnableGlobalObjectIdentification` to `true` and `NodeResolution` to `NodeResolution.SourceSchema` in `GraphQLCompositionSettings`. See [Composition settings](../aspire-integration.md#composition-settings).
+
+## Verify node resolution
+
+After a successful composition, Nitro prints the archive path:
+
+```text
+✅ Composite schema written to '/absolute/path/to/gateway.far'.
+```
+
+The generated execution schema should also contain:
+
+```graphql
+schema @fusion__execution(nodeResolution: SOURCE_SCHEMA) {
+  query: Query
+}
+```
+
+Deploy a `SOURCE_SCHEMA` archive only to compatible gateways that support the `@fusion__execution` metadata. An older gateway can fall back to gateway-side ID decoding.
+
+## Troubleshoot source-schema resolution
+
+If composition reports `Source-schema node resolution requires global object identification to be enabled.`, you selected `source-schema` without enabling Global Object Identification. Add both `--enable-global-object-identification` and `--node-resolution source-schema` to the compose command.
+
+Source-schema resolution covers only concrete `Node` implementations declared by a source schema with a public root `Query.node(id: ID!): Node` lookup. If a valid dispatcher covers some implementations but another composite `Node` type is uncovered, composition emits an `UNSATISFIABLE_QUERY_PATH` warning. A request for an uncovered type can return `node: null`, with an error if the source resolver reports one. Add the type as a `Node` implementation in a source schema with a public root node lookup. If no public root dispatcher covers any `Node` implementation, composition fails.
+
+See [GraphQL Global Object Identification](../entities-and-lookups.md#graphql-global-object-identification) for the required schema shape and the [composition log-code reference](../composition.md#log-codes-reference) for diagnostic details.
 
 # Runtime Behavior
 

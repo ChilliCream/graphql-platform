@@ -69,7 +69,7 @@ internal sealed class FusionComposeCommand : Command
             Opt<EnableGlobalObjectIdentificationOption>.Instance);
         var nodeResolutionOption = Opt<NodeResolutionOption>.Instance;
         var nodeResolution = parseResult.Tokens.Any(
-            static token => token.Value == "--node-resolution")
+            static token => token.Value == NodeResolutionOption.OptionName)
             ? parseResult.GetValue(nodeResolutionOption)
             : null;
         var includeSatisfiabilityPaths = parseResult.GetValue(

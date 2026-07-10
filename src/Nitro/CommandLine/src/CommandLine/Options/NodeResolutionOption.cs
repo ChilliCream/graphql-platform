@@ -4,8 +4,10 @@ namespace ChilliCream.Nitro.CommandLine;
 
 internal sealed class NodeResolutionOption : Option<NodeResolution?>
 {
+    public const string OptionName = "--node-resolution";
+
     public NodeResolutionOption()
-        : base("--node-resolution")
+        : base(OptionName)
     {
         Description = "Choose whether Query.node identifiers are resolved by the gateway or a source schema";
         AcceptOnlyFromAmong("gateway", "source-schema");

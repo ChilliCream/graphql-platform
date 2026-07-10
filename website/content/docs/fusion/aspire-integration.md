@@ -143,13 +143,15 @@ builder
         settings: new GraphQLCompositionSettings
         {
             EnableGlobalObjectIdentification = true,
+            NodeResolution = NodeResolution.SourceSchema,
             EnvironmentName = "aspire"
         })
     .WithReference(productsApi)
     .WithReference(reviewsApi);
 ```
 
-- **`EnableGlobalObjectIdentification`** enables the `Node` interface and Relay-style global object IDs in the composite schema. Set this to `true` if your subgraphs use the `[NodeResolver]` pattern.
+- **`EnableGlobalObjectIdentification`** enables the `Node` interface and Relay-style global object IDs in the composite schema. Set this to `true` if your subgraphs use the `[NodeResolver]` pattern or source-schema node resolution.
+- **`NodeResolution`** controls whether the gateway decodes `Query.node` identifiers or forwards them to a source schema. If you do not set it, composition uses the archive's stored value, or `NodeResolution.Gateway` when the archive has no value. `NodeResolution.SourceSchema` requires `EnableGlobalObjectIdentification = true`.
 - **`EnvironmentName`** selects the environment for variable substitution in `schema-settings.json`. For example, if your settings file defines an `"aspire"` environment with local URLs, the orchestrator uses those URLs instead of the defaults.
 
 The output file name defaults to `gateway.far`. You can change it if needed:
