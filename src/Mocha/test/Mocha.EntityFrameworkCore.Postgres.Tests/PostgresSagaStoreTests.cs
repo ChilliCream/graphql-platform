@@ -315,6 +315,81 @@ public sealed class PostgresSagaStoreTests(PostgresFixture fixture) : IClassFixt
     }
 
     [Fact]
+    public async Task SaveAsync_Should_Insert_When_PreviousTransactionWasDisposedWithoutCommit()
+    {
+        // Arrange
+        var (_, store) = await CreateStoreAsync();
+        var saga = new TestSaga();
+        var id = Guid.NewGuid();
+        var rolledBack = new TestSagaState(id, "RolledBack") { Data = "first-attempt" };
+
+        await using (var transaction = await store.StartTransactionAsync(TestContext.Current.CancellationToken))
+        {
+            await store.SaveAsync(saga, rolledBack, TestContext.Current.CancellationToken);
+        }
+
+        var replacement = new TestSagaState(id, "Committed") { Data = "second-attempt" };
+
+        // Act
+        await using (var transaction = await store.StartTransactionAsync(TestContext.Current.CancellationToken))
+        {
+            await store.SaveAsync(saga, replacement, TestContext.Current.CancellationToken);
+            await transaction.CommitAsync(TestContext.Current.CancellationToken);
+        }
+
+        // Assert
+        var final = await store.LoadAsync<TestSagaState>(saga, id, TestContext.Current.CancellationToken);
+        Assert.NotNull(final);
+        Assert.Equal("Committed", final.State);
+        Assert.Equal("second-attempt", final.Data);
+    }
+
+    [Fact]
+    public async Task SaveAsync_Should_Update_When_PreviousTransactionWasRolledBack()
+    {
+        // Arrange
+        var connectionString = await _fixture.CreateDatabaseAsync();
+        var (_, seedStore) = await CreateStoreAsync(connectionString);
+        var (_, store) = await CreateStoreAsync(connectionString);
+        var saga = new TestSaga();
+        var id = Guid.NewGuid();
+        var initial = new TestSagaState(id, "Initial") { Data = "seed" };
+        await seedStore.SaveAsync(saga, initial, TestContext.Current.CancellationToken);
+
+        await using (var transaction = await store.StartTransactionAsync(TestContext.Current.CancellationToken))
+        {
+            var loaded = await store.LoadAsync<TestSagaState>(saga, id, TestContext.Current.CancellationToken);
+            Assert.NotNull(loaded);
+
+            var rolledBack = new TestSagaState(id, "RolledBack") { Data = "first-attempt" };
+            await store.SaveAsync(saga, rolledBack, TestContext.Current.CancellationToken);
+            await transaction.RollbackAsync(TestContext.Current.CancellationToken);
+        }
+
+        var staleReplacement = new TestSagaState(id, "Stale") { Data = "before-reload" };
+        var exception = await Assert.ThrowsAsync<DbUpdateConcurrencyException>(
+            () => store.SaveAsync(saga, staleReplacement, TestContext.Current.CancellationToken));
+        Assert.Equal("The saga state was concurrently created or already exists.", exception.Message);
+
+        // Act
+        await using (var transaction = await store.StartTransactionAsync(TestContext.Current.CancellationToken))
+        {
+            var loaded = await store.LoadAsync<TestSagaState>(saga, id, TestContext.Current.CancellationToken);
+            Assert.NotNull(loaded);
+
+            var replacement = new TestSagaState(id, "Committed") { Data = "second-attempt" };
+            await store.SaveAsync(saga, replacement, TestContext.Current.CancellationToken);
+            await transaction.CommitAsync(TestContext.Current.CancellationToken);
+        }
+
+        // Assert
+        var final = await seedStore.LoadAsync<TestSagaState>(saga, id, TestContext.Current.CancellationToken);
+        Assert.NotNull(final);
+        Assert.Equal("Committed", final.State);
+        Assert.Equal("second-attempt", final.Data);
+    }
+
+    [Fact]
     public async Task StartTransactionAsync_Should_ReturnEfCoreTransaction_When_NoActiveTransaction()
     {
         // Arrange

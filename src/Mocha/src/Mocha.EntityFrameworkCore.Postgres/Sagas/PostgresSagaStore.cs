@@ -15,6 +15,7 @@ internal sealed class PostgresSagaStore(DbContext context, PostgresSagaStoreQuer
 {
     private readonly object _lock = new();
     private readonly ConcurrentDictionary<SagaStateKey, Guid> _versions = new();
+    private Guid? _transactionId = context.Database.CurrentTransaction?.TransactionId;
     private PooledArrayWriter? _arrayWriter;
 
     /// <summary>
@@ -70,6 +71,8 @@ internal sealed class PostgresSagaStore(DbContext context, PostgresSagaStoreQuer
     /// </exception>
     public async Task SaveAsync<T>(Saga saga, T state, CancellationToken cancellationToken) where T : SagaStateBase
     {
+        EnsureCurrentTransactionGeneration();
+
         var connection = (NpgsqlConnection)context.Database.GetDbConnection();
         var transaction = context.Database.CurrentTransaction?.GetDbTransaction() as NpgsqlTransaction;
 
@@ -140,6 +143,8 @@ internal sealed class PostgresSagaStore(DbContext context, PostgresSagaStoreQuer
     /// <param name="cancellationToken">A token to observe for cancellation.</param>
     public async Task DeleteAsync(Saga saga, Guid id, CancellationToken cancellationToken)
     {
+        EnsureCurrentTransactionGeneration();
+
         var connection = (NpgsqlConnection)context.Database.GetDbConnection();
 
         if (connection.State != System.Data.ConnectionState.Open)
@@ -167,6 +172,8 @@ internal sealed class PostgresSagaStore(DbContext context, PostgresSagaStoreQuer
     /// <returns>The deserialized saga state, or <c>default</c> if no state is found for the given identifier.</returns>
     public async Task<T?> LoadAsync<T>(Saga saga, Guid id, CancellationToken cancellationToken)
     {
+        EnsureCurrentTransactionGeneration();
+
         var connection = (NpgsqlConnection)context.Database.GetDbConnection();
         var transaction = context.Database.CurrentTransaction?.GetDbTransaction() as NpgsqlTransaction;
 
@@ -198,6 +205,17 @@ internal sealed class PostgresSagaStore(DbContext context, PostgresSagaStoreQuer
         }
 
         return state;
+    }
+
+    private void EnsureCurrentTransactionGeneration()
+    {
+        var transactionId = context.Database.CurrentTransaction?.TransactionId;
+
+        if (_transactionId != transactionId)
+        {
+            _versions.Clear();
+            _transactionId = transactionId;
+        }
     }
 
     private byte[] SerializeState(Saga saga, SagaStateBase state)
