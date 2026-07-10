@@ -40,19 +40,15 @@ sourceSchemas:
         query: Query
       }
 
-      interface INode @key(fields: "id") {
-        id: Int!
+      type Query {
+        node: INode @shareable @returns(types: ["Product"])
+        productA(id: Int!): Product @lookup
+        reviewA(id: Int!): Review @lookup
       }
 
       type Product implements INode @key(fields: "id") {
         id: Int!
         shared: SharedData @shareable @error
-      }
-
-      type Query {
-        node: INode @shareable @returns(types: ["Product"])
-        productA(id: Int!): Product @lookup
-        reviewA(id: Int!): Review @lookup
       }
 
       type Review implements INode @key(fields: "id") {
@@ -63,6 +59,10 @@ sourceSchemas:
       type SharedData @shareable {
         a: String
         b: String
+      }
+
+      interface INode @key(fields: "id") {
+        id: Int!
       }
     interactions:
       - request:
@@ -109,19 +109,15 @@ sourceSchemas:
         query: Query
       }
 
-      interface INode @key(fields: "id") {
-        id: Int!
+      type Query {
+        node: INode @shareable @returns(types: ["Product"])
+        productB(id: Int!): Product @lookup
+        reviewB(id: Int!): Review @lookup
       }
 
       type Product implements INode @key(fields: "id") {
         id: Int!
         shared: SharedData @shareable
-      }
-
-      type Query {
-        node: INode @shareable @returns(types: ["Product"])
-        productB(id: Int!): Product @lookup
-        reviewB(id: Int!): Review @lookup
       }
 
       type Review implements INode @key(fields: "id") {
@@ -132,6 +128,10 @@ sourceSchemas:
       type SharedData @shareable {
         a: String
         b: String
+      }
+
+      interface INode @key(fields: "id") {
+        id: Int!
       }
 operationPlan:
   operation:

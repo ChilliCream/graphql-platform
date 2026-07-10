@@ -4,9 +4,7 @@ namespace ChilliCream.Nitro.CommandLine;
 
 internal interface INitroConsoleActivity : IAsyncDisposable
 {
-    void Update(string message, ActivityUpdateKind kind = ActivityUpdateKind.Regular);
-
-    void Update(string message, IRenderable details, ActivityUpdateKind kind = ActivityUpdateKind.Regular);
+    void Update(string message, ActivityUpdateKind kind = ActivityUpdateKind.Regular, IRenderable? details = null);
 
     void Warning(string message);
 
@@ -16,9 +14,9 @@ internal interface INitroConsoleActivity : IAsyncDisposable
 
     void Fail();
 
-    void Fail(IRenderable details);
+    void Fail(IRenderable details, string? message = null);
 
-    ValueTask FailAllAsync();
+    ValueTask FailAllAsync(IRenderable? details = null, string? message = null);
 
     INitroConsoleActivity StartChildActivity(string title, string failureMessage);
 }

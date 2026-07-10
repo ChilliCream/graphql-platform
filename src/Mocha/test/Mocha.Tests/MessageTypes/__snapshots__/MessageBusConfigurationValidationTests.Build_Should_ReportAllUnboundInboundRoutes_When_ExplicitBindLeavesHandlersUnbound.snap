@@ -1,0 +1,14 @@
+The message bus configuration has 2 unbound inbound routes.
+Each route below was registered but never attached to a receive endpoint.
+
+[1] ItemShippedHandler (Mocha.Tests.MessageTypes.MessageBusConfigurationValidationTests+ItemShippedHandler)
+    message : urn:message:mocha.tests.message-types:item-shipped (Mocha.Tests.MessageTypes.MessageBusConfigurationValidationTests+ItemShipped)
+    kind    : Subscribe
+    where   : MessageType(urn:message:mocha.tests.message-types:item-shipped)
+    fix     : Transport 'memory' uses explicit bind mode, so no convention receive endpoint is created for unbound consumers. If this consumer should receive over a transport, bind it to a receive endpoint. If it is handled in-process only or superseded, remove it from message bus registration. Available default receive endpoints: none.
+
+[2] OrderCreatedHandler (Mocha.Tests.MessageTypes.MessageBusConfigurationValidationTests+OrderCreatedHandler)
+    message : urn:message:mocha.tests.message-types:order-created (Mocha.Tests.MessageTypes.MessageBusConfigurationValidationTests+OrderCreated)
+    kind    : Subscribe
+    where   : MessageType(urn:message:mocha.tests.message-types:order-created)
+    fix     : Transport 'memory' uses explicit bind mode, so no convention receive endpoint is created for unbound consumers. If this consumer should receive over a transport, bind it to a receive endpoint. If it is handled in-process only or superseded, remove it from message bus registration. Available default receive endpoints: none.

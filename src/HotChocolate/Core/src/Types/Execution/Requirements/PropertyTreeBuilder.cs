@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Language;
 
 namespace HotChocolate.Execution.Requirements;
@@ -6,6 +7,7 @@ internal static class PropertyTreeBuilder
 {
     public static TypeNode Build(
         SchemaCoordinate fieldCoordinate,
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)]
         Type type,
         string requirements)
     {
@@ -20,9 +22,15 @@ internal static class PropertyTreeBuilder
         return typeNode;
     }
 
+    [UnconditionalSuppressMessage(
+        "AOT",
+        "IL2072",
+        Justification =
+            "Property types are walked recursively from a root type that is statically known.")]
     private static void CollectProperties(
         TypeNode parent,
         SchemaCoordinate fieldCoordinate,
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)]
         Type type,
         SelectionSetNode selectionSet,
         Path path)

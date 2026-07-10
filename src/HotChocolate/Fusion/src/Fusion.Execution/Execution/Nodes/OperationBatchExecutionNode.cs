@@ -79,7 +79,8 @@ public sealed class OperationBatchExecutionNode : ExecutionNode
             OperationType = operation.Operation.Type,
             OperationSourceText = operation.Operation.SourceText,
             Variables = variables,
-            RequiresFileUpload = operation.RequiresFileUpload
+            RequiresFileUpload = operation.RequiresFileUpload,
+            OperationHash = operation.OperationHash
         };
 
         var hasSomeErrors = false;
@@ -87,10 +88,8 @@ public sealed class OperationBatchExecutionNode : ExecutionNode
         try
         {
             var client = context.GetClient(schemaName, operation.Operation.Type);
-            var response = await client.ExecuteAsync(context, request, cancellationToken).ConfigureAwait(false);
-            context.TrackSourceSchemaClientResponse(this, response);
 
-            await foreach (var result in response.ReadAsResultStreamAsync(cancellationToken).ConfigureAwait(false))
+            await foreach (var result in client.ExecuteAsync(context, request, cancellationToken).ConfigureAwait(false))
             {
                 var hasErrors = result.Errors is not null;
                 if (hasErrors)
@@ -98,20 +97,42 @@ public sealed class OperationBatchExecutionNode : ExecutionNode
                     hasSomeErrors = true;
                 }
 
+                var pendingMerge = default(PendingMerge);
+                var hasPendingMerge = false;
+
                 try
                 {
-                    context.AddPartialResult(
+                    pendingMerge = PendingMerge.Single(
+                        this,
+                        schemaName,
                         operation.Source,
-                        result,
                         operation.ResultSelectionSet,
+                        variables,
+                        result,
                         hasErrors);
+                    hasPendingMerge = true;
+                    context.EnqueuePendingMerge(pendingMerge);
                 }
                 catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
                 {
+                    if (hasPendingMerge)
+                    {
+                        pendingMerge.DisposeUnmerged();
+                    }
+
                     return ExecutionStatus.Failed;
                 }
                 catch (Exception exception)
                 {
+                    if (hasPendingMerge)
+                    {
+                        pendingMerge.DisposeUnmerged();
+                    }
+                    else
+                    {
+                        result.Dispose();
+                    }
+
                     diagnosticEvents.SourceSchemaStoreError(context, this, schemaName, exception);
                     context.AddErrors(exception, variables, operation.ResultSelectionSet);
                     return ExecutionStatus.Failed;
@@ -147,7 +168,12 @@ public sealed class OperationBatchExecutionNode : ExecutionNode
 
         try
         {
-            operationCount = BuildRequests(context, schemaName, requestBuilder, operationByIndex, variablesByIndex);
+            operationCount = BuildRequests(
+                context,
+                schemaName,
+                requestBuilder,
+                operationByIndex,
+                variablesByIndex);
 
             if (operationCount == 0)
             {
@@ -157,13 +183,14 @@ public sealed class OperationBatchExecutionNode : ExecutionNode
             var requests = requestBuilder.DrainToImmutable();
 
             // Obtain a transport client for the source schema and stream the batch
-            // response. As each individual result arrives, we merge it into the
-            // result store so downstream nodes can consume the data.
+            // response. As each individual result arrives, we queue its merge for
+            // the executor loop so downstream nodes can consume the data after completion.
             var client = context.GetClient(schemaName, requests[0].OperationType);
             receivedResults.AsSpan(0, operationCount).Clear();
             var overallStatus = ExecutionStatus.Success;
 
-            await foreach (var batchResult in client.ExecuteBatchStreamAsync(context, requests, cancellationToken))
+            await foreach (var batchResult in client.ExecuteBatchAsync(context, requests, cancellationToken)
+                .ConfigureAwait(false))
             {
                 var requestIndex = batchResult.RequestIndex;
                 var op = operationByIndex[requestIndex];
@@ -172,20 +199,42 @@ public sealed class OperationBatchExecutionNode : ExecutionNode
 
                 receivedResults[requestIndex] = true;
 
+                var pendingMerge = default(PendingMerge);
+                var hasPendingMerge = false;
+
                 try
                 {
-                    context.AddPartialResult(
+                    pendingMerge = PendingMerge.Single(
+                        this,
+                        schemaName,
                         op.Source,
-                        result,
                         op.ResultSelectionSet,
+                        variablesByIndex[requestIndex],
+                        result,
                         hasErrors);
+                    hasPendingMerge = true;
+                    context.EnqueuePendingMerge(pendingMerge);
                 }
                 catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
                 {
+                    if (hasPendingMerge)
+                    {
+                        pendingMerge.DisposeUnmerged();
+                    }
+
                     return ExecutionStatus.Failed;
                 }
                 catch (Exception exception)
                 {
+                    if (hasPendingMerge)
+                    {
+                        pendingMerge.DisposeUnmerged();
+                    }
+                    else
+                    {
+                        result.Dispose();
+                    }
+
                     diagnosticEvents.SourceSchemaStoreError(context, this, schemaName, exception);
                     context.AddErrors(exception, variablesByIndex[requestIndex], op.ResultSelectionSet);
                     overallStatus = ExecutionStatus.Failed;
@@ -210,10 +259,24 @@ public sealed class OperationBatchExecutionNode : ExecutionNode
                 {
                     missingCount++;
                     var operation = operationByIndex[i];
-                    context.AddErrors(
-                        ThrowHelper.MissingBatchResult(operation.Id),
-                        variablesByIndex[i],
-                        operation.ResultSelectionSet);
+
+                    // A missing result is either a transport failure that the batch
+                    // fallback isolated to this request, or a source schema that did
+                    // not honor the batch protocol. When a transport failure was
+                    // recorded we surface its cause; otherwise we report the missing
+                    // batch result.
+                    if (context.TryGetBatchRequestError(this, i, out var requestError))
+                    {
+                        diagnosticEvents.SourceSchemaTransportError(context, this, schemaName, requestError);
+                        context.AddErrors(requestError, variablesByIndex[i], operation.ResultSelectionSet);
+                    }
+                    else
+                    {
+                        context.AddErrors(
+                            ThrowHelper.MissingBatchResult(operation.Id),
+                            variablesByIndex[i],
+                            operation.ResultSelectionSet);
+                    }
                 }
             }
 
@@ -295,7 +358,8 @@ public sealed class OperationBatchExecutionNode : ExecutionNode
                 OperationType = operation.Operation.Type,
                 OperationSourceText = operation.Operation.SourceText,
                 Variables = variables,
-                RequiresFileUpload = _requiresFileUpload
+                RequiresFileUpload = _requiresFileUpload,
+                OperationHash = operation.OperationHash
             });
 
             operationByIndex[operationCount] = operation;

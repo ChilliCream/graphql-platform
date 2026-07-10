@@ -74,7 +74,9 @@ internal sealed partial class OperationContext
     /// <param name="typeContext">
     /// The type context.
     /// </param>
-    /// <returns></returns>
+    /// <returns>
+    /// The compiled selection set for the given selection and type.
+    /// </returns>
     public SelectionSet CollectFields(Selection selection, ObjectType typeContext)
     {
         AssertInitialized();

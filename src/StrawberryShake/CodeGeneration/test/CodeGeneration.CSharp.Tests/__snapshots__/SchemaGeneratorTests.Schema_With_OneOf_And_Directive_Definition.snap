@@ -253,9 +253,7 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the SomeQuery GraphQL operation
     /// <code>
-    /// query SomeQuery(
-    ///   $input: SomeInput!
-    /// ) {
+    /// query SomeQuery($input: SomeInput!) {
     ///   someField(input: $input)
     /// }
     /// </code>
@@ -286,9 +284,7 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the SomeQuery GraphQL operation
     /// <code>
-    /// query SomeQuery(
-    ///   $input: SomeInput!
-    /// ) {
+    /// query SomeQuery($input: SomeInput!) {
     ///   someField(input: $input)
     /// }
     /// </code>
@@ -378,9 +374,7 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the SomeQuery GraphQL operation
     /// <code>
-    /// query SomeQuery(
-    ///   $input: SomeInput!
-    /// ) {
+    /// query SomeQuery($input: SomeInput!) {
     ///   someField(input: $input)
     /// }
     /// </code>

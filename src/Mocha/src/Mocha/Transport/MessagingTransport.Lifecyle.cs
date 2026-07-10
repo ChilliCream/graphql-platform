@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using Mocha.Features;
+using Mocha.Middlewares;
 using static Mocha.InboundRouteKind;
 
 namespace Mocha;
@@ -26,8 +27,14 @@ public abstract partial class MessagingTransport
         Naming = context.Naming;
         Conventions = new ConventionRegistry(context.Conventions.Concat(Configuration.Conventions));
         Options = Configuration.Options;
+        BindMode = Configuration.BindMode;
+        IsDefaultTransport = Configuration.IsDefaultTransport;
+        Routing = Configuration.RoutingStrategyFactory?.Invoke(context.Services)
+            ?? throw ThrowHelper.TransportRoutingStrategyRequired();
+        Routing.Initialize(this);
 
         _features = Configuration.Features;
+        Urn = MochaUrn.Transport(context.Host.EffectiveServiceName, Schema, Name);
         var busMiddlewares = context.Features.GetRequired<MiddlewareFeature>();
         var transportMiddlewares = new MiddlewareFeature(
             [.. busMiddlewares.DispatchMiddlewares, .. Configuration.DispatchMiddlewares],
@@ -46,39 +53,31 @@ public abstract partial class MessagingTransport
             //  TODO maybe we should move this to endpoint initialize - not sure yet
             foreach (var handlerType in endpointConfiguration.ConsumerIdentities)
             {
-                var consumer = context.Consumers.FirstOrDefault(h => h.Identity == handlerType);
+                var consumer = context.Consumers.FirstOrDefault(h => h.Identity == handlerType)
+                    ?? throw new InvalidOperationException(
+                        $"Handler type {handlerType.FullName} not found. Call AddHandler<{handlerType.Name}>() before configuring the endpoint {Configuration.Name}.");
 
-                if (consumer is not null)
+                foreach (var route in context.Router.GetInboundByConsumer(consumer))
                 {
-                    var routes = context.Router.GetInboundByConsumer(consumer);
-                    var applied = false;
-                    foreach (var route in routes)
-                    {
-                        if (route.Endpoint is null)
-                        {
-                            route.ConnectEndpoint(context, endpoint);
-                            applied = true;
-                        }
-                    }
-
-                    // in this case the user has explicilty mapped this consumer to multiple
-                    // endpoints and we are currently missing an additional route
-                    if (!applied)
-                    {
-                        var route = new InboundRoute();
-                        var configuration = new InboundRouteConfiguration
-                        {
-                            MessageType = route.MessageType,
-                            Consumer = consumer
-                        };
-                        route.Initialize(context, configuration);
-                        route.ConnectEndpoint(context, endpoint);
-                    }
+                    context.BindRouteToEndpoint(route, endpoint);
                 }
-                else
+            }
+
+            foreach (var messageRuntimeType in endpointConfiguration.ReceivedMessageTypes)
+            {
+                var matched = context.Router.InboundRoutes
+                    .Where(r => r.Kind is Subscribe or Send or Request
+                                && r.MessageType?.RuntimeType == messageRuntimeType)
+                    .ToList();
+
+                if (matched.Count == 0)
                 {
-                    throw new InvalidOperationException(
-                        $"Handler type {handlerType.FullName} not found for endpoint {Configuration.Name}");
+                    throw ThrowHelper.NoHandlerForMessageType(messageRuntimeType, endpointConfiguration.Name);
+                }
+
+                foreach (var route in matched)
+                {
+                    context.BindRouteToEndpoint(route, endpoint);
                 }
             }
         }
@@ -96,8 +95,9 @@ public abstract partial class MessagingTransport
                 // in case we have found a matching route that has no endpoint and no destination,
                 // we need to connect it to the endpoint
                 if (route is not null
+                    // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
                     && route.Endpoint is null
-                    && route.Destination is not null)
+                    && route.Destination is null)
                 {
                     route.ConnectEndpoint(context, endpoint);
                 }
@@ -112,15 +112,6 @@ public abstract partial class MessagingTransport
                     route.Initialize(context, routeConfiguration);
                     route.ConnectEndpoint(context, endpoint);
                 }
-            }
-        }
-
-        // for each handler match the outbound route
-        foreach (var route in context.Router.InboundRoutes)
-        {
-            if (route.Endpoint is { Transport: { } transport } && transport == this)
-            {
-                transport.CreateMatchingOutboundRoute(context, route);
             }
         }
 
@@ -139,120 +130,9 @@ public abstract partial class MessagingTransport
 
         OnBeforeDiscoverEndpoints(context);
 
-        var router = context.Router;
-
-        // discover reply receive endpoint
-        if (ReceiveEndpoints.FirstOrDefault(x => x.Kind == ReceiveEndpointKind.Reply) is null)
-        {
-            var replyConsumer = context.Consumers.OfType<ReplyConsumer>().FirstOrDefault();
-
-            if (replyConsumer is null)
-            {
-                throw ThrowHelper.ReplyConsumerNotFound();
-            }
-
-            var route = new InboundRoute();
-            var routeConfiguration = new InboundRouteConfiguration { Kind = Reply, Consumer = replyConsumer };
-
-            route.Initialize(context, routeConfiguration);
-
-            var endpointConfiguration = CreateEndpointConfiguration(context, route);
-            if (endpointConfiguration is null)
-            {
-                throw ThrowHelper.EndpointConfigurationFailed();
-            }
-
-            var endpoint = AddEndpoint(context, endpointConfiguration);
-
-            route.ConnectEndpoint(context, endpoint);
-        }
-
-        // discover reply dispatch endpoint
-        if (DispatchEndpoints.FirstOrDefault(x => x.Kind == DispatchEndpointKind.Reply) is null)
-        {
-            var uri = new UriBuilder
-            {
-                Host = "",
-                Scheme = Schema,
-                Path = "replies"
-            }.Uri;
-
-            var endpointConfiguration = CreateEndpointConfiguration(context, uri);
-            if (endpointConfiguration is not null)
-            {
-                AddEndpoint(context, endpointConfiguration);
-            }
-        }
-
-        // Discover receive endpoints
-        if (Configuration.ConsumerBindingMode == ConsumerBindingMode.Implicit)
-        {
-            foreach (var route in router.InboundRoutes)
-            {
-                if (route.Endpoint is null)
-                {
-                    ConnectRoute(context, route);
-                }
-
-                CreateMatchingOutboundRoute(context, route);
-            }
-        }
-
-        // discover outbound routes
-        // TODO i am not sure if this is correct.
-        foreach (var route in router.OutboundRoutes)
-        {
-            if (route.Endpoint is null)
-            {
-                ConnectRoute(context, route);
-            }
-        }
-
-        ReplyDispatchEndpoint = DispatchEndpoints.FirstOrDefault(x => x.Kind == DispatchEndpointKind.Reply);
-        ReplyReceiveEndpoint = ReceiveEndpoints.FirstOrDefault(x => x.Kind == ReceiveEndpointKind.Reply);
-        // Request/reply depends on both endpoints: one to receive inbound replies and one to emit them.
-
-        foreach (var endpoint in _receiveEndpoints)
-        {
-            endpoint.DiscoverTopology(context);
-        }
-
-        foreach (var endpoint in _dispatchEndpoints)
-        {
-            endpoint.DiscoverTopology(context);
-        }
+        Routing.DiscoverEndpoints(context);
 
         OnAfterDiscoverEndpoints(context);
-    }
-
-    private void CreateMatchingOutboundRoute(IMessagingSetupContext context, InboundRoute route)
-    {
-        if (route.Kind is Send or Request or Subscribe)
-        {
-            var outboundRouteKind = route.Kind is Send or Request ? OutboundRouteKind.Send : OutboundRouteKind.Publish;
-
-            var outboundRoute = context.Router.OutboundRoutes.FirstOrDefault(x =>
-                x.Kind == outboundRouteKind && x.MessageType == route.MessageType
-            );
-
-            if (outboundRoute is null)
-            {
-                outboundRoute = new OutboundRoute();
-                var outboundRouteConfiguration = new OutboundRouteConfiguration
-                {
-                    MessageType = route.MessageType,
-                    Kind = outboundRouteKind
-                };
-                outboundRoute.Initialize(context, outboundRouteConfiguration);
-            }
-
-            if (outboundRoute.Endpoint is null)
-            {
-                var outboundEndpoint = ConnectRoute(context, outboundRoute);
-
-                outboundRoute.ConnectEndpoint(context, outboundEndpoint);
-            }
-        }
     }
 
     protected virtual void OnBeforeDiscoverEndpoints(IMessagingSetupContext context) { }
@@ -280,7 +160,7 @@ public abstract partial class MessagingTransport
         }
     }
 
-    internal void Finalize(IMessagingSetupContext context)
+    internal void Finalize(IMessagingSetupContext _)
     {
         _features = _features?.ToReadOnly() ?? FeatureCollection.Empty;
         Configuration = null!;

@@ -1,9 +1,7 @@
 title: SharedPath_Skip_On_Entry_Field
 request:
   document: |
-    query testQuery(
-      $skip: Boolean!
-    ) {
+    query testQuery($skip: Boolean!) {
       viewer @skip(if: $skip) {
         fieldA
         fieldB
@@ -48,9 +46,7 @@ sourceSchemas:
 operationPlan:
   operation:
     - document: |
-        query testQuery(
-          $skip: Boolean!
-        ) {
+        query testQuery($skip: Boolean!) {
           viewer @skip(if: $skip) {
             fieldA
             fieldB

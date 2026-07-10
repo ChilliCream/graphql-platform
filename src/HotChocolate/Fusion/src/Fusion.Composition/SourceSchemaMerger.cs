@@ -1,5 +1,7 @@
 using System.Collections.Frozen;
 using System.Collections.Immutable;
+using System.Text;
+using HotChocolate.Fusion.ApolloFederation;
 using HotChocolate.Fusion.Definitions;
 using HotChocolate.Fusion.DirectiveMergers;
 using HotChocolate.Fusion.Extensions;
@@ -20,6 +22,11 @@ using ArgumentNames = HotChocolate.Fusion.WellKnownArgumentNames;
 using DirectiveNames = HotChocolate.Fusion.WellKnownDirectiveNames;
 using FieldNames = HotChocolate.Fusion.WellKnownFieldNames;
 using TypeNames = HotChocolate.Fusion.WellKnownTypeNames;
+using StringValueNode = HotChocolate.Language.StringValueNode;
+using NullValueNode = HotChocolate.Language.NullValueNode;
+using EnumValueNode = HotChocolate.Language.EnumValueNode;
+using ListValueNode = HotChocolate.Language.ListValueNode;
+using IValueNode = HotChocolate.Language.IValueNode;
 
 namespace HotChocolate.Fusion;
 
@@ -75,6 +82,14 @@ internal sealed class SourceSchemaMerger
                     new OneOfDirectiveMerger(DirectiveMergeBehavior.Include)
                 },
                 {
+                    DirectiveNames.OptInFeatureStability,
+                    new OptInFeatureStabilityDirectiveMerger(DirectiveMergeBehavior.Include)
+                },
+                {
+                    DirectiveNames.RequiresOptIn,
+                    new RequiresOptInDirectiveMerger(DirectiveMergeBehavior.Include)
+                },
+                {
                     DirectiveNames.SerializeAs,
                     new SerializeAsDirectiveMerger(DirectiveMergeBehavior.Include)
                 },
@@ -103,17 +118,22 @@ internal sealed class SourceSchemaMerger
         // Merge directives.
         var memberDefinitions = _schemas.Select(s => new DirectivesProviderInfo(s, s)).ToImmutableArray();
         _directiveMergers[DirectiveNames.Tag].MergeDirectives(mergedSchema, memberDefinitions, mergedSchema);
+        _directiveMergers[DirectiveNames.OptInFeatureStability]
+            .MergeDirectives(mergedSchema, memberDefinitions, mergedSchema);
 
         // Remove unreferenced definitions.
         if (_options.RemoveUnreferencedDefinitions)
         {
-            mergedSchema.RemoveUnreferencedDefinitions(_schemas);
+            mergedSchema.RemoveUnreferencedDefinitions(
+                MutableSchemaDefinitionExtensions.GetPreservedTypeNames(_schemas),
+                seedUnionsAsRoots: false);
         }
 
         // Add Fusion definitions.
         if (_options.AddFusionDefinitions)
         {
             AddFusionDefinitions(mergedSchema);
+            LiftConnectorKindOntoSchemaMetadata(mergedSchema);
         }
 
         return mergedSchema;
@@ -172,10 +192,11 @@ internal sealed class SourceSchemaMerger
             var canonicalDirectiveDefinition = directiveMerger.GetCanonicalDirectiveDefinition(mergedSchema);
             var canonicalDirectiveNode = canonicalDirectiveDefinition.ToSyntaxNode();
 
-            // Ensure that all directive definitions match the canonical definition.
+            // Ensure that all directive definitions are compatible with the canonical definition.
             if (!grouping.All(
-                d => DirectiveDefinitionNodeComparer.Instance
-                    .Equals(d.DirectiveDefinition.ToSyntaxNode(), canonicalDirectiveNode)))
+                d => DirectiveDefinitionCompatibility.IsSourceCompatibleWithCanonical(
+                    d.DirectiveDefinition.ToSyntaxNode(),
+                    canonicalDirectiveNode)))
             {
                 // Skip merging if there is a mismatch.
                 continue;
@@ -252,32 +273,80 @@ internal sealed class SourceSchemaMerger
 
     private void AddNodeField(MutableSchemaDefinition mergedSchema)
     {
-        if (mergedSchema.Types.TryGetType<IInterfaceTypeDefinition>(TypeNames.Node, out var nodeType)
+        if (_options.EnableGlobalObjectIdentification
+            && mergedSchema.Types.TryGetType<IInterfaceTypeDefinition>(TypeNames.Node, out var nodeType)
+            && mergedSchema.Types.TryGetType<IScalarTypeDefinition>(TypeNames.ID, out var idType)
             && mergedSchema.QueryType is { } queryType)
         {
             if (queryType.Fields.TryGetField(FieldNames.Node, out var nodeField)
-                && nodeField.Type == nodeType)
+                && IsGoiNodeField(nodeField, nodeType, idType))
             {
                 queryType.Fields.Remove(nodeField);
             }
 
-            // Until gateway support is implemented, we never expose the nodes field in the merged schema.
+            // Only remove the GOI-shaped nodes field; user-defined nodes fields remain visible.
             if (queryType.Fields.TryGetField(FieldNames.Nodes, out var nodesField)
-                && nodesField.Type.NamedType() == nodeType)
+                && IsGoiNodesField(nodesField, nodeType, idType))
             {
                 queryType.Fields.Remove(nodesField);
             }
 
-            if (_options.EnableGlobalObjectIdentification
-                && mergedSchema.Types.TryGetType<IScalarTypeDefinition>(TypeNames.ID, out var idType))
+            if (!queryType.Fields.ContainsName(FieldNames.Node))
             {
                 var canonicalNodeField = new MutableOutputFieldDefinition(FieldNames.Node, nodeType);
                 canonicalNodeField.Arguments.Add(
                     new MutableInputFieldDefinition(ArgumentNames.Id, new NonNullType(idType)));
+                canonicalNodeField.Directives.Add(
+                    new Directive(_fusionDirectiveDefinitions[DirectiveNames.FusionGatewayField]));
 
                 queryType.Fields.Add(canonicalNodeField);
             }
         }
+    }
+
+    private static bool IsGoiNodeField(
+        MutableOutputFieldDefinition field,
+        IInterfaceTypeDefinition nodeType,
+        IScalarTypeDefinition idType)
+    {
+        if (field.Name != FieldNames.Node
+            || field.Type != nodeType
+            || field.Arguments.Count != 1
+            || !field.Arguments.TryGetField(ArgumentNames.Id, out var argument))
+        {
+            return false;
+        }
+
+        return argument.Type is NonNullType { NullableType: var nullableType }
+            && nullableType.NamedType() == idType
+            && nullableType.Kind == TypeKind.Scalar;
+    }
+
+    private static bool IsGoiNodesField(
+        MutableOutputFieldDefinition field,
+        IInterfaceTypeDefinition nodeType,
+        IScalarTypeDefinition idType)
+    {
+        if (field.Name != FieldNames.Nodes
+            || field.Type.NamedType() != nodeType
+            || field.Arguments.Count != 1
+            || !field.Arguments.TryGetField(ArgumentNames.Ids, out var argument))
+        {
+            return false;
+        }
+
+        return argument.Type is NonNullType
+            {
+                NullableType: ListType
+                {
+                    ElementType: NonNullType
+                    {
+                        NullableType: var idElementType
+                    }
+                }
+            }
+            && idElementType.NamedType() == idType
+            && idElementType.Kind == TypeKind.Scalar;
     }
 
     /// <summary>
@@ -346,6 +415,8 @@ internal sealed class SourceSchemaMerger
                 var memberDefinitions =
                     argumentGroup.Select(g => new DirectivesProviderInfo(g.Argument, g.Schema)).ToImmutableArray();
                 _directiveMergers[DirectiveNames.Cost].MergeDirectives(mergedArgument, memberDefinitions, mergedSchema);
+                _directiveMergers[DirectiveNames.RequiresOptIn]
+                    .MergeDirectives(mergedArgument, memberDefinitions, mergedSchema);
                 _directiveMergers[DirectiveNames.Tag].MergeDirectives(mergedArgument, memberDefinitions, mergedSchema);
 
                 AddFusionCostDirectives(mergedArgument, memberDefinitions);
@@ -462,6 +533,8 @@ internal sealed class SourceSchemaMerger
             {
                 var memberDefinitions =
                     enumValueGroup.Select(g => new DirectivesProviderInfo(g.EnumValue, g.Schema)).ToImmutableArray();
+                _directiveMergers[DirectiveNames.RequiresOptIn]
+                    .MergeDirectives(enumValue, memberDefinitions, mergedSchema);
                 _directiveMergers[DirectiveNames.Tag].MergeDirectives(enumValue, memberDefinitions, mergedSchema);
 
                 AddFusionEnumValueDirectives(enumValue, enumValueGroup);
@@ -596,6 +669,8 @@ internal sealed class SourceSchemaMerger
                 var memberDefinitions =
                     inputFieldGroup.Select(g => new DirectivesProviderInfo(g.Field, g.Schema)).ToImmutableArray();
                 _directiveMergers[DirectiveNames.Cost].MergeDirectives(inputField, memberDefinitions, mergedSchema);
+                _directiveMergers[DirectiveNames.RequiresOptIn]
+                    .MergeDirectives(inputField, memberDefinitions, mergedSchema);
                 _directiveMergers[DirectiveNames.Tag].MergeDirectives(inputField, memberDefinitions, mergedSchema);
 
                 AddFusionCostDirectives(inputField, memberDefinitions);
@@ -809,15 +884,28 @@ internal sealed class SourceSchemaMerger
 
         var firstField = fieldGroup[0].Field;
         var fieldName = firstField.Name;
-        var fieldType = firstField.Type;
         var description = firstField.Description;
         var isDeprecated = firstField.IsDeprecated;
         var deprecationReason = firstField.DeprecationReason;
 
+        // The return type is computed from all field types together so that the result is
+        // independent of source schema order. Pre-merge validation has already asserted that a
+        // least restrictive type exists.
+        var fieldTypes = new (IType Type, MutableSchemaDefinition Schema)[fieldGroup.Length];
+
+        for (var i = 0; i < fieldGroup.Length; i++)
+        {
+            fieldTypes[i] = (fieldGroup[i].Field.Type, fieldGroup[i].Schema);
+        }
+
+        var hasLeastRestrictiveType =
+            TypeMergeHelper.TryGetLeastRestrictiveType(fieldTypes, out var leastRestrictiveType);
+        Assert(hasLeastRestrictiveType);
+        var fieldType = leastRestrictiveType!.ExpectOutputType();
+
         for (var i = 1; i < fieldGroup.Length; i++)
         {
             var fieldInfo = fieldGroup[i];
-            fieldType = LeastRestrictiveType(fieldType, fieldInfo.Field.Type).ExpectOutputType();
             description ??= fieldInfo.Field.Description;
 
             if (fieldInfo.Field.IsDeprecated && !isDeprecated)
@@ -878,6 +966,8 @@ internal sealed class SourceSchemaMerger
                     .MergeDirectives(outputField, memberDefinitions, mergedSchema);
                 _directiveMergers[DirectiveNames.McpToolAnnotations]
                     .MergeDirectives(outputField, memberDefinitions, mergedSchema);
+                _directiveMergers[DirectiveNames.RequiresOptIn]
+                    .MergeDirectives(outputField, memberDefinitions, mergedSchema);
                 _directiveMergers[DirectiveNames.Tag]
                     .MergeDirectives(outputField, memberDefinitions, mergedSchema);
 
@@ -885,6 +975,7 @@ internal sealed class SourceSchemaMerger
                 AddFusionFieldDirectives(outputField, fieldGroup);
                 AddFusionListSizeDirectives(outputField, memberDefinitions);
                 AddFusionRequiresDirectives(outputField, complexType, [.. fieldGroup]);
+                AddFusionEventStreamDirectives(outputField, fieldGroup);
 
                 if (fieldGroup.Any(i => i.Field.HasInaccessibleDirective()))
                 {
@@ -1019,50 +1110,6 @@ internal sealed class SourceSchemaMerger
             });
 
         return unionType;
-    }
-
-    /// <summary>
-    /// Identifies a single type that safely handles all possible runtime values produced by the
-    /// sources defining <c>typeA</c> and <c>typeB</c>. If one source can return <c>null</c> while
-    /// another cannot, the merged type becomes nullable to avoid runtime exceptions – because a
-    /// strictly non-null signature would be violated whenever <c>null</c> appears. Similarly, if
-    /// both sources enforce non-null, the result remains non-null.
-    /// </summary>
-    /// <seealso href="https://graphql.github.io/composite-schemas-spec/draft/#sec-Least-Restrictive-Type">
-    /// Specification
-    /// </seealso>
-    private static IType LeastRestrictiveType(
-        IType typeA,
-        IType typeB)
-    {
-        var isNullable = !(typeA is NonNullType && typeB is NonNullType);
-
-        if (typeA is NonNullType)
-        {
-            typeA = typeA.NullableType();
-        }
-
-        if (typeB is NonNullType)
-        {
-            typeB = typeB.NullableType();
-        }
-
-        if (typeA is ListType)
-        {
-            Assert(typeB is ListType);
-
-            var innerTypeA = typeA.InnerType();
-            var innerTypeB = typeB.InnerType();
-            var innerType = LeastRestrictiveType(innerTypeA, innerTypeB);
-
-            return isNullable
-                ? new ListType(innerType)
-                : new NonNullType(new ListType(innerType));
-        }
-
-        Assert(typeA.Equals(typeB, TypeComparison.Structural));
-
-        return isNullable ? typeA : new NonNullType(typeA);
     }
 
     /// <summary>
@@ -1278,6 +1325,287 @@ internal sealed class SourceSchemaMerger
             field.Directives.Add(
                 new Directive(_fusionDirectiveDefinitions[DirectiveNames.FusionField], arguments));
         }
+    }
+
+    private void AddFusionEventStreamDirectives(
+        MutableOutputFieldDefinition field,
+        ImmutableArray<OutputFieldInfo> fieldGroup)
+    {
+        EventStreamContribution[]? contributions = null;
+        var count = 0;
+
+        foreach (var (sourceField, _, sourceSchema) in fieldGroup)
+        {
+            foreach (var eventStreamDirective in sourceField.GetEventStreamDirectives())
+            {
+                contributions ??= new EventStreamContribution[fieldGroup.Length];
+                if (count == contributions.Length)
+                {
+                    Array.Resize(ref contributions, count * 2);
+                }
+
+                contributions[count++] = new EventStreamContribution(
+                    _schemaConstantNames[sourceSchema.Name],
+                    sourceField.IsShareable,
+                    eventStreamDirective,
+                    ResolveEventStreamTopics(eventStreamDirective, sourceField),
+                    GetEventCursorFieldName(sourceField),
+                    GetEventCursorArgumentName(sourceField));
+            }
+        }
+
+        if (count == 0 || contributions is null)
+        {
+            return;
+        }
+
+        var first = contributions[0];
+
+        if (count > 1)
+        {
+            var allShareable = true;
+
+            for (var i = 0; i < count; i++)
+            {
+                if (!contributions[i].IsShareable)
+                {
+                    allShareable = false;
+                    break;
+                }
+            }
+
+            if (!allShareable)
+            {
+                return;
+            }
+
+            var firstKey = EventStreamIdentity.Create(first);
+
+            for (var i = 1; i < count; i++)
+            {
+                if (!EventStreamIdentity.Create(contributions[i]).Equals(firstKey))
+                {
+                    return;
+                }
+            }
+        }
+
+        List<ArgumentAssignment> arguments =
+        [
+            new(ArgumentNames.Schema, new EnumValueNode(first.Schema))
+        ];
+
+        arguments.Add(
+            new ArgumentAssignment(
+                ArgumentNames.Topics,
+                new ListValueNode(
+                    first.Topics
+                        .Select(t => new StringValueNode(t))
+                        .ToList())));
+
+        if (first.Directive.Broker is { } broker)
+        {
+            arguments.Add(new ArgumentAssignment(ArgumentNames.Broker, broker));
+        }
+
+        arguments.Add(
+            new ArgumentAssignment(
+                ArgumentNames.Message,
+                first.Directive.Message.ToString(indented: false)));
+
+        if (first.CursorField is { } cursorField)
+        {
+            arguments.Add(new ArgumentAssignment(ArgumentNames.CursorField, cursorField));
+        }
+
+        if (first.CursorArgument is { } cursorArgument)
+        {
+            arguments.Add(new ArgumentAssignment(ArgumentNames.CursorArgument, cursorArgument));
+        }
+
+        field.Directives.Add(
+            new Directive(
+                _fusionDirectiveDefinitions[DirectiveNames.FusionEventStream],
+                arguments));
+    }
+
+    private readonly record struct EventStreamContribution(
+        string Schema,
+        bool IsShareable,
+        EventStreamDirectiveInfo Directive,
+        ImmutableArray<string> Topics,
+        string? CursorField,
+        string? CursorArgument);
+
+    private static ImmutableArray<string> ResolveEventStreamTopics(
+        EventStreamDirectiveInfo directive,
+        MutableOutputFieldDefinition sourceField)
+    {
+        // Author provided non-empty topics: pass through unchanged. (topics: [] is rejected
+        // earlier by EventStreamTopicsEmptyRule and never reaches here.)
+        if (directive.Topics is { Length: > 0 } topics)
+        {
+            return topics;
+        }
+
+        // Topics omitted: infer "<fieldName>" plus "-{$args.<argName>}" for every argument, in
+        // declaration order, that does not carry @eventCursor.
+        var builder = new StringBuilder(sourceField.Name);
+
+        foreach (var argument in sourceField.Arguments.AsEnumerable())
+        {
+            if (argument.HasEventCursorDirective)
+            {
+                continue;
+            }
+
+            builder.Append("-{$args.");
+            builder.Append(argument.Name);
+            builder.Append('}');
+        }
+
+        return [builder.ToString()];
+    }
+
+    private static string? GetEventCursorFieldName(MutableOutputFieldDefinition sourceField)
+    {
+        if (sourceField.Type.AsTypeDefinition() is not MutableComplexTypeDefinition type)
+        {
+            return null;
+        }
+
+        foreach (var field in type.Fields.AsEnumerable())
+        {
+            if (field.HasEventCursorDirective)
+            {
+                return field.Name;
+            }
+        }
+
+        return null;
+    }
+
+    private static string? GetEventCursorArgumentName(MutableOutputFieldDefinition sourceField)
+    {
+        foreach (var argument in sourceField.Arguments.AsEnumerable())
+        {
+            if (argument.HasEventCursorDirective)
+            {
+                return argument.Name;
+            }
+        }
+
+        return null;
+    }
+
+    private readonly record struct EventStreamIdentity(
+        string? Broker,
+        string Topics,
+        string Message,
+        string? CursorField,
+        string? CursorArgument)
+    {
+        public static EventStreamIdentity Create(EventStreamContribution contribution)
+        {
+            return new EventStreamIdentity(
+                contribution.Directive.Broker,
+                NormalizeTopics(contribution.Topics),
+                NormalizeSelectionSet(contribution.Directive.Message),
+                contribution.CursorField,
+                contribution.CursorArgument);
+        }
+    }
+
+    private static string NormalizeTopics(ImmutableArray<string> topics)
+    {
+        if (topics.IsDefaultOrEmpty)
+        {
+            return "";
+        }
+
+        var builder = new StringBuilder();
+        var first = true;
+
+        foreach (var topic in topics
+            .Distinct(StringComparer.Ordinal)
+            .Order(StringComparer.Ordinal))
+        {
+            if (!first)
+            {
+                builder.Append('\0');
+            }
+
+            builder.Append(topic);
+            first = false;
+        }
+
+        return builder.ToString();
+    }
+
+    private static string NormalizeSelectionSet(SelectionSetNode selectionSet)
+    {
+        var builder = new StringBuilder();
+        AppendSelectionSet(builder, selectionSet);
+        return builder.ToString();
+    }
+
+    private static void AppendSelectionSet(StringBuilder builder, SelectionSetNode selectionSet)
+    {
+        var selections = selectionSet.Selections
+            .Select(FormatSelection)
+            .Order(StringComparer.Ordinal);
+        var first = true;
+
+        foreach (var selection in selections)
+        {
+            if (!first)
+            {
+                builder.Append(' ');
+            }
+
+            builder.Append(selection);
+            first = false;
+        }
+    }
+
+    private static string FormatSelection(ISelectionNode selection)
+    {
+        var builder = new StringBuilder();
+
+        switch (selection)
+        {
+            case FieldNode field:
+                if (field.Alias is not null)
+                {
+                    builder.Append(field.Alias.Value).Append(':');
+                }
+
+                builder.Append(field.Name.Value);
+
+                if (field.SelectionSet is not null)
+                {
+                    builder.Append('{');
+                    AppendSelectionSet(builder, field.SelectionSet);
+                    builder.Append('}');
+                }
+
+                break;
+
+            case InlineFragmentNode inlineFragment:
+                builder.Append("...on ");
+                builder.Append(inlineFragment.TypeCondition?.Name.Value);
+                builder.Append('{');
+                AppendSelectionSet(builder, inlineFragment.SelectionSet);
+                builder.Append('}');
+                break;
+
+            case FragmentSpreadNode fragmentSpread:
+                builder.Append("...");
+                builder.Append(fragmentSpread.Name.Value);
+                break;
+        }
+
+        return builder.ToString();
     }
 
     private void AddFusionListSizeDirectives(
@@ -1546,6 +1874,10 @@ internal sealed class SourceSchemaMerger
                     booleanType)
             },
             {
+                DirectiveNames.FusionGatewayField,
+                new FusionGatewayFieldMutableDirectiveDefinition()
+            },
+            {
                 DirectiveNames.FusionImplements,
                 new FusionImplementsMutableDirectiveDefinition(schemaEnumType, stringType)
             },
@@ -1588,6 +1920,13 @@ internal sealed class SourceSchemaMerger
                 new FusionSchemaMetadataMutableDirectiveDefinition(stringType)
             },
             {
+                DirectiveNames.FusionEventStream,
+                new FusionEventStreamMutableDirectiveDefinition(
+                    schemaEnumType,
+                    fieldSelectionSetType,
+                    stringType)
+            },
+            {
                 DirectiveNames.FusionType,
                 new FusionTypeMutableDirectiveDefinition(schemaEnumType)
             },
@@ -1608,6 +1947,53 @@ internal sealed class SourceSchemaMerger
         foreach (var (_, definition) in _fusionDirectiveDefinitions)
         {
             mergedSchema.DirectiveDefinitions.Add(definition);
+        }
+    }
+
+    private void LiftConnectorKindOntoSchemaMetadata(MutableSchemaDefinition mergedSchema)
+    {
+        if (!mergedSchema.Types.TryGetType<MutableEnumTypeDefinition>(
+            TypeNames.FusionSchema,
+            out var schemaEnum))
+        {
+            return;
+        }
+
+        var metadataDirective = _fusionDirectiveDefinitions[DirectiveNames.FusionSchemaMetadata];
+
+        foreach (var schema in _schemas)
+        {
+            if (schema.Features.Get<ConnectorKindMetadata>() is not { } connectorKind)
+            {
+                continue;
+            }
+
+            if (schemaEnum.Values.TryGetValue(_schemaConstantNames[schema.Name], out var enumValue))
+            {
+                var currentMetadata =
+                    enumValue.Directives.FirstOrDefault(DirectiveNames.FusionSchemaMetadata);
+                List<ArgumentAssignment> arguments = currentMetadata is null
+                    ? [new ArgumentAssignment(ArgumentNames.Name, schema.Name)]
+                    : currentMetadata.Arguments
+                        .Select(static t => new ArgumentAssignment(t.Name, t.Value))
+                        .ToList();
+
+                if (arguments.All(static t => t.Name != ArgumentNames.Kind))
+                {
+                    arguments.Add(new ArgumentAssignment(ArgumentNames.Kind, connectorKind.Kind));
+                }
+
+                var newMetadata = new Directive(metadataDirective, arguments);
+
+                if (currentMetadata is null)
+                {
+                    enumValue.Directives.Add(newMetadata);
+                }
+                else
+                {
+                    enumValue.Directives.Replace(currentMetadata, newMetadata);
+                }
+            }
         }
     }
 

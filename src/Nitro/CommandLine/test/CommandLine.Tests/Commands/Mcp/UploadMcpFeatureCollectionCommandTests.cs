@@ -1,5 +1,4 @@
 using ChilliCream.Nitro.Client;
-using ChilliCream.Nitro.Client.Mcp;
 using Moq;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Mcp;
@@ -29,8 +28,8 @@ public sealed class UploadMcpFeatureCollectionCommandTests(NitroCommandFixture f
               --tag <tag> (REQUIRED)                                              The tag of the schema version to deploy [env: NITRO_TAG]
               -p, --prompt-pattern <prompt-pattern>                               One or more file patterns to locate MCP prompt definition files (*.json)
               -t, --tool-pattern <tool-pattern>                                   One or more file patterns to locate MCP tool definition files (*.graphql)
-              --cloud-url <cloud-url>                                             The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL] [default: api.chillicream.com]
-              --api-key <api-key>                                                 The API key used for authentication [env: NITRO_API_KEY]
+              --cloud-url <cloud-url>                                             The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL]
+              --api-key <api-key>                                                 The API key or PAT used for authentication [env: NITRO_API_KEY]
               --output <json>                                                     The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
               -?, -h, --help                                                      Show help and usage information
 
@@ -68,7 +67,7 @@ public sealed class UploadMcpFeatureCollectionCommandTests(NitroCommandFixture f
         // assert
         result.AssertError(
             """
-            This command requires an authenticated user. Either specify '--api-key' or run 'nitro login'.
+            This command requires an authenticated user. Either specify '--api-key' or run `nitro login`.
             """);
     }
 
@@ -142,7 +141,7 @@ public sealed class UploadMcpFeatureCollectionCommandTests(NitroCommandFixture f
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Uploading new MCP feature collection version 'v1' for collection 'mcp-1'
+            Uploading new version 'v1' for MCP feature collection 'mcp-1'
             ├── Found 1 prompt(s) and 1 tool(s).
             └── ✕ Failed to upload a new MCP feature collection version.
             """);
@@ -176,7 +175,7 @@ public sealed class UploadMcpFeatureCollectionCommandTests(NitroCommandFixture f
         result.StdErr.MatchInlineSnapshot(expectedErrorMessage);
         result.StdOut.MatchInlineSnapshot(
             """
-            Uploading new MCP feature collection version 'v1' for collection 'mcp-1'
+            Uploading new version 'v1' for MCP feature collection 'mcp-1'
             ├── Found 1 prompt(s) and 1 tool(s).
             └── ✕ Failed to upload a new MCP feature collection version.
             """);
@@ -210,7 +209,7 @@ public sealed class UploadMcpFeatureCollectionCommandTests(NitroCommandFixture f
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Uploading new MCP feature collection version 'v1' for collection 'mcp-1'
+            Uploading new version 'v1' for MCP feature collection 'mcp-1'
             ├── Found 1 prompt(s) and 1 tool(s).
             └── ✕ Failed to upload a new MCP feature collection version.
             """);
@@ -241,7 +240,7 @@ public sealed class UploadMcpFeatureCollectionCommandTests(NitroCommandFixture f
         await AssertMcpFeatureCollectionArchive(capturedStream);
         result.AssertSuccess(
             """
-            Uploading new MCP feature collection version 'v1' for collection 'mcp-1'
+            Uploading new version 'v1' for MCP feature collection 'mcp-1'
             ├── Found 1 prompt(s) and 1 tool(s).
             └── ✓ Uploaded new MCP feature collection version 'v1'.
             """);

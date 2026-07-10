@@ -4,10 +4,31 @@
 {
   "data": {
     "hero": {
-      "id": "hero-1",
-      "name": "Luke"
+      "id": "hero-1"
     }
-  }
+  },
+  "pending": [
+    {
+      "id": "2",
+      "path": [
+        "hero"
+      ]
+    }
+  ],
+  "incremental": [
+    {
+      "id": "2",
+      "data": {
+        "name": "Luke"
+      }
+    }
+  ],
+  "completed": [
+    {
+      "id": "2"
+    }
+  ],
+  "hasNext": false
 }
 
 ```

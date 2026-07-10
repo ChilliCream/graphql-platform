@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using HotChocolate.Language;
 
 namespace HotChocolate.Execution.Options;
 
@@ -14,4 +15,15 @@ public interface IErrorHandlerOptionsAccessor
     /// <see cref="Debugger.IsAttached"/>.
     /// </summary>
     bool IncludeExceptionDetails { get; }
+
+    /// <summary>
+    /// Gets the default error handling mode for null propagation.
+    /// </summary>
+    ErrorHandlingMode DefaultErrorHandlingMode { get; }
+
+    /// <summary>
+    /// Gets a value indicating whether the <see cref="DefaultErrorHandlingMode"/> can be
+    /// overridden on a per-request basis.
+    /// </summary>
+    bool AllowErrorHandlingModeOverride { get; }
 }

@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using HotChocolate.AspNetCore;
 using HotChocolate.AspNetCore.Formatters;
@@ -29,7 +30,8 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
     /// If your <typeparamref name="T"/> needs to access application services you need to
     /// make the services available in the schema services via <see cref="RequestExecutorBuilderExtensions.AddApplicationService"/>.
     /// </remarks>
-    public static IRequestExecutorBuilder AddSocketSessionInterceptor<T>(
+    public static IRequestExecutorBuilder AddSocketSessionInterceptor<
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(
         this IRequestExecutorBuilder builder)
         where T : class, ISocketSessionInterceptor =>
         builder.ConfigureSchemaServices(s => s
@@ -109,7 +111,8 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
     /// <returns>
     /// Returns the <see cref="IRequestExecutorBuilder"/> so that configuration can be chained.
     /// </returns>
-    public static IRequestExecutorBuilder AddWebSocketPayloadFormatter<T>(
+    public static IRequestExecutorBuilder AddWebSocketPayloadFormatter<
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(
         this IRequestExecutorBuilder builder)
         where T : class, IWebSocketPayloadFormatter
     {

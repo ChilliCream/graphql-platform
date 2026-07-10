@@ -20,6 +20,7 @@ internal static class CompositionHelper
         FusionArchive archive,
         string environment,
         CompositionSettings? compositionSettings,
+        Stream? legacyArchive,
         CancellationToken cancellationToken)
     {
         var existingSourceSchemaNames = new SortedSet<string>(
@@ -52,8 +53,7 @@ internal static class CompositionHelper
                         .SetSeverity(LogSeverity.Error)
                         .Build());
 
-                ImmutableArray<CompositionError> errors = [new("❌ Composition failed")];
-                return errors;
+                return (ImmutableArray<CompositionError>)[new("❌ Composition failed")];
             }
         }
 
@@ -74,8 +74,11 @@ internal static class CompositionHelper
             }
 
             var sourceText = await ReadSchemaSourceTextAsync(configuration, cancellationToken);
+            var extensionsSourceText = await TryReadSchemaExtensionsTextAsync(configuration, cancellationToken);
 
-            sourceSchemas[schemaName] = (new SourceSchemaText(schemaName, sourceText), configuration.Settings);
+            sourceSchemas[schemaName] = (
+                new SourceSchemaText(schemaName, sourceText, extensionsSourceText),
+                configuration.Settings);
         }
 
         var existingCompositionSettings = await GetCompositionSettingsAsync(archive, cancellationToken);
@@ -133,10 +136,15 @@ internal static class CompositionHelper
 
         foreach (var (schemaName, (schema, settings)) in sourceSchemas)
         {
+            var schemaExtensions = schema.ExtensionsSourceText is null
+                ? default
+                : Encoding.UTF8.GetBytes(schema.ExtensionsSourceText);
+
             await archive.SetSourceSchemaConfigurationAsync(
                 schemaName,
                 Encoding.UTF8.GetBytes(schema.SourceText),
                 settings,
+                schemaExtensions,
                 cancellationToken);
         }
 
@@ -147,6 +155,16 @@ internal static class CompositionHelper
             cancellationToken);
 
         await SaveCompositionSettingsAsync(archive, mergedCompositionSettings, cancellationToken);
+
+        if (legacyArchive is not null)
+        {
+            if (legacyArchive.CanSeek)
+            {
+                legacyArchive.Position = 0;
+            }
+
+            await archive.SetLegacyArchiveFileAsync(legacyArchive, cancellationToken);
+        }
 
         await archive.CommitAsync(cancellationToken);
 
@@ -180,6 +198,21 @@ internal static class CompositionHelper
         CancellationToken cancellationToken)
     {
         await using var stream = await configuration.OpenReadSchemaAsync(cancellationToken);
+        using var reader = new StreamReader(stream, Encoding.UTF8);
+        return await reader.ReadToEndAsync(cancellationToken);
+    }
+
+    private static async Task<string?> TryReadSchemaExtensionsTextAsync(
+        SourceSchemaConfiguration configuration,
+        CancellationToken cancellationToken)
+    {
+        await using var stream = await configuration.TryOpenReadSchemaExtensionsAsync(cancellationToken);
+
+        if (stream is null)
+        {
+            return null;
+        }
+
         using var reader = new StreamReader(stream, Encoding.UTF8);
         return await reader.ReadToEndAsync(cancellationToken);
     }

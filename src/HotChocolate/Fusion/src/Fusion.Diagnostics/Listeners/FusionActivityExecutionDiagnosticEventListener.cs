@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using HotChocolate.Diagnostics;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution;
@@ -48,12 +49,25 @@ internal sealed class FusionActivityExecutionDiagnosticEventListener(
 
     public override void RequestError(RequestContext context, Exception error)
     {
+        // An intentional caller cancellation (browser tab closed, connection
+        // dropped) surfaces here as an OperationCanceledException. Per the
+        // OpenTelemetry semantic conventions this is not an error, so the span
+        // is left Unset with no error.type and no exception event. Server-side
+        // execution timeouts never reach RequestError as an exception (the
+        // timeout middleware turns them into an HC0045 result), so only genuine
+        // client cancellations are filtered out here.
+        if (error is OperationCanceledException)
+        {
+            return;
+        }
+
         if (context.Features.TryGet<ExecuteRequestSpan>(out var span))
         {
             var activity = span.Activity;
 
             activity.SetStatus(ActivityStatusCode.Error);
             activity.AddException(error);
+            activity.SetErrorType(error);
 
             enricher.EnrichRequestError(context, error, activity);
         }
@@ -66,7 +80,7 @@ internal sealed class FusionActivityExecutionDiagnosticEventListener(
             var activity = span.Activity;
 
             activity.SetStatus(ActivityStatusCode.Error);
-            activity.AddGraphQLError(error);
+            activity.SetErrorType(error, ActivityExtensions.ExecutionErrorType);
 
             enricher.EnrichRequestError(context, error, activity);
         }
@@ -116,7 +130,7 @@ internal sealed class FusionActivityExecutionDiagnosticEventListener(
 
         foreach (var error in errors)
         {
-            activity.AddGraphQLError(error);
+            activity.SetErrorType(error, ActivityExtensions.ValidationErrorType);
         }
 
         enricher.EnrichValidationErrors(context, errors, activity);
@@ -175,12 +189,25 @@ internal sealed class FusionActivityExecutionDiagnosticEventListener(
             plan.OperationName,
             enricher);
 
-        return span ?? EmptyScope;
+        if (span is null)
+        {
+            return EmptyScope;
+        }
+
+        context.Features.Set(span);
+
+        return span;
     }
 
     public override IDisposable ExecuteOperationNode(
         OperationPlanContext context,
         OperationExecutionNode node,
+        string schemaName)
+        => ExecuteNode(context, node, schemaName);
+
+    public override IDisposable ExecuteApolloOperationExecutionNode(
+        OperationPlanContext context,
+        ApolloOperationExecutionNode node,
         string schemaName)
         => ExecuteNode(context, node, schemaName);
 
@@ -190,21 +217,18 @@ internal sealed class FusionActivityExecutionDiagnosticEventListener(
         string schemaName)
         => ExecuteNode(context, node, schemaName);
 
+    public override IDisposable ExecuteApolloOperationBatchExecutionNode(
+        OperationPlanContext context,
+        ApolloOperationBatchExecutionNode node,
+        string schemaName)
+        => ExecuteNode(context, node, schemaName);
+
     public override IDisposable ExecuteSubscriptionNode(
         OperationPlanContext context,
         ExecutionNode node,
         string schemaName,
         ulong subscriptionId)
-    {
-        var nodeScope = ExecuteNode(context, node, schemaName);
-        context.RequestContext.Features.Set(
-            new SubscriptionContextFeature
-            {
-                SubscriptionContext = Activity.Current?.Context
-            });
-
-        return nodeScope;
-    }
+        => ExecuteNode(context, node, schemaName);
 
     public override IDisposable ExecuteNodeFieldNode(
         OperationPlanContext context,
@@ -223,8 +247,24 @@ internal sealed class FusionActivityExecutionDiagnosticEventListener(
     {
         if (Activity.Current is { } activity)
         {
+            // An intentional caller cancellation (browser tab closed, connection
+            // dropped) is not an error. The in-flight downstream fetch can surface
+            // the abort as an exception, but per the OpenTelemetry semantic
+            // conventions the span is left Unset instead of being marked Error. A
+            // server-side execution timeout uses a different token and is not
+            // treated as a client cancellation, so it keeps the error behavior.
+            if (FusionClientCancellation.IsClientCanceled(context.RequestContext))
+            {
+                return;
+            }
+
             activity.SetStatus(ActivityStatusCode.Error);
-            activity.AddException(error);
+            activity.AddGraphQLErrorEvent(
+                error,
+                operationType: GetOperationType(context),
+                operationName: context.OperationPlan.Operation.Name,
+                documentInfo: context.RequestContext.OperationDocumentInfo);
+            activity.SetErrorType(error);
 
             enricher.EnrichExecutionNodeError(context, node, error, activity);
         }
@@ -238,8 +278,19 @@ internal sealed class FusionActivityExecutionDiagnosticEventListener(
     {
         if (Activity.Current is { } activity)
         {
+            // A caller cancellation is not an error; leave the span Unset.
+            if (FusionClientCancellation.IsClientCanceled(context.RequestContext))
+            {
+                return;
+            }
+
             activity.SetStatus(ActivityStatusCode.Error);
-            activity.AddException(error);
+            activity.AddGraphQLErrorEvent(
+                error,
+                operationType: GetOperationType(context),
+                operationName: context.OperationPlan.Operation.Name,
+                documentInfo: context.RequestContext.OperationDocumentInfo);
+            activity.SetErrorType(error);
 
             enricher.EnrichSourceSchemaTransportError(context, node, schemaName, error, activity);
         }
@@ -253,8 +304,19 @@ internal sealed class FusionActivityExecutionDiagnosticEventListener(
     {
         if (Activity.Current is { } activity)
         {
+            // A caller cancellation is not an error; leave the span Unset.
+            if (FusionClientCancellation.IsClientCanceled(context.RequestContext))
+            {
+                return;
+            }
+
             activity.SetStatus(ActivityStatusCode.Error);
-            activity.AddException(error);
+            activity.AddGraphQLErrorEvent(
+                error,
+                operationType: GetOperationType(context),
+                operationName: context.OperationPlan.Operation.Name,
+                documentInfo: context.RequestContext.OperationDocumentInfo);
+            activity.SetErrorType(error);
 
             enricher.EnrichSourceSchemaStoreError(context, node, schemaName, error, activity);
         }
@@ -266,13 +328,9 @@ internal sealed class FusionActivityExecutionDiagnosticEventListener(
         string schemaName,
         ulong subscriptionId)
     {
-        ActivityContext? subscriptionContext = null;
-
-        if (context.RequestContext.Features.TryGet<SubscriptionContextFeature>(out var feature)
-            && feature.SubscriptionContext is { } storedSubscriptionContext)
-        {
-            subscriptionContext = storedSubscriptionContext;
-        }
+        var subscriptionContext = context.RequestContext.Features.TryGet<ExecuteRequestSpan>(out var requestSpan)
+            ? requestSpan.Activity.Context
+            : (ActivityContext?)null;
 
         var span = SubscriptionEventSpan.Start(
             Source,
@@ -300,8 +358,20 @@ internal sealed class FusionActivityExecutionDiagnosticEventListener(
     {
         if (Activity.Current is { } activity)
         {
+            // A caller cancellation is not an error; leave the span Unset. A
+            // per-event execution timeout uses a different token and stays Error.
+            if (FusionClientCancellation.IsClientCanceled(context.RequestContext))
+            {
+                return;
+            }
+
             activity.SetStatus(ActivityStatusCode.Error);
-            activity.AddException(exception);
+            activity.AddGraphQLErrorEvent(
+                exception,
+                operationType: GetOperationType(context),
+                operationName: context.OperationPlan.Operation.Name,
+                documentInfo: context.RequestContext.OperationDocumentInfo);
+            activity.SetErrorType(exception);
 
             enricher.EnrichSubscriptionEventError(
                 context,
@@ -333,7 +403,14 @@ internal sealed class FusionActivityExecutionDiagnosticEventListener(
     {
         if (context.Features.TryGet<ExecuteRequestSpan>(out var span))
         {
-            span.Activity.AddEvent(new(nameof(DocumentNotFoundInStorage)));
+            var tags = new ActivityTagsCollection();
+
+            if (documentId.HasValue)
+            {
+                tags[SemanticConventions.GraphQL.Document.Id] = documentId.Value;
+            }
+
+            span.Activity.AddEvent(new ActivityEvent(nameof(DocumentNotFoundInStorage), default, tags));
             enricher.EnrichDocumentNotFoundInStorage(context, documentId, span.Activity);
         }
     }
@@ -365,11 +442,6 @@ internal sealed class FusionActivityExecutionDiagnosticEventListener(
         }
     }
 
-    private sealed class SubscriptionContextFeature
-    {
-        public ActivityContext? SubscriptionContext { get; set; }
-    }
-
     private IDisposable ExecuteNode(OperationPlanContext context, ExecutionNode node, string? schemaName)
     {
         if (options.SkipExecutePlanNodes)
@@ -381,4 +453,9 @@ internal sealed class FusionActivityExecutionDiagnosticEventListener(
 
         return span ?? EmptyScope;
     }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static string GetOperationType(OperationPlanContext context)
+        => SemanticConventions.GraphQL.Operation.TypeValues[
+            context.OperationPlan.Operation.Definition.Operation];
 }

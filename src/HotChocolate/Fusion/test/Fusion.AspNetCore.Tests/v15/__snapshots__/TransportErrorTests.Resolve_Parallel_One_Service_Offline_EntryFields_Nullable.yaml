@@ -58,12 +58,12 @@ sourceSchemas:
         query: Query
       }
 
-      type Other {
-        userId: ID!
-      }
-
       type Query {
         other: Other
+      }
+
+      type Other {
+        userId: ID!
       }
     interactions:
       - request:

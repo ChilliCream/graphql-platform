@@ -1,5 +1,4 @@
 using ChilliCream.Nitro.Client;
-using ChilliCream.Nitro.Client.Stages;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Stages;
 
@@ -26,8 +25,8 @@ public sealed class EditStagesCommandTests(NitroCommandFixture fixture) : Stages
             Options:
               --api-id <api-id>                The ID of the API [env: NITRO_API_ID]
               --configuration <configuration>  The stage configuration. If not provided, an interactive selection will beshown. This input is a JSON array of stage configuration in the following format:[{"name":"stage1","displayName":"Stage 1","conditions":[{"afterStage":"stage2"}]},...]
-              --cloud-url <cloud-url>          The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL] [default: api.chillicream.com]
-              --api-key <api-key>              The API key used for authentication [env: NITRO_API_KEY]
+              --cloud-url <cloud-url>          The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL]
+              --api-key <api-key>              The API key or PAT used for authentication [env: NITRO_API_KEY]
               --output <json>                  The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
               -?, -h, --help                   Show help and usage information
 
@@ -60,7 +59,7 @@ public sealed class EditStagesCommandTests(NitroCommandFixture fixture) : Stages
         // assert
         result.AssertError(
             """
-            This command requires an authenticated user. Either specify '--api-key' or run 'nitro login'.
+            This command requires an authenticated user. Either specify '--api-key' or run `nitro login`.
             """);
     }
 
@@ -80,7 +79,7 @@ public sealed class EditStagesCommandTests(NitroCommandFixture fixture) : Stages
         // assert
         result.AssertError(
             """
-            You are not logged in. Run `[bold blue]nitro login[/]` to sign in or manually specify the '--workspace-id' option (if available).
+            Missing required option '--api-id'.
             """);
     }
 
@@ -122,7 +121,6 @@ public sealed class EditStagesCommandTests(NitroCommandFixture fixture) : Stages
         // assert
         result.AssertSuccess(
             """
-            ? For which API do you want to edit the stages?: api-1
             Updating stages for API 'api-1'
             └── ✓ Updated stages for API 'api-1'.
 
@@ -203,15 +201,10 @@ public sealed class EditStagesCommandTests(NitroCommandFixture fixture) : Stages
             "not-valid-json");
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-            ? For which API do you want to edit the stages?: api-1
-            """);
-        result.StdErr.MatchInlineSnapshot(
+        result.AssertError(
             """
             Could not parse stage configuration
             """);
-        Assert.Equal(1, result.ExitCode);
     }
 
     [Fact]
@@ -232,7 +225,6 @@ public sealed class EditStagesCommandTests(NitroCommandFixture fixture) : Stages
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            ? For which API do you want to edit the stages?: api-1
             Updating stages for API 'api-1'
             └── ✕ Failed to update the stages.
             """);
@@ -295,7 +287,6 @@ public sealed class EditStagesCommandTests(NitroCommandFixture fixture) : Stages
         {
             CreateUpdateStagesApiNotFoundError(),
             """
-            ? For which API do you want to edit the stages?: api-1
             Updating stages for API 'api-1'
             └── ✕ Failed to update the stages.
                 └── API not found
@@ -304,7 +295,6 @@ public sealed class EditStagesCommandTests(NitroCommandFixture fixture) : Stages
         {
             CreateUpdateStagesStageNotFoundError(),
             """
-            ? For which API do you want to edit the stages?: api-1
             Updating stages for API 'api-1'
             └── ✕ Failed to update the stages.
                 └── Stage not found
@@ -313,7 +303,6 @@ public sealed class EditStagesCommandTests(NitroCommandFixture fixture) : Stages
         {
             CreateUpdateStagesStagesHavePublishedDependenciesError(),
             """
-            ? For which API do you want to edit the stages?: api-1
             Updating stages for API 'api-1'
             └── ✕ Failed to update the stages.
                 └── Stages have published dependencies
@@ -322,7 +311,6 @@ public sealed class EditStagesCommandTests(NitroCommandFixture fixture) : Stages
         {
             CreateUpdateStagesStageValidationError(),
             """
-            ? For which API do you want to edit the stages?: api-1
             Updating stages for API 'api-1'
             └── ✕ Failed to update the stages.
                 └── Stage validation failed

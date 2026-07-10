@@ -8,6 +8,7 @@ using HotChocolate.Fusion.PreMergeValidationRules;
 using HotChocolate.Fusion.Results;
 using HotChocolate.Fusion.SourceSchemaValidationRules;
 using HotChocolate.Types.Mutable;
+using LogSeverity = HotChocolate.Fusion.Logging.LogSeverity;
 
 namespace HotChocolate.Fusion;
 
@@ -39,7 +40,11 @@ public sealed class SchemaComposer
             {
                 var options = _schemaComposerOptions.SourceSchemas.GetValueOrDefault(schema.Name);
 
-                return new SourceSchemaParser(schema, _log, options?.Parser).Parse();
+                return new SourceSchemaParser(
+                    schema,
+                    _log,
+                    options?.Parser,
+                    options?.InvalidFieldDeprecationSeverity ?? LogSeverity.Warning).Parse();
             }).Combine();
 
         if (parsingResult.IsFailure)
@@ -61,7 +66,9 @@ public sealed class SchemaComposer
                     schemas,
                     _log,
                     options?.Version,
-                    options?.Preprocessor).Preprocess();
+                    options?.Preprocessor,
+                    options?.InvalidFieldDeprecationSeverity ?? LogSeverity.Warning)
+                    .Preprocess();
             }).Combine();
 
         if (preprocessingResult.IsFailure)
@@ -76,6 +83,18 @@ public sealed class SchemaComposer
         if (enrichmentResult.IsFailure)
         {
             return enrichmentResult.Errors;
+        }
+
+        // Prune unreachable definitions from each source schema before validation, so types
+        // stripped by @excludeByTag (or otherwise unreferenced) are not validated or merged.
+        if (_schemaComposerOptions.Merger.RemoveUnreferencedDefinitions)
+        {
+            var preservedTypeNames = MutableSchemaDefinitionExtensions.GetPreservedTypeNames(schemas);
+
+            foreach (var schema in schemas)
+            {
+                schema.RemoveUnreferencedDefinitions(preservedTypeNames, seedUnionsAsRoots: true);
+            }
         }
 
         // Validate Source Schemas
@@ -116,9 +135,11 @@ public sealed class SchemaComposer
         }
 
         // Validate Satisfiability
-        var satisfiabilityOptions = _schemaComposerOptions.Satisfiability;
         var satisfiabilityResult =
-            new SatisfiabilityValidator(mergedSchema, _log, satisfiabilityOptions).Validate();
+            new SatisfiabilityValidator(
+                mergedSchema,
+                _log,
+                _schemaComposerOptions.Satisfiability).Validate();
 
         if (satisfiabilityResult.IsFailure)
         {
@@ -136,15 +157,17 @@ public sealed class SchemaComposer
         new ExternalProvidesCollisionRule(),
         new ExternalRequireCollisionRule(),
         new ExternalUnusedRule(),
+        new EventCursorMarkerRule(),
         new InvalidShareableUsageRule(),
         new IsInvalidFieldTypeRule(),
         new IsInvalidSyntaxRule(),
         new IsInvalidUsageRule(),
         new KeyDirectiveInFieldsArgumentRule(),
-        new KeyFieldsHasArgumentsRule(),
         new KeyFieldsSelectInvalidTypeRule(),
+        new KeyInvalidArgumentsRule(),
         new KeyInvalidFieldsTypeRule(),
         new KeyInvalidSyntaxRule(),
+        new LookupMustHaveArgumentsRule(),
         new LookupReturnsListRule(),
         new LookupReturnsNonNullableTypeRule(),
         new OverrideFromSelfRule(),
@@ -161,7 +184,9 @@ public sealed class SchemaComposer
         new RequireInvalidSyntaxRule(),
         new RootMutationUsedRule(),
         new RootQueryUsedRule(),
-        new RootSubscriptionUsedRule()
+        new RootSubscriptionUsedRule(),
+        new EventStreamMessageInvalidFieldsRule(),
+        new EventStreamTopicsEmptyRule()
     ];
 
     private static readonly ImmutableArray<object> s_preMergeRules =
@@ -179,6 +204,8 @@ public sealed class SchemaComposer
         new InputWithMissingRequiredFieldsRule(),
         new InputWithMissingOneOfRule(),
         new InvalidFieldSharingRule(),
+        new MultipleEventStreamSourcesRule(),
+        new OptInFeatureStabilityMismatchRule(),
         new OutputFieldTypesMergeableRule(),
         new SpecifiedByUrlMismatchRule(),
         new TypeKindMismatchRule()
@@ -192,6 +219,7 @@ public sealed class SchemaComposer
         new EmptyMergedObjectTypeRule(),
         new EmptyMergedUnionTypeRule(),
         new EnumTypeDefaultValueInaccessibleRule(),
+        new EventStreamMessageAbstractTypeRequiresTypeNameRule(),
         new ImplementedByInaccessibleRule(),
         new InterfaceFieldNoImplementationRule(),
         new IsInvalidFieldsRule(),

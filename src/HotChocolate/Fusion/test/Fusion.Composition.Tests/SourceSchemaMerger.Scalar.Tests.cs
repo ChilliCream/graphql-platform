@@ -21,9 +21,7 @@ public sealed class SourceSchemaMergerScalarTests : SourceSchemaMergerTestBase
             ],
             """
             "A scalar representing a calendar date."
-            scalar Date
-                @fusion__type(schema: A)
-                @fusion__type(schema: B)
+            scalar Date @fusion__type(schema: A) @fusion__type(schema: B)
             """);
     }
 
@@ -71,9 +69,7 @@ public sealed class SourceSchemaMergerScalarTests : SourceSchemaMergerTestBase
             ],
             """
             "The first non-null description."
-            scalar Date
-                @fusion__type(schema: A)
-                @fusion__type(schema: B)
+            scalar Date @fusion__type(schema: A) @fusion__type(schema: B)
             """);
     }
 
@@ -93,9 +89,7 @@ public sealed class SourceSchemaMergerScalarTests : SourceSchemaMergerTestBase
                 """
             ],
             """
-            scalar Date
-                @fusion__type(schema: A)
-                @fusion__type(schema: B)
+            scalar Date @fusion__type(schema: A) @fusion__type(schema: B)
             """);
     }
 

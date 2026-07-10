@@ -31,7 +31,12 @@ internal sealed class ExecutePlanNodeSpan(
         string? schemaName,
         FusionActivityEnricher enricher)
     {
-        var activity = source.StartActivity("GraphQL Step Execution");
+        var activity = context.RequestContext.Features.TryGet<ExecuteOperationSpan>(out var executeOperationSpan)
+            ? source.StartActivity(
+                "GraphQL Step Execution",
+                ActivityKind.Internal,
+                executeOperationSpan.Activity.Context)
+            : source.StartActivity("GraphQL Step Execution");
 
         if (activity is null)
         {
@@ -58,7 +63,17 @@ internal sealed class ExecutePlanNodeSpan(
 
     protected override void OnComplete()
     {
-        if (Activity.Status != ActivityStatusCode.Error)
+        if (Activity.Status == ActivityStatusCode.Error)
+        {
+            enricher.EnrichExecutePlanNode(context, node, schemaName, Activity);
+            return;
+        }
+
+        // A step that was still in flight when the request was cancelled did not
+        // complete successfully, so it is left Unset instead of being forced to
+        // Ok, mirroring the request and subscription event spans. A step that
+        // finished before any cancellation is reported as Ok.
+        if (!context.RequestContext.RequestAborted.IsCancellationRequested)
         {
             Activity.SetStatus(ActivityStatusCode.Ok);
         }
@@ -70,11 +85,10 @@ internal sealed class ExecutePlanNodeSpan(
     {
         if (!string.IsNullOrWhiteSpace(schemaName))
         {
-            activity.SetTag(GraphQL.Source.Name, schemaName);
+            activity.SetTag(GraphQL.SourceSchema.Name, schemaName);
         }
 
-        activity.SetTag(GraphQL.Source.Operation.Name, operation.Name);
-        activity.SetTag(GraphQL.Source.Operation.Kind, GraphQL.Operation.TypeValues[operation.Type]);
-        activity.SetTag(GraphQL.Source.Operation.Hash, $"sha256:{operation.Hash}");
+        activity.SetTag(GraphQL.SourceSchema.Operation.Name, operation.Name);
+        activity.SetTag(GraphQL.SourceSchema.Operation.Hash, $"sha256:{operation.Hash}");
     }
 }

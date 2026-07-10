@@ -30,7 +30,7 @@ public class DurationType : ScalarType<Duration, StringValueNode>
         Description = description;
         Pattern =
             @"^-?P(?:-?\d+Y)?(?:-?\d+M)?(?:-?\d+W)?(?:-?\d+D)?(?:T(?:-?\d+H)?(?:-?\d+M)?(?:-?\d+(?:[.,]\d+)?S)?)?$";
-        SpecifiedBy = new Uri(SpecifiedByUri);
+        SpecifiedBy = SpecifiedByUri;
     }
 
     /// <summary>
@@ -60,7 +60,7 @@ public class DurationType : ScalarType<Duration, StringValueNode>
     /// <inheritdoc />
     protected override Duration OnCoerceInputValue(JsonElement inputValue, IFeatureProvider context)
     {
-        if (Iso8601DurationParser.TryParse(inputValue.GetString()!.AsSpan(), out var value))
+        if (Iso8601DurationParser.TryParse(inputValue.GetString().AsSpan(), out var value))
         {
             return value;
         }

@@ -1,5 +1,4 @@
 using ChilliCream.Nitro.Client;
-using ChilliCream.Nitro.Client.ApiKeys;
 using Moq;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.ApiKeys;
@@ -29,8 +28,8 @@ public sealed class CreateApiKeyCommandTests(NitroCommandFixture fixture) : ApiK
               --api-id <api-id>                    The ID of the API [env: NITRO_API_ID]
               --workspace-id <workspace-id>        The ID of the workspace [env: NITRO_WORKSPACE_ID]
               --stage-condition <stage-condition>  [Preview] Limit the API key to a specific stage name (if not set, the key is valid for all stages)
-              --cloud-url <cloud-url>              The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL] [default: api.chillicream.com]
-              --api-key <api-key>                  The API key used for authentication [env: NITRO_API_KEY]
+              --cloud-url <cloud-url>              The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL]
+              --api-key <api-key>                  The API key or PAT used for authentication [env: NITRO_API_KEY]
               --output <json>                      The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
               -?, -h, --help                       Show help and usage information
 
@@ -63,7 +62,7 @@ public sealed class CreateApiKeyCommandTests(NitroCommandFixture fixture) : ApiK
         // assert
         result.AssertError(
             """
-            This command requires an authenticated user. Either specify '--api-key' or run 'nitro login'.
+            This command requires an authenticated user. Either specify '--api-key' or run `nitro login`.
             """);
     }
 
@@ -105,7 +104,7 @@ public sealed class CreateApiKeyCommandTests(NitroCommandFixture fixture) : ApiK
         // assert
         result.AssertError(
             """
-            The '--workspace-id' or '--api-id' option is required in non-interactive mode.
+            Missing required option '--workspace-id' or '--api-id'.
             """);
     }
 
@@ -130,7 +129,7 @@ public sealed class CreateApiKeyCommandTests(NitroCommandFixture fixture) : ApiK
         // assert
         result.AssertError(
             """
-            You are not logged in. Run `[bold blue]nitro login[/]` to sign in or manually specify the '--workspace-id' option (if available).
+            Could not determine workspace. Either login via `nitro login` or specify the '--workspace-id' option.
             """);
     }
 
@@ -242,7 +241,7 @@ public sealed class CreateApiKeyCommandTests(NitroCommandFixture fixture) : ApiK
         command.SelectOption(0); // Api or Workspace
         command.SelectOption(0); // Api 1
 
-        var result = await command.RunToCompletionAsync();
+        var result = await command.RunToCompletionAsync(TestContext.Current.CancellationToken);
 
         // assert
         result.AssertSuccess();
@@ -264,7 +263,7 @@ public sealed class CreateApiKeyCommandTests(NitroCommandFixture fixture) : ApiK
         command.Input("integration"); // name
         command.SelectOption(1); // Api or Workspace
 
-        var result = await command.RunToCompletionAsync();
+        var result = await command.RunToCompletionAsync(TestContext.Current.CancellationToken);
 
         // assert
         result.AssertSuccess();
@@ -287,7 +286,7 @@ public sealed class CreateApiKeyCommandTests(NitroCommandFixture fixture) : ApiK
         // act
         command.Input(ApiKeyName);
 
-        var result = await command.RunToCompletionAsync();
+        var result = await command.RunToCompletionAsync(TestContext.Current.CancellationToken);
 
         // assert
         result.AssertSuccess();

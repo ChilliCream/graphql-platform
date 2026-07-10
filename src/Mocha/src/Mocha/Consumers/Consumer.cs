@@ -13,26 +13,18 @@ namespace Mocha;
 /// </remarks>
 public abstract class Consumer
 {
-    private readonly Action<IConsumerDescriptor> _configure;
-
-    /// <summary>
-    /// Creates a consumer with an external configuration action for the consumer descriptor.
-    /// </summary>
-    /// <param name="configure">
-    /// The action used to configure the consumer descriptor during initialization.
-    /// </param>
-    protected Consumer(Action<IConsumerDescriptor> configure)
-    {
-        _configure = configure;
-    }
-
     /// <summary>
     /// Creates a consumer that uses the virtual <see cref="Configure(IConsumerDescriptor)"/> method
     /// for descriptor setup.
     /// </summary>
     protected Consumer()
     {
-        _configure = Configure;
+        Identity = GetType();
+    }
+
+    protected Consumer(Type identity)
+    {
+        Identity = identity ?? throw new ArgumentNullException(nameof(identity));
     }
 
     /// <summary>
@@ -54,9 +46,14 @@ public abstract class Consumer
     /// <summary>
     /// Gets the CLR type that identifies this consumer, typically the handler type it wraps.
     /// </summary>
-    public Type Identity { get; private set; } = null!;
+    public Type Identity { get; }
 
-    private ConsumerDelegate _pipeline = null!;
+    /// <summary>
+    /// Gets the stable URN identity of this consumer.
+    /// </summary>
+    public string Urn { get; private set; } = null!;
+
+    private protected ConsumerDelegate Pipeline { get; private set; } = null!;
 
     /// <summary>
     /// Handles an incoming message after the consume middleware pipeline has completed.
@@ -84,14 +81,14 @@ public abstract class Consumer
     /// <exception cref="InvalidOperationException">
     /// Thrown when the context does not implement <see cref="IConsumeContext"/>.
     /// </exception>
-    public async ValueTask ProcessAsync(IReceiveContext context)
+    public virtual async ValueTask ProcessAsync(IReceiveContext context)
     {
         if (context is not IConsumeContext handlerContext)
         {
             throw ThrowHelper.InvalidHandlerContext();
         }
 
-        await _pipeline(handlerContext);
+        await Pipeline(handlerContext);
     }
 
     /// <summary>
@@ -119,16 +116,11 @@ public abstract class Consumer
 
         OnBeforeInitialize(context);
 
-        Configuration = CreateConfiguration(context);
-
-        if (Configuration is null)
-        {
-            throw ThrowHelper.HandlerConfigurationMissing();
-        }
+        Configuration = CreateConfiguration(context) ?? throw ThrowHelper.HandlerConfigurationMissing();
 
         // TODO should we assign a default name in the Action? GetType().Name?
         Name = Configuration.Name ?? throw ThrowHelper.ConsumerNameRequired();
-        Identity ??= GetType();
+        Urn = MochaUrn.Consumer(context.Host.EffectiveServiceName, Name);
 
         foreach (var route in Configuration!.Routes)
         {
@@ -143,11 +135,6 @@ public abstract class Consumer
         OnAfterInitialize(context);
 
         MarkInitialized();
-    }
-
-    protected void SetIdentity(Type identity)
-    {
-        Identity = identity;
     }
 
     protected virtual void OnBeforeInitialize(IMessagingSetupContext context) { }
@@ -176,7 +163,7 @@ public abstract class Consumer
             Consumer = this
         };
 
-        _pipeline = MiddlewareCompiler.CompileHandler(
+        Pipeline = MiddlewareCompiler.CompileHandler(
             middlewareFactoryContext,
             ConsumeAsync,
             [context.GetConsumerMiddlewares(), Configuration!.ConsumerMiddlewares],
@@ -204,7 +191,14 @@ public abstract class Consumer
     /// <returns>A <see cref="ConsumerDescription"/> containing the consumer's name, type, and optional saga association.</returns>
     public virtual ConsumerDescription Describe()
     {
-        return new ConsumerDescription(Name, DescriptionHelpers.GetTypeName(Identity), Identity.FullName, null, false);
+        return new ConsumerDescription(
+            Urn,
+            Name,
+            DescriptionHelpers.GetTypeName(Identity),
+            Identity.FullName,
+            null,
+            false,
+            Configuration?.Source);
     }
 
     /// <summary>
@@ -217,7 +211,11 @@ public abstract class Consumer
     private ConsumerConfiguration CreateConfiguration(IMessagingSetupContext discoveryContext)
     {
         var descriptor = new ConsumerDescriptor(discoveryContext);
-        _configure(descriptor);
+
+        Configure(descriptor);
+
+        discoveryContext.ApplyConfigurations<IConsumerDescriptor>(Identity, descriptor);
+
         return descriptor.CreateConfiguration();
     }
 }

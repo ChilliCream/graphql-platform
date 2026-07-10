@@ -48,22 +48,11 @@ public abstract class Path : IEquatable<Path>, IComparable<Path>
     /// <returns>
     /// Returns the new path segment.
     /// </returns>
-    /// <exception cref="InvalidOperationException">
-    /// Appending an indexer on the root segment is not allowed.
-    /// </exception>
     /// <exception cref="ArgumentOutOfRangeException">
     /// The index must be greater than or equal to zero.
     /// </exception>
     public Path Append(int index)
-    {
-        if (this is RootPathSegment)
-        {
-            throw new InvalidOperationException(
-                "Appending an indexer on the root segment is not allowed.");
-        }
-
-        return new IndexerPathSegment(this, index);
-    }
+        => new IndexerPathSegment(this, index);
 
     /// <summary>
     /// Appends another path to this path.
@@ -263,12 +252,12 @@ public abstract class Path : IEquatable<Path>, IComparable<Path>
     }
 
     /// <summary>
-    /// Creates a new list representing the current <see cref="Path"/>.
+    /// Copies the segments of the current <see cref="Path"/> into the provided span.
     /// </summary>
-    /// <returns>
-    /// Returns a new list representing the current <see cref="Path"/>.
-    /// </returns>
-    public void ToList(Span<object> path)
+    /// <param name="path">
+    /// The destination span. Must be at least <see cref="Length"/> elements long.
+    /// </param>
+    public void CopyTo(Span<object> path)
     {
         if (IsRoot)
         {
@@ -283,7 +272,7 @@ public abstract class Path : IEquatable<Path>, IComparable<Path>
         }
 
         var current = this;
-        var length = path.Length;
+        var length = Length;
 
         while (!current.IsRoot)
         {

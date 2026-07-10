@@ -9,7 +9,7 @@ public static class DataLoaderStateTests
         var loader = new DummyDataLoader(typeof(string).FullName!, new DataLoaderOptions());
 
         // act
-        await loader.SetState("abc").LoadAsync("def");
+        await loader.SetState("abc").LoadAsync("def", TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal("abc", loader.State);
@@ -22,7 +22,7 @@ public static class DataLoaderStateTests
         var loader = new DummyDataLoader("abc", new DataLoaderOptions());
 
         // act
-        await loader.SetState("abc", "def").LoadAsync("ghi");
+        await loader.SetState("abc", "def").LoadAsync("ghi", TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal("def", loader.State);
@@ -35,7 +35,7 @@ public static class DataLoaderStateTests
         var loader = new DummyDataLoader(typeof(string).FullName!, new DataLoaderOptions());
 
         // act
-        await loader.SetState("abc").TrySetState("xyz").LoadAsync("def");
+        await loader.SetState("abc").TrySetState("xyz").LoadAsync("def", TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal("abc", loader.State);
@@ -48,7 +48,9 @@ public static class DataLoaderStateTests
         var loader = new DummyDataLoader("abc", new DataLoaderOptions());
 
         // act
-        await loader.SetState("abc", "def").TrySetState("abc", "xyz").LoadAsync("def");
+        await loader.SetState("abc", "def").TrySetState("abc", "xyz").LoadAsync(
+            "def",
+            TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal("def", loader.State);
@@ -61,7 +63,9 @@ public static class DataLoaderStateTests
         var loader = new DummyDataLoader(typeof(string).FullName!, new DataLoaderOptions());
 
         // act
-        await loader.AddStateEnumerable("abc").AddStateEnumerable("xyz").LoadAsync("def");
+        await loader.AddStateEnumerable("abc").AddStateEnumerable("xyz").LoadAsync(
+            "def",
+            TestContext.Current.CancellationToken);
 
         // assert
         Assert.Collection(
@@ -77,7 +81,9 @@ public static class DataLoaderStateTests
         var loader = new DummyDataLoader("abc", new DataLoaderOptions());
 
         // act
-        await loader.AddStateEnumerable("abc", "def").AddStateEnumerable("abc", "xyz").LoadAsync("def");
+        await loader.AddStateEnumerable("abc", "def").AddStateEnumerable("abc", "xyz").LoadAsync(
+            "def",
+            TestContext.Current.CancellationToken);
 
         // assert
         Assert.Collection(

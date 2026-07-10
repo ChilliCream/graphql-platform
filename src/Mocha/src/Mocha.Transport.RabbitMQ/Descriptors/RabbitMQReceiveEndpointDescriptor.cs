@@ -1,3 +1,5 @@
+using Mocha.Features;
+
 namespace Mocha.Transport.RabbitMQ;
 
 /// <summary>
@@ -10,7 +12,11 @@ internal sealed class RabbitMQReceiveEndpointDescriptor
     private RabbitMQReceiveEndpointDescriptor(IMessagingConfigurationContext discoveryContext, string name)
         : base(discoveryContext)
     {
-        Configuration = new RabbitMQReceiveEndpointConfiguration { Name = name, QueueName = name };
+        Configuration = new RabbitMQReceiveEndpointConfiguration
+        {
+            Name = name,
+            QueueName = name
+        };
     }
 
     /// <inheritdoc />
@@ -43,6 +49,38 @@ internal sealed class RabbitMQReceiveEndpointDescriptor
     }
 
     /// <inheritdoc />
+    public new IRabbitMQReceiveEndpointDescriptor Receives<TMessage>()
+    {
+        base.Receives<TMessage>();
+
+        return this;
+    }
+
+    /// <inheritdoc />
+    public new IRabbitMQReceiveEndpointDescriptor Receives(Type messageType)
+    {
+        base.Receives(messageType);
+
+        return this;
+    }
+
+    /// <inheritdoc />
+    public new IRabbitMQReceiveEndpointDescriptor BindImplicitly()
+    {
+        base.BindImplicitly();
+
+        return this;
+    }
+
+    /// <inheritdoc />
+    public new IRabbitMQReceiveEndpointDescriptor BindExplicitly()
+    {
+        base.BindExplicitly();
+
+        return this;
+    }
+
+    /// <inheritdoc />
     public new IRabbitMQReceiveEndpointDescriptor Kind(ReceiveEndpointKind kind)
     {
         base.Kind(kind);
@@ -59,9 +97,53 @@ internal sealed class RabbitMQReceiveEndpointDescriptor
     }
 
     /// <inheritdoc />
-    public IRabbitMQReceiveEndpointDescriptor Queue(string name)
+    public IRabbitMQReceiveEndpointDescriptor FaultEndpoint(Uri address)
     {
-        Configuration.QueueName = name;
+        ArgumentNullException.ThrowIfNull(address);
+        if (!address.IsAbsoluteUri)
+        {
+            throw new ArgumentException("The endpoint address must be an absolute URI.", nameof(address));
+        }
+
+        var feature = Configuration.Features.GetOrSet<ReceiveFaultEndpointFeature>();
+        feature.Address = address;
+        feature.IsDisabled = false;
+
+        return this;
+    }
+
+    /// <inheritdoc />
+    public IRabbitMQReceiveEndpointDescriptor DisableFaultEndpoint()
+    {
+        var feature = Configuration.Features.GetOrSet<ReceiveFaultEndpointFeature>();
+        feature.Address = null;
+        feature.IsDisabled = true;
+
+        return this;
+    }
+
+    /// <inheritdoc />
+    public IRabbitMQReceiveEndpointDescriptor SkippedEndpoint(Uri address)
+    {
+        ArgumentNullException.ThrowIfNull(address);
+        if (!address.IsAbsoluteUri)
+        {
+            throw new ArgumentException("The endpoint address must be an absolute URI.", nameof(address));
+        }
+
+        var feature = Configuration.Features.GetOrSet<ReceiveSkippedEndpointFeature>();
+        feature.Address = address;
+        feature.IsDisabled = false;
+
+        return this;
+    }
+
+    /// <inheritdoc />
+    public IRabbitMQReceiveEndpointDescriptor DisableSkippedEndpoint()
+    {
+        var feature = Configuration.Features.GetOrSet<ReceiveSkippedEndpointFeature>();
+        feature.Address = null;
+        feature.IsDisabled = true;
 
         return this;
     }
@@ -70,22 +152,6 @@ internal sealed class RabbitMQReceiveEndpointDescriptor
     public IRabbitMQReceiveEndpointDescriptor MaxPrefetch(ushort maxPrefetch)
     {
         Configuration.MaxPrefetch = maxPrefetch;
-
-        return this;
-    }
-
-    /// <inheritdoc />
-    public new IRabbitMQReceiveEndpointDescriptor FaultEndpoint(string name)
-    {
-        base.FaultEndpoint(name);
-
-        return this;
-    }
-
-    /// <inheritdoc />
-    public new IRabbitMQReceiveEndpointDescriptor SkippedEndpoint(string name)
-    {
-        base.SkippedEndpoint(name);
 
         return this;
     }

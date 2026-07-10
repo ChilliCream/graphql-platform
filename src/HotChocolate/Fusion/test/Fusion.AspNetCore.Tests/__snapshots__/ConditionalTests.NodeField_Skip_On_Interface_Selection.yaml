@@ -1,9 +1,7 @@
 title: NodeField_Skip_On_Interface_Selection
 request:
   document: |
-    query testQuery(
-      $skip: Boolean!
-    ) {
+    query testQuery($skip: Boolean!) {
       node(id: "RGlzY3Vzc2lvbjox") {
         ... on Authorable {
           author @skip(if: $skip) {
@@ -35,12 +33,8 @@ sourceSchemas:
         query: Query
       }
 
-      interface Authorable {
-        author: Author
-      }
-
-      interface Node {
-        id: ID!
+      type Query {
+        node(id: ID!): Node @lookup
       }
 
       type Author implements Node {
@@ -53,16 +47,18 @@ sourceSchemas:
         author: Author
       }
 
-      type Query {
-        node(id: ID!): Node @lookup
+      interface Authorable {
+        author: Author
+      }
+
+      interface Node {
+        id: ID!
       }
     interactions:
       - request:
           accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
-            query testQuery_7ae73f43_3(
-              $skip: Boolean!
-            ) {
+            query testQuery_7ae73f43_3($skip: Boolean!) {
               node(id: "RGlzY3Vzc2lvbjox") {
                 __typename
                 ... on Discussion {
@@ -95,21 +91,19 @@ sourceSchemas:
         query: Query
       }
 
+      type Query {
+        authorById(id: ID!): Author @lookup
+      }
+
       type Author {
         id: ID!
         username: String
         rating: Int
       }
-
-      type Query {
-        authorById(id: ID!): Author @lookup
-      }
 operationPlan:
   operation:
     - document: |
-        query testQuery(
-          $skip: Boolean!
-        ) {
+        query testQuery($skip: Boolean!) {
           node(id: "RGlzY3Vzc2lvbjox") {
             __typename @fusion__requirement
             ... on Authorable {
@@ -149,9 +143,7 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query testQuery_7ae73f43_3(
-          $skip: Boolean!
-        ) {
+        query testQuery_7ae73f43_3($skip: Boolean!) {
           node(id: "RGlzY3Vzc2lvbjox") {
             __typename
             ... on Discussion {
@@ -171,9 +163,7 @@ operationPlan:
       type: Operation
       schema: B
       operation: |
-        query testQuery_7ae73f43_4(
-          $__fusion_1_id: ID!
-        ) {
+        query testQuery_7ae73f43_4($__fusion_1_id: ID!) {
           authorById(id: $__fusion_1_id) {
             username
           }

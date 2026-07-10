@@ -50,6 +50,6 @@ internal sealed class RabbitMQAcknowledgementMiddleware
     /// <returns>A middleware configuration keyed as "RabbitMQAcknowledgement".</returns>
     public static ReceiveMiddlewareConfiguration Create()
         => new(
-            static (context, next) => ctx => s_instance.InvokeAsync(ctx, next),
+            static (_, next) => ctx => s_instance.InvokeAsync(ctx, next),
             "RabbitMQAcknowledgement");
 }

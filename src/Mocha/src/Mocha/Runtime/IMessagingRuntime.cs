@@ -1,3 +1,5 @@
+using Microsoft.Extensions.Primitives;
+
 namespace Mocha;
 
 /// <summary>
@@ -9,6 +11,16 @@ public interface IMessagingRuntime : IMessagingRuntimeContext
     /// Gets the read-only messaging options that were used to configure this runtime.
     /// </summary>
     IReadOnlyMessagingOptions Options { get; }
+
+    /// <summary>
+    /// Gets the current message bus topology snapshot.
+    /// </summary>
+    MessageBusDescription Description { get; }
+
+    /// <summary>
+    /// Gets a change token that fires when the message bus topology snapshot may have changed.
+    /// </summary>
+    IChangeToken GetChangeToken();
 
     /// <summary>
     /// Gets the dispatch endpoint configured for sending (point-to-point) the specified message type.

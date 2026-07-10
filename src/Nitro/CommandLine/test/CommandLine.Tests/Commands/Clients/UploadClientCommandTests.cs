@@ -26,8 +26,8 @@ public sealed class UploadClientCommandTests(NitroCommandFixture fixture) : Clie
               --client-id <client-id> (REQUIRED)              The ID of the client [env: NITRO_CLIENT_ID]
               --tag <tag> (REQUIRED)                          The tag of the schema version to deploy [env: NITRO_TAG]
               --operations-file <operations-file> (REQUIRED)  The path to the json file with the operations [env: NITRO_OPERATIONS_FILE]
-              --cloud-url <cloud-url>                         The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL] [default: api.chillicream.com]
-              --api-key <api-key>                             The API key used for authentication [env: NITRO_API_KEY]
+              --cloud-url <cloud-url>                         The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL]
+              --api-key <api-key>                             The API key or PAT used for authentication [env: NITRO_API_KEY]
               --output <json>                                 The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
               -?, -h, --help                                  Show help and usage information
 
@@ -62,7 +62,7 @@ public sealed class UploadClientCommandTests(NitroCommandFixture fixture) : Clie
         // assert
         result.AssertError(
             """
-            This command requires an authenticated user. Either specify '--api-key' or run 'nitro login'.
+            This command requires an authenticated user. Either specify '--api-key' or run `nitro login`.
             """);
     }
 
@@ -118,7 +118,7 @@ public sealed class UploadClientCommandTests(NitroCommandFixture fixture) : Clie
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Uploading new client version 'v1' for client 'client-1'
+            Uploading new version 'v1' for client 'client-1'
             └── ✕ Failed to upload a new client version.
             """);
         Assert.Equal(1, result.ExitCode);
@@ -149,7 +149,7 @@ public sealed class UploadClientCommandTests(NitroCommandFixture fixture) : Clie
         result.StdErr.MatchInlineSnapshot(expectedErrorMessage);
         result.StdOut.MatchInlineSnapshot(
             """
-            Uploading new client version 'v1' for client 'client-1'
+            Uploading new version 'v1' for client 'client-1'
             └── ✕ Failed to upload a new client version.
             """);
         Assert.Equal(1, result.ExitCode);
@@ -180,7 +180,7 @@ public sealed class UploadClientCommandTests(NitroCommandFixture fixture) : Clie
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Uploading new client version 'v1' for client 'client-1'
+            Uploading new version 'v1' for client 'client-1'
             └── ✕ Failed to upload a new client version.
             """);
         Assert.Equal(1, result.ExitCode);
@@ -209,7 +209,7 @@ public sealed class UploadClientCommandTests(NitroCommandFixture fixture) : Clie
             System.Text.Encoding.UTF8.GetString(capturedStream.ToArray()));
         result.AssertSuccess(
             """
-            Uploading new client version 'v1' for client 'client-1'
+            Uploading new version 'v1' for client 'client-1'
             └── ✓ Uploaded new client version 'v1'.
             """);
     }

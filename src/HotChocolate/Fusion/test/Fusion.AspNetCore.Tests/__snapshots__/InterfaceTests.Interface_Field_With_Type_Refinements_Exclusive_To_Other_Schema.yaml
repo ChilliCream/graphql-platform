@@ -29,8 +29,8 @@ sourceSchemas:
         query: Query
       }
 
-      interface SomeInterface {
-        value: String
+      type Query {
+        someField: SomeInterface
       }
 
       type ConcreteTypeA implements SomeInterface {
@@ -38,8 +38,8 @@ sourceSchemas:
         specificToA: String
       }
 
-      type Query {
-        someField: SomeInterface
+      interface SomeInterface {
+        value: String
       }
     interactions:
       - request:
@@ -72,8 +72,8 @@ sourceSchemas:
         query: Query
       }
 
-      interface SomeInterface {
-        value: String
+      type Query {
+        anotherField: SomeInterface
       }
 
       type ConcreteTypeB implements SomeInterface {
@@ -81,8 +81,8 @@ sourceSchemas:
         specificToB: String
       }
 
-      type Query {
-        anotherField: SomeInterface
+      interface SomeInterface {
+        value: String
       }
 operationPlan:
   operation:

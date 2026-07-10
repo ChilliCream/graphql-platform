@@ -40,7 +40,7 @@ public sealed class DateTimeOffsetSortingTests(PostgreSqlResource resource)
         await using var scope = services.CreateAsyncScope();
         await using var context = scope.ServiceProvider.GetRequiredService<EventContext>();
 
-        await context.Database.EnsureCreatedAsync();
+        await context.Database.EnsureCreatedAsync(TestContext.Current.CancellationToken);
 
         context.Events.AddRange(
             new EventEntity
@@ -56,11 +56,11 @@ public sealed class DateTimeOffsetSortingTests(PostgreSqlResource resource)
                 Timestamp = new DateTimeOffset(2025, 11, 15, 17, 0, 0, TimeSpan.Zero)
             });
 
-        await context.SaveChangesAsync();
+        await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         var executor = await services
             .GetRequiredService<IRequestExecutorProvider>()
-            .GetExecutorAsync();
+            .GetExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -70,7 +70,8 @@ public sealed class DateTimeOffsetSortingTests(PostgreSqlResource resource)
                     timestamp
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         using var document = JsonDocument.Parse(result.ToJson());

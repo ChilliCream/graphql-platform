@@ -77,4 +77,13 @@ public class PageConnection<TNode> : ConnectionBase<TNode, PageEdge<TNode>, Page
     /// </summary>
     [GraphQLDescription("Identifies the total count of items in the connection.")]
     public int TotalCount => _page.TotalCount ?? -1;
+
+    /// <summary>
+    /// Converts a <see cref="Page{TNode}"/> to a <see cref="PageConnection{TNode}"/>.
+    /// </summary>
+    /// <param name="page">
+    /// The page to convert.
+    /// </param>
+    public static implicit operator PageConnection<TNode>(Page<TNode> page)
+        => new(page);
 }

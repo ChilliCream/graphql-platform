@@ -37,7 +37,7 @@ public class PagingTests
                     CancellationToken cancellationToken)
                     => default!;
             }
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -89,7 +89,7 @@ public class PagingTests
 
                 public string Cursor => default!;
             }
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -142,7 +142,7 @@ public class PagingTests
 
                 public string Cursor => default!;
             }
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -195,7 +195,7 @@ public class PagingTests
 
                 public string Cursor => default!;
             }
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -272,7 +272,7 @@ public class PagingTests
                     public string Cursor => default!;
                 }
             }
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -349,7 +349,7 @@ public class PagingTests
                     public string Cursor => default!;
                 }
             }
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -427,7 +427,7 @@ public class PagingTests
                     public string Cursor => default!;
                 }
             }
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -476,7 +476,7 @@ public class PagingTests
                     public string CustomResolver() => "Foo";
                 }
             }
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -526,7 +526,7 @@ public class PagingTests
                     public int TotalCount => 0;
                 }
             }
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -576,7 +576,7 @@ public class PagingTests
                     public int TotalCount => 0;
                 }
             }
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -633,7 +633,7 @@ public class PagingTests
                     public Author Author => Node;
                 }
             }
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -691,7 +691,7 @@ public class PagingTests
                     public Author Author => Node;
                 }
             }
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -745,7 +745,7 @@ public class PagingTests
 
                 public string Cursor => default!;
             }
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -799,7 +799,7 @@ public class PagingTests
 
                 public string Cursor => default!;
             }
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -853,7 +853,7 @@ public class PagingTests
 
                 public string Cursor => default!;
             }
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -907,7 +907,7 @@ public class PagingTests
 
                 public string Cursor => default!;
             }
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -961,7 +961,7 @@ public class PagingTests
 
                 public string Cursor => default!;
             }
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -1015,7 +1015,7 @@ public class PagingTests
 
                 public string Cursor => default!;
             }
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -1066,7 +1066,7 @@ public class PagingTests
                     public string CustomResolver() => "Foo";
                 }
             }
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -1117,7 +1117,7 @@ public class PagingTests
                     public string CustomResolver() => "Foo";
                 }
             }
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -1171,7 +1171,7 @@ public class PagingTests
 
                 public string Cursor => default!;
             }
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -1225,7 +1225,7 @@ public class PagingTests
 
                 public string Cursor => default!;
             }
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -1279,7 +1279,7 @@ public class PagingTests
 
                 public string Cursor => default!;
             }
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -1333,7 +1333,7 @@ public class PagingTests
 
                 public string Cursor => default!;
             }
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -1387,7 +1387,7 @@ public class PagingTests
 
                 public string Cursor => default!;
             }
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -1441,7 +1441,7 @@ public class PagingTests
 
                 public string Cursor => default!;
             }
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -1492,7 +1492,7 @@ public class PagingTests
                     public string CustomResolver() => "Foo";
                 }
             }
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -1543,6 +1543,6 @@ public class PagingTests
                     public string CustomResolver() => "Foo";
                 }
             }
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 }

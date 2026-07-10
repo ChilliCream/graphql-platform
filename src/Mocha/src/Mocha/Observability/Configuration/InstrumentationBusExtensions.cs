@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
@@ -24,7 +25,9 @@ public static class InstrumentationBusExtensions
     /// <summary>
     /// Registers a custom <see cref="IMessagingDiagnosticEventListener"/> implementation.
     /// </summary>
-    public static IMessageBusHostBuilder AddDiagnosticEventListener<T>(this IMessageBusHostBuilder builder)
+    public static IMessageBusHostBuilder AddDiagnosticEventListener<
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(
+        this IMessageBusHostBuilder builder)
         where T : class, IMessagingDiagnosticEventListener
     {
         ArgumentNullException.ThrowIfNull(builder);

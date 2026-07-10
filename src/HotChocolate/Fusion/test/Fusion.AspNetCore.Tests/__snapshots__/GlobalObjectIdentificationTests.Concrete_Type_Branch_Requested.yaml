@@ -26,8 +26,9 @@ sourceSchemas:
         query: Query
       }
 
-      interface Node {
-        id: ID!
+      type Query {
+        node(id: ID!): Node @lookup @shareable
+        discussionById(discussionId: ID! @is(field: "id")): Discussion @lookup
       }
 
       type Discussion implements Node {
@@ -35,9 +36,8 @@ sourceSchemas:
         title: String!
       }
 
-      type Query {
-        node(id: ID!): Node @lookup @shareable
-        discussionById(discussionId: ID! @is(field: "id")): Discussion @lookup
+      interface Node {
+        id: ID!
       }
     interactions:
       - request:
@@ -68,8 +68,9 @@ sourceSchemas:
         query: Query
       }
 
-      interface Node {
-        id: ID!
+      type Query {
+        node(id: ID!): Node @lookup @shareable
+        discussionById(id: ID!): Discussion @lookup @internal
       }
 
       type Discussion implements Node {
@@ -82,17 +83,14 @@ sourceSchemas:
         name: String!
       }
 
-      type Query {
-        node(id: ID!): Node @lookup @shareable
-        discussionById(id: ID!): Discussion @lookup @internal
+      interface Node {
+        id: ID!
       }
     interactions:
       - request:
           accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
-            query Op_e567807e_4(
-              $__fusion_1_id: ID!
-            ) {
+            query Op_e567807e_4($__fusion_1_id: ID!) {
               discussionById(id: $__fusion_1_id) {
                 commentCount
               }
@@ -162,9 +160,7 @@ operationPlan:
       type: Operation
       schema: B
       operation: |
-        query Op_e567807e_4(
-          $__fusion_1_id: ID!
-        ) {
+        query Op_e567807e_4($__fusion_1_id: ID!) {
           discussionById(id: $__fusion_1_id) {
             commentCount
           }

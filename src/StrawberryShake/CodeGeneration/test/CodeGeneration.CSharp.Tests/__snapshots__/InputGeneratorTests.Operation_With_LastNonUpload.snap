@@ -96,10 +96,7 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the Test GraphQL operation
     /// <code>
-    /// query Test(
-    ///   $upload: Upload!
-    ///     $string: String!
-    /// ) {
+    /// query Test($upload: Upload!, $string: String!) {
     ///   foo(string: $string, upload: $upload)
     /// }
     /// </code>
@@ -130,10 +127,7 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the Test GraphQL operation
     /// <code>
-    /// query Test(
-    ///   $upload: Upload!
-    ///     $string: String!
-    /// ) {
+    /// query Test($upload: Upload!, $string: String!) {
     ///   foo(string: $string, upload: $upload)
     /// }
     /// </code>
@@ -239,10 +233,7 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the Test GraphQL operation
     /// <code>
-    /// query Test(
-    ///   $upload: Upload!
-    ///     $string: String!
-    /// ) {
+    /// query Test($upload: Upload!, $string: String!) {
     ///   foo(string: $string, upload: $upload)
     /// }
     /// </code>

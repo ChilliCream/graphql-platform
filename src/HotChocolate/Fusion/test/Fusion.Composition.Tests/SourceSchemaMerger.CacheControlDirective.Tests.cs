@@ -33,12 +33,8 @@ public sealed class SourceSchemaMergerCacheControlDirectiveTests : SourceSchemaM
                 """
             ],
             """
-            type Foo
-                @fusion__type(schema: A)
-                @fusion__type(schema: B) {
-                field: Int
-                    @fusion__field(schema: A)
-                    @fusion__field(schema: B)
+            type Foo @fusion__type(schema: A) @fusion__type(schema: B) {
+              field: Int @fusion__field(schema: A) @fusion__field(schema: B)
             }
             """,
             options => options.CacheControlMergeBehavior = DirectiveMergeBehavior.Ignore,
@@ -84,30 +80,28 @@ public sealed class SourceSchemaMergerCacheControlDirectiveTests : SourceSchemaM
             ],
             """
             type FooObject
+              @cacheControl(maxAge: 500)
+              @fusion__type(schema: A)
+              @fusion__type(schema: B) {
+              field: Int
                 @cacheControl(maxAge: 500)
-                @fusion__type(schema: A)
-                @fusion__type(schema: B) {
-                field: Int
-                    @cacheControl(maxAge: 500)
-                    @fusion__field(schema: A)
-                    @fusion__field(schema: B)
+                @fusion__field(schema: A)
+                @fusion__field(schema: B)
             }
 
             interface FooInterface
-                @cacheControl(maxAge: 500)
-                @fusion__type(schema: A)
-                @fusion__type(schema: B) {
-                field: Int
-                    @fusion__field(schema: A)
-                    @fusion__field(schema: B)
+              @cacheControl(maxAge: 500)
+              @fusion__type(schema: A)
+              @fusion__type(schema: B) {
+              field: Int @fusion__field(schema: A) @fusion__field(schema: B)
             }
 
             union FooUnion
-                @cacheControl(maxAge: 500)
-                @fusion__type(schema: A)
-                @fusion__type(schema: B)
-                @fusion__unionMember(schema: A, member: "FooObject")
-                @fusion__unionMember(schema: B, member: "FooObject") = FooObject
+              @cacheControl(maxAge: 500)
+              @fusion__type(schema: A)
+              @fusion__type(schema: B)
+              @fusion__unionMember(schema: A, member: "FooObject")
+              @fusion__unionMember(schema: B, member: "FooObject") = FooObject
             """,
             options => options.CacheControlMergeBehavior = DirectiveMergeBehavior.Include,
             s_removeCacheControlDirective);
@@ -138,12 +132,8 @@ public sealed class SourceSchemaMergerCacheControlDirectiveTests : SourceSchemaM
                 """
             ],
             """
-            type Foo
-                @fusion__type(schema: A)
-                @fusion__type(schema: B) {
-                field: Int
-                    @fusion__field(schema: A)
-                    @fusion__field(schema: B)
+            type Foo @fusion__type(schema: A) @fusion__type(schema: B) {
+              field: Int @fusion__field(schema: A) @fusion__field(schema: B)
             }
             """,
             options => options.CacheControlMergeBehavior = DirectiveMergeBehavior.Include,
@@ -176,21 +166,25 @@ public sealed class SourceSchemaMergerCacheControlDirectiveTests : SourceSchemaM
                 """
             ],
             """
-            type Foo
-                @fusion__type(schema: A)
-                @fusion__type(schema: B) {
-                field: Int
-                    @fusion__cacheControl(maxAge: 500)
-                    @fusion__field(schema: A)
-                    @fusion__field(schema: B)
+            type Foo @fusion__type(schema: A) @fusion__type(schema: B) {
+              field: Int
+                @fusion__cacheControl(maxAge: 500)
+                @fusion__field(schema: A)
+                @fusion__field(schema: B)
             }
 
             enum fusion__CacheControlScope {
-                PRIVATE
-                PUBLIC
+              PRIVATE
+              PUBLIC
             }
 
-            directive @fusion__cacheControl(inheritMaxAge: Boolean maxAge: Int scope: fusion__CacheControlScope sharedMaxAge: Int vary: [String]) on OBJECT | FIELD_DEFINITION | INTERFACE | UNION
+            directive @fusion__cacheControl(
+              inheritMaxAge: Boolean
+              maxAge: Int
+              scope: fusion__CacheControlScope
+              sharedMaxAge: Int
+              vary: [String]
+            ) on OBJECT | FIELD_DEFINITION | INTERFACE | UNION
             """,
             options => options.CacheControlMergeBehavior = DirectiveMergeBehavior.IncludePrivate,
             s_removeCacheControlDirective);
@@ -225,17 +219,12 @@ public sealed class SourceSchemaMergerCacheControlDirectiveTests : SourceSchemaM
                 """
             ],
             """
-            type Foo
-                @fusion__type(schema: A)
-                @fusion__type(schema: B) {
-                field1: Int
-                    @cacheControl(maxAge: 500, sharedMaxAge: 600)
-                    @fusion__field(schema: A)
-                    @fusion__field(schema: B)
-                field2: Int
-                    @cacheControl
-                    @fusion__field(schema: A)
-                    @fusion__field(schema: B)
+            type Foo @fusion__type(schema: A) @fusion__type(schema: B) {
+              field1: Int
+                @cacheControl(maxAge: 500, sharedMaxAge: 600)
+                @fusion__field(schema: A)
+                @fusion__field(schema: B)
+              field2: Int @cacheControl @fusion__field(schema: A) @fusion__field(schema: B)
             }
             """,
             options => options.CacheControlMergeBehavior = DirectiveMergeBehavior.Include,
@@ -275,25 +264,20 @@ public sealed class SourceSchemaMergerCacheControlDirectiveTests : SourceSchemaM
                 """
             ],
             """
-            type Foo
-                @fusion__type(schema: A)
-                @fusion__type(schema: B) {
-                field1: Int
-                    @cacheControl(inheritMaxAge: true)
-                    @fusion__field(schema: A)
-                    @fusion__field(schema: B)
-                field2: Int
-                    @cacheControl(inheritMaxAge: false)
-                    @fusion__field(schema: A)
-                    @fusion__field(schema: B)
-                field3: Int
-                    @cacheControl(inheritMaxAge: false)
-                    @fusion__field(schema: A)
-                    @fusion__field(schema: B)
-                field4: Int
-                    @cacheControl
-                    @fusion__field(schema: A)
-                    @fusion__field(schema: B)
+            type Foo @fusion__type(schema: A) @fusion__type(schema: B) {
+              field1: Int
+                @cacheControl(inheritMaxAge: true)
+                @fusion__field(schema: A)
+                @fusion__field(schema: B)
+              field2: Int
+                @cacheControl(inheritMaxAge: false)
+                @fusion__field(schema: A)
+                @fusion__field(schema: B)
+              field3: Int
+                @cacheControl(inheritMaxAge: false)
+                @fusion__field(schema: A)
+                @fusion__field(schema: B)
+              field4: Int @cacheControl @fusion__field(schema: A) @fusion__field(schema: B)
             }
             """,
             options => options.CacheControlMergeBehavior = DirectiveMergeBehavior.Include,
@@ -333,25 +317,20 @@ public sealed class SourceSchemaMergerCacheControlDirectiveTests : SourceSchemaM
                 """
             ],
             """
-            type Foo
-                @fusion__type(schema: A)
-                @fusion__type(schema: B) {
-                field1: Int
-                    @cacheControl(scope: PUBLIC)
-                    @fusion__field(schema: A)
-                    @fusion__field(schema: B)
-                field2: Int
-                    @cacheControl(scope: PRIVATE)
-                    @fusion__field(schema: A)
-                    @fusion__field(schema: B)
-                field3: Int
-                    @cacheControl(scope: PUBLIC)
-                    @fusion__field(schema: A)
-                    @fusion__field(schema: B)
-                field4: Int
-                    @cacheControl
-                    @fusion__field(schema: A)
-                    @fusion__field(schema: B)
+            type Foo @fusion__type(schema: A) @fusion__type(schema: B) {
+              field1: Int
+                @cacheControl(scope: PUBLIC)
+                @fusion__field(schema: A)
+                @fusion__field(schema: B)
+              field2: Int
+                @cacheControl(scope: PRIVATE)
+                @fusion__field(schema: A)
+                @fusion__field(schema: B)
+              field3: Int
+                @cacheControl(scope: PUBLIC)
+                @fusion__field(schema: A)
+                @fusion__field(schema: B)
+              field4: Int @cacheControl @fusion__field(schema: A) @fusion__field(schema: B)
             }
             """,
             options => options.CacheControlMergeBehavior = DirectiveMergeBehavior.Include,
@@ -391,25 +370,17 @@ public sealed class SourceSchemaMergerCacheControlDirectiveTests : SourceSchemaM
                 """
             ],
             """
-            type Foo
-                @fusion__type(schema: A)
-                @fusion__type(schema: B) {
-                field1: Int
-                    @cacheControl(vary: ["Accept-Encoding", "User-Agent", "Accept-Language"])
-                    @fusion__field(schema: A)
-                    @fusion__field(schema: B)
-                field2: Int
-                    @cacheControl(vary: ["Accept-Encoding"])
-                    @fusion__field(schema: A)
-                    @fusion__field(schema: B)
-                field3: Int
-                    @cacheControl
-                    @fusion__field(schema: A)
-                    @fusion__field(schema: B)
-                field4: Int
-                    @cacheControl
-                    @fusion__field(schema: A)
-                    @fusion__field(schema: B)
+            type Foo @fusion__type(schema: A) @fusion__type(schema: B) {
+              field1: Int
+                @cacheControl(vary: ["Accept-Encoding", "User-Agent", "Accept-Language"])
+                @fusion__field(schema: A)
+                @fusion__field(schema: B)
+              field2: Int
+                @cacheControl(vary: ["Accept-Encoding"])
+                @fusion__field(schema: A)
+                @fusion__field(schema: B)
+              field3: Int @cacheControl @fusion__field(schema: A) @fusion__field(schema: B)
+              field4: Int @cacheControl @fusion__field(schema: A) @fusion__field(schema: B)
             }
             """,
             options => options.CacheControlMergeBehavior = DirectiveMergeBehavior.Include,
@@ -442,12 +413,8 @@ public sealed class SourceSchemaMergerCacheControlDirectiveTests : SourceSchemaM
                 """
             ],
             """
-            type Foo
-                @fusion__type(schema: A)
-                @fusion__type(schema: B) {
-                field: Int
-                    @fusion__field(schema: A)
-                    @fusion__field(schema: B)
+            type Foo @fusion__type(schema: A) @fusion__type(schema: B) {
+              field: Int @fusion__field(schema: A) @fusion__field(schema: B)
             }
             """,
             options => options.CacheControlMergeBehavior = DirectiveMergeBehavior.Include,

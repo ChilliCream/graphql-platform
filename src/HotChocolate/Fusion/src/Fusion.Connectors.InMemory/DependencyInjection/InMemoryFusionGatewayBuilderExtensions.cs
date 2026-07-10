@@ -4,7 +4,6 @@ using HotChocolate.Fusion.Configuration;
 using HotChocolate.Fusion.Connectors.InMemory;
 using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Transport.Formatters;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace Microsoft.Extensions.DependencyInjection;
 

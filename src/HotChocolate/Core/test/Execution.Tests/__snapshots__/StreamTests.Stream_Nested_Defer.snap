@@ -2,11 +2,45 @@
   "data": {
     "personNodes": {
       "nodes": [
-        {
-          "name": "Pascal"
-        }
+        {}
       ]
+    }
+  },
+  "pending": [
+    {
+      "id": "2",
+      "path": []
     },
-    "wait": true
-  }
+    {
+      "id": "3",
+      "path": [
+        "personNodes",
+        "nodes",
+        0
+      ]
+    }
+  ],
+  "incremental": [
+    {
+      "id": "2",
+      "data": {
+        "wait": true
+      }
+    },
+    {
+      "id": "3",
+      "data": {
+        "name": "Pascal"
+      }
+    }
+  ],
+  "completed": [
+    {
+      "id": "2"
+    },
+    {
+      "id": "3"
+    }
+  ],
+  "hasNext": false
 }

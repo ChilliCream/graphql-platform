@@ -87,6 +87,15 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The directive definition &apos;@{0}&apos; must not reference itself..
+        /// </summary>
+        internal static string LogEntryHelper_DirectiveDefinitionSelfApplication {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_DirectiveDefinitionSelfApplication", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The Enum type &apos;{0}&apos; must define one or more values..
         /// </summary>
         internal static string LogEntryHelper_EmptyEnumType {

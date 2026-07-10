@@ -1,5 +1,7 @@
+using System.Runtime.CompilerServices;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Text;
+using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
@@ -10,10 +12,16 @@ namespace HotChocolate.Fusion.Execution.Nodes;
 /// </summary>
 public sealed class Selection : ISelection
 {
+    private static readonly DeliveryGroup[] s_emptyDeliveryGroups = [];
+
     private readonly FieldSelectionNode[] _syntaxNodes;
     private readonly ulong[] _includeFlags;
     private readonly byte[] _utf8ResponseName;
+    private readonly ulong _deferMask;
+    private readonly DeliveryGroup[] _deliveryGroups;
+    private readonly ITypeDefinition _namedType;
     private Flags _flags;
+    private SelectionSet? _childSelectionSet;
 
     public Selection(
         int id,
@@ -21,7 +29,9 @@ public sealed class Selection : ISelection
         IOutputFieldDefinition field,
         FieldSelectionNode[] syntaxNodes,
         ulong[] includeFlags,
-        bool isInternal)
+        bool isInternal,
+        ulong deferMask = 0,
+        DeliveryGroup[]? deliveryGroups = null)
     {
         ArgumentNullException.ThrowIfNull(field);
 
@@ -37,11 +47,21 @@ public sealed class Selection : ISelection
         Field = field;
         _syntaxNodes = syntaxNodes;
         _includeFlags = includeFlags;
+        _deferMask = deferMask;
+        _deliveryGroups = deliveryGroups ?? s_emptyDeliveryGroups;
         _flags = isInternal ? Flags.Internal : Flags.None;
 
-        if (field.Type.NamedType().IsLeafType())
+        var namedType = field.Type.NamedType();
+        _namedType = namedType;
+
+        if (namedType.IsLeafType())
         {
             _flags |= Flags.Leaf;
+        }
+
+        if (namedType is FusionEnumTypeDefinition)
+        {
+            _flags |= Flags.EnumValue;
         }
 
         _utf8ResponseName = Utf8StringCache.GetUtf8String(responseName);
@@ -65,6 +85,15 @@ public sealed class Selection : ISelection
     public bool IsLeaf => (_flags & Flags.Leaf) == Flags.Leaf;
 
     /// <inheritdoc />
+    public bool IsEnumValue => (_flags & Flags.EnumValue) == Flags.EnumValue;
+
+    /// <summary>
+    /// Gets the named type of the selection's field type, with all list and
+    /// non-null wrappers removed.
+    /// </summary>
+    public ITypeDefinition NamedType => _namedType;
+
+    /// <inheritdoc />
     public IOutputFieldDefinition Field { get; }
 
     /// <inheritdoc />
@@ -79,11 +108,58 @@ public sealed class Selection : ISelection
     ISelectionSet ISelection.DeclaringSelectionSet => DeclaringSelectionSet;
 
     /// <summary>
+    /// Gets the child selection set for this selection's named return type.
+    /// </summary>
+    /// <returns>
+    /// The child selection set, or <c>null</c> when this selection has no child
+    /// selection set.
+    /// </returns>
+    public SelectionSet? GetSelectionSet()
+        => IsLeaf ? null : DeclaringSelectionSet.DeclaringOperation.GetSelectionSet(this);
+
+    /// <summary>
+    /// Gets the child selection set for this selection and the specified
+    /// <paramref name="typeContext"/>.
+    /// </summary>
+    /// <returns>
+    /// The child selection set, or <c>null</c> when this selection has no child
+    /// selection set.
+    /// </returns>
+    public SelectionSet? GetSelectionSet(IObjectTypeDefinition typeContext)
+    {
+        if ((_flags & Flags.Leaf) == Flags.Leaf)
+        {
+            return null;
+        }
+
+        // _childSelectionSet is only set for non-leaf fields whose named type is a concrete object type.
+        // When it is set, we can return it right away because that child selection set is plan-stable.
+        // A concurrent recompute produces the same instance, so no synchronization is needed.
+        var childSelectionSet = _childSelectionSet;
+
+        if (childSelectionSet is not null)
+        {
+            return childSelectionSet;
+        }
+
+        if (_namedType is IObjectTypeDefinition)
+        {
+            childSelectionSet = DeclaringSelectionSet.DeclaringOperation.GetSelectionSet(this, typeContext);
+            _childSelectionSet = childSelectionSet;
+            return childSelectionSet;
+        }
+
+        return DeclaringSelectionSet.DeclaringOperation.GetSelectionSet(this, typeContext);
+    }
+
+    /// <summary>
     /// Gets the syntax nodes that contributed to this selection.
     /// </summary>
     public ReadOnlySpan<FieldSelectionNode> SyntaxNodes => _syntaxNodes;
 
     internal ResolveFieldValue? Resolver => Field.Features.Get<ResolveFieldValue>();
+
+    internal AsyncResolveFieldValue? AsyncResolver => Field.Features.Get<AsyncResolveFieldValue>();
 
     IEnumerable<FieldNode> ISelection.GetSyntaxNodes()
     {
@@ -160,9 +236,154 @@ public sealed class Selection : ISelection
         DeclaringSelectionSet = selectionSet;
     }
 
-    public bool IsDeferred(ulong deferFlags)
+    public bool IsDeferred(ulong deferFlags) => (_deferMask & deferFlags) != 0;
+
+    /// <summary>
+    /// Returns the active delivery groups for this selection after resolving
+    /// each occurrence to its nearest active ancestor and pruning child groups
+    /// whose parent is also active. Returns <c>null</c> when the selection
+    /// belongs to the initial result.
+    /// </summary>
+    public DeliveryGroup[]? GetActiveDeliveryGroups(ulong deferFlags)
     {
-        throw new NotImplementedException();
+        if (_deliveryGroups.Length == 0)
+        {
+            return null;
+        }
+
+        if (_deliveryGroups.Length == 1)
+        {
+            var active = ResolveActiveAncestor(_deliveryGroups[0], deferFlags);
+            return active is null ? null : [active];
+        }
+
+        DeliveryGroup[]? result = null;
+        var count = 0;
+
+        for (var i = 0; i < _deliveryGroups.Length; i++)
+        {
+            var effective = ResolveActiveAncestor(_deliveryGroups[i], deferFlags);
+
+            if (effective is null)
+            {
+                // One occurrence is non-deferred; the field is non-deferred overall.
+                return null;
+            }
+
+            var duplicate = false;
+            if (result is not null)
+            {
+                for (var j = 0; j < count; j++)
+                {
+                    if (result[j] == effective)
+                    {
+                        duplicate = true;
+                        break;
+                    }
+                }
+            }
+
+            if (!duplicate)
+            {
+                result ??= new DeliveryGroup[_deliveryGroups.Length];
+                result[count++] = effective;
+            }
+        }
+
+        if (result is null || count == 0)
+        {
+            return null;
+        }
+
+        // Parent-child pruning: if a parent and child are both in the set,
+        // keep only the outermost.
+        for (var i = count - 1; i >= 0; i--)
+        {
+            var ancestor = result[i].Parent;
+
+            while (ancestor is not null)
+            {
+                for (var j = 0; j < count; j++)
+                {
+                    if (j != i && result[j] == ancestor)
+                    {
+                        result[i] = result[--count];
+                        goto nextItem;
+                    }
+                }
+
+                ancestor = ancestor.Parent;
+            }
+
+nextItem:
+            ;
+        }
+
+        if (count == 0)
+        {
+            return null;
+        }
+
+        if (count < result.Length)
+        {
+            Array.Resize(ref result, count);
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// Determines whether <paramref name="target"/> is the nearest active
+    /// delivery group for any occurrence of this selection under the specified
+    /// <paramref name="deferFlags"/>. Returns <c>false</c> if any occurrence
+    /// belongs to the initial result.
+    /// </summary>
+    public bool HasActiveDeliveryGroup(ulong deferFlags, DeliveryGroup target)
+    {
+        if (_deliveryGroups.Length == 0)
+        {
+            return false;
+        }
+
+        var found = false;
+
+        for (var i = 0; i < _deliveryGroups.Length; i++)
+        {
+            var effective = ResolveActiveAncestor(_deliveryGroups[i], deferFlags);
+
+            if (effective is null)
+            {
+                // Any non-deferred occurrence makes the whole field non-deferred.
+                return false;
+            }
+
+            if (effective == target)
+            {
+                found = true;
+            }
+        }
+
+        return found;
+    }
+
+    // Returns the nearest active delivery group in the @defer parent chain.
+    // If none are active, the field occurrence belongs to the initial result.
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static DeliveryGroup? ResolveActiveAncestor(DeliveryGroup start, ulong deferFlags)
+    {
+        var deliveryGroup = start;
+
+        while (deliveryGroup is not null)
+        {
+            if ((deferFlags & (1UL << deliveryGroup.DeferConditionIndex)) != 0)
+            {
+                return deliveryGroup;
+            }
+
+            deliveryGroup = deliveryGroup.Parent;
+        }
+
+        return null;
     }
 
     [Flags]
@@ -171,6 +392,7 @@ public sealed class Selection : ISelection
         None = 0,
         Internal = 1,
         Leaf = 2,
-        Sealed = 4
+        EnumValue = 4,
+        Sealed = 8
     }
 }

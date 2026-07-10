@@ -1,4 +1,6 @@
+using System.Collections.Immutable;
 using System.Diagnostics;
+using Mocha.Features;
 using Mocha.Middlewares;
 
 namespace Mocha;
@@ -67,18 +69,20 @@ internal sealed class ActivityMessagingDiagnosticListener : MessagingDiagnosticE
 
             activity ??= OpenTelemetry.Source.StartActivity($"{context.Endpoint.Address} receive", ActivityKind.Client);
             _activity = activity;
+
+            if (activity is not null)
+            {
+                context.Features.GetOrSet<ReceiveActivityFeature>().ActivityContext = activity.Context;
+            }
         }
 
         public void Dispose()
         {
             // Enrich activity with context state after all middlewares have run
-            if (_activity is not null)
-            {
-                _activity
-                    .EnrichMessageDefault()
-                    .SetMessageId(_context.MessageId ?? string.Empty)
-                    .SetConversationId(_context.CorrelationId ?? string.Empty);
-            }
+            _activity?
+                .EnrichMessageDefault()
+                .SetMessageId(_context.MessageId ?? string.Empty)
+                .SetConversationId(_context.CorrelationId ?? string.Empty);
 
             _activity?.Dispose();
         }
@@ -98,7 +102,14 @@ internal sealed class ActivityMessagingDiagnosticListener : MessagingDiagnosticE
             // TODO this can be done better!
             var currentConsumer = context.Features.Get<ReceiveConsumerFeature>()?.CurrentConsumer?.Name ?? "unknown";
 
-            _activity = OpenTelemetry.Source.StartActivity($"{currentConsumer} consume", ActivityKind.Consumer);
+            _activity = context is IBatchConsumeContext batchContext
+                ? OpenTelemetry.Source.StartActivity(
+                    $"{currentConsumer} consume",
+                    ActivityKind.Consumer,
+                    default(ActivityContext),
+                    null,
+                    CreateLinks(batchContext))
+                : OpenTelemetry.Source.StartActivity($"{currentConsumer} consume", ActivityKind.Consumer);
         }
 
         public void Dispose()
@@ -106,19 +117,60 @@ internal sealed class ActivityMessagingDiagnosticListener : MessagingDiagnosticE
             // Enrich activity with context state after all middlewares have run
             if (_activity is not null)
             {
-                var consumerName = _context.MessageType is not null ? _context.MessageType.Identity : "unknown";
+                var batchConsumeContext = _context as IBatchConsumeContext;
+                var consumerName = batchConsumeContext?.ItemMessageType?.Identity
+                    ?? _context.MessageType?.Identity
+                    ?? "unknown";
 
                 _activity
                     .EnrichMessageDefault()
-                    .SetMessageId(_context.MessageId ?? string.Empty)
-                    .SetConversationId(_context.CorrelationId ?? string.Empty)
+                    .SetMessageId(_context.MessageId)
+                    .SetConversationId(_context.ConversationId)
                     .SetConsumerName(consumerName);
+
+                if (batchConsumeContext is not null)
+                {
+                    _activity.SetTag("messaging.batch.id", batchConsumeContext.BatchId);
+                    _activity.SetTag("messaging.batch.message_count", batchConsumeContext.Message.Count);
+                }
             }
 
             _activity?.Dispose();
         }
 
         public static ConsumerActivity Create(IConsumeContext context) => new(context);
+
+        private static ImmutableArray<ActivityLink> CreateLinks(IBatchConsumeContext batchContext)
+        {
+            var links = ImmutableArray.CreateBuilder<ActivityLink>(batchContext.Message.Count);
+            var batch = batchContext.Message;
+
+            for (var i = 0; i < batch.Count; i++)
+            {
+                if (batch.GetContext(i).Features.TryGet<ReceiveActivityFeature>(out var linkContext)
+                    && linkContext.ActivityContext is { } activityContext)
+                {
+                    links.Add(new ActivityLink(activityContext));
+                }
+            }
+
+            return links.ToImmutable();
+        }
+    }
+
+    private sealed class ReceiveActivityFeature : IPooledFeature
+    {
+        public ActivityContext? ActivityContext { get; set; }
+
+        public void Initialize(object state)
+        {
+            ActivityContext = null;
+        }
+
+        public void Reset()
+        {
+            ActivityContext = null;
+        }
     }
 
     private sealed class DispatchActivity : IDisposable
@@ -151,15 +203,12 @@ internal sealed class ActivityMessagingDiagnosticListener : MessagingDiagnosticE
             var transportName = _context.Transport.Name;
 
             // Enrich activity with context state after all middlewares have run
-            if (_activity is not null)
-            {
-                _activity
-                    .SetMessageId(_context.MessageId ?? string.Empty)
-                    .SetConversationId(_context.ConversationId ?? string.Empty)
-                    .SetInstanceId(_context.Host.InstanceId)
-                    .SetDestinationTemporary(false)
-                    .SetDestinationAddress(destination);
-            }
+            _activity?
+                .SetMessageId(_context.MessageId ?? string.Empty)
+                .SetConversationId(_context.ConversationId ?? string.Empty)
+                .SetInstanceId(_context.Host.InstanceId)
+                .SetDestinationTemporary(false)
+                .SetDestinationAddress(destination);
 
             _activity?.Dispose();
 

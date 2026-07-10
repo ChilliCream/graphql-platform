@@ -6,11 +6,13 @@ using Mocha.Middlewares;
 namespace Mocha.Tests.Middlewares.Receive;
 
 /// <summary>
-/// Tests for the RoutingMiddleware which routes incoming messages to the appropriate consumers
-/// based on message type matching.
+/// Tests for the RoutingMiddleware which selects consumers for the current endpoint by evaluating
+/// each route's condition against the received message.
 /// </summary>
 public class RoutingMiddlewareTests : ReceiveMiddlewareTestBase
 {
+    private static readonly ContextDataKey<string> s_correlationKey = new("test-correlation");
+
     [Fact]
     public async Task InvokeAsync_Should_AddConsumer_When_MessageTypeMatchesRoute()
     {
@@ -105,7 +107,7 @@ public class RoutingMiddlewareTests : ReceiveMiddlewareTestBase
     {
         // arrange
         var router = new MockMessageRouter();
-        // Even if routes exist, null MessageType means no routing
+        // a type route does not match a message that never resolved a message type
         var consumer = new StubConsumer();
         router.SetRoutes([CreateInboundRoute(CreateTestMessageType(), consumer)]);
 
@@ -148,12 +150,12 @@ public class RoutingMiddlewareTests : ReceiveMiddlewareTestBase
     }
 
     [Fact]
-    public async Task InvokeAsync_Should_NotAddConsumer_When_RouteMessageTypeIsNull()
+    public async Task InvokeAsync_Should_NotAddConsumer_When_RouteHasNoMatchCondition()
     {
-        // arrange - route without a message type should not match
+        // arrange - a no-match route (the RPC reply route) never selects its consumer
         var messageType = CreateTestMessageType();
         var consumer = new StubConsumer();
-        var route = CreateInboundRoute(null, consumer);
+        var route = CreateInboundRoute(NoMatchCondition.Instance, consumer);
 
         var router = new MockMessageRouter();
         router.SetRoutes([route]);
@@ -170,6 +172,87 @@ public class RoutingMiddlewareTests : ReceiveMiddlewareTestBase
         Assert.Empty(feature.Consumers);
     }
 
+    [Fact]
+    public async Task InvokeAsync_Should_SelectHeaderRoute_When_MessageTypeIsNullButHeaderMatches()
+    {
+        // arrange - a header based route selects on envelope metadata alone, even with no message type
+        var consumer = new StubConsumer();
+        var condition = new HeaderPresentCondition<string>(s_correlationKey);
+        var route = CreateInboundRoute(condition, consumer);
+
+        var router = new MockMessageRouter();
+        router.SetRoutes([route]);
+
+        var middleware = new RoutingMiddleware(router);
+        var context = new StubReceiveContext { MessageType = null };
+        context.Headers.SetMessageKind(MessageKind.Reply);
+        context.Headers.Set(s_correlationKey, "abc");
+        var next = CreatePassthroughDelegate();
+
+        // act
+        await middleware.InvokeAsync(context, next);
+
+        // assert
+        var feature = context.Features.GetOrSet<ReceiveConsumerFeature>();
+        Assert.Contains(consumer, feature.Consumers);
+    }
+
+    [Fact]
+    public async Task InvokeAsync_Should_AddBothRoutes_When_TypeRouteAndHeaderRouteCoexist()
+    {
+        // arrange - a reply that matches both an ordinary type route and a header based reply route
+        var messageType = CreateTestMessageType();
+        var typeConsumer = new StubConsumer();
+        var sagaConsumer = new StubConsumer();
+        var typeRoute = CreateInboundRoute(messageType, typeConsumer);
+        var sagaRoute = CreateInboundRoute(new HeaderPresentCondition<string>(s_correlationKey), sagaConsumer);
+
+        var router = new MockMessageRouter();
+        router.SetRoutes([typeRoute, sagaRoute]);
+
+        var middleware = new RoutingMiddleware(router);
+        var context = new StubReceiveContext { MessageType = messageType };
+        context.Headers.SetMessageKind(MessageKind.Reply);
+        context.Headers.Set(s_correlationKey, "abc");
+        var next = CreatePassthroughDelegate();
+
+        // act
+        await middleware.InvokeAsync(context, next);
+
+        // assert
+        var feature = context.Features.GetOrSet<ReceiveConsumerFeature>();
+        Assert.Equal(2, feature.Consumers.Count);
+        Assert.Contains(typeConsumer, feature.Consumers);
+        Assert.Contains(sagaConsumer, feature.Consumers);
+    }
+
+    [Fact]
+    public async Task InvokeAsync_Should_AddConsumerOnce_When_TwoRoutesShareConsumer()
+    {
+        // arrange - the same consumer is bound to two matching routes; the consumer set dedups it
+        var messageType = CreateTestMessageType();
+        var consumer = new StubConsumer();
+        var route1 = CreateInboundRoute(messageType, consumer);
+        var route2 = CreateInboundRoute(new HeaderPresentCondition<string>(s_correlationKey), consumer);
+
+        var router = new MockMessageRouter();
+        router.SetRoutes([route1, route2]);
+
+        var middleware = new RoutingMiddleware(router);
+        var context = new StubReceiveContext { MessageType = messageType };
+        context.Headers.SetMessageKind(MessageKind.Reply);
+        context.Headers.Set(s_correlationKey, "abc");
+        var next = CreatePassthroughDelegate();
+
+        // act
+        await middleware.InvokeAsync(context, next);
+
+        // assert
+        var feature = context.Features.GetOrSet<ReceiveConsumerFeature>();
+        Assert.Single(feature.Consumers);
+        Assert.Contains(consumer, feature.Consumers);
+    }
+
     private static MessageType CreateTestMessageType(ImmutableArray<MessageType>? enclosedTypes = null)
     {
         var mt = new MessageType();
@@ -180,11 +263,21 @@ public class RoutingMiddlewareTests : ReceiveMiddlewareTestBase
         return mt;
     }
 
-    private static InboundRoute CreateInboundRoute(MessageType? messageType, Consumer? consumer)
+    private static InboundRoute CreateInboundRoute(MessageType messageType, Consumer consumer)
+        => CreateInboundRoute(new MessageTypeCondition(messageType), consumer, messageType);
+
+    private static InboundRoute CreateInboundRoute(RouteCondition condition, Consumer consumer)
+        => CreateInboundRoute(condition, consumer, messageType: null);
+
+    private static InboundRoute CreateInboundRoute(
+        RouteCondition condition,
+        Consumer consumer,
+        MessageType? messageType)
     {
         var route = new InboundRoute();
         SetPrivateProperty(route, nameof(InboundRoute.MessageType), messageType);
         SetPrivateProperty(route, nameof(InboundRoute.Consumer), consumer);
+        SetPrivateProperty(route, nameof(InboundRoute.Condition), condition);
         return route;
     }
 

@@ -19,10 +19,17 @@ public sealed class LinkDirective
     /// <param name="import">
     /// Optional list of imported elements.
     /// </param>
-    public LinkDirective(Uri url, IReadOnlySet<string>? import)
+    public LinkDirective(Uri url, IReadOnlyList<string>? import)
     {
         Url = url;
-        Import = import;
+        var imports = import?.ToArray();
+
+        if (imports is not null)
+        {
+            Array.Sort(imports, StringComparer.Ordinal);
+        }
+
+        Import = imports;
     }
 
     /// <summary>
@@ -36,5 +43,5 @@ public sealed class LinkDirective
     /// Gets optional list of imported element names.
     /// </summary>
     [GraphQLDescription(FederationResources.LinkDirective_Import_Description)]
-    public IReadOnlySet<string>? Import { get; }
+    public IReadOnlyList<string>? Import { get; }
 }

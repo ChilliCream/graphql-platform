@@ -26,8 +26,9 @@ sourceSchemas:
         query: Query
       }
 
-      interface Votable {
-        viewerCanVote: Boolean!
+      type Query {
+        votable: Votable
+        discussionById(id: ID!): Discussion @lookup @shareable
       }
 
       type Comment implements Votable {
@@ -40,9 +41,8 @@ sourceSchemas:
         viewerCanVote: Boolean!
       }
 
-      type Query {
-        votable: Votable
-        discussionById(id: ID!): Discussion @lookup @shareable
+      interface Votable {
+        viewerCanVote: Boolean!
       }
     interactions:
       - request:
@@ -75,21 +75,19 @@ sourceSchemas:
         query: Query
       }
 
+      type Query {
+        discussionById(id: ID!): Discussion @lookup @shareable
+      }
+
       type Discussion {
         id: ID!
         viewerRating: Float!
-      }
-
-      type Query {
-        discussionById(id: ID!): Discussion @lookup @shareable
       }
     interactions:
       - request:
           accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
-            query testQuery_4a61c641_2(
-              $__fusion_1_id: ID!
-            ) {
+            query testQuery_4a61c641_2($__fusion_1_id: ID!) {
               discussionById(id: $__fusion_1_id) {
                 viewerRating
               }
@@ -143,9 +141,7 @@ operationPlan:
       type: Operation
       schema: B
       operation: |
-        query testQuery_4a61c641_2(
-          $__fusion_1_id: ID!
-        ) {
+        query testQuery_4a61c641_2($__fusion_1_id: ID!) {
           discussionById(id: $__fusion_1_id) {
             viewerRating
           }

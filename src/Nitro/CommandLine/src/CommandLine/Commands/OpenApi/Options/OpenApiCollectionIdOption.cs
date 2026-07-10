@@ -1,5 +1,3 @@
-using ChilliCream.Nitro.CommandLine;
-
 namespace ChilliCream.Nitro.CommandLine.Commands.OpenApi.Options;
 
 internal sealed class OpenApiCollectionIdOption : Option<string>

@@ -1,16 +1,28 @@
 {
+  "source": {
+    "name": "HotChocolate.Diagnostics"
+  },
   "activities": [
     {
       "OperationName": "GraphQL Operation",
       "DisplayName": "GraphQL Operation",
+      "Kind": "Internal",
       "Status": "Error",
       "tags": [
+        {
+          "Key": "graphql.processing.type",
+          "Value": "request"
+        },
+        {
+          "Key": "error.type",
+          "Value": "HotChocolate.Language.SyntaxException"
+        },
         {
           "Key": "graphql.document.hash",
           "Value": "md5:bb507ba78696fc3c6ff3a17fb06784d5"
         },
         {
-          "Key": "graphql.errors.count",
+          "Key": "graphql.error.count",
           "Value": 1
         }
       ],
@@ -24,11 +36,37 @@
             },
             {
               "Key": "exception.stacktrace",
-              "Value": "HotChocolate.Language.SyntaxException: Expected a `RightBrace`-token, but found a `EndOfFile`-token.\n   at HotChocolate.Language.Utf8GraphQLParser.ParseSelectionSet() in Utf8GraphQLParser.Operations.cs:line 221\n   at HotChocolate.Language.Utf8GraphQLParser.ParseShortOperationDefinition() in Utf8GraphQLParser.Operations.cs:line 73\n   at HotChocolate.Language.Utf8GraphQLParser.ParseDefinition() in Utf8GraphQLParser.cs:line 215\n   at HotChocolate.Language.Utf8GraphQLParser.Parse() in Utf8GraphQLParser.cs:line 98\n   at HotChocolate.Language.Utf8GraphQLParser.Parse(String sourceText, ParserOptions options) in Utf8GraphQLParser.cs:line 326\n   at HotChocolate.Execution.Pipeline.DocumentParserMiddleware.InvokeAsync(RequestContext context) in DocumentParserMiddleware.cs:line 63"
+              "Value": "HotChocolate.Language.SyntaxException: Expected a `RightBrace`-token, but found a `EndOfFile`-token.\n   at HotChocolate.Language.Utf8GraphQLParser.ParseSelectionSet() in Utf8GraphQLParser.Operations.cs\n   at HotChocolate.Language.Utf8GraphQLParser.ParseShortOperationDefinition() in Utf8GraphQLParser.Operations.cs\n   at HotChocolate.Language.Utf8GraphQLParser.ParseDefinition() in Utf8GraphQLParser.cs\n   at HotChocolate.Language.Utf8GraphQLParser.Parse() in Utf8GraphQLParser.cs\n   at HotChocolate.Language.Utf8GraphQLParser.Parse(String sourceText, ParserOptions options) in Utf8GraphQLParser.cs\n   at HotChocolate.Execution.Pipeline.DocumentParserMiddleware.InvokeAsync(RequestContext context) in DocumentParserMiddleware.cs"
             },
             {
               "Key": "exception.type",
               "Value": "HotChocolate.Language.SyntaxException"
+            }
+          ]
+        },
+        {
+          "Name": "graphql.error",
+          "Tags": [
+            {
+              "Key": "graphql.error.message",
+              "Value": "Expected a `RightBrace`-token, but found a `EndOfFile`-token."
+            },
+            {
+              "Key": "graphql.error.code",
+              "Value": "HC0014"
+            },
+            {
+              "Key": "graphql.document.locations",
+              "Value": [
+                {
+                  "line": 1,
+                  "column": 11
+                }
+              ]
+            },
+            {
+              "Key": "graphql.document.hash",
+              "Value": "md5:bb507ba78696fc3c6ff3a17fb06784d5"
             }
           ]
         }
@@ -37,8 +75,13 @@
         {
           "OperationName": "GraphQL Document Parsing",
           "DisplayName": "GraphQL Document Parsing",
-          "Status": "Unset",
+          "Kind": "Internal",
+          "Status": "Error",
           "tags": [
+            {
+              "Key": "error.type",
+              "Value": "HC0014"
+            },
             {
               "Key": "graphql.document.hash",
               "Value": "md5:bb507ba78696fc3c6ff3a17fb06784d5"

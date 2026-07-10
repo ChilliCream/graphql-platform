@@ -20,8 +20,8 @@ public sealed class FusionConfigurationPublishStartCommandTests(NitroCommandFixt
 
             Options:
               --request-id <request-id>  The ID of a request [env: NITRO_REQUEST_ID]
-              --cloud-url <cloud-url>    The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL] [default: api.chillicream.com]
-              --api-key <api-key>        The API key used for authentication [env: NITRO_API_KEY]
+              --cloud-url <cloud-url>    The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL]
+              --api-key <api-key>        The API key or PAT used for authentication [env: NITRO_API_KEY]
               --output <json>            The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
               -?, -h, --help             Show help and usage information
 
@@ -51,7 +51,7 @@ public sealed class FusionConfigurationPublishStartCommandTests(NitroCommandFixt
         // assert
         result.AssertError(
             """
-            This command requires an authenticated user. Either specify '--api-key' or run 'nitro login'.
+            This command requires an authenticated user. Either specify '--api-key' or run `nitro login`.
             """);
     }
 
@@ -79,7 +79,7 @@ public sealed class FusionConfigurationPublishStartCommandTests(NitroCommandFixt
     [InlineData(InteractionMode.Interactive)]
     [InlineData(InteractionMode.NonInteractive)]
     [InlineData(InteractionMode.JsonOutput)]
-    public async Task RequestIdFromStateFile_Success(InteractionMode mode)
+    public async Task RequestIdFromStateFile_Success_ReturnsSuccess(InteractionMode mode)
     {
         // arrange
         SetupFusionPublishingStateCache(RequestId);
@@ -118,7 +118,7 @@ public sealed class FusionConfigurationPublishStartCommandTests(NitroCommandFixt
     }
 
     [Fact]
-    public async Task Success_WithRequestIdOption()
+    public async Task Success_WithRequestIdOption_ReturnsSuccess()
     {
         // arrange
         SetupClaimDeploymentSlotMutation();

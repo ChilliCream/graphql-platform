@@ -1,10 +1,10 @@
 using System.Text;
-using global::HotChocolate.Caching;
-using CacheControlAttribute = global::HotChocolate.Caching.CacheControlAttribute;
+using HotChocolate.Caching;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Planning;
 using Microsoft.Extensions.DependencyInjection;
+using CacheControlAttribute = HotChocolate.Caching.CacheControlAttribute;
 
 namespace HotChocolate.Fusion.Caching;
 
@@ -32,7 +32,7 @@ public class FusionCachingTests : FusionTestBase
 
         // assert
         Assert.NotNull(response.Headers.CacheControl);
-        Assert.Equal(TimeSpan.FromSeconds(3600), response.Headers.CacheControl!.MaxAge);
+        Assert.Equal(TimeSpan.FromSeconds(3600), response.Headers.CacheControl.MaxAge);
     }
 
     [Fact]
@@ -57,7 +57,7 @@ public class FusionCachingTests : FusionTestBase
 
         // assert
         Assert.NotNull(response.Headers.CacheControl);
-        Assert.Equal(TimeSpan.FromSeconds(1800), response.Headers.CacheControl!.MaxAge);
+        Assert.Equal(TimeSpan.FromSeconds(1800), response.Headers.CacheControl.MaxAge);
     }
 
     [Fact]
@@ -82,7 +82,7 @@ public class FusionCachingTests : FusionTestBase
 
         // assert
         Assert.NotNull(response.Headers.CacheControl);
-        Assert.True(response.Headers.CacheControl!.Private);
+        Assert.True(response.Headers.CacheControl.Private);
         Assert.Equal(TimeSpan.FromSeconds(3600), response.Headers.CacheControl.MaxAge);
     }
 
@@ -108,7 +108,7 @@ public class FusionCachingTests : FusionTestBase
 
         // assert
         Assert.NotNull(response.Headers.CacheControl);
-        Assert.Equal(TimeSpan.FromSeconds(1800), response.Headers.CacheControl!.SharedMaxAge);
+        Assert.Equal(TimeSpan.FromSeconds(1800), response.Headers.CacheControl.SharedMaxAge);
     }
 
     [Fact]

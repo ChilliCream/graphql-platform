@@ -1,7 +1,7 @@
 namespace HotChocolate.ApolloFederation.Types;
 
 /// <summary>
-/// Scalar <code>Scope</code> representation.
+/// Scalar <c>Scope</c> representation.
 /// </summary>
 public readonly record struct Scope
 {

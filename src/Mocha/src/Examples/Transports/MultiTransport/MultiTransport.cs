@@ -5,7 +5,6 @@
 
 using Mocha;
 using Mocha.Transport.InMemory;
-using Mocha.Hosting;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -21,12 +20,12 @@ builder.Services
         transport.Name("primary");
     })
     // Second InMemory transport - dedicated to the audit pipeline.
-    // BindHandlersExplicitly() means only handlers explicitly assigned via
+    // BindExplicitly() means only handlers explicitly assigned via
     // .Handler<T>() on an endpoint descriptor are bound to this transport.
     .AddInMemory(transport =>
     {
         transport.Name("audit");
-        transport.BindHandlersExplicitly();
+        transport.BindExplicitly();
 
         // Route AuditHandler exclusively to this transport's endpoint.
         // OrderPlacedHandler is NOT bound here - it runs on the primary transport.
@@ -52,11 +51,6 @@ app.MapGet("/orders", async (IMessageBus bus) =>
 
     return Results.Ok(new { OrderId = orderId, Status = "Published" });
 });
-
-if (app.Environment.IsDevelopment())
-{
-    app.MapMessageBusDeveloperTopology();
-}
 
 app.Run();
 

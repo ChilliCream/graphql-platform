@@ -1,5 +1,4 @@
 using System.CommandLine.Parsing;
-using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Services;
 
 namespace ChilliCream.Nitro.CommandLine;
@@ -69,9 +68,9 @@ internal static class OptionExtensions
         string name,
         T? defaultValue = default)
     {
-        option.DefaultValueFactory = r =>
+        option.DefaultValueFactory = _ =>
         {
-            var provider = CommandExecutionContext.Services.Value!
+            var provider = CommandExecutionContext.s_services.Value!
                 .GetRequiredService<IEnvironmentVariableProvider>();
             var value = s_prefixes
                 .Select(prefix => provider.GetEnvironmentVariable(prefix + name))

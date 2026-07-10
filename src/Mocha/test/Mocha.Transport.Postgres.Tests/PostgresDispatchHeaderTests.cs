@@ -86,7 +86,7 @@ public class PostgresDispatchHeaderTests
 
         // assert
         Assert.NotNull(parsed.EnclosedMessageTypes);
-        Assert.Equal(2, parsed.EnclosedMessageTypes!.Value.Length);
+        Assert.Equal(2, parsed.EnclosedMessageTypes.Value.Length);
         Assert.Equal("urn:message:OrderCreated", parsed.EnclosedMessageTypes.Value[0]);
         Assert.Equal("urn:message:IEvent", parsed.EnclosedMessageTypes.Value[1]);
     }
@@ -116,7 +116,7 @@ public class PostgresDispatchHeaderTests
 
         // assert
         Assert.NotNull(parsed.DeliverBy);
-        Assert.Equal(deliverBy, parsed.DeliverBy!.Value);
+        Assert.Equal(deliverBy, parsed.DeliverBy.Value);
     }
 
     [Fact]
@@ -137,7 +137,7 @@ public class PostgresDispatchHeaderTests
 
         // assert
         Assert.NotNull(parsed.Headers);
-        Assert.True(parsed.Headers!.TryGetValue("x-tenant", out var tenantValue));
+        Assert.True(parsed.Headers.TryGetValue("x-tenant", out var tenantValue));
         Assert.Equal("acme", tenantValue);
         Assert.True(parsed.Headers.TryGetValue("x-priority", out var priorityValue));
         Assert.Equal(5.0, priorityValue);

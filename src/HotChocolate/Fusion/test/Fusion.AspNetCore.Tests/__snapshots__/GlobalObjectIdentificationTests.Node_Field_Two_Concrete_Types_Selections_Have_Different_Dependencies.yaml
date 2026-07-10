@@ -1,9 +1,7 @@
 title: Node_Field_Two_Concrete_Types_Selections_Have_Different_Dependencies
 request:
   document: |
-    query testQuery(
-      $id: ID!
-    ) {
+    query testQuery($id: ID!) {
       node(id: $id) {
         ... on Discussion {
           product {
@@ -41,8 +39,8 @@ sourceSchemas:
         query: Query
       }
 
-      interface Node {
-        id: ID!
+      type Query {
+        node(id: ID!): Node @lookup @shareable
       }
 
       type Discussion implements Node {
@@ -54,16 +52,14 @@ sourceSchemas:
         id: ID!
       }
 
-      type Query {
-        node(id: ID!): Node @lookup @shareable
+      interface Node {
+        id: ID!
       }
     interactions:
       - request:
           accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
-            query testQuery_c0cdf5d7_5(
-              $id: ID!
-            ) {
+            query testQuery_c0cdf5d7_5($id: ID!) {
               node(id: $id) {
                 __typename
                 ... on Discussion {
@@ -97,21 +93,21 @@ sourceSchemas:
         query: Query
       }
 
-      interface Node {
-        id: ID!
+      type Query {
+        node(id: ID!): Node @lookup @shareable
       }
 
       type Product @key(fields: "id") {
         id: ID!
       }
 
-      type Query {
-        node(id: ID!): Node @lookup @shareable
-      }
-
       type Review implements Node {
         id: ID!
         product: Product
+      }
+
+      interface Node {
+        id: ID!
       }
   - name: C
     schema: |
@@ -119,8 +115,8 @@ sourceSchemas:
         query: Query
       }
 
-      interface Node {
-        id: ID!
+      type Query {
+        node(id: ID!): Node @lookup @shareable
       }
 
       type Product implements Node {
@@ -128,16 +124,14 @@ sourceSchemas:
         name: String
       }
 
-      type Query {
-        node(id: ID!): Node @lookup @shareable
+      interface Node {
+        id: ID!
       }
     interactions:
       - request:
           accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
-            query testQuery_c0cdf5d7_6(
-              $__fusion_2_id: ID!
-            ) {
+            query testQuery_c0cdf5d7_6($__fusion_2_id: ID!) {
               node(id: $__fusion_2_id) {
                 __typename
                 ... on Product {
@@ -163,9 +157,7 @@ sourceSchemas:
 operationPlan:
   operation:
     - document: |
-        query testQuery(
-          $id: ID!
-        ) {
+        query testQuery($id: ID!) {
           node(id: $id) {
             __typename @fusion__requirement
             ... on Discussion {
@@ -199,9 +191,7 @@ operationPlan:
     - id: 2
       type: Operation
       operation: |
-        query testQuery_c0cdf5d7_2(
-          $id: ID!
-        ) {
+        query testQuery_c0cdf5d7_2($id: ID!) {
           node(id: $id) {
             __typename
           }
@@ -214,9 +204,7 @@ operationPlan:
       type: Operation
       schema: B
       operation: |
-        query testQuery_c0cdf5d7_3(
-          $id: ID!
-        ) {
+        query testQuery_c0cdf5d7_3($id: ID!) {
           node(id: $id) {
             __typename
             ... on Review {
@@ -235,9 +223,7 @@ operationPlan:
       type: Operation
       schema: C
       operation: |
-        query testQuery_c0cdf5d7_4(
-          $__fusion_1_id: ID!
-        ) {
+        query testQuery_c0cdf5d7_4($__fusion_1_id: ID!) {
           node(id: $__fusion_1_id) {
             __typename
             ... on Product {
@@ -257,9 +243,7 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query testQuery_c0cdf5d7_5(
-          $id: ID!
-        ) {
+        query testQuery_c0cdf5d7_5($id: ID!) {
           node(id: $id) {
             __typename
             ... on Discussion {
@@ -278,9 +262,7 @@ operationPlan:
       type: Operation
       schema: C
       operation: |
-        query testQuery_c0cdf5d7_6(
-          $__fusion_2_id: ID!
-        ) {
+        query testQuery_c0cdf5d7_6($__fusion_2_id: ID!) {
           node(id: $__fusion_2_id) {
             __typename
             ... on Product {

@@ -4,13 +4,54 @@ namespace HotChocolate.Fusion.Text.Json;
 
 public class CompositeResultDocumentMetaDbTests : IDisposable
 {
-    private MetaDb _metaDb = MetaDb.CreateForEstimatedRows(100);
+    private MetaDb _metaDb = MetaDb.Create(CommonTestExtensions.CreateArena());
+
+    private static Cursor CreateCursor(int index) => Cursor.CreateZero().AddRows(index);
+
+    // The chunk schedule is geometric (chunk i holds 1 << (10 + Min(i, 7)) bytes), so the absolute
+    // byte position sums each preceding chunk's capacity plus the byte offset within the cursor's
+    // chunk.
+    private static int TotalBytes(Cursor cursor)
+    {
+        var total = cursor.ByteOffset;
+        for (var chunk = 0; chunk < cursor.Chunk; chunk++)
+        {
+            total += 1 << (10 + (int)Cursor.ChunkSizeFor(chunk));
+        }
+
+        return total;
+    }
+
+    // Appends null rows until the next write lands on the last free slot of its current chunk.
+    private static void FillToOneFreeSlot(ref MetaDb metaDb)
+        => FillToFreeSlots(ref metaDb, 1);
+
+    // Appends null rows until exactly the given number of free slots remain in the current chunk.
+    private static void FillToFreeSlots(ref MetaDb metaDb, int freeSlots)
+    {
+        while (metaDb.NextCursor.Row < metaDb.NextCursor.RowsPerChunk - freeSlots)
+        {
+            metaDb.AppendNull(0);
+        }
+    }
+
+    // Appends null rows until the next write lands on the start of a fresh chunk.
+    private static int FillToChunkBoundary(ref MetaDb metaDb)
+    {
+        while (metaDb.NextCursor.Row != metaDb.NextCursor.RowsPerChunk - 1)
+        {
+            metaDb.AppendNull(0);
+        }
+
+        metaDb.AppendNull(0);
+        return metaDb.NextCursor.Index;
+    }
 
     [Fact]
-    public void CreateForEstimatedRows_WithSmallEstimate_CreatesValidMetaDb()
+    public void Create_CreatesValidMetaDb()
     {
         // Arrange & Act
-        using var metaDb = MetaDb.CreateForEstimatedRows(10);
+        using var metaDb = MetaDb.Create(CommonTestExtensions.CreateArena());
 
         // Assert
         Assert.Equal(0, metaDb.NextCursor.Index);
@@ -31,7 +72,7 @@ public class CompositeResultDocumentMetaDbTests : IDisposable
 
         // Assert
         Assert.Equal(0, cursor.Index);
-        Assert.Equal(20, _metaDb.NextCursor.ToTotalBytes());
+        Assert.Equal(20, TotalBytes(_metaDb.NextCursor));
     }
 
     [Fact]
@@ -46,7 +87,7 @@ public class CompositeResultDocumentMetaDbTests : IDisposable
         Assert.Equal(0, index1.Index);
         Assert.Equal(1, index2.Index);
         Assert.Equal(2, index3.Index);
-        Assert.Equal(60, _metaDb.NextCursor.ToTotalBytes());
+        Assert.Equal(60, TotalBytes(_metaDb.NextCursor));
     }
 
     [Fact]
@@ -70,7 +111,7 @@ public class CompositeResultDocumentMetaDbTests : IDisposable
         Assert.Equal(123, row.Location);
         Assert.Equal(456, row.SizeOrLength);
         Assert.Equal(7, row.SourceDocumentId);
-        Assert.Equal(89, row.ParentRow);
+        Assert.Equal(89, row.Parent);
         Assert.Equal(12, row.OperationReferenceId);
         Assert.Equal(ElementFlags.IsNullable | ElementFlags.IsExcluded, row.Flags);
         Assert.False(row.HasComplexChildren);
@@ -145,7 +186,7 @@ public class CompositeResultDocumentMetaDbTests : IDisposable
         Assert.Equal(rowsPerChunk + 10, indices.Count);
 
         // Verify we can read from both chunks
-        var firstRow = _metaDb.Get(Cursor.FromIndex(0));
+        var firstRow = _metaDb.Get(CreateCursor(0));
         var lastRow = _metaDb.Get(indices.Last());
 
         Assert.Equal(0, firstRow.Location);
@@ -178,7 +219,7 @@ public class CompositeResultDocumentMetaDbTests : IDisposable
         Assert.Equal(maxLocation, row.Location);
         Assert.Equal(maxSizeOrLength, row.SizeOrLength);
         Assert.Equal(maxSourceDocumentId, row.SourceDocumentId);
-        Assert.Equal(maxParentRow, row.ParentRow);
+        Assert.Equal(maxParentRow, row.Parent);
         Assert.Equal(maxSelectionSetId, row.OperationReferenceId);
     }
 
@@ -250,7 +291,7 @@ public class CompositeResultDocumentMetaDbTests : IDisposable
     public void Dispose_WhenCalled_CleansUpResources()
     {
         // Arrange
-        var metaDb = MetaDb.CreateForEstimatedRows(10);
+        var metaDb = MetaDb.Create(CommonTestExtensions.CreateArena());
         metaDb.Append(ElementTokenType.String);
 
         // Act & Assert - Should not throw
@@ -261,7 +302,7 @@ public class CompositeResultDocumentMetaDbTests : IDisposable
     public void MultipleDispose_DoesNotThrow()
     {
         // Arrange
-        var metaDb = MetaDb.CreateForEstimatedRows(10);
+        var metaDb = MetaDb.Create(CommonTestExtensions.CreateArena());
 
         // Act & Assert - Should not throw
         metaDb.Dispose();
@@ -272,7 +313,7 @@ public class CompositeResultDocumentMetaDbTests : IDisposable
     public void Append_ExceedsInitialChunkCapacity_ExpandsChunkArray()
     {
         // Arrange
-        using var metaDb = MetaDb.CreateForEstimatedRows(4);
+        using var metaDb = MetaDb.Create(CommonTestExtensions.CreateArena());
 
         const int chunkSize = 128 * 1024;
         const int rowsPerChunk = chunkSize / 20;
@@ -288,14 +329,14 @@ public class CompositeResultDocumentMetaDbTests : IDisposable
         // Assert
         Assert.Equal(totalRowsToAdd, indices.Count);
 
-        // since 20 bytes do not fit perfectly into 128kb buffers we have some
-        // extra skip bytes.
-        Assert.Equal((totalRowsToAdd * 20) + 48, metaDb.NextCursor.ToTotalBytes());
+        // Every appended row advances the linear index by one, regardless of how many geometric
+        // chunks the rows spilled across.
+        Assert.Equal(totalRowsToAdd, metaDb.NextCursor.Index);
 
         // Verify we can read data from all chunks
-        var firstRow = metaDb.Get(Cursor.FromIndex(0));
-        var middleRow = metaDb.Get(Cursor.FromIndex(totalRowsToAdd / 2));
-        var lastRow = metaDb.Get(Cursor.FromIndex(totalRowsToAdd - 1));
+        var firstRow = metaDb.Get(CreateCursor(0));
+        var middleRow = metaDb.Get(CreateCursor(totalRowsToAdd / 2));
+        var lastRow = metaDb.Get(CreateCursor(totalRowsToAdd - 1));
 
         Assert.Equal(0, firstRow.Location);
         Assert.Equal(totalRowsToAdd / 2, middleRow.Location);
@@ -305,6 +346,585 @@ public class CompositeResultDocumentMetaDbTests : IDisposable
         Assert.Equal(0, firstRow.SizeOrLength);
         Assert.Equal((totalRowsToAdd / 2) % 100, middleRow.SizeOrLength);
         Assert.Equal((totalRowsToAdd - 1) % 100, lastRow.SizeOrLength);
+    }
+
+    [Fact]
+    public void Append_StoresAndReadsNumberOfRows()
+    {
+        // Arrange & Act
+        var index = _metaDb.Append(
+            ElementTokenType.StartObject,
+            sizeOrLength: 3,
+            parentRow: 10,
+            numberOfRows: 7);
+
+        // Assert
+        var row = _metaDb.Get(index);
+        Assert.Equal(ElementTokenType.StartObject, row.TokenType);
+        Assert.Equal(3, row.SizeOrLength);
+        Assert.Equal(10, row.Parent);
+        Assert.Equal(7, row.NumberOfRows);
+    }
+
+    [Fact]
+    public void Append_WithMaxNumberOfRows_StoresCorrectly()
+    {
+        // Arrange
+        const int maxNumberOfRows = 0x07FFFFFF; // 27 bits
+
+        // Act
+        var index = _metaDb.Append(
+            ElementTokenType.StartArray,
+            numberOfRows: maxNumberOfRows);
+
+        // Assert
+        var row = _metaDb.Get(index);
+        Assert.Equal(maxNumberOfRows, row.NumberOfRows);
+        Assert.Equal(ElementTokenType.StartArray, row.TokenType);
+    }
+
+    [Fact]
+    public void SetNumberOfRows_UpdatesValueWithoutAffectingOtherFields()
+    {
+        // Arrange
+        var index = _metaDb.Append(
+            ElementTokenType.StartObject,
+            sizeOrLength: 5,
+            parentRow: 100,
+            operationReferenceId: 42,
+            flags: ElementFlags.IsRoot);
+
+        // Act
+        _metaDb.SetNumberOfRows(index, 11);
+
+        // Assert — NumberOfRows updated, other fields preserved
+        var row = _metaDb.Get(index);
+        Assert.Equal(11, row.NumberOfRows);
+        Assert.Equal(ElementTokenType.StartObject, row.TokenType);
+        Assert.Equal(5, row.SizeOrLength);
+        Assert.Equal(100, row.Parent);
+        Assert.Equal(42, row.OperationReferenceId);
+        Assert.Equal(ElementFlags.IsRoot, row.Flags);
+    }
+
+    [Fact]
+    public void SetFlags_UpdatesValueWithoutAffectingOtherFields()
+    {
+        // Arrange
+        var index = _metaDb.Append(
+            ElementTokenType.PropertyName,
+            parentRow: 100,
+            operationReferenceId: 42,
+            operationReferenceType: OperationReferenceType.Selection,
+            flags: ElementFlags.None);
+
+        // Act
+        _metaDb.SetFlags(index, ElementFlags.IsNullable | ElementFlags.IsRoot);
+
+        // Assert — Flags updated, other fields preserved
+        var row = _metaDb.Get(index);
+        Assert.Equal(ElementFlags.IsNullable | ElementFlags.IsRoot, row.Flags);
+        Assert.Equal(ElementTokenType.PropertyName, row.TokenType);
+        Assert.Equal(100, row.Parent);
+        Assert.Equal(42, row.OperationReferenceId);
+        Assert.Equal(OperationReferenceType.Selection, row.OperationReferenceType);
+    }
+
+    [Fact]
+    public void SetSizeOrLength_UpdatesValueWithoutAffectingOtherFields()
+    {
+        // Arrange
+        var index = _metaDb.Append(
+            ElementTokenType.StartObject,
+            sizeOrLength: 0,
+            parentRow: 7,
+            numberOfRows: 9);
+
+        // Act
+        _metaDb.SetSizeOrLength(index, 15);
+
+        // Assert
+        var row = _metaDb.Get(index);
+        Assert.Equal(15, row.SizeOrLength);
+        Assert.Equal(ElementTokenType.StartObject, row.TokenType);
+        Assert.Equal(7, row.Parent);
+        Assert.Equal(9, row.NumberOfRows);
+    }
+
+    [Fact]
+    public void AppendNull_WritesTokenTypeNoneAndParent()
+    {
+        // Act
+        var cursor = _metaDb.AppendNull(parentRow: 42);
+
+        // Assert
+        var row = _metaDb.Get(cursor);
+        Assert.Equal(ElementTokenType.None, row.TokenType);
+        Assert.Equal(42, row.Parent);
+        Assert.Equal(0, row.Location);
+        Assert.Equal(0, row.SizeOrLength);
+        Assert.Equal(0, row.SourceDocumentId);
+        Assert.Equal(0, row.OperationReferenceId);
+        Assert.Equal(ElementFlags.None, row.Flags);
+        Assert.Equal(OperationReferenceType.None, row.OperationReferenceType);
+    }
+
+    [Fact]
+    public void AppendNull_AdvancesCursor()
+    {
+        // Act
+        var c0 = _metaDb.AppendNull(0);
+        var c1 = _metaDb.AppendNull(c0.Index);
+        var c2 = _metaDb.AppendNull(c1.Index);
+
+        // Assert
+        Assert.Equal(0, c0.Index);
+        Assert.Equal(1, c1.Index);
+        Assert.Equal(2, c2.Index);
+        Assert.Equal(0, _metaDb.Get(c0).Parent);
+        Assert.Equal(c0.Index, _metaDb.Get(c1).Parent);
+        Assert.Equal(c1.Index, _metaDb.Get(c2).Parent);
+    }
+
+    [Fact]
+    public void AppendNull_IsEquivalentToGenericAppend()
+    {
+        // Arrange — compare specialized vs generic path
+        using var reference = MetaDb.Create(CommonTestExtensions.CreateArena());
+        var refCursor = reference.Append(ElementTokenType.None, parentRow: 123);
+
+        // Act
+        var cursor = _metaDb.AppendNull(parentRow: 123);
+
+        // Assert — rows must be byte-for-byte identical
+        var refRow = reference.Get(refCursor);
+        var row = _metaDb.Get(cursor);
+
+        Assert.Equal(refRow.TokenType, row.TokenType);
+        Assert.Equal(refRow.Parent, row.Parent);
+        Assert.Equal(refRow.Location, row.Location);
+        Assert.Equal(refRow.SizeOrLength, row.SizeOrLength);
+        Assert.Equal(refRow.NumberOfRows, row.NumberOfRows);
+        Assert.Equal(refRow.SourceDocumentId, row.SourceDocumentId);
+        Assert.Equal(refRow.OperationReferenceId, row.OperationReferenceId);
+        Assert.Equal(refRow.OperationReferenceType, row.OperationReferenceType);
+        Assert.Equal(refRow.Flags, row.Flags);
+    }
+
+    [Fact]
+    public void AppendEmptyProperty_WritesAllFields()
+    {
+        // Act
+        var cursor = _metaDb.AppendEmptyProperty(
+            parentRow: 7,
+            selectionId: 99,
+            flags: ElementFlags.IsNullable | ElementFlags.IsInternal);
+
+        // Assert
+        var row = _metaDb.Get(cursor);
+        Assert.Equal(ElementTokenType.PropertyName, row.TokenType);
+        Assert.Equal(7, row.Parent);
+        Assert.Equal(99, row.OperationReferenceId);
+        Assert.Equal(OperationReferenceType.Selection, row.OperationReferenceType);
+        Assert.Equal(ElementFlags.IsNullable | ElementFlags.IsInternal, row.Flags);
+        Assert.Equal(0, row.Location);
+        Assert.Equal(0, row.SizeOrLength);
+        Assert.Equal(0, row.NumberOfRows);
+        Assert.Equal(0, row.SourceDocumentId);
+    }
+
+    [Fact]
+    public void AppendEmptyProperty_WithNoFlags()
+    {
+        // Act
+        var cursor = _metaDb.AppendEmptyProperty(
+            parentRow: 0,
+            selectionId: 1,
+            flags: ElementFlags.None);
+
+        // Assert
+        var row = _metaDb.Get(cursor);
+        Assert.Equal(ElementTokenType.PropertyName, row.TokenType);
+        Assert.Equal(0, row.Parent);
+        Assert.Equal(1, row.OperationReferenceId);
+        Assert.Equal(ElementFlags.None, row.Flags);
+    }
+
+    [Fact]
+    public void AppendEmptyProperty_IsEquivalentToGenericAppend()
+    {
+        // Arrange
+        using var reference = MetaDb.Create(CommonTestExtensions.CreateArena());
+        var refCursor = reference.Append(
+            ElementTokenType.PropertyName,
+            parentRow: 13,
+            operationReferenceId: 77,
+            operationReferenceType: OperationReferenceType.Selection,
+            flags: ElementFlags.IsExcluded);
+
+        // Act
+        var cursor = _metaDb.AppendEmptyProperty(
+            parentRow: 13,
+            selectionId: 77,
+            flags: ElementFlags.IsExcluded);
+
+        // Assert
+        var refRow = reference.Get(refCursor);
+        var row = _metaDb.Get(cursor);
+
+        Assert.Equal(refRow.TokenType, row.TokenType);
+        Assert.Equal(refRow.Parent, row.Parent);
+        Assert.Equal(refRow.OperationReferenceId, row.OperationReferenceId);
+        Assert.Equal(refRow.OperationReferenceType, row.OperationReferenceType);
+        Assert.Equal(refRow.Flags, row.Flags);
+        Assert.Equal(refRow.Location, row.Location);
+        Assert.Equal(refRow.SizeOrLength, row.SizeOrLength);
+        Assert.Equal(refRow.NumberOfRows, row.NumberOfRows);
+    }
+
+    [Fact]
+    public void AppendEmptyPropertyWithNullValue_WritesTwoLinkedRows()
+    {
+        // Act
+        var propCursor = _metaDb.AppendEmptyPropertyWithNullValue(
+            parentRow: 5,
+            selectionId: 11,
+            flags: ElementFlags.IsNullable);
+
+        // Assert — PropertyName row
+        var propRow = _metaDb.Get(propCursor);
+        Assert.Equal(ElementTokenType.PropertyName, propRow.TokenType);
+        Assert.Equal(5, propRow.Parent);
+        Assert.Equal(11, propRow.OperationReferenceId);
+        Assert.Equal(OperationReferenceType.Selection, propRow.OperationReferenceType);
+        Assert.Equal(ElementFlags.IsNullable, propRow.Flags);
+
+        // Assert — None value row with parent = PropertyName cursor
+        var valueCursor = CreateCursor(propCursor.Index + 1);
+        var valueRow = _metaDb.Get(valueCursor);
+        Assert.Equal(ElementTokenType.None, valueRow.TokenType);
+        Assert.Equal(propCursor.Value, valueRow.Parent);
+        Assert.Equal(0, valueRow.Location);
+        Assert.Equal(0, valueRow.OperationReferenceId);
+        Assert.Equal(ElementFlags.None, valueRow.Flags);
+
+        // Cursor advanced by 2
+        Assert.Equal(propCursor.Index + 2, _metaDb.NextCursor.Index);
+    }
+
+    [Fact]
+    public void AppendEmptyPropertyWithNullValue_IsEquivalentToTwoGenericAppends()
+    {
+        // Arrange
+        using var reference = MetaDb.Create(CommonTestExtensions.CreateArena());
+        var refProp = reference.Append(
+            ElementTokenType.PropertyName,
+            parentRow: 21,
+            operationReferenceId: 3,
+            operationReferenceType: OperationReferenceType.Selection,
+            flags: ElementFlags.IsInternal);
+        var refNull = reference.Append(
+            ElementTokenType.None,
+            parentRow: refProp.Value);
+
+        // Act
+        var propCursor = _metaDb.AppendEmptyPropertyWithNullValue(
+            parentRow: 21,
+            selectionId: 3,
+            flags: ElementFlags.IsInternal);
+        var valueCursor = CreateCursor(propCursor.Index + 1);
+
+        // Assert property rows match byte-for-byte
+        var refPropRow = reference.Get(refProp);
+        var propRow = _metaDb.Get(propCursor);
+        Assert.Equal(refPropRow.TokenType, propRow.TokenType);
+        Assert.Equal(refPropRow.Parent, propRow.Parent);
+        Assert.Equal(refPropRow.OperationReferenceId, propRow.OperationReferenceId);
+        Assert.Equal(refPropRow.OperationReferenceType, propRow.OperationReferenceType);
+        Assert.Equal(refPropRow.Flags, propRow.Flags);
+
+        // Assert value rows match byte-for-byte
+        var refNullRow = reference.Get(refNull);
+        var valueRow = _metaDb.Get(valueCursor);
+        Assert.Equal(refNullRow.TokenType, valueRow.TokenType);
+        Assert.Equal(refNullRow.Parent, valueRow.Parent);
+    }
+
+    [Fact]
+    public void AppendEmptyPropertyWithNullValue_FallsBackAcrossChunkBoundary()
+    {
+        // Arrange — fill the current chunk so only one slot remains, forcing the slow path.
+        var metaDb = MetaDb.Create(CommonTestExtensions.CreateArena());
+
+        try
+        {
+            FillToOneFreeSlot(ref metaDb);
+
+            // Act — pair cannot fit, so the slow path runs (single-row Append + AppendNull).
+            var propCursor = metaDb.AppendEmptyPropertyWithNullValue(
+                parentRow: 0,
+                selectionId: 7,
+                flags: ElementFlags.None);
+            var valueCursor = CreateCursor(propCursor.Index + 1);
+
+            // Assert — correctness preserved across boundary
+            var propRow = metaDb.Get(propCursor);
+            var valueRow = metaDb.Get(valueCursor);
+            Assert.Equal(ElementTokenType.PropertyName, propRow.TokenType);
+            Assert.Equal(7, propRow.OperationReferenceId);
+            Assert.Equal(ElementTokenType.None, valueRow.TokenType);
+            Assert.Equal(propCursor.Value, valueRow.Parent);
+        }
+        finally
+        {
+            metaDb.Dispose();
+        }
+    }
+
+    [Fact]
+    public void AppendNull_FollowsChunkBoundary()
+    {
+        // Arrange — fill the first chunk and verify AppendNull keeps advancing into the next chunk.
+        var metaDb = MetaDb.Create(CommonTestExtensions.CreateArena());
+
+        try
+        {
+            var boundaryIndex = FillToChunkBoundary(ref metaDb);
+            var totalRows = boundaryIndex + 5;
+
+            // Continue appending past the chunk boundary, stamping the row index as the parent.
+            while (metaDb.NextCursor.Index < totalRows)
+            {
+                metaDb.AppendNull(metaDb.NextCursor.Index);
+            }
+
+            // Assert — the rows written past the boundary are readable with the expected parent.
+            for (var i = boundaryIndex; i < totalRows; i++)
+            {
+                var row = metaDb.Get(CreateCursor(i));
+                Assert.Equal(ElementTokenType.None, row.TokenType);
+                Assert.Equal(i, row.Parent);
+            }
+        }
+        finally
+        {
+            metaDb.Dispose();
+        }
+    }
+
+    [Fact]
+    public void AppendStartObject_WritesAllFields()
+    {
+        // Act
+        var cursor = _metaDb.AppendStartObject(
+            parentRow: 5,
+            selectionSetId: 42,
+            propertyCount: 3,
+            flags: ElementFlags.IsRoot);
+
+        // Assert
+        var row = _metaDb.Get(cursor);
+        Assert.Equal(ElementTokenType.StartObject, row.TokenType);
+        Assert.Equal(5, row.Parent);
+        Assert.Equal(42, row.OperationReferenceId);
+        Assert.Equal(OperationReferenceType.SelectionSet, row.OperationReferenceType);
+        Assert.Equal(ElementFlags.IsRoot, row.Flags);
+        Assert.Equal(3, row.SizeOrLength);
+        Assert.Equal(7, row.NumberOfRows);
+        Assert.Equal(0, row.SourceDocumentId);
+    }
+
+    [Fact]
+    public void AppendStartObject_IsEquivalentToGenericAppend()
+    {
+        // Arrange
+        using var reference = MetaDb.Create(CommonTestExtensions.CreateArena());
+        var refCursor = reference.Append(
+            ElementTokenType.StartObject,
+            sizeOrLength: 4,
+            parentRow: 11,
+            operationReferenceId: 7,
+            operationReferenceType: OperationReferenceType.SelectionSet,
+            numberOfRows: 9,
+            flags: ElementFlags.IsInternal);
+
+        // Act
+        var cursor = _metaDb.AppendStartObject(
+            parentRow: 11,
+            selectionSetId: 7,
+            propertyCount: 4,
+            flags: ElementFlags.IsInternal);
+
+        // Assert
+        var refRow = reference.Get(refCursor);
+        var row = _metaDb.Get(cursor);
+        Assert.Equal(refRow.TokenType, row.TokenType);
+        Assert.Equal(refRow.Parent, row.Parent);
+        Assert.Equal(refRow.OperationReferenceId, row.OperationReferenceId);
+        Assert.Equal(refRow.OperationReferenceType, row.OperationReferenceType);
+        Assert.Equal(refRow.Flags, row.Flags);
+        Assert.Equal(refRow.SizeOrLength, row.SizeOrLength);
+        Assert.Equal(refRow.NumberOfRows, row.NumberOfRows);
+    }
+
+    [Fact]
+    public void AppendStartArray_WritesAllFields()
+    {
+        // Act
+        var cursor = _metaDb.AppendStartArray(
+            parentRow: 3,
+            length: 10,
+            flags: ElementFlags.IsNullable);
+
+        // Assert
+        var row = _metaDb.Get(cursor);
+        Assert.Equal(ElementTokenType.StartArray, row.TokenType);
+        Assert.Equal(3, row.Parent);
+        Assert.Equal(10, row.SizeOrLength);
+        Assert.Equal(11, row.NumberOfRows);
+        Assert.Equal(ElementFlags.IsNullable, row.Flags);
+        Assert.Equal(0, row.OperationReferenceId);
+        Assert.Equal(OperationReferenceType.None, row.OperationReferenceType);
+    }
+
+    [Fact]
+    public void AppendStartArray_IsEquivalentToGenericAppend()
+    {
+        // Arrange
+        using var reference = MetaDb.Create(CommonTestExtensions.CreateArena());
+        var refCursor = reference.Append(
+            ElementTokenType.StartArray,
+            sizeOrLength: 7,
+            parentRow: 2,
+            numberOfRows: 8,
+            flags: ElementFlags.IsRoot);
+
+        // Act
+        var cursor = _metaDb.AppendStartArray(
+            parentRow: 2,
+            length: 7,
+            flags: ElementFlags.IsRoot);
+
+        // Assert
+        var refRow = reference.Get(refCursor);
+        var row = _metaDb.Get(cursor);
+        Assert.Equal(refRow.TokenType, row.TokenType);
+        Assert.Equal(refRow.Parent, row.Parent);
+        Assert.Equal(refRow.SizeOrLength, row.SizeOrLength);
+        Assert.Equal(refRow.NumberOfRows, row.NumberOfRows);
+        Assert.Equal(refRow.Flags, row.Flags);
+    }
+
+    [Fact]
+    public void AppendEndObject_WritesOnlyTokenType()
+    {
+        // Act
+        var cursor = _metaDb.AppendEndObject();
+
+        // Assert
+        var row = _metaDb.Get(cursor);
+        Assert.Equal(ElementTokenType.EndObject, row.TokenType);
+        Assert.Equal(0, row.Parent);
+        Assert.Equal(0, row.SizeOrLength);
+        Assert.Equal(0, row.NumberOfRows);
+        Assert.Equal(0, row.Location);
+        Assert.Equal(0, row.OperationReferenceId);
+        Assert.Equal(ElementFlags.None, row.Flags);
+        Assert.Equal(0, row.SourceDocumentId);
+    }
+
+    [Fact]
+    public void AppendEndArray_WritesOnlyTokenType()
+    {
+        // Act
+        var cursor = _metaDb.AppendEndArray();
+
+        // Assert
+        var row = _metaDb.Get(cursor);
+        Assert.Equal(ElementTokenType.EndArray, row.TokenType);
+        Assert.Equal(0, row.Parent);
+        Assert.Equal(0, row.SizeOrLength);
+        Assert.Equal(0, row.NumberOfRows);
+    }
+
+    [Fact]
+    public void AppendNullRange_WithZeroCount_IsNoOp()
+    {
+        // Act
+        _metaDb.AppendNullRange(parentRow: 5, count: 0);
+
+        // Assert
+        Assert.Equal(0, _metaDb.NextCursor.Index);
+    }
+
+    [Fact]
+    public void AppendNullRange_WritesNLinkedRows()
+    {
+        // Act
+        _metaDb.AppendNullRange(parentRow: 9, count: 5);
+
+        // Assert
+        Assert.Equal(5, _metaDb.NextCursor.Index);
+        for (var i = 0; i < 5; i++)
+        {
+            var row = _metaDb.Get(CreateCursor(i));
+            Assert.Equal(ElementTokenType.None, row.TokenType);
+            Assert.Equal(9, row.Parent);
+            Assert.Equal(0, row.Location);
+            Assert.Equal(0, row.SizeOrLength);
+            Assert.Equal(ElementFlags.None, row.Flags);
+        }
+    }
+
+    [Fact]
+    public void AppendNullRange_IsEquivalentToLoopOfAppendNull()
+    {
+        // Arrange
+        using var reference = MetaDb.Create(CommonTestExtensions.CreateArena());
+        for (var i = 0; i < 7; i++)
+        {
+            reference.AppendNull(13);
+        }
+
+        // Act
+        _metaDb.AppendNullRange(parentRow: 13, count: 7);
+
+        // Assert — rows match index-for-index
+        for (var i = 0; i < 7; i++)
+        {
+            var refRow = reference.Get(CreateCursor(i));
+            var row = _metaDb.Get(CreateCursor(i));
+            Assert.Equal(refRow.TokenType, row.TokenType);
+            Assert.Equal(refRow.Parent, row.Parent);
+        }
+    }
+
+    [Fact]
+    public void AppendNullRange_FallsBackAcrossChunkBoundary()
+    {
+        // Arrange — leave only 3 free slots in the current chunk so the range crosses the boundary.
+        var metaDb = MetaDb.Create(CommonTestExtensions.CreateArena());
+
+        try
+        {
+            FillToFreeSlots(ref metaDb, 3);
+            var firstNullRangeIndex = metaDb.NextCursor.Index;
+
+            // Act — request 10 rows; only 3 fit in the current chunk, so slow path runs.
+            metaDb.AppendNullRange(parentRow: 42, count: 10);
+
+            // Assert — all 10 rows written correctly across the boundary.
+            for (var i = 0; i < 10; i++)
+            {
+                var row = metaDb.Get(CreateCursor(firstNullRangeIndex + i));
+                Assert.Equal(ElementTokenType.None, row.TokenType);
+                Assert.Equal(42, row.Parent);
+            }
+        }
+        finally
+        {
+            metaDb.Dispose();
+        }
     }
 
     public void Dispose() => _metaDb.Dispose();

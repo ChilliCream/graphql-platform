@@ -5,7 +5,6 @@
 
 using Mocha;
 using Mocha.Transport.InMemory;
-using Mocha.Hosting;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -55,11 +54,6 @@ app.MapGet("/quotes", async (IMessageBus bus) =>
 
     return Results.Ok(new { Status = "Quote published with 5-minute expiry" });
 });
-
-if (app.Environment.IsDevelopment())
-{
-    app.MapMessageBusDeveloperTopology();
-}
 
 app.Run();
 

@@ -417,6 +417,11 @@ public static class CompilationExtensions
             return ResolverParameterKind.ConnectionFlags;
         }
 
+        if (parameter.IsIsSelected())
+        {
+            return ResolverParameterKind.IsSelected;
+        }
+
         if (parameter.IsSelection())
         {
             return ResolverParameterKind.Selection;

@@ -44,10 +44,10 @@ public sealed class FileUploadTests : IDisposable
         };
 
         // act
-        using var result = await client.SendAsync(request);
+        using var result = await client.SendAsync(request, TestContext.Current.CancellationToken);
 
         // assert
-        var body = await result.ReadAsResultAsync();
+        var body = await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
         body.MatchMarkdownSnapshot();
     }
 
@@ -85,10 +85,10 @@ public sealed class FileUploadTests : IDisposable
         };
 
         // act
-        using var result = await client.SendAsync(request);
+        using var result = await client.SendAsync(request, TestContext.Current.CancellationToken);
 
         // assert
-        var body = await result.ReadAsResultAsync();
+        var body = await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
         body.MatchMarkdownSnapshot();
     }
 
@@ -123,10 +123,10 @@ public sealed class FileUploadTests : IDisposable
         };
 
         // act
-        using var result = await client.SendAsync(request);
+        using var result = await client.SendAsync(request, TestContext.Current.CancellationToken);
 
         // assert
-        var body = await result.ReadAsResultAsync();
+        var body = await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
         body.MatchMarkdownSnapshot();
     }
 
@@ -166,10 +166,10 @@ public sealed class FileUploadTests : IDisposable
         };
 
         // act
-        using var result = await client.SendAsync(request);
+        using var result = await client.SendAsync(request, TestContext.Current.CancellationToken);
 
         // assert
-        var body = await result.ReadAsResultAsync();
+        var body = await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
         body.MatchMarkdownSnapshot();
     }
 
@@ -212,10 +212,10 @@ public sealed class FileUploadTests : IDisposable
         };
 
         // act
-        using var result = await client.SendAsync(request);
+        using var result = await client.SendAsync(request, TestContext.Current.CancellationToken);
 
         // assert
-        var body = await result.ReadAsResultAsync();
+        var body = await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
         body.MatchMarkdownSnapshot();
     }
 
@@ -255,10 +255,10 @@ public sealed class FileUploadTests : IDisposable
         };
 
         // act
-        using var result = await client.SendAsync(request);
+        using var result = await client.SendAsync(request, TestContext.Current.CancellationToken);
 
         // assert
-        var body = await result.ReadAsResultAsync();
+        var body = await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
         body.MatchMarkdownSnapshot();
     }
 

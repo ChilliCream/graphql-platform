@@ -76,7 +76,7 @@ public sealed class DefaultGraphQLHttpClient : GraphQLHttpClient
     /// <param name="cancellationToken">
     /// A cancellation token that can be used to cancel the HTTP request.
     /// </param>
-    /// <returns></returns>
+    /// <returns>The GraphQL HTTP response.</returns>
     /// <exception cref="ArgumentNullException">
     /// <paramref name="request"/> is <see langword="null"/>.
     /// </exception>
@@ -291,7 +291,7 @@ public sealed class DefaultGraphQLHttpClient : GraphQLHttpClient
             var fileContent = new StreamContent(file.OpenReadStream());
             if (!string.IsNullOrEmpty(file.ContentType))
             {
-                fileContent.Headers.ContentType = new MediaTypeHeaderValue(file.ContentType);
+                fileContent.Headers.TryAddWithoutValidation("Content-Type", file.ContentType);
             }
 
             form.Add(fileContent, i.ToString(), file.Name);
@@ -394,7 +394,7 @@ public sealed class DefaultGraphQLHttpClient : GraphQLHttpClient
             var fileContent = new StreamContent(fileInfo.File.OpenRead());
             if (!string.IsNullOrEmpty(fileInfo.File.ContentType))
             {
-                fileContent.Headers.ContentType = new MediaTypeHeaderValue(fileInfo.File.ContentType);
+                fileContent.Headers.TryAddWithoutValidation("Content-Type", fileInfo.File.ContentType);
             }
 
             form.Add(fileContent, fileInfo.Name, fileInfo.File.FileName);
@@ -440,21 +440,21 @@ public sealed class DefaultGraphQLHttpClient : GraphQLHttpClient
         {
             AppendAmpersand(sb, ref appendAmpersand);
             sb.Append("id=");
-            sb.Append(Uri.EscapeDataString(or.Id!));
+            sb.Append(Uri.EscapeDataString(or.Id));
         }
 
         if (!string.IsNullOrWhiteSpace(or.Query))
         {
             AppendAmpersand(sb, ref appendAmpersand);
             sb.Append("query=");
-            sb.Append(Uri.EscapeDataString(or.Query!));
+            sb.Append(Uri.EscapeDataString(or.Query));
         }
 
         if (!string.IsNullOrWhiteSpace(or.OperationName))
         {
             AppendAmpersand(sb, ref appendAmpersand);
             sb.Append("operationName=");
-            sb.Append(Uri.EscapeDataString(or.OperationName!));
+            sb.Append(Uri.EscapeDataString(or.OperationName));
         }
 
         if (or.OnError is { } errorHandlingMode)

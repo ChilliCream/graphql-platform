@@ -16,9 +16,32 @@ public sealed class FusionDirectiveDefinition : IDirectiveDefinition
     /// <summary>
     /// Represents a GraphQL directive definition.
     /// </summary>
+    [Obsolete("Use the constructor overload that accepts isDeprecated and deprecationReason.")]
     public FusionDirectiveDefinition(
         string name,
         string? description,
+        bool isRepeatable,
+        FusionInputFieldDefinitionCollection arguments,
+        DirectiveLocation locations)
+        : this(
+            name,
+            description,
+            isDeprecated: false,
+            deprecationReason: null,
+            isRepeatable,
+            arguments,
+            locations)
+    {
+    }
+
+    /// <summary>
+    /// Represents a GraphQL directive definition.
+    /// </summary>
+    public FusionDirectiveDefinition(
+        string name,
+        string? description,
+        bool isDeprecated,
+        string? deprecationReason,
         bool isRepeatable,
         FusionInputFieldDefinitionCollection arguments,
         DirectiveLocation locations)
@@ -35,6 +58,8 @@ public sealed class FusionDirectiveDefinition : IDirectiveDefinition
 
         Name = name;
         Description = description;
+        IsDeprecated = isDeprecated;
+        DeprecationReason = deprecationReason;
         IsRepeatable = isRepeatable;
         Arguments = arguments;
         Locations = locations;
@@ -60,9 +85,26 @@ public sealed class FusionDirectiveDefinition : IDirectiveDefinition
     public SchemaCoordinate Coordinate => new(Name, ofDirective: true);
 
     /// <summary>
+    /// Defines if this directive is deprecated.
+    /// </summary>
+    public bool IsDeprecated { get; }
+
+    /// <summary>
+    /// Gets the reason why this directive is deprecated.
+    /// </summary>
+    public string? DeprecationReason { get; }
+
+    /// <summary>
     /// Defines if this directive is repeatable and can be applied multiple times.
     /// </summary>
     public bool IsRepeatable { get; }
+
+    /// <summary>
+    /// Defines if this directive is publicly visible through introspection
+    /// and external SDL output. Internal directives are part of the type system
+    /// but hidden from external observers.
+    /// </summary>
+    public bool IsPublic { get; init; } = true;
 
     /// <summary>
     /// Gets the arguments that are defined on this directive.

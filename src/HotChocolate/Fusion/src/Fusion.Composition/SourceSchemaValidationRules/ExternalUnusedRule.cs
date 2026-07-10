@@ -1,3 +1,4 @@
+using HotChocolate.Fusion.ApolloFederation;
 using HotChocolate.Fusion.Events;
 using HotChocolate.Fusion.Events.Contracts;
 using HotChocolate.Fusion.Extensions;
@@ -12,8 +13,10 @@ using static HotChocolate.Language.Utf8GraphQLParser.Syntax;
 namespace HotChocolate.Fusion.SourceSchemaValidationRules;
 
 /// <summary>
-/// This rule ensures that every field marked as <c>@external</c> in a source schema is actually
-/// used by that source schema in a <c>@provides</c> directive.
+/// This rule ensures that every field marked as <c>@external</c> in a source schema is
+/// actually used by that source schema. A field counts as used when it is referenced by a
+/// <c>@provides</c> directive or by a <c>@require</c> field-selection map. An <c>@external</c>
+/// field referenced by neither is reported as <c>EXTERNAL_UNUSED</c>.
 /// </summary>
 /// <seealso href="https://graphql.github.io/composite-schemas-spec/draft/#sec-External-Unused">
 /// Specification
@@ -33,7 +36,7 @@ internal sealed class ExternalUnusedRule : IEventHandler<OutputFieldEvent>
                     .Where(f => f.HasProvidesDirective);
 
             var validator = new FieldInSelectionSetValidator(schema);
-            var isProvided = false;
+            var isUsed = false;
 
             foreach (var providingField in providingFields)
             {
@@ -47,12 +50,22 @@ internal sealed class ExternalUnusedRule : IEventHandler<OutputFieldEvent>
 
                 if (validator.Validate(selectionSet, providingFieldType, field, type))
                 {
-                    isProvided = true;
+                    isUsed = true;
                     break;
                 }
             }
 
-            if (!isProvided)
+            // An @external field is also considered used when it is referenced by a
+            // @require field-selection map on the same source schema. This shares the
+            // exact collector used to preserve those externals during preprocessing.
+            if (!isUsed
+                && RemoveExternalFields.CollectRequireReferences(schema)
+                    .Contains((type.Name, field.Name)))
+            {
+                isUsed = true;
+            }
+
+            if (!isUsed)
             {
                 context.Log.Write(ExternalUnused(field, schema));
             }

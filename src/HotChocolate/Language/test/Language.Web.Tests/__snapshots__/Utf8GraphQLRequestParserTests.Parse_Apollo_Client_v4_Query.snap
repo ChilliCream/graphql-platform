@@ -80,6 +80,7 @@
     "ErrorHandlingMode": null,
     "Variables": null,
     "Extensions": null,
+    "HasDocumentBody": true,
     "VariablesMemoryOwner": null,
     "ExtensionsMemoryOwner": null
   }

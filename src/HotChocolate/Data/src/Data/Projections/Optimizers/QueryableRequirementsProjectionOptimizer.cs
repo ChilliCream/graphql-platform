@@ -135,7 +135,7 @@ public sealed class QueryableRequirementsProjectionOptimizer : IProjectionOptimi
     {
         if (requirements.Count == 0)
         {
-            return null;
+            return CreateWholeObjectSelectionSet(namedType);
         }
 
         var mergedNode = new TypeNode(requirements[0].Type);
@@ -168,6 +168,29 @@ public sealed class QueryableRequirementsProjectionOptimizer : IProjectionOptimi
         }
 
         return selections.Count == 0 ? null : new SelectionSetNode(selections);
+    }
+
+    private static SelectionSetNode? CreateWholeObjectSelectionSet(ITypeDefinition namedType)
+    {
+        // A composite requirement without an explicit sub-selection requires the whole object.
+        // We emit a __typename-only selection set so the operation compiles, and the queryable
+        // projection then binds the entire object reference instead of reconstructing its
+        // members (see QueryableProjectionFieldHandler), matching SelectionExpressionBuilder.
+        if (namedType.IsLeafType())
+        {
+            return null;
+        }
+
+        return new SelectionSetNode(
+        [
+            new FieldNode(
+                null,
+                new NameNode(IntrospectionFieldNames.TypeName),
+                null,
+                [],
+                [],
+                null)
+        ]);
     }
 
     private static bool TryGetField(
@@ -258,5 +281,5 @@ public sealed class QueryableRequirementsProjectionOptimizer : IProjectionOptimi
         return char.ToLowerInvariant(value[0]) + value[1..];
     }
 
-    public static QueryableRequirementsProjectionOptimizer Create(ProjectionProviderContext context) => new();
+    public static QueryableRequirementsProjectionOptimizer Create(ProjectionProviderContext _) => new();
 }

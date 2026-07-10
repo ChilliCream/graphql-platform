@@ -1,8 +1,9 @@
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Diagnostics;
 using HotChocolate.Fusion.Execution.Nodes;
+using HotChocolate.Fusion.Execution.Rewriters;
 using HotChocolate.Fusion.Planning;
-using HotChocolate.Fusion.Rewriters;
+using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -16,7 +17,7 @@ internal sealed class OperationPlanMiddleware
     private readonly IFusionExecutionDiagnosticEvents _diagnosticsEvents;
 
     private OperationPlanMiddleware(
-        ISchemaDefinition schema,
+        FusionSchemaDefinition schema,
         OperationPlanner planner,
         IEnumerable<IOperationPlannerInterceptor>? interceptors,
         IFusionExecutionDiagnosticEvents diagnosticsEvents)
@@ -113,7 +114,11 @@ internal sealed class OperationPlanMiddleware
                 var planner = fc.SchemaServices.GetRequiredService<OperationPlanner>();
                 var interceptors = fc.SchemaServices.GetService<IEnumerable<IOperationPlannerInterceptor>>();
                 var diagnosticEvents = fc.SchemaServices.GetRequiredService<IFusionExecutionDiagnosticEvents>();
-                var middleware = new OperationPlanMiddleware(fc.Schema, planner, interceptors, diagnosticEvents);
+                var middleware = new OperationPlanMiddleware(
+                    (FusionSchemaDefinition)fc.Schema,
+                    planner,
+                    interceptors,
+                    diagnosticEvents);
                 return requestContext => middleware.InvokeAsync(requestContext, next);
             },
             WellKnownRequestMiddleware.OperationPlanMiddleware);

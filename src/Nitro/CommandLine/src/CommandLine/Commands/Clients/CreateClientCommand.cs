@@ -1,7 +1,6 @@
 using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.Client.Apis;
 using ChilliCream.Nitro.Client.Clients;
-using ChilliCream.Nitro.CommandLine;
 using ChilliCream.Nitro.CommandLine.Commands.Clients.Components;
 using ChilliCream.Nitro.CommandLine.Commands.Clients.Options;
 using ChilliCream.Nitro.CommandLine.Helpers;
@@ -46,7 +45,7 @@ internal sealed class CreateClientCommand : Command
         parseResult.AssertHasAuthentication(sessionService);
 
         var apiId = await console.GetOrPromptForApiIdAsync(
-            "For which API do you want to create a client?",
+            Prompts.SelectApiForCreateClient,
             parseResult,
             apisClient,
             sessionService,
@@ -63,7 +62,7 @@ internal sealed class CreateClientCommand : Command
 
             if (data.Errors?.Count > 0)
             {
-                activity.Fail();
+                await activity.FailAllAsync();
 
                 foreach (var error in data.Errors)
                 {
@@ -71,6 +70,7 @@ internal sealed class CreateClientCommand : Command
                     {
                         ICreateClientCommandMutation_CreateClient_Errors_ApiNotFoundError err => err.Message,
                         ICreateClientCommandMutation_CreateClient_Errors_UnauthorizedOperation err => err.Message,
+                        ICreateClientCommandMutation_CreateClient_Errors_DuplicateNameError => Messages.DuplicateName(name, "Client"),
                         IError err => Messages.UnexpectedMutationError(err),
                         _ => Messages.UnexpectedMutationError()
                     };

@@ -1,5 +1,4 @@
 using ChilliCream.Nitro.Client;
-using ChilliCream.Nitro.Client.Schemas;
 using Moq;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Schemas;
@@ -30,8 +29,8 @@ public sealed class PublishSchemaCommandTests(NitroCommandFixture fixture) : Sch
               --stage <stage> (REQUIRED)    The name of the stage [env: NITRO_STAGE]
               --force                       Skip confirmation prompts for deletes and overwrites
               --wait-for-approval           Wait for the deployment to be approved before completing [env: NITRO_WAIT_FOR_APPROVAL]
-              --cloud-url <cloud-url>       The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL] [default: api.chillicream.com]
-              --api-key <api-key>           The API key used for authentication [env: NITRO_API_KEY]
+              --cloud-url <cloud-url>       The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL]
+              --api-key <api-key>           The API key or PAT used for authentication [env: NITRO_API_KEY]
               --output <json>               The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
               -?, -h, --help                Show help and usage information
 
@@ -97,7 +96,7 @@ public sealed class PublishSchemaCommandTests(NitroCommandFixture fixture) : Sch
         // assert
         result.AssertError(
             """
-            This command requires an authenticated user. Either specify '--api-key' or run 'nitro login'.
+            This command requires an authenticated user. Either specify '--api-key' or run `nitro login`.
             """);
     }
 
@@ -125,9 +124,7 @@ public sealed class PublishSchemaCommandTests(NitroCommandFixture fixture) : Sch
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing new schema version 'v1' to stage 'dev' of API 'api-1'
-            ├── Starting publish request
-            │   └── ✕ Failed to start publish request.
+            Publishing new schema version 'v1' of API 'api-1' to stage 'dev'
             └── ✕ Failed to publish a new schema version.
             """);
         Assert.Equal(1, result.ExitCode);
@@ -157,9 +154,7 @@ public sealed class PublishSchemaCommandTests(NitroCommandFixture fixture) : Sch
         result.StdErr.MatchInlineSnapshot(expectedErrorMessage);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing new schema version 'v1' to stage 'dev' of API 'api-1'
-            ├── Starting publish request
-            │   └── ✕ Failed to start publish request.
+            Publishing new schema version 'v1' of API 'api-1' to stage 'dev'
             └── ✕ Failed to publish a new schema version.
             """);
         Assert.Equal(1, result.ExitCode);
@@ -196,9 +191,7 @@ public sealed class PublishSchemaCommandTests(NitroCommandFixture fixture) : Sch
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing new schema version 'v1' to stage 'dev' of API 'api-1'
-            ├── Starting publish request
-            │   └── ✕ Failed to start publish request.
+            Publishing new schema version 'v1' of API 'api-1' to stage 'dev'
             └── ✕ Failed to publish a new schema version.
             """);
         result.StdErr.MatchInlineSnapshot(
@@ -230,11 +223,8 @@ public sealed class PublishSchemaCommandTests(NitroCommandFixture fixture) : Sch
         // assert
         result.AssertSuccess(
             """
-            Publishing new schema version 'v1' to stage 'dev' of API 'api-1'
-            ├── Starting publish request
-            │   └── ✓ Publish request created (ID: request-id).
-            ├── Processing
-            │   └── ✓ Published successfully.
+            Publishing new schema version 'v1' of API 'api-1' to stage 'dev'
+            ├── Publication request created. (ID: request-id)
             └── ✓ Published new schema version 'v1' to stage 'dev'.
             """);
     }
@@ -262,11 +252,8 @@ public sealed class PublishSchemaCommandTests(NitroCommandFixture fixture) : Sch
         // assert
         result.AssertSuccess(
             """
-            Publishing new schema version 'v1' to stage 'dev' of API 'api-1'
-            ├── Starting publish request
-            │   └── ✓ Publish request created (ID: request-id).
-            ├── Processing
-            │   └── ✓ Published successfully.
+            Publishing new schema version 'v1' of API 'api-1' to stage 'dev'
+            ├── Publication request created. (ID: request-id)
             └── ✓ Published new schema version 'v1' to stage 'dev'.
             """);
     }
@@ -293,17 +280,14 @@ public sealed class PublishSchemaCommandTests(NitroCommandFixture fixture) : Sch
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing new schema version 'v1' to stage 'dev' of API 'api-1'
-            ├── Starting publish request
-            │   └── ✓ Publish request created (ID: request-id).
-            ├── Processing
-            │   └── ✕ Processing failed.
-            │       └── Something went wrong during publish.
-            └── ✕ Failed to publish a new schema version.
+            Publishing new schema version 'v1' of API 'api-1' to stage 'dev'
+            ├── Publication request created. (ID: request-id)
+            └── ✕ Schema version was rejected.
+                └── Something went wrong during publish.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            Schema publish failed.
+            Schema version was rejected.
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -331,12 +315,9 @@ public sealed class PublishSchemaCommandTests(NitroCommandFixture fixture) : Sch
         // assert
         result.AssertSuccess(
             """
-            Publishing new schema version 'v1' to stage 'dev' of API 'api-1'
+            Publishing new schema version 'v1' of API 'api-1' to stage 'dev'
             ├── ! Force push is enabled.
-            ├── Starting publish request
-            │   └── ✓ Publish request created (ID: request-id).
-            ├── Processing
-            │   └── ✓ Published successfully.
+            ├── Publication request created. (ID: request-id)
             └── ✓ Published new schema version 'v1' to stage 'dev'.
             """);
     }
@@ -366,39 +347,36 @@ public sealed class PublishSchemaCommandTests(NitroCommandFixture fixture) : Sch
         // assert
         result.AssertSuccess(
             """
-            Publishing new schema version 'v1' to stage 'dev' of API 'api-1'
-            ├── Starting publish request
-            │   └── ✓ Publish request created (ID: request-id).
-            ├── Processing
-            │   ├── ! Validation failed.
-            │   │   ├── Invalid GraphQL schema
-            │   │   │   └── There is no object type implementing interface `InterfaceWithoutImplementation`. SCHEMA_INTERFACE_NO_IMPL
-            │   │   ├── GraphQL schema changes
-            │   │   │   ├── ✕ Directive foo was modified
-            │   │   │   │   ├── ✓ Directive location FieldDefinition added
-            │   │   │   │   └── ✕ Directive location Field removed
-            │   │   │   ├── ✕ Object type Foo was modified
-            │   │   │   │   ├── ✓ Field Foo.bar of type String! was added
-            │   │   │   │   └── ✕ Field Foo.baz of type Int! was removed
-            │   │   │   ├── ! Enum Status was modified
-            │   │   │   │   ├── ! Enum value Status.ACTIVE was added
-            │   │   │   │   └── ✕ Enum value Status.DELETED was removed
-            │   │   │   ├── ✓ Type system member NewType was added.
-            │   │   │   └── ✕ Type system member OldType was removed.
-            │   │   ├── Client 'TestClient' (ID: client-1)
-            │   │   │   └── Operation '6D12E4A815C50C504695E548EAF680BC8F337AC87E763E5689C685522A01BC59' (Deployed tags: 1.0.0)
-            │   │   │       └── foo (10:10)
-            │   │   ├── OpenAPI collection 'petstore' (ID: collection-1)
-            │   │   │   └── Endpoint 'GET /fail'
-            │   │   │       └── The field `person` does not exist on the type `Query`. (1:14)
-            │   │   ├── MCP Feature Collection 'mcp-collection' (ID: mcp-1)
-            │   │   │   └── Tool 'Fail'
-            │   │   │       └── The field `person` does not exist on the type `Query`. (1:14)
-            │   │   ├── There was a syntax error in your schema document.
-            │   │   └── Operations are not allowed in a schema document.
-            │   ├── ⏳ Waiting for approval. Approve in Nitro to continue.
-            │   ├── Your request has been approved.
-            │   └── ✓ Published successfully.
+            Publishing new schema version 'v1' of API 'api-1' to stage 'dev'
+            ├── Publication request created. (ID: request-id)
+            ├── ! Failed validation.
+            │   ├── Invalid GraphQL schema
+            │   │   └── There is no object type implementing interface `InterfaceWithoutImplementation`. (SCHEMA_INTERFACE_NO_IMPL)
+            │   ├── GraphQL schema changes
+            │   │   ├── ✕ Directive foo was modified
+            │   │   │   ├── ✓ Directive location FieldDefinition added
+            │   │   │   └── ✕ Directive location Field removed
+            │   │   ├── ✕ Object type Foo was modified
+            │   │   │   ├── ✓ Field Foo.bar of type String! was added
+            │   │   │   └── ✕ Field Foo.baz of type Int! was removed
+            │   │   ├── ! Enum Status was modified
+            │   │   │   ├── ! Enum value Status.ACTIVE was added
+            │   │   │   └── ✕ Enum value Status.DELETED was removed
+            │   │   ├── ✓ Type system member NewType was added.
+            │   │   └── ✕ Type system member OldType was removed.
+            │   ├── Client 'TestClient' (ID: client-1)
+            │   │   └── Operation '6D12E4A815C50C504695E548EAF680BC8F337AC87E763E5689C685522A01BC59' (Deployed tags: 1.0.0)
+            │   │       └── foo (10:10)
+            │   ├── OpenAPI collection 'petstore' (ID: collection-1)
+            │   │   └── Endpoint 'GET /fail'
+            │   │       └── The field `person` does not exist on the type `Query`. (1:14)
+            │   ├── MCP Feature Collection 'mcp-collection' (ID: mcp-1)
+            │   │   └── Tool 'Fail'
+            │   │       └── The field `person` does not exist on the type `Query`. (1:14)
+            │   ├── There was a syntax error in your schema document.
+            │   └── Operations are not allowed in a schema document.
+            ├── ⏳ Waiting for approval. Approve in Nitro to continue.
+            ├── Your request has been approved.
             └── ✓ Published new schema version 'v1' to stage 'dev'.
             """);
     }
@@ -427,43 +405,40 @@ public sealed class PublishSchemaCommandTests(NitroCommandFixture fixture) : Sch
         // assert
         result.StdErr.MatchInlineSnapshot(
             """
-            Schema publish failed.
+            Schema version was rejected.
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing new schema version 'v1' to stage 'dev' of API 'api-1'
-            ├── Starting publish request
-            │   └── ✓ Publish request created (ID: request-id).
-            ├── Processing
-            │   ├── ! Validation failed.
-            │   │   ├── Invalid GraphQL schema
-            │   │   │   └── There is no object type implementing interface `InterfaceWithoutImplementation`. SCHEMA_INTERFACE_NO_IMPL
-            │   │   ├── GraphQL schema changes
-            │   │   │   ├── ✕ Directive foo was modified
-            │   │   │   │   ├── ✓ Directive location FieldDefinition added
-            │   │   │   │   └── ✕ Directive location Field removed
-            │   │   │   ├── ✕ Object type Foo was modified
-            │   │   │   │   ├── ✓ Field Foo.bar of type String! was added
-            │   │   │   │   └── ✕ Field Foo.baz of type Int! was removed
-            │   │   │   ├── ! Enum Status was modified
-            │   │   │   │   ├── ! Enum value Status.ACTIVE was added
-            │   │   │   │   └── ✕ Enum value Status.DELETED was removed
-            │   │   │   ├── ✓ Type system member NewType was added.
-            │   │   │   └── ✕ Type system member OldType was removed.
-            │   │   ├── Client 'TestClient' (ID: client-1)
-            │   │   │   └── Operation '6D12E4A815C50C504695E548EAF680BC8F337AC87E763E5689C685522A01BC59' (Deployed tags: 1.0.0)
-            │   │   │       └── foo (10:10)
-            │   │   ├── OpenAPI collection 'petstore' (ID: collection-1)
-            │   │   │   └── Endpoint 'GET /fail'
-            │   │   │       └── The field `person` does not exist on the type `Query`. (1:14)
-            │   │   ├── MCP Feature Collection 'mcp-collection' (ID: mcp-1)
-            │   │   │   └── Tool 'Fail'
-            │   │   │       └── The field `person` does not exist on the type `Query`. (1:14)
-            │   │   ├── There was a syntax error in your schema document.
-            │   │   └── Operations are not allowed in a schema document.
-            │   ├── ⏳ Waiting for approval. Approve in Nitro to continue.
-            │   └── ✕ Processing failed.
-            └── ✕ Failed to publish a new schema version.
+            Publishing new schema version 'v1' of API 'api-1' to stage 'dev'
+            ├── Publication request created. (ID: request-id)
+            ├── ! Failed validation.
+            │   ├── Invalid GraphQL schema
+            │   │   └── There is no object type implementing interface `InterfaceWithoutImplementation`. (SCHEMA_INTERFACE_NO_IMPL)
+            │   ├── GraphQL schema changes
+            │   │   ├── ✕ Directive foo was modified
+            │   │   │   ├── ✓ Directive location FieldDefinition added
+            │   │   │   └── ✕ Directive location Field removed
+            │   │   ├── ✕ Object type Foo was modified
+            │   │   │   ├── ✓ Field Foo.bar of type String! was added
+            │   │   │   └── ✕ Field Foo.baz of type Int! was removed
+            │   │   ├── ! Enum Status was modified
+            │   │   │   ├── ! Enum value Status.ACTIVE was added
+            │   │   │   └── ✕ Enum value Status.DELETED was removed
+            │   │   ├── ✓ Type system member NewType was added.
+            │   │   └── ✕ Type system member OldType was removed.
+            │   ├── Client 'TestClient' (ID: client-1)
+            │   │   └── Operation '6D12E4A815C50C504695E548EAF680BC8F337AC87E763E5689C685522A01BC59' (Deployed tags: 1.0.0)
+            │   │       └── foo (10:10)
+            │   ├── OpenAPI collection 'petstore' (ID: collection-1)
+            │   │   └── Endpoint 'GET /fail'
+            │   │       └── The field `person` does not exist on the type `Query`. (1:14)
+            │   ├── MCP Feature Collection 'mcp-collection' (ID: mcp-1)
+            │   │   └── Tool 'Fail'
+            │   │       └── The field `person` does not exist on the type `Query`. (1:14)
+            │   ├── There was a syntax error in your schema document.
+            │   └── Operations are not allowed in a schema document.
+            ├── ⏳ Waiting for approval. Approve in Nitro to continue.
+            └── ✕ Schema version was rejected.
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -488,11 +463,8 @@ public sealed class PublishSchemaCommandTests(NitroCommandFixture fixture) : Sch
         // assert
         result.AssertSuccess(
             """
-            Publishing new schema version 'v1' to stage 'dev' of API 'api-1'
-            ├── Starting publish request
-            │   └── ✓ Publish request created (ID: request-id).
-            ├── Processing
-            │   └── ✓ Published successfully.
+            Publishing new schema version 'v1' of API 'api-1' to stage 'dev'
+            ├── Publication request created. (ID: request-id)
             └── ✓ Published new schema version 'v1' to stage 'dev'.
             """);
     }

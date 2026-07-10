@@ -35,19 +35,21 @@ public sealed class SourceSchemaMergerMcpToolAnnotationsDirectiveTests : SourceS
             ],
             """
             schema {
-                query: Query
+              query: Query
             }
 
-            type Query
-                @fusion__type(schema: A)
-                @fusion__type(schema: B) {
-                field: Int
-                    @mcpToolAnnotations(openWorldHint: false)
-                    @fusion__field(schema: A)
-                    @fusion__field(schema: B)
+            type Query @fusion__type(schema: A) @fusion__type(schema: B) {
+              field: Int
+                @mcpToolAnnotations(openWorldHint: false)
+                @fusion__field(schema: A)
+                @fusion__field(schema: B)
             }
 
-            directive @mcpToolAnnotations(destructiveHint: Boolean idempotentHint: Boolean openWorldHint: Boolean) on FIELD_DEFINITION
+            directive @mcpToolAnnotations(
+              destructiveHint: Boolean
+              idempotentHint: Boolean
+              openWorldHint: Boolean
+            ) on FIELD_DEFINITION
             """);
     }
 
@@ -77,15 +79,11 @@ public sealed class SourceSchemaMergerMcpToolAnnotationsDirectiveTests : SourceS
             ],
             """
             schema {
-                query: Query
+              query: Query
             }
 
-            type Query
-                @fusion__type(schema: A)
-                @fusion__type(schema: B) {
-                field: Int
-                    @fusion__field(schema: A)
-                    @fusion__field(schema: B)
+            type Query @fusion__type(schema: A) @fusion__type(schema: B) {
+              field: Int @fusion__field(schema: A) @fusion__field(schema: B)
             }
             """);
     }
@@ -134,37 +132,37 @@ public sealed class SourceSchemaMergerMcpToolAnnotationsDirectiveTests : SourceS
             ],
             """
             schema {
-                query: Query
-                mutation: Mutation
+              query: Query
+              mutation: Mutation
             }
 
-            type Query
-                @fusion__type(schema: A)
-                @fusion__type(schema: B) {
-                field1: Int
-                    @mcpToolAnnotations
-                    @fusion__field(schema: A)
-                    @fusion__field(schema: B)
-                field2: Int
-                    @mcpToolAnnotations
-                    @fusion__field(schema: A)
-                    @fusion__field(schema: B)
+            type Query @fusion__type(schema: A) @fusion__type(schema: B) {
+              field1: Int
+                @mcpToolAnnotations
+                @fusion__field(schema: A)
+                @fusion__field(schema: B)
+              field2: Int
+                @mcpToolAnnotations
+                @fusion__field(schema: A)
+                @fusion__field(schema: B)
             }
 
-            type Mutation
-                @fusion__type(schema: A)
-                @fusion__type(schema: B) {
-                field1: Int
-                    @mcpToolAnnotations
-                    @fusion__field(schema: A)
-                    @fusion__field(schema: B)
-                field2: Int
-                    @mcpToolAnnotations
-                    @fusion__field(schema: A)
-                    @fusion__field(schema: B)
+            type Mutation @fusion__type(schema: A) @fusion__type(schema: B) {
+              field1: Int
+                @mcpToolAnnotations
+                @fusion__field(schema: A)
+                @fusion__field(schema: B)
+              field2: Int
+                @mcpToolAnnotations
+                @fusion__field(schema: A)
+                @fusion__field(schema: B)
             }
 
-            directive @mcpToolAnnotations(destructiveHint: Boolean idempotentHint: Boolean openWorldHint: Boolean) on FIELD_DEFINITION
+            directive @mcpToolAnnotations(
+              destructiveHint: Boolean
+              idempotentHint: Boolean
+              openWorldHint: Boolean
+            ) on FIELD_DEFINITION
             """);
     }
 
@@ -224,61 +222,61 @@ public sealed class SourceSchemaMergerMcpToolAnnotationsDirectiveTests : SourceS
             ],
             """
             schema {
-                query: Query
-                mutation: Mutation
+              query: Query
+              mutation: Mutation
             }
 
-            type Query
-                @fusion__type(schema: A)
-                @fusion__type(schema: B) {
-                destructiveFalseAndFalse: Int
-                    @mcpToolAnnotations(destructiveHint: false)
-                    @fusion__field(schema: A)
-                    @fusion__field(schema: B)
-                destructiveFalseAndNull: Int
-                    @mcpToolAnnotations(destructiveHint: false)
-                    @fusion__field(schema: A)
-                    @fusion__field(schema: B)
-                destructiveNullAndNull: Int
-                    @mcpToolAnnotations
-                    @fusion__field(schema: A)
-                    @fusion__field(schema: B)
-                destructiveTrueAndNull: Int
-                    @mcpToolAnnotations(destructiveHint: true)
-                    @fusion__field(schema: A)
-                    @fusion__field(schema: B)
-                destructiveTrueAndTrue: Int
-                    @mcpToolAnnotations(destructiveHint: true)
-                    @fusion__field(schema: A)
-                    @fusion__field(schema: B)
+            type Query @fusion__type(schema: A) @fusion__type(schema: B) {
+              destructiveFalseAndFalse: Int
+                @mcpToolAnnotations(destructiveHint: false)
+                @fusion__field(schema: A)
+                @fusion__field(schema: B)
+              destructiveFalseAndNull: Int
+                @mcpToolAnnotations(destructiveHint: false)
+                @fusion__field(schema: A)
+                @fusion__field(schema: B)
+              destructiveNullAndNull: Int
+                @mcpToolAnnotations
+                @fusion__field(schema: A)
+                @fusion__field(schema: B)
+              destructiveTrueAndNull: Int
+                @mcpToolAnnotations(destructiveHint: true)
+                @fusion__field(schema: A)
+                @fusion__field(schema: B)
+              destructiveTrueAndTrue: Int
+                @mcpToolAnnotations(destructiveHint: true)
+                @fusion__field(schema: A)
+                @fusion__field(schema: B)
             }
 
-            type Mutation
-                @fusion__type(schema: A)
-                @fusion__type(schema: B) {
-                destructiveFalseAndFalse: Int
-                    @mcpToolAnnotations(destructiveHint: false)
-                    @fusion__field(schema: A)
-                    @fusion__field(schema: B)
-                destructiveFalseAndNull: Int
-                    @mcpToolAnnotations(destructiveHint: true)
-                    @fusion__field(schema: A)
-                    @fusion__field(schema: B)
-                destructiveNullAndNull: Int
-                    @mcpToolAnnotations
-                    @fusion__field(schema: A)
-                    @fusion__field(schema: B)
-                destructiveTrueAndNull: Int
-                    @mcpToolAnnotations(destructiveHint: true)
-                    @fusion__field(schema: A)
-                    @fusion__field(schema: B)
-                destructiveTrueAndTrue: Int
-                    @mcpToolAnnotations(destructiveHint: true)
-                    @fusion__field(schema: A)
-                    @fusion__field(schema: B)
+            type Mutation @fusion__type(schema: A) @fusion__type(schema: B) {
+              destructiveFalseAndFalse: Int
+                @mcpToolAnnotations(destructiveHint: false)
+                @fusion__field(schema: A)
+                @fusion__field(schema: B)
+              destructiveFalseAndNull: Int
+                @mcpToolAnnotations(destructiveHint: true)
+                @fusion__field(schema: A)
+                @fusion__field(schema: B)
+              destructiveNullAndNull: Int
+                @mcpToolAnnotations
+                @fusion__field(schema: A)
+                @fusion__field(schema: B)
+              destructiveTrueAndNull: Int
+                @mcpToolAnnotations(destructiveHint: true)
+                @fusion__field(schema: A)
+                @fusion__field(schema: B)
+              destructiveTrueAndTrue: Int
+                @mcpToolAnnotations(destructiveHint: true)
+                @fusion__field(schema: A)
+                @fusion__field(schema: B)
             }
 
-            directive @mcpToolAnnotations(destructiveHint: Boolean idempotentHint: Boolean openWorldHint: Boolean) on FIELD_DEFINITION
+            directive @mcpToolAnnotations(
+              destructiveHint: Boolean
+              idempotentHint: Boolean
+              openWorldHint: Boolean
+            ) on FIELD_DEFINITION
             """);
     }
 
@@ -338,61 +336,61 @@ public sealed class SourceSchemaMergerMcpToolAnnotationsDirectiveTests : SourceS
             ],
             """
             schema {
-                query: Query
-                mutation: Mutation
+              query: Query
+              mutation: Mutation
             }
 
-            type Query
-                @fusion__type(schema: A)
-                @fusion__type(schema: B) {
-                idempotentFalseAndFalse: Int
-                    @mcpToolAnnotations(idempotentHint: false)
-                    @fusion__field(schema: A)
-                    @fusion__field(schema: B)
-                idempotentFalseAndNull: Int
-                    @mcpToolAnnotations(idempotentHint: false)
-                    @fusion__field(schema: A)
-                    @fusion__field(schema: B)
-                idempotentNullAndNull: Int
-                    @mcpToolAnnotations
-                    @fusion__field(schema: A)
-                    @fusion__field(schema: B)
-                idempotentTrueAndNull: Int
-                    @mcpToolAnnotations(idempotentHint: true)
-                    @fusion__field(schema: A)
-                    @fusion__field(schema: B)
-                idempotentTrueAndTrue: Int
-                    @mcpToolAnnotations(idempotentHint: true)
-                    @fusion__field(schema: A)
-                    @fusion__field(schema: B)
+            type Query @fusion__type(schema: A) @fusion__type(schema: B) {
+              idempotentFalseAndFalse: Int
+                @mcpToolAnnotations(idempotentHint: false)
+                @fusion__field(schema: A)
+                @fusion__field(schema: B)
+              idempotentFalseAndNull: Int
+                @mcpToolAnnotations(idempotentHint: false)
+                @fusion__field(schema: A)
+                @fusion__field(schema: B)
+              idempotentNullAndNull: Int
+                @mcpToolAnnotations
+                @fusion__field(schema: A)
+                @fusion__field(schema: B)
+              idempotentTrueAndNull: Int
+                @mcpToolAnnotations(idempotentHint: true)
+                @fusion__field(schema: A)
+                @fusion__field(schema: B)
+              idempotentTrueAndTrue: Int
+                @mcpToolAnnotations(idempotentHint: true)
+                @fusion__field(schema: A)
+                @fusion__field(schema: B)
             }
 
-            type Mutation
-                @fusion__type(schema: A)
-                @fusion__type(schema: B) {
-                idempotentFalseAndFalse: Int
-                    @mcpToolAnnotations(idempotentHint: false)
-                    @fusion__field(schema: A)
-                    @fusion__field(schema: B)
-                idempotentFalseAndNull: Int
-                    @mcpToolAnnotations(idempotentHint: false)
-                    @fusion__field(schema: A)
-                    @fusion__field(schema: B)
-                idempotentNullAndNull: Int
-                    @mcpToolAnnotations
-                    @fusion__field(schema: A)
-                    @fusion__field(schema: B)
-                idempotentTrueAndNull: Int
-                    @mcpToolAnnotations(idempotentHint: false)
-                    @fusion__field(schema: A)
-                    @fusion__field(schema: B)
-                idempotentTrueAndTrue: Int
-                    @mcpToolAnnotations(idempotentHint: true)
-                    @fusion__field(schema: A)
-                    @fusion__field(schema: B)
+            type Mutation @fusion__type(schema: A) @fusion__type(schema: B) {
+              idempotentFalseAndFalse: Int
+                @mcpToolAnnotations(idempotentHint: false)
+                @fusion__field(schema: A)
+                @fusion__field(schema: B)
+              idempotentFalseAndNull: Int
+                @mcpToolAnnotations(idempotentHint: false)
+                @fusion__field(schema: A)
+                @fusion__field(schema: B)
+              idempotentNullAndNull: Int
+                @mcpToolAnnotations
+                @fusion__field(schema: A)
+                @fusion__field(schema: B)
+              idempotentTrueAndNull: Int
+                @mcpToolAnnotations(idempotentHint: false)
+                @fusion__field(schema: A)
+                @fusion__field(schema: B)
+              idempotentTrueAndTrue: Int
+                @mcpToolAnnotations(idempotentHint: true)
+                @fusion__field(schema: A)
+                @fusion__field(schema: B)
             }
 
-            directive @mcpToolAnnotations(destructiveHint: Boolean idempotentHint: Boolean openWorldHint: Boolean) on FIELD_DEFINITION
+            directive @mcpToolAnnotations(
+              destructiveHint: Boolean
+              idempotentHint: Boolean
+              openWorldHint: Boolean
+            ) on FIELD_DEFINITION
             """);
     }
 
@@ -452,61 +450,61 @@ public sealed class SourceSchemaMergerMcpToolAnnotationsDirectiveTests : SourceS
             ],
             """
             schema {
-                query: Query
-                mutation: Mutation
+              query: Query
+              mutation: Mutation
             }
 
-            type Query
-                @fusion__type(schema: A)
-                @fusion__type(schema: B) {
-                openWorldFalseAndFalse: Int
-                    @mcpToolAnnotations(openWorldHint: false)
-                    @fusion__field(schema: A)
-                    @fusion__field(schema: B)
-                openWorldFalseAndNull: Int
-                    @mcpToolAnnotations(openWorldHint: true)
-                    @fusion__field(schema: A)
-                    @fusion__field(schema: B)
-                openWorldNullAndNull: Int
-                    @mcpToolAnnotations
-                    @fusion__field(schema: A)
-                    @fusion__field(schema: B)
-                openWorldTrueAndNull: Int
-                    @mcpToolAnnotations(openWorldHint: true)
-                    @fusion__field(schema: A)
-                    @fusion__field(schema: B)
-                openWorldTrueAndTrue: Int
-                    @mcpToolAnnotations(openWorldHint: true)
-                    @fusion__field(schema: A)
-                    @fusion__field(schema: B)
+            type Query @fusion__type(schema: A) @fusion__type(schema: B) {
+              openWorldFalseAndFalse: Int
+                @mcpToolAnnotations(openWorldHint: false)
+                @fusion__field(schema: A)
+                @fusion__field(schema: B)
+              openWorldFalseAndNull: Int
+                @mcpToolAnnotations(openWorldHint: true)
+                @fusion__field(schema: A)
+                @fusion__field(schema: B)
+              openWorldNullAndNull: Int
+                @mcpToolAnnotations
+                @fusion__field(schema: A)
+                @fusion__field(schema: B)
+              openWorldTrueAndNull: Int
+                @mcpToolAnnotations(openWorldHint: true)
+                @fusion__field(schema: A)
+                @fusion__field(schema: B)
+              openWorldTrueAndTrue: Int
+                @mcpToolAnnotations(openWorldHint: true)
+                @fusion__field(schema: A)
+                @fusion__field(schema: B)
             }
 
-            type Mutation
-                @fusion__type(schema: A)
-                @fusion__type(schema: B) {
-                openWorldFalseAndFalse: Int
-                    @mcpToolAnnotations(openWorldHint: false)
-                    @fusion__field(schema: A)
-                    @fusion__field(schema: B)
-                openWorldFalseAndNull: Int
-                    @mcpToolAnnotations(openWorldHint: true)
-                    @fusion__field(schema: A)
-                    @fusion__field(schema: B)
-                openWorldNullAndNull: Int
-                    @mcpToolAnnotations
-                    @fusion__field(schema: A)
-                    @fusion__field(schema: B)
-                openWorldTrueAndNull: Int
-                    @mcpToolAnnotations(openWorldHint: true)
-                    @fusion__field(schema: A)
-                    @fusion__field(schema: B)
-                openWorldTrueAndTrue: Int
-                    @mcpToolAnnotations(openWorldHint: true)
-                    @fusion__field(schema: A)
-                    @fusion__field(schema: B)
+            type Mutation @fusion__type(schema: A) @fusion__type(schema: B) {
+              openWorldFalseAndFalse: Int
+                @mcpToolAnnotations(openWorldHint: false)
+                @fusion__field(schema: A)
+                @fusion__field(schema: B)
+              openWorldFalseAndNull: Int
+                @mcpToolAnnotations(openWorldHint: true)
+                @fusion__field(schema: A)
+                @fusion__field(schema: B)
+              openWorldNullAndNull: Int
+                @mcpToolAnnotations
+                @fusion__field(schema: A)
+                @fusion__field(schema: B)
+              openWorldTrueAndNull: Int
+                @mcpToolAnnotations(openWorldHint: true)
+                @fusion__field(schema: A)
+                @fusion__field(schema: B)
+              openWorldTrueAndTrue: Int
+                @mcpToolAnnotations(openWorldHint: true)
+                @fusion__field(schema: A)
+                @fusion__field(schema: B)
             }
 
-            directive @mcpToolAnnotations(destructiveHint: Boolean idempotentHint: Boolean openWorldHint: Boolean) on FIELD_DEFINITION
+            directive @mcpToolAnnotations(
+              destructiveHint: Boolean
+              idempotentHint: Boolean
+              openWorldHint: Boolean
+            ) on FIELD_DEFINITION
             """);
     }
 }

@@ -25,15 +25,9 @@ public sealed class SourceSchemaMergerEnumTests : SourceSchemaMergerTestBase
                 """
             ],
             """
-            enum Status
-                @fusion__type(schema: A)
-                @fusion__type(schema: B) {
-                ACTIVE
-                    @fusion__enumValue(schema: A)
-                    @fusion__enumValue(schema: B)
-                INACTIVE
-                    @fusion__enumValue(schema: A)
-                    @fusion__enumValue(schema: B)
+            enum Status @fusion__type(schema: A) @fusion__type(schema: B) {
+              ACTIVE @fusion__enumValue(schema: A) @fusion__enumValue(schema: B)
+              INACTIVE @fusion__enumValue(schema: A) @fusion__enumValue(schema: B)
             }
             """);
     }
@@ -61,18 +55,10 @@ public sealed class SourceSchemaMergerEnumTests : SourceSchemaMergerTestBase
                 """
             ],
             """
-            enum Status
-                @fusion__type(schema: A)
-                @fusion__type(schema: B) {
-                ACTIVE
-                    @fusion__enumValue(schema: A)
-                    @fusion__inaccessible
-                INACTIVE
-                    @fusion__enumValue(schema: A)
-                    @fusion__enumValue(schema: B)
-                PENDING
-                    @fusion__enumValue(schema: B)
-                    @fusion__inaccessible
+            enum Status @fusion__type(schema: A) @fusion__type(schema: B) {
+              ACTIVE @fusion__enumValue(schema: A) @fusion__inaccessible
+              INACTIVE @fusion__enumValue(schema: A) @fusion__enumValue(schema: B)
+              PENDING @fusion__enumValue(schema: B) @fusion__inaccessible
             }
             """);
     }
@@ -99,13 +85,11 @@ public sealed class SourceSchemaMergerEnumTests : SourceSchemaMergerTestBase
             ],
             """
             enum Status
-                @fusion__type(schema: A)
-                @fusion__type(schema: B)
-                @fusion__inaccessible {
-                ACTIVE
-                    @fusion__enumValue(schema: A)
-                INACTIVE
-                    @fusion__enumValue(schema: B)
+              @fusion__type(schema: A)
+              @fusion__type(schema: B)
+              @fusion__inaccessible {
+              ACTIVE @fusion__enumValue(schema: A)
+              INACTIVE @fusion__enumValue(schema: B)
             }
             """);
     }
@@ -132,12 +116,8 @@ public sealed class SourceSchemaMergerEnumTests : SourceSchemaMergerTestBase
             ],
             """
             "The first non-null description."
-            enum Status
-                @fusion__type(schema: A)
-                @fusion__type(schema: B) {
-                ACTIVE
-                    @fusion__enumValue(schema: A)
-                    @fusion__enumValue(schema: B)
+            enum Status @fusion__type(schema: A) @fusion__type(schema: B) {
+              ACTIVE @fusion__enumValue(schema: A) @fusion__enumValue(schema: B)
             }
             """);
     }
