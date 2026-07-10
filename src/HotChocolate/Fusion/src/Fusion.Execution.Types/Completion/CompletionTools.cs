@@ -133,6 +133,7 @@ internal static class CompletionTools
         var sourceInterfaceType = new SourceInterfaceType[types.Length];
         var sourceImplements = ImplementsDirectiveParser.Parse(
             typeDef.Directives);
+        var interfaceObjectSchemaKeys = InterfaceObjectDirectiveParser.Parse(typeDef.Directives);
 
         for (var i = 0; i < types.Length; i++)
         {
@@ -146,7 +147,8 @@ internal static class CompletionTools
                 typeDef.Name.Value,
                 schemaName,
                 lookups,
-                implements ?? []);
+                implements ?? [],
+                interfaceObjectSchemaKeys.Contains(type.SchemaKey));
         }
 
         return new SourceInterfaceTypeCollection(sourceInterfaceType);

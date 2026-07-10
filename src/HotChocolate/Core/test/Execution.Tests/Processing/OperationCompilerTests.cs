@@ -35,6 +35,33 @@ public class OperationCompilerTests
     }
 
     [Fact]
+    public void Compile_Should_ExposeObjectSelectionSetThroughPublicContract()
+    {
+        // arrange
+        var schema = SchemaBuilder.New()
+            .AddQueryType(
+                c => c
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<StringType>()
+                    .Resolve("foo"))
+            .Create();
+        var document = Utf8GraphQLParser.Parse("{ foo }");
+
+        // act
+        var operation = OperationCompiler.Compile("opid", document, schema);
+        ISelectionSet selectionSet = operation.RootSelectionSet;
+
+        // assert
+        Assert.Equal("Query", selectionSet.Type.Name);
+        Assert.IsAssignableFrom<IObjectTypeDefinition>(selectionSet.Type);
+
+        var selection = Assert.Single(selectionSet.GetSelections());
+        Assert.Equal("Query", selection.DeclaringSelectionSet.Type.Name);
+        Assert.IsAssignableFrom<IObjectTypeDefinition>(selection.DeclaringSelectionSet.Type);
+    }
+
+    [Fact]
     public void Prepare_Duplicate_Field()
     {
         // arrange

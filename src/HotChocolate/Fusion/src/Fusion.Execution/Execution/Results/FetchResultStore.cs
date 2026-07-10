@@ -860,8 +860,10 @@ AddErrors_Next:
                         continue;
                     }
 
-                    // TODO : Better error
-                    throw new NotSupportedException("Must be list or object.");
+                    throw ThrowHelper.InvalidTargetValueKind(
+                        selectionSet.Slice(i + 1),
+                        value.Path,
+                        valueKind);
                 }
             }
 
@@ -881,6 +883,36 @@ AddErrors_Next:
         _collectTargetA = current;
         _collectTargetB = next;
         return current.AsSpan(0, currentCount);
+    }
+
+    public ImmutableArray<CompactPath> GetResultPaths(SelectionPath selectionSet)
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+        ArgumentNullException.ThrowIfNull(selectionSet);
+
+        lock (_lock)
+        {
+            if (selectionSet.IsRoot)
+            {
+                return [CompactPath.Root];
+            }
+
+            var elements = CollectTargetElements(selectionSet);
+
+            if (elements.IsEmpty)
+            {
+                return [];
+            }
+
+            var paths = ImmutableArray.CreateBuilder<CompactPath>(elements.Length);
+
+            foreach (var element in elements)
+            {
+                paths.Add(element.CompactPath);
+            }
+
+            return paths.MoveToImmutable();
+        }
     }
 
     private ImmutableArray<VariableValues> BuildVariableValueSetsFromSnapshot(
@@ -2210,14 +2242,17 @@ AddErrors_Next:
             ?? throw new InvalidOperationException(
                 "Cannot initialize an intermediate target object without selection metadata.");
 
-        if (selection.Type.NamedType() is not IObjectTypeDefinition objectType)
+        // An interface-typed named type is an @interfaceObject stand-in position that has not yet
+        // recovered its concrete identity; it initializes interface-typed against the interface's
+        // declared fields. Unions carry no such single type context and remain unsupported here.
+        if (selection.Type.NamedType() is not IComplexTypeDefinition complexType)
         {
             throw new InvalidOperationException(
                 "Cannot initialize an intermediate target object for an abstract selection.");
         }
 
         var selectionSet = selection.DeclaringSelectionSet.DeclaringOperation
-            .GetSelectionSet(selection, objectType);
+            .GetSelectionSet(selection, complexType);
 
         element.SetObjectValue(selectionSet);
     }

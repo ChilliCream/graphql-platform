@@ -1,4 +1,4 @@
-namespace HotChocolate.Fusion.Execution;
+namespace HotChocolate.Fusion;
 
 /// <summary>
 /// Determines how the gateway resolves the <c>Query.node</c> field, i.e. which participant is
