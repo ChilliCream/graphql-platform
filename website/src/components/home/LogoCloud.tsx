@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { FEATURED_COMPANIES, OTHER_COMPANIES, type Company } from "./companies";
 
-const ROTATE_INTERVAL_MS = 3500;
+const ROTATE_INTERVAL_MS = 5000;
 // Let the featured three lead the rotation with a longer first hold, without
 // leaving the band static for too long on load.
 const INITIAL_HOLD_MS = 4500;
