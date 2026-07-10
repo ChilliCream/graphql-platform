@@ -391,7 +391,7 @@ public class PagingHelperTests(PostgreSqlResource resource)
         // must not be hoisted into the Brand selector when paging.
         var query = new QueryContext<Brand>(
             Selector: t => new Brand { Id = t.Id, Name = t.Name },
-            Sorting: new SortDefinition<Brand>().AddDescending(t => t.Id));
+            Sorting: new SortDefinition<Brand>().AddAscending(t => t.Id));
 
         query = query.Select(t => new Brand
         {

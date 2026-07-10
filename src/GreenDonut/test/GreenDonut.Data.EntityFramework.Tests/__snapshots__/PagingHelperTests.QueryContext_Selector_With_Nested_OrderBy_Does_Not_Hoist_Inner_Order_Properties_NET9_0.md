@@ -11,12 +11,12 @@ SELECT b."Id", b."Name", (
     ORDER BY p."Price" DESC, p."AvailableStock"
     LIMIT 1) AS "DisplayName"
 FROM "Brands" AS b
-ORDER BY b."Id"
+ORDER BY b."Id" DESC
 LIMIT @__p_0
 ```
 
 ## Expression 0
 
 ```text
-[Microsoft.EntityFrameworkCore.Query.EntityQueryRootExpression].OrderBy(t => t.Id).Select(root => new Brand() {Id = root.Id, Name = root.Name, DisplayName = root.Products.OrderByDescending(p => p.Price).ThenBy(p => p.AvailableStock).FirstOrDefault().Name}).Take(3)
+[Microsoft.EntityFrameworkCore.Query.EntityQueryRootExpression].OrderByDescending(t => t.Id).Select(root => new Brand() {Id = root.Id, Name = root.Name, DisplayName = root.Products.OrderByDescending(p => p.Price).ThenBy(p => p.AvailableStock).FirstOrDefault().Name}).Take(3)
 ```
