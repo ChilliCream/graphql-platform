@@ -80,8 +80,7 @@ internal sealed class EntityIdRewriter : SyntaxRewriter<EntityIdRewriter.Context
         {
             var selections = current.Selections.ToList();
 
-            foreach (var objectType in
-                     context.Schema.GetPossibleTypes(context.Types.Peek()))
+            foreach (var objectType in context.Schema.GetPossibleTypes(context.Types.Peek()))
             {
                 if (objectType.IsEntity())
                 {

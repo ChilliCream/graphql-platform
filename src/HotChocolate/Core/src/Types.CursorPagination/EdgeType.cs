@@ -15,14 +15,15 @@ internal sealed class EdgeType : ObjectType, IEdgeType
 {
     internal EdgeType(
         string connectionName,
-        TypeReference nodeType)
+        TypeReference nodeType,
+        INamingConventions namingConventions)
     {
         ArgumentException.ThrowIfNullOrEmpty(connectionName);
         ArgumentNullException.ThrowIfNull(nodeType);
 
         ConnectionName = connectionName;
         Configuration = CreateConfiguration(nodeType);
-        Configuration.Name = NameHelper.CreateEdgeName(connectionName);
+        Configuration.Name = NameHelper.CreateEdgeName(namingConventions, connectionName);
         Configuration.Tasks.Add(
             new OnCompleteTypeSystemConfigurationTask(
                 (c, _) => NodeType = c.GetType<IOutputType>(nodeType),
@@ -30,7 +31,7 @@ internal sealed class EdgeType : ObjectType, IEdgeType
                 ApplyConfigurationOn.BeforeCompletion));
     }
 
-    internal EdgeType(TypeReference nodeType)
+    internal EdgeType(TypeReference nodeType, INamingConventions namingConventions)
     {
         ArgumentNullException.ThrowIfNull(nodeType);
 
@@ -43,7 +44,7 @@ internal sealed class EdgeType : ObjectType, IEdgeType
                 {
                     var type = c.GetType<IType>(nodeType);
                     ConnectionName = type.NamedType().Name;
-                    ((ObjectTypeConfiguration)d).Name = NameHelper.CreateEdgeName(ConnectionName);
+                    ((ObjectTypeConfiguration)d).Name = NameHelper.CreateEdgeName(namingConventions, ConnectionName);
                 },
                 Configuration,
                 ApplyConfigurationOn.BeforeNaming,

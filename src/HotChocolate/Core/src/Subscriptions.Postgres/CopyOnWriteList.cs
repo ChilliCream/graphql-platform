@@ -2,7 +2,11 @@ namespace HotChocolate.Subscriptions.Postgres;
 
 internal sealed class CopyOnWriteList<T> where T : class
 {
+#if NET9_0_OR_GREATER
+    private readonly Lock _sync = new();
+#else
     private readonly object _sync = new();
+#endif
 
     private T[] _items = [];
 

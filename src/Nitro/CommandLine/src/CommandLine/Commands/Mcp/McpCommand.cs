@@ -12,15 +12,13 @@ internal sealed class McpCommand : Command
 {
     public McpCommand() : base("mcp")
     {
-        Description = "Manage MCP Feature Collections";
+        Description = "Manage MCP feature collections.";
 
-        this.AddNitroCloudDefaultOptions();
-
-        AddCommand(new CreateMcpFeatureCollectionCommand());
-        AddCommand(new DeleteMcpFeatureCollectionCommand());
-        AddCommand(new ListMcpFeatureCollectionCommand());
-        AddCommand(new UploadMcpFeatureCollectionCommand());
-        AddCommand(new PublishMcpFeatureCollectionCommand());
-        AddCommand(new ValidateMcpFeatureCollectionCommand());
+        Subcommands.Add(new CreateMcpFeatureCollectionCommand());
+        Subcommands.Add(new DeleteMcpFeatureCollectionCommand());
+        Subcommands.Add(new ListMcpFeatureCollectionCommand());
+        Subcommands.Add(new UploadMcpFeatureCollectionCommand());
+        Subcommands.Add(new PublishMcpFeatureCollectionCommand());
+        Subcommands.Add(new ValidateMcpFeatureCollectionCommand());
     }
 }

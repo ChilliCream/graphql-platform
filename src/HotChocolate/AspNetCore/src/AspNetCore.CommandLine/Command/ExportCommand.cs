@@ -18,17 +18,23 @@ internal sealed class ExportCommand : Command
     {
         Description = "Export the graphql schema to a schema file";
 
-        Options.Add(Opt<OutputOption>.Instance);
-        Options.Add(Opt<SchemaNameOption>.Instance);
+        var outputOption = new OutputOption();
+        var schemaNameOption = new SchemaNameOption();
+        var semanticNonNullOption = new SemanticNonNullOption();
+
+        Options.Add(outputOption);
+        Options.Add(schemaNameOption);
+        Options.Add(semanticNonNullOption);
 
         SetAction(
             (parseResult, cancellationToken) =>
             {
                 var output = parseResult.InvocationConfiguration.Output;
-                var outputFile = parseResult.GetValue(Opt<OutputOption>.Instance);
-                var schemaName = parseResult.GetValue(Opt<SchemaNameOption>.Instance);
+                var outputFile = parseResult.GetValue(outputOption);
+                var schemaName = parseResult.GetValue(schemaNameOption);
+                var semanticNonNull = parseResult.GetValue(semanticNonNullOption);
 
-                return ExecuteAsync(output, host, outputFile, schemaName, cancellationToken);
+                return ExecuteAsync(output, host, outputFile, schemaName, semanticNonNull, cancellationToken);
             });
     }
 
@@ -37,6 +43,7 @@ internal sealed class ExportCommand : Command
         IHost host,
         FileInfo? outputFile,
         string? schemaName,
+        bool semanticNonNull,
         CancellationToken cancellationToken)
     {
         var provider = host.Services.GetRequiredService<IRequestExecutorProvider>();
@@ -58,7 +65,11 @@ internal sealed class ExportCommand : Command
 
         var executor = await provider.GetExecutorAsync(schemaName, cancellationToken);
         outputFile ??= new FileInfo(System.IO.Path.Combine(Environment.CurrentDirectory, "schema.graphqls"));
-        var result = await SchemaFileExporter.Export(outputFile.FullName, executor, cancellationToken);
+        var result = await SchemaFileExporter.Export(
+            outputFile.FullName,
+            executor,
+            semanticNonNull,
+            cancellationToken);
 
         await output.WriteLineAsync("Exported Files:");
         await output.WriteLineAsync($"- {result.SchemaFileName}");

@@ -28,7 +28,30 @@ public class PathTests
         var result = path.ToString();
 
         // assert
-        Assert.Equal("/hero/friends[0]/name", result);
+        Assert.Equal("hero.friends[0].name", result);
+    }
+
+    [Fact]
+    public void Path_Print()
+    {
+        // arrange
+        var path = Path.Root.Append("person").Append(0).Append("address");
+
+        // act
+        var result = path.Print();
+
+        // assert
+        Assert.Equal("person[0].address", result);
+    }
+
+    [Fact]
+    public void Path_Print_Root()
+    {
+        // act
+        var result = Path.Root.Print();
+
+        // assert
+        Assert.Equal(string.Empty, result);
     }
 
     [Fact]
@@ -172,12 +195,12 @@ public class PathTests
 
         string[] expected =
         [
-            "/bar",
-            "/bar[3]",
-            "/bar[3][2]",
-            "/bar[3]/foo",
-            "/foo",
-            "/foo[0]"
+            "bar",
+            "bar[3]",
+            "bar[3][2]",
+            "bar[3].foo",
+            "foo",
+            "foo[0]"
         ];
 
         for (var i = 0; i < paths.Length; i++)

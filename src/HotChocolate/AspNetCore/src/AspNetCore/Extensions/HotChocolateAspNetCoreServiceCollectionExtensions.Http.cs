@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using HotChocolate.AspNetCore;
@@ -28,7 +29,8 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
     /// If your <typeparamref name="T"/> needs to access application services you need to
     /// make the services available in the schema services via <see cref="RequestExecutorBuilderExtensions.AddApplicationService"/>.
     /// </remarks>
-    public static IRequestExecutorBuilder AddHttpRequestInterceptor<T>(
+    public static IRequestExecutorBuilder AddHttpRequestInterceptor<
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(
         this IRequestExecutorBuilder builder)
         where T : class, IHttpRequestInterceptor
     {
@@ -84,7 +86,9 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
     /// <param name="handler">
     /// A delegate that allows to configure the GraphQL request.
     /// </param>
-    /// <returns></returns>
+    /// <returns>
+    /// The <see cref="IRequestExecutorBuilder"/> for configuration chaining.
+    /// </returns>
     public static IRequestExecutorBuilder AddHttpRequestInterceptor(
         this IRequestExecutorBuilder builder,
         Func<HttpContext, IRequestExecutor, OperationRequestBuilder, CancellationToken, ValueTask> handler)
@@ -113,12 +117,17 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
     /// white space between property names and values.
     /// By default, the JSON is written without extra white spaces.
     /// </param>
+    /// <param name="incrementalDeliveryFormat">
+    /// The default incremental delivery format to use when the client does not specify one
+    /// via the <c>Accept</c> header. Defaults to <see cref="IncrementalDeliveryFormat.Version_0_2"/>.
+    /// </param>
     /// <returns>
     /// Returns the <see cref="IRequestExecutorBuilder"/> so that configuration can be chained.
     /// </returns>
     public static IRequestExecutorBuilder AddHttpResponseFormatter(
         this IRequestExecutorBuilder builder,
-        bool indented = false)
+        bool indented = false,
+        IncrementalDeliveryFormat incrementalDeliveryFormat = IncrementalDeliveryFormat.Version_0_2)
     {
         ArgumentNullException.ThrowIfNull(builder);
 
@@ -133,7 +142,8 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
                                 Indented = indented
                             }
                         },
-                        sp.GetRequiredService<ITimeProvider>())));
+                        sp.GetRequiredService<ITimeProvider>(),
+                        incrementalDeliveryFormat)));
         return builder;
     }
 
@@ -147,12 +157,17 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
     /// <param name="options">
     /// The HTTP response formatter options
     /// </param>
+    /// <param name="incrementalDeliveryFormat">
+    /// The default incremental delivery format to use when the client does not specify one
+    /// via the <c>Accept</c> header. Defaults to <see cref="IncrementalDeliveryFormat.Version_0_2"/>.
+    /// </param>
     /// <returns>
     /// Returns the <see cref="IRequestExecutorBuilder"/> so that configuration can be chained.
     /// </returns>
     public static IRequestExecutorBuilder AddHttpResponseFormatter(
         this IRequestExecutorBuilder builder,
-        HttpResponseFormatterOptions options)
+        HttpResponseFormatterOptions options,
+        IncrementalDeliveryFormat incrementalDeliveryFormat = IncrementalDeliveryFormat.Version_0_2)
     {
         ArgumentNullException.ThrowIfNull(builder);
 
@@ -161,7 +176,8 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
                 .AddSingleton<IHttpResponseFormatter>(
                     sp => DefaultHttpResponseFormatter.Create(
                     options,
-                    sp.GetRequiredService<ITimeProvider>())));
+                    sp.GetRequiredService<ITimeProvider>(),
+                    incrementalDeliveryFormat)));
         return builder;
     }
 
@@ -177,7 +193,13 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
     /// <returns>
     /// Returns the <see cref="IServiceCollection"/> so that configuration can be chained.
     /// </returns>
-    public static IRequestExecutorBuilder AddHttpResponseFormatter<T>(
+    /// <remarks>
+    /// The <typeparamref name="T"/> will be activated with the <see cref="IServiceProvider"/> of the schema services.
+    /// If your <typeparamref name="T"/> needs to access application services you need to
+    /// make the services available in the schema services via <see cref="RequestExecutorBuilderExtensions.AddApplicationService"/>.
+    /// </remarks>
+    public static IRequestExecutorBuilder AddHttpResponseFormatter<
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(
         this IRequestExecutorBuilder builder)
         where T : class, IHttpResponseFormatter
     {
@@ -204,6 +226,14 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
     /// <returns>
     /// Returns the <see cref="IServiceCollection"/> so that configuration can be chained.
     /// </returns>
+    /// <remarks>
+    /// The <see cref="IServiceProvider"/> passed to the <paramref name="factory"/>
+    /// is for the schema services. If you need to access application services
+    /// you need to either make the services available in the schema services
+    /// via <see cref="RequestExecutorBuilderExtensions.AddApplicationService"/> or use
+    /// <see cref="ExecutionServiceProviderExtensions.GetRootServiceProvider(IServiceProvider)"/>
+    /// to access the application services from within the schema service provider.
+    /// </remarks>
     public static IRequestExecutorBuilder AddHttpResponseFormatter<T>(
         this IRequestExecutorBuilder builder,
         Func<IServiceProvider, T> factory)
@@ -215,6 +245,29 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
         builder.ConfigureSchemaServices(
             s => s.RemoveAll<IHttpResponseFormatter>()
                 .AddSingleton<IHttpResponseFormatter>(factory));
+        return builder;
+    }
+
+    /// <summary>
+    /// Adds a delegate that will be used to modify the <see cref="GraphQLServerOptions"/>.
+    /// </summary>
+    /// <param name="builder">
+    /// The <see cref="IRequestExecutorBuilder"/>.
+    /// </param>
+    /// <param name="configure">
+    /// A delegate that is used to modify the <see cref="GraphQLServerOptions"/>.
+    /// </param>
+    /// <returns>
+    /// Returns the <see cref="IRequestExecutorBuilder"/> so that configuration can be chained.
+    /// </returns>
+    public static IRequestExecutorBuilder ModifyServerOptions(
+        this IRequestExecutorBuilder builder,
+        Action<GraphQLServerOptions> configure)
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(configure);
+
+        builder.Services.Configure(builder.Name, configure);
         return builder;
     }
 }

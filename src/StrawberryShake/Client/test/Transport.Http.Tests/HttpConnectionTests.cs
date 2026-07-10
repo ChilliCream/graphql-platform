@@ -100,7 +100,7 @@ public class HttpConnectionTests : ServerTestBase
                 $"Result {++i}");
         }
 
-        await snapshot.MatchAsync();
+        await snapshot.MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact(Skip = "We are postponing defer integration until spec is more stable.")]
@@ -155,7 +155,7 @@ public class HttpConnectionTests : ServerTestBase
             snapshot.Add(result.RootElement.ToString(), $"Result {++i}");
         }
 
-        await snapshot.MatchAsync();
+        await snapshot.MatchAsync(TestContext.Current.CancellationToken);
     }
 
     private sealed class MockDocument : IDocument

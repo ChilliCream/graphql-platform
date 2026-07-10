@@ -1,5 +1,3 @@
-using HotChocolate.Utilities;
-
 namespace HotChocolate.Subscriptions.Postgres;
 
 internal sealed class ContinuousTask : IAsyncDisposable

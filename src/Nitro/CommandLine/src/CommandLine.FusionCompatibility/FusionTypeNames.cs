@@ -4,7 +4,7 @@ using HotChocolate.Language;
 namespace ChilliCream.Nitro.CommandLine.FusionCompatibility;
 
 /// <summary>
-/// Helper class that tracks the namespaced fusion types.
+/// Helper class that tracks the namespaced Fusion types.
 /// </summary>
 public sealed class FusionTypeNames
 {
@@ -81,7 +81,7 @@ public sealed class FusionTypeNames
     }
 
     /// <summary>
-    /// Gets the prefix for the fusion types.
+    /// Gets the prefix for the Fusion types.
     /// </summary>
     public string? Prefix { get; }
 
@@ -121,7 +121,7 @@ public sealed class FusionTypeNames
     public string TransportDirective { get; }
 
     /// <summary>
-    /// Gets the name of the fusion directive.
+    /// Gets the name of the Fusion directive.
     /// </summary>
     public string FusionDirective { get; }
 
@@ -171,26 +171,26 @@ public sealed class FusionTypeNames
     public string ResolverKind { get; }
 
     /// <summary>
-    /// Specifies if the <paramref name="directiveName"/> represents a fusion directive.
+    /// Specifies if the <paramref name="directiveName"/> represents a Fusion directive.
     /// </summary>
     /// <param name="directiveName">
     /// A directive name.
     /// </param>
     /// <returns>
-    /// <c>true</c> if the specified <paramref name="directiveName"/> represents a fusion directive;
+    /// <c>true</c> if the specified <paramref name="directiveName"/> represents a Fusion directive;
     /// otherwise, <c>false</c>.
     /// </returns>
     public bool IsFusionDirective(string directiveName)
         => _fusionDirectives.Contains(directiveName);
 
     /// <summary>
-    /// Specifies if the <paramref name="typeName"/> represents a fusion type.
+    /// Specifies if the <paramref name="typeName"/> represents a Fusion type.
     /// </summary>
     /// <param name="typeName">
     /// A directive name.
     /// </param>
     /// <returns>
-    /// <c>true</c> if the specified <paramref name="typeName"/> represents a fusion type;
+    /// <c>true</c> if the specified <paramref name="typeName"/> represents a Fusion type;
     /// otherwise, <c>false</c>.
     /// </returns>
     public bool IsFusionType(string typeName)
@@ -200,10 +200,10 @@ public sealed class FusionTypeNames
     /// Creates a new instance of <see cref="FusionTypeNames"/>.
     /// </summary>
     /// <param name="prefix">
-    /// The prefix for the fusion types.
+    /// The prefix for the Fusion types.
     /// </param>
     /// <param name="prefixSelf">
-    /// Specifies if the fusion directive itself should be prefixed.
+    /// Specifies if the Fusion directive itself should be prefixed.
     /// </param>
     /// <returns>
     /// Returns a new instance of <see cref="FusionTypeNames"/>.

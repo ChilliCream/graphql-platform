@@ -412,8 +412,8 @@ public sealed class TypeInfos
             new RuntimeTypeInfo(TypeNames.ByteArraySerializer)
         },
         {
-            TypeNames.TimeSpanSerializer,
-            new RuntimeTypeInfo(TypeNames.TimeSpanSerializer)
+            TypeNames.DurationSerializer,
+            new RuntimeTypeInfo(TypeNames.DurationSerializer)
         },
         {
             TypeNames.UnsignedByteSerializer,

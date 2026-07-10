@@ -1,0 +1,8 @@
+{
+  "data": {
+    "user": {
+      "name": "Alice",
+      "isActive": true
+    }
+  }
+}

@@ -1,16 +1,16 @@
-﻿schema {
+schema {
   query: InputQuery
+}
+
+type InputQuery {
+  loopback(args: FlagsEnumFlagsInput!): FlagsEnumFlags!
+  input(input: EnumInput!): FlagsEnumFlags!
 }
 
 type FlagsEnumFlags {
   isFoo: Boolean!
   isBar: Boolean!
   isBaz: Boolean!
-}
-
-type InputQuery {
-  loopback(args: FlagsEnumFlagsInput!): FlagsEnumFlags!
-  input(input: EnumInput!): FlagsEnumFlags!
 }
 
 input EnumInput {

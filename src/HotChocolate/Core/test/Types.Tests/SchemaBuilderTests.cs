@@ -1037,7 +1037,7 @@ public class SchemaBuilderTests
 
         // act
         var result =
-            await executor.ExecuteAsync("{ foo { baz } }");
+            await executor.ExecuteAsync("{ foo { baz } }", TestContext.Current.CancellationToken);
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -1324,81 +1324,6 @@ public class SchemaBuilderTests
             new TestConventionServiceDependency(dependencyOfConvention));
         Assert.IsType<TestConventionServiceDependency>(convention);
         Assert.Equal(dependencyOfConvention, ((TestConventionServiceDependency)convention).Dependency);
-    }
-
-    [Fact]
-    public void AddConvention_Through_ServiceCollection()
-    {
-        // arrange
-        var services = new ServiceCollection();
-        services.AddTransient<ITestConvention, TestConvention>();
-        var provider = services.BuildServiceProvider();
-
-        // act
-        var schema = SchemaBuilder.New()
-            .AddServices(provider)
-            .AddType<ConventionTestType>()
-            .AddQueryType(d => d
-                .Name("Query")
-                .Field("foo")
-                .Resolve("bar"))
-            .Create();
-
-        // assert
-        var testType = schema.Types.GetType<ConventionTestType>("ConventionTestType");
-        var convention = testType.Context.GetConventionOrDefault<ITestConvention>(new TestConvention2());
-        Assert.IsType<TestConvention>(convention);
-    }
-
-    [Fact]
-    public void AddConvention_Through_ServiceCollection_ProvideImplementation()
-    {
-        // arrange
-        var services = new ServiceCollection();
-        var conventionImpl = new TestConvention();
-        services.AddSingleton<ITestConvention>(conventionImpl);
-        var provider = services.BuildServiceProvider();
-
-        // act
-        var schema = SchemaBuilder.New()
-            .AddServices(provider)
-            .AddType<ConventionTestType>()
-            .AddQueryType(d => d
-                .Name("Query")
-                .Field("foo")
-                .Resolve("bar"))
-            .Create();
-
-        // assert
-        var testType = schema.Types.GetType<ConventionTestType>("ConventionTestType");
-        var convention = testType.Context.GetConventionOrDefault<ITestConvention>(new TestConvention2());
-        Assert.IsType<TestConvention>(convention);
-        Assert.Equal(convention, conventionImpl);
-    }
-
-    [Fact]
-    public void AddConvention_Through_ServiceCollection_And_SchemaBuilderOverrides()
-    {
-        // arrange
-        var services = new ServiceCollection();
-        services.AddSingleton<IConvention, TestConvention>();
-        var provider = services.BuildServiceProvider();
-
-        // act
-        var schema = SchemaBuilder.New()
-            .AddServices(provider)
-            .AddConvention(typeof(IConvention), typeof(TestConvention2))
-            .AddType<ConventionTestType>()
-            .AddQueryType(d => d
-                .Name("Query")
-                .Field("foo")
-                .Resolve("bar"))
-            .Create();
-
-        // assert
-        var testType = schema.Types.GetType<ConventionTestType>("ConventionTestType");
-        var convention = testType.Context.GetConventionOrDefault<ITestConvention>(new TestConvention2());
-        Assert.IsType<TestConvention2>(convention);
     }
 
     [Fact]
@@ -1955,7 +1880,7 @@ public class SchemaBuilderTests
                 .AddGraphQL()
                 .AddQueryType<RootQuery>()
                 .ModifyOptions(options => options.DefaultBindingBehavior = BindingBehavior.Explicit)
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         schema.MatchSnapshot();
     }
@@ -1998,10 +1923,7 @@ public class SchemaBuilderTests
         {
             if (convention is MockConvention mockConvention)
             {
-                if (mockConvention.Configuration != null)
-                {
-                    mockConvention.Configuration.IsExtended = true;
-                }
+                mockConvention.Configuration?.IsExtended = true;
             }
         }
     }

@@ -35,7 +35,7 @@ public class FilterProviderExtensionsTests
         // assert
         Assert.NotNull(convention.DefinitionAccessor);
         Assert.Collection(
-            convention.DefinitionAccessor!.FieldHandlerConfigurations,
+            convention.DefinitionAccessor.FieldHandlerConfigurations,
             x => Assert.Equal(extensionFieldHandler, x.Instance),
             x => Assert.Equal(firstFieldHandler, x.Instance));
     }

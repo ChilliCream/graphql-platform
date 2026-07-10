@@ -9,7 +9,7 @@ using Microsoft.Extensions.ObjectPool;
 
 namespace HotChocolate.Types.Descriptors;
 
-public class XmlDocumentationProvider : IDocumentationProvider
+public partial class XmlDocumentationProvider : IDocumentationProvider
 {
     private const string SummaryElementName = "summary";
     private const string ExceptionElementName = "exception";
@@ -307,9 +307,11 @@ public class XmlDocumentationProvider : IDocumentationProvider
             {
                 var baseType =
                     member.DeclaringType?.GetTypeInfo().BaseType;
+#pragma warning disable IL2075 // 'this' argument does not satisfy 'DynamicallyAccessedMembersAttribute' - baseType is obtained from reflection (BaseType) which cannot be statically annotated.
                 var baseMember =
                     baseType?.GetTypeInfo().DeclaredMembers
                         .SingleOrDefault(m => m.Name == member.Name);
+#pragma warning restore IL2075
 
                 if (baseMember != null)
                 {
@@ -339,12 +341,14 @@ public class XmlDocumentationProvider : IDocumentationProvider
     {
         if (member.DeclaringType is { })
         {
+#pragma warning disable IL2075 // 'this' argument does not satisfy 'DynamicallyAccessedMembersAttribute' - DeclaringType is obtained from reflection which cannot be statically annotated.
             foreach (var baseInterface in member.DeclaringType
                 .GetTypeInfo().ImplementedInterfaces)
             {
                 var baseMember = baseInterface.GetTypeInfo()
                     .DeclaredMembers.SingleOrDefault(m =>
                         m.Name.EqualsOrdinal(member.Name));
+#pragma warning restore IL2075
                 if (baseMember != null)
                 {
                     var baseDoc = GetMemberElement(baseMember);
@@ -369,7 +373,7 @@ public class XmlDocumentationProvider : IDocumentationProvider
             "\n" + documentation.Replace("\r", string.Empty).Trim('\n');
 
         var whitespace =
-            Regex.Match(documentation, "\\n[ \\t]*").Value;
+            WhitespaceExtractionRegex().Match(documentation).Value;
 
         documentation = documentation.Replace(whitespace, "\n");
 
@@ -398,13 +402,14 @@ public class XmlDocumentationProvider : IDocumentationProvider
 
                 var paramTypesList = string.Join(",",
                     ((MethodBase)member).GetParameters()
-                    .Select(x => Regex
-                        .Replace(x.ParameterType.FullName!,
-                            "(`[0-9]+)|(, .*?PublicKeyToken=[0-9a-z]*)",
-                            string.Empty)
-                        .Replace("[[", "{")
-                        .Replace("]]", "}")
-                        .Replace("],[", ","))
+                    .Select(x => ReflectionTypeNameNormalizationRegex().Replace(x.ParameterType.FullName!,
+                        static m => m.Value switch
+                        {
+                            "[[" => "{",
+                            "]]" => "}",
+                            "],[" => ",",
+                            _ => string.Empty
+                        }))
                     .ToArray());
 
                 if (!string.IsNullOrEmpty(paramTypesList))
@@ -478,4 +483,10 @@ public class XmlDocumentationProvider : IDocumentationProvider
                 name);
         }
     }
+
+    [GeneratedRegex("\\n[ \\t]*")]
+    private static partial Regex WhitespaceExtractionRegex();
+
+    [GeneratedRegex(@"(`\d+)|(, .*?PublicKeyToken=[0-9a-z]*)|(\[\[)|(\]\])|(\],\[)")]
+    private static partial Regex ReflectionTypeNameNormalizationRegex();
 }

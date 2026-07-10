@@ -149,12 +149,12 @@ public sealed class TypeModuleSyntaxGenerator : ISyntaxGenerator
                         && objectTypeExtension.Diagnostics.Length == 0)
                     {
                         objectTypeExtensions ??= [];
-                        objectTypeExtensions.Add(objectTypeExtension.RuntimeType.ToFullyQualified());
+                        objectTypeExtensions.Add(objectTypeExtension.RuntimeTypeName.FullyQualifiedName);
 
                         generator.WriteRegisterTypeExtension(
-                            GetAssemblyQualifiedName(objectTypeExtension.SchemaSchemaType),
-                            objectTypeExtension.RuntimeType.ToFullyQualified(),
-                            objectTypeExtension.SchemaSchemaType.ToFullyQualified());
+                            objectTypeExtension.RegistrationKey,
+                            objectTypeExtension.RuntimeTypeName.FullyQualifiedName,
+                            objectTypeExtension.SchemaTypeName.FullyQualifiedName);
                         hasConfigurations = true;
                     }
 
@@ -185,12 +185,12 @@ public sealed class TypeModuleSyntaxGenerator : ISyntaxGenerator
                         && interfaceType.Diagnostics.Length == 0)
                     {
                         interfaceTypeExtensions ??= [];
-                        interfaceTypeExtensions.Add(interfaceType.RuntimeType.ToFullyQualified());
+                        interfaceTypeExtensions.Add(interfaceType.RuntimeTypeName.FullyQualifiedName);
 
                         generator.WriteRegisterTypeExtension(
-                            GetAssemblyQualifiedName(interfaceType.SchemaSchemaType),
-                            interfaceType.RuntimeType.ToFullyQualified(),
-                            interfaceType.SchemaSchemaType.ToFullyQualified());
+                            interfaceType.RegistrationKey,
+                            interfaceType.RuntimeTypeName.FullyQualifiedName,
+                            interfaceType.SchemaTypeName.FullyQualifiedName);
                         hasConfigurations = true;
                     }
 
@@ -203,9 +203,9 @@ public sealed class TypeModuleSyntaxGenerator : ISyntaxGenerator
                         var operationType = rootType.OperationType;
 
                         generator.WriteRegisterRootTypeExtension(
-                            GetAssemblyQualifiedName(rootType.SchemaSchemaType),
+                            rootType.RegistrationKey,
                             operationType,
-                            rootType.SchemaSchemaType.ToFullyQualified());
+                            rootType.SchemaTypeName.FullyQualifiedName);
                         hasConfigurations = true;
 
                         if (operationType is not OperationType.No && (operations & operationType) != operationType)
@@ -310,12 +310,5 @@ public sealed class TypeModuleSyntaxGenerator : ISyntaxGenerator
         generator.WriteEndNamespace();
 
         addSource(WellKnownFileNames.RootTypesFile, generator.ToString());
-    }
-
-    public static string GetAssemblyQualifiedName(ITypeSymbol typeSymbol)
-    {
-        var assemblyName = typeSymbol.ContainingAssembly?.Name ?? "UnknownAssembly";
-        var typeFullName = typeSymbol.ToDisplayString();
-        return $"{assemblyName}::{typeFullName}";
     }
 }

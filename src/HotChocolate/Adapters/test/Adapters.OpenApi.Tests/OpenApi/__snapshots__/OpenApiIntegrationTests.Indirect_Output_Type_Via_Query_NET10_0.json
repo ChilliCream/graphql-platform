@@ -1,0 +1,84 @@
+{
+  "openapi": "3.1.1",
+  "info": {
+    "title": "HotChocolate.Adapters.OpenApi.Tests | v1",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "http://localhost/"
+    }
+  ],
+  "paths": {
+    "/indirect-output": {
+      "get": {
+        "operationId": "getIndirect",
+        "responses": {
+          "200": {
+            "description": null,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "required": [
+                    "value",
+                    "middle"
+                  ],
+                  "type": "object",
+                  "properties": {
+                    "value": {
+                      "type": "string"
+                    },
+                    "middle": {
+                      "required": [
+                        "label",
+                        "parent"
+                      ],
+                      "type": [
+                        "null",
+                        "object"
+                      ],
+                      "properties": {
+                        "label": {
+                          "type": "string"
+                        },
+                        "parent": {
+                          "required": [
+                            "value",
+                            "middle"
+                          ],
+                          "type": [
+                            "null",
+                            "object"
+                          ],
+                          "properties": {
+                            "value": {
+                              "type": "string"
+                            },
+                            "middle": {
+                              "required": [
+                                "label"
+                              ],
+                              "type": [
+                                "null",
+                                "object"
+                              ],
+                              "properties": {
+                                "label": {
+                                  "type": "string"
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

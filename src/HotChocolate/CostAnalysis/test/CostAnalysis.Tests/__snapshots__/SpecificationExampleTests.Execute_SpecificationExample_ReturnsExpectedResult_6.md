@@ -39,4 +39,3 @@ type Query {
     example: [String] @cost(weight: "5.0")
 }
 ```
-

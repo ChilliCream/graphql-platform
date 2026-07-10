@@ -31,7 +31,6 @@ internal static class ResolverTaskFactory
                 var coordinator = operationContext.DeferExecutionCoordinator;
                 var deferFlags = operationContext.DeferFlags;
                 var branches = ImmutableDictionary<DeferUsage, int>.Empty;
-                DeferUsage? lastDeferUsage = null;
 
                 foreach (var field in data)
                 {
@@ -39,34 +38,44 @@ internal static class ResolverTaskFactory
 
                     if (selection.IsDeferred(deferFlags))
                     {
-                        // if IsDeferred is true then GetPrimaryDeferUsage will be guaranteed
-                        // to return a defer usage for the same deferFlags
-                        var deferUsage = selection.GetPrimaryDeferUsage(deferFlags);
-                        Debug.Assert(deferUsage is not null);
+                        // Get all active defer usages for this field.
+                        // If IsDeferred is true, there is at least one active usage.
+                        var deferUsages = selection.GetActiveDeferUsages(deferFlags);
+                        Debug.Assert(deferUsages is not null);
 
                         field.Value.MarkAsDeferred();
 
-                        if (lastDeferUsage == deferUsage)
+                        // Create a branch for each distinct active defer usage.
+                        foreach (var deferUsage in deferUsages)
                         {
-                            continue;
+                            if (!branches.TryGetValue(deferUsage, out _))
+                            {
+                                var branchId = coordinator.Branch(mainBranchId, Path.Root, deferUsage);
+                                branches = branches.Add(deferUsage, branchId);
+                            }
                         }
 
-                        if (!branches.TryGetValue(deferUsage, out var branchId))
-                        {
-                            branchId = coordinator.Branch(mainBranchId, Path.Root, deferUsage);
-                            branches = branches.Add(deferUsage, branchId);
-                        }
-
-                        lastDeferUsage = deferUsage;
                         continue;
                     }
 
-                    bufferedTasks[i++] =
-                        operationContext.CreateResolverTask(
-                            parent,
+                    if (selection.Strategy is SelectionExecutionStrategy.Batch)
+                    {
+                        scheduler.RegisterBatchEntry(
                             selection,
+                            parent,
                             field.Value,
-                            scopedContext);
+                            scopedContext,
+                            mainBranchId);
+                    }
+                    else
+                    {
+                        bufferedTasks[i++] =
+                            operationContext.CreateResolverTask(
+                                parent,
+                                selection,
+                                field.Value,
+                                scopedContext);
+                    }
                 }
 
                 if (i == 0 && branches.IsEmpty)
@@ -102,12 +111,26 @@ internal static class ResolverTaskFactory
             {
                 foreach (var field in data)
                 {
-                    bufferedTasks[i++] =
-                        operationContext.CreateResolverTask(
+                    var selection = field.AssertSelection();
+
+                    if (selection.Strategy is SelectionExecutionStrategy.Batch)
+                    {
+                        scheduler.RegisterBatchEntry(
+                            selection,
                             parent,
-                            field.AssertSelection(),
                             field.Value,
-                            scopedContext);
+                            scopedContext,
+                            mainBranchId);
+                    }
+                    else
+                    {
+                        bufferedTasks[i++] =
+                            operationContext.CreateResolverTask(
+                                parent,
+                                selection,
+                                field.Value,
+                                scopedContext);
+                    }
                 }
 
                 if (i == 0)
@@ -153,7 +176,6 @@ internal static class ResolverTaskFactory
             var coordinator = operationContext.DeferExecutionCoordinator;
             var deferFlags = operationContext.DeferFlags;
             var branches = ImmutableDictionary<DeferUsage, int>.Empty;
-            DeferUsage? lastDeferUsage = null;
             Path? currentPath = null;
 
             var parentBranchId = context.ParentBranchId;
@@ -164,34 +186,36 @@ internal static class ResolverTaskFactory
 
                 if (selection.IsDeferred(deferFlags, parentDeferUsage))
                 {
-                    // if IsDeferred is true then GetPrimaryDeferUsage will be guaranteed
-                    // to return a defer usage for the same deferFlags
-                    var deferUsage = selection.GetPrimaryDeferUsage(deferFlags);
-                    Debug.Assert(deferUsage is not null);
+                    var deferUsages = selection.GetActiveDeferUsages(deferFlags);
+                    Debug.Assert(deferUsages is not null);
 
                     field.Value.MarkAsDeferred();
 
-                    if (lastDeferUsage == deferUsage)
+                    // Only create branches for defer usages that are descendants
+                    // of the parent defer usage. Sibling defers are handled by
+                    // their own DeferTask at a higher level.
+                    foreach (var deferUsage in deferUsages)
                     {
-                        continue;
-                    }
+                        if (!IsDescendantOf(deferUsage, parentDeferUsage))
+                        {
+                            continue;
+                        }
 
-                    if (!branches.TryGetValue(deferUsage, out var branchId))
-                    {
-                        currentPath ??= resultValue.Path;
-                        branchId = coordinator.Branch(parentBranchId, currentPath, deferUsage);
-                        branches = branches.Add(deferUsage, branchId);
-                        context.Tasks.Add(
-                            operationContext.CreateDeferTask(
-                                selectionSet,
-                                currentPath,
-                                parent,
-                                context.ResolverContext.ScopedContextData,
-                                branchId,
-                                deferUsage));
+                        if (!branches.TryGetValue(deferUsage, out _))
+                        {
+                            currentPath ??= resultValue.Path;
+                            var branchId = coordinator.Branch(parentBranchId, currentPath, deferUsage);
+                            branches = branches.Add(deferUsage, branchId);
+                            context.Tasks.Add(
+                                operationContext.CreateDeferTask(
+                                    selectionSet,
+                                    currentPath,
+                                    parent,
+                                    context.ResolverContext.ScopedContextData,
+                                    branchId,
+                                    deferUsage));
+                        }
                     }
-
-                    lastDeferUsage = deferUsage;
                 }
                 else if (selection.Strategy is SelectionExecutionStrategy.Pure)
                 {
@@ -202,6 +226,16 @@ internal static class ResolverTaskFactory
                         field.Value,
                         parent);
                 }
+                else if (selection.Strategy is SelectionExecutionStrategy.Batch)
+                {
+                    operationContext.Scheduler.RegisterBatchEntry(
+                        selection,
+                        parent,
+                        field.Value,
+                        context.ResolverContext.ScopedContextData,
+                        context.ParentBranchId,
+                        parentDeferUsage);
+                }
                 else
                 {
                     context.Tasks.Add(
@@ -209,7 +243,9 @@ internal static class ResolverTaskFactory
                             parent,
                             selection,
                             field.Value,
-                            context.ResolverContext.ScopedContextData));
+                            context.ResolverContext.ScopedContextData,
+                            context.ParentBranchId,
+                            parentDeferUsage));
                 }
             }
         }
@@ -228,6 +264,15 @@ internal static class ResolverTaskFactory
                         field.Value,
                         parent);
                 }
+                else if (selection.Strategy is SelectionExecutionStrategy.Batch)
+                {
+                    operationContext.Scheduler.RegisterBatchEntry(
+                        selection,
+                        parent,
+                        field.Value,
+                        context.ResolverContext.ScopedContextData,
+                        context.ParentBranchId);
+                }
                 else
                 {
                     context.Tasks.Add(
@@ -235,7 +280,8 @@ internal static class ResolverTaskFactory
                             parent,
                             selection,
                             field.Value,
-                            context.ResolverContext.ScopedContextData));
+                            context.ResolverContext.ScopedContextData,
+                            context.ParentBranchId));
                 }
             }
         }
@@ -303,9 +349,45 @@ internal static class ResolverTaskFactory
 
         if (fieldValue is { IsNullable: false, IsNullOrInvalidated: true })
         {
-            PropagateNullValues(fieldValue);
+            if (operationContext.PropagateNullValues)
+            {
+                PropagateNullValues(fieldValue);
+            }
+            else
+            {
+                fieldValue.SetNullValue();
+            }
+
             operationContext.Result.AddNonNullViolation(fieldValue.Path);
         }
+    }
+
+    /// <summary>
+    /// Checks whether <paramref name="deferUsage"/> is a descendant of
+    /// <paramref name="parentDeferUsage"/> in the defer usage parent chain.
+    /// Returns <c>true</c> if <paramref name="parentDeferUsage"/> is <c>null</c>
+    /// (everything is a descendant of the root context).
+    /// </summary>
+    private static bool IsDescendantOf(DeferUsage deferUsage, DeferUsage? parentDeferUsage)
+    {
+        if (parentDeferUsage is null)
+        {
+            return true;
+        }
+
+        var current = deferUsage.Parent;
+
+        while (current is not null)
+        {
+            if (current == parentDeferUsage)
+            {
+                return true;
+            }
+
+            current = current.Parent;
+        }
+
+        return false;
     }
 
     private sealed class NoOpExecutionTask(OperationContext context) : ExecutionTask

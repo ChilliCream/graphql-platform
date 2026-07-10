@@ -6,4 +6,4 @@ type Query @foo {
   foo: String
 }
 
-directive @foo(argument1: String = "abc" argument2: String) on OBJECT
+directive @foo(argument1: String = "abc", argument2: String) on OBJECT

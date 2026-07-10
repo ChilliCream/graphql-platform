@@ -1,7 +1,7 @@
 {
   hero(episode: EMPIRE) {
-    ... CharFields @defer(label: "DeferCharFields")
-    ... CharFields
+    ...CharFields @defer(label: "DeferCharFields")
+    ...CharFields
   }
 }
 

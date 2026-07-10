@@ -7,7 +7,11 @@ namespace GreenDonut.Data.Cursors;
 /// </summary>
 public static class CursorKeySerializerRegistration
 {
+#if NET9_0_OR_GREATER
+    private static readonly Lock s_sync = new();
+#else
     private static readonly object s_sync = new();
+#endif
 
     private static ICursorKeySerializer[] s_serializers =
     [
@@ -26,7 +30,15 @@ public static class CursorKeySerializerRegistration
         new BoolCursorKeySerializer(),
         new UShortCursorKeySerializer(),
         new UIntCursorKeySerializer(),
-        new ULongCursorKeySerializer()
+        new ULongCursorKeySerializer(),
+        new EnumCursorKeySerializer<byte>(),
+        new EnumCursorKeySerializer<sbyte>(),
+        new EnumCursorKeySerializer<short>(),
+        new EnumCursorKeySerializer<ushort>(),
+        new EnumCursorKeySerializer<int>(),
+        new EnumCursorKeySerializer<uint>(),
+        new EnumCursorKeySerializer<long>(),
+        new EnumCursorKeySerializer<ulong>()
     ];
 
     /// <summary>

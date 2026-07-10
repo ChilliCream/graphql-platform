@@ -64,6 +64,14 @@
                 "null"
               ]
             },
+            "duration": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "format": "duration",
+              "pattern": "^-?P(?:\\d+W|(?=\\d|T(?:\\d|$))(?:\\d+Y)?(?:\\d+M)?(?:\\d+D)?(?:T(?:\\d+H)?(?:\\d+M)?(?:\\d+(?:\\.\\d+)?S)?)?)$"
+            },
             "enum": {
               "type": [
                 "string",
@@ -200,14 +208,6 @@
                 "null"
               ]
             },
-            "timeSpan": {
-              "type": [
-                "string",
-                "null"
-              ],
-              "format": "duration",
-              "pattern": "^-?P(?:\\d+W|(?=\\d|T(?:\\d|$))(?:\\d+Y)?(?:\\d+M)?(?:\\d+D)?(?:T(?:\\d+H)?(?:\\d+M)?(?:\\d+(?:\\.\\d+)?S)?)?)$"
-            },
             "unknown": {
               "type": [
                 "string",
@@ -277,6 +277,7 @@
             "date",
             "dateTime",
             "decimal",
+            "duration",
             "enum",
             "float",
             "id",
@@ -289,7 +290,6 @@
             "object",
             "short",
             "string",
-            "timeSpan",
             "unknown",
             "unsignedByte",
             "unsignedInt",

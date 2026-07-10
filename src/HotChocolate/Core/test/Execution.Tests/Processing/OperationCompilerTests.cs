@@ -103,7 +103,7 @@ public class OperationCompilerTests
                         homePlanet
                     }
                 }
-             }");
+            }");
 
         // act
         var operation = OperationCompiler.Compile(
@@ -139,7 +139,7 @@ public class OperationCompilerTests
               fragment def on Human {
                   homePlanet
               }
-             ");
+            ");
 
         // act
         var operation = OperationCompiler.Compile(
@@ -947,7 +947,7 @@ public class OperationCompilerTests
                     }
                     """)
                 .UseField(next => next)
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var document = Utf8GraphQLParser.Parse(
             """
@@ -1016,7 +1016,7 @@ public class OperationCompilerTests
                     }
                     """)
                 .UseField(next => next)
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var document = Utf8GraphQLParser.Parse(
             """
@@ -1089,7 +1089,7 @@ public class OperationCompilerTests
                     }
                     """)
                 .UseField(next => next)
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var document = Utf8GraphQLParser.Parse(
             """
@@ -1153,7 +1153,7 @@ public class OperationCompilerTests
                     }
                     """)
                 .UseField(next => next)
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var document = Utf8GraphQLParser.Parse(
             """
@@ -1183,6 +1183,197 @@ public class OperationCompilerTests
                         }
                       }
                     }
+                  }
+                }
+              }
+            }
+            """);
+
+        // act
+        var operation = OperationCompiler.Compile(
+            "opid",
+            document,
+            schema);
+
+        // assert
+        MatchSnapshot(document, operation);
+    }
+
+    [Fact]
+    public async Task Defer_Three_Fragments_Overlapping_Paths()
+    {
+        // arrange
+        // Three top-level @defer fragment spreads on the same object type,
+        // where two fragments select the same nested path (metrics.subgraphs.insights)
+        // with different sub-selections. This mirrors a production query where
+        // apiTopologyTileFragment and gatewaySubgraphsTileFragment both select
+        // metrics.subgraphs.insights but with different fields per edge node.
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddDocumentFromString(
+                    """
+                    type Query {
+                      stage: Stage
+                    }
+
+                    type Stage {
+                      id: ID!
+                      displayName: String
+                      essentials: Essentials
+                      metrics: Metrics
+                    }
+
+                    type Essentials {
+                      version: String
+                    }
+
+                    type Metrics {
+                      operations: OperationMetrics
+                      clients: ClientMetrics
+                      subgraphs: SubgraphMetrics
+                    }
+
+                    type OperationMetrics {
+                      summary: OperationSummary
+                    }
+
+                    type OperationSummary {
+                      latency: Latency
+                      throughput: Throughput
+                    }
+
+                    type Latency {
+                      mean: Float
+                    }
+
+                    type Throughput {
+                      opm: Float
+                      errorRate: Float
+                    }
+
+                    type ClientMetrics {
+                      insights: ClientInsightsConnection
+                    }
+
+                    type ClientInsightsConnection {
+                      edges: [ClientInsightsEdge]
+                    }
+
+                    type ClientInsightsEdge {
+                      node: ClientInsight
+                    }
+
+                    type ClientInsight {
+                      id: ID!
+                      name: String
+                    }
+
+                    type SubgraphMetrics {
+                      insights: SubgraphInsightsConnection
+                    }
+
+                    type SubgraphInsightsConnection {
+                      edges: [SubgraphInsightsEdge]
+                      pageInfo: PageInfo
+                    }
+
+                    type SubgraphInsightsEdge {
+                      node: SubgraphInsight
+                      cursor: String
+                    }
+
+                    type SubgraphInsight {
+                      id: ID!
+                      name: String
+                      impact: Float
+                      latency: LatencyDataset
+                      throughput: ThroughputDataset
+                    }
+
+                    type LatencyDataset {
+                      dataset: [LatencyDataPoint]
+                    }
+
+                    type LatencyDataPoint {
+                      epoch: Float
+                      mean: Float
+                    }
+
+                    type ThroughputDataset {
+                      dataset: [ThroughputDataPoint]
+                    }
+
+                    type ThroughputDataPoint {
+                      epoch: Float
+                      opm: Float
+                      errorRate: Float
+                    }
+
+                    type PageInfo {
+                      endCursor: String
+                      hasNextPage: Boolean
+                    }
+                    """)
+                .UseField(next => next)
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        var document = Utf8GraphQLParser.Parse(
+            """
+            query {
+              stage {
+                ...FragmentA @defer(label: "a")
+                ...FragmentB @defer(label: "b")
+                ...FragmentC @defer(label: "c")
+                id
+              }
+            }
+
+            fragment FragmentA on Stage {
+              metrics {
+                operations {
+                  summary {
+                    latency { mean }
+                    throughput { opm errorRate }
+                  }
+                }
+                clients {
+                  insights {
+                    edges {
+                      node { id name }
+                    }
+                  }
+                }
+                subgraphs {
+                  insights {
+                    edges {
+                      node { id name }
+                    }
+                  }
+                }
+              }
+            }
+
+            fragment FragmentB on Stage {
+              displayName
+              essentials { version }
+            }
+
+            fragment FragmentC on Stage {
+              metrics {
+                subgraphs {
+                  insights {
+                    edges {
+                      node {
+                        id
+                        name
+                        impact
+                        latency { dataset { epoch mean } }
+                        throughput { dataset { epoch opm errorRate } }
+                      }
+                      cursor
+                    }
+                    pageInfo { endCursor hasNextPage }
                   }
                 }
               }
@@ -1320,7 +1511,7 @@ public class OperationCompilerTests
             await new ServiceCollection()
                 .AddGraphQLServer()
                 .AddStarWarsTypes()
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var document = Utf8GraphQLParser.Parse(
             FileResource.Open("LargeQuery.graphql"));
@@ -1344,7 +1535,7 @@ public class OperationCompilerTests
                 .AddGraphQLServer()
                 .AddDocumentFromString(FileResource.Open("Crypto.graphql"))
                 .UseField(next => next)
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var document = Utf8GraphQLParser.Parse(
             FileResource.Open("CryptoDetailQuery.graphql"));
@@ -1368,7 +1559,7 @@ public class OperationCompilerTests
                 .AddGraphQLServer()
                 .AddDocumentFromString(FileResource.Open("Crypto.graphql"))
                 .UseField(next => next)
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var document = Utf8GraphQLParser.Parse(
             """
@@ -1407,7 +1598,7 @@ public class OperationCompilerTests
                 .AddGraphQLServer()
                 .AddDocumentFromString(FileResource.Open("Crypto.graphql"))
                 .UseField(next => next)
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var document = Utf8GraphQLParser.Parse(
             """
@@ -1446,7 +1637,7 @@ public class OperationCompilerTests
                 .AddGraphQLServer()
                 .AddDocumentFromString(FileResource.Open("Crypto.graphql"))
                 .UseField(next => next)
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var document = Utf8GraphQLParser.Parse(
             """
@@ -1486,7 +1677,7 @@ public class OperationCompilerTests
                 .AddGraphQLServer()
                 .AddDocumentFromString(FileResource.Open("Crypto.graphql"))
                 .UseField(next => next)
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var document = Utf8GraphQLParser.Parse(
             FileResource.Open("CryptoQuery.graphql"));
@@ -1541,7 +1732,7 @@ public class OperationCompilerTests
                     }
                     """)
                 .UseField(next => next)
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var document = Utf8GraphQLParser.Parse(
             """
@@ -1623,7 +1814,7 @@ public class OperationCompilerTests
                     }
                     """)
                 .UseField(next => next)
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var document = Utf8GraphQLParser.Parse(
             """
@@ -1676,7 +1867,7 @@ public class OperationCompilerTests
                 .AddType<TypeOne>()
                 .AddType<TypeTwo>()
                 .UseField(next => next)
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var document = Utf8GraphQLParser.Parse(
             """
@@ -1716,7 +1907,7 @@ public class OperationCompilerTests
                 .AddQueryType<UnionQuery>()
                 .AddType<TypeOne>()
                 .AddType<TypeTwo>()
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var document = Utf8GraphQLParser.Parse(
             """
@@ -1737,7 +1928,9 @@ public class OperationCompilerTests
             """);
 
         // act
-        var result = await executor.ExecuteAsync(builder => builder.SetDocument(document));
+        var result = await executor.ExecuteAsync(
+            builder => builder.SetDocument(document),
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -1784,6 +1977,7 @@ public class OperationCompilerTests
                 var compiledSelection = new Selection(
                     context.NewSelectionId(),
                     "someName",
+                    SelectionPath.Root,
                     baz,
                     [new FieldSelectionNode(bazSelection, 0)],
                     [],

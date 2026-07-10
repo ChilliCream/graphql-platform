@@ -25,7 +25,8 @@ public class DataExtensionsTests : IClassFixture<RavenDBResource<CustomRavenDBDe
         var executor = await CreateExecutorAsync();
 
         // act
-        var result = await executor.ExecuteAsync("""
+        var result = await executor.ExecuteAsync(
+            """
             {
                 pagingName(first: 2) {
                     nodes {
@@ -43,10 +44,11 @@ public class DataExtensionsTests : IClassFixture<RavenDBResource<CustomRavenDBDe
 
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
-        await Snapshot.Create().AddResult(result).MatchAsync();
+        await Snapshot.Create().AddResult(result).MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -56,7 +58,8 @@ public class DataExtensionsTests : IClassFixture<RavenDBResource<CustomRavenDBDe
         var executor = await CreateExecutorAsync();
 
         // act
-        var result = await executor.ExecuteAsync("""
+        var result = await executor.ExecuteAsync(
+            """
             {
                 filtering(where: {engine: {cylinderCount: {gte: 4}}}) {
                     id
@@ -66,10 +69,11 @@ public class DataExtensionsTests : IClassFixture<RavenDBResource<CustomRavenDBDe
                     }
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
-        await Snapshot.Create().AddResult(result).MatchAsync();
+        await Snapshot.Create().AddResult(result).MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -79,7 +83,8 @@ public class DataExtensionsTests : IClassFixture<RavenDBResource<CustomRavenDBDe
         var executor = await CreateExecutorAsync();
 
         // act
-        var result = await executor.ExecuteAsync("""
+        var result = await executor.ExecuteAsync(
+            """
             {
                 offset(skip: 2) {
                     items {
@@ -96,10 +101,11 @@ public class DataExtensionsTests : IClassFixture<RavenDBResource<CustomRavenDBDe
 
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
-        await Snapshot.Create().AddResult(result).MatchAsync();
+        await Snapshot.Create().AddResult(result).MatchAsync(TestContext.Current.CancellationToken);
     }
 
     public ValueTask<IRequestExecutor> CreateExecutorAsync() => new ServiceCollection()

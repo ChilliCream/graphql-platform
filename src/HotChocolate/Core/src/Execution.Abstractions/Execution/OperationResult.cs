@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using HotChocolate.Collections.Immutable;
+using HotChocolate.Language;
 
 namespace HotChocolate.Execution;
 
@@ -47,11 +48,7 @@ public sealed class OperationResult : ExecutionResult
 
         if (data.MemoryHolder is { } memoryHolder)
         {
-            RegisterForCleanup(() =>
-            {
-                memoryHolder.Dispose();
-                return ValueTask.CompletedTask;
-            });
+            RegisterForCleanup(memoryHolder);
         }
     }
 
@@ -124,6 +121,12 @@ public sealed class OperationResult : ExecutionResult
     /// Used when executing operations with multiple variable sets.
     /// </summary>
     public int? VariableIndex { get; init; }
+
+    /// <summary>
+    /// Gets or initializes the defragmentized operation document that produced this result.
+    /// This may be used by transport formatters that need document-level selection context.
+    /// </summary>
+    public DocumentNode? Document { get; init; }
 
     /// <summary>
     /// Gets or sets the path to the insertion point for incremental delivery.

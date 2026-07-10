@@ -15,7 +15,11 @@ public static class PooledObjects
         new ConcurrentDictionary<string, string>[8];
     private static int s_nextStringDictionaryIndex = -1;
 
+#if NET9_0_OR_GREATER
+    private static readonly Lock s_lock = new();
+#else
     private static readonly object s_lock = new();
+#endif
 
     public static StringBuilder GetStringBuilder()
     {

@@ -80,35 +80,30 @@ public static class HotChocolateAzureFunctionServiceCollectionExtensions
         services.AddSingleton<IGraphQLRequestExecutor>(sp =>
         {
             PathString path = apiRoute.TrimEnd('/');
-            var options = new GraphQLServerOptions();
-
-            foreach (var configure in sp.GetServices<Action<GraphQLServerOptions>>())
-            {
-                configure(options);
-            }
-
-            // We need to set the ServeMode to Embedded to ensure that the GraphQL IDE is
-            // working since the isolation mode does not allow us to take control over the response
-            // object.
-            options.Tool.ServeMode = GraphQLToolServeMode.Embedded;
 
             schemaName ??= ISchemaDefinition.DefaultName;
             var executorProvider = sp.GetRequiredService<IRequestExecutorProvider>();
             var executorEvents = sp.GetRequiredService<IRequestExecutorEvents>();
             var formOptions = sp.GetRequiredService<IOptions<FormOptions>>();
             var executor = new HttpRequestExecutorProxy(executorProvider, executorEvents, schemaName);
+            var serverOptions = sp.GetRequiredService<IOptionsMonitor<GraphQLServerOptions>>().Get(schemaName);
+
+            // We need to set the ServeMode to Embedded to ensure that the GraphQL IDE is
+            // working since the isolation mode does not allow us to take control over the response
+            // object.
+            serverOptions.Tool.ServeMode = ServeMode.Embedded;
 
             var pipeline = new PipelineBuilder()
                 .Use(MiddlewareFactory.CreateCancellationMiddleware())
-                .Use(MiddlewareFactory.CreateWebSocketSubscriptionMiddleware(executor))
-                .Use(MiddlewareFactory.CreateHttpPostMiddleware(executor))
-                .Use(MiddlewareFactory.CreateHttpMultipartMiddleware(executor, formOptions))
-                .Use(MiddlewareFactory.CreateHttpGetMiddleware(executor))
-                .Use(MiddlewareFactory.CreateHttpGetSchemaMiddleware(executor, path, MiddlewareRoutingType.Integrated))
-                .UseNitroApp(path)
+                .Use(MiddlewareFactory.CreateWebSocketSubscriptionMiddleware(executor, serverOptions))
+                .Use(MiddlewareFactory.CreateHttpPostMiddleware(executor, serverOptions))
+                .Use(MiddlewareFactory.CreateHttpMultipartMiddleware(executor, serverOptions, formOptions))
+                .Use(MiddlewareFactory.CreateHttpGetMiddleware(executor, serverOptions))
+                .Use(MiddlewareFactory.CreateHttpGetSchemaMiddleware(executor, serverOptions, path, MiddlewareRoutingType.Integrated))
+                .UseNitroApp(path, serverOptions.Tool)
                 .Compile(sp);
 
-            return new DefaultGraphQLRequestExecutor(pipeline, options);
+            return new DefaultGraphQLRequestExecutor(pipeline);
         });
 
         return services;
@@ -133,13 +128,14 @@ public static class HotChocolateAzureFunctionServiceCollectionExtensions
         ArgumentNullException.ThrowIfNull(builder);
         ArgumentNullException.ThrowIfNull(configure);
 
-        builder.Services.AddSingleton(configure);
+        builder.ModifyServerOptions(configure);
         return builder;
     }
 
     private static PipelineBuilder UseNitroApp(
         this PipelineBuilder requestPipeline,
-        PathString path)
+        PathString path,
+        NitroAppOptions options)
     {
         ArgumentNullException.ThrowIfNull(requestPipeline);
 
@@ -150,22 +146,22 @@ public static class HotChocolateAzureFunctionServiceCollectionExtensions
         return requestPipeline
             .Use(next =>
             {
-                var middleware = new NitroAppOptionsFileMiddleware(next, path);
+                var middleware = new NitroAppOptionsFileMiddleware(next, path, options);
                 return middleware.Invoke;
             })
             .Use(next =>
             {
-                var middleware = new NitroAppCdnMiddleware(next, path, forwarderAccessor);
+                var middleware = new NitroAppCdnMiddleware(next, path, forwarderAccessor, options);
                 return middleware.Invoke;
             })
             .Use(next =>
             {
-                var middleware = new NitroAppDefaultFileMiddleware(next, fileProvider, path);
+                var middleware = new NitroAppDefaultFileMiddleware(next, fileProvider, path, options);
                 return middleware.Invoke;
             })
             .Use(next =>
             {
-                var middleware = new NitroAppStaticFileMiddleware(next, fileProvider, path);
+                var middleware = new NitroAppStaticFileMiddleware(next, fileProvider, path, options);
                 return middleware.Invoke;
             });
     }

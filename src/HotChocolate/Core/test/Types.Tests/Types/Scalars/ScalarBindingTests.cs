@@ -35,12 +35,12 @@ public class ScalarBindingTests
 
     public class QueryA
     {
-        public Bar? Bar([GraphQLType(typeof(ExplicitBindingScalar))] int id) => new Bar();
+        public Bar? Bar([GraphQLType(typeof(ExplicitBindingScalar))] decimal id) => new Bar();
     }
 
     public class QueryB
     {
-        public Bar? Bar([GraphQLType(typeof(ImplicitBindingScalar))] int id) => new Bar();
+        public Bar? Bar([GraphQLType(typeof(ImplicitBindingScalar))] decimal id) => new Bar();
     }
 
     public class Bar
@@ -50,10 +50,10 @@ public class ScalarBindingTests
 
     public class Baz
     {
-        public int Text { get; set; }
+        public decimal Text { get; set; }
     }
 
-    public class ImplicitBindingScalar : ScalarType<int>
+    public class ImplicitBindingScalar : ScalarType<decimal>
     {
         public ImplicitBindingScalar()
             : base("FOO", BindingBehavior.Implicit)
@@ -72,18 +72,18 @@ public class ScalarBindingTests
             throw new NotImplementedException();
         }
 
-        protected override void OnCoerceOutputValue(int runtimeValue, ResultElement resultValue)
+        protected override void OnCoerceOutputValue(decimal runtimeValue, ResultElement resultValue)
         {
             throw new NotImplementedException();
         }
 
-        protected override IValueNode OnValueToLiteral(int runtimeValue)
+        protected override IValueNode OnValueToLiteral(decimal runtimeValue)
         {
             throw new NotImplementedException();
         }
     }
 
-    public class ExplicitBindingScalar : ScalarType<int>
+    public class ExplicitBindingScalar : ScalarType<decimal>
     {
         public ExplicitBindingScalar()
             : base("FOO", BindingBehavior.Explicit)
@@ -102,12 +102,12 @@ public class ScalarBindingTests
             throw new NotImplementedException();
         }
 
-        protected override void OnCoerceOutputValue(int runtimeValue, ResultElement resultValue)
+        protected override void OnCoerceOutputValue(decimal runtimeValue, ResultElement resultValue)
         {
             throw new NotImplementedException();
         }
 
-        protected override IValueNode OnValueToLiteral(int runtimeValue)
+        protected override IValueNode OnValueToLiteral(decimal runtimeValue)
         {
             throw new NotImplementedException();
         }

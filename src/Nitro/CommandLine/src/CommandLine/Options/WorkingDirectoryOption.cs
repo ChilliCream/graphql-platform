@@ -1,24 +1,23 @@
-namespace ChilliCream.Nitro.CommandLine.Options;
+namespace ChilliCream.Nitro.CommandLine;
 
 internal sealed class WorkingDirectoryOption : Option<string>
 {
     public WorkingDirectoryOption() : base("--working-directory")
     {
-        Description = CommandLineResources.ComposeCommand_WorkingDirectory_Description;
-        AddAlias("-w");
-        AddValidator(result =>
+        Description = "Set the working directory for the command";
+        Aliases.Add("-w");
+        Validators.Add(result =>
         {
-            var workingDirectory = result.GetValueForOption(this);
+            var workingDirectory = result.GetValue(this);
 
-            if (!Directory.Exists(workingDirectory))
+            if (workingDirectory is not null && !Directory.Exists(workingDirectory))
             {
-                result.ErrorMessage =
+                result.AddError(
                     string.Format(
-                        CommandLineResources.ComposeCommand_Error_WorkingDirectoryDoesNotExist,
-                        workingDirectory);
+                        "❌ Working directory '{0}' does not exist.",
+                        workingDirectory));
             }
         });
-        SetDefaultValueFactory(Directory.GetCurrentDirectory);
         this.LegalFilePathsOnly();
     }
 }

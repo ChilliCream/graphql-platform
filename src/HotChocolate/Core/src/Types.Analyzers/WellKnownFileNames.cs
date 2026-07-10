@@ -9,4 +9,5 @@ public static class WellKnownFileNames
     public const string ResolversFile = "HotChocolateResolvers.735550c.g.cs";
     public const string DataLoaderFile = "GreenDonutDataLoader.735550c.g.cs";
     public const string DataLoaderModuleFile = "GreenDonutDataLoaderModule.735550c.g.cs";
+    public const string NodeIdSerializerFile = "HotChocolateNodeIdSerializers.735550c.g.cs";
 }

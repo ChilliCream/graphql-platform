@@ -49,14 +49,18 @@ internal sealed partial class ResolverTask
         }
         finally
         {
-            _operationContext.Scheduler.Complete(this);
-
-            if (_context.HasCleanupTasks)
+            try
             {
-                await _context.ExecuteCleanupTasksAsync().ConfigureAwait(false);
+                if (_context.HasCleanupTasks)
+                {
+                    await _context.ExecuteCleanupTasksAsync().ConfigureAwait(false);
+                }
             }
-
-            objectPool.Return(this);
+            finally
+            {
+                _operationContext.Scheduler.Complete(this);
+                objectPool.Return(this);
+            }
         }
     }
 
@@ -128,7 +132,8 @@ internal sealed partial class ResolverTask
             var serviceScope = _operationContext.Services.CreateAsyncScope();
             _context.Services = serviceScope.ServiceProvider;
             _context.RegisterForCleanup(serviceScope.DisposeAsync);
-            _operationContext.ServiceScopeInitializer.Initialize(_context, _context.RequestServices, _context.Services);
+            _operationContext.ServiceScopeInitializer.Initialize(
+                _context, _context.RequestServices, _context.Services);
         }
 
         await _context.ResolverPipeline!(_context).ConfigureAwait(false);

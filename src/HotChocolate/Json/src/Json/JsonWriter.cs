@@ -479,6 +479,50 @@ public sealed partial class JsonWriter
     }
 
     /// <summary>
+    /// Begins writing a raw value that may be provided in multiple chunks.
+    /// Writes the list separator if needed and prepares for subsequent
+    /// <see cref="WriteRawValueContinuation"/> calls.
+    /// </summary>
+    /// <param name="utf8Json">The first chunk of raw UTF-8 encoded JSON.</param>
+    internal void WriteRawValueStart(ReadOnlySpan<byte> utf8Json)
+    {
+        FlushDeferredPropertyName();
+
+        var maxRequired = utf8Json.Length + 1;
+        var bytesWritten = 0;
+
+        var output = _writer.GetSpan(maxRequired);
+
+        if (_currentDepth < 0)
+        {
+            output[bytesWritten++] = JsonConstants.Comma;
+        }
+
+        utf8Json.CopyTo(output[bytesWritten..]);
+        bytesWritten += utf8Json.Length;
+
+        _writer.Advance(bytesWritten);
+    }
+
+    /// <summary>
+    /// Continues writing raw bytes for a value started with <see cref="WriteRawValueStart"/>.
+    /// Does not write separators or update token state.
+    /// </summary>
+    /// <param name="utf8Json">The next chunk of raw UTF-8 encoded JSON.</param>
+    internal void WriteRawValueContinuation(ReadOnlySpan<byte> utf8Json)
+    {
+        var output = _writer.GetSpan(utf8Json.Length);
+        utf8Json.CopyTo(output);
+        _writer.Advance(utf8Json.Length);
+    }
+
+    /// <summary>
+    /// Completes a multi-chunk raw value write started with <see cref="WriteRawValueStart"/>.
+    /// Sets the list separator flag for the next item.
+    /// </summary>
+    internal void WriteRawValueEnd() => SetFlagToAddListSeparatorBeforeNextItem();
+
+    /// <summary>
     /// Internal buffer used for deferred property name writes.
     /// </summary>
     private sealed class DeferBuffer : IBufferWriter<byte>

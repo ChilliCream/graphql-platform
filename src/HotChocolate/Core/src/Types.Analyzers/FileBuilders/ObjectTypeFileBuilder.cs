@@ -19,14 +19,14 @@ public sealed class ObjectTypeFileBuilder(StringBuilder sb) : TypeFileBuilderBas
         Writer.WriteIndentedLine(
             "internal static void Initialize(global::{0}<global::{1}> descriptor)",
             WellKnownTypes.IObjectTypeDescriptor,
-            objectType.RuntimeTypeFullName);
+            objectType.RuntimeTypeName.FullName);
 
         Writer.WriteIndentedLine("{");
 
         using (Writer.IncreaseIndent())
         {
             WriteInitializationBase(
-                objectType.SchemaTypeFullName,
+                objectType.SchemaTypeName.FullName,
                 objectType.Resolvers.Length > 0 || objectType.NodeResolver is not null,
                 objectType.Resolvers.Any(t => t.RequiresParameterBindings)
                     || (objectType.NodeResolver?.RequiresParameterBindings ?? false),
@@ -78,6 +78,8 @@ public sealed class ObjectTypeFileBuilder(StringBuilder sb) : TypeFileBuilderBas
             {
                 WriteResolverField(objectType.NodeResolver);
             }
+
+            WriteIsSelectedFields(objectType.NodeResolver);
         }
     }
 
@@ -92,9 +94,10 @@ public sealed class ObjectTypeFileBuilder(StringBuilder sb) : TypeFileBuilderBas
         WriteResolverConstructor(
             objectType,
             typeLookup,
-            $"global::{objectType.SchemaTypeFullName}",
             type.Resolvers.Any(t => t.RequiresParameterBindings)
-            || (objectType.NodeResolver?.RequiresParameterBindings ?? false));
+            || (objectType.NodeResolver?.RequiresParameterBindings ?? false),
+            type.Resolvers.Any(HasIsSelectedFields)
+            || HasIsSelectedFields(objectType.NodeResolver));
     }
 
     protected override void WriteResolversBindingInitialization(IOutputTypeInfo type, ILocalTypeLookup typeLookup)
@@ -111,8 +114,10 @@ public sealed class ObjectTypeFileBuilder(StringBuilder sb) : TypeFileBuilderBas
         {
             if (objectType.NodeResolver.RequiresParameterBindings)
             {
-                WriteResolverBindingInitialization(objectType.NodeResolver, typeLookup);
+                WriteResolverBindingInitialization(objectType.NodeResolver);
             }
+
+            WriteIsSelectedInitialization(objectType.NodeResolver);
         }
     }
 

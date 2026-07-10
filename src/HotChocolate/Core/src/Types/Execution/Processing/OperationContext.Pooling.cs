@@ -1,7 +1,9 @@
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using HotChocolate.Buffers;
 using HotChocolate.Execution.DependencyInjection;
 using HotChocolate.Execution.Instrumentation;
+using HotChocolate.Execution.Options;
 using HotChocolate.Execution.Processing.Tasks;
 using HotChocolate.Fetching;
 using HotChocolate.Resolvers;
@@ -15,6 +17,7 @@ namespace HotChocolate.Execution.Processing;
 internal sealed partial class OperationContext
 {
     private readonly IFactory<ResolverTask> _resolverTaskFactory;
+    private readonly IFactory<BatchResolverTask> _batchResolverTaskFactory;
     private readonly BranchTracker _branchTracker = new();
     private readonly WorkScheduler _workScheduler;
     private readonly DeferExecutionCoordinator _deferExecutionCoordinator = new();
@@ -35,17 +38,21 @@ internal sealed partial class OperationContext
     private Func<object?> _resolveQueryRootValue = null!;
     private IBatchDispatcher _batchDispatcher = null!;
     private InputParser _inputParser = null!;
+    private MemoryArena? _memory;
     private int _branchId;
     private int _variableIndex;
     private object? _rootValue;
+    private bool _propagateNullValues;
     private bool _isInitialized;
 
     public OperationContext(
         IFactory<ResolverTask> resolverTaskFactory,
+        IFactory<BatchResolverTask> batchResolverTaskFactory,
         ITypeConverter typeConverter,
         AggregateServiceScopeInitializer serviceScopeInitializer)
     {
         _resolverTaskFactory = resolverTaskFactory;
+        _batchResolverTaskFactory = batchResolverTaskFactory;
         _workScheduler = new WorkScheduler(this);
         _currentWorkScheduler = _workScheduler;
         _currentBranchTracker = _branchTracker;
@@ -66,15 +73,23 @@ internal sealed partial class OperationContext
         IVariableValueCollection variables,
         object? rootValue,
         Func<object?> resolveQueryRootValue,
-        int variableIndex = -1)
+        int variableIndex = -1,
+        CancellationToken requestAbortedOverride = default,
+        MemoryArena? memoryArena = null)
     {
         _requestContext = requestContext;
         _schema = Unsafe.As<Schema>(requestContext.Schema);
+        _memory = memoryArena
+            ?? requestContext.Memory
+            ?? throw new InvalidOperationException(
+                "The operation context requires a memory arena, but none was supplied or attached to the request.");
         _errorHandler = _schema.Services.GetRequiredService<IErrorHandler>();
         _resolvers = scopedServices.GetRequiredService<ResolverProvider>();
         _diagnosticEvents = _schema.Services.GetRequiredService<IExecutionDiagnosticEvents>();
         _contextData = requestContext.ContextData;
-        _requestAborted = requestContext.RequestAborted;
+        _requestAborted = requestAbortedOverride.CanBeCanceled
+            ? requestAbortedOverride
+            : requestContext.RequestAborted;
         _operation = operation;
         _variables = variables;
         _services = scopedServices;
@@ -84,9 +99,17 @@ internal sealed partial class OperationContext
         _batchDispatcher = batchDispatcher;
         _variableIndex = variableIndex;
 
+        var executorOptions = _schema.Services.GetRequiredService<IRequestExecutorOptionsAccessor>();
+        var errorHandlingMode =
+            executorOptions.AllowErrorHandlingModeOverride
+                && _requestContext.Request.ErrorHandlingMode is { } requestedMode
+                    ? requestedMode
+                    : executorOptions.DefaultErrorHandlingMode;
+        _propagateNullValues = errorHandlingMode is Language.ErrorHandlingMode.Propagate;
+
         IncludeFlags = operation.CreateIncludeFlags(variables);
         DeferFlags = operation.CreateDeferFlags(variables);
-        Result.Data = new ResultDocument(operation, IncludeFlags);
+        Result.Data = new ResultDocument(_memory, operation, IncludeFlags);
         Result.RequestIndex = _requestContext.RequestIndex;
         Result.VariableIndex = variableIndex;
 
@@ -122,15 +145,19 @@ internal sealed partial class OperationContext
         _rootValue = context._rootValue;
         _resolveQueryRootValue = context._resolveQueryRootValue;
         _batchDispatcher = context._batchDispatcher;
+        _memory = context._memory;
         _currentBranchTracker = context._currentBranchTracker;
         _currentWorkScheduler = context._currentWorkScheduler;
         _currentDeferExecutionCoordinator = context._currentDeferExecutionCoordinator;
+        _propagateNullValues = context._propagateNullValues;
         _branchId = executionBranchId;
         _isInitialized = true;
 
         IncludeFlags = context.IncludeFlags;
         DeferFlags = context.DeferFlags;
+
         Result.Data = new ResultDocument(
+            context._memory!,
             context.Operation,
             selectionSet,
             selectionPath,
@@ -174,7 +201,9 @@ internal sealed partial class OperationContext
             _rootValue = null;
             _resolveQueryRootValue = null!;
             _batchDispatcher = null!;
+            _memory = null;
             _branchId = int.MinValue;
+            _propagateNullValues = false;
             _isInitialized = false;
             Result.Reset();
         }

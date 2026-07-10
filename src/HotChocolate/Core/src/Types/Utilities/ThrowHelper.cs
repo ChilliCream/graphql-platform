@@ -30,12 +30,32 @@ internal static class ThrowHelper
                 .SetMessage(ThrowHelper_EventMessage_NotFound)
                 .Build());
 
+    public static SchemaException BatchResolver_ArgumentMustBeList(ParameterInfo parameter)
+        => new SchemaException(
+            SchemaErrorBuilder.New()
+                .SetMessage(
+                    TypeResources.BatchResolver_ArgumentMustBeList,
+                    parameter.Name)
+                .Build());
+
+    public static InvalidOperationException BatchResolver_ResultCountMismatch(int expected, int actual)
+        => new(string.Format(TypeResources.BatchResolver_ResultCountMismatch, expected, actual));
+
+    public static SchemaException BatchResolver_ReturnTypeMustBeList(MethodInfo method)
+        => new SchemaException(
+            SchemaErrorBuilder.New()
+                .SetMessage(
+                    TypeResources.BatchResolver_ReturnTypeMustBeList,
+                    method.DeclaringType?.FullName ?? method.DeclaringType?.Name,
+                    method.Name)
+                .Build());
+
     public static SchemaException SubscribeAttribute_MessageTypeUnspecified(MemberInfo member)
         => new SchemaException(
             SchemaErrorBuilder.New()
                 .SetMessage(
                     ThrowHelper_SubscribeAttribute_MessageTypeUnspecified,
-                    member.DeclaringType!.FullName,
+                    member.DeclaringType.FullName,
                     member.Name)
                 .SetExtension("member", member)
                 .Build());
@@ -45,7 +65,7 @@ internal static class ThrowHelper
             SchemaErrorBuilder.New()
                 .SetMessage(
                     ThrowHelper_SubscribeAttribute_TopicTypeUnspecified,
-                    member.DeclaringType!.FullName,
+                    member.DeclaringType.FullName,
                     member.Name)
                 .SetExtension("member", member)
                 .Build());
@@ -57,7 +77,7 @@ internal static class ThrowHelper
             SchemaErrorBuilder.New()
                 .SetMessage(
                     ThrowHelper_SubscribeAttribute_SubscribeResolverNotFound,
-                    member.DeclaringType!.FullName,
+                    member.DeclaringType.FullName,
                     member.Name,
                     subscribeResolverName)
                 .SetExtension("member", member)
@@ -181,6 +201,14 @@ internal static class ThrowHelper
                 .SetMessage(
                     ThrowHelper_DataLoader_InvalidType,
                     dataLoaderType.FullName ?? dataLoaderType.Name)
+                .Build());
+
+    public static SchemaException KeyValuePairType_InvalidRuntimeType(string typeName)
+        => new SchemaException(
+            SchemaErrorBuilder.New()
+                .SetMessage(
+                    ThrowHelper_KeyValuePairType_InvalidRuntimeType,
+                    typeName)
                 .Build());
 
     public static SchemaException NonGenericExecutableNotAllowed()
@@ -334,7 +362,7 @@ internal static class ThrowHelper
                 .SetInputPath(path)
                 .SetExtension(
                     "specifiedBy",
-                    "https://spec.graphql.org/June2018/#sec-Type-System.List")
+                    "https://spec.graphql.org/September2025/#sec-List")
                 .Build(),
             type,
             path);
@@ -706,10 +734,7 @@ internal static class ThrowHelper
     {
         return new LeafCoercionException(
             ErrorBuilder.New()
-                .SetMessage(
-                    string.Format(
-                        TypeResources.RegexType_InvalidFormat,
-                        name))
+                .SetMessage(TypeResources.RegexType_InvalidFormat, name)
                 .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
                 .Build(),
             type);
