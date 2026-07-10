@@ -36,6 +36,7 @@ internal sealed partial class SourceSchemaMerger
     private readonly ImmutableSortedSet<MutableSchemaDefinition> _schemas;
     private readonly FrozenDictionary<string, string> _schemaConstantNames;
     private readonly SourceSchemaMergerOptions _options;
+    private readonly ShareableFieldRuntimeTypeRouting _shareableFieldRuntimeTypeRouting;
     private readonly FrozenDictionary<string, ITypeDefinition> _fusionTypeDefinitions;
     private readonly FrozenDictionary<string, MutableDirectiveDefinition>
         _fusionDirectiveDefinitions;
@@ -48,10 +49,19 @@ internal sealed partial class SourceSchemaMerger
     public SourceSchemaMerger(
         ImmutableSortedSet<MutableSchemaDefinition> schemas,
         SourceSchemaMergerOptions? options = null)
+        : this(schemas, options, ShareableFieldRuntimeTypeRouting.SourceLocal)
+    {
+    }
+
+    public SourceSchemaMerger(
+        ImmutableSortedSet<MutableSchemaDefinition> schemas,
+        SourceSchemaMergerOptions? options,
+        ShareableFieldRuntimeTypeRouting shareableFieldRuntimeTypeRouting)
     {
         _schemas = schemas;
         _schemaConstantNames = schemas.ToFrozenDictionary(s => s.Name, s => ToConstantCase(s.Name));
         _options = options ?? new SourceSchemaMergerOptions();
+        _shareableFieldRuntimeTypeRouting = shareableFieldRuntimeTypeRouting;
         _fusionTypeDefinitions = CreateFusionTypeDefinitions();
         _fusionDirectiveDefinitions = CreateFusionDirectiveDefinitions();
         _directiveMergers =
@@ -1902,6 +1912,10 @@ internal sealed partial class SourceSchemaMerger
             {
                 TypeNames.FusionSchema,
                 new FusionSchemaMutableEnumTypeDefinition(_schemaConstantNames)
+            },
+            {
+                TypeNames.FusionShareableFieldRuntimeTypeRouting,
+                new FusionShareableFieldRuntimeTypeRoutingMutableEnumTypeDefinition()
             }
         }.ToFrozenDictionary();
     }
@@ -1912,6 +1926,9 @@ internal sealed partial class SourceSchemaMerger
             (MutableEnumTypeDefinition)_fusionTypeDefinitions[TypeNames.FusionSchema];
         var nodeResolutionType =
             (MutableEnumTypeDefinition)_fusionTypeDefinitions[TypeNames.FusionNodeResolution];
+        var shareableFieldRuntimeTypeRoutingType =
+            (MutableEnumTypeDefinition)_fusionTypeDefinitions[
+                TypeNames.FusionShareableFieldRuntimeTypeRouting];
         var fieldDefinitionType =
             (MutableScalarTypeDefinition)_fusionTypeDefinitions[TypeNames.FusionFieldDefinition];
         var fieldSelectionMapType =
@@ -1936,7 +1953,9 @@ internal sealed partial class SourceSchemaMerger
             },
             {
                 DirectiveNames.FusionExecution,
-                new FusionExecutionMutableDirectiveDefinition(nodeResolutionType)
+                new FusionExecutionMutableDirectiveDefinition(
+                    nodeResolutionType,
+                    shareableFieldRuntimeTypeRoutingType)
             },
             {
                 DirectiveNames.FusionField,
@@ -2038,6 +2057,18 @@ internal sealed partial class SourceSchemaMerger
                             NodeResolution.SourceSchema => "SOURCE_SCHEMA",
                             _ => throw new InvalidOperationException(
                                 $"The node resolution mode '{_options.NodeResolution}' is invalid.")
+                        })),
+                new ArgumentAssignment(
+                    ArgumentNames.ShareableFieldRuntimeTypeRouting,
+                    new EnumValueNode(
+                        _shareableFieldRuntimeTypeRouting switch
+                        {
+                            ShareableFieldRuntimeTypeRouting.SourceLocal => "SOURCE_LOCAL",
+                            ShareableFieldRuntimeTypeRouting.CommonRuntimeTypes =>
+                                "COMMON_RUNTIME_TYPES",
+                            _ => throw new InvalidOperationException(
+                                "The shareable field runtime type routing mode "
+                                + $"'{_shareableFieldRuntimeTypeRouting}' is invalid.")
                         }))));
     }
 

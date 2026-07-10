@@ -93,6 +93,19 @@ internal sealed class FusionSettingsSetCommand : Command
                 };
                 break;
 
+            case FusionSettingsNameArgument.ShareableFieldRuntimeTypeRouting:
+                compositionSettings.ApolloFederationCompatibility
+                    .ShareableFieldRuntimeTypeRouting = settingValue switch
+                    {
+                        "source-local" => ShareableFieldRuntimeTypeRouting.SourceLocal,
+                        "common-runtime-types" =>
+                            ShareableFieldRuntimeTypeRouting.CommonRuntimeTypes,
+                        _ => throw new ExitException(
+                            $"Expected one of the following values for setting '{settingName}': "
+                            + "source-local, common-runtime-types")
+                    };
+                break;
+
             case FusionSettingsNameArgument.TagMergeBehavior:
                 if (!TryParseDirectiveMergeBehavior(settingValue, out var tagMergeBehavior))
                 {

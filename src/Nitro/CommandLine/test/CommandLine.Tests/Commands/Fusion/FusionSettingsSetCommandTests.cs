@@ -1,3 +1,5 @@
+using HotChocolate.Fusion.Packaging;
+
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Fusion;
 
 public sealed class FusionSettingsSetCommandTests(NitroCommandFixture fixture) : FusionCommandTestBase(fixture)
@@ -22,8 +24,8 @@ public sealed class FusionSettingsSetCommandTests(NitroCommandFixture fixture) :
               nitro fusion settings set <SETTING_NAME> <SETTING_VALUE> [options]
 
             Arguments:
-              <cache-control-merge-behavior|exclude-by-tag|global-object-identification|node-resolution|tag-merge-behavior>  The name of the setting to change
-              <SETTING_VALUE>                                                                                                The value to set
+              <cache-control-merge-behavior|exclude-by-tag|global-object-identification|node-resolution|shareable-field-runtime-type-routing|tag-merge-behavior>  The name of the setting to change
+              <SETTING_VALUE>                                                                                                                                     The value to set
 
             Options:
               -a, --archive, --configuration <archive> (REQUIRED)  The path to a Fusion archive file (the '--configuration' alias is deprecated) [env: NITRO_FUSION_CONFIG_FILE]
@@ -91,6 +93,7 @@ public sealed class FusionSettingsSetCommandTests(NitroCommandFixture fixture) :
             'exclude-by-tag'
             'global-object-identification'
             'node-resolution'
+            'shareable-field-runtime-type-routing'
             'tag-merge-behavior'
             """);
         Assert.Equal(1, result.ExitCode);
@@ -247,6 +250,72 @@ public sealed class FusionSettingsSetCommandTests(NitroCommandFixture fixture) :
                 result.ExitCode == 0,
                 $"Standard output:{Environment.NewLine}{result.StdOut}{Environment.NewLine}"
                 + $"Standard error:{Environment.NewLine}{result.StdErr}");
+        }
+        finally
+        {
+            File.Delete(archiveFile);
+        }
+    }
+
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.NonInteractive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task Execute_Should_ReturnError_When_ShareableFieldRuntimeTypeRoutingIsInvalid(
+        InteractionMode mode)
+    {
+        SetupInteractionMode(mode);
+
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "settings",
+            "set",
+            "shareable-field-runtime-type-routing",
+            "invalid-value",
+            "--archive",
+            ArchiveFile);
+
+        result.AssertError(
+            """
+            Expected one of the following values for setting 'shareable-field-runtime-type-routing': source-local, common-runtime-types
+            """);
+    }
+
+    [Theory]
+    [InlineData("source-local", "SourceLocal")]
+    [InlineData("common-runtime-types", "CommonRuntimeTypes")]
+    public async Task Execute_Should_PersistShareableFieldRuntimeTypeRouting(
+        string value,
+        string expectedValue)
+    {
+        var archiveFile = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+        File.Copy(
+            Path.Combine(AppContext.BaseDirectory, "__resources__", "fusion-archives", "gateway.far"),
+            archiveFile);
+        SetupFile(archiveFile, new MemoryStream(File.ReadAllBytes(archiveFile)));
+
+        try
+        {
+            var result = await ExecuteCommandAsync(
+                "fusion",
+                "settings",
+                "set",
+                "shareable-field-runtime-type-routing",
+                value,
+                "--archive",
+                archiveFile);
+
+            Assert.Equal(0, result.ExitCode);
+            using var archive = FusionArchive.Open(archiveFile);
+            var settings = await archive.GetCompositionSettingsAsync(
+                TestContext.Current.CancellationToken);
+            Assert.NotNull(settings);
+            Assert.Equal(
+                expectedValue,
+                settings.RootElement
+                    .GetProperty("apolloFederationCompatibility")
+                    .GetProperty("shareableFieldRuntimeTypeRouting")
+                    .GetString());
         }
         finally
         {

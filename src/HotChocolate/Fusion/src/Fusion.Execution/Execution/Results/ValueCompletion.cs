@@ -229,16 +229,51 @@ internal sealed class ValueCompletion
 
     public bool BuildErrorResult(Path path, IError error)
     {
-        if (_store.TryGetResult(path, out var fieldResult)
-            && fieldResult.Selection is { } selection)
+        var reachablePath = path;
+
+        while (!reachablePath.IsRoot)
         {
-            return ApplyFieldError(fieldResult, selection, error, path);
+            if (_store.TryGetResult(reachablePath, out var fieldResult)
+                && fieldResult.Selection is { } selection)
+            {
+                return ApplyFieldError(fieldResult, selection, error, path);
+            }
+
+            reachablePath = reachablePath.Parent;
         }
 
         var errorWithPath = ErrorBuilder.FromError(error)
             .SetPath(path)
             .Build();
         _store.AddError(_errorHandler.Handle(errorWithPath));
+        return true;
+    }
+
+    public bool CompleteErrorResult(
+        CompositeResultElement target,
+        ResultSelectionSet resultSelectionSet)
+    {
+        foreach (var responseName in resultSelectionSet.ResponseNames)
+        {
+            if (target.IsNullOrInvalidated)
+            {
+                return true;
+            }
+
+            if (!target.TryGetProperty(responseName, out var fieldResult)
+                || fieldResult.IsInternal
+                || fieldResult.Selection is not { Type.Kind: TypeKind.NonNull })
+            {
+                continue;
+            }
+
+            if (_errorHandlingMode is ErrorHandlingMode.Propagate
+                && PropagateNullValues(fieldResult))
+            {
+                return false;
+            }
+        }
+
         return true;
     }
 

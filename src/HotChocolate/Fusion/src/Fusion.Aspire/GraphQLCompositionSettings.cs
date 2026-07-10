@@ -28,6 +28,12 @@ public struct GraphQLCompositionSettings
     public bool? AllowNonResolvableInterfaceObjects { get; set; }
 
     /// <summary>
+    /// Gets or sets how runtime types are routed for Apollo Federation shareable fields whose
+    /// result type is abstract.
+    /// </summary>
+    public ShareableFieldRuntimeTypeRouting? ShareableFieldRuntimeTypeRouting { get; set; }
+
+    /// <summary>
     /// Gets or sets the set of tags whose annotated schema elements shall be excluded from
     /// composition.
     /// </summary>

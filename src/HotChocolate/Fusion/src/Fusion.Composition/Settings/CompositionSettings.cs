@@ -57,5 +57,7 @@ internal sealed record CompositionSettings
     internal sealed record ApolloFederationCompatibilitySettings
     {
         public bool? AllowNonResolvableInterfaceObjects { get; set; }
+
+        public ShareableFieldRuntimeTypeRouting? ShareableFieldRuntimeTypeRouting { get; set; }
     }
 }

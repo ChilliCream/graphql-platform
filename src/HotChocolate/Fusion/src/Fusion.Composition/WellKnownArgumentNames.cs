@@ -36,6 +36,7 @@ internal static class WellKnownArgumentNames
     public const string RequireOneSlicingArgument = "requireOneSlicingArgument";
     public const string Roles = "roles";
     public const string Schema = "schema";
+    public const string ShareableFieldRuntimeTypeRouting = "shareableFieldRuntimeTypeRouting";
     public const string Scope = "scope";
     public const string SharedMaxAge = "sharedMaxAge";
     public const string SizedFields = "sizedFields";

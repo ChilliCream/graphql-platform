@@ -41,6 +41,7 @@ public sealed class FusionSchemaDefinition : ISchemaDefinition, IAsyncDisposable
         FusionTypeDefinitionCollection types,
         FusionDirectiveDefinitionCollection directiveDefinitions,
         NodeResolution nodeResolution,
+        ShareableFieldRuntimeTypeRouting shareableFieldRuntimeTypeRouting,
         IFeatureCollection features,
         ImmutableDictionary<string, SourceSchemaInfo> sourceSchemaLookup)
     {
@@ -54,6 +55,7 @@ public sealed class FusionSchemaDefinition : ISchemaDefinition, IAsyncDisposable
         Types = types;
         DirectiveDefinitions = directiveDefinitions;
         NodeResolution = nodeResolution;
+        ShareableFieldRuntimeTypeRouting = shareableFieldRuntimeTypeRouting;
         _features = features;
         _sourceSchemaLookup = sourceSchemaLookup;
     }
@@ -141,6 +143,11 @@ public sealed class FusionSchemaDefinition : ISchemaDefinition, IAsyncDisposable
     /// Gets how the gateway resolves the <c>Query.node</c> field.
     /// </summary>
     public NodeResolution NodeResolution { get; }
+
+    /// <summary>
+    /// Gets how runtime types are routed for shareable fields whose result type is abstract.
+    /// </summary>
+    public ShareableFieldRuntimeTypeRouting ShareableFieldRuntimeTypeRouting { get; }
 
     IReadOnlyDirectiveDefinitionCollection ISchemaDefinition.DirectiveDefinitions
         => DirectiveDefinitions;

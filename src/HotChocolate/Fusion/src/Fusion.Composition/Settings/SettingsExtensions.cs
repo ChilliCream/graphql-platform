@@ -50,7 +50,12 @@ internal static class SettingsExtensions
                             compositionSettings.ApolloFederationCompatibility
                                 .AllowNonResolvableInterfaceObjects
                             ?? settings.ApolloFederationCompatibility
-                                .AllowNonResolvableInterfaceObjects
+                                .AllowNonResolvableInterfaceObjects,
+                        ShareableFieldRuntimeTypeRouting =
+                            compositionSettings.ApolloFederationCompatibility
+                                .ShareableFieldRuntimeTypeRouting
+                            ?? settings.ApolloFederationCompatibility
+                                .ShareableFieldRuntimeTypeRouting
                     }
             };
         }
@@ -65,6 +70,11 @@ internal static class SettingsExtensions
             if (compatibilitySettings.AllowNonResolvableInterfaceObjects is { } allow)
             {
                 options.AllowNonResolvableInterfaceObjects = allow;
+            }
+
+            if (compatibilitySettings.ShareableFieldRuntimeTypeRouting is { } routing)
+            {
+                options.ShareableFieldRuntimeTypeRouting = routing;
             }
 
             return options;

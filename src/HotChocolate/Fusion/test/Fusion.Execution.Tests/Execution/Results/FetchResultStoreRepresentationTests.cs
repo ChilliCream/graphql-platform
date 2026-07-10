@@ -2472,7 +2472,7 @@ public sealed class FetchResultStoreRepresentationTests : FusionTestBase
         store.FinalizePocketedErrors();
         var error = Assert.Single(store.Errors!);
         Assert.Equal("boom", error.Message);
-        Assert.Equal("foos[0].name", error.Path!.Print());
+        Assert.Null(error.Path);
         Assert.Equal(before, RenderData(store));
         Assert.Null(exception);
         Assert.True(added);
@@ -2556,6 +2556,98 @@ public sealed class FetchResultStoreRepresentationTests : FusionTestBase
         var error = Assert.Single(store.Errors!);
         Assert.Equal("boom", error.Message);
         Assert.Equal("foos[0].name", error.Path!.Print());
+        RenderData(store).MatchInlineSnapshot(
+            """
+            {"foos":[null],"bars":[]}
+            """);
+    }
+
+    [Fact]
+    public void AddRepresentationResult_Should_NullNullableAncestor_When_NestedErrorLeafIsUnreachable()
+    {
+        // arrange
+        var schemaB = MergeSchemaB.Replace(
+            "name: String",
+            "details: Details\n        }\n\n        type Details {\n          name: String!",
+            StringComparison.Ordinal);
+        var schema = ComposeSchema(MergeSchemaA, schemaB);
+        var plan = PlanOperation(schema, "{ foos { id details { name } } bars { id title } }");
+        var fooDefinition = GetLookupDefinition(plan, "fooById");
+
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+        using var store = CreateMergeStore(
+            schema,
+            plan,
+            """{"data":{"foos":[{"id":"1"}],"bars":[]}}""",
+            resultArena,
+            sourceArena);
+
+        var representation = CreateLookupRepresentation(store, schema, "Foo", fooDefinition);
+        var response = CreateResponse(
+            sourceArena,
+            """{"errors":[{"message":"boom","path":["_entities",0,"details","name"]}]}""");
+
+        // act
+        var added = store.AddRepresentationResult(
+            SelectionPath.Root.AppendField("_entities"),
+            response,
+            representation,
+            fooDefinition.ResultSelectionSet,
+            containsErrors: true);
+
+        // assert
+        store.FinalizePocketedErrors();
+        Assert.True(added);
+        var error = Assert.Single(store.Errors!);
+        Assert.Equal("boom", error.Message);
+        Assert.Equal("foos[0].details.name", error.Path!.Print());
+        RenderData(store).MatchInlineSnapshot(
+            """
+            {"foos":[{"id":"1","details":null}],"bars":[]}
+            """);
+    }
+
+    [Fact]
+    public void AddRepresentationResult_Should_PropagateNonNullAncestor_When_NestedErrorLeafIsUnreachable()
+    {
+        // arrange
+        var schemaB = MergeSchemaB.Replace(
+            "name: String",
+            "details: Details!\n        }\n\n        type Details {\n          name: String!",
+            StringComparison.Ordinal);
+        var schema = ComposeSchema(MergeSchemaA, schemaB);
+        var plan = PlanOperation(schema, "{ foos { id details { name } } bars { id title } }");
+        var fooDefinition = GetLookupDefinition(plan, "fooById");
+
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+        using var store = CreateMergeStore(
+            schema,
+            plan,
+            """{"data":{"foos":[{"id":"1"}],"bars":[]}}""",
+            resultArena,
+            sourceArena);
+
+        var representation = CreateLookupRepresentation(store, schema, "Foo", fooDefinition);
+        var response = CreateResponse(
+            sourceArena,
+            """{"errors":[{"message":"boom","path":["_entities",0,"details","name"]}]}""");
+
+        // act
+        var added = store.AddRepresentationResult(
+            SelectionPath.Root.AppendField("_entities"),
+            response,
+            representation,
+            fooDefinition.ResultSelectionSet,
+            containsErrors: true);
+
+        // assert
+        store.FinalizePocketedErrors();
+        Assert.True(added);
+        var error = Assert.Single(store.Errors!);
+        Assert.Equal("boom", error.Message);
+        Assert.Equal("foos[0].details.name", error.Path!.Print());
         RenderData(store).MatchInlineSnapshot(
             """
             {"foos":[null],"bars":[]}

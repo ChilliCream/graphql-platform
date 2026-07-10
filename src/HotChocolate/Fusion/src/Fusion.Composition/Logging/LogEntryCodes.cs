@@ -45,6 +45,8 @@ public static class LogEntryCodes
     public const string InvalidNodeResolution = "INVALID_NODE_RESOLUTION";
     public const string InvalidProjectedFieldSharing = "INVALID_PROJECTED_FIELD_SHARING";
     public const string InvalidShareableUsage = "INVALID_SHAREABLE_USAGE";
+    public const string InvalidShareableFieldRuntimeTypeRouting =
+        "INVALID_SHAREABLE_FIELD_RUNTIME_TYPE_ROUTING";
     public const string IsInvalidFields = "IS_INVALID_FIELDS";
     public const string IsInvalidFieldType = "IS_INVALID_FIELD_TYPE";
     public const string IsInvalidSyntax = "IS_INVALID_SYNTAX";

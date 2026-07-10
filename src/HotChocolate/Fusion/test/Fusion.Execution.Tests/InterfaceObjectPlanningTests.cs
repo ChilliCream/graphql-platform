@@ -1,7 +1,9 @@
+using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Logging;
 using HotChocolate.Fusion.Options;
 using HotChocolate.Fusion.Types;
+using HotChocolate.Types;
 
 namespace HotChocolate.Fusion;
 
@@ -162,6 +164,47 @@ public sealed class InterfaceObjectPlanningTests : FusionTestBase
 
         // assert
         MatchSnapshot(plan);
+    }
+
+    [Fact]
+    public void Compile_Should_ExposeOpaqueInterfaceSelectionSetThroughPublicContracts()
+    {
+        // arrange
+        var schema = ComposeSchema(SchemaA, SchemaB);
+        const string sourceText =
+            """
+            query {
+              trendingMedia {
+                __typename
+                id
+                views
+                ... on Book { isbn }
+              }
+            }
+            """;
+        var plan = PlanOperation(schema, sourceText);
+        var standInNode = Assert.Single(
+            plan.AllNodes.OfType<OperationExecutionNode>(),
+            node => node.ResultSelectionSet
+                .TryGetChild("trendingMedia")?.ProducesOpaqueElements is true);
+        Assert.Equal("b", standInNode.SchemaName);
+
+        var operation = plan.Operation;
+        Assert.Equal(1, operation.RootSelectionSet.Selections.Length);
+        var trendingMedia = operation.RootSelectionSet.Selections[0];
+        var internalSelectionSet = operation.GetSelectionSet(
+            trendingMedia,
+            trendingMedia.Type.NamedType<IComplexTypeDefinition>());
+        Assert.IsType<FusionInterfaceTypeDefinition>(internalSelectionSet.Type);
+
+        // act and assert
+        ISelectionSet selectionSet = internalSelectionSet;
+        Assert.Equal("Media", selectionSet.Type.Name);
+
+        var selection = Assert.Single(
+            selectionSet.GetSelections(),
+            selection => selection.Field.Name == "id");
+        Assert.Equal("Media", selection.DeclaringSelectionSet.Type.Name);
     }
 
     [Fact]

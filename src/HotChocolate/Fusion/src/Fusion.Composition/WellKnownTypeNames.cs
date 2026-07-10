@@ -12,6 +12,8 @@ internal static class WellKnownTypeNames
     public const string FusionFieldSelectionSet = "fusion__FieldSelectionSet";
     public const string FusionNodeResolution = "fusion__NodeResolution";
     public const string FusionSchema = "fusion__Schema";
+    public const string FusionShareableFieldRuntimeTypeRouting =
+        "fusion__ShareableFieldRuntimeTypeRouting";
     public const string ID = "ID";
     public const string Mutation = "Mutation";
     public const string Node = "Node";

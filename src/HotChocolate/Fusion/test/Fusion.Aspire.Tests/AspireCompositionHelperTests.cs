@@ -20,4 +20,23 @@ public sealed class AspireCompositionHelperTests
         Assert.True(compositionSettings.Merger.EnableGlobalObjectIdentification);
         Assert.Equal(nodeResolution, compositionSettings.Merger.NodeResolution);
     }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData(ShareableFieldRuntimeTypeRouting.SourceLocal)]
+    [InlineData(ShareableFieldRuntimeTypeRouting.CommonRuntimeTypes)]
+    public void CreateCompositionSettings_Should_MapShareableFieldRuntimeTypeRouting(
+        ShareableFieldRuntimeTypeRouting? routing)
+    {
+        var settings = new GraphQLCompositionSettings
+        {
+            ShareableFieldRuntimeTypeRouting = routing
+        };
+
+        var compositionSettings = AspireCompositionHelper.CreateCompositionSettings(settings);
+
+        Assert.Equal(
+            routing,
+            compositionSettings.ApolloFederationCompatibility.ShareableFieldRuntimeTypeRouting);
+    }
 }

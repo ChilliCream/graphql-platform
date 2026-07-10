@@ -3,6 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Types;
+using HotChocolate.Fusion.Types.Metadata;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
@@ -34,7 +35,11 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
                 // further down during recursion, never here at the entry point.
                 input.ProvidedSelectionSet is not null
                     ? ProvidedCoverage.Complete
-                    : ProvidedCoverage.Partial);
+                    : ProvidedCoverage.Partial,
+                providerSchemas: schema.ShareableFieldRuntimeTypeRouting
+                    is ShareableFieldRuntimeTypeRouting.CommonRuntimeTypes
+                        ? ImmutableHashSet.Create(StringComparer.Ordinal, input.SchemaName)
+                        : null);
 
         return new SelectionSetPartitionerResult(
             resolvable,
@@ -80,7 +85,9 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
         SelectionSetNode selectionSetNode,
         SelectionSetNode? providedSelectionSetNode,
         ProvidedCoverage coverage,
-        FusionObjectTypeDefinition? narrowedSourceType = null)
+        FusionObjectTypeDefinition? narrowedSourceType = null,
+        ImmutableHashSet<string>? providerSchemas = null,
+        ImmutableHashSet<string>? allowedRuntimeTypes = null)
     {
         var complexType = type as FusionComplexTypeDefinition;
         List<ISelectionNode>? resolvableSelections = null;
@@ -142,7 +149,8 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
                                 complexType!,
                                 fieldNode,
                                 GetProvidedField(fieldNode, providedSelectionSetNode),
-                                coverage);
+                                coverage,
+                                providerSchemas);
 
                         context.PopConditions(savedCount);
 
@@ -164,7 +172,9 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
                                 inlineFragmentNode,
                                 providedSelectionSetNode,
                                 coverage,
-                                narrowedSourceType);
+                                narrowedSourceType,
+                                providerSchemas,
+                                allowedRuntimeTypes);
 
                         CompleteSelection(inlineFragmentNode, resolvable, unresolvable, i);
                     }
@@ -484,7 +494,8 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
         FusionComplexTypeDefinition complexType,
         FieldNode fieldNode,
         FieldNode? providedFieldNode,
-        ProvidedCoverage coverage)
+        ProvidedCoverage coverage,
+        ImmutableHashSet<string>? providerSchemas)
     {
         var field = complexType.Fields.GetField(fieldNode.Name.Value, allowInaccessibleFields: true);
         field.Sources.TryGetMember(context.SchemaName, out var source);
@@ -590,6 +601,27 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
 
         if (selectionSet is not null)
         {
+            ImmutableHashSet<string>? childProviderSchemas = null;
+            ImmutableHashSet<string>? allowedRuntimeTypes = null;
+
+            if (providerSchemas is not null)
+            {
+                childProviderSchemas = ResolveViableProviderSchemas(
+                    context,
+                    complexType,
+                    field,
+                    providedFieldNode,
+                    providerSchemas);
+
+                if (field.Type.NamedType().IsAbstractType()
+                    && childProviderSchemas.Count > 1)
+                {
+                    allowedRuntimeTypes = ResolveCommonRuntimeTypes(
+                        field,
+                        childProviderSchemas);
+                }
+            }
+
             context.Nodes.Push(fieldNode);
 
             var (resolvable, unresolvable) = RewriteSelectionSet(
@@ -605,7 +637,9 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
                 coverage is ProvidedCoverage.Complete && providedFieldNode is not null
                     ? ProvidedCoverage.Complete
                     : ProvidedCoverage.Partial,
-                narrowedSourceType);
+                narrowedSourceType,
+                childProviderSchemas,
+                allowedRuntimeTypes);
 
             context.Nodes.Pop();
 
@@ -693,7 +727,9 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
         InlineFragmentNode inlineFragmentNode,
         SelectionSetNode? providedFieldNode,
         ProvidedCoverage coverage,
-        FusionObjectTypeDefinition? narrowedSourceType)
+        FusionObjectTypeDefinition? narrowedSourceType,
+        ImmutableHashSet<string>? providerSchemas,
+        ImmutableHashSet<string>? allowedRuntimeTypes)
     {
         var typeCondition = type;
 
@@ -740,6 +776,7 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
                 typeCondition,
                 context.SchemaName,
                 narrowedSourceType,
+                allowedRuntimeTypes,
                 out var possibleTypes))
         {
             return RewriteExpandedFragmentNode(
@@ -748,7 +785,8 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
                 possibleTypes,
                 providedFieldNode,
                 coverage,
-                narrowedSourceType);
+                narrowedSourceType,
+                providerSchemas);
         }
 
         if (!typeConditionExistsInSource)
@@ -765,7 +803,9 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
                 inlineFragmentNode.SelectionSet,
                 providedFieldNode,
                 coverage,
-                narrowedSourceType);
+                narrowedSourceType,
+                providerSchemas,
+                allowedRuntimeTypes);
 
         context.Nodes.Pop();
 
@@ -787,7 +827,8 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
         IReadOnlyList<FusionObjectTypeDefinition> possibleTypes,
         SelectionSetNode? providedFieldNode,
         ProvidedCoverage coverage,
-        FusionObjectTypeDefinition? narrowedSourceType)
+        FusionObjectTypeDefinition? narrowedSourceType,
+        ImmutableHashSet<string>? providerSchemas)
     {
         if (possibleTypes.Count == 0)
         {
@@ -820,7 +861,8 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
                     branchSelectionSet,
                     providedFieldNode,
                     coverage,
-                    narrowedSourceType ?? possibleType);
+                    narrowedSourceType ?? possibleType,
+                    providerSchemas);
 
             context.Nodes.Pop();
 
@@ -889,6 +931,7 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
         ITypeDefinition typeCondition,
         string schemaName,
         FusionObjectTypeDefinition? narrowedSourceType,
+        ImmutableHashSet<string>? allowedRuntimeTypes,
         [NotNullWhen(true)] out IReadOnlyList<FusionObjectTypeDefinition>? possibleTypes)
     {
         if (narrowedSourceType is null
@@ -905,6 +948,26 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
 
         var parentPossibleTypes = schema.GetPossibleTypes(parentType, includeInaccessible: true);
         var conditionPossibleTypes = schema.GetPossibleTypes(typeCondition, includeInaccessible: true);
+
+        if (allowedRuntimeTypes is not null)
+        {
+            var allowedTypes = new List<FusionObjectTypeDefinition>();
+
+            foreach (var possibleType in parentPossibleTypes)
+            {
+                if (allowedRuntimeTypes.Contains(possibleType.Name)
+                    && ContainsType(conditionPossibleTypes, possibleType)
+                    && (narrowedSourceType is null
+                        || ReferenceEquals(narrowedSourceType, possibleType))
+                    && IsPossibleTypeInSource(parentType, possibleType, schemaName))
+                {
+                    allowedTypes.Add(possibleType);
+                }
+            }
+
+            possibleTypes = allowedTypes;
+            return true;
+        }
 
         if (narrowedSourceType is not null)
         {
@@ -989,6 +1052,138 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
             _ => false
         };
     }
+
+    private ImmutableHashSet<string> ResolveViableProviderSchemas(
+        Context context,
+        FusionComplexTypeDefinition parentType,
+        FusionOutputFieldDefinition field,
+        FieldNode? providedFieldNode,
+        ImmutableHashSet<string> providerSchemas)
+    {
+        if (providedFieldNode is not null)
+        {
+            return ImmutableHashSet.Create(StringComparer.Ordinal, context.SchemaName);
+        }
+
+        foreach (var providerSchema in providerSchemas)
+        {
+            if (!IsApolloFederationSchema(providerSchema))
+            {
+                return ImmutableHashSet.Create(StringComparer.Ordinal, context.SchemaName);
+            }
+        }
+
+        foreach (var source in field.Sources)
+        {
+            if (!source.IsExternal
+                && !source.IsSourceExternal
+                && !IsApolloFederationSchema(source.SchemaName))
+            {
+                return ImmutableHashSet.Create(StringComparer.Ordinal, context.SchemaName);
+            }
+        }
+
+        var viableProviders = ImmutableHashSet.CreateBuilder<string>(StringComparer.Ordinal);
+        var isOperationRoot = ReferenceEquals(parentType, schema.QueryType)
+            || ReferenceEquals(parentType, schema.MutationType)
+            || ReferenceEquals(parentType, schema.SubscriptionType);
+
+        foreach (var source in field.Sources)
+        {
+            if (source.IsExternal || source.IsSourceExternal)
+            {
+                continue;
+            }
+
+            var candidateSchema = source.SchemaName;
+            if (isOperationRoot || providerSchemas.Contains(candidateSchema))
+            {
+                viableProviders.Add(candidateSchema);
+                continue;
+            }
+
+            foreach (var providerSchema in providerSchemas)
+            {
+                if (schema.TryGetBestDirectLookup(
+                    parentType,
+                    providerSchema,
+                    candidateSchema,
+                    out _))
+                {
+                    viableProviders.Add(candidateSchema);
+                    break;
+                }
+            }
+        }
+
+        return viableProviders.Count == 0
+            ? ImmutableHashSet.Create(StringComparer.Ordinal, context.SchemaName)
+            : viableProviders.ToImmutable();
+    }
+
+    private ImmutableHashSet<string>? ResolveCommonRuntimeTypes(
+        FusionOutputFieldDefinition field,
+        ImmutableHashSet<string> providerSchemas)
+    {
+        var fieldType = field.Type.AsTypeDefinition();
+        HashSet<string>? commonRuntimeTypes = null;
+
+        foreach (var providerSchema in providerSchemas.OrderBy(
+            static name => name,
+            StringComparer.Ordinal))
+        {
+            var source = field.Sources[providerSchema];
+            var providerType = fieldType;
+
+            if (source.SourceTypeName is { } sourceTypeName)
+            {
+                providerType = schema.Types.GetType(
+                    sourceTypeName,
+                    allowInaccessibleFields: true);
+            }
+
+            if (providerType is FusionInterfaceTypeDefinition interfaceType
+                && interfaceType.Sources.TryGetMember(providerSchema, out var interfaceSource)
+                && interfaceSource.IsInterfaceObject)
+            {
+                continue;
+            }
+
+            var providerRuntimeTypes = new HashSet<string>(StringComparer.Ordinal);
+
+            if (providerType is FusionObjectTypeDefinition objectType)
+            {
+                providerRuntimeTypes.Add(objectType.Name);
+            }
+            else
+            {
+                foreach (var possibleType in schema.GetPossibleTypes(
+                    providerType,
+                    includeInaccessible: true))
+                {
+                    if (IsPossibleTypeInSource(providerType, possibleType, providerSchema))
+                    {
+                        providerRuntimeTypes.Add(possibleType.Name);
+                    }
+                }
+            }
+
+            if (commonRuntimeTypes is null)
+            {
+                commonRuntimeTypes = providerRuntimeTypes;
+            }
+            else
+            {
+                commonRuntimeTypes.IntersectWith(providerRuntimeTypes);
+            }
+        }
+
+        return commonRuntimeTypes?.ToImmutableHashSet(StringComparer.Ordinal);
+    }
+
+    private bool IsApolloFederationSchema(string schemaName)
+        => schema.GetSourceSchemaConnectorKind(schemaName)
+            == ConnectorKindNames.ApolloFederation;
 
     private static bool ContainsType(
         ImmutableArray<FusionObjectTypeDefinition> possibleTypes,

@@ -1050,7 +1050,11 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
         var str = Encoding.UTF8.GetString(stream.ToArray());
         str.MatchInlineSnapshot(
             """
-            schema @fusion__execution(nodeResolution: GATEWAY) {
+            schema
+              @fusion__execution(
+                nodeResolution: GATEWAY
+                shareableFieldRuntimeTypeRouting: SOURCE_LOCAL
+              ) {
               query: Query
             }
 
@@ -1066,6 +1070,11 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
             "The fusion__Schema enum is a generated type used within an execution schema document to refer to a source schema in a type-safe manner."
             enum fusion__Schema {
               REVIEWS @fusion__schema_metadata(name: "reviews")
+            }
+
+            enum fusion__ShareableFieldRuntimeTypeRouting {
+              SOURCE_LOCAL
+              COMMON_RUNTIME_TYPES
             }
 
             "The fusion__FieldDefinition scalar is used to represent a GraphQL field definition specified in the GraphQL spec."
@@ -1109,8 +1118,10 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
               topics: [String!]
             ) on FIELD_DEFINITION
 
-            directive @fusion__execution(nodeResolution: fusion__NodeResolution! = GATEWAY) on
-              | SCHEMA
+            directive @fusion__execution(
+              nodeResolution: fusion__NodeResolution! = GATEWAY
+              shareableFieldRuntimeTypeRouting: fusion__ShareableFieldRuntimeTypeRouting! = SOURCE_LOCAL
+            ) on SCHEMA
 
             "The @fusion__field directive specifies which source schema provides a field in a composite type and what execution behavior it has."
             directive @fusion__field(
@@ -1238,7 +1249,11 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
         var str = Encoding.UTF8.GetString(stream.ToArray());
         str.MatchInlineSnapshot(
             """
-            schema @fusion__execution(nodeResolution: GATEWAY) {
+            schema
+              @fusion__execution(
+                nodeResolution: GATEWAY
+                shareableFieldRuntimeTypeRouting: SOURCE_LOCAL
+              ) {
               query: Query
             }
 
@@ -1280,6 +1295,11 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
             enum fusion__Schema {
               PRODUCTS @fusion__schema_metadata(name: "products")
               REVIEWS @fusion__schema_metadata(name: "reviews")
+            }
+
+            enum fusion__ShareableFieldRuntimeTypeRouting {
+              SOURCE_LOCAL
+              COMMON_RUNTIME_TYPES
             }
 
             "The fusion__FieldDefinition scalar is used to represent a GraphQL field definition specified in the GraphQL spec."
@@ -1331,8 +1351,10 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
               topics: [String!]
             ) on FIELD_DEFINITION
 
-            directive @fusion__execution(nodeResolution: fusion__NodeResolution! = GATEWAY) on
-              | SCHEMA
+            directive @fusion__execution(
+              nodeResolution: fusion__NodeResolution! = GATEWAY
+              shareableFieldRuntimeTypeRouting: fusion__ShareableFieldRuntimeTypeRouting! = SOURCE_LOCAL
+            ) on SCHEMA
 
             "The @fusion__field directive specifies which source schema provides a field in a composite type and what execution behavior it has."
             directive @fusion__field(
@@ -1460,7 +1482,11 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
         var str = Encoding.UTF8.GetString(stream.ToArray());
         str.MatchInlineSnapshot(
             """
-            schema @fusion__execution(nodeResolution: GATEWAY) {
+            schema
+              @fusion__execution(
+                nodeResolution: GATEWAY
+                shareableFieldRuntimeTypeRouting: SOURCE_LOCAL
+              ) {
               query: Query
             }
 
@@ -1513,6 +1539,11 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
               REVIEWS @fusion__schema_metadata(name: "reviews")
             }
 
+            enum fusion__ShareableFieldRuntimeTypeRouting {
+              SOURCE_LOCAL
+              COMMON_RUNTIME_TYPES
+            }
+
             "The fusion__FieldDefinition scalar is used to represent a GraphQL field definition specified in the GraphQL spec."
             scalar fusion__FieldDefinition
 
@@ -1562,8 +1593,10 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
               topics: [String!]
             ) on FIELD_DEFINITION
 
-            directive @fusion__execution(nodeResolution: fusion__NodeResolution! = GATEWAY) on
-              | SCHEMA
+            directive @fusion__execution(
+              nodeResolution: fusion__NodeResolution! = GATEWAY
+              shareableFieldRuntimeTypeRouting: fusion__ShareableFieldRuntimeTypeRouting! = SOURCE_LOCAL
+            ) on SCHEMA
 
             "The @fusion__field directive specifies which source schema provides a field in a composite type and what execution behavior it has."
             directive @fusion__field(

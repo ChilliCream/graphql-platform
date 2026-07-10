@@ -55,6 +55,7 @@ public sealed class NonResolvableInterfaceObjectTests : ComplianceTestBase
             sourceSchemaSettings: null,
             NodeResolution.Gateway,
             allowNonResolvableInterfaceObjects: true,
+            ShareableFieldRuntimeTypeRouting.SourceLocal,
             (ASubgraph.Name, ASubgraph.BuildAsync),
             (BSubgraph.Name, BSubgraph.BuildAsync));
         const string query =
@@ -128,7 +129,7 @@ public sealed class NonResolvableInterfaceObjectTests : ComplianceTestBase
             """);
 
     [Fact]
-    public Task Product_IdAndName_Errors_WhenNotResolvable() => RunAsync(
+    public Task Product_IdAndName_ReturnsNullWithError_WhenNotResolvable() => RunAsync(
         query: """
             query {
               product {

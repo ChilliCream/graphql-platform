@@ -1489,11 +1489,17 @@ internal sealed partial class FetchResultStore
         ReadOnlySpan<EntityResultPath> resultPaths,
         ResultSelectionSet resultSelectionSet)
     {
-        foreach (var rootError in errors.RootErrors)
+        if (!errors.RootErrors.IsDefaultOrEmpty)
         {
-            if (!SaveRepresentationError(
+            _errors ??= [];
+
+            foreach (var rootError in errors.RootErrors)
+            {
+                _errors.Add(_errorHandler.Handle(rootError));
+            }
+
+            if (!CompleteRepresentationErrorTargets(
                     resultData,
-                    rootError,
                     resultPaths,
                     resultSelectionSet))
             {
@@ -1503,6 +1509,44 @@ internal sealed partial class FetchResultStore
 
         return errorTrie is null
             || AddRepresentationErrors(resultData, errorTrie, resultPaths);
+    }
+
+    private bool CompleteRepresentationErrorTargets(
+        CompositeResultElement resultData,
+        ReadOnlySpan<EntityResultPath> resultPaths,
+        ResultSelectionSet resultSelectionSet)
+    {
+        for (var i = 0; i < resultPaths.Length; i++)
+        {
+            ref readonly var resultPath = ref resultPaths[i];
+
+            if (!Complete(resultPath.Path))
+            {
+                return false;
+            }
+
+            foreach (var additionalPath in resultPath.AdditionalPaths)
+            {
+                if (!Complete(additionalPath))
+                {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+
+        bool Complete(CompactPath targetPath)
+        {
+            if (resultData.IsInvalidated)
+            {
+                return false;
+            }
+
+            var target = targetPath.IsRoot ? resultData : GetStartObjectResult(targetPath);
+            return target.IsNullOrInvalidated
+                || _valueCompletion.CompleteErrorResult(target, resultSelectionSet);
+        }
     }
 
     private bool AddRepresentationErrors(

@@ -49,6 +49,16 @@ public sealed class SchemaComposer
                 "Source-schema node resolution requires global object identification to be enabled.");
         }
 
+        if (!Enum.IsDefined(
+            _schemaComposerOptions.ApolloFederationCompatibility
+                .ShareableFieldRuntimeTypeRouting))
+        {
+            return InvalidShareableFieldRuntimeTypeRouting(
+                "The shareable field runtime type routing mode "
+                + $"'{_schemaComposerOptions.ApolloFederationCompatibility.ShareableFieldRuntimeTypeRouting}' "
+                + "is invalid.");
+        }
+
         // Parse Source Schemas
         var parsingResult =
             _sourceSchemas.Select(schema =>
@@ -157,7 +167,11 @@ public sealed class SchemaComposer
         // Merge Source Schemas
         var sourceSchemaMergerOptions = _schemaComposerOptions.Merger;
         var (_, isMergeFailure, mergedSchema, mergeErrors) =
-            new SourceSchemaMerger(schemas, sourceSchemaMergerOptions).Merge();
+            new SourceSchemaMerger(
+                schemas,
+                sourceSchemaMergerOptions,
+                _schemaComposerOptions.ApolloFederationCompatibility
+                    .ShareableFieldRuntimeTypeRouting).Merge();
 
         if (isMergeFailure)
         {
@@ -197,6 +211,18 @@ public sealed class SchemaComposer
             LogEntryBuilder.New()
                 .SetMessage(message)
                 .SetCode(LogEntryCodes.InvalidNodeResolution)
+                .SetSeverity(LogSeverity.Error)
+                .Build());
+
+        return new CompositionError(message);
+    }
+
+    private CompositionError InvalidShareableFieldRuntimeTypeRouting(string message)
+    {
+        _log.Write(
+            LogEntryBuilder.New()
+                .SetMessage(message)
+                .SetCode(LogEntryCodes.InvalidShareableFieldRuntimeTypeRouting)
                 .SetSeverity(LogSeverity.Error)
                 .Build());
 

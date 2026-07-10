@@ -75,7 +75,8 @@ internal static class AspireCompositionHelper
             Satisfiability = { IncludeSatisfiabilityPaths = settings.IncludeSatisfiabilityPaths },
             ApolloFederationCompatibility =
             {
-                AllowNonResolvableInterfaceObjects = settings.AllowNonResolvableInterfaceObjects
+                AllowNonResolvableInterfaceObjects = settings.AllowNonResolvableInterfaceObjects,
+                ShareableFieldRuntimeTypeRouting = settings.ShareableFieldRuntimeTypeRouting
             },
             Preprocessor = { ExcludeByTag = settings.ExcludeByTag?.ToHashSet() }
         };

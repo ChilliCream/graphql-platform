@@ -44,6 +44,7 @@ internal static class FusionGatewayBuilder
             sourceSchemaSettings: null,
             NodeResolution.Gateway,
             allowNonResolvableInterfaceObjects: false,
+            ShareableFieldRuntimeTypeRouting.SourceLocal,
             subgraphs);
 
     public static Task<FusionGateway> ComposeAsync(
@@ -57,6 +58,7 @@ internal static class FusionGatewayBuilder
             sourceSchemaSettings: null,
             NodeResolution.Gateway,
             compatibility.AllowNonResolvableInterfaceObjects,
+            compatibility.ShareableFieldRuntimeTypeRouting,
             subgraphs);
     }
 
@@ -75,6 +77,7 @@ internal static class FusionGatewayBuilder
             sourceSchemaSettings: null,
             nodeResolution,
             allowNonResolvableInterfaceObjects: false,
+            ShareableFieldRuntimeTypeRouting.SourceLocal,
             subgraphs);
 
     /// <summary>
@@ -94,6 +97,7 @@ internal static class FusionGatewayBuilder
             sourceSchemaSettings: null,
             NodeResolution.Gateway,
             allowNonResolvableInterfaceObjects: false,
+            ShareableFieldRuntimeTypeRouting.SourceLocal,
             subgraphs);
 
     /// <summary>
@@ -120,6 +124,7 @@ internal static class FusionGatewayBuilder
             sourceSchemaSettings,
             NodeResolution.Gateway,
             allowNonResolvableInterfaceObjects: false,
+            ShareableFieldRuntimeTypeRouting.SourceLocal,
             subgraphs);
 
     /// <summary>
@@ -145,6 +150,7 @@ internal static class FusionGatewayBuilder
         IReadOnlyDictionary<string, string>? sourceSchemaSettings,
         NodeResolution nodeResolution,
         bool allowNonResolvableInterfaceObjects,
+        ShareableFieldRuntimeTypeRouting shareableFieldRuntimeTypeRouting,
         params (string Name, Func<Task<SubgraphHost>> Factory)[] subgraphs)
     {
         ArgumentNullException.ThrowIfNull(subgraphs);
@@ -184,7 +190,8 @@ internal static class FusionGatewayBuilder
                 sourceSchemaTexts,
                 nodeResolution != NodeResolution.Gateway,
                 nodeResolution,
-                allowNonResolvableInterfaceObjects);
+                allowNonResolvableInterfaceObjects,
+                shareableFieldRuntimeTypeRouting);
             var settings = BuildGatewaySettings(subgraphInfos, sourceSchemaSettings);
 
             var gatewayServices = new ServiceCollection();
@@ -266,12 +273,15 @@ internal static class FusionGatewayBuilder
         IReadOnlyList<SourceSchemaText> sourceSchemas,
         bool enableGlobalObjectIdentification,
         NodeResolution nodeResolution,
-        bool allowNonResolvableInterfaceObjects)
+        bool allowNonResolvableInterfaceObjects,
+        ShareableFieldRuntimeTypeRouting shareableFieldRuntimeTypeRouting)
     {
         var compositionLog = new CompositionLog();
         var options = new SchemaComposerOptions();
         options.ApolloFederationCompatibility.AllowNonResolvableInterfaceObjects =
             allowNonResolvableInterfaceObjects;
+        options.ApolloFederationCompatibility.ShareableFieldRuntimeTypeRouting =
+            shareableFieldRuntimeTypeRouting;
 
         // The Apollo Federation transformer already emits every resolvable
         // '@key' as an explicit '@lookup' field with '@is' metadata. Turning

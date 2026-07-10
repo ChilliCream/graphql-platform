@@ -63,8 +63,6 @@ public sealed class SelectionSet : ISelectionSet
     /// </remarks>
     public IComplexTypeDefinition Type { get; }
 
-    IObjectTypeDefinition ISelectionSet.Type => (IObjectTypeDefinition)Type;
-
     /// <summary>
     /// Gets the field selection whose child selection set this is, or <c>null</c> for the
     /// operation's root selection set. Used to recompute the concrete selection set when an

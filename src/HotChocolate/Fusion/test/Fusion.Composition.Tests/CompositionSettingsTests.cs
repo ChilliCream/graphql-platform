@@ -12,7 +12,9 @@ public sealed class CompositionSettingsTests
         {
             ApolloFederationCompatibility =
             {
-                AllowNonResolvableInterfaceObjects = true
+                AllowNonResolvableInterfaceObjects = true,
+                ShareableFieldRuntimeTypeRouting =
+                    ShareableFieldRuntimeTypeRouting.CommonRuntimeTypes
             }
         };
 
@@ -32,6 +34,20 @@ public sealed class CompositionSettingsTests
         Assert.True(roundTripped.ApolloFederationCompatibility
             .ToOptions()
             .AllowNonResolvableInterfaceObjects);
+        Assert.Equal(
+            "CommonRuntimeTypes",
+            document.RootElement
+                .GetProperty("apolloFederationCompatibility")
+                .GetProperty("shareableFieldRuntimeTypeRouting")
+                .GetString());
+        Assert.Equal(
+            ShareableFieldRuntimeTypeRouting.CommonRuntimeTypes,
+            roundTripped.ApolloFederationCompatibility.ShareableFieldRuntimeTypeRouting);
+        Assert.Equal(
+            ShareableFieldRuntimeTypeRouting.CommonRuntimeTypes,
+            roundTripped.ApolloFederationCompatibility
+                .ToOptions()
+                .ShareableFieldRuntimeTypeRouting);
     }
 
     [Fact]
@@ -42,7 +58,9 @@ public sealed class CompositionSettingsTests
         {
             ApolloFederationCompatibility =
             {
-                AllowNonResolvableInterfaceObjects = true
+                AllowNonResolvableInterfaceObjects = true,
+                ShareableFieldRuntimeTypeRouting =
+                    ShareableFieldRuntimeTypeRouting.CommonRuntimeTypes
             }
         };
 
@@ -51,6 +69,9 @@ public sealed class CompositionSettingsTests
 
         // assert
         Assert.True(merged.ApolloFederationCompatibility.AllowNonResolvableInterfaceObjects);
+        Assert.Equal(
+            ShareableFieldRuntimeTypeRouting.CommonRuntimeTypes,
+            merged.ApolloFederationCompatibility.ShareableFieldRuntimeTypeRouting);
     }
 
     [Fact]
@@ -112,5 +133,9 @@ public sealed class CompositionSettingsTests
 
         Assert.Null(settings!.Merger.NodeResolution);
         Assert.Equal(NodeResolution.Gateway, settings.Merger.ToOptions().NodeResolution);
+        Assert.Null(settings.ApolloFederationCompatibility.ShareableFieldRuntimeTypeRouting);
+        Assert.Equal(
+            ShareableFieldRuntimeTypeRouting.SourceLocal,
+            settings.ApolloFederationCompatibility.ToOptions().ShareableFieldRuntimeTypeRouting);
     }
 }

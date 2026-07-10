@@ -7,6 +7,7 @@ internal sealed class FusionSettingsNameArgument : Argument<string>
     public const string ExcludeByTag = "exclude-by-tag";
     public const string GlobalObjectIdentification = "global-object-identification";
     public const string NodeResolution = "node-resolution";
+    public const string ShareableFieldRuntimeTypeRouting = "shareable-field-runtime-type-routing";
     public const string TagMergeBehavior = "tag-merge-behavior";
 
     public static readonly string[] All =
@@ -15,6 +16,7 @@ internal sealed class FusionSettingsNameArgument : Argument<string>
         ExcludeByTag,
         GlobalObjectIdentification,
         NodeResolution,
+        ShareableFieldRuntimeTypeRouting,
         TagMergeBehavior
     ];
 
