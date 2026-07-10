@@ -18,8 +18,7 @@ public sealed class NodeImplType : ObjectType<NodeImpl>
         descriptor.Field(n => n.Id).Type<NonNullType<IdType>>();
     }
 
-    // The audit's Node.__resolveReference throws because the interface object is
-    // declared non-resolvable in this subgraph; modelled here as an unresolvable
-    // reference.
-    private static NodeImpl? ResolveById(string id) => null;
+    private static NodeImpl? ResolveById(string id)
+        => throw new InvalidOperationException(
+            "Not resolvable as it is an interface object.");
 }

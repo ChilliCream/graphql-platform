@@ -80,6 +80,11 @@ internal sealed partial class SourceSchemaPreprocessor(
             ApplyShareableDirectives();
         }
 
+        if (isFederationSchema)
+        {
+            RemoveEmptyQueryRoot.Apply(schema);
+        }
+
         // Additional schema validation will catch issues introduced during preprocessing. It runs
         // while @external fields are still present so that the validator sees the source schema as
         // authored (modulo the earlier transforms); the external fields are stripped afterwards and
@@ -97,6 +102,7 @@ internal sealed partial class SourceSchemaPreprocessor(
         if (isFederationSchema)
         {
             RemoveExternalFields.Apply(schema);
+            RemoveEmptyQueryRoot.Apply(schema);
         }
 
         return log.HasErrors

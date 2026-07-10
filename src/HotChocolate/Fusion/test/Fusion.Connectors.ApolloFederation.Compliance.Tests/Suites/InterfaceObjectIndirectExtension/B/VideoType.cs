@@ -15,20 +15,13 @@ public sealed class VideoType : ObjectType<Video>
     {
         descriptor
             .ExtendServiceType()
-            .Key("id")
-            .ResolveReferenceWith(_ => ResolveById(default!));
+            .Key("id");
 
-        // Apollo Federation treats the key field on an extended type as
-        // external. In the Fusion composite schema we model the same intent
-        // with '@shareable' so the planner can use it as the entity-routing
-        // key (see ComplexEntityCall ProductType note).
-        descriptor.Field(v => v.Id).Shareable().Type<NonNullType<IdType>>();
+        descriptor.Field(v => v.Id).Type<NonNullType<IdType>>();
 
         descriptor
             .Field("authorName")
             .Type<StringType>()
             .Resolve(_ => BData.AuthorName);
     }
-
-    private static Video ResolveById(string id) => new() { Id = id };
 }

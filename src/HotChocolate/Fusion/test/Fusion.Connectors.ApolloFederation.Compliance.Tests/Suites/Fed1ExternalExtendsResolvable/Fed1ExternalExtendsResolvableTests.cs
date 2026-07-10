@@ -11,6 +11,7 @@ namespace HotChocolate.Fusion.Suites;
 /// extends it (<c>@extends</c>) with a resolvable <c>price</c> field keyed by
 /// the external <c>id name</c> and <c>upc</c> routing fields.
 /// </summary>
+[Trait("Category", "OfficialV1")]
 public sealed class Fed1ExternalExtendsResolvableTests : ComplianceTestBase
 {
     protected override Task<FusionGateway> BuildGatewayAsync()

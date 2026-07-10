@@ -9,3 +9,8 @@ public sealed class Entity
     public string Id { get; init; } = default!;
     public IFoo? Data { get; set; }
 }
+
+internal sealed class RequiredFoo(string foo) : IFoo
+{
+    public string Foo { get; } = foo;
+}

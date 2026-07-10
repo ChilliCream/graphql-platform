@@ -15,6 +15,7 @@ namespace HotChocolate.Fusion.Suites;
 /// <c>@provides(fields: "name")</c> ship <c>name</c> alongside the
 /// reference so no entity call to <c>b</c> is needed.
 /// </summary>
+[Trait("Category", "OfficialV1")]
 public sealed class Fed1ExternalExtensionTests : ComplianceTestBase
 {
     protected override Task<FusionGateway> BuildGatewayAsync()

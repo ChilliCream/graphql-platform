@@ -8,6 +8,7 @@ using HotChocolate.Fusion.Suites.AbstractTypes.Users;
 
 namespace HotChocolate.Fusion.Suites;
 
+[Trait("Category", "OfficialV1")]
 public sealed class AbstractTypesTests : ComplianceTestBase
 {
     protected override Task<FusionGateway> BuildGatewayAsync()
