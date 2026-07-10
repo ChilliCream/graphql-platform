@@ -16,7 +16,7 @@ public class IntegrationTests
         var cacheDirectory = IO.Path.GetTempPath();
         var cachedOperation = IO.Path.Combine(cacheDirectory, documentId + ".graphql");
 
-        await File.WriteAllTextAsync(cachedOperation, "{ __typename }");
+        await File.WriteAllTextAsync(cachedOperation, "{ __typename }", TestContext.Current.CancellationToken);
 
         var executor =
             await new ServiceCollection()
@@ -34,10 +34,12 @@ public class IntegrationTests
                     }
                 })
                 .UsePersistedOperationPipeline()
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
-        var result = await executor.ExecuteAsync(OperationRequest.FromId(documentId));
+        var result = await executor.ExecuteAsync(
+            OperationRequest.FromId(documentId),
+            TestContext.Current.CancellationToken);
 
         // assert
         File.Delete(cachedOperation);
@@ -52,7 +54,7 @@ public class IntegrationTests
         var cacheDirectory = IO.Path.GetTempPath();
         var cachedOperation = IO.Path.Combine(cacheDirectory, documentId + ".graphql");
 
-        await File.WriteAllTextAsync(cachedOperation, "{ __typename }");
+        await File.WriteAllTextAsync(cachedOperation, "{ __typename }", TestContext.Current.CancellationToken);
 
         var executor =
             await new ServiceCollection()
@@ -70,10 +72,12 @@ public class IntegrationTests
                     }
                 })
                 .UsePersistedOperationPipeline()
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
-        var result = await executor.ExecuteAsync(OperationRequest.FromId("does_not_exist"));
+        var result = await executor.ExecuteAsync(
+            OperationRequest.FromId("does_not_exist"),
+            TestContext.Current.CancellationToken);
 
         // assert
         File.Delete(cachedOperation);
@@ -103,7 +107,7 @@ public class IntegrationTests
                     }
                 })
                 .UseAutomaticPersistedOperationPipeline()
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -122,7 +126,8 @@ public class IntegrationTests
                         }
                     }
                 })
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         File.Delete(IO.Path.Combine(cacheDirectory, documentHash + ".graphql"));
 

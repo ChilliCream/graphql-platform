@@ -1,7 +1,7 @@
 namespace ChilliCream.Nitro.CommandLine.FusionCompatibility;
 
 /// <summary>
-/// Defines the names of the values that can be used with the fusion resolver kind enum.
+/// Defines the names of the values that can be used with the Fusion resolver kind enum.
 /// </summary>
 internal static class FusionEnumValueNames
 {

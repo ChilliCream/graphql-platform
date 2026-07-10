@@ -19,7 +19,8 @@ public class CustomResolverCompilerTests
                 OperationRequestBuilder.New()
                     .SetDocument("{ sayHello }")
                     .AddGlobalState("someState", new SayHelloState("Hello"))
-                    .Build())
+                    .Build(),
+                cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 

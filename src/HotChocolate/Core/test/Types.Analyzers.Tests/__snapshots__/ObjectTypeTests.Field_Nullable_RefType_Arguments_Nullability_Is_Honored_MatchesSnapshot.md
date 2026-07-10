@@ -48,6 +48,7 @@ namespace TestNamespace
 
                     configuration.Type = typeInspector.GetTypeRef(typeof(global::HotChocolate.Types.StringType), HotChocolate.Types.TypeContext.Output);
                     configuration.ResultType = typeof(global::TestNamespace.Author);
+                    configuration.DeclaringType = context.ThisType;
 
                     configuration.SetSourceGeneratorFlags();
 
@@ -160,4 +161,3 @@ namespace Microsoft.Extensions.DependencyInjection
 }
 
 ```
-

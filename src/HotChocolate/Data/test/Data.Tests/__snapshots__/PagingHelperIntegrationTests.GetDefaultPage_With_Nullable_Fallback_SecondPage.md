@@ -3,20 +3,20 @@
 ## SQL 0
 
 ```sql
--- @__value_0='Brand:11'
--- @__value_1='12'
--- @__p_2='3'
+-- @value='Brand:11'
+-- @value2='12'
+-- @p='3'
 SELECT b."Id", b."AlwaysNull", b."DisplayName", b."Name", b."BrandDetails_Country_Name"
 FROM "Brands" AS b
-WHERE COALESCE(b."DisplayName", b."Name") > @__value_0 OR (COALESCE(b."DisplayName", b."Name") = @__value_0 AND b."Id" > @__value_1)
+WHERE COALESCE(b."DisplayName", b."Name") > @value OR (COALESCE(b."DisplayName", b."Name") = @value AND b."Id" > @value2)
 ORDER BY COALESCE(b."DisplayName", b."Name"), b."Id"
-LIMIT @__p_2
+LIMIT @p
 ```
 
 ## Expression 0
 
 ```text
-[Microsoft.EntityFrameworkCore.Query.EntityQueryRootExpression].OrderBy(t => (t.DisplayName ?? t.Name)).ThenBy(t => t.Id).Where(t => (((t.DisplayName ?? t.Name).CompareTo(value(GreenDonut.Data.Expressions.ExpressionHelpers+<>c__DisplayClass6_0`1[System.String]).value) > 0) OrElse (((t.DisplayName ?? t.Name).CompareTo(value(GreenDonut.Data.Expressions.ExpressionHelpers+<>c__DisplayClass6_0`1[System.String]).value) == 0) AndAlso (t.Id.CompareTo(value(GreenDonut.Data.Expressions.ExpressionHelpers+<>c__DisplayClass6_0`1[System.Int32]).value) > 0)))).Take(3)
+[Microsoft.EntityFrameworkCore.Query.EntityQueryRootExpression].OrderBy(t => (t.DisplayName ?? t.Name)).ThenBy(t => t.Id).Where(t => (((t.DisplayName ?? t.Name).CompareTo(value(GreenDonut.Data.Expressions.ExpressionHelpers+<>c__DisplayClass16_0`1[System.String]).value) > 0) OrElse (((t.DisplayName ?? t.Name).CompareTo(value(GreenDonut.Data.Expressions.ExpressionHelpers+<>c__DisplayClass16_0`1[System.String]).value) == 0) AndAlso (t.Id.CompareTo(value(GreenDonut.Data.Expressions.ExpressionHelpers+<>c__DisplayClass16_0`1[System.Int32]).value) > 0)))).Take(3)
 ```
 
 ## Result
@@ -65,4 +65,3 @@ LIMIT @__p_2
   }
 }
 ```
-

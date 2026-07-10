@@ -1,0 +1,53 @@
+[
+  {
+    "query": "query {\n  randomUser {\n    id\n    name\n  }\n  userById(id: \"u2\") {\n    id\n    name\n    nickname\n  }\n}\n",
+    "expected": {
+      "data": {
+        "randomUser": {
+          "id": "u1",
+          "name": "u1-name"
+        },
+        "userById": {
+          "id": "u2",
+          "name": "u2-name",
+          "nickname": "u2-nickname"
+        }
+      }
+    }
+  },
+  {
+    "query": "query {\n  randomUser {\n    id\n    rid\n  }\n}\n",
+    "expected": {
+      "data": {
+        "randomUser": {
+          "id": "u1",
+          "rid": "u1-rid"
+        }
+      }
+    }
+  },
+  {
+    "query": "query {\n  randomUser {\n    id\n    rid\n    name\n  }\n}\n",
+    "expected": {
+      "data": {
+        "randomUser": {
+          "id": "u1",
+          "rid": "u1-rid",
+          "name": "u1-name"
+        }
+      }
+    }
+  },
+  {
+    "query": "query {\n  providedRandomUser {\n    id\n    rid\n    name\n  }\n}\n",
+    "expected": {
+      "data": {
+        "providedRandomUser": {
+          "id": "u1",
+          "rid": "u1-rid",
+          "name": "u1-name"
+        }
+      }
+    }
+  }
+]

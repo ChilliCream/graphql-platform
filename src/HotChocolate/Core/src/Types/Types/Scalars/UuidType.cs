@@ -84,7 +84,7 @@ public class UuidType : ScalarType<Guid, StringValueNode>
         : base(name, bind)
     {
         Description = description;
-        SpecifiedBy = new Uri(SpecifiedByUri);
+        SpecifiedBy = SpecifiedByUri;
         _format = CreateFormatString(defaultFormat);
         _enforceFormat = enforceFormat;
 

@@ -38,7 +38,7 @@ public class ObjectTypeTests
                     CancellationToken cancellationToken)
                     => default;
             }
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -79,7 +79,7 @@ public class ObjectTypeTests
                     CancellationToken cancellationToken)
                     => default;
             }
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -120,7 +120,7 @@ public class ObjectTypeTests
                     CancellationToken cancellationToken)
                     => default;
             }
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -161,7 +161,59 @@ public class ObjectTypeTests
                     CancellationToken cancellationToken)
                     => default;
             }
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
+    }
+
+    [Fact]
+    public async Task BindField_BoundProperty_MatchesSnapshot()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            """
+            using HotChocolate;
+            using HotChocolate.Types;
+
+            namespace TestNamespace;
+
+            public class Query
+            {
+                public string Greeting { get; set; }
+            }
+
+            [ObjectType<Query>]
+            internal static partial class QueryType
+            {
+                [BindField("greeting")]
+                public static string GetGreeting([Parent] Query query)
+                    => query.Greeting + " world";
+            }
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
+    }
+
+    [Fact]
+    public async Task BindField_MultipleAttributes_RaisesError()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            """
+            using HotChocolate;
+            using HotChocolate.Types;
+
+            namespace TestNamespace;
+
+            public class Query
+            {
+                public string Greeting { get; set; }
+                public string Salutation { get; set; }
+            }
+
+            [ObjectType<Query>]
+            internal static partial class QueryType
+            {
+                [BindField("greeting")]
+                [BindField("salutation")]
+                public static string GetGreeting([Parent] Query query)
+                    => query.Greeting + query.Salutation;
+            }
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -185,7 +237,7 @@ public class ObjectTypeTests
                 public static string GetFoo(string bar = "baz")
                     => bar;
             }
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -237,7 +289,7 @@ public class ObjectTypeTests
                 public static string GetEnumExplicitDefault(ConsoleColor? bar = default)
                     => bar?.ToString();
             }
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -265,7 +317,7 @@ public class ObjectTypeTests
                 public static string GetUser()
                     => "User";
             }
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -292,7 +344,7 @@ public class ObjectTypeTests
                 public static string GetPath()
                     => "Path";
             }
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -321,7 +373,7 @@ public class ObjectTypeTests
                 public static string GetUserById(int userId, bool includeDeleted = false)
                     => $"User {userId}";
             }
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -353,7 +405,7 @@ public class ObjectTypeTests
                 public static string ExecuteQuery(string query, int timeout = 30000)
                     => query;
             }
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -383,7 +435,7 @@ public class ObjectTypeTests
                 /// <inheritdoc />
                 public override string GetUser() => "Query User";
             }
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -413,7 +465,7 @@ public class ObjectTypeTests
                 /// <inheritdoc />
                 public string GetCurrentUser() => "Current User";
             }
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -443,7 +495,7 @@ public class ObjectTypeTests
                 /// <inheritdoc cref="IUserResolver.ResolveUser"/>
                 public string GetUserInfo() => "User Info";
             }
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -485,7 +537,80 @@ public class ObjectTypeTests
                     CancellationToken cancellationToken)
                     => default;
             }
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
+    }
+
+    [Fact]
+    public async Task CustomAttribute_With_Enum_And_Composite_Enum_Arguments_On_Parameter_MatchesSnapshot()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            """
+            using System;
+            using System.Collections.Generic;
+            using System.Threading;
+            using System.Threading.Tasks;
+            using HotChocolate;
+            using HotChocolate.Types;
+
+            namespace TestNamespace;
+
+            public enum Visibility
+            {
+                Public = 0,
+                Internal = 1,
+                Private = 2
+            }
+
+            [Flags]
+            public enum Access
+            {
+                None = 0,
+                Read = 1,
+                Write = 2,
+                Execute = 4
+            }
+
+            public sealed class FooAttribute : Attribute
+            {
+                public FooAttribute(Visibility visibility)
+                {
+                    Visibility = visibility;
+                }
+
+                public Visibility Visibility { get; }
+
+                public Visibility NamedVisibility { get; set; }
+
+                public Access AccessFlags { get; set; }
+            }
+
+            public sealed class Author
+            {
+                public int Id { get; set; }
+                public string Name { get; set; }
+            }
+
+            public sealed class Book
+            {
+                public int Id { get; set; }
+                public string Title { get; set; }
+                public int AuthorId { get; set; }
+            }
+
+            [ObjectType<Book>]
+            internal static partial class BookNode
+            {
+                [BindMember(nameof(Book.AuthorId))]
+                public static Task<Author?> GetAuthorAsync(
+                    [Parent] Book book,
+                    [Foo(
+                        Visibility.Internal,
+                        NamedVisibility = Visibility.Private,
+                        AccessFlags = Access.Read | Access.Write)] int version,
+                    CancellationToken cancellationToken)
+                    => default;
+            }
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -525,7 +650,7 @@ public class ObjectTypeTests
                     CancellationToken cancellationToken)
                     => default;
             }
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -565,7 +690,7 @@ public class ObjectTypeTests
                     CancellationToken cancellationToken)
                     => default;
             }
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -605,7 +730,7 @@ public class ObjectTypeTests
                     CancellationToken cancellationToken)
                     => default;
             }
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -646,7 +771,7 @@ public class ObjectTypeTests
                     CancellationToken cancellationToken)
                     => default;
             }
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -687,7 +812,7 @@ public class ObjectTypeTests
                     CancellationToken cancellationToken = default)
                     => default;
             }
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -728,7 +853,7 @@ public class ObjectTypeTests
                     CancellationToken cancellationToken = default)
                     => default;
             }
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -774,7 +899,7 @@ public class ObjectTypeTests
                     CancellationToken cancellationToken = default)
                     => default;
             }
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -820,7 +945,7 @@ public class ObjectTypeTests
                     CancellationToken cancellationToken = default)
                     => default;
             }
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -866,6 +991,202 @@ public class ObjectTypeTests
                     CancellationToken cancellationToken = default)
                     => default;
             }
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
+    }
+
+    [Fact]
+    public async Task BatchResolver_Simple_MatchesSnapshot()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            """
+            using System.Collections.Generic;
+            using HotChocolate;
+            using HotChocolate.Types;
+
+            namespace TestNamespace;
+
+            public sealed class User
+            {
+                public int Id { get; set; }
+                public string Name { get; set; }
+            }
+
+            [ObjectType<User>]
+            public static partial class UserExtensions
+            {
+                [BatchResolver]
+                public static List<string> GetGreeting([Parent] List<User> users)
+                    => default!;
+            }
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
+    }
+
+    [Fact]
+    public async Task BatchResolver_Async_MatchesSnapshot()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            """
+            using System.Collections.Generic;
+            using System.Threading;
+            using System.Threading.Tasks;
+            using HotChocolate;
+            using HotChocolate.Types;
+
+            namespace TestNamespace;
+
+            public sealed class User
+            {
+                public int Id { get; set; }
+                public string Name { get; set; }
+            }
+
+            [ObjectType<User>]
+            public static partial class UserExtensions
+            {
+                [BatchResolver]
+                public static ValueTask<List<string>> GetGreeting(
+                    [Parent] List<User> users,
+                    CancellationToken cancellationToken)
+                    => default!;
+            }
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
+    }
+
+    [Fact]
+    public async Task BatchResolver_With_Service_MatchesSnapshot()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            """
+            using System.Collections.Generic;
+            using HotChocolate;
+            using HotChocolate.Types;
+
+            namespace TestNamespace;
+
+            public sealed class User
+            {
+                public int Id { get; set; }
+                public string Name { get; set; }
+            }
+
+            public sealed class GreetingService
+            {
+            }
+
+            [ObjectType<User>]
+            public static partial class UserExtensions
+            {
+                [BatchResolver]
+                public static List<string> GetGreeting(
+                    [Parent] List<User> users,
+                    [Service] GreetingService greetingService)
+                    => default!;
+            }
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
+    }
+
+    [Fact]
+    public async Task BatchResolver_With_Argument_MatchesSnapshot()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            """
+            using System.Collections.Generic;
+            using HotChocolate;
+            using HotChocolate.Types;
+
+            namespace TestNamespace;
+
+            public sealed class User
+            {
+                public int Id { get; set; }
+                public string Name { get; set; }
+            }
+
+            [ObjectType<User>]
+            public static partial class UserExtensions
+            {
+                [BatchResolver]
+                public static List<string> GetGreeting(
+                    [Parent] List<User> users,
+                    List<string> prefix)
+                    => default!;
+            }
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
+    }
+
+    [Fact]
+    public async Task GenerateSource_BindField_MatchesSnapshot()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            """
+            using System;
+            using System.Threading;
+            using System.Threading.Tasks;
+            using HotChocolate;
+            using HotChocolate.Types;
+
+            namespace TestNamespace;
+
+            public sealed class LineItem
+            {
+                public int Id { get; set; }
+                public int ProductId { get; set; }
+                public int Quantity { get; set; }
+            }
+
+            public sealed class Product
+            {
+                public int Id { get; set; }
+                public string Name { get; set; } = string.Empty;
+            }
+
+            [ObjectType<LineItem>]
+            public static partial class LineItemType
+            {
+                [BindField("product")]
+                public static Product GetProduct([Parent] LineItem lineItem)
+                    => new Product { Id = lineItem.ProductId, Name = "Test Product" };
+            }
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
+    }
+
+    [Fact]
+    public async Task GenerateSource_BindField_And_BindMember_MatchesSnapshot()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            """
+            using System;
+            using System.Threading;
+            using System.Threading.Tasks;
+            using HotChocolate;
+            using HotChocolate.Types;
+
+            namespace TestNamespace;
+
+            public sealed class User
+            {
+                public int Id { get; set; }
+                public string Email { get; set; } = string.Empty;
+                public int ProfileId { get; set; }
+            }
+
+            public sealed class Profile
+            {
+                public int Id { get; set; }
+                public string DisplayName { get; set; } = string.Empty;
+            }
+
+            [ObjectType<User>]
+            public static partial class UserType
+            {
+                [BindField("profile")]
+                public static Profile GetProfile([Parent] User user)
+                    => new Profile { Id = user.ProfileId, DisplayName = "Profile" };
+
+                [BindMember(nameof(User.Email))]
+                public static string GetEmailFormatted([Parent] User user)
+                    => $"Email: {user.Email}";
+            }
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 }

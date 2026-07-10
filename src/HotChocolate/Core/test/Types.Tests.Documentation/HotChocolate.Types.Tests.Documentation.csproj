@@ -4,8 +4,14 @@
     <AssemblyName>HotChocolate.Types.Tests.Documentation</AssemblyName>
     <RootNamespace>HotChocolate</RootNamespace>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <NoWarn>$(NoWarn);CS1591</NoWarn>
+    <!-- The sample doc comments intentionally include a <see cref="Record"/> that points outside
+         this project; the documentation-extraction tests assert tag handling, not cref resolution. -->
+    <NoWarn>$(NoWarn);CS1591;CS1574</NoWarn>
   </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Types\HotChocolate.Types.csproj" />
+  </ItemGroup>
 
   <ItemGroup>
     <None Update="$(MSBuildProjectDirectory)\Dummy.xml">

@@ -1,4 +1,5 @@
 using System.Linq.Expressions;
+using System.Reflection;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 
@@ -17,4 +18,6 @@ public class QueryableProjectionContext : ProjectionVisitorContext<Expression>
     }
 
     public bool InMemory { get; }
+
+    internal NullabilityInfoContext NullabilityInfoContext { get; } = new();
 }

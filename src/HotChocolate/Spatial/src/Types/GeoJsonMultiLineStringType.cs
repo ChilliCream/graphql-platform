@@ -1,5 +1,6 @@
 using NetTopologySuite.Geometries;
 using static HotChocolate.Types.Spatial.Properties.Resources;
+using static HotChocolate.Types.Spatial.WellKnownFields;
 using static HotChocolate.Types.Spatial.WellKnownTypeNames;
 
 namespace HotChocolate.Types.Spatial;
@@ -16,8 +17,10 @@ public sealed class GeoJsonMultiLineStringType
             .BindFieldsExplicitly();
 
         descriptor
-            .Field(x => x.Coordinates)
-            .Description(GeoJson_Field_Coordinates_Description_MultiLineString);
+            .Field<GeoJsonResolvers>(x => x.GetGeometryCollectionCoordinates(null!))
+            .Name(CoordinatesFieldName)
+            .Description(GeoJson_Field_Coordinates_Description_MultiLineString)
+            .Type<ListType<ListType<GeoJsonPositionType>>>();
 
         descriptor
             .Field<GeoJsonResolvers>(x => x.GetType(null!))

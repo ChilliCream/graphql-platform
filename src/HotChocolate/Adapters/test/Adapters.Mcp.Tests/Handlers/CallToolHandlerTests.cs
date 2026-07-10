@@ -1,4 +1,3 @@
-using HotChocolate.Adapters.Mcp.Extensions;
 using HotChocolate.Adapters.Mcp.Storage;
 using HotChocolate.Execution;
 using HotChocolate.Language;
@@ -53,12 +52,12 @@ public sealed class CallToolHandlerTests
         mockServer.SetupGet(s => s.Services).Returns(executor.Schema.Services);
         var request = new JsonRpcRequest { Method = RequestMethods.ToolsCall };
 
-        return new RequestContext<CallToolRequestParams>(mockServer.Object, request)
-        {
-            Params = new CallToolRequestParams
+        return new RequestContext<CallToolRequestParams>(
+            mockServer.Object,
+            request,
+            new CallToolRequestParams
             {
                 Name = toolName
-            }
-        };
+            });
     }
 }

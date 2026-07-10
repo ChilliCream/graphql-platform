@@ -1,4 +1,4 @@
-namespace HotChocolate.Types.Analyzers.FileBuilders;
+namespace HotChocolate.Types.Analyzers.Models;
 
 public class GroupedDataLoaderInfo
 {

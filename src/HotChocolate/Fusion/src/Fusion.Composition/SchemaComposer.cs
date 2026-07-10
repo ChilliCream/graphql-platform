@@ -1,0 +1,233 @@
+using System.Collections.Immutable;
+using HotChocolate.Fusion.Comparers;
+using HotChocolate.Fusion.Extensions;
+using HotChocolate.Fusion.Logging.Contracts;
+using HotChocolate.Fusion.Options;
+using HotChocolate.Fusion.PostMergeValidationRules;
+using HotChocolate.Fusion.PreMergeValidationRules;
+using HotChocolate.Fusion.Results;
+using HotChocolate.Fusion.SourceSchemaValidationRules;
+using HotChocolate.Types.Mutable;
+using LogSeverity = HotChocolate.Fusion.Logging.LogSeverity;
+
+namespace HotChocolate.Fusion;
+
+public sealed class SchemaComposer
+{
+    private readonly IEnumerable<SourceSchemaText> _sourceSchemas;
+    private readonly SchemaComposerOptions _schemaComposerOptions;
+    private readonly ICompositionLog _log;
+
+    public SchemaComposer(
+        IEnumerable<SourceSchemaText> sourceSchemas,
+        SchemaComposerOptions schemaComposerOptions,
+        ICompositionLog log)
+    {
+        ArgumentNullException.ThrowIfNull(sourceSchemas);
+        ArgumentNullException.ThrowIfNull(schemaComposerOptions);
+        ArgumentNullException.ThrowIfNull(log);
+
+        _sourceSchemas = sourceSchemas;
+        _schemaComposerOptions = schemaComposerOptions;
+        _log = log;
+    }
+
+    public CompositionResult<MutableSchemaDefinition> Compose()
+    {
+        // Parse Source Schemas
+        var parsingResult =
+            _sourceSchemas.Select(schema =>
+            {
+                var options = _schemaComposerOptions.SourceSchemas.GetValueOrDefault(schema.Name);
+
+                return new SourceSchemaParser(
+                    schema,
+                    _log,
+                    options?.Parser,
+                    options?.InvalidFieldDeprecationSeverity ?? LogSeverity.Warning).Parse();
+            }).Combine();
+
+        if (parsingResult.IsFailure)
+        {
+            return parsingResult.Errors;
+        }
+
+        var schemas =
+            parsingResult.Value.ToImmutableSortedSet(new SchemaByNameComparer<MutableSchemaDefinition>());
+
+        // Preprocess Source Schemas
+        var preprocessingResult =
+            schemas.Select(schema =>
+            {
+                var options = _schemaComposerOptions.SourceSchemas.GetValueOrDefault(schema.Name);
+
+                return new SourceSchemaPreprocessor(
+                    schema,
+                    schemas,
+                    _log,
+                    options?.Version,
+                    options?.Preprocessor,
+                    options?.InvalidFieldDeprecationSeverity ?? LogSeverity.Warning)
+                    .Preprocess();
+            }).Combine();
+
+        if (preprocessingResult.IsFailure)
+        {
+            return preprocessingResult.Errors;
+        }
+
+        // Enrich Source Schemas
+        var enrichmentResult =
+            schemas.Select(schema => new SourceSchemaEnricher(schema, schemas).Enrich()).Combine();
+
+        if (enrichmentResult.IsFailure)
+        {
+            return enrichmentResult.Errors;
+        }
+
+        // Prune unreachable definitions from each source schema before validation, so types
+        // stripped by @excludeByTag (or otherwise unreferenced) are not validated or merged.
+        if (_schemaComposerOptions.Merger.RemoveUnreferencedDefinitions)
+        {
+            var preservedTypeNames = MutableSchemaDefinitionExtensions.GetPreservedTypeNames(schemas);
+
+            foreach (var schema in schemas)
+            {
+                schema.RemoveUnreferencedDefinitions(preservedTypeNames, seedUnionsAsRoots: true);
+            }
+        }
+
+        // Validate Source Schemas
+        var validationResult =
+            new SourceSchemaValidator(schemas, s_sourceSchemaRules, _log).Validate();
+
+        if (validationResult.IsFailure)
+        {
+            return validationResult;
+        }
+
+        // Pre Merge Validation
+        var preMergeValidationResult =
+            new PreMergeValidator(schemas, s_preMergeRules, _log).Validate();
+
+        if (preMergeValidationResult.IsFailure)
+        {
+            return preMergeValidationResult;
+        }
+
+        // Merge Source Schemas
+        var sourceSchemaMergerOptions = _schemaComposerOptions.Merger;
+        var (_, isMergeFailure, mergedSchema, mergeErrors) =
+            new SourceSchemaMerger(schemas, sourceSchemaMergerOptions).Merge();
+
+        if (isMergeFailure)
+        {
+            return mergeErrors;
+        }
+
+        // Post Merge Validation
+        var postMergeValidationResult =
+            new PostMergeValidator(mergedSchema, s_postMergeRules, schemas, _log).Validate();
+
+        if (postMergeValidationResult.IsFailure)
+        {
+            return postMergeValidationResult;
+        }
+
+        // Validate Satisfiability
+        var satisfiabilityResult =
+            new SatisfiabilityValidator(
+                mergedSchema,
+                _log,
+                _schemaComposerOptions.Satisfiability).Validate();
+
+        if (satisfiabilityResult.IsFailure)
+        {
+            return satisfiabilityResult;
+        }
+
+        return mergedSchema;
+    }
+
+    private static readonly ImmutableArray<object> s_sourceSchemaRules =
+    [
+        new DisallowedInaccessibleElementsRule(),
+        new ExternalOnInterfaceRule(),
+        new ExternalOverrideCollisionRule(),
+        new ExternalProvidesCollisionRule(),
+        new ExternalRequireCollisionRule(),
+        new ExternalUnusedRule(),
+        new EventCursorMarkerRule(),
+        new InvalidShareableUsageRule(),
+        new IsInvalidFieldTypeRule(),
+        new IsInvalidSyntaxRule(),
+        new IsInvalidUsageRule(),
+        new KeyDirectiveInFieldsArgumentRule(),
+        new KeyFieldsSelectInvalidTypeRule(),
+        new KeyInvalidArgumentsRule(),
+        new KeyInvalidFieldsTypeRule(),
+        new KeyInvalidSyntaxRule(),
+        new LookupMustHaveArgumentsRule(),
+        new LookupReturnsListRule(),
+        new LookupReturnsNonNullableTypeRule(),
+        new OverrideFromSelfRule(),
+        new OverrideOnInterfaceRule(),
+        new ProvidesDirectiveInFieldsArgumentRule(),
+        new ProvidesFieldsHasArgumentsRule(),
+        new ProvidesFieldsMissingExternalRule(),
+        new ProvidesInvalidFieldsRule(),
+        new ProvidesInvalidFieldsTypeRule(),
+        new ProvidesInvalidSyntaxRule(),
+        new ProvidesOnNonCompositeFieldRule(),
+        new QueryRootTypeInaccessibleRule(),
+        new RequireInvalidFieldTypeRule(),
+        new RequireInvalidSyntaxRule(),
+        new RootMutationUsedRule(),
+        new RootQueryUsedRule(),
+        new RootSubscriptionUsedRule(),
+        new EventStreamMessageInvalidFieldsRule(),
+        new EventStreamTopicsEmptyRule()
+    ];
+
+    private static readonly ImmutableArray<object> s_preMergeRules =
+    [
+        new EnumValuesMismatchRule(),
+        new ExternalArgumentDefaultMismatchRule(),
+        new ExternalArgumentMissingRule(),
+        new ExternalArgumentTypeMismatchRule(),
+        new ExternalMissingOnBaseRule(),
+        new ExternalTypeMismatchRule(),
+        new FieldArgumentTypesMergeableRule(),
+        new FieldWithMissingRequiredArgumentRule(),
+        new InputFieldDefaultMismatchRule(),
+        new InputFieldTypesMergeableRule(),
+        new InputWithMissingRequiredFieldsRule(),
+        new InputWithMissingOneOfRule(),
+        new InvalidFieldSharingRule(),
+        new MultipleEventStreamSourcesRule(),
+        new OptInFeatureStabilityMismatchRule(),
+        new OutputFieldTypesMergeableRule(),
+        new SpecifiedByUrlMismatchRule(),
+        new TypeKindMismatchRule()
+    ];
+
+    private static readonly ImmutableArray<object> s_postMergeRules =
+    [
+        new EmptyMergedEnumTypeRule(),
+        new EmptyMergedInputObjectTypeRule(),
+        new EmptyMergedInterfaceTypeRule(),
+        new EmptyMergedObjectTypeRule(),
+        new EmptyMergedUnionTypeRule(),
+        new EnumTypeDefaultValueInaccessibleRule(),
+        new EventStreamMessageAbstractTypeRequiresTypeNameRule(),
+        new ImplementedByInaccessibleRule(),
+        new InterfaceFieldNoImplementationRule(),
+        new IsInvalidFieldsRule(),
+        new KeyInvalidFieldsRule(),
+        new NonNullInputFieldIsInaccessibleRule(),
+        new NoQueriesRule(),
+        new ReferenceToInaccessibleTypeRule(),
+        new ReferenceToInternalTypeRule(),
+        new RequireInvalidFieldsRule()
+    ];
+}

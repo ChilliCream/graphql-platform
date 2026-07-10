@@ -22,7 +22,7 @@ public class ResolverTests
             }
 
             internal class Test;
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -45,7 +45,7 @@ public class ResolverTests
             }
 
             internal class Test;
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -68,7 +68,73 @@ public class ResolverTests
             }
 
             internal class Test;
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
+    }
+
+    [Fact]
+    public async Task GenerateSource_ResolverWithLocalStateDerivedAttribute_PrimaryConstructorBaseKey_MatchesSnapshot()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            """
+            using System;
+            using HotChocolate;
+            using HotChocolate.Types;
+
+            namespace TestNamespace;
+
+            [ObjectType<Test>]
+            internal static partial class TestType
+            {
+                public static string GetTest([ScopeState] string scope)
+                {
+                    return scope;
+                }
+            }
+
+            [AttributeUsage(AttributeTargets.Parameter)]
+            public sealed class ScopeStateAttribute()
+                : LocalStateAttribute(LookupKey)
+            {
+                public const string LookupKey = "ScopeState";
+            }
+
+            internal class Test;
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
+    }
+
+    [Fact]
+    public async Task GenerateSource_ResolverWithScopedStateDerivedAttribute_BaseConstructorKey_MatchesSnapshot()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            """
+            using System;
+            using HotChocolate;
+            using HotChocolate.Types;
+
+            namespace TestNamespace;
+
+            [ObjectType<Test>]
+            internal static partial class TestType
+            {
+                public static string GetTest([ScopeState] string scope)
+                {
+                    return scope;
+                }
+            }
+
+            [AttributeUsage(AttributeTargets.Parameter)]
+            public sealed class ScopeStateAttribute : ScopedStateAttribute
+            {
+                public const string LookupKey = "ScopeState";
+
+                public ScopeStateAttribute()
+                    : base(LookupKey)
+                {
+                }
+            }
+
+            internal class Test;
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -92,7 +158,7 @@ public class ResolverTests
             }
 
             internal class Test;
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -116,7 +182,7 @@ public class ResolverTests
             }
 
             internal class Test;
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -140,7 +206,7 @@ public class ResolverTests
             }
 
             internal class Test;
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -167,7 +233,7 @@ public class ResolverTests
             internal class Test;
 
             internal class Entity;
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -203,7 +269,7 @@ public class ResolverTests
 
                 public string Name { get; set; }
             }
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -239,7 +305,7 @@ public class ResolverTests
 
                 public string Name { get; set; }
             }
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -268,7 +334,7 @@ public class ResolverTests
 
                 public string Name { get; set; }
             }
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -292,7 +358,7 @@ public class ResolverTests
             }
 
             internal class Test;
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -316,7 +382,7 @@ public class ResolverTests
             }
 
             internal class Test;
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -364,7 +430,7 @@ public class ResolverTests
                     => await dataLoader.LoadAsync(id, cancellationToken);
             }
             """
-        ]).MatchMarkdownAsync();
+        ]).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -413,7 +479,7 @@ public class ResolverTests
                     => await dataLoader.LoadAsync(id, cancellationToken);
             }
             """
-        ]).MatchMarkdownAsync();
+        ]).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -485,6 +551,106 @@ public class ResolverTests
                     => await dataLoader.LoadAsync(id, cancellationToken);
             }
             """
-        ]).MatchMarkdownAsync();
+        ]).MatchMarkdownAsync(TestContext.Current.CancellationToken);
+    }
+
+    [Fact]
+    public async Task GenerateSource_ResolverWithIsSelectedSingleField_MatchesSnapshot()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            """
+            using HotChocolate;
+            using HotChocolate.Types;
+
+            namespace TestNamespace;
+
+            [ObjectType<Test>]
+            internal static partial class TestType
+            {
+                public static int GetTest([IsSelected("email")] bool isSelected)
+                {
+                    return isSelected ? 1 : 0;
+                }
+            }
+
+            internal class Test;
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
+    }
+
+    [Fact]
+    public async Task GenerateSource_ResolverWithIsSelectedMultipleFields_MatchesSnapshot()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            """
+            using HotChocolate;
+            using HotChocolate.Types;
+
+            namespace TestNamespace;
+
+            [ObjectType<Test>]
+            internal static partial class TestType
+            {
+                public static int GetTest([IsSelected("email", "password", "name", "address")] bool isSelected)
+                {
+                    return isSelected ? 1 : 0;
+                }
+            }
+
+            internal class Test;
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
+    }
+
+    [Fact]
+    public async Task GenerateSource_ResolverWithIsSelectedPattern_MatchesSnapshot()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            """
+            using HotChocolate;
+            using HotChocolate.Types;
+
+            namespace TestNamespace;
+
+            [ObjectType<Test>]
+            internal static partial class TestType
+            {
+                public static int GetTest([IsSelected("email category { name }")] bool isSelected)
+                {
+                    return isSelected ? 1 : 0;
+                }
+            }
+
+            internal class Test;
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
+    }
+
+    [Fact]
+    public async Task GenerateSource_NodeResolverWithIsSelectedPattern_MatchesSnapshot()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            """
+            using HotChocolate;
+            using HotChocolate.Types;
+            using HotChocolate.Types.Relay;
+            using System.Threading.Tasks;
+
+            namespace TestNamespace;
+
+            [ObjectType<Test>]
+            internal static partial class TestType
+            {
+                [NodeResolver]
+                internal static Task<Test?> GetTestByIdAsync(
+                    int id,
+                    [IsSelected("name address { city }")] bool isSelected)
+                    => Task.FromResult<Test?>(null);
+            }
+
+            internal class Test
+            {
+                public int Id { get; set; }
+
+                public string Name { get; set; }
+            }
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 }

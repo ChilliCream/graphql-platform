@@ -31,13 +31,9 @@ public sealed class NodeResolverIdParameterCodeFixProvider : CodeFixProvider
         // Find the parameter
         var node = root.FindNode(diagnosticSpan);
         var parameter = node.AncestorsAndSelf().OfType<ParameterSyntax>().FirstOrDefault();
-        if (parameter is null)
-        {
-            return;
-        }
 
         // Find the method declaration
-        var methodDeclaration = parameter.AncestorsAndSelf().OfType<MethodDeclarationSyntax>().FirstOrDefault();
+        var methodDeclaration = parameter?.AncestorsAndSelf().OfType<MethodDeclarationSyntax>().FirstOrDefault();
         if (methodDeclaration is null)
         {
             return;

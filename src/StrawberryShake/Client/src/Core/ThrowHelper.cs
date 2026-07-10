@@ -69,18 +69,18 @@ internal static class ThrowHelper
         new(new ClientError(
             $"The URL serializer could not parse value {value}. Invalid format."));
 
-    internal static GraphQLClientException TimeSpanSerializer_CouldNotParseValue(
+    internal static GraphQLClientException DurationSerializer_CouldNotParseValue(
         string value,
-        TimeSpanFormat format) =>
+        DurationFormat format) =>
         new(new ClientError(
-            $"The TimeSpan serializer could not parse value {value}. The provided value was "
+            $"The Duration serializer could not parse value {value}. The provided value was "
             + $"not in format {format.ToString()}"));
 
-    internal static GraphQLClientException TimeSpanSerializer_CouldNotFormatValue(
+    internal static GraphQLClientException DurationSerializer_CouldNotFormatValue(
         TimeSpan value,
-        TimeSpanFormat format) =>
+        DurationFormat format) =>
         new(new ClientError(
-            $"The TimeSpan serializer could not serialize value {value}. The provided value "
+            $"The Duration serializer could not serialize value {value}. The provided value "
             + $"was not in format {format.ToString()}"));
 
     internal static GraphQLClientException UuidSerializer_CouldNotParse(string guid) =>

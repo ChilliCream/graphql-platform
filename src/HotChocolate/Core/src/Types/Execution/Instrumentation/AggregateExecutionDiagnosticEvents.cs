@@ -186,30 +186,6 @@ internal sealed class AggregateExecutionDiagnosticEvents : IExecutionDiagnosticE
         return new AggregateActivityScope(scopes);
     }
 
-    public IDisposable ExecuteStream(IOperation operation)
-    {
-        var scopes = new IDisposable[_listeners.Length];
-
-        for (var i = 0; i < _listeners.Length; i++)
-        {
-            scopes[i] = _listeners[i].ExecuteStream(operation);
-        }
-
-        return new AggregateActivityScope(scopes);
-    }
-
-    public IDisposable ExecuteDeferredTask()
-    {
-        var scopes = new IDisposable[_listeners.Length];
-
-        for (var i = 0; i < _listeners.Length; i++)
-        {
-            scopes[i] = _listeners[i].ExecuteDeferredTask();
-        }
-
-        return new AggregateActivityScope(scopes);
-    }
-
     public IDisposable ResolveFieldValue(IMiddlewareContext context)
     {
         if (_resolverListener.Length == 0)
@@ -232,14 +208,6 @@ internal sealed class AggregateExecutionDiagnosticEvents : IExecutionDiagnosticE
         for (var i = 0; i < _listeners.Length; i++)
         {
             _listeners[i].ResolverError(context, error);
-        }
-    }
-
-    public void ResolverError(RequestContext context, ISelection selection, IError error)
-    {
-        for (var i = 0; i < _listeners.Length; i++)
-        {
-            _listeners[i].ResolverError(context, selection, error);
         }
     }
 
@@ -314,18 +282,6 @@ internal sealed class AggregateExecutionDiagnosticEvents : IExecutionDiagnosticE
         {
             _listeners[i].SubscriptionEventError(context, subscriptionId, exception);
         }
-    }
-
-    public IDisposable DispatchBatch(RequestContext context)
-    {
-        var scopes = new IDisposable[_listeners.Length];
-
-        for (var i = 0; i < _listeners.Length; i++)
-        {
-            scopes[i] = _listeners[i].DispatchBatch(context);
-        }
-
-        return new AggregateActivityScope(scopes);
     }
 
     public void ExecutorCreated(string name, IRequestExecutor executor)

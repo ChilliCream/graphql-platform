@@ -27,12 +27,12 @@ public class CatalogConnection<TEntity> : ConnectionBase<TEntity, CatalogEdge<TE
         {
             if (_edges is null)
             {
-                var items = _page.Items;
-                var edges = new CatalogEdge<TEntity>[items.Length];
+                var entries = _page.Entries;
+                var edges = new CatalogEdge<TEntity>[entries.Length];
 
-                for (var i = 0; i < items.Length; i++)
+                for (var i = 0; i < entries.Length; i++)
                 {
-                    edges[i] = new CatalogEdge<TEntity>(_page, items[i]);
+                    edges[i] = new CatalogEdge<TEntity>(_page, entries[i]);
                 }
 
                 _edges = edges;
@@ -45,7 +45,7 @@ public class CatalogConnection<TEntity> : ConnectionBase<TEntity, CatalogEdge<TE
     /// <summary>
     /// A flattened list of the nodes.
     /// </summary>
-    public IReadOnlyList<TEntity> Nodes => _page.Items;
+    public IReadOnlyList<TEntity> Nodes => _page;
 
     /// <summary>
     /// Information to aid in pagination.
@@ -56,18 +56,8 @@ public class CatalogConnection<TEntity> : ConnectionBase<TEntity, CatalogEdge<TE
         {
             if (_pageInfo is null)
             {
-                string? startCursor = null;
-                string? endCursor = null;
-
-                if (_page.First is not null)
-                {
-                    startCursor = _page.CreateCursor(_page.First);
-                }
-
-                if (_page.Last is not null)
-                {
-                    endCursor = _page.CreateCursor(_page.Last);
-                }
+                var startCursor = _page.CreateStartCursor();
+                var endCursor = _page.CreateEndCursor();
 
                 _pageInfo = new ConnectionPageInfo(_page.HasNextPage, _page.HasPreviousPage, startCursor, endCursor);
             }

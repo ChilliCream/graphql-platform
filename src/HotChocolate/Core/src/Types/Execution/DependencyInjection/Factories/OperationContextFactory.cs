@@ -19,6 +19,7 @@ namespace Microsoft.Extensions.DependencyInjection;
 /// </summary>
 internal sealed class OperationContextFactory(
     IFactory<ResolverTask> resolverTaskFactory,
+    IFactory<BatchResolverTask> batchResolverTaskFactory,
     ITypeConverter typeConverter,
     AggregateServiceScopeInitializer serviceScopeInitializer)
     : IFactory<OperationContext>
@@ -26,6 +27,7 @@ internal sealed class OperationContextFactory(
     public OperationContext Create()
         => new OperationContext(
             resolverTaskFactory,
+            batchResolverTaskFactory,
             typeConverter,
             serviceScopeInitializer);
 }

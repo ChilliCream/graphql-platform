@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AssemblyName>Mocha.Transport.Postgres</AssemblyName>
+    <RootNamespace>Mocha.Transport.Postgres</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Mocha.Abstractions\Mocha.Abstractions.csproj" />
+    <ProjectReference Include="..\Mocha\Mocha.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Npgsql" />
+  </ItemGroup>
+</Project>

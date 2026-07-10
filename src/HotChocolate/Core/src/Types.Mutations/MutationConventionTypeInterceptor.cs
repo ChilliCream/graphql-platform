@@ -1,3 +1,4 @@
+using System.Text;
 using HotChocolate.Features;
 using HotChocolate.Types.Helpers;
 using static HotChocolate.Resolvers.FieldClassMiddlewareFactory;
@@ -207,7 +208,7 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
             TypeMemHelper.Return(argumentNameMap);
         }
 
-        var inputTypeName = options.FormatInputTypeName(mutation.Name);
+        var inputTypeName = options.FormatInputTypeName(mutation);
 
         if (_typeRegistry.NameRefs.ContainsKey(inputTypeName))
         {
@@ -278,7 +279,7 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
         Options options)
     {
         var typeRef = mutation.Type;
-        var payloadTypeName = options.FormatPayloadTypeName(mutation.Name);
+        var payloadTypeName = options.FormatPayloadTypeName(mutation);
 
         // we ensure that we can resolve the mutation result type.
         if (!_typeLookup.TryNormalizeReference(typeRef!, out typeRef)
@@ -307,6 +308,10 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
                 _typeRegistry.TryRegister(
                     _context.TypeInspector.GetOutputTypeRef(errorDef.RuntimeType),
                     errorTypeRef);
+                if (!typeof(Exception).IsAssignableFrom(errorDef.RuntimeType))
+                {
+                    EnsureMemberTypesRegistered(errorDef.RuntimeType);
+                }
                 ((ObjectType)obj.Type).Configuration!.Interfaces.Add(errorInterfaceTypeRef);
             }
 
@@ -392,7 +397,7 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
 
             // now that everything is put in place we will create the error types and
             // the error middleware.
-            var errorTypeName = options.FormatErrorTypeName(mutation.Name);
+            var errorTypeName = options.FormatErrorTypeName(mutation);
             RegisterErrorType(CreateErrorType(errorTypeName, errorDefinitions), mutation.Name);
             var errorListTypeRef = Parse($"[{errorTypeName}!]");
             payloadTypeDef.Fields.Add(
@@ -430,7 +435,7 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
         if (errorDefinitions.Count > 0)
         {
             // create error type
-            var errorTypeName = options.FormatErrorTypeName(mutation.Name);
+            var errorTypeName = options.FormatErrorTypeName(mutation);
             RegisterErrorType(CreateErrorType(errorTypeName, errorDefinitions), mutation.Name);
             var errorListTypeRef = Parse($"[{errorTypeName}!]");
             errorField = new FieldDef(options.PayloadErrorsFieldName, errorListTypeRef);
@@ -462,6 +467,7 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
         RegisterType(type);
 
         mutation.Type = Parse($"{payloadTypeName}!");
+        mutation.Flags |= CoreFieldFlags.MutationPayload;
 
         // we mustn't forget to drop the error definitions at this point since we do not
         // want to preserve them on the actual schema field.
@@ -579,12 +585,12 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
         var options = context.Features.GetOrSet<MutationConventionOptions>();
 
         return new Options(
-             options.InputTypeNamePattern,
-             options.InputArgumentName,
-             options.PayloadTypeNamePattern,
-             options.PayloadErrorTypeNamePattern,
-             options.PayloadErrorsFieldName,
-             options.ApplyToAllMutations);
+            options.InputTypeNamePattern,
+            options.InputArgumentName,
+            options.PayloadTypeNamePattern,
+            options.PayloadErrorTypeNamePattern,
+            options.PayloadErrorsFieldName,
+            options.ApplyToAllMutations);
     }
 
     private static Options CreateOptions(
@@ -622,6 +628,19 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
         var registeredType = _typeInitializer.InitializeType(type);
         _typeInitializer.CompleteTypeName(registeredType);
         _typeInitializer.CompileResolvers(registeredType);
+
+        // Late-registered types bypass the normal discovery pipeline; add a direct runtime
+        // binding so output field references (e.g. Int32! on error objects) can normalize.
+        _typeRegistry.TryRegister(
+            _context.TypeInspector.GetOutputTypeRef(type),
+            registeredType.TypeReference);
+
+        if (registeredType.RuntimeType != typeof(object))
+        {
+            _typeRegistry.TryRegister(
+                _context.TypeInspector.GetOutputTypeRef(registeredType.RuntimeType),
+                registeredType.TypeReference);
+        }
 
         if (registeredType.Type is ObjectType errorObject
             && errorObject.RuntimeType != typeof(object))
@@ -663,6 +682,90 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
         }
 
         return registeredType;
+    }
+
+    private void EnsureMemberTypesRegistered(Type runtimeType)
+    {
+        HashSet<Type> processed = [];
+        EnsureMemberTypesRegistered(runtimeType, processed);
+    }
+
+    private void EnsureMemberTypesRegistered(
+        Type runtimeType,
+        HashSet<Type> processed)
+    {
+        if (!processed.Add(runtimeType))
+        {
+            return;
+        }
+
+        foreach (var member in _context.TypeInspector.GetMembers(runtimeType))
+        {
+            var memberTypeReference = _context.TypeInspector.GetReturnTypeRef(member, TypeContext.Output);
+            EnsureTypeReferenceRegistered(memberTypeReference, processed);
+        }
+    }
+
+    private void EnsureTypeReferenceRegistered(
+        TypeReference typeReference,
+        HashSet<Type> processed)
+    {
+        if (typeReference is not ExtendedTypeReference runtimeTypeReference)
+        {
+            return;
+        }
+
+        // Unwrap arrays and collection-interface wrappers (IList<T>, ICollection<T>,
+        // IEnumerable<T>, IReadOnlyList<T>, ...). The wrapper itself is not a named
+        // schema type, and CLR collection interfaces carry TypeAttributes.Interface
+        // which would otherwise misclassify them as a GraphQL interface here.
+        while (runtimeTypeReference.Type is { IsArrayOrList: true, ElementType: { } element })
+        {
+            runtimeTypeReference = runtimeTypeReference.WithType(element);
+        }
+
+        if (_typeRegistry.TryGetTypeRef(runtimeTypeReference, out var existingTypeReference)
+            && _typeRegistry.IsRegistered(existingTypeReference))
+        {
+            return;
+        }
+
+        if (!_context.TryInferSchemaType(runtimeTypeReference, out var schemaTypeReferences))
+        {
+            return;
+        }
+
+        foreach (var schemaTypeReference in schemaTypeReferences)
+        {
+            _typeRegistry.TryRegister(
+                runtimeTypeReference.WithContext(schemaTypeReference.Context),
+                schemaTypeReference);
+
+            var schemaClrType = schemaTypeReference switch
+            {
+                SchemaTypeReference { Type: TypeSystemObject schemaType } => schemaType.GetType(),
+                ExtendedTypeReference { Type: { IsSchemaType: true } schemaType } => schemaType.Type,
+                _ => null
+            };
+
+            if (schemaClrType is null)
+            {
+                continue;
+            }
+
+            var dependencyType = TryRegisterType(schemaClrType);
+            if (dependencyType is not { RuntimeType: { } dependencyRuntimeType })
+            {
+                continue;
+            }
+
+            if (dependencyRuntimeType != typeof(object)
+                && dependencyRuntimeType != typeof(string)
+                && !dependencyRuntimeType.IsPrimitive)
+            {
+                EnsureMemberTypesRegistered(dependencyRuntimeType, processed);
+            }
+        }
     }
 
     private void RegisterType(TypeSystemObject type)
@@ -763,34 +866,49 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
         public bool Apply { get; } = apply ??
             MutationConventionOptionDefaults.ApplyToAllMutations;
 
-        public string FormatInputTypeName(string mutationName)
+        public string FormatInputTypeName(ObjectFieldConfiguration mutation)
             => InputTypeNamePattern.Replace(
                 $"{{{MutationConventionOptionDefaults.MutationName}}}",
-                FormatMutationName(mutationName));
+                FormatMutationName(mutation));
 
-        public string FormatPayloadTypeName(string mutationName)
+        public string FormatPayloadTypeName(ObjectFieldConfiguration mutation)
             => PayloadTypeNamePattern.Replace(
                 $"{{{MutationConventionOptionDefaults.MutationName}}}",
-                FormatMutationName(mutationName));
+                FormatMutationName(mutation));
 
-        public string FormatErrorTypeName(string mutationName)
+        public string FormatErrorTypeName(ObjectFieldConfiguration mutation)
             => PayloadErrorTypeNamePattern.Replace(
                 $"{{{MutationConventionOptionDefaults.MutationName}}}",
-                FormatMutationName(mutationName));
+                FormatMutationName(mutation));
+
+        private static string FormatMutationName(ObjectFieldConfiguration mutation)
+        {
+            ArgumentNullException.ThrowIfNull(mutation);
+
+            return mutation.UseV15MutationFieldNameFormat
+                ? FormatMutationNameV15(mutation.Name)
+                : FormatMutationName(mutation.Name);
+        }
+
+        private static string FormatMutationNameV15(string mutationName)
+        {
+            ArgumentException.ThrowIfNullOrEmpty(mutationName);
+
+            // V15 style capitalizes the first letter but keeps the underscores
+            // in the field name intact.
+            return char.ToUpperInvariant(mutationName[0]) + mutationName[1..];
+        }
 
         private static string FormatMutationName(string mutationName)
         {
-            if (string.IsNullOrEmpty(mutationName))
-            {
-                return mutationName;
-            }
+            ArgumentException.ThrowIfNullOrEmpty(mutationName);
 
-            if (mutationName.IndexOf('_', StringComparison.Ordinal) < 0)
+            if (!mutationName.Contains('_'))
             {
                 return char.ToUpperInvariant(mutationName[0]) + mutationName[1..];
             }
 
-            var builder = new System.Text.StringBuilder(mutationName.Length);
+            var builder = new StringBuilder(mutationName.Length);
             var upperNext = true;
 
             foreach (var c in mutationName)

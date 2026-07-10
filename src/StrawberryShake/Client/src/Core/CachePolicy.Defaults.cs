@@ -13,7 +13,7 @@ public partial class CachePolicy
         var lastClean = DateTime.UtcNow;
         var cleaning = false;
 
-        return new(storeAccessor.OperationStore.Watch().Subscribe(result =>
+        return new(storeAccessor.OperationStore.Watch().Subscribe(_ =>
         {
             var time = DateTime.UtcNow;
 

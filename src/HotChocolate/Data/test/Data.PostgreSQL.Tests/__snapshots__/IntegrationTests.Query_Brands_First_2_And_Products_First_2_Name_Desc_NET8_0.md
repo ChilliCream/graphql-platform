@@ -77,4 +77,3 @@ LEFT JOIN (
 ) AS t0 ON t."BrandId" = t0."BrandId"
 ORDER BY t."BrandId", t0."BrandId", t0."Name" DESC, t0."Id"
 ```
-

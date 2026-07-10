@@ -183,7 +183,7 @@ public static class OpenApiDefinitionParser
         {
             routeBuilder.Append('/');
 
-            if (segment.StartsWith("{") && segment.EndsWith("}"))
+            if (segment.StartsWith('{') && segment.EndsWith('}'))
             {
                 var parameterKey = segment[1..^1];
                 var parameter = ParseParameter(parameterKey);

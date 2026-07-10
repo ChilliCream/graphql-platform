@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Execution.Pipeline;
@@ -19,23 +20,79 @@ public static partial class RequestExecutorBuilderExtensions
     /// <param name="key">
     /// A unique identifier for the middleware.
     /// </param>
+    /// <param name="before">
+    /// If specified, the middleware is inserted before the middleware with the given key.
+    /// </param>
+    /// <param name="after">
+    /// If specified, the middleware is inserted after the middleware with the given key.
+    /// </param>
+    /// <param name="allowMultiple">
+    /// If <c>false</c> and a middleware with the same <paramref name="key"/> already exists in the
+    /// pipeline, the insertion is skipped. Only applies when <paramref name="before"/> or
+    /// <paramref name="after"/> is specified.
+    /// </param>
     /// <returns>
     /// An <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its execution.
     /// </returns>
     public static IRequestExecutorBuilder UseRequest(
         this IRequestExecutorBuilder builder,
         Func<RequestDelegate, RequestDelegate> middleware,
-        string? key = null)
+        string? key = null,
+        string? before = null,
+        string? after = null,
+        bool allowMultiple = false)
     {
         ArgumentNullException.ThrowIfNull(builder);
         ArgumentNullException.ThrowIfNull(middleware);
 
+        if (before is not null && after is not null)
+        {
+            throw new ArgumentException(
+                "Only one of 'before' or 'after' can be specified at the same time.");
+        }
+
+        if (before is null && after is null)
+        {
+            return Configure(
+                builder,
+                options => options.Pipeline.Add(
+                    new RequestMiddlewareConfiguration(
+                        (_, n) => middleware(n),
+                        key)));
+        }
+
+        if (!allowMultiple && key is null)
+        {
+            throw new ArgumentException(
+                "The key must be set if allowMultiple is false.",
+                nameof(key));
+        }
+
         return Configure(
             builder,
-            options => options.Pipeline.Add(
-                new RequestMiddlewareConfiguration(
-                    (_, n) => middleware(n),
-                    key)));
+            options =>
+            {
+                var configuration = new RequestMiddlewareConfiguration((_, n) => middleware(n), key);
+
+                options.PipelineModifiers.Add(pipeline =>
+                {
+                    if (!allowMultiple && GetIndex(pipeline, key!) != -1)
+                    {
+                        return;
+                    }
+
+                    var anchor = (before ?? after)!;
+                    var index = GetIndex(pipeline, anchor);
+
+                    if (index == -1)
+                    {
+                        throw new InvalidOperationException(
+                            $"The middleware with the key `{anchor}` was not found.");
+                    }
+
+                    pipeline.Insert(before is not null ? index : index + 1, configuration);
+                });
+            });
     }
 
     /// <summary>
@@ -50,24 +107,80 @@ public static partial class RequestExecutorBuilderExtensions
     /// <param name="key">
     /// A unique identifier for the middleware.
     /// </param>
+    /// <param name="before">
+    /// If specified, the middleware is inserted before the middleware with the given key.
+    /// </param>
+    /// <param name="after">
+    /// If specified, the middleware is inserted after the middleware with the given key.
+    /// </param>
+    /// <param name="allowMultiple">
+    /// If <c>false</c> and a middleware with the same <paramref name="key"/> already exists in the
+    /// pipeline, the insertion is skipped. Only applies when <paramref name="before"/> or
+    /// <paramref name="after"/> is specified.
+    /// </param>
     /// <returns>
     /// An <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its execution.
     /// </returns>
     public static IRequestExecutorBuilder UseRequest(
         this IRequestExecutorBuilder builder,
         RequestMiddleware middleware,
-        string? key = null)
+        string? key = null,
+        string? before = null,
+        string? after = null,
+        bool allowMultiple = false)
     {
         ArgumentNullException.ThrowIfNull(builder);
         ArgumentNullException.ThrowIfNull(middleware);
 
+        if (before is not null && after is not null)
+        {
+            throw new ArgumentException(
+                "Only one of 'before' or 'after' can be specified at the same time.");
+        }
+
+        if (before is null && after is null)
+        {
+            return Configure(
+                builder,
+                options => options.Pipeline.Add(new RequestMiddlewareConfiguration(middleware, key)));
+        }
+
+        if (!allowMultiple && key is null)
+        {
+            throw new ArgumentException(
+                "The key must be set if allowMultiple is false.",
+                nameof(key));
+        }
+
         return Configure(
             builder,
-            options => options.Pipeline.Add(new RequestMiddlewareConfiguration(middleware, key)));
+            options =>
+            {
+                var configuration = new RequestMiddlewareConfiguration(middleware, key);
+
+                options.PipelineModifiers.Add(pipeline =>
+                {
+                    if (!allowMultiple && GetIndex(pipeline, key!) != -1)
+                    {
+                        return;
+                    }
+
+                    var anchor = (before ?? after)!;
+                    var index = GetIndex(pipeline, anchor);
+
+                    if (index == -1)
+                    {
+                        throw new InvalidOperationException(
+                            $"The middleware with the key `{anchor}` was not found.");
+                    }
+
+                    pipeline.Insert(before is not null ? index : index + 1, configuration);
+                });
+            });
     }
 
     /// <summary>
-    /// Adds a delegate that will be used to create middleware for the execution pipeline.
+    /// Adds middleware configuration to the execution pipeline.
     /// </summary>
     /// <param name="builder">
     /// The <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its execution.
@@ -75,199 +188,127 @@ public static partial class RequestExecutorBuilderExtensions
     /// <param name="configuration">
     /// The middleware configuration to use.
     /// </param>
+    /// <param name="before">
+    /// If specified, the middleware is inserted before the middleware with the given key.
+    /// </param>
+    /// <param name="after">
+    /// If specified, the middleware is inserted after the middleware with the given key.
+    /// </param>
+    /// <param name="allowMultiple">
+    /// If <c>false</c> and a middleware with the same key already exists in the pipeline,
+    /// the insertion is skipped. Only applies when <paramref name="before"/> or
+    /// <paramref name="after"/> is specified.
+    /// </param>
     /// <returns>
     /// An <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its execution.
     /// </returns>
     public static IRequestExecutorBuilder UseRequest(
         this IRequestExecutorBuilder builder,
-        RequestMiddlewareConfiguration configuration)
+        RequestMiddlewareConfiguration configuration,
+        string? before = null,
+        string? after = null,
+        bool allowMultiple = false)
     {
         ArgumentNullException.ThrowIfNull(builder);
         ArgumentNullException.ThrowIfNull(configuration);
 
-        return Configure(builder, options => options.Pipeline.Add(configuration));
+        if (before is not null && after is not null)
+        {
+            throw new ArgumentException(
+                "Only one of 'before' or 'after' can be specified at the same time.");
+        }
+
+        if (before is null && after is null)
+        {
+            return Configure(builder, options => options.Pipeline.Add(configuration));
+        }
+
+        if (!allowMultiple && configuration.Key is null)
+        {
+            throw new ArgumentException(
+                "The key must be set if allowMultiple is false.",
+                nameof(configuration));
+        }
+
+        return Configure(
+            builder,
+            options =>
+            {
+                options.PipelineModifiers.Add(pipeline =>
+                {
+                    if (!allowMultiple && GetIndex(pipeline, configuration.Key!) != -1)
+                    {
+                        return;
+                    }
+
+                    var anchor = (before ?? after)!;
+                    var index = GetIndex(pipeline, anchor);
+
+                    if (index == -1)
+                    {
+                        throw new InvalidOperationException(
+                            $"The middleware with the key `{anchor}` was not found.");
+                    }
+
+                    pipeline.Insert(before is not null ? index : index + 1, configuration);
+                });
+            });
     }
 
     /// <summary>
     /// Adds a type that will be used to create middleware for the execution pipeline.
     /// </summary>
-    /// <param name="builder">
-    /// The <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its execution.
-    /// </param>
-    /// <param name="key">
-    /// A unique identifier for the middleware.
-    /// </param>
-    /// <returns>
-    /// An <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its execution.
-    /// </returns>
-    public static IRequestExecutorBuilder UseRequest<TMiddleware>(
-        this IRequestExecutorBuilder builder,
-        string? key = null)
-        where TMiddleware : class
-    {
-        ArgumentNullException.ThrowIfNull(builder);
-
-        return Configure(
-            builder,
-            options => options.Pipeline.Add(
-                new RequestMiddlewareConfiguration(
-                    RequestClassMiddlewareFactory.Create<TMiddleware>(),
-                    key)));
-    }
-
-    /// <summary>
-    /// Appends middleware to the execution pipeline <paramref name="after"/> the middleware with the specified key.
-    /// </summary>
-    /// <param name="builder">
-    /// The <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its execution.
-    /// </param>
-    /// <param name="after">
-    /// The key of the middleware after which the new middleware will be appended.
-    /// </param>
-    /// <param name="middleware">
-    /// The middleware to append.
-    /// </param>
-    /// <param name="key">
-    /// A unique identifier for the middleware.
-    /// </param>
-    /// <param name="allowMultiple">
-    /// If set to <c>true</c>, multiple instances of the same middleware can be appended.
-    /// </param>
-    /// <returns>
-    /// An <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its execution.
-    /// </returns>
-    public static IRequestExecutorBuilder AppendUseRequest(
-        this IRequestExecutorBuilder builder,
-        string after,
-        RequestMiddleware middleware,
-        string? key = null,
-        bool allowMultiple = false)
-    {
-        ArgumentNullException.ThrowIfNull(builder);
-        ArgumentException.ThrowIfNullOrEmpty(after);
-        ArgumentNullException.ThrowIfNull(middleware);
-
-        if (!allowMultiple && key is null)
-        {
-            throw new ArgumentException(
-                "The key must be set if allowMultiple is false.",
-                nameof(key));
-        }
-
-        return Configure(
-            builder,
-            options =>
-            {
-                var configuration = new RequestMiddlewareConfiguration(middleware, key);
-
-                options.PipelineModifiers.Add(pipeline =>
-                {
-                    if (!allowMultiple && GetIndex(pipeline, key!) != -1)
-                    {
-                        return;
-                    }
-
-                    var index = GetIndex(pipeline, after);
-
-                    if (index == -1)
-                    {
-                        throw new InvalidOperationException(
-                            $"The middleware with the key `{after}` was not found.");
-                    }
-
-                    pipeline.Insert(index + 1, configuration);
-                });
-            });
-    }
-
-    /// <summary>
-    /// Appends middleware to the execution pipeline <paramref name="after"/> the middleware with the specified key.
-    /// </summary>
-    /// <param name="builder">
-    /// The <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its execution.
-    /// </param>
-    /// <param name="after">
-    /// The key of the middleware after which the new middleware will be appended.
-    /// </param>
-    /// <param name="configuration">
-    /// The middleware configuration to append.
-    /// </param>
-    /// <param name="allowMultiple">
-    /// If set to <c>true</c>, multiple instances of the same middleware can be appended.
-    /// </param>
-    /// <returns>
-    /// An <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its execution.
-    /// </returns>
-    public static IRequestExecutorBuilder AppendUseRequest(
-        this IRequestExecutorBuilder builder,
-        string after,
-        RequestMiddlewareConfiguration configuration,
-        bool allowMultiple = false)
-    {
-        ArgumentNullException.ThrowIfNull(builder);
-        ArgumentException.ThrowIfNullOrEmpty(after);
-        ArgumentNullException.ThrowIfNull(configuration);
-
-        if (!allowMultiple && configuration.Key is null)
-        {
-            throw new ArgumentException(
-                "The key must be set if allowMultiple is false.",
-                nameof(configuration));
-        }
-
-        return Configure(
-            builder,
-            options =>
-            {
-                options.PipelineModifiers.Add(pipeline =>
-                {
-                    if (!allowMultiple && GetIndex(pipeline, configuration.Key!) != -1)
-                    {
-                        return;
-                    }
-
-                    var index = GetIndex(pipeline, after);
-
-                    if (index == -1)
-                    {
-                        throw new InvalidOperationException($"The middleware with the key `{after}` was not found.");
-                    }
-
-                    pipeline.Insert(index + 1, configuration);
-                });
-            });
-    }
-
-    /// <summary>
-    /// Appends middleware to the execution pipeline <paramref name="after"/> the middleware with the specified key.
-    /// </summary>
     /// <typeparam name="TMiddleware">
-    /// The type of the middleware to append.
+    /// The type of the middleware to add.
     /// </typeparam>
     /// <param name="builder">
     /// The <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its execution.
     /// </param>
-    /// <param name="after">
-    /// The key of the middleware after which the new middleware will be appended.
-    /// </param>
     /// <param name="key">
     /// A unique identifier for the middleware.
     /// </param>
+    /// <param name="before">
+    /// If specified, the middleware is inserted before the middleware with the given key.
+    /// </param>
+    /// <param name="after">
+    /// If specified, the middleware is inserted after the middleware with the given key.
+    /// </param>
     /// <param name="allowMultiple">
-    /// If set to <c>true</c>, multiple instances of the same middleware can be appended.
+    /// If <c>false</c> and a middleware with the same <paramref name="key"/> already exists in the
+    /// pipeline, the insertion is skipped. Only applies when <paramref name="before"/> or
+    /// <paramref name="after"/> is specified.
     /// </param>
     /// <returns>
     /// An <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its execution.
     /// </returns>
-    public static IRequestExecutorBuilder AppendUseRequest<TMiddleware>(
+    public static IRequestExecutorBuilder UseRequest<
+        [DynamicallyAccessedMembers(
+            DynamicallyAccessedMemberTypes.PublicConstructors
+            | DynamicallyAccessedMemberTypes.PublicMethods)] TMiddleware>(
         this IRequestExecutorBuilder builder,
-        string after,
         string? key = null,
-        bool allowMultiple = true)
+        string? before = null,
+        string? after = null,
+        bool allowMultiple = false)
         where TMiddleware : class
     {
         ArgumentNullException.ThrowIfNull(builder);
-        ArgumentException.ThrowIfNullOrEmpty(after);
+
+        if (before is not null && after is not null)
+        {
+            throw new ArgumentException(
+                "Only one of 'before' or 'after' can be specified at the same time.");
+        }
+
+        if (before is null && after is null)
+        {
+            return Configure(
+                builder,
+                options => options.Pipeline.Add(
+                    new RequestMiddlewareConfiguration(
+                        RequestClassMiddlewareFactory.Create<TMiddleware>(),
+                        key)));
+        }
 
         if (!allowMultiple && key is null)
         {
@@ -291,202 +332,16 @@ public static partial class RequestExecutorBuilderExtensions
                         return;
                     }
 
-                    var index = GetIndex(pipeline, after);
-
-                    if (index == -1)
-                    {
-                        throw new InvalidOperationException($"The middleware with the key `{after}` was not found.");
-                    }
-
-                    pipeline.Insert(index + 1, configuration);
-                });
-            });
-    }
-
-    /// <summary>
-    /// Inserts middleware to the execution pipeline <paramref name="before"/> the middleware with the specified key.
-    /// </summary>
-    /// <param name="builder">
-    /// The <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its execution.
-    /// </param>
-    /// <param name="before">
-    /// The key of the middleware before which the new middleware will be inserted.
-    /// </param>
-    /// <param name="middleware">
-    /// The middleware to insert.
-    /// </param>
-    /// <param name="key">
-    /// A unique identifier for the middleware.
-    /// </param>
-    /// <param name="allowMultiple">
-    /// If set to <c>true</c>, multiple instances of the same middleware can be inserted.
-    /// </param>
-    /// <returns>
-    /// An <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its execution.
-    /// </returns>
-    public static IRequestExecutorBuilder InsertUseRequest(
-        this IRequestExecutorBuilder builder,
-        string before,
-        RequestMiddleware middleware,
-        string? key = null,
-        bool allowMultiple = false)
-    {
-        ArgumentNullException.ThrowIfNull(builder);
-        ArgumentException.ThrowIfNullOrEmpty(before);
-        ArgumentNullException.ThrowIfNull(middleware);
-
-        if (!allowMultiple && key is null)
-        {
-            throw new ArgumentException(
-                "The key must be set if allowMultiple is false.",
-                nameof(key));
-        }
-
-        return Configure(
-            builder,
-            options =>
-            {
-                var configuration = new RequestMiddlewareConfiguration(middleware, key);
-
-                options.PipelineModifiers.Add(pipeline =>
-                {
-                    if (!allowMultiple && GetIndex(pipeline, key!) != -1)
-                    {
-                        return;
-                    }
-
-                    var index = GetIndex(pipeline, before);
+                    var anchor = (before ?? after)!;
+                    var index = GetIndex(pipeline, anchor);
 
                     if (index == -1)
                     {
                         throw new InvalidOperationException(
-                            $"The middleware with the key `{before}` was not found.");
+                            $"The middleware with the key `{anchor}` was not found.");
                     }
 
-                    pipeline.Insert(index, configuration);
-                });
-            });
-    }
-
-    /// <summary>
-    /// Inserts middleware to the execution pipeline <paramref name="before"/> the middleware with the specified key.
-    /// </summary>
-    /// <param name="builder">
-    /// The <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its execution.
-    /// </param>
-    /// <param name="before">
-    /// The key of the middleware before which the new middleware will be inserted.
-    /// </param>
-    /// <param name="configuration">
-    /// The middleware configuration to insert.
-    /// </param>
-    /// <param name="allowMultiple">
-    /// If set to <c>true</c>, multiple instances of the same middleware can be inserted.
-    /// </param>
-    /// <returns>
-    /// An <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its execution.
-    /// </returns>
-    public static IRequestExecutorBuilder InsertUseRequest(
-        this IRequestExecutorBuilder builder,
-        string before,
-        RequestMiddlewareConfiguration configuration,
-        bool allowMultiple = false)
-    {
-        ArgumentNullException.ThrowIfNull(builder);
-        ArgumentException.ThrowIfNullOrEmpty(before);
-        ArgumentNullException.ThrowIfNull(configuration);
-
-        if (!allowMultiple && configuration.Key is null)
-        {
-            throw new ArgumentException(
-                "The key must be set if allowMultiple is false.",
-                nameof(configuration));
-        }
-
-        return Configure(
-            builder,
-            options =>
-            {
-                options.PipelineModifiers.Add(pipeline =>
-                {
-                    if (!allowMultiple && GetIndex(pipeline, configuration.Key!) != -1)
-                    {
-                        return;
-                    }
-
-                    var index = GetIndex(pipeline, before);
-
-                    if (index == -1)
-                    {
-                        throw new InvalidOperationException($"The middleware with the key `{before}` was not found.");
-                    }
-
-                    pipeline.Insert(index, configuration);
-                });
-            });
-    }
-
-    /// <summary>
-    /// Inserts middleware to the execution pipeline <paramref name="before"/> the middleware with the specified key.
-    /// </summary>
-    /// <typeparam name="TMiddleware">
-    /// The type of the middleware to insert.
-    /// </typeparam>
-    /// <param name="builder">
-    /// The <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its execution.
-    /// </param>
-    /// <param name="before">
-    /// The key of the middleware before which the new middleware will be inserted.
-    /// </param>
-    /// <param name="key">
-    /// A unique identifier for the middleware.
-    /// </param>
-    /// <param name="allowMultiple">
-    /// If set to <c>true</c>, multiple instances of the same middleware can be inserted.
-    /// </param>
-    /// <returns>
-    /// An <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its execution.
-    /// </returns>
-    public static IRequestExecutorBuilder InsertUseRequest<TMiddleware>(
-        this IRequestExecutorBuilder builder,
-        string before,
-        string? key = null,
-        bool allowMultiple = true)
-        where TMiddleware : class
-    {
-        ArgumentNullException.ThrowIfNull(builder);
-        ArgumentException.ThrowIfNullOrEmpty(before);
-
-        if (!allowMultiple && key is null)
-        {
-            throw new ArgumentException(
-                "The key must be set if allowMultiple is false.",
-                nameof(key));
-        }
-
-        return Configure(
-            builder,
-            options =>
-            {
-                var configuration = new RequestMiddlewareConfiguration(
-                    RequestClassMiddlewareFactory.Create<TMiddleware>(),
-                    key);
-
-                options.PipelineModifiers.Add(pipeline =>
-                {
-                    if (!allowMultiple && GetIndex(pipeline, key!) != -1)
-                    {
-                        return;
-                    }
-
-                    var index = GetIndex(pipeline, before);
-
-                    if (index == -1)
-                    {
-                        throw new InvalidOperationException($"The middleware with the key `{before}` was not found.");
-                    }
-
-                    pipeline.Insert(index, configuration);
+                    pipeline.Insert(before is not null ? index : index + 1, configuration);
                 });
             });
     }
@@ -622,6 +477,26 @@ public static partial class RequestExecutorBuilderExtensions
         ArgumentNullException.ThrowIfNull(builder);
 
         return builder.UseRequest(OperationCacheMiddleware.Create());
+    }
+
+    /// <summary>
+    /// Adds a middleware that will be used to limit the number of concurrent
+    /// GraphQL executions against the current schema. The gate counts every
+    /// execution (queries, mutations, subscription handshakes, and per-event
+    /// subscription executions) as a single slot.
+    /// </summary>
+    /// <param name="builder">
+    /// The <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its execution.
+    /// </param>
+    /// <returns>
+    /// An <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its execution.
+    /// </returns>
+    public static IRequestExecutorBuilder UseConcurrencyGate(
+        this IRequestExecutorBuilder builder)
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+
+        return builder.UseRequest(CommonMiddleware.ConcurrencyGate);
     }
 
     /// <summary>
@@ -771,6 +646,7 @@ public static partial class RequestExecutorBuilderExtensions
             .UseOperationResolver()
             .UseSkipWarmupExecution()
             .UseOperationVariableCoercion()
+            .UseConcurrencyGate()
             .UseOperationExecution();
     }
 
@@ -793,6 +669,7 @@ public static partial class RequestExecutorBuilderExtensions
             .UseOperationResolver()
             .UseSkipWarmupExecution()
             .UseOperationVariableCoercion()
+            .UseConcurrencyGate()
             .UseOperationExecution();
     }
 
@@ -808,6 +685,7 @@ public static partial class RequestExecutorBuilderExtensions
         pipeline.Add(OperationResolverMiddleware.Create());
         pipeline.Add(CommonMiddleware.SkipWarmupExecution);
         pipeline.Add(OperationVariableCoercionMiddleware.Create());
+        pipeline.Add(CommonMiddleware.ConcurrencyGate);
         pipeline.Add(OperationExecutionMiddleware.Create());
     }
 }

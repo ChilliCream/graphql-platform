@@ -40,4 +40,3 @@ type Query {
 
 input Filter { field: Boolean! }
 ```
-

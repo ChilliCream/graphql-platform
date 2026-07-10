@@ -179,11 +179,13 @@ internal static class RelayIdFieldHelpers
             {
                 if (component.Kind == TypeComponentKind.NonNull)
                 {
+#pragma warning disable IL3050
                     current = typeof(NonNullType<>).MakeGenericType(current);
                 }
                 else if (component.Kind == TypeComponentKind.List)
                 {
                     current = typeof(ListType<>).MakeGenericType(current);
+#pragma warning restore IL3050
                 }
             }
         }

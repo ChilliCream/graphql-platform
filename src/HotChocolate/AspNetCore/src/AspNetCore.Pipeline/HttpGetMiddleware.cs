@@ -1,6 +1,3 @@
-#if !NET9_0_OR_GREATER
-using System.Diagnostics.CodeAnalysis;
-#endif
 using System.Net;
 using Microsoft.AspNetCore.Http;
 using HotChocolate.AspNetCore.Instrumentation;
@@ -10,16 +7,13 @@ using HttpRequestDelegate = Microsoft.AspNetCore.Http.RequestDelegate;
 
 namespace HotChocolate.AspNetCore;
 
-#if !NET9_0_OR_GREATER
-[RequiresDynamicCode("JSON serialization and deserialization might require types that cannot be statically analyzed and might need runtime code generation. Use System.Text.Json source generation for native AOT applications.")]
-[RequiresUnreferencedCode("JSON serialization and deserialization might require types that cannot be statically analyzed. Use the overload that takes a JsonTypeInfo or JsonSerializerContext, or make sure all of the required types are preserved.")]
-#endif
 public sealed class HttpGetMiddleware : MiddlewareBase
 {
     public HttpGetMiddleware(
         HttpRequestDelegate next,
-        HttpRequestExecutorProxy executor)
-        : base(next, executor)
+        HttpRequestExecutorProxy executor,
+        GraphQLServerOptions baseOptions)
+        : base(next, executor, baseOptions)
     {
     }
 
@@ -50,7 +44,7 @@ public sealed class HttpGetMiddleware : MiddlewareBase
             {
                 using (session.DiagnosticEvents.ExecuteHttpRequest(context, HttpRequestKind.HttpGet))
                 {
-                    await HandleRequestAsync(context, session);
+                    await HandleRequestAsync(context, session, options);
                 }
 
                 return;
@@ -62,7 +56,10 @@ public sealed class HttpGetMiddleware : MiddlewareBase
         await NextAsync(context);
     }
 
-    private async Task HandleRequestAsync(HttpContext context, ExecutorSession session)
+    private static async Task HandleRequestAsync(
+        HttpContext context,
+        ExecutorSession session,
+        GraphQLServerOptions options)
     {
         HttpStatusCode? statusCode;
         IExecutionResult? result;
@@ -91,7 +88,6 @@ public sealed class HttpGetMiddleware : MiddlewareBase
 
         // before we can execute the request we need to determine the request flags.
         var request = parserResult.Request!;
-        var options = GetOptions(context);
         var requestFlags =
             MiddlewareHelper.DetermineHttpGetRequestFlags(
                 validationResult.RequestFlags,

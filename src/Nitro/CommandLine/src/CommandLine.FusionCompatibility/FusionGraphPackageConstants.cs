@@ -1,37 +1,37 @@
 namespace ChilliCream.Nitro.CommandLine.FusionCompatibility;
 
 /// <summary>
-/// Defines constants that are used in the fusion graph package.
+/// Defines constants that are used in the Fusion graph package.
 /// </summary>
 public static class FusionGraphPackageConstants
 {
     /// <summary>
-    /// Gets the relationship kind of the fusion graph document.
+    /// Gets the relationship kind of the Fusion graph document.
     /// </summary>
     public const string FusionKind = "urn:hotchocolate:fusion:graph";
 
     /// <summary>
-    /// Gets the file name of the fusion graph document.
+    /// Gets the file name of the Fusion graph document.
     /// </summary>
     public const string FusionFileName = "fusion.graphql";
 
     /// <summary>
-    /// Gets the relationship kind of the fusion graph document.
+    /// Gets the relationship kind of the Fusion graph document.
     /// </summary>
     public const string FusionSettingsKind = "urn:hotchocolate:fusion:settings";
 
     /// <summary>
-    /// Gets the file name of the fusion graph document.
+    /// Gets the file name of the Fusion graph document.
     /// </summary>
     public const string FusionSettingsFileName = "fusion-settings.json";
 
     /// <summary>
-    /// Gets relationship id of the fusion graph document.
+    /// Gets relationship id of the Fusion graph document.
     /// </summary>
     public const string FusionId = "fusion";
 
     /// <summary>
-    /// Gets relationship id of the fusion graph settings document.
+    /// Gets relationship id of the Fusion graph settings document.
     /// </summary>
     public const string FusionSettingsId = "fusion-settings";
 

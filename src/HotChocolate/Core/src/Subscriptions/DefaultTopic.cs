@@ -4,7 +4,6 @@ using System.Runtime.InteropServices;
 using System.Threading.Channels;
 using HotChocolate.Execution;
 using HotChocolate.Subscriptions.Diagnostics;
-using HotChocolate.Utilities;
 using static System.Runtime.InteropServices.CollectionsMarshal;
 using static System.Threading.Channels.Channel;
 

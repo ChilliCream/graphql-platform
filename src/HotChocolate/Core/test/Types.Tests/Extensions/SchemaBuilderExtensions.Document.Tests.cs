@@ -51,7 +51,7 @@ public class SchemaBuilderExtensionsDocumentTests
         // arrange
         var builder = SchemaBuilder.New();
         var file = IOPath.GetTempFileName();
-        await File.WriteAllTextAsync(file, "type Query { a: String }");
+        await File.WriteAllTextAsync(file, "type Query { a: String }", TestContext.Current.CancellationToken);
 
         // act
         builder.AddDocumentFromFile(file);

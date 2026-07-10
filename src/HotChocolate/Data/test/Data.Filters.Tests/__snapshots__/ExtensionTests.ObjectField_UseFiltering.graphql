@@ -2,12 +2,12 @@ schema {
   query: Query
 }
 
-type Foo {
-  bar: String!
-}
-
 type Query {
   foos(where: FooFilterInput): [Foo!]!
+}
+
+type Foo {
+  bar: String!
 }
 
 input FooFilterInput {

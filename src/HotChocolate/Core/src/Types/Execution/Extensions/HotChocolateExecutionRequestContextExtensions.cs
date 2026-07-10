@@ -85,6 +85,7 @@ public static class HotChocolateExecutionRequestContextExtensions
             operationInfo.Operation = operation;
             operationInfo.Id = operation.Id;
             operationInfo.Definition = operation.Definition;
+            context.Features.Set<IOperation>(operation);
         }
 
         public bool TryGetOperationId([NotNullWhen(true)] out string? operationId)

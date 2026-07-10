@@ -107,7 +107,7 @@ public sealed class ConnectionClassInfo : SyntaxInfo, IEquatable<ConnectionClass
                         new Resolver(
                             name,
                             property,
-                            compilation.GetDescription(property, []),
+                            compilation.GetDescription(property),
                             compilation.GetDeprecationReason(property),
                             ResolverResultKind.Pure,
                             [],

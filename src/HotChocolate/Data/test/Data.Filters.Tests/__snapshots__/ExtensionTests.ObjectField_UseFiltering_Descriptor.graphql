@@ -2,12 +2,18 @@ schema {
   query: Query
 }
 
+type Query {
+  foos(where: foo): [Foo!]!
+}
+
 type Foo {
   bar: String!
 }
 
-type Query {
-  foos(where: foo): [Foo!]!
+input foo {
+  and: [foo!]
+  or: [foo!]
+  foo: StringOperationFilterInput
 }
 
 input StringOperationFilterInput {
@@ -23,10 +29,4 @@ input StringOperationFilterInput {
   nstartsWith: String
   endsWith: String
   nendsWith: String
-}
-
-input foo {
-  and: [foo!]
-  or: [foo!]
-  foo: StringOperationFilterInput
 }

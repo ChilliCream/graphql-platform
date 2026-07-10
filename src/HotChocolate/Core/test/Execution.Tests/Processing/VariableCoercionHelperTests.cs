@@ -382,9 +382,7 @@ public class VariableCoercionHelperTests
                 Assert.False(Assert.IsType<SomeInput>(t.Value.RuntimeValue).OptionalField.HasValue);
                 t.Value.ValueLiteral.MatchInlineSnapshot(
                     """
-                    {
-                      field: true
-                    }
+                    { field: true }
                     """);
             });
     }
@@ -575,6 +573,144 @@ public class VariableCoercionHelperTests
     }
 
     [Fact]
+    public void Single_Value_Can_Be_Coerced_Into_List_Variable()
+    {
+        // arrange
+        var schema = SchemaBuilder.New().AddStarWarsTypes().Create();
+
+        var variableDefinitions = new List<VariableDefinitionNode>
+        {
+            new(null,
+                new VariableNode("abc"),
+                description: null,
+                new ListTypeNode(new NamedTypeNode("String")),
+                null,
+                Array.Empty<DirectiveNode>())
+        };
+
+        var variableValues = JsonDocument.Parse("""{"abc": "xyz"}""");
+        var coercedValues = new Dictionary<string, VariableValue>();
+        var featureProvider = new MockFeatureProvider();
+        var helper = new VariableCoercionHelper(new());
+
+        // act
+        helper.CoerceVariableValues(
+            schema, variableDefinitions, variableValues.RootElement, coercedValues, featureProvider);
+
+        // assert
+        var entry = Assert.Single(coercedValues);
+        Assert.Equal("abc", entry.Key);
+
+        var runtimeValues = Assert.IsAssignableFrom<System.Collections.IList>(entry.Value.RuntimeValue);
+        var runtimeValue = Assert.Single(runtimeValues.Cast<object?>());
+        Assert.Equal("xyz", runtimeValue);
+
+        entry.Value.ValueLiteral.MatchInlineSnapshot(
+            """
+            ["xyz"]
+            """);
+    }
+
+    [Fact]
+    public void Error_When_Single_Value_Type_Does_Not_Match_List_Element_Type()
+    {
+        // arrange
+        var schema = SchemaBuilder.New().AddStarWarsTypes().Create();
+
+        var variableDefinitions = new List<VariableDefinitionNode>
+        {
+            new(null,
+                new VariableNode("abc"),
+                description: null,
+                new ListTypeNode(new NamedTypeNode("Int")),
+                null,
+                Array.Empty<DirectiveNode>())
+        };
+
+        var variableValues = JsonDocument.Parse("""{"abc": "xyz"}""");
+        var coercedValues = new Dictionary<string, VariableValue>();
+        var featureProvider = new MockFeatureProvider();
+        var helper = new VariableCoercionHelper(new());
+
+        // act
+        void Action() => helper.CoerceVariableValues(
+            schema, variableDefinitions, variableValues.RootElement, coercedValues, featureProvider);
+
+        // assert
+        Assert.Throws<LeafCoercionException>(Action)
+            .Errors.Select(t => t.WithException(null))
+            .ToList()
+            .MatchInlineSnapshot(
+                """
+                "errors": [
+                  {
+                    "message": "Int cannot coerce the given value JSON element of type `String` to a runtime value.",
+                    "path": [
+                      "abc",
+                      0
+                    ]
+                  }
+                ]
+                """);
+    }
+
+    [Fact]
+    public void StringValue_Representing_EnumValue_In_Single_Object_For_List_ShouldBe_Rewritten()
+    {
+        // arrange
+        var schema = SchemaBuilder.New()
+            .AddDocumentFromString(
+                @"
+                    type Query {
+                        test(list: [FooInput]): String
+                    }
+
+                    input FooInput {
+                        enum: TestEnum
+                    }
+
+                    enum TestEnum {
+                        Foo
+                        Bar
+                    }")
+            .Use(_ => _ => default)
+            .Create();
+
+        var variableDefinitions = new List<VariableDefinitionNode>
+        {
+            new(null,
+                new VariableNode("abc"),
+                description: null,
+                new ListTypeNode(new NamedTypeNode("FooInput")),
+                null,
+                Array.Empty<DirectiveNode>())
+        };
+
+        var variableValues = JsonDocument.Parse(
+            """
+            {
+              "abc": { "enum": "Foo" }
+            }
+            """);
+
+        var coercedValues = new Dictionary<string, VariableValue>();
+        var featureProvider = new MockFeatureProvider();
+        var helper = new VariableCoercionHelper(new());
+
+        // act
+        helper.CoerceVariableValues(
+            schema, variableDefinitions, variableValues.RootElement, coercedValues, featureProvider);
+
+        // assert
+        var entry = Assert.Single(coercedValues);
+        Assert.Equal("abc", entry.Key);
+        entry.Value.ValueLiteral.MatchInlineSnapshot(
+            """
+            [{ enum: Foo }]
+            """);
+    }
+
+    [Fact]
     public void StringValues_Representing_EnumValues_In_Lists_ShouldBe_Rewritten()
     {
         // arrange
@@ -629,14 +765,7 @@ public class VariableCoercionHelperTests
         Assert.Equal("abc", entry.Key);
         entry.Value.ValueLiteral.MatchInlineSnapshot(
             """
-            [
-              {
-                enum: Foo
-              },
-              {
-                enum: Bar
-              }
-            ]
+            [{ enum: Foo }, { enum: Bar }]
             """);
     }
 
@@ -695,14 +824,7 @@ public class VariableCoercionHelperTests
         Assert.Equal("abc", entry.Key);
         entry.Value.ValueLiteral.MatchInlineSnapshot(
             """
-            [
-              {
-                enum: Foo
-              },
-              {
-                enum: Bar
-              }
-            ]
+            [{ enum: Foo }, { enum: Bar }]
             """);
     }
 
@@ -759,10 +881,7 @@ public class VariableCoercionHelperTests
         Assert.Equal("abc", entry.Key);
         entry.Value.ValueLiteral.MatchInlineSnapshot(
             """
-            {
-              enum: Foo,
-              enum2: Bar
-            }
+            { enum: Foo, enum2: Bar }
             """);
     }
 
@@ -819,10 +938,7 @@ public class VariableCoercionHelperTests
         Assert.Equal("abc", entry.Key);
         entry.Value.ValueLiteral.MatchInlineSnapshot(
             """
-            {
-              enum: Foo,
-              enum2: Bar
-            }
+            { enum: Foo, enum2: Bar }
             """);
     }
 
@@ -879,10 +995,7 @@ public class VariableCoercionHelperTests
         Assert.Equal("abc", entry.Key);
         entry.Value.ValueLiteral.MatchInlineSnapshot(
             """
-            {
-              value_a: "Foo",
-              value_b: Bar
-            }
+            { value_a: "Foo", value_b: Bar }
             """);
     }
 
@@ -951,14 +1064,7 @@ public class VariableCoercionHelperTests
         Assert.Equal("abc", entry.Key);
         entry.Value.ValueLiteral.MatchInlineSnapshot(
             """
-            [
-              {
-                value_a: "Foo"
-              },
-              {
-                value_b: Bar
-              }
-            ]
+            [{ value_a: "Foo" }, { value_b: Bar }]
             """);
     }
 

@@ -20,6 +20,7 @@ internal sealed partial class ResolverTask
         _operationContext = operationContext;
         _selection = selection;
         _context.Initialize(parent, selection, resultValue, operationContext, deferUsage, scopedContextData);
+        _context.BranchId = executionBranchId;
         IsSerial = selection.Strategy is SelectionExecutionStrategy.Serial;
         BranchId = executionBranchId;
         DeferUsage = deferUsage;
@@ -28,7 +29,7 @@ internal sealed partial class ResolverTask
     /// <summary>
     /// Resets the resolver task before returning it to the pool.
     /// </summary>
-    /// <returns></returns>
+    /// <returns>Always <c>true</c>.</returns>
     internal bool Reset()
     {
         _completionStatus = ExecutionTaskStatus.Completed;

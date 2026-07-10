@@ -49,7 +49,7 @@ public class QueryContextProjectionAnalyzerTests
                     => null!;
             }
             """],
-            enableAnalyzers: true).MatchMarkdownAsync();
+            enableAnalyzers: true).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -98,7 +98,7 @@ public class QueryContextProjectionAnalyzerTests
                     => null!;
             }
             """],
-            enableAnalyzers: true).MatchMarkdownAsync();
+            enableAnalyzers: true).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -138,7 +138,7 @@ public class QueryContextProjectionAnalyzerTests
                 public IQueryable<Product> GetProducts() => null!;
             }
             """],
-            enableAnalyzers: true).MatchMarkdownAsync();
+            enableAnalyzers: true).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -188,7 +188,7 @@ public class QueryContextProjectionAnalyzerTests
                     => null!;
             }
             """],
-            enableAnalyzers: true).MatchMarkdownAsync();
+            enableAnalyzers: true).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -238,7 +238,7 @@ public class QueryContextProjectionAnalyzerTests
                     => null!;
             }
             """],
-            enableAnalyzers: true).MatchMarkdownAsync();
+            enableAnalyzers: true).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -270,6 +270,6 @@ public class QueryContextProjectionAnalyzerTests
                 public IQueryable<Product> GetProducts() => null!;
             }
             """],
-            enableAnalyzers: true).MatchMarkdownAsync();
+            enableAnalyzers: true).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 }

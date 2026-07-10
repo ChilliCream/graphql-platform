@@ -24,14 +24,15 @@ public class QueryableSortingExtensionsTests
             .AddGraphQL()
             .AddQueryType<Query>()
             .AddSorting()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var res1 = await executor.ExecuteAsync(
             OperationRequestBuilder
                 .New()
                 .SetDocument("{ shouldWork(order: {bar: DESC}) { bar baz }}")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         res1.MatchSnapshot();
@@ -52,13 +53,14 @@ public class QueryableSortingExtensionsTests
             OperationRequestBuilder
                 .New()
                 .SetDocument("{ typeMismatch(order: {bar: DESC}) { bar baz }}")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
             .Create()
             .AddResult(res1)
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -76,24 +78,26 @@ public class QueryableSortingExtensionsTests
             OperationRequestBuilder
                 .New()
                 .SetDocument("{ missingMiddleware { bar baz }}")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
             .Create()
             .AddResult(res1)
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
-    public async Task Extensions_Should_Not_Fail_On_Projected_Query_With_Existing_Order()
+    public async Task Sorting_Should_Apply_OrderBy_When_Query_Is_Projected()
     {
         // arrange
         var executor = await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
             .AddSorting()
-            .BuildRequestExecutorAsync();
+            .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -107,7 +111,8 @@ public class QueryableSortingExtensionsTests
                       }
                     }
                     """)
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchInlineSnapshot(
