@@ -533,6 +533,132 @@ public sealed class SupertypeNarrowingPlanningTests : FusionTestBase
     }
 
     [Fact]
+    public void Partition_Should_RouteNestedInterfaceFragment_When_ParentWasExpandedToConcreteTypes()
+    {
+        // arrange
+        var schema = CreateDistributedInterfaceMembershipSchema();
+
+        // act
+        var (resolvable, unresolvable, _, _) = PartitionSchemaA(
+            schema,
+            """
+            query {
+              products {
+                ... on Node {
+                  ... on WithWarranty {
+                    warranty
+                  }
+                }
+              }
+            }
+            """);
+
+        // assert
+        resolvable.MatchInlineSnapshot(
+            """
+            {
+              products {
+                __typename
+                ... on Toaster {
+                  ... on Toaster {
+                    warranty
+                  }
+                }
+              }
+            }
+            """);
+        var unresolved = Assert.Single(unresolvable);
+        Assert.Equal("Oven", unresolved.SelectionSet.Type.Name);
+        var ovenWarranty = schema.Types.GetType<FusionObjectTypeDefinition>("Oven")
+            .Fields.GetField("warranty", allowInaccessibleFields: true);
+        Assert.False(ovenWarranty.Sources.TryGetMember("A", out _));
+        Assert.True(ovenWarranty.Sources.TryGetMember("B", out _));
+        unresolved.SelectionSet.Node.MatchInlineSnapshot(
+            """
+            {
+              warranty
+            }
+            """);
+    }
+
+    [Fact]
+    public void Plan_Should_FetchNestedInterfaceField_When_SyntheticBranchIsOwnedByOtherSource()
+    {
+        // arrange
+        var schema = CreateDistributedInterfaceMembershipSchema();
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            query {
+              products {
+                ... on Node {
+                  ... on WithWarranty {
+                    warranty
+                  }
+                }
+              }
+            }
+            """);
+
+        // assert
+        MatchInline(
+            plan,
+            """
+            operation:
+              - document: |
+                  {
+                    products {
+                      __typename @fusion__requirement
+                      ... on Node {
+                        ... on WithWarranty {
+                          warranty
+                          id @fusion__requirement
+                        }
+                      }
+                    }
+                  }
+                hash: 123456789101112
+                searchSpace: 1
+                expandedNodes: 2
+            nodes:
+              - id: 1
+                type: Operation
+                schema: A
+                operation: |
+                  query Op_123456789101112_1 {
+                    products {
+                      __typename
+                      ... on Toaster {
+                        ... on Toaster {
+                          warranty
+                          id
+                        }
+                      }
+                    }
+                  }
+              - id: 2
+                type: Operation
+                schema: B
+                operation: |
+                  query Op_123456789101112_2($__fusion_1_id: ID!) {
+                    ovenById(id: $__fusion_1_id) {
+                      warranty
+                    }
+                  }
+                source: $.ovenById
+                target: $.products<Node><Oven><WithWarranty><Oven>
+                requirements:
+                  - name: __fusion_1_id
+                    selectionMap: >-
+                      id
+                dependencies:
+                  - id: 1
+            """);
+    }
+
+    [Fact]
     public void Partition_Should_NotExpandInterfaceFragment_When_SourceFieldNarrowsRuntimeType()
     {
         // arrange
@@ -1022,22 +1148,41 @@ public sealed class SupertypeNarrowingPlanningTests : FusionTestBase
                 @fusion__field(schema: B)
             }
 
-            type Oven implements Node
-              @fusion__type(schema: A)
-              @fusion__type(schema: B)
-              @fusion__implements(schema: B, interface: "Node") {
-              id: ID!
-                @fusion__field(schema: A)
+            interface WithWarranty
+              @fusion__type(schema: B) {
+              warranty: Int
                 @fusion__field(schema: B)
             }
 
-            type Toaster implements Node
+            type Oven implements Node & WithWarranty
               @fusion__type(schema: A)
-              @fusion__implements(schema: A, interface: "Node") {
+              @fusion__type(schema: B)
+              @fusion__implements(schema: B, interface: "Node")
+              @fusion__implements(schema: B, interface: "WithWarranty")
+              @fusion__lookup(
+                schema: B
+                key: "{ id }"
+                field: "ovenById(id: ID!): Oven"
+                map: ["id"]
+              ) {
               id: ID!
                 @fusion__field(schema: A)
+                @fusion__field(schema: B)
+              warranty: Int
+                @fusion__field(schema: B)
+            }
+
+            type Toaster implements Node & WithWarranty
+              @fusion__type(schema: A)
+              @fusion__type(schema: B)
+              @fusion__implements(schema: A, interface: "Node")
+              @fusion__implements(schema: B, interface: "WithWarranty") {
+              id: ID!
+                @fusion__field(schema: A)
+                @fusion__field(schema: B)
               warranty: Int
                 @fusion__field(schema: A)
+                @fusion__field(schema: B)
             }
             """);
 
@@ -1174,6 +1319,14 @@ public sealed class SupertypeNarrowingPlanningTests : FusionTestBase
           field: fusion__FieldDefinition!
           map: [fusion__FieldSelectionMap]!
         ) repeatable on FIELD_DEFINITION
+
+        directive @fusion__lookup(
+          schema: fusion__Schema!
+          key: fusion__FieldSelectionSet!
+          field: fusion__FieldDefinition!
+          map: [fusion__FieldSelectionMap!]!
+          internal: Boolean! = false
+        ) repeatable on OBJECT | INTERFACE
 
         directive @fusion__implements(
           schema: fusion__Schema!

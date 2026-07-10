@@ -810,13 +810,13 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
 
             context.Nodes.Pop();
 
-            if (resolvedSelectionSet is not null)
+            if (resolvedSelectionSet is { Selections.Count: > 0 })
             {
                 resolvable ??= new List<InlineFragmentNode>(possibleTypes.Count);
                 resolvable.Add(concreteFragment.WithSelectionSet(resolvedSelectionSet));
             }
 
-            if (unresolvedSelectionSet is not null)
+            if (unresolvedSelectionSet is { Selections.Count: > 0 })
             {
                 unresolvable ??= new List<InlineFragmentNode>(possibleTypes.Count);
                 unresolvable.Add(concreteFragment.WithSelectionSet(unresolvedSelectionSet));
@@ -869,7 +869,8 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
         FusionObjectTypeDefinition? narrowedSourceType,
         [NotNullWhen(true)] out IReadOnlyList<FusionObjectTypeDefinition>? possibleTypes)
     {
-        if (parentType is not FusionInterfaceTypeDefinition
+        if (narrowedSourceType is null
+                && parentType is not FusionInterfaceTypeDefinition
                 and not FusionUnionTypeDefinition
             || narrowedSourceType is null && !parentType.ExistsInSchema(schemaName)
             || parentType is FusionInterfaceTypeDefinition parentInterface
