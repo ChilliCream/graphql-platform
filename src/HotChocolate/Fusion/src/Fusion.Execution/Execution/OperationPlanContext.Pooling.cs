@@ -4,6 +4,7 @@ using System.Runtime.CompilerServices;
 using HotChocolate.Buffers;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Diagnostics;
+using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Execution.Results;
 
@@ -51,7 +52,7 @@ public sealed partial class OperationPlanContext
         IncludeFlags = operationPlan.Operation.CreateIncludeFlags(variables);
         DeferFlags = operationPlan.Operation.CreateDeferFlags(variables);
         _collectTelemetry = requestContext.CollectOperationPlanTelemetry();
-        _clientScope = requestContext.CreateClientScope();
+        _clientScope ??= requestContext.CreateClientScope();
         _clientScopeCreatedAt = Stopwatch.GetTimestamp();
 
         _resultStore.Initialize(
@@ -128,7 +129,11 @@ public sealed partial class OperationPlanContext
         Variables = default!;
         OperationPlan = default!;
         DeferFlags = 0;
-        _clientScope = default!;
+        // if a custom scope is used we cannot reuse it and have to null it.
+        if (_clientScope is not DefaultSourceSchemaClientScope)
+        {
+            _clientScope = default!;
+        }
         _requirementValues = default;
         _requirementKeys = null;
         Traces =
@@ -160,7 +165,15 @@ public sealed partial class OperationPlanContext
             return;
         }
 
-        await _clientScope.DisposeAsync();
+        // if a custom scope is used we cannot reset it and will dispose it instead.
+        if (_clientScope is DefaultSourceSchemaClientScope reusableClientScope)
+        {
+            await reusableClientScope.ResetAsync();
+        }
+        else
+        {
+            await _clientScope.DisposeAsync();
+        }
 
         var pool = _pool;
         _pool = null;
