@@ -68,21 +68,47 @@ public sealed class PostgresSagaStoreTests(PostgresFixture fixture) : IClassFixt
     public async Task SaveAsync_Should_UpdateExistingState_When_RecordExists()
     {
         // Arrange
-        var (_, store) = await CreateStoreAsync();
+        var connectionString = await _fixture.CreateDatabaseAsync();
+        var (_, store1) = await CreateStoreAsync(connectionString);
+        var (_, store2) = await CreateStoreAsync(connectionString);
         var saga = new TestSaga();
         var id = Guid.NewGuid();
         var state = new TestSagaState(id, "Initial") { Data = "original" };
-        await store.SaveAsync(saga, state, CancellationToken.None);
+        await store1.SaveAsync(saga, state, CancellationToken.None);
+
+        // Act
+        var loaded = await store2.LoadAsync<TestSagaState>(saga, id, CancellationToken.None);
+        Assert.NotNull(loaded);
+        loaded.State = "Updated";
+        loaded.Data = "modified";
+        await store2.SaveAsync(saga, loaded, CancellationToken.None);
+
+        // Assert
+        var reloaded = await store1.LoadAsync<TestSagaState>(saga, id, CancellationToken.None);
+        Assert.NotNull(reloaded);
+        Assert.Equal("Updated", reloaded.State);
+        Assert.Equal("modified", reloaded.Data);
+    }
+
+    [Fact]
+    public async Task SaveAsync_Should_ThrowConcurrencyException_When_SavingWithoutLoadOverExistingRecord()
+    {
+        // Arrange
+        var connectionString = await _fixture.CreateDatabaseAsync();
+        var (_, store1) = await CreateStoreAsync(connectionString);
+        var (_, store2) = await CreateStoreAsync(connectionString);
+        var saga = new TestSaga();
+        var id = Guid.NewGuid();
+        var state = new TestSagaState(id, "Initial") { Data = "original" };
+        await store1.SaveAsync(saga, state, CancellationToken.None);
 
         // Act
         var updated = new TestSagaState(id, "Updated") { Data = "modified" };
-        await store.SaveAsync(saga, updated, CancellationToken.None);
+        var exception = await Assert.ThrowsAsync<DbUpdateConcurrencyException>(
+            () => store2.SaveAsync(saga, updated, CancellationToken.None));
 
         // Assert
-        var loaded = await store.LoadAsync<TestSagaState>(saga, id, CancellationToken.None);
-        Assert.NotNull(loaded);
-        Assert.Equal("Updated", loaded.State);
-        Assert.Equal("modified", loaded.Data);
+        Assert.Equal("The saga state was concurrently created or already exists.", exception.Message);
     }
 
     [Fact]
@@ -90,38 +116,150 @@ public sealed class PostgresSagaStoreTests(PostgresFixture fixture) : IClassFixt
     {
         // Arrange
         var connectionString = await _fixture.CreateDatabaseAsync();
-        var (context1, store1) = await CreateStoreAsync(connectionString);
+        var (_, store1) = await CreateStoreAsync(connectionString);
+        var (_, store2) = await CreateStoreAsync(connectionString);
+        var saga = new TestSaga();
+        var id = Guid.NewGuid();
+        var initial = new TestSagaState(id, "Initial") { Data = "seed" };
+        await store1.SaveAsync(saga, initial, TestContext.Current.CancellationToken);
+
+        var fromStore1 = await store1.LoadAsync<TestSagaState>(saga, id, TestContext.Current.CancellationToken);
+        var fromStore2 = await store2.LoadAsync<TestSagaState>(saga, id, TestContext.Current.CancellationToken);
+        Assert.NotNull(fromStore1);
+        Assert.NotNull(fromStore2);
+
+        fromStore1.State = "FromStore1";
+        fromStore1.Data = "store1";
+        await store1.SaveAsync(saga, fromStore1, TestContext.Current.CancellationToken);
+
+        var replacement = new TestSagaState(id, "FromStore2") { Data = "store2" };
+
+        // Act
+        var exception = await Assert.ThrowsAsync<DbUpdateConcurrencyException>(
+            () => store2.SaveAsync(saga, replacement, TestContext.Current.CancellationToken));
+
+        // Assert
+        Assert.Equal("The saga state was modified by another process.", exception.Message);
+    }
+
+    [Fact]
+    public async Task SaveAsync_Should_Converge_When_ReloadedAndReappliedAfterConflict()
+    {
+        // Arrange
+        var connectionString = await _fixture.CreateDatabaseAsync();
+        var (_, store1) = await CreateStoreAsync(connectionString);
+        var (_, store2) = await CreateStoreAsync(connectionString);
+        var saga = new TestSaga();
+        var id = Guid.NewGuid();
+        var initial = new TestSagaState(id, "Initial") { Data = "seed" };
+        await store1.SaveAsync(saga, initial, TestContext.Current.CancellationToken);
+
+        var fromStore1 = await store1.LoadAsync<TestSagaState>(saga, id, TestContext.Current.CancellationToken);
+        var fromStore2 = await store2.LoadAsync<TestSagaState>(saga, id, TestContext.Current.CancellationToken);
+        Assert.NotNull(fromStore1);
+        Assert.NotNull(fromStore2);
+
+        fromStore1.State = "FromStore1";
+        fromStore2.Data = "store2";
+        await store1.SaveAsync(saga, fromStore1, TestContext.Current.CancellationToken);
+
+        await Assert.ThrowsAsync<DbUpdateConcurrencyException>(
+            () => store2.SaveAsync(saga, fromStore2, TestContext.Current.CancellationToken));
+
+        // Act
+        var reloaded = await store2.LoadAsync<TestSagaState>(saga, id, TestContext.Current.CancellationToken);
+        Assert.NotNull(reloaded);
+        reloaded.Data = fromStore2.Data;
+        await store2.SaveAsync(saga, reloaded, TestContext.Current.CancellationToken);
+
+        // Assert
+        var final = await store1.LoadAsync<TestSagaState>(saga, id, TestContext.Current.CancellationToken);
+        Assert.NotNull(final);
+        Assert.Equal("FromStore1", final.State);
+        Assert.Equal("store2", final.Data);
+    }
+
+    [Fact]
+    public async Task SaveAsync_Should_ThrowConcurrencyException_When_ConcurrentInsertRace()
+    {
+        // Arrange
+        var connectionString = await _fixture.CreateDatabaseAsync();
+        var (_, store1) = await CreateStoreAsync(connectionString);
         var (_, store2) = await CreateStoreAsync(connectionString);
         var saga = new TestSaga();
         var id = Guid.NewGuid();
 
-        // Insert initial state so both stores will attempt an UPDATE path.
-        var initial = new TestSagaState(id, "Initial") { Data = "seed" };
-        await store1.SaveAsync(saga, initial, TestContext.Current.CancellationToken);
+        var missingFromStore1 = await store1.LoadAsync<TestSagaState>(saga, id, TestContext.Current.CancellationToken);
+        var missingFromStore2 = await store2.LoadAsync<TestSagaState>(saga, id, TestContext.Current.CancellationToken);
+        Assert.Null(missingFromStore1);
+        Assert.Null(missingFromStore2);
 
-        // Act - use an explicit transaction on store1 to hold a row lock.
-        // Store1 updates within a transaction (reads V1, writes V2, row locked).
-        await context1.Database.BeginTransactionAsync(TestContext.Current.CancellationToken);
         var fromStore1 = new TestSagaState(id, "FromStore1") { Data = "store1" };
+        var fromStore2 = new TestSagaState(id, "FromStore2") { Data = "store2" };
         await store1.SaveAsync(saga, fromStore1, TestContext.Current.CancellationToken);
 
-        // Store2 starts its save on a separate connection.
-        // In READ COMMITTED, its SELECT sees the committed V1 (store1's tx not committed).
-        // Its UPDATE WHERE version=V1 blocks on the row lock held by store1's tx.
-        var fromStore2 = new TestSagaState(id, "FromStore2") { Data = "store2" };
-        var store2Task = Task.Run(
-            () => store2.SaveAsync(saga, fromStore2, default),
-            TestContext.Current.CancellationToken);
+        // Act
+        var exception = await Assert.ThrowsAsync<DbUpdateConcurrencyException>(
+            () => store2.SaveAsync(saga, fromStore2, TestContext.Current.CancellationToken));
 
-        // Give store2 time to SELECT and block on the UPDATE row lock.
-        await Task.Delay(200, TestContext.Current.CancellationToken);
+        // Assert
+        Assert.Equal("The saga state was concurrently created or already exists.", exception.Message);
+    }
 
-        // Commit store1's transaction - version changes V1→V2, row lock released.
-        // Postgres READ COMMITTED re-evaluates store2's WHERE: version=V1 no longer matches.
-        await context1.Database.CommitTransactionAsync(TestContext.Current.CancellationToken);
+    [Fact]
+    public async Task SaveAsync_Should_AllowMultipleSaves_When_SameScope()
+    {
+        // Arrange
+        var connectionString = await _fixture.CreateDatabaseAsync();
+        var (_, seedStore) = await CreateStoreAsync(connectionString);
+        var (_, store) = await CreateStoreAsync(connectionString);
+        var saga = new TestSaga();
+        var id = Guid.NewGuid();
+        var initial = new TestSagaState(id, "Initial") { Data = "seed" };
+        await seedStore.SaveAsync(saga, initial, TestContext.Current.CancellationToken);
 
-        // Assert - store2's update should find 0 rows and throw.
-        await Assert.ThrowsAsync<DbUpdateConcurrencyException>(() => store2Task);
+        var loaded = await store.LoadAsync<TestSagaState>(saga, id, TestContext.Current.CancellationToken);
+        Assert.NotNull(loaded);
+
+        // Act
+        loaded.State = "FirstSave";
+        loaded.Data = "first";
+        await store.SaveAsync(saga, loaded, TestContext.Current.CancellationToken);
+
+        var replacement = new TestSagaState(id, "SecondSave") { Data = "second" };
+        await store.SaveAsync(saga, replacement, TestContext.Current.CancellationToken);
+
+        // Assert
+        var final = await seedStore.LoadAsync<TestSagaState>(saga, id, TestContext.Current.CancellationToken);
+        Assert.NotNull(final);
+        Assert.Equal("SecondSave", final.State);
+        Assert.Equal("second", final.Data);
+    }
+
+    [Fact]
+    public async Task SaveAsync_Should_Update_When_LoadedStateIsReplaced()
+    {
+        // Arrange
+        var connectionString = await _fixture.CreateDatabaseAsync();
+        var (_, seedStore) = await CreateStoreAsync(connectionString);
+        var (_, store) = await CreateStoreAsync(connectionString);
+        var saga = new TestSaga();
+        var id = Guid.NewGuid();
+        var initial = new TestSagaState(id, "Initial") { Data = "seed" };
+        await seedStore.SaveAsync(saga, initial, TestContext.Current.CancellationToken);
+
+        var loaded = await store.LoadAsync<TestSagaState>(saga, id, TestContext.Current.CancellationToken);
+        Assert.NotNull(loaded);
+        var replacement = new TestSagaState(id, "Updated") { Data = "replacement" };
+
+        // Act
+        await store.SaveAsync(saga, replacement, TestContext.Current.CancellationToken);
+
+        // Assert
+        var final = await seedStore.LoadAsync<TestSagaState>(saga, id, TestContext.Current.CancellationToken);
+        Assert.NotNull(final);
+        Assert.Equal("Updated", final.State);
+        Assert.Equal("replacement", final.Data);
     }
 
     [Fact]
@@ -151,6 +289,29 @@ public sealed class PostgresSagaStoreTests(PostgresFixture fixture) : IClassFixt
 
         // Act & Assert - should not throw.
         await store.DeleteAsync(saga, Guid.NewGuid(), CancellationToken.None);
+    }
+
+    [Fact]
+    public async Task SaveAsync_Should_RecreateState_When_PreviousStateWasDeleted()
+    {
+        // Arrange
+        var (_, store) = await CreateStoreAsync();
+        var saga = new TestSaga();
+        var id = Guid.NewGuid();
+        var initial = new TestSagaState(id, "Initial") { Data = "original" };
+        await store.SaveAsync(saga, initial, TestContext.Current.CancellationToken);
+        await store.DeleteAsync(saga, id, TestContext.Current.CancellationToken);
+
+        var replacement = new TestSagaState(id, "Recreated") { Data = "replacement" };
+
+        // Act
+        await store.SaveAsync(saga, replacement, TestContext.Current.CancellationToken);
+
+        // Assert
+        var final = await store.LoadAsync<TestSagaState>(saga, id, TestContext.Current.CancellationToken);
+        Assert.NotNull(final);
+        Assert.Equal("Recreated", final.State);
+        Assert.Equal("replacement", final.Data);
     }
 
     [Fact]
