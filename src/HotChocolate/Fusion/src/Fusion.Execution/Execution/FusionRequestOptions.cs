@@ -43,6 +43,23 @@ public sealed class FusionRequestOptions : ICloneable
     }
 
     /// <summary>
+    /// Gets or sets whether the GraphQL operation kind is annotated onto outgoing subgraph HTTP
+    /// requests via HttpRequestMessage.Options, so that delegating handlers (such as the
+    /// RequestDeduplicationHandler) can consume it. false by default because materializing the
+    /// request options bag allocates per request.
+    /// </summary>
+    public bool AnnotateOperationKind
+    {
+        get;
+        set
+        {
+            ExpectMutableOptions();
+
+            field = value;
+        }
+    }
+
+    /// <summary>
     /// Gets or sets the default error handling mode.
     /// <see cref="ErrorHandlingMode.Propagate"/> by default.
     /// </summary>
@@ -140,6 +157,7 @@ public sealed class FusionRequestOptions : ICloneable
         {
             ExecutionTimeout = ExecutionTimeout,
             CollectOperationPlanTelemetry = CollectOperationPlanTelemetry,
+            AnnotateOperationKind = AnnotateOperationKind,
             DefaultErrorHandlingMode = DefaultErrorHandlingMode,
             AllowErrorHandlingModeOverride = AllowErrorHandlingModeOverride,
             AllowOperationPlanRequests = AllowOperationPlanRequests,
