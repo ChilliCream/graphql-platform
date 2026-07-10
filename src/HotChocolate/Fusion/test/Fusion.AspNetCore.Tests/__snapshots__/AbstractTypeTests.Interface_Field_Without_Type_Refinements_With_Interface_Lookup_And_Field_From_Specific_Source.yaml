@@ -101,9 +101,7 @@ sourceSchemas:
             query Op_1bcbe788_2($__fusion_1_id: ID!) {
               votableById(id: $__fusion_1_id) {
                 __typename
-                ... on Discussion {
-                  totalVotes
-                }
+                totalVotes
               }
             }
           variables: |
@@ -133,8 +131,8 @@ operationPlan:
           }
         }
       hash: 1bcbe788569dbb79a305829bc99385cf
-      searchSpace: 2
-      expandedNodes: 3
+      searchSpace: 1
+      expandedNodes: 2
   nodes:
     - id: 1
       type: Operation
@@ -153,13 +151,11 @@ operationPlan:
         query Op_1bcbe788_2($__fusion_1_id: ID!) {
           votableById(id: $__fusion_1_id) {
             __typename
-            ... on Discussion {
-              totalVotes
-            }
+            totalVotes
           }
         }
-      source: $.votableById<Discussion>
-      target: $.votable<Discussion>
+      source: $.votableById
+      target: $.votable
       requirements:
         - name: __fusion_1_id
           selectionMap: >-
