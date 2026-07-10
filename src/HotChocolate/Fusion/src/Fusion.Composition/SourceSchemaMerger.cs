@@ -1896,6 +1896,10 @@ internal sealed partial class SourceSchemaMerger
             },
             // Enum type definitions.
             {
+                TypeNames.FusionNodeResolution,
+                new FusionNodeResolutionMutableEnumTypeDefinition()
+            },
+            {
                 TypeNames.FusionSchema,
                 new FusionSchemaMutableEnumTypeDefinition(_schemaConstantNames)
             }
@@ -1906,6 +1910,8 @@ internal sealed partial class SourceSchemaMerger
     {
         var schemaEnumType =
             (MutableEnumTypeDefinition)_fusionTypeDefinitions[TypeNames.FusionSchema];
+        var nodeResolutionType =
+            (MutableEnumTypeDefinition)_fusionTypeDefinitions[TypeNames.FusionNodeResolution];
         var fieldDefinitionType =
             (MutableScalarTypeDefinition)_fusionTypeDefinitions[TypeNames.FusionFieldDefinition];
         var fieldSelectionMapType =
@@ -1927,6 +1933,10 @@ internal sealed partial class SourceSchemaMerger
             {
                 DirectiveNames.FusionEnumValue,
                 new FusionEnumValueMutableDirectiveDefinition(schemaEnumType)
+            },
+            {
+                DirectiveNames.FusionExecution,
+                new FusionExecutionMutableDirectiveDefinition(nodeResolutionType)
             },
             {
                 DirectiveNames.FusionField,
@@ -2015,6 +2025,20 @@ internal sealed partial class SourceSchemaMerger
         {
             mergedSchema.DirectiveDefinitions.Add(definition);
         }
+
+        mergedSchema.Directives.Add(
+            new Directive(
+                _fusionDirectiveDefinitions[DirectiveNames.FusionExecution],
+                new ArgumentAssignment(
+                    ArgumentNames.NodeResolution,
+                    new EnumValueNode(
+                        _options.NodeResolution switch
+                        {
+                            NodeResolution.Gateway => "GATEWAY",
+                            NodeResolution.SourceSchema => "SOURCE_SCHEMA",
+                            _ => throw new InvalidOperationException(
+                                $"The node resolution mode '{_options.NodeResolution}' is invalid.")
+                        }))));
     }
 
     private void LiftConnectorKindOntoSchemaMetadata(MutableSchemaDefinition mergedSchema)

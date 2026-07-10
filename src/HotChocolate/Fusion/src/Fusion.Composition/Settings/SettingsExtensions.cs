@@ -21,6 +21,9 @@ internal static class SettingsExtensions
                     EnableGlobalObjectIdentification =
                         compositionSettings.Merger.EnableGlobalObjectIdentification
                         ?? settings.Merger.EnableGlobalObjectIdentification,
+                    NodeResolution =
+                        compositionSettings.Merger.NodeResolution
+                        ?? settings.Merger.NodeResolution,
                     RemoveUnreferencedDefinitions =
                         compositionSettings.Merger.RemoveUnreferencedDefinitions
                         ?? settings.Merger.RemoveUnreferencedDefinitions,
@@ -98,6 +101,11 @@ internal static class SettingsExtensions
             if (mergerSettings.EnableGlobalObjectIdentification is { } enableGlobalObjectIdentification)
             {
                 mergerOptions.EnableGlobalObjectIdentification = enableGlobalObjectIdentification;
+            }
+
+            if (mergerSettings.NodeResolution is { } nodeResolution)
+            {
+                mergerOptions.NodeResolution = nodeResolution;
             }
 
             if (mergerSettings.RemoveUnreferencedDefinitions is { } removeUnreferencedDefinitions)

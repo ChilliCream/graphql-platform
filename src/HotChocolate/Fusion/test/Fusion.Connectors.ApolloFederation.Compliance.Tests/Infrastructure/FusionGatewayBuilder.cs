@@ -180,10 +180,10 @@ internal static class FusionGatewayBuilder
                 subgraphInfos.Add(info);
             }
 
-            var enableGlobalObjectIdentification = nodeResolution != NodeResolution.Gateway;
             var schemaDocument = ComposeSchema(
                 sourceSchemaTexts,
-                enableGlobalObjectIdentification,
+                nodeResolution != NodeResolution.Gateway,
+                nodeResolution,
                 allowNonResolvableInterfaceObjects);
             var settings = BuildGatewaySettings(subgraphInfos, sourceSchemaSettings);
 
@@ -194,7 +194,6 @@ internal static class FusionGatewayBuilder
             gatewayServices
                 .AddGraphQLGateway()
                 .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
-                .ModifyOptions(o => o.NodeResolution = nodeResolution)
                 .AddInMemoryConfiguration(schemaDocument, settings);
 
             var services = gatewayServices.BuildServiceProvider();
@@ -266,6 +265,7 @@ internal static class FusionGatewayBuilder
     private static DocumentNode ComposeSchema(
         IReadOnlyList<SourceSchemaText> sourceSchemas,
         bool enableGlobalObjectIdentification,
+        NodeResolution nodeResolution,
         bool allowNonResolvableInterfaceObjects)
     {
         var compositionLog = new CompositionLog();
@@ -294,6 +294,8 @@ internal static class FusionGatewayBuilder
         {
             options.Merger.EnableGlobalObjectIdentification = true;
         }
+
+        options.Merger.NodeResolution = nodeResolution;
 
         var composer = new SchemaComposer(sourceSchemas, options, compositionLog);
 

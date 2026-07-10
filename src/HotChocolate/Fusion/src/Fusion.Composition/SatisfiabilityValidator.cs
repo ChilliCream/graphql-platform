@@ -20,6 +20,7 @@ internal sealed partial class SatisfiabilityValidator
     private readonly SatisfiabilityOptions _options;
     private readonly ApolloFederationCompatibilityOptions _apolloFederationCompatibility;
     private readonly IReadOnlySet<string> _apolloFederationSchemaNames;
+    private readonly NodeResolution _nodeResolution;
     private readonly RequirementsValidator _requirementsValidator;
     private readonly FusionLookupDirectiveCache _lookupCache;
     private readonly SatisfiabilityFacts _facts;
@@ -30,12 +31,14 @@ internal sealed partial class SatisfiabilityValidator
         MutableSchemaDefinition schema,
         ICompositionLog log,
         SatisfiabilityOptions? options = null,
+        NodeResolution nodeResolution = NodeResolution.Gateway,
         ApolloFederationCompatibilityOptions? apolloFederationCompatibility = null,
         IReadOnlySet<string>? apolloFederationSchemaNames = null)
     {
         _schema = schema;
         _log = log;
         _options = options ?? new SatisfiabilityOptions();
+        _nodeResolution = nodeResolution;
         _apolloFederationCompatibility =
             apolloFederationCompatibility ?? new ApolloFederationCompatibilityOptions();
         _apolloFederationSchemaNames = apolloFederationSchemaNames ?? new HashSet<string>();
@@ -374,6 +377,12 @@ internal sealed partial class SatisfiabilityValidator
         PathNode? path,
         Queue<WorkItem> worklist)
     {
+        if (_nodeResolution is NodeResolution.SourceSchema)
+        {
+            VisitSourceSchemaNodeField(queryType, nodeField, nodeType, path, worklist);
+            return;
+        }
+
         foreach (var possibleType in _schema.GetPossibleTypes(nodeType))
         {
             var byIdLookups = _lookupCache.GetPossibleFusionLookupDirectivesById(possibleType);
@@ -424,6 +433,117 @@ internal sealed partial class SatisfiabilityValidator
                         .Build());
             }
         }
+    }
+
+    private void VisitSourceSchemaNodeField(
+        MutableObjectTypeDefinition queryType,
+        MutableOutputFieldDefinition nodeField,
+        IInterfaceTypeDefinition nodeType,
+        PathNode? path,
+        Queue<WorkItem> worklist)
+    {
+        var sourceNodeLookups = new List<(string SchemaName, MutableOutputFieldDefinition Field)>();
+
+        foreach (var lookup in _lookupCache.GetPossibleFusionLookupDirectivesById(
+            (MutableComplexTypeDefinition)nodeType))
+        {
+            var fieldDirectiveArgument = (string)lookup.Arguments[WellKnownArgumentNames.Field].Value!;
+            var lookupFieldDefinition = ParseFieldDefinition(fieldDirectiveArgument);
+
+            if (lookupFieldDefinition.Name.Value != WellKnownFieldNames.Node
+                || lookupFieldDefinition.Type.NamedType().Name.Value != WellKnownTypeNames.Node
+                || lookup.Arguments[WellKnownArgumentNames.Path] is not NullValueNode)
+            {
+                continue;
+            }
+
+            var schemaName = (string)lookup.Arguments[WellKnownArgumentNames.Schema].Value!;
+            var lookupField = new MutableOutputFieldDefinition(
+                lookupFieldDefinition.Name.Value,
+                CreateType(lookupFieldDefinition.Type, nodeType).ExpectOutputType());
+
+            sourceNodeLookups.Add((schemaName, lookupField));
+        }
+
+        var possibleTypes = _schema.GetPossibleTypes(nodeType).ToArray();
+
+        if (sourceNodeLookups.Count == 0)
+        {
+            ReportMissingNodeLookups(possibleTypes);
+
+            return;
+        }
+
+        var coveredTypes = new HashSet<MutableObjectTypeDefinition>();
+        var nodePathItem = new SatisfiabilityPathItem(nodeField, queryType, "*");
+        var nodePath = new PathNode(nodePathItem, path);
+
+        foreach (var (schemaName, lookupField) in sourceNodeLookups)
+        {
+            var lookupPathItem = new SatisfiabilityPathItem(lookupField, queryType, schemaName);
+            var lookupPath = new PathNode(lookupPathItem, nodePath);
+
+            // Only validate the concrete Node implementations declared by this source. In
+            // particular, an Apollo interface-object stand-in is not Node lookup coverage.
+            foreach (var possibleType in nodeType.GetPossibleTypes(schemaName, _schema))
+            {
+                coveredTypes.Add(possibleType);
+                worklist.Enqueue(new WorkItem(possibleType, lookupPath));
+            }
+        }
+
+        if (coveredTypes.Count == 0)
+        {
+            ReportMissingNodeLookups(possibleTypes);
+            return;
+        }
+
+        foreach (var possibleType in possibleTypes)
+        {
+            if (!coveredTypes.Contains(possibleType))
+            {
+                ReportMissingNodeLookup(possibleType, LogSeverity.Warning);
+            }
+        }
+    }
+
+    private void ReportMissingNodeLookups(
+        IReadOnlyList<MutableObjectTypeDefinition> possibleTypes)
+    {
+        if (possibleTypes.Count == 0)
+        {
+            const string message =
+                "No source schema provides a non-internal 'Query.node<Node>' lookup field.";
+
+            _log.Write(
+                LogEntryBuilder.New()
+                    .SetMessage(message)
+                    .SetCode(LogEntryCodes.UnsatisfiableQueryPath)
+                    .SetSeverity(LogSeverity.Error)
+                    .Build());
+            return;
+        }
+
+        foreach (var possibleType in possibleTypes)
+        {
+            ReportMissingNodeLookup(possibleType, LogSeverity.Error);
+        }
+    }
+
+    private void ReportMissingNodeLookup(
+        MutableObjectTypeDefinition possibleType,
+        LogSeverity severity)
+    {
+        var error = new SatisfiabilityError(
+            string.Format(SatisfiabilityValidator_NodeTypeHasNoNodeLookup, possibleType.Name));
+
+        _log.Write(
+            LogEntryBuilder.New()
+                .SetMessage(error.ToString())
+                .SetCode(LogEntryCodes.UnsatisfiableQueryPath)
+                .SetSeverity(severity)
+                .SetExtension("error", error)
+                .Build());
     }
 
     private ImmutableArray<SatisfiabilityError> ValidateSourceSchemaTransition(

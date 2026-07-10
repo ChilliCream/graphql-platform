@@ -1,6 +1,8 @@
 using System.Collections.Immutable;
 using HotChocolate.Fusion.Comparers;
+using HotChocolate.Fusion.Errors;
 using HotChocolate.Fusion.Extensions;
+using HotChocolate.Fusion.Logging;
 using HotChocolate.Fusion.Logging.Contracts;
 using HotChocolate.Fusion.Options;
 using HotChocolate.Fusion.PostMergeValidationRules;
@@ -34,6 +36,19 @@ public sealed class SchemaComposer
 
     public CompositionResult<MutableSchemaDefinition> Compose()
     {
+        if (!Enum.IsDefined(_schemaComposerOptions.Merger.NodeResolution))
+        {
+            return InvalidNodeResolution(
+                $"The node resolution mode '{_schemaComposerOptions.Merger.NodeResolution}' is invalid.");
+        }
+
+        if (_schemaComposerOptions.Merger.NodeResolution is NodeResolution.SourceSchema
+            && !_schemaComposerOptions.Merger.EnableGlobalObjectIdentification)
+        {
+            return InvalidNodeResolution(
+                "Source-schema node resolution requires global object identification to be enabled.");
+        }
+
         // Parse Source Schemas
         var parsingResult =
             _sourceSchemas.Select(schema =>
@@ -164,6 +179,7 @@ public sealed class SchemaComposer
                 mergedSchema,
                 _log,
                 _schemaComposerOptions.Satisfiability,
+                _schemaComposerOptions.Merger.NodeResolution,
                 _schemaComposerOptions.ApolloFederationCompatibility,
                 apolloFederationSchemaNames).Validate();
 
@@ -173,6 +189,18 @@ public sealed class SchemaComposer
         }
 
         return mergedSchema;
+    }
+
+    private CompositionError InvalidNodeResolution(string message)
+    {
+        _log.Write(
+            LogEntryBuilder.New()
+                .SetMessage(message)
+                .SetCode(LogEntryCodes.InvalidNodeResolution)
+                .SetSeverity(LogSeverity.Error)
+                .Build());
+
+        return new CompositionError(message);
     }
 
     private static readonly ImmutableArray<object> s_sourceSchemaRules =

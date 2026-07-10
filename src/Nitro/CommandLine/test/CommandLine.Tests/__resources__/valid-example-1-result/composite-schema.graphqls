@@ -1,10 +1,15 @@
-schema {
+schema @fusion__execution(nodeResolution: GATEWAY) {
   query: Query
 }
 
 type Query @fusion__type(schema: SCHEMA1) @fusion__type(schema: SCHEMA2) {
   schema1Field: Int! @fusion__field(schema: SCHEMA1)
   schema2Field: Int! @fusion__field(schema: SCHEMA2)
+}
+
+enum fusion__NodeResolution {
+  GATEWAY
+  SOURCE_SCHEMA
 }
 
 "The fusion__Schema enum is a generated type used within an execution schema document to refer to a source schema in a type-safe manner."
@@ -53,6 +58,9 @@ directive @fusion__eventStream(
   schema: fusion__Schema!
   topics: [String!]
 ) on FIELD_DEFINITION
+
+directive @fusion__execution(nodeResolution: fusion__NodeResolution! = GATEWAY) on
+  | SCHEMA
 
 "The @fusion__field directive specifies which source schema provides a field in a composite type and what execution behavior it has."
 directive @fusion__field(

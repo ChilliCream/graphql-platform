@@ -25,6 +25,7 @@ internal static class WellKnownArgumentNames
     public const string Member = "member";
     public const string Message = "message";
     public const string Name = "name";
+    public const string NodeResolution = "nodeResolution";
     public const string OpenWorldHint = "openWorldHint";
     public const string Partial = "partial";
     public const string Path = "path";

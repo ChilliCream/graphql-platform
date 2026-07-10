@@ -13,6 +13,10 @@ namespace HotChocolate.Fusion;
 [JsonSerializable(typeof(SourceSchemaSettings.PreprocessorSettings), TypeInfoPropertyName = "SourceSchemaPreprocessorSettings")]
 [JsonSerializable(typeof(SourceSchemaSettings.SatisfiabilitySettings), TypeInfoPropertyName = "SourceSchemaSatisfiabilitySettings")]
 [JsonSourceGenerationOptions(
-    Converters = [typeof(JsonStringEnumConverter<DirectiveMergeBehavior>)],
+    Converters =
+    [
+        typeof(JsonStringEnumConverter<DirectiveMergeBehavior>),
+        typeof(JsonStringEnumConverter<NodeResolution>)
+    ],
     PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase)]
 internal partial class SettingsJsonSerializerContext : JsonSerializerContext;

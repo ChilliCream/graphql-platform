@@ -10,6 +10,7 @@
     <InternalsVisibleTo Include="nitro" />
     <InternalsVisibleTo Include="ChilliCream.Nitro.CommandLine.Tests" />
     <InternalsVisibleTo Include="HotChocolate.Fusion.Aspire" />
+    <InternalsVisibleTo Include="HotChocolate.Fusion.Aspire.Tests" />
     <InternalsVisibleTo Include="HotChocolate.Fusion.Composition.Tests" />
     <InternalsVisibleTo Include="HotChocolate.Fusion.Composition.ApolloFederation.Tests" />
     <InternalsVisibleTo Include="HotChocolate.Fusion.Execution.Tests" />

@@ -42,6 +42,7 @@ public static class LogEntryCodes
     public const string InterfaceObjectNoInterface = "INTERFACE_OBJECT_NO_INTERFACE";
     public const string InvalidFieldSharing = "INVALID_FIELD_SHARING";
     public const string InvalidGraphQL = "INVALID_GRAPHQL";
+    public const string InvalidNodeResolution = "INVALID_NODE_RESOLUTION";
     public const string InvalidProjectedFieldSharing = "INVALID_PROJECTED_FIELD_SHARING";
     public const string InvalidShareableUsage = "INVALID_SHAREABLE_USAGE";
     public const string IsInvalidFields = "IS_INVALID_FIELDS";

@@ -30,8 +30,9 @@ internal static class CompositeSchemaBuilder
         services ??= EmptyServiceProvider.Instance;
         var typeInterceptor = CreateTypeInterceptor(services);
         var options = FusionSchemaOptions.From(features?.Get<IFusionSchemaOptions>());
+        var nodeResolution = ParseNodeResolution(schemaDocument);
         var context = CreateTypes(name, schemaDocument, services, features, options, typeInterceptor);
-        return CompleteTypes(context, options);
+        return CompleteTypes(context, options, nodeResolution);
     }
 
     private static CompositeSchemaBuilderContext CreateTypes(
@@ -547,7 +548,8 @@ internal static class CompositeSchemaBuilder
 
     private static FusionSchemaDefinition CompleteTypes(
         CompositeSchemaBuilderContext context,
-        FusionSchemaOptions options)
+        FusionSchemaOptions options,
+        NodeResolution nodeResolution)
     {
         foreach (var type in context.TypeDefinitions)
         {
@@ -636,6 +638,7 @@ internal static class CompositeSchemaBuilder
             directives,
             new FusionTypeDefinitionCollection(AsArray(context.TypeDefinitions)!),
             new FusionDirectiveDefinitionCollection(AsArray(context.DirectiveDefinitions)!),
+            nodeResolution,
             features,
             context.SourceSchemaLookup);
 
@@ -645,6 +648,53 @@ internal static class CompositeSchemaBuilder
         schema.EnsurePlannerTopologyCacheInitialized();
 
         return schema;
+    }
+
+    private static NodeResolution ParseNodeResolution(DocumentNode document)
+    {
+        var executionDirectives = document.Definitions
+            .SelectMany(static definition => definition switch
+            {
+                SchemaDefinitionNode schemaDefinition => schemaDefinition.Directives,
+                SchemaExtensionNode schemaExtension => schemaExtension.Directives,
+                _ => []
+            })
+            .Where(static directive => directive.Name.Value.Equals(
+                FusionBuiltIns.Execution,
+                StringComparison.Ordinal))
+            .Take(2)
+            .ToArray();
+
+        if (executionDirectives.Length == 0)
+        {
+            return NodeResolution.Gateway;
+        }
+
+        if (executionDirectives.Length > 1)
+        {
+            throw new InvalidOperationException(
+                "The fusion__execution directive may only be applied once per schema.");
+        }
+
+        var executionDirective = executionDirectives[0];
+
+        var nodeResolutionArgument = executionDirective.Arguments.FirstOrDefault(
+            static argument => argument.Name.Value.Equals(
+                "nodeResolution",
+                StringComparison.Ordinal));
+
+        if (nodeResolutionArgument is null)
+        {
+            return NodeResolution.Gateway;
+        }
+
+        return nodeResolutionArgument.Value switch
+        {
+            EnumValueNode { Value: "GATEWAY" } => NodeResolution.Gateway,
+            EnumValueNode { Value: "SOURCE_SCHEMA" } => NodeResolution.SourceSchema,
+            _ => throw new InvalidOperationException(
+                "The fusion__execution nodeResolution argument must be GATEWAY or SOURCE_SCHEMA.")
+        };
     }
 
     private static void CompleteObjectType(

@@ -3,7 +3,6 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Converters;
-using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Language;
 using HotChocolate.Fusion.Planning.Partitioners;
@@ -2145,8 +2144,7 @@ public sealed partial class OperationPlanner
         var nodeField = workItem.NodeField.Field;
         var responseName = nodeField.Alias?.Value ?? nodeField.Name.Value;
         var selectionPath = SelectionPath.Root.AppendField(responseName);
-        var sourceSchemaResolution =
-            _schema.Features.Get<FusionOptions>()?.NodeResolution == NodeResolution.SourceSchema;
+        var sourceSchemaResolution = _schema.NodeResolution == NodeResolution.SourceSchema;
 
         var idArgumentValue = nodeField.Arguments.First(a => a.Name.Value == "id").Value;
 
@@ -2259,7 +2257,7 @@ public sealed partial class OperationPlanner
             {
                 if (!candidateSchemasByType.TryGetValue(type.Name, out var candidateSchemas))
                 {
-                    return;
+                    continue;
                 }
 
                 sourceSchemaNodePolicy = new SourceSchemaNodePlanningPolicy(

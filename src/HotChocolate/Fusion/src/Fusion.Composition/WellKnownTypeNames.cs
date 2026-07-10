@@ -10,6 +10,7 @@ internal static class WellKnownTypeNames
     public const string FusionFieldSelectionMap = "fusion__FieldSelectionMap";
     public const string FusionFieldSelectionPath = "fusion__FieldSelectionPath";
     public const string FusionFieldSelectionSet = "fusion__FieldSelectionSet";
+    public const string FusionNodeResolution = "fusion__NodeResolution";
     public const string FusionSchema = "fusion__Schema";
     public const string ID = "ID";
     public const string Mutation = "Mutation";

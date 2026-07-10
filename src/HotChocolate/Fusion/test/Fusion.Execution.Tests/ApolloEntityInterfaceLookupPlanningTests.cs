@@ -405,6 +405,7 @@ public sealed class ApolloEntityInterfaceLookupPlanningTests : FusionTestBase
     {
         var options = new SchemaComposerOptions();
         options.Merger.EnableGlobalObjectIdentification = true;
+        options.Merger.NodeResolution = NodeResolution.SourceSchema;
 
         foreach (var source in sources)
         {
@@ -424,7 +425,7 @@ public sealed class ApolloEntityInterfaceLookupPlanningTests : FusionTestBase
         }
 
         var features = new FeatureCollection();
-        var fusionOptions = new FusionOptions { NodeResolution = NodeResolution.SourceSchema };
+        var fusionOptions = new FusionOptions();
         features.Set(fusionOptions);
         features.Set<IFusionSchemaOptions>(fusionOptions);
         return FusionSchemaDefinition.Create(

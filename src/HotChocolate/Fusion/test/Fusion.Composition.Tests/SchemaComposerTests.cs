@@ -1,10 +1,102 @@
 using HotChocolate.Fusion.Logging;
 using HotChocolate.Fusion.Options;
+using HotChocolate.Language;
 
 namespace HotChocolate.Fusion;
 
 public sealed class SchemaComposerTests
 {
+    [Theory]
+    [InlineData(NodeResolution.Gateway, "GATEWAY")]
+    [InlineData(NodeResolution.SourceSchema, "SOURCE_SCHEMA")]
+    public void Compose_Should_EmitExecutionMetadata(
+        NodeResolution nodeResolution,
+        string expectedValue)
+    {
+        var options = new SchemaComposerOptions
+        {
+            Merger =
+            {
+                EnableGlobalObjectIdentification = nodeResolution is NodeResolution.SourceSchema,
+                NodeResolution = nodeResolution
+            }
+        };
+        var composer = new SchemaComposer(
+            [new SourceSchemaText("A", "type Query { ping: String }")],
+            options,
+            new CompositionLog());
+
+        var result = composer.Compose();
+
+        Assert.True(result.IsSuccess);
+        var document = result.Value.ToSyntaxNode();
+        var enumType = Assert.Single(
+            document.Definitions.OfType<EnumTypeDefinitionNode>(),
+            definition => definition.Name.Value == "fusion__NodeResolution");
+        Assert.Equal(["GATEWAY", "SOURCE_SCHEMA"], enumType.Values.Select(value => value.Name.Value));
+
+        var directiveDefinition = Assert.Single(
+            document.Definitions.OfType<DirectiveDefinitionNode>(),
+            definition => definition.Name.Value == "fusion__execution");
+        var argument = Assert.Single(directiveDefinition.Arguments);
+        Assert.Equal("nodeResolution", argument.Name.Value);
+        Assert.Equal("fusion__NodeResolution!", argument.Type.ToString());
+        Assert.Equal("GATEWAY", argument.DefaultValue!.ToString());
+        Assert.Equal([new NameNode("SCHEMA")], directiveDefinition.Locations);
+
+        var schemaDefinition = Assert.Single(document.Definitions.OfType<SchemaDefinitionNode>());
+        var directive = Assert.Single(
+            schemaDefinition.Directives,
+            application => application.Name.Value == "fusion__execution");
+        Assert.Equal(expectedValue, Assert.IsType<EnumValueNode>(
+            Assert.Single(directive.Arguments).Value).Value);
+    }
+
+    [Fact]
+    public void Compose_Should_Fail_When_SourceSchemaNodeResolutionIsDisabled()
+    {
+        var log = new CompositionLog();
+        var options = new SchemaComposerOptions
+        {
+            Merger = { NodeResolution = NodeResolution.SourceSchema }
+        };
+        var composer = new SchemaComposer(
+            [new SourceSchemaText("A", "type Query { ping: String }")],
+            options,
+            log);
+
+        var result = composer.Compose();
+
+        Assert.True(result.IsFailure);
+        var entry = Assert.Single(log);
+        Assert.Equal(LogEntryCodes.InvalidNodeResolution, entry.Code);
+        Assert.Equal(LogSeverity.Error, entry.Severity);
+        Assert.Equal(
+            "Source-schema node resolution requires global object identification to be enabled.",
+            entry.Message);
+    }
+
+    [Fact]
+    public void Compose_Should_Fail_When_NodeResolutionIsInvalid()
+    {
+        var log = new CompositionLog();
+        var options = new SchemaComposerOptions
+        {
+            Merger = { NodeResolution = (NodeResolution)42 }
+        };
+        var composer = new SchemaComposer(
+            [new SourceSchemaText("A", "type Query { ping: String }")],
+            options,
+            log);
+
+        var result = composer.Compose();
+
+        Assert.True(result.IsFailure);
+        var entry = Assert.Single(log);
+        Assert.Equal(LogEntryCodes.InvalidNodeResolution, entry.Code);
+        Assert.Equal("The node resolution mode '42' is invalid.", entry.Message);
+    }
+
     [Fact]
     public void Compose_Should_Succeed_When_CursorFieldAndArgumentAreValid()
     {

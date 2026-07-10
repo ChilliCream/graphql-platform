@@ -43,6 +43,7 @@ public sealed class FusionComposeCommandTests(NitroCommandFixture fixture)
               -a, --archive, --configuration <archive>       The path to a Fusion archive file (the '--configuration' alias is deprecated) [env: NITRO_FUSION_CONFIG_FILE]
               -e, --env, --environment <environment>         The name of the environment used for value substitution in the schema-settings.json files
               --enable-global-object-identification          Add the 'Query.node' field for global object identification
+              --node-resolution <gateway|source-schema>      Choose whether Query.node identifiers are resolved by the gateway or a source schema
               --include-satisfiability-paths                 Include paths in satisfiability error messages
               --watch                                        Watch for file changes and recompose automatically
               -w, --working-directory <working-directory>    Set the working directory for the command
@@ -827,6 +828,111 @@ public sealed class FusionComposeCommandTests(NitroCommandFixture fixture)
         // assert
         Assert.Equal(0, result.ExitCode);
         Assert.True(File.Exists(archiveFileName));
+    }
+
+    [Fact]
+    public async Task Compose_Should_EmitExecutionMetadata_When_SourceSchemaNodeResolution()
+    {
+        var archiveFileName = CreateTempFile();
+        SetupSourceSchemaFromResources("valid-example-1/source-schema-1.graphqls");
+        SetupSourceSchemaFromResources("valid-example-1/source-schema-2.graphqls");
+
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "compose",
+            "--source-schema-file",
+            Path.Combine(s_resourcesDir, "valid-example-1/source-schema-1.graphqls"),
+            "--source-schema-file",
+            Path.Combine(s_resourcesDir, "valid-example-1/source-schema-2.graphqls"),
+            "--archive",
+            archiveFileName,
+            "--enable-global-object-identification",
+            "--node-resolution",
+            "source-schema");
+
+        Assert.Equal(0, result.ExitCode);
+        using var archive = FusionArchive.Open(archiveFileName);
+        var schema = await GetFusionSchemaAsync(archive);
+        Assert.Contains("@fusion__execution(nodeResolution: SOURCE_SCHEMA)", schema);
+    }
+
+    [Fact]
+    public async Task Compose_Should_ReturnError_When_SourceSchemaResolutionWithoutGlobalIdentification()
+    {
+        var archiveFileName = CreateTempFile();
+        SetupSourceSchemaFromResources("valid-example-1/source-schema-1.graphqls");
+        SetupSourceSchemaFromResources("valid-example-1/source-schema-2.graphqls");
+
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "compose",
+            "--source-schema-file",
+            Path.Combine(s_resourcesDir, "valid-example-1/source-schema-1.graphqls"),
+            "--source-schema-file",
+            Path.Combine(s_resourcesDir, "valid-example-1/source-schema-2.graphqls"),
+            "--archive",
+            archiveFileName,
+            "--node-resolution",
+            "source-schema");
+
+        Assert.Equal(1, result.ExitCode);
+        Assert.Contains(
+            "Source-schema node resolution requires global object identification to be enabled.",
+            result.StdErr);
+    }
+
+    [Fact]
+    public async Task Compose_Should_PreserveArchiveSetting_When_NodeResolutionIsOmitted()
+    {
+        var archiveFileName = CreateTempFile();
+        SetupSourceSchemaFromResources("valid-example-1/source-schema-1.graphqls");
+        SetupSourceSchemaFromResources("valid-example-1/source-schema-2.graphqls");
+        var schemaFiles = new[]
+        {
+            Path.Combine(s_resourcesDir, "valid-example-1/source-schema-1.graphqls"),
+            Path.Combine(s_resourcesDir, "valid-example-1/source-schema-2.graphqls")
+        };
+
+        var first = await ExecuteCommandAsync(
+            "fusion",
+            "compose",
+            "--source-schema-file",
+            schemaFiles[0],
+            "--source-schema-file",
+            schemaFiles[1],
+            "--archive",
+            archiveFileName,
+            "--enable-global-object-identification",
+            "--node-resolution",
+            "source-schema");
+        Assert.Equal(0, first.ExitCode);
+        using (var firstArchive = FusionArchive.Open(archiveFileName))
+        {
+            var settings = await firstArchive.GetCompositionSettingsAsync(
+                TestContext.Current.CancellationToken);
+            Assert.NotNull(settings);
+            Assert.Contains("\"nodeResolution\": \"SourceSchema\"", settings.RootElement.ToString());
+        }
+        SetupFile(archiveFileName, new MemoryStream(File.ReadAllBytes(archiveFileName)));
+
+        var second = await ExecuteCommandAsync(
+            "fusion",
+            "compose",
+            "--source-schema-file",
+            schemaFiles[0],
+            "--source-schema-file",
+            schemaFiles[1],
+            "--archive",
+            archiveFileName);
+
+        Assert.Equal(0, second.ExitCode);
+        using var archive = FusionArchive.Open(archiveFileName);
+        var finalSettings = await archive.GetCompositionSettingsAsync(
+            TestContext.Current.CancellationToken);
+        Assert.NotNull(finalSettings);
+        Assert.Contains("\"nodeResolution\": \"SourceSchema\"", finalSettings.RootElement.ToString());
+        var schema = await GetFusionSchemaAsync(archive);
+        Assert.Contains("@fusion__execution(nodeResolution: SOURCE_SCHEMA)", schema);
     }
 
     [Fact]

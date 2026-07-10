@@ -1050,12 +1050,17 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
         var str = Encoding.UTF8.GetString(stream.ToArray());
         str.MatchInlineSnapshot(
             """
-            schema {
+            schema @fusion__execution(nodeResolution: GATEWAY) {
               query: Query
             }
 
             type Query @fusion__type(schema: REVIEWS) {
               field: String! @fusion__field(schema: REVIEWS)
+            }
+
+            enum fusion__NodeResolution {
+              GATEWAY
+              SOURCE_SCHEMA
             }
 
             "The fusion__Schema enum is a generated type used within an execution schema document to refer to a source schema in a type-safe manner."
@@ -1103,6 +1108,9 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
               schema: fusion__Schema!
               topics: [String!]
             ) on FIELD_DEFINITION
+
+            directive @fusion__execution(nodeResolution: fusion__NodeResolution! = GATEWAY) on
+              | SCHEMA
 
             "The @fusion__field directive specifies which source schema provides a field in a composite type and what execution behavior it has."
             directive @fusion__field(
@@ -1230,7 +1238,7 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
         var str = Encoding.UTF8.GetString(stream.ToArray());
         str.MatchInlineSnapshot(
             """
-            schema {
+            schema @fusion__execution(nodeResolution: GATEWAY) {
               query: Query
             }
 
@@ -1261,6 +1269,11 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
               PUBLIC @fusion__enumValue(schema: REVIEWS)
               "The value to cache is specific to a single user."
               PRIVATE @fusion__enumValue(schema: REVIEWS)
+            }
+
+            enum fusion__NodeResolution {
+              GATEWAY
+              SOURCE_SCHEMA
             }
 
             "The fusion__Schema enum is a generated type used within an execution schema document to refer to a source schema in a type-safe manner."
@@ -1317,6 +1330,9 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
               schema: fusion__Schema!
               topics: [String!]
             ) on FIELD_DEFINITION
+
+            directive @fusion__execution(nodeResolution: fusion__NodeResolution! = GATEWAY) on
+              | SCHEMA
 
             "The @fusion__field directive specifies which source schema provides a field in a composite type and what execution behavior it has."
             directive @fusion__field(
@@ -1444,7 +1460,7 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
         var str = Encoding.UTF8.GetString(stream.ToArray());
         str.MatchInlineSnapshot(
             """
-            schema {
+            schema @fusion__execution(nodeResolution: GATEWAY) {
               query: Query
             }
 
@@ -1484,6 +1500,11 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
               PUBLIC @fusion__enumValue(schema: REVIEWS)
               "The value to cache is specific to a single user."
               PRIVATE @fusion__enumValue(schema: REVIEWS)
+            }
+
+            enum fusion__NodeResolution {
+              GATEWAY
+              SOURCE_SCHEMA
             }
 
             "The fusion__Schema enum is a generated type used within an execution schema document to refer to a source schema in a type-safe manner."
@@ -1540,6 +1561,9 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
               schema: fusion__Schema!
               topics: [String!]
             ) on FIELD_DEFINITION
+
+            directive @fusion__execution(nodeResolution: fusion__NodeResolution! = GATEWAY) on
+              | SCHEMA
 
             "The @fusion__field directive specifies which source schema provides a field in a composite type and what execution behavior it has."
             directive @fusion__field(

@@ -68,7 +68,9 @@ internal sealed class SourceSchemaNodeCandidateResolver(FusionSchemaDefinition s
             foreach (var lookup in schema.GetPossibleLookupsOrdered(possibleType))
             {
                 if (!lookup.IsInternal
-                    && lookup.FieldName.Equals(rootField.Name, StringComparison.Ordinal))
+                    && lookup.FieldName.Equals(rootField.Name, StringComparison.Ordinal)
+                    && lookup.FieldType == abstractType
+                    && lookup.Path.IsDefaultOrEmpty)
                 {
                     candidates.TryAdd(lookup.SchemaName, abstractType.Name);
                 }
@@ -103,17 +105,11 @@ internal sealed class SourceSchemaNodeCandidateResolver(FusionSchemaDefinition s
             }
         }
 
-        var isOpaqueInterfaceObject =
-            abstractType is FusionInterfaceTypeDefinition interfaceType
-            && interfaceType.Sources.TryGetMember(schemaName, out var interfaceSource)
-            && interfaceSource.IsInterfaceObject;
-
         foreach (var possibleType in schema.GetPossibleTypes(
             abstractType,
             includeInaccessible: true))
         {
-            if (isOpaqueInterfaceObject
-                || IsSourceLocalPossibleType(abstractType, possibleType, schemaName))
+            if (IsSourceLocalPossibleType(abstractType, possibleType, schemaName))
             {
                 applicableTypes.Add(possibleType.Name);
             }

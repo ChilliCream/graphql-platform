@@ -17,6 +17,7 @@ internal sealed class FusionComposeCommand : Command
         Options.Add(Opt<OptionalFusionArchiveFileOption>.Instance);
         Options.Add(Opt<FusionEnvironmentOption>.Instance);
         Options.Add(Opt<EnableGlobalObjectIdentificationOption>.Instance);
+        Options.Add(Opt<NodeResolutionOption>.Instance);
         Options.Add(Opt<IncludeSatisfiabilityPathsOption>.Instance);
         Options.Add(Opt<WatchModeOption>.Instance);
         Options.Add(Opt<WorkingDirectoryOption>.Instance);
@@ -66,6 +67,11 @@ internal sealed class FusionComposeCommand : Command
         var environment = parseResult.GetValue(Opt<FusionEnvironmentOption>.Instance);
         var enableGlobalObjectIdentification = parseResult.GetValue(
             Opt<EnableGlobalObjectIdentificationOption>.Instance);
+        var nodeResolutionOption = Opt<NodeResolutionOption>.Instance;
+        var nodeResolution = parseResult.Tokens.Any(
+            static token => token.Value == "--node-resolution")
+            ? parseResult.GetValue(nodeResolutionOption)
+            : null;
         var includeSatisfiabilityPaths = parseResult.GetValue(
             Opt<IncludeSatisfiabilityPathsOption>.Instance);
         var watchMode = parseResult.GetValue(Opt<WatchModeOption>.Instance);
@@ -111,6 +117,7 @@ internal sealed class FusionComposeCommand : Command
                 archiveFile,
                 environment,
                 enableGlobalObjectIdentification,
+                nodeResolution,
                 includeSatisfiabilityPaths,
                 tagsToExclude,
                 cancellationToken);
@@ -128,7 +135,8 @@ internal sealed class FusionComposeCommand : Command
             {
                 Merger = new CompositionSettings.MergerSettings
                 {
-                    EnableGlobalObjectIdentification = enableGlobalObjectIdentification
+                    EnableGlobalObjectIdentification = enableGlobalObjectIdentification,
+                    NodeResolution = nodeResolution
                 },
                 Satisfiability = new CompositionSettings.SatisfiabilitySettings
                 {
@@ -152,6 +160,7 @@ internal sealed class FusionComposeCommand : Command
         string archiveFile,
         string? environment,
         bool? enableGlobalObjectIdentification,
+        NodeResolution? nodeResolution,
         bool? includeSatisfiabilityPaths,
         List<string>? tagsToExclude,
         CancellationToken cancellationToken)
@@ -171,7 +180,8 @@ internal sealed class FusionComposeCommand : Command
             {
                 Merger = new CompositionSettings.MergerSettings
                 {
-                    EnableGlobalObjectIdentification = enableGlobalObjectIdentification
+                    EnableGlobalObjectIdentification = enableGlobalObjectIdentification,
+                    NodeResolution = nodeResolution
                 },
                 Satisfiability = new CompositionSettings.SatisfiabilitySettings
                 {
@@ -207,6 +217,7 @@ internal sealed class FusionComposeCommand : Command
             archiveFile,
             environment,
             enableGlobalObjectIdentification,
+            nodeResolution,
             includeSatisfiabilityPaths,
             tagsToExclude,
             cancellationToken);
@@ -338,6 +349,7 @@ internal sealed class FusionComposeCommand : Command
         string archiveFile,
         string? environment,
         bool? enableGlobalObjectIdentification,
+        NodeResolution? nodeResolution,
         bool? includeSatisfiabilityPaths,
         List<string>? tagsToExclude,
         CancellationToken cancellationToken)
@@ -377,7 +389,8 @@ internal sealed class FusionComposeCommand : Command
                     {
                         Merger = new CompositionSettings.MergerSettings
                         {
-                            EnableGlobalObjectIdentification = enableGlobalObjectIdentification
+                            EnableGlobalObjectIdentification = enableGlobalObjectIdentification,
+                            NodeResolution = nodeResolution
                         },
                         Satisfiability = new CompositionSettings.SatisfiabilitySettings
                         {
