@@ -1,9 +1,9 @@
-# QueryContext_Selector_With_Nested_OrderBy_Does_Not_Hoist_Inner_Order_Properties
+# ToPageAsync_Should_NotHoistInnerOrderProperties_When_BackwardPagingSelectorContainsNestedOrderBy
 
 ## SQL 0
 
 ```sql
--- @__p_0='3'
+-- @p='3'
 SELECT b."Id", b."Name", (
     SELECT p."Name"
     FROM "Products" AS p
@@ -12,7 +12,7 @@ SELECT b."Id", b."Name", (
     LIMIT 1) AS "DisplayName"
 FROM "Brands" AS b
 ORDER BY b."Id" DESC
-LIMIT @__p_0
+LIMIT @p
 ```
 
 ## Expression 0

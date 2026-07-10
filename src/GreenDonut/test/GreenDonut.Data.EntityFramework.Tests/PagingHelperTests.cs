@@ -335,7 +335,7 @@ public class PagingHelperTests(PostgreSqlResource resource)
     }
 
     [Fact]
-    public async Task QueryContext_Selector_With_Nested_OrderBy_Forward_Paging()
+    public async Task ToPageAsync_Should_CreateCursor_When_SelectorContainsNestedOrderBy()
     {
         // Arrange
         using var interceptor = new CapturePagingQueryInterceptor();
@@ -378,7 +378,7 @@ public class PagingHelperTests(PostgreSqlResource resource)
     }
 
     [Fact]
-    public async Task QueryContext_Selector_With_Nested_OrderBy_Does_Not_Hoist_Inner_Order_Properties()
+    public async Task ToPageAsync_Should_NotHoistInnerOrderProperties_When_BackwardPagingSelectorContainsNestedOrderBy()
     {
         // Arrange
         using var interceptor = new CapturePagingQueryInterceptor();
@@ -421,7 +421,7 @@ public class PagingHelperTests(PostgreSqlResource resource)
     }
 
     [Fact]
-    public async Task QueryContext_Predicate_With_Nested_OrderBy_Forward_Paging()
+    public async Task ToPageAsync_Should_CreateCursor_When_PredicateContainsNestedOrderBy()
     {
         // Arrange
         using var interceptor = new CapturePagingQueryInterceptor();
@@ -457,7 +457,7 @@ public class PagingHelperTests(PostgreSqlResource resource)
     }
 
     [Fact]
-    public async Task QueryContext_Predicate_With_Nested_OrderBy_Backward_Paging()
+    public async Task ToPageAsync_Should_PreserveNestedOrdering_When_BackwardPagingPredicateContainsOrderBy()
     {
         // Arrange
         using var interceptor = new CapturePagingQueryInterceptor();
@@ -493,7 +493,7 @@ public class PagingHelperTests(PostgreSqlResource resource)
     }
 
     [Fact]
-    public async Task QueryContext_OrderKey_With_Nested_OrderBy_Forward_Paging()
+    public async Task ToPageAsync_Should_CreateCursor_When_OrderKeyContainsNestedOrderBy()
     {
         // Arrange
         using var interceptor = new CapturePagingQueryInterceptor();
@@ -505,9 +505,13 @@ public class PagingHelperTests(PostgreSqlResource resource)
         // (Brand.Products) must be hoisted into the selector so cursors can be
         // created, while the inner key (Product.Price) must not be.
         var query = new QueryContext<Brand>(
-            Selector: t => new Brand { Id = t.Id, Name = t.Name },
+            Selector: t => new Brand { Id = t.Id },
             Sorting: new SortDefinition<Brand>()
-                .AddAscending(t => t.Products.OrderBy(p => p.Price).First().Price)
+                .AddAscending(t => t.Products
+                    .Where(p => t.Name.Length > 0)
+                    .OrderBy(p => p.Price)
+                    .First()
+                    .Price)
                 .AddAscending(t => t.Id));
 
         var arguments = new PagingArguments(first: 2);
@@ -530,7 +534,7 @@ public class PagingHelperTests(PostgreSqlResource resource)
     }
 
     [Fact]
-    public async Task QueryContext_OrderKey_With_Nested_OrderBy_Second_Page()
+    public async Task ToPageAsync_Should_FetchSecondPage_When_OrderKeyContainsNestedOrderBy()
     {
         // Arrange
         using var interceptor = new CapturePagingQueryInterceptor();
@@ -538,9 +542,13 @@ public class PagingHelperTests(PostgreSqlResource resource)
         await SeedAsync(connectionString);
 
         var query = new QueryContext<Brand>(
-            Selector: t => new Brand { Id = t.Id, Name = t.Name },
+            Selector: t => new Brand { Id = t.Id },
             Sorting: new SortDefinition<Brand>()
-                .AddAscending(t => t.Products.OrderBy(p => p.Price).First().Price)
+                .AddAscending(t => t.Products
+                    .Where(p => t.Name.Length > 0)
+                    .OrderBy(p => p.Price)
+                    .First()
+                    .Price)
                 .AddAscending(t => t.Id));
 
         await using var context = new CatalogContext(connectionString);
@@ -556,10 +564,11 @@ public class PagingHelperTests(PostgreSqlResource resource)
         page = await context.Brands.With(query).ToPageAsync(arguments, Xunit.TestContext.Current.CancellationToken);
 
         // Assert
-        Snapshot
+        var snapshot = Snapshot
             .Create(postFix: TestEnvironment.TargetFramework)
-            .AddQueries(interceptor.Queries)
-            .MatchMarkdown();
+            .AddQueries(interceptor.Queries);
+        snapshot.Add(page.Select(t => t.Id).ToArray(), "Page");
+        snapshot.MatchMarkdown();
     }
 
     [Fact]

@@ -3,7 +3,7 @@ using System.Reflection;
 
 namespace GreenDonut.Data.Expressions;
 
-public class ReverseOrderExpressionRewriter : QueryChainVisitor
+public class ReverseOrderExpressionRewriter : ExpressionVisitor
 {
     private static readonly MethodInfo s_orderByMethod = typeof(Queryable).GetMethods()
         .First(m => m.Name == nameof(Queryable.OrderBy) && m.GetParameters().Length == 2);
@@ -51,6 +51,8 @@ public class ReverseOrderExpressionRewriter : QueryChainVisitor
 
         return base.VisitMethodCall(node);
     }
+
+    protected override Expression VisitLambda<T>(Expression<T> node) => node;
 
     public static IQueryable<T> Rewrite<T>(IQueryable<T> query)
     {

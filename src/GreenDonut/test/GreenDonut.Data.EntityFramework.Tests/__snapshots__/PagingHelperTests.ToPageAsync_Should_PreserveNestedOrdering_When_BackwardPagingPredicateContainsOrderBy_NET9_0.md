@@ -1,9 +1,9 @@
-# QueryContext_Predicate_With_Nested_OrderBy_Backward_Paging
+# ToPageAsync_Should_PreserveNestedOrdering_When_BackwardPagingPredicateContainsOrderBy
 
 ## SQL 0
 
 ```sql
--- @p='3'
+-- @__p_0='3'
 SELECT b."Id", b."Name"
 FROM "Brands" AS b
 WHERE (
@@ -13,7 +13,7 @@ WHERE (
     ORDER BY p."Price" DESC
     LIMIT 1) >= 0.0
 ORDER BY b."Id"
-LIMIT @p
+LIMIT @__p_0
 ```
 
 ## Expression 0

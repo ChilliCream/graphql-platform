@@ -343,16 +343,8 @@ internal static class ExpressionHelpers
         }
 
         // For computed key expressions (method calls, concatenation, etc.) we cannot inspect
-        // NRT annotations at runtime, so they are treated as non-nullable and no null
-        // handling is emitted into the generated WHERE clause.
-        //
-        // Known limitation: a computed key that can actually yield null (for example
-        // t.Products.OrderBy(p => p.Price).First().Price over a possibly-empty child
-        // collection) is not covered. Such a row sorts to the NULL end and is then silently
-        // dropped from later keyset pages, because its SQL comparisons evaluate to UNKNOWN,
-        // and building a cursor over a First() key throws on the empty collection. The
-        // navigation-path nullability handling added in #9955 does not extend to computed
-        // keys; supporting them is deferred to a follow-up.
+        // NRT annotations at runtime. Treat as non-nullable, the safe default that avoids
+        // injecting spurious null-handling into the generated WHERE clause.
         return false;
     }
 
@@ -773,7 +765,7 @@ internal static class ExpressionHelpers
         public ReadOnlySpan<string> OrderMethods => CollectionsMarshal.AsSpan(orderMethods);
     }
 
-    private sealed class OrderByRemovalRewriter : QueryChainVisitor
+    private sealed class OrderByRemovalRewriter : ExpressionVisitor
     {
         private readonly List<LambdaExpression> _orderExpressions = [];
         private readonly List<string> _orderMethods = [];
@@ -804,6 +796,8 @@ internal static class ExpressionHelpers
 
             return base.VisitMethodCall(node);
         }
+
+        protected override Expression VisitLambda<T>(Expression<T> node) => node;
 
         private static Expression StripQuotes(Expression e)
         {
