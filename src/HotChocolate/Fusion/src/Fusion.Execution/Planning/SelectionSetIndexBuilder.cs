@@ -69,6 +69,11 @@ public sealed class SelectionSetIndexBuilder : ISelectionSetIndex, ISelectionSet
         var clonedId = _selectionSets[cloned];
         var originalId = _selectionSets[original];
 
+        while (_clonedToOriginalMap.TryGetValue(originalId, out var parentOriginalId))
+        {
+            originalId = parentOriginalId;
+        }
+
         _clonedToOriginalMap = _clonedToOriginalMap.SetItem(clonedId, originalId);
     }
 
