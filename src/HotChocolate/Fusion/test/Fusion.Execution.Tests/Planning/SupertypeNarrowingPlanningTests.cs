@@ -559,9 +559,16 @@ public sealed class SupertypeNarrowingPlanningTests : FusionTestBase
             {
               products {
                 __typename
-                ... on Toaster {
+                ... {
+                  ... on Oven {
+                    ... on Oven {
+                      __typename
+                    }
+                  }
                   ... on Toaster {
-                    warranty
+                    ... on Toaster {
+                      warranty
+                    }
                   }
                 }
               }
@@ -630,10 +637,17 @@ public sealed class SupertypeNarrowingPlanningTests : FusionTestBase
                   query Op_123456789101112_1 {
                     products {
                       __typename
-                      ... on Toaster {
+                      ... {
+                        ... on Oven {
+                          ... on Oven {
+                            __typename
+                            id
+                          }
+                        }
                         ... on Toaster {
-                          warranty
-                          id
+                          ... on Toaster {
+                            warranty
+                          }
                         }
                       }
                     }

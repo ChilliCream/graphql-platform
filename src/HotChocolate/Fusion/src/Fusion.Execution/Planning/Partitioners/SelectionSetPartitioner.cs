@@ -791,24 +791,37 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
 
         foreach (var possibleType in possibleTypes)
         {
+            var branchSelectionSet = new SelectionSetNode(inlineFragmentNode.SelectionSet.Selections);
+            context.RegisterCloned(inlineFragmentNode.SelectionSet, branchSelectionSet);
+
             var concreteFragment = new InlineFragmentNode(
                 inlineFragmentNode.Location,
                 new NamedTypeNode(possibleType.Name),
                 [],
-                inlineFragmentNode.SelectionSet);
+                branchSelectionSet);
 
             context.Nodes.Push(concreteFragment);
+
+            var unresolvableBefore = context.Unresolvable;
 
             var (resolvedSelectionSet, unresolvedSelectionSet) =
                 RewriteSelectionSet(
                     context,
                     possibleType,
-                    inlineFragmentNode.SelectionSet,
+                    branchSelectionSet,
                     providedFieldNode,
                     coverage,
                     narrowedSourceType ?? possibleType);
 
             context.Nodes.Pop();
+
+            if (resolvedSelectionSet is { Selections.Count: 0 }
+                && !ReferenceEquals(unresolvableBefore, context.Unresolvable))
+            {
+                resolvedSelectionSet = new SelectionSetNode([
+                    new FieldNode(IntrospectionFieldNames.TypeName)]);
+                context.Register(branchSelectionSet, resolvedSelectionSet);
+            }
 
             if (resolvedSelectionSet is { Selections.Count: > 0 })
             {
@@ -1094,6 +1107,16 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
             }
 
             SelectionSetIndexBuilder.Register(original, branch);
+        }
+
+        public void RegisterCloned(SelectionSetNode original, SelectionSetNode cloned)
+        {
+            if (SelectionSetIndex.IsRegistered(cloned))
+            {
+                return;
+            }
+
+            SelectionSetIndexBuilder.RegisterCloned(original, cloned);
         }
     }
 
