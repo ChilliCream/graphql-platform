@@ -1,0 +1,86 @@
+operation:
+  - document: |
+      {
+        account: node(id: "a1") {
+          __typename
+          ... on Chat {
+            id
+          }
+        }
+        chat: node(id: "c1") {
+          __typename
+          ... on Account {
+            id
+          }
+        }
+      }
+    hash: 123456789101112
+    searchSpace: 4
+    expandedNodes: 9
+nodes:
+  - id: 1
+    type: Node
+    idValue: "c1"
+    responseName: chat
+    branches:
+      - Account: 3
+    fallback: 2
+  - id: 2
+    type: Operation
+    operation: |
+      query Op_123456789101112_2 {
+        chat: node(id: "c1") {
+          __typename
+        }
+      }
+    dependencies:
+      - id: 1
+  - id: 3
+    type: Operation
+    schema: a
+    operation: |
+      query Op_123456789101112_3 {
+        chat: node(id: "c1") {
+          __typename
+          ... on Account {
+            __typename
+            id
+          }
+        }
+      }
+    dependencies:
+      - id: 1
+      - id: 2
+  - id: 4
+    type: Node
+    idValue: "a1"
+    responseName: account
+    branches:
+      - Chat: 6
+    fallback: 5
+  - id: 5
+    type: Operation
+    operation: |
+      query Op_123456789101112_5 {
+        account: node(id: "a1") {
+          __typename
+        }
+      }
+    dependencies:
+      - id: 4
+  - id: 6
+    type: Operation
+    schema: b
+    operation: |
+      query Op_123456789101112_6 {
+        account: node(id: "a1") {
+          __typename
+          ... on Chat {
+            __typename
+            id
+          }
+        }
+      }
+    dependencies:
+      - id: 4
+      - id: 5

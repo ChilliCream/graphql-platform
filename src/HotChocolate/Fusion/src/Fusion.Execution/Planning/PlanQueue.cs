@@ -506,8 +506,16 @@ internal sealed class PlanQueue(FusionSchemaDefinition schema)
         // copy backlog state per branch, then
         // materialize a new node with the
         // branch-local lower bound.
-        foreach (var (schemaName, resolutionCost) in schema.GetPossibleSchemas(workItem.SelectionSet))
+        foreach (var (schemaName, resolutionCost) in schema.GetPossibleSchemas(
+            workItem.SelectionSet,
+            workItem.SourceSchemaNodePolicy?.AllowedSchemaNames))
         {
+            var policy = workItem.SourceSchemaNodePolicy;
+            if (policy?.Allows(schemaName) == false)
+            {
+                continue;
+            }
+
             // If we have multiple id lookups in a single schema,
             // we try to choose one that returns the desired type directly
             // and not an abstract type.
@@ -518,8 +526,21 @@ internal sealed class PlanQueue(FusionSchemaDefinition schema)
                 continue;
             }
 
-            var lookupWorkItem = workItem with { Lookup = byIdLookup };
-            var branchBacklog = backlog.Push(lookupWorkItem);
+            var candidateBacklog = backlog;
+            if (policy is { CandidateGroupId: { } candidateGroupId })
+            {
+                policy = policy.BindCandidate(schemaName);
+                candidateBacklog = backlog.BindSourceSchemaNodeCandidate(
+                    candidateGroupId,
+                    schemaName);
+            }
+
+            var lookupWorkItem = workItem with
+            {
+                Lookup = byIdLookup,
+                SourceSchemaNodePolicy = policy
+            };
+            var branchBacklog = candidateBacklog.Push(lookupWorkItem);
             var branchRemainingCost = EstimateRemainingCost(planNodeTemplate, branchBacklog);
             Enqueue(planNodeTemplate with
             {
@@ -537,12 +558,54 @@ internal sealed class PlanQueue(FusionSchemaDefinition schema)
         // In this case we enqueue the best matching by id lookup of any source schema.
         if (!hasEnqueuedLookup)
         {
-            var byIdLookup = SelectNodeBranchLookup(schema, type, schemaName: null)
-                ?? throw new InvalidOperationException(
-                    $"Expected to have at least one lookup with just an 'id' argument for type '{type.Name}'.");
+            Lookup? byIdLookup;
+            if (workItem.SourceSchemaNodePolicy?.AllowedSchemaNames is not { } allowedSchemaNames)
+            {
+                byIdLookup = SelectNodeBranchLookup(schema, type, schemaName: null);
+            }
+            else
+            {
+                byIdLookup = null;
+                var schemaNames = allowedSchemaNames.ToArray();
+                Array.Sort(schemaNames, StringComparer.Ordinal);
 
-            var lookupWorkItem = workItem with { Lookup = byIdLookup };
-            var branchBacklog = backlog.Push(lookupWorkItem);
+                foreach (var schemaName in schemaNames)
+                {
+                    byIdLookup = SelectNodeBranchLookup(schema, type, schemaName);
+                    if (byIdLookup is not null)
+                    {
+                        break;
+                    }
+                }
+            }
+
+            if (byIdLookup is null)
+            {
+                if (workItem.SourceSchemaNodePolicy is not null)
+                {
+                    return;
+                }
+
+                throw new InvalidOperationException(
+                    $"Expected to have at least one lookup with just an 'id' argument for type '{type.Name}'.");
+            }
+
+            var policy = workItem.SourceSchemaNodePolicy;
+            var candidateBacklog = backlog;
+            if (policy is { CandidateGroupId: { } candidateGroupId })
+            {
+                policy = policy.BindCandidate(byIdLookup.SchemaName);
+                candidateBacklog = backlog.BindSourceSchemaNodeCandidate(
+                    candidateGroupId,
+                    byIdLookup.SchemaName);
+            }
+
+            var lookupWorkItem = workItem with
+            {
+                Lookup = byIdLookup,
+                SourceSchemaNodePolicy = policy
+            };
+            var branchBacklog = candidateBacklog.Push(lookupWorkItem);
             var branchRemainingCost = EstimateRemainingCost(planNodeTemplate, branchBacklog);
             Enqueue(planNodeTemplate with
             {

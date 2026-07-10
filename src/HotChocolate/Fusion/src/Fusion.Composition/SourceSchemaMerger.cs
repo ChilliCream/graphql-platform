@@ -1351,6 +1351,14 @@ internal sealed partial class SourceSchemaMerger
                 arguments.Add(new ArgumentAssignment(ArgumentNames.Partial, true));
             }
 
+            if (SourceExternalFieldMetadata.Contains(
+                    sourceSchema,
+                    sourceField.DeclaringMember!.Name,
+                    sourceField.Name))
+            {
+                arguments.Add(new ArgumentAssignment(ArgumentNames.SourceExternal, true));
+            }
+
             field.Directives.Add(
                 new Directive(_fusionDirectiveDefinitions[DirectiveNames.FusionField], arguments));
         }

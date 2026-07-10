@@ -838,6 +838,7 @@ internal static class CompositeSchemaBuilder
                     requirements,
                     CompleteType(fieldDef.Type, fieldDirective.SourceType, context),
                     fieldDirective.IsExternal,
+                    fieldDirective.IsSourceExternal,
                     fieldDirective.Provides,
                     sourceTypeName,
                     sourceEventStreamDirective));

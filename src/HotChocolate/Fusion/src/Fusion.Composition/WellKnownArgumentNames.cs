@@ -40,6 +40,7 @@ internal static class WellKnownArgumentNames
     public const string SizedFields = "sizedFields";
     public const string SlicingArgumentDefaultValue = "slicingArgumentDefaultValue";
     public const string SlicingArguments = "slicingArguments";
+    public const string SourceExternal = "sourceExternal";
     public const string SourceType = "sourceType";
     public const string Topics = "topics";
     public const string Type = "type";

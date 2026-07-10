@@ -1,5 +1,6 @@
 using HotChocolate.Fusion.Logging;
 using HotChocolate.Fusion.Options;
+using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.ApolloFederation;
 
@@ -51,5 +52,33 @@ public sealed class ExternalKeyLookupRepro
 
         // assert
         Assert.True(result.IsSuccess);
+
+        var document = result.Value.ToSyntaxNode();
+        var thing = document.Definitions
+            .OfType<ObjectTypeDefinitionNode>()
+            .Single(type => type.Name.Value == "Thing");
+        var keyField = thing.Fields.Single(field => field.Name.Value == "k");
+        var fieldDirectives = keyField.Directives
+            .Where(directive => directive.Name.Value == "fusion__field")
+            .ToDictionary(
+                directive => ((EnumValueNode)directive.Arguments
+                    .Single(argument => argument.Name.Value == "schema").Value).Value);
+
+        Assert.Single(fieldDirectives["A"].Arguments);
+        Assert.Equal(
+            ["schema", "sourceExternal"],
+            fieldDirectives["B"].Arguments.Select(argument => argument.Name.Value));
+        Assert.True(
+            ((BooleanValueNode)fieldDirectives["B"].Arguments
+                .Single(argument => argument.Name.Value == "sourceExternal").Value).Value);
+
+        var lookup = thing.Directives.Single(
+            directive => directive.Name.Value == "fusion__lookup"
+                && ((EnumValueNode)directive.Arguments
+                    .Single(argument => argument.Name.Value == "schema").Value).Value == "B");
+        Assert.Equal(
+            "fusion__lookup_thingByK(k: Int!): Thing",
+            ((StringValueNode)lookup.Arguments
+                .Single(argument => argument.Name.Value == "field").Value).Value);
     }
 }

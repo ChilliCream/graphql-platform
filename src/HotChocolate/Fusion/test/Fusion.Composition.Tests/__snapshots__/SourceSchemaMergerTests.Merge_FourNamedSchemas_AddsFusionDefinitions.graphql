@@ -55,6 +55,8 @@ directive @fusion__field(
   provides: fusion__FieldSelectionSet
   "The name of the source schema that originally provided this field."
   schema: fusion__Schema!
+  "Indicates that the source field was declared as external before connector preprocessing."
+  sourceExternal: Boolean! = false
   "The field type in the source schema if it differs in nullability or structure."
   sourceType: String
 ) repeatable on FIELD_DEFINITION
@@ -143,6 +145,7 @@ directive @fusion__requires(
 
 "The @fusion__schema_metadata directive is used to provide additional metadata for a source schema."
 directive @fusion__schema_metadata(
+  allowNonResolvableInterfaceObjects: Boolean
   kind: String
   "The name of the source schema."
   name: String!

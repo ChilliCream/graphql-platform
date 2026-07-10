@@ -18,7 +18,8 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
             SchemaName = input.SchemaName,
             RootPath = input.SelectionSet.Path,
             SelectionSetIndex = input.SelectionSetIndex,
-            PruneUnprovidedAbstractBranches = input.PruneUnprovidedAbstractBranches
+            PruneUnprovidedAbstractBranches = input.PruneUnprovidedAbstractBranches,
+            TreatSourceExternalAsUnresolvable = input.TreatSourceExternalAsUnresolvable
         };
 
         var (resolvable, _) =
@@ -492,7 +493,10 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
         // With partial coverage (a @provides scope), the provided set only adds fields, so an
         // uncovered field falls back to native ownership and a non-external source resolves it.
         var isResolvable = providedFieldNode is not null
-            || (coverage is ProvidedCoverage.Partial && source is { IsExternal: false });
+            || (coverage is ProvidedCoverage.Partial
+                && source is { IsExternal: false }
+                && (!context.TreatSourceExternalAsUnresolvable
+                    || !source.IsSourceExternal));
 
         if (!isResolvable)
         {
@@ -760,6 +764,8 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
         public required ISelectionSetIndex SelectionSetIndex { get; set; } = null!;
 
         public bool PruneUnprovidedAbstractBranches { get; init; }
+
+        public bool TreatSourceExternalAsUnresolvable { get; init; }
 
         [field: AllowNull, MaybeNull]
         public SelectionSetIndexBuilder SelectionSetIndexBuilder
