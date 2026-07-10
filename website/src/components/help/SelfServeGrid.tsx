@@ -4,11 +4,7 @@ import type { ReactElement } from "react";
 import { GITHUB, SLACK, YOUTUBE } from "@/src/components/help/helpLinks";
 import { IconFeatureCard } from "@/src/components/IconFeatureCard";
 import { SectionHeading } from "@/src/components/SectionHeading";
-import { ArticleIcon } from "@/src/icons/Article";
-import { BranchIcon } from "@/src/icons/BranchIcon";
-import { ChatIcon } from "@/src/icons/ChatIcon";
-import { DocsIcon } from "@/src/icons/Docs";
-import { PlayIcon } from "@/src/icons/Play";
+import { IconElement } from "@/src/icons/IconElement";
 
 interface Channel {
   readonly title: string;
@@ -24,35 +20,35 @@ const CHANNELS: readonly Channel[] = [
     copy: "Guides, recipes, and the full Hot Chocolate and Fusion reference.",
     href: "/docs",
     external: false,
-    icon: <DocsIcon />,
+    icon: <IconElement variant="duolight" icon="file-lines" size="2x" />,
   },
   {
     title: "Blog",
     copy: "Release notes, deep dives, and patterns from the team.",
     href: "/blog",
     external: false,
-    icon: <ArticleIcon />,
+    icon: <IconElement variant="duolight" icon="newspaper" size="2x" />,
   },
   {
     title: "Slack",
     copy: "Live conversation with maintainers and 7000+ developers.",
     href: SLACK,
     external: true,
-    icon: <ChatIcon />,
+    icon: <IconElement variant="duolight" icon="messages-question" size="2x" />,
   },
   {
     title: "YouTube",
     copy: "Workshops, talks, and walkthroughs from the ChilliCream team.",
     href: YOUTUBE,
     external: true,
-    icon: <PlayIcon />,
+    icon: <IconElement variant="duolight" icon="circle-play" size="2x" />,
   },
   {
     title: "GitHub",
     copy: "Source, issues, and discussions for graphql-platform.",
     href: GITHUB,
     external: true,
-    icon: <BranchIcon />,
+    icon: <IconElement variant="duolight" icon="code-branch" size="2x" />,
   },
 ];
 

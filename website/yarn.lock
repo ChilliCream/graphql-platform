@@ -60,6 +60,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@awesome.me/kit-04be88f754@npm:^1.0.16":
+  version: 1.0.16
+  resolution: "@awesome.me/kit-04be88f754@npm:1.0.16"
+  dependencies:
+    "@fortawesome/fontawesome-common-types": "npm:^7.3.0"
+  checksum: 10c0/6655244dbd418aec7ece03cd482cbfb575e2cbd63fb6e55c834ec8082828896b3365c985e9cdc98f605a43d4283a7506703bcc0b18a5d9800ac2c96a102bedb2
+  languageName: node
+  linkType: hard
+
 "@babel/code-frame@npm:^7.23.5, @babel/code-frame@npm:^7.28.6, @babel/code-frame@npm:^7.29.0":
   version: 7.29.0
   resolution: "@babel/code-frame@npm:7.29.0"
@@ -837,6 +846,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@fortawesome/fontawesome-common-types@npm:^7.3.0":
+  version: 7.3.0
+  resolution: "@fortawesome/fontawesome-common-types@npm:7.3.0"
+  checksum: 10c0/2d7310609b520e68cbc8737d551f526e434eb4cd093a3f7d420998809fa21e23aa96123c7d23bacb451ff49bb4eda79272583463ca6cf29a4335f24fe6babcd9
+  languageName: node
+  linkType: hard
+
 "@fortawesome/fontawesome-free@npm:^6.0.0":
   version: 6.7.2
   resolution: "@fortawesome/fontawesome-free@npm:6.7.2"
@@ -862,7 +878,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@fortawesome/react-fontawesome@npm:^3.1.1":
+"@fortawesome/react-fontawesome@npm:^3.3.1":
   version: 3.3.1
   resolution: "@fortawesome/react-fontawesome@npm:3.3.1"
   peerDependencies:
@@ -10300,12 +10316,13 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "website@workspace:."
   dependencies:
+    "@awesome.me/kit-04be88f754": "npm:^1.0.16"
     "@chillicream/mocha-visualizer": "file:../src/Mocha/src/mocha-visualizer"
     "@docsearch/css": "npm:^4.6.3"
     "@docsearch/react": "npm:^4.6.3"
     "@fortawesome/fontawesome-svg-core": "npm:^7.1.0"
     "@fortawesome/free-solid-svg-icons": "npm:^7.1.0"
-    "@fortawesome/react-fontawesome": "npm:^3.1.1"
+    "@fortawesome/react-fontawesome": "npm:^3.3.1"
     "@mdx-js/loader": "npm:^3.1.1"
     "@mdx-js/react": "npm:^3.1.1"
     "@next/mdx": "npm:^16.2.6"
