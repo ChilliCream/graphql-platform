@@ -21,6 +21,11 @@ public abstract partial class MessagingTransport : IAsyncDisposable, IFeaturePro
     public string Schema { get; protected set; } = null!;
 
     /// <summary>
+    /// Gets the stable URN identity of this transport.
+    /// </summary>
+    public string Urn { get; private set; } = null!;
+
+    /// <summary>
     /// Read-only transport-level options such as concurrency limits and prefetch settings.
     /// </summary>
     public IReadOnlyTransportOptions Options { get; private set; } = null!;
@@ -134,11 +139,13 @@ public abstract partial class MessagingTransport : IAsyncDisposable, IFeaturePro
 
         foreach (var resource in outboundResources)
         {
+            var address = resource.Address.ToString();
             entities.Add(
                 new TopologyEntityDescription(
+                    MochaUrn.TopologyEntity(address, resource.GetType().Name.ToLowerInvariant(), null),
                     resource.GetType().Name.ToLowerInvariant(),
                     null,
-                    resource.Address?.ToString(),
+                    address,
                     "outbound",
                     null));
         }
@@ -150,11 +157,13 @@ public abstract partial class MessagingTransport : IAsyncDisposable, IFeaturePro
                 continue;
             }
 
+            var address = resource.Address.ToString();
             entities.Add(
                 new TopologyEntityDescription(
+                    MochaUrn.TopologyEntity(address, resource.GetType().Name.ToLowerInvariant(), null),
                     resource.GetType().Name.ToLowerInvariant(),
                     null,
-                    resource.Address?.ToString(),
+                    address,
                     "inbound",
                     null));
         }
@@ -162,6 +171,7 @@ public abstract partial class MessagingTransport : IAsyncDisposable, IFeaturePro
         var topology = new TopologyDescription(Topology.Address.ToString(), entities, []);
 
         return new TransportDescription(
+            Urn,
             Topology.Address.ToString(),
             Name,
             Schema,

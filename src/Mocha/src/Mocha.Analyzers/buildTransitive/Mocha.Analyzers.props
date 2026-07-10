@@ -2,5 +2,8 @@
   <ItemGroup>
     <CompilerVisibleProperty Include="PublishAot" />
     <CompilerVisibleProperty Include="IsAotCompatible" />
+    <CompilerVisibleProperty Include="MochaEmitSourceMetadata" />
+    <CompilerVisibleProperty Include="RepositoryUrl" />
+    <CompilerVisibleProperty Include="SourceRevisionId" />
   </ItemGroup>
 </Project>

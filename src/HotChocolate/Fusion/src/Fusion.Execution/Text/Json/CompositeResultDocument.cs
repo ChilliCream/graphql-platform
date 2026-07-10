@@ -53,6 +53,11 @@ public sealed partial class CompositeResultDocument : IDisposable
     {
         var row = _metaDb.Get(cursor);
 
+        if (row.TokenType is ElementTokenType.Reference)
+        {
+            row = _metaDb.Get(new Cursor(row.Location));
+        }
+
         if (row.OperationReferenceType is not OperationReferenceType.SelectionSet)
         {
             return null;
@@ -127,6 +132,7 @@ public sealed partial class CompositeResultDocument : IDisposable
         return row.SizeOrLength;
     }
 
+    [SkipLocalsInit]
     internal CompactPath CreateCompactPath(Cursor current)
     {
         var firstRow = _metaDb.Get(current);
@@ -289,6 +295,16 @@ public sealed partial class CompositeResultDocument : IDisposable
         return (flags & ElementFlags.IsInternal) == ElementFlags.IsInternal;
     }
 
+    internal bool IsEnumValueProperty(Cursor current)
+    {
+        ObjectDisposedException.ThrowIf(_disposed != 0, this);
+
+        // The flag sits on the property row (one before value)
+        var propertyCursor = current.AddRows(-1);
+        var flags = _metaDb.GetFlags(propertyCursor);
+        return (flags & ElementFlags.IsEnumValue) == ElementFlags.IsEnumValue;
+    }
+
     internal void Invalidate(Cursor current)
     {
         ObjectDisposedException.ThrowIf(_disposed != 0, this);
@@ -396,17 +412,16 @@ public sealed partial class CompositeResultDocument : IDisposable
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal void AssignCompositeValue(CompositeResultElement target, CompositeResultElement value)
     {
-        _metaDb.Replace(
+        _metaDb.ReplacePreserveParent(
             cursor: target.Cursor,
             tokenType: ElementTokenType.Reference,
-            location: value.Cursor.Value,
-            parentRow: _metaDb.GetParent(target.Cursor));
+            location: value.Cursor.Value);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal void AssignSourceValue(CompositeResultElement target, SourceResultElement source)
     {
-        var value = source.GetValuePointer();
+        var row = source.GetValueRow();
         var parent = source._parent;
 
         if (parent.Id == -1)
@@ -418,40 +433,37 @@ public sealed partial class CompositeResultDocument : IDisposable
 
         Debug.Assert(_sources.Contains(parent), "Expected the source document of the source element to be registered.");
 
-        var tokenType = source.TokenType.ToElementTokenType();
+        var tokenType = row.TokenType.ToElementTokenType();
 
         if (tokenType is ElementTokenType.StartObject or ElementTokenType.StartArray)
         {
             var sourceCursor = source._cursor;
 
-            _metaDb.Replace(
+            _metaDb.ReplacePreserveParent(
                 cursor: target.Cursor,
-                tokenType: source.TokenType.ToElementTokenType(),
+                tokenType: tokenType,
                 location: sourceCursor.Chunk,
                 sizeOrLength: sourceCursor.Row,
                 sourceDocumentId: parent.Id,
-                parentRow: _metaDb.GetParent(target.Cursor),
                 flags: ElementFlags.SourceResult);
             return;
         }
 
-        _metaDb.Replace(
+        _metaDb.ReplacePreserveParent(
             cursor: target.Cursor,
-            tokenType: source.TokenType.ToElementTokenType(),
-            location: value.Location,
-            sizeOrLength: value.Size,
+            tokenType: tokenType,
+            location: row.Location,
+            sizeOrLength: row.SizeOrLength,
             sourceDocumentId: parent.Id,
-            parentRow: _metaDb.GetParent(target.Cursor),
             flags: ElementFlags.SourceResult);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal void AssignNullValue(CompositeResultElement target)
     {
-        _metaDb.Replace(
+        _metaDb.ReplacePreserveParent(
             cursor: target.Cursor,
-            tokenType: ElementTokenType.Null,
-            parentRow: _metaDb.GetParent(target.Cursor));
+            tokenType: ElementTokenType.Null);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -506,6 +518,11 @@ public sealed partial class CompositeResultDocument : IDisposable
         if (selection.Type.Kind is not TypeKind.NonNull)
         {
             flags |= ElementFlags.IsNullable;
+        }
+
+        if (selection.IsEnumValue)
+        {
+            flags |= ElementFlags.IsEnumValue;
         }
 
         return flags;

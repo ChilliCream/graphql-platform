@@ -21,9 +21,86 @@ internal static class MessagingTestHelper
     public static Snapshot GetGeneratedSourceSnapshot(
         string[] sourceTexts,
         string? assemblyName = "Tests",
+        bool publishAot = false,
+        bool emitSourceMetadata = true,
+        string[]? sourcePaths = null,
+        string? sourceRoots = null)
+    {
+        var driver = RunGenerator(
+            sourceTexts,
+            assemblyName,
+            publishAot,
+            emitSourceMetadata,
+            sourcePaths,
+            sourceRoots);
+
+        return CreateSnapshot(driver);
+    }
+
+    public static Snapshot GetIncrementalGeneratedSourceSnapshot(
+        string[] sourceTexts,
+        int replaceIndex,
+        string replacementSourceText,
+        string? assemblyName = "Tests",
         bool publishAot = false)
     {
-        var driver = RunGenerator(sourceTexts, assemblyName, publishAot);
+        var compilation = CreateCompilation(sourceTexts, assemblyName);
+        var driver = CreateDriver(publishAot, emitSourceMetadata: true, trackIncrementalSteps: true)
+            .RunGenerators(compilation);
+
+        // Replacing a single tree preserves the other tree instances, so Roslyn can reuse the cached
+        // messaging syntax-info transforms for the unchanged handler file across the second run.
+        var oldTree = compilation.SyntaxTrees.ElementAt(replaceIndex);
+        var updatedCompilation = compilation.ReplaceSyntaxTree(
+            oldTree,
+            CSharpSyntaxTree.ParseText(replacementSourceText));
+
+        driver = driver.RunGenerators(updatedCompilation);
+
+        var runResult = driver.GetRunResult();
+        var snapshot = new Snapshot();
+
+        // The second-run step reasons are the discriminator: a message-only edit must leave the
+        // handler/messaging collection cached (the fix moves message metadata out of that pipeline
+        // into MochaMessageDeclarations), while still refreshing the generated output below.
+        snapshot.Add(
+            FormatStepReasons(runResult, "MochaMessagingSyntaxInfos", "MochaMessagingCollectedInfos"),
+            "Incremental Steps (second run)");
+
+        foreach (var result in runResult.Results)
+        {
+            foreach (var source in result.GeneratedSources.OrderBy(s => s.HintName))
+            {
+                snapshot.Add(source.SourceText.ToString(), source.HintName, MarkdownLanguages.CSharp);
+            }
+        }
+
+        return snapshot;
+    }
+
+    private static string FormatStepReasons(
+        GeneratorDriverRunResult runResult,
+        params string[] stepNames)
+    {
+        var builder = new StringBuilder();
+
+        foreach (var stepName in stepNames)
+        {
+            var reasons = runResult.Results
+                .SelectMany(r => r.TrackedSteps.TryGetValue(stepName, out var steps)
+                    ? steps
+                    : ImmutableArray<IncrementalGeneratorRunStep>.Empty)
+                .SelectMany(s => s.Outputs)
+                .Select(o => o.Reason.ToString());
+
+            builder.Append(stepName).Append(": ").AppendLine(string.Join(", ", reasons));
+        }
+
+        return builder.ToString();
+    }
+
+    private static Snapshot CreateSnapshot(GeneratorDriver driver)
+    {
         var snapshot = new Snapshot();
 
         foreach (var result in driver.GetRunResult().Results)
@@ -46,9 +123,11 @@ internal static class MessagingTestHelper
     public static ImmutableArray<Diagnostic> GetGeneratorDiagnostics(
         string[] sourceTexts,
         string? assemblyName = "Tests",
-        bool publishAot = false)
+        bool publishAot = false,
+        bool emitSourceMetadata = true,
+        string[]? sourcePaths = null)
     {
-        var driver = RunGenerator(sourceTexts, assemblyName, publishAot);
+        var driver = RunGenerator(sourceTexts, assemblyName, publishAot, emitSourceMetadata, sourcePaths);
 
         return driver.GetRunResult().Results
             .SelectMany(static r => r.Diagnostics)
@@ -58,10 +137,12 @@ internal static class MessagingTestHelper
     public static ImmutableArray<Diagnostic> GetCompilationDiagnostics(
         string[] sourceTexts,
         string? assemblyName = "Tests",
-        bool publishAot = false)
+        bool publishAot = false,
+        bool emitSourceMetadata = true,
+        string[]? sourcePaths = null)
     {
-        var compilation = CreateCompilation(sourceTexts, assemblyName);
-        var driver = CreateDriver(publishAot);
+        var compilation = CreateCompilation(sourceTexts, assemblyName, sourcePaths);
+        var driver = CreateDriver(publishAot, emitSourceMetadata);
 
         driver = driver.RunGeneratorsAndUpdateCompilation(
             compilation,
@@ -77,9 +158,11 @@ internal static class MessagingTestHelper
     public static ImmutableArray<string> GetGeneratedSourceTexts(
         string[] sourceTexts,
         string? assemblyName = "Tests",
-        bool publishAot = false)
+        bool publishAot = false,
+        bool emitSourceMetadata = true,
+        string[]? sourcePaths = null)
     {
-        var driver = RunGenerator(sourceTexts, assemblyName, publishAot);
+        var driver = RunGenerator(sourceTexts, assemblyName, publishAot, emitSourceMetadata, sourcePaths);
 
         return driver.GetRunResult().Results
             .SelectMany(static r => r.GeneratedSources)
@@ -91,16 +174,21 @@ internal static class MessagingTestHelper
     private static GeneratorDriver RunGenerator(
         string[] sourceTexts,
         string? assemblyName,
-        bool publishAot)
+        bool publishAot,
+        bool emitSourceMetadata,
+        string[]? sourcePaths,
+        string? sourceRoots = null)
     {
-        var compilation = CreateCompilation(sourceTexts, assemblyName);
+        var compilation = CreateCompilation(sourceTexts, assemblyName, sourcePaths);
 
-        return CreateDriver(publishAot).RunGenerators(compilation);
+        return CreateDriver(publishAot, emitSourceMetadata, sourceRoots: sourceRoots)
+            .RunGenerators(compilation);
     }
 
     private static CSharpCompilation CreateCompilation(
         string[] sourceTexts,
-        string? assemblyName)
+        string? assemblyName,
+        string[]? sourcePaths = null)
     {
         IEnumerable<PortableExecutableReference> references =
         [
@@ -116,6 +204,9 @@ internal static class MessagingTestHelper
 
             // Mocha (IConsumer, IBatchEventHandler, Saga, SagaStateBase)
             MetadataReference.CreateFromFile(typeof(IConsumer).Assembly.Location),
+
+            // Mocha.Utilities (FeatureCollectionExtensions)
+            MetadataReference.CreateFromFile(typeof(Mocha.Features.FeatureCollectionExtensions).Assembly.Location),
 
 #if NET11_0
             // System.Collections.Immutable
@@ -144,16 +235,42 @@ internal static class MessagingTestHelper
 
         return CSharpCompilation.Create(
             assemblyName: assemblyName,
-            syntaxTrees: sourceTexts.Select(s => CSharpSyntaxTree.ParseText(s)),
+            syntaxTrees: sourceTexts.Select(
+                (s, i) => CSharpSyntaxTree.ParseText(
+                    s,
+                    path: sourcePaths is not null && i < sourcePaths.Length ? sourcePaths[i] : "")),
             references,
             new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
     }
 
-    private static GeneratorDriver CreateDriver(bool publishAot)
+    private static GeneratorDriver CreateDriver(
+        bool publishAot,
+        bool emitSourceMetadata,
+        bool trackIncrementalSteps = false,
+        string? sourceRoots = null)
     {
+        var globalOptions = new Dictionary<string, string>
+        {
+            ["build_property.PublishAot"] = publishAot ? "true" : "false",
+            ["build_property.MochaEmitSourceMetadata"] = emitSourceMetadata ? "true" : "false"
+        };
+
+        if (sourceRoots is not null)
+        {
+            globalOptions["build_property._MochaSourceRoots"] = sourceRoots;
+        }
+
         var generator = new MessagingGenerator();
-        return CSharpGeneratorDriver.Create(generator)
-            .WithUpdatedAnalyzerConfigOptions(new TestAnalyzerConfigOptionsProvider(publishAot));
+
+        // Step tracking retains the incremental state tables across RunGenerators calls, which is
+        // what lets driver reuse expose cross-file cache staleness in the incremental test.
+        var driver = trackIncrementalSteps
+            ? CSharpGeneratorDriver.Create(
+                [generator.AsSourceGenerator()],
+                driverOptions: new GeneratorDriverOptions(default, trackIncrementalGeneratorSteps: true))
+            : CSharpGeneratorDriver.Create(generator);
+
+        return driver.WithUpdatedAnalyzerConfigOptions(new TestAnalyzerConfigOptionsProvider(globalOptions));
     }
 
     private static void AddDiagnosticsToSnapshot(
@@ -237,44 +354,6 @@ internal static class MessagingTestHelper
         if (hasDiagnostics)
         {
             snapshot.Add(Encoding.UTF8.GetString(stream.ToArray()), title, MarkdownLanguages.Json);
-        }
-    }
-
-    private sealed class TestAnalyzerConfigOptionsProvider(bool publishAot)
-        : AnalyzerConfigOptionsProvider
-    {
-        private readonly AnalyzerConfigOptions _globalOptions =
-            new TestAnalyzerConfigOptions(
-                new Dictionary<string, string>
-                {
-                    ["build_property.PublishAot"] = publishAot ? "true" : "false"
-                });
-
-        public override AnalyzerConfigOptions GlobalOptions => _globalOptions;
-
-        public override AnalyzerConfigOptions GetOptions(SyntaxTree tree)
-            => TestAnalyzerConfigOptions.Empty;
-
-        public override AnalyzerConfigOptions GetOptions(AdditionalText textFile)
-            => TestAnalyzerConfigOptions.Empty;
-    }
-
-    private sealed class TestAnalyzerConfigOptions(IReadOnlyDictionary<string, string> options)
-        : AnalyzerConfigOptions
-    {
-        public static readonly AnalyzerConfigOptions Empty =
-            new TestAnalyzerConfigOptions(new Dictionary<string, string>());
-
-        public override bool TryGetValue(string key, out string value)
-        {
-            if (options.TryGetValue(key, out var result))
-            {
-                value = result;
-                return true;
-            }
-
-            value = "";
-            return false;
         }
     }
 }

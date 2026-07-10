@@ -33,7 +33,7 @@ public static class BSubgraph
             .AddType<UsersFilterType>();
 
         var app = builder.Build();
-        app.MapGraphQL();
+        app.MapSubgraph();
 
         await app.StartAsync();
 

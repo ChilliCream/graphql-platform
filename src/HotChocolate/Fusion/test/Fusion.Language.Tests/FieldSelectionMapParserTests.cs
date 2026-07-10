@@ -92,6 +92,19 @@ public sealed class FieldSelectionMapParserTests
         Assert.Equal(sourceText, result);
     }
 
+    [Theory]
+    [InlineData("""price(currency: "USD")""")]
+    [InlineData("""category.averagePrice(currency: "USD")""")]
+    [InlineData("""{ averagePrice: category.averagePrice(currency: "USD") }""")]
+    public void ParseAndPrint_PathWithArguments_Matches(string sourceText)
+    {
+        // arrange & act
+        var result = new FieldSelectionMapParser(sourceText).Parse().Print(indented: false);
+
+        // assert
+        Assert.Equal(sourceText, result);
+    }
+
     [Fact]
     public void Parse_PathWithTypeNameNoPathSegment_ThrowsSyntaxException()
     {

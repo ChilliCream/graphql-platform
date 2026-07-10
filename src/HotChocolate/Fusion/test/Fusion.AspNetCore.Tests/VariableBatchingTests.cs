@@ -1,4 +1,3 @@
-using System.Collections.Immutable;
 using System.Text.Json;
 using HotChocolate.AspNetCore;
 using HotChocolate.Transport;

@@ -12,6 +12,7 @@ interface StoryEntry {
   readonly id: string;
   readonly title: string;
   readonly name: string;
+  readonly tags?: readonly string[];
 }
 
 interface StoryIndex {
@@ -31,7 +32,7 @@ try {
 }
 
 const stories = Object.values(index.entries).filter(
-  (entry) => entry.type === "story",
+  (entry) => entry.type === "story" && !entry.tags?.includes("no-snapshot"),
 );
 
 for (const story of stories) {

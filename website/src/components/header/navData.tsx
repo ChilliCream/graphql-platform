@@ -90,7 +90,7 @@ export const NAV_ITEMS: NavItem[] = [
           {
             href: "/products/nitro",
             label: "Nitro",
-            description: "GraphQL IDE / API Cockpit",
+            description: "Observability, Governance, Delivery",
             icon: RocketIcon,
           },
         ],

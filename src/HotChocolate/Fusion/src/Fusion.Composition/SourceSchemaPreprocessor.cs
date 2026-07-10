@@ -14,6 +14,7 @@ using HotChocolate.Types.Mutable;
 using static HotChocolate.Fusion.WellKnownDirectiveNames;
 using ArgumentNames = HotChocolate.Fusion.WellKnownArgumentNames;
 using StringValueNode = HotChocolate.Language.StringValueNode;
+using LogSeverity = HotChocolate.Fusion.Logging.LogSeverity;
 
 namespace HotChocolate.Fusion;
 
@@ -25,7 +26,8 @@ internal sealed partial class SourceSchemaPreprocessor(
     ImmutableSortedSet<MutableSchemaDefinition> schemas,
     ICompositionLog log,
     Version? sourceSchemaVersion = null,
-    SourceSchemaPreprocessorOptions? options = null)
+    SourceSchemaPreprocessorOptions? options = null,
+    LogSeverity invalidFieldDeprecationSeverity = LogSeverity.Warning)
 {
     private readonly SourceSchemaPreprocessorOptions _options = options ?? new SourceSchemaPreprocessorOptions();
 
@@ -33,14 +35,17 @@ internal sealed partial class SourceSchemaPreprocessor(
     {
         var fusionV1CompatibilityMode = sourceSchemaVersion?.Major == 1;
 
-        if (FederationSchemaTransformer.IsFederationSchema(schema)
-            && FederationSchemaAnalyzer.Validate(schema, log))
+        var isFederationSchema = FederationSchemaTransformer.IsFederationSchema(schema)
+            && FederationSchemaAnalyzer.Validate(schema, log);
+
+        if (isFederationSchema)
         {
             RemoveFederationInfrastructure.Apply(schema);
             GenerateLookupFields.Apply(schema);
             RewriteKeyDirectives.Apply(schema);
+            MarkKeyFieldsShareable.Apply(schema, schemas);
             TransformRequiresToRequire.Apply(schema);
-            RemoveExternalFields.Apply(schema);
+            GenerateNodeLookup.Apply(schema);
             StampConnectorKind.Apply(schema);
         }
 
@@ -71,14 +76,23 @@ internal sealed partial class SourceSchemaPreprocessor(
             ApplyShareableDirectives();
         }
 
-        // Additional schema validation will catch issues introduced during preprocessing.
+        // Additional schema validation will catch issues introduced during preprocessing. It runs
+        // while @external fields are still present so that the validator sees the source schema as
+        // authored (modulo the earlier transforms); the external fields are stripped afterwards and
+        // never contribute fields to the execution schema.
         if (_options.EnableSchemaValidation)
         {
             var validationLog = new ValidationLog();
             if (!new SchemaValidator().Validate(schema, validationLog) && validationLog.HasErrors)
             {
-                log.WriteValidationLog(validationLog, schema);
+                log.WriteValidationLog(
+                    validationLog, schema, invalidFieldDeprecationSeverity);
             }
+        }
+
+        if (isFederationSchema)
+        {
+            RemoveExternalFields.Apply(schema);
         }
 
         return log.HasErrors

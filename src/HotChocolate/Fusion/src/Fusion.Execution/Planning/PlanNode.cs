@@ -100,6 +100,14 @@ internal sealed record PlanNode
 
     public uint LastRequirementId { get; init; }
 
+    /// <summary>
+    /// The operation-level registry that assigns a stable internal alias to each distinct
+    /// requirement-field identity, so identical requirements from any requiring field share
+    /// one alias while requirements differing by arguments receive distinct aliases.
+    /// </summary>
+    public OperationPlanner.RequirementAliasRegistry RequirementAliases { get; init; }
+        = OperationPlanner.RequirementAliasRegistry.Empty;
+
     public EventStreamDirective? EventStreamDirective { get; init; }
 
     public double PathCost

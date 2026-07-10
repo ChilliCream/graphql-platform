@@ -10,8 +10,13 @@ namespace HotChocolate.Fusion.Satisfiability;
 
 internal sealed class RequirementsValidator(
     MutableSchemaDefinition schema,
-    bool includeSatisfiabilityPaths = false)
+    FusionLookupDirectiveCache lookupCache,
+    SatisfiabilityFacts facts,
+    bool includeSatisfiabilityPaths)
 {
+    private readonly FusionLookupDirectiveCache _lookupCache = lookupCache;
+    private readonly SatisfiabilityFacts _facts = facts;
+
     public ImmutableArray<SatisfiabilityError> Validate(
         SelectionSetNode requirements,
         MutableObjectTypeDefinition contextType,
@@ -174,10 +179,10 @@ internal sealed class RequirementsValidator(
                 continue;
             }
 
-            // If the field is marked as partial, it must be provided by the current schema for it
-            // to be an option.
+            // A partial (@external) field is never a resolution candidate in its declaring schema;
+            // only an event stream message can make it an option. @provides never does (PR #231).
             if (field.IsPartial(schemaName)
-                && previousPathItem?.Provides(field, type, schemaName, schema) != true)
+                && previousPathItem?.ProvidesViaEventStream(field, type, schemaName, schema) != true)
             {
                 continue;
             }
@@ -197,8 +202,13 @@ internal sealed class RequirementsValidator(
                 continue;
             }
 
-            // Validate transition between source schemas.
-            if (previousSchemaName != schemaName)
+            // Validate transition between source schemas. The fixpoint answers the direct-lookup
+            // route in O(1); only when it cannot confirm the transition, or when a provided selection
+            // set narrows the context, do we fall back to the full recursion that builds the error.
+            if (previousSchemaName != schemaName
+                && (previousSchemaName is null
+                    || previousPathItem?.ProvidedSelectionSet is not null
+                    || !_facts.CanTransition(type, schemaName, previousSchemaName)))
             {
                 var transitionErrors = ValidateSourceSchemaTransition(
                     type,
@@ -222,13 +232,21 @@ internal sealed class RequirementsValidator(
                 }
             }
 
-            // Validate field requirements (@require).
+            // Validate field requirements (@require). The fixpoint answers whether the requirement
+            // holds in O(1); only when it does not, or when a provided selection set narrows the
+            // context, do we re-run the recursion to build the error tree.
             var requirements = field.GetFusionRequiresRequirements(schemaName);
 
-            if (requirements is not null)
+            if (requirements is not null
+                && (previousPathItem?.ProvidedSelectionSet is not null
+                    || !_facts.IsFieldResolvableOn(type, field, schemaName)))
             {
                 var requirementErrors =
-                    new RequirementsValidator(schema, includeSatisfiabilityPaths).Validate(
+                    new RequirementsValidator(
+                        schema,
+                        _lookupCache,
+                        _facts,
+                        includeSatisfiabilityPaths).Validate(
                         requirements,
                         type,
                         context.Path.Peek(),
@@ -323,7 +341,7 @@ internal sealed class RequirementsValidator(
         string transitionToSchemaName)
     {
         return SourceSchemaTransitionHelper.ValidateSourceSchemaTransition(
-            schema,
+            _lookupCache,
             type,
             transitionToSchemaName,
             [.. context.Path],

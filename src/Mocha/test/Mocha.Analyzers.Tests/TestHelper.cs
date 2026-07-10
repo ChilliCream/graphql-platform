@@ -17,7 +17,12 @@ internal static class TestHelper
 
     public static Snapshot GetGeneratedSourceSnapshot(
         string[] sourceTexts,
-        string? assemblyName = "Tests")
+        string? assemblyName = "Tests",
+        bool emitSourceMetadata = true,
+        string? repositoryUrl = null,
+        string? commit = null,
+        string[]? sourcePaths = null,
+        string? sourceRoots = null)
     {
         IEnumerable<PortableExecutableReference> references =
         [
@@ -47,12 +52,36 @@ internal static class TestHelper
 
         var compilation = CSharpCompilation.Create(
             assemblyName: assemblyName,
-            syntaxTrees: sourceTexts.Select(s => CSharpSyntaxTree.ParseText(s)),
+            syntaxTrees: sourceTexts.Select(
+                (s, i) => CSharpSyntaxTree.ParseText(
+                    s,
+                    path: sourcePaths is not null && i < sourcePaths.Length ? sourcePaths[i] : "")),
             references,
             new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
 
+        var globalOptions = new Dictionary<string, string>
+        {
+            ["build_property.MochaEmitSourceMetadata"] = emitSourceMetadata ? "true" : "false"
+        };
+
+        if (repositoryUrl is not null)
+        {
+            globalOptions["build_property.RepositoryUrl"] = repositoryUrl;
+        }
+
+        if (commit is not null)
+        {
+            globalOptions["build_property.SourceRevisionId"] = commit;
+        }
+
+        if (sourceRoots is not null)
+        {
+            globalOptions["build_property._MochaSourceRoots"] = sourceRoots;
+        }
+
         var generator = new MediatorGenerator();
-        GeneratorDriver driver = CSharpGeneratorDriver.Create(generator);
+        GeneratorDriver driver = CSharpGeneratorDriver.Create(generator)
+            .WithUpdatedAnalyzerConfigOptions(new TestAnalyzerConfigOptionsProvider(globalOptions));
         driver = driver.RunGenerators(compilation);
 
         var snapshot = new Snapshot();

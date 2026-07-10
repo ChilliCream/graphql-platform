@@ -111,13 +111,27 @@ The deduplication hash includes the request body, URL, and the values of configu
 
 ## How to Enable
 
-Add the request deduplication message handler with `.AddRequestDeduplication()` to the named HTTP client builder:
+Enabling deduplication takes two parts, and both are required. The gateway must annotate outgoing subgraph requests with the operation kind, and the HTTP client must carry the deduplication handler. Either part alone produces no deduplication.
+
+First, opt in to operation kind annotation with `AnnotateOperationKind`:
+
+```csharp
+builder.Services
+    .AddGraphQLGateway()
+    .ModifyRequestOptions(options => options.AnnotateOperationKind = true);
+```
+
+This is off by default because materializing the annotation means building the request options bag on every subgraph call, and that allocation is only worth paying when something downstream consumes it. The operation kind is a general classification signal stored on `HttpRequestMessage.Options`, not a deduplication-only concept, so other delegating handlers further down the pipeline can read it too. Deduplication is one consumer of that signal.
+
+Then add the request deduplication message handler with `.AddRequestDeduplication()` to the named HTTP client builder:
 
 ```csharp
 builder.Services
     .AddHttpClient("fusion")
     .AddRequestDeduplication();
 ```
+
+Without the gateway-level annotation, the handler has nothing to key off and passes all requests through unchanged.
 
 ## Customizing Hash Headers
 

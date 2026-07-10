@@ -194,5 +194,11 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("JsonOperationPlanParser_SingleOperationRequired", resourceCulture);
             }
         }
+
+        internal static string NodeFieldExecutionNode_InvalidNodeIdFormat {
+            get {
+                return ResourceManager.GetString("NodeFieldExecutionNode_InvalidNodeIdFormat", resourceCulture);
+            }
+        }
     }
 }

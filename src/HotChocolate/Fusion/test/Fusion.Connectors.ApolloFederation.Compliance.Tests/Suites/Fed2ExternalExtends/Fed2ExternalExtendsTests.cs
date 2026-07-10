@@ -27,7 +27,7 @@ public sealed class Fed2ExternalExtendsTests : ComplianceTestBase
     /// external <c>name</c> from <c>b</c> via the entity lookup;
     /// <c>userById</c> resolves entirely in <c>b</c>.
     /// </summary>
-    [Fact(Skip = "Federation transformer generates a 'userById' lookup field from User @key(\"id\") that collides with subgraph b's user-declared Query.userById root field. See APOLLO_FEDERATION_COMPLIANCE_FOLLOWUP.md follow-up.")]
+    [Fact]
     public Task RandomUser_And_UserById_Resolve_Across_Subgraphs() => RunAsync(
         query: """
             query {
@@ -60,7 +60,7 @@ public sealed class Fed2ExternalExtendsTests : ComplianceTestBase
     /// <c>randomUser</c> with <c>id</c> and <c>rid</c> only stays inside
     /// subgraph <c>a</c>.
     /// </summary>
-    [Fact(Skip = "Federation transformer generates a 'userById' lookup field from User @key(\"id\") that collides with subgraph b's user-declared Query.userById root field. See APOLLO_FEDERATION_COMPLIANCE_FOLLOWUP.md follow-up.")]
+    [Fact]
     public Task RandomUser_Returns_Local_Rid_Without_Entity_Call() => RunAsync(
         query: """
             query {
@@ -84,7 +84,7 @@ public sealed class Fed2ExternalExtendsTests : ComplianceTestBase
     /// the gateway to issue an entity call to subgraph <c>b</c> for
     /// <c>name</c>, then merge with <c>rid</c> from subgraph <c>a</c>.
     /// </summary>
-    [Fact(Skip = "Federation transformer generates a 'userById' lookup field from User @key(\"id\") that collides with subgraph b's user-declared Query.userById root field. See APOLLO_FEDERATION_COMPLIANCE_FOLLOWUP.md follow-up.")]
+    [Fact]
     public Task RandomUser_Resolves_External_Name_Via_Entity_Call() => RunAsync(
         query: """
             query {
@@ -111,7 +111,7 @@ public sealed class Fed2ExternalExtendsTests : ComplianceTestBase
     /// <c>name</c> shipped from subgraph <c>a</c> and skip the entity
     /// call to subgraph <c>b</c>.
     /// </summary>
-    [Fact(Skip = "Federation transformer generates a 'userById' lookup field from User @key(\"id\") that collides with subgraph b's user-declared Query.userById root field. See APOLLO_FEDERATION_COMPLIANCE_FOLLOWUP.md follow-up.")]
+    [Fact]
     public Task ProvidedRandomUser_Uses_Local_Name_Via_Provides() => RunAsync(
         query: """
             query {

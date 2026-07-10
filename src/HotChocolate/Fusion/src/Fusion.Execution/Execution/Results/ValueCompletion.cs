@@ -78,9 +78,11 @@ internal sealed class ValueCompletion
             InitializeTargetObject(source, target);
         }
 
+        var objectContext = target.GetObjectContext();
+
         foreach (var property in source.EnumerateObject())
         {
-            if (!target.TryGetProperty(property.NameSpan, out var resultField))
+            if (!objectContext.TryGetProperty(property.NameSpan, out var resultField, out var selection))
             {
                 continue;
             }
@@ -93,11 +95,16 @@ internal sealed class ValueCompletion
             // going through the full TryCompleteValue type-dispatch chain.
             if (errorTrie is null && propertyValueKind.IsScalarValue())
             {
+                if (propertyValueKind is JsonValueKind.String && selection.IsEnumValue)
+                {
+                    CompleteEnumValue(propertyValue, resultField, selection);
+                    continue;
+                }
+
                 resultField.SetLeafValue(propertyValue);
                 continue;
             }
 
-            var selection = resultField.AssertSelection();
             ErrorTrie? errorTrieForResponseName = null;
             errorTrie?.TryGetValue(selection.ResponseName, out errorTrieForResponseName);
 
@@ -166,6 +173,15 @@ internal sealed class ValueCompletion
 
         foreach (var responseName in resultSelectionSet.ResponseNames)
         {
+            // A prior field's error may have propagated a null up to this target
+            // (a non-null field on a nullable parent nulls the parent). Once the
+            // target is itself null or invalidated, the remaining field results
+            // have nowhere to land, so stop applying them.
+            if (target.IsNullOrInvalidated)
+            {
+                return true;
+            }
+
             if (!target.TryGetProperty(responseName, out var fieldResult)
                 || fieldResult.IsInternal)
             {
@@ -375,6 +391,17 @@ internal sealed class ValueCompletion
         [NotNullWhen(true)] out Selection? selection,
         [NotNullWhen(true)] out IType? type)
     {
+        // Fast path: a direct-field target carries its own selection on the
+        // preceding property row. Reading that selection once lets us derive
+        // the type from it, avoiding a second metadb read via the Type getter.
+        selection = target.Selection;
+
+        if (selection is not null)
+        {
+            type = selection.Type;
+            return true;
+        }
+
         type = target.Type;
 
         if (type is null)
@@ -644,8 +671,12 @@ internal sealed class ValueCompletion
                     depth,
                     resultSelectionSet);
 
-            case TypeKind.Scalar or TypeKind.Enum:
+            case TypeKind.Scalar:
                 target.SetLeafValue(source);
+                return true;
+
+            case TypeKind.Enum:
+                CompleteEnumValue(source, target, selection);
                 return true;
 
             default:
@@ -673,7 +704,29 @@ internal sealed class ValueCompletion
             elementTypeKind = Unsafe.As<IType, NonNullType>(ref elementType).NullableType.Kind;
         }
 
-        target.SetArrayValue(source.GetArrayLength());
+        // A shared list slot may already be populated by a sibling subgraph
+        // result. Create the array only on the first write; otherwise reuse it
+        // so sibling contributions accumulate through the positional merge below.
+        if (target.ValueKind is JsonValueKind.Undefined)
+        {
+            target.SetArrayValue(source.GetArrayLength());
+        }
+        else if (target.ValueKind is not JsonValueKind.Array
+            || target.GetArrayLength() != source.GetArrayLength())
+        {
+            // Non-keyed sibling lists can only be merged by position, which
+            // requires an identical length. A differing shape cannot be
+            // correlated, so surface an execution error and let the configured
+            // null handling apply instead of silently misaligning elements.
+            var error = ErrorBuilder.New()
+                .SetMessage("Cannot merge shared list results with different lengths.")
+                .SetPath(target.CompactPath.ToPath(target.Operation))
+                .Build();
+            error = _errorHandler.Handle(error);
+            _store.AddError(error);
+
+            return !_propagateNullValues;
+        }
 
         var i = 0;
         using var targetEnumerator = target.EnumerateArray().GetEnumerator();
@@ -723,8 +776,13 @@ internal sealed class ValueCompletion
                         resultSelectionSet);
                     break;
 
-                case TypeKind.Scalar or TypeKind.Enum:
+                case TypeKind.Scalar:
                     targetElement.SetLeafValue(element);
+                    completed = true;
+                    break;
+
+                case TypeKind.Enum:
+                    CompleteEnumValue(element, targetElement, selection);
                     completed = true;
                     break;
 
@@ -767,6 +825,29 @@ TryCompleteList_MoveNext:
         }
 
         return true;
+    }
+
+    private static void CompleteEnumValue(
+        SourceResultElement source,
+        CompositeResultElement target,
+        Selection selection)
+    {
+        // Reached only for rows flagged as enum values. A string that is an accessible
+        // member of the composite enum is written through; anything else (a value unknown
+        // to or inaccessible from the composite schema, or a non-string kind) is masked to
+        // null so it can never leak past the gateway. The raw UTF-8 payload may contain JSON
+        // escape sequences, but GraphQL enum names are [A-Za-z0-9_] only, so an escaped
+        // payload cannot match any name and correctly falls through to masking.
+        if (selection.NamedType is FusionEnumTypeDefinition enumType
+            && source.ValueKind is JsonValueKind.String
+            && enumType.Values.ContainsName(source.ValueSpan))
+        {
+            target.SetLeafValue(source);
+        }
+        else
+        {
+            target.SetNullValue();
+        }
     }
 
     private bool TryCompleteObjectValue(
@@ -812,9 +893,11 @@ TryCompleteList_MoveNext:
             target.SetObjectValue(objectSelectionSet);
         }
 
+        var objectContext = target.GetObjectContext();
+
         foreach (var property in source.EnumerateObject())
         {
-            if (!target.TryGetProperty(property.NameSpan, out var targetProperty))
+            if (!objectContext.TryGetProperty(property.NameSpan, out var targetProperty, out var selection))
             {
                 continue;
             }
@@ -827,11 +910,15 @@ TryCompleteList_MoveNext:
             // going through the full TryCompleteValue type-dispatch chain.
             if (errorTrie is null && propertyValueKind.IsScalarValue())
             {
+                if (propertyValueKind is JsonValueKind.String && selection.IsEnumValue)
+                {
+                    CompleteEnumValue(propertyValue, targetProperty, selection);
+                    continue;
+                }
+
                 targetProperty.SetLeafValue(propertyValue);
                 continue;
             }
-
-            var selection = targetProperty.AssertSelection();
 
             ErrorTrie? errorTrieForResponseName = null;
             errorTrie?.TryGetValue(selection.ResponseName, out errorTrieForResponseName);

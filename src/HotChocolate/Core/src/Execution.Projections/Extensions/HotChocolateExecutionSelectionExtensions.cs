@@ -2,6 +2,7 @@ using System.Buffers;
 using System.Linq.Expressions;
 using GreenDonut.Data;
 using HotChocolate.Execution.Projections;
+using HotChocolate.Features;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Utilities;
@@ -141,6 +142,14 @@ public static class HotChocolateExecutionSelectionExtensions
                 GetCollectionSelections);
         }
 
+        if ((flags & CoreFieldFlags.MutationPayload) == CoreFieldFlags.MutationPayload)
+        {
+            return CreateCompositeSelectorExpression<TValue>(
+                selection,
+                includeFlags,
+                GetMutationPayloadSelections);
+        }
+
         Expression<Func<TValue, TValue>> expression;
         ulong conditionMask;
 
@@ -235,6 +244,31 @@ public static class HotChocolateExecutionSelectionExtensions
                     }
                 }
             }
+        }
+
+        return count;
+    }
+
+    private static int GetMutationPayloadSelections(Selection selection, Span<Selection> buffer)
+    {
+        var payloadType = (ObjectType)selection.Field.Type.NamedType();
+        var dataFieldName = payloadType.Features.GetRequired<MutationPayloadInfo>().DataField;
+        var payloadSelections = selection.DeclaringOperation.GetSelectionSet(selection, payloadType);
+        var count = 0;
+
+        foreach (var payloadChild in payloadSelections.Selections)
+        {
+            if (!payloadChild.Field.Name.EqualsOrdinal(dataFieldName))
+            {
+                continue;
+            }
+
+            if (buffer.Length == count)
+            {
+                throw new InvalidOperationException("Too many alias selections of the payload data field.");
+            }
+
+            buffer[count++] = payloadChild;
         }
 
         return count;

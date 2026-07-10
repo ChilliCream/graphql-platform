@@ -1,6 +1,7 @@
 using System.Runtime.CompilerServices;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Text;
+using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
@@ -18,7 +19,9 @@ public sealed class Selection : ISelection
     private readonly byte[] _utf8ResponseName;
     private readonly ulong _deferMask;
     private readonly DeliveryGroup[] _deliveryGroups;
+    private readonly ITypeDefinition _namedType;
     private Flags _flags;
+    private SelectionSet? _childSelectionSet;
 
     public Selection(
         int id,
@@ -48,9 +51,17 @@ public sealed class Selection : ISelection
         _deliveryGroups = deliveryGroups ?? s_emptyDeliveryGroups;
         _flags = isInternal ? Flags.Internal : Flags.None;
 
-        if (field.Type.NamedType().IsLeafType())
+        var namedType = field.Type.NamedType();
+        _namedType = namedType;
+
+        if (namedType.IsLeafType())
         {
             _flags |= Flags.Leaf;
+        }
+
+        if (namedType is FusionEnumTypeDefinition)
+        {
+            _flags |= Flags.EnumValue;
         }
 
         _utf8ResponseName = Utf8StringCache.GetUtf8String(responseName);
@@ -72,6 +83,15 @@ public sealed class Selection : ISelection
 
     /// <inheritdoc />
     public bool IsLeaf => (_flags & Flags.Leaf) == Flags.Leaf;
+
+    /// <inheritdoc />
+    public bool IsEnumValue => (_flags & Flags.EnumValue) == Flags.EnumValue;
+
+    /// <summary>
+    /// Gets the named type of the selection's field type, with all list and
+    /// non-null wrappers removed.
+    /// </summary>
+    public ITypeDefinition NamedType => _namedType;
 
     /// <inheritdoc />
     public IOutputFieldDefinition Field { get; }
@@ -106,7 +126,31 @@ public sealed class Selection : ISelection
     /// selection set.
     /// </returns>
     public SelectionSet? GetSelectionSet(IObjectTypeDefinition typeContext)
-        => IsLeaf ? null : DeclaringSelectionSet.DeclaringOperation.GetSelectionSet(this, typeContext);
+    {
+        if ((_flags & Flags.Leaf) == Flags.Leaf)
+        {
+            return null;
+        }
+
+        // _childSelectionSet is only set for non-leaf fields whose named type is a concrete object type.
+        // When it is set, we can return it right away because that child selection set is plan-stable.
+        // A concurrent recompute produces the same instance, so no synchronization is needed.
+        var childSelectionSet = _childSelectionSet;
+
+        if (childSelectionSet is not null)
+        {
+            return childSelectionSet;
+        }
+
+        if (_namedType is IObjectTypeDefinition)
+        {
+            childSelectionSet = DeclaringSelectionSet.DeclaringOperation.GetSelectionSet(this, typeContext);
+            _childSelectionSet = childSelectionSet;
+            return childSelectionSet;
+        }
+
+        return DeclaringSelectionSet.DeclaringOperation.GetSelectionSet(this, typeContext);
+    }
 
     /// <summary>
     /// Gets the syntax nodes that contributed to this selection.
@@ -348,6 +392,7 @@ nextItem:
         None = 0,
         Internal = 1,
         Leaf = 2,
-        Sealed = 4
+        EnumValue = 4,
+        Sealed = 8
     }
 }

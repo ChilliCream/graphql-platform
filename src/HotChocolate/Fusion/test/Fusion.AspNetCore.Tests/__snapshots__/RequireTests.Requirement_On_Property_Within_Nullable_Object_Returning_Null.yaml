@@ -146,7 +146,7 @@ operationPlan:
             fieldWithNullableRequirement
             id @fusion__requirement
             nullableObject @fusion__requirement {
-              field
+              field @fusion__requirement
             }
           }
         }
