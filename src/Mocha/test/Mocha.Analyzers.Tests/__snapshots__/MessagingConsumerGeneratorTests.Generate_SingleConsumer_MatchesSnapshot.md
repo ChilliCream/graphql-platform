@@ -9,7 +9,7 @@
 namespace Microsoft.Extensions.DependencyInjection
 {
     [global::System.CodeDom.Compiler.GeneratedCode("Mocha.Analyzers", "1.0.0")]
-    public static class TestsMessageBusBuilderExtensions
+    public static partial class TestsMessageBusBuilderExtensions
     {
         [global::Mocha.MessagingModuleInfo(
             HandlerTypes = new global::System.Type[]
@@ -21,15 +21,49 @@ namespace Microsoft.Extensions.DependencyInjection
             this global::Mocha.IMessageBusHostBuilder builder)
         {
 
+            // --- Message Types ---
+            global::Mocha.MessageBusHostBuilderExtensions.AddMessage<global::TestApp.AuditLogMessage>(builder);
+            global::Mocha.MessageBusHostBuilderExtensions.ConfigureDescriptorContext(
+                builder,
+                static ctx => global::Mocha.Features.FeatureCollectionExtensions.GetRequired<global::Mocha.MessagingConfigurationFeature>(ctx.Features)
+                    .Configurations.TryAdd<global::Mocha.IMessageTypeDescriptor>(
+                        "Tests::TestApp.AuditLogMessage",
+                        typeof(global::TestApp.AuditLogMessage),
+                        __Initialize_AuditLogMessage_MessageType_xuXXLUpy_YwkyEmFk8e0Tg));
+
             // --- Consumers ---
-            global::Mocha.MessageBusHostBuilderExtensions.AddHandlerConfiguration<global::TestApp.AuditLogConsumer>(builder,
-                new global::Mocha.MessagingHandlerConfiguration
-                {
-                    HandlerType = typeof(global::TestApp.AuditLogConsumer),
-                    Factory = global::Mocha.ConsumerFactory.Consume<global::TestApp.AuditLogConsumer, global::TestApp.AuditLogMessage>()
-                });
+            global::Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions.TryAddScoped<global::TestApp.AuditLogConsumer>(
+                builder.Services);
+            global::Mocha.MessageBusHostBuilderExtensions.AddConsumer(
+                builder,
+                static () => global::Mocha.ConsumerFactory.Consume<global::TestApp.AuditLogConsumer, global::TestApp.AuditLogMessage>());
+            global::Mocha.MessageBusHostBuilderExtensions.ConfigureDescriptorContext(
+                builder,
+                static ctx => global::Mocha.Features.FeatureCollectionExtensions.GetRequired<global::Mocha.MessagingConfigurationFeature>(ctx.Features)
+                    .Configurations.TryAdd<global::Mocha.IConsumerDescriptor>(
+                        "Tests::TestApp.AuditLogConsumer",
+                        typeof(global::TestApp.AuditLogConsumer),
+                        __Initialize_AuditLogConsumer_Consumer_pJ88E16EWVqXFDmkDlAtcg));
 
             return builder;
+        }
+
+        private static void __Initialize_AuditLogMessage_MessageType_xuXXLUpy_YwkyEmFk8e0Tg(global::Mocha.IMessageTypeDescriptor descriptor)
+        {
+            descriptor.Extend().Configuration.Source = new global::Mocha.SourceMetadata
+            {
+                Assembly = "Tests",
+                DeclarationLocation = new global::Mocha.DeclarationLocation("", null, 5, 1, 5, 46)
+            };
+        }
+
+        private static void __Initialize_AuditLogConsumer_Consumer_pJ88E16EWVqXFDmkDlAtcg(global::Mocha.IConsumerDescriptor descriptor)
+        {
+            descriptor.Extend().Configuration.Source = new global::Mocha.SourceMetadata
+            {
+                Assembly = "Tests",
+                DeclarationLocation = new global::Mocha.DeclarationLocation("", null, 7, 1, 11, 2)
+            };
         }
     }
 }

@@ -90,7 +90,13 @@ public sealed class MessagingHandlerInspector : ISyntaxInspector
             var handlerNamespace = namedTypeSymbol.ContainingNamespace?.ToDisplayString() ?? string.Empty;
             var messageSymbol = (INamedTypeSymbol)implemented.TypeArguments[descriptor.MessageTypeArgIndex];
             var messageTypeName = messageSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+            var messageNamespace = messageSymbol.ContainingNamespace?.ToDisplayString() ?? string.Empty;
+            var responseType = descriptor.HasResponse ? implemented.TypeArguments[1] : null;
+            var responseNamespace = responseType is INamedTypeSymbol responseNamespaceType
+                ? responseNamespaceType.ContainingNamespace?.ToDisplayString() ?? string.Empty
+                : null;
             var locationInfo = typeDeclaration.Identifier.GetLocation().ToLocationInfo();
+            var declarationLocation = typeDeclaration.ToDeclarationLocationInfo();
 
             // Walk the full type hierarchy (base types + interfaces) for AOT enclosed type computation.
             var hierarchy = new List<string>();
@@ -105,16 +111,27 @@ public sealed class MessagingHandlerInspector : ISyntaxInspector
                 hierarchy.Add(iface.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat));
             }
 
+            // Capture declaration metadata (doc + location) for the message and response types cross-file from
+            // their resolved symbols, so this handler is one of several discovery sources merged by type name.
+            // Metadata-only types (declared in another assembly) yield null. This is stale only in the IDE's
+            // incremental cache; every real compiler invocation runs fresh.
+            var declaredMessageType = messageSymbol.ToDeclaredTypeInfo(cancellationToken);
+            var declaredResponseType = responseType.ToDeclaredTypeInfo(cancellationToken);
+
             syntaxInfo = new MessagingHandlerInfo(
                 handlerFullName,
                 handlerNamespace,
                 messageTypeName,
-                descriptor.HasResponse
-                    ? implemented.TypeArguments[1].ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)
-                    : null,
+                messageNamespace,
+                responseType?.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
+                responseNamespace,
                 descriptor.Kind,
                 new ImmutableEquatableArray<string>(hierarchy),
-                locationInfo);
+                namedTypeSymbol.GetXmlDocumentation(cancellationToken),
+                locationInfo,
+                declarationLocation,
+                declaredMessageType,
+                declaredResponseType);
             return true;
         }
 

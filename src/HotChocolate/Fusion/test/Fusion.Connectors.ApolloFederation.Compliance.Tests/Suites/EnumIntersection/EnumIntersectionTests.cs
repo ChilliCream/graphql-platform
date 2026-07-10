@@ -43,7 +43,7 @@ public sealed class EnumIntersectionTests : ComplianceTestBase
     /// surfaces <c>null</c> for <c>u2</c> because subgraph <c>a</c>
     /// cannot project the <c>ANONYMOUS</c> value.
     /// </summary>
-    [Fact(Skip = "Gateway does not surface an error when an enum value is null because the source subgraph cannot project it. See APOLLO_FEDERATION_COMPLIANCE_FOLLOWUP.md follow-up.")]
+    [Fact]
     public Task Users_Type_Returns_Null_For_Subgraph_A_Side() => RunAsync(
         query: """
             query {
@@ -65,7 +65,7 @@ public sealed class EnumIntersectionTests : ComplianceTestBase
     /// surfaces <c>null</c> for <c>u2</c> because <c>ANONYMOUS</c> is
     /// inaccessible in the supergraph.
     /// </summary>
-    [Fact(Skip = "Gateway forwards inaccessible enum values from the source subgraph instead of nulling them in the response. See APOLLO_FEDERATION_COMPLIANCE_FOLLOWUP.md follow-up.")]
+    [Fact]
     public Task UsersB_Type_Returns_Null_For_Inaccessible_Value() => RunAsync(
         query: """
             query {

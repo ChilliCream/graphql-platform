@@ -74,6 +74,8 @@ public sealed class SourceSchemaPreprocessorTests
 
                 scalar Scalar1 @tag(name: "remove")
 
+                directive @directive1 @tag(name: "remove") on FIELD_DEFINITION
+
                 directive @tag(name: String!) repeatable on
                     | SCHEMA
                     | SCALAR
@@ -86,6 +88,7 @@ public sealed class SourceSchemaPreprocessorTests
                     | ENUM_VALUE
                     | INPUT_OBJECT
                     | INPUT_FIELD_DEFINITION
+                    | DIRECTIVE_DEFINITION
                 """);
         var compositionLog = new CompositionLog();
         var sourceSchemaParser = new SourceSchemaParser(sourceSchemaText, compositionLog);
@@ -101,9 +104,10 @@ public sealed class SourceSchemaPreprocessorTests
         preprocessor.Preprocess();
         schema.Types.Remove("FieldSelectionMap");
         schema.Types.Remove("FieldSelectionSet");
-        schema.DirectiveDefinitions.Clear();
 
         // assert
+        Assert.False(schema.DirectiveDefinitions.ContainsName("directive1"));
+        schema.DirectiveDefinitions.Clear();
         schema.ToString().MatchSnapshot(extension: ".graphql");
     }
 
@@ -247,6 +251,92 @@ public sealed class SourceSchemaPreprocessorTests
         Assert.False(schema.Types.ContainsName("Object"));
         Assert.False(schema.Types.ContainsName("Input"));
         Assert.False(schema.Types.ContainsName("Enum"));
+    }
+
+    [Fact]
+    public void Preprocess_ExcludeByTag_RemovesTaggedDirectiveDefinitionAndCascadesToAllApplicationSites()
+    {
+        // arrange
+        // @drop is tagged for exclusion and applied at every kind of application site: the
+        // schema, object/enum/input types, an object field, a field argument, an enum value, an
+        // input field, the surviving @keep directive definition itself, and a @keep argument.
+        // Removing @drop cascades to all of them, so the preprocessed schema contains no @drop
+        // definition and no @drop application anywhere, while the untagged @keep survives.
+        var sourceSchemaText =
+            new SourceSchemaText(
+                "A",
+                // lang=graphql
+                """
+                schema @drop {
+                    query: Query
+                }
+
+                type Query @drop {
+                    field(argument: Int @drop): Int @drop
+                }
+
+                enum Enum1 @drop {
+                    VALUE1
+                    VALUE2 @drop
+                }
+
+                input Input1 @drop {
+                    field1: ID!
+                    field2: Int @drop
+                }
+
+                directive @keep(argument: Int @drop) @drop on FIELD_DEFINITION
+
+                directive @drop @tag(name: "remove") on
+                    | SCHEMA
+                    | OBJECT
+                    | FIELD_DEFINITION
+                    | ARGUMENT_DEFINITION
+                    | ENUM
+                    | ENUM_VALUE
+                    | INPUT_OBJECT
+                    | INPUT_FIELD_DEFINITION
+                    | DIRECTIVE_DEFINITION
+
+                directive @tag(name: String!) repeatable on
+                    | SCHEMA
+                    | SCALAR
+                    | OBJECT
+                    | FIELD_DEFINITION
+                    | ARGUMENT_DEFINITION
+                    | INTERFACE
+                    | UNION
+                    | ENUM
+                    | ENUM_VALUE
+                    | INPUT_OBJECT
+                    | INPUT_FIELD_DEFINITION
+                    | DIRECTIVE_DEFINITION
+                """);
+        var compositionLog = new CompositionLog();
+        var sourceSchemaParser = new SourceSchemaParser(sourceSchemaText, compositionLog);
+        var schema = sourceSchemaParser.Parse().Value;
+        var preprocessor =
+            new SourceSchemaPreprocessor(
+                schema,
+                [],
+                compositionLog,
+                options: new SourceSchemaPreprocessorOptions { ExcludeByTag = ["remove"] });
+
+        // act
+        var result = preprocessor.Preprocess();
+        // Trim the Fusion built-in types and directive definitions the parser injects, so the
+        // snapshot only shows the user-defined @keep and @tag definitions (and proves @drop is
+        // gone). @keep and @tag are user-defined and therefore retained.
+        schema.Types.Remove("FieldSelectionMap");
+        schema.Types.Remove("FieldSelectionSet");
+        foreach (var builtInDirectiveName in FusionBuiltIns.SourceSchemaDirectives.Keys)
+        {
+            schema.DirectiveDefinitions.Remove(builtInDirectiveName);
+        }
+
+        // assert
+        Assert.True(result.IsSuccess);
+        schema.ToString().MatchSnapshot(extension: ".graphql");
     }
 
     [Fact]

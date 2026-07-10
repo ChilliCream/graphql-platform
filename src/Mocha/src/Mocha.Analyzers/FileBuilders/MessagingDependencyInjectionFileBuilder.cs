@@ -8,18 +8,26 @@ namespace Mocha.Analyzers.FileBuilders;
 /// </summary>
 public sealed class MessagingDependencyInjectionFileBuilder : FileBuilderBase
 {
+    private readonly string _assemblyName;
     private readonly string _extensionsClassName;
     private readonly string _methodName;
+    private readonly SourceMetadataOptionsInfo _sourceMetadataOptions;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="MessagingDependencyInjectionFileBuilder"/> class.
     /// </summary>
     /// <param name="moduleName">The module name used to prefix generated type names.</param>
     /// <param name="assemblyName">The assembly name used to compute a unique file hint name.</param>
-    public MessagingDependencyInjectionFileBuilder(string moduleName, string assemblyName) : base(moduleName)
+    /// <param name="sourceMetadataOptions">The options controlling SourceMetadata emission and path relativization.</param>
+    public MessagingDependencyInjectionFileBuilder(
+        string moduleName,
+        string assemblyName,
+        SourceMetadataOptionsInfo sourceMetadataOptions) : base(moduleName, assemblyName)
     {
+        _assemblyName = assemblyName;
         _extensionsClassName = moduleName + "MessageBusBuilderExtensions";
         _methodName = "Add" + moduleName;
+        _sourceMetadataOptions = sourceMetadataOptions;
         HintName = _extensionsClassName + "." + HashHelper.ComputeSalt(assemblyName);
     }
 
@@ -35,7 +43,7 @@ public sealed class MessagingDependencyInjectionFileBuilder : FileBuilderBase
     public override void WriteBeginClass()
     {
         Writer.WriteGeneratedAttribute();
-        Writer.WriteIndentedLine("public static class {0}", _extensionsClassName);
+        Writer.WriteIndentedLine("public static partial class {0}", _extensionsClassName);
         Writer.WriteIndentedLine("{");
         Writer.IncreaseIndent();
     }
@@ -140,87 +148,47 @@ public sealed class MessagingDependencyInjectionFileBuilder : FileBuilderBase
     }
 
     /// <summary>
-    /// Writes a message configuration registration with a pre-built JSON serializer.
+    /// Writes a message configuration registration with a generated initializer method.
     /// </summary>
     /// <param name="messageTypeName">The fully qualified message type name.</param>
-    /// <param name="jsonContextTypeName">The fully qualified type name of the JsonSerializerContext.</param>
-    /// <param name="enclosedTypes">
-    /// The pre-computed enclosed types sorted by specificity (including framework base types
-    /// such as <c>IEventRequest</c> and closed <c>IEventRequest&lt;T&gt;</c>), or
-    /// <see langword="null"/> to omit.
-    /// </param>
-    public void WriteMessageConfiguration(
-        string messageTypeName,
-        string jsonContextTypeName,
-        IReadOnlyList<string>? enclosedTypes = null)
+    /// <param name="initializerMethodName">The generated initializer method name.</param>
+    public void WriteMessageConfiguration(string messageTypeName, string initializerMethodName)
     {
-        Writer.WriteIndentedLine("global::Mocha.MessageBusHostBuilderExtensions.AddMessageConfiguration(");
-        Writer.IncreaseIndent();
-        Writer.WriteIndentedLine("builder,");
-        Writer.WriteIndentedLine("new global::Mocha.MessagingMessageConfiguration");
-        Writer.WriteIndentedLine("{");
-        Writer.IncreaseIndent();
-        Writer.WriteIndentedLine("MessageType = typeof({0}),", messageTypeName);
-        Writer.WriteIndentedLine("Serializer = new global::Mocha.JsonMessageSerializer(");
-        Writer.IncreaseIndent();
-        Writer.WriteIndentedLine("{0}.Default.GetTypeInfo(typeof({1}))!),", jsonContextTypeName, messageTypeName);
-        Writer.DecreaseIndent();
-
-        if (enclosedTypes is { Count: > 0 })
-        {
-            Writer.WriteIndentedLine(
-                "EnclosedTypes = global::System.Collections.Immutable.ImmutableArray.Create<global::System.Type>(");
-            Writer.IncreaseIndent();
-            for (var i = 0; i < enclosedTypes.Count; i++)
-            {
-                var typeName = enclosedTypes[i];
-                var isLast = i == enclosedTypes.Count - 1;
-                Writer.WriteIndentedLine(isLast ? "typeof({0})" : "typeof({0}),", typeName);
-            }
-            Writer.DecreaseIndent();
-            Writer.WriteIndentedLine("),");
-        }
-
-        Writer.DecreaseIndent();
-        Writer.WriteIndentedLine("});");
-        Writer.DecreaseIndent();
+        WriteAddMessage(messageTypeName);
+        WriteMessageDescriptor(messageTypeName, initializerMethodName);
     }
 
     /// <summary>
-    /// Writes a saga configuration registration. When a <paramref name="jsonContextTypeName"/>
-    /// is provided, includes a pre-built JSON state serializer; otherwise emits a configuration
-    /// with only the saga type.
+    /// Writes the <c>AddMessage&lt;TMessage&gt;</c> registration call for the specified message type.
+    /// </summary>
+    /// <param name="messageTypeName">The fully qualified message type name.</param>
+    public void WriteAddMessage(string messageTypeName)
+        => Writer.WriteIndentedLine(
+            "global::Mocha.MessageBusHostBuilderExtensions.AddMessage<{0}>(builder);",
+            messageTypeName);
+
+    /// <summary>
+    /// Writes the descriptor callback registration that points at a generated message initializer method.
+    /// </summary>
+    /// <param name="messageTypeName">The fully qualified message type name.</param>
+    /// <param name="initializerMethodName">The generated initializer method name.</param>
+    public void WriteMessageDescriptor(string messageTypeName, string initializerMethodName)
+        => WriteDescriptorConfiguration("global::Mocha.IMessageTypeDescriptor", messageTypeName, initializerMethodName);
+
+    /// <summary>
+    /// Writes a saga configuration registration that points at a generated initializer method.
     /// </summary>
     /// <param name="sagaTypeName">The fully qualified saga type name.</param>
     /// <param name="stateTypeName">The fully qualified saga state type name.</param>
-    /// <param name="jsonContextTypeName">
-    /// The fully qualified type name of the JsonSerializerContext, or <see langword="null"/>
-    /// to omit the state serializer.
-    /// </param>
-    public void WriteSagaConfiguration(string sagaTypeName, string stateTypeName, string? jsonContextTypeName)
+    /// <param name="initializerMethodName">The generated initializer method name.</param>
+    public void WriteSagaConfiguration(string sagaTypeName, string stateTypeName, string initializerMethodName)
     {
-        Writer.WriteIndentedLine("global::Mocha.MessageBusHostBuilderExtensions.AddSagaConfiguration<");
-        Writer.IncreaseIndent();
-        Writer.WriteIndentedLine("{0}>(", sagaTypeName);
-        Writer.DecreaseIndent();
-        Writer.IncreaseIndent();
-        Writer.WriteIndentedLine("builder,");
-        Writer.WriteIndentedLine("new global::Mocha.MessagingSagaConfiguration");
-        Writer.WriteIndentedLine("{");
-        Writer.IncreaseIndent();
-        Writer.WriteIndentedLine("SagaType = typeof({0}),", sagaTypeName);
+        Writer.WriteIndentedLine("global::Mocha.MessageBusHostBuilderExtensions.AddSaga<{0}>(builder);", sagaTypeName);
 
-        if (jsonContextTypeName is not null)
-        {
-            Writer.WriteIndentedLine("StateSerializer = new global::Mocha.Sagas.JsonSagaStateSerializer(");
-            Writer.IncreaseIndent();
-            Writer.WriteIndentedLine("{0}.Default.GetTypeInfo(typeof({1}))!),", jsonContextTypeName, stateTypeName);
-            Writer.DecreaseIndent();
-        }
-
-        Writer.DecreaseIndent();
-        Writer.WriteIndentedLine("});");
-        Writer.DecreaseIndent();
+        WriteDescriptorConfiguration(
+            $"global::Mocha.Sagas.ISagaDescriptor<{stateTypeName}>",
+            sagaTypeName,
+            initializerMethodName);
     }
 
     /// <summary>
@@ -229,7 +197,7 @@ public sealed class MessagingDependencyInjectionFileBuilder : FileBuilderBase
     /// <param name="handler">The messaging handler info to register.</param>
     public void WriteHandlerRegistration(MessagingHandlerInfo handler)
     {
-        var factoryCall = handler.Kind switch
+        var consumerCall = handler.Kind switch
         {
             MessagingHandlerKind.Event => $"Subscribe<{handler.HandlerTypeName}, {handler.MessageTypeName}>()",
             MessagingHandlerKind.Send => $"Send<{handler.HandlerTypeName}, {handler.MessageTypeName}>()",
@@ -241,18 +209,147 @@ public sealed class MessagingDependencyInjectionFileBuilder : FileBuilderBase
         };
 
         Writer.WriteIndentedLine(
-            "global::Mocha.MessageBusHostBuilderExtensions.AddHandlerConfiguration<{0}>(builder,",
+            "global::Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions.TryAddScoped<{0}>(",
             handler.HandlerTypeName);
         Writer.IncreaseIndent();
-        Writer.WriteIndentedLine("new global::Mocha.MessagingHandlerConfiguration");
-        Writer.WriteIndentedLine("{");
-        Writer.IncreaseIndent();
-        Writer.WriteIndentedLine("HandlerType = typeof({0}),", handler.HandlerTypeName);
-        Writer.WriteIndentedLine("Factory = global::Mocha.ConsumerFactory.{0}", factoryCall);
+        Writer.WriteIndentedLine("builder.Services);");
         Writer.DecreaseIndent();
-        Writer.WriteIndentedLine("});");
+
+        Writer.WriteIndentedLine("global::Mocha.MessageBusHostBuilderExtensions.AddConsumer(");
+        Writer.IncreaseIndent();
+        Writer.WriteIndentedLine("builder,");
+        Writer.WriteIndentedLine("static () => global::Mocha.ConsumerFactory.{0});", consumerCall);
         Writer.DecreaseIndent();
     }
+
+    public void WriteConsumerConfiguration(MessagingHandlerInfo handler, string initializerMethodName)
+        => WriteDescriptorConfiguration(
+            "global::Mocha.IConsumerDescriptor",
+            handler.HandlerTypeName,
+            initializerMethodName);
+
+    private void WriteDescriptorConfiguration(
+        string descriptorTypeName,
+        string runtimeTypeName,
+        string initializerMethodName)
+    {
+        var keyLiteral = GetConfigurationKey(runtimeTypeName).ToSourceStringLiteral();
+
+        Writer.WriteIndentedLine("global::Mocha.MessageBusHostBuilderExtensions.ConfigureDescriptorContext(");
+        Writer.IncreaseIndent();
+        Writer.WriteIndentedLine("builder,");
+        Writer.WriteIndentedLine(
+            "static ctx => global::Mocha.Features.FeatureCollectionExtensions.GetRequired<global::Mocha.MessagingConfigurationFeature>(ctx.Features)");
+        Writer.IncreaseIndent();
+
+        Writer.WriteIndentedLine(".Configurations.TryAdd<{0}>(", descriptorTypeName);
+        Writer.IncreaseIndent();
+        Writer.WriteIndentedLine("{0},", keyLiteral);
+        Writer.WriteIndentedLine("typeof({0}),", runtimeTypeName);
+
+        Writer.WriteIndentedLine("{0}));", initializerMethodName);
+        Writer.DecreaseIndent();
+        Writer.DecreaseIndent();
+        Writer.DecreaseIndent();
+    }
+
+    public void WriteMessageInitializer(
+        string methodName,
+        string messageTypeName,
+        string? jsonContextTypeName,
+        IReadOnlyList<string>? enclosedTypes,
+        string? xmlDocumentation,
+        LocationInfo? location)
+    {
+        WriteBeginInitializerMethod(methodName, "global::Mocha.IMessageTypeDescriptor");
+
+        // The serializer and enclosed types are emitted only for types covered by a JsonSerializerContext.
+        // Metadata-only registrations (no context) carry Source alone.
+        if (jsonContextTypeName is not null)
+        {
+            Writer.WriteIndentedLine("descriptor.AddSerializer(new global::Mocha.JsonMessageSerializer(");
+            Writer.IncreaseIndent();
+            Writer.WriteIndentedLine("{0}.Default.GetTypeInfo(typeof({1}))!));", jsonContextTypeName, messageTypeName);
+            Writer.DecreaseIndent();
+
+            if (enclosedTypes is { Count: > 0 })
+            {
+                Writer.WriteIndentedLine("descriptor.Extend().Configuration.EnclosedTypes =");
+                Writer.IncreaseIndent();
+                Writer.WriteIndentedLine(
+                    "global::System.Collections.Immutable.ImmutableArray.Create<global::System.Type>(");
+                Writer.IncreaseIndent();
+                for (var i = 0; i < enclosedTypes.Count; i++)
+                {
+                    var typeName = enclosedTypes[i];
+                    var isLast = i == enclosedTypes.Count - 1;
+                    Writer.WriteIndentedLine(isLast ? "typeof({0})" : "typeof({0}),", typeName);
+                }
+                Writer.DecreaseIndent();
+                Writer.WriteIndentedLine(");");
+                Writer.DecreaseIndent();
+            }
+        }
+
+        Writer.WriteSourceMetadataAssignment(
+            "descriptor.Extend().Configuration.Source",
+            "global::Mocha.SourceMetadata",
+            "global::Mocha.DeclarationLocation",
+            _assemblyName,
+            xmlDocumentation,
+            location,
+            _sourceMetadataOptions);
+
+        WriteEndInitializerMethod();
+    }
+
+    public void WriteSagaInitializer(
+        string methodName,
+        string stateTypeName,
+        string? jsonContextTypeName,
+        string? xmlDocumentation,
+        LocationInfo? location)
+    {
+        WriteBeginInitializerMethod(methodName, $"global::Mocha.Sagas.ISagaDescriptor<{stateTypeName}>");
+
+        if (jsonContextTypeName is not null)
+        {
+            Writer.WriteIndentedLine(
+                "descriptor.Serializer(static _ => new global::Mocha.Sagas.JsonSagaStateSerializer(");
+            Writer.IncreaseIndent();
+            Writer.WriteIndentedLine("{0}.Default.GetTypeInfo(typeof({1}))!));", jsonContextTypeName, stateTypeName);
+            Writer.DecreaseIndent();
+        }
+
+        Writer.WriteSourceMetadataAssignment(
+            "descriptor.Extend().Configuration.Source",
+            "global::Mocha.SourceMetadata",
+            "global::Mocha.DeclarationLocation",
+            _assemblyName,
+            xmlDocumentation,
+            location,
+            _sourceMetadataOptions);
+
+        WriteEndInitializerMethod();
+    }
+
+    public void WriteConsumerInitializer(string methodName, string? xmlDocumentation, LocationInfo? location)
+    {
+        WriteBeginInitializerMethod(methodName, "global::Mocha.IConsumerDescriptor");
+
+        Writer.WriteSourceMetadataAssignment(
+            "descriptor.Extend().Configuration.Source",
+            "global::Mocha.SourceMetadata",
+            "global::Mocha.DeclarationLocation",
+            _assemblyName,
+            xmlDocumentation,
+            location,
+            _sourceMetadataOptions);
+
+        WriteEndInitializerMethod();
+    }
+
+    private string GetConfigurationKey(string typeName) => $"{_assemblyName}::{RemoveGlobalPrefix(typeName)}";
 
     /// <summary>
     /// Writes a section comment to visually separate groups of registrations.
@@ -271,6 +368,20 @@ public sealed class MessagingDependencyInjectionFileBuilder : FileBuilderBase
     {
         Writer.WriteLine();
         Writer.WriteIndentedLine("return builder;");
+        Writer.DecreaseIndent();
+        Writer.WriteIndentedLine("}");
+    }
+
+    private void WriteBeginInitializerMethod(string methodName, string descriptorTypeName)
+    {
+        Writer.WriteLine();
+        Writer.WriteIndentedLine("private static void {0}({1} descriptor)", methodName, descriptorTypeName);
+        Writer.WriteIndentedLine("{");
+        Writer.IncreaseIndent();
+    }
+
+    private void WriteEndInitializerMethod()
+    {
         Writer.DecreaseIndent();
         Writer.WriteIndentedLine("}");
     }

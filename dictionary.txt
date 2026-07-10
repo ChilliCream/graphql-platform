@@ -127,9 +127,12 @@ kode
 Kydne
 LASTEXITCODE
 Leia
+libgcc
+libstdc
 LICEN*
 Linq
 Liquibase
+longpaths
 lscache
 Marek
 marocchino
@@ -282,6 +285,7 @@ Trimmable
 Tzdb
 unittests
 unlisten
+unparseable
 unpublish
 unserialized
 Unsubscriber

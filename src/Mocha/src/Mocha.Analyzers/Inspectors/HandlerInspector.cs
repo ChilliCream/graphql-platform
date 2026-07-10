@@ -84,6 +84,8 @@ public sealed class HandlerInspector : ISyntaxInspector
 
             var handlerFullName = namedTypeSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
             var handlerNamespace = namedTypeSymbol.ContainingNamespace?.ToDisplayString() ?? string.Empty;
+            var xmlDocumentation = namedTypeSymbol.GetXmlDocumentation(cancellationToken);
+            var location = typeDeclaration.ToDeclarationLocationInfo();
 
             syntaxInfo = new HandlerInfo(
                 handlerFullName,
@@ -92,7 +94,9 @@ public sealed class HandlerInspector : ISyntaxInspector
                 descriptor.HasResponse
                     ? implemented.TypeArguments[1].ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)
                     : null,
-                descriptor.Kind);
+                descriptor.Kind,
+                xmlDocumentation,
+                location);
             return true;
         }
 

@@ -12,13 +12,19 @@ internal sealed class SubscriptionFieldContext : ISubscriptionFieldContext
 
     private readonly Lazy<IReadOnlyDictionary<string, IValueNode>> _arguments;
 
-    public SubscriptionFieldContext(OperationPlanContext context, string fieldName)
+    public SubscriptionFieldContext(
+        OperationPlanContext context,
+        string fieldName,
+        bool requiresCursor)
     {
         _arguments = new Lazy<IReadOnlyDictionary<string, IValueNode>>(
             () => CreateArguments(context, fieldName));
+        RequiresCursor = requiresCursor;
     }
 
     public IReadOnlyDictionary<string, IValueNode> Arguments => _arguments.Value;
+
+    public bool RequiresCursor { get; }
 
     private static IReadOnlyDictionary<string, IValueNode> CreateArguments(
         OperationPlanContext context,

@@ -277,7 +277,10 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
                         continue;
                     }
 
-                    if (!schema.Types.TryGetType(fragment.TypeCondition.Name.Value, out var fragmentType))
+                    if (!schema.Types.TryGetType(
+                        fragment.TypeCondition.Name.Value,
+                        allowInaccessibleFields: true,
+                        out var fragmentType))
                     {
                         flattened ??= CopyUpTo(providedSelectionSetNode.Selections, i);
                         continue;
@@ -481,7 +484,10 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
         if (source?.SourceTypeName is { } narrowedTypeName
             && field.Type.NamedType().IsAbstractType())
         {
-            if (!schema.Types.TryGetType(narrowedTypeName, out var narrowedType))
+            if (!schema.Types.TryGetType(
+                narrowedTypeName,
+                allowInaccessibleFields: true,
+                out var narrowedType))
             {
                 throw new InvalidOperationException(
                     $"The narrowed source type '{narrowedTypeName}' for field "
@@ -652,7 +658,9 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
 
         if (inlineFragmentNode.TypeCondition is not null)
         {
-            typeCondition = schema.Types[inlineFragmentNode.TypeCondition.Name.Value];
+            typeCondition = schema.Types.GetType(
+                inlineFragmentNode.TypeCondition.Name.Value,
+                allowInaccessibleFields: true);
         }
 
         if (context.PruneUnprovidedAbstractBranches
@@ -822,7 +830,10 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
                 continue;
             }
 
-            if (!schema.Types.TryGetType(fragment.TypeCondition.Name.Value, out var providedType))
+            if (!schema.Types.TryGetType(
+                fragment.TypeCondition.Name.Value,
+                allowInaccessibleFields: true,
+                out var providedType))
             {
                 continue;
             }

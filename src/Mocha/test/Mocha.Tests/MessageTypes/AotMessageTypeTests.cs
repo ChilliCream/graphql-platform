@@ -1,7 +1,9 @@
 using System.Buffers;
+using System.Collections.Immutable;
 using System.Text.Json.Serialization;
 using Microsoft.Extensions.DependencyInjection;
 using Mocha.Events;
+using Mocha.Features;
 using Mocha.Transport.InMemory;
 
 namespace Mocha.Tests;
@@ -12,22 +14,14 @@ public class AotMessageTypeTests
     public void Complete_Should_ResolveFrameworkIdentityViaRuntimeNaming_When_AotConfigurationIncludesFrameworkBaseType()
     {
         // arrange
-        var runtime = CreateAotRuntime(builder => builder.ConfigureMessageBus(bus =>
+        var runtime = CreateAotRuntime(builder =>
         {
-            bus.AddMessageConfiguration(new MessagingMessageConfiguration
-            {
-                MessageType = typeof(GetOrderStatus),
-                Serializer = new StubMessageSerializer(),
-                EnclosedTypes = [typeof(GetOrderStatus), typeof(IEventRequest<OrderStatusResponse>)]
-            });
-
-            bus.AddMessageConfiguration(new MessagingMessageConfiguration
-            {
-                MessageType = typeof(OrderStatusResponse),
-                Serializer = new StubMessageSerializer(),
-                EnclosedTypes = [typeof(OrderStatusResponse)]
-            });
-        }));
+            AddAotMessage<GetOrderStatus>(
+                builder,
+                typeof(GetOrderStatus),
+                typeof(IEventRequest<OrderStatusResponse>));
+            AddAotMessage<OrderStatusResponse>(builder, typeof(OrderStatusResponse));
+        });
 
         // act
         var messageType = runtime.Messages.GetMessageType(typeof(GetOrderStatus))!;
@@ -49,22 +43,11 @@ public class AotMessageTypeTests
                 // resolves IBusNamingConventions from application services.
                 builder.Services.AddSingleton<IBusNamingConventions, PrefixingNamingConventions>();
 
-                builder.ConfigureMessageBus(bus =>
-                {
-                    bus.AddMessageConfiguration(new MessagingMessageConfiguration
-                    {
-                        MessageType = typeof(GetOrderStatus),
-                        Serializer = new StubMessageSerializer(),
-                        EnclosedTypes = [typeof(GetOrderStatus), typeof(IEventRequest<OrderStatusResponse>)]
-                    });
-
-                    bus.AddMessageConfiguration(new MessagingMessageConfiguration
-                    {
-                        MessageType = typeof(OrderStatusResponse),
-                        Serializer = new StubMessageSerializer(),
-                        EnclosedTypes = [typeof(OrderStatusResponse)]
-                    });
-                });
+                AddAotMessage<GetOrderStatus>(
+                    builder,
+                    typeof(GetOrderStatus),
+                    typeof(IEventRequest<OrderStatusResponse>));
+                AddAotMessage<OrderStatusResponse>(builder, typeof(OrderStatusResponse));
             });
 
         // act
@@ -90,7 +73,7 @@ public class AotMessageTypeTests
         static void Act()
         {
             CreateAotRuntime(
-                builder => builder.ConfigureMessageBus(bus => bus.AddMessage<GetOrderStatus>(static _ => { })));
+                builder => builder.ConfigureMessageBus(static bus => bus.AddMessage<GetOrderStatus>()));
         }
     }
 
@@ -134,6 +117,30 @@ public class AotMessageTypeTests
         Assert.Equal("42", deserialized?.OrderId);
     }
 
+    [Fact]
+    public void GetSerializer_Should_UseUserSerializer_When_UserConfigurationRunsAfterSourceGenerator()
+    {
+        // arrange
+        var runtime = CreateAotRuntime(builder =>
+        {
+            AddAotMessage<GetOrderStatus>(
+                builder,
+                typeof(GetOrderStatus),
+                typeof(IEventRequest<OrderStatusResponse>));
+
+            builder.AddMessage<GetOrderStatus>(
+                static descriptor => descriptor.AddSerializer(new OverrideMessageSerializer()));
+        });
+
+        var messageType = runtime.Messages.GetMessageType(typeof(GetOrderStatus))!;
+
+        // act
+        var serializer = messageType.GetSerializer(MessageContentType.Json);
+
+        // assert
+        Assert.IsType<OverrideMessageSerializer>(serializer);
+    }
+
     public sealed class GetOrderStatus : IEventRequest<OrderStatusResponse>
     {
         public string OrderId { get; init; } = "";
@@ -144,7 +151,40 @@ public class AotMessageTypeTests
         public string Status { get; init; } = "";
     }
 
+    private static void AddAotMessage<TMessage>(
+        IMessageBusHostBuilder builder,
+        params Type[] enclosedTypes)
+        where TMessage : class
+    {
+        builder.ConfigureMessageBus(static bus => bus.AddMessage<TMessage>());
+        builder.ConfigureDescriptorContext(ctx =>
+            ctx.Features.GetRequired<MessagingConfigurationFeature>()
+                .Configurations.Add<IMessageTypeDescriptor>(typeof(TMessage), descriptor =>
+                {
+                    descriptor.AddSerializer(new StubMessageSerializer());
+                    descriptor.Extend().Configuration.EnclosedTypes =
+                        ImmutableArray.Create<Type>(enclosedTypes);
+                }));
+    }
+
     private sealed class StubMessageSerializer : IMessageSerializer
+    {
+        public MessageContentType ContentType => MessageContentType.Json;
+
+        public T? Deserialize<T>(ReadOnlyMemory<byte> body) => default;
+
+        public object? Deserialize(ReadOnlyMemory<byte> body) => null;
+
+        public void Serialize<T>(T message, IBufferWriter<byte> writer)
+        {
+        }
+
+        public void Serialize(object message, IBufferWriter<byte> writer)
+        {
+        }
+    }
+
+    private sealed class OverrideMessageSerializer : IMessageSerializer
     {
         public MessageContentType ContentType => MessageContentType.Json;
 

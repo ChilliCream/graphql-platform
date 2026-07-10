@@ -36,7 +36,7 @@ public static class ListSubgraph
             .AddType<ProductListType>();
 
         var app = builder.Build();
-        app.MapGraphQL();
+        app.MapSubgraph();
 
         await app.StartAsync();
 

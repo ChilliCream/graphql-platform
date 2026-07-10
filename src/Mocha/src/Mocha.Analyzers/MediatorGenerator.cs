@@ -34,10 +34,7 @@ public sealed class MediatorGenerator : IIncrementalGenerator
         new ImportedMediatorModuleTypeInspector()
     ];
 
-    private static readonly ISyntaxGenerator[] s_generators =
-    [
-        new DependencyInjectionGenerator()
-    ];
+    private static readonly ISyntaxGenerator[] s_generators = [new DependencyInjectionGenerator()];
 
     private static readonly Dictionary<SyntaxKind, ImmutableArray<ISyntaxInspector>> s_inspectorLookup;
     private static readonly Dictionary<SyntaxKind, ImmutableArray<ISyntaxInspector>> s_callSiteInspectorLookup;
@@ -128,9 +125,24 @@ public sealed class MediatorGenerator : IIncrementalGenerator
 
         var assemblyName = context.CompilationProvider.Select(static (c, _) => c.AssemblyName ?? "Unknown");
 
+        var sourceMetadataOptions = context.AnalyzerConfigOptionsProvider.Select(
+            static (options, _) =>
+            {
+                options.GlobalOptions.TryGetValue("build_property.MochaEmitSourceMetadata", out var emit);
+                options.GlobalOptions.TryGetValue("build_property.RepositoryUrl", out var repositoryUrl);
+                options.GlobalOptions.TryGetValue("build_property.SourceRevisionId", out var commit);
+                options.GlobalOptions.TryGetValue("build_property._MochaSourceRoots", out var sourceRoots);
+                return new SourceMetadataOptionsInfo(
+                    !string.Equals(emit, "false", StringComparison.OrdinalIgnoreCase),
+                    string.IsNullOrWhiteSpace(repositoryUrl) ? null : repositoryUrl,
+                    string.IsNullOrWhiteSpace(commit) ? null : commit,
+                    string.IsNullOrWhiteSpace(sourceRoots) ? null : sourceRoots);
+            });
+
         context.RegisterSourceOutput(
-            assemblyName.Combine(syntaxInfos).Combine(callSiteInfos),
-            static (context, source) => Execute(context, source.Left.Left, source.Left.Right, source.Right));
+            assemblyName.Combine(syntaxInfos).Combine(callSiteInfos).Combine(sourceMetadataOptions),
+            static (context, source) =>
+                Execute(context, source.Left.Left.Left, source.Left.Left.Right, source.Left.Right, source.Right));
     }
 
     private static SyntaxInfo? Transform(
@@ -183,7 +195,8 @@ public sealed class MediatorGenerator : IIncrementalGenerator
         SourceProductionContext context,
         string assemblyName,
         ImmutableArray<SyntaxInfo> syntaxInfos,
-        ImmutableArray<SyntaxInfo> callSiteInfos)
+        ImmutableArray<SyntaxInfo> callSiteInfos,
+        SourceMetadataOptionsInfo sourceMetadataOptions)
     {
         var sourceFiles = PooledObjects.GetStringDictionary();
         var moduleInfo = GetModuleInfo(syntaxInfos, ModuleNameHelper.CreateModuleName(assemblyName));
@@ -209,14 +222,11 @@ public sealed class MediatorGenerator : IIncrementalGenerator
             // Validate call-site types vs handlers (MO0020)
             ValidateCallSiteNoHandler(context, syntaxInfos, callSiteInfos);
 
+            var augmentedInfos = syntaxInfos.Add(sourceMetadataOptions);
+
             foreach (var generator in s_generators)
             {
-                generator.Generate(
-                    context,
-                    assemblyName,
-                    moduleInfo.ModuleName,
-                    syntaxInfos,
-                    AddSource);
+                generator.Generate(context, assemblyName, moduleInfo.ModuleName, augmentedInfos, AddSource);
             }
 
             foreach (var sourceFile in sourceFiles)
@@ -287,9 +297,18 @@ public sealed class MediatorGenerator : IIncrementalGenerator
             }
         }
 
+        // Dedupe handler infos by handler type name so a handler declared across multiple
+        // partial declaration parts (e.g. restating the handler interface on each part)
+        // counts once, matching the emission-side deduplication in DependencyInjectionGenerator.
+        var dedupedHandlers = DeduplicationHelper.SelectRepresentatives(
+            handlers,
+            h => h.HandlerTypeName,
+            h => h.XmlDocumentation,
+            h => h.Location);
+
         // Build a lookup of handlers by message type name
         var handlersByMessageType = new Dictionary<string, List<HandlerInfo>>();
-        foreach (var handler in handlers)
+        foreach (var handler in dedupedHandlers)
         {
             if (!handlersByMessageType.TryGetValue(handler.MessageTypeName, out var list))
             {
@@ -324,11 +343,7 @@ public sealed class MediatorGenerator : IIncrementalGenerator
                 // tracked by MessageTypeInspector are commands/queries only (not notifications)
                 var handlerNames = string.Join(", ", matchingHandlers.Select(h => h.HandlerTypeName).OrderBy(n => n));
                 context.ReportDiagnostic(
-                    Diagnostic.Create(
-                        Errors.DuplicateHandler,
-                        location,
-                        messageType.MessageTypeName,
-                        handlerNames));
+                    Diagnostic.Create(Errors.DuplicateHandler, location, messageType.MessageTypeName, handlerNames));
             }
         }
     }
@@ -369,10 +384,11 @@ public sealed class MediatorGenerator : IIncrementalGenerator
         // Check each call-site for MediatorSend or MediatorQuery - not MediatorPublish.
         foreach (var info in callSiteInfos)
         {
-            if (info is CallSiteMessageTypeInfo
-                {
-                    Kind: CallSiteKind.MediatorSend or CallSiteKind.MediatorQuery
-                } callSite
+            if (info
+                    is CallSiteMessageTypeInfo
+                    {
+                        Kind: CallSiteKind.MediatorSend or CallSiteKind.MediatorQuery
+                    } callSite
                 && !handlerMessageTypes.Contains(callSite.MessageTypeName))
             {
                 var location = ReconstructLocation(callSite.Location);

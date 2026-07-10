@@ -35,9 +35,9 @@ internal sealed class SpecifiedByUrlMismatchRule : IEventHandler<ScalarTypeGroup
                     SpecifiedByUrlMismatch(
                         typeInfoA.Scalar,
                         typeInfoA.Schema,
-                        specifiedByA?.ToString(),
+                        specifiedByA,
                         typeInfoB.Schema,
-                        specifiedByB?.ToString()));
+                        specifiedByB));
             }
         }
     }
