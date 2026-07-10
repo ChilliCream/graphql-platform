@@ -3,11 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import { FEATURED_COMPANIES, OTHER_COMPANIES, type Company } from "./companies";
 
-const ROTATE_INTERVAL_MS = 5000;
-// Let the featured three lead the rotation with a longer first hold, without
-// leaving the band static for too long on load.
-const INITIAL_HOLD_MS = 4500;
-/** The animation delay between each item in the rotation */
+const ROTATE_INTERVAL_MS = 4000;
+const INITIAL_HOLD_MS = 3500;
 const ITEM_ANIMATION_OFFSET_MS = 250;
 
 function wrapIndex(index: number, length: number) {
@@ -21,7 +18,7 @@ function getItem<T>(index: number, array: T[]) {
 const NUM_SLOTS = FEATURED_COMPANIES.length;
 
 export function LogoCloud() {
-  const companyQueue = useRef([
+  const [companyQueue] = useState(() => [
     ...shuffle(OTHER_COMPANIES),
     ...FEATURED_COMPANIES,
   ]);
@@ -37,12 +34,12 @@ export function LogoCloud() {
       const index = currentCompanyIndex.current;
       const updatedSlots = new Array(NUM_SLOTS)
         .fill(0)
-        .map((_, i) => getItem(index + i, companyQueue.current));
+        .map((_, i) => getItem(index + i, companyQueue));
       setSlots(updatedSlots);
 
       currentCompanyIndex.current = wrapIndex(
         currentCompanyIndex.current + NUM_SLOTS,
-        companyQueue.current.length,
+        companyQueue.length,
       );
     };
 
@@ -57,7 +54,7 @@ export function LogoCloud() {
       window.clearTimeout(startId);
       window.clearInterval(intervalId);
     };
-  }, []);
+  }, [companyQueue]);
 
   return (
     <section className="mx-auto max-w-7xl px-5 py-12 text-center sm:px-12 sm:py-16">
@@ -80,15 +77,20 @@ export function LogoCloud() {
 function LogoSlot({ company, delay }: { company: Company; delay: number }) {
   const [displayed, setDisplayed] = useState(company);
   const [previous, setPrevious] = useState<Company | null>(null);
+  const prevCompanyRef = useRef(company);
 
-  // Adjust state during render when the slot's company changes: promote the
-  // outgoing logo to `previous` (it plays the fade-out) and show the new one.
-  // The in-animation only runs when there was a previous logo, so the initial
-  // server-rendered three appear without a flash.
-  if (company.name !== displayed.name) {
-    setPrevious(displayed);
+  // Promote the outgoing logo to `previous` (it plays the fade-out) and show
+  // the new one. The in-animation only runs when there was a previous logo,
+  // so the initial server-rendered three appear without a flash.
+  useEffect(() => {
+    if (prevCompanyRef.current.name === company.name) {
+      return;
+    }
+
+    setPrevious(prevCompanyRef.current);
     setDisplayed(company);
-  }
+    prevCompanyRef.current = company;
+  }, [company]);
 
   return (
     <div className="relative flex h-20 w-full items-center justify-center overflow-hidden">

@@ -31,10 +31,6 @@ export function ExlrtLogo({ className, style }: ExlrtLogoProps) {
         transform="translate(0 -0.3)"
       />
       <path
-        d="M72,23H57V3h4.9V19H72ZM111,3V7.9h6V23h5V7.9h6V3ZM14.7,7.8V3H0V23H15V18H4.9V15H11V11.2H4.9V7.8Z"
-        transform="translate(0 -0.3)"
-      />
-      <path
         d="M31.6,23.8,21.2,25.7,34.3,6.6l4.3,6.9Z"
         transform="translate(0 -0.3)"
       />

@@ -528,12 +528,6 @@ svg[role="graphics-document"][id^="mermaid-"] {
   }
 }
 
-/* Rotating customer logo band (LogoCloud): a masked vertical slide, reverse
-   engineered from claude.com/product/claude-code. The slot clips
-   (overflow-hidden) so the incoming logo rises in from below the mask while the
-   outgoing one slides up and out past the top. Timing matches theirs: 900ms on
-   a cubic-bezier(1, 0, 0, 1) expo-in-out curve (soft ends, quick middle) with a
-   50% travel. */
 @keyframes logo-in {
   from {
     opacity: 0;
