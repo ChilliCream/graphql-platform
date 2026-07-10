@@ -1,6 +1,8 @@
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using HotChocolate.Resolvers;
 
 namespace HotChocolate.Internal;
@@ -60,6 +62,9 @@ public abstract class CustomParameterExpressionBuilder : IParameterExpressionBui
     /// <see cref="ParameterExpressionBuilderContext.Parameter"/>.
     /// </returns>
     public abstract Expression Build(ParameterExpressionBuilderContext context);
+
+    internal virtual bool RequiresParameterInfo(ParameterDescriptor parameter)
+        => false;
 }
 
 /// <summary>
@@ -69,12 +74,11 @@ public abstract class CustomParameterExpressionBuilder : IParameterExpressionBui
 public class CustomParameterExpressionBuilder<TArg>
     : CustomParameterExpressionBuilder
     , IParameterBindingFactory
-    , IParameterBinding
 {
     private readonly Func<ParameterInfo, bool> _canHandle;
     private readonly Expression<Func<IResolverContext, TArg>> _expression;
     private readonly bool _matchesParameterType;
-    private Func<IResolverContext, TArg>? _compiledExpression;
+    private readonly Lazy<Func<IResolverContext, TArg>> _compiledExpression;
 
     /// <summary>
     /// Initializes a new instance of <see cref="CustomParameterExpressionBuilder"/>.
@@ -84,12 +88,8 @@ public class CustomParameterExpressionBuilder<TArg>
     /// </param>
     public CustomParameterExpressionBuilder(
         Expression<Func<IResolverContext, TArg>> expression)
-        : base(isPure: false)
-    {
-        _canHandle = p => p.ParameterType == typeof(TArg);
-        _expression = expression;
-        _matchesParameterType = true;
-    }
+        : this(expression, static p => p.ParameterType == typeof(TArg), isPure: false, matchesParameterType: true)
+    { }
 
     /// <summary>
     /// Initializes a new instance of <see cref="CustomParameterExpressionBuilder"/>.
@@ -103,12 +103,8 @@ public class CustomParameterExpressionBuilder<TArg>
     internal CustomParameterExpressionBuilder(
         Expression<Func<IResolverContext, TArg>> expression,
         bool isPure)
-        : base(isPure)
-    {
-        _canHandle = p => p.ParameterType == typeof(TArg);
-        _expression = expression;
-        _matchesParameterType = true;
-    }
+        : this(expression, static p => p.ParameterType == typeof(TArg), isPure, matchesParameterType: true)
+    { }
 
     /// <summary>
     /// Initializes a new instance of <see cref="CustomParameterExpressionBuilder"/>.
@@ -122,11 +118,8 @@ public class CustomParameterExpressionBuilder<TArg>
     public CustomParameterExpressionBuilder(
         Expression<Func<IResolverContext, TArg>> expression,
         Func<ParameterInfo, bool> canHandle)
-        : base(isPure: false)
-    {
-        _expression = expression;
-        _canHandle = canHandle;
-    }
+        : this(expression, canHandle, isPure: false, matchesParameterType: false)
+    { }
 
     /// <summary>
     /// Initializes a new instance of <see cref="CustomParameterExpressionBuilder"/>.
@@ -144,10 +137,20 @@ public class CustomParameterExpressionBuilder<TArg>
         Expression<Func<IResolverContext, TArg>> expression,
         Func<ParameterInfo, bool> canHandle,
         bool isPure)
+        : this(expression, canHandle, isPure, matchesParameterType: false)
+    { }
+
+    private CustomParameterExpressionBuilder(
+        Expression<Func<IResolverContext, TArg>> expression,
+        Func<ParameterInfo, bool> canHandle,
+        bool isPure,
+        bool matchesParameterType)
         : base(isPure)
     {
         _expression = expression;
         _canHandle = canHandle;
+        _matchesParameterType = matchesParameterType;
+        _compiledExpression = new(CompileExpression);
     }
 
     /// <summary>
@@ -182,26 +185,37 @@ public class CustomParameterExpressionBuilder<TArg>
 
     bool IParameterBindingFactory.IsDefaultHandler => false;
 
-    bool IParameterBinding.IsPure => ((IParameterExpressionBuilder)this).IsPure;
-
     bool IParameterBindingFactory.CanHandle(ParameterDescriptor parameter)
         => _matchesParameterType && parameter.Type == typeof(TArg);
 
     IParameterBinding IParameterBindingFactory.Create(ParameterDescriptor parameter)
-        => this;
+        => new CustomParameterBinding(
+            _compiledExpression.Value,
+            ((IParameterExpressionBuilder)this).IsPure);
+
+    internal override bool RequiresParameterInfo(ParameterDescriptor parameter)
+        => !_matchesParameterType && parameter.Type.IsAssignableFrom(typeof(TArg));
 
     [UnconditionalSuppressMessage(
         "AOT",
         "IL3050",
         Justification =
-            "Custom parameter expressions are compiled at schema initialization time and are only "
-            + "used in JIT-compatible environments.")]
-    T IParameterBinding.Execute<T>(IResolverContext context)
-    {
-        var compiled = _compiledExpression ??= _expression.Compile();
+            "The expression interpreter is used when dynamic code is unavailable.")]
+    private Func<IResolverContext, TArg> CompileExpression()
+        => _expression.Compile(preferInterpretation: !RuntimeFeature.IsDynamicCodeSupported);
 
-        // The binding only handles parameters whose type equals TArg, so T is always TArg
-        // and the compiled delegate can be reinterpreted as Func<IResolverContext, T>.
-        return ((Func<IResolverContext, T>)(object)compiled)(context);
+    private sealed class CustomParameterBinding(
+        Func<IResolverContext, TArg> compiledExpression,
+        bool isPure)
+        : IParameterBinding
+    {
+        public bool IsPure { get; } = isPure;
+
+        public T Execute<T>(IResolverContext context)
+        {
+            Debug.Assert(typeof(T) == typeof(TArg));
+            var value = compiledExpression(context);
+            return Unsafe.As<TArg, T>(ref value);
+        }
     }
 }

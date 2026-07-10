@@ -3,6 +3,7 @@ using System.Text.Json;
 using GreenDonut.Data;
 using HotChocolate.Features;
 using HotChocolate.Language;
+using HotChocolate.Resolvers;
 using HotChocolate.Text.Json;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Configurations;
@@ -73,6 +74,11 @@ public static partial class Query
         PagingArguments = pagingArguments;
         return [];
     }
+
+    public static bool AreCustomParametersInjected(
+        CancellationToken cancellationToken,
+        IResolverContext resolverContext)
+        => cancellationToken.IsCancellationRequested && resolverContext is null;
 
     [UsePaging]
     [RewriteAfterToVersion]

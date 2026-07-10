@@ -87,7 +87,8 @@ public sealed class Resolver
 
     public ImmutableArray<ResolverParameter> Parameters { get; }
 
-    public bool RequiresParameterBindings => Parameters.Any(t => t.RequiresBinding);
+    public bool RequiresParameterBindings
+        => Parameters.Any(t => t.RequiresBinding || t.SupportsCustomBinding);
 
     public ImmutableArray<MemberBinding> Bindings { get; }
 

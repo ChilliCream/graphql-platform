@@ -99,10 +99,12 @@ namespace TestNamespace
         private sealed class __Resolvers
         {
             private readonly global::HotChocolate.Internal.IParameterBinding _binding_GetAuthorAsync_version;
+            private readonly global::HotChocolate.Internal.IParameterBinding? _binding_GetAuthorAsync_cancellationToken;
 
             public __Resolvers(global::HotChocolate.Resolvers.ParameterBindingResolver bindingResolver)
             {
                 _binding_GetAuthorAsync_version = bindingResolver.GetBinding(CreateParameterDescriptor_GetAuthorAsync_version());
+                _binding_GetAuthorAsync_cancellationToken = bindingResolver.GetCustomBinding(CreateParameterDescriptor_GetAuthorAsync_cancellationToken());
             }
 
             public global::HotChocolate.Internal.ParameterDescriptor CreateParameterDescriptor_GetAuthorAsync_version()
@@ -113,6 +115,12 @@ namespace TestNamespace
                     [
                         new global::HotChocolate.GraphQLTypeAttribute("[String]")
                     ]);
+            public global::HotChocolate.Internal.ParameterDescriptor CreateParameterDescriptor_GetAuthorAsync_cancellationToken()
+                => new HotChocolate.Internal.ParameterDescriptor(
+                    "cancellationToken",
+                    typeof(global::System.Threading.CancellationToken),
+                    isNullable: false,
+                    []);
 
             public HotChocolate.Resolvers.FieldResolverDelegates GetAuthorAsync()
                 => new global::HotChocolate.Resolvers.FieldResolverDelegates(resolver: GetAuthorAsync);
@@ -121,7 +129,9 @@ namespace TestNamespace
             {
                 var args0 = context.Parent<global::TestNamespace.Book>();
                 var args1 = _binding_GetAuthorAsync_version.Execute<int>(context);
-                var args2 = context.RequestAborted;
+                var args2 = _binding_GetAuthorAsync_cancellationToken is null
+                    ? context.RequestAborted
+                    : _binding_GetAuthorAsync_cancellationToken.Execute<global::System.Threading.CancellationToken>(context);
                 var result = await global::TestNamespace.BookNode.GetAuthorAsync(args0, args1, args2);
                 return result;
             }
@@ -988,7 +998,7 @@ namespace Microsoft.Extensions.DependencyInjection
     "Title": "",
     "Severity": "Error",
     "WarningLevel": 0,
-    "Location": "BookNode.WaAdMHmlGJHjtEI4nqY7WA.hc.g.cs: (123,4)-(123,5)",
+    "Location": "BookNode.WaAdMHmlGJHjtEI4nqY7WA.hc.g.cs: (133,4)-(133,5)",
     "HelpLinkUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS1022)",
     "MessageFormat": "Type or namespace definition, or end-of-file expected",
     "Message": "Type or namespace definition, or end-of-file expected",
@@ -1004,7 +1014,7 @@ namespace Microsoft.Extensions.DependencyInjection
     "Title": "",
     "Severity": "Error",
     "WarningLevel": 0,
-    "Location": "BookNode.WaAdMHmlGJHjtEI4nqY7WA.hc.g.cs: (124,0)-(124,1)",
+    "Location": "BookNode.WaAdMHmlGJHjtEI4nqY7WA.hc.g.cs: (134,0)-(134,1)",
     "HelpLinkUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS1022)",
     "MessageFormat": "Type or namespace definition, or end-of-file expected",
     "Message": "Type or namespace definition, or end-of-file expected",

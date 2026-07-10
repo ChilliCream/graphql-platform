@@ -6,6 +6,7 @@ namespace HotChocolate.Resolvers;
 public sealed class ParameterBindingResolver
 {
     private readonly IParameterBindingFactory[] _bindings;
+    private readonly IParameterBindingFactory[] _customBindings;
     private readonly IParameterBindingFactory _defaultBinding;
 
     public ParameterBindingResolver(
@@ -14,6 +15,7 @@ public sealed class ParameterBindingResolver
     {
         var serviceInspector = applicationServices.GetService<IServiceProviderIsService>();
         var factories = customBindingFactories?.OfType<IParameterBindingFactory>().ToArray() ?? [];
+        _customBindings = [.. factories.Where(t => !t.IsDefaultHandler)];
 
         // explicit internal expression builders will be added first.
         var bindingFactories = new List<IParameterBindingFactory>
@@ -63,15 +65,24 @@ public sealed class ParameterBindingResolver
     }
 
     public IParameterBinding GetBinding(ParameterDescriptor parameter)
+        => GetBinding(parameter, out _);
+
+    public IParameterBinding GetBinding(
+        ParameterDescriptor parameter,
+        out ArgumentKind kind)
     {
         foreach (var binding in _bindings)
         {
+            EnsureParameterInfoNotRequired(binding, parameter);
+
             if (binding.CanHandle(parameter))
             {
+                kind = binding.Kind;
                 return binding.Create(parameter);
             }
         }
 
+        kind = _defaultBinding.Kind;
         return _defaultBinding.Create(parameter);
     }
 
@@ -79,6 +90,8 @@ public sealed class ParameterBindingResolver
     {
         foreach (var binding in _bindings)
         {
+            EnsureParameterInfoNotRequired(binding, parameter);
+
             if (binding.CanHandle(parameter))
             {
                 return (binding.Kind, binding.IsPure);
@@ -86,5 +99,47 @@ public sealed class ParameterBindingResolver
         }
 
         return (_defaultBinding.Kind, _defaultBinding.IsPure);
+    }
+
+    /// <summary>
+    /// Gets a non-default custom binding for the specified parameter, if one is registered.
+    /// </summary>
+    /// <param name="parameter">
+    /// The parameter descriptor containing the metadata used to select a binding.
+    /// </param>
+    /// <returns>
+    /// The matching custom binding, or <c>null</c> when the generated resolver should use its
+    /// built-in binding.
+    /// </returns>
+    public IParameterBinding? GetCustomBinding(ParameterDescriptor parameter)
+    {
+        foreach (var binding in _customBindings)
+        {
+            EnsureParameterInfoNotRequired(binding, parameter);
+
+            if (binding.CanHandle(parameter))
+            {
+                return binding.Create(parameter);
+            }
+        }
+
+        return null;
+    }
+
+    private static void EnsureParameterInfoNotRequired(
+        IParameterBindingFactory binding,
+        ParameterDescriptor parameter)
+    {
+        if (binding is CustomParameterExpressionBuilder customBuilder
+            && customBuilder.RequiresParameterInfo(parameter))
+        {
+            throw new SchemaException(
+                SchemaErrorBuilder.New()
+                    .SetMessage(
+                        "Custom parameter expression builders that use a ParameterInfo predicate "
+                        + "cannot be used with source-generated resolvers. Omit the canHandle "
+                        + "predicate to match parameters by type.")
+                    .Build());
+        }
     }
 }

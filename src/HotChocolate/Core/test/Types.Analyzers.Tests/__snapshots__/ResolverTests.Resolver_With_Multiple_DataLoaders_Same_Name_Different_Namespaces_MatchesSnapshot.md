@@ -246,11 +246,13 @@ namespace TestNamespace
         {
             private readonly global::HotChocolate.Internal.IParameterBinding _binding_GetEntityAsync_id;
             private readonly global::HotChocolate.Internal.IParameterBinding _binding_GetEntityAsync_dataLoader;
+            private readonly global::HotChocolate.Internal.IParameterBinding? _binding_GetEntityAsync_cancellationToken;
 
             public __Resolvers(global::HotChocolate.Resolvers.ParameterBindingResolver bindingResolver)
             {
                 _binding_GetEntityAsync_id = bindingResolver.GetBinding(CreateParameterDescriptor_GetEntityAsync_id());
                 _binding_GetEntityAsync_dataLoader = bindingResolver.GetBinding(CreateParameterDescriptor_GetEntityAsync_dataLoader());
+                _binding_GetEntityAsync_cancellationToken = bindingResolver.GetCustomBinding(CreateParameterDescriptor_GetEntityAsync_cancellationToken());
             }
 
             public global::HotChocolate.Internal.ParameterDescriptor CreateParameterDescriptor_GetEntityAsync_id()
@@ -265,6 +267,12 @@ namespace TestNamespace
                     typeof(global::TestNamespace.DataAccess.Entities.IEntityByIdDataLoader),
                     isNullable: false,
                     []);
+            public global::HotChocolate.Internal.ParameterDescriptor CreateParameterDescriptor_GetEntityAsync_cancellationToken()
+                => new HotChocolate.Internal.ParameterDescriptor(
+                    "cancellationToken",
+                    typeof(global::System.Threading.CancellationToken),
+                    isNullable: false,
+                    []);
 
             public HotChocolate.Resolvers.FieldResolverDelegates GetEntityAsync()
                 => new global::HotChocolate.Resolvers.FieldResolverDelegates(resolver: GetEntityAsync);
@@ -273,7 +281,9 @@ namespace TestNamespace
             {
                 var args0 = _binding_GetEntityAsync_id.Execute<int>(context);
                 var args1 = _binding_GetEntityAsync_dataLoader.Execute<global::TestNamespace.DataAccess.Entities.IEntityByIdDataLoader>(context);
-                var args2 = context.RequestAborted;
+                var args2 = _binding_GetEntityAsync_cancellationToken is null
+                    ? context.RequestAborted
+                    : _binding_GetEntityAsync_cancellationToken.Execute<global::System.Threading.CancellationToken>(context);
                 var result = await global::TestNamespace.Query.GetEntityAsync(args0, args1, args2);
                 return result;
             }

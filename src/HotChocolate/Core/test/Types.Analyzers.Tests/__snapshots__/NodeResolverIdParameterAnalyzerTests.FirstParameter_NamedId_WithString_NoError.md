@@ -71,16 +71,24 @@ namespace TestNamespace
         private sealed class __Resolvers
         {
             private readonly global::HotChocolate.Internal.IParameterBinding _binding_GetProductAsync_productService;
+            private readonly global::HotChocolate.Internal.IParameterBinding? _binding_GetProductAsync_cancellationToken;
 
             public __Resolvers(global::HotChocolate.Resolvers.ParameterBindingResolver bindingResolver)
             {
                 _binding_GetProductAsync_productService = bindingResolver.GetBinding(CreateParameterDescriptor_GetProductAsync_productService());
+                _binding_GetProductAsync_cancellationToken = bindingResolver.GetCustomBinding(CreateParameterDescriptor_GetProductAsync_cancellationToken());
             }
 
             public global::HotChocolate.Internal.ParameterDescriptor CreateParameterDescriptor_GetProductAsync_productService()
                 => new HotChocolate.Internal.ParameterDescriptor(
                     "productService",
                     typeof(global::TestNamespace.ProductService),
+                    isNullable: false,
+                    []);
+            public global::HotChocolate.Internal.ParameterDescriptor CreateParameterDescriptor_GetProductAsync_cancellationToken()
+                => new HotChocolate.Internal.ParameterDescriptor(
+                    "cancellationToken",
+                    typeof(global::System.Threading.CancellationToken),
                     isNullable: false,
                     []);
 
@@ -98,7 +106,9 @@ namespace TestNamespace
                     global::HotChocolate.Execution.Processing.HotChocolateExecutionSelectionExtensions.AsSelector<global::TestNamespace.Product>(args2_selection, context.IncludeFlags),
                     args2_filter?.AsPredicate<global::TestNamespace.Product>(),
                     args2_sorting?.AsSortDefinition<global::TestNamespace.Product>());
-                var args3 = context.RequestAborted;
+                var args3 = _binding_GetProductAsync_cancellationToken is null
+                    ? context.RequestAborted
+                    : _binding_GetProductAsync_cancellationToken.Execute<global::System.Threading.CancellationToken>(context);
                 var result = await global::TestNamespace.ProductNode.GetProductAsync(args0, args1, args2, args3);
                 return result;
             }
