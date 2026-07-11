@@ -265,8 +265,9 @@ internal static class RemoveExternalFields
 
                 var namedType = field.Type.NamedType();
 
-                if (!schema.Types.TryGetType<MutableComplexTypeDefinition>(
-                        namedType.Name, out var targetType))
+                if (!schema.Types.TryGetType(namedType.Name, out var targetType)
+                    || targetType is not MutableComplexTypeDefinition
+                        and not MutableUnionTypeDefinition)
                 {
                     continue;
                 }
@@ -430,7 +431,7 @@ internal static class RemoveExternalFields
 
     private static void CollectReferencedFields(
         SelectionSetNode selectionSet,
-        MutableComplexTypeDefinition currentType,
+        ITypeDefinition currentType,
         MutableSchemaDefinition schema,
         HashSet<(string, string)> referenced,
         bool includeInterfaceRuntimeFields)
@@ -439,11 +440,12 @@ internal static class RemoveExternalFields
         {
             switch (selection)
             {
-                case FieldNode fieldNode:
-                    referenced.Add((currentType.Name, fieldNode.Name.Value));
+                case FieldNode fieldNode
+                    when currentType is MutableComplexTypeDefinition complexType:
+                    referenced.Add((complexType.Name, fieldNode.Name.Value));
 
                     if (includeInterfaceRuntimeFields
-                        && currentType is MutableInterfaceTypeDefinition interfaceType)
+                        && complexType is MutableInterfaceTypeDefinition interfaceType)
                     {
                         foreach (var possibleType in schema.GetPossibleTypes(interfaceType))
                         {
@@ -455,13 +457,14 @@ internal static class RemoveExternalFields
                     }
 
                     if (fieldNode.SelectionSet?.Selections.Count > 0
-                        && currentType.Fields.TryGetField(
+                        && complexType.Fields.TryGetField(
                             fieldNode.Name.Value, out var nestedField))
                     {
                         var nestedNamedType = nestedField.Type.NamedType();
 
-                        if (schema.Types.TryGetType<MutableComplexTypeDefinition>(
-                                nestedNamedType.Name, out var nestedType))
+                        if (schema.Types.TryGetType(nestedNamedType.Name, out var nestedType)
+                            && nestedType is MutableComplexTypeDefinition
+                                or MutableUnionTypeDefinition)
                         {
                             CollectReferencedFields(
                                 fieldNode.SelectionSet,
@@ -474,11 +477,20 @@ internal static class RemoveExternalFields
 
                     break;
 
-                case InlineFragmentNode inlineFragment
-                    when inlineFragment.TypeCondition is not null:
+                case InlineFragmentNode { TypeCondition: null } inlineFragment:
+                    CollectReferencedFields(
+                        inlineFragment.SelectionSet,
+                        currentType,
+                        schema,
+                        referenced,
+                        includeInterfaceRuntimeFields);
+                    break;
+
+                case InlineFragmentNode { TypeCondition: { } typeCondition } inlineFragment:
 
                     if (schema.Types.TryGetType<MutableComplexTypeDefinition>(
-                            inlineFragment.TypeCondition.Name.Value, out var fragmentType))
+                            typeCondition.Name.Value, out var fragmentType)
+                        && schema.GetPossibleTypes(currentType).Contains(fragmentType))
                     {
                         CollectReferencedFields(
                             inlineFragment.SelectionSet,

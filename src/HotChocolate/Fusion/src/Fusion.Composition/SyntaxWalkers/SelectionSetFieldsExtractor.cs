@@ -31,6 +31,11 @@ internal sealed class SelectionSetFieldsExtractor(MutableSchemaDefinition schema
     {
         var type = context.TypeContext.Peek();
 
+        if (type is MutableUnionTypeDefinition)
+        {
+            return Skip;
+        }
+
         if (type is MutableComplexTypeDefinition complexType)
         {
             if (complexType.Fields.TryGetField(node.Name.Value, out var field))

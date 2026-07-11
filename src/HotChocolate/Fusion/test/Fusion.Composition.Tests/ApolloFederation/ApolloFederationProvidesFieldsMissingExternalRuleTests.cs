@@ -79,6 +79,75 @@ public sealed class ApolloFederationProvidesFieldsMissingExternalRuleTests : Rul
     }
 
     [Fact]
+    public void Validate_Should_Succeed_When_UnionMemberLeafIsExternal()
+    {
+        AssertValid(
+        [
+            """
+            extend schema
+                @link(
+                    url: "https://specs.apollo.dev/federation/v2.3"
+                    import: ["@external", "@provides"])
+
+            type Query {
+                media: [Media] @provides(fields: "... on Book { title }")
+            }
+
+            union Media = Book | Movie
+
+            type Book {
+                title: String @external
+            }
+
+            type Movie {
+                title: String
+            }
+            """
+        ]);
+    }
+
+    [Fact]
+    public void Validate_Should_Fail_When_UnionMemberLeafIsNotExternal()
+    {
+        AssertInvalid(
+            [
+                """
+                extend schema
+                    @link(
+                        url: "https://specs.apollo.dev/federation/v2.3"
+                        import: ["@provides"])
+
+                type Query {
+                    media: [Media] @provides(fields: "... on Book { title }")
+                }
+
+                union Media = Book | Movie
+
+                type Book {
+                    title: String
+                }
+
+                type Movie {
+                    title: String
+                }
+                """
+            ],
+            [
+                """
+                {
+                    "message": "The @provides directive on field 'Query.media' in schema 'A' references field 'Book.title', which must be marked as external.",
+                    "code": "PROVIDES_FIELDS_MISSING_EXTERNAL",
+                    "severity": "Error",
+                    "coordinate": "Query.media",
+                    "member": "provides",
+                    "schema": "A",
+                    "extensions": {}
+                }
+                """
+            ]);
+    }
+
+    [Fact]
     public void Validate_Should_Fail_When_NestedLeafHasNoExternalPath()
     {
         AssertInvalid(
