@@ -1,0 +1,4 @@
+fragment McpFeatureCollectionDetailPrompt_McpFeatureCollection on McpFeatureCollection {
+  id
+  name
+}

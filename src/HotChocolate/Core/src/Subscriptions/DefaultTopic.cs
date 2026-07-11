@@ -4,7 +4,6 @@ using System.Runtime.InteropServices;
 using System.Threading.Channels;
 using HotChocolate.Execution;
 using HotChocolate.Subscriptions.Diagnostics;
-using HotChocolate.Utilities;
 using static System.Runtime.InteropServices.CollectionsMarshal;
 using static System.Threading.Channels.Channel;
 
@@ -195,7 +194,7 @@ public abstract class DefaultTopic<TMessage> : ITopic
     }
 
     private void BeginProcessing(IAsyncDisposable session)
-        => ProcessMessagesSessionAsync(session).FireAndForget();
+        => _ = ProcessMessagesSessionAsync(session);
 
     private async Task ProcessMessagesSessionAsync(IAsyncDisposable session)
     {

@@ -1,5 +1,7 @@
 using HotChocolate.Language;
+using HotChocolate.Types;
 using HotChocolate.Utilities.Introspection.Properties;
+using DirectiveLocation = HotChocolate.Language.DirectiveLocation;
 
 namespace HotChocolate.Utilities.Introspection;
 
@@ -265,6 +267,7 @@ internal static class IntrospectionFormatter
             CreateDescription(directive.Description),
             directive.IsRepeatable ?? false,
             CreateInputValues(directive.Args),
+            [],
             locations
         );
     }
@@ -333,10 +336,10 @@ internal static class IntrospectionFormatter
             {
                 new DirectiveNode
                 (
-                    WellKnownDirectives.Deprecated,
+                    DirectiveNames.Deprecated.Name,
                     new ArgumentNode
                     (
-                        WellKnownDirectives.DeprecationReasonArgument,
+                        DirectiveNames.Deprecated.Arguments.Reason,
                         new StringValueNode(deprecationReason)
                     )
                 )

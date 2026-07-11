@@ -57,10 +57,11 @@ public class RavenQueryableTests
                         endCursor
                     }
                 }
-            }");
+            }",
+            TestContext.Current.CancellationToken);
 
         // assert
-        await Snapshot.Create().AddResult(result).MatchAsync();
+        await Snapshot.Create().AddResult(result).MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -90,10 +91,11 @@ public class RavenQueryableTests
                         endCursor
                     }
                 }
-            }");
+            }",
+            TestContext.Current.CancellationToken);
 
         // assert
-        await Snapshot.Create().AddResult(result).MatchAsync();
+        await Snapshot.Create().AddResult(result).MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -125,10 +127,11 @@ public class RavenQueryableTests
                     }
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
-        await Snapshot.Create().AddResult(result).MatchAsync();
+        await Snapshot.Create().AddResult(result).MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -157,10 +160,11 @@ public class RavenQueryableTests
                         endCursor
                     }
                 }
-            }");
+            }",
+            TestContext.Current.CancellationToken);
 
         // assert
-        await Snapshot.Create().AddResult(result).MatchAsync();
+        await Snapshot.Create().AddResult(result).MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -175,10 +179,11 @@ public class RavenQueryableTests
                 foos {
                     totalCount
                 }
-            }");
+            }",
+            TestContext.Current.CancellationToken);
 
         // assert
-        await Snapshot.Create().AddResult(result).MatchAsync();
+        await Snapshot.Create().AddResult(result).MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -196,10 +201,11 @@ public class RavenQueryableTests
                     }
                     totalCount
                 }
-            }");
+            }",
+            TestContext.Current.CancellationToken);
 
         // assert
-        await Snapshot.Create().AddResult(result).MatchAsync();
+        await Snapshot.Create().AddResult(result).MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -221,10 +227,11 @@ public class RavenQueryableTests
                         hasPreviousPage
                     }
                 }
-            }");
+            }",
+            TestContext.Current.CancellationToken);
 
         // assert
-        await Snapshot.Create().AddResult(result).MatchAsync();
+        await Snapshot.Create().AddResult(result).MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -246,10 +253,11 @@ public class RavenQueryableTests
                         hasPreviousPage
                     }
                 }
-            }");
+            }",
+            TestContext.Current.CancellationToken);
 
         // assert
-        await Snapshot.Create().AddResult(result).MatchAsync();
+        await Snapshot.Create().AddResult(result).MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -271,10 +279,11 @@ public class RavenQueryableTests
                         hasPreviousPage
                     }
                 }
-            }");
+            }",
+            TestContext.Current.CancellationToken);
 
         // assert
-        await Snapshot.Create().AddResult(result).MatchAsync();
+        await Snapshot.Create().AddResult(result).MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -295,10 +304,11 @@ public class RavenQueryableTests
                         hasPreviousPage
                     }
                 }
-            }");
+            }",
+            TestContext.Current.CancellationToken);
 
         // assert
-        await Snapshot.Create().AddResult(result).MatchAsync();
+        await Snapshot.Create().AddResult(result).MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -313,10 +323,11 @@ public class RavenQueryableTests
                 foosOffset {
                     totalCount
                 }
-            }");
+            }",
+            TestContext.Current.CancellationToken);
 
         // assert
-        await Snapshot.Create().AddResult(result).MatchAsync();
+        await Snapshot.Create().AddResult(result).MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -331,10 +342,11 @@ public class RavenQueryableTests
                 foosOffset(take:1) {
                     totalCount
                 }
-            }");
+            }",
+            TestContext.Current.CancellationToken);
 
         // assert
-        await Snapshot.Create().AddResult(result).MatchAsync();
+        await Snapshot.Create().AddResult(result).MatchAsync(TestContext.Current.CancellationToken);
     }
 
     public class Foo
@@ -431,10 +443,8 @@ public class RavenQueryableTests
                     await next(context);
                     if (context.ContextData.TryGetValue("query", out var queryString))
                     {
-                        context.Result = OperationResultBuilder
-                            .FromResult(context.Result!.ExpectOperationResult())
-                            .SetContextData("query", queryString)
-                            .Build();
+                        var result = context.Result.ExpectOperationResult();
+                        result.ContextData = result.ContextData.SetItem("query", queryString);
                     }
                 })
             .ModifyRequestOptions(x => x.IncludeExceptionDetails = true)

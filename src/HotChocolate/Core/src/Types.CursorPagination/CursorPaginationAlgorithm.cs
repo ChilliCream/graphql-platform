@@ -19,7 +19,7 @@ public abstract class CursorPaginationAlgorithm<TQuery, TEntity> where TQuery : 
     /// </summary>
     /// <param name="query">The query builder.</param>
     /// <param name="arguments">The paging arguments.</param>
-    /// <param name="totalCount"></param>
+    /// <param name="totalCount">The total number of items in the data set, or <c>null</c> if unknown.</param>
     /// <returns>
     /// Returns the connection.
     /// </returns>

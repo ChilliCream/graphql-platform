@@ -1,15 +1,22 @@
 using System.Diagnostics.CodeAnalysis;
-using HotChocolate.AspNetCore;
+using System.Globalization;
+using System.IO.Pipelines;
+using System.Text.Json;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Routing;
+using Microsoft.Extensions.DependencyInjection;
+using HotChocolate.AspNetCore.Instrumentation;
 using HotChocolate.Buffers;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Types;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Routing;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Adapters.OpenApi;
 
+#if !NET9_0_OR_GREATER
+[RequiresDynamicCode("JSON serialization and deserialization might require types that cannot be statically analyzed and might need runtime code generation. Use System.Text.Json source generation for native AOT applications.")]
+[RequiresUnreferencedCode("JSON serialization and deserialization might require types that cannot be statically analyzed. Use the overload that takes a JsonTypeInfo or JsonSerializerContext, or make sure all of the required types are preserved.")]
+#endif
 internal sealed class DynamicEndpointMiddleware(
     string schemaName,
     OpenApiEndpointDescriptor endpointDescriptor)
@@ -51,77 +58,85 @@ internal sealed class DynamicEndpointMiddleware(
                 }
             }
 
-            var proxy = context.RequestServices.GetRequiredKeyedService<HttpRequestExecutorProxy>(schemaName);
+            var proxy = context.RequestServices.GetRequiredService<OpenApiManager>()
+                .Get(schemaName)
+                .ExecutorProxy;
             var session = await proxy.GetOrCreateSessionAsync(context.RequestAborted);
+            var requestKind = HttpMethods.IsGet(context.Request.Method)
+                ? HttpRequestKind.HttpGet
+                : HttpRequestKind.HttpPost;
 
-            using var variableBuffer = new PooledArrayWriter();
-            var variables = await BuildVariablesAsync(
-                endpointDescriptor,
-                context,
-                variableBuffer,
-                cancellationToken);
-
-            var requestBuilder = OperationRequestBuilder.New()
-                .SetDocument(endpointDescriptor.Document)
-                .SetErrorHandlingMode(ErrorHandlingMode.Halt)
-                .SetVariableValues(variables);
-
-            await session.OnCreateAsync(context, requestBuilder, cancellationToken);
-
-            var executionResult = await session.ExecuteAsync(
-                requestBuilder.Build(),
-                cancellationToken).ConfigureAwait(false);
-
-            // If the request was cancelled, we do not attempt to write a response.
-            if (cancellationToken.IsCancellationRequested)
+            using (session.DiagnosticEvents.ExecuteHttpRequest(context, requestKind))
             {
-                return;
-            }
+                using var variableBuffer = new PooledArrayWriter();
+                using var variables = await BuildVariablesAsync(
+                    endpointDescriptor,
+                    context,
+                    variableBuffer,
+                    cancellationToken);
 
-            // If we do not have an operation result, something went wrong and we return HTTP 500.
-            if (executionResult is not IOperationResult operationResult)
-            {
+                var requestBuilder = OperationRequestBuilder.New()
+                    .SetDocument(endpointDescriptor.Document)
+                    .SetErrorHandlingMode(ErrorHandlingMode.Propagate)
+                    .SetVariableValues(variables);
+
+                await session.OnCreateAsync(context, requestBuilder, cancellationToken);
+
+                var executionResult = await session.ExecuteAsync(
+                    requestBuilder.Build(),
+                    cancellationToken).ConfigureAwait(false);
+
+                // If the request was canceled, we do not attempt to write a response.
+                if (cancellationToken.IsCancellationRequested)
+                {
+                    return;
+                }
+
+                // If we do not have an operation result, something went wrong, and we return HTTP 500.
+                if (executionResult is not OperationResult operationResult)
+                {
 #if NET9_0_OR_GREATER
-                await Results.InternalServerError().ExecuteAsync(context);
+                    await Results.InternalServerError().ExecuteAsync(context);
 #else
-                await Results.StatusCode(500).ExecuteAsync(context);
+                    await Results.StatusCode(500).ExecuteAsync(context);
 #endif
-                return;
-            }
-
-            // If the request had validation errors or execution didn't start, we return HTTP 400.
-            if (operationResult.ContextData?.ContainsKey(ExecutionContextData.ValidationErrors) == true
-                || operationResult is OperationResult { IsDataSet: false })
-            {
-                var firstErrorMessage = operationResult.Errors?.FirstOrDefault()?.Message;
-
-                if (!string.IsNullOrEmpty(firstErrorMessage))
-                {
-                    await Results.Problem(
-                        detail: firstErrorMessage,
-                        statusCode: StatusCodes.Status400BadRequest).ExecuteAsync(context);
-                }
-                else
-                {
-                    await Results.BadRequest().ExecuteAsync(context);
+                    return;
                 }
 
-                return;
+                // If the request had validation errors or execution didn't start, we return HTTP 400.
+                if (operationResult.ContextData.ContainsKey(ExecutionContextData.ValidationErrors)
+                    || !operationResult.Data.HasValue)
+                {
+                    var firstErrorMessage = operationResult.Errors.FirstOrDefault()?.Message;
+
+                    if (!string.IsNullOrEmpty(firstErrorMessage))
+                    {
+                        await Results.Problem(
+                            detail: firstErrorMessage,
+                            statusCode: StatusCodes.Status400BadRequest).ExecuteAsync(context);
+                    }
+                    else
+                    {
+                        await Results.BadRequest().ExecuteAsync(context);
+                    }
+
+                    return;
+                }
+
+                // If execution started, and we produced GraphQL errors,
+                // we return HTTP 500 or 401/403 for authorization errors.
+                if (!operationResult.Errors.IsEmpty)
+                {
+                    var result = GetResultFromErrors(operationResult.Errors);
+
+                    await result.ExecuteAsync(context);
+                    return;
+                }
+
+                var formatter = session.Schema.Services.GetRequiredService<IOpenApiResultFormatter>();
+
+                await formatter.FormatResultAsync(operationResult, context, endpointDescriptor, cancellationToken);
             }
-
-            // If execution started, and we produced GraphQL errors,
-            // we return HTTP 500 or 401/403 for authorization errors.
-            if (operationResult.Errors is not null)
-            {
-                var result = GetResultFromErrors(operationResult.Errors);
-
-                await result.ExecuteAsync(context);
-                return;
-            }
-
-            var formatter = session.Schema.Services.GetRequiredService<IOpenApiResultFormatter>();
-
-            await formatter.FormatResultAsync(operationResult, context, endpointDescriptor, cancellationToken);
         }
         catch (BadRequestException badRequestException)
         {
@@ -139,52 +154,85 @@ internal sealed class DynamicEndpointMiddleware(
         }
     }
 
-    private static async Task<IReadOnlyDictionary<string, object?>> BuildVariablesAsync(
+    private static async Task<JsonDocument> BuildVariablesAsync(
         OpenApiEndpointDescriptor endpointDescriptor,
         HttpContext httpContext,
         PooledArrayWriter variableBuffer,
         CancellationToken cancellationToken)
     {
-        var variables = new Dictionary<string, object?>();
+        var variables = new Dictionary<string, IValueNode?>();
 
         if (endpointDescriptor.VariableFilledThroughBody is { } bodyVariable)
         {
-            const int chunkSize = 256;
-            using var writer = new PooledArrayWriter();
-            var body = httpContext.Request.Body;
-            int read;
+            var body = httpContext.Request.BodyReader;
+            ReadResult result;
 
             do
             {
-                var memory = writer.GetMemory(chunkSize);
-                read = await body.ReadAsync(memory, cancellationToken).ConfigureAwait(false);
-                writer.Advance(read);
+                result = await body.ReadAsync(cancellationToken);
 
-                // if (_maxRequestSize < writer.Length)
-                // {
-                //     throw DefaultHttpRequestParser_MaxRequestSizeExceeded();
-                // }
-            } while (read == chunkSize);
+                if (result.IsCanceled)
+                {
+                    throw new OperationCanceledException();
+                }
 
-            if (read == 0)
+                // Only advance while more data is pending; the final (completed)
+                // read is advanced in the finally block below.
+                if (!result.IsCompleted)
+                {
+                    body.AdvanceTo(result.Buffer.Start, result.Buffer.End);
+                }
+            } while (!result.IsCompleted);
+
+            try
             {
-                throw new BadRequestException("Expected to have a body");
+                if (result.Buffer.Length == 0)
+                {
+                    throw new BadRequestException("Expected to have a body");
+                }
+
+                var jsonValueParser = new JsonValueParser(buffer: variableBuffer);
+                var bodyValue = jsonValueParser.Parse(result.Buffer);
+                variables[bodyVariable] = bodyValue;
             }
-
-            var jsonValueParser = new JsonValueParser(buffer: variableBuffer);
-
-            var bodyValue = jsonValueParser.Parse(writer.WrittenSpan);
-
-            variables[bodyVariable] = bodyValue;
+            finally
+            {
+                // Advance the final (completed) read exactly once, even if parsing
+                // or the empty-body guard threw, so Kestrel can drain the request
+                // body without a PipeReader contract violation.
+                body.AdvanceTo(result.Buffer.End);
+            }
         }
 
         InsertParametersIntoVariables(variables, endpointDescriptor, httpContext);
 
-        return variables;
+        var start = variableBuffer.Length;
+        await using var writer = new Utf8JsonWriter(variableBuffer, new JsonWriterOptions { Indented = false });
+
+        writer.WriteStartObject();
+
+        foreach (var (key, value) in variables)
+        {
+            writer.WritePropertyName(key);
+
+            if (value is null)
+            {
+                writer.WriteNullValue();
+            }
+            else
+            {
+                ValueJsonFormatter.Format(writer, value);
+            }
+        }
+
+        writer.WriteEndObject();
+        await writer.FlushAsync(cancellationToken);
+
+        return JsonDocument.Parse(variableBuffer.WrittenMemory[start..]);
     }
 
     private static void InsertParametersIntoVariables(
-        Dictionary<string, object?> variables,
+        Dictionary<string, IValueNode?> variables,
         OpenApiEndpointDescriptor endpointDescriptor,
         HttpContext httpContext)
     {
@@ -297,7 +345,7 @@ internal sealed class DynamicEndpointMiddleware(
         IQueryCollection query,
         [NotNullWhen(true)] out IValueNode? parameterValue)
     {
-        parameterValue = default;
+        parameterValue = null;
 
         if (leaf.ParameterType is OpenApiEndpointParameterType.Route)
         {
@@ -308,13 +356,19 @@ internal sealed class DynamicEndpointMiddleware(
                     return false;
                 }
 
+                if (leaf.IsNonNullType)
+                {
+                    throw new BadRequestException(
+                        $"Required route parameter '{leaf.ParameterKey}' is missing");
+                }
+
                 parameterValue = s_nullValueNode;
                 return true;
             }
 
             try
             {
-                parameterValue = ParseValueNode(value, leaf.Type);
+                parameterValue = ParseValueNode(value, leaf.NamedType);
                 return true;
             }
             catch (InvalidFormatException)
@@ -325,20 +379,32 @@ internal sealed class DynamicEndpointMiddleware(
 
         if (leaf.ParameterType is OpenApiEndpointParameterType.Query)
         {
-            if (!query.TryGetValue(leaf.ParameterKey, out var values) || values is not [{ } value])
+            if (!query.TryGetValue(leaf.ParameterKey, out var values))
             {
                 if (leaf.HasDefaultValue)
                 {
                     return false;
                 }
 
+                if (leaf.IsNonNullType)
+                {
+                    throw new BadRequestException(
+                        $"Required query parameter '{leaf.ParameterKey}' is missing");
+                }
+
                 parameterValue = s_nullValueNode;
                 return true;
             }
 
+            if (values is not [{ } value])
+            {
+                throw new BadRequestException(
+                    $"Query parameter '{leaf.ParameterKey}' can only be specified once.");
+            }
+
             try
             {
-                parameterValue = ParseValueNode(value, leaf.Type);
+                parameterValue = ParseValueNode(value, leaf.NamedType);
                 return true;
             }
             catch (InvalidFormatException)
@@ -394,7 +460,7 @@ internal sealed class DynamicEndpointMiddleware(
                     return new IntValueNode(i);
                 }
 
-                if (value is string s && int.TryParse(s, out var intValue))
+                if (value is string s && int.TryParse(s, NumberStyles.Integer, CultureInfo.InvariantCulture, out var intValue))
                 {
                     return new IntValueNode(intValue);
                 }
@@ -425,7 +491,14 @@ internal sealed class DynamicEndpointMiddleware(
                     return new FloatValueNode(d);
                 }
 
-                if (value is string s && double.TryParse(s, out var doubleValue))
+                if (value is string s
+                    && double.TryParse(
+                        s,
+                        NumberStyles.Float,
+                        CultureInfo.InvariantCulture,
+                        out var doubleValue)
+                    && !double.IsNaN(doubleValue)
+                    && !double.IsInfinity(doubleValue))
                 {
                     return new FloatValueNode(doubleValue);
                 }

@@ -1,4 +1,5 @@
 using HotChocolate.Configuration;
+using HotChocolate.Features;
 using HotChocolate.Internal;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
@@ -121,7 +122,7 @@ public partial class ObjectType
                     continue;
                 }
 
-                if (field.Resolvers.HasResolvers)
+                if (field.Resolvers.HasResolvers || field.BatchResolver is not null)
                 {
                     interfaceFields.Add(field.Name, field);
                 }
@@ -131,10 +132,35 @@ public partial class ObjectType
         foreach (var field in definition.Fields)
         {
             if (processed.Add(field.Name)
-                && !field.Resolvers.HasResolvers
                 && interfaceFields.TryGetValue(field.Name, out var interfaceField))
             {
-                field.Resolvers = interfaceField.Resolvers;
+                var inheritedResolver = false;
+
+                if (!field.Resolvers.HasResolvers)
+                {
+                    field.Resolvers = interfaceField.Resolvers;
+                    inheritedResolver = true;
+                }
+
+                if (field.BatchResolver is null && interfaceField.BatchResolver is not null)
+                {
+                    field.BatchResolver = interfaceField.BatchResolver;
+                    field.SetBatchResolverFlags();
+                    inheritedResolver = true;
+                }
+
+                // The [Parent(requires:)] metadata is bound to the inherited resolver, so it has
+                // to travel with it. The CopyTo path below already does this for fields that are
+                // created from the interface field, but a field that is already declared on the
+                // object type reuses this merge path and would otherwise drop the requirement,
+                // leaving the required column out of the projection.
+                if (inheritedResolver
+                    && (interfaceField.Flags & CoreFieldFlags.WithRequirements) == CoreFieldFlags.WithRequirements
+                    && (field.Flags & CoreFieldFlags.WithRequirements) != CoreFieldFlags.WithRequirements)
+                {
+                    var requirements = interfaceField.Features.GetRequired<FieldRequirementFeature>();
+                    field.SetFieldRequirements(requirements.Requirements, requirements.EntityType);
+                }
             }
         }
 

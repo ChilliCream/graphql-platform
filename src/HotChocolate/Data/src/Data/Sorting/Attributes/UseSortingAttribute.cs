@@ -8,9 +8,13 @@ namespace HotChocolate.Data;
 /// <summary>
 /// Registers the middleware and adds the arguments for sorting
 /// </summary>
-public class UseSortingAttribute : ObjectFieldDescriptorAttribute
+[AttributeUsage(
+    AttributeTargets.Property | AttributeTargets.Method,
+    Inherited = true,
+    AllowMultiple = true)]
+public class UseSortingAttribute : DescriptorAttribute
 {
-    private static readonly MethodInfo s_generic = typeof(SortingObjectFieldDescriptorExtensions)
+    private static readonly MethodInfo s_genericObject = typeof(SortingObjectFieldDescriptorExtensions)
         .GetMethods(BindingFlags.Public | BindingFlags.Static)
         .Single(m => m.Name.Equals(
                 nameof(SortingObjectFieldDescriptorExtensions.UseSorting),
@@ -18,6 +22,15 @@ public class UseSortingAttribute : ObjectFieldDescriptorAttribute
             && m.GetGenericArguments().Length == 1
             && m.GetParameters().Length == 2
             && m.GetParameters()[0].ParameterType == typeof(IObjectFieldDescriptor));
+
+    private static readonly MethodInfo s_genericInterface = typeof(SortingObjectFieldDescriptorExtensions)
+        .GetMethods(BindingFlags.Public | BindingFlags.Static)
+        .Single(m => m.Name.Equals(
+                nameof(SortingObjectFieldDescriptorExtensions.UseSorting),
+                StringComparison.Ordinal)
+            && m.GetGenericArguments().Length == 1
+            && m.GetParameters().Length == 2
+            && m.GetParameters()[0].ParameterType == typeof(IInterfaceFieldDescriptor));
 
     public UseSortingAttribute(Type? sortingType = null, [CallerLineNumber] int order = 0)
     {
@@ -37,18 +50,35 @@ public class UseSortingAttribute : ObjectFieldDescriptorAttribute
     /// <value>The name of the scope</value>
     public string? Scope { get; set; }
 
-    protected override void OnConfigure(
+    protected internal override void TryConfigure(
         IDescriptorContext context,
-        IObjectFieldDescriptor descriptor,
-        MemberInfo? member)
+        IDescriptor descriptor,
+        ICustomAttributeProvider? attributeProvider)
     {
-        if (Type is null)
+        if (descriptor is IObjectFieldDescriptor objectFieldDescriptor)
         {
-            descriptor.UseSorting(Scope);
+            if (Type is null)
+            {
+                objectFieldDescriptor.UseSorting(Scope);
+            }
+            else
+            {
+                s_genericObject.MakeGenericMethod(Type).Invoke(null, [objectFieldDescriptor, Scope]);
+            }
         }
-        else
+
+        if (descriptor is IInterfaceFieldDescriptor interfaceFieldDescriptor)
         {
-            s_generic.MakeGenericMethod(Type).Invoke(null, [descriptor, Scope]);
+            if (Type is null)
+            {
+                interfaceFieldDescriptor.UseSorting(Scope);
+            }
+            else
+            {
+                s_genericInterface.MakeGenericMethod(Type).Invoke(
+                    null,
+                    [interfaceFieldDescriptor, Scope]);
+            }
         }
     }
 }

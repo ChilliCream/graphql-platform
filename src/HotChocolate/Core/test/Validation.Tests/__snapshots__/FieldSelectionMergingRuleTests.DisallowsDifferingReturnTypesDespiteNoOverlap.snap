@@ -1,29 +1,20 @@
-﻿[
-  {
-    "Message": "Encountered fields for the same object that cannot be merged.",
-    "Code": null,
-    "Path": null,
-    "Locations": [
-      {
-        "Line": 4,
-        "Column": 13
-      },
-      {
-        "Line": 7,
-        "Column": 13
-      }
-    ],
-    "Extensions": {
-      "declaringTypeA": "IntBox",
-      "declaringTypeB": "StringBox",
-      "fieldA": "scalar",
-      "fieldB": "scalar",
-      "typeA": "Int",
-      "typeB": "String",
-      "responseNameA": "scalar",
-      "responseNameB": "scalar",
-      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Field-Selection-Merging"
+{
+  "message": "Fields \u0060scalar\u0060 conflict because they return conflicting types \u0060Int\u0060 and \u0060String\u0060. Use different aliases on the fields to fetch both if this was intentional.",
+  "locations": [
+    {
+      "line": 4,
+      "column": 13
     },
-    "Exception": null
+    {
+      "line": 7,
+      "column": 13
+    }
+  ],
+  "path": [
+    "someBox",
+    "scalar"
+  ],
+  "extensions": {
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Field-Selection-Merging"
   }
-]
+}

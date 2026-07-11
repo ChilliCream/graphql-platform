@@ -46,15 +46,10 @@ public static class ShareableDirectiveExtensions
     /// fields of the type sharable.
     /// </param>
     /// <returns>The object type descriptor with the <see cref="Composite.Shareable"/> directive applied.</returns>
-    /// <exception cref="ArgumentNullException">
-    /// The <paramref name="descriptor"/> is <c>null</c>.
-    /// </exception>
     public static IObjectTypeDescriptor Shareable(
         this IObjectTypeDescriptor descriptor,
         bool scoped = false)
     {
-        ArgumentNullException.ThrowIfNull(descriptor);
-
         if (scoped)
         {
             // The @sharable directive on a type is meant as a helper to apply it to all fields within its scope.
@@ -117,12 +112,6 @@ public static class ShareableDirectiveExtensions
     /// </summary>
     /// <param name="descriptor">The object field descriptor.</param>
     /// <returns>The object field descriptor with the <see cref="Composite.Shareable"/> directive applied.</returns>
-    /// <exception cref="ArgumentNullException">
-    /// The <paramref name="descriptor"/> is <c>null</c>.
-    /// </exception>
     public static IObjectFieldDescriptor Shareable(this IObjectFieldDescriptor descriptor)
-    {
-        ArgumentNullException.ThrowIfNull(descriptor);
-        return descriptor.Directive(Composite.Shareable.Instance);
-    }
+        => descriptor.Directive(Composite.Shareable.Instance);
 }

@@ -1,6 +1,6 @@
 using System.Diagnostics;
-using AlterNats;
 using HotChocolate.Subscriptions.Diagnostics;
+using NATS.Client.Core;
 using static HotChocolate.Subscriptions.Nats.NatsResources;
 
 namespace HotChocolate.Subscriptions.Nats;
@@ -28,44 +28,103 @@ internal sealed class NatsTopic<TMessage> : DefaultTopic<TMessage>
     {
         // We ensure that the processing is not started before the context is fully initialized.
         Debug.Assert(_connection != null, "_connection != null");
-        Debug.Assert(_connection != null, "_serializer != null");
+        Debug.Assert(_serializer != null, "_serializer != null");
 
+        var sessionCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         var natsSession = await _connection
-            .SubscribeAsync(Name, (string? m) => DispatchMessage(_serializer, m))
+            .SubscribeCoreAsync<string?>(Name, cancellationToken: sessionCts.Token)
             .ConfigureAwait(false);
+        var processing = ProcessMessagesAsync(natsSession, sessionCts.Token);
+
+        async Task ProcessMessagesAsync(
+            INatsSub<string?> natsSubscription,
+            CancellationToken ct)
+        {
+            try
+            {
+                await foreach (var message in natsSubscription.Msgs.ReadAllAsync(ct).ConfigureAwait(false))
+                {
+                    DispatchMessage(_serializer, message.Data);
+                }
+            }
+            catch (OperationCanceledException) when (ct.IsCancellationRequested)
+            {
+            }
+            catch (ObjectDisposedException) when (ct.IsCancellationRequested)
+            {
+            }
+            catch (Exception ex)
+            {
+                DiagnosticEvents.MessageProcessingError(Name, ex);
+            }
+        }
 
         DiagnosticEvents.ProviderTopicInfo(Name, NatsTopic_ConnectAsync_SubscribedToNats);
 
-        return new Session(Name, natsSession, DiagnosticEvents);
+        return new Session(Name, natsSession, processing, sessionCts, DiagnosticEvents);
     }
 
     private sealed class Session : IAsyncDisposable
     {
         private readonly string _name;
-        private readonly IDisposable _natsSession;
+        private readonly INatsSub<string?> _natsSession;
+        private readonly Task _processing;
+        private readonly CancellationTokenSource _sessionCts;
         private readonly ISubscriptionDiagnosticEvents _diagnosticEvents;
         private bool _disposed;
 
         public Session(
             string name,
-            IDisposable natsSession,
+            INatsSub<string?> natsSession,
+            Task processing,
+            CancellationTokenSource sessionCts,
             ISubscriptionDiagnosticEvents diagnosticEvents)
         {
             _name = name;
             _natsSession = natsSession;
+            _processing = processing;
+            _sessionCts = sessionCts;
             _diagnosticEvents = diagnosticEvents;
         }
 
-        public ValueTask DisposeAsync()
+        public async ValueTask DisposeAsync()
         {
-            if (!_disposed)
+            if (_disposed)
             {
-                _natsSession.Dispose();
-                _diagnosticEvents.ProviderTopicInfo(_name, Session_Dispose_UnsubscribedFromNats);
-                _disposed = true;
+                return;
             }
 
-            return ValueTask.CompletedTask;
+            _disposed = true;
+            _sessionCts.Cancel();
+
+            try
+            {
+                await _natsSession.DisposeAsync().ConfigureAwait(false);
+            }
+            catch (OperationCanceledException) when (_sessionCts.IsCancellationRequested)
+            {
+            }
+            catch (ObjectDisposedException) when (_sessionCts.IsCancellationRequested)
+            {
+            }
+            catch (Exception ex)
+            {
+                _diagnosticEvents.MessageProcessingError(_name, ex);
+            }
+
+            try
+            {
+                await _processing.ConfigureAwait(false);
+            }
+            catch (OperationCanceledException) when (_sessionCts.IsCancellationRequested)
+            {
+            }
+            catch (ObjectDisposedException) when (_sessionCts.IsCancellationRequested)
+            {
+            }
+
+            _sessionCts.Dispose();
+            _diagnosticEvents.ProviderTopicInfo(_name, Session_Dispose_UnsubscribedFromNats);
         }
     }
 }

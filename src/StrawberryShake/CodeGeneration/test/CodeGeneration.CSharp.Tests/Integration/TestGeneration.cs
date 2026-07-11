@@ -1,4 +1,3 @@
-using ChilliCream.Testing;
 using StrawberryShake.Tools.Configuration;
 using static StrawberryShake.CodeGeneration.CSharp.GeneratorTestHelper;
 
@@ -428,5 +427,32 @@ public class TestGeneration
             scalar LocalDate
             scalar LocalDateTime
             scalar LocalTime
+            """);
+
+    [Fact]
+    public void UnsignedTypes() =>
+        AssertResult(
+            CreateIntegrationTest(),
+            skipWarnings: true,
+            """
+            query UnsignedTypes {
+                unsignedByte(input: 1)
+                unsignedShort(input: 256)
+                unsignedInt(input: 65536)
+                unsignedLong(input: 4294967296)
+            }
+            """,
+            """
+            type Query {
+                unsignedByte(input: UnsignedByte!): UnsignedByte!
+                unsignedShort(input: UnsignedShort!): UnsignedShort!
+                unsignedInt(input: UnsignedInt!): UnsignedInt!
+                unsignedLong(input: UnsignedLong!): UnsignedLong!
+            }
+
+            scalar UnsignedByte
+            scalar UnsignedShort
+            scalar UnsignedInt
+            scalar UnsignedLong
             """);
 }

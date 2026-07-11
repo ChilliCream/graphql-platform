@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
+using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Execution;
 using HotChocolate.Types;
 using HotChocolate.Types.Pagination;
@@ -75,6 +76,11 @@ public sealed partial class ExtendedType
         private static bool ImplementsListInterface(Type type) =>
             GetInnerListType(type) is not null;
 
+        [UnconditionalSuppressMessage(
+            "ReflectionAnalysis",
+            "IL2070",
+            Justification =
+                "The type's interfaces are preserved because they are part of the schema type system.")]
         internal static Type? GetInnerListType(Type type)
         {
             var typeDefinition = type.IsGenericType ? type.GetGenericTypeDefinition() : null;
@@ -181,6 +187,7 @@ public sealed partial class ExtendedType
         {
             if (cache.TryGetType(id, out var cached))
             {
+                position += CountComponents(cached);
                 return cached;
             }
 
@@ -246,6 +253,18 @@ public sealed partial class ExtendedType
             }
 
             return type;
+        }
+
+        private static int CountComponents(IExtendedType type)
+        {
+            var count = 1;
+
+            foreach (var typeArgument in type.TypeArguments)
+            {
+                count += CountComponents(typeArgument);
+            }
+
+            return count;
         }
 
         internal static ExtendedTypeId CreateIdentifier(IExtendedType type)

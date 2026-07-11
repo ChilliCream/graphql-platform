@@ -1,0 +1,62 @@
+operation:
+  - document: |
+      {
+        products {
+          shippingEstimate
+          shippingEstimate2
+          upc @fusion__requirement
+          price @fusion__requirement
+          weight @fusion__requirement
+        }
+      }
+    hash: 123456789101112
+    searchSpace: 1
+    expandedNodes: 2
+nodes:
+  - id: 1
+    type: Operation
+    schema: products
+    operation: |
+      query Op_123456789101112_1 {
+        products {
+          upc
+          price
+          weight
+        }
+      }
+  - id: 2
+    type: Operation
+    schema: inventory
+    operation: |
+      query Op_123456789101112_2(
+        $__fusion_1_upc: String!
+          $__fusion_2_price: Int
+          $__fusion_2_weight: Int
+          $__fusion_3_price: Int
+          $__fusion_3_weight: Int
+      ) {
+        productByUpc(upc: $__fusion_1_upc) {
+          shippingEstimate2(price: $__fusion_2_price, weight: $__fusion_2_weight)
+          shippingEstimate(price: $__fusion_3_price, weight: $__fusion_3_weight)
+        }
+      }
+    source: $.productByUpc
+    target: $.products
+    requirements:
+      - name: __fusion_1_upc
+        selectionMap: >-
+          upc
+      - name: __fusion_2_price
+        selectionMap: >-
+          price
+      - name: __fusion_2_weight
+        selectionMap: >-
+          weight
+      - name: __fusion_3_price
+        selectionMap: >-
+          price
+      - name: __fusion_3_weight
+        selectionMap: >-
+          weight
+    dependencies:
+      - id: 1

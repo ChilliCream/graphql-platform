@@ -1,0 +1,128 @@
+title: Provides_Simple_Covers_Selection
+request:
+  document: |
+    {
+      reviews {
+        author {
+          username
+        }
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "reviews": [
+          {
+            "author": {
+              "username": "User: VXNlcjo0"
+            }
+          },
+          {
+            "author": {
+              "username": "User: VXNlcjo1"
+            }
+          },
+          {
+            "author": {
+              "username": "User: VXNlcjo2"
+            }
+          }
+        ]
+      }
+    }
+sourceSchemas:
+  - name: reviews
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        reviews: [Review]
+        userById(id: ID! @is(field: "id")): User @lookup @internal
+      }
+
+      type Review @key(fields: "id") {
+        id: ID!
+        author: User @provides(fields: "username")
+      }
+
+      type User @key(fields: "id") {
+        id: ID!
+        username: String @external
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_6ad87143_1 {
+              reviews {
+                author {
+                  username
+                }
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "reviews": [
+                    {
+                      "author": {
+                        "username": "User: VXNlcjo0"
+                      }
+                    },
+                    {
+                      "author": {
+                        "username": "User: VXNlcjo1"
+                      }
+                    },
+                    {
+                      "author": {
+                        "username": "User: VXNlcjo2"
+                      }
+                    }
+                  ]
+                }
+              }
+  - name: users
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        userById(id: ID! @is(field: "id")): User @lookup @internal
+      }
+
+      type User @key(fields: "id") {
+        id: ID!
+        username: String
+      }
+operationPlan:
+  operation:
+    - document: |
+        {
+          reviews {
+            author {
+              username
+            }
+          }
+        }
+      hash: 6ad87143bdde6c7ca60b9c9755cba322
+      searchSpace: 1
+      expandedNodes: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: reviews
+      operation: |
+        query Op_6ad87143_1 {
+          reviews {
+            author {
+              username
+            }
+          }
+        }

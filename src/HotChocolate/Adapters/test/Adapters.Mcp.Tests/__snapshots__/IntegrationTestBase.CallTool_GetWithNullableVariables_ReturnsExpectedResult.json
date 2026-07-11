@@ -2,17 +2,17 @@
   "data": {
     "withNullableVariables": {
       "any": null,
+      "base64String": null,
       "boolean": null,
       "byte": null,
-      "byteArray": null,
       "date": null,
       "dateTime": null,
       "decimal": null,
+      "duration": null,
       "enum": null,
       "float": null,
       "id": null,
       "int": null,
-      "json": null,
       "list": null,
       "localDate": null,
       "localDateTime": null,
@@ -21,8 +21,12 @@
       "object": null,
       "short": null,
       "string": null,
-      "timeSpan": null,
       "unknown": null,
+      "unsignedByte": null,
+      "unsignedInt": null,
+      "unsignedLong": null,
+      "unsignedShort": null,
+      "uri": null,
       "url": null,
       "uuid": null
     }

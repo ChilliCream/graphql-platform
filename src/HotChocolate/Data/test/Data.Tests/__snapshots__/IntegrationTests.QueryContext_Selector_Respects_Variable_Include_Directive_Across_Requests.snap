@@ -1,0 +1,21 @@
+Warmup
+---------------
+{
+  "data": {
+    "conditionalAuthors": []
+  }
+}
+---------------
+
+Result
+---------------
+{
+  "data": {
+    "conditionalAuthors": [
+      {
+        "id": 1
+      }
+    ]
+  }
+}
+---------------

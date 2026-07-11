@@ -1,3 +1,5 @@
+using System.Collections.Immutable;
+
 namespace HotChocolate.Execution;
 
 /// <summary>
@@ -11,18 +13,13 @@ public sealed class OperationResultBatch : ExecutionResult
     /// <param name="results">
     /// The results of this batch.
     /// </param>
-    /// <param name="contextData">
-    /// The result context data which represent additional properties that are NOT written to the transport.
-    /// </param>
     /// <exception cref="ArgumentException">
     /// The result must be either an operation result or a response stream.
     /// </exception>
     /// <exception cref="ArgumentNullException">
     /// <paramref name="results"/> is <c>null</c>.
     /// </exception>
-    public OperationResultBatch(
-        IReadOnlyList<IExecutionResult> results,
-        IReadOnlyDictionary<string, object?>? contextData = null)
+    public OperationResultBatch(ImmutableList<IExecutionResult> results)
     {
         ArgumentNullException.ThrowIfNull(results);
 
@@ -37,9 +34,7 @@ public sealed class OperationResultBatch : ExecutionResult
         }
 
         Results = results ?? throw new ArgumentNullException(nameof(results));
-        ContextData = contextData;
-
-        RegisterForCleanup(() => RunCleanUp(results));
+        RegisterForCleanup(() => RunCleanUp(Results));
     }
 
     /// <summary>
@@ -50,41 +45,7 @@ public sealed class OperationResultBatch : ExecutionResult
     /// <summary>
     /// Gets the results of this batch.
     /// </summary>
-    public IReadOnlyList<IExecutionResult> Results { get; }
-
-    /// <summary>
-    /// Gets the result context data which represent additional
-    /// properties that are NOT written to the transport.
-    /// </summary>
-    public override IReadOnlyDictionary<string, object?>? ContextData { get; }
-
-    /// <summary>
-    /// Creates a new <see cref="OperationResultBatch"/> with the specified results.
-    /// </summary>
-    /// <param name="results">
-    /// The results of this batch.
-    /// </param>
-    /// <returns>
-    /// Returns a new <see cref="OperationResultBatch"/> with the specified results.
-    /// </returns>
-    public OperationResultBatch WithResults(IReadOnlyList<IExecutionResult> results)
-    {
-        var newBatch = new OperationResultBatch(results, ContextData);
-        var (tasks, length) = TakeCleanUpTasks();
-
-        if (length > 0)
-        {
-            foreach (var cleanupTask in tasks)
-            {
-                newBatch.RegisterForCleanup(cleanupTask);
-            }
-
-            tasks.AsSpan(0, length).Clear();
-            CleanUpTaskPool.Return(tasks);
-        }
-
-        return newBatch;
-    }
+    public ImmutableList<IExecutionResult> Results { get; }
 
     private static async ValueTask RunCleanUp(IReadOnlyList<IExecutionResult> results)
     {

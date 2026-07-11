@@ -50,25 +50,31 @@ namespace Microsoft.Extensions.DependencyInjection
             });
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityMapper<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroWithFragmentIncludeAndSkipDirective.State.DroidEntity, global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroWithFragmentIncludeAndSkipDirective.GetHeroWithFragmentIncludeAndSkipDirective_Hero_Droid>, global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroWithFragmentIncludeAndSkipDirective.State.GetHeroWithFragmentIncludeAndSkipDirective_Hero_DroidFromDroidEntityMapper>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityMapper<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroWithFragmentIncludeAndSkipDirective.State.HumanEntity, global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroWithFragmentIncludeAndSkipDirective.GetHeroWithFragmentIncludeAndSkipDirective_Hero_Human>, global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroWithFragmentIncludeAndSkipDirective.State.GetHeroWithFragmentIncludeAndSkipDirective_Hero_HumanFromHumanEntityMapper>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.StringSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.AnySerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.Base64StringSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.BooleanSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.ByteArraySerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.ByteSerializer>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.ShortSerializer>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.IntSerializer>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.LongSerializer>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.FloatSerializer>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.DecimalSerializer>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.UrlSerializer>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.UUIDSerializer>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.IdSerializer>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.DateTimeSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.DateSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.DateTimeSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.DecimalSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.DurationSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.FloatSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.IdSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.IntSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.LocalDateSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.LocalDateTimeSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.LocalTimeSerializer>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.ByteArraySerializer>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.TimeSpanSerializer>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.JsonSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.LongSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.ShortSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.StringSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.UnsignedByteSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.UnsignedIntSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.UnsignedLongSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.UnsignedShortSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.UriSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.UrlSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.UUIDSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializerResolver>(services, sp => new global::StrawberryShake.Serialization.SerializerResolver(global::System.Linq.Enumerable.Concat(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::System.Collections.Generic.IEnumerable<global::StrawberryShake.Serialization.ISerializer>>(parentServices), global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::System.Collections.Generic.IEnumerable<global::StrawberryShake.Serialization.ISerializer>>(sp))));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultDataFactory<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroWithFragmentIncludeAndSkipDirective.IGetHeroWithFragmentIncludeAndSkipDirectiveResult>, global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroWithFragmentIncludeAndSkipDirective.State.GetHeroWithFragmentIncludeAndSkipDirectiveResultFactory>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultDataFactory>(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationResultDataFactory<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroWithFragmentIncludeAndSkipDirective.IGetHeroWithFragmentIncludeAndSkipDirectiveResult>>(sp));
@@ -659,7 +665,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroWithF
     /// ) {
     ///   hero(episode: NEW_HOPE) {
     ///     __typename
-    ///     ... HeroFragment
+    ///     ...HeroFragment
     ///     ... on Droid {
     ///       id
     ///     }
@@ -673,18 +679,18 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroWithF
     ///   id
     ///   friends {
     ///     __typename
-    ///     ... FriendsFragment
+    ///     ...FriendsFragment
     ///   }
     /// }
     /// 
     /// fragment FriendsFragment on FriendsConnection {
     ///   includedPageInfo: pageInfo @include(if: $includePageInfo) {
     ///     __typename
-    ///     ... PageInfoFragment
+    ///     ...PageInfoFragment
     ///   }
     ///   skippedPageInfo: pageInfo @skip(if: $skipPageInfo) {
     ///     __typename
-    ///     ... PageInfoFragment
+    ///     ...PageInfoFragment
     ///   }
     /// }
     /// 
@@ -702,8 +708,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroWithF
 
         public static GetHeroWithFragmentIncludeAndSkipDirectiveQueryDocument Instance { get; } = new GetHeroWithFragmentIncludeAndSkipDirectiveQueryDocument();
         public global::StrawberryShake.OperationKind Kind => global::StrawberryShake.OperationKind.Query;
-        public global::System.ReadOnlySpan<global::System.Byte> Body => "query GetHeroWithFragmentIncludeAndSkipDirective($includePageInfo: Boolean = false, $skipPageInfo: Boolean = true) { hero(episode: NEW_HOPE) { __typename ... HeroFragment ... on Droid { id } ... on Human { id } } } fragment HeroFragment on Character { id friends { __typename ... FriendsFragment } } fragment FriendsFragment on FriendsConnection { includedPageInfo: pageInfo @include(if: $includePageInfo) { __typename ... PageInfoFragment } skippedPageInfo: pageInfo @skip(if: $skipPageInfo) { __typename ... PageInfoFragment } } fragment PageInfoFragment on PageInfo { hasNextPage }"u8;
-        public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("sha1Hash", "87f3c93b0135cfd1f7e0467b57ae1a6ef7d4e828");
+        public global::System.ReadOnlySpan<global::System.Byte> Body => "query GetHeroWithFragmentIncludeAndSkipDirective($includePageInfo: Boolean = false, $skipPageInfo: Boolean = true) { hero(episode: NEW_HOPE) { __typename ...HeroFragment ... on Droid { id } ... on Human { id } } } fragment HeroFragment on Character { id friends { __typename ...FriendsFragment } } fragment FriendsFragment on FriendsConnection { includedPageInfo: pageInfo @include(if: $includePageInfo) { __typename ...PageInfoFragment } skippedPageInfo: pageInfo @skip(if: $skipPageInfo) { __typename ...PageInfoFragment } } fragment PageInfoFragment on PageInfo { hasNextPage }"u8;
+        public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("sha1Hash", "a4302a9b8faf7b6596545818cc8fb8b10ce44246");
 
         public override global::System.String ToString()
         {
@@ -725,7 +731,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroWithF
     /// ) {
     ///   hero(episode: NEW_HOPE) {
     ///     __typename
-    ///     ... HeroFragment
+    ///     ...HeroFragment
     ///     ... on Droid {
     ///       id
     ///     }
@@ -739,18 +745,18 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroWithF
     ///   id
     ///   friends {
     ///     __typename
-    ///     ... FriendsFragment
+    ///     ...FriendsFragment
     ///   }
     /// }
     /// 
     /// fragment FriendsFragment on FriendsConnection {
     ///   includedPageInfo: pageInfo @include(if: $includePageInfo) {
     ///     __typename
-    ///     ... PageInfoFragment
+    ///     ...PageInfoFragment
     ///   }
     ///   skippedPageInfo: pageInfo @skip(if: $skipPageInfo) {
     ///     __typename
-    ///     ... PageInfoFragment
+    ///     ...PageInfoFragment
     ///   }
     /// }
     /// 
@@ -865,7 +871,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroWithF
     /// ) {
     ///   hero(episode: NEW_HOPE) {
     ///     __typename
-    ///     ... HeroFragment
+    ///     ...HeroFragment
     ///     ... on Droid {
     ///       id
     ///     }
@@ -879,18 +885,18 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroWithF
     ///   id
     ///   friends {
     ///     __typename
-    ///     ... FriendsFragment
+    ///     ...FriendsFragment
     ///   }
     /// }
     /// 
     /// fragment FriendsFragment on FriendsConnection {
     ///   includedPageInfo: pageInfo @include(if: $includePageInfo) {
     ///     __typename
-    ///     ... PageInfoFragment
+    ///     ...PageInfoFragment
     ///   }
     ///   skippedPageInfo: pageInfo @skip(if: $skipPageInfo) {
     ///     __typename
-    ///     ... PageInfoFragment
+    ///     ...PageInfoFragment
     ///   }
     /// }
     /// 

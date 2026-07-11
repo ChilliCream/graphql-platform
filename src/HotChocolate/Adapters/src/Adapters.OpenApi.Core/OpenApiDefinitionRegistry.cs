@@ -1,10 +1,20 @@
+#if !NET9_0_OR_GREATER
+using System.Diagnostics.CodeAnalysis;
+#endif
+using System.Reactive.Linq;
 using HotChocolate.Utilities;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Adapters.OpenApi;
 
-internal sealed class OpenApiDefinitionRegistry : IAsyncDisposable
+#if !NET9_0_OR_GREATER
+[RequiresDynamicCode(
+    "JSON serialization and deserialization might require types that cannot be statically analyzed and might need runtime code generation. Use System.Text.Json source generation for native AOT applications.")]
+[RequiresUnreferencedCode(
+    "JSON serialization and deserialization might require types that cannot be statically analyzed. Use the overload that takes a JsonTypeInfo or JsonSerializerContext, or make sure all of the required types are preserved.")]
+#endif
+internal sealed class OpenApiDefinitionRegistry : IDisposable
 {
     private static readonly OpenApiDefinitionValidator s_validator = new();
 
@@ -13,6 +23,7 @@ internal sealed class OpenApiDefinitionRegistry : IAsyncDisposable
     private readonly IDynamicEndpointDataSource _dynamicEndpointDataSource;
     private readonly SemaphoreSlim _updateSemaphore = new(1, 1);
     private readonly CancellationTokenSource _cancellationTokenSource = new();
+    private readonly IDisposable _subscription;
 
     private ISchemaDefinition? _schema;
     private bool _disposed;
@@ -26,7 +37,10 @@ internal sealed class OpenApiDefinitionRegistry : IAsyncDisposable
         _transformer = transformer;
         _dynamicEndpointDataSource = dynamicEndpointDataSource;
 
-        _storage.Changed += OnStorageChanged;
+        _subscription = _storage
+            .Buffer(TimeSpan.FromMilliseconds(500), 10)
+            .Where(batch => batch.Count > 0)
+            .Subscribe(_ => HandleStorageChangedAsync().FireAndForget());
     }
 
     public async ValueTask UpdateSchemaAsync(
@@ -50,44 +64,49 @@ internal sealed class OpenApiDefinitionRegistry : IAsyncDisposable
         }
     }
 
-    public async ValueTask DisposeAsync()
+    public void Dispose()
     {
         if (!_disposed)
         {
             _disposed = true;
 
-            _storage.Changed -= OnStorageChanged;
-            _updateSemaphore.Dispose();
+            _subscription.Dispose();
 
-            await _cancellationTokenSource.CancelAsync().ConfigureAwait(false);
+            // Cancel before disposing the semaphore so any in-flight WaitAsync(token)
+            // observes the cancellation and exits, instead of being orphaned forever
+            // in the semaphore's waiter list (Dispose does not complete pending waits).
+            _cancellationTokenSource.Cancel();
+
+            _updateSemaphore.Dispose();
             _cancellationTokenSource.Dispose();
         }
     }
 
-    private void OnStorageChanged(object? sender, EventArgs e)
-    {
-        if (_schema is null)
-        {
-            return;
-        }
-
-        HandleStorageChangedAsync().FireAndForget();
-    }
-
     private async Task HandleStorageChangedAsync()
     {
-        if (_schema is null)
+        if (_disposed || _schema is null)
         {
             return;
         }
 
         var cancellationToken = _cancellationTokenSource.Token;
 
-        await _updateSemaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
+        try
+        {
+            await _updateSemaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
+        }
+        catch (OperationCanceledException)
+        {
+            return;
+        }
+        catch (ObjectDisposedException)
+        {
+            return;
+        }
 
         try
         {
-            if (_schema is null)
+            if (_disposed || _schema is null)
             {
                 return;
             }
@@ -103,7 +122,13 @@ internal sealed class OpenApiDefinitionRegistry : IAsyncDisposable
         }
         finally
         {
-            _updateSemaphore.Release();
+            try
+            {
+                _updateSemaphore.Release();
+            }
+            catch (ObjectDisposedException)
+            {
+            }
         }
     }
 
@@ -146,29 +171,75 @@ internal sealed class OpenApiDefinitionRegistry : IAsyncDisposable
 
         var modelsByName = CreateModelsByNameLookup(models);
 
-        _transformer.AddDefinitions(endpoints, models, modelsByName, schema);
-
-        // Update endpoints
-        var httpEndpoints = new List<Endpoint>();
-        var processedEndpoints = new HashSet<(string, string)>();
+        // When multiple endpoints share (method, route): a descriptor with a valid document
+        // wins. If no duplicate produces a valid descriptor, the first one whose document
+        // failed validation is kept so the route is still registered (the middleware returns
+        // HTTP 500 on call). Descriptors that fail to construct outright are skipped.
+        // Track the chosen definitions in parallel with the descriptors so the same selection
+        // feeds both the runtime endpoints and the OpenAPI document generation.
+        var chosenDefinitions = new List<OpenApiEndpointDefinition>();
+        var chosenDescriptors = new List<OpenApiEndpointDescriptor>();
+        var keyToIndex = new Dictionary<(string, string), int>();
+        var keyHasValid = new HashSet<(string, string)>();
 
         foreach (var endpoint in endpoints)
         {
             var key = (endpoint.HttpMethod, endpoint.Route);
 
-            if (!processedEndpoints.Add(key))
+            if (keyHasValid.Contains(key))
             {
                 continue;
             }
 
+            OpenApiEndpointDescriptor descriptor;
+
             try
             {
-                var httpEndpoint = OpenApiEndpointFactory.Create(endpoint, modelsByName, schema);
-                httpEndpoints.Add(httpEndpoint);
+                descriptor = OpenApiEndpointFactory.CreateEndpointDescriptor(endpoint, modelsByName, schema);
             }
             catch
             {
-                // If the construction of an endpoint fails, we just skip over it.
+                continue;
+            }
+
+            if (descriptor.HasValidDocument)
+            {
+                if (keyToIndex.TryGetValue(key, out var existingIndex))
+                {
+                    // Promote: an earlier invalid descriptor is being replaced by a valid one.
+                    chosenDefinitions[existingIndex] = endpoint;
+                    chosenDescriptors[existingIndex] = descriptor;
+                }
+                else
+                {
+                    keyToIndex[key] = chosenDescriptors.Count;
+                    chosenDefinitions.Add(endpoint);
+                    chosenDescriptors.Add(descriptor);
+                }
+
+                keyHasValid.Add(key);
+            }
+            else if (!keyToIndex.ContainsKey(key))
+            {
+                keyToIndex[key] = chosenDescriptors.Count;
+                chosenDefinitions.Add(endpoint);
+                chosenDescriptors.Add(descriptor);
+            }
+        }
+
+        _transformer.AddDefinitions(chosenDefinitions.ToArray(), models, modelsByName, schema);
+
+        var httpEndpoints = new List<Endpoint>();
+
+        foreach (var descriptor in chosenDescriptors)
+        {
+            try
+            {
+                httpEndpoints.Add(OpenApiEndpointFactory.CreateEndpoint(schema.Name, descriptor));
+            }
+            catch
+            {
+                // If wrapping the descriptor in an ASP.NET endpoint fails, we just skip over it.
             }
         }
 

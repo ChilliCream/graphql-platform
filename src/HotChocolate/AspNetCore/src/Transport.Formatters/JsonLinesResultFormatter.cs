@@ -1,7 +1,7 @@
 using System.Buffers;
 using System.IO.Pipelines;
+using System.Runtime.ExceptionServices;
 using HotChocolate.Execution;
-using HotChocolate.Utilities;
 using static HotChocolate.Transport.Formatters.JsonLinesResultFormatterEventSource;
 
 namespace HotChocolate.Transport.Formatters;
@@ -16,19 +16,24 @@ public sealed class JsonLinesResultFormatter(JsonResultFormatterOptions options)
     public ValueTask FormatAsync(
         IExecutionResult result,
         PipeWriter writer,
+        ExecutionResultFormatFlags flags,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(result);
         ArgumentNullException.ThrowIfNull(writer);
 
+        var useIncrementalRfc1 =
+            (flags & ExecutionResultFormatFlags.IncrementalRfc1)
+                == ExecutionResultFormatFlags.IncrementalRfc1;
+
         return result switch
         {
-            IOperationResult operationResult
-                => FormatOperationResultAsync(operationResult, writer, cancellationToken),
+            OperationResult operationResult
+                => FormatOperationResultAsync(operationResult, writer, useIncrementalRfc1, cancellationToken),
             OperationResultBatch resultBatch
-                => FormatResultBatchAsync(resultBatch, writer, cancellationToken),
+                => FormatResultBatchAsync(resultBatch, writer, useIncrementalRfc1, cancellationToken),
             IResponseStream responseStream
-                => FormatResponseStreamAsync(responseStream, writer, cancellationToken),
+                => FormatResponseStreamAsync(responseStream, writer, useIncrementalRfc1, cancellationToken),
             _ => throw new NotSupportedException()
         };
     }
@@ -37,15 +42,22 @@ public sealed class JsonLinesResultFormatter(JsonResultFormatterOptions options)
     /// Writes a single GraphQL response and then completes.
     /// </summary>
     private async ValueTask FormatOperationResultAsync(
-        IOperationResult operationResult,
+        OperationResult operationResult,
         PipeWriter writer,
+        bool useIncrementalRfc1,
         CancellationToken ct)
     {
+        OperationResultFormatterContext? formatContext = null;
         var scope = Log.FormatOperationResultStart();
 
         try
         {
-            MessageHelper.FormatNextMessage(_payloadFormatter, operationResult, writer);
+            MessageHelper.FormatNextMessage(
+                _payloadFormatter,
+                operationResult,
+                writer,
+                useIncrementalRfc1,
+                ref formatContext);
             await writer.FlushAsync(ct).ConfigureAwait(false);
         }
         catch (Exception ex)
@@ -55,16 +67,19 @@ public sealed class JsonLinesResultFormatter(JsonResultFormatterOptions options)
         }
         finally
         {
+            formatContext?.Dispose();
             scope?.Dispose();
         }
     }
 
     /// <summary>
-    /// Writes all results from a variable batch request into the output stream and co
+    /// Writes all results from a variable batch request into the output stream and
+    /// completes when all results have been written.
     /// </summary>
     private async ValueTask FormatResultBatchAsync(
         OperationResultBatch resultBatch,
         PipeWriter writer,
+        bool useIncrementalRfc1,
         CancellationToken ct)
     {
         Exception? exception = null;
@@ -78,16 +93,29 @@ public sealed class JsonLinesResultFormatter(JsonResultFormatterOptions options)
             {
                 switch (result)
                 {
-                    case IOperationResult operationResult:
+                    case OperationResult operationResult:
                     {
                         using var scope = Log.FormatOperationResultStart();
                         await semaphore.WaitAsync(ct).ConfigureAwait(false);
 
                         try
                         {
-                            MessageHelper.FormatNextMessage(_payloadFormatter, operationResult, writer);
-                            await writer.FlushAsync(ct).ConfigureAwait(false);
-                            keepAlive?.Reset();
+                            OperationResultFormatterContext? formatContext = null;
+                            try
+                            {
+                                MessageHelper.FormatNextMessage(
+                                    _payloadFormatter,
+                                    operationResult,
+                                    writer,
+                                    useIncrementalRfc1,
+                                    ref formatContext);
+                                await writer.FlushAsync(ct).ConfigureAwait(false);
+                                keepAlive?.Reset();
+                            }
+                            finally
+                            {
+                                formatContext?.Dispose();
+                            }
                         }
                         catch (Exception ex)
                         {
@@ -107,6 +135,7 @@ public sealed class JsonLinesResultFormatter(JsonResultFormatterOptions options)
                         keepAlive ??= new KeepAliveJob(semaphore, writer);
                         var formatter = new StreamFormatter(
                             _payloadFormatter,
+                            useIncrementalRfc1,
                             keepAlive,
                             responseStream,
                             semaphore,
@@ -141,13 +170,14 @@ public sealed class JsonLinesResultFormatter(JsonResultFormatterOptions options)
         // we rethrow any stream exception that happened.
         if (exception is not null)
         {
-            throw exception;
+            ExceptionDispatchInfo.Capture(exception).Throw();
         }
     }
 
     private async ValueTask FormatResponseStreamAsync(
         IResponseStream responseStream,
         PipeWriter writer,
+        bool useIncrementalRfc1,
         CancellationToken ct)
     {
         using var semaphore = new SemaphoreSlim(1, 1);
@@ -156,7 +186,13 @@ public sealed class JsonLinesResultFormatter(JsonResultFormatterOptions options)
         {
             using (var keepAlive = new KeepAliveJob(semaphore, writer))
             {
-                var formatter = new StreamFormatter(_payloadFormatter, keepAlive, responseStream, semaphore, writer);
+                var formatter = new StreamFormatter(
+                    _payloadFormatter,
+                    useIncrementalRfc1,
+                    keepAlive,
+                    responseStream,
+                    semaphore,
+                    writer);
                 await formatter.ProcessAsync(ct).ConfigureAwait(false);
             }
 
@@ -194,11 +230,14 @@ public sealed class JsonLinesResultFormatter(JsonResultFormatterOptions options)
 
     private sealed class StreamFormatter(
         JsonResultFormatter payloadFormatter,
+        bool useIncrementalRfc1,
         KeepAliveJob keepAliveJob,
         IResponseStream responseStream,
         SemaphoreSlim semaphore,
         PipeWriter writer)
     {
+        private OperationResultFormatterContext? _formatContext;
+
         public async Task ProcessAsync(CancellationToken ct)
         {
             try
@@ -212,7 +251,12 @@ public sealed class JsonLinesResultFormatter(JsonResultFormatterOptions options)
 
                     try
                     {
-                        MessageHelper.FormatNextMessage(payloadFormatter, result, writer);
+                        MessageHelper.FormatNextMessage(
+                            payloadFormatter,
+                            result,
+                            writer,
+                            useIncrementalRfc1,
+                            ref _formatContext);
                         await writer.FlushAsync(ct).ConfigureAwait(false);
                         keepAliveJob.Reset();
                     }
@@ -236,6 +280,7 @@ public sealed class JsonLinesResultFormatter(JsonResultFormatterOptions options)
             }
             finally
             {
+                _formatContext?.Dispose();
                 await responseStream.DisposeAsync().ConfigureAwait(false);
             }
         }
@@ -272,7 +317,7 @@ public sealed class JsonLinesResultFormatter(JsonResultFormatterOptions options)
 
             if (DateTime.UtcNow - _lastWriteTime >= s_keepAlivePeriod)
             {
-                WriteKeepAliveAsync().FireAndForget();
+                _ = WriteKeepAliveAsync();
             }
 
             async Task WriteKeepAliveAsync()
@@ -316,11 +361,13 @@ public sealed class JsonLinesResultFormatter(JsonResultFormatterOptions options)
 
         public static void FormatNextMessage(
             JsonResultFormatter payloadFormatter,
-            IOperationResult result,
-            IBufferWriter<byte> writer)
+            OperationResult result,
+            IBufferWriter<byte> writer,
+            bool useIncrementalRfc1,
+            ref OperationResultFormatterContext? context)
         {
             // write the result data
-            payloadFormatter.Format(result, writer);
+            payloadFormatter.Format(result, writer, useIncrementalRfc1, ref context);
 
             // write the new line
             var span = writer.GetSpan(1);
@@ -328,6 +375,6 @@ public sealed class JsonLinesResultFormatter(JsonResultFormatterOptions options)
             writer.Advance(1);
         }
 
-        public static ReadOnlySpan<byte> KeepAlive => " "u8;
+        public static ReadOnlySpan<byte> KeepAlive => " \n"u8;
     }
 }

@@ -1,108 +1,206 @@
-using ChilliCream.Nitro.CommandLine.Client;
-using ChilliCream.Nitro.CommandLine.Options;
-using ChilliCream.Nitro.CommandLine.Settings;
+using System.Diagnostics.CodeAnalysis;
+using ChilliCream.Nitro.CommandLine.Arguments;
+using ChilliCream.Nitro.CommandLine.Helpers;
+using ChilliCream.Nitro.CommandLine.Services;
+using HotChocolate.Fusion;
+using HotChocolate.Fusion.Options;
+using HotChocolate.Fusion.Packaging;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Fusion;
 
+#if !NET9_0_OR_GREATER
+[RequiresDynamicCode("JSON serialization and deserialization might require types that cannot be statically analyzed and might need runtime code generation. Use System.Text.Json source generation for native AOT applications.")]
+[RequiresUnreferencedCode("JSON serialization and deserialization might require types that cannot be statically analyzed. Use the overload that takes a JsonTypeInfo or JsonSerializerContext, or make sure all of the required types are preserved.")]
+#endif
 internal sealed class FusionSettingsSetCommand : Command
 {
     public FusionSettingsSetCommand() : base("set")
     {
-        Description = "Sets a Fusion composition setting and publishes the updated Fusion configuration to Nitro";
+        Description = "Set a Fusion composition setting in a Fusion archive.";
 
-        var settingNameArgument = new Argument<string>("SETTING_NAME")
-            .FromAmong(SettingNames.GlobalObjectIdentification, SettingNames.ExcludeByTag);
+        Arguments.Add(Opt<FusionSettingsNameArgument>.Instance);
+        Arguments.Add(Opt<FusionSettingsValueArgument>.Instance);
 
-        var settingValueArgument = new Argument<string>("SETTING_VALUE");
+        Options.Add(Opt<FusionArchiveFileOption>.Instance);
 
-        AddArgument(settingNameArgument);
-        AddArgument(settingValueArgument);
+        Options.Add(Opt<FusionEnvironmentOption>.Instance);
 
-        AddOption(Opt<TagOption>.Instance);
-        AddOption(Opt<StageNameOption>.Instance);
-        AddOption(Opt<ApiIdOption>.Instance);
-        AddOption(Opt<CloudUrlOption>.Instance);
-        AddOption(Opt<ApiKeyOption>.Instance);
+        this.AddGlobalNitroOptions();
 
-        this.SetHandler(async context =>
-        {
-            var settingName = context.ParseResult.GetValueForArgument(settingNameArgument);
-            var settingValue = context.ParseResult.GetValueForArgument(settingValueArgument);
+        this.AddExamples(
+            """
+            fusion settings set global-object-identification "true" \
+              --archive ./gateway.far \
+              --env "dev"
+            """);
 
-            var stageName = context.ParseResult.GetValueForOption(Opt<StageNameOption>.Instance)!;
-            var apiId = context.ParseResult.GetValueForOption(Opt<ApiIdOption>.Instance)!;
-            var tag = context.ParseResult.GetValueForOption(Opt<TagOption>.Instance)!;
-
-            var console = context.BindingContext.GetRequiredService<IAnsiConsole>();
-            var apiClient = context.BindingContext.GetRequiredService<IApiClient>();
-            var httpClientFactory = context.BindingContext.GetRequiredService<IHttpClientFactory>();
-
-            context.ExitCode = await ExecuteAsync(
-                settingName,
-                settingValue,
-                apiId,
-                stageName,
-                tag,
-                console,
-                apiClient,
-                httpClientFactory,
-                context.GetCancellationToken());
-        });
+        this.SetActionWithExceptionHandling(ExecuteAsync);
     }
 
     private static async Task<int> ExecuteAsync(
-        string settingName,
-        string settingValue,
-        string apiId,
-        string stageName,
-        string tag,
-        IAnsiConsole console,
-        IApiClient client,
-        IHttpClientFactory httpClientFactory,
+        ICommandServices services,
+        ParseResult parseResult,
         CancellationToken cancellationToken)
     {
+        var console = services.GetRequiredService<INitroConsole>();
+        var fileSystem = services.GetRequiredService<IFileSystem>();
+        var environmentVariables = services.GetRequiredService<IEnvironmentVariableProvider>();
+
+        var settingName = parseResult.GetRequiredValue(Opt<FusionSettingsNameArgument>.Instance);
+        var settingValue = parseResult.GetRequiredValue(Opt<FusionSettingsValueArgument>.Instance);
+        var archiveFile = parseResult.GetRequiredValue(Opt<FusionArchiveFileOption>.Instance);
+        var environment = parseResult.GetValue(Opt<FusionEnvironmentOption>.Instance);
+
         var compositionSettings = new CompositionSettings();
 
         switch (settingName)
         {
-            case SettingNames.ExcludeByTag:
+            case FusionSettingsNameArgument.CacheControlMergeBehavior:
+                if (!TryParseDirectiveMergeBehavior(settingValue, out var cacheControlMergeBehavior))
+                {
+                    throw new ExitException(
+                        $"Expected one of the following values for setting '{settingName}': "
+                        + $"{string.Join(", ", DirectiveMergeBehaviorNames.All)}");
+                }
+
+                compositionSettings.Merger.CacheControlMergeBehavior = cacheControlMergeBehavior;
+                break;
+
+            case FusionSettingsNameArgument.ExcludeByTag:
                 var tags = settingValue
                     .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 
-                compositionSettings.Preprocessor!.ExcludeByTag = tags.ToHashSet();
+                compositionSettings.Preprocessor.ExcludeByTag = tags.ToHashSet();
                 break;
 
-            case SettingNames.GlobalObjectIdentification:
+            case FusionSettingsNameArgument.GlobalObjectIdentification:
                 if (!bool.TryParse(settingValue, out var enableGlobalObjectIdentification))
                 {
-                    console.ErrorLine($"Expected a boolean value for setting '{settingName}'.");
-                    return ExitCodes.Error;
+                    throw new ExitException($"Expected a boolean value for setting '{settingName}'.");
                 }
 
-                compositionSettings.Merger!.EnableGlobalObjectIdentification = enableGlobalObjectIdentification;
+                compositionSettings.Merger.EnableGlobalObjectIdentification = enableGlobalObjectIdentification;
+                break;
+
+            case FusionSettingsNameArgument.NodeResolution:
+                compositionSettings.Merger.NodeResolution = settingValue switch
+                {
+                    "gateway" => NodeResolution.Gateway,
+                    "source-schema" => NodeResolution.SourceSchema,
+                    _ => throw new ExitException(
+                        $"Expected one of the following values for setting '{settingName}': "
+                        + "gateway, source-schema")
+                };
+                break;
+
+            case FusionSettingsNameArgument.ShareableFieldRuntimeTypeRouting:
+                compositionSettings.ApolloFederationCompatibility
+                    .ShareableFieldRuntimeTypeRouting = settingValue switch
+                    {
+                        "source-local" => ShareableFieldRuntimeTypeRouting.SourceLocal,
+                        "common-runtime-types" =>
+                            ShareableFieldRuntimeTypeRouting.CommonRuntimeTypes,
+                        _ => throw new ExitException(
+                            $"Expected one of the following values for setting '{settingName}': "
+                            + "source-local, common-runtime-types")
+                    };
+                break;
+
+            case FusionSettingsNameArgument.TagMergeBehavior:
+                if (!TryParseDirectiveMergeBehavior(settingValue, out var tagMergeBehavior))
+                {
+                    throw new ExitException(
+                        $"Expected one of the following values for setting '{settingName}': "
+                        + $"{string.Join(", ", DirectiveMergeBehaviorNames.All)}");
+                }
+
+                compositionSettings.Merger.TagMergeBehavior = tagMergeBehavior;
                 break;
 
             default:
                 throw new ArgumentOutOfRangeException(nameof(settingName));
         }
 
-        return await FusionPublishCommand.ExecuteAsync(
-            null,
+        if (!Path.IsPathRooted(archiveFile))
+        {
+            archiveFile = Path.Combine(fileSystem.GetCurrentDirectory(), archiveFile);
+        }
+
+        if (!fileSystem.FileExists(archiveFile))
+        {
+            throw new ExitException(Messages.ArchiveFileDoesNotExist(archiveFile));
+        }
+
+        using var archive = FusionArchive.Open(archiveFile, mode: FusionArchiveMode.Update);
+
+        environment ??= environmentVariables.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Development";
+
+        await using var composeActivity = console.StartActivity(
+            "Composing new configuration",
+            "Failed to compose new configuration.");
+
+        var (result, compositionLog) = await FusionPublishHelpers.ComposeAsync(
+            archive,
+            environment,
             [],
-            apiId,
-            stageName,
-            tag,
             compositionSettings,
-            requireExistingConfiguration: true,
-            console,
-            client,
-            httpClientFactory,
+            legacyArchive: null,
             cancellationToken);
+
+        if (result.IsSuccess)
+        {
+            composeActivity.Success("Composed new configuration.");
+
+            return ExitCodes.Success;
+        }
+        else
+        {
+            await composeActivity.FailAllAsync();
+
+            console.WriteLine();
+            console.WriteLine("## Composition log");
+            console.WriteLine();
+
+            FusionComposeCommand.WriteCompositionLog(
+                compositionLog,
+                console.Out,
+                false);
+
+            foreach (var error in result.Errors)
+            {
+                console.Error.WriteErrorLine(error.Message);
+            }
+
+            throw new ExitException();
+        }
     }
 
-    private static class SettingNames
+    private static bool TryParseDirectiveMergeBehavior(
+        string value,
+        [NotNullWhen(true)] out DirectiveMergeBehavior? directiveMergeBehavior)
     {
-        public const string ExcludeByTag = "exclude-by-tag";
-        public const string GlobalObjectIdentification = "global-object-identification";
+        directiveMergeBehavior = value switch
+        {
+            DirectiveMergeBehaviorNames.Ignore => DirectiveMergeBehavior.Ignore,
+            DirectiveMergeBehaviorNames.Include => DirectiveMergeBehavior.Include,
+            DirectiveMergeBehaviorNames.IncludePrivate => DirectiveMergeBehavior.IncludePrivate,
+            _ => null
+        };
+
+        return directiveMergeBehavior is not null;
+    }
+
+    private static class DirectiveMergeBehaviorNames
+    {
+        public const string Ignore = "ignore";
+        public const string Include = "include";
+        public const string IncludePrivate = "include-private";
+
+        public static readonly string[] All =
+        [
+            Ignore,
+            Include,
+            IncludePrivate
+        ];
     }
 }

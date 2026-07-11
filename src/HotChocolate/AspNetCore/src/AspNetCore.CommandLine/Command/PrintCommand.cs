@@ -6,29 +6,33 @@ using Microsoft.Extensions.Hosting;
 namespace HotChocolate.AspNetCore.CommandLine;
 
 /// <summary>
-/// The print command can be used to print the schema to the console output
+/// The print command can be used to print the schema to the console output.
 /// </summary>
 internal sealed class PrintCommand : Command
 {
     /// <summary>
-    /// Initializes a new instance of the <see cref="ExportCommand"/> class.
+    /// Initializes a new instance of the <see cref="PrintCommand"/> class.
     /// </summary>
-    public PrintCommand() : base("print")
+    public PrintCommand(IHost host) : base("print")
     {
         Description = "Prints the graphql schema to the console output";
 
-        AddOption(Opt<SchemaNameOption>.Instance);
+        var schemaNameOption = new SchemaNameOption();
 
-        this.SetHandler(
-            ExecuteAsync,
-            Bind.FromServiceProvider<IConsole>(),
-            Bind.FromServiceProvider<IHost>(),
-            Opt<SchemaNameOption>.Instance,
-            Bind.FromServiceProvider<CancellationToken>());
+        Options.Add(schemaNameOption);
+
+        SetAction(
+            (parseResult, cancellationToken) =>
+            {
+                var output = parseResult.InvocationConfiguration.Output;
+                var schemaName = parseResult.GetValue(schemaNameOption);
+
+                return ExecuteAsync(output, host, schemaName, cancellationToken);
+            });
     }
 
     private static async Task ExecuteAsync(
-        IConsole console,
+        TextWriter output,
         IHost host,
         string? schemaName,
         CancellationToken cancellationToken)
@@ -41,7 +45,7 @@ internal sealed class PrintCommand : Command
 
             if (schemaNames.IsEmpty)
             {
-                console.WriteLine("No schemas registered.");
+                await output.WriteLineAsync("No schemas registered.");
                 return;
             }
 
@@ -51,6 +55,6 @@ internal sealed class PrintCommand : Command
         }
 
         var executor = await provider.GetExecutorAsync(schemaName, cancellationToken);
-        console.WriteLine(executor.Schema.ToString());
+        await output.WriteLineAsync(executor.Schema.ToString());
     }
 }

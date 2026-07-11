@@ -15,7 +15,7 @@ public class HumanType : ObjectType<Human>
         descriptor.Field(t => t.AppearsIn).Type<ListType<EpisodeType>>();
 
         descriptor
-            .Field<SharedResolvers>(r => r.GetCharacter(null!, null!))
+            .Field<SharedResolvers>(r => r.GetCharacters(null!, null!))
             .UsePaging<CharacterType>()
             .Name("friends")
             .Parallel();

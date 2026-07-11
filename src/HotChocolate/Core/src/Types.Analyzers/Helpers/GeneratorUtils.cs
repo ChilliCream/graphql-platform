@@ -8,7 +8,7 @@ namespace HotChocolate.Types.Analyzers.Helpers;
 internal static class GeneratorUtils
 {
     private static readonly Regex s_invalidCharsRegex = new("[^a-zA-Z0-9]", RegexOptions.Compiled);
-    private static readonly Regex s_xmlWhitespaceRegex = new(@"(\n[ \t]*)", RegexOptions.Compiled);
+    private static readonly Regex s_xmlWhitespaceRegex = new(@"\n[ \t]*", RegexOptions.Compiled);
 
     public static ModuleInfo GetModuleInfo(
         this ImmutableArray<SyntaxInfo> syntaxInfos,
@@ -86,7 +86,7 @@ internal static class GeneratorUtils
 
         if (type.SpecialType == SpecialType.System_Boolean)
         {
-            return defaultValue.ToString()!.ToLower();
+            return defaultValue.ToString().ToLower();
         }
 
         if (type.SpecialType == SpecialType.System_Double
@@ -123,7 +123,7 @@ internal static class GeneratorUtils
                 }
 
                 // Fallback to integer value if no matching member found
-                return defaultValue.ToString()!;
+                return defaultValue.ToString();
             }
 
             if (type.IsNullableValueType())
@@ -184,12 +184,8 @@ internal static class GeneratorUtils
     /// </summary>
     public static string? EscapeForStringLiteral(string? s)
     {
-        if (s == null)
-        {
-            return null;
-        }
-
-        return s.Replace("\\", "\\\\")
+        return s?
+            .Replace("\\", "\\\\")
             .Replace("\"", "\\\"")
             .Replace("\n", "\\n")
             .Replace("\r", "\\r")

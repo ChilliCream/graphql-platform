@@ -45,7 +45,6 @@ public sealed class ParameterBindingResolver
         bindingFactories.Add(new ResolverContextParameterExpressionBuilder());
         bindingFactories.Add(new SchemaParameterExpressionBuilder());
         bindingFactories.Add(new SelectionParameterExpressionBuilder());
-        bindingFactories.Add(new FieldSyntaxParameterExpressionBuilder());
         bindingFactories.Add(new ObjectTypeParameterExpressionBuilder());
         bindingFactories.Add(new OperationDefinitionParameterExpressionBuilder());
         bindingFactories.Add(new OperationParameterExpressionBuilder());
@@ -64,15 +63,24 @@ public sealed class ParameterBindingResolver
     }
 
     public IParameterBinding GetBinding(ParameterDescriptor parameter)
+        => GetBinding(parameter, out _);
+
+    public IParameterBinding GetBinding(
+        ParameterDescriptor parameter,
+        out ArgumentKind kind)
     {
         foreach (var binding in _bindings)
         {
+            EnsureParameterInfoNotRequired(binding, parameter);
+
             if (binding.CanHandle(parameter))
             {
+                kind = binding.Kind;
                 return binding.Create(parameter);
             }
         }
 
+        kind = _defaultBinding.Kind;
         return _defaultBinding.Create(parameter);
     }
 
@@ -80,6 +88,8 @@ public sealed class ParameterBindingResolver
     {
         foreach (var binding in _bindings)
         {
+            EnsureParameterInfoNotRequired(binding, parameter);
+
             if (binding.CanHandle(parameter))
             {
                 return (binding.Kind, binding.IsPure);
@@ -87,5 +97,22 @@ public sealed class ParameterBindingResolver
         }
 
         return (_defaultBinding.Kind, _defaultBinding.IsPure);
+    }
+
+    private static void EnsureParameterInfoNotRequired(
+        IParameterBindingFactory binding,
+        ParameterDescriptor parameter)
+    {
+        if (binding is CustomParameterExpressionBuilder customBuilder
+            && customBuilder.RequiresParameterInfo(parameter))
+        {
+            throw new SchemaException(
+                SchemaErrorBuilder.New()
+                    .SetMessage(
+                        "Custom parameter expression builders that use a ParameterInfo predicate "
+                        + "cannot be used with source-generated resolvers. Omit the canHandle "
+                        + "predicate to match parameters by type.")
+                    .Build());
+        }
     }
 }

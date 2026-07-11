@@ -15,9 +15,15 @@ public class DirectiveDefinitionNodeTests
         var locations = new List<NameNode>();
 
         // act
-        var directiveDefinition = new DirectiveDefinitionNode(
-            location, name, description, isRepeatable,
-            arguments, locations);
+        var directiveDefinition =
+            new DirectiveDefinitionNode(
+                location,
+                name,
+                description,
+                isRepeatable,
+                arguments,
+                [],
+                locations);
 
         // assert
         Assert.Equal(SyntaxKind.DirectiveDefinition, directiveDefinition.Kind);
@@ -39,13 +45,18 @@ public class DirectiveDefinitionNodeTests
         var locations = new List<NameNode>();
 
         // act
-        var directiveDefinition = new DirectiveDefinitionNode(
-            null, name, description, true,
-            arguments, locations);
+        var directiveDefinition =
+            new DirectiveDefinitionNode(
+                null,
+                name,
+                description,
+                isRepeatable: true,
+                arguments,
+                [],
+                locations);
 
         // assert
-        Assert.Equal(SyntaxKind.DirectiveDefinition,
-            directiveDefinition.Kind);
+        Assert.Equal(SyntaxKind.DirectiveDefinition, directiveDefinition.Kind);
         Assert.Null(directiveDefinition.Location);
         Assert.Equal(name, directiveDefinition.Name);
         Assert.Equal(description, directiveDefinition.Description);
@@ -63,16 +74,21 @@ public class DirectiveDefinitionNodeTests
         var arguments = new List<InputValueDefinitionNode>();
         var locations = new List<NameNode> { new(DirectiveLocation.Field.ToString()) };
 
-        var directiveDefinition = new DirectiveDefinitionNode(
-            null, name, description, true,
-            arguments, locations);
+        var directiveDefinition =
+            new DirectiveDefinitionNode(
+                null,
+                name,
+                description,
+                isRepeatable: true,
+                arguments,
+                [],
+                locations);
 
         // act
-        directiveDefinition = directiveDefinition
-            .WithName(new NameNode("bar"));
+        directiveDefinition = directiveDefinition.WithName(new NameNode("bar"));
 
         // assert
-        directiveDefinition.MatchSnapshot();
+        directiveDefinition.ToString().MatchSnapshot(extension: ".graphql");
     }
 
     [Fact]
@@ -84,16 +100,21 @@ public class DirectiveDefinitionNodeTests
         var arguments = new List<InputValueDefinitionNode>();
         var locations = new List<NameNode> { new(DirectiveLocation.Field.ToString()) };
 
-        var directiveDefinition = new DirectiveDefinitionNode(
-            null, name, description, true,
-            arguments, locations);
+        var directiveDefinition =
+            new DirectiveDefinitionNode(
+                null,
+                name,
+                description,
+                isRepeatable: true,
+                arguments,
+                [],
+                locations);
 
         // act
-        directiveDefinition = directiveDefinition
-            .WithDescription(new StringValueNode("qux"));
+        directiveDefinition = directiveDefinition.WithDescription(new StringValueNode("qux"));
 
         // assert
-        directiveDefinition.MatchSnapshot();
+        directiveDefinition.ToString().MatchSnapshot(extension: ".graphql");
     }
 
     [Fact]
@@ -107,25 +128,25 @@ public class DirectiveDefinitionNodeTests
 
         var directiveDefinition = new DirectiveDefinitionNode(
             null, name, description, true,
-            arguments, locations);
+            arguments, [], locations);
 
         // act
         directiveDefinition = directiveDefinition
             .WithArguments(new List<InputValueDefinitionNode>
             {
-                    new InputValueDefinitionNode
-                    (
-                        null,
-                        new NameNode("arg"),
-                        null,
-                        new NamedTypeNode(new NameNode("type")),
-                        NullValueNode.Default,
-                        Array.Empty<DirectiveNode>()
-                    )
+                new InputValueDefinitionNode
+                (
+                    null,
+                    new NameNode("arg"),
+                    null,
+                    new NamedTypeNode(new NameNode("type")),
+                    NullValueNode.Default,
+                    Array.Empty<DirectiveNode>()
+                )
             });
 
         // assert
-        directiveDefinition.MatchSnapshot();
+        directiveDefinition.ToString().MatchSnapshot(extension: ".graphql");
     }
 
     [Fact]
@@ -139,14 +160,14 @@ public class DirectiveDefinitionNodeTests
 
         var directiveDefinition = new DirectiveDefinitionNode(
             null, name, description, true,
-            arguments, locations);
+            arguments, [], locations);
 
         // act
         directiveDefinition = directiveDefinition
             .WithLocations(new List<NameNode> { new NameNode("BAR") });
 
         // assert
-        directiveDefinition.MatchSnapshot();
+        directiveDefinition.ToString().MatchSnapshot(extension: ".graphql");
     }
 
     [Fact]
@@ -158,16 +179,22 @@ public class DirectiveDefinitionNodeTests
         var arguments = new List<InputValueDefinitionNode>();
         var locations = new List<NameNode> { new(DirectiveLocation.Field.ToString()) };
 
-        var directiveDefinition = new DirectiveDefinitionNode(
-            null, name, description, true,
-            arguments, locations);
+        var directiveDefinition =
+            new DirectiveDefinitionNode(
+                null,
+                name,
+                description,
+                isRepeatable: true,
+                arguments,
+                [],
+                locations);
 
         // act
         directiveDefinition = directiveDefinition
             .WithLocation(AstTestHelper.CreateDummyLocation());
 
         // assert
-        directiveDefinition.MatchSnapshot();
+        directiveDefinition.ToString().MatchSnapshot(extension: ".graphql");
     }
 
     [Fact]
@@ -179,15 +206,21 @@ public class DirectiveDefinitionNodeTests
         var arguments = new List<InputValueDefinitionNode>();
         var locations = new List<NameNode> { new(DirectiveLocation.Field.ToString()) };
 
-        var directiveDefinition = new DirectiveDefinitionNode(
-            null, name, description, true,
-            arguments, locations);
+        var directiveDefinition =
+            new DirectiveDefinitionNode(
+                null,
+                name,
+                description,
+                isRepeatable: true,
+                arguments,
+                [],
+                locations);
 
         // act
         directiveDefinition = directiveDefinition.AsRepeatable(false);
 
         // assert
-        directiveDefinition.MatchSnapshot();
+        directiveDefinition.ToString().MatchSnapshot(extension: ".graphql");
     }
 
     [Fact]
@@ -199,15 +232,21 @@ public class DirectiveDefinitionNodeTests
         var arguments = new List<InputValueDefinitionNode>();
         var locations = new List<NameNode> { new(DirectiveLocation.Field.ToString()) };
 
-        var directiveDefinition = new DirectiveDefinitionNode(
-            null, name, description, false,
-            arguments, locations);
+        var directiveDefinition =
+            new DirectiveDefinitionNode(
+                null,
+                name,
+                description,
+                isRepeatable: false,
+                arguments,
+                [],
+                locations);
 
         // act
         directiveDefinition = directiveDefinition.AsRepeatable();
 
         // assert
-        directiveDefinition.MatchSnapshot();
+        directiveDefinition.ToString().MatchSnapshot(extension: ".graphql");
     }
 
     [Fact]
@@ -220,12 +259,18 @@ public class DirectiveDefinitionNodeTests
         var locations = new List<NameNode> { new(DirectiveLocation.Field.ToString()) };
 
         // act
-        var directiveDefinition = new DirectiveDefinitionNode(
-            null, name, description, true,
-            arguments, locations);
+        var directiveDefinition =
+            new DirectiveDefinitionNode(
+                null,
+                name,
+                description,
+                isRepeatable: true,
+                arguments,
+                [],
+                locations);
 
         // assert
-        directiveDefinition.ToString().MatchSnapshot();
+        directiveDefinition.ToString().MatchSnapshot(extension: ".graphql");
     }
 
     [Fact]
@@ -236,25 +281,32 @@ public class DirectiveDefinitionNodeTests
         var description = new StringValueNode("bar");
         var arguments = new List<InputValueDefinitionNode>
         {
-            new(null,
+            new InputValueDefinitionNode(
+                null,
                 new NameNode("abc"),
                 new StringValueNode("def"),
                 new NamedTypeNode("efg"),
                 null,
-                Array.Empty<DirectiveNode>())
+                [])
         };
         var locations = new List<NameNode>
         {
-            new(DirectiveLocation.Field.ToString())
+            new NameNode(DirectiveLocation.Field.ToString())
         };
 
         // act
-        var directiveDefinition = new DirectiveDefinitionNode(
-            null, name, description, true,
-            arguments, locations);
+        var directiveDefinition =
+            new DirectiveDefinitionNode(
+                null,
+                name,
+                description,
+                isRepeatable: true,
+                arguments,
+                [],
+                locations);
 
         // assert
-        directiveDefinition.ToString().MatchSnapshot();
+        directiveDefinition.ToString().MatchSnapshot(extension: ".graphql");
     }
 
     [Fact]
@@ -263,17 +315,18 @@ public class DirectiveDefinitionNodeTests
         // arrange
         var arguments = new List<InputValueDefinitionNode>
         {
-            new(null,
+            new InputValueDefinitionNode(
+                null,
                 new NameNode("abc"),
                 new StringValueNode("def"),
                 new NamedTypeNode("efg"),
                 null,
-                Array.Empty<DirectiveNode>())
+                [])
         };
 
         var locations = new List<NameNode>
         {
-            new(DirectiveLocation.Field.ToString())
+            new NameNode(DirectiveLocation.Field.ToString())
         };
 
         var a = new DirectiveDefinitionNode(
@@ -282,6 +335,7 @@ public class DirectiveDefinitionNodeTests
             null,
             true,
             arguments,
+            [],
             locations);
         var b = new DirectiveDefinitionNode(
             TestLocations.Location1,
@@ -289,6 +343,7 @@ public class DirectiveDefinitionNodeTests
             null,
             true,
             arguments,
+            [],
             locations);
         var c = new DirectiveDefinitionNode(
             TestLocations.Location1,
@@ -296,6 +351,7 @@ public class DirectiveDefinitionNodeTests
             null,
             true,
             arguments,
+            [],
             locations);
 
         // act
@@ -317,12 +373,13 @@ public class DirectiveDefinitionNodeTests
         // arrange
         var arguments = new List<InputValueDefinitionNode>
         {
-            new(null,
+            new InputValueDefinitionNode(
+                null,
                 new NameNode("abc"),
                 new StringValueNode("def"),
                 new NamedTypeNode("efg"),
                 null,
-                Array.Empty<DirectiveNode>())
+                [])
         };
 
         var locations = new List<NameNode>
@@ -336,6 +393,7 @@ public class DirectiveDefinitionNodeTests
             null,
             true,
             arguments,
+            [],
             locations);
         var b = new DirectiveDefinitionNode(
             TestLocations.Location2,
@@ -343,6 +401,7 @@ public class DirectiveDefinitionNodeTests
             null,
             true,
             arguments,
+            [],
             locations);
         var c = new DirectiveDefinitionNode(
             TestLocations.Location1,
@@ -350,6 +409,7 @@ public class DirectiveDefinitionNodeTests
             null,
             true,
             arguments,
+            [],
             locations);
 
         // act
@@ -390,6 +450,7 @@ public class DirectiveDefinitionNodeTests
             null,
             true,
             arguments,
+            [],
             locations);
         var b = new DirectiveDefinitionNode(
             TestLocations.Location2,
@@ -397,6 +458,7 @@ public class DirectiveDefinitionNodeTests
             null,
             true,
             arguments,
+            [],
             locations);
         var c = new DirectiveDefinitionNode(
             TestLocations.Location1,
@@ -404,6 +466,7 @@ public class DirectiveDefinitionNodeTests
             null,
             true,
             arguments,
+            [],
             locations);
         var d = new DirectiveDefinitionNode(
             TestLocations.Location2,
@@ -411,6 +474,7 @@ public class DirectiveDefinitionNodeTests
             null,
             true,
             arguments,
+            [],
             locations);
 
         // act
@@ -424,5 +488,94 @@ public class DirectiveDefinitionNodeTests
         Assert.NotEqual(aHash, cHash);
         Assert.Equal(cHash, dHash);
         Assert.NotEqual(aHash, dHash);
+    }
+
+    [Fact]
+    public void CreateDirectiveDefinitionWithDirectives()
+    {
+        // arrange
+        var name = new NameNode("foo");
+        var directives = new List<DirectiveNode> { new DirectiveNode("tag") };
+        var locations = new List<NameNode> { new(DirectiveLocation.Object.ToString()) };
+
+        // act
+        var directiveDefinition =
+            new DirectiveDefinitionNode(
+                null,
+                name,
+                description: null,
+                isRepeatable: false,
+                arguments: [],
+                directives,
+                locations);
+
+        // assert
+        Assert.Equal(directives, directiveDefinition.Directives);
+        Assert.Contains(directives[0], directiveDefinition.GetNodes());
+    }
+
+    [Fact]
+    public void CreateDirectiveDefinitionWithoutDirectives()
+    {
+        // arrange
+        var name = new NameNode("foo");
+        var locations = new List<NameNode> { new(DirectiveLocation.Object.ToString()) };
+
+        // act
+        var directiveDefinition =
+            new DirectiveDefinitionNode(
+                null,
+                name,
+                description: null,
+                isRepeatable: false,
+                arguments: [],
+                locations);
+
+        // assert
+        Assert.Empty(directiveDefinition.Directives);
+    }
+
+    [Fact]
+    public void WithDirectives()
+    {
+        // arrange
+        var name = new NameNode("foo");
+        var locations = new List<NameNode> { new(DirectiveLocation.Object.ToString()) };
+        var directiveDefinition = new DirectiveDefinitionNode(
+            null, name, null, false, [], [], locations);
+
+        // act
+        directiveDefinition = directiveDefinition
+            .WithDirectives([new DirectiveNode("tag")]);
+
+        // assert
+        Assert.Equal("tag", Assert.Single(directiveDefinition.Directives).Name.Value);
+    }
+
+    [Fact]
+    public void Equals_With_Different_Directives()
+    {
+        // arrange
+        var locations = new List<NameNode> { new(DirectiveLocation.Field.ToString()) };
+        var a = new DirectiveDefinitionNode(
+            null, new("aa"), null, true, [], [new DirectiveNode("a")], locations);
+        var b = new DirectiveDefinitionNode(
+            null, new("aa"), null, true, [], [new DirectiveNode("a")], locations);
+        var c = new DirectiveDefinitionNode(
+            null, new("aa"), null, true, [], [new DirectiveNode("b")], locations);
+
+        // act
+        var abResult = SyntaxComparer.BySyntax.Equals(a, b);
+        var acResult = SyntaxComparer.BySyntax.Equals(a, c);
+        var abHashEqual =
+            SyntaxComparer.BySyntax.GetHashCode(a) == SyntaxComparer.BySyntax.GetHashCode(b);
+        var acHashEqual =
+            SyntaxComparer.BySyntax.GetHashCode(a) == SyntaxComparer.BySyntax.GetHashCode(c);
+
+        // assert
+        Assert.True(abResult);
+        Assert.False(acResult);
+        Assert.True(abHashEqual);
+        Assert.False(acHashEqual);
     }
 }

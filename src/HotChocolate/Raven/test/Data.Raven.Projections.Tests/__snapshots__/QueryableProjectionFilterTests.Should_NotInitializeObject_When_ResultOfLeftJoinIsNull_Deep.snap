@@ -4,15 +4,9 @@ Result:
   "errors": [
     {
       "message": "Cannot return null for non-nullable field.",
-      "locations": [
-        {
-          "line": 9,
-          "column": 41
-        }
-      ],
       "path": [
         "root",
-        2,
+        1,
         "foo",
         "nestedObject",
         "foo",
@@ -24,15 +18,9 @@ Result:
     },
     {
       "message": "Cannot return null for non-nullable field.",
-      "locations": [
-        {
-          "line": 9,
-          "column": 41
-        }
-      ],
       "path": [
         "root",
-        1,
+        2,
         "foo",
         "nestedObject",
         "foo",

@@ -66,7 +66,8 @@ public class QueryableFilterVisitorDistanceTests
                                 id
                             }
                         }")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
@@ -86,7 +87,8 @@ public class QueryableFilterVisitorDistanceTests
                                 id
                             }
                         }")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
@@ -96,7 +98,7 @@ public class QueryableFilterVisitorDistanceTests
                     : null)
             .AddResult(res1, "2")
             .AddResult(res2, "1")
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     public class Foo

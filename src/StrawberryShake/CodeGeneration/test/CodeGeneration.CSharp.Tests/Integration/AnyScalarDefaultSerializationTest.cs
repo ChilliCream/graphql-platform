@@ -2,7 +2,6 @@ using HotChocolate;
 using HotChocolate.AspNetCore.Tests.Utilities;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
-using Snapshooter.Xunit;
 using StrawberryShake.Transport.WebSockets;
 
 namespace StrawberryShake.CodeGeneration.CSharp.Integration.AnyScalarDefaultSerialization;
@@ -19,7 +18,7 @@ public class AnyScalarDefaultSerializationTest : ServerTestBase
         // arrange
         using var cts = new CancellationTokenSource(20_000);
         using var host = TestServerHelper.CreateServer(
-            builder => builder.AddTypeExtension<QueryResolvers>(),
+            builder => builder.AddTypeExtension<QueryResolvers>().AddJsonTypeConverter(),
             out var port);
         var serviceCollection = new ServiceCollection();
         serviceCollection.AddHttpClient(

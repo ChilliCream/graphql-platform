@@ -14,6 +14,11 @@ public class ExecutorBuilder
 
     public Func<T, bool> Build<T>(IValueNode filter)
     {
+        return BuildExpression<T>(filter).Compile();
+    }
+
+    public Expression<Func<T, bool>> BuildExpression<T>(IValueNode filter)
+    {
         var visitorContext = new QueryableFilterContext(_inputType, true);
         var visitor = new FilterVisitor<QueryableFilterContext, Expression>(
             new QueryableCombinator());
@@ -22,7 +27,7 @@ public class ExecutorBuilder
 
         if (visitorContext.TryCreateLambda(out Expression<Func<T, bool>>? where))
         {
-            return where.Compile();
+            return where;
         }
 
         throw new InvalidOperationException();

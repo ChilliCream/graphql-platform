@@ -12,12 +12,14 @@ public static class ValidationUtils
         DocumentNode document,
         ISchemaDefinition? schema = null,
         IFeatureCollection? features = null,
-        int maxAllowedErrors = 5)
+        int maxAllowedErrors = 5,
+        int maxLocationsPerError = 5,
+        int maxAllowedFragmentVisits = 1_000)
     {
         schema ??= CreateSchema();
 
         var context = new DocumentValidatorContext();
-        context.Initialize(schema, default, document, maxAllowedErrors, features);
+        context.Initialize(schema, default, document, maxAllowedErrors, maxLocationsPerError, maxAllowedFragmentVisits, features);
         return context;
     }
 
@@ -32,8 +34,8 @@ public static class ValidationUtils
         string name,
         DirectiveLocation location,
         Func<IDirectiveTypeDescriptor, IDirectiveTypeDescriptor> configure) =>
-        builder.AddDirectiveType(new DirectiveType(x =>
-            configure(x.Name(name).Location(location))));
+        builder.AddDirectiveType(x =>
+            configure(x.Name(name).Location(location)));
 
     public static ISchemaDefinition CreateSchema()
         => SchemaBuilder.New()
@@ -82,6 +84,5 @@ public static class ValidationUtils
                 DirectiveLocation.Field
                 | DirectiveLocation.FragmentDefinition,
                 x => x.Repeatable())
-            .ModifyOptions(o => o.EnableOneOf = true)
             .Create();
 }

@@ -8,9 +8,6 @@
           "column": 31
         }
       ],
-      "path": [
-        "echo"
-      ],
       "extensions": {
         "code": "HC0001",
         "coordinate": "boom.arg",

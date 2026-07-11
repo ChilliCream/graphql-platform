@@ -165,10 +165,4 @@
   <data name="ErrorHelper_CacheControlOnInterfaceField" xml:space="preserve">
     <value>Can not specify @cacheControl directive on interface fields, such as {0}.</value>
   </data>
-  <data name="ThrowHelper_EncounteredIntrospectionField" xml:space="preserve">
-    <value>CacheControlConstraints could not be computed, since query contained an introspection field.</value>
-  </data>
-  <data name="ThrowHelper_UnexpectedCacheControlScopeValue" xml:space="preserve">
-    <value>Unexpected CacheControlScope value {0}</value>
-  </data>
 </root>

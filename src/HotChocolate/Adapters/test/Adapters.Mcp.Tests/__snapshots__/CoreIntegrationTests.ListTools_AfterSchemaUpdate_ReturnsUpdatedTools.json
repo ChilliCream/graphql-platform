@@ -19,6 +19,8 @@
           "properties": {
             "field": {
               "type": "integer",
+              "minimum": -2147483648,
+              "maximum": 2147483647,
               "description": "Field description 0."
             }
           },

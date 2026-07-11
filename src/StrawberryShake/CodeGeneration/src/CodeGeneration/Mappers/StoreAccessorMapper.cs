@@ -6,7 +6,7 @@ namespace StrawberryShake.CodeGeneration.Mappers;
 public static class StoreAccessorMapper
 {
     public static void Map(
-        ClientModel model,
+        ClientModel _,
         IMapperContext context)
     {
         context.Register(

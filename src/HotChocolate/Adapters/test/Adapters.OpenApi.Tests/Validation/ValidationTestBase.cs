@@ -1,6 +1,7 @@
+using ChilliCream.Nitro.Adapters.OpenApi.Extensions;
+using ChilliCream.Nitro.Adapters.OpenApi.Serialization;
 using HotChocolate.Execution;
 using HotChocolate.Language;
-using Microsoft.AspNetCore.Http;
 
 namespace HotChocolate.Adapters.OpenApi;
 
@@ -442,8 +443,8 @@ public abstract class ValidationTestBase : OpenApiTestBase
         // arrange
         using var cts = new CancellationTokenSource(s_testTimeout);
         var storage = new TestOpenApiDefinitionStorage();
-        var definition = OpenApiEndpointDefinition.From(
-            new OpenApiEndpointSettingsDto(
+        var definition = OpenApiEndpointDefinition.Create(
+            new OpenApiEndpointSettings(
                 null,
                 [],
                 [],

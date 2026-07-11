@@ -1,4 +1,5 @@
 #pragma warning disable RCS1102 // Make class static
+using System.Text.Json;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
@@ -20,12 +21,13 @@ public class NodeResolverTests
                 .AddGlobalObjectIdentification()
                 .AddType<EntityType>()
                 .AddQueryType<Query>()
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
             "{ node(id: \"RW50aXR5OmZvbw==\")  "
-            + "{ ... on Entity { id name } } }");
+            + "{ ... on Entity { id name } } }",
+            TestContext.Current.CancellationToken);
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -47,12 +49,13 @@ public class NodeResolverTests
                         .Resolve(ctx => ctx.Parent<Entity>().Id);
                 })
                 .AddQueryType<Query>()
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
             "{ node(id: \"RW50aXR5OmZvbw==\")  "
-            + "{ ... on Entity { id name } } }");
+            + "{ ... on Entity { id name } } }",
+            TestContext.Current.CancellationToken);
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -74,12 +77,13 @@ public class NodeResolverTests
                         .Resolve(ctx => ctx.Parent<Entity>().Id);
                 })
                 .AddQueryType<Query>()
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
             "{ node(id: \"RW50aXR5OmZvbw==\")  "
-            + "{ ... on Entity { id name } } }");
+            + "{ ... on Entity { id name } } }",
+            TestContext.Current.CancellationToken);
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -111,12 +115,13 @@ public class NodeResolverTests
                         .Type(new NamedTypeNode("Entity"))
                         .Resolve(new Entity { Name = "foo" });
                 })
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
             "{ node(id: \"RW50aXR5OmZvbw==\")  "
-            + "{ ... on Entity { id name } } }");
+            + "{ ... on Entity { id name } } }",
+            TestContext.Current.CancellationToken);
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -148,12 +153,13 @@ public class NodeResolverTests
                         .Type(new NamedTypeNode("Entity"))
                         .Resolve(new Entity { Name = "foo" });
                 })
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
             "{ node(id: \"RW50aXR5OmZvbw==\")  "
-            + "{ ... on Entity { id name } } }");
+            + "{ ... on Entity { id name } } }",
+            TestContext.Current.CancellationToken);
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -181,7 +187,8 @@ public class NodeResolverTests
                     }
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -194,7 +201,7 @@ public class NodeResolverTests
             .AddGraphQL()
             .AddQueryType<Query>()
             .AddTypeExtension<EntityExtension>()
-            .BuildSchemaAsync()
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -205,7 +212,7 @@ public class NodeResolverTests
             .AddGraphQL()
             .AddQueryType<Query>()
             .AddTypeExtension<EntityExtension2>()
-            .BuildSchemaAsync()
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -216,7 +223,7 @@ public class NodeResolverTests
             .AddGraphQL()
             .AddQueryType<Query>()
             .AddTypeExtension<EntityExtension3>()
-            .BuildSchemaAsync()
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -227,7 +234,7 @@ public class NodeResolverTests
             .AddGraphQL()
             .AddQueryType<Query>()
             .AddTypeExtension<EntityExtension4>()
-            .BuildSchemaAsync()
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -248,8 +255,42 @@ public class NodeResolverTests
                         }
                     }
                 }
-                """)
+                """,
+                cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
+    }
+
+    [Fact]
+    public async Task NodeAttribute_On_Extension_Fetch_Through_Node_Field_With_NonId_Argument_Name()
+    {
+        var result = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<Query>()
+            .AddTypeExtension<EntityExtensionWithNonIdArgument>()
+            .AddGlobalObjectIdentification()
+            .ExecuteRequestAsync(
+                """
+                {
+                    node(id: "RW50aXR5OmFiYw==") {
+                        ... on Entity {
+                            name
+                        }
+                    }
+                }
+                """,
+                cancellationToken: TestContext.Current.CancellationToken);
+
+        var operationResult = result.ExpectOperationResult();
+
+        Assert.True(
+            operationResult.Errors.Count == 0,
+            $"Expected no errors but got: {operationResult.ToJson()}");
+
+        using var document = JsonDocument.Parse(operationResult.ToJson());
+        var node = document.RootElement.GetProperty("data").GetProperty("node");
+
+        Assert.Equal(JsonValueKind.Object, node.ValueKind);
+        Assert.Equal(JsonValueKind.String, node.GetProperty("name").ValueKind);
     }
 
     // Ensure Issue 7829 is fixed.
@@ -268,7 +309,8 @@ public class NodeResolverTests
                     data
                   }
                 }
-                """)
+                """,
+                cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -283,7 +325,7 @@ public class NodeResolverTests
                 .AddTypeExtension<EntityExtension5>()
                 .AddTypeExtension<Entity2Extension1>()
                 .AddQueryType<Query>()
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -293,10 +335,11 @@ public class NodeResolverTests
                     id
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
-        Assert.Null(result.ExpectOperationResult().Errors);
+        Assert.Empty(result.ExpectOperationResult().Errors);
     }
 
     public class Query
@@ -367,6 +410,14 @@ public class NodeResolverTests
     {
         [NodeResolver]
         public static Entity Foo(string id) => new() { Name = id };
+    }
+
+    [Node]
+    [ExtendObjectType(typeof(Entity))]
+    public class EntityExtensionWithNonIdArgument
+    {
+        [NodeResolver]
+        public static Entity Foo(string userId) => new() { Name = userId };
     }
 
     [Node]

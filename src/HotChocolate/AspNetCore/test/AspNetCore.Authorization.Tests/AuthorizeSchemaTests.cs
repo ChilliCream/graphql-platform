@@ -23,7 +23,8 @@ public class AuthorizeSchemaTests
                     .New()
                     .SetDocument("{ bar }")
                     .SetUser(new ClaimsPrincipal())
-                    .Build());
+                    .Build(),
+                cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchSnapshot();
     }

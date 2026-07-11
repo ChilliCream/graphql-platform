@@ -1,5 +1,6 @@
 #nullable disable
 
+using System.Numerics;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities;
@@ -41,7 +42,7 @@ public class TypeDiscovererTests
                 .Select(t => new
                 {
                     type = t.Type.GetType().GetTypeName(),
-                    runtimeType = t.Type is IHasRuntimeType hr
+                    runtimeType = t.Type is IRuntimeTypeProvider hr
                         ? hr.RuntimeType.GetTypeName()
                         : null,
                     references = t.References.Select(r => r.ToString()).ToList()
@@ -84,7 +85,7 @@ public class TypeDiscovererTests
                 .Select(t => new
                 {
                     type = t.Type.GetType().GetTypeName(),
-                    runtimeType = t.Type is IHasRuntimeType hr
+                    runtimeType = t.Type is IRuntimeTypeProvider hr
                         ? hr.RuntimeType.GetTypeName()
                         : null,
                     references = t.References.Select(r => r.ToString()).ToList()
@@ -128,7 +129,7 @@ public class TypeDiscovererTests
                 .Select(t => new
                 {
                     type = t.Type.GetType().GetTypeName(),
-                    runtimeType = t.Type is IHasRuntimeType hr
+                    runtimeType = t.Type is IRuntimeTypeProvider hr
                         ? hr.RuntimeType.GetTypeName()
                         : null,
                     references = t.References.ConvertAll(r => r.ToString())
@@ -173,7 +174,7 @@ public class TypeDiscovererTests
                 .Select(t => new
                 {
                     type = t.Type.GetType().GetTypeName(),
-                    runtimeType = t.Type is IHasRuntimeType hr
+                    runtimeType = t.Type is IRuntimeTypeProvider hr
                         ? hr.RuntimeType.GetTypeName()
                         : null,
                     references = t.References.Select(r => r.ToString()).ToList()
@@ -253,6 +254,221 @@ public class TypeDiscovererTests
             });
     }
 
+    [Fact]
+    public void Can_Infer_Generic_Record_Struct_Input_Type()
+    {
+        // arrange
+        var context = DescriptorContext.Create();
+        var typeRegistry = new TypeRegistry(context.TypeInterceptor);
+        var typeLookup = new TypeLookup(context.TypeInspector, typeRegistry);
+
+        var typeDiscoverer = new TypeDiscoverer(
+            context,
+            typeRegistry,
+            typeLookup,
+            new HashSet<TypeReference>
+            {
+                _typeInspector.GetTypeRef(
+                    typeof(QueryWithGenericRecordStructInput),
+                    TypeContext.Output)
+            },
+            new AggregateTypeInterceptor());
+
+        // act
+        var errors = typeDiscoverer.DiscoverTypes();
+
+        // assert
+        Assert.Empty(errors);
+    }
+
+    [Fact]
+    public void DiscoverTypes_Should_Append_PathToRoot_When_Nested_Member_Cannot_Be_Inferred()
+    {
+        // arrange
+        // the query reaches an un-inferable interface through two nested members.
+        var context = DescriptorContext.Create();
+        var typeRegistry = new TypeRegistry(context.TypeInterceptor);
+        var typeLookup = new TypeLookup(context.TypeInspector, typeRegistry);
+
+        var typeDiscoverer = new TypeDiscoverer(
+            context,
+            typeRegistry,
+            typeLookup,
+            new HashSet<TypeReference>
+            {
+                _typeInspector.GetTypeRef(typeof(NestedQuery), TypeContext.Output)
+            },
+            new AggregateTypeInterceptor());
+
+        // act
+        var errors = typeDiscoverer.DiscoverTypes();
+
+        // assert
+        var error = Assert.Single(errors);
+        Assert.Contains(" -> ", error.Message, StringComparison.Ordinal);
+        new SchemaException(errors).Message.MatchSnapshot();
+    }
+
+    [Fact]
+    public void DiscoverTypes_Should_Expose_TypePath_Extension_When_Member_Cannot_Be_Inferred()
+    {
+        // arrange
+        var context = DescriptorContext.Create();
+        var typeRegistry = new TypeRegistry(context.TypeInterceptor);
+        var typeLookup = new TypeLookup(context.TypeInspector, typeRegistry);
+
+        var typeDiscoverer = new TypeDiscoverer(
+            context,
+            typeRegistry,
+            typeLookup,
+            new HashSet<TypeReference>
+            {
+                _typeInspector.GetTypeRef(typeof(NestedQuery), TypeContext.Output)
+            },
+            new AggregateTypeInterceptor());
+
+        // act
+        var errors = typeDiscoverer.DiscoverTypes();
+
+        // assert
+        // the message keeps the short form while the extension is namespace-qualified.
+        var error = Assert.Single(errors);
+        Assert.Contains(
+            "NestedQuery.GetFoo -> FooWithBar.Bar -> BarWithBaz.Baz(input) -> IMyArg",
+            error.Message,
+            StringComparison.Ordinal);
+        Assert.Equal(
+            "HotChocolate.Configuration.NestedQuery.GetFoo "
+                + "-> HotChocolate.Configuration.FooWithBar.Bar "
+                + "-> HotChocolate.Configuration.BarWithBaz.Baz(input) "
+                + "-> HotChocolate.Configuration.IMyArg",
+            Assert.IsType<string>(error.Extensions[TypeErrorFields.Path]));
+    }
+
+    [Fact]
+    public void Build_Should_Use_Friendly_GenericName_When_Leaf_Is_ReadOnlyMemory()
+    {
+        // arrange
+        // ReadOnlyMemory<byte> resolves during discovery, so the path is built
+        // directly to demonstrate the friendly leaf name formatting.
+        var context = DescriptorContext.Create();
+        var typeRegistry = new TypeRegistry(context.TypeInterceptor);
+        var typeLookup = new TypeLookup(context.TypeInspector, typeRegistry);
+
+        var typeDiscoverer = new TypeDiscoverer(
+            context,
+            typeRegistry,
+            typeLookup,
+            new HashSet<TypeReference>
+            {
+                _typeInspector.GetTypeRef(typeof(MemoryQuery), TypeContext.Output)
+            },
+            new AggregateTypeInterceptor());
+        typeDiscoverer.DiscoverTypes();
+
+        var reference = _typeInspector.GetTypeRef(typeof(ReadOnlyMemory<byte>), TypeContext.Input);
+
+        // act
+        var path = TypeInferencePathBuilder.Build(typeRegistry, reference);
+
+        // assert
+        // the short form uses aliases without namespaces, the expanded form qualifies them.
+        Assert.Equal("MemoryQuery.Baz(input) -> ReadOnlyMemory<byte>", path?.Short);
+        Assert.Equal(
+            "HotChocolate.Configuration.MemoryQuery.Baz(input) -> System.ReadOnlyMemory<byte>",
+            path?.Expanded);
+    }
+
+    [Fact]
+    public void Build_Should_Truncate_With_Marker_When_Chain_Exceeds_Cap()
+    {
+        // arrange
+        // the chain reaches the un-inferable leaf through more hops than the cap allows.
+        var context = DescriptorContext.Create();
+        var typeRegistry = new TypeRegistry(context.TypeInterceptor);
+        var typeLookup = new TypeLookup(context.TypeInspector, typeRegistry);
+
+        var typeDiscoverer = new TypeDiscoverer(
+            context,
+            typeRegistry,
+            typeLookup,
+            new HashSet<TypeReference>
+            {
+                _typeInspector.GetTypeRef(typeof(DeepQuery), TypeContext.Output)
+            },
+            new AggregateTypeInterceptor());
+        typeDiscoverer.DiscoverTypes();
+
+        var reference = _typeInspector.GetTypeRef(typeof(IMyArg), TypeContext.Input);
+
+        // act
+        var path = TypeInferencePathBuilder.Build(typeRegistry, reference);
+
+        // assert
+        // both renderings share the same truncation, so the part count is identical.
+        var shortParts = path.Value.Short.Split(" -> ");
+        var expandedParts = path.Value.Expanded.Split(" -> ");
+        Assert.Equal(5, shortParts.Length);
+        Assert.Equal("...", shortParts[0]);
+        Assert.Equal("IMyArg", shortParts[^1]);
+        Assert.Equal(shortParts.Length, expandedParts.Length);
+    }
+
+    public class DeepQuery
+    {
+        public DeepLevel1 GetLevel1() => throw new NotImplementedException();
+    }
+
+    public class DeepLevel1
+    {
+        public DeepLevel2 Level2 { get; }
+    }
+
+    public class DeepLevel2
+    {
+        public DeepLevel3 Level3 { get; }
+    }
+
+    public class DeepLevel3
+    {
+        public DeepLevel4 Level4 { get; }
+    }
+
+    public class DeepLevel4
+    {
+        public DeepLevel5 Level5 { get; }
+    }
+
+    public class DeepLevel5
+    {
+        public DeepLevel6 Level6 { get; }
+    }
+
+    public class DeepLevel6
+    {
+        public string Leaf(IMyArg arg) => throw new NotImplementedException();
+    }
+
+    public class NestedQuery
+    {
+        public FooWithBar GetFoo() => throw new NotImplementedException();
+    }
+
+    public class FooWithBar
+    {
+        public BarWithBaz Bar { get; }
+    }
+
+    public class BarWithBaz
+    {
+        public string Baz(IMyArg input) => throw new NotImplementedException();
+    }
+
+    public class MemoryQuery
+    {
+        public string Baz(ReadOnlyMemory<byte> input) => throw new NotImplementedException();
+    }
+
     public class FooType
         : ObjectType<Foo>
     {
@@ -283,6 +499,16 @@ public class TypeDiscovererTests
     {
         public string Foo(IMyArg o) => throw new NotImplementedException();
     }
+
+    public class QueryWithGenericRecordStructInput
+    {
+        public string Foo(RangeSpec<int> range) => throw new NotImplementedException();
+    }
+
+    public readonly record struct RangeSpec<T>(
+        T? Min,
+        T? Max)
+        where T : struct, IComparable<T>, IComparisonOperators<T, T, bool>;
 
     public interface IMyArg;
 }

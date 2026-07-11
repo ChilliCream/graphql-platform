@@ -1,31 +1,23 @@
-using HotChocolate.Execution.Instrumentation;
-using Microsoft.Extensions.DependencyInjection;
+using System.Collections.Immutable;
 
 namespace HotChocolate.Execution.Pipeline;
 
 internal sealed class AutomaticPersistedOperationNotFoundMiddleware
 {
-    private static readonly IOperationResult s_errorResult =
-        OperationResultBuilder.CreateError(
-            PersistedOperationNotFound(),
-            contextData: new Dictionary<string, object?>
-            {
-                { ExecutionContextData.HttpStatusCode, 400 }
-            });
+    private static readonly OperationResult s_errorResult =
+        new([PersistedOperationNotFound()])
+        {
+            ContextData = ImmutableDictionary<string, object?>.Empty.Add(ExecutionContextData.HttpStatusCode, 400)
+        };
+
     private readonly RequestDelegate _next;
-#pragma warning disable IDE0052 // WIP
-    private readonly ICoreExecutionDiagnosticEvents _diagnosticEvents;
-#pragma warning restore IDE0052
 
     private AutomaticPersistedOperationNotFoundMiddleware(
-        RequestDelegate next,
-        ICoreExecutionDiagnosticEvents diagnosticEvents)
+        RequestDelegate next)
     {
         ArgumentNullException.ThrowIfNull(next);
-        ArgumentNullException.ThrowIfNull(diagnosticEvents);
 
         _next = next;
-        _diagnosticEvents = diagnosticEvents;
     }
 
     public ValueTask InvokeAsync(RequestContext context)
@@ -50,10 +42,9 @@ internal sealed class AutomaticPersistedOperationNotFoundMiddleware
 
     public static RequestMiddlewareConfiguration Create()
         => new RequestMiddlewareConfiguration(
-            static (factoryContext, next) =>
+            static (_, next) =>
             {
-                var diagnosticEvents = factoryContext.SchemaServices.GetRequiredService<ICoreExecutionDiagnosticEvents>();
-                var middleware = new AutomaticPersistedOperationNotFoundMiddleware(next, diagnosticEvents);
+                var middleware = new AutomaticPersistedOperationNotFoundMiddleware(next);
                 return context => middleware.InvokeAsync(context);
             },
             WellKnownRequestMiddleware.AutomaticPersistedOperationNotFoundMiddleware);

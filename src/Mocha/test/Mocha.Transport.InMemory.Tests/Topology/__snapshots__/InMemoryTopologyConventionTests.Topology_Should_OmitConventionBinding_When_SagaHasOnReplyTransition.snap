@@ -1,0 +1,21 @@
+{
+  "Topics": [
+    "mocha.transport.in-memory.tests.stock-check-started",
+    "stock-check-started"
+  ],
+  "Queues": [
+    "mocha.transport.in-memory.tests.order-stock-check-saga"
+  ],
+  "Bindings": [
+    {
+      "Source": "mocha.transport.in-memory.tests.stock-check-started",
+      "Destination": "stock-check-started",
+      "Kind": "Topic"
+    },
+    {
+      "Source": "stock-check-started",
+      "Destination": "mocha.transport.in-memory.tests.order-stock-check-saga",
+      "Kind": "Queue"
+    }
+  ]
+}

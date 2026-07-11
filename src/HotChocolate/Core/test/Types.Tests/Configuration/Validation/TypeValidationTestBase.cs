@@ -10,7 +10,7 @@ public abstract class TypeValidationTestBase
         SchemaBuilder.New()
             .AddDocumentFromString(schema)
             .Use(_ => _ => default)
-            .ModifyOptions(o => o.EnableOneOf = true)
+            .ModifyOptions(o => o.EnableOptInFeatures = true)
             .Create();
     }
 
@@ -21,7 +21,7 @@ public abstract class TypeValidationTestBase
             SchemaBuilder.New()
                 .AddDocumentFromString(schema)
                 .Use(_ => _ => default)
-                .ModifyOptions(o => o.EnableOneOf = true)
+                .ModifyOptions(o => o.EnableOptInFeatures = true)
                 .Create();
             Assert.Fail("Expected error!");
         }

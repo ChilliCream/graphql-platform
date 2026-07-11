@@ -13,31 +13,35 @@ public class RazorGeneratorTests
 
         AssertResult(
             settings: new() { RazorComponents = true },
-            @"query GetBars($a: String! $b: String) {
-                bars(a: $a b: $b) {
-                    id
-                    name
-                }
+            """
+            query GetBars($a: String! $b: String) {
+              bars(a: $a b: $b) {
+                id
+                name
+              }
             }
 
             mutation SaveBars($a: String! $b: String) {
-                saveBar(a: $a b: $b) {
-                    id
-                    name
-                }
-                }",
-            @"type Query {
-                bars(a: String!, b: String): [Bar]
+              saveBar(a: $a b: $b) {
+                id
+                name
+              }
+            }
+            """,
+            """
+            type Query {
+              bars(a: String!, b: String): [Bar]
             }
 
             type Mutation {
-                saveBar(a: String!, b: String): Bar
+              saveBar(a: String!, b: String): Bar
             }
 
             type Bar {
-                id: String!
-                name: String
-            }",
+              id: String!
+              name: String
+            }
+            """,
             "extend schema @key(fields: \"id\")");
     }
 }

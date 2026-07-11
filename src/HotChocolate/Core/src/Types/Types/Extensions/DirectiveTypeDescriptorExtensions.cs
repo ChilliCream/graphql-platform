@@ -9,9 +9,7 @@ public static class DirectiveTypeDescriptorExtensions
         this IDirectiveTypeDescriptor<T> descriptor,
         Expression<Func<T, object?>> property)
     {
-        ArgumentNullException.ThrowIfNull(descriptor);
         ArgumentNullException.ThrowIfNull(property);
-
         descriptor.Argument(property).Ignore();
         return descriptor;
     }
@@ -29,7 +27,6 @@ public static class DirectiveTypeDescriptorExtensions
     /// Returns the directive argument descriptor for configuration chaining.
     /// </returns>
     /// <exception cref="ArgumentNullException">
-    /// <paramref name="descriptor"/> is <c>null</c>.
     /// <paramref name="typeSyntax"/> is <c>null</c>.
     /// </exception>
     /// <exception cref="SyntaxException">
@@ -39,9 +36,7 @@ public static class DirectiveTypeDescriptorExtensions
         this IDirectiveArgumentDescriptor descriptor,
         string typeSyntax)
     {
-        ArgumentNullException.ThrowIfNull(descriptor);
         ArgumentNullException.ThrowIfNull(typeSyntax);
-
         return descriptor.Type(Utf8GraphQLParser.Syntax.ParseTypeReference(typeSyntax));
     }
 }

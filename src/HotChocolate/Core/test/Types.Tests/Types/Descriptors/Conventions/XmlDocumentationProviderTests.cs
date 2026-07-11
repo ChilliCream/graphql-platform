@@ -1,5 +1,4 @@
 using System.Drawing;
-using System.Text.RegularExpressions;
 
 namespace HotChocolate.Types.Descriptors;
 
@@ -35,7 +34,7 @@ public class XmlDocumentationProviderTests
 
         // assert
         Assert.NotNull(description);
-        Assert.Matches(new Regex(@"\n[ \t]*\n"), description);
+        Assert.Matches(@"\n[ \t]*\n", description);
         Assert.Contains("    * Users", description);
         Assert.Equal(description.Trim(), description);
     }

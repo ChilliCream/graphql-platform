@@ -8,7 +8,7 @@ namespace HotChocolate.Adapters.OpenApi.Validation;
 /// <summary>
 /// Validates that the parameters of an endpoint must map to a proper variable / input object field.
 /// </summary>
-internal sealed class EndpointParametersMustMapCorrectlyRule: IOpenApiEndpointDefinitionValidationRule
+internal sealed class EndpointParametersMustMapCorrectlyRule : IOpenApiEndpointDefinitionValidationRule
 {
     public OpenApiDefinitionValidationResult Validate(
         OpenApiEndpointDefinition endpoint,

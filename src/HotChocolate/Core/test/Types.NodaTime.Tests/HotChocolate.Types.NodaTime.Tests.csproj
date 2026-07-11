@@ -1,12 +1,13 @@
 <Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
 
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Test.props', '$(MSBuildThisFileDirectory)'))" />
+
   <PropertyGroup>
     <AssemblyName>HotChocolate.Types.NodaTime.Tests</AssemblyName>
     <RootNamespace>HotChocolate.Types.NodaTime</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Execution\HotChocolate.Execution.csproj" />
     <ProjectReference Include="..\..\src\Types.NodaTime\HotChocolate.Types.NodaTime.csproj" />
     <ProjectReference Include="..\..\src\Types\HotChocolate.Types.csproj" />
   </ItemGroup>

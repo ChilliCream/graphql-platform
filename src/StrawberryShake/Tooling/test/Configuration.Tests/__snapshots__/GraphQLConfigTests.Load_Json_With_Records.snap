@@ -8,7 +8,6 @@
       "Namespace": null,
       "Url": null,
       "AccessModifier": "public",
-      "DependencyInjection": true,
       "StrictSchemaValidation": true,
       "HashAlgorithm": "md5",
       "UseSingleFile": true,

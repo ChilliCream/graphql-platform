@@ -2,12 +2,6 @@
   "errors": [
     {
       "message": "The requested number of values per page must be at least 0.",
-      "locations": [
-        {
-          "line": 3,
-          "column": 21
-        }
-      ],
       "path": [
         "letters"
       ],

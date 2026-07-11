@@ -1,9 +1,10 @@
 using System.Collections.Concurrent;
+#if !NET9_0_OR_GREATER
+using System.Diagnostics.CodeAnalysis;
+#endif
+using HotChocolate.Adapters.Mcp.Configuration;
 using HotChocolate.Adapters.Mcp.Diagnostics;
 using HotChocolate.Adapters.Mcp.Handlers;
-using HotChocolate.Adapters.Mcp.Proxies;
-using HotChocolate.Adapters.Mcp.Storage;
-using HotChocolate.Execution;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
@@ -12,41 +13,70 @@ using ModelContextProtocol.Server;
 
 namespace HotChocolate.Adapters.Mcp.Extensions;
 
+#if !NET9_0_OR_GREATER
+[RequiresDynamicCode("JSON serialization and deserialization might require types that cannot be statically analyzed and might need runtime code generation. Use System.Text.Json source generation for native AOT applications.")]
+[RequiresUnreferencedCode("JSON serialization and deserialization might require types that cannot be statically analyzed. Use the overload that takes a JsonTypeInfo or JsonSerializerContext, or make sure all of the required types are preserved.")]
+#endif
 internal static class ServiceCollectionExtensions
 {
-    public static void AddMcpServices(this IServiceCollection services, string schemaName)
+    public static void TryAddMcpServices(this IServiceCollection services)
     {
-        services
-            .AddHttpContextAccessor()
-            .AddKeyedSingleton(
-                schemaName,
-                static (sp, name) => new McpRequestExecutorProxy(
-                    sp.GetRequiredService<IRequestExecutorProvider>(),
-                    sp.GetRequiredService<IRequestExecutorEvents>(),
-#if NET10_0_OR_GREATER
-                    (string)name))
-#else
-                    (string)name!))
-#endif
-            .AddKeyedSingleton(
-                schemaName,
-                static (sp, name) => new StreamableHttpHandlerProxy(
-                    sp.GetRequiredKeyedService<McpRequestExecutorProxy>(name)))
-            .AddKeyedSingleton(
-                schemaName,
-                static (sp, name) => new SseHandlerProxy(
-                    sp.GetRequiredKeyedService<McpRequestExecutorProxy>(name)));
+        services.AddHttpContextAccessor();
+        services.AddOptions();
+        services.TryAddSingleton<McpManager>();
+    }
+
+    public static void ConfigureMcpSetup(
+        this IServiceCollection services,
+        string schemaName,
+        Action<McpServerOptions>? configureServerOptions,
+        Action<IMcpServerBuilder>? configureServer)
+    {
+        // Always register a named configuration entry, even if both callbacks are null,
+        // so that McpManager.Names can discover the schema via IConfigureNamedOptions<McpSetup>.
+        services.Configure<McpSetup>(
+            schemaName,
+            setup =>
+            {
+                if (configureServerOptions is not null)
+                {
+                    setup.ServerOptionsModifiers.Add(configureServerOptions);
+                }
+
+                if (configureServer is not null)
+                {
+                    setup.ServerModifiers.Add(configureServer);
+                }
+            });
     }
 
     public static void AddMcpSchemaServices(
         this IServiceCollection services,
-        Action<McpServerOptions>? configureServerOptions = null,
-        Action<IMcpServerBuilder>? configureServer = null)
+        IServiceProvider applicationServices,
+        string schemaName)
     {
-        services
-            .AddLogging()
-            .TryAddSingleton(
-                static sp => new OperationToolFactory(sp.GetRequiredService<ISchemaDefinition>()));
+        var mcpManager = applicationServices.GetRequiredService<McpManager>();
+        var setup = mcpManager.GetSetup(schemaName);
+
+        services.AddLogging();
+
+        services.TryAddSingleton(
+            static sp =>
+            {
+                var toolOptions = new McpToolOptions();
+
+                foreach (var configure in sp.GetServices<Action<McpToolOptions>>())
+                {
+                    configure(toolOptions);
+                }
+
+                return toolOptions;
+            });
+
+        services.TryAddSingleton(
+            static sp => new OperationToolFactory(
+                sp.GetRequiredService<ISchemaDefinition>(),
+                sp.GetRequiredService<McpToolOptions>()));
 
         services.TryAddSingleton<IMcpDiagnosticEvents>(sp =>
         {
@@ -61,12 +91,12 @@ internal static class ServiceCollectionExtensions
 
         services
             .TryAddSingleton(
-                static sp => new McpStorageObserver(
+                sp => new McpStorageObserver(
                     sp.GetRequiredService<ISchemaDefinition>(),
                     sp.GetRequiredService<McpFeatureRegistry>(),
                     sp.GetRequiredService<OperationToolFactory>(),
                     sp.GetRequiredService<ConcurrentDictionary<string, McpServer>>(),
-                    sp.GetRequiredService<IMcpStorage>(),
+                    mcpManager.Get(schemaName).Storage,
                     sp.GetRequiredService<IMcpDiagnosticEvents>()));
 
         services
@@ -87,12 +117,17 @@ internal static class ServiceCollectionExtensions
             services
                 .AddMcpServer(options =>
                 {
-                    configureServerOptions?.Invoke(options);
+                    foreach (var modifier in setup.ServerOptionsModifiers)
+                    {
+                        modifier(options);
+                    }
+
                     options.Capabilities?.Prompts?.ListChanged = true;
                     options.Capabilities?.Tools?.ListChanged = true;
                 })
                 .WithHttpTransport(options =>
                 {
+#pragma warning disable MCPEXP002 // https://github.com/modelcontextprotocol/csharp-sdk/issues/1416
                     options.RunSessionHandler = async (_, mcpServer, token) =>
                     {
                         if (mcpServer.SessionId == null)
@@ -113,6 +148,7 @@ internal static class ServiceCollectionExtensions
                             mcpServers.TryRemove(mcpServer.SessionId, out var _);
                         }
                     };
+#pragma warning restore MCPEXP002
                 })
                 .WithListPromptsHandler(
                     (context, _) => ValueTask.FromResult(ListPromptsHandler.Handle(context)))
@@ -124,6 +160,9 @@ internal static class ServiceCollectionExtensions
                     (context, _) => ValueTask.FromResult(ListToolsHandler.Handle(context)))
                 .WithCallToolHandler(CallToolHandler.HandleAsync);
 
-        configureServer?.Invoke(mcpServerBuilder);
+        foreach (var modifier in setup.ServerModifiers)
+        {
+            modifier(mcpServerBuilder);
+        }
     }
 }

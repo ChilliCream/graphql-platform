@@ -1,7 +1,10 @@
+using System.Globalization;
 using System.Text.Json;
 using HotChocolate.Authorization;
+using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
+using HotChocolate.Text.Json;
 using HotChocolate.Types;
 using HotChocolate.Types.Relay;
 
@@ -60,12 +63,13 @@ public sealed class TestSchema
         {
             return new ComplexObject(
                 input.Any,
+                input.Base64String,
                 input.Boolean,
                 input.Byte,
-                input.ByteArray,
                 input.Date,
                 input.DateTime,
                 input.Decimal,
+                input.Duration,
                 input.Enum,
                 input.Float,
                 input.Id,
@@ -79,11 +83,28 @@ public sealed class TestSchema
                 new Object1Nullable(new Object2Nullable(new Object3Nullable(input.Object.Field1A.Field1B.Field1C))),
                 input.Short,
                 input.String,
-                input.TimeSpan,
                 input.Unknown,
+                input.UnsignedByte,
+                input.UnsignedInt,
+                input.UnsignedLong,
+                input.UnsignedShort,
+                input.Uri,
                 input.Url,
                 input.Uuid);
         }
+
+        public string SearchProducts(string? text, float? minPrice)
+        {
+            var formattedMinPrice = minPrice?.ToString(CultureInfo.InvariantCulture);
+            return $"Searched for: {text ?? "all"}, minPrice: {formattedMinPrice}";
+        }
+
+        public string SearchProductsPaginated(string? text, int first)
+            => $"Searched for: {text ?? "all"}, first: {first}";
+
+        public TreeNode? GetTree() => null;
+
+        public IndirectParentNode? GetIndirect() => null;
     }
 
     public class Mutation
@@ -99,6 +120,61 @@ public sealed class TestSchema
         }
 
         public DeeplyNested UpdateDeeplyNestedObject(DeeplyNested input) => input;
+
+        public bool SubmitSelfRef(SelfReferencingInput input) => true;
+
+        public bool SubmitIndirect(IndirectParentInput input) => true;
+
+        public bool SubmitTwoChildren(TwoChildrenInput input) => true;
+    }
+
+    public sealed class SelfReferencingInput
+    {
+        public string? Value { get; init; }
+
+        public SelfReferencingInput? Child { get; init; }
+    }
+
+    public sealed class IndirectParentInput
+    {
+        public string? Name { get; init; }
+
+        public IndirectMiddleInput? Middle { get; init; }
+    }
+
+    public sealed class IndirectMiddleInput
+    {
+        public string? Label { get; init; }
+
+        public IndirectParentInput? Parent { get; init; }
+    }
+
+    public sealed class TwoChildrenInput
+    {
+        public SelfReferencingInput? Left { get; init; }
+
+        public SelfReferencingInput? Right { get; init; }
+    }
+
+    public sealed class IndirectParentNode
+    {
+        public required string Value { get; init; }
+
+        public IndirectMiddleNode? Middle { get; init; }
+    }
+
+    public sealed class IndirectMiddleNode
+    {
+        public required string Label { get; init; }
+
+        public IndirectParentNode? Parent { get; init; }
+    }
+
+    public sealed class TreeNode
+    {
+        public required string Value { get; init; }
+
+        public required List<TreeNode> Children { get; init; }
     }
 
     public class DeeplyNested
@@ -176,12 +252,13 @@ public sealed class TestSchema
 
     public sealed record ComplexObject(
         [property: GraphQLType<AnyType>] object? Any,
+        [property: GraphQLType<Base64StringType>] byte[]? Base64String,
         bool? Boolean,
-        byte? Byte,
-        [property: GraphQLType<ByteArrayType>] byte[]? ByteArray,
+        sbyte? Byte,
         [property: GraphQLType<DateType>] DateOnly? Date,
         DateTimeOffset? DateTime,
         decimal? Decimal,
+        TimeSpan? Duration,
         TestEnum? Enum,
         float? Float,
         [property: GraphQLType<IdType>] string? Id,
@@ -195,19 +272,24 @@ public sealed class TestSchema
         Object1Nullable? Object,
         short? Short,
         string? String,
-        TimeSpan? TimeSpan,
         [property: GraphQLType<UnknownType>] string? Unknown,
-        Uri? Url,
+        byte? UnsignedByte,
+        uint? UnsignedInt,
+        ulong? UnsignedLong,
+        ushort? UnsignedShort,
+        Uri? Uri,
+        [property: GraphQLType<UrlType>] Uri? Url,
         Guid? Uuid);
 
     public sealed record ComplexObjectInput(
         [property: GraphQLType<NonNullType<AnyType>>] object Any,
+        [property: GraphQLType<NonNullType<Base64StringType>>] byte[] Base64String,
         bool Boolean,
-        byte Byte,
-        [property: GraphQLType<NonNullType<ByteArrayType>>] byte[] ByteArray,
+        sbyte Byte,
         [property: GraphQLType<NonNullType<DateType>>] DateOnly Date,
         DateTimeOffset DateTime,
         decimal Decimal,
+        TimeSpan Duration,
         TestEnum Enum,
         float Float,
         [property: GraphQLType<NonNullType<IdType>>] string Id,
@@ -221,10 +303,20 @@ public sealed class TestSchema
         Object1NonNullable Object,
         short Short,
         string String,
-        TimeSpan TimeSpan,
         [property: GraphQLType<NonNullType<UnknownType>>] string Unknown,
-        Uri Url,
-        Guid Uuid);
+        byte UnsignedByte,
+        uint UnsignedInt,
+        ulong UnsignedLong,
+        ushort UnsignedShort,
+        Uri Uri,
+        [property: GraphQLType<NonNullType<UrlType>>] Uri Url,
+        Guid Uuid,
+        [property: GraphQLDescription("nullableObject description")]
+        [property: GraphQLDeprecated("nullableObject deprecated")]
+        Object1Nullable? NullableObject,
+        [property: GraphQLDescription("nonNullDeprecated description")]
+        [property: GraphQLDeprecated("nonNullDeprecated deprecated")]
+        int NonNullDeprecated = 0);
 
     [UnionType(name: "PetUnion")]
     public interface IPet
@@ -237,13 +329,16 @@ public sealed class TestSchema
 
     private sealed class UnknownType() : ScalarType<string, StringValueNode>("Unknown")
     {
-        public override IValueNode ParseResult(object? resultValue)
-            => throw new NotImplementedException();
+        protected override string OnCoerceInputLiteral(StringValueNode valueLiteral)
+            => valueLiteral.Value;
 
-        protected override string ParseLiteral(StringValueNode valueSyntax)
-            => valueSyntax.Value;
+        protected override string OnCoerceInputValue(JsonElement inputValue, IFeatureProvider context)
+            => inputValue.GetString()!;
 
-        protected override StringValueNode ParseValue(string runtimeValue)
-            => throw new NotImplementedException();
+        protected override void OnCoerceOutputValue(string runtimeValue, ResultElement resultValue)
+            => resultValue.SetStringValue(runtimeValue);
+
+        protected override StringValueNode OnValueToLiteral(string runtimeValue)
+            => new StringValueNode(runtimeValue);
     }
 }

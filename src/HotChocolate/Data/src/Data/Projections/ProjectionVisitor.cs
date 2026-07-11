@@ -14,16 +14,15 @@ public class ProjectionVisitor<TContext>
         Visit(context, context.ResolverContext.Selection);
     }
 
-    public virtual void Visit(TContext context, ISelection selection)
+    public virtual void Visit(TContext context, Selection selection)
     {
-        context.Selection.Push(selection);
+        context.Selections.Push(selection);
         Visit(selection.Field, context);
     }
 
-    protected override TContext OnBeforeLeave(ISelection selection, TContext localContext)
+    protected override TContext OnBeforeLeave(Selection selection, TContext localContext)
     {
-        if (selection is IProjectionSelection projectionSelection
-            && projectionSelection.Handler is IProjectionFieldHandler<TContext> handler)
+        if (selection.ProjectionHandler is IProjectionFieldHandler<TContext> handler)
         {
             return handler.OnBeforeLeave(localContext, selection);
         }
@@ -32,12 +31,11 @@ public class ProjectionVisitor<TContext>
     }
 
     protected override TContext OnAfterLeave(
-        ISelection selection,
+        Selection selection,
         TContext localContext,
         ISelectionVisitorAction result)
     {
-        if (selection is IProjectionSelection projectionSelection
-            && projectionSelection.Handler is IProjectionFieldHandler<TContext> handler)
+        if (selection.ProjectionHandler is IProjectionFieldHandler<TContext> handler)
         {
             return handler.OnAfterLeave(localContext, selection, result);
         }
@@ -46,12 +44,11 @@ public class ProjectionVisitor<TContext>
     }
 
     protected override TContext OnAfterEnter(
-        ISelection selection,
+        Selection selection,
         TContext localContext,
         ISelectionVisitorAction result)
     {
-        if (selection is IProjectionSelection projectionSelection
-            && projectionSelection.Handler is IProjectionFieldHandler<TContext> handler)
+        if (selection.ProjectionHandler is IProjectionFieldHandler<TContext> handler)
         {
             return handler.OnAfterEnter(localContext, selection, result);
         }
@@ -59,10 +56,9 @@ public class ProjectionVisitor<TContext>
         return localContext;
     }
 
-    protected override TContext OnBeforeEnter(ISelection selection, TContext context)
+    protected override TContext OnBeforeEnter(Selection selection, TContext context)
     {
-        if (selection is IProjectionSelection projectionSelection
-            && projectionSelection.Handler is IProjectionFieldHandler<TContext> handler)
+        if (selection.ProjectionHandler is IProjectionFieldHandler<TContext> handler)
         {
             return handler.OnBeforeEnter(context, selection);
         }
@@ -71,17 +67,13 @@ public class ProjectionVisitor<TContext>
     }
 
     protected override ISelectionVisitorAction Enter(
-        ISelection selection,
+        Selection selection,
         TContext context)
     {
         base.Enter(selection, context);
 
-        if (selection is IProjectionSelection projectionSelection
-            && projectionSelection.Handler is IProjectionFieldHandler<TContext> handler
-            && handler.TryHandleEnter(
-                context,
-                selection,
-                out var handlerResult))
+        if (selection.ProjectionHandler is IProjectionFieldHandler<TContext> handler
+            && handler.TryHandleEnter(context, selection, out var handlerResult))
         {
             return handlerResult;
         }
@@ -90,17 +82,13 @@ public class ProjectionVisitor<TContext>
     }
 
     protected override ISelectionVisitorAction Leave(
-        ISelection selection,
+        Selection selection,
         TContext context)
     {
         base.Leave(selection, context);
 
-        if (selection is IProjectionSelection projectionSelection
-            && projectionSelection.Handler is IProjectionFieldHandler<TContext> handler
-            && handler.TryHandleLeave(
-                context,
-                selection,
-                out var handlerResult))
+        if (selection.ProjectionHandler is IProjectionFieldHandler<TContext> handler
+            && handler.TryHandleLeave(context, selection, out var handlerResult))
         {
             return handlerResult;
         }
@@ -108,7 +96,7 @@ public class ProjectionVisitor<TContext>
         return SkipAndLeave;
     }
 
-    protected override ISelectionVisitorAction Visit(ISelection selection, TContext context)
+    protected override ISelectionVisitorAction Visit(Selection selection, TContext context)
     {
         if (selection.Field.IsNotProjected())
         {
@@ -120,21 +108,29 @@ public class ProjectionVisitor<TContext>
 
     protected override ISelectionVisitorAction Visit(IOutputFieldDefinition field, TContext context)
     {
-        if (context.Selection.Count > 1 && field.IsNotProjected())
+        if (context.Selections.Count > 1 && field.IsNotProjected())
         {
             return Skip;
         }
 
         if (field.Type.NamedType() is IPageType and ObjectType pageType
-            && context.Selection.Peek() is { } pagingFieldSelection)
+            && context.Selections.Peek() is { } pagingFieldSelection)
         {
-            var selections = context.ResolverContext.GetSelections(pageType, pagingFieldSelection, true);
+            var includeFlags = context.IncludeFlags;
+            var selections = context.Operation.GetSelectionSet(pagingFieldSelection, pageType).Selections;
 
-            for (var index = selections.Count - 1; index >= 0; index--)
+            for (var i = selections.Length - 1; i >= 0; i--)
             {
-                if (selections[index] is { ResponseName: CombinedEdgeField } selection)
+                var selection = selections[i];
+
+                if (selection.IsSkipped(includeFlags))
                 {
-                    context.Selection.Push(selection);
+                    continue;
+                }
+
+                if (selection is { ResponseName: CombinedEdgeField })
+                {
+                    context.Selections.Push(selection);
 
                     return base.Visit(selection.Field, context);
                 }

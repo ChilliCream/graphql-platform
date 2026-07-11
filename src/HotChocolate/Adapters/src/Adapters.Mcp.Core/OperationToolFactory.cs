@@ -1,7 +1,7 @@
 using System.Collections.Frozen;
 using System.Text;
 using System.Text.Json.Nodes;
-using CaseConverter;
+using HotChocolate.Adapters.Mcp.Configuration;
 using HotChocolate.Adapters.Mcp.Extensions;
 using HotChocolate.Adapters.Mcp.Storage;
 using HotChocolate.Language;
@@ -14,10 +14,16 @@ using static HotChocolate.Adapters.Mcp.WellKnownFieldNames;
 
 namespace HotChocolate.Adapters.Mcp;
 
-internal sealed class OperationToolFactory(ISchemaDefinition schema)
+internal sealed class OperationToolFactory(ISchemaDefinition schema, McpToolOptions options)
 {
     private static readonly Walker s_walker = new();
 
+    /// <summary>
+    /// Builds an <see cref="OperationTool"/> for a document that has been verified against the
+    /// schema. Calling this with an invalid document throws -- the schema walker will fail on
+    /// the first unresolved field or type reference. For invalid documents, use
+    /// <see cref="CreateInvalidTool"/>.
+    /// </summary>
     public OperationTool CreateTool(OperationToolDefinition toolDefinition)
     {
         var operationNode = toolDefinition.Document.Definitions.OfType<OperationDefinitionNode>().Single();
@@ -26,13 +32,13 @@ internal sealed class OperationToolFactory(ISchemaDefinition schema)
         var outputSchema = CreateOutputSchema(CreateDataSchema(result.Properties, result.RequiredProperties));
 
         JsonObject? meta = null;
-        Resource? openAiComponentResource = null;
+        Resource? viewResource = null;
 
-        if (toolDefinition.OpenAiComponent is { } openAiComponent)
+        if (toolDefinition.View is { } view)
         {
             meta = [];
-            AddOpenAiComponentMetadata(meta, toolDefinition);
-            openAiComponentResource = CreateOpenAiComponentResource(openAiComponent, toolDefinition);
+            AddViewMetadata(meta, toolDefinition);
+            viewResource = CreateViewResource(view, toolDefinition);
         }
 
         var tool = new Tool
@@ -67,20 +73,77 @@ internal sealed class OperationToolFactory(ISchemaDefinition schema)
 
         return new OperationTool(toolDefinition.Document, tool)
         {
-            OpenAiComponentResource = openAiComponentResource,
-            OpenAiComponentHtml = toolDefinition.OpenAiComponent?.HtmlTemplateText
+            ViewResource = viewResource,
+            ViewHtml = toolDefinition.View?.Html
         };
     }
+
+    /// <summary>
+    /// Builds an <see cref="OperationTool"/> shell for a document that failed schema validation.
+    /// The tool is surfaced through <c>tools/list</c> so consumers see it exists, but
+    /// <c>tools/call</c> must reject it because the input/output schemas are permissive
+    /// placeholders rather than schema-derived contracts.
+    /// </summary>
+    public static OperationTool CreateInvalidTool(OperationToolDefinition toolDefinition)
+    {
+        var operationNode = toolDefinition.Document.Definitions.OfType<OperationDefinitionNode>().Single();
+
+        JsonObject? meta = null;
+        Resource? viewResource = null;
+
+        if (toolDefinition.View is { } view)
+        {
+            meta = [];
+            AddViewMetadata(meta, toolDefinition);
+            viewResource = CreateViewResource(view, toolDefinition);
+        }
+
+        var tool = new Tool
+        {
+            Name = toolDefinition.Name,
+            Title = toolDefinition.Title
+                ?? operationNode.Name?.Value.InsertSpaceBeforeUpperCase()
+                ?? toolDefinition.Name,
+            Description = operationNode.Description?.Value,
+            InputSchema = s_permissiveObjectSchema.ToJsonElement(),
+            OutputSchema = s_permissiveObjectSchema.ToJsonElement(),
+            Meta = meta
+        };
+
+        if (toolDefinition.Icons is { } icons)
+        {
+            tool.Icons =
+                icons.Select(
+                    icon => new Icon
+                    {
+                        Source = icon.Source.OriginalString,
+                        MimeType = icon.MimeType,
+                        Sizes = icon.Sizes,
+                        Theme = icon.Theme
+                    }).ToList();
+        }
+
+        return new OperationTool(toolDefinition.Document, tool)
+        {
+            HasValidDocument = false,
+            ViewResource = viewResource,
+            ViewHtml = toolDefinition.View?.Html
+        };
+    }
+
+    private static readonly JsonSchema s_permissiveObjectSchema =
+        new JsonSchemaBuilder().Type(SchemaValueType.Object).Build();
 
     private JsonSchema CreateInputSchema(OperationDefinitionNode operation)
     {
         var properties = new Dictionary<string, JsonSchema>();
         var requiredProperties = new List<string>();
+        var context = new JsonSchemaContext { UseReferences = options.UseJsonSchemaReferences };
 
         foreach (var variableNode in operation.VariableDefinitions)
         {
             var type = variableNode.Type.ToType(schema);
-            var propertyBuilder = type.ToJsonSchemaBuilder();
+            var propertyBuilder = type.ToJsonSchemaBuilder(context: context);
             var variableName = variableNode.Variable.Name.Value;
 
             // Description.
@@ -104,12 +167,22 @@ internal sealed class OperationToolFactory(ISchemaDefinition schema)
             properties.Add(variableName, propertyBuilder);
         }
 
-        return
+        var schemaBuilder =
             new JsonSchemaBuilder()
                 .Type(SchemaValueType.Object)
                 .Properties(properties)
-                .Required(requiredProperties)
-                .Build();
+                .Required(requiredProperties);
+
+        // Definitions, emitted in a stable order so the schema is deterministic.
+        if (context.Defs.Count > 0)
+        {
+            schemaBuilder.Defs(
+                context.Defs
+                    .OrderBy(definition => definition.Key, StringComparer.Ordinal)
+                    .ToDictionary());
+        }
+
+        return schemaBuilder.Build();
     }
 
     private static JsonSchema CreateOutputSchema(JsonSchema dataSchema)
@@ -136,91 +209,137 @@ internal sealed class OperationToolFactory(ISchemaDefinition schema)
                 .Required(requiredProperties);
     }
 
-    private static void AddOpenAiComponentMetadata(
+    private static void AddViewMetadata(
         JsonObject meta,
         OperationToolDefinition toolDefinition)
     {
-        if (toolDefinition.OpenAiComponent is not { } openAiComponent)
+        JsonObject? ui = null;
+
+        if (toolDefinition.ViewResourceUri is not null)
         {
-            return;
+            ui ??= [];
+            ui.Add("resourceUri", toolDefinition.ViewResourceUri);
         }
 
-        meta.Add("openai/outputTemplate", toolDefinition.OpenAiComponentOutputTemplate);
-
-        if (openAiComponent.AllowToolCalls)
+        if (toolDefinition.Visibility is { } visibility)
         {
-            meta.Add("openai/widgetAccessible", openAiComponent.AllowToolCalls);
+            ui ??= [];
+            var values = visibility.Select(v => JsonValue.Create(v.ToString().ToLowerInvariant())).ToArray<JsonNode>();
+            ui.Add("visibility", new JsonArray(values));
         }
 
-        if (openAiComponent.ToolInvokingStatusText is not null)
+        if (ui is not null)
         {
-            meta.Add("openai/toolInvocation/invoking", openAiComponent.ToolInvokingStatusText);
-        }
-
-        if (openAiComponent.ToolInvokedStatusText is not null)
-        {
-            meta.Add("openai/toolInvocation/invoked", openAiComponent.ToolInvokedStatusText);
+            meta.Add("ui", ui);
         }
     }
 
-    private static Resource CreateOpenAiComponentResource(
-        OpenAiComponent openAiComponent,
+    private static Resource CreateViewResource(
+        McpAppView view,
         OperationToolDefinition toolDefinition)
     {
         JsonObject? meta = null;
 
-        if (openAiComponent.Description is not null)
-        {
-            meta ??= [];
-            meta["openai/widgetDescription"] = openAiComponent.Description;
-        }
-
-        if (openAiComponent.PrefersBorder is not null)
-        {
-            meta ??= [];
-            meta["openai/widgetPrefersBorder"] = openAiComponent.PrefersBorder;
-        }
-
-        if (openAiComponent.Csp is { } csp)
+        if (view.Csp is { } csp)
         {
             JsonObject? contentSecurityPolicy = null;
+
+            if (csp.BaseUriDomains is { Length: > 0 } baseUriDomains)
+            {
+                contentSecurityPolicy ??= [];
+                contentSecurityPolicy.Add(
+                    "baseUriDomains",
+                    new JsonArray(baseUriDomains.Select(d => JsonValue.Create(d)).ToArray<JsonNode>()));
+            }
 
             if (csp.ConnectDomains is { Length: > 0 } connectDomains)
             {
                 contentSecurityPolicy ??= [];
                 contentSecurityPolicy.Add(
-                    "connect_domains",
+                    "connectDomains",
                     new JsonArray(connectDomains.Select(d => JsonValue.Create(d)).ToArray<JsonNode>()));
+            }
+
+            if (csp.FrameDomains is { Length: > 0 } frameDomains)
+            {
+                contentSecurityPolicy ??= [];
+                contentSecurityPolicy.Add(
+                    "frameDomains",
+                    new JsonArray(frameDomains.Select(d => JsonValue.Create(d)).ToArray<JsonNode>()));
             }
 
             if (csp.ResourceDomains is { Length: > 0 } resourceDomains)
             {
                 contentSecurityPolicy ??= [];
                 contentSecurityPolicy.Add(
-                    "resource_domains",
+                    "resourceDomains",
                     new JsonArray(resourceDomains.Select(d => JsonValue.Create(d)).ToArray<JsonNode>()));
             }
 
             if (contentSecurityPolicy is not null)
             {
                 meta ??= [];
-                meta.Add("openai/widgetCSP", contentSecurityPolicy);
+                meta.Add("csp", contentSecurityPolicy);
             }
         }
 
-        if (openAiComponent.Domain is not null)
+        if (view.Domain is not null)
         {
             meta ??= [];
-            meta.Add("openai/widgetDomain", openAiComponent.Domain);
+            meta.Add("domain", view.Domain);
+        }
+
+        if (view.Permissions is { } permissions)
+        {
+            JsonObject? permissionsObject = null;
+
+            if (permissions.Camera is true)
+            {
+                permissionsObject ??= [];
+                permissionsObject.Add("camera", new JsonObject());
+            }
+
+            if (permissions.ClipboardWrite is true)
+            {
+                permissionsObject ??= [];
+                permissionsObject.Add("clipboardWrite", new JsonObject());
+            }
+
+            if (permissions.Geolocation is true)
+            {
+                permissionsObject ??= [];
+                permissionsObject.Add("geolocation", new JsonObject());
+            }
+
+            if (permissions.Microphone is true)
+            {
+                permissionsObject ??= [];
+                permissionsObject.Add("microphone", new JsonObject());
+            }
+
+            if (permissionsObject is not null)
+            {
+                meta ??= [];
+                meta.Add("permissions", permissionsObject);
+            }
+        }
+
+        if (view.PrefersBorder is not null)
+        {
+            meta ??= [];
+            meta["prefersBorder"] = view.PrefersBorder;
         }
 
         return new Resource
         {
-            Name = string.Format(OperationToolFactory_OpenAiComponentResourceName, toolDefinition.Name),
-            Uri = toolDefinition.OpenAiComponentOutputTemplate!,
-            MimeType = "text/html+skybridge",
-            Size = Encoding.UTF8.GetByteCount(openAiComponent.HtmlTemplateText),
-            Meta = meta
+            Name = string.Format(OperationToolFactory_McpAppViewResourceName, toolDefinition.Name),
+            Uri = toolDefinition.ViewResourceUri!,
+            MimeType = "text/html;profile=mcp-app",
+            Size = Encoding.UTF8.GetByteCount(view.Html),
+            Meta = new JsonObject
+            {
+                ["ui"] = meta
+            }
         };
     }
 

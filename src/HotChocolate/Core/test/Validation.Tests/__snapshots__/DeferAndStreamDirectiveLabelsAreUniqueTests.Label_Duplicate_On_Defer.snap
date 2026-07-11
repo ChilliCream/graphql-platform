@@ -1,18 +1,14 @@
-[
-  {
-    "Message": "If a label is passed, it must be unique within all other @defer and @stream directives in the document.",
-    "Code": null,
-    "Path": null,
-    "Locations": [
-      {
-        "Line": 5,
-        "Column": 3
-      }
-    ],
-    "Extensions": {
-      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Defer-And-Stream-Directive-Labels-Are-Unique",
-      "label": "a"
-    },
-    "Exception": null
+{
+  "message": "If a label is passed, it must be unique within all other @defer and @stream directives in the document.",
+  "locations": [
+    {
+      "line": 5,
+      "column": 3
+    }
+  ],
+  "extensions": {
+    "specifiedBy": "https://spec.graphql.org/draft/#sec-Defer-And-Stream-Directive-Labels-Are-Unique",
+    "rfc": "https://github.com/graphql/graphql-spec/pull/1110",
+    "label": "a"
   }
-]
+}

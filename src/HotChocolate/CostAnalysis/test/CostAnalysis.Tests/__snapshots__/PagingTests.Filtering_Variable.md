@@ -3,9 +3,7 @@
 ## Operation
 
 ```graphql
-query(
-  $where: BookFilterInput
-) {
+query($where: BookFilterInput) {
   books(where: $where) {
     nodes {
       title
@@ -40,4 +38,3 @@ query(
   }
 }
 ```
-

@@ -1,4 +1,6 @@
 using System.Buffers;
+using System.Collections.Immutable;
+using System.Runtime.CompilerServices;
 using HotChocolate.Features;
 
 namespace HotChocolate.Execution;
@@ -8,72 +10,65 @@ namespace HotChocolate.Execution;
 /// </summary>
 public abstract class ExecutionResult : IExecutionResult
 {
-    protected static readonly ArrayPool<Func<ValueTask>> CleanUpTaskPool = ArrayPool<Func<ValueTask>>.Shared;
-    private Func<ValueTask>[] _cleanUpTasks = [];
+    private static readonly ArrayPool<CleanupEntry> s_cleanUpTaskPool = ArrayPool<CleanupEntry>.Shared;
+    private CleanupEntry[] _cleanUpTasks = [];
     private int _cleanupTasksLength;
     private bool _disposed;
-
-    protected ExecutionResult()
-    {
-    }
-
-    protected ExecutionResult((Func<ValueTask>[] Tasks, int Length) cleanupTasks)
-    {
-        if (cleanupTasks.Tasks is null)
-        {
-            throw new ArgumentNullException(nameof(cleanupTasks));
-        }
-
-        (_cleanUpTasks, _cleanupTasksLength) = cleanupTasks;
-    }
 
     /// <inheritdoc cref="IExecutionResult" />
     public abstract ExecutionResultKind Kind { get; }
 
     /// <inheritdoc cref="IExecutionResult" />
-    public abstract IReadOnlyDictionary<string, object?>? ContextData { get; }
+    public ImmutableDictionary<string, object?> ContextData
+    {
+        get => Features.Get<ImmutableDictionary<string, object?>>() ?? ImmutableDictionary<string, object?>.Empty;
+        set => Features.Set(value);
+    }
 
     /// <inheritdoc cref="IFeatureProvider" />
     public IFeatureCollection Features { get; } = new FeatureCollection();
 
     /// <summary>
-    /// This helper allows someone else to take over the responsibility over the cleanup tasks.
-    /// This object no longer will track them after they were taken over.
+    /// Registers a resource that needs to be disposed when the result is being disposed.
     /// </summary>
-    private protected (Func<ValueTask>[] Tasks, int Length) TakeCleanUpTasks()
+    /// <param name="disposable">
+    /// The resource that needs to be disposed.
+    /// </param>
+    public void RegisterForCleanup(IDisposable disposable)
     {
-        var tasks = _cleanUpTasks;
-        var taskLength = _cleanupTasksLength;
+        ArgumentNullException.ThrowIfNull(disposable);
+        AddCleanupEntry(new CleanupEntry { Target = disposable, Kind = CleanupKind.Disposable });
+    }
 
-        _cleanUpTasks = [];
-        _cleanupTasksLength = 0;
+    /// <summary>
+    /// Registers a cleanup action to be executed when the result is disposed.
+    /// </summary>
+    /// <param name="clean">
+    /// A cleanup action that will be executed when this result is disposed.
+    /// </param>
+    public void RegisterForCleanup(Action clean)
+    {
+        ArgumentNullException.ThrowIfNull(clean);
+        AddCleanupEntry(new CleanupEntry { Target = clean, Kind = CleanupKind.Action });
+    }
 
-        return (tasks, taskLength);
+    /// <summary>
+    /// Registers a resource that needs to be disposed asynchronously when the result is being disposed.
+    /// </summary>
+    /// <param name="disposable">
+    /// The resource that needs to be disposed.
+    /// </param>
+    public void RegisterForCleanup(IAsyncDisposable disposable)
+    {
+        ArgumentNullException.ThrowIfNull(disposable);
+        AddCleanupEntry(new CleanupEntry { Target = disposable, Kind = CleanupKind.AsyncDisposable });
     }
 
     /// <inheritdoc cref="IExecutionResult" />
     public void RegisterForCleanup(Func<ValueTask> clean)
     {
         ArgumentNullException.ThrowIfNull(clean);
-
-        if (_cleanUpTasks.Length == 0)
-        {
-            _cleanUpTasks = CleanUpTaskPool.Rent(8);
-            _cleanupTasksLength = 0;
-        }
-        else if (_cleanupTasksLength >= _cleanUpTasks.Length)
-        {
-            var buffer = CleanUpTaskPool.Rent(_cleanupTasksLength * 2);
-            var currentBuffer = _cleanUpTasks.AsSpan();
-
-            currentBuffer.CopyTo(buffer);
-            currentBuffer.Clear();
-            CleanUpTaskPool.Return(_cleanUpTasks);
-
-            _cleanUpTasks = buffer;
-        }
-
-        _cleanUpTasks[_cleanupTasksLength++] = clean;
+        AddCleanupEntry(new CleanupEntry { Target = clean, Kind = CleanupKind.FuncValueTask });
     }
 
     /// <summary>
@@ -88,18 +83,73 @@ public abstract class ExecutionResult : IExecutionResult
         {
             if (_cleanupTasksLength > 0)
             {
-                var tasks = _cleanUpTasks;
+                var entries = _cleanUpTasks;
 
                 for (var i = 0; i < _cleanupTasksLength; i++)
                 {
-                    await tasks[i]().ConfigureAwait(false);
+                    switch (entries[i].Kind)
+                    {
+                        case CleanupKind.FuncValueTask:
+                            await Unsafe.As<Func<ValueTask>>(entries[i].Target).Invoke().ConfigureAwait(false);
+                            break;
+
+                        case CleanupKind.Disposable:
+                            Unsafe.As<IDisposable>(entries[i].Target).Dispose();
+                            break;
+
+                        case CleanupKind.AsyncDisposable:
+                            await Unsafe.As<IAsyncDisposable>(entries[i].Target).DisposeAsync().ConfigureAwait(false);
+                            break;
+
+                        case CleanupKind.Action:
+                            Unsafe.As<Action>(entries[i].Target).Invoke();
+                            break;
+                    }
                 }
 
-                tasks.AsSpan(0, _cleanupTasksLength).Clear();
-                CleanUpTaskPool.Return(tasks);
+                entries.AsSpan(0, _cleanupTasksLength).Clear();
+                s_cleanUpTaskPool.Return(entries);
             }
 
             _disposed = true;
         }
+
+        GC.SuppressFinalize(this);
+    }
+
+    private void AddCleanupEntry(CleanupEntry entry)
+    {
+        if (_cleanUpTasks.Length == 0)
+        {
+            _cleanUpTasks = s_cleanUpTaskPool.Rent(8);
+            _cleanupTasksLength = 0;
+        }
+        else if (_cleanupTasksLength >= _cleanUpTasks.Length)
+        {
+            var buffer = s_cleanUpTaskPool.Rent(_cleanupTasksLength * 2);
+            var currentBuffer = _cleanUpTasks.AsSpan();
+
+            currentBuffer.CopyTo(buffer);
+            currentBuffer.Clear();
+            s_cleanUpTaskPool.Return(_cleanUpTasks);
+
+            _cleanUpTasks = buffer;
+        }
+
+        _cleanUpTasks[_cleanupTasksLength++] = entry;
+    }
+
+    private enum CleanupKind
+    {
+        FuncValueTask = 0,
+        Disposable = 1,
+        AsyncDisposable = 2,
+        Action = 3
+    }
+
+    private struct CleanupEntry
+    {
+        public object Target;
+        public CleanupKind Kind;
     }
 }

@@ -6,9 +6,18 @@ namespace HotChocolate.Data.Projections;
 
 public interface ISelectionVisitorContext
 {
-    Stack<ISelection> Selection { get; }
+    ulong IncludeFlags => ResolverContext.IncludeFlags;
 
-    Stack<ITypeDefinition?> ResolvedType { get; }
+    Operation Operation => ResolverContext.Operation;
+
+    Stack<Selection> Selections { get; }
+
+    Stack<ITypeDefinition?> ResolvedTypes { get; }
 
     IResolverContext ResolverContext { get; }
+
+    SelectionEnumerator GetSelections(
+        ObjectType typeContext,
+        Selection? selection = null,
+        bool allowInternals = false);
 }

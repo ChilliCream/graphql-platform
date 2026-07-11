@@ -49,25 +49,31 @@ namespace Microsoft.Extensions.DependencyInjection
                 return new global::StrawberryShake.Transport.Http.HttpConnection(() => clientFactory.CreateClient("StarWarsIntrospectionClient"));
             });
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.__TypeKindSerializer>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.StringSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.AnySerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.Base64StringSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.BooleanSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.ByteArraySerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.ByteSerializer>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.ShortSerializer>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.IntSerializer>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.LongSerializer>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.FloatSerializer>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.DecimalSerializer>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.UrlSerializer>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.UUIDSerializer>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.IdSerializer>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.DateTimeSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.DateSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.DateTimeSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.DecimalSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.DurationSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.FloatSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.IdSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.IntSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.LocalDateSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.LocalDateTimeSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.LocalTimeSerializer>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.ByteArraySerializer>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.TimeSpanSerializer>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.JsonSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.LongSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.ShortSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.StringSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.UnsignedByteSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.UnsignedIntSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.UnsignedLongSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.UnsignedShortSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.UriSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.UrlSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.UUIDSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializerResolver>(services, sp => new global::StrawberryShake.Serialization.SerializerResolver(global::System.Linq.Enumerable.Concat(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::System.Collections.Generic.IEnumerable<global::StrawberryShake.Serialization.ISerializer>>(parentServices), global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::System.Collections.Generic.IEnumerable<global::StrawberryShake.Serialization.ISerializer>>(sp))));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultDataFactory<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.IIntrospectionQueryResult>, global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.State.IntrospectionQueryResultFactory>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultDataFactory>(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationResultDataFactory<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.IIntrospectionQueryResult>>(sp));
@@ -2806,7 +2812,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
     ///     }
     ///     types {
     ///       __typename
-    ///       ... FullType
+    ///       ...FullType
     ///     }
     ///     directives {
     ///       __typename
@@ -2814,7 +2820,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
     ///       description
     ///       args {
     ///         __typename
-    ///         ... InputValue
+    ///         ...InputValue
     ///       }
     ///       onOperation
     ///       onFragment
@@ -2833,22 +2839,22 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
     ///     description
     ///     args {
     ///       __typename
-    ///       ... InputValue
+    ///       ...InputValue
     ///     }
     ///     type {
     ///       __typename
-    ///       ... TypeRef
+    ///       ...TypeRef
     ///     }
     ///     isDeprecated
     ///     deprecationReason
     ///   }
     ///   inputFields {
     ///     __typename
-    ///     ... InputValue
+    ///     ...InputValue
     ///   }
     ///   interfaces {
     ///     __typename
-    ///     ... TypeRef
+    ///     ...TypeRef
     ///   }
     ///   enumValues(includeDeprecated: true) {
     ///     __typename
@@ -2859,7 +2865,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
     ///   }
     ///   possibleTypes {
     ///     __typename
-    ///     ... TypeRef
+    ///     ...TypeRef
     ///   }
     /// }
     /// 
@@ -2868,7 +2874,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
     ///   description
     ///   type {
     ///     __typename
-    ///     ... TypeRef
+    ///     ...TypeRef
     ///   }
     ///   defaultValue
     /// }
@@ -2903,8 +2909,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
 
         public static IntrospectionQueryQueryDocument Instance { get; } = new IntrospectionQueryQueryDocument();
         public global::StrawberryShake.OperationKind Kind => global::StrawberryShake.OperationKind.Query;
-        public global::System.ReadOnlySpan<global::System.Byte> Body => "query IntrospectionQuery { __schema { __typename queryType { __typename name } mutationType { __typename name } subscriptionType { __typename name } types { __typename ... FullType } directives { __typename name description args { __typename ... InputValue } onOperation onFragment onField } } } fragment FullType on __Type { kind name description fields(includeDeprecated: true) { __typename name description args { __typename ... InputValue } type { __typename ... TypeRef } isDeprecated deprecationReason } inputFields { __typename ... InputValue } interfaces { __typename ... TypeRef } enumValues(includeDeprecated: true) { __typename name description isDeprecated deprecationReason } possibleTypes { __typename ... TypeRef } } fragment InputValue on __InputValue { name description type { __typename ... TypeRef } defaultValue } fragment TypeRef on __Type { kind name ofType { __typename kind name ofType { __typename kind name ofType { __typename kind name } } } }"u8;
-        public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("sha1Hash", "5902e9f9fd92bc2e9785f0821db6ff925e660fde");
+        public global::System.ReadOnlySpan<global::System.Byte> Body => "query IntrospectionQuery { __schema { __typename queryType { __typename name } mutationType { __typename name } subscriptionType { __typename name } types { __typename ...FullType } directives { __typename name description args { __typename ...InputValue } onOperation onFragment onField } } } fragment FullType on __Type { kind name description fields(includeDeprecated: true) { __typename name description args { __typename ...InputValue } type { __typename ...TypeRef } isDeprecated deprecationReason } inputFields { __typename ...InputValue } interfaces { __typename ...TypeRef } enumValues(includeDeprecated: true) { __typename name description isDeprecated deprecationReason } possibleTypes { __typename ...TypeRef } } fragment InputValue on __InputValue { name description type { __typename ...TypeRef } defaultValue } fragment TypeRef on __Type { kind name ofType { __typename kind name ofType { __typename kind name ofType { __typename kind name } } } }"u8;
+        public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("sha1Hash", "adc16871258b9bf9076f70b8b374b286c676f5c6");
 
         public override global::System.String ToString()
         {
@@ -2937,7 +2943,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
     ///     }
     ///     types {
     ///       __typename
-    ///       ... FullType
+    ///       ...FullType
     ///     }
     ///     directives {
     ///       __typename
@@ -2945,7 +2951,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
     ///       description
     ///       args {
     ///         __typename
-    ///         ... InputValue
+    ///         ...InputValue
     ///       }
     ///       onOperation
     ///       onFragment
@@ -2964,22 +2970,22 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
     ///     description
     ///     args {
     ///       __typename
-    ///       ... InputValue
+    ///       ...InputValue
     ///     }
     ///     type {
     ///       __typename
-    ///       ... TypeRef
+    ///       ...TypeRef
     ///     }
     ///     isDeprecated
     ///     deprecationReason
     ///   }
     ///   inputFields {
     ///     __typename
-    ///     ... InputValue
+    ///     ...InputValue
     ///   }
     ///   interfaces {
     ///     __typename
-    ///     ... TypeRef
+    ///     ...TypeRef
     ///   }
     ///   enumValues(includeDeprecated: true) {
     ///     __typename
@@ -2990,7 +2996,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
     ///   }
     ///   possibleTypes {
     ///     __typename
-    ///     ... TypeRef
+    ///     ...TypeRef
     ///   }
     /// }
     /// 
@@ -2999,7 +3005,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
     ///   description
     ///   type {
     ///     __typename
-    ///     ... TypeRef
+    ///     ...TypeRef
     ///   }
     ///   defaultValue
     /// }
@@ -3112,7 +3118,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
     ///     }
     ///     types {
     ///       __typename
-    ///       ... FullType
+    ///       ...FullType
     ///     }
     ///     directives {
     ///       __typename
@@ -3120,7 +3126,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
     ///       description
     ///       args {
     ///         __typename
-    ///         ... InputValue
+    ///         ...InputValue
     ///       }
     ///       onOperation
     ///       onFragment
@@ -3139,22 +3145,22 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
     ///     description
     ///     args {
     ///       __typename
-    ///       ... InputValue
+    ///       ...InputValue
     ///     }
     ///     type {
     ///       __typename
-    ///       ... TypeRef
+    ///       ...TypeRef
     ///     }
     ///     isDeprecated
     ///     deprecationReason
     ///   }
     ///   inputFields {
     ///     __typename
-    ///     ... InputValue
+    ///     ...InputValue
     ///   }
     ///   interfaces {
     ///     __typename
-    ///     ... TypeRef
+    ///     ...TypeRef
     ///   }
     ///   enumValues(includeDeprecated: true) {
     ///     __typename
@@ -3165,7 +3171,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
     ///   }
     ///   possibleTypes {
     ///     __typename
-    ///     ... TypeRef
+    ///     ...TypeRef
     ///   }
     /// }
     /// 
@@ -3174,7 +3180,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
     ///   description
     ///   type {
     ///     __typename
-    ///     ... TypeRef
+    ///     ...TypeRef
     ///   }
     ///   defaultValue
     /// }

@@ -1,4 +1,4 @@
-﻿schema {
+schema {
   query: Query
 }
 
@@ -8,5 +8,5 @@ type Query {
 
 enum FooObsolete {
   BAR1
-  BAR2 @deprecated
+  BAR2 @deprecated(reason: "No longer supported.")
 }

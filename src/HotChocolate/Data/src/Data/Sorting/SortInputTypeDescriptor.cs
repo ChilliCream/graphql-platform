@@ -56,7 +56,7 @@ public class SortInputTypeDescriptor
     protected BindableList<SortFieldDescriptor> Fields { get; } =
         [];
 
-    Type IHasRuntimeType.RuntimeType => Configuration.RuntimeType;
+    Type IRuntimeTypeProvider.RuntimeType => Configuration.RuntimeType;
 
     protected override void OnCreateConfiguration(
         SortInputTypeConfiguration configuration)

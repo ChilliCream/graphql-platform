@@ -1,15 +1,10 @@
-using Microsoft.Extensions.DependencyInjection;
+using HotChocolate.Validation.Rules;
 
 namespace HotChocolate.Validation;
 
-public class FieldsOnCorrectTypeRuleTests
-    : DocumentValidatorVisitorTestBase
+public class FieldsOnCorrectTypeRuleTests()
+    : DocumentValidatorVisitorTestBase(services => services.AddRule<FieldSelectionsRule>())
 {
-    public FieldsOnCorrectTypeRuleTests()
-        : base(services => services.AddFieldRules())
-    {
-    }
-
     [Fact]
     public void GoodObjectFieldSelection()
     {
@@ -313,9 +308,9 @@ public class FieldsOnCorrectTypeRuleTests
                   list: [Foo!]
                 }
                 """)
-            .AddResolver("Query", "list", ctx => null!)
-            .AddResolver("Bar", "baz", ctx => null!)
-            .AddResolver("Baz", "baz", ctx => null!)
+            .AddResolver("Query", "list", ctx => null)
+            .AddResolver("Bar", "baz", ctx => null)
+            .AddResolver("Baz", "baz", ctx => null)
             .Create();
 
         ExpectErrors(

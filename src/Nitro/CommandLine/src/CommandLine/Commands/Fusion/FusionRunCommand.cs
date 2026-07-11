@@ -1,57 +1,58 @@
 using System.Diagnostics;
+#if !NET9_0_OR_GREATER
+using System.Diagnostics.CodeAnalysis;
+#endif
 using System.Net;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
+using ChilliCream.Nitro.CommandLine.Arguments;
+using ChilliCream.Nitro.CommandLine.Helpers;
+using ChilliCream.Nitro.CommandLine.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Fusion;
 
-public class FusionRunCommand : Command
+#if !NET9_0_OR_GREATER
+[RequiresDynamicCode("JSON serialization and deserialization might require types that cannot be statically analyzed and might need runtime code generation. Use System.Text.Json source generation for native AOT applications.")]
+[RequiresUnreferencedCode("JSON serialization and deserialization might require types that cannot be statically analyzed. Use the overload that takes a JsonTypeInfo or JsonSerializerContext, or make sure all of the required types are preserved.")]
+#endif
+internal class FusionRunCommand : Command
 {
     public FusionRunCommand() : base("run")
     {
-        base.Description = "Starts a Fusion gateway with the specified configuration";
+        Description = "Start a Fusion gateway with the specified archive."
+            + Environment.NewLine
+            + "This command only supports Fusion v2.";
 
-        var archiveArgument = new Argument<FileInfo>("ARCHIVE_FILE")
-        {
-            Description = "The path to the Fusion configuration file"
-        };
-        archiveArgument.LegalFilePathsOnly();
+        Arguments.Add(Opt<FusionRunArchiveArgument>.Instance);
+        Options.Add(Opt<FusionRunPortOption>.Instance);
 
-        AddArgument(archiveArgument);
+        this.AddExamples("fusion run ./gateway.far --port 5000");
 
-        var portOption = new Option<int>("--port");
-        portOption.AddAlias("-p");
-
-        AddOption(portOption);
-
-        this.SetHandler(async context =>
-        {
-            var archiveFile = context.ParseResult.GetValueForArgument(archiveArgument)!;
-
-            var console = context.BindingContext.GetRequiredService<IAnsiConsole>();
-
-            var port = context.ParseResult.GetValueForOption(portOption);
-
-            await ExecuteAsync(archiveFile, console, port, context.GetCancellationToken());
-        });
+        this.SetActionWithExceptionHandling(ExecuteAsync);
     }
 
-    private static async Task ExecuteAsync(
-        FileInfo archiveFile,
-        IAnsiConsole console,
-        int? port,
+    private static async Task<int> ExecuteAsync(
+        ICommandServices services,
+        ParseResult parseResult,
         CancellationToken cancellationToken)
     {
-        if (!archiveFile.Exists)
+        var console = services.GetRequiredService<INitroConsole>();
+        var fileSystem = services.GetRequiredService<IFileSystem>();
+
+        var archiveFilePath = parseResult.GetRequiredValue(Opt<FusionRunArchiveArgument>.Instance);
+        var port = parseResult.GetValue(Opt<FusionRunPortOption>.Instance);
+        if (!fileSystem.FileExists(archiveFilePath))
         {
-            throw new ExitException($"Archive file '{archiveFile.FullName}' does not exist.");
+            throw new ExitException(Messages.ArchiveFileDoesNotExist(archiveFilePath));
         }
 
         port ??= GetRandomUnusedPort();
 
+        // Type or member is obsolete
+#pragma warning disable ASPDEPR008
         var host = new WebHostBuilder()
             .UseKestrel()
             .UseUrls(new UriBuilder("http", "localhost", port.Value).ToString())
@@ -71,21 +72,19 @@ public class FusionRunCommand : Command
 
                 services.AddRouting()
                     .AddGraphQLGatewayServer()
-                    .AddFileSystemConfiguration(archiveFile.FullName)
-                    .ModifyRequestOptions(o => o.CollectOperationPlanTelemetry = true);
+                    .AddFileSystemConfiguration(archiveFilePath)
+                    .ModifyRequestOptions(o => o.CollectOperationPlanTelemetry = true)
+                    .ModifyServerOptions(o => o.Tool.ServeMode = App.ServeMode.Insider);
             })
             .Configure(app =>
             {
                 app.UseRouting();
                 app.UseHeaderPropagation();
                 app.UseCors(c => c.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin());
-                app.UseEndpoints(e => e.MapGraphQL()
-                    .WithOptions(new HotChocolate.AspNetCore.GraphQLServerOptions
-                    {
-                        Tool = { ServeMode = HotChocolate.AspNetCore.GraphQLToolServeMode.Insider }
-                    }));
+                app.UseEndpoints(e => e.MapGraphQL());
             })
             .Build();
+#pragma warning restore ASPDEPR008
 
         var lifetime = host.Services.GetRequiredService<IHostApplicationLifetime>();
 
@@ -121,6 +120,8 @@ public class FusionRunCommand : Command
         });
 
         await host.RunAsync(cancellationToken);
+
+        return ExitCodes.Success;
     }
 
     private static int GetRandomUnusedPort()

@@ -10,7 +10,7 @@ public class ByteSerializerTests
     public void Parse()
     {
         // arrange
-        const byte value = 1;
+        const sbyte value = 1;
 
         // act
         var result = Serializer.Parse(value);
@@ -35,7 +35,7 @@ public class ByteSerializerTests
     public void Format_Value()
     {
         // arrange
-        const byte value = 1;
+        const sbyte value = 1;
 
         // act
         var result = Serializer.Format(value);

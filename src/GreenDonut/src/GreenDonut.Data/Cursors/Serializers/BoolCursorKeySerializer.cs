@@ -8,7 +8,7 @@ internal sealed class BoolCursorKeySerializer : ICursorKeySerializer
     private static readonly MethodInfo s_compareTo = CompareToResolver.GetCompareToMethod<bool>();
 
     public bool IsSupported(Type type)
-        => type == typeof(bool);
+        => type == typeof(bool) || type == typeof(bool?);
 
     public MethodInfo GetCompareToMethod(Type type)
         => s_compareTo;

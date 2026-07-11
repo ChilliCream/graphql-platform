@@ -1,4 +1,4 @@
-﻿{
+{
   "Data": {
     "__schema": {
       "QueryType": {
@@ -117,6 +117,34 @@
                   "Name": "Boolean",
                   "OfType": null
                 }
+              },
+              "IsDeprecated": false,
+              "DeprecationReason": null
+            },
+            {
+              "Name": "isDeprecated",
+              "Description": null,
+              "Args": [],
+              "Type": {
+                "Kind": "NonNull",
+                "Name": null,
+                "OfType": {
+                  "Kind": "Scalar",
+                  "Name": "Boolean",
+                  "OfType": null
+                }
+              },
+              "IsDeprecated": false,
+              "DeprecationReason": null
+            },
+            {
+              "Name": "deprecationReason",
+              "Description": null,
+              "Args": [],
+              "Type": {
+                "Kind": "Scalar",
+                "Name": "String",
+                "OfType": null
               },
               "IsDeprecated": false,
               "DeprecationReason": null
@@ -294,6 +322,12 @@
             {
               "Name": "INPUT_FIELD_DEFINITION",
               "Description": "Location adjacent to an input object field definition.",
+              "IsDeprecated": false,
+              "DeprecationReason": null
+            },
+            {
+              "Name": "DIRECTIVE_DEFINITION",
+              "Description": "Location adjacent to a directive definition.",
               "IsDeprecated": false,
               "DeprecationReason": null
             }
@@ -666,7 +700,22 @@
             {
               "Name": "directives",
               "Description": "A list of all directives supported by this server.",
-              "Args": [],
+              "Args": [
+                {
+                  "Name": "includeDeprecated",
+                  "Description": null,
+                  "Type": {
+                    "Kind": "NonNull",
+                    "Name": null,
+                    "OfType": {
+                      "Kind": "Scalar",
+                      "Name": "Boolean",
+                      "OfType": null
+                    }
+                  },
+                  "DefaultValue": "false"
+                }
+              ],
               "Type": {
                 "Kind": "NonNull",
                 "Name": null,
@@ -985,6 +1034,156 @@
         },
         {
           "Kind": "Object",
+          "Name": "__SearchResult",
+          "Description": "A search result representing a matched schema element.",
+          "Fields": [
+            {
+              "Name": "cursor",
+              "Description": "An opaque cursor for pagination.",
+              "Args": [],
+              "Type": {
+                "Kind": "NonNull",
+                "Name": null,
+                "OfType": {
+                  "Kind": "Scalar",
+                  "Name": "String",
+                  "OfType": null
+                }
+              },
+              "IsDeprecated": false,
+              "DeprecationReason": null
+            },
+            {
+              "Name": "coordinate",
+              "Description": "The schema coordinate of the matched element.",
+              "Args": [],
+              "Type": {
+                "Kind": "NonNull",
+                "Name": null,
+                "OfType": {
+                  "Kind": "Scalar",
+                  "Name": "String",
+                  "OfType": null
+                }
+              },
+              "IsDeprecated": false,
+              "DeprecationReason": null
+            },
+            {
+              "Name": "definition",
+              "Description": "The matched schema definition.",
+              "Args": [],
+              "Type": {
+                "Kind": "NonNull",
+                "Name": null,
+                "OfType": {
+                  "Kind": "Union",
+                  "Name": "__SchemaDefinition",
+                  "OfType": null
+                }
+              },
+              "IsDeprecated": false,
+              "DeprecationReason": null
+            },
+            {
+              "Name": "pathsToRoot",
+              "Description": "Paths from this element to a root type, each as a list of schema coordinates.",
+              "Args": [],
+              "Type": {
+                "Kind": "NonNull",
+                "Name": null,
+                "OfType": {
+                  "Kind": "List",
+                  "Name": null,
+                  "OfType": {
+                    "Kind": "NonNull",
+                    "Name": null,
+                    "OfType": {
+                      "Kind": "List",
+                      "Name": null
+                    }
+                  }
+                }
+              },
+              "IsDeprecated": false,
+              "DeprecationReason": null
+            },
+            {
+              "Name": "score",
+              "Description": "The relevance score of the match, or null if scoring is not supported.",
+              "Args": [],
+              "Type": {
+                "Kind": "Scalar",
+                "Name": "Float",
+                "OfType": null
+              },
+              "IsDeprecated": false,
+              "DeprecationReason": null
+            }
+          ],
+          "InputFields": null,
+          "Interfaces": [],
+          "EnumValues": null,
+          "PossibleTypes": null
+        },
+        {
+          "Kind": "Union",
+          "Name": "__SchemaDefinition",
+          "Description": null,
+          "Fields": null,
+          "InputFields": null,
+          "Interfaces": null,
+          "EnumValues": null,
+          "PossibleTypes": [
+            {
+              "Kind": "Object",
+              "Name": "__Type",
+              "OfType": null
+            },
+            {
+              "Kind": "Object",
+              "Name": "__Field",
+              "OfType": null
+            },
+            {
+              "Kind": "Object",
+              "Name": "__InputValue",
+              "OfType": null
+            },
+            {
+              "Kind": "Object",
+              "Name": "__EnumValue",
+              "OfType": null
+            },
+            {
+              "Kind": "Object",
+              "Name": "__Directive",
+              "OfType": null
+            }
+          ]
+        },
+        {
+          "Kind": "Scalar",
+          "Name": "Int",
+          "Description": "The `Int` scalar type represents a signed 32-bit numeric non-fractional value.",
+          "Fields": null,
+          "InputFields": null,
+          "Interfaces": null,
+          "EnumValues": null,
+          "PossibleTypes": null
+        },
+        {
+          "Kind": "Scalar",
+          "Name": "Float",
+          "Description": "The `Float` scalar type represents signed double-precision finite values as specified by [IEEE 754](https://en.wikipedia.org/wiki/IEEE_floating_point).",
+          "Fields": null,
+          "InputFields": null,
+          "Interfaces": null,
+          "EnumValues": null,
+          "PossibleTypes": null
+        },
+        {
+          "Kind": "Object",
           "Name": "Query",
           "Description": null,
           "Fields": [
@@ -1027,7 +1226,7 @@
                     "Name": null,
                     "OfType": {
                       "Kind": "Scalar",
-                      "Name": "JSON",
+                      "Name": "Any",
                       "OfType": null
                     }
                   },
@@ -1508,7 +1707,7 @@
               "Args": [],
               "Type": {
                 "Kind": "Scalar",
-                "Name": "JSON",
+                "Name": "Any",
                 "OfType": null
               },
               "IsDeprecated": false,
@@ -1673,7 +1872,7 @@
               "Args": [],
               "Type": {
                 "Kind": "Scalar",
-                "Name": "JSON",
+                "Name": "Any",
                 "OfType": null
               },
               "IsDeprecated": false,
@@ -1723,7 +1922,7 @@
         {
           "Kind": "Scalar",
           "Name": "String",
-          "Description": "The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text.",
+          "Description": "The `String` scalar type represents textual data, represented as a sequence of Unicode code points.",
           "Fields": null,
           "InputFields": null,
           "Interfaces": null,
@@ -1734,16 +1933,6 @@
           "Kind": "Scalar",
           "Name": "Boolean",
           "Description": "The `Boolean` scalar type represents `true` or `false`.",
-          "Fields": null,
-          "InputFields": null,
-          "Interfaces": null,
-          "EnumValues": null,
-          "PossibleTypes": null
-        },
-        {
-          "Kind": "Scalar",
-          "Name": "Int",
-          "Description": "The `Int` scalar type represents non-fractional signed whole numeric values. Int can represent values between -(2^31) and 2^31 - 1.",
           "Fields": null,
           "InputFields": null,
           "Interfaces": null,
@@ -1862,7 +2051,7 @@
               "Args": [],
               "Type": {
                 "Kind": "Scalar",
-                "Name": "JSON",
+                "Name": "Any",
                 "OfType": null
               },
               "IsDeprecated": false,
@@ -2011,7 +2200,7 @@
         {
           "Kind": "Scalar",
           "Name": "ID",
-          "Description": "The `ID` scalar type represents a unique identifier, often used to refetch an object or as key for a cache. The ID type appears in a JSON response as a String; however, it is not intended to be human-readable. When expected as an input type, any string (such as `\"4\"`) or integer (such as `4`) input value will be accepted as an ID.",
+          "Description": "The `ID` scalar type represents a unique identifier, often used to refetch an object or as the key for a cache.",
           "Fields": null,
           "InputFields": null,
           "Interfaces": null,
@@ -2082,16 +2271,6 @@
           "PossibleTypes": null
         },
         {
-          "Kind": "Scalar",
-          "Name": "Float",
-          "Description": "The `Float` scalar type represents signed double-precision fractional values as specified by [IEEE 754](http://en.wikipedia.org/wiki/IEEE_floating_point).",
-          "Fields": null,
-          "InputFields": null,
-          "Interfaces": null,
-          "EnumValues": null,
-          "PossibleTypes": null
-        },
-        {
           "Kind": "Enum",
           "Name": "Unit",
           "Description": null,
@@ -2116,8 +2295,8 @@
         },
         {
           "Kind": "Scalar",
-          "Name": "JSON",
-          "Description": null,
+          "Name": "Any",
+          "Description": "The `Any` scalar type represents any valid GraphQL value.",
           "Fields": null,
           "InputFields": null,
           "Interfaces": null,
@@ -2536,6 +2715,29 @@
           "OnOperation": false,
           "OnFragment": false,
           "OnField": false
+        },
+        {
+          "Name": "specifiedBy",
+          "Description": "The `@specifiedBy` directive is used within the type system definition language to provide a URL for specifying the behavior of custom scalar definitions.",
+          "Args": [
+            {
+              "Name": "url",
+              "Description": "The specifiedBy URL points to a human-readable specification. This field will only read a result for scalar types.",
+              "Type": {
+                "Kind": "NonNull",
+                "Name": null,
+                "OfType": {
+                  "Kind": "Scalar",
+                  "Name": "String",
+                  "OfType": null
+                }
+              },
+              "DefaultValue": null
+            }
+          ],
+          "OnOperation": false,
+          "OnFragment": false,
+          "OnField": false
         }
       ]
     }
@@ -2806,6 +3008,57 @@
             },
             {
               "__typename": "__Field",
+              "Name": "isDeprecated",
+              "Description": null,
+              "Args": [],
+              "Type": {
+                "__typename": "__Type",
+                "Name": null,
+                "Kind": "NonNull",
+                "Description": null,
+                "Fields": null,
+                "InputFields": null,
+                "Interfaces": null,
+                "EnumValues": null,
+                "PossibleTypes": null,
+                "OfType": {
+                  "__typename": "__Type",
+                  "Name": "Boolean",
+                  "Kind": "Scalar",
+                  "Description": null,
+                  "Fields": null,
+                  "InputFields": null,
+                  "Interfaces": null,
+                  "EnumValues": null,
+                  "PossibleTypes": null,
+                  "OfType": null
+                }
+              },
+              "IsDeprecated": false,
+              "DeprecationReason": null
+            },
+            {
+              "__typename": "__Field",
+              "Name": "deprecationReason",
+              "Description": null,
+              "Args": [],
+              "Type": {
+                "__typename": "__Type",
+                "Name": "String",
+                "Kind": "Scalar",
+                "Description": null,
+                "Fields": null,
+                "InputFields": null,
+                "Interfaces": null,
+                "EnumValues": null,
+                "PossibleTypes": null,
+                "OfType": null
+              },
+              "IsDeprecated": false,
+              "DeprecationReason": null
+            },
+            {
+              "__typename": "__Field",
               "Name": "onOperation",
               "Description": null,
               "Args": [],
@@ -3043,6 +3296,13 @@
               "__typename": "__EnumValue",
               "Name": "INPUT_FIELD_DEFINITION",
               "Description": "Location adjacent to an input object field definition.",
+              "IsDeprecated": false,
+              "DeprecationReason": null
+            },
+            {
+              "__typename": "__EnumValue",
+              "Name": "DIRECTIVE_DEFINITION",
+              "Description": "Location adjacent to a directive definition.",
               "IsDeprecated": false,
               "DeprecationReason": null
             }
@@ -3714,7 +3974,37 @@
               "__typename": "__Field",
               "Name": "directives",
               "Description": "A list of all directives supported by this server.",
-              "Args": [],
+              "Args": [
+                {
+                  "__typename": "__InputValue",
+                  "Name": "includeDeprecated",
+                  "Description": null,
+                  "Type": {
+                    "__typename": "__Type",
+                    "Name": null,
+                    "Kind": "NonNull",
+                    "Description": null,
+                    "Fields": null,
+                    "InputFields": null,
+                    "Interfaces": null,
+                    "EnumValues": null,
+                    "PossibleTypes": null,
+                    "OfType": {
+                      "__typename": "__Type",
+                      "Name": "Boolean",
+                      "Kind": "Scalar",
+                      "Description": null,
+                      "Fields": null,
+                      "InputFields": null,
+                      "Interfaces": null,
+                      "EnumValues": null,
+                      "PossibleTypes": null,
+                      "OfType": null
+                    }
+                  },
+                  "DefaultValue": "false"
+                }
+              ],
               "Type": {
                 "__typename": "__Type",
                 "Name": null,
@@ -4285,6 +4575,282 @@
         },
         {
           "__typename": "__Type",
+          "Name": "__SearchResult",
+          "Kind": "Object",
+          "Description": "A search result representing a matched schema element.",
+          "Fields": [
+            {
+              "__typename": "__Field",
+              "Name": "cursor",
+              "Description": "An opaque cursor for pagination.",
+              "Args": [],
+              "Type": {
+                "__typename": "__Type",
+                "Name": null,
+                "Kind": "NonNull",
+                "Description": null,
+                "Fields": null,
+                "InputFields": null,
+                "Interfaces": null,
+                "EnumValues": null,
+                "PossibleTypes": null,
+                "OfType": {
+                  "__typename": "__Type",
+                  "Name": "String",
+                  "Kind": "Scalar",
+                  "Description": null,
+                  "Fields": null,
+                  "InputFields": null,
+                  "Interfaces": null,
+                  "EnumValues": null,
+                  "PossibleTypes": null,
+                  "OfType": null
+                }
+              },
+              "IsDeprecated": false,
+              "DeprecationReason": null
+            },
+            {
+              "__typename": "__Field",
+              "Name": "coordinate",
+              "Description": "The schema coordinate of the matched element.",
+              "Args": [],
+              "Type": {
+                "__typename": "__Type",
+                "Name": null,
+                "Kind": "NonNull",
+                "Description": null,
+                "Fields": null,
+                "InputFields": null,
+                "Interfaces": null,
+                "EnumValues": null,
+                "PossibleTypes": null,
+                "OfType": {
+                  "__typename": "__Type",
+                  "Name": "String",
+                  "Kind": "Scalar",
+                  "Description": null,
+                  "Fields": null,
+                  "InputFields": null,
+                  "Interfaces": null,
+                  "EnumValues": null,
+                  "PossibleTypes": null,
+                  "OfType": null
+                }
+              },
+              "IsDeprecated": false,
+              "DeprecationReason": null
+            },
+            {
+              "__typename": "__Field",
+              "Name": "definition",
+              "Description": "The matched schema definition.",
+              "Args": [],
+              "Type": {
+                "__typename": "__Type",
+                "Name": null,
+                "Kind": "NonNull",
+                "Description": null,
+                "Fields": null,
+                "InputFields": null,
+                "Interfaces": null,
+                "EnumValues": null,
+                "PossibleTypes": null,
+                "OfType": {
+                  "__typename": "__Type",
+                  "Name": "__SchemaDefinition",
+                  "Kind": "Union",
+                  "Description": null,
+                  "Fields": null,
+                  "InputFields": null,
+                  "Interfaces": null,
+                  "EnumValues": null,
+                  "PossibleTypes": null,
+                  "OfType": null
+                }
+              },
+              "IsDeprecated": false,
+              "DeprecationReason": null
+            },
+            {
+              "__typename": "__Field",
+              "Name": "pathsToRoot",
+              "Description": "Paths from this element to a root type, each as a list of schema coordinates.",
+              "Args": [],
+              "Type": {
+                "__typename": "__Type",
+                "Name": null,
+                "Kind": "NonNull",
+                "Description": null,
+                "Fields": null,
+                "InputFields": null,
+                "Interfaces": null,
+                "EnumValues": null,
+                "PossibleTypes": null,
+                "OfType": {
+                  "__typename": "__Type",
+                  "Name": null,
+                  "Kind": "List",
+                  "Description": null,
+                  "Fields": null,
+                  "InputFields": null,
+                  "Interfaces": null,
+                  "EnumValues": null,
+                  "PossibleTypes": null,
+                  "OfType": {
+                    "__typename": "__Type",
+                    "Name": null,
+                    "Kind": "NonNull",
+                    "Description": null,
+                    "Fields": null,
+                    "InputFields": null,
+                    "Interfaces": null,
+                    "EnumValues": null,
+                    "PossibleTypes": null,
+                    "OfType": {
+                      "__typename": "__Type",
+                      "Name": null,
+                      "Kind": "List",
+                      "Description": null,
+                      "Fields": null,
+                      "InputFields": null,
+                      "Interfaces": null,
+                      "EnumValues": null,
+                      "PossibleTypes": null,
+                      "OfType": null
+                    }
+                  }
+                }
+              },
+              "IsDeprecated": false,
+              "DeprecationReason": null
+            },
+            {
+              "__typename": "__Field",
+              "Name": "score",
+              "Description": "The relevance score of the match, or null if scoring is not supported.",
+              "Args": [],
+              "Type": {
+                "__typename": "__Type",
+                "Name": "Float",
+                "Kind": "Scalar",
+                "Description": null,
+                "Fields": null,
+                "InputFields": null,
+                "Interfaces": null,
+                "EnumValues": null,
+                "PossibleTypes": null,
+                "OfType": null
+              },
+              "IsDeprecated": false,
+              "DeprecationReason": null
+            }
+          ],
+          "InputFields": null,
+          "Interfaces": [],
+          "EnumValues": null,
+          "PossibleTypes": null,
+          "OfType": null
+        },
+        {
+          "__typename": "__Type",
+          "Name": "__SchemaDefinition",
+          "Kind": "Union",
+          "Description": null,
+          "Fields": null,
+          "InputFields": null,
+          "Interfaces": null,
+          "EnumValues": null,
+          "PossibleTypes": [
+            {
+              "__typename": "__Type",
+              "Name": "__Type",
+              "Kind": "Object",
+              "Description": null,
+              "Fields": null,
+              "InputFields": null,
+              "Interfaces": null,
+              "EnumValues": null,
+              "PossibleTypes": null,
+              "OfType": null
+            },
+            {
+              "__typename": "__Type",
+              "Name": "__Field",
+              "Kind": "Object",
+              "Description": null,
+              "Fields": null,
+              "InputFields": null,
+              "Interfaces": null,
+              "EnumValues": null,
+              "PossibleTypes": null,
+              "OfType": null
+            },
+            {
+              "__typename": "__Type",
+              "Name": "__InputValue",
+              "Kind": "Object",
+              "Description": null,
+              "Fields": null,
+              "InputFields": null,
+              "Interfaces": null,
+              "EnumValues": null,
+              "PossibleTypes": null,
+              "OfType": null
+            },
+            {
+              "__typename": "__Type",
+              "Name": "__EnumValue",
+              "Kind": "Object",
+              "Description": null,
+              "Fields": null,
+              "InputFields": null,
+              "Interfaces": null,
+              "EnumValues": null,
+              "PossibleTypes": null,
+              "OfType": null
+            },
+            {
+              "__typename": "__Type",
+              "Name": "__Directive",
+              "Kind": "Object",
+              "Description": null,
+              "Fields": null,
+              "InputFields": null,
+              "Interfaces": null,
+              "EnumValues": null,
+              "PossibleTypes": null,
+              "OfType": null
+            }
+          ],
+          "OfType": null
+        },
+        {
+          "__typename": "__Type",
+          "Name": "Int",
+          "Kind": "Scalar",
+          "Description": "The `Int` scalar type represents a signed 32-bit numeric non-fractional value.",
+          "Fields": null,
+          "InputFields": null,
+          "Interfaces": null,
+          "EnumValues": null,
+          "PossibleTypes": null,
+          "OfType": null
+        },
+        {
+          "__typename": "__Type",
+          "Name": "Float",
+          "Kind": "Scalar",
+          "Description": "The `Float` scalar type represents signed double-precision finite values as specified by [IEEE 754](https://en.wikipedia.org/wiki/IEEE_floating_point).",
+          "Fields": null,
+          "InputFields": null,
+          "Interfaces": null,
+          "EnumValues": null,
+          "PossibleTypes": null,
+          "OfType": null
+        },
+        {
+          "__typename": "__Type",
           "Name": "Query",
           "Kind": "Object",
           "Description": null,
@@ -4360,7 +4926,7 @@
                     "PossibleTypes": null,
                     "OfType": {
                       "__typename": "__Type",
-                      "Name": "JSON",
+                      "Name": "Any",
                       "Kind": "Scalar",
                       "Description": null,
                       "Fields": null,
@@ -5272,7 +5838,7 @@
               "Args": [],
               "Type": {
                 "__typename": "__Type",
-                "Name": "JSON",
+                "Name": "Any",
                 "Kind": "Scalar",
                 "Description": null,
                 "Fields": null,
@@ -5563,7 +6129,7 @@
               "Args": [],
               "Type": {
                 "__typename": "__Type",
-                "Name": "JSON",
+                "Name": "Any",
                 "Kind": "Scalar",
                 "Description": null,
                 "Fields": null,
@@ -5634,7 +6200,7 @@
           "__typename": "__Type",
           "Name": "String",
           "Kind": "Scalar",
-          "Description": "The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text.",
+          "Description": "The `String` scalar type represents textual data, represented as a sequence of Unicode code points.",
           "Fields": null,
           "InputFields": null,
           "Interfaces": null,
@@ -5647,18 +6213,6 @@
           "Name": "Boolean",
           "Kind": "Scalar",
           "Description": "The `Boolean` scalar type represents `true` or `false`.",
-          "Fields": null,
-          "InputFields": null,
-          "Interfaces": null,
-          "EnumValues": null,
-          "PossibleTypes": null,
-          "OfType": null
-        },
-        {
-          "__typename": "__Type",
-          "Name": "Int",
-          "Kind": "Scalar",
-          "Description": "The `Int` scalar type represents non-fractional signed whole numeric values. Int can represent values between -(2^31) and 2^31 - 1.",
           "Fields": null,
           "InputFields": null,
           "Interfaces": null,
@@ -5865,7 +6419,7 @@
               "Args": [],
               "Type": {
                 "__typename": "__Type",
-                "Name": "JSON",
+                "Name": "Any",
                 "Kind": "Scalar",
                 "Description": null,
                 "Fields": null,
@@ -6126,7 +6680,7 @@
           "__typename": "__Type",
           "Name": "ID",
           "Kind": "Scalar",
-          "Description": "The `ID` scalar type represents a unique identifier, often used to refetch an object or as key for a cache. The ID type appears in a JSON response as a String; however, it is not intended to be human-readable. When expected as an input type, any string (such as `\"4\"`) or integer (such as `4`) input value will be accepted as an ID.",
+          "Description": "The `ID` scalar type represents a unique identifier, often used to refetch an object or as the key for a cache.",
           "Fields": null,
           "InputFields": null,
           "Interfaces": null,
@@ -6253,18 +6807,6 @@
         },
         {
           "__typename": "__Type",
-          "Name": "Float",
-          "Kind": "Scalar",
-          "Description": "The `Float` scalar type represents signed double-precision fractional values as specified by [IEEE 754](http://en.wikipedia.org/wiki/IEEE_floating_point).",
-          "Fields": null,
-          "InputFields": null,
-          "Interfaces": null,
-          "EnumValues": null,
-          "PossibleTypes": null,
-          "OfType": null
-        },
-        {
-          "__typename": "__Type",
           "Name": "Unit",
           "Kind": "Enum",
           "Description": null,
@@ -6292,9 +6834,9 @@
         },
         {
           "__typename": "__Type",
-          "Name": "JSON",
+          "Name": "Any",
           "Kind": "Scalar",
-          "Description": null,
+          "Description": "The `Any` scalar type represents any valid GraphQL value.",
           "Fields": null,
           "InputFields": null,
           "Interfaces": null,
@@ -7012,6 +7554,45 @@
                 "OfType": null
               },
               "DefaultValue": "true"
+            }
+          ],
+          "OnOperation": false,
+          "OnFragment": false,
+          "OnField": false
+        },
+        {
+          "__typename": "__Directive",
+          "Name": "specifiedBy",
+          "Description": "The `@specifiedBy` directive is used within the type system definition language to provide a URL for specifying the behavior of custom scalar definitions.",
+          "Args": [
+            {
+              "__typename": "__InputValue",
+              "Name": "url",
+              "Description": "The specifiedBy URL points to a human-readable specification. This field will only read a result for scalar types.",
+              "Type": {
+                "__typename": "__Type",
+                "Name": null,
+                "Kind": "NonNull",
+                "Description": null,
+                "Fields": null,
+                "InputFields": null,
+                "Interfaces": null,
+                "EnumValues": null,
+                "PossibleTypes": null,
+                "OfType": {
+                  "__typename": "__Type",
+                  "Name": "String",
+                  "Kind": "Scalar",
+                  "Description": null,
+                  "Fields": null,
+                  "InputFields": null,
+                  "Interfaces": null,
+                  "EnumValues": null,
+                  "PossibleTypes": null,
+                  "OfType": null
+                }
+              },
+              "DefaultValue": null
             }
           ],
           "OnOperation": false,

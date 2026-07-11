@@ -67,10 +67,7 @@ public static class RelayIdFieldExtensions
         this IInputFieldDescriptor descriptor,
         string? typeName = null)
     {
-        ArgumentNullException.ThrowIfNull(descriptor);
-
         RelayIdFieldHelpers.ApplyIdToField(descriptor, typeName);
-
         return descriptor;
     }
 
@@ -80,10 +77,7 @@ public static class RelayIdFieldExtensions
     /// </typeparam>
     public static IInputFieldDescriptor ID<T>(this IInputFieldDescriptor descriptor)
     {
-        ArgumentNullException.ThrowIfNull(descriptor);
-
         RelayIdFieldHelpers.ApplyIdToField<T>(descriptor);
-
         return descriptor;
     }
 
@@ -96,10 +90,7 @@ public static class RelayIdFieldExtensions
         this IArgumentDescriptor descriptor,
         string? typeName = null)
     {
-        ArgumentNullException.ThrowIfNull(descriptor);
-
         RelayIdFieldHelpers.ApplyIdToField(descriptor, typeName);
-
         return descriptor;
     }
 
@@ -109,10 +100,7 @@ public static class RelayIdFieldExtensions
     /// </typeparam>
     public static IArgumentDescriptor ID<T>(this IArgumentDescriptor descriptor)
     {
-        ArgumentNullException.ThrowIfNull(descriptor);
-
         RelayIdFieldHelpers.ApplyIdToField<T>(descriptor);
-
         return descriptor;
     }
 
@@ -125,10 +113,7 @@ public static class RelayIdFieldExtensions
         this IObjectFieldDescriptor descriptor,
         string? typeName = null)
     {
-        ArgumentNullException.ThrowIfNull(descriptor);
-
         RelayIdFieldHelpers.ApplyIdToField(descriptor, typeName);
-
         return descriptor;
     }
 
@@ -138,10 +123,7 @@ public static class RelayIdFieldExtensions
     /// </typeparam>
     public static IObjectFieldDescriptor ID<T>(this IObjectFieldDescriptor descriptor)
     {
-        ArgumentNullException.ThrowIfNull(descriptor);
-
         RelayIdFieldHelpers.ApplyIdToField<T>(descriptor);
-
         return descriptor;
     }
 
@@ -149,10 +131,7 @@ public static class RelayIdFieldExtensions
     /// <param name="descriptor">the descriptor</param>
     public static IInterfaceFieldDescriptor ID(this IInterfaceFieldDescriptor descriptor)
     {
-        ArgumentNullException.ThrowIfNull(descriptor);
-
         RelayIdFieldHelpers.ApplyIdToField(descriptor);
-
         return descriptor;
     }
 }

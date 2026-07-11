@@ -39,6 +39,8 @@ public class MutableScalarTypeDefinition : INamedTypeSystemMemberDefinition<Muta
     /// <inheritdoc />
     public SchemaCoordinate Coordinate => new(Name, ofDirective: false);
 
+    Type IRuntimeTypeProvider.RuntimeType => typeof(object);
+
     /// <inheritdoc cref="IMutableTypeDefinition.IsIntrospectionType" />
     public bool IsIntrospectionType { get; set; }
 
@@ -87,7 +89,7 @@ public class MutableScalarTypeDefinition : INamedTypeSystemMemberDefinition<Muta
         return false;
     }
 
-    public Uri? SpecifiedBy
+    public string? SpecifiedBy
     {
         get
         {
@@ -100,12 +102,7 @@ public class MutableScalarTypeDefinition : INamedTypeSystemMemberDefinition<Muta
 
             var url = specifiedBy.Arguments.First(t => t.Name.Equals("url", StringComparison.Ordinal));
 
-            if (url.Value is not StringValueNode urlValue)
-            {
-                throw new InvalidOperationException("The specified URL is not a valid URI.");
-            }
-
-            return new Uri(urlValue.Value);
+            return url.Value is StringValueNode urlValue ? urlValue.Value : null;
         }
     }
 
@@ -116,9 +113,9 @@ public class MutableScalarTypeDefinition : INamedTypeSystemMemberDefinition<Muta
     public string? Pattern { get; set; }
 
     /// <inheritdoc />
-    public bool IsInstanceOfType(IValueNode value)
+    public bool IsValueCompatible(IValueNode valueLiteral)
     {
-        ArgumentNullException.ThrowIfNull(value);
+        ArgumentNullException.ThrowIfNull(valueLiteral);
         return true;
     }
 

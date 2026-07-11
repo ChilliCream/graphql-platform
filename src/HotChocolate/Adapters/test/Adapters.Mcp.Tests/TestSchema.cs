@@ -5,7 +5,9 @@ using System.Security.Claims;
 using System.Text.Json;
 using HotChocolate.Adapters.Mcp.Directives;
 using HotChocolate.Authorization;
+using HotChocolate.Features;
 using HotChocolate.Language;
+using HotChocolate.Text.Json;
 using HotChocolate.Types;
 
 namespace HotChocolate.Adapters.Mcp;
@@ -17,18 +19,18 @@ public sealed class TestSchema
         public Book[] GetBooks() => [new("Title")];
 
         public ResultNullable GetWithNullableVariables(
-            [GraphQLType<AnyType>] object? any,
+            JsonElement? any,
+            [GraphQLType<Base64StringType>] byte[]? base64String,
             bool? boolean,
-            byte? @byte,
-            [GraphQLType<ByteArrayType>] byte[]? byteArray,
+            sbyte? @byte,
             [GraphQLType<DateType>] DateOnly? date,
             DateTimeOffset? dateTime,
             decimal? @decimal,
+            TimeSpan? duration,
             TestEnum? @enum,
             float? @float,
             [GraphQLType<IdType>] string? id,
             int? @int,
-            JsonElement? json,
             string?[]? list,
             DateOnly? localDate,
             [GraphQLType<LocalDateTimeType>] DateTime? localDateTime,
@@ -37,24 +39,28 @@ public sealed class TestSchema
             Object1Nullable? @object,
             short? @short,
             string? @string,
-            TimeSpan? timeSpan,
             [GraphQLType<UnknownType>] string? unknown,
-            Uri? url,
+            byte? unsignedByte,
+            uint? unsignedInt,
+            ulong? unsignedLong,
+            ushort? unsignedShort,
+            Uri? uri,
+            [GraphQLType<UrlType>] Uri? url,
             Guid? uuid)
             =>
                 new(
                     any,
+                    base64String,
                     boolean,
                     @byte,
-                    byteArray,
                     date,
                     dateTime,
                     @decimal,
+                    duration,
                     @enum,
                     @float,
                     id,
                     @int,
-                    json,
                     list,
                     localDate,
                     localDateTime,
@@ -63,24 +69,28 @@ public sealed class TestSchema
                     @object,
                     @short,
                     @string,
-                    timeSpan,
                     unknown,
+                    unsignedByte,
+                    unsignedInt,
+                    unsignedLong,
+                    unsignedShort,
+                    uri,
                     url,
                     uuid);
 
         public ResultNonNullable GetWithNonNullableVariables(
-            [GraphQLType<NonNullType<AnyType>>] object any,
+            JsonElement any,
+            [GraphQLType<NonNullType<Base64StringType>>] byte[] base64String,
             bool boolean,
-            byte @byte,
-            [GraphQLType<NonNullType<ByteArrayType>>] byte[] byteArray,
+            sbyte @byte,
             [GraphQLType<NonNullType<DateType>>] DateOnly date,
             DateTimeOffset dateTime,
             decimal @decimal,
+            TimeSpan duration,
             TestEnum @enum,
             float @float,
             [GraphQLType<NonNullType<IdType>>] string id,
             int @int,
-            JsonElement json,
             string[] list,
             DateOnly localDate,
             [GraphQLType<NonNullType<LocalDateTimeType>>] DateTime localDateTime,
@@ -89,24 +99,28 @@ public sealed class TestSchema
             Object1NonNullable @object,
             short @short,
             string @string,
-            TimeSpan timeSpan,
             [GraphQLType<NonNullType<UnknownType>>] string unknown,
-            Uri url,
+            byte unsignedByte,
+            uint unsignedInt,
+            ulong unsignedLong,
+            ushort unsignedShort,
+            Uri uri,
+            [GraphQLType<NonNullType<UrlType>>] Uri url,
             Guid uuid)
             =>
                 new(
                     any,
+                    base64String,
                     boolean,
                     @byte,
-                    byteArray,
                     date,
                     dateTime,
                     @decimal,
+                    duration,
                     @enum,
                     @float,
                     id,
                     @int,
-                    json,
                     list,
                     localDate,
                     localDateTime,
@@ -115,24 +129,28 @@ public sealed class TestSchema
                     @object,
                     @short,
                     @string,
-                    timeSpan,
                     unknown,
+                    unsignedByte,
+                    unsignedInt,
+                    unsignedLong,
+                    unsignedShort,
+                    uri,
                     url,
                     uuid);
 
         public ResultDefaulted GetWithDefaultedVariables(
-            [GraphQLType<NonNullType<AnyType>>] object any,
+            JsonElement any,
+            [GraphQLType<NonNullType<Base64StringType>>] byte[] base64String,
             bool boolean,
-            byte @byte,
-            [GraphQLType<NonNullType<ByteArrayType>>] byte[] byteArray,
+            sbyte @byte,
             [GraphQLType<NonNullType<DateType>>] DateOnly date,
             DateTimeOffset dateTime,
             decimal @decimal,
+            TimeSpan duration,
             TestEnum @enum,
             float @float,
             [GraphQLType<NonNullType<IdType>>] string id,
             int @int,
-            JsonElement json,
             string[] list,
             DateOnly localDate,
             [GraphQLType<NonNullType<LocalDateTimeType>>] DateTime localDateTime,
@@ -141,24 +159,28 @@ public sealed class TestSchema
             Object1Defaulted @object,
             short @short,
             string @string,
-            TimeSpan timeSpan,
             [GraphQLType<NonNullType<UnknownType>>] string unknown,
-            Uri url,
+            byte unsignedByte,
+            uint unsignedInt,
+            ulong unsignedLong,
+            ushort unsignedShort,
+            Uri uri,
+            [GraphQLType<NonNullType<UrlType>>] Uri url,
             Guid uuid)
             =>
                 new(
                     any,
+                    base64String,
                     boolean,
                     @byte,
-                    byteArray,
                     date,
                     dateTime,
                     @decimal,
+                    duration,
                     @enum,
                     @float,
                     id,
                     @int,
-                    json,
                     list,
                     localDate,
                     localDateTime,
@@ -167,8 +189,12 @@ public sealed class TestSchema
                     @object,
                     @short,
                     @string,
-                    timeSpan,
                     unknown,
+                    unsignedByte,
+                    unsignedInt,
+                    unsignedLong,
+                    unsignedShort,
+                    uri,
                     url,
                     uuid);
 
@@ -181,7 +207,7 @@ public sealed class TestSchema
             OneOf oneOf,
             OneOf[] oneOfList,
             ObjectWithOneOfField objectWithOneOfField,
-            TimeSpan timeSpanDotNet)
+            TimeSpan durationDotNet)
             =>
                 new(
                     list,
@@ -192,7 +218,7 @@ public sealed class TestSchema
                     oneOf,
                     oneOfList,
                     objectWithOneOfField,
-                    timeSpanDotNet);
+                    durationDotNet);
 
         public int GetWithVariableMinMaxValues() => 1;
 
@@ -326,18 +352,18 @@ public sealed class TestSchema
         OneOf Field);
 
     public sealed record ResultNullable(
-        [property: GraphQLType<AnyType>] object? Any,
+        JsonElement? Any,
+        [property: GraphQLType<Base64StringType>] byte[]? Base64String,
         bool? Boolean,
-        byte? Byte,
-        [property: GraphQLType<ByteArrayType>] byte[]? ByteArray,
+        sbyte? Byte,
         [property: GraphQLType<DateType>] DateOnly? Date,
         DateTimeOffset? DateTime,
         decimal? Decimal,
+        TimeSpan? Duration,
         TestEnum? Enum,
         float? Float,
         [property: GraphQLType<IdType>] string? Id,
         int? Int,
-        JsonElement? Json,
         string?[]? List,
         DateOnly? LocalDate,
         [property: GraphQLType<LocalDateTimeType>] DateTime? LocalDateTime,
@@ -346,24 +372,28 @@ public sealed class TestSchema
         Object1Nullable? Object,
         short? Short,
         string? String,
-        TimeSpan? TimeSpan,
         [property: GraphQLType<UnknownType>] string? Unknown,
-        Uri? Url,
+        byte? UnsignedByte,
+        uint? UnsignedInt,
+        ulong? UnsignedLong,
+        ushort? UnsignedShort,
+        Uri? Uri,
+        [property: GraphQLType<UrlType>] Uri? Url,
         Guid? Uuid);
 
     public sealed record ResultNonNullable(
-        [property: GraphQLType<NonNullType<AnyType>>] object Any,
+        JsonElement Any,
+        [property: GraphQLType<NonNullType<Base64StringType>>] byte[] Base64String,
         bool Boolean,
-        byte Byte,
-        [property: GraphQLType<NonNullType<ByteArrayType>>] byte[] ByteArray,
+        sbyte Byte,
         [property: GraphQLType<NonNullType<DateType>>] DateOnly Date,
         DateTimeOffset DateTime,
         decimal Decimal,
+        TimeSpan Duration,
         TestEnum Enum,
         float Float,
         [property: GraphQLType<NonNullType<IdType>>] string Id,
         int Int,
-        JsonElement Json,
         string[] List,
         DateOnly LocalDate,
         [property: GraphQLType<NonNullType<LocalDateTimeType>>] DateTime LocalDateTime,
@@ -372,24 +402,28 @@ public sealed class TestSchema
         Object1NonNullable Object,
         short Short,
         string String,
-        TimeSpan TimeSpan,
         [property: GraphQLType<NonNullType<UnknownType>>] string Unknown,
-        Uri Url,
+        byte UnsignedByte,
+        uint UnsignedInt,
+        ulong UnsignedLong,
+        ushort UnsignedShort,
+        Uri Uri,
+        [property: GraphQLType<NonNullType<UrlType>>] Uri Url,
         Guid Uuid);
 
     public sealed record ResultDefaulted(
-        [property: GraphQLType<NonNullType<AnyType>>] object Any,
+        JsonElement Any,
+        [property: GraphQLType<NonNullType<Base64StringType>>] byte[] Base64String,
         bool Boolean,
-        byte Byte,
-        [property: GraphQLType<NonNullType<ByteArrayType>>] byte[] ByteArray,
+        sbyte Byte,
         [property: GraphQLType<NonNullType<DateType>>] DateOnly Date,
         DateTimeOffset DateTime,
         decimal Decimal,
+        TimeSpan Duration,
         TestEnum Enum,
         float Float,
         [property: GraphQLType<NonNullType<IdType>>] string Id,
         int Int,
-        JsonElement Json,
         string[] List,
         DateOnly LocalDate,
         [property: GraphQLType<NonNullType<LocalDateTimeType>>] DateTime LocalDateTime,
@@ -398,9 +432,13 @@ public sealed class TestSchema
         Object1Defaulted Object,
         short Short,
         string String,
-        TimeSpan TimeSpan,
         [property: GraphQLType<NonNullType<UnknownType>>] string Unknown,
-        Uri Url,
+        byte UnsignedByte,
+        uint UnsignedInt,
+        ulong UnsignedLong,
+        ushort UnsignedShort,
+        Uri Uri,
+        [property: GraphQLType<NonNullType<UrlType>>] Uri Url,
         Guid Uuid);
 
     public sealed record ResultComplex(
@@ -412,7 +450,7 @@ public sealed class TestSchema
         OneOf OneOf,
         OneOf[] OneOfList,
         ObjectWithOneOfField ObjectWithOneOfField,
-        TimeSpan TimeSpanDotNet);
+        TimeSpan DurationDotNet);
 
     [UnionType(name: "PetUnion")]
     public interface IPet
@@ -425,14 +463,17 @@ public sealed class TestSchema
 
     private sealed class UnknownType() : ScalarType<string, StringValueNode>("Unknown")
     {
-        public override IValueNode ParseResult(object? resultValue)
-            => throw new NotImplementedException();
+        protected override string OnCoerceInputLiteral(StringValueNode valueLiteral)
+            => valueLiteral.Value;
 
-        protected override string ParseLiteral(StringValueNode valueSyntax)
-            => valueSyntax.Value;
+        protected override string OnCoerceInputValue(JsonElement inputValue, IFeatureProvider context)
+            => inputValue.GetString()!;
 
-        protected override StringValueNode ParseValue(string runtimeValue)
-            => throw new NotImplementedException();
+        protected override void OnCoerceOutputValue(string runtimeValue, ResultElement resultValue)
+            => resultValue.SetStringValue(runtimeValue);
+
+        protected override StringValueNode OnValueToLiteral(string runtimeValue)
+            => new StringValueNode(runtimeValue);
     }
 
     public sealed class ExplicitOpenWorld

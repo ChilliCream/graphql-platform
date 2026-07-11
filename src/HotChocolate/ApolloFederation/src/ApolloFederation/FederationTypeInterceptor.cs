@@ -117,12 +117,23 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
             yield return _typeInspector.GetTypeRef(typeof(LinkDirective));
         }
 
-        if (discoveryContexts.Any(t => t.Type is PageInfoType)
+        // The page info fields are made shareable in OnAfterCompleteName for any type
+        // named "PageInfo". That match is by name, so it also covers the page info type
+        // that is inferred from PageConnection<T> (runtime type PageInfo) and not just the
+        // built-in PageInfoType. We therefore have to register the shareable directive for
+        // any discovered page info object type, otherwise the directive cannot be resolved
+        // when the fields are completed.
+        if (discoveryContexts.Any(t => IsPageInfoType(t.Type))
             && discoveryContexts.All(t => t.Type is not DirectiveType<ShareableDirective>))
         {
             yield return _typeInspector.GetTypeRef(typeof(ShareableDirective));
         }
     }
+
+    private static bool IsPageInfoType(TypeSystemObject type)
+        => type is PageInfoType
+            || (type is IRuntimeTypeProvider { RuntimeType: { } runtimeType }
+                && typeof(IPageInfo).IsAssignableFrom(runtimeType));
 
     public override void OnBeforeCompleteName(
         ITypeCompletionContext completionContext,
@@ -159,7 +170,7 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
             }
         }
 
-        var hasRuntimeType = (IHasRuntimeType)configuration;
+        var hasRuntimeType = (IRuntimeTypeProvider)configuration;
         var type = hasRuntimeType.RuntimeType;
 
         if (type != typeof(object)
@@ -274,7 +285,7 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
         _schemaTypeCfg
             .GetLegacyConfiguration()
             .AddDirective(
-                new LinkDirective(version.ToUrl(), federationTypes),
+                new LinkDirective(version.ToUrl(), federationTypes.Order().ToArray()),
                 _typeInspector);
 
         foreach (var import in _imports)
@@ -287,7 +298,7 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
             _schemaTypeCfg
                 .GetLegacyConfiguration()
                 .AddDirective(
-                    new LinkDirective(import.Key, import.Value),
+                    new LinkDirective(import.Key, import.Value.Order().ToArray()),
                     _typeInspector);
         }
     }
@@ -564,8 +575,11 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
         ObjectType objectType,
         ObjectTypeConfiguration objectTypeCfg)
     {
-        if (objectTypeCfg.Directives.FirstOrDefault(d => d.Value is KeyDirective) is { } keyDirective
-            && ((KeyDirective)keyDirective.Value).Resolvable)
+        // Apollo Federation adds a type to the '_Entity' union as soon as it
+        // carries any resolvable '@key'. Scanning only the first key directive
+        // miscategorizes types whose first declared key is marked
+        // 'resolvable: false' even though a later key is resolvable.
+        if (objectTypeCfg.Directives.Any(d => d.Value is KeyDirective keyDirective && keyDirective.Resolvable))
         {
             _entityTypes.Add(objectType);
             return;

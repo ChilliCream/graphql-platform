@@ -1168,7 +1168,8 @@ public class ObjectTypeTests : TypeTestBase
             OperationRequestBuilder.New()
                 .SetDocument("{ desc }")
                 .SetGlobalState(InitialValue, new Foo())
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -1236,7 +1237,7 @@ public class ObjectTypeTests : TypeTestBase
         void Action() => ObjectTypeDescriptorExtensions.Ignore<Foo>(null!, t => t.Description);
 
         // assert
-        Assert.Throws<ArgumentNullException>(Action);
+        Assert.Throws<NullReferenceException>(Action);
     }
 
     [Fact]
@@ -1479,7 +1480,8 @@ public class ObjectTypeTests : TypeTestBase
                 .SetGlobalState(
                     InitialValue,
                     new FooStruct { Qux = "Qux_Value", Baz = "Baz_Value" })
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -1734,6 +1736,60 @@ public class ObjectTypeTests : TypeTestBase
     }
 
     [Fact]
+    public void ResolveWithStatic()
+    {
+        SchemaBuilder.New()
+            .AddQueryType<ResolveWithStaticQueryType>()
+            .Create()
+            .MakeExecutable()
+            .Execute("{ foo baz }")
+            .ToJson()
+            .MatchSnapshot();
+    }
+
+    [Fact]
+    public void ResolveWithStaticAsync()
+    {
+        SchemaBuilder.New()
+            .AddQueryType<ResolveWithStaticQueryTypeAsync>()
+            .Create()
+            .MakeExecutable()
+            .Execute("{ foo baz qux }")
+            .ToJson()
+            .MatchSnapshot();
+    }
+
+    [Fact]
+    public void ResolveWithInstanceDelegate()
+    {
+        SchemaBuilder.New()
+            .AddQueryType<ResolveWithInstanceDelegateQueryType>()
+            .Create()
+            .MakeExecutable()
+            .Execute("{ foo baz }")
+            .ToJson()
+            .MatchSnapshot();
+    }
+
+    [Fact]
+    public void ResolveWithLambdaDelegate()
+    {
+        Func<string> lambda = () => "Lambda";
+
+        SchemaBuilder.New()
+            .AddQueryType(new ObjectType<ResolveWithQuery>(d =>
+            {
+                d.Field(t => t.Foo).ResolveWith(lambda);
+                d.Field("baz").ResolveWith(lambda);
+            }))
+            .Create()
+            .MakeExecutable()
+            .Execute("{ foo baz }")
+            .ToJson()
+            .MatchSnapshot();
+    }
+
+    [Fact]
     public void ResolveWith_NonGeneric()
     {
         SchemaBuilder.New()
@@ -1743,6 +1799,43 @@ public class ObjectTypeTests : TypeTestBase
             .Execute("{ foo }")
             .ToJson()
             .MatchSnapshot();
+    }
+
+    // A string-named field with ResolveWith collides with a same-named runtime
+    // property. The explicit resolver must win, even when a named runtime-type
+    // binding installs the resolver-type interceptor (regression, see #9921).
+    [Fact]
+    public async Task ResolveWith_StringNamedField_Wins_Over_SameNamed_Property()
+    {
+        // arrange
+        var executor = await new ServiceCollection()
+            .AddGraphQLServer()
+            .AddQueryType<ResolveWithCollisionQuery>()
+            .AddType<BookWithChaptersType>()
+            .AddType(new AnyType("JSON", "Arbitrary JSON.", BindingBehavior.Explicit))
+            .BindRuntimeType<System.Text.Json.JsonElement>("JSON")
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // act
+        var result = await executor.ExecuteAsync(
+            "{ book { chapters { title } } }",
+            cancellationToken: TestContext.Current.CancellationToken);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "book": {
+                  "chapters": [
+                    {
+                      "title": "from resolver"
+                    }
+                  ]
+                }
+              }
+            }
+            """);
     }
 
     [Fact]
@@ -1781,7 +1874,7 @@ public class ObjectTypeTests : TypeTestBase
                 d =>
                 {
                     d.Name("Query");
-                    d.Field("Foo").Type("String").Resolve(_ => null!);
+                    d.Field("Foo").Type("String").Resolve(_ => Task.FromResult<object?>(null));
                 })
             .Create()
             .ToString()
@@ -1799,7 +1892,7 @@ public class ObjectTypeTests : TypeTestBase
                     d.Field("Foo")
                         .Argument("a", t => t.Type("Int"))
                         .Type("String")
-                        .Resolve(_ => null!);
+                        .Resolve(_ => Task.FromResult<object?>(null));
                 })
             .Create()
             .ToString()
@@ -1833,7 +1926,9 @@ public class ObjectTypeTests : TypeTestBase
             .AddInterfaceType(t => t.Name("Foo").Field("abc").Type("String"))
             .AddObjectType(
                 t => t.Name("Bar").Implements("Foo").Field("abc").Type("String").Resolve("abc"))
-            .ExecuteRequestAsync("{ abc { abc } }")
+            .ExecuteRequestAsync(
+                "{ abc { abc } }",
+                cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
 
         Assert.True(globalCheck);
@@ -1847,7 +1942,7 @@ public class ObjectTypeTests : TypeTestBase
         var executor = await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<QueryWithDeprecatedArguments>()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         executor.Schema.ToString().MatchSnapshot();
@@ -1880,7 +1975,7 @@ public class ObjectTypeTests : TypeTestBase
                     .Field("foo")
                     .Argument("bar", x => x.Type<IntType>().Deprecated("Is deprecated"))
                     .Resolve(""))
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         executor.Schema.ToString().MatchSnapshot();
@@ -1921,7 +2016,7 @@ public class ObjectTypeTests : TypeTestBase
                 }
                 """)
             .AddResolver("Query", "foo", x => 1)
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         executor.Schema.ToString().MatchSnapshot();
@@ -1957,7 +2052,7 @@ public class ObjectTypeTests : TypeTestBase
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType<WithStaticField>(d => d.BindFields(Instance | Static))
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         schema.MatchSnapshot();
@@ -1972,7 +2067,7 @@ public class ObjectTypeTests : TypeTestBase
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType<WithStaticField2>()
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         schema.MatchSnapshot();
@@ -2009,7 +2104,7 @@ public class ObjectTypeTests : TypeTestBase
                         o.DefaultBindingBehavior = BindingBehavior.Explicit;
                         o.DefaultFieldBindingFlags = Instance | Static;
                     })
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         schema.MatchSnapshot();
@@ -2030,7 +2125,7 @@ public class ObjectTypeTests : TypeTestBase
                         o.DefaultBindingBehavior = BindingBehavior.Explicit;
                         o.DefaultFieldBindingFlags = Instance | Static;
                     })
-                .ExecuteRequestAsync("{ hello staticHello }");
+                .ExecuteRequestAsync("{ hello staticHello }", cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -2047,7 +2142,7 @@ public class ObjectTypeTests : TypeTestBase
                 .AddQueryType()
                 .AddTypeExtension(typeof(BookQuery))
                 .ModifyOptions(o => o.DefaultFieldBindingFlags = InstanceAndStatic)
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         schema.MatchSnapshot();
@@ -2108,7 +2203,7 @@ public class ObjectTypeTests : TypeTestBase
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType<QueryWithGenerics>()
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         schema.MatchSnapshot();
     }
@@ -2120,7 +2215,7 @@ public class ObjectTypeTests : TypeTestBase
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType<IgnoreObjectLists>()
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         schema.MatchSnapshot();
     }
@@ -2132,7 +2227,7 @@ public class ObjectTypeTests : TypeTestBase
             .AddGraphQL()
             .AddQueryType<QueryWithTypeExtension>()
             .AddTypeExtension<QueryWithTypeExtension.SomeClassExtension>()
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         schema.MatchSnapshot();
     }
@@ -2353,6 +2448,17 @@ public class ObjectTypeTests : TypeTestBase
             => Task.FromResult(context is not null);
     }
 
+    public static class ResolveWithStaticQueryResolver
+    {
+        public static string Bar() => "Bar";
+
+        public static Task<string> FooAsync() => Task.FromResult("Foo");
+
+        // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
+        public static Task<bool> BarAsync(IResolverContext context)
+            => Task.FromResult(context is not null);
+    }
+
     public class ResolveWithQueryType : ObjectType<ResolveWithQuery>
     {
         protected override void Configure(IObjectTypeDescriptor<ResolveWithQuery> descriptor)
@@ -2375,6 +2481,35 @@ public class ObjectTypeTests : TypeTestBase
 
             descriptor.Field("quuz")
                 .ResolveWith<ResolveWithQueryResolver, bool>(t => t.BarAsync(null));
+        }
+    }
+
+    public class ResolveWithStaticQueryType : ObjectType<ResolveWithQuery>
+    {
+        protected override void Configure(IObjectTypeDescriptor<ResolveWithQuery> descriptor)
+        {
+            descriptor.Field(t => t.Foo).ResolveWith(ResolveWithStaticQueryResolver.Bar);
+            descriptor.Field("baz").ResolveWith(ResolveWithStaticQueryResolver.Bar);
+        }
+    }
+
+    public class ResolveWithStaticQueryTypeAsync : ObjectType<ResolveWithQuery>
+    {
+        protected override void Configure(IObjectTypeDescriptor<ResolveWithQuery> descriptor)
+        {
+            descriptor.Field(t => t.Foo).ResolveWith(ResolveWithStaticQueryResolver.FooAsync);
+            descriptor.Field("baz").ResolveWith(ResolveWithStaticQueryResolver.FooAsync);
+            descriptor.Field("qux").ResolveWith(ResolveWithStaticQueryResolver.BarAsync);
+        }
+    }
+
+    public class ResolveWithInstanceDelegateQueryType : ObjectType<ResolveWithQuery>
+    {
+        protected override void Configure(IObjectTypeDescriptor<ResolveWithQuery> descriptor)
+        {
+            var resolver = new ResolveWithQueryResolver();
+            descriptor.Field(t => t.Foo).ResolveWith(resolver.FooAsync);
+            descriptor.Field("baz").ResolveWith(resolver.BarAsync);
         }
     }
 
@@ -2491,5 +2626,30 @@ public class ObjectTypeTests : TypeTestBase
         public object[] ObjList5 => throw new InvalidOperationException();
 
         public ImmutableArray<object> ObjList6 => throw new InvalidOperationException();
+    }
+
+    public sealed record Chapter(string Title);
+
+    public class BookWithChapters
+    {
+        // left null to surface the bug: if the property shadows the resolver, the
+        // non-null list field returns null and the request fails with HC0018.
+        public List<Chapter> Chapters { get; set; } = null!;
+    }
+
+    public class ResolveWithCollisionQuery
+    {
+        public BookWithChapters Book() => new();
+    }
+
+    public class BookWithChaptersType : ObjectType<BookWithChapters>
+    {
+        protected override void Configure(IObjectTypeDescriptor<BookWithChapters> descriptor)
+            => descriptor.Field("chapters").ResolveWith<ChapterResolver>(r => r.Get());
+
+        public sealed class ChapterResolver
+        {
+            public List<Chapter> Get() => [new Chapter("from resolver")];
+        }
     }
 }

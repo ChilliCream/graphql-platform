@@ -8,9 +8,13 @@ namespace HotChocolate.Data;
 /// <summary>
 /// Registers the middleware and adds the arguments for filtering
 /// </summary>
-public class UseFilteringAttribute : ObjectFieldDescriptorAttribute
+[AttributeUsage(
+    AttributeTargets.Property | AttributeTargets.Method,
+    Inherited = true,
+    AllowMultiple = true)]
+public class UseFilteringAttribute : DescriptorAttribute
 {
-    private static readonly MethodInfo s_generic = typeof(FilterObjectFieldDescriptorExtensions)
+    private static readonly MethodInfo s_genericObject = typeof(FilterObjectFieldDescriptorExtensions)
         .GetMethods(BindingFlags.Public | BindingFlags.Static)
         .Single(
             m => m.Name.Equals(
@@ -19,6 +23,16 @@ public class UseFilteringAttribute : ObjectFieldDescriptorAttribute
                 && m.GetGenericArguments().Length == 1
                 && m.GetParameters().Length == 2
                 && m.GetParameters()[0].ParameterType == typeof(IObjectFieldDescriptor));
+
+    private static readonly MethodInfo s_genericInterface = typeof(FilterObjectFieldDescriptorExtensions)
+        .GetMethods(BindingFlags.Public | BindingFlags.Static)
+        .Single(
+            m => m.Name.Equals(
+                    nameof(FilterObjectFieldDescriptorExtensions.UseFiltering),
+                    StringComparison.Ordinal)
+                && m.GetGenericArguments().Length == 1
+                && m.GetParameters().Length == 2
+                && m.GetParameters()[0].ParameterType == typeof(IInterfaceFieldDescriptor));
 
     public UseFilteringAttribute(Type? filterType = null, [CallerLineNumber] int order = 0)
     {
@@ -38,19 +52,35 @@ public class UseFilteringAttribute : ObjectFieldDescriptorAttribute
     /// <value>The name of the scope</value>
     public string? Scope { get; set; }
 
-    /// <inheritdoc />
-    protected override void OnConfigure(
+    protected internal override void TryConfigure(
         IDescriptorContext context,
-        IObjectFieldDescriptor descriptor,
-        MemberInfo? member)
+        IDescriptor descriptor,
+        ICustomAttributeProvider? attributeProvider)
     {
-        if (Type is null)
+        if (descriptor is IObjectFieldDescriptor objectFieldDescriptor)
         {
-            descriptor.UseFiltering(Scope);
+            if (Type is null)
+            {
+                objectFieldDescriptor.UseFiltering(Scope);
+            }
+            else
+            {
+                s_genericObject.MakeGenericMethod(Type).Invoke(null, [objectFieldDescriptor, Scope]);
+            }
         }
-        else
+
+        if (descriptor is IInterfaceFieldDescriptor interfaceFieldDescriptor)
         {
-            s_generic.MakeGenericMethod(Type).Invoke(null, [descriptor, Scope]);
+            if (Type is null)
+            {
+                interfaceFieldDescriptor.UseFiltering(Scope);
+            }
+            else
+            {
+                s_genericInterface.MakeGenericMethod(Type).Invoke(
+                    null,
+                    [interfaceFieldDescriptor, Scope]);
+            }
         }
     }
 }

@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Test.props', '$(MSBuildThisFileDirectory)'))" />
+  <PropertyGroup>
+    <AssemblyName>Mocha.EntityFrameworkCore.Tests</AssemblyName>
+    <RootNamespace>Mocha.EntityFrameworkCore.Tests</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" />
+    <!-- Dependency of Microsoft.EntityFrameworkCore.Sqlite. Pinned to secure version. -->
+    <PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Mocha.EntityFrameworkCore\Mocha.EntityFrameworkCore.csproj" />
+    <ProjectReference Include="..\..\src\Mocha.Mediator\Mocha.Mediator.csproj" />
+  </ItemGroup>
+</Project>

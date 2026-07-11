@@ -10,6 +10,7 @@ using HotChocolate.Types.Pagination;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Squadron;
+using static CookieCrumble.TestEnvironment;
 
 namespace HotChocolate.Data;
 
@@ -60,15 +61,17 @@ public class InterfaceIntegrationTests(PostgreSqlResource resource)
                             }
                         }
                         """)
-                    .Build());
+                    .Build(),
+                cancellationToken: TestContext.Current.CancellationToken);
 
         var operationResult = result.ExpectOperationResult();
+        operationResult.Extensions = [];
 
         await Snapshot
-            .Create(postFix: TestEnvironment.TargetFramework)
+            .Create(Postfix([NET8_0], [NET9_0]))
             .AddQueries(queries)
-            .Add(operationResult.WithExtensions(ImmutableDictionary<string, object?>.Empty))
-            .MatchMarkdownAsync();
+            .Add(operationResult)
+            .MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -112,15 +115,17 @@ public class InterfaceIntegrationTests(PostgreSqlResource resource)
                             }
                         }
                         """)
-                    .Build());
+                    .Build(),
+                cancellationToken: TestContext.Current.CancellationToken);
 
         var operationResult = result.ExpectOperationResult();
+        operationResult.Extensions = [];
 
         await Snapshot
-            .Create(postFix: TestEnvironment.TargetFramework)
+            .Create(Postfix([NET8_0], [NET9_0]))
             .AddQueries(queries)
-            .Add(operationResult.WithExtensions(ImmutableDictionary<string, object?>.Empty))
-            .MatchMarkdownAsync();
+            .Add(operationResult)
+            .MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -168,15 +173,17 @@ public class InterfaceIntegrationTests(PostgreSqlResource resource)
                             }
                         }
                         """)
-                    .Build());
+                    .Build(),
+                cancellationToken: TestContext.Current.CancellationToken);
 
         var operationResult = result.ExpectOperationResult();
+        operationResult.Extensions = [];
 
         await Snapshot
-            .Create(postFix: TestEnvironment.TargetFramework)
+            .Create(Postfix([NET8_0], [NET9_0]))
             .AddQueries(queries)
-            .Add(operationResult.WithExtensions(ImmutableDictionary<string, object?>.Empty))
-            .MatchMarkdownAsync();
+            .Add(operationResult)
+            .MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -211,18 +218,17 @@ public class InterfaceIntegrationTests(PostgreSqlResource resource)
                             }
                         }
                         """)
-                    .Build());
+                    .Build(),
+                cancellationToken: TestContext.Current.CancellationToken);
 
         var operationResult = result.ExpectOperationResult();
+        operationResult.Extensions = [];
 
         await Snapshot
-            .Create(
-                postFix: TestEnvironment.TargetFramework == "NET10_0"
-                    ? TestEnvironment.TargetFramework
-                    : null)
+            .Create(Postfix([NET8_0, NET9_0]))
             .AddQueries(queries)
-            .Add(operationResult.WithExtensions(ImmutableDictionary<string, object?>.Empty))
-            .MatchMarkdownAsync();
+            .Add(operationResult)
+            .MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     private static async Task SeedAsync(string connectionString)

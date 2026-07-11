@@ -17,6 +17,7 @@ public sealed class DocumentValidatorContext : IFeatureProvider
     private readonly PooledFeatureCollection _features;
     private ISchemaDefinition? _schema;
     private int _maxAllowedErrors;
+    private int _maxLocationsPerError;
 
     /// <summary>
     /// Initializes a new instance of <see cref="DocumentValidatorContext"/>.
@@ -110,6 +111,11 @@ public sealed class DocumentValidatorContext : IFeatureProvider
     public Dictionary<string, object?> ContextData { get; } = [];
 
     /// <summary>
+    /// A set that stores the visited fragments (type-name, spread-name).
+    /// </summary>
+    public HashSet<(string, string)> VisitedFragments { get; } = [];
+
+    /// <summary>
     /// A list to track validation errors that occurred during the visitation.
     /// </summary>
     public IReadOnlyList<IError> Errors => _errors;
@@ -127,11 +133,18 @@ public sealed class DocumentValidatorContext : IFeatureProvider
     /// </summary>
     public bool FatalErrorDetected { get; set; }
 
+    /// <summary>
+    /// The maximum number of locations per error.
+    /// </summary>
+    public int MaxLocationsPerError => _maxLocationsPerError;
+
     public void Initialize(
         ISchemaDefinition schema,
         OperationDocumentId documentId,
         DocumentNode document,
         int maxAllowedErrors,
+        int maxLocationsPerError,
+        int maxAllowedFragmentVisits,
         IFeatureCollection? features)
     {
         ArgumentNullException.ThrowIfNull(schema);
@@ -142,6 +155,9 @@ public sealed class DocumentValidatorContext : IFeatureProvider
         DocumentId = documentId;
         Document = document;
         _maxAllowedErrors = maxAllowedErrors;
+        _maxLocationsPerError = maxLocationsPerError;
+
+        Fragments.SetMaxAllowedFragmentVisits(maxAllowedFragmentVisits);
 
         _features.Initialize(features);
 
@@ -187,6 +203,7 @@ public sealed class DocumentValidatorContext : IFeatureProvider
         OutputFields.Clear();
         Fields.Clear();
         InputFields.Clear();
+        VisitedFragments.Clear();
 
         // we just make sure that all features are reset but we do not want
         // to fully reset the feature collection.
@@ -221,6 +238,7 @@ public sealed class DocumentValidatorContext : IFeatureProvider
         Fields.Clear();
         InputFields.Clear();
         ContextData.Clear();
+        VisitedFragments.Clear();
         _errors.Clear();
     }
 
@@ -232,6 +250,8 @@ public sealed class DocumentValidatorContext : IFeatureProvider
     {
         private readonly HashSet<string> _visited = [];
         private readonly Dictionary<string, FragmentDefinitionNode> _fragments = new(StringComparer.Ordinal);
+        private int _maxAllowedFragmentVisits;
+        private int _fragmentVisits;
 
         public IEnumerable<string> Names => _fragments.Keys;
 
@@ -252,9 +272,16 @@ public sealed class DocumentValidatorContext : IFeatureProvider
 
         public bool TryEnter(FragmentSpreadNode spread, [NotNullWhen(true)] out FragmentDefinitionNode? fragment)
         {
+            if (_fragmentVisits >= _maxAllowedFragmentVisits)
+            {
+                fragment = null;
+                return false;
+            }
+
             if (_visited.Add(spread.Name.Value)
                 && _fragments.TryGetValue(spread.Name.Value, out fragment))
             {
+                _fragmentVisits++;
                 return true;
             }
 
@@ -262,6 +289,11 @@ public sealed class DocumentValidatorContext : IFeatureProvider
             return false;
         }
 
+        // Removes the fragment name from _visited so that sibling spreads of the same
+        // fragment can re-enter and re-walk the body. Callers that want per-spread
+        // re-walks (e.g. CostAnalyzer) call this on leave. The base validation walker
+        // intentionally does NOT call Leave so each fragment is walked at most once per
+        // operation by default, which is what most validation rules want.
         public void Leave(FragmentSpreadNode spread)
             => _visited.Remove(spread.Name.Value);
 
@@ -271,13 +303,22 @@ public sealed class DocumentValidatorContext : IFeatureProvider
         public bool Exists(FragmentSpreadNode spread)
             => _fragments.ContainsKey(spread.Name.Value);
 
+        internal void SetMaxAllowedFragmentVisits(int maxAllowedFragmentVisits)
+        {
+            _maxAllowedFragmentVisits = maxAllowedFragmentVisits;
+        }
+
         internal void Reset()
-            => _visited.Clear();
+        {
+            _visited.Clear();
+            _fragmentVisits = 0;
+        }
 
         internal void Clear()
         {
             _visited.Clear();
             _fragments.Clear();
+            _fragmentVisits = 0;
         }
     }
 }

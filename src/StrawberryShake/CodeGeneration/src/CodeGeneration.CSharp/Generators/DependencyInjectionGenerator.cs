@@ -24,36 +24,42 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
 
     private static readonly string[] s_builtInSerializers =
     [
-        StringSerializer,
+        AnySerializer,
+        Base64StringSerializer,
         BooleanSerializer,
+        ByteArraySerializer,
         ByteSerializer,
-        ShortSerializer,
-        IntSerializer,
-        LongSerializer,
-        FloatSerializer,
-        DecimalSerializer,
-        UrlSerializer,
-        UUIDSerializer,
-        IdSerializer,
-        DateTimeSerializer,
         DateSerializer,
+        DateTimeSerializer,
+        DecimalSerializer,
+        DurationSerializer,
+        FloatSerializer,
+        IdSerializer,
+        IntSerializer,
         LocalDateSerializer,
         LocalDateTimeSerializer,
         LocalTimeSerializer,
-        ByteArraySerializer,
-        TimeSpanSerializer,
-        JsonSerializer
+        LongSerializer,
+        ShortSerializer,
+        StringSerializer,
+        UnsignedByteSerializer,
+        UnsignedIntSerializer,
+        UnsignedLongSerializer,
+        UnsignedShortSerializer,
+        UriSerializer,
+        UrlSerializer,
+        UUIDSerializer
     ];
 
     private static readonly Dictionary<string, string> s_alternativeTypeNames = new()
     {
-        ["Uuid"] = UUIDSerializer,
         ["Guid"] = UUIDSerializer,
-        ["URL"] = UrlSerializer,
-        ["Uri"] = UrlSerializer,
-        ["URI"] = UrlSerializer,
-        ["JSON"] = JsonSerializer,
-        ["Json"] = JsonSerializer
+        ["Json"] = AnySerializer,
+        ["JSON"] = AnySerializer,
+        ["TimeSpan"] = DurationSerializer,
+        ["Uri"] = UriSerializer,
+        ["Url"] = UrlSerializer,
+        ["Uuid"] = UUIDSerializer
     };
 
     protected override void Generate(
@@ -472,8 +478,7 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
                 .AddArgument(Services);
         }
 
-        foreach (var scalarTypes in
-                 descriptor.TypeDescriptors.OfType<ScalarTypeDescriptor>())
+        foreach (var scalarTypes in descriptor.TypeDescriptors.OfType<ScalarTypeDescriptor>())
         {
             if (s_alternativeTypeNames.TryGetValue(scalarTypes.Name, out var serializer))
             {
@@ -490,8 +495,7 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
         }
 
         var stringTypeInfo = new RuntimeTypeInfo(TypeNames.String);
-        foreach (var scalar in
-                 descriptor.TypeDescriptors.OfType<ScalarTypeDescriptor>())
+        foreach (var scalar in descriptor.TypeDescriptors.OfType<ScalarTypeDescriptor>())
         {
             if (scalar.RuntimeType.Equals(stringTypeInfo)
                 && scalar.SerializationType.Equals(stringTypeInfo)
@@ -509,8 +513,7 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
             }
         }
 
-        foreach (var inputTypeDescriptor in
-                 descriptor.TypeDescriptors.Where(x => x.Kind is TypeKind.Input))
+        foreach (var inputTypeDescriptor in descriptor.TypeDescriptors.Where(x => x.Kind is TypeKind.Input))
         {
             var formatter =
                 CreateInputValueFormatter(

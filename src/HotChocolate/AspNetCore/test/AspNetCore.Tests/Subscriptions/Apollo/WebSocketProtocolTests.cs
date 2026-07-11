@@ -6,8 +6,8 @@ using HotChocolate.AspNetCore.Subscriptions.Protocols;
 using HotChocolate.AspNetCore.Subscriptions.Protocols.Apollo;
 using HotChocolate.AspNetCore.Tests.Utilities;
 using HotChocolate.AspNetCore.Tests.Utilities.Subscriptions.Apollo;
-using HotChocolate.Execution;
 using HotChocolate.Language;
+using HotChocolate.Text.Json;
 using HotChocolate.Transport.Formatters;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
@@ -32,7 +32,7 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory)
             // assert
             var message = await webSocket.ReceiveServerMessageAsync(ct);
             Assert.NotNull(message);
-            Assert.Equal("connection_ack", message["type"]);
+            Assert.Equal("connection_ack", message.RootElement.GetProperty("type").GetString());
         });
 
     [Fact]
@@ -53,7 +53,7 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory)
             // assert
             await webSocket.ReceiveServerMessageAsync(ct);
             Assert.True(webSocket.CloseStatus.HasValue);
-            Assert.Equal(WebSocketCloseStatus.ProtocolError, webSocket.CloseStatus!.Value);
+            Assert.Equal(WebSocketCloseStatus.ProtocolError, webSocket.CloseStatus.Value);
         });
 
     [Fact]
@@ -62,14 +62,12 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory)
         {
             // arrange
             using var testServer = CreateStarWarsServer(
-                configureConventions: mapping => mapping.WithOptions(
-                    new GraphQLServerOptions
+                configureServices: s => s
+                    .AddGraphQL()
+                    .ModifyServerOptions(o =>
                     {
-                        Sockets =
-                        {
-                            ConnectionInitializationTimeout = TimeSpan.FromMilliseconds(50),
-                            KeepAliveInterval = TimeSpan.FromMilliseconds(150)
-                        }
+                        o.Sockets.ConnectionInitializationTimeout = TimeSpan.FromMilliseconds(50);
+                        o.Sockets.KeepAliveInterval = TimeSpan.FromMilliseconds(150);
                     }));
             var client = CreateWebSocketClient(testServer);
 
@@ -79,7 +77,7 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory)
             // assert
             await webSocket.ReceiveServerMessageAsync(ct);
             Assert.True(webSocket.CloseStatus.HasValue, "Connection is closed.");
-            Assert.Equal(WebSocketCloseStatus.ProtocolError, webSocket.CloseStatus!.Value);
+            Assert.Equal(WebSocketCloseStatus.ProtocolError, webSocket.CloseStatus.Value);
         });
 
     [Fact]
@@ -101,7 +99,7 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory)
             // assert
             var message = await webSocket.ReceiveServerMessageAsync(ct);
             Assert.NotNull(message);
-            Assert.Equal("connection_ack", message[MessageProperties.Type]);
+            Assert.Equal("connection_ack", message.RootElement.GetProperty(MessageProperties.Type).GetString());
         });
 
     [Fact]
@@ -124,7 +122,7 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory)
             await WaitForMessage(webSocket, "connection_error", ct);
             await webSocket.ReceiveServerMessageAsync(ct);
             Assert.True(webSocket.CloseStatus.HasValue, "Connection is closed.");
-            Assert.Equal(WebSocketCloseStatus.NormalClosure, webSocket.CloseStatus!.Value);
+            Assert.Equal(WebSocketCloseStatus.NormalClosure, webSocket.CloseStatus.Value);
         });
 
     [Fact]
@@ -144,7 +142,7 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory)
             // assert
             var message = await webSocket.ReceiveServerMessageAsync(ct);
             Assert.NotNull(message);
-            Assert.Equal("connection_ack", message["type"]);
+            Assert.Equal("connection_ack", message.RootElement.GetProperty("type").GetString());
         });
 
     [Fact]
@@ -164,7 +162,7 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory)
             // assert
             var message = await webSocket.ReceiveServerMessageAsync(ct);
             Assert.NotNull(message);
-            Assert.Equal("connection_ack", message["type"]);
+            Assert.Equal("connection_ack", message.RootElement.GetProperty("type").GetString());
         });
 
     [Fact]
@@ -183,7 +181,7 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory)
             var buffer = new byte[1024];
             await webSocket.ReceiveAsync(buffer, ct);
             Assert.True(webSocket.CloseStatus.HasValue);
-            Assert.Equal(WebSocketCloseStatus.NormalClosure, webSocket.CloseStatus!.Value);
+            Assert.Equal(WebSocketCloseStatus.NormalClosure, webSocket.CloseStatus.Value);
         });
 
     [Fact]
@@ -203,7 +201,7 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory)
 
             // assert
             Assert.True(socket.CloseStatus.HasValue);
-            Assert.Equal(WebSocketCloseStatus.ProtocolError, socket.CloseStatus!.Value);
+            Assert.Equal(WebSocketCloseStatus.ProtocolError, socket.CloseStatus.Value);
         });
 
     // TODO : FIX Flaky Test
@@ -272,7 +270,7 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory)
             // assert
             await webSocket.ReceiveServerMessageAsync(ct);
             Assert.True(webSocket.CloseStatus.HasValue);
-            Assert.Equal(WebSocketCloseStatus.InternalServerError, webSocket.CloseStatus!.Value);
+            Assert.Equal(WebSocketCloseStatus.InternalServerError, webSocket.CloseStatus.Value);
         });
 
     [Fact]
@@ -291,7 +289,7 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory)
             // assert
             await webSocket.ReceiveServerMessageAsync(ct);
             Assert.True(webSocket.CloseStatus.HasValue);
-            Assert.Equal(CloseReasons.InvalidMessage, (int)webSocket.CloseStatus!.Value);
+            Assert.Equal(CloseReasons.InvalidMessage, (int)webSocket.CloseStatus.Value);
         });
 
     [Fact]
@@ -310,7 +308,7 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory)
             // assert
             await webSocket.ReceiveServerMessageAsync(ct);
             Assert.True(webSocket.CloseStatus.HasValue);
-            Assert.Equal(CloseReasons.InvalidMessage, (int)webSocket.CloseStatus!.Value);
+            Assert.Equal(CloseReasons.InvalidMessage, (int)webSocket.CloseStatus.Value);
         });
 
     [Fact]
@@ -376,7 +374,7 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory)
                 // assert
                 await webSocket.ReceiveServerMessageAsync(ct);
                 Assert.True(webSocket.CloseStatus.HasValue);
-                Assert.Equal(CloseReasons.InvalidMessage, (int)webSocket.CloseStatus!.Value);
+                Assert.Equal(CloseReasons.InvalidMessage, (int)webSocket.CloseStatus.Value);
             });
 
     [Fact]
@@ -485,7 +483,7 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory)
             // assert
             await webSocket.ReceiveServerMessageAsync(ct);
             Assert.True(webSocket.CloseStatus.HasValue, "Connection is closed.");
-            Assert.Equal(WebSocketCloseStatus.InternalServerError, webSocket.CloseStatus!.Value);
+            Assert.Equal(WebSocketCloseStatus.InternalServerError, webSocket.CloseStatus.Value);
         });
 
     [Fact]
@@ -503,7 +501,7 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory)
             // assert
             await webSocket.ReceiveServerMessageAsync(ct);
             Assert.True(webSocket.CloseStatus.HasValue, "Connection is closed.");
-            Assert.Equal(CloseReasons.InvalidMessage, (int)webSocket.CloseStatus!.Value);
+            Assert.Equal(CloseReasons.InvalidMessage, (int)webSocket.CloseStatus.Value);
         });
 
     [Fact]
@@ -521,7 +519,7 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory)
             // assert
             await webSocket.ReceiveServerMessageAsync(ct);
             Assert.True(webSocket.CloseStatus.HasValue, "Connection is closed.");
-            Assert.Equal(CloseReasons.InvalidMessage, (int)webSocket.CloseStatus!.Value);
+            Assert.Equal(CloseReasons.InvalidMessage, (int)webSocket.CloseStatus.Value);
         });
 
     [Fact]
@@ -539,7 +537,7 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory)
             // assert
             await webSocket.ReceiveServerMessageAsync(ct);
             Assert.True(webSocket.CloseStatus.HasValue, "Connection is closed.");
-            Assert.Equal(CloseReasons.InvalidMessage, (int)webSocket.CloseStatus!.Value);
+            Assert.Equal(CloseReasons.InvalidMessage, (int)webSocket.CloseStatus.Value);
         });
 
     // TODO : FIX Flaky Test
@@ -592,11 +590,10 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory)
 
                 var message = await WaitForMessage(webSocket, "data", ct);
                 Assert.NotNull(message);
-                var messagePayload = (Dictionary<string, object?>?)message["payload"];
-                var messageData = (Dictionary<string, object?>?)messagePayload?["data"];
-                var messageOnReview = (Dictionary<string, object?>?)messageData?["onReview"];
-                Assert.NotNull(messageOnReview);
-                Assert.DoesNotContain("commentary", messageOnReview);
+                var messagePayload = message.RootElement.GetProperty("payload");
+                var messageData = messagePayload.GetProperty("data");
+                var messageOnReview = messageData.GetProperty("onReview");
+                Assert.False(messageOnReview.TryGetProperty("commentary", out _));
             });
 
     private class AuthInterceptor : DefaultSocketSessionInterceptor

@@ -2,13 +2,16 @@ schema {
   query: QueryDateTime1
 }
 
-type Foo {
-  localDateTime(localDateTime: LocalDateTime): LocalDateTime
-}
-
 type QueryDateTime1 {
   foo: Foo!
 }
 
-"The `LocalDateTime` scalar type is a local date\/time string (i.e., with no associated timezone) with the format `YYYY-MM-DDThh:mm:ss`."
+type Foo {
+  localDateTime(localDateTime: LocalDateTime): LocalDateTime
+}
+
+"The `LocalDateTime` scalar type represents a date and time without time zone information."
 scalar LocalDateTime
+  @specifiedBy(
+    url: "https://scalars.graphql.org/chillicream/local-date-time.html"
+  )

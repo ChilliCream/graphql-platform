@@ -1,10 +1,12 @@
+#if !NET9_0_OR_GREATER
+using System.Diagnostics.CodeAnalysis;
+#endif
 using System.Security.Claims;
 using System.Text;
 using System.Text.Json;
-using System.Text.Json.Nodes;
+using HotChocolate.AspNetCore.Instrumentation;
 using HotChocolate.Buffers;
 using HotChocolate.Execution;
-using HotChocolate.Language;
 using HotChocolate.Transport.Formatters;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
@@ -16,6 +18,10 @@ namespace HotChocolate.Adapters.Mcp.Handlers;
 
 internal static class CallToolHandler
 {
+#if !NET9_0_OR_GREATER
+    [RequiresDynamicCode("JSON serialization and deserialization might require types that cannot be statically analyzed and might need runtime code generation. Use System.Text.Json source generation for native AOT applications.")]
+    [RequiresUnreferencedCode("JSON serialization and deserialization might require types that cannot be statically analyzed. Use the overload that takes a JsonTypeInfo or JsonSerializerContext, or make sure all of the required types are preserved.")]
+#endif
     public static async ValueTask<CallToolResult> HandleAsync(
         RequestContext<CallToolRequestParams> context,
         CancellationToken cancellationToken)
@@ -38,46 +44,61 @@ internal static class CallToolHandler
             };
         }
 
-        var requestExecutor = services.GetRequiredService<IRequestExecutor>();
-        var arguments = context.Params?.Arguments ?? Enumerable.Empty<KeyValuePair<string, JsonElement>>();
-
-        Dictionary<string, object?> variableValues = [];
-        using var buffer = new PooledArrayWriter();
-        var jsonValueParser = new JsonValueParser(buffer: buffer);
-
-        foreach (var (name, value) in arguments)
+        if (!tool.HasValidDocument)
         {
-            variableValues.Add(name, jsonValueParser.Parse(value));
+            return new CallToolResult
+            {
+                Content =
+                [
+                    new TextContentBlock
+                    {
+                        Text = string.Format(CallToolHandler_ToolInvalid, context.Params.Name)
+                    }
+                ],
+                IsError = true
+            };
         }
 
+        var requestExecutor = services.GetRequiredService<IRequestExecutor>();
         var rootServiceProvider = services.GetRequiredService<IRootServiceProviderAccessor>().ServiceProvider;
         var httpContext = rootServiceProvider.GetRequiredService<IHttpContextAccessor>().HttpContext!;
+        var diagnosticEvents = requestExecutor.Schema.Services.GetRequiredService<IServerDiagnosticEvents>();
         var requestBuilder = CreateRequestBuilder(httpContext);
-        var request =
-            requestBuilder
-                .SetDocument(tool.DocumentNode)
-                .SetVariableValues(variableValues)
-                .Build();
-        var result = await requestExecutor.ExecuteAsync(request, cancellationToken).ConfigureAwait(false);
-        var operationResult = (IOperationResult)result;
 
-        using var writer = new PooledArrayWriter();
-
-        JsonResultFormatter.Indented.Format(operationResult, writer);
-        var jsonOperationResult = Encoding.UTF8.GetString(writer.WrittenSpan);
-
-        return new CallToolResult
+        if (context.Params?.Arguments is { Count: > 0 } arguments)
         {
-            // https://modelcontextprotocol.io/specification/2025-06-18/server/tools#structured-content
-            // For backwards compatibility, a tool that returns structured content SHOULD
-            // also return functionally equivalent unstructured content. (For example,
-            // serialized JSON can be returned in a TextContent block.)
-            Content = [new TextContentBlock { Text = jsonOperationResult }],
-            StructuredContent = JsonNode.Parse(jsonOperationResult),
-            IsError = operationResult.Errors?.Any()
-        };
+            requestBuilder.SetVariableValues(arguments);
+        }
+
+        var request = requestBuilder.SetDocument(tool.DocumentNode).Build();
+
+        using (diagnosticEvents.ExecuteHttpRequest(httpContext, HttpRequestKind.HttpPost))
+        {
+            var result = await requestExecutor.ExecuteAsync(request, cancellationToken).ConfigureAwait(false);
+            var operationResult = result.ExpectOperationResult();
+
+            using var writer = new PooledArrayWriter();
+
+            JsonResultFormatter.Indented.Format(operationResult, writer);
+            var jsonOperationResult = Encoding.UTF8.GetString(writer.WrittenSpan);
+
+            return new CallToolResult
+            {
+                // https://modelcontextprotocol.io/specification/2025-06-18/server/tools#structured-content
+                // For backwards compatibility, a tool that returns structured content SHOULD
+                // also return functionally equivalent unstructured content. (For example,
+                // serialized JSON can be returned in a TextContent block.)
+                Content = [new TextContentBlock { Text = jsonOperationResult }],
+                StructuredContent = JsonElement.Parse(jsonOperationResult),
+                IsError = !operationResult.Errors.IsEmpty
+            };
+        }
     }
 
+#if !NET9_0_OR_GREATER
+    [RequiresDynamicCode("JSON serialization and deserialization might require types that cannot be statically analyzed and might need runtime code generation. Use System.Text.Json source generation for native AOT applications.")]
+    [RequiresUnreferencedCode("JSON serialization and deserialization might require types that cannot be statically analyzed. Use the overload that takes a JsonTypeInfo or JsonSerializerContext, or make sure all of the required types are preserved.")]
+#endif
     private static OperationRequestBuilder CreateRequestBuilder(HttpContext httpContext)
     {
         var requestBuilder = new OperationRequestBuilder();

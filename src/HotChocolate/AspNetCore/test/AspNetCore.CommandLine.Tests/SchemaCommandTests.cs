@@ -1,5 +1,3 @@
-using System.CommandLine.IO;
-using System.CommandLine.Parsing;
 using Microsoft.Extensions.Hosting;
 using Moq;
 
@@ -12,13 +10,13 @@ public class SchemaCommandTests
     {
         // arrange
         var host = new Mock<IHost>().Object;
-        var console = new TestConsole();
-        var app = new App(host).Build();
+        var output = new StringWriter();
+        var app = new App(host);
 
         // act
-        await app.InvokeAsync("schema -h", console);
+        await app.InvokeAsync("schema -h", output);
 
         // assert
-        console.Out.ToString().MatchSnapshot();
+        OutputHelper.ReplaceExecutableName(output.ToString()).MatchSnapshot();
     }
 }

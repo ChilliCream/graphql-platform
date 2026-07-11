@@ -1,0 +1,19 @@
+{
+  "message": "Fields \u0060findDog3\u0060 conflict because they have differing arguments. Use different aliases on the fields to fetch both if this was intentional. ",
+  "locations": [
+    {
+      "line": 2,
+      "column": 5
+    },
+    {
+      "line": 7,
+      "column": 5
+    }
+  ],
+  "path": [
+    "findDog3"
+  ],
+  "extensions": {
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Field-Selection-Merging"
+  }
+}

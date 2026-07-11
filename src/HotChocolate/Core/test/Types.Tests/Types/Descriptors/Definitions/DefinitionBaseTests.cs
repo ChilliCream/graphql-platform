@@ -14,7 +14,7 @@ public class DefinitionBaseTests
             .AddQueryType(d => d.Description("Query"))
             .AddTypeExtension(typeof(QueryExtWithDocs1))
             .AddTypeExtension(typeof(QueryExtWithDocs2))
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         schema.MatchInlineSnapshot(

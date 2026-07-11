@@ -47,7 +47,9 @@ internal sealed class TypeInterceptorCollection : IList<TypeInterceptorDescripto
 
 internal sealed class TypeInterceptorDescriptor
 {
-    public TypeInterceptorDescriptor(Type interceptType, Func<IServiceProvider, TypeInterceptor>? factory = null)
+    public TypeInterceptorDescriptor(
+        Type interceptType,
+        Func<IServiceProvider, TypeInterceptor>? factory = null)
     {
         ArgumentNullException.ThrowIfNull(interceptType);
 

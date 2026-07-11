@@ -1,0 +1,5 @@
+query {
+  field(parameter: "привет") {
+    subField
+  }
+}

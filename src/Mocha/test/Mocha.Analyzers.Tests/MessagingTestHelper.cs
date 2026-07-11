@@ -1,0 +1,359 @@
+using System.Collections.Immutable;
+using System.Runtime.CompilerServices;
+using System.Text;
+using System.Text.Encodings.Web;
+using System.Text.Json;
+using System.Threading.Tasks;
+using Basic.Reference.Assemblies;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using CookieCrumble;
+using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.Extensions.DependencyInjection;
+
+namespace Mocha.Analyzers.Tests;
+
+internal static class MessagingTestHelper
+{
+    private static readonly HashSet<string> s_ignoreCodes =
+        ["CS8652", "CS8632", "CS5001", "CS8019", "CS0518", "CS0012"];
+
+    public static Snapshot GetGeneratedSourceSnapshot(
+        string[] sourceTexts,
+        string? assemblyName = "Tests",
+        bool publishAot = false,
+        bool emitSourceMetadata = true,
+        string[]? sourcePaths = null,
+        string? sourceRoots = null)
+    {
+        var driver = RunGenerator(
+            sourceTexts,
+            assemblyName,
+            publishAot,
+            emitSourceMetadata,
+            sourcePaths,
+            sourceRoots);
+
+        return CreateSnapshot(driver);
+    }
+
+    public static Snapshot GetIncrementalGeneratedSourceSnapshot(
+        string[] sourceTexts,
+        int replaceIndex,
+        string replacementSourceText,
+        string? assemblyName = "Tests",
+        bool publishAot = false)
+    {
+        var compilation = CreateCompilation(sourceTexts, assemblyName);
+        var driver = CreateDriver(publishAot, emitSourceMetadata: true, trackIncrementalSteps: true)
+            .RunGenerators(compilation);
+
+        // Replacing a single tree preserves the other tree instances, so Roslyn can reuse the cached
+        // messaging syntax-info transforms for the unchanged handler file across the second run.
+        var oldTree = compilation.SyntaxTrees.ElementAt(replaceIndex);
+        var updatedCompilation = compilation.ReplaceSyntaxTree(
+            oldTree,
+            CSharpSyntaxTree.ParseText(replacementSourceText));
+
+        driver = driver.RunGenerators(updatedCompilation);
+
+        var runResult = driver.GetRunResult();
+        var snapshot = new Snapshot();
+
+        // The second-run step reasons are the discriminator: a message-only edit must leave the
+        // handler/messaging collection cached (the fix moves message metadata out of that pipeline
+        // into MochaMessageDeclarations), while still refreshing the generated output below.
+        snapshot.Add(
+            FormatStepReasons(runResult, "MochaMessagingSyntaxInfos", "MochaMessagingCollectedInfos"),
+            "Incremental Steps (second run)");
+
+        foreach (var result in runResult.Results)
+        {
+            foreach (var source in result.GeneratedSources.OrderBy(s => s.HintName))
+            {
+                snapshot.Add(source.SourceText.ToString(), source.HintName, MarkdownLanguages.CSharp);
+            }
+        }
+
+        return snapshot;
+    }
+
+    private static string FormatStepReasons(
+        GeneratorDriverRunResult runResult,
+        params string[] stepNames)
+    {
+        var builder = new StringBuilder();
+
+        foreach (var stepName in stepNames)
+        {
+            var reasons = runResult.Results
+                .SelectMany(r => r.TrackedSteps.TryGetValue(stepName, out var steps)
+                    ? steps
+                    : ImmutableArray<IncrementalGeneratorRunStep>.Empty)
+                .SelectMany(s => s.Outputs)
+                .Select(o => o.Reason.ToString());
+
+            builder.Append(stepName).Append(": ").AppendLine(string.Join(", ", reasons));
+        }
+
+        return builder.ToString();
+    }
+
+    private static Snapshot CreateSnapshot(GeneratorDriver driver)
+    {
+        var snapshot = new Snapshot();
+
+        foreach (var result in driver.GetRunResult().Results)
+        {
+            var sources = result.GeneratedSources.OrderBy(s => s.HintName);
+            foreach (var source in sources)
+            {
+                snapshot.Add(source.SourceText.ToString(), source.HintName, MarkdownLanguages.CSharp);
+            }
+
+            if (result.Diagnostics.Any())
+            {
+                AddDiagnosticsToSnapshot(snapshot, result.Diagnostics, "Generator Diagnostics");
+            }
+        }
+
+        return snapshot;
+    }
+
+    public static ImmutableArray<Diagnostic> GetGeneratorDiagnostics(
+        string[] sourceTexts,
+        string? assemblyName = "Tests",
+        bool publishAot = false,
+        bool emitSourceMetadata = true,
+        string[]? sourcePaths = null)
+    {
+        var driver = RunGenerator(sourceTexts, assemblyName, publishAot, emitSourceMetadata, sourcePaths);
+
+        return driver.GetRunResult().Results
+            .SelectMany(static r => r.Diagnostics)
+            .ToImmutableArray();
+    }
+
+    public static ImmutableArray<Diagnostic> GetCompilationDiagnostics(
+        string[] sourceTexts,
+        string? assemblyName = "Tests",
+        bool publishAot = false,
+        bool emitSourceMetadata = true,
+        string[]? sourcePaths = null)
+    {
+        var compilation = CreateCompilation(sourceTexts, assemblyName, sourcePaths);
+        var driver = CreateDriver(publishAot, emitSourceMetadata);
+
+        driver = driver.RunGeneratorsAndUpdateCompilation(
+            compilation,
+            out var outputCompilation,
+            out var generatorDiagnostics);
+
+        return generatorDiagnostics
+            .Concat(outputCompilation.GetDiagnostics())
+            .Where(static d => !s_ignoreCodes.Contains(d.Id))
+            .ToImmutableArray();
+    }
+
+    public static ImmutableArray<string> GetGeneratedSourceTexts(
+        string[] sourceTexts,
+        string? assemblyName = "Tests",
+        bool publishAot = false,
+        bool emitSourceMetadata = true,
+        string[]? sourcePaths = null)
+    {
+        var driver = RunGenerator(sourceTexts, assemblyName, publishAot, emitSourceMetadata, sourcePaths);
+
+        return driver.GetRunResult().Results
+            .SelectMany(static r => r.GeneratedSources)
+            .OrderBy(static s => s.HintName)
+            .Select(static s => s.SourceText.ToString())
+            .ToImmutableArray();
+    }
+
+    private static GeneratorDriver RunGenerator(
+        string[] sourceTexts,
+        string? assemblyName,
+        bool publishAot,
+        bool emitSourceMetadata,
+        string[]? sourcePaths,
+        string? sourceRoots = null)
+    {
+        var compilation = CreateCompilation(sourceTexts, assemblyName, sourcePaths);
+
+        return CreateDriver(publishAot, emitSourceMetadata, sourceRoots: sourceRoots)
+            .RunGenerators(compilation);
+    }
+
+    private static CSharpCompilation CreateCompilation(
+        string[] sourceTexts,
+        string? assemblyName,
+        string[]? sourcePaths = null)
+    {
+        IEnumerable<PortableExecutableReference> references =
+        [
+#if NET8_0
+            .. Net80.References.All,
+#elif NET9_0
+            .. Net90.References.All,
+#elif NET10_0
+            .. Net100.References.All,
+#endif
+            // Mocha.Abstractions (IEventHandler, IEventRequestHandler, IEventRequest, MessagingModuleAttribute)
+            MetadataReference.CreateFromFile(typeof(IEventHandler).Assembly.Location),
+
+            // Mocha (IConsumer, IBatchEventHandler, Saga, SagaStateBase)
+            MetadataReference.CreateFromFile(typeof(IConsumer).Assembly.Location),
+
+            // Mocha.Utilities (FeatureCollectionExtensions)
+            MetadataReference.CreateFromFile(typeof(Mocha.Features.FeatureCollectionExtensions).Assembly.Location),
+
+#if NET11_0
+            // System.Collections.Immutable
+            MetadataReference.CreateFromFile(typeof(ImmutableArray<>).Assembly.Location),
+#endif
+
+            // System.Text.Json
+            MetadataReference.CreateFromFile(typeof(JsonSerializerOptions).Assembly.Location),
+
+            // Microsoft.Extensions.DependencyInjection.Abstractions
+            MetadataReference.CreateFromFile(typeof(IServiceCollection).Assembly.Location),
+
+            // System.Runtime.CompilerServices.Unsafe
+            MetadataReference.CreateFromFile(typeof(Unsafe).Assembly.Location),
+
+            // System.Threading.Tasks.Extensions
+            MetadataReference.CreateFromFile(typeof(ValueTask).Assembly.Location),
+
+            // System.Runtime from the actual runtime (needed for predefined type resolution
+            // so that assembly-level attribute constructor arguments can be bound)
+            MetadataReference.CreateFromFile(
+                Path.Combine(
+                    Path.GetDirectoryName(typeof(object).Assembly.Location)!,
+                    "System.Runtime.dll"))
+        ];
+
+        return CSharpCompilation.Create(
+            assemblyName: assemblyName,
+            syntaxTrees: sourceTexts.Select(
+                (s, i) => CSharpSyntaxTree.ParseText(
+                    s,
+                    path: sourcePaths is not null && i < sourcePaths.Length ? sourcePaths[i] : "")),
+            references,
+            new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+    }
+
+    private static GeneratorDriver CreateDriver(
+        bool publishAot,
+        bool emitSourceMetadata,
+        bool trackIncrementalSteps = false,
+        string? sourceRoots = null)
+    {
+        var globalOptions = new Dictionary<string, string>
+        {
+            ["build_property.PublishAot"] = publishAot ? "true" : "false",
+            ["build_property.MochaEmitSourceMetadata"] = emitSourceMetadata ? "true" : "false"
+        };
+
+        if (sourceRoots is not null)
+        {
+            globalOptions["build_property._MochaSourceRoots"] = sourceRoots;
+        }
+
+        var generator = new MessagingGenerator();
+
+        // Step tracking retains the incremental state tables across RunGenerators calls, which is
+        // what lets driver reuse expose cross-file cache staleness in the incremental test.
+        var driver = trackIncrementalSteps
+            ? CSharpGeneratorDriver.Create(
+                [generator.AsSourceGenerator()],
+                driverOptions: new GeneratorDriverOptions(default, trackIncrementalGeneratorSteps: true))
+            : CSharpGeneratorDriver.Create(generator);
+
+        return driver.WithUpdatedAnalyzerConfigOptions(new TestAnalyzerConfigOptionsProvider(globalOptions));
+    }
+
+    private static void AddDiagnosticsToSnapshot(
+        Snapshot snapshot,
+        ImmutableArray<Diagnostic> diagnostics,
+        string title)
+    {
+        var hasDiagnostics = false;
+        using var stream = new MemoryStream();
+        using var jsonWriter = new Utf8JsonWriter(
+            stream,
+            new JsonWriterOptions
+            {
+                Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+                Indented = true
+            });
+
+        jsonWriter.WriteStartArray();
+
+        foreach (var diagnostic in diagnostics
+            .OrderBy(d => d.Location.SourceTree?.FilePath)
+            .ThenBy(d => d.Location.GetLineSpan().StartLinePosition.Line)
+            .ThenBy(d => d.Location.GetLineSpan().StartLinePosition.Character))
+        {
+            if (s_ignoreCodes.Contains(diagnostic.Id))
+            {
+                continue;
+            }
+
+            hasDiagnostics = true;
+
+            jsonWriter.WriteStartObject();
+            jsonWriter.WriteString(nameof(diagnostic.Id), diagnostic.Id);
+
+            var descriptor = diagnostic.Descriptor;
+
+            jsonWriter.WriteString(nameof(descriptor.Title), descriptor.Title.ToString());
+            jsonWriter.WriteString(nameof(diagnostic.Severity), diagnostic.Severity.ToString());
+            jsonWriter.WriteNumber(nameof(diagnostic.WarningLevel), diagnostic.WarningLevel);
+
+            jsonWriter.WriteString(
+                nameof(diagnostic.Location),
+                diagnostic.Location.GetMappedLineSpan().ToString());
+
+            var description = descriptor.Description.ToString();
+            if (!string.IsNullOrWhiteSpace(description))
+            {
+                jsonWriter.WriteString(nameof(descriptor.Description), description);
+            }
+
+            var help = descriptor.HelpLinkUri;
+            if (!string.IsNullOrWhiteSpace(help))
+            {
+                jsonWriter.WriteString(nameof(descriptor.HelpLinkUri), help);
+            }
+
+            jsonWriter.WriteString(
+                nameof(descriptor.MessageFormat),
+                descriptor.MessageFormat.ToString());
+
+            jsonWriter.WriteString("Message", diagnostic.GetMessage());
+            jsonWriter.WriteString(nameof(descriptor.Category), descriptor.Category);
+
+            jsonWriter.WritePropertyName(nameof(descriptor.CustomTags));
+
+            jsonWriter.WriteStartArray();
+
+            foreach (var tag in descriptor.CustomTags)
+            {
+                jsonWriter.WriteStringValue(tag);
+            }
+
+            jsonWriter.WriteEndArray();
+
+            jsonWriter.WriteEndObject();
+        }
+
+        jsonWriter.WriteEndArray();
+        jsonWriter.Flush();
+
+        if (hasDiagnostics)
+        {
+            snapshot.Add(Encoding.UTF8.GetString(stream.ToArray()), title, MarkdownLanguages.Json);
+        }
+    }
+}

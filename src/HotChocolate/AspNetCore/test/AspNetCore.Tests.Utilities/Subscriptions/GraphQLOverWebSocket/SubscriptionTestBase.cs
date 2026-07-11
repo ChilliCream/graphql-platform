@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Net.WebSockets;
+using System.Text.Json;
 using HotChocolate.Transport.Sockets;
 using Microsoft.AspNetCore.TestHost;
 
@@ -8,17 +9,54 @@ namespace HotChocolate.AspNetCore.Tests.Utilities.Subscriptions.GraphQLOverWebSo
 public class SubscriptionTestBase(TestServerFactory serverFactory)
     : ServerTestBase(serverFactory)
 {
+    private static readonly HashSet<string> s_transportMessageTypes =
+    [
+        "ping",
+        "pong"
+    ];
+
     protected Uri SubscriptionUri { get; } = new("ws://localhost:5000/graphql");
 
-    protected Task<IReadOnlyDictionary<string, object?>?> WaitForMessage(
+    protected Task<JsonDocument?> WaitForMessage(
         WebSocket webSocket,
         string type,
         CancellationToken cancellationToken)
         => WaitForMessage(webSocket, type, TimeSpan.FromSeconds(1), cancellationToken);
 
-    protected async Task<IReadOnlyDictionary<string, object?>?> WaitForMessage(
+    protected async Task<JsonDocument?> WaitForMessage(
         WebSocket webSocket,
         string type,
+        TimeSpan timeout,
+        CancellationToken cancellationToken)
+        => await WaitForMessage(
+            webSocket,
+            message => message.RootElement.GetProperty("type").GetString() is { } messageType
+                && type.Equals(messageType, StringComparison.Ordinal),
+            timeout,
+            cancellationToken);
+
+    protected Task<bool> AssertNoMessage(
+        WebSocket webSocket,
+        string type,
+        CancellationToken cancellationToken)
+        => AssertNoMessage(webSocket, type, TimeSpan.FromSeconds(1), cancellationToken);
+
+    protected async Task<bool> AssertNoMessage(
+        WebSocket webSocket,
+        string type,
+        TimeSpan timeout,
+        CancellationToken cancellationToken)
+        => await WaitForMessage(
+                webSocket,
+                message => message.RootElement.GetProperty("type").GetString() is { } messageType
+                    && type.Equals(messageType, StringComparison.Ordinal),
+                timeout,
+                cancellationToken)
+            is null;
+
+    protected async Task<JsonDocument?> WaitForMessage(
+        WebSocket webSocket,
+        Func<JsonDocument, bool> predicate,
         TimeSpan timeout,
         CancellationToken cancellationToken)
     {
@@ -37,12 +75,20 @@ public class SubscriptionTestBase(TestServerFactory serverFactory)
                     continue;
                 }
 
-                if (type.Equals(message["type"]))
+                var messageType = message.RootElement.GetProperty("type").GetString()!;
+
+                if (predicate(message))
                 {
                     return message;
                 }
 
-                throw new InvalidOperationException($"Unexpected message type: {message["type"]}");
+                if (s_transportMessageTypes.Contains(messageType))
+                {
+                    message.Dispose();
+                    continue;
+                }
+
+                message.Dispose();
             }
         }
         catch (OperationCanceledException)
@@ -89,10 +135,21 @@ public class SubscriptionTestBase(TestServerFactory serverFactory)
     {
         var webSocket = await client.ConnectAsync(SubscriptionUri, cancellationToken);
         await webSocket.SendConnectionInitAsync(cancellationToken);
-        var message = await webSocket.ReceiveServerMessageAsync(cancellationToken);
+        var message = await WaitForMessage(webSocket, "connection_ack", cancellationToken);
         Assert.NotNull(message);
-        Assert.Equal("connection_ack", message["type"]);
+        Assert.Equal("connection_ack", message.RootElement.GetProperty("type").GetString());
         return webSocket;
+    }
+
+    protected async Task SendSubscribeAndWaitForRegistrationAsync(
+        WebSocket webSocket,
+        string subscriptionId,
+        SubscribePayload payload,
+        Func<CancellationToken, Task> waitForSubscription,
+        CancellationToken cancellationToken)
+    {
+        await webSocket.SendSubscribeAsync(subscriptionId, payload, cancellationToken);
+        await waitForSubscription(cancellationToken);
     }
 
     protected static WebSocketClient CreateWebSocketClient(TestServer testServer)

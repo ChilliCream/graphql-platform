@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Types;
@@ -15,6 +16,11 @@ internal static class InputObjectCompiler
     private static readonly ParameterExpression s_fieldValues =
         Expression.Parameter(typeof(object?[]), "fieldValues");
 
+    [UnconditionalSuppressMessage(
+        "ReflectionAnalysis",
+        "IL2072",
+        Justification =
+            "Runtime types come from schema type registration and are preserved by the type system.")]
     public static Func<object?[], object> CompileFactory(
         InputObjectType inputType,
         ConstructorInfo? constructor = null)
@@ -68,6 +74,11 @@ internal static class InputObjectCompiler
         return func;
     }
 
+    [UnconditionalSuppressMessage(
+        "ReflectionAnalysis",
+        "IL2072",
+        Justification =
+            "Runtime types come from schema type registration and are preserved by the type system.")]
     public static Func<object?[], object> CompileFactory(
         DirectiveType directiveType,
         ConstructorInfo? constructor = null)
@@ -171,7 +182,7 @@ internal static class InputObjectCompiler
         Dictionary<string, T> fields,
         ConstructorInfo constructor,
         Expression fieldValues)
-        where T : class, IInputValueDefinition, IPropertyProvider, IHasRuntimeType, IFieldIndexProvider
+        where T : class, IInputValueDefinition, IPropertyProvider, IRuntimeTypeProvider, IFieldIndexProvider
         => Expression.New(
             constructor,
             CompileAssignParameters(fields, constructor, fieldValues));
@@ -180,7 +191,7 @@ internal static class InputObjectCompiler
         Dictionary<string, T> fields,
         ConstructorInfo constructor,
         Expression fieldValues)
-        where T : class, IInputValueDefinition, IPropertyProvider, IHasRuntimeType, IFieldIndexProvider
+        where T : class, IInputValueDefinition, IPropertyProvider, IRuntimeTypeProvider, IFieldIndexProvider
     {
         var parameters = constructor.GetParameters();
 
@@ -203,6 +214,11 @@ internal static class InputObjectCompiler
                 if (field is InputField { IsOptional: true })
                 {
                     value = CreateOptional(value, field.RuntimeType);
+                }
+                else if (parameter.ParameterType.IsValueType
+                    && System.Nullable.GetUnderlyingType(parameter.ParameterType) == null)
+                {
+                    value = Expression.Coalesce(value, Expression.Default(parameter.ParameterType));
                 }
 
                 expressions[i] = Expression.Convert(value, parameter.ParameterType);
@@ -232,7 +248,7 @@ internal static class InputObjectCompiler
         IEnumerable<T> fields,
         Expression fieldValues,
         List<Expression> currentBlock)
-        where T : IInputValueDefinition, IPropertyProvider, IFieldIndexProvider, IHasRuntimeType
+        where T : IInputValueDefinition, IPropertyProvider, IFieldIndexProvider, IRuntimeTypeProvider
     {
         foreach (var field in fields)
         {
@@ -242,6 +258,11 @@ internal static class InputObjectCompiler
             if (field is InputField { IsOptional: true })
             {
                 value = CreateOptional(value, field.RuntimeType);
+            }
+            else if (field.Property.PropertyType.IsValueType
+                && System.Nullable.GetUnderlyingType(field.Property.PropertyType) == null)
+            {
+                value = Expression.Coalesce(value, Expression.Default(field.Property.PropertyType));
             }
 
             value = Expression.Convert(value, field.Property.PropertyType);
@@ -322,12 +343,17 @@ internal static class InputObjectCompiler
         }
     }
 
+    [UnconditionalSuppressMessage(
+        "AOT",
+        "IL3050",
+        Justification =
+            "Optional<T> is a well-known framework type and MakeGenericType for it is safe.")]
     private static Expression CreateOptional(Expression fieldValue, Type runtimeType)
     {
         var from =
             typeof(Optional<>)
                 .MakeGenericType(runtimeType)
-                .GetMethod("From", BindingFlags.Public | BindingFlags.Static)!;
+                .GetMethod("From", BindingFlags.Public | BindingFlags.Static);
         Debug.Assert(from is not null, "From helper on Optional<T> is missing.");
         fieldValue = Expression.Convert(fieldValue, typeof(IOptional));
         return Expression.Call(from, fieldValue);

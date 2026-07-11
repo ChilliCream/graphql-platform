@@ -12,6 +12,8 @@ public ref partial struct Utf8GraphQLParser
     /// </summary>
     private ITypeNode ParseTypeReference()
     {
+        IncreaseDepth();
+
         ITypeNode type;
         Location? location;
 
@@ -40,6 +42,7 @@ public ref partial struct Utf8GraphQLParser
                 MoveNext();
                 location = CreateLocation(in start);
 
+                DecreaseDepth();
                 return new NonNullTypeNode
                 (
                     location,
@@ -50,6 +53,7 @@ public ref partial struct Utf8GraphQLParser
             Unexpected(TokenKind.Bang);
         }
 
+        DecreaseDepth();
         return type;
     }
 
