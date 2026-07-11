@@ -800,9 +800,21 @@ internal static class OperationPlanExecutor
             }
 
             element = next;
+
+            if (element.IsNullMarker)
+            {
+                for (var j = i + 1; j < selectionPath.Length; j++)
+                {
+                    if (selectionPath[j].Kind is SelectionPathSegmentKind.Field)
+                    {
+                        incrementalResults = [];
+                        return false;
+                    }
+                }
+            }
         }
 
-        if (element.ValueKind is JsonValueKind.Array)
+        if (element.ValueKind is JsonValueKind.Array && !element.IsNullMarker)
         {
             var builder = ImmutableList.CreateBuilder<IIncrementalResult>();
             var length = element.GetArrayLength();
@@ -846,7 +858,7 @@ internal static class OperationPlanExecutor
         // the IncrementalObjectResult is a non-owning view over it.
         => new(
             document,
-            isValueNull: false,
+            isValueNull: element.IsNullMarker,
             new DeferredPayloadDataFormatter(element),
             memoryHolder: null);
 

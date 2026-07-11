@@ -90,44 +90,73 @@ internal static class CompositionHelper
         var satisfiabilityOptions = mergedCompositionSettings.Satisfiability.ToOptions();
         var apolloFederationCompatibilityOptions =
             mergedCompositionSettings.ApolloFederationCompatibility.ToOptions();
-
-        foreach (var (sourceSchemaName, (_, sourceSchemaSettings)) in sourceSchemas)
-        {
-            var schemaSettings =
-                sourceSchemaSettings.Deserialize(SettingsJsonSerializerContext.Default.SourceSchemaSettings)!;
-
-            var sourceSchemaOptions = schemaSettings.ToOptions();
-
-            mergedCompositionSettings.Preprocessor?.MergeInto(sourceSchemaOptions.Preprocessor);
-            sourceSchemaOptionsMap.Add(sourceSchemaName, sourceSchemaOptions);
-            schemaSettings.Satisfiability?.MergeInto(satisfiabilityOptions);
-        }
-
-        var schemaComposerOptions = new SchemaComposerOptions
-        {
-            SourceSchemas = sourceSchemaOptionsMap,
-            Merger = mergerOptions,
-            Satisfiability = satisfiabilityOptions,
-            ApolloFederationCompatibility = apolloFederationCompatibilityOptions
-        };
-
-        var schemaComposer = new SchemaComposer(
-            sourceSchemas.Select(s => s.Value.Item1),
-            schemaComposerOptions,
-            compositionLog);
-
-        var result = schemaComposer.Compose();
-
-        if (result.IsFailure)
-        {
-            return result;
-        }
-
+        var runtimeSourceSchemaSettings = new List<JsonElement>(sourceSchemas.Count);
+        var runtimeSettingsDocuments = new List<JsonDocument>();
+        CompositionResult<MutableSchemaDefinition> result;
         using var bufferWriter = new PooledArrayWriter();
-        new SettingsComposer().Compose(
-            bufferWriter,
-            sourceSchemas.Select(s => s.Value.Item2.RootElement).ToArray(),
-            environment);
+
+        try
+        {
+            foreach (var (sourceSchemaName, (_, sourceSchemaSettings)) in sourceSchemas)
+            {
+                if (!SourceSchemaSettingsReader.TryRead(
+                    sourceSchemaName,
+                    sourceSchemaSettings,
+                    compositionLog,
+                    out var settingsResult))
+                {
+                    return (ImmutableArray<CompositionError>)[new("❌ Composition failed")];
+                }
+
+                var sourceSchemaOptions = settingsResult.Options;
+
+                mergedCompositionSettings.Preprocessor?.MergeInto(sourceSchemaOptions.Preprocessor);
+                sourceSchemaOptionsMap.Add(sourceSchemaName, sourceSchemaOptions);
+                settingsResult.Settings.Satisfiability?.MergeInto(satisfiabilityOptions);
+
+                if (settingsResult.RuntimeSettings is { } runtimeSettings)
+                {
+                    runtimeSettingsDocuments.Add(runtimeSettings);
+                    runtimeSourceSchemaSettings.Add(runtimeSettings.RootElement);
+                }
+                else
+                {
+                    runtimeSourceSchemaSettings.Add(sourceSchemaSettings.RootElement);
+                }
+            }
+
+            var schemaComposerOptions = new SchemaComposerOptions
+            {
+                SourceSchemas = sourceSchemaOptionsMap,
+                Merger = mergerOptions,
+                Satisfiability = satisfiabilityOptions,
+                ApolloFederationCompatibility = apolloFederationCompatibilityOptions
+            };
+
+            var schemaComposer = new SchemaComposer(
+                sourceSchemas.Select(s => s.Value.Item1),
+                schemaComposerOptions,
+                compositionLog);
+
+            result = schemaComposer.Compose();
+
+            if (result.IsFailure)
+            {
+                return result;
+            }
+
+            new SettingsComposer().Compose(
+                bufferWriter,
+                [.. runtimeSourceSchemaSettings],
+                environment);
+        }
+        finally
+        {
+            foreach (var runtimeSettingsDocument in runtimeSettingsDocuments)
+            {
+                runtimeSettingsDocument.Dispose();
+            }
+        }
 
         var metadata = new ArchiveMetadata
         {

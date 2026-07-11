@@ -171,4 +171,88 @@ public sealed class ProvidesInvalidFieldsRuleTests : RuleTestBase
                 """
             ]);
     }
+
+    [Fact]
+    public void Validate_Should_Fail_When_ProvidesSelectsDirectUnionField()
+    {
+        AssertInvalid(
+            [
+                """
+                type Query {
+                    media: Media @provides(fields: "title")
+                }
+
+                union Media = Book | Movie
+
+                type Book {
+                    title: String @external
+                }
+
+                type Movie {
+                    title: String
+                }
+                """
+            ],
+            [
+                """
+                {
+                    "message": "The @provides directive on field 'Query.media' in schema 'A' specifies an invalid field selection.",
+                    "code": "PROVIDES_INVALID_FIELDS",
+                    "severity": "Error",
+                    "coordinate": "Query.media",
+                    "member": "provides",
+                    "schema": "A",
+                    "extensions": {
+                        "errors": [
+                            "The field 'title' does not exist on the type 'Media'."
+                        ]
+                    }
+                }
+                """
+            ]);
+    }
+
+    [Fact]
+    public void Validate_Should_Fail_When_ProvidesFragmentTypeIsNotUnionMember()
+    {
+        AssertInvalid(
+            [
+                """
+                type Query {
+                    media: Media @provides(fields: "... on Article { title }")
+                }
+
+                union Media = Book | Movie
+
+                type Book {
+                    title: String
+                }
+
+                type Movie {
+                    title: String
+                }
+
+                type Article {
+                    title: String @external
+                }
+                """
+            ],
+            [
+                """
+                {
+                    "message": "The @provides directive on field 'Query.media' in schema 'A' specifies an invalid field selection.",
+                    "code": "PROVIDES_INVALID_FIELDS",
+                    "severity": "Error",
+                    "coordinate": "Query.media",
+                    "member": "provides",
+                    "schema": "A",
+                    "extensions": {
+                        "errors": [
+                            "The type 'Article' is not a possible type of type 'Media'."
+                        ]
+                    }
+                }
+                """
+            ]);
+    }
 }

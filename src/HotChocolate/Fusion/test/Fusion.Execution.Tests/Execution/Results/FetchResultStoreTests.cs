@@ -282,6 +282,89 @@ public sealed class FetchResultStoreTests : FusionTestBase
     }
 
     [Fact]
+    public void FinalizeInaccessibleRuntimeTypes_Should_MaskNullableAbstractValue_AndPreserveStoredValue()
+    {
+        // arrange
+        var schema = ComposeInaccessibleAbstractSchema("Foo");
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+        using var store = CreateLiveStore(
+            schema,
+            "{ value { __typename name } sibling }",
+            """{"data":{"value":{"__typename":"Baz","name":"secret"},"sibling":"visible"}}""",
+            resultArena,
+            sourceArena);
+
+        // act
+        store.FinalizePocketedErrors();
+
+        // assert
+        RenderData(store).MatchInlineSnapshot(
+            """
+            {"value":null,"sibling":"visible"}
+            """);
+        var storedValue = store.Result.Data.GetProperty("value");
+        Assert.Equal(JsonValueKind.Object, storedValue.ValueKind);
+        Assert.Equal("Baz", storedValue.GetProperty("__typename").AssertString());
+        Assert.Equal("secret", storedValue.GetProperty("name").AssertString());
+        Assert.Null(store.Errors);
+    }
+
+    [Fact]
+    public void FinalizeInaccessibleRuntimeTypes_Should_PropagateThroughNonNullAbstractField()
+    {
+        // arrange
+        var schema = ComposeInaccessibleAbstractSchema("Foo!");
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+        using var store = CreateLiveStore(
+            schema,
+            "{ value { __typename name } sibling }",
+            """{"data":{"value":{"__typename":"Baz","name":"secret"},"sibling":"visible"}}""",
+            resultArena,
+            sourceArena);
+
+        // act
+        store.FinalizePocketedErrors();
+
+        // assert
+        Assert.Equal("null", RenderData(store));
+        Assert.Null(store.Errors);
+    }
+
+    [Theory]
+    [InlineData("[Foo]", "{\"value\":[null,{\"__typename\":\"Qux\",\"name\":\"visible\"}],\"sibling\":\"visible\"}")]
+    [InlineData("[Foo!]", "{\"value\":null,\"sibling\":\"visible\"}")]
+    [InlineData("[Foo!]!", "null")]
+    public void FinalizeInaccessibleRuntimeTypes_Should_PropagateAccordingToListNullability(
+        string fieldType,
+        string expected)
+    {
+        // arrange
+        var schema = ComposeInaccessibleAbstractSchema(fieldType);
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+        using var store = CreateLiveStore(
+            schema,
+            "{ value { __typename name } sibling }",
+            """
+            {"data":{"value":[
+              {"__typename":"Baz","name":"secret"},
+              {"__typename":"Qux","name":"visible"}],
+              "sibling":"visible"}}
+            """,
+            resultArena,
+            sourceArena);
+
+        // act
+        store.FinalizePocketedErrors();
+
+        // assert
+        Assert.Equal(expected, RenderData(store));
+        Assert.Null(store.Errors);
+    }
+
+    [Fact]
     public void AddErrors_Should_UseAliasesInErrorPath()
     {
         // arrange
@@ -1120,6 +1203,28 @@ public sealed class FetchResultStoreTests : FusionTestBase
 
         return store;
     }
+
+    private static FusionSchemaDefinition ComposeInaccessibleAbstractSchema(string fieldType)
+        => ComposeSchema(
+            $$"""
+            # name: test
+            type Query {
+              value: {{fieldType}}
+              sibling: String
+            }
+
+            interface Foo {
+              name: String
+            }
+
+            type Baz implements Foo @inaccessible {
+              name: String
+            }
+
+            type Qux implements Foo {
+              name: String
+            }
+            """);
 
     private static VariableValues CreateVariableValues(
         FetchResultStore store,

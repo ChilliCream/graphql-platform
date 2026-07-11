@@ -6,46 +6,30 @@ namespace HotChocolate.Fusion;
 
 public sealed class SchemaComposerTests
 {
-    [Theory]
-    [InlineData(NodeResolution.Gateway)]
-    [InlineData(NodeResolution.SourceSchema)]
-    public void Compose_Should_EmitExecutionMetadata(NodeResolution nodeResolution)
+    [Fact]
+    public void Compose_Should_EmitExecutionMetadataDefinitions()
     {
-        var options = new SchemaComposerOptions
-        {
-            Merger =
-            {
-                EnableGlobalObjectIdentification = nodeResolution is NodeResolution.SourceSchema,
-                NodeResolution = nodeResolution
-            }
-        };
+        // arrange
         var composer = new SchemaComposer(
             [new SourceSchemaText("A", "type Query { ping: String }")],
-            options,
+            new SchemaComposerOptions(),
             new CompositionLog());
 
+        // act
         var result = composer.Compose();
 
+        // assert
         Assert.True(result.IsSuccess);
         var document = result.Value.ToSyntaxNode();
         var executionMetadataDefinitions = new DocumentNode(
-        [
-            document.Definitions.Single(
-                definition => definition is EnumTypeDefinitionNode
-                {
-                    Name.Value: "fusion__NodeResolution"
-                }),
-            document.Definitions.Single(
-                definition => definition is EnumTypeDefinitionNode
-                {
-                    Name.Value: "fusion__ShareableFieldRuntimeTypeRouting"
-                }),
-            document.Definitions.Single(
-                definition => definition is DirectiveDefinitionNode
-                {
-                    Name.Value: "fusion__execution"
-                })
-        ]);
+            document.Definitions
+                .Where(definition => definition is EnumTypeDefinitionNode
+                    {
+                        Name.Value: "fusion__NodeResolution"
+                            or "fusion__ShareableFieldRuntimeTypeRouting"
+                    }
+                    or DirectiveDefinitionNode { Name.Value: "fusion__execution" })
+                .ToArray());
 
         executionMetadataDefinitions.ToString().MatchInlineSnapshot(
             """
@@ -64,7 +48,33 @@ public sealed class SchemaComposerTests
               shareableFieldRuntimeTypeRouting: fusion__ShareableFieldRuntimeTypeRouting! = SOURCE_LOCAL
             ) on SCHEMA
             """);
+    }
 
+    [Theory]
+    [InlineData(NodeResolution.Gateway)]
+    [InlineData(NodeResolution.SourceSchema)]
+    public void Compose_Should_EmitNodeResolution(NodeResolution nodeResolution)
+    {
+        // arrange
+        var options = new SchemaComposerOptions
+        {
+            Merger =
+            {
+                EnableGlobalObjectIdentification = nodeResolution is NodeResolution.SourceSchema,
+                NodeResolution = nodeResolution
+            }
+        };
+        var composer = new SchemaComposer(
+            [new SourceSchemaText("A", "type Query { ping: String }")],
+            options,
+            new CompositionLog());
+
+        // act
+        var result = composer.Compose();
+
+        // assert
+        Assert.True(result.IsSuccess);
+        var document = result.Value.ToSyntaxNode();
         var schemaDefinition = document.Definitions
             .OfType<SchemaDefinitionNode>()
             .Single();
@@ -88,12 +98,12 @@ public sealed class SchemaComposerTests
     }
 
     [Theory]
-    [InlineData(ShareableFieldRuntimeTypeRouting.SourceLocal, "SOURCE_LOCAL")]
-    [InlineData(ShareableFieldRuntimeTypeRouting.CommonRuntimeTypes, "COMMON_RUNTIME_TYPES")]
+    [InlineData(ShareableFieldRuntimeTypeRouting.SourceLocal)]
+    [InlineData(ShareableFieldRuntimeTypeRouting.CommonRuntimeTypes)]
     public void Compose_Should_EmitShareableFieldRuntimeTypeRouting(
-        ShareableFieldRuntimeTypeRouting routing,
-        string expectedValue)
+        ShareableFieldRuntimeTypeRouting routing)
     {
+        // arrange
         var options = new SchemaComposerOptions
         {
             ApolloFederationCompatibility = { ShareableFieldRuntimeTypeRouting = routing }
@@ -103,27 +113,38 @@ public sealed class SchemaComposerTests
             options,
             new CompositionLog());
 
+        // act
         var result = composer.Compose();
 
+        // assert
         Assert.True(result.IsSuccess);
         var document = result.Value.ToSyntaxNode();
-        var enumType = Assert.Single(
-            document.Definitions.OfType<EnumTypeDefinitionNode>(),
-            definition => definition.Name.Value == "fusion__ShareableFieldRuntimeTypeRouting");
-        Assert.Equal(
-            ["SOURCE_LOCAL", "COMMON_RUNTIME_TYPES"],
-            enumType.Values.Select(value => value.Name.Value));
-        var schemaDefinition = Assert.Single(document.Definitions.OfType<SchemaDefinitionNode>());
-        var directive = Assert.Single(
-            schemaDefinition.Directives,
-            application => application.Name.Value == "fusion__execution");
-        Assert.Equal(expectedValue, Assert.IsType<EnumValueNode>(
-            directive.Arguments[1].Value).Value);
+        var schemaDefinition = document.Definitions
+            .OfType<SchemaDefinitionNode>()
+            .Single();
+        var executionApplication = schemaDefinition.Directives.Single(
+            directive => directive.Name.Value == "fusion__execution");
+
+        executionApplication.ToString().MatchInlineSnapshot(
+            routing is ShareableFieldRuntimeTypeRouting.SourceLocal
+                ? """
+                @fusion__execution(
+                  nodeResolution: GATEWAY
+                  shareableFieldRuntimeTypeRouting: SOURCE_LOCAL
+                )
+                """
+                : """
+                @fusion__execution(
+                  nodeResolution: GATEWAY
+                  shareableFieldRuntimeTypeRouting: COMMON_RUNTIME_TYPES
+                )
+                """);
     }
 
     [Fact]
-    public void Compose_Should_Fail_When_SourceSchemaNodeResolutionIsDisabled()
+    public void Compose_Should_Fail_When_GlobalObjectIdentificationIsDisabledForSourceSchemaNodeResolution()
     {
+        // arrange
         var log = new CompositionLog();
         var options = new SchemaComposerOptions
         {
@@ -134,20 +155,28 @@ public sealed class SchemaComposerTests
             options,
             log);
 
+        // act
         var result = composer.Compose();
 
+        // assert
         Assert.True(result.IsFailure);
-        var entry = Assert.Single(log);
-        Assert.Equal(LogEntryCodes.InvalidNodeResolution, entry.Code);
-        Assert.Equal(LogSeverity.Error, entry.Severity);
-        Assert.Equal(
-            "Source-schema node resolution requires global object identification to be enabled.",
-            entry.Message);
+        log.Select(e => e.ToString()).MatchInlineSnapshots(
+        [
+            """
+            {
+                "message": "Source-schema node resolution requires global object identification to be enabled.",
+                "code": "INVALID_NODE_RESOLUTION",
+                "severity": "Error",
+                "extensions": {}
+            }
+            """
+        ]);
     }
 
     [Fact]
     public void Compose_Should_Fail_When_NodeResolutionIsInvalid()
     {
+        // arrange
         var log = new CompositionLog();
         var options = new SchemaComposerOptions
         {
@@ -158,17 +187,28 @@ public sealed class SchemaComposerTests
             options,
             log);
 
+        // act
         var result = composer.Compose();
 
+        // assert
         Assert.True(result.IsFailure);
-        var entry = Assert.Single(log);
-        Assert.Equal(LogEntryCodes.InvalidNodeResolution, entry.Code);
-        Assert.Equal("The node resolution mode '42' is invalid.", entry.Message);
+        log.Select(e => e.ToString()).MatchInlineSnapshots(
+        [
+            """
+            {
+                "message": "The node resolution mode '42' is invalid.",
+                "code": "INVALID_NODE_RESOLUTION",
+                "severity": "Error",
+                "extensions": {}
+            }
+            """
+        ]);
     }
 
     [Fact]
     public void Compose_Should_Fail_When_ShareableFieldRuntimeTypeRoutingIsInvalid()
     {
+        // arrange
         var log = new CompositionLog();
         var options = new SchemaComposerOptions
         {
@@ -182,14 +222,22 @@ public sealed class SchemaComposerTests
             options,
             log);
 
+        // act
         var result = composer.Compose();
 
+        // assert
         Assert.True(result.IsFailure);
-        var entry = Assert.Single(log);
-        Assert.Equal(LogEntryCodes.InvalidShareableFieldRuntimeTypeRouting, entry.Code);
-        Assert.Equal(
-            "The shareable field runtime type routing mode '42' is invalid.",
-            entry.Message);
+        log.Select(e => e.ToString()).MatchInlineSnapshots(
+        [
+            """
+            {
+                "message": "The shareable field runtime type routing mode '42' is invalid.",
+                "code": "INVALID_SHAREABLE_FIELD_RUNTIME_TYPE_ROUTING",
+                "severity": "Error",
+                "extensions": {}
+            }
+            """
+        ]);
     }
 
     [Fact]
@@ -290,8 +338,42 @@ public sealed class SchemaComposerTests
         var result = schemaComposer.Compose();
 
         // assert
+        // The schema validator reports the same HCV0011 warning once per validation pass, so the
+        // log carries two identical entries.
         Assert.True(result.IsSuccess);
-        Assert.Contains(log, e => e.Code == "HCV0011" && e.Severity == LogSeverity.Warning);
+        log.Select(e => e.ToString()).MatchInlineSnapshots(
+        [
+            """
+            {
+                "message": "The field 'User.name' must not be deprecated without the corresponding field in the interface 'Node' being deprecated. (Schema: 'A')",
+                "code": "HCV0011",
+                "severity": "Warning",
+                "coordinate": "User.name",
+                "member": "name",
+                "schema": "A",
+                "extensions": {
+                    "field": "name",
+                    "implementedField": "name",
+                    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Objects.Type-Validation"
+                }
+            }
+            """,
+            """
+            {
+                "message": "The field 'User.name' must not be deprecated without the corresponding field in the interface 'Node' being deprecated. (Schema: 'A')",
+                "code": "HCV0011",
+                "severity": "Warning",
+                "coordinate": "User.name",
+                "member": "name",
+                "schema": "A",
+                "extensions": {
+                    "field": "name",
+                    "implementedField": "name",
+                    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Objects.Type-Validation"
+                }
+            }
+            """
+        ]);
     }
 
     [Fact]
@@ -339,7 +421,24 @@ public sealed class SchemaComposerTests
 
         // assert
         Assert.True(result.IsFailure);
-        Assert.Contains(log, e => e.Code == "HCV0011" && e.Severity == LogSeverity.Error);
+        log.Select(e => e.ToString()).MatchInlineSnapshots(
+        [
+            """
+            {
+                "message": "The field 'User.name' must not be deprecated without the corresponding field in the interface 'Node' being deprecated. (Schema: 'A')",
+                "code": "HCV0011",
+                "severity": "Error",
+                "coordinate": "User.name",
+                "member": "name",
+                "schema": "A",
+                "extensions": {
+                    "field": "name",
+                    "implementedField": "name",
+                    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Objects.Type-Validation"
+                }
+            }
+            """
+        ]);
     }
 
     [Fact]
@@ -394,11 +493,27 @@ public sealed class SchemaComposerTests
 
         // assert
         Assert.True(result.IsFailure);
-        Assert.Contains(log, e => e.Code == LogEntryCodes.UnsatisfiableQueryPath);
+        // Two distinct unsatisfiable paths are reported; order them so the snapshot is stable
+        // regardless of the order the validator emits them in.
+        log.Select(e => e.Message)
+            .Order(StringComparer.Ordinal)
+            .MatchInlineSnapshots(
+            [
+                """
+                Unable to access the field 'User.membershipStatus'.
+                  Unable to transition between schemas 'A' and 'B' for access to field 'B:User.membershipStatus<String>'.
+                    No lookups found for type 'User' in schema 'B'.
+                """,
+                """
+                Unable to access the field 'User.name'.
+                  Unable to transition between schemas 'B' and 'A' for access to field 'A:User.name<String>'.
+                    No lookups found for type 'User' in schema 'A'.
+                """
+            ]);
     }
 
     [Fact]
-    public void Compose_LookupFieldWithoutArguments_FailsWithLookupMustHaveArgumentsError()
+    public void Compose_Should_FailWithLookupMustHaveArgumentsError_When_LookupFieldHasNoArguments()
     {
         // arrange
         var log = new CompositionLog();
@@ -425,16 +540,24 @@ public sealed class SchemaComposerTests
 
         // assert
         Assert.True(result.IsFailure);
-        var entry = Assert.Single(log);
-        Assert.Equal(LogEntryCodes.LookupMustHaveArguments, entry.Code);
-        Assert.Equal(LogSeverity.Error, entry.Severity);
-        Assert.Equal(
-            "The lookup field 'Query.product' in schema 'A' must declare at least one argument.",
-            entry.Message);
+        log.Select(e => e.ToString()).MatchInlineSnapshots(
+        [
+            """
+            {
+                "message": "The lookup field 'Query.product' in schema 'A' must declare at least one argument.",
+                "code": "LOOKUP_MUST_HAVE_ARGUMENTS",
+                "severity": "Error",
+                "coordinate": "Query.product",
+                "member": "product",
+                "schema": "A",
+                "extensions": {}
+            }
+            """
+        ]);
     }
 
     [Fact]
-    public void Compose_OrphanedTypeAfterTagExclusion_DoesNotProduceShareableError()
+    public void Compose_Should_NotProduceShareableError_When_TagExclusionOrphansType()
     {
         // arrange
         // Schema A's Product is only reachable via Mutation. When Mutation is removed by
@@ -499,12 +622,50 @@ public sealed class SchemaComposerTests
 
         // assert
         Assert.True(result.IsSuccess);
-        Assert.False(result.Value.Types.ContainsName("Mutation"));
-        Assert.True(result.Value.Types.ContainsName("Product"));
+        result.Value.MatchInlineSnapshot(
+            """
+            schema {
+                query: Query
+            }
+
+            type Query @fusion__type(schema: A) @fusion__type(schema: B) {
+                book(id: ID! @fusion__inputField(schema: A)): Book @fusion__field(schema: A)
+                productById(id: ID! @fusion__inputField(schema: B)): Product
+                    @fusion__field(schema: B)
+            }
+
+            type Book
+                @fusion__type(schema: A)
+                @fusion__lookup(
+                    schema: A
+                    key: "id"
+                    field: "book(id: ID!): Book"
+                    map: ["id"]
+                    path: null
+                    internal: false
+                ) {
+                id: ID! @fusion__field(schema: A)
+                title: String! @fusion__field(schema: A)
+            }
+
+            type Product
+                @fusion__type(schema: B)
+                @fusion__lookup(
+                    schema: B
+                    key: "id"
+                    field: "productById(id: ID!): Product"
+                    map: ["id"]
+                    path: null
+                    internal: false
+                ) {
+                id: ID! @fusion__field(schema: B)
+                name: String! @fusion__field(schema: B)
+            }
+            """);
     }
 
     [Fact]
-    public void Compose_WithExtensions_AppliesExtensions()
+    public void Compose_Should_ApplyExtensions_When_ExtensionsAreProvided()
     {
         // arrange
         var schemaComposer = new SchemaComposer(

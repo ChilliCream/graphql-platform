@@ -78,6 +78,24 @@ namespace HotChocolate.Fusion.ApolloFederation.Properties {
         }
 
         /// <summary>
+        ///   Looks up a localized string similar to Apollo Federation v1 source schema '{0}' applies '@{1}' to '{2}' with invalid arguments. Expected {3}..
+        /// </summary>
+        internal static string FederationV1SchemaAnalyzer_InvalidDirectiveArguments {
+            get {
+                return ResourceManager.GetString("FederationV1SchemaAnalyzer_InvalidDirectiveArguments", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Apollo Federation v1 source schema '{0}' applies '@{1}' at unsupported location '{2}'..
+        /// </summary>
+        internal static string FederationV1SchemaAnalyzer_InvalidDirectiveLocation {
+            get {
+                return ResourceManager.GetString("FederationV1SchemaAnalyzer_InvalidDirectiveLocation", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to Failed to parse federation SDL: {0}.
         /// </summary>
         internal static string FederationSchemaTransformer_ParseFailed {

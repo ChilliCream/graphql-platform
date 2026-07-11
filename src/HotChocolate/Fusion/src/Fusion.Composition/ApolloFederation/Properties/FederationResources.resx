@@ -24,7 +24,13 @@
   <data name="FederationSchemaAnalyzer_DirectiveNotSupported" xml:space="preserve">
     <value>The @{0} directive is not supported.</value>
   </data>
-<data name="FederationSchemaTransformer_ParseFailed" xml:space="preserve">
+  <data name="FederationV1SchemaAnalyzer_InvalidDirectiveArguments" xml:space="preserve">
+    <value>Apollo Federation v1 source schema '{0}' applies '@{1}' to '{2}' with invalid arguments. Expected {3}.</value>
+  </data>
+  <data name="FederationV1SchemaAnalyzer_InvalidDirectiveLocation" xml:space="preserve">
+    <value>Apollo Federation v1 source schema '{0}' applies '@{1}' at unsupported location '{2}'.</value>
+  </data>
+  <data name="FederationSchemaTransformer_ParseFailed" xml:space="preserve">
     <value>Failed to parse federation SDL: {0}</value>
   </data>
 </root>

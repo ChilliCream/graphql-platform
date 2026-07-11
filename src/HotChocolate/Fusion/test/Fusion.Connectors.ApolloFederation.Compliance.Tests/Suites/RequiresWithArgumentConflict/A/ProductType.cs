@@ -77,6 +77,6 @@ public sealed class ProductType : ObjectType<Product>
             });
     }
 
-    private static Product ResolveByUpc(string upc)
-        => new() { Upc = upc };
+    private static Product? ResolveByUpc(string upc)
+        => B.BData.ByUpc.ContainsKey(upc) ? new Product { Upc = upc } : null;
 }

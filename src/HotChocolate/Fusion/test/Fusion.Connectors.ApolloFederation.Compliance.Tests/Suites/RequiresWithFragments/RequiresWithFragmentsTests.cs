@@ -3,129 +3,18 @@ using HotChocolate.Fusion.Suites.RequiresWithFragments.B;
 
 namespace HotChocolate.Fusion.Suites;
 
-/// <summary>
-/// Port of the <c>requires-with-fragments</c> suite from
-/// <c>graphql-hive/federation-gateway-audit</c>. Subgraph <c>a</c> owns
-/// <c>Entity.data: Foo</c> (with Baz and Qux implementations).
-/// Subgraph <c>b</c> defines <c>Entity.requirer</c> with complex
-/// <c>@requires</c> using inline fragments on <c>Bar</c>, <c>Baz</c>,
-/// and <c>Qux</c>, and <c>Entity.requirer2</c> with
-/// <c>@requires(fields: "data { ... on Foo { foo } }")</c>.
-/// </summary>
-public sealed class RequiresWithFragmentsTests : ComplianceTestBase
+[OfficialV2Suite("requires-with-fragments")]
+public sealed class RequiresWithFragmentsTests
+    : OfficialV2ComplianceTestBase<RequiresWithFragmentsTests>
 {
     protected override Task<FusionGateway> BuildGatewayAsync()
-        => FusionGatewayBuilder.ComposeAsync(
+        => ComposeOfficialV2Async(
             (ASubgraph.Name, ASubgraph.BuildAsync),
             (BSubgraph.Name, BSubgraph.BuildAsync));
 
-    [Fact]
-    public Task B_And_Bb_Data_Typename() => RunAsync(
-        query: """
-            {
-              b {
-                data {
-                  __typename
-                }
-              }
-              bb {
-                data {
-                  __typename
-                }
-              }
-            }
-            """,
-        expectedData: """
-            {
-              "b": { "data": { "__typename": "Baz" } },
-              "bb": { "data": { "__typename": "Qux" } }
-            }
-            """);
-
-    [Fact]
-    public Task A_Requirer() => RunAsync(
-        query: """
-            {
-              a {
-                requirer
-              }
-            }
-            """,
-        expectedData: """
-            {
-              "a": { "requirer": "q1-foo_requirer" }
-            }
-            """);
-
-    [Fact]
-    public Task A_Data_Typename_And_Requirer() => RunAsync(
-        query: """
-            {
-              a {
-                data {
-                  __typename
-                }
-                requirer
-              }
-            }
-            """,
-        expectedData: """
-            {
-              "a": { "data": { "__typename": "Qux" }, "requirer": "q1-foo_requirer" }
-            }
-            """);
-
-    [Fact]
-    public Task Bb_Data_Typename_And_Requirer() => RunAsync(
-        query: """
-            {
-              bb {
-                data {
-                  __typename
-                }
-                requirer
-              }
-            }
-            """,
-        expectedData: """
-            {
-              "bb": { "data": { "__typename": "Qux" }, "requirer": "q1-foo_requirer" }
-            }
-            """);
-
-    [Fact]
-    public Task B_Data_Typename_And_Requirer() => RunAsync(
-        query: """
-            {
-              b {
-                data {
-                  __typename
-                }
-                requirer
-              }
-            }
-            """,
-        expectedData: """
-            {
-              "b": { "data": { "__typename": "Baz" }, "requirer": "b1-foo_requirer" }
-            }
-            """);
-
-    [Fact]
-    public Task Bb_Data_Typename_And_Requirer2() => RunAsync(
-        query: """
-            {
-              bb {
-                data {
-                  __typename
-                }
-                requirer2
-              }
-            }
-            """,
-        expectedData: """
-            {
-              "bb": { "data": { "__typename": "Qux" }, "requirer2": "q1-foo_requirer2" }
-            }
-            """);
+    [Theory]
+    [MemberData(nameof(Cases))]
+    [Trait("Category", "OfficialV2")]
+    public Task OfficialCase_Should_MatchExpectedResult_When_Executed(string caseId)
+        => RunOfficialV2CaseAsync(caseId);
 }
