@@ -8,7 +8,10 @@ public abstract class OfficialV2ComplianceTestBase<TSuite> : ComplianceTestBase
     public static TheoryData<string> Cases => AuditFixture.GetOfficialV2CaseIds<TSuite>();
 
     protected Task RunOfficialV2CaseAsync(string caseId)
-        => OfficialV2SuiteRun<TSuite>.AssertCaseAsync(caseId, BuildGatewayAsync);
+        => OfficialAuditSuiteRun<TSuite>.AssertCaseAsync(
+            caseId,
+            BuildGatewayAsync,
+            static () => AuditFixture.GetOfficialV2Suite<TSuite>());
 
     protected Task<FusionGateway> ComposeOfficialV2Async(
         params (string Name, Func<Task<SubgraphHost>> Factory)[] subgraphs)
@@ -20,7 +23,7 @@ public abstract class OfficialV2ComplianceTestBase<TSuite> : ComplianceTestBase
         => FusionGatewayBuilder.ComposeOfficialV2Async<TSuite>(capture, subgraphs);
 }
 
-internal static class OfficialV2SuiteRun<TSuite>
+internal static class OfficialAuditSuiteRun<TSuite>
 {
     private static readonly TimeSpan s_caseTimeout = TimeSpan.FromSeconds(10);
     private static readonly object s_sync = new();
@@ -28,7 +31,8 @@ internal static class OfficialV2SuiteRun<TSuite>
 
     public static async Task AssertCaseAsync(
         string caseId,
-        Func<Task<FusionGateway>> buildGatewayAsync)
+        Func<Task<FusionGateway>> buildGatewayAsync,
+        Func<OfficialAuditSuite> getSuite)
     {
         var run = Volatile.Read(ref s_run);
 
@@ -38,7 +42,7 @@ internal static class OfficialV2SuiteRun<TSuite>
             {
                 var cancellationToken = TestContext.Current.CancellationToken;
                 run = s_run ??= new Lazy<Task<IReadOnlyDictionary<string, ExceptionDispatchInfo?>>>(
-                    () => ExecuteSuiteAsync(buildGatewayAsync, cancellationToken),
+                    () => ExecuteSuiteAsync(buildGatewayAsync, getSuite(), cancellationToken),
                     LazyThreadSafetyMode.ExecutionAndPublication);
             }
         }
@@ -53,10 +57,9 @@ internal static class OfficialV2SuiteRun<TSuite>
 
     private static async Task<IReadOnlyDictionary<string, ExceptionDispatchInfo?>> ExecuteSuiteAsync(
         Func<Task<FusionGateway>> buildGatewayAsync,
+        OfficialAuditSuite suite,
         CancellationToken cancellationToken)
     {
-        var suite = AuditFixture.GetOfficialV2Manifest().Suites.Single(
-            candidate => candidate.Id == AuditFixture.GetOfficialV2SuiteAttribute<TSuite>().Id);
         var outcomes = new Dictionary<string, ExceptionDispatchInfo?>(StringComparer.Ordinal);
         FusionGateway gateway;
 

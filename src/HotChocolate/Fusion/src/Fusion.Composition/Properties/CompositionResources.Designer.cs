@@ -1844,6 +1844,51 @@ namespace HotChocolate.Fusion.Properties {
         }
 
         /// <summary>
+        ///   Looks up a localized string similar to The source schema setting '{0}' for source schema '{1}' must be an object containing only the 'version' property..
+        /// </summary>
+        internal static string SourceSchemaSettingsReader_InvalidApolloFederationSupportShape {
+            get {
+                return ResourceManager.GetString("SourceSchemaSettingsReader_InvalidApolloFederationSupportShape", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The source schema setting '{0}' for source schema '{1}' must be an object, but found '{2}'..
+        /// </summary>
+        internal static string SourceSchemaSettingsReader_SettingMustBeObject {
+            get {
+                return ResourceManager.GetString("SourceSchemaSettingsReader_SettingMustBeObject", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The source schema setting '{0}' for source schema '{1}' must be a string, but found '{2}'..
+        /// </summary>
+        internal static string SourceSchemaSettingsReader_SettingMustBeString {
+            get {
+                return ResourceManager.GetString("SourceSchemaSettingsReader_SettingMustBeString", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The source schema setting '{0}' for source schema '{1}' has unsupported version '{2}'. The supported version is '1.0'..
+        /// </summary>
+        internal static string SourceSchemaSettingsReader_UnsupportedApolloFederationVersion {
+            get {
+                return ResourceManager.GetString("SourceSchemaSettingsReader_UnsupportedApolloFederationVersion", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Source schema '{0}' cannot enable Apollo Federation v1 support because it links to the Apollo Federation specification..
+        /// </summary>
+        internal static string SourceSchemaParser_ConflictingApolloFederationVersion {
+            get {
+                return ResourceManager.GetString("SourceSchemaParser_ConflictingApolloFederationVersion", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to The @specifiedBy directive must have a &apos;url&apos; argument of type String..
         /// </summary>
         internal static string SpecifiedByDirective_UrlArgument_Invalid {

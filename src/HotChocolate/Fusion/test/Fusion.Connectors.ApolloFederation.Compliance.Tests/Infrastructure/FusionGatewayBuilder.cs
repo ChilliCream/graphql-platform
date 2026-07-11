@@ -165,6 +165,22 @@ internal static class FusionGatewayBuilder
         params (string Name, Func<Task<SubgraphHost>> Factory)[] subgraphs)
         => ComposeOfficialV2Async<TSuite>(capture: null, subgraphs);
 
+    public static Task<FusionGateway> ComposeOfficialV1Async<TSuite>(
+        params (string Name, Func<Task<SubgraphHost>> Factory)[] subgraphs)
+        => ComposeOfficialV1Async<TSuite>(capture: null, subgraphs);
+
+    public static Task<FusionGateway> ComposeOfficialV1Async<TSuite>(
+        SubgraphRequestCapture? capture,
+        params (string Name, Func<Task<SubgraphHost>> Factory)[] subgraphs)
+        => ComposeAsync(
+            AuditFixture.GetOfficialV1SourceSchemas<TSuite>(),
+            capture,
+            sourceSchemaSettings: null,
+            NodeResolution.Gateway,
+            allowNonResolvableInterfaceObjects: false,
+            ShareableFieldRuntimeTypeRouting.SourceLocal,
+            subgraphs);
+
     public static Task<FusionGateway> ComposeOfficialV2Async<TSuite>(
         SubgraphRequestCapture? capture,
         params (string Name, Func<Task<SubgraphHost>> Factory)[] subgraphs)
@@ -182,7 +198,7 @@ internal static class FusionGatewayBuilder
     }
 
     private static async Task<FusionGateway> ComposeAsync(
-        IReadOnlyList<OfficialV2SourceSchema>? officialSourceSchemas,
+        IReadOnlyList<OfficialSourceSchema>? officialSourceSchemas,
         SubgraphRequestCapture? capture,
         IReadOnlyDictionary<string, string>? sourceSchemaSettings,
         NodeResolution nodeResolution,
@@ -243,6 +259,7 @@ internal static class FusionGatewayBuilder
 
             var schemaDocument = ComposeSchema(
                 sourceSchemaTexts,
+                officialSourceSchemas,
                 nodeResolution != NodeResolution.Gateway,
                 nodeResolution,
                 allowNonResolvableInterfaceObjects,
@@ -329,6 +346,7 @@ internal static class FusionGatewayBuilder
 
     private static DocumentNode ComposeSchema(
         IReadOnlyList<SourceSchemaText> sourceSchemas,
+        IReadOnlyList<OfficialSourceSchema>? officialSourceSchemas,
         bool enableGlobalObjectIdentification,
         NodeResolution nodeResolution,
         bool allowNonResolvableInterfaceObjects,
@@ -347,15 +365,36 @@ internal static class FusionGatewayBuilder
         // '@key' directive and prevents the composer from re-introducing
         // list-typed '@key' directives for nested list keys, which the
         // Composite Schema Spec disallows at type level.
-        foreach (var sourceSchema in sourceSchemas)
+        for (var i = 0; i < sourceSchemas.Count; i++)
         {
-            options.SourceSchemas[sourceSchema.Name] = new SourceSchemaOptions
+            var sourceSchema = sourceSchemas[i];
+            var sourceSchemaOptions = new SourceSchemaOptions();
+
+            if (officialSourceSchemas?[i].Settings is { } settingsJson)
             {
-                Preprocessor = new SourceSchemaPreprocessorOptions
+                using var settings = JsonDocument.Parse(settingsJson);
+
+                if (!SourceSchemaSettingsReader.TryRead(
+                    sourceSchema.Name,
+                    settings,
+                    compositionLog,
+                    out var settingsResult))
                 {
-                    InferKeysFromLookups = false
+                    throw new XunitException(
+                        string.Join(
+                            Environment.NewLine,
+                            compositionLog.Select(entry => entry.Message)));
                 }
+
+                sourceSchemaOptions = settingsResult.Options;
+                settingsResult.RuntimeSettings?.Dispose();
+            }
+
+            sourceSchemaOptions.Preprocessor = new SourceSchemaPreprocessorOptions
+            {
+                InferKeysFromLookups = false
             };
+            options.SourceSchemas[sourceSchema.Name] = sourceSchemaOptions;
         }
 
         if (enableGlobalObjectIdentification)

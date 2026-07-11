@@ -13,6 +13,7 @@
     <InternalsVisibleTo Include="HotChocolate.Fusion.Aspire.Tests" />
     <InternalsVisibleTo Include="HotChocolate.Fusion.Composition.Tests" />
     <InternalsVisibleTo Include="HotChocolate.Fusion.Composition.ApolloFederation.Tests" />
+    <InternalsVisibleTo Include="HotChocolate.Fusion.Connectors.ApolloFederation.Compliance.Tests" />
     <InternalsVisibleTo Include="HotChocolate.Fusion.Execution.Tests" />
     <InternalsVisibleTo Include="HotChocolate.Fusion.Utilities.Tests" />
     <InternalsVisibleTo Include="HotChocolate.Fusion.AspNetCore.Tests" />

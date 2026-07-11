@@ -54,6 +54,21 @@
   <data name="ErrorHelper_SourceSchemaValidationFailed" xml:space="preserve">
     <value>Source schema validation failed.</value>
   </data>
+  <data name="SourceSchemaSettingsReader_InvalidApolloFederationSupportShape" xml:space="preserve">
+    <value>The source schema setting '{0}' for source schema '{1}' must be an object containing only the 'version' property.</value>
+  </data>
+  <data name="SourceSchemaSettingsReader_SettingMustBeObject" xml:space="preserve">
+    <value>The source schema setting '{0}' for source schema '{1}' must be an object, but found '{2}'.</value>
+  </data>
+  <data name="SourceSchemaSettingsReader_SettingMustBeString" xml:space="preserve">
+    <value>The source schema setting '{0}' for source schema '{1}' must be a string, but found '{2}'.</value>
+  </data>
+  <data name="SourceSchemaSettingsReader_UnsupportedApolloFederationVersion" xml:space="preserve">
+    <value>The source schema setting '{0}' for source schema '{1}' has unsupported version '{2}'. The supported version is '1.0'.</value>
+  </data>
+  <data name="SourceSchemaParser_ConflictingApolloFederationVersion" xml:space="preserve">
+    <value>Source schema '{0}' cannot enable Apollo Federation v1 support because it links to the Apollo Federation specification.</value>
+  </data>
   <data name="ExternalMutableDirectiveDefinition_Description" xml:space="preserve">
     <value>The @external directive indicates that a field is recognized by the current source schema but is not directly contributed (resolved) by it.</value>
   </data>
