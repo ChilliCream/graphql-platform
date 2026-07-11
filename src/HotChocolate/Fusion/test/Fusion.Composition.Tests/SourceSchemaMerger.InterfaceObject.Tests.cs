@@ -163,6 +163,173 @@ public sealed class SourceSchemaMergerInterfaceObjectTests : SourceSchemaMergerT
             """);
     }
 
+    // The stand-in's @require argument is converted into source-specific execution metadata on the
+    // interface contract. A default projected onto an implementing object must retain the effective
+    // owner's requirement without exposing generated arguments in the public field signature.
+    [Fact]
+    public void Merge_Should_ProjectEffectiveOwnerRequirement_When_StandInFieldIsInherited()
+    {
+        AssertMatches(
+            [
+                """
+                # Schema A
+                interface NodeWithName @key(fields: "id") {
+                    id: ID!
+                    name: String
+                }
+
+                type User implements NodeWithName @key(fields: "id") {
+                    id: ID!
+                    name: String
+                }
+                """,
+                """
+                # Schema B
+                type NodeWithName @interfaceObject @key(fields: "id") {
+                    id: ID!
+                    name: String @external
+                    username(name: String @require(field: "name")): String
+                }
+                """
+            ],
+            """
+            type User implements NodeWithName
+              @fusion__type(schema: A)
+              @fusion__implements(schema: A, interface: "NodeWithName") {
+              id: ID! @fusion__field(schema: A)
+              name: String @fusion__field(schema: A)
+              username: String
+                @fusion__field(schema: B)
+                @fusion__requires(
+                  schema: B
+                  requirements: "name"
+                  field: "username(name: String): String"
+                  map: ["name"]
+                )
+            }
+
+            interface NodeWithName
+              @fusion__type(schema: A)
+              @fusion__type(schema: B)
+              @fusion__interfaceObject(schema: B) {
+              id: ID! @fusion__field(schema: A) @fusion__field(schema: B)
+              name: String
+                @fusion__field(schema: A)
+                @fusion__field(schema: B, partial: true)
+              username: String
+                @fusion__field(schema: B)
+                @fusion__requires(
+                  schema: B
+                  requirements: "name"
+                  field: "username(name: String): String"
+                  map: ["name"]
+                )
+            }
+            """);
+    }
+
+    // Two unrelated stand-ins can share the same projected field while requiring different values.
+    // Each projected requirement must come from the interface contract associated with its owning
+    // schema rather than from whichever contributing interface happened to be considered first.
+    [Fact]
+    public void Merge_Should_ProjectEachOwnerRequirement_When_UnrelatedStandInsShareField()
+    {
+        AssertMatches(
+            [
+                """
+                # Schema A
+                interface I1 @key(fields: "id") {
+                    id: ID!
+                    x: String
+                }
+
+                interface I2 @key(fields: "id") {
+                    id: ID!
+                    y: String
+                }
+
+                type User implements I1 & I2 @key(fields: "id") {
+                    id: ID!
+                    x: String
+                    y: String
+                }
+                """,
+                """
+                # Schema B
+                type I1 @interfaceObject @key(fields: "id") {
+                    id: ID!
+                    x: String @external
+                    foo(x: String @require(field: "x")): String @shareable
+                }
+                """,
+                """
+                # Schema C
+                type I2 @interfaceObject @key(fields: "id") {
+                    id: ID!
+                    y: String @external
+                    foo(y: String @require(field: "y")): String @shareable
+                }
+                """
+            ],
+            """
+            type User implements I1 & I2
+              @fusion__type(schema: A)
+              @fusion__implements(schema: A, interface: "I1")
+              @fusion__implements(schema: A, interface: "I2") {
+              foo: String
+                @fusion__field(schema: B)
+                @fusion__field(schema: C)
+                @fusion__requires(
+                  schema: B
+                  requirements: "x"
+                  field: "foo(x: String): String"
+                  map: ["x"]
+                )
+                @fusion__requires(
+                  schema: C
+                  requirements: "y"
+                  field: "foo(y: String): String"
+                  map: ["y"]
+                )
+              id: ID! @fusion__field(schema: A)
+              x: String @fusion__field(schema: A)
+              y: String @fusion__field(schema: A)
+            }
+
+            interface I1
+              @fusion__type(schema: A)
+              @fusion__type(schema: B)
+              @fusion__interfaceObject(schema: B) {
+              foo: String
+                @fusion__field(schema: B)
+                @fusion__requires(
+                  schema: B
+                  requirements: "x"
+                  field: "foo(x: String): String"
+                  map: ["x"]
+                )
+              id: ID! @fusion__field(schema: A) @fusion__field(schema: B)
+              x: String @fusion__field(schema: A) @fusion__field(schema: B, partial: true)
+            }
+
+            interface I2
+              @fusion__type(schema: A)
+              @fusion__type(schema: C)
+              @fusion__interfaceObject(schema: C) {
+              foo: String
+                @fusion__field(schema: C)
+                @fusion__requires(
+                  schema: C
+                  requirements: "y"
+                  field: "foo(y: String): String"
+                  map: ["y"]
+                )
+              id: ID! @fusion__field(schema: A) @fusion__field(schema: C)
+              y: String @fusion__field(schema: A) @fusion__field(schema: C, partial: true)
+            }
+            """);
+    }
+
     // Source schema A declares that "PhysicalProduct" implements "Product", while source schema B
     // declares that "Chair" implements "PhysicalProduct" and never mentions "Product". The composite
     // "Chair" must implement both through the transitively closed implements relation.

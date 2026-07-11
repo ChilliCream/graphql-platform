@@ -79,7 +79,7 @@ internal sealed partial class SourceSchemaMerger
                 var owner = ResolveEffectiveOwner(objectType, fieldName, standInsByName);
 
                 if (owner is null
-                    || !owner.Value.ContributingInterface.Fields.TryGetField(fieldName, out var contractField))
+                    || !owner.Value.Contributions[0].Interface.Fields.TryGetField(fieldName, out var contractField))
                 {
                     continue;
                 }
@@ -90,14 +90,38 @@ internal sealed partial class SourceSchemaMerger
                     Type = contractField.Type
                 };
 
-                foreach (var ownerSchema in owner.Value.Schemas)
+                foreach (var contribution in owner.Value.Contributions)
                 {
+                    var schemaName = _schemaConstantNames[contribution.Schema.Name];
+
                     projected.Directives.Add(
                         new Directive(
                             _fusionDirectiveDefinitions[DirectiveNames.FusionField],
                             new ArgumentAssignment(
                                 ArgumentNames.Schema,
-                                new EnumValueNode(_schemaConstantNames[ownerSchema.Name]))));
+                                new EnumValueNode(schemaName))));
+                }
+
+                foreach (var contribution in owner.Value.Contributions)
+                {
+                    var schemaName = _schemaConstantNames[contribution.Schema.Name];
+
+                    if (!contribution.Interface.Fields.TryGetField(fieldName, out var contributingField))
+                    {
+                        continue;
+                    }
+
+                    foreach (var directive in contributingField.Directives[DirectiveNames.FusionRequires])
+                    {
+                        if (directive.Arguments[ArgumentNames.Schema] is EnumValueNode schema
+                            && schema.Value == schemaName)
+                        {
+                            projected.Directives.Add(
+                                new Directive(
+                                    directive.Definition,
+                                    directive.Arguments.AsEnumerable()));
+                        }
+                    }
                 }
 
                 projected.DeclaringMember = objectType;
@@ -154,12 +178,12 @@ internal sealed partial class SourceSchemaMerger
                     && other.Interface.Implements.ContainsName(c.Interface.Name)))
             .ToList();
 
-        var schemas = minimal
-            .Select(c => c.StandIn.Schema)
-            .Distinct()
+        var contributions = minimal
+            .Select(c => new EffectiveOwnerContribution(c.Interface, c.StandIn.Schema))
+            .DistinctBy(c => c.Schema.Name, StringComparer.Ordinal)
             .ToArray();
 
-        return new EffectiveOwner(minimal[0].Interface, schemas);
+        return new EffectiveOwner(contributions);
     }
 
     /// <summary>
@@ -403,7 +427,7 @@ internal sealed partial class SourceSchemaMerger
     {
         if (!edges.TryGetValue(type, out var interfaces))
         {
-            interfaces = new HashSet<string>(StringComparer.Ordinal);
+            interfaces = [with(StringComparer.Ordinal)];
             edges[type] = interfaces;
         }
 
@@ -415,7 +439,9 @@ internal sealed partial class SourceSchemaMerger
         MutableSchemaDefinition Schema,
         HashSet<string> KeyFieldNames);
 
-    private readonly record struct EffectiveOwner(
-        MutableInterfaceTypeDefinition ContributingInterface,
-        MutableSchemaDefinition[] Schemas);
+    private readonly record struct EffectiveOwner(EffectiveOwnerContribution[] Contributions);
+
+    private readonly record struct EffectiveOwnerContribution(
+        MutableInterfaceTypeDefinition Interface,
+        MutableSchemaDefinition Schema);
 }
