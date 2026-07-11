@@ -3,6 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 
 import { SectionHeading } from "@/src/components/SectionHeading";
+import { BranchGlyph } from "@/src/icons/BranchGlyph";
+import { CheckGlyph } from "@/src/icons/CheckGlyph";
 
 interface HunkRun {
   readonly t: string;
@@ -178,68 +180,6 @@ function FileGlyph() {
   );
 }
 
-function BranchGlyph() {
-  return (
-    <svg
-      viewBox="0 0 16 16"
-      fill="none"
-      aria-hidden="true"
-      className="text-cc-ink-dim size-3.5 shrink-0"
-    >
-      <circle
-        cx="4.5"
-        cy="3.6"
-        r="1.5"
-        stroke="currentColor"
-        strokeWidth={1.1}
-      />
-      <circle
-        cx="4.5"
-        cy="12.4"
-        r="1.5"
-        stroke="currentColor"
-        strokeWidth={1.1}
-      />
-      <circle
-        cx="11.5"
-        cy="3.6"
-        r="1.5"
-        stroke="currentColor"
-        strokeWidth={1.1}
-      />
-      <path d="M4.5 5.1v5.8" stroke="currentColor" strokeWidth={1.1} />
-      <path
-        d="M11.5 5.1v1.3a3 3 0 0 1-3 3H6"
-        stroke="currentColor"
-        strokeWidth={1.1}
-      />
-    </svg>
-  );
-}
-
-function CheckGlyph({
-  className = "text-cc-success size-3.5",
-}: {
-  readonly className?: string;
-}) {
-  return (
-    <svg
-      viewBox="0 0 16 16"
-      fill="none"
-      aria-hidden="true"
-      className={className}
-    >
-      <path
-        d="M3.5 8.5 6.5 11.5 12.5 4.5"
-        stroke="currentColor"
-        strokeWidth={1.6}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
-
 /** Small git-merge glyph for the merged status badge. */
 function MergeGlyph({ className }: { readonly className?: string }) {
   return (
@@ -328,7 +268,7 @@ function StatusBadge({ status }: { readonly status: DemoStatus }) {
   if (status === "approved") {
     return (
       <span className="border-cc-success/40 bg-cc-success/10 text-cc-success ml-auto inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 font-mono text-[0.65rem] tracking-[0.1em] uppercase">
-        <CheckGlyph />
+        <CheckGlyph className="text-cc-success size-3.5" />
         Approved
       </span>
     );
@@ -413,7 +353,7 @@ function FileCard({
             style={{ background: "rgba(63, 185, 80, 0.1)" }}
           >
             <span className="text-cc-success shrink-0 select-none">+</span>
-            <span className="min-w-0 break-words">
+            <span className="min-w-0 truncate whitespace-pre">
               {runs.map((run, runIndex) => (
                 <span
                   key={runIndex}
@@ -529,11 +469,11 @@ export function ReviewSection() {
       <div className="mt-10 grid grid-cols-1 gap-8 lg:grid-cols-3 lg:gap-10">
         <div
           ref={windowRef}
-          className="border-cc-card-border relative flex flex-col overflow-hidden rounded-xl border shadow-[0_28px_70px_-28px_rgba(0,0,0,0.7)] lg:col-span-2"
+          className="border-cc-card-border bg-cc-surface relative flex flex-col overflow-hidden rounded-xl border shadow-[0_28px_70px_-28px_rgba(0,0,0,0.7)] lg:col-span-2"
         >
           {/* Title bar */}
           <div className="border-cc-card-border flex flex-wrap items-center gap-x-3 gap-y-2 border-b bg-white/[0.03] px-4 py-2.5">
-            <BranchGlyph />
+            <BranchGlyph className="text-cc-ink-dim size-3.5 shrink-0" />
             <span className="text-cc-ink font-mono text-sm">
               feat: add product reviews
             </span>
@@ -547,7 +487,7 @@ export function ReviewSection() {
             <StatusBadge status={demo.status} />
           </div>
 
-          <div className="bg-cc-surface/60 grow space-y-3 p-5">
+          <div className="grow space-y-3 p-5">
             {HUNKS.map((hunk, index) => (
               <FileCard
                 key={hunk.file}
@@ -574,7 +514,11 @@ export function ReviewSection() {
                       key={check.name}
                       className="flex items-center gap-2.5 font-mono text-xs"
                     >
-                      {done ? <CheckGlyph /> : <PendingSpinner />}
+                      {done ? (
+                        <CheckGlyph className="text-cc-success size-3.5" />
+                      ) : (
+                        <PendingSpinner />
+                      )}
                       <span className="text-cc-ink">{check.name}</span>
                       <span className="text-cc-ink-dim ml-auto text-[0.6rem]">
                         {done ? "Succeeded" : "In progress"}
@@ -599,7 +543,9 @@ export function ReviewSection() {
                     : "border-cc-success/50 bg-cc-success/20 text-cc-success"
                 }`}
               >
-                {approved && <CheckGlyph />}
+                {approved && (
+                  <CheckGlyph className="text-cc-success size-3.5" />
+                )}
                 {approved ? "Approved" : "Approve"}
               </span>
             </div>

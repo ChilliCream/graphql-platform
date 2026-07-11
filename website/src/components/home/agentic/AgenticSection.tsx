@@ -8,6 +8,8 @@ import { AGENTS, AgentLogo } from "@/src/components/AgentLogo";
 import { CopyCommand } from "@/src/components/CopyCommand";
 import { RevealOnScroll } from "@/src/components/RevealOnScroll";
 import { ArrowRightIcon } from "@/src/icons/ArrowRight";
+import { BranchGlyph } from "@/src/icons/BranchGlyph";
+import { CheckGlyph } from "@/src/icons/CheckGlyph";
 
 const FLIP_INTERVAL_MS = 2500;
 
@@ -132,70 +134,12 @@ const TIME_BARS: readonly TimeBar[] = [
   { label: "usual review", width: 84, fill: "rgba(245, 241, 234, 0.13)" },
 ];
 
-function BranchGlyph() {
-  return (
-    <svg
-      viewBox="0 0 16 16"
-      fill="none"
-      aria-hidden="true"
-      className="text-cc-ink-dim size-3 shrink-0"
-    >
-      <circle
-        cx="4.5"
-        cy="3.6"
-        r="1.5"
-        stroke="currentColor"
-        strokeWidth={1.1}
-      />
-      <circle
-        cx="4.5"
-        cy="12.4"
-        r="1.5"
-        stroke="currentColor"
-        strokeWidth={1.1}
-      />
-      <circle
-        cx="11.5"
-        cy="3.6"
-        r="1.5"
-        stroke="currentColor"
-        strokeWidth={1.1}
-      />
-      <path d="M4.5 5.1v5.8" stroke="currentColor" strokeWidth={1.1} />
-      <path
-        d="M11.5 5.1v1.3a3 3 0 0 1-3 3H6"
-        stroke="currentColor"
-        strokeWidth={1.1}
-      />
-    </svg>
-  );
-}
-
-function CheckGlyph({ className }: { readonly className?: string }) {
-  return (
-    <svg
-      viewBox="0 0 16 16"
-      fill="none"
-      aria-hidden="true"
-      className={className}
-    >
-      <path
-        d="M3.5 8.5 6.5 11.5 12.5 4.5"
-        stroke="currentColor"
-        strokeWidth={1.6}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
-
 /** Compact PR figure: a uniform diff above the time it costs to review. */
 function ReviewFacet() {
   return (
     <div className="border-cc-card-border bg-cc-card-bg rounded-2xl border p-4 select-none">
       <div className="flex items-center gap-2">
-        <BranchGlyph />
+        <BranchGlyph className="text-cc-ink-dim size-3 shrink-0" />
         <span className="text-cc-ink min-w-0 truncate font-mono text-[0.7rem]">
           feat: add reviews
         </span>
@@ -437,7 +381,7 @@ function SkillFacet() {
       <div className="border-cc-card-border bg-cc-surface/40 flex items-center justify-between gap-2.5 border-t px-3 py-1.5">
         <span className="inline-flex items-center gap-3">
           <span className="text-cc-nav-label inline-flex items-center gap-1.5 font-mono text-[0.6rem] whitespace-nowrap">
-            <BranchGlyph />
+            <BranchGlyph className="text-cc-ink-dim size-3 shrink-0" />
             main
           </span>
           <span className="text-cc-nav-label font-mono text-[0.6rem]">
@@ -513,6 +457,10 @@ export function AgenticSection() {
   const [activeIndex, setActiveIndex] = useState(0);
 
   useEffect(() => {
+    // Keep the headline static for users who prefer reduced motion.
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      return;
+    }
     const id = setInterval(() => {
       setActiveIndex((index) => (index + 1) % AGENTS.length);
     }, FLIP_INTERVAL_MS);

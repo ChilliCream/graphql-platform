@@ -74,7 +74,7 @@ export function CopyCommand({
     }
   };
 
-  const [executable, ...args] = command.split(" ");
+  const [executable, ...args] = command.trim().split(/\s+/);
 
   return (
     <div
@@ -112,7 +112,9 @@ export function CopyCommand({
       >
         <span className="text-cc-ink-faint select-none">$ </span>
         <span className="text-cc-accent">{executable}</span>
-        <span className="text-cc-ink"> {args.join(" ")}</span>
+        {args.length > 0 && (
+          <span className="text-cc-ink"> {args.join(" ")}</span>
+        )}
       </code>
     </div>
   );
