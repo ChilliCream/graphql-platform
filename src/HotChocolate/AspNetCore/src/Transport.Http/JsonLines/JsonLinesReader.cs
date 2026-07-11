@@ -30,7 +30,7 @@ internal class JsonLinesReader(HttpResponseMessage message) : IAsyncEnumerable<O
 #endif
     private static readonly StreamPipeReaderOptions s_options = new(
         pool: MemoryPool<byte>.Shared,
-        bufferSize: 4096,
+        bufferSize: 16 * 1024,
         minimumReadSize: 1,
         leaveOpen: true,
         useZeroByteReads: true);
