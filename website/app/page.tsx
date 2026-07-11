@@ -1,4 +1,5 @@
 import { FromOurBlog } from "@/src/components/FromOurBlog";
+import { AgenticSection } from "@/src/components/home/agentic/AgenticSection";
 import { BuildYourWay } from "@/src/components/home/BuildYourWay";
 import { FusionFlow } from "@/src/components/home/FusionFlow";
 import { GrabADrink } from "@/src/components/home/GrabADrink";
@@ -27,6 +28,7 @@ export default function Home() {
       <FusionFlow />
       <ProtocolCards />
       <NitroSection />
+      <AgenticSection />
       <NitroPricing />
       <GrabADrink />
       <div className="px-5 py-8 sm:px-12">
