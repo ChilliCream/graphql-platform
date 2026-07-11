@@ -1483,13 +1483,10 @@ public sealed partial class OperationPlanner
             {
                 case SelectionPathSegmentKind.Field
                     when selection is FieldNode
-                        {
-                            SelectionSet: { } child,
-                            Directives.Count: 0
-                        } field
-                        && (field.Alias?.Value ?? field.Name.Value).Equals(
-                            segment.Name,
-                            StringComparison.Ordinal):
+                    {
+                        SelectionSet: { } child,
+                        Directives.Count: 0
+                    } field && (field.Alias?.Value ?? field.Name.Value).Equals(segment.Name, StringComparison.Ordinal):
                     if (ContainsSelectionsAtPath(child, path, pathIndex + 1, required))
                     {
                         return true;
@@ -1501,8 +1498,7 @@ public sealed partial class OperationPlanner
                     {
                         TypeCondition.Name.Value: var typeName,
                         Directives.Count: 0
-                    } fragment
-                        && typeName.Equals(segment.Name, StringComparison.Ordinal):
+                    } fragment && typeName.Equals(segment.Name, StringComparison.Ordinal):
                     if (ContainsSelectionsAtPath(
                         fragment.SelectionSet,
                         path,
@@ -1808,7 +1804,7 @@ public sealed partial class OperationPlanner
         var sourceField = compositeField.Sources[current.SchemaName];
         var requirements = mergeWithExistingStep
             ? existingStep.Requirements
-            : ImmutableDictionary<string, OperationRequirement>.Empty;
+            : [];
         var arguments = new List<ArgumentNode>(workItem.Selection.Node.Arguments);
 
         for (var i = 0; i < sourceField.Requirements!.Arguments.Length; i++)
@@ -3306,8 +3302,7 @@ public sealed partial class OperationPlanner
             ImmutableArray<(RequirementFieldSelectionKey Key, string Alias)> entries)
             => _entries = entries;
 
-        public static RequirementAliasRegistry Empty { get; } =
-            new(ImmutableArray<(RequirementFieldSelectionKey Key, string Alias)>.Empty);
+        public static RequirementAliasRegistry Empty { get; } = new([]);
 
         public RequirementAliasRegistry GetOrAdd(FieldNode field, out string alias)
         {
