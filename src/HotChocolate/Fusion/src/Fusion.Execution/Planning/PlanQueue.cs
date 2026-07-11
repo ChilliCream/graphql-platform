@@ -300,6 +300,12 @@ internal sealed class PlanQueue(FusionSchemaDefinition schema)
     {
         var enqueued = false;
         var hasCoveringAbstractLookup = false;
+        var possibleTypes = schema.GetPossibleTypes(type, includeInaccessible: true);
+
+        if (possibleTypes.IsEmpty)
+        {
+            return false;
+        }
 
         // Phase 1: we try to find a single schema that can resolve all concrete types as
         // this would allow us to batch all requests to these into a single GraphQL batch request.
@@ -329,7 +335,7 @@ internal sealed class PlanQueue(FusionSchemaDefinition schema)
 
             // for each concrete type that implements the abstract type,
             // find a lookup in the target schema.
-            foreach (var possibleType in schema.GetPossibleTypes(type, includeInaccessible: true))
+            foreach (var possibleType in possibleTypes)
             {
                 if (!schema.TryGetBestDirectLookup(possibleType, fromSchemas, toSchema, out var concreteLookup))
                 {
@@ -389,7 +395,7 @@ internal sealed class PlanQueue(FusionSchemaDefinition schema)
         string? topSchema = null;
         double topCost = 0;
 
-        foreach (var possibleType in schema.GetPossibleTypes(type, includeInaccessible: true))
+        foreach (var possibleType in possibleTypes)
         {
             // rewrite the selection set to target the concrete type with a
             // fragment path so the executor can match the runtime type.

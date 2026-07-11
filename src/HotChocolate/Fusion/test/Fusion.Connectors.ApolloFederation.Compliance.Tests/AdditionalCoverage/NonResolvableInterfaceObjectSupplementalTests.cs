@@ -1,5 +1,5 @@
 using HotChocolate.Execution;
-using HotChocolate.Fusion.Execution;
+using HotChocolate.Fusion.Suites;
 using HotChocolate.Fusion.Suites.NonResolvableInterfaceObject.A;
 using HotChocolate.Fusion.Suites.NonResolvableInterfaceObject.B;
 
@@ -13,14 +13,11 @@ public sealed class NonResolvableInterfaceObjectSupplementalTests
     {
         var testCase = AuditFixture.GetOfficialV2Case("non-resolvable-interface-object/001");
         var capture = new SubgraphRequestCapture();
-        await using var gateway = await FusionGatewayBuilder.ComposeAsync(
-            capture,
-            sourceSchemaSettings: null,
-            NodeResolution.Gateway,
-            allowNonResolvableInterfaceObjects: true,
-            ShareableFieldRuntimeTypeRouting.SourceLocal,
-            (ASubgraph.Name, ASubgraph.BuildAsync),
-            (BSubgraph.Name, BSubgraph.BuildAsync));
+        await using var gateway = await FusionGatewayBuilder
+            .ComposeOfficialV2Async<NonResolvableInterfaceObjectTests>(
+                capture,
+                (ASubgraph.Name, ASubgraph.BuildAsync),
+                (BSubgraph.Name, BSubgraph.BuildAsync));
 
         var result = await gateway.Executor.ExecuteAsync(
             testCase.Query,
