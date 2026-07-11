@@ -536,7 +536,9 @@ public class CompositeResultDocumentTests : FusionTestBase
         var childValue = childProperty + 1;
         metaDb.AppendEndObject();
 
-        var arrayBoundary = CompositeResultDocument.Cursor.From(chunkIndex: 1, rowWithinChunk: 101);
+        var arrayBoundary = CompositeResultDocument.Cursor.From(
+            chunkIndex: 1,
+            rowWithinChunk: CompositeResultDocument.Cursor.RowsPerChunkFor(1) - 1);
 
         while (metaDb.NextCursor.Index < arrayBoundary.Index)
         {
