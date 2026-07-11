@@ -38,6 +38,7 @@ public static class WellKnownAttributes
     public const string DescriptorAttribute = "HotChocolate.Types.DescriptorAttribute";
     public const string GraphQLDeprecatedAttribute = "HotChocolate.GraphQLDeprecatedAttribute";
     public const string ObsoleteAttribute = "System.ObsoleteAttribute";
+    public const string FlagsAttribute = "System.FlagsAttribute";
     public const string BatchResolverAttribute = "HotChocolate.Types.BatchResolverAttribute";
     public const string GraphQLTypeAttribute = "HotChocolate.GraphQLTypeAttribute";
     public const string IsSelectedAttribute = "HotChocolate.Types.IsSelectedAttribute";
