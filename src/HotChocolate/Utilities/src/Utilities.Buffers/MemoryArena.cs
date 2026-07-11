@@ -133,7 +133,7 @@ internal sealed class MemoryArena : IMemoryArena, IDisposable
 
         while (true)
         {
-            var state = Interlocked.Read(ref _state);
+            var state = Volatile.Read(ref _state);
             var pageIndex = (int)(state >> 32);
             var offset = (int)state;
 
@@ -190,7 +190,7 @@ internal sealed class MemoryArena : IMemoryArena, IDisposable
             // Only roll if no other thread has already advanced past the page we observed.
             // The page index changes only here under the lock, so this comparison is stable.
             if (Volatile.Read(ref _phase) != Disposed
-                && (int)(Interlocked.Read(ref _state) >> 32) == observedPageIndex)
+                && (int)(Volatile.Read(ref _state) >> 32) == observedPageIndex)
             {
                 var newIndex = observedPageIndex + 1;
 
