@@ -1,0 +1,1132 @@
+{
+  "source": "graphql-hive/federation-gateway-audit",
+  "revision": "f59c05e3f48f4a4f8e8a731d67a1b71a9788a96f",
+  "federationVersion": 1,
+  "selection": "Suites with at least one source that relies on linkless Federation directives.",
+  "suiteCount": 4,
+  "caseCount": 27,
+  "suites": [
+    {
+      "id": "abstract-types",
+      "cases": [
+        {
+          "id": "abstract-types/000",
+          "query": "\n      query {\n        products {\n          id\n          dimensions {\n            size\n            weight\n          }\n        }\n      }\n    ",
+          "variables": null,
+          "hasExpectedData": true,
+          "expectedData": {
+            "products": [
+              {
+                "id": "p1",
+                "dimensions": {
+                  "size": "small",
+                  "weight": 0.5
+                }
+              },
+              {
+                "id": "p3",
+                "dimensions": {
+                  "size": "small",
+                  "weight": 0.6
+                }
+              },
+              {
+                "id": "p2",
+                "dimensions": {
+                  "size": "small",
+                  "weight": 0.2
+                }
+              },
+              {
+                "id": "p4",
+                "dimensions": {
+                  "size": "small",
+                  "weight": 0.3
+                }
+              }
+            ]
+          },
+          "hasExpectedErrors": false,
+          "expectsErrors": null
+        },
+        {
+          "id": "abstract-types/001",
+          "query": "\n      query {\n        similar(id: \u0022p1\u0022) {\n          id\n          sku\n        }\n      }\n    ",
+          "variables": null,
+          "hasExpectedData": true,
+          "expectedData": {
+            "similar": [
+              {
+                "id": "p3",
+                "sku": "sku-3"
+              }
+            ]
+          },
+          "hasExpectedErrors": false,
+          "expectsErrors": null
+        },
+        {
+          "id": "abstract-types/002",
+          "query": "\n      query {\n        book: similar(id: \u0022p1\u0022) {\n          id\n          sku\n          delivery(zip: \u00221234\u0022) {\n            fastestDelivery\n            estimatedDelivery\n          }\n        }\n        magazine: similar(id: \u0022p2\u0022) {\n          id\n          sku\n          delivery(zip: \u00221234\u0022) {\n            fastestDelivery\n            estimatedDelivery\n          }\n        }\n      }\n    ",
+          "variables": null,
+          "hasExpectedData": true,
+          "expectedData": {
+            "book": [
+              {
+                "id": "p3",
+                "sku": "sku-3",
+                "delivery": {
+                  "fastestDelivery": "same day",
+                  "estimatedDelivery": "1 day"
+                }
+              }
+            ],
+            "magazine": [
+              {
+                "id": "p4",
+                "sku": "sku-4",
+                "delivery": {
+                  "fastestDelivery": "same day",
+                  "estimatedDelivery": "1 day"
+                }
+              }
+            ]
+          },
+          "hasExpectedErrors": false,
+          "expectsErrors": null
+        },
+        {
+          "id": "abstract-types/003",
+          "query": "\n      {\n        products {\n          sku\n          ... on Product {\n            sku\n          }\n          ... on Book {\n            sku\n          }\n          ... on Magazine {\n            sku\n          }\n          ... on Similar {\n            __typename\n            type: __typename\n          }\n        }\n      }\n    ",
+          "variables": null,
+          "hasExpectedData": true,
+          "expectedData": {
+            "products": [
+              {
+                "sku": "sku-1",
+                "__typename": "Book",
+                "type": "Book"
+              },
+              {
+                "sku": "sku-3",
+                "__typename": "Book",
+                "type": "Book"
+              },
+              {
+                "sku": "sku-2",
+                "__typename": "Magazine",
+                "type": "Magazine"
+              },
+              {
+                "sku": "sku-4",
+                "__typename": "Magazine",
+                "type": "Magazine"
+              }
+            ]
+          },
+          "hasExpectedErrors": false,
+          "expectsErrors": null
+        },
+        {
+          "id": "abstract-types/004",
+          "query": "\n      {\n        products {\n          author: createdBy {\n            email\n            totalProductsCreated\n          }\n          ... on Magazine {\n            title\n          }\n        }\n      }\n    ",
+          "variables": null,
+          "hasExpectedData": true,
+          "expectedData": {
+            "products": [
+              {
+                "author": {
+                  "email": "u1@example.com",
+                  "totalProductsCreated": 2
+                }
+              },
+              {
+                "author": {
+                  "email": "u2@example.com",
+                  "totalProductsCreated": 2
+                }
+              },
+              {
+                "author": {
+                  "email": "u1@example.com",
+                  "totalProductsCreated": 2
+                },
+                "title": "Magazine 1"
+              },
+              {
+                "author": {
+                  "email": "u2@example.com",
+                  "totalProductsCreated": 2
+                },
+                "title": "Magazine 2"
+              }
+            ]
+          },
+          "hasExpectedErrors": false,
+          "expectsErrors": null
+        },
+        {
+          "id": "abstract-types/005",
+          "query": "\n      {\n        products {\n          id\n          reviews {\n            product {\n              sku\n              ... on Magazine {\n                title\n              }\n              ... on Book {\n                reviewsCount\n              }\n            }\n          }\n        }\n      }\n    ",
+          "variables": null,
+          "hasExpectedData": true,
+          "expectedData": {
+            "products": [
+              {
+                "id": "p1",
+                "reviews": [
+                  {
+                    "product": {
+                      "sku": "sku-1",
+                      "reviewsCount": 2
+                    }
+                  },
+                  {
+                    "product": {
+                      "sku": "sku-1",
+                      "reviewsCount": 2
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "p3",
+                "reviews": []
+              },
+              {
+                "id": "p2",
+                "reviews": [
+                  {
+                    "product": {
+                      "sku": "sku-2",
+                      "title": "Magazine 1"
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "p4",
+                "reviews": []
+              }
+            ]
+          },
+          "hasExpectedErrors": false,
+          "expectsErrors": null
+        },
+        {
+          "id": "abstract-types/006",
+          "query": "\n      {\n        products {\n          id\n          reviews {\n            id\n          }\n        }\n      }\n    ",
+          "variables": null,
+          "hasExpectedData": true,
+          "expectedData": {
+            "products": [
+              {
+                "id": "p1",
+                "reviews": [
+                  {
+                    "id": 1
+                  },
+                  {
+                    "id": 2
+                  }
+                ]
+              },
+              {
+                "id": "p3",
+                "reviews": []
+              },
+              {
+                "id": "p2",
+                "reviews": [
+                  {
+                    "id": 3
+                  }
+                ]
+              },
+              {
+                "id": "p4",
+                "reviews": []
+              }
+            ]
+          },
+          "hasExpectedErrors": false,
+          "expectsErrors": null
+        },
+        {
+          "id": "abstract-types/007",
+          "query": "\n      query ($title: Boolean = true) {\n        products {\n          id\n          reviews {\n            product {\n              id\n              ... on Book @include(if: $title) {\n                title\n              }\n              ... on Magazine {\n                sku\n              }\n            }\n          }\n        }\n      }\n    ",
+          "variables": null,
+          "hasExpectedData": true,
+          "expectedData": {
+            "products": [
+              {
+                "id": "p1",
+                "reviews": [
+                  {
+                    "product": {
+                      "id": "p1",
+                      "title": "Book 1"
+                    }
+                  },
+                  {
+                    "product": {
+                      "id": "p1",
+                      "title": "Book 1"
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "p3",
+                "reviews": []
+              },
+              {
+                "id": "p2",
+                "reviews": [
+                  {
+                    "product": {
+                      "id": "p2",
+                      "sku": "sku-2"
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "p4",
+                "reviews": []
+              }
+            ]
+          },
+          "hasExpectedErrors": false,
+          "expectsErrors": null
+        },
+        {
+          "id": "abstract-types/008",
+          "query": "\n      query ($title: Boolean = false) {\n        products {\n          id\n          reviews {\n            product {\n              id\n              ... on Book @include(if: $title) {\n                title\n              }\n              ... on Magazine {\n                sku\n              }\n            }\n          }\n        }\n      }\n    ",
+          "variables": null,
+          "hasExpectedData": true,
+          "expectedData": {
+            "products": [
+              {
+                "id": "p1",
+                "reviews": [
+                  {
+                    "product": {
+                      "id": "p1"
+                    }
+                  },
+                  {
+                    "product": {
+                      "id": "p1"
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "p3",
+                "reviews": []
+              },
+              {
+                "id": "p2",
+                "reviews": [
+                  {
+                    "product": {
+                      "id": "p2",
+                      "sku": "sku-2"
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "p4",
+                "reviews": []
+              }
+            ]
+          },
+          "hasExpectedErrors": false,
+          "expectsErrors": null
+        },
+        {
+          "id": "abstract-types/009",
+          "query": "\n      query ($title: Boolean = false) {\n        products {\n          id\n          reviews {\n            product {\n              id\n              ... on Book @skip(if: $title) {\n                title\n              }\n              ... on Magazine {\n                sku\n              }\n            }\n          }\n        }\n      }\n    ",
+          "variables": null,
+          "hasExpectedData": true,
+          "expectedData": {
+            "products": [
+              {
+                "id": "p1",
+                "reviews": [
+                  {
+                    "product": {
+                      "id": "p1",
+                      "title": "Book 1"
+                    }
+                  },
+                  {
+                    "product": {
+                      "id": "p1",
+                      "title": "Book 1"
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "p3",
+                "reviews": []
+              },
+              {
+                "id": "p2",
+                "reviews": [
+                  {
+                    "product": {
+                      "id": "p2",
+                      "sku": "sku-2"
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "p4",
+                "reviews": []
+              }
+            ]
+          },
+          "hasExpectedErrors": false,
+          "expectsErrors": null
+        },
+        {
+          "id": "abstract-types/010",
+          "query": "\n      query ($title: Boolean = true) {\n        products {\n          id\n          reviews {\n            product {\n              id\n              ... on Book @skip(if: $title) {\n                title\n              }\n              ... on Magazine {\n                sku\n              }\n            }\n          }\n        }\n      }\n    ",
+          "variables": null,
+          "hasExpectedData": true,
+          "expectedData": {
+            "products": [
+              {
+                "id": "p1",
+                "reviews": [
+                  {
+                    "product": {
+                      "id": "p1"
+                    }
+                  },
+                  {
+                    "product": {
+                      "id": "p1"
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "p3",
+                "reviews": []
+              },
+              {
+                "id": "p2",
+                "reviews": [
+                  {
+                    "product": {
+                      "id": "p2",
+                      "sku": "sku-2"
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "p4",
+                "reviews": []
+              }
+            ]
+          },
+          "hasExpectedErrors": false,
+          "expectsErrors": null
+        },
+        {
+          "id": "abstract-types/011",
+          "query": "\n      query ($title: Boolean = true) {\n        products {\n          id\n          reviews {\n            product {\n              id\n              ... on Book @skip(if: $title) {\n                title\n              }\n              ... on Book {\n                sku\n              }\n              ... on Magazine {\n                sku\n              }\n            }\n          }\n        }\n      }\n    ",
+          "variables": null,
+          "hasExpectedData": true,
+          "expectedData": {
+            "products": [
+              {
+                "id": "p1",
+                "reviews": [
+                  {
+                    "product": {
+                      "id": "p1",
+                      "sku": "sku-1"
+                    }
+                  },
+                  {
+                    "product": {
+                      "id": "p1",
+                      "sku": "sku-1"
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "p3",
+                "reviews": []
+              },
+              {
+                "id": "p2",
+                "reviews": [
+                  {
+                    "product": {
+                      "id": "p2",
+                      "sku": "sku-2"
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "p4",
+                "reviews": []
+              }
+            ]
+          },
+          "hasExpectedErrors": false,
+          "expectsErrors": null
+        },
+        {
+          "id": "abstract-types/012",
+          "query": "\n      query ($title: Boolean = false) {\n        products {\n          id\n          reviews {\n            product {\n              id\n              ... on Book @skip(if: $title) {\n                title\n              }\n              ... on Book {\n                sku\n              }\n              ... on Magazine {\n                sku\n              }\n            }\n          }\n        }\n      }\n    ",
+          "variables": null,
+          "hasExpectedData": true,
+          "expectedData": {
+            "products": [
+              {
+                "id": "p1",
+                "reviews": [
+                  {
+                    "product": {
+                      "id": "p1",
+                      "title": "Book 1",
+                      "sku": "sku-1"
+                    }
+                  },
+                  {
+                    "product": {
+                      "id": "p1",
+                      "title": "Book 1",
+                      "sku": "sku-1"
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "p3",
+                "reviews": []
+              },
+              {
+                "id": "p2",
+                "reviews": [
+                  {
+                    "product": {
+                      "id": "p2",
+                      "sku": "sku-2"
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "p4",
+                "reviews": []
+              }
+            ]
+          },
+          "hasExpectedErrors": false,
+          "expectsErrors": null
+        },
+        {
+          "id": "abstract-types/013",
+          "query": "\n      query ($title: Boolean = true) {\n        products {\n          id\n          reviews {\n            product {\n              id\n              ... on Book @include(if: $title) {\n                title\n                ... on Book {\n                  sku\n                }\n              }\n              ... on Magazine {\n                sku\n              }\n            }\n          }\n        }\n      }\n    ",
+          "variables": null,
+          "hasExpectedData": true,
+          "expectedData": {
+            "products": [
+              {
+                "id": "p1",
+                "reviews": [
+                  {
+                    "product": {
+                      "id": "p1",
+                      "title": "Book 1",
+                      "sku": "sku-1"
+                    }
+                  },
+                  {
+                    "product": {
+                      "id": "p1",
+                      "title": "Book 1",
+                      "sku": "sku-1"
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "p3",
+                "reviews": []
+              },
+              {
+                "id": "p2",
+                "reviews": [
+                  {
+                    "product": {
+                      "id": "p2",
+                      "sku": "sku-2"
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "p4",
+                "reviews": []
+              }
+            ]
+          },
+          "hasExpectedErrors": false,
+          "expectsErrors": null
+        },
+        {
+          "id": "abstract-types/014",
+          "query": "\n      query ($title: Boolean = true) {\n        products {\n          id\n          reviews {\n            product {\n              id\n              ... on Book @include(if: $title) {\n                title\n                ... on Book @skip(if: $title) {\n                  sku\n                }\n              }\n              ... on Magazine {\n                sku\n              }\n            }\n          }\n        }\n      }\n    ",
+          "variables": null,
+          "hasExpectedData": true,
+          "expectedData": {
+            "products": [
+              {
+                "id": "p1",
+                "reviews": [
+                  {
+                    "product": {
+                      "id": "p1",
+                      "title": "Book 1"
+                    }
+                  },
+                  {
+                    "product": {
+                      "id": "p1",
+                      "title": "Book 1"
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "p3",
+                "reviews": []
+              },
+              {
+                "id": "p2",
+                "reviews": [
+                  {
+                    "product": {
+                      "id": "p2",
+                      "sku": "sku-2"
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "p4",
+                "reviews": []
+              }
+            ]
+          },
+          "hasExpectedErrors": false,
+          "expectsErrors": null
+        },
+        {
+          "id": "abstract-types/015",
+          "query": "\n      {\n        products {\n          id\n          reviews {\n            product {\n              id\n              ... on Magazine {\n                publisherType {\n                  ...Publisher\n                }\n              }\n              ... on Book {\n                publisherType {\n                  ...Publisher\n                }\n              }\n            }\n          }\n        }\n      }\n\n      fragment Publisher on PublisherType {\n        ... on Agency {\n          id\n          companyName\n        }\n        ... on Self {\n          email\n        }\n      }\n    ",
+          "variables": null,
+          "hasExpectedData": true,
+          "expectedData": {
+            "products": [
+              {
+                "id": "p1",
+                "reviews": [
+                  {
+                    "product": {
+                      "id": "p1",
+                      "publisherType": {
+                        "email": "u1@example.com"
+                      }
+                    }
+                  },
+                  {
+                    "product": {
+                      "id": "p1",
+                      "publisherType": {
+                        "email": "u1@example.com"
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "p3",
+                "reviews": []
+              },
+              {
+                "id": "p2",
+                "reviews": [
+                  {
+                    "product": {
+                      "id": "p2",
+                      "publisherType": {
+                        "id": "a1",
+                        "companyName": "Agency 1"
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "p4",
+                "reviews": []
+              }
+            ]
+          },
+          "hasExpectedErrors": false,
+          "expectsErrors": null
+        },
+        {
+          "id": "abstract-types/016",
+          "query": "\n      {\n        products {\n          id\n          reviews {\n            product {\n              id\n              ... on Magazine {\n                publisherType {\n                  ...Publisher\n                }\n              }\n              ... on Book {\n                publisherType {\n                  ...Publisher\n                }\n              }\n            }\n          }\n        }\n      }\n\n      fragment Publisher on PublisherType {\n        ... on Agency {\n          id\n          companyName\n        }\n        ... on Self {\n          email\n        }\n        ... on Group {\n          name\n        }\n      }\n    ",
+          "variables": null,
+          "hasExpectedData": true,
+          "expectedData": {
+            "products": [
+              {
+                "id": "p1",
+                "reviews": [
+                  {
+                    "product": {
+                      "id": "p1",
+                      "publisherType": {
+                        "email": "u1@example.com"
+                      }
+                    }
+                  },
+                  {
+                    "product": {
+                      "id": "p1",
+                      "publisherType": {
+                        "email": "u1@example.com"
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "p3",
+                "reviews": []
+              },
+              {
+                "id": "p2",
+                "reviews": [
+                  {
+                    "product": {
+                      "id": "p2",
+                      "publisherType": {
+                        "id": "a1",
+                        "companyName": "Agency 1"
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "p4",
+                "reviews": []
+              }
+            ]
+          },
+          "hasExpectedErrors": false,
+          "expectsErrors": null
+        },
+        {
+          "id": "abstract-types/017",
+          "query": "\n      {\n        products {\n          id\n          reviews {\n            product {\n              id\n              ... on Magazine {\n                publisherType {\n                  ...Publisher\n                }\n              }\n              ... on Book {\n                publisherType {\n                  ...Publisher\n                }\n              }\n            }\n          }\n        }\n      }\n\n      fragment Publisher on PublisherType {\n        ... on Agency {\n          emailObj: email {\n            address\n          }\n        }\n        ... on Self {\n          emailStr: email\n        }\n        ... on Group {\n          emailStr: email\n        }\n      }\n    ",
+          "variables": null,
+          "hasExpectedData": true,
+          "expectedData": {
+            "products": [
+              {
+                "id": "p1",
+                "reviews": [
+                  {
+                    "product": {
+                      "id": "p1",
+                      "publisherType": {
+                        "emailStr": "u1@example.com"
+                      }
+                    }
+                  },
+                  {
+                    "product": {
+                      "id": "p1",
+                      "publisherType": {
+                        "emailStr": "u1@example.com"
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "p3",
+                "reviews": []
+              },
+              {
+                "id": "p2",
+                "reviews": [
+                  {
+                    "product": {
+                      "id": "p2",
+                      "publisherType": {
+                        "emailObj": {
+                          "address": "a1@example.com"
+                        }
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "p4",
+                "reviews": []
+              }
+            ]
+          },
+          "hasExpectedErrors": false,
+          "expectsErrors": null
+        }
+      ],
+      "sources": [
+        {
+          "name": "agency",
+          "rawSdl": "\n    extend schema\n      @link(url: \u0022https://specs.apollo.dev/federation/v2.3\u0022, import: [\u0022@key\u0022])\n\n    type Agency @key(fields: \u0022id\u0022) {\n      id: ID!\n      companyName: String\n      email: Email\n    }\n\n    type Email {\n      address: String\n    }\n\n    type Group @key(fields: \u0022id\u0022) {\n      id: ID!\n      name: String\n      email: String\n    }\n\n    extend union PublisherType = Agency | Group\n  ",
+          "serviceSdl": "extend schema\n  @link(url: \u0022https://specs.apollo.dev/link/v1.0\u0022)\n  @link(url: \u0022https://specs.apollo.dev/federation/v2.3\u0022, import: [\u0022@key\u0022])\n\ndirective @link(url: String, as: String, for: link__Purpose, import: [link__Import]) repeatable on SCHEMA\n\ndirective @key(fields: federation__FieldSet!, resolvable: Boolean = true) repeatable on OBJECT | INTERFACE\n\ndirective @federation__requires(fields: federation__FieldSet!) on FIELD_DEFINITION\n\ndirective @federation__provides(fields: federation__FieldSet!) on FIELD_DEFINITION\n\ndirective @federation__external(reason: String) on OBJECT | FIELD_DEFINITION\n\ndirective @federation__tag(name: String!) repeatable on FIELD_DEFINITION | OBJECT | INTERFACE | UNION | ARGUMENT_DEFINITION | SCALAR | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION | SCHEMA\n\ndirective @federation__extends on OBJECT | INTERFACE\n\ndirective @federation__shareable repeatable on OBJECT | FIELD_DEFINITION\n\ndirective @federation__inaccessible on FIELD_DEFINITION | OBJECT | INTERFACE | UNION | ARGUMENT_DEFINITION | SCALAR | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION\n\ndirective @federation__override(from: String!) on FIELD_DEFINITION\n\ndirective @federation__composeDirective(name: String) repeatable on SCHEMA\n\ndirective @federation__interfaceObject on OBJECT\n\ntype Agency\n  @key(fields: \u0022id\u0022)\n{\n  id: ID!\n  companyName: String\n  email: Email\n}\n\ntype Email {\n  address: String\n}\n\ntype Group\n  @key(fields: \u0022id\u0022)\n{\n  id: ID!\n  name: String\n  email: String\n}\n\nextend union PublisherType = Agency | Group\n\nenum link__Purpose {\n  \u0022\u0022\u0022\n  \u0060SECURITY\u0060 features provide metadata necessary to securely resolve fields.\n  \u0022\u0022\u0022\n  SECURITY\n\n  \u0022\u0022\u0022\n  \u0060EXECUTION\u0060 features provide metadata necessary for operation execution.\n  \u0022\u0022\u0022\n  EXECUTION\n}\n\nscalar link__Import\n\nscalar federation__FieldSet\n\nscalar _Any\n\ntype _Service {\n  sdl: String\n}\n\nunion _Entity = Agency | Group\n\ntype Query {\n  _entities(representations: [_Any!]!): [_Entity]!\n  _service: _Service!\n}"
+        },
+        {
+          "name": "inventory",
+          "rawSdl": "\n    extend schema\n      @link(\n        url: \u0022https://specs.apollo.dev/federation/v2.3\u0022\n        import: [\u0022@key\u0022, \u0022@shareable\u0022, \u0022@external\u0022, \u0022@requires\u0022]\n      )\n\n    interface Product {\n      id: ID!\n      dimensions: ProductDimension\n      delivery(zip: String): DeliveryEstimates\n    }\n\n    type Book implements Product @key(fields: \u0022id\u0022) {\n      id: ID!\n      dimensions: ProductDimension @external\n      delivery(zip: String): DeliveryEstimates\n        @requires(fields: \u0022dimensions { size weight }\u0022)\n    }\n\n    type Magazine implements Product @key(fields: \u0022id\u0022) {\n      id: ID!\n      dimensions: ProductDimension @external\n      delivery(zip: String): DeliveryEstimates\n        @requires(fields: \u0022dimensions { size weight }\u0022)\n    }\n\n    type ProductDimension @shareable {\n      size: String\n      weight: Float\n    }\n\n    type DeliveryEstimates {\n      estimatedDelivery: String\n      fastestDelivery: String\n    }\n  ",
+          "serviceSdl": "extend schema\n  @link(url: \u0022https://specs.apollo.dev/link/v1.0\u0022)\n  @link(url: \u0022https://specs.apollo.dev/federation/v2.3\u0022, import: [\u0022@key\u0022, \u0022@shareable\u0022, \u0022@external\u0022, \u0022@requires\u0022])\n\ndirective @link(url: String, as: String, for: link__Purpose, import: [link__Import]) repeatable on SCHEMA\n\ndirective @key(fields: federation__FieldSet!, resolvable: Boolean = true) repeatable on OBJECT | INTERFACE\n\ndirective @requires(fields: federation__FieldSet!) on FIELD_DEFINITION\n\ndirective @federation__provides(fields: federation__FieldSet!) on FIELD_DEFINITION\n\ndirective @external(reason: String) on OBJECT | FIELD_DEFINITION\n\ndirective @federation__tag(name: String!) repeatable on FIELD_DEFINITION | OBJECT | INTERFACE | UNION | ARGUMENT_DEFINITION | SCALAR | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION | SCHEMA\n\ndirective @federation__extends on OBJECT | INTERFACE\n\ndirective @shareable repeatable on OBJECT | FIELD_DEFINITION\n\ndirective @federation__inaccessible on FIELD_DEFINITION | OBJECT | INTERFACE | UNION | ARGUMENT_DEFINITION | SCALAR | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION\n\ndirective @federation__override(from: String!) on FIELD_DEFINITION\n\ndirective @federation__composeDirective(name: String) repeatable on SCHEMA\n\ndirective @federation__interfaceObject on OBJECT\n\ninterface Product {\n  id: ID!\n  dimensions: ProductDimension\n  delivery(zip: String): DeliveryEstimates\n}\n\ntype Book implements Product\n  @key(fields: \u0022id\u0022)\n{\n  id: ID!\n  dimensions: ProductDimension @external\n  delivery(zip: String): DeliveryEstimates @requires(fields: \u0022dimensions { size weight }\u0022)\n}\n\ntype Magazine implements Product\n  @key(fields: \u0022id\u0022)\n{\n  id: ID!\n  dimensions: ProductDimension @external\n  delivery(zip: String): DeliveryEstimates @requires(fields: \u0022dimensions { size weight }\u0022)\n}\n\ntype ProductDimension\n  @shareable\n{\n  size: String\n  weight: Float\n}\n\ntype DeliveryEstimates {\n  estimatedDelivery: String\n  fastestDelivery: String\n}\n\nenum link__Purpose {\n  \u0022\u0022\u0022\n  \u0060SECURITY\u0060 features provide metadata necessary to securely resolve fields.\n  \u0022\u0022\u0022\n  SECURITY\n\n  \u0022\u0022\u0022\n  \u0060EXECUTION\u0060 features provide metadata necessary for operation execution.\n  \u0022\u0022\u0022\n  EXECUTION\n}\n\nscalar link__Import\n\nscalar federation__FieldSet\n\nscalar _Any\n\ntype _Service {\n  sdl: String\n}\n\nunion _Entity = Book | Magazine\n\ntype Query {\n  _entities(representations: [_Any!]!): [_Entity]!\n  _service: _Service!\n}"
+        },
+        {
+          "name": "books",
+          "rawSdl": "\n    schema\n      @link(\n        url: \u0022https://specs.apollo.dev/federation/v2.3\u0022\n        import: [\u0022@key\u0022, \u0022@shareable\u0022, \u0022@external\u0022, \u0022@requires\u0022]\n      ) {\n      query: Query\n    }\n\n    type Book @key(fields: \u0022id\u0022) {\n      id: ID!\n      title: String\n    }\n\n    type Query {\n      books: [Book]\n    }\n  ",
+          "serviceSdl": "schema\n  @link(url: \u0022https://specs.apollo.dev/link/v1.0\u0022)\n  @link(url: \u0022https://specs.apollo.dev/federation/v2.3\u0022, import: [\u0022@key\u0022, \u0022@shareable\u0022, \u0022@external\u0022, \u0022@requires\u0022])\n{\n  query: Query\n}\n\ndirective @link(url: String, as: String, for: link__Purpose, import: [link__Import]) repeatable on SCHEMA\n\ndirective @key(fields: federation__FieldSet!, resolvable: Boolean = true) repeatable on OBJECT | INTERFACE\n\ndirective @requires(fields: federation__FieldSet!) on FIELD_DEFINITION\n\ndirective @federation__provides(fields: federation__FieldSet!) on FIELD_DEFINITION\n\ndirective @external(reason: String) on OBJECT | FIELD_DEFINITION\n\ndirective @federation__tag(name: String!) repeatable on FIELD_DEFINITION | OBJECT | INTERFACE | UNION | ARGUMENT_DEFINITION | SCALAR | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION | SCHEMA\n\ndirective @federation__extends on OBJECT | INTERFACE\n\ndirective @shareable repeatable on OBJECT | FIELD_DEFINITION\n\ndirective @federation__inaccessible on FIELD_DEFINITION | OBJECT | INTERFACE | UNION | ARGUMENT_DEFINITION | SCALAR | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION\n\ndirective @federation__override(from: String!) on FIELD_DEFINITION\n\ndirective @federation__composeDirective(name: String) repeatable on SCHEMA\n\ndirective @federation__interfaceObject on OBJECT\n\ntype Book\n  @key(fields: \u0022id\u0022)\n{\n  id: ID!\n  title: String\n}\n\ntype Query {\n  books: [Book]\n  _entities(representations: [_Any!]!): [_Entity]!\n  _service: _Service!\n}\n\nenum link__Purpose {\n  \u0022\u0022\u0022\n  \u0060SECURITY\u0060 features provide metadata necessary to securely resolve fields.\n  \u0022\u0022\u0022\n  SECURITY\n\n  \u0022\u0022\u0022\n  \u0060EXECUTION\u0060 features provide metadata necessary for operation execution.\n  \u0022\u0022\u0022\n  EXECUTION\n}\n\nscalar link__Import\n\nscalar federation__FieldSet\n\nscalar _Any\n\ntype _Service {\n  sdl: String\n}\n\nunion _Entity = Book"
+        },
+        {
+          "name": "users",
+          "rawSdl": "\n    type User @key(fields: \u0022email\u0022) {\n      email: ID!\n      name: String\n      totalProductsCreated: Int\n    }\n  ",
+          "serviceSdl": "directive @key(fields: _FieldSet!, resolvable: Boolean = true) repeatable on OBJECT | INTERFACE\n\ndirective @requires(fields: _FieldSet!) on FIELD_DEFINITION\n\ndirective @provides(fields: _FieldSet!) on FIELD_DEFINITION\n\ndirective @external(reason: String) on OBJECT | FIELD_DEFINITION\n\ndirective @tag(name: String!) repeatable on FIELD_DEFINITION | OBJECT | INTERFACE | UNION | ARGUMENT_DEFINITION | SCALAR | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION\n\ndirective @extends on OBJECT | INTERFACE\n\ntype User\n  @key(fields: \u0022email\u0022)\n{\n  email: ID!\n  name: String\n  totalProductsCreated: Int\n}\n\nscalar _FieldSet\n\nscalar _Any\n\ntype _Service {\n  sdl: String\n}\n\nunion _Entity = User\n\ntype Query {\n  _entities(representations: [_Any!]!): [_Entity]!\n  _service: _Service!\n}"
+        },
+        {
+          "name": "reviews",
+          "rawSdl": "\n    schema\n      @link(\n        url: \u0022https://specs.apollo.dev/federation/v2.3\u0022\n        import: [\u0022@key\u0022, \u0022@shareable\u0022, \u0022@requires\u0022, \u0022@external\u0022]\n      ) {\n      query: Query\n    }\n\n    type Book implements Product \u0026 Similar @key(fields: \u0022id\u0022) {\n      id: ID!\n      reviewsCount: Int!\n      reviewsScore: Float! @shareable\n      reviews: [Review!]!\n      similar: [Book] @external\n      reviewsOfSimilar: [Review!]! @requires(fields: \u0022similar { id }\u0022)\n    }\n\n    type Magazine implements Product \u0026 Similar @key(fields: \u0022id\u0022) {\n      id: ID!\n      reviewsCount: Int!\n      reviewsScore: Float! @shareable\n      reviews: [Review!]!\n      similar: [Magazine] @external\n      reviewsOfSimilar: [Review!]! @requires(fields: \u0022similar { id }\u0022)\n    }\n\n    interface Product {\n      id: ID!\n      reviewsCount: Int!\n      reviewsScore: Float!\n      reviews: [Review!]!\n    }\n\n    interface Similar {\n      similar: [Product]\n    }\n\n    type Query {\n      review(id: Int!): Review\n    }\n\n    type Review {\n      id: Int!\n      body: String!\n      product: Product\n    }\n  ",
+          "serviceSdl": "schema\n  @link(url: \u0022https://specs.apollo.dev/link/v1.0\u0022)\n  @link(url: \u0022https://specs.apollo.dev/federation/v2.3\u0022, import: [\u0022@key\u0022, \u0022@shareable\u0022, \u0022@requires\u0022, \u0022@external\u0022])\n{\n  query: Query\n}\n\ndirective @link(url: String, as: String, for: link__Purpose, import: [link__Import]) repeatable on SCHEMA\n\ndirective @key(fields: federation__FieldSet!, resolvable: Boolean = true) repeatable on OBJECT | INTERFACE\n\ndirective @requires(fields: federation__FieldSet!) on FIELD_DEFINITION\n\ndirective @federation__provides(fields: federation__FieldSet!) on FIELD_DEFINITION\n\ndirective @external(reason: String) on OBJECT | FIELD_DEFINITION\n\ndirective @federation__tag(name: String!) repeatable on FIELD_DEFINITION | OBJECT | INTERFACE | UNION | ARGUMENT_DEFINITION | SCALAR | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION | SCHEMA\n\ndirective @federation__extends on OBJECT | INTERFACE\n\ndirective @shareable repeatable on OBJECT | FIELD_DEFINITION\n\ndirective @federation__inaccessible on FIELD_DEFINITION | OBJECT | INTERFACE | UNION | ARGUMENT_DEFINITION | SCALAR | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION\n\ndirective @federation__override(from: String!) on FIELD_DEFINITION\n\ndirective @federation__composeDirective(name: String) repeatable on SCHEMA\n\ndirective @federation__interfaceObject on OBJECT\n\ntype Book implements Product \u0026 Similar\n  @key(fields: \u0022id\u0022)\n{\n  id: ID!\n  reviewsCount: Int!\n  reviewsScore: Float! @shareable\n  reviews: [Review!]!\n  similar: [Book] @external\n  reviewsOfSimilar: [Review!]! @requires(fields: \u0022similar { id }\u0022)\n}\n\ntype Magazine implements Product \u0026 Similar\n  @key(fields: \u0022id\u0022)\n{\n  id: ID!\n  reviewsCount: Int!\n  reviewsScore: Float! @shareable\n  reviews: [Review!]!\n  similar: [Magazine] @external\n  reviewsOfSimilar: [Review!]! @requires(fields: \u0022similar { id }\u0022)\n}\n\ninterface Product {\n  id: ID!\n  reviewsCount: Int!\n  reviewsScore: Float!\n  reviews: [Review!]!\n}\n\ninterface Similar {\n  similar: [Product]\n}\n\ntype Query {\n  review(id: Int!): Review\n  _entities(representations: [_Any!]!): [_Entity]!\n  _service: _Service!\n}\n\ntype Review {\n  id: Int!\n  body: String!\n  product: Product\n}\n\nenum link__Purpose {\n  \u0022\u0022\u0022\n  \u0060SECURITY\u0060 features provide metadata necessary to securely resolve fields.\n  \u0022\u0022\u0022\n  SECURITY\n\n  \u0022\u0022\u0022\n  \u0060EXECUTION\u0060 features provide metadata necessary for operation execution.\n  \u0022\u0022\u0022\n  EXECUTION\n}\n\nscalar link__Import\n\nscalar federation__FieldSet\n\nscalar _Any\n\ntype _Service {\n  sdl: String\n}\n\nunion _Entity = Book | Magazine"
+        },
+        {
+          "name": "products",
+          "rawSdl": "\n    schema\n      @link(\n        url: \u0022https://specs.apollo.dev/federation/v2.3\u0022\n        import: [\u0022@key\u0022, \u0022@shareable\u0022, \u0022@inaccessible\u0022, \u0022@external\u0022]\n      ) {\n      query: Query\n    }\n\n    type Query {\n      products: [Product]\n      similar(id: ID!): [Product]\n    }\n\n    interface Product {\n      id: ID!\n      sku: String\n      dimensions: ProductDimension\n      createdBy: User\n      hidden: Boolean @inaccessible\n    }\n\n    interface Similar {\n      similar: [Product]\n    }\n\n    type ProductDimension @shareable {\n      size: String\n      weight: Float\n    }\n\n    type Book implements Product \u0026 Similar @key(fields: \u0022id\u0022) {\n      id: ID!\n      sku: String\n      dimensions: ProductDimension @shareable\n      createdBy: User\n      similar: [Book]\n      hidden: Boolean\n      publisherType: PublisherType\n    }\n\n    type Magazine implements Product \u0026 Similar @key(fields: \u0022id\u0022) {\n      id: ID!\n      sku: String\n      dimensions: ProductDimension @shareable\n      createdBy: User\n      similar: [Magazine]\n      hidden: Boolean\n      publisherType: PublisherType\n    }\n\n    union PublisherType = Agency | Self\n\n    type Agency {\n      id: ID! @shareable\n    }\n\n    type Self {\n      email: String\n    }\n\n    type User @key(fields: \u0022email\u0022) {\n      email: ID!\n      totalProductsCreated: Int @shareable\n    }\n  ",
+          "serviceSdl": "schema\n  @link(url: \u0022https://specs.apollo.dev/link/v1.0\u0022)\n  @link(url: \u0022https://specs.apollo.dev/federation/v2.3\u0022, import: [\u0022@key\u0022, \u0022@shareable\u0022, \u0022@inaccessible\u0022, \u0022@external\u0022])\n{\n  query: Query\n}\n\ndirective @link(url: String, as: String, for: link__Purpose, import: [link__Import]) repeatable on SCHEMA\n\ndirective @key(fields: federation__FieldSet!, resolvable: Boolean = true) repeatable on OBJECT | INTERFACE\n\ndirective @federation__requires(fields: federation__FieldSet!) on FIELD_DEFINITION\n\ndirective @federation__provides(fields: federation__FieldSet!) on FIELD_DEFINITION\n\ndirective @external(reason: String) on OBJECT | FIELD_DEFINITION\n\ndirective @federation__tag(name: String!) repeatable on FIELD_DEFINITION | OBJECT | INTERFACE | UNION | ARGUMENT_DEFINITION | SCALAR | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION | SCHEMA\n\ndirective @federation__extends on OBJECT | INTERFACE\n\ndirective @shareable repeatable on OBJECT | FIELD_DEFINITION\n\ndirective @inaccessible on FIELD_DEFINITION | OBJECT | INTERFACE | UNION | ARGUMENT_DEFINITION | SCALAR | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION\n\ndirective @federation__override(from: String!) on FIELD_DEFINITION\n\ndirective @federation__composeDirective(name: String) repeatable on SCHEMA\n\ndirective @federation__interfaceObject on OBJECT\n\ntype Query {\n  products: [Product]\n  similar(id: ID!): [Product]\n  _entities(representations: [_Any!]!): [_Entity]!\n  _service: _Service!\n}\n\ninterface Product {\n  id: ID!\n  sku: String\n  dimensions: ProductDimension\n  createdBy: User\n  hidden: Boolean @inaccessible\n}\n\ninterface Similar {\n  similar: [Product]\n}\n\ntype ProductDimension\n  @shareable\n{\n  size: String\n  weight: Float\n}\n\ntype Book implements Product \u0026 Similar\n  @key(fields: \u0022id\u0022)\n{\n  id: ID!\n  sku: String\n  dimensions: ProductDimension @shareable\n  createdBy: User\n  similar: [Book]\n  hidden: Boolean\n  publisherType: PublisherType\n}\n\ntype Magazine implements Product \u0026 Similar\n  @key(fields: \u0022id\u0022)\n{\n  id: ID!\n  sku: String\n  dimensions: ProductDimension @shareable\n  createdBy: User\n  similar: [Magazine]\n  hidden: Boolean\n  publisherType: PublisherType\n}\n\nunion PublisherType = Agency | Self\n\ntype Agency {\n  id: ID! @shareable\n}\n\ntype Self {\n  email: String\n}\n\ntype User\n  @key(fields: \u0022email\u0022)\n{\n  email: ID!\n  totalProductsCreated: Int @shareable\n}\n\nenum link__Purpose {\n  \u0022\u0022\u0022\n  \u0060SECURITY\u0060 features provide metadata necessary to securely resolve fields.\n  \u0022\u0022\u0022\n  SECURITY\n\n  \u0022\u0022\u0022\n  \u0060EXECUTION\u0060 features provide metadata necessary for operation execution.\n  \u0022\u0022\u0022\n  EXECUTION\n}\n\nscalar link__Import\n\nscalar federation__FieldSet\n\nscalar _Any\n\ntype _Service {\n  sdl: String\n}\n\nunion _Entity = Book | Magazine | User"
+        },
+        {
+          "name": "magazines",
+          "rawSdl": "\n    schema\n      @link(\n        url: \u0022https://specs.apollo.dev/federation/v2.3\u0022\n        import: [\u0022@key\u0022, \u0022@shareable\u0022]\n      ) {\n      query: Query\n    }\n\n    type Magazine @key(fields: \u0022id\u0022) {\n      id: ID!\n      title: String\n    }\n\n    type Query {\n      magazines: [Magazine]\n    }\n  ",
+          "serviceSdl": "schema\n  @link(url: \u0022https://specs.apollo.dev/link/v1.0\u0022)\n  @link(url: \u0022https://specs.apollo.dev/federation/v2.3\u0022, import: [\u0022@key\u0022, \u0022@shareable\u0022])\n{\n  query: Query\n}\n\ndirective @link(url: String, as: String, for: link__Purpose, import: [link__Import]) repeatable on SCHEMA\n\ndirective @key(fields: federation__FieldSet!, resolvable: Boolean = true) repeatable on OBJECT | INTERFACE\n\ndirective @federation__requires(fields: federation__FieldSet!) on FIELD_DEFINITION\n\ndirective @federation__provides(fields: federation__FieldSet!) on FIELD_DEFINITION\n\ndirective @federation__external(reason: String) on OBJECT | FIELD_DEFINITION\n\ndirective @federation__tag(name: String!) repeatable on FIELD_DEFINITION | OBJECT | INTERFACE | UNION | ARGUMENT_DEFINITION | SCALAR | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION | SCHEMA\n\ndirective @federation__extends on OBJECT | INTERFACE\n\ndirective @shareable repeatable on OBJECT | FIELD_DEFINITION\n\ndirective @federation__inaccessible on FIELD_DEFINITION | OBJECT | INTERFACE | UNION | ARGUMENT_DEFINITION | SCALAR | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION\n\ndirective @federation__override(from: String!) on FIELD_DEFINITION\n\ndirective @federation__composeDirective(name: String) repeatable on SCHEMA\n\ndirective @federation__interfaceObject on OBJECT\n\ntype Magazine\n  @key(fields: \u0022id\u0022)\n{\n  id: ID!\n  title: String\n}\n\ntype Query {\n  magazines: [Magazine]\n  _entities(representations: [_Any!]!): [_Entity]!\n  _service: _Service!\n}\n\nenum link__Purpose {\n  \u0022\u0022\u0022\n  \u0060SECURITY\u0060 features provide metadata necessary to securely resolve fields.\n  \u0022\u0022\u0022\n  SECURITY\n\n  \u0022\u0022\u0022\n  \u0060EXECUTION\u0060 features provide metadata necessary for operation execution.\n  \u0022\u0022\u0022\n  EXECUTION\n}\n\nscalar link__Import\n\nscalar federation__FieldSet\n\nscalar _Any\n\ntype _Service {\n  sdl: String\n}\n\nunion _Entity = Magazine"
+        }
+      ],
+      "fixtureModules": [
+        {
+          "path": "agency.subgraph.ts",
+          "sha256": "26aa0f8b11b8b98304b2b809556a2ae7d37b531735761aa1e2f04539ae836bb0",
+          "source": "import { createSubgraph } from \u0022../../subgraph.js\u0022;\nimport { agencies } from \u0022./data.js\u0022;\n\nexport default createSubgraph(\u0022agency\u0022, {\n  typeDefs: /* GraphQL */ \u0060\n    extend schema\n      @link(url: \u0022https://specs.apollo.dev/federation/v2.3\u0022, import: [\u0022@key\u0022])\n\n    type Agency @key(fields: \u0022id\u0022) {\n      id: ID!\n      companyName: String\n      email: Email\n    }\n\n    type Email {\n      address: String\n    }\n\n    type Group @key(fields: \u0022id\u0022) {\n      id: ID!\n      name: String\n      email: String\n    }\n\n    extend union PublisherType = Agency | Group\n  \u0060,\n  resolvers: {\n    Agency: {\n      __resolveReference(key: { id: string }) {\n        return agencies.find((a) =\u003E a.id === key.id);\n      },\n    },\n    Group: {\n      __resolveReference(key: { id: string }) {\n        return {\n          id: key.id,\n          name: \u0022Group \u0022 \u002B key.id,\n          email: \u0022group\u0022 \u002B key.id \u002B \u0022@example.com\u0022,\n        };\n      },\n    },\n  },\n});\n"
+        },
+        {
+          "path": "books.subgraph.ts",
+          "sha256": "a614767b5c95eb190028d3856f64274dd174fa989fa6ee7fca934ba272e84fa7",
+          "source": "import { createSubgraph } from \u0022../../subgraph.js\u0022;\nimport { books } from \u0022./data.js\u0022;\n\nexport default createSubgraph(\u0022books\u0022, {\n  typeDefs: /* GraphQL */ \u0060\n    schema\n      @link(\n        url: \u0022https://specs.apollo.dev/federation/v2.3\u0022\n        import: [\u0022@key\u0022, \u0022@shareable\u0022, \u0022@external\u0022, \u0022@requires\u0022]\n      ) {\n      query: Query\n    }\n\n    type Book @key(fields: \u0022id\u0022) {\n      id: ID!\n      title: String\n    }\n\n    type Query {\n      books: [Book]\n    }\n  \u0060,\n  resolvers: {\n    Query: {\n      books() {\n        return books.map((book) =\u003E ({\n          __typename: \u0022Book\u0022,\n          id: book.id,\n          title: book.title,\n        }));\n      },\n    },\n    Book: {\n      __resolveReference(key: { id: string }) {\n        const book = books.find((book) =\u003E book.id === key.id);\n\n        return book\n          ? {\n              __typename: \u0022Book\u0022,\n              id: book.id,\n              title: book.title,\n            }\n          : null;\n      },\n    },\n  },\n});\n"
+        },
+        {
+          "path": "data.ts",
+          "sha256": "767df11ba52a148036cd5f4708240ee50671d74de2a99111558340fe7cc6fe07",
+          "source": "export const users = [\n  {\n    id: \u0022u1\u0022,\n    email: \u0022u1@example.com\u0022,\n    name: \u0022u1-name\u0022,\n  },\n  {\n    id: \u0022u2\u0022,\n    email: \u0022u2@example.com\u0022,\n    name: \u0022u2-name\u0022,\n  },\n  {\n    id: \u0022u3\u0022,\n    email: \u0022u3@example.com\u0022,\n    name: \u0022u3-name\u0022,\n  },\n] as const;\n\nexport const books = [\n  {\n    __typename: \u0022Book\u0022,\n    id: \u0022p1\u0022,\n    sku: \u0022sku-1\u0022,\n    title: \u0022Book 1\u0022,\n    createdBy: \u0022u1\u0022,\n    dimensions: {\n      size: \u0022small\u0022,\n      weight: 0.5,\n    },\n    publisher: {\n      __typename: \u0022Self\u0022,\n      email: users[0].email,\n    },\n    hidden: false,\n  },\n  {\n    __typename: \u0022Book\u0022,\n    id: \u0022p3\u0022,\n    sku: \u0022sku-3\u0022,\n    title: \u0022Book 2\u0022,\n    createdBy: \u0022u2\u0022,\n    dimensions: {\n      size: \u0022small\u0022,\n      weight: 0.6,\n    },\n    publisher: {\n      __typename: \u0022Agency\u0022,\n      id: \u0022a1\u0022,\n    },\n    hidden: false,\n  },\n];\n\nexport const magazines = [\n  {\n    __typename: \u0022Magazine\u0022,\n    id: \u0022p2\u0022,\n    sku: \u0022sku-2\u0022,\n    title: \u0022Magazine 1\u0022,\n    createdBy: \u0022u1\u0022,\n    dimensions: {\n      size: \u0022small\u0022,\n      weight: 0.2,\n    },\n    publisher: {\n      __typename: \u0022Agency\u0022,\n      id: \u0022a1\u0022,\n    },\n    hidden: false,\n  },\n  {\n    __typename: \u0022Magazine\u0022,\n    id: \u0022p4\u0022,\n    sku: \u0022sku-4\u0022,\n    title: \u0022Magazine 2\u0022,\n    createdBy: \u0022u2\u0022,\n    dimensions: {\n      size: \u0022small\u0022,\n      weight: 0.3,\n    },\n    publisher: {\n      __typename: \u0022Self\u0022,\n      email: users[0].email,\n    },\n    hidden: true,\n  },\n];\n\nexport const products = [...books, ...magazines] as const;\n\nexport const reviews = [\n  {\n    id: 1,\n    body: \u0022review 1\u0022,\n    productId: \u0022p1\u0022,\n    score: 3,\n  },\n  {\n    id: 2,\n    body: \u0022review 2\u0022,\n    productId: \u0022p1\u0022,\n    score: 4,\n  },\n  {\n    id: 3,\n    body: \u0022review 3\u0022,\n    productId: \u0022p2\u0022,\n    score: 5,\n  },\n] as const;\n\nexport const agencies = [\n  {\n    id: \u0022a1\u0022,\n    companyName: \u0022Agency 1\u0022,\n    email: {\n      address: \u0022a1@example.com\u0022,\n    },\n  },\n] as const;\n"
+        },
+        {
+          "path": "inventory.subgraph.ts",
+          "sha256": "1e4d00f6d568f05771ec143ef90bd4fcd113ddedd852ca05e8ad397a6d383db7",
+          "source": "import { createSubgraph } from \u0022../../subgraph.js\u0022;\nimport { books, magazines } from \u0022./data.js\u0022;\n\nexport default createSubgraph(\u0022inventory\u0022, {\n  typeDefs: /* GraphQL */ \u0060\n    extend schema\n      @link(\n        url: \u0022https://specs.apollo.dev/federation/v2.3\u0022\n        import: [\u0022@key\u0022, \u0022@shareable\u0022, \u0022@external\u0022, \u0022@requires\u0022]\n      )\n\n    interface Product {\n      id: ID!\n      dimensions: ProductDimension\n      delivery(zip: String): DeliveryEstimates\n    }\n\n    type Book implements Product @key(fields: \u0022id\u0022) {\n      id: ID!\n      dimensions: ProductDimension @external\n      delivery(zip: String): DeliveryEstimates\n        @requires(fields: \u0022dimensions { size weight }\u0022)\n    }\n\n    type Magazine implements Product @key(fields: \u0022id\u0022) {\n      id: ID!\n      dimensions: ProductDimension @external\n      delivery(zip: String): DeliveryEstimates\n        @requires(fields: \u0022dimensions { size weight }\u0022)\n    }\n\n    type ProductDimension @shareable {\n      size: String\n      weight: Float\n    }\n\n    type DeliveryEstimates {\n      estimatedDelivery: String\n      fastestDelivery: String\n    }\n  \u0060,\n  resolvers: {\n    Book: {\n      __resolveReference(key: {\n        id: string;\n        dimensions?: {\n          size: string;\n          weight: number;\n        };\n      }) {\n        const book = books.find((book) =\u003E book.id === key.id);\n\n        if (!book) {\n          return null;\n        }\n\n        return {\n          __typename: book.__typename,\n          id: book.id,\n          dimensions: key.dimensions,\n        };\n      },\n      delivery(\n        { dimensions }: { dimensions?: { size: string; weight: number } },\n        { zip }: { zip?: string },\n      ) {\n        if (!zip) {\n          return null;\n        }\n\n        if (!dimensions) {\n          return null;\n        }\n\n        if (dimensions.size === \u0022small\u0022 \u0026\u0026 dimensions.weight \u003C 1) {\n          return {\n            estimatedDelivery: \u00221 day\u0022,\n            fastestDelivery: \u0022same day\u0022,\n          };\n        }\n\n        if (dimensions.size === \u0022large\u0022 \u0026\u0026 dimensions.weight \u003E= 1) {\n          return {\n            estimatedDelivery: \u00223 days\u0022,\n            fastestDelivery: \u00222 days\u0022,\n          };\n        }\n\n        return null;\n      },\n    },\n    Magazine: {\n      __resolveReference(key: {\n        id: string;\n        dimensions?: {\n          size: string;\n          weight: number;\n        };\n      }) {\n        const magazine = magazines.find((magazine) =\u003E magazine.id === key.id);\n\n        if (!magazine) {\n          return null;\n        }\n\n        return {\n          __typename: magazine.__typename,\n          id: magazine.id,\n          dimensions: key.dimensions,\n        };\n      },\n      delivery(\n        { dimensions }: { dimensions?: { size: string; weight: number } },\n        { zip }: { zip?: string },\n      ) {\n        if (!zip) {\n          return null;\n        }\n\n        if (!dimensions) {\n          return null;\n        }\n\n        if (dimensions.size === \u0022small\u0022 \u0026\u0026 dimensions.weight \u003C 1) {\n          return {\n            estimatedDelivery: \u00221 day\u0022,\n            fastestDelivery: \u0022same day\u0022,\n          };\n        }\n\n        if (dimensions.size === \u0022large\u0022 \u0026\u0026 dimensions.weight \u003E= 1) {\n          return {\n            estimatedDelivery: \u00223 days\u0022,\n            fastestDelivery: \u00222 days\u0022,\n          };\n        }\n\n        return null;\n      },\n    },\n  },\n});\n"
+        },
+        {
+          "path": "magazines.subgraph.ts",
+          "sha256": "f80cce11b650cb53dbf9f6120553dd341111e4bd9a5e9d521aeab0ac958b4712",
+          "source": "import { createSubgraph } from \u0022../../subgraph.js\u0022;\nimport { magazines } from \u0022./data.js\u0022;\n\nexport default createSubgraph(\u0022magazines\u0022, {\n  typeDefs: /* GraphQL */ \u0060\n    schema\n      @link(\n        url: \u0022https://specs.apollo.dev/federation/v2.3\u0022\n        import: [\u0022@key\u0022, \u0022@shareable\u0022]\n      ) {\n      query: Query\n    }\n\n    type Magazine @key(fields: \u0022id\u0022) {\n      id: ID!\n      title: String\n    }\n\n    type Query {\n      magazines: [Magazine]\n    }\n  \u0060,\n  resolvers: {\n    Query: {\n      magazines() {\n        return magazines.map((magazine) =\u003E ({\n          __typename: magazine.__typename,\n          id: magazine.id,\n          title: magazine.title,\n        }));\n      },\n    },\n    Magazine: {\n      __resolveReference(key: { id: string }) {\n        const magazine = magazines.find((magazine) =\u003E magazine.id === key.id);\n\n        return magazine\n          ? {\n              __typename: magazine.__typename,\n              id: magazine.id,\n              title: magazine.title,\n            }\n          : null;\n      },\n    },\n  },\n});\n"
+        },
+        {
+          "path": "products.subgraph.ts",
+          "sha256": "1b822adb3b29dd3be23376c34a1104f4dff9e97be266949ae151a9d4ad88c248",
+          "source": "import { createSubgraph } from \u0022../../subgraph.js\u0022;\nimport { books, magazines, products, users } from \u0022./data.js\u0022;\n\nexport default createSubgraph(\u0022products\u0022, {\n  typeDefs: /* GraphQL */ \u0060\n    schema\n      @link(\n        url: \u0022https://specs.apollo.dev/federation/v2.3\u0022\n        import: [\u0022@key\u0022, \u0022@shareable\u0022, \u0022@inaccessible\u0022, \u0022@external\u0022]\n      ) {\n      query: Query\n    }\n\n    type Query {\n      products: [Product]\n      similar(id: ID!): [Product]\n    }\n\n    interface Product {\n      id: ID!\n      sku: String\n      dimensions: ProductDimension\n      createdBy: User\n      hidden: Boolean @inaccessible\n    }\n\n    interface Similar {\n      similar: [Product]\n    }\n\n    type ProductDimension @shareable {\n      size: String\n      weight: Float\n    }\n\n    type Book implements Product \u0026 Similar @key(fields: \u0022id\u0022) {\n      id: ID!\n      sku: String\n      dimensions: ProductDimension @shareable\n      createdBy: User\n      similar: [Book]\n      hidden: Boolean\n      publisherType: PublisherType\n    }\n\n    type Magazine implements Product \u0026 Similar @key(fields: \u0022id\u0022) {\n      id: ID!\n      sku: String\n      dimensions: ProductDimension @shareable\n      createdBy: User\n      similar: [Magazine]\n      hidden: Boolean\n      publisherType: PublisherType\n    }\n\n    union PublisherType = Agency | Self\n\n    type Agency {\n      id: ID! @shareable\n    }\n\n    type Self {\n      email: String\n    }\n\n    type User @key(fields: \u0022email\u0022) {\n      email: ID!\n      totalProductsCreated: Int @shareable\n    }\n  \u0060,\n  resolvers: {\n    Query: {\n      products() {\n        return products.map((p) =\u003E ({\n          __typename: p.__typename,\n          id: p.id,\n          sku: p.sku,\n          dimensions: p.dimensions,\n          createdBy: p.createdBy,\n          hidden: p.hidden,\n          publisherType: p.publisher,\n        }));\n      },\n      similar(_: {}, { id }: { id: string }) {\n        const product = products.find((product) =\u003E product.id === id);\n\n        if (!product) {\n          return [];\n        }\n\n        const similar = products.filter(\n          (p) =\u003E p.id !== product.id \u0026\u0026 p.__typename === product.__typename,\n        );\n\n        return similar.map((b) =\u003E ({\n          __typename: b.__typename,\n          id: b.id,\n          sku: b.sku,\n          dimensions: b.dimensions,\n          createdBy: b.createdBy,\n          hidden: b.hidden,\n          publisherType: b.publisher,\n        }));\n      },\n    },\n    Book: {\n      __resolveReference(key: { id: string }) {\n        const book = books.find((book) =\u003E book.id === key.id);\n\n        return book\n          ? {\n              __typename: book.__typename,\n              id: book.id,\n              sku: book.sku,\n              dimensions: book.dimensions,\n              createdBy: book.createdBy,\n              hidden: book.hidden,\n              publisherType: book.publisher,\n            }\n          : null;\n      },\n      similar(book: { id: string }) {\n        return books\n          .filter((b) =\u003E b.id !== book.id)\n          .map((b) =\u003E ({\n            __typename: b.__typename,\n            id: b.id,\n            sku: b.sku,\n            dimensions: b.dimensions,\n            createdBy: b.createdBy,\n            hidden: b.hidden,\n            publisherType: b.publisher,\n          }));\n      },\n      createdBy(book: { createdBy: string }) {\n        const user = users.find((user) =\u003E user.id === book.createdBy);\n        return user\n          ? {\n              __typename: \u0022User\u0022,\n              id: user.id,\n              email: user.email,\n            }\n          : null;\n      },\n    },\n    Magazine: {\n      __resolveReference(key: { id: string }) {\n        const magazine = magazines.find((magazine) =\u003E magazine.id === key.id);\n\n        return magazine\n          ? {\n              __typename: magazine.__typename,\n              id: magazine.id,\n              sku: magazine.sku,\n              dimensions: magazine.dimensions,\n              createdBy: magazine.createdBy,\n              hidden: magazine.hidden,\n              publisherType: magazine.publisher,\n            }\n          : null;\n      },\n      similar(magazine: { id: string }) {\n        return magazines\n          .filter((m) =\u003E m.id !== magazine.id)\n          .map((m) =\u003E ({\n            __typename: m.__typename,\n            id: m.id,\n            sku: m.sku,\n            dimensions: m.dimensions,\n            createdBy: m.createdBy,\n            hidden: m.hidden,\n            publisherType: m.publisher,\n          }));\n      },\n      createdBy(magazine: { createdBy: string }) {\n        const user = users.find((user) =\u003E user.id === magazine.createdBy);\n        return user\n          ? {\n              __typename: \u0022User\u0022,\n              id: user.id,\n              email: user.email,\n            }\n          : null;\n      },\n    },\n    User: {\n      __resolveReference(key: { email: string }) {\n        const user = users.find((user) =\u003E user.email === key.email);\n\n        return user\n          ? {\n              __typename: \u0022User\u0022,\n              id: user.id,\n              email: user.email,\n            }\n          : null;\n      },\n      totalProductsCreated(user: { id: string }) {\n        return products.filter((product) =\u003E product.createdBy === user.id)\n          .length;\n      },\n    },\n  },\n});\n"
+        },
+        {
+          "path": "reviews.subgraph.ts",
+          "sha256": "4a8e87362fd278d6d71ab69cff0a487abe227c660ae479dcd84c4d2f877a4895",
+          "source": "import { createSubgraph } from \u0022../../subgraph.js\u0022;\nimport { products, reviews } from \u0022./data.js\u0022;\n\nconst Product = {\n  __resolveReference(key: { id: string; similar?: { id: string[] } }) {\n    const product = products.find((product) =\u003E product.id === key.id);\n\n    return product\n      ? {\n          __typename: product.__typename,\n          id: product.id,\n          similar: key.similar,\n        }\n      : null;\n  },\n  reviews(product: { id: string }) {\n    return reviews\n      .filter((review) =\u003E review.productId === product.id)\n      .map((review) =\u003E {\n        const product = products.find(\n          (product) =\u003E product.id === review.productId,\n        );\n\n        return {\n          __typename: \u0022Review\u0022,\n          id: review.id,\n          body: review.body,\n          product: product\n            ? {\n                __typename: product.__typename,\n                id: product.id,\n              }\n            : null,\n        };\n      });\n  },\n  reviewsCount(product: { id: string }) {\n    return reviews.filter((review) =\u003E review.productId === product.id).length;\n  },\n  reviewsScore(product: { id: string }) {\n    const productReviews = reviews.filter(\n      (review) =\u003E review.productId === product.id,\n    );\n\n    if (productReviews.length === 0) {\n      return 0;\n    }\n\n    const sum = productReviews.reduce((acc, review) =\u003E acc \u002B review.score, 0);\n    return sum / productReviews.length;\n  },\n  reviewsOfSimilar(product: { __typename: string; similar: { id: string[] } }) {\n    const similarProducts = products.filter(\n      (p) =\u003E\n        p.__typename === product.__typename \u0026\u0026\n        product.similar.id.includes(p.id),\n    );\n\n    return similarProducts\n      .flatMap((p) =\u003E reviews.filter((review) =\u003E review.productId === p.id))\n      .map((review) =\u003E {\n        const product = products.find(\n          (product) =\u003E product.id === review.productId,\n        );\n\n        return {\n          __typename: \u0022Review\u0022,\n          id: review.id,\n          body: review.body,\n          product: product\n            ? {\n                __typename: product.__typename,\n                id: product.id,\n              }\n            : null,\n        };\n      });\n  },\n};\n\nexport default createSubgraph(\u0022reviews\u0022, {\n  typeDefs: /* GraphQL */ \u0060\n    schema\n      @link(\n        url: \u0022https://specs.apollo.dev/federation/v2.3\u0022\n        import: [\u0022@key\u0022, \u0022@shareable\u0022, \u0022@requires\u0022, \u0022@external\u0022]\n      ) {\n      query: Query\n    }\n\n    type Book implements Product \u0026 Similar @key(fields: \u0022id\u0022) {\n      id: ID!\n      reviewsCount: Int!\n      reviewsScore: Float! @shareable\n      reviews: [Review!]!\n      similar: [Book] @external\n      reviewsOfSimilar: [Review!]! @requires(fields: \u0022similar { id }\u0022)\n    }\n\n    type Magazine implements Product \u0026 Similar @key(fields: \u0022id\u0022) {\n      id: ID!\n      reviewsCount: Int!\n      reviewsScore: Float! @shareable\n      reviews: [Review!]!\n      similar: [Magazine] @external\n      reviewsOfSimilar: [Review!]! @requires(fields: \u0022similar { id }\u0022)\n    }\n\n    interface Product {\n      id: ID!\n      reviewsCount: Int!\n      reviewsScore: Float!\n      reviews: [Review!]!\n    }\n\n    interface Similar {\n      similar: [Product]\n    }\n\n    type Query {\n      review(id: Int!): Review\n    }\n\n    type Review {\n      id: Int!\n      body: String!\n      product: Product\n    }\n  \u0060,\n  resolvers: {\n    Query: {\n      review(_: {}, { id }: { id: number }) {\n        const review = reviews.find((review) =\u003E review.id === id);\n\n        if (!review) {\n          return null;\n        }\n\n        const product = products.find(\n          (product) =\u003E product.id === review.productId,\n        );\n\n        return {\n          __typename: \u0022Review\u0022,\n          id: review.id,\n          body: review.body,\n          product: product\n            ? {\n                __typename: product.__typename,\n                id: product.id,\n              }\n            : null,\n        };\n      },\n    },\n    Book: Product,\n    Magazine: Product,\n  },\n});\n"
+        },
+        {
+          "path": "users.subgraph.ts",
+          "sha256": "a9ee3afe1e6750a51e54bc34701fff51143273f335958c7bd4f99ee543e4b4a3",
+          "source": "import { createSubgraph } from \u0022../../subgraph.js\u0022;\nimport { products, users } from \u0022./data.js\u0022;\n\nexport default createSubgraph(\u0022users\u0022, {\n  typeDefs: /* GraphQL */ \u0060\n    type User @key(fields: \u0022email\u0022) {\n      email: ID!\n      name: String\n      totalProductsCreated: Int\n    }\n  \u0060,\n  resolvers: {\n    User: {\n      __resolveReference(key: { email: string }) {\n        const user = users.find((user) =\u003E user.email === key.email);\n\n        return user\n          ? {\n              __typename: \u0022User\u0022,\n              id: user.id,\n              email: user.email,\n              name: user.name,\n            }\n          : null;\n      },\n      totalProductsCreated(user: { id: string }) {\n        return products.filter((p) =\u003E p.createdBy === user.id).length;\n      },\n    },\n  },\n});\n"
+        }
+      ]
+    },
+    {
+      "id": "fed1-external-extends",
+      "cases": [
+        {
+          "id": "fed1-external-extends/000",
+          "query": "\n      query {\n        randomUser {\n          id\n          name\n        }\n        userById(id: \u0022u2\u0022) {\n          id\n          name\n          nickname\n        }\n      }\n    ",
+          "variables": null,
+          "hasExpectedData": true,
+          "expectedData": {
+            "randomUser": {
+              "id": "u1",
+              "name": "u1-name"
+            },
+            "userById": {
+              "id": "u2",
+              "name": "u2-name",
+              "nickname": "u2-nickname"
+            }
+          },
+          "hasExpectedErrors": false,
+          "expectsErrors": null
+        },
+        {
+          "id": "fed1-external-extends/001",
+          "query": "\n      query {\n        randomUser {\n          id\n          rid\n        }\n      }\n    ",
+          "variables": null,
+          "hasExpectedData": true,
+          "expectedData": {
+            "randomUser": {
+              "id": "u1",
+              "rid": "u1-rid"
+            }
+          },
+          "hasExpectedErrors": false,
+          "expectsErrors": null
+        },
+        {
+          "id": "fed1-external-extends/002",
+          "query": "\n      query {\n        randomUser {\n          id\n          rid\n          name\n        }\n      }\n    ",
+          "variables": null,
+          "hasExpectedData": true,
+          "expectedData": {
+            "randomUser": {
+              "id": "u1",
+              "rid": "u1-rid",
+              "name": "u1-name"
+            }
+          },
+          "hasExpectedErrors": false,
+          "expectsErrors": null
+        },
+        {
+          "id": "fed1-external-extends/003",
+          "query": "\n      query {\n        providedRandomUser {\n          id\n          rid\n          name\n        }\n      }\n    ",
+          "variables": null,
+          "hasExpectedData": true,
+          "expectedData": {
+            "providedRandomUser": {
+              "id": "u1",
+              "rid": "u1-rid",
+              "name": "u1-name"
+            }
+          },
+          "hasExpectedErrors": false,
+          "expectsErrors": null
+        }
+      ],
+      "sources": [
+        {
+          "name": "a",
+          "rawSdl": "\n    type Query {\n      randomUser: User\n      providedRandomUser: User @provides(fields: \u0022name\u0022)\n    }\n\n    type User @key(fields: \u0022id\u0022) @extends {\n      id: ID! @external\n      name: String! @external\n      rid: ID\n    }\n  ",
+          "serviceSdl": "directive @key(fields: _FieldSet!, resolvable: Boolean = true) repeatable on OBJECT | INTERFACE\n\ndirective @requires(fields: _FieldSet!) on FIELD_DEFINITION\n\ndirective @provides(fields: _FieldSet!) on FIELD_DEFINITION\n\ndirective @external(reason: String) on OBJECT | FIELD_DEFINITION\n\ndirective @tag(name: String!) repeatable on FIELD_DEFINITION | OBJECT | INTERFACE | UNION | ARGUMENT_DEFINITION | SCALAR | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION\n\ndirective @extends on OBJECT | INTERFACE\n\ntype Query {\n  randomUser: User\n  providedRandomUser: User @provides(fields: \u0022name\u0022)\n  _entities(representations: [_Any!]!): [_Entity]!\n  _service: _Service!\n}\n\ntype User\n  @key(fields: \u0022id\u0022)\n  @extends\n{\n  id: ID! @external\n  name: String! @external\n  rid: ID\n}\n\nscalar _FieldSet\n\nscalar _Any\n\ntype _Service {\n  sdl: String\n}\n\nunion _Entity = User"
+        },
+        {
+          "name": "b",
+          "rawSdl": "\n    type Query {\n      userById(id: ID): User\n    }\n\n    type User @key(fields: \u0022id\u0022) {\n      id: ID!\n      name: String!\n      nickname: String\n    }\n  ",
+          "serviceSdl": "directive @key(fields: _FieldSet!, resolvable: Boolean = true) repeatable on OBJECT | INTERFACE\n\ndirective @requires(fields: _FieldSet!) on FIELD_DEFINITION\n\ndirective @provides(fields: _FieldSet!) on FIELD_DEFINITION\n\ndirective @external(reason: String) on OBJECT | FIELD_DEFINITION\n\ndirective @tag(name: String!) repeatable on FIELD_DEFINITION | OBJECT | INTERFACE | UNION | ARGUMENT_DEFINITION | SCALAR | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION\n\ndirective @extends on OBJECT | INTERFACE\n\ntype Query {\n  userById(id: ID): User\n  _entities(representations: [_Any!]!): [_Entity]!\n  _service: _Service!\n}\n\ntype User\n  @key(fields: \u0022id\u0022)\n{\n  id: ID!\n  name: String!\n  nickname: String\n}\n\nscalar _FieldSet\n\nscalar _Any\n\ntype _Service {\n  sdl: String\n}\n\nunion _Entity = User"
+        }
+      ],
+      "fixtureModules": [
+        {
+          "path": "a.subgraph.ts",
+          "sha256": "fd166dc2e0cef57e28d3bcb133d9b0b107bba78a1623b03961f9d7c76b955cd1",
+          "source": "import { createSubgraph } from \u0022../../subgraph.js\u0022;\nimport { users } from \u0022./data.js\u0022;\n\nexport default createSubgraph(\u0022a\u0022, {\n  typeDefs: /* GraphQL */ \u0060\n    type Query {\n      randomUser: User\n      providedRandomUser: User @provides(fields: \u0022name\u0022)\n    }\n\n    type User @key(fields: \u0022id\u0022) @extends {\n      id: ID! @external\n      name: String! @external\n      rid: ID\n    }\n  \u0060,\n  resolvers: {\n    Query: {\n      randomUser() {\n        return {\n          id: users[0].id,\n          rid: users[0].rid,\n        };\n      },\n      providedRandomUser() {\n        return {\n          id: users[0].id,\n          rid: users[0].rid,\n          name: users[0].name,\n        };\n      },\n    },\n    User: {\n      __resolveReference(key: { id: string }) {\n        const user = users.find((u) =\u003E u.id === key.id);\n\n        if (!user) {\n          return null;\n        }\n\n        return {\n          id: user.id,\n          rid: user.rid,\n        };\n      },\n      name(user: { name: string | undefined }) {\n        return user.name ?? \u0022never\u0022;\n      },\n    },\n  },\n});\n"
+        },
+        {
+          "path": "b.subgraph.ts",
+          "sha256": "f47a1d33c8a21a5e0d23fce11b73a8d6e86b36b6a29cb23304644046467f09cf",
+          "source": "import { createSubgraph } from \u0022../../subgraph.js\u0022;\nimport { users } from \u0022./data.js\u0022;\n\nexport default createSubgraph(\u0022b\u0022, {\n  typeDefs: /* GraphQL */ \u0060\n    type Query {\n      userById(id: ID): User\n    }\n\n    type User @key(fields: \u0022id\u0022) {\n      id: ID!\n      name: String!\n      nickname: String\n    }\n  \u0060,\n  resolvers: {\n    Query: {\n      userById: (_: {}, { id }: { id: string }) =\u003E {\n        const user = users.find((u) =\u003E u.id === id);\n\n        if (!user) {\n          return null;\n        }\n\n        return {\n          id: user.id,\n          name: user.name,\n          nickname: user.nickname,\n        };\n      },\n    },\n    User: {\n      __resolveReference: (key: { id: string }) =\u003E {\n        const user = users.find((u) =\u003E u.id === key.id);\n\n        if (!user) {\n          return null;\n        }\n\n        return {\n          id: user.id,\n          name: user.name,\n          nickname: user.nickname,\n        };\n      },\n    },\n  },\n});\n"
+        },
+        {
+          "path": "data.ts",
+          "sha256": "6d37b20b771a31f2219f84d9d6172394d6b52dac271d6dd6dbc9d86359f3445c",
+          "source": "export const users = [\n  {\n    id: \u0022u1\u0022,\n    rid: \u0022u1-rid\u0022,\n    name: \u0022u1-name\u0022,\n    nickname: \u0022u1-nickname\u0022,\n  },\n  {\n    id: \u0022u2\u0022,\n    rid: \u0022u2-rid\u0022,\n    name: \u0022u2-name\u0022,\n    nickname: \u0022u2-nickname\u0022,\n  },\n];\n"
+        }
+      ]
+    },
+    {
+      "id": "fed1-external-extends-resolvable",
+      "cases": [
+        {
+          "id": "fed1-external-extends-resolvable/000",
+          "query": "\n      query {\n        productInA {\n          id\n          pid\n          price\n          upc\n          name\n        }\n      }\n    ",
+          "variables": null,
+          "hasExpectedData": true,
+          "expectedData": {
+            "productInA": {
+              "id": "p1",
+              "pid": "p1-pid",
+              "price": 12.3,
+              "upc": "upc1",
+              "name": "p1-name"
+            }
+          },
+          "hasExpectedErrors": false,
+          "expectsErrors": null
+        }
+      ],
+      "sources": [
+        {
+          "name": "a",
+          "rawSdl": "\n    type Query {\n      productInA: Product\n    }\n\n    type Product @key(fields: \u0022id\u0022) {\n      id: ID!\n      name: String\n      pid: ID\n    }\n  ",
+          "serviceSdl": "directive @key(fields: _FieldSet!, resolvable: Boolean = true) repeatable on OBJECT | INTERFACE\n\ndirective @requires(fields: _FieldSet!) on FIELD_DEFINITION\n\ndirective @provides(fields: _FieldSet!) on FIELD_DEFINITION\n\ndirective @external(reason: String) on OBJECT | FIELD_DEFINITION\n\ndirective @tag(name: String!) repeatable on FIELD_DEFINITION | OBJECT | INTERFACE | UNION | ARGUMENT_DEFINITION | SCALAR | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION\n\ndirective @extends on OBJECT | INTERFACE\n\ntype Query {\n  productInA: Product\n  _entities(representations: [_Any!]!): [_Entity]!\n  _service: _Service!\n}\n\ntype Product\n  @key(fields: \u0022id\u0022)\n{\n  id: ID!\n  name: String\n  pid: ID\n}\n\nscalar _FieldSet\n\nscalar _Any\n\ntype _Service {\n  sdl: String\n}\n\nunion _Entity = Product"
+        },
+        {
+          "name": "b",
+          "rawSdl": "\n    type Query {\n      productInB: Product\n    }\n\n    extend type Product @key(fields: \u0022id name\u0022) @key(fields: \u0022upc\u0022) {\n      id: ID @external\n      name: String @external\n      upc: String @external\n      price: Float!\n    }\n  ",
+          "serviceSdl": "directive @key(fields: _FieldSet!, resolvable: Boolean = true) repeatable on OBJECT | INTERFACE\n\ndirective @requires(fields: _FieldSet!) on FIELD_DEFINITION\n\ndirective @provides(fields: _FieldSet!) on FIELD_DEFINITION\n\ndirective @external(reason: String) on OBJECT | FIELD_DEFINITION\n\ndirective @tag(name: String!) repeatable on FIELD_DEFINITION | OBJECT | INTERFACE | UNION | ARGUMENT_DEFINITION | SCALAR | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION\n\ndirective @extends on OBJECT | INTERFACE\n\ntype Query {\n  productInB: Product\n  _entities(representations: [_Any!]!): [_Entity]!\n  _service: _Service!\n}\n\nextend type Product\n  @key(fields: \u0022id name\u0022)\n  @key(fields: \u0022upc\u0022)\n{\n  id: ID @external\n  name: String @external\n  upc: String @external\n  price: Float!\n}\n\nscalar _FieldSet\n\nscalar _Any\n\ntype _Service {\n  sdl: String\n}\n\nunion _Entity = Product"
+        }
+      ],
+      "fixtureModules": [
+        {
+          "path": "a.subgraph.ts",
+          "sha256": "d56e2010191118aac8fe2c1e1d597094af0965352cdd0d8b6510354bdaa82d4d",
+          "source": "import { createSubgraph } from \u0022../../subgraph.js\u0022;\nimport { products } from \u0022./data.js\u0022;\n\nexport default createSubgraph(\u0022a\u0022, {\n  typeDefs: /* GraphQL */ \u0060\n    type Query {\n      productInA: Product\n    }\n\n    type Product @key(fields: \u0022id\u0022) {\n      id: ID!\n      name: String\n      pid: ID\n    }\n  \u0060,\n  resolvers: {\n    Query: {\n      productInA() {\n        return {\n          id: products[0].id,\n          name: products[0].name,\n          pid: products[0].pid,\n        };\n      },\n    },\n    Product: {\n      __resolveReference(key: { id: string }) {\n        if (products[0].id !== key.id) {\n          return null;\n        }\n\n        return {\n          id: products[0].id,\n          name: products[0].name,\n          pid: products[0].pid,\n        };\n      },\n    },\n  },\n});\n"
+        },
+        {
+          "path": "b.subgraph.ts",
+          "sha256": "33b6f5ceefb058a0cf311dd7df453400614bc0c08917f9d8ac18eaf071b451ae",
+          "source": "import { createSubgraph } from \u0022../../subgraph.js\u0022;\nimport { products } from \u0022./data.js\u0022;\n\nexport default createSubgraph(\u0022b\u0022, {\n  typeDefs: /* GraphQL */ \u0060\n    type Query {\n      productInB: Product\n    }\n\n    extend type Product @key(fields: \u0022id name\u0022) @key(fields: \u0022upc\u0022) {\n      id: ID @external\n      name: String @external\n      upc: String @external\n      price: Float!\n    }\n  \u0060,\n  resolvers: {\n    Query: {\n      productInB: () =\u003E {\n        return {\n          id: products[0].id,\n          name: products[0].name,\n          upc: products[0].upc,\n          price: products[0].price,\n        };\n      },\n    },\n    Product: {\n      __resolveReference: (\n        key:\n          | { id: string; name: string }\n          | {\n              upc: string;\n            },\n      ) =\u003E {\n        const product =\n          \u0022id\u0022 in key\n            ? products.find((p) =\u003E p.id === key.id \u0026\u0026 p.name === key.name)\n            : products.find((p) =\u003E p.upc === key.upc);\n\n        return product\n          ? {\n              id: product.id,\n              name: product.name,\n              upc: product.upc,\n              price: product.price,\n            }\n          : null;\n      },\n    },\n  },\n});\n"
+        },
+        {
+          "path": "data.ts",
+          "sha256": "b5e6d13f6753d6185a59b77dca2e4136a01f963ed310e9adec7cf47a32a93310",
+          "source": "export const products = [\n  {\n    id: \u0022p1\u0022,\n    pid: \u0022p1-pid\u0022,\n    price: 12.3,\n    upc: \u0022upc1\u0022,\n    name: \u0022p1-name\u0022,\n  },\n];\n"
+        }
+      ]
+    },
+    {
+      "id": "fed1-external-extension",
+      "cases": [
+        {
+          "id": "fed1-external-extension/000",
+          "query": "\n      query {\n        randomUser {\n          id\n          name\n        }\n        userById(id: \u0022u2\u0022) {\n          id\n          name\n          nickname\n        }\n      }\n    ",
+          "variables": null,
+          "hasExpectedData": true,
+          "expectedData": {
+            "randomUser": {
+              "id": "u1",
+              "name": "u1-name"
+            },
+            "userById": {
+              "id": "u2",
+              "name": "u2-name",
+              "nickname": "u2-nickname"
+            }
+          },
+          "hasExpectedErrors": false,
+          "expectsErrors": null
+        },
+        {
+          "id": "fed1-external-extension/001",
+          "query": "\n      query {\n        randomUser {\n          id\n          rid\n        }\n      }\n    ",
+          "variables": null,
+          "hasExpectedData": true,
+          "expectedData": {
+            "randomUser": {
+              "id": "u1",
+              "rid": "u1-rid"
+            }
+          },
+          "hasExpectedErrors": false,
+          "expectsErrors": null
+        },
+        {
+          "id": "fed1-external-extension/002",
+          "query": "\n      query {\n        randomUser {\n          id\n          rid\n          name\n        }\n      }\n    ",
+          "variables": null,
+          "hasExpectedData": true,
+          "expectedData": {
+            "randomUser": {
+              "id": "u1",
+              "rid": "u1-rid",
+              "name": "u1-name"
+            }
+          },
+          "hasExpectedErrors": false,
+          "expectsErrors": null
+        },
+        {
+          "id": "fed1-external-extension/003",
+          "query": "\n      query {\n        providedRandomUser {\n          id\n          rid\n          name\n        }\n      }\n    ",
+          "variables": null,
+          "hasExpectedData": true,
+          "expectedData": {
+            "providedRandomUser": {
+              "id": "u1",
+              "rid": "u1-rid",
+              "name": "u1-name"
+            }
+          },
+          "hasExpectedErrors": false,
+          "expectsErrors": null
+        }
+      ],
+      "sources": [
+        {
+          "name": "a",
+          "rawSdl": "\n    type Query {\n      randomUser: User\n      providedRandomUser: User @provides(fields: \u0022name\u0022)\n    }\n\n    extend type User @key(fields: \u0022id\u0022) {\n      id: ID! @external\n      name: String! @external\n      rid: ID\n    }\n  ",
+          "serviceSdl": "directive @key(fields: _FieldSet!, resolvable: Boolean = true) repeatable on OBJECT | INTERFACE\n\ndirective @requires(fields: _FieldSet!) on FIELD_DEFINITION\n\ndirective @provides(fields: _FieldSet!) on FIELD_DEFINITION\n\ndirective @external(reason: String) on OBJECT | FIELD_DEFINITION\n\ndirective @tag(name: String!) repeatable on FIELD_DEFINITION | OBJECT | INTERFACE | UNION | ARGUMENT_DEFINITION | SCALAR | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION\n\ndirective @extends on OBJECT | INTERFACE\n\ntype Query {\n  randomUser: User\n  providedRandomUser: User @provides(fields: \u0022name\u0022)\n  _entities(representations: [_Any!]!): [_Entity]!\n  _service: _Service!\n}\n\nextend type User\n  @key(fields: \u0022id\u0022)\n{\n  id: ID! @external\n  name: String! @external\n  rid: ID\n}\n\nscalar _FieldSet\n\nscalar _Any\n\ntype _Service {\n  sdl: String\n}\n\nunion _Entity = User"
+        },
+        {
+          "name": "b",
+          "rawSdl": "\n    type Query {\n      userById(id: ID): User\n    }\n\n    type User @key(fields: \u0022id\u0022) {\n      id: ID!\n      name: String!\n      nickname: String\n    }\n  ",
+          "serviceSdl": "directive @key(fields: _FieldSet!, resolvable: Boolean = true) repeatable on OBJECT | INTERFACE\n\ndirective @requires(fields: _FieldSet!) on FIELD_DEFINITION\n\ndirective @provides(fields: _FieldSet!) on FIELD_DEFINITION\n\ndirective @external(reason: String) on OBJECT | FIELD_DEFINITION\n\ndirective @tag(name: String!) repeatable on FIELD_DEFINITION | OBJECT | INTERFACE | UNION | ARGUMENT_DEFINITION | SCALAR | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION\n\ndirective @extends on OBJECT | INTERFACE\n\ntype Query {\n  userById(id: ID): User\n  _entities(representations: [_Any!]!): [_Entity]!\n  _service: _Service!\n}\n\ntype User\n  @key(fields: \u0022id\u0022)\n{\n  id: ID!\n  name: String!\n  nickname: String\n}\n\nscalar _FieldSet\n\nscalar _Any\n\ntype _Service {\n  sdl: String\n}\n\nunion _Entity = User"
+        }
+      ],
+      "fixtureModules": [
+        {
+          "path": "a.subgraph.ts",
+          "sha256": "045aca224bca37a7e08b81edbf88160bd6be7240a168dbf03f902316f824fb5a",
+          "source": "import { createSubgraph } from \u0022../../subgraph.js\u0022;\nimport { users } from \u0022./data.js\u0022;\n\nexport default createSubgraph(\u0022a\u0022, {\n  typeDefs: /* GraphQL */ \u0060\n    type Query {\n      randomUser: User\n      providedRandomUser: User @provides(fields: \u0022name\u0022)\n    }\n\n    extend type User @key(fields: \u0022id\u0022) {\n      id: ID! @external\n      name: String! @external\n      rid: ID\n    }\n  \u0060,\n  resolvers: {\n    Query: {\n      randomUser() {\n        return {\n          id: users[0].id,\n          rid: users[0].rid,\n        };\n      },\n      providedRandomUser() {\n        return {\n          id: users[0].id,\n          rid: users[0].rid,\n          name: users[0].name,\n        };\n      },\n    },\n    User: {\n      __resolveReference(key: { id: string }) {\n        const user = users.find((u) =\u003E u.id === key.id);\n\n        if (!user) {\n          return null;\n        }\n\n        return {\n          id: user.id,\n          rid: user.rid,\n        };\n      },\n      name(user: { name: string | undefined }) {\n        return user.name ?? \u0022never\u0022;\n      },\n    },\n  },\n});\n"
+        },
+        {
+          "path": "b.subgraph.ts",
+          "sha256": "f47a1d33c8a21a5e0d23fce11b73a8d6e86b36b6a29cb23304644046467f09cf",
+          "source": "import { createSubgraph } from \u0022../../subgraph.js\u0022;\nimport { users } from \u0022./data.js\u0022;\n\nexport default createSubgraph(\u0022b\u0022, {\n  typeDefs: /* GraphQL */ \u0060\n    type Query {\n      userById(id: ID): User\n    }\n\n    type User @key(fields: \u0022id\u0022) {\n      id: ID!\n      name: String!\n      nickname: String\n    }\n  \u0060,\n  resolvers: {\n    Query: {\n      userById: (_: {}, { id }: { id: string }) =\u003E {\n        const user = users.find((u) =\u003E u.id === id);\n\n        if (!user) {\n          return null;\n        }\n\n        return {\n          id: user.id,\n          name: user.name,\n          nickname: user.nickname,\n        };\n      },\n    },\n    User: {\n      __resolveReference: (key: { id: string }) =\u003E {\n        const user = users.find((u) =\u003E u.id === key.id);\n\n        if (!user) {\n          return null;\n        }\n\n        return {\n          id: user.id,\n          name: user.name,\n          nickname: user.nickname,\n        };\n      },\n    },\n  },\n});\n"
+        },
+        {
+          "path": "data.ts",
+          "sha256": "6d37b20b771a31f2219f84d9d6172394d6b52dac271d6dd6dbc9d86359f3445c",
+          "source": "export const users = [\n  {\n    id: \u0022u1\u0022,\n    rid: \u0022u1-rid\u0022,\n    name: \u0022u1-name\u0022,\n    nickname: \u0022u1-nickname\u0022,\n  },\n  {\n    id: \u0022u2\u0022,\n    rid: \u0022u2-rid\u0022,\n    name: \u0022u2-name\u0022,\n    nickname: \u0022u2-nickname\u0022,\n  },\n];\n"
+        }
+      ]
+    }
+  ]
+}

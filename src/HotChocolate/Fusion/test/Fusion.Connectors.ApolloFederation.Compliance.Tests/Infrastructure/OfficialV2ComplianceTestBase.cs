@@ -22,6 +22,7 @@ public abstract class OfficialV2ComplianceTestBase<TSuite> : ComplianceTestBase
 
 internal static class OfficialV2SuiteRun<TSuite>
 {
+    private static readonly TimeSpan s_caseTimeout = TimeSpan.FromSeconds(10);
     private static readonly object s_sync = new();
     private static Lazy<Task<IReadOnlyDictionary<string, ExceptionDispatchInfo?>>>? s_run;
 
@@ -35,8 +36,9 @@ internal static class OfficialV2SuiteRun<TSuite>
         {
             lock (s_sync)
             {
+                var cancellationToken = TestContext.Current.CancellationToken;
                 run = s_run ??= new Lazy<Task<IReadOnlyDictionary<string, ExceptionDispatchInfo?>>>(
-                    () => ExecuteSuiteAsync(buildGatewayAsync),
+                    () => ExecuteSuiteAsync(buildGatewayAsync, cancellationToken),
                     LazyThreadSafetyMode.ExecutionAndPublication);
             }
         }
@@ -50,7 +52,8 @@ internal static class OfficialV2SuiteRun<TSuite>
     }
 
     private static async Task<IReadOnlyDictionary<string, ExceptionDispatchInfo?>> ExecuteSuiteAsync(
-        Func<Task<FusionGateway>> buildGatewayAsync)
+        Func<Task<FusionGateway>> buildGatewayAsync,
+        CancellationToken cancellationToken)
     {
         var suite = AuditFixture.GetOfficialV2Manifest().Suites.Single(
             candidate => candidate.Id == AuditFixture.GetOfficialV2SuiteAttribute<TSuite>().Id);
@@ -79,10 +82,14 @@ internal static class OfficialV2SuiteRun<TSuite>
             {
                 try
                 {
+                    using var timeout = CancellationTokenSource.CreateLinkedTokenSource(
+                        cancellationToken);
+                    timeout.CancelAfter(s_caseTimeout);
+
                     await ComplianceTestBase.ExecuteAndAssertAsync(
                         gateway,
                         testCase,
-                        CancellationToken.None).ConfigureAwait(false);
+                        timeout.Token).ConfigureAwait(false);
                     outcomes.Add(testCase.Id, null);
                 }
                 catch (Exception exception)

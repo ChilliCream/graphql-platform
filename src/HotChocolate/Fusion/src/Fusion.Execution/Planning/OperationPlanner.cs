@@ -1044,7 +1044,21 @@ public sealed partial class OperationPlanner
             backlog,
             workItem.Conditions,
             workItem.AllowSourceSchemaReentry,
-            workItem.SourceSchemaNodePolicy);
+            workItem.SourceSchemaNodePolicy,
+            out var unresolvedRequirements);
+
+        // A self-cyclic lookup can proceed only when an existing step supplies its key.
+        // If requirement inlining leaves the identical selection unresolved, this direct
+        // branch made no progress. The parent-path alternatives were enqueued separately.
+        if (unresolvedRequirements is not null
+            && PlanQueue.IsSelfCyclicLookup(workItem, lookup)
+            && SyntaxComparer.BySyntax.Equals(
+                unresolvedRequirements,
+                workItem.SelectionSet.Node))
+        {
+            return;
+        }
+
         PlanSelections(
             workItem,
             current,
@@ -1229,9 +1243,10 @@ public sealed partial class OperationPlanner
         Lookup lookup,
         int lookupStepDepth,
         Backlog backlog,
-        ExecutionNodeCondition[]? conditions = null,
-        bool allowSourceSchemaReentry = false,
-        SourceSchemaNodePlanningPolicy? sourceSchemaNodePolicy = null)
+        ExecutionNodeCondition[]? conditions,
+        bool allowSourceSchemaReentry,
+        SourceSchemaNodePlanningPolicy? sourceSchemaNodePolicy,
+        out SelectionSetNode? unresolvedRequirements)
     {
         var processed = new HashSet<string>();
         var lookupStepId = current.Steps.NextId();
@@ -1411,6 +1426,8 @@ public sealed partial class OperationPlanner
                 }
             }
         }
+
+        unresolvedRequirements = selectionSet;
 
         // if we have still selections left we need to add them to the backlog. A nested
         // object/list leftover is re-rooted at its own entity type so a requirement that
@@ -1749,7 +1766,9 @@ public sealed partial class OperationPlanner
                 workItem.EstimatedDepth,
                 backlog,
                 workItem.Conditions,
-                sourceSchemaNodePolicy: workItem.SourceSchemaNodePolicy);
+                allowSourceSchemaReentry: false,
+                workItem.SourceSchemaNodePolicy,
+                out _);
             backlog = current.Backlog;
 
             if (current.Steps.ById(stepConsumer.StepId) is not OperationPlanStep updatedCurrentStep)
@@ -1804,7 +1823,7 @@ public sealed partial class OperationPlanner
         var sourceField = compositeField.Sources[current.SchemaName];
         var requirements = mergeWithExistingStep
             ? existingStep.Requirements
-            : [];
+            : ImmutableDictionary<string, OperationRequirement>.Empty;
         var arguments = new List<ArgumentNode>(workItem.Selection.Node.Arguments);
 
         for (var i = 0; i < sourceField.Requirements!.Arguments.Length; i++)

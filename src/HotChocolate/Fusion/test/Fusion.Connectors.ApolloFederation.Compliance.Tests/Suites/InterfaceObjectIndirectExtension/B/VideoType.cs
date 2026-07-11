@@ -15,7 +15,8 @@ public sealed class VideoType : ObjectType<Video>
     {
         descriptor
             .ExtendServiceType()
-            .Key("id");
+            .Key("id")
+            .ResolveReferenceWith(_ => ResolveById(default!));
 
         descriptor.Field(v => v.Id).Type<NonNullType<IdType>>();
 
@@ -24,4 +25,6 @@ public sealed class VideoType : ObjectType<Video>
             .Type<StringType>()
             .Resolve(_ => BData.AuthorName);
     }
+
+    private static Video ResolveById(string id) => new() { Id = id };
 }

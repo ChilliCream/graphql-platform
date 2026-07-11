@@ -251,7 +251,7 @@ internal sealed class PlanQueue(FusionSchemaDefinition schema)
     /// requires as input. Such a lookup cannot make progress on its own; the key must be supplied
     /// from the parent path instead.
     /// </summary>
-    private static bool IsSelfCyclicLookup(OperationWorkItem workItem, Lookup lookup)
+    internal static bool IsSelfCyclicLookup(OperationWorkItem workItem, Lookup lookup)
     {
         var requested = workItem.SelectionSet.Node.Selections;
 

@@ -13,9 +13,12 @@ public sealed class MediaInterfaceType : InterfaceType<IMedia>
     {
         descriptor.Name("Media");
         descriptor
-            .Key("id");
+            .Key("id")
+            .ResolveReferenceWith(_ => ResolveById(default!));
 
         descriptor.Field(m => m.Id).Type<NonNullType<IdType>>();
         descriptor.Field(m => m.Title).Type<StringType>();
     }
+
+    private static IMedia ResolveById(string id) => AData.VideoById(id);
 }
