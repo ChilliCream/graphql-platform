@@ -330,6 +330,13 @@ public sealed class OperationCompiler
                 ? _typeNameField
                 : typeContext.Fields.GetField(first.Node.Name.Value, allowInaccessibleFields: true);
 
+            if (field.Type.NamedType() is FusionInterfaceTypeDefinition interfaceType
+                && interfaceType.TypeNameLookupTypes.IsDefault)
+            {
+                interfaceType.PrepareTypeNameLookupTypes(
+                    _schema.GetPossibleTypes(interfaceType));
+            }
+
             var selection = new Selection(
                 ++lastId,
                 responseName,

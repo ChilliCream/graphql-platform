@@ -133,7 +133,7 @@ internal sealed class MemoryArena : IMemoryArena, IDisposable
 
         while (true)
         {
-            var state = Interlocked.Read(ref _state);
+            var state = Volatile.Read(ref _state);
             var pageIndex = (int)(state >> 32);
             var offset = (int)state;
 
@@ -190,7 +190,7 @@ internal sealed class MemoryArena : IMemoryArena, IDisposable
             // Only roll if no other thread has already advanced past the page we observed.
             // The page index changes only here under the lock, so this comparison is stable.
             if (Volatile.Read(ref _phase) != Disposed
-                && (int)(Interlocked.Read(ref _state) >> 32) == observedPageIndex)
+                && (int)(Volatile.Read(ref _state) >> 32) == observedPageIndex)
             {
                 var newIndex = observedPageIndex + 1;
 
@@ -221,12 +221,16 @@ internal sealed class MemoryArena : IMemoryArena, IDisposable
     }
 
     /// <summary>
-    /// Rents a <see cref="MemorySegment"/> table of at least <paramref name="minLength"/> entries.
+    /// Rents a cleared <see cref="MemorySegment"/> table of at least
+    /// <paramref name="minLength"/> entries.
     /// The table's lifetime is bound to the arena: the arena reclaims it when it is disposed, so the
     /// caller must not return the table itself.
     /// </summary>
     /// <param name="minLength">The minimum number of entries the table must hold.</param>
-    /// <returns>A table of at least <paramref name="minLength"/> entries.</returns>
+    /// <returns>
+    /// A table of at least <paramref name="minLength"/> entries, all initialized to their default
+    /// value.
+    /// </returns>
     public MemorySegment[] RentSegmentTable(int minLength)
     {
         var table = MemorySegmentTablePool.Rent(minLength);

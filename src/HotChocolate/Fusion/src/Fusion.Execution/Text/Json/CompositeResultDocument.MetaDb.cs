@@ -28,9 +28,6 @@ public sealed partial class CompositeResultDocument
 
             log.MetaDbCreated(2, Cursor.RowsPerChunkFor(0), 1);
 
-            // Clear pooled slots so unallocated chunks are recognizable by a null buffer.
-            chunks.AsSpan().Clear();
-
             // Rent the first chunk now to avoid branching on first append. The document always
             // starts at chunk 0 (Size1K) and ramps up as it grows.
             var chunkBytes = 1 << (10 + (int)Cursor.ChunkSizeFor(0));

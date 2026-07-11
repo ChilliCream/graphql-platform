@@ -57,17 +57,34 @@ public class MemorySegmentTablePoolTests
     }
 
     [Fact]
-    public void Rent_Should_FallBackToSharedPool_When_LengthExceedsBucketRange()
+    public void Rent_Should_ReturnClearedTable_When_ReusingFallbackTable()
     {
-        // arrange & act
-        // 256 is above the largest bucket length of 128, so the shared pool serves it.
+        // arrange
+        // 256 is above the largest bucket length of 128, so the private fallback pool serves it.
         var table = MemorySegmentTablePool.Rent(256);
+        Array.Fill(table, new MemorySegment(new byte[8], 1, 2));
+        MemorySegmentTablePool.Return(table);
 
         // act
-        var ex = Record.Exception(() => MemorySegmentTablePool.Return(table));
+        var recycled = MemorySegmentTablePool.Rent(256);
 
-        // assert
-        Assert.True(table.Length >= 256);
-        Assert.Null(ex);
+        try
+        {
+            // assert
+            Assert.True(recycled.Length >= 256);
+            Assert.Same(table, recycled);
+            Assert.All(
+                recycled,
+                static segment =>
+                {
+                    Assert.Null(segment.Buffer);
+                    Assert.Equal(0, segment.Offset);
+                    Assert.Equal(0, segment.Length);
+                });
+        }
+        finally
+        {
+            MemorySegmentTablePool.Return(recycled);
+        }
     }
 }

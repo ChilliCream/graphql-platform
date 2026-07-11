@@ -50,9 +50,6 @@ public sealed partial class SourceResultDocument
 
             log.MetaDbCreated(1, estimatedRows, 1);
 
-            // Clear pooled slots so unallocated chunks are recognizable by a null buffer.
-            chunks.AsSpan().Clear();
-
             // Rent the first chunk now to avoid branching on first append. The document always
             // starts at chunk 0 (Size1K) and ramps up as it grows.
             chunks[0] = arena.Rent(1 << (10 + (int)Cursor.ChunkSizeFor(0)));

@@ -27,6 +27,11 @@ const PLATFORM_SECTIONS = [
     title: "Ecosystem",
     description: "An Ecosystem You Trust and Love.",
   },
+  {
+    href: "/platform/agentic-coding",
+    title: "Agentic Coding",
+    description: "Consistently Good Code, from Any Agent.",
+  },
 ];
 
 export default function PlatformPage() {
