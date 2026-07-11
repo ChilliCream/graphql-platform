@@ -3,6 +3,7 @@ using System.Text;
 using System.Text.Json;
 using HotChocolate.Buffers;
 using HotChocolate.Execution;
+using HotChocolate.Text.Json;
 using HotChocolate.Transport.Formatters;
 
 namespace HotChocolate.Fusion.Text.Json;
@@ -465,7 +466,14 @@ public class CompositeResultDocumentTests : FusionTestBase
         {
             element.SetObjectValue(nodesSelectionSet);
             var name = element.GetProperty("name");
+            var propertyRow = compositeResult._metaDb.Get(name.Cursor - 1);
+            Assert.Equal(name.AssertSelection().Id, propertyRow.OperationReferenceId);
+
             name.SetLeafValue(sourceResult.Root.GetProperty("name" + ++i));
+
+            var valueRow = compositeResult._metaDb.Get(name.Cursor);
+            Assert.Equal(0, valueRow.OperationReferenceId);
+            Assert.Equal(ElementTokenType.String, valueRow.TokenType);
         }
 
         // act
@@ -482,6 +490,164 @@ public class CompositeResultDocumentTests : FusionTestBase
         // assert
         var json = Encoding.UTF8.GetString(buffer.WrittenSpan);
         json.MatchSnapshot();
+    }
+
+    [Theory]
+    [InlineData(false, "{\"productBySlug\":{\"id\":[null,true,false]}}")]
+    [InlineData(
+        true,
+        "{\n  \"productBySlug\": {\n    \"id\": [\n      null,\n      true,\n      false\n    ]\n  }\n}")]
+    public void WriteDataTo_Should_PreserveNestedValues_When_RowsCrossChunkBoundaries(
+        bool indented,
+        string expected)
+    {
+        var schema = CreateCompositeSchema();
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+                productBySlug(slug: "1") {
+                    id
+                }
+            }
+            """);
+        var document = new CompositeResultDocument(CommonTestExtensions.CreateArena(), plan.Operation, 0);
+        var rootValue = document.Data.GetProperty("productBySlug");
+        var rootSelection = rootValue.AssertSelection();
+        var childSelectionSet = plan.Operation.GetSelectionSet(rootSelection);
+        Assert.Equal(1, childSelectionSet.Selections.Length);
+        var childSelection = childSelectionSet.Selections[0];
+        ref var metaDb = ref document._metaDb;
+
+        while (metaDb.NextCursor.Index < 49)
+        {
+            metaDb.AppendNull(parentRow: 0);
+        }
+
+        var objectStart = metaDb.AppendStartObject(
+            rootValue.Cursor.Value,
+            childSelectionSet.Id,
+            propertyCount: 1,
+            flags: CompositeResultDocument.ElementFlags.None);
+        var childProperty = metaDb.AppendEmptyPropertyWithNullValue(
+            objectStart.Value,
+            childSelection.Id,
+            flags: CompositeResultDocument.ElementFlags.None);
+        var childValue = childProperty + 1;
+        metaDb.AppendEndObject();
+
+        var arrayBoundary = CompositeResultDocument.Cursor.From(chunkIndex: 1, rowWithinChunk: 101);
+
+        while (metaDb.NextCursor.Index < arrayBoundary.Index)
+        {
+            metaDb.AppendNull(parentRow: 0);
+        }
+
+        var arrayStart = metaDb.AppendStartArray(
+            childValue.Value,
+            length: 3,
+            flags: CompositeResultDocument.ElementFlags.None);
+        metaDb.AppendNull(arrayStart.Value);
+        metaDb.Append(ElementTokenType.True, parentRow: arrayStart.Value);
+        metaDb.Append(ElementTokenType.False, parentRow: arrayStart.Value);
+        metaDb.AppendEndArray();
+
+        metaDb.Replace(
+            childValue,
+            ElementTokenType.Reference,
+            location: arrayStart.Value,
+            parentRow: childProperty.Value);
+        metaDb.Replace(
+            rootValue.Cursor,
+            ElementTokenType.Reference,
+            location: objectStart.Value,
+            parentRow: (rootValue.Cursor - 1).Value);
+
+        using var buffer = new PooledArrayWriter();
+        var writer = new JsonWriter(
+            buffer,
+            new JsonWriterOptions { Indented = indented, SkipValidation = true });
+
+        document.WriteDataTo(writer);
+
+        Assert.Equal(expected, Encoding.UTF8.GetString(buffer.WrittenSpan));
+    }
+
+    [Fact]
+    public void WriteDataTo_Should_SkipInternalAndExcludedProperties_When_SkippedPairCrossesChunkBoundary()
+    {
+        const int propertyCount = 30;
+        var schema = CreateCompositeSchema();
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+                productBySlug(slug: "1") {
+                    id
+                }
+            }
+            """);
+        var document = new CompositeResultDocument(CommonTestExtensions.CreateArena(), plan.Operation, 0);
+        var rootValue = document.Data.GetProperty("productBySlug");
+        var childSelectionSet = plan.Operation.GetSelectionSet(rootValue.AssertSelection());
+        Assert.Equal(1, childSelectionSet.Selections.Length);
+        var childSelection = childSelectionSet.Selections[0];
+        ref var metaDb = ref document._metaDb;
+
+        while (metaDb.NextCursor.Index < 5)
+        {
+            metaDb.AppendNull(parentRow: 0);
+        }
+
+        var objectStart = metaDb.AppendStartObject(
+            rootValue.Cursor.Value,
+            childSelectionSet.Id,
+            propertyCount,
+            CompositeResultDocument.ElementFlags.None);
+
+        for (var i = 0; i < propertyCount; i++)
+        {
+            var flags = i switch
+            {
+                22 => CompositeResultDocument.ElementFlags.IsInternal,
+                23 => CompositeResultDocument.ElementFlags.IsExcluded,
+                _ => CompositeResultDocument.ElementFlags.None
+            };
+
+            metaDb.AppendEmptyPropertyWithNullValue(
+                objectStart.Value,
+                childSelection.Id,
+                flags);
+        }
+
+        metaDb.AppendEndObject();
+        metaDb.Replace(
+            rootValue.Cursor,
+            ElementTokenType.Reference,
+            location: objectStart.Value,
+            parentRow: (rootValue.Cursor - 1).Value);
+
+        using var buffer = new PooledArrayWriter();
+        var writer = new JsonWriter(
+            buffer,
+            new JsonWriterOptions { Indented = false, SkipValidation = true });
+
+        document.WriteDataTo(writer);
+
+        var expected = new StringBuilder("{\"productBySlug\":{");
+
+        for (var i = 0; i < propertyCount - 2; i++)
+        {
+            if (i > 0)
+            {
+                expected.Append(',');
+            }
+
+            expected.Append("\"id\":null");
+        }
+
+        expected.Append("}}");
+        Assert.Equal(expected.ToString(), Encoding.UTF8.GetString(buffer.WrittenSpan));
     }
 
     [Fact]

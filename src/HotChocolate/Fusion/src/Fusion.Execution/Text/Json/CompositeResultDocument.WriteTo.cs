@@ -126,34 +126,48 @@ public sealed partial class CompositeResultDocument : IRawJsonFormatter
         {
             Debug.Assert(startRow.TokenType is ElementTokenType.StartObject);
 
-            var current = start + 1;
-            var end = start + startRow.NumberOfRows;
+            var remainingRows = startRow.NumberOfRows - 1;
+            var operation = document._operation;
 
             writer.WriteStartObject();
 
-            while (current < end)
+            if (remainingRows == 0)
             {
-                var row = document._metaDb.Get(current);
-                Debug.Assert(row.TokenType is ElementTokenType.PropertyName);
+                writer.WriteEndObject();
+                return;
+            }
 
-                if ((ElementFlags.IsInternal & row.Flags) == ElementFlags.IsInternal
-                    || (ElementFlags.IsExcluded & row.Flags) == ElementFlags.IsExcluded)
+            var reader = document._metaDb.CreateSequentialReader(start + 1);
+
+            while (remainingRows > 0)
+            {
+                var property = reader.ReadProperty();
+
+                if ((ElementFlags.IsInternal & property.Flags) == ElementFlags.IsInternal
+                    || (ElementFlags.IsExcluded & property.Flags) == ElementFlags.IsExcluded)
                 {
-                    // skip name+value
-                    current += 2;
+                    remainingRows -= 2;
+
+                    if (remainingRows > 0)
+                    {
+                        reader.Advance(1);
+                    }
+
                     continue;
                 }
 
-                // property name
-                writer.WritePropertyName(document.ReadRawValue(row));
+                writer.WritePropertyName(
+                    operation
+                        .GetSelectionById(property.SelectionId)
+                        .Utf8ResponseName);
 
-                // property value
-                current++;
-                row = document._metaDb.Get(current);
-                WriteValue(current, row);
+                WriteValue(reader.Cursor, reader.PeekRow());
+                remainingRows -= 2;
 
-                // next property (move past value)
-                current++;
+                if (remainingRows > 0)
+                {
+                    reader.Advance(1);
+                }
             }
 
             writer.WriteEndObject();
@@ -163,16 +177,27 @@ public sealed partial class CompositeResultDocument : IRawJsonFormatter
         {
             Debug.Assert(startRow.TokenType is ElementTokenType.StartArray);
 
-            var current = start + 1;
-            var end = start + startRow.NumberOfRows;
+            var remainingRows = startRow.NumberOfRows - 1;
 
             writer.WriteStartArray();
 
-            while (current < end)
+            if (remainingRows == 0)
             {
-                var row = document._metaDb.Get(current);
-                WriteValue(current, row);
-                current++;
+                writer.WriteEndArray();
+                return;
+            }
+
+            var reader = document._metaDb.CreateSequentialReader(start + 1);
+
+            while (remainingRows > 0)
+            {
+                WriteValue(reader.Cursor, reader.PeekRow());
+                remainingRows--;
+
+                if (remainingRows > 0)
+                {
+                    reader.Advance(1);
+                }
             }
 
             writer.WriteEndArray();
