@@ -497,6 +497,20 @@ public readonly partial struct SourceResultElement
     }
 
     /// <summary>
+    /// Tries to get the raw UTF-8 bytes of a JSON string value that contains no escape sequences.
+    /// </summary>
+    /// <param name="utf8Value">Receives the raw UTF-8 span when successful.</param>
+    /// <returns>
+    /// <see langword="false"/> when the value is not a string, contains escape sequences,
+    /// or is not backed by contiguous memory.
+    /// </returns>
+    internal bool TryGetRawStringValue(out ReadOnlySpan<byte> utf8Value)
+    {
+        CheckValidInstance();
+        return _parent.TryGetRawStringValue(_cursor, out utf8Value);
+    }
+
+    /// <summary>
     /// Compares the string value of this element to <paramref name="text"/> without allocation.
     /// </summary>
     public bool ValueEquals(string? text)

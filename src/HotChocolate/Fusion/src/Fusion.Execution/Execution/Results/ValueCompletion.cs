@@ -1,11 +1,14 @@
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
+using System.Text;
 using System.Text.Json;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Types;
+using HotChocolate.Fusion.Types.Collections;
 using HotChocolate.Fusion.Text.Json;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -1057,8 +1060,99 @@ TryCompleteList_MoveNext:
             return (IComplexTypeDefinition)namedType;
         }
 
-        var typeName = data.GetProperty(IntrospectionFieldNames.TypeNameSpan).AssertString();
+        var typeNameElement = data.GetProperty(IntrospectionFieldNames.TypeNameSpan);
+
+        // Small implementer sets resolve the type by comparing the raw UTF-8 __typename
+        // bytes, which is allocation free. Beyond 4 candidates the linear scan loses to
+        // the dictionary lookup, so larger sets, escaped values, non-string values, and
+        // values that span document chunks use the existing fallback below.
+        if (TryResolveType(typeNameElement, namedType, out var resolvedType))
+        {
+            return resolvedType;
+        }
+
+        var typeName = typeNameElement.AssertString();
         return _schema.Types.GetType<IObjectTypeDefinition>(typeName);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal static bool TryResolveType(
+        SourceResultElement typeNameElement,
+        ITypeDefinition abstractType,
+        [NotNullWhen(true)] out FusionObjectTypeDefinition? objectType)
+    {
+        // Fusion type names are validated GraphQL names, so ASCII equality is equivalent to
+        // comparing their UTF-8 encoding with ordinal semantics.
+        if (abstractType is FusionUnionTypeDefinition unionType)
+        {
+            var possibleTypes = unionType.Types;
+
+            if (possibleTypes.Count is > 0
+                and <= FusionInterfaceTypeDefinition.MaxTypeNameLookupTypes)
+            {
+                return TryResolveUnionType(typeNameElement, possibleTypes, out objectType);
+            }
+        }
+        else if (abstractType is FusionInterfaceTypeDefinition interfaceType)
+        {
+            var possibleTypes = interfaceType.TypeNameLookupTypes;
+
+            if (!possibleTypes.IsDefaultOrEmpty)
+            {
+                return TryResolveInterfaceType(typeNameElement, possibleTypes, out objectType);
+            }
+        }
+
+        objectType = null;
+        return false;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool TryResolveUnionType(
+        SourceResultElement typeNameElement,
+        FusionObjectTypeDefinitionCollection possibleTypes,
+        [NotNullWhen(true)] out FusionObjectTypeDefinition? objectType)
+    {
+        if (typeNameElement.TryGetRawStringValue(out var typeName))
+        {
+            for (var i = 0; i < possibleTypes.Count; i++)
+            {
+                var possibleType = possibleTypes[i];
+
+                if (Ascii.Equals(typeName, possibleType.Name))
+                {
+                    objectType = possibleType;
+                    return true;
+                }
+            }
+        }
+
+        objectType = null;
+        return false;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool TryResolveInterfaceType(
+        SourceResultElement typeNameElement,
+        ImmutableArray<FusionObjectTypeDefinition> possibleTypes,
+        [NotNullWhen(true)] out FusionObjectTypeDefinition? objectType)
+    {
+        if (typeNameElement.TryGetRawStringValue(out var typeName))
+        {
+            for (var i = 0; i < possibleTypes.Length; i++)
+            {
+                var possibleType = possibleTypes[i];
+
+                if (Ascii.Equals(typeName, possibleType.Name))
+                {
+                    objectType = possibleType;
+                    return true;
+                }
+            }
+        }
+
+        objectType = null;
+        return false;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
