@@ -16,9 +16,8 @@ public enum FauxFlagsKind
     Second = 2
 }
 
-public sealed class FlagsAttribute : Attribute
-{
-}
+[AttributeUsage(AttributeTargets.Enum)]
+public sealed class FlagsAttribute : Attribute;
 
 public class Animal
 {
