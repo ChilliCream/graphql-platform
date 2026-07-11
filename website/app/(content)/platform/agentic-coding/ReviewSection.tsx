@@ -456,7 +456,7 @@ export function ReviewSection() {
   const approved = demo.status !== "review";
 
   return (
-    <section className="py-12">
+    <section id="review" className="scroll-mt-24 py-12">
       <SectionHeading
         align="center"
         eyebrow="Review"

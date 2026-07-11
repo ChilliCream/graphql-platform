@@ -267,7 +267,7 @@ const SKILLS = [
  */
 function SkillsSection() {
   return (
-    <section className="py-12">
+    <section id="skills" className="scroll-mt-24 py-12">
       <SectionHeading
         align="center"
         eyebrow="Skills"
@@ -523,7 +523,7 @@ export default function AgenticCodingPage() {
         {/* The two guardrails behind the consistency claim: a known shape to
             fill and feedback before the merge. Side by side because they
             answer the same question from two directions. */}
-        <section className="py-12">
+        <section id="patterns" className="scroll-mt-24 py-12">
           <div className="grid grid-cols-1 items-stretch gap-5 lg:grid-cols-2">
             <PatternsTile />
             <FeedbackTile />

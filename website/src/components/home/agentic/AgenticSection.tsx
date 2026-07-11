@@ -428,20 +428,25 @@ function StartNowPanel() {
 
 interface Facet {
   readonly heading: string;
+  /** Anchor of the related section on the agentic-coding page. */
+  readonly href: string;
   readonly illustration: ReactNode;
 }
 
 const FACETS: readonly Facet[] = [
   {
     heading: "Keep the time your agent saves you.",
+    href: "/platform/agentic-coding#review",
     illustration: <ReviewFacet />,
   },
   {
     heading: "Best practices your agent follows.",
+    href: "/platform/agentic-coding#patterns",
     illustration: <PatternsFacet />,
   },
   {
     heading: "One reviewed skill teaches every agent.",
+    href: "/platform/agentic-coding#skills",
     illustration: <SkillFacet />,
   },
 ];
@@ -491,15 +496,16 @@ export function AgenticSection() {
 
         <div className="mt-12 grid grid-cols-1 gap-5 sm:mt-14 lg:grid-cols-3">
           {FACETS.map((facet) => (
-            <div
+            <Link
               key={facet.heading}
+              href={facet.href}
               className="border-cc-card-border bg-cc-surface hover:border-cc-card-border-hover flex flex-col gap-4 rounded-3xl border p-5 transition-colors sm:p-6"
             >
               <h3 className="font-heading text-cc-heading text-h6 leading-snug font-semibold">
                 {facet.heading}
               </h3>
               <div className="min-w-0">{facet.illustration}</div>
-            </div>
+            </Link>
           ))}
         </div>
       </RevealOnScroll>
