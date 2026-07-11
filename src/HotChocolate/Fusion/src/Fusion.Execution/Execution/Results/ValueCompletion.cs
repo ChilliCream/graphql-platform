@@ -258,6 +258,13 @@ internal sealed class ValueCompletion
         }
 
         var concreteType = _schema.Types.GetType<IObjectTypeDefinition>(typeName.AssertString());
+
+        if (!parentSelection.IsInternal
+            && concreteType is IInaccessibleProvider { IsInaccessible: true })
+        {
+            _store.Result.RequireNullMarkerFinalization();
+        }
+
         var concreteSelectionSet = parentSelection.GetSelectionSet(concreteType)!;
         _store.Result.UpgradeObject(target, concreteSelectionSet);
     }
@@ -403,6 +410,62 @@ internal sealed class ValueCompletion
 
             _store.RemovePocketedError(path);
         }
+    }
+
+    public void FinalizeInaccessibleRuntimeTypes(CompositeResultElement resultData)
+    {
+        if (!_store.Result.RequiresNullMarkerFinalization)
+        {
+            return;
+        }
+
+        Visit(resultData, isPublic: true);
+        _store.Result.CompleteNullMarkerFinalization();
+
+        static void Visit(CompositeResultElement current, bool isPublic)
+        {
+            if (!isPublic || current.IsNullOrInvalidated || current.IsNullMarker)
+            {
+                return;
+            }
+
+            switch (current.ValueKind)
+            {
+                case JsonValueKind.Object:
+                    if (isPublic
+                        && current.Type?.NamedType().IsAbstractType() == true
+                        && current.SelectionSet?.Type is IInaccessibleProvider { IsInaccessible: true })
+                    {
+                        SetNullMarker(current);
+                        return;
+                    }
+
+                    foreach (var property in current.EnumerateObject())
+                    {
+                        Visit(property.Value, !property.Value.IsInternal);
+                    }
+                    break;
+
+                case JsonValueKind.Array:
+                    foreach (var element in current.EnumerateArray())
+                    {
+                        Visit(element, isPublic);
+                    }
+                    break;
+            }
+        }
+    }
+
+    private static void SetNullMarker(CompositeResultElement result)
+    {
+        var current = result;
+
+        while (!current.IsRoot && !current.IsNullable)
+        {
+            current = current.Parent;
+        }
+
+        current.SetNullMarker();
     }
 
     /// <summary>
@@ -1182,12 +1245,20 @@ TryCompleteList_MoveNext:
         ResultSelectionSet? resultSelectionSet)
     {
         var isOpaque = resultSelectionSet?.ProducesOpaqueElements ?? false;
+        var objectType = GetType(type, source, isOpaque);
+
+        if (!selection.IsInternal
+            && objectType is IInaccessibleProvider { IsInaccessible: true })
+        {
+            _store.Result.RequireNullMarkerFinalization();
+        }
+
         return TryCompleteObjectValue(
             source,
             target,
             errorTrie,
             selection,
-            GetType(type, source, isOpaque),
+            objectType,
             depth,
             resultSelectionSet);
     }

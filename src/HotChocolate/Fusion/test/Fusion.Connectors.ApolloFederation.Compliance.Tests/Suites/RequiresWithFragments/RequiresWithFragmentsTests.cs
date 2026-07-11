@@ -17,4 +17,19 @@ public sealed class RequiresWithFragmentsTests
     [Trait("Category", "OfficialV2")]
     public Task OfficialCase_Should_MatchExpectedResult_When_Executed(string caseId)
         => RunOfficialV2CaseAsync(caseId);
+
+    [Fact]
+    public Task Execute_Should_NotMaskPublicAncestor_When_InaccessibleAbstractValueIsInternalOnly()
+        => RunAsync(
+            """
+            {
+              b {
+                requirer
+              }
+            }
+            """,
+            """
+            {"b":{"requirer":"b1-foo_requirer"}}
+            """,
+            expectsErrors: false);
 }

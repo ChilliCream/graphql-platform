@@ -105,7 +105,7 @@ public sealed partial class CompositeResultDocument
         {
             Debug.Assert(parentRow is >= 0 and <= 0x1FFFFFFF);
             Debug.Assert(selectionId is >= 0 and <= 0x7FFF);
-            Debug.Assert((byte)flags <= 127);
+            Debug.Assert((int)flags is >= 0 and <= DbRow.FlagsMask);
 
             var (chunk, byteOffset, cursor) = ReserveRow();
 
@@ -120,7 +120,7 @@ public sealed partial class CompositeResultDocument
                 ref Unsafe.Add(ref row, 4),
                 selectionId
                 | ((int)OperationReferenceType.Selection << 15)
-                | ((int)flags << 17));
+                | (((int)flags & DbRow.FlagsMask) << DbRow.FlagsShift));
 
             // ints 2..3 must be zero (int 4 is written directly below)
             Unsafe.InitBlockUnaligned(ref Unsafe.Add(ref row, 8), 0, 8);
@@ -139,7 +139,7 @@ public sealed partial class CompositeResultDocument
         {
             Debug.Assert(parentRow is >= 0 and <= 0x1FFFFFFF);
             Debug.Assert(selectionId is >= 0 and <= 0x7FFF);
-            Debug.Assert((byte)flags <= 127);
+            Debug.Assert((int)flags is >= 0 and <= DbRow.FlagsMask);
 
             var next = _next;
             var byteOffset = next.ByteOffset;
@@ -159,7 +159,7 @@ public sealed partial class CompositeResultDocument
                     ref Unsafe.Add(ref row0, 4),
                     selectionId
                     | ((int)OperationReferenceType.Selection << 15)
-                    | ((int)flags << 17));
+                    | (((int)flags & DbRow.FlagsMask) << DbRow.FlagsShift));
                 Unsafe.InitBlockUnaligned(ref Unsafe.Add(ref row0, 8), 0, 8);
                 // int 4: PropertyName token
                 Unsafe.WriteUnaligned(
@@ -187,7 +187,7 @@ public sealed partial class CompositeResultDocument
             Debug.Assert(parentRow is >= 0 and <= 0x1FFFFFFF);
             Debug.Assert(selectionSetId is >= 0 and <= 0x7FFF);
             Debug.Assert(propertyCount is >= 0 and <= 0x0FFFFFFF); // room for (count*2)+1 in 29 bits
-            Debug.Assert((byte)flags <= 127);
+            Debug.Assert((int)flags is >= 0 and <= DbRow.FlagsMask);
 
             var (chunk, byteOffset, cursor) = ReserveRow();
 
@@ -202,7 +202,7 @@ public sealed partial class CompositeResultDocument
                 ref Unsafe.Add(ref row, 4),
                 selectionSetId
                 | ((int)OperationReferenceType.SelectionSet << 15)
-                | ((int)flags << 17));
+                | (((int)flags & DbRow.FlagsMask) << DbRow.FlagsShift));
 
             // int 2: sizeOrLength = property count
             Unsafe.WriteUnaligned(ref Unsafe.Add(ref row, 8), propertyCount);
@@ -224,7 +224,7 @@ public sealed partial class CompositeResultDocument
         {
             Debug.Assert(parentRow is >= 0 and <= 0x1FFFFFFF);
             Debug.Assert(length is >= 0 and <= int.MaxValue);
-            Debug.Assert((byte)flags <= 127);
+            Debug.Assert((int)flags is >= 0 and <= DbRow.FlagsMask);
 
             var (chunk, byteOffset, cursor) = ReserveRow();
 
@@ -237,7 +237,7 @@ public sealed partial class CompositeResultDocument
             // int 1: flags only (no OpRefId / no OpRefType for arrays)
             Unsafe.WriteUnaligned(
                 ref Unsafe.Add(ref row, 4),
-                (int)flags << 17);
+                ((int)flags & DbRow.FlagsMask) << DbRow.FlagsShift);
 
             // int 2: sizeOrLength = length
             Unsafe.WriteUnaligned(ref Unsafe.Add(ref row, 8), length);
@@ -426,6 +426,7 @@ public sealed partial class CompositeResultDocument
             ElementFlags flags = ElementFlags.None)
         {
             AssertValidCursor(cursor);
+            Debug.Assert((int)flags is >= 0 and <= DbRow.FlagsMask);
 
             ref var row = ref RowRef(cursor);
 
@@ -434,7 +435,7 @@ public sealed partial class CompositeResultDocument
                 ref Unsafe.Add(ref row, DbRow.SelectionAndFlagsOffset),
                 operationReferenceId
                 | ((int)operationReferenceType << 15)
-                | ((int)flags << 17));
+                | (((int)flags & DbRow.FlagsMask) << DbRow.FlagsShift));
 
             // int 2: SizeOrLength (full 32 bits; preserves the sign bit / UnknownSize sentinel)
             Unsafe.WriteUnaligned(ref Unsafe.Add(ref row, DbRow.SizeOffset), sizeOrLength);
@@ -546,21 +547,22 @@ public sealed partial class CompositeResultDocument
             AssertValidCursor(cursor);
 
             var selectionAndFlags = Unsafe.ReadUnaligned<int>(ref Unsafe.Add(ref RowRef(cursor), DbRow.SelectionAndFlagsOffset));
-            return (ElementFlags)((selectionAndFlags >> 17) & 0x7F);
+            return (ElementFlags)((selectionAndFlags >>> DbRow.FlagsShift) & DbRow.FlagsMask);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal readonly void SetFlags(Cursor cursor, ElementFlags flags)
         {
             AssertValidCursor(cursor);
-            Debug.Assert((byte)flags <= 127, "Flags value exceeds 7-bit limit");
-
+            Debug.Assert(
+                (int)flags is >= 0 and <= DbRow.FlagsMask,
+                $"Flags value exceeds {DbRow.FlagsBitCount}-bit limit");
             var fieldSpan = RowSpan(cursor)[DbRow.SelectionAndFlagsOffset..];
             var currentValue = MemoryMarshal.Read<int>(fieldSpan);
 
-            // Clear bits 17..23 (7-bit Flags region) then OR new flags in.
-            var clearedValue = (int)((uint)currentValue & ~(0x7Fu << 17));
-            var newValue = clearedValue | ((int)flags << 17);
+            var clearedValue = currentValue & ~(DbRow.FlagsMask << DbRow.FlagsShift);
+            var newValue = clearedValue
+                | (((int)flags & DbRow.FlagsMask) << DbRow.FlagsShift);
 
             MemoryMarshal.Write(fieldSpan, newValue);
         }
