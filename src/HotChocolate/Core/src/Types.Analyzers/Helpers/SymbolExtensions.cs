@@ -1,9 +1,11 @@
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using System.Text;
 using System.Xml.Linq;
 using HotChocolate.Types.Analyzers.Models;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using static Microsoft.CodeAnalysis.SymbolDisplayFormat;
 using static Microsoft.CodeAnalysis.SymbolDisplayMiscellaneousOptions;
 
@@ -32,43 +34,18 @@ public static class SymbolExtensions
 
     public static MethodDescription GetDescription(this IMethodSymbol method, Compilation? compilation)
     {
-        var methodDescription = GetDescriptionFromAttribute(method);
-
-        if (methodDescription == null && compilation != null)
-        {
-            // Try inheritance-aware resolution with Compilation
-            methodDescription = GetDocumentationWithInheritance(method, compilation);
-        }
-        else if (methodDescription == null)
-        {
-            // Fallback to simple XML extraction without inheritdoc support
-            var xml = method.GetDocumentationCommentXml();
-            if (!string.IsNullOrEmpty(xml))
-            {
-                try
-                {
-                    var doc = XDocument.Parse(xml);
-                    var summaryText = doc.Descendants("summary")
-                        .FirstOrDefault()?
-                        .Value;
-
-                    methodDescription = GeneratorUtils.NormalizeXmlDocumentation(summaryText);
-                }
-                catch
-                {
-                    // XML documentation parsing is best-effort only.
-                    // Malformed XML is ignored and we fall back to no description.
-                }
-            }
-        }
+        var (methodDescription, isFromAttribute) = ResolveDescriptionCore(method, compilation, ExtractSummaryDescriptionFunc());
 
         // Process parameter descriptions
         var parameters = method.Parameters;
-        var paramDescriptions = ImmutableArray.CreateBuilder<string?>(parameters.Length);
+        var paramDescriptions = ImmutableArray.CreateBuilder<(string?, bool)>(parameters.Length);
 
         foreach (var param in parameters)
         {
-            var paramDescription = GetDescriptionFromAttribute(param);
+            var paramDesc = compilation?.GetDescription(param);
+            var paramDescription = paramDesc?.Description ?? GetDescriptionFromAttribute(param);
+            var paramIsFromAttribute = paramDesc?.IsDescriptionFromAttribute
+                ?? (paramDescription != null && GetDescriptionFromAttribute(param) != null);
             var commentXml = method.GetDocumentationCommentXml();
 
             if (paramDescription == null && !string.IsNullOrEmpty(commentXml))
@@ -76,11 +53,10 @@ public static class SymbolExtensions
                 try
                 {
                     var doc = XDocument.Parse(commentXml);
-                    var paramDoc = doc.Descendants("param")
-                        .FirstOrDefault(p => p.Attribute("name")?.Value == param.Name)?
-                        .Value;
+                    var paramDoc = ExtractParameterDescriptionFunc(param)(doc);
 
                     paramDescription = GeneratorUtils.NormalizeXmlDocumentation(paramDoc);
+                    paramIsFromAttribute = false;
                 }
                 catch
                 {
@@ -89,10 +65,10 @@ public static class SymbolExtensions
                 }
             }
 
-            paramDescriptions.Add(paramDescription);
+            paramDescriptions.Add((paramDescription, paramIsFromAttribute));
         }
 
-        return new MethodDescription(methodDescription, paramDescriptions.ToImmutable());
+        return new MethodDescription(methodDescription, paramDescriptions.ToImmutable(), isFromAttribute);
     }
 
     public static PropertyDescription? GetDescription(this IPropertySymbol property)
@@ -100,76 +76,61 @@ public static class SymbolExtensions
 
     public static PropertyDescription? GetDescription(this IPropertySymbol property, Compilation? compilation)
     {
-        var description = GetDescriptionFromAttribute(property);
-        if (description != null)
-        {
-            return new PropertyDescription(description);
-        }
+        var (result, isFromAttribute) = ResolveDescriptionCore(property, compilation, ExtractSummaryDescriptionFunc());
+        return result is null ? null : new PropertyDescription(result, isFromAttribute);
+    }
 
-        if (compilation != null)
-        {
-            // Try inheritance-aware resolution with Compilation
-            return new PropertyDescription(GetDocumentationWithInheritance(property, compilation));
-        }
+    public static ParameterDescription? GetDescription(this IParameterSymbol parameter)
+        => parameter.GetDescription(null);
 
-        // Fallback to simple XML extraction without inheritdoc support
-        var commentXml = property.GetDocumentationCommentXml();
-        if (string.IsNullOrEmpty(commentXml))
-        {
-            return null;
-        }
-
-        try
-        {
-            var doc = XDocument.Parse(commentXml);
-            var summaryElement = doc.Descendants("summary").FirstOrDefault();
-            var text = summaryElement?.Value;
-            return new PropertyDescription(GeneratorUtils.NormalizeXmlDocumentation(text));
-        }
-        catch
-        {
-            // XML documentation parsing is best-effort only.
-            // Malformed XML is ignored and we fall back to no description.
-            return null;
-        }
+    public static ParameterDescription? GetDescription(this IParameterSymbol parameter, Compilation? compilation)
+    {
+        var (result, isFromAttribute) = ResolveDescriptionCore(parameter, compilation, ExtractParameterDescriptionFunc(parameter));
+        return result is null ? null : new ParameterDescription(result, isFromAttribute);
     }
 
     public static string? GetDescription(this INamedTypeSymbol type)
         => type.GetDescription(null);
 
     public static string? GetDescription(this INamedTypeSymbol type, Compilation? compilation)
+        => ResolveDescriptionCore(type, compilation, ExtractSummaryDescriptionFunc()).Description;
+
+    private static (string? Description, bool IsFromAttribute) ResolveDescriptionCore(
+        ISymbol symbol,
+        Compilation? compilation,
+        Func<XDocument, string?> xmlExtractor)
     {
-        var description = GetDescriptionFromAttribute(type);
+        // 1. Attribute-based
+        var description = GetDescriptionFromAttribute(symbol);
         if (description != null)
         {
-            return description;
+            return (description, true);
         }
 
+        // 2. Inheritance-aware resolution when compilation is available
         if (compilation != null)
         {
-            // Try inheritance-aware resolution with Compilation
-            return GetDocumentationWithInheritance(type, compilation);
+            return (GetDocumentationWithInheritance(symbol, compilation, xmlExtractor), false);
         }
 
-        // Fallback to simple XML extraction without inheritdoc support
-        var xml = type.GetDocumentationCommentXml();
+        // 3. Fallback to simple XML extraction without inheritdoc support
+        var xml = symbol.GetDocumentationCommentXml();
         if (string.IsNullOrEmpty(xml))
         {
-            return null;
+            return (null, false);
         }
 
         try
         {
             var doc = XDocument.Parse(xml);
-            var summaryElement = doc.Descendants("summary").FirstOrDefault();
-            var text = summaryElement?.Value;
-            return GeneratorUtils.NormalizeXmlDocumentation(text);
+            var extracted = xmlExtractor(doc);
+            return (GeneratorUtils.NormalizeXmlDocumentation(extracted), false);
         }
         catch
         {
             // XML documentation parsing is best-effort only.
             // Malformed XML is ignored and we fall back to no description.
-            return null;
+            return (null, false);
         }
     }
 
@@ -202,12 +163,15 @@ public static class SymbolExtensions
     }
 
     /// <summary>
-    /// Extracts summary text from XML documentation, resolving inheritdoc tags.
+    /// Extracts the relevant XML documentation, resolving tags with semantic relevance (f. e. inheritdoc or see).
     /// </summary>
-    private static string? GetDocumentationWithInheritance(ISymbol symbol, Compilation compilation)
+    private static string? GetDocumentationWithInheritance(
+        ISymbol symbol,
+        Compilation compilation,
+        Func<XDocument, string?> documentationSelector)
     {
         var visited = new HashSet<ISymbol>(SymbolEqualityComparer.Default);
-        return GetDocumentationWithInheritanceCore(symbol, compilation, visited);
+        return GetDocumentationWithInheritanceCore(symbol, compilation, visited, documentationSelector);
     }
 
     /// <summary>
@@ -216,15 +180,63 @@ public static class SymbolExtensions
     private static string? GetDocumentationWithInheritanceCore(
         ISymbol symbol,
         Compilation compilation,
-        HashSet<ISymbol> visited)
+        HashSet<ISymbol> visited,
+        Func<XDocument, string?> documentationSelector)
     {
-        // Prevent infinite recursion
-        if (!visited.Add(symbol))
+        var doc = GetXmlDocumentationElement(symbol, compilation, visited);
+        if (doc == null)
         {
             return null;
         }
 
-        var xml = symbol.GetDocumentationCommentXml();
+        var summaryText = documentationSelector(doc);
+
+        if (symbol is IMethodSymbol or IPropertySymbol or IFieldSymbol)
+        {
+            summaryText += GetReturnsText(doc);
+            summaryText += GetExceptionText(doc);
+        }
+
+        return GeneratorUtils.NormalizeXmlDocumentation(summaryText);
+
+        static string GetReturnsText(XDocument doc)
+        {
+            var returns = doc.Descendants("returns").FirstOrDefault()?.Value;
+            return string.IsNullOrEmpty(returns)
+                ? string.Empty
+                : "\n\n**Returns:**\n" + returns;
+        }
+
+        static string GetExceptionText(XDocument doc)
+        {
+            var exceptions = doc.Descendants("exception")
+                .Where(x =>
+                    !string.IsNullOrEmpty(x.Value)
+                    && !string.IsNullOrEmpty(x.Attribute("code")?.Value))
+                .Select((e, i) => (Element: e, Index: i + 1))
+                .Select(x => $"{x.Index}. {x.Element.Attribute("code").Value}: {x.Element.Value}")
+                .ToArray();
+
+            return exceptions.Length == 0
+                ? string.Empty
+                : "\n\n**Errors:**\n" + string.Join("\n", exceptions);
+        }
+    }
+
+    private static XDocument? GetXmlDocumentationElement(
+        ISymbol symbol,
+        Compilation compilation,
+        HashSet<ISymbol> visited)
+    {
+        var docSymbol = symbol is IParameterSymbol ? symbol.ContainingSymbol : symbol;
+
+        // Prevent infinite recursion
+        if (!visited.Add(docSymbol))
+        {
+            return null;
+        }
+
+        var xml = GetXmlDocumentationFromSyntax(symbol);
         if (string.IsNullOrEmpty(xml))
         {
             return null;
@@ -232,63 +244,223 @@ public static class SymbolExtensions
 
         try
         {
-            var doc = XDocument.Parse(xml);
+            var doc = XDocument.Parse(xml, LoadOptions.PreserveWhitespace);
 
-            // Check for inheritdoc element
-            var inheritdocElement = doc.Descendants("inheritdoc").FirstOrDefault();
-
-            if (inheritdocElement != null)
-            {
-                // Try to resolve the inherited documentation
-                var inheritedDoc = ResolveInheritdoc(symbol, inheritdocElement, compilation, visited);
-                if (inheritedDoc != null)
-                {
-                    return inheritedDoc;
-                }
-                // If resolution fails, return null (no description)
-                return null;
-            }
-
-            // No inheritdoc - extract summary normally
-            var summaryText = doc.Descendants("summary").FirstOrDefault()?.Value;
-            return GeneratorUtils.NormalizeXmlDocumentation(summaryText);
+            // Materialize relevant XML elements (-> replace their element with the actual textual representation)
+            MaterializeInheritdocElements(doc);
+            MaterializeSeeElements(doc);
+            MaterializeParamRefElements(doc);
+            return doc;
         }
         catch
         {
             // XML documentation parsing is best-effort only.
             return null;
         }
+
+        void MaterializeInheritdocElements(XDocument xDocument)
+        {
+            foreach (var inheritdocElement in xDocument.Descendants("inheritdoc").ToArray())
+            {
+                if (inheritdocElement == null)
+                {
+                    continue;
+                }
+
+                XDocument? inheritedDoc = null;
+
+                // Check for cref attribute (explicit reference)
+                var crefAttr = inheritdocElement.Attribute("cref");
+                if (crefAttr != null)
+                {
+                    var referencedSymbol = ResolveDocumentationId(crefAttr.Value, compilation, symbol);
+                    if (referencedSymbol != null)
+                    {
+                        inheritedDoc = GetXmlDocumentationElement(referencedSymbol, compilation, visited);
+                    }
+                }
+                else
+                {
+                    // No cref - resolve from base class or interface
+                    var baseMember = FindBaseMember(symbol);
+                    if (baseMember != null)
+                    {
+                        inheritedDoc = GetXmlDocumentationElement(baseMember, compilation, visited);
+                    }
+                }
+
+                if (inheritedDoc != null)
+                {
+                    // Inheritdoc has no well-defined specification, f. e. see:
+                    // https://github.com/dotnet/csharplang/issues/313,
+                    // https://github.com/dotnet/roslyn/issues/68879,
+                    // https://github.com/dotnet/roslyn/discussions/50192 and many others
+
+                    // For this reason we are programming our own lookup version, which is also the recommended way:
+                    // "[The] best option is to implement your own version [...]"
+                    // https://github.com/dotnet/roslyn/discussions/50192#discussioncomment-254793
+
+                    // The following rules are used by at last Visual Studio and Rider and docfx:
+                    // On root level, the entire doc header is copied,
+                    // whereas within any other element, only the doc of this element is inherited.
+                    if (inheritdocElement.Parent == xDocument.Root)
+                    {
+                        // <inheritdoc /> is at root level → inherit everything
+                        // Only exception: "Already defined tags on the current member aren't overridden by the inherited ones."
+                        // (see: https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/xmldoc/recommended-tags#inheritdoc)
+                        // No further processing is done, see: https://github.com/dotnet/csharplang/issues/313#issuecomment-1009379408
+                        var existing = xDocument.Descendants();
+                        var toInherit = inheritedDoc.Element("member")?.Descendants();
+
+                        var nodesToInherit = toInherit?.Where(inherited => !AlreadyExists(inherited, existing));
+                        inheritdocElement.ReplaceWith(nodesToInherit);
+                    }
+                    else
+                    {
+                        // <inheritdoc /> is inside another element (summary, returns, etc.)
+                        // Find the matching element in the inherited doc and replace it.
+                        // Note that the content of the matching element is also trimmed.
+                        var parent = inheritdocElement.Parent!;
+                        var parentName = parent.Name;
+
+                        XElement? replacement;
+                        switch (parentName.LocalName)
+                        {
+                            case "param":
+                                replacement = MatchByAttribute(parent, inheritedDoc, "param", "name");
+                                break;
+                            case "exception":
+                                replacement = MatchByAttribute(parent, inheritedDoc, "exception", "cref");
+                                break;
+                            default:
+                                replacement = inheritedDoc.Descendants(parentName).FirstOrDefault();
+                                break;
+                        }
+
+                        inheritdocElement.ReplaceWith(replacement?.Value.Trim());
+                    }
+                }
+            }
+
+            return;
+
+            static XElement? MatchByAttribute(XElement parent, XDocument inheritedDoc, string elementName, string attr)
+            {
+                var identifier = parent.Attribute(attr)?.Value;
+                return inheritedDoc
+                    .Descendants(elementName)
+                    .FirstOrDefault(e => e.Attribute(attr)?.Value == identifier);
+            }
+
+            static bool AlreadyExists(XElement inherited, IEnumerable<XElement> existingElements)
+            {
+                if (inherited.Name == "param")
+                {
+                    var name = inherited.Attribute("name")?.Value;
+                    return existingElements.Any(e =>
+                        e.Name == "param"
+                        && e.Attribute("name")?.Value == name);
+                }
+
+                if (inherited.Name == "exception")
+                {
+                    var cref = inherited.Attribute("cref")?.Value;
+                    return existingElements.Any(e =>
+                        e.Name == "exception"
+                        && e.Attribute("cref")?.Value == cref);
+                }
+
+                return existingElements.Any(e => e.Name == inherited.Name);
+            }
+        }
+
+        static void MaterializeSeeElements(XDocument xDocument)
+        {
+            foreach (var seeElement in xDocument.Descendants("see").ToArray())
+            {
+                if (seeElement == null)
+                {
+                    continue;
+                }
+
+                if (!string.IsNullOrEmpty(seeElement.Value))
+                {
+                    seeElement.ReplaceWith(seeElement.Value);
+                    continue;
+                }
+
+                var attribute = seeElement.Attribute("langword") ?? seeElement.Attribute("href");
+                if (attribute != null)
+                {
+                    seeElement.ReplaceWith(attribute.Value);
+                    continue;
+                }
+
+                attribute = seeElement.Attribute("cref");
+                if (attribute?.Value != null)
+                {
+                    var index = attribute.Value.LastIndexOf('.');
+                    seeElement.ReplaceWith(attribute.Value.Substring(index + 1));
+                }
+            }
+        }
+
+        static void MaterializeParamRefElements(XDocument xDocument)
+        {
+            foreach (var paramref in xDocument.Descendants("paramref").ToArray())
+            {
+                var attribute = paramref?.Attribute("name");
+                if (attribute != null)
+                {
+                    paramref!.ReplaceWith(attribute.Value);
+                }
+            }
+        }
     }
 
-    /// <summary>
-    /// Resolves an inheritdoc element by finding the referenced member.
-    /// </summary>
-    private static string? ResolveInheritdoc(
-        ISymbol symbol,
-        XElement inheritdocElement,
-        Compilation compilation,
-        HashSet<ISymbol> visited)
+    private static string? GetXmlDocumentationFromSyntax(ISymbol symbol)
     {
-        // Check for cref attribute (explicit reference)
-        var crefAttr = inheritdocElement.Attribute("cref");
-        if (crefAttr != null)
+        // Note: One currently can't use GetDocumentationCommentXml in source generators.
+        // See https://github.com/dotnet/roslyn/issues/23673
+        var syntax = symbol.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax();
+        while (syntax is VariableDeclaratorSyntax vds)
         {
-            var referencedSymbol = ResolveDocumentationId(crefAttr.Value, compilation, symbol);
-            if (referencedSymbol != null)
-            {
-                return GetDocumentationWithInheritanceCore(referencedSymbol, compilation, visited);
-            }
+            syntax = vds.Parent?.Parent;
+        }
+
+        while (syntax is ParameterSyntax ps)
+        {
+            syntax = ps.Parent?.Parent;
+        }
+
+        if (syntax == null || syntax.SyntaxTree.Options.DocumentationMode == DocumentationMode.None)
+        {
+            // See https://github.com/dotnet/roslyn/issues/58210,
+            // for DocumentationMode.None we can't reliably extract the XML doc header.
             return null;
         }
 
-        // No cref - resolve from base class or interface
-        var baseMember = FindBaseMember(symbol);
-        if (baseMember != null)
+        var trivia = syntax.GetLeadingTrivia();
+        StringBuilder? builder = null;
+        foreach (var comment in trivia)
         {
-            return GetDocumentationWithInheritanceCore(baseMember, compilation, visited);
+            if (comment.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia)
+                || comment.IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia))
+            {
+                var stringComment = comment.ToString();
+                foreach (var s in stringComment.Split('\n'))
+                {
+                    builder ??= new StringBuilder();
+                    builder.Append(s.TrimStart().Replace("///", string.Empty));
+                    builder.Append('\n');
+                }
+            }
         }
 
-        return null;
+        return builder?
+            .Insert(0, "<member>")
+            .Append("</member>")
+            .ToString();
     }
 
     /// <summary>
@@ -396,99 +568,97 @@ public static class SymbolExtensions
             return null;
         }
 
-        // Documentation ID format: Prefix:FullyQualifiedName
-        // Prefixes: T: (type), M: (method), P: (property), F: (field), E: (event)
-
-        // Remove prefix if present
-        var colonIndex = documentationId.IndexOf(':');
-        if (colonIndex > 0)
+        if (documentationId.Length > 1 && documentationId[1] == ':')
         {
-            documentationId = documentationId.Substring(colonIndex + 1);
+            documentationId = documentationId.Substring(2);
         }
 
-        // Handle generic types - convert `2 to <T1, T2> format for lookup
-        // For now, try exact match first
-        var symbol = compilation.GetTypeByMetadataName(documentationId);
+        var result = compilation.GetTypeByMetadataName(documentationId) ??
+            ResolveMemberSymbol(documentationId, compilation) ??
+            ResolveMethodSymbol(documentationId, compilation);
+
+        var @namespace = contextSymbol.ContainingNamespace?.ToString();
+        if (result == null && !string.IsNullOrEmpty(@namespace) && !documentationId.StartsWith(@namespace))
+        {
+            documentationId = @namespace + "." + documentationId;
+            result = compilation.GetTypeByMetadataName(documentationId) ??
+                ResolveMemberSymbol(documentationId, compilation) ??
+                ResolveMethodSymbol(documentationId, compilation);
+        }
+
+        return result;
+    }
+
+    private static ISymbol? ResolveMethodSymbol(string documentationId, Compilation compilation)
+    {
+        if (string.IsNullOrEmpty(documentationId))
+        {
+            return null;
+        }
+
+        var openParenthesisIndex = documentationId.LastIndexOf('(');
+        var qualifiedName = openParenthesisIndex >= 0
+            ? documentationId.Substring(0, openParenthesisIndex)
+            : documentationId;
+
+        var lastDotIndex = qualifiedName.LastIndexOf('.');
+        if (lastDotIndex < 0)
+        {
+            return null;
+        }
+
+        var typeName = qualifiedName.Substring(0, lastDotIndex);
+        var methodName = qualifiedName.Substring(lastDotIndex + 1);
+
+        var typeSymbol = ResolveTypeSymbol(typeName, compilation);
+
+        return typeSymbol?
+            .GetMembers(methodName)
+            .OfType<IMethodSymbol>()
+            .FirstOrDefault(m => m.ToString() == documentationId);
+    }
+
+    private static ISymbol? ResolveMemberSymbol(string documentationId, Compilation compilation)
+    {
+        var lastDotIndex = documentationId.LastIndexOf('.');
+        if (lastDotIndex < 0)
+        {
+            return null;
+        }
+
+        var typeName = documentationId.Substring(0, lastDotIndex);
+        var memberName = documentationId.Substring(lastDotIndex + 1);
+
+        var typeSymbol = ResolveTypeSymbol(typeName, compilation);
+        return typeSymbol?.GetMembers(memberName).FirstOrDefault();
+    }
+
+    private static INamedTypeSymbol? ResolveTypeSymbol(string typeName, Compilation compilation)
+    {
+        // Non-nested type
+        var symbol = compilation.GetTypeByMetadataName(typeName);
         if (symbol != null)
         {
             return symbol;
         }
 
-        // Try without generic arity marker
-        var backtickIndex = documentationId.IndexOf('`');
-        if (backtickIndex > 0)
+        // Nested type
+        var nestedName = typeName;
+        while (true)
         {
-            var typeNameWithoutArity = documentationId.Substring(0, backtickIndex);
-            symbol = compilation.GetTypeByMetadataName(typeNameWithoutArity);
+            var lastDot = nestedName.LastIndexOf('.');
+            if (lastDot < 0)
+            {
+                return null;
+            }
+
+            nestedName = nestedName.Remove(lastDot, 1).Insert(lastDot, "+");
+            symbol = compilation.GetTypeByMetadataName(nestedName);
             if (symbol != null)
             {
                 return symbol;
             }
         }
-
-        // Try resolving through context symbol's containing namespace
-        if (contextSymbol.ContainingNamespace != null)
-        {
-            var namespaceName = contextSymbol.ContainingNamespace.ToDisplayString();
-            var fullName = $"{namespaceName}.{documentationId}";
-            symbol = compilation.GetTypeByMetadataName(fullName);
-            if (symbol != null)
-            {
-                return symbol;
-            }
-        }
-
-        // Best effort - search for type by name in compilation
-        var typeName = documentationId.Split('.').LastOrDefault();
-        if (!string.IsNullOrEmpty(typeName))
-        {
-            // Remove generic arity from type name
-            var genericIndex = typeName.IndexOf('`');
-            if (genericIndex > 0)
-            {
-                typeName = typeName.Substring(0, genericIndex);
-            }
-
-            // Search in all referenced assemblies
-            foreach (var assembly in compilation.References)
-            {
-                if (compilation.GetAssemblyOrModuleSymbol(assembly) is IAssemblySymbol assemblySymbol)
-                {
-                    var foundSymbol = FindTypeByName(assemblySymbol.GlobalNamespace, typeName);
-                    if (foundSymbol != null)
-                    {
-                        return foundSymbol;
-                    }
-                }
-            }
-        }
-
-        return null;
-    }
-
-    /// <summary>
-    /// Recursively searches for a type by name in a namespace.
-    /// </summary>
-    private static INamedTypeSymbol? FindTypeByName(INamespaceSymbol namespaceSymbol, string typeName)
-    {
-        foreach (var member in namespaceSymbol.GetMembers())
-        {
-            if (member is INamedTypeSymbol type && type.Name == typeName)
-            {
-                return type;
-            }
-
-            if (member is INamespaceSymbol childNamespace)
-            {
-                var found = FindTypeByName(childNamespace, typeName);
-                if (found != null)
-                {
-                    return found;
-                }
-            }
-        }
-
-        return null;
     }
 
     public static bool IsNullableType(this ITypeSymbol typeSymbol)
@@ -510,6 +680,13 @@ public static class SymbolExtensions
 
     public static string PrintNullRefQualifier(this ITypeSymbol typeSymbol)
         => typeSymbol.IsNullableRefType() ? "?" : string.Empty;
+
+    public static string ToAssemblyQualified(this ITypeSymbol typeSymbol)
+    {
+        var assemblyName = typeSymbol.ContainingAssembly?.Name ?? "UnknownAssembly";
+        var typeFullName = typeSymbol.ToDisplayString();
+        return $"{assemblyName}::{typeFullName}";
+    }
 
     public static string ToFullyQualified(this ITypeSymbol typeSymbol)
         => typeSymbol.ToDisplayString(FullyQualifiedFormat);
@@ -603,110 +780,52 @@ public static class SymbolExtensions
         => parameter.Type is INamedTypeSymbol namedTypeSymbol
             && namedTypeSymbol.ToDisplayString().StartsWith(WellKnownTypes.PagingArguments);
 
-    public static bool IsGlobalState(
-        this IParameterSymbol parameter,
-        [NotNullWhen(true)] out string? key)
+    public static bool IsSelection(this IParameterSymbol parameter)
+        => parameter.Type.ToDisplayString() == WellKnownTypes.ISelection;
+
+    public static bool IsOptional(this ITypeSymbol type, [NotNullWhen(true)] out ITypeSymbol? innerType)
     {
-        key = null;
-
-        foreach (var attributeData in parameter.GetAttributes())
+        if (type is INamedTypeSymbol { IsGenericType: true, TypeArguments.Length: 1 } namedType
+            && namedType.ToDisplayString().StartsWith(WellKnownTypes.OptionalGeneric, StringComparison.Ordinal))
         {
-            if (IsOrInheritsFrom(attributeData.AttributeClass, "HotChocolate.GlobalStateAttribute"))
+            innerType = namedType.TypeArguments[0];
+            return true;
+        }
+
+        innerType = null;
+        return false;
+    }
+
+    public static bool IsIsSelected(this IParameterSymbol parameter)
+    {
+        foreach (var attribute in parameter.GetAttributes())
+        {
+            if (attribute.AttributeClass?.ToDisplayString() == WellKnownAttributes.IsSelectedAttribute)
             {
-                if (attributeData.ConstructorArguments.Length == 1
-                    && attributeData.ConstructorArguments[0].Kind == TypedConstantKind.Primitive
-                    && attributeData.ConstructorArguments[0].Value is string keyValue)
-                {
-                    key = keyValue;
-                    return true;
-                }
-
-                foreach (var namedArg in attributeData.NamedArguments)
-                {
-                    if (namedArg is { Key: "Key", Value.Value: string namedKeyValue })
-                    {
-                        key = namedKeyValue;
-                        return true;
-                    }
-                }
-
-                key = parameter.Name;
                 return true;
             }
         }
 
         return false;
     }
+
+    public static bool IsGlobalState(
+        this IParameterSymbol parameter,
+        Compilation compilation,
+        [NotNullWhen(true)] out string? key)
+        => parameter.TryGetStateKey("HotChocolate.GlobalStateAttribute", compilation, out key);
 
     public static bool IsScopedState(
         this IParameterSymbol parameter,
+        Compilation compilation,
         [NotNullWhen(true)] out string? key)
-    {
-        key = null;
-
-        foreach (var attributeData in parameter.GetAttributes())
-        {
-            if (IsOrInheritsFrom(attributeData.AttributeClass, "HotChocolate.ScopedStateAttribute"))
-            {
-                if (attributeData.ConstructorArguments.Length == 1
-                    && attributeData.ConstructorArguments[0].Kind == TypedConstantKind.Primitive
-                    && attributeData.ConstructorArguments[0].Value is string keyValue)
-                {
-                    key = keyValue;
-                    return true;
-                }
-
-                foreach (var namedArg in attributeData.NamedArguments)
-                {
-                    if (namedArg is { Key: "Key", Value.Value: string namedKeyValue })
-                    {
-                        key = namedKeyValue;
-                        return true;
-                    }
-                }
-
-                key = parameter.Name;
-                return true;
-            }
-        }
-
-        return false;
-    }
+        => parameter.TryGetStateKey("HotChocolate.ScopedStateAttribute", compilation, out key);
 
     public static bool IsLocalState(
         this IParameterSymbol parameter,
+        Compilation compilation,
         [NotNullWhen(true)] out string? key)
-    {
-        key = null;
-
-        foreach (var attributeData in parameter.GetAttributes())
-        {
-            if (IsOrInheritsFrom(attributeData.AttributeClass, "HotChocolate.LocalStateAttribute"))
-            {
-                if (attributeData.ConstructorArguments.Length == 1
-                    && attributeData.ConstructorArguments[0].Kind == TypedConstantKind.Primitive
-                    && attributeData.ConstructorArguments[0].Value is string keyValue)
-                {
-                    key = keyValue;
-                    return true;
-                }
-
-                foreach (var namedArg in attributeData.NamedArguments)
-                {
-                    if (namedArg is { Key: "Key", Value.Value: string namedKeyValue })
-                    {
-                        key = namedKeyValue;
-                        return true;
-                    }
-                }
-
-                key = parameter.Name;
-                return true;
-            }
-        }
-
-        return false;
-    }
+        => parameter.TryGetStateKey("HotChocolate.LocalStateAttribute", compilation, out key);
 
     public static bool IsEventMessage(
         this IParameterSymbol parameter)
@@ -754,27 +873,176 @@ public static class SymbolExtensions
             }
         }
 
-        // DataLoaders are always services
-        if (parameter.Type is INamedTypeSymbol namedTypeSymbol)
+        return false;
+    }
+
+    private static bool TryGetStateKey(
+        this IParameterSymbol parameter,
+        string stateAttributeType,
+        Compilation compilation,
+        [NotNullWhen(true)] out string? key)
+    {
+        key = null;
+
+        foreach (var attributeData in parameter.GetAttributes())
         {
-            foreach (var @interface in namedTypeSymbol.AllInterfaces)
+            if (!IsOrInheritsFrom(attributeData.AttributeClass, stateAttributeType))
             {
-                if (@interface.ToDisplayString().StartsWith(WellKnownTypes.DataLoader))
-                {
-                    return true;
-                }
+                continue;
             }
 
-            // DbContext types are always services
-            var current = namedTypeSymbol.BaseType;
-            while (current is not null)
+            if (TryGetStateKeyFromAttributeUsage(attributeData, out key)
+                || TryGetStateKeyFromAttributeDeclaration(attributeData, compilation, out key))
             {
-                if (current.ToDisplayString() == WellKnownTypes.DbContext)
-                {
-                    return true;
-                }
-                current = current.BaseType;
+                return true;
             }
+
+            key = parameter.Name;
+            return true;
+        }
+
+        return false;
+    }
+
+    private static bool TryGetStateKeyFromAttributeUsage(
+        AttributeData attributeData,
+        [NotNullWhen(true)] out string? key)
+    {
+        key = null;
+
+        if (attributeData.ConstructorArguments.Length == 1
+            && attributeData.ConstructorArguments[0].Kind == TypedConstantKind.Primitive
+            && attributeData.ConstructorArguments[0].Value is string keyValue)
+        {
+            key = keyValue;
+            return true;
+        }
+
+        foreach (var namedArg in attributeData.NamedArguments)
+        {
+            if (namedArg is { Key: "Key", Value.Value: string namedKeyValue })
+            {
+                key = namedKeyValue;
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static bool TryGetStateKeyFromAttributeDeclaration(
+        AttributeData attributeData,
+        Compilation compilation,
+        [NotNullWhen(true)] out string? key)
+    {
+        key = null;
+
+        var constructor = attributeData.AttributeConstructor;
+        if (constructor is not null
+            && TryGetStateKeyFromConstructorDeclaration(constructor, compilation, out key))
+        {
+            return true;
+        }
+
+        var attributeType = attributeData.AttributeClass;
+        if (attributeType is null)
+        {
+            return false;
+        }
+
+        foreach (var syntaxReference in attributeType.DeclaringSyntaxReferences)
+        {
+            if (syntaxReference.GetSyntax() is TypeDeclarationSyntax declaration
+                && TryGetStateKeyFromPrimaryConstructorBaseCall(declaration, compilation, out key))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static bool TryGetStateKeyFromConstructorDeclaration(
+        IMethodSymbol constructor,
+        Compilation compilation,
+        [NotNullWhen(true)] out string? key)
+    {
+        key = null;
+
+        foreach (var syntaxReference in constructor.DeclaringSyntaxReferences)
+        {
+            if (syntaxReference.GetSyntax() is ConstructorDeclarationSyntax declaration
+                && declaration.Initializer is
+                {
+                    RawKind: (int)SyntaxKind.BaseConstructorInitializer,
+                    ArgumentList: { } argumentList
+                }
+                && TryGetConstantStringFromArgumentList(
+                    argumentList,
+                    declaration.SyntaxTree,
+                    compilation,
+                    out key))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static bool TryGetStateKeyFromPrimaryConstructorBaseCall(
+        TypeDeclarationSyntax declaration,
+        Compilation compilation,
+        [NotNullWhen(true)] out string? key)
+    {
+        key = null;
+
+        if (declaration.BaseList is null)
+        {
+            return false;
+        }
+
+        foreach (var baseType in declaration.BaseList.Types)
+        {
+            var argumentList = baseType.ChildNodes().OfType<ArgumentListSyntax>().FirstOrDefault();
+            if (argumentList is null)
+            {
+                continue;
+            }
+
+            if (TryGetConstantStringFromArgumentList(
+                argumentList,
+                declaration.SyntaxTree,
+                compilation,
+                out key))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static bool TryGetConstantStringFromArgumentList(
+        ArgumentListSyntax argumentList,
+        SyntaxTree syntaxTree,
+        Compilation compilation,
+        [NotNullWhen(true)] out string? key)
+    {
+        key = null;
+
+        if (argumentList.Arguments.Count != 1)
+        {
+            return false;
+        }
+
+        var model = compilation.GetSemanticModel(syntaxTree);
+        var constantValue = model.GetConstantValue(argumentList.Arguments[0].Expression);
+
+        if (constantValue is { HasValue: true, Value: string keyValue })
+        {
+            key = keyValue;
+            return true;
         }
 
         return false;
@@ -1206,4 +1474,13 @@ public static class SymbolExtensions
 
         return mutated;
     }
+
+    private static Func<XDocument, string?> ExtractParameterDescriptionFunc(IParameterSymbol parameter) =>
+        doc =>
+            doc.Descendants("param")
+                .FirstOrDefault(x => x.Attribute("name")?.Value == parameter.Name)
+                ?.Value;
+
+    private static Func<XDocument, string?> ExtractSummaryDescriptionFunc() =>
+        doc => doc.Descendants("summary").FirstOrDefault()?.Value;
 }

@@ -32,7 +32,7 @@ type __Field {
 }
 
 type Query {
-  Questions(skip: Int = 0 first: Int = 10): [Question]
+  Questions(skip: Int = 0, first: Int = 10): [Question]
 }
 
 "A GraphQL Introspection defines the capabilities of a GraphQL server. It exposes all available types and directives on the server, the entry points for query, mutation, and subscription operations."

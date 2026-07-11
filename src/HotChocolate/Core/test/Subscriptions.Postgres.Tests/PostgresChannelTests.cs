@@ -2,7 +2,6 @@ using System.Collections.Concurrent;
 using HotChocolate.Tests;
 using Npgsql;
 using Squadron;
-using Xunit.Abstractions;
 
 namespace HotChocolate.Subscriptions.Postgres;
 
@@ -270,7 +269,7 @@ public class PostgresChannelTests
         await testChannel.SendMessageAsync("aaaaaaaaaaaaaaaaaaaaaaaa:dGVzdA==:foobar");
 
         // Assert
-        await Task.Delay(1000);
+        await Task.Delay(1000, TestContext.Current.CancellationToken);
         Assert.Single(receivedMessages);
     }
 
@@ -281,7 +280,7 @@ public class PostgresChannelTests
         const string topicName = "test";
         var reconnected = false;
         NpgsqlConnection? connection = null;
-        var options = new PostgresSubscriptionOptions()
+        var options = new PostgresSubscriptionOptions
         {
             ConnectionFactory = async ct =>
             {
@@ -334,7 +333,7 @@ public class PostgresChannelTests
         var reconnected = false;
         var tries = 0;
         NpgsqlConnection? connection = null;
-        var options = new PostgresSubscriptionOptions()
+        var options = new PostgresSubscriptionOptions
         {
             ConnectionFactory = async ct =>
             {
@@ -400,12 +399,12 @@ public class PostgresChannelTests
     }
 
     /// <inheritdoc />
-    public async Task InitializeAsync()
+    public async ValueTask InitializeAsync()
     {
         await _resource.CreateDatabaseAsync(_dbName);
     }
 
     /// <inheritdoc />
-    public Task DisposeAsync()
-        => Task.CompletedTask;
+    public ValueTask DisposeAsync()
+        => ValueTask.CompletedTask;
 }

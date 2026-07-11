@@ -20,10 +20,12 @@ public class DiagnosticListenerTests
             .AddStarWarsRepositories());
 
         // act
-        var result = await executor.ExecuteAsync("{ hero { name } }");
+        var result = await executor.ExecuteAsync(
+            "{ hero { name } }",
+            TestContext.Current.CancellationToken);
 
         // assert
-        Assert.Null(Assert.IsType<OperationResult>(result).Errors);
+        Assert.Empty(Assert.IsType<OperationResult>(result).Errors);
         Assert.Collection(listener.Results, r => Assert.IsType<Droid>(r));
     }
 
@@ -41,7 +43,9 @@ public class DiagnosticListenerTests
             .BuildServiceProvider();
 
         // act
-        await services.ExecuteRequestAsync("{ hero { name } }");
+        await services.ExecuteRequestAsync(
+            "{ hero { name } }",
+            cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         Assert.True(services.GetRequiredService<Touched>().Signal);
@@ -61,10 +65,12 @@ public class DiagnosticListenerTests
             .AddStarWarsRepositories());
 
         // act
-        var result = await executor.ExecuteAsync("{ hero { name } }");
+        var result = await executor.ExecuteAsync(
+            "{ hero { name } }",
+            TestContext.Current.CancellationToken);
 
         // assert
-        Assert.Null(Assert.IsType<OperationResult>(result).Errors);
+        Assert.Empty(Assert.IsType<OperationResult>(result).Errors);
         Assert.Collection(listenerA.Results, r => Assert.IsType<Droid>(r));
         Assert.Collection(listenerB.Results, r => Assert.IsType<Droid>(r));
     }

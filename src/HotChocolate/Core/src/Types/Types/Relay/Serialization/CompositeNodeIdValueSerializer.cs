@@ -1,3 +1,4 @@
+using System.Buffers;
 using System.Buffers.Text;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
@@ -13,6 +14,7 @@ namespace HotChocolate.Types.Relay;
 /// </typeparam>
 public abstract class CompositeNodeIdValueSerializer<T> : INodeIdValueSerializer
 {
+    private const int StackallocThreshold = 256;
     private const byte PartSeparator = (byte)':';
     private const byte Escape = (byte)'\\';
     private static readonly Encoding s_utf8 = Encoding.UTF8;
@@ -86,22 +88,37 @@ public abstract class CompositeNodeIdValueSerializer<T> : INodeIdValueSerializer
     /// </returns>
     protected static bool TryFormatIdPart(Span<byte> buffer, string value, out int written)
     {
-        var requiredCapacity = s_utf8.GetByteCount(value) * 2 + 1; // * 2 to allow for escaping.
+        var utf8Length = s_utf8.GetByteCount(value);
+        var requiredCapacity = utf8Length * 2 + 1; // * 2 to allow for escaping.
         if (buffer.Length < requiredCapacity)
         {
             written = 0;
             return false;
         }
 
-        Span<byte> utf8Bytes = stackalloc byte[s_utf8.GetByteCount(value)];
-        s_utf8.GetBytes(value, utf8Bytes);
+        byte[]? rented = null;
+        var utf8Bytes = utf8Length <= StackallocThreshold
+            ? stackalloc byte[utf8Length]
+            : (rented = ArrayPool<byte>.Shared.Rent(utf8Length));
 
-        var bytesWritten = WriteEscapedBytes(utf8Bytes, buffer);
+        try
+        {
+            var utf8BytesWritten = s_utf8.GetBytes(value, utf8Bytes);
 
-        buffer = buffer[bytesWritten..];
-        buffer[0] = PartSeparator;
-        written = bytesWritten + 1;
-        return true;
+            var bytesWritten = WriteEscapedBytes(utf8Bytes[..utf8BytesWritten], buffer);
+
+            buffer = buffer[bytesWritten..];
+            buffer[0] = PartSeparator;
+            written = bytesWritten + 1;
+            return true;
+        }
+        finally
+        {
+            if (rented is not null)
+            {
+                ArrayPool<byte>.Shared.Return(rented);
+            }
+        }
     }
 
     /// <summary>

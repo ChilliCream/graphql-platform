@@ -26,7 +26,7 @@ public class DefaultValueTests
     public class Mutations
     {
         public MyInputObjectOut DoSomething(MyInputObject input) =>
-            new MyInputObjectOut() { Result = input.ValuesToRetrieveInBatch.Value };
+            new MyInputObjectOut { Result = input.ValuesToRetrieveInBatch.Value };
     }
 
     [Fact]
@@ -41,10 +41,13 @@ public class DefaultValueTests
 
         var serviceProvider = services.BuildServiceProvider();
         var executorProvider = serviceProvider.GetRequiredService<IRequestExecutorProvider>();
-        var executor = await executorProvider.GetExecutorAsync();
+        var executor = await executorProvider.GetExecutorAsync(
+            cancellationToken: TestContext.Current.CancellationToken);
 
         // Act
-        var result = await executor.ExecuteAsync("mutation{ doSomething(input: { }) { result } }");
+        var result = await executor.ExecuteAsync(
+            "mutation{ doSomething(input: { }) { result } }",
+            TestContext.Current.CancellationToken);
 
         // Extract the data from the result
         var jsonResult = result.ToJson();

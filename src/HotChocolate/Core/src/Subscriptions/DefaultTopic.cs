@@ -1,9 +1,9 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading.Channels;
 using HotChocolate.Execution;
 using HotChocolate.Subscriptions.Diagnostics;
-using HotChocolate.Utilities;
 using static System.Runtime.InteropServices.CollectionsMarshal;
 using static System.Threading.Channels.Channel;
 
@@ -194,7 +194,7 @@ public abstract class DefaultTopic<TMessage> : ITopic
     }
 
     private void BeginProcessing(IAsyncDisposable session)
-        => ProcessMessagesSessionAsync(session).FireAndForget();
+        => _ = ProcessMessagesSessionAsync(session);
 
     private async Task ProcessMessagesSessionAsync(IAsyncDisposable session)
     {
@@ -331,6 +331,8 @@ public abstract class DefaultTopic<TMessage> : ITopic
     /// <param name="serializedMessage">
     /// The serialized message.
     /// </param>
+    [RequiresUnreferencedCode("Message deserialization might require types that cannot be statically analyzed.")]
+    [RequiresDynamicCode("Message deserialization might require types that cannot be statically analyzed and might need runtime code generation.")]
     protected void DispatchMessage(IMessageSerializer serializer, string? serializedMessage)
     {
         // we ensure that if there is noise on the channel we filter it out.
@@ -352,6 +354,8 @@ public abstract class DefaultTopic<TMessage> : ITopic
         }
     }
 
+    [RequiresUnreferencedCode("Message deserialization might require types that cannot be statically analyzed.")]
+    [RequiresDynamicCode("Message deserialization might require types that cannot be statically analyzed and might need runtime code generation.")]
     private MessageEnvelope<TMessage> DeserializeMessage(IMessageSerializer serializer, string serializedMessage)
     {
         try

@@ -10,7 +10,7 @@ namespace HotChocolate.Types.Descriptors;
 public class InputObjectTypeDescriptor<T>
     : InputObjectTypeDescriptor
     , IInputObjectTypeDescriptor<T>
-    , IHasRuntimeType
+    , IRuntimeTypeProvider
 {
     protected internal InputObjectTypeDescriptor(IDescriptorContext context)
         : base(context, typeof(T))
@@ -25,7 +25,7 @@ public class InputObjectTypeDescriptor<T>
     {
     }
 
-    Type IHasRuntimeType.RuntimeType => Configuration.RuntimeType;
+    Type IRuntimeTypeProvider.RuntimeType => Configuration.RuntimeType;
 
     protected override void OnCompleteFields(
         IDictionary<string, InputFieldConfiguration> fields,

@@ -19,33 +19,33 @@ public class ProjectionFieldWrapper<T>
         _interceptor = interceptor;
     }
 
-    public bool CanHandle(ISelection selection) =>
+    public bool CanHandle(Selection selection) =>
         _handler.CanHandle(selection);
 
     public IProjectionFieldHandler Wrap(IProjectionFieldInterceptor interceptor) =>
         _handler.Wrap(new ProjectionInterceptorCombinator<T>(_interceptor, interceptor));
 
-    public T OnBeforeEnter(T context, ISelection selection) =>
+    public T OnBeforeEnter(T context, Selection selection) =>
         _handler.OnBeforeEnter(context, selection);
 
     public bool TryHandleEnter(
         T context,
-        ISelection selection,
+        Selection selection,
         [NotNullWhen(true)] out ISelectionVisitorAction? action)
     {
         _interceptor.BeforeProjection(context, selection);
         return _handler.TryHandleEnter(context, selection, out action);
     }
 
-    public T OnAfterEnter(T context, ISelection selection, ISelectionVisitorAction result) =>
+    public T OnAfterEnter(T context, Selection selection, ISelectionVisitorAction result) =>
         _handler.OnAfterEnter(context, selection, result);
 
-    public T OnBeforeLeave(T context, ISelection selection) =>
+    public T OnBeforeLeave(T context, Selection selection) =>
         _handler.OnBeforeLeave(context, selection);
 
     public bool TryHandleLeave(
         T context,
-        ISelection selection,
+        Selection selection,
         [NotNullWhen(true)] out ISelectionVisitorAction? action)
     {
         _handler.TryHandleLeave(context, selection, out action);
@@ -53,6 +53,6 @@ public class ProjectionFieldWrapper<T>
         return action is not null;
     }
 
-    public T OnAfterLeave(T context, ISelection selection, ISelectionVisitorAction result) =>
+    public T OnAfterLeave(T context, Selection selection, ISelectionVisitorAction result) =>
         _handler.OnAfterLeave(context, selection, result);
 }

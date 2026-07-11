@@ -1,4 +1,4 @@
-using HotChocolate.Adapters.Mcp.Extensions;
+using HotChocolate.Adapters.Mcp.Configuration;
 using HotChocolate.Adapters.Mcp.Storage;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -15,9 +15,9 @@ public sealed class OperationToolFactoryTests
         {
             var schema = CreateSchema();
             var document = Utf8GraphQLParser.Parse("fragment Fragment on Type { field }");
-            var toolDefinition = new OperationToolDefinition("tool", document);
+            var toolDefinition = new OperationToolDefinition(document);
 
-            return new OperationToolFactory(schema).CreateTool(toolDefinition);
+            return new OperationToolFactory(schema, new McpToolOptions()).CreateTool(toolDefinition);
         }
 
         // assert
@@ -47,9 +47,9 @@ public sealed class OperationToolFactoryTests
                     }
                 }
                 """);
-            var toolDefinition = new OperationToolDefinition("tool", document);
+            var toolDefinition = new OperationToolDefinition(document);
 
-            return new OperationToolFactory(schema).CreateTool(toolDefinition);
+            return new OperationToolFactory(schema, new McpToolOptions()).CreateTool(toolDefinition);
         }
 
         // assert
@@ -72,10 +72,10 @@ public sealed class OperationToolFactoryTests
                 }
             }
             """);
-        var toolDefinition = new OperationToolDefinition("get_books", document);
+        var toolDefinition = new OperationToolDefinition(document);
 
         // act
-        var tool = new OperationToolFactory(schema).CreateTool(toolDefinition);
+        var tool = new OperationToolFactory(schema, new McpToolOptions()).CreateTool(toolDefinition);
         var mcpTool = tool.Tool;
 
         // assert
@@ -102,10 +102,10 @@ public sealed class OperationToolFactoryTests
                 }
             }
             """);
-        var toolDefinition = new OperationToolDefinition("add_book", document);
+        var toolDefinition = new OperationToolDefinition(document);
 
         // act
-        var tool = new OperationToolFactory(schema).CreateTool(toolDefinition);
+        var tool = new OperationToolFactory(schema, new McpToolOptions()).CreateTool(toolDefinition);
         var mcpTool = tool.Tool;
 
         // assert
@@ -132,10 +132,10 @@ public sealed class OperationToolFactoryTests
                 }
             }
             """);
-        var toolDefinition = new OperationToolDefinition("book_added", document);
+        var toolDefinition = new OperationToolDefinition(document);
 
         // act
-        var tool = new OperationToolFactory(schema).CreateTool(toolDefinition);
+        var tool = new OperationToolFactory(schema, new McpToolOptions()).CreateTool(toolDefinition);
         var mcpTool = tool.Tool;
 
         // assert
@@ -155,16 +155,20 @@ public sealed class OperationToolFactoryTests
         var schema = CreateSchema();
         var document = Utf8GraphQLParser.Parse(
             """
-            query GetBooks @mcpTool(title: "Custom Title") {
+            query GetBooks {
                 books {
                     title
                 }
             }
             """);
-        var toolDefinition = new OperationToolDefinition("get_books", document);
+        var toolDefinition =
+            new OperationToolDefinition(document)
+            {
+                Title = "Custom Title"
+            };
 
         // act
-        var tool = new OperationToolFactory(schema).CreateTool(toolDefinition);
+        var tool = new OperationToolFactory(schema, new McpToolOptions()).CreateTool(toolDefinition);
 
         // assert
         Assert.Equal("Custom Title", tool.Tool.Title);
@@ -177,17 +181,22 @@ public sealed class OperationToolFactoryTests
         var schema = CreateSchema();
         var document = Utf8GraphQLParser.Parse(
             """
-            mutation AddBook
-                @mcpTool(destructiveHint: false, idempotentHint: true, openWorldHint: false) {
+            mutation AddBook {
                 addBook {
                     title
                 }
             }
             """);
-        var toolDefinition = new OperationToolDefinition("add_book", document);
+        var toolDefinition =
+            new OperationToolDefinition(document)
+            {
+                DestructiveHint = false,
+                IdempotentHint = true,
+                OpenWorldHint = false
+            };
 
         // act
-        var tool = new OperationToolFactory(schema).CreateTool(toolDefinition);
+        var tool = new OperationToolFactory(schema, new McpToolOptions()).CreateTool(toolDefinition);
         var mcpTool = tool.Tool;
 
         // assert
@@ -197,16 +206,54 @@ public sealed class OperationToolFactoryTests
     }
 
     [Fact]
+    public void CreateTool_SetIcon_ReturnsTool()
+    {
+        // arrange
+        var schema = CreateSchema();
+        var document = Utf8GraphQLParser.Parse(
+            """
+            mutation AddBook {
+                addBook {
+                    title
+                }
+            }
+            """);
+        var toolDefinition =
+            new OperationToolDefinition(document)
+            {
+                Icons =
+                [
+                    new IconDefinition(new Uri("https://example.com/icon.png"))
+                    {
+                        MimeType = "image/png",
+                        Sizes = ["32x32"],
+                        Theme = "dark"
+                    }
+                ]
+            };
+
+        // act
+        var tool = new OperationToolFactory(schema, new McpToolOptions()).CreateTool(toolDefinition);
+        var mcpTool = tool.Tool;
+
+        // assert
+        Assert.Equal("https://example.com/icon.png", mcpTool.Icons?[0].Source);
+        Assert.Equal("image/png", mcpTool.Icons?[0].MimeType);
+        Assert.Equal(["32x32"], mcpTool.Icons?[0].Sizes);
+        Assert.Equal("dark", mcpTool.Icons?[0].Theme);
+    }
+
+    [Fact]
     public void CreateTool_WithNullableVariables_CreatesCorrectSchema()
     {
         // arrange
         var schema = CreateSchema();
         var document = Utf8GraphQLParser.Parse(
             File.ReadAllText("__resources__/GetWithNullableVariables.graphql"));
-        var toolDefinition = new OperationToolDefinition("get_with_nullable_variables", document);
+        var toolDefinition = new OperationToolDefinition(document);
 
         // act
-        var tool = new OperationToolFactory(schema).CreateTool(toolDefinition);
+        var tool = new OperationToolFactory(schema, new McpToolOptions()).CreateTool(toolDefinition);
         var mcpTool = tool.Tool;
 
         // assert
@@ -221,10 +268,10 @@ public sealed class OperationToolFactoryTests
         var schema = CreateSchema();
         var document = Utf8GraphQLParser.Parse(
             File.ReadAllText("__resources__/GetWithNonNullableVariables.graphql"));
-        var toolDefinition = new OperationToolDefinition("get_with_non_nullable_variables", document);
+        var toolDefinition = new OperationToolDefinition(document);
 
         // act
-        var tool = new OperationToolFactory(schema).CreateTool(toolDefinition);
+        var tool = new OperationToolFactory(schema, new McpToolOptions()).CreateTool(toolDefinition);
         var mcpTool = tool.Tool;
 
         // assert
@@ -239,10 +286,10 @@ public sealed class OperationToolFactoryTests
         var schema = CreateSchema();
         var document = Utf8GraphQLParser.Parse(
             File.ReadAllText("__resources__/GetWithDefaultedVariables.graphql"));
-        var toolDefinition = new OperationToolDefinition("get_with_defaulted_variables", document);
+        var toolDefinition = new OperationToolDefinition(document);
 
         // act
-        var tool = new OperationToolFactory(schema).CreateTool(toolDefinition);
+        var tool = new OperationToolFactory(schema, new McpToolOptions()).CreateTool(toolDefinition);
         var mcpTool = tool.Tool;
 
         // assert
@@ -254,18 +301,84 @@ public sealed class OperationToolFactoryTests
     public void CreateTool_WithComplexVariables_CreatesCorrectSchema()
     {
         // arrange
-        var schema = CreateSchema(s => s.AddType(new TimeSpanType(TimeSpanFormat.DotNet)));
+        var schema = CreateSchema(s => s.AddType(new DurationType(DurationFormat.DotNet)));
         var document = Utf8GraphQLParser.Parse(
             File.ReadAllText("__resources__/GetWithComplexVariables.graphql"));
-        var toolDefinition = new OperationToolDefinition("get_with_complex_variables", document);
+        var toolDefinition = new OperationToolDefinition(document);
 
         // act
-        var tool = new OperationToolFactory(schema).CreateTool(toolDefinition);
+        var tool = new OperationToolFactory(schema, new McpToolOptions()).CreateTool(toolDefinition);
         var mcpTool = tool.Tool;
 
         // assert
         mcpTool.InputSchema.MatchSnapshot(postFix: "Input", extension: ".json");
         mcpTool.OutputSchema.MatchSnapshot(postFix: "Output", extension: ".json");
+    }
+
+    // The same non-recursive fixture, with references off, must inline every nested input
+    // object and emit no $ref/$defs.
+    [Fact]
+    public void CreateTool_WithComplexVariables_ReferencesDisabled_InlinesWithoutReferences()
+    {
+        // arrange
+        var schema = CreateSchema(s => s.AddType(new DurationType(DurationFormat.DotNet)));
+        var document = Utf8GraphQLParser.Parse(
+            File.ReadAllText("__resources__/GetWithComplexVariables.graphql"));
+        var toolDefinition = new OperationToolDefinition(document);
+
+        // act
+        var tool =
+            new OperationToolFactory(schema, new McpToolOptions { UseJsonSchemaReferences = false })
+                .CreateTool(toolDefinition);
+
+        // assert
+        tool.Tool.InputSchema.MatchSnapshot(extension: ".json");
+    }
+
+    // An input object that references itself (as filter inputs do via and/or) is finite
+    // only when emitted through $defs/$ref.
+    [Fact]
+    public void CreateTool_SelfReferencingInputVariable_UsesReferences()
+    {
+        // arrange
+        var schema = CreateRecursiveFilterSchema();
+        var document = Utf8GraphQLParser.Parse(
+            """
+            query GetWithRecursiveFilter($filter: RecursiveFilterInput) {
+                withRecursiveFilter(filter: $filter)
+            }
+            """);
+        var toolDefinition = new OperationToolDefinition(document);
+
+        // act
+        var tool =
+            new OperationToolFactory(schema, new McpToolOptions())
+                .CreateTool(toolDefinition);
+
+        // assert
+        tool.Tool.InputSchema.MatchSnapshot(extension: ".json");
+    }
+
+    [Fact]
+    public void CreateTool_SelfReferencingInputVariable_ReferencesDisabled_Inlines()
+    {
+        // arrange
+        var schema = CreateRecursiveFilterSchema();
+        var document = Utf8GraphQLParser.Parse(
+            """
+            query GetWithRecursiveFilter($filter: RecursiveFilterInput) {
+                withRecursiveFilter(filter: $filter)
+            }
+            """);
+        var toolDefinition = new OperationToolDefinition(document);
+
+        // act
+        var tool =
+            new OperationToolFactory(schema, new McpToolOptions { UseJsonSchemaReferences = false })
+                .CreateTool(toolDefinition);
+
+        // assert
+        tool.Tool.InputSchema.MatchSnapshot(extension: ".json");
     }
 
     [Fact]
@@ -288,10 +401,10 @@ public sealed class OperationToolFactoryTests
                 }
             }
             """);
-        var toolDefinition = new OperationToolDefinition("get_with_interface_type", document);
+        var toolDefinition = new OperationToolDefinition(document);
 
         // act
-        var tool = new OperationToolFactory(schema).CreateTool(toolDefinition);
+        var tool = new OperationToolFactory(schema, new McpToolOptions()).CreateTool(toolDefinition);
 
         // assert
         tool.Tool.OutputSchema.MatchSnapshot(extension: ".json");
@@ -316,10 +429,10 @@ public sealed class OperationToolFactoryTests
                 }
             }
             """);
-        var toolDefinition = new OperationToolDefinition("get_with_union_type", document);
+        var toolDefinition = new OperationToolDefinition(document);
 
         // act
-        var tool = new OperationToolFactory(schema).CreateTool(toolDefinition);
+        var tool = new OperationToolFactory(schema, new McpToolOptions()).CreateTool(toolDefinition);
 
         // assert
         tool.Tool.OutputSchema.MatchSnapshot(extension: ".json");
@@ -332,10 +445,10 @@ public sealed class OperationToolFactoryTests
         var schema = CreateSchema();
         var document = Utf8GraphQLParser.Parse(
             File.ReadAllText("__resources__/GetWithSkipAndInclude.graphql"));
-        var toolDefinition = new OperationToolDefinition("get_with_skip_and_include", document);
+        var toolDefinition = new OperationToolDefinition(document);
 
         // act
-        var tool = new OperationToolFactory(schema).CreateTool(toolDefinition);
+        var tool = new OperationToolFactory(schema, new McpToolOptions()).CreateTool(toolDefinition);
 
         // assert
         tool.Tool.OutputSchema.MatchSnapshot(extension: ".json");
@@ -352,10 +465,10 @@ public sealed class OperationToolFactoryTests
         // arrange
         var schema = CreateSchema();
         var document = Utf8GraphQLParser.Parse(File.ReadAllText($"__resources__/{fileName}"));
-        var toolDefinition = new OperationToolDefinition("tool", document);
+        var toolDefinition = new OperationToolDefinition(document);
 
         // act
-        var tool = new OperationToolFactory(schema).CreateTool(toolDefinition);
+        var tool = new OperationToolFactory(schema, new McpToolOptions()).CreateTool(toolDefinition);
 
         // assert
         Assert.Equal(destructiveHint, tool.Tool.Annotations?.DestructiveHint);
@@ -397,10 +510,10 @@ public sealed class OperationToolFactoryTests
                 .ModifyOptions(o => o.StrictValidation = false)
                 .Create();
         var document = Utf8GraphQLParser.Parse(File.ReadAllText($"__resources__/{fileName}"));
-        var toolDefinition = new OperationToolDefinition("tool", document);
+        var toolDefinition = new OperationToolDefinition(document);
 
         // act
-        var tool = new OperationToolFactory(schema).CreateTool(toolDefinition);
+        var tool = new OperationToolFactory(schema, new McpToolOptions()).CreateTool(toolDefinition);
 
         // assert
         Assert.Equal(destructiveHint, tool.Tool.Annotations?.DestructiveHint);
@@ -433,10 +546,10 @@ public sealed class OperationToolFactoryTests
                 .ModifyOptions(o => o.StrictValidation = false)
                 .Create();
         var document = Utf8GraphQLParser.Parse(File.ReadAllText($"__resources__/{fileName}"));
-        var toolDefinition = new OperationToolDefinition("tool", document);
+        var toolDefinition = new OperationToolDefinition(document);
 
         // act
-        var tool = new OperationToolFactory(schema).CreateTool(toolDefinition);
+        var tool = new OperationToolFactory(schema, new McpToolOptions()).CreateTool(toolDefinition);
 
         // assert
         Assert.Equal(destructiveHint, tool.Tool.Annotations?.DestructiveHint);
@@ -453,10 +566,10 @@ public sealed class OperationToolFactoryTests
         // arrange
         var schema = CreateSchema();
         var document = Utf8GraphQLParser.Parse(File.ReadAllText($"__resources__/{fileName}"));
-        var toolDefinition = new OperationToolDefinition("tool", document);
+        var toolDefinition = new OperationToolDefinition(document);
 
         // act
-        var tool = new OperationToolFactory(schema).CreateTool(toolDefinition);
+        var tool = new OperationToolFactory(schema, new McpToolOptions()).CreateTool(toolDefinition);
 
         // assert
         Assert.Equal(idempotentHint, tool.Tool.Annotations?.IdempotentHint);
@@ -498,10 +611,10 @@ public sealed class OperationToolFactoryTests
                 .ModifyOptions(o => o.StrictValidation = false)
                 .Create();
         var document = Utf8GraphQLParser.Parse(File.ReadAllText($"__resources__/{fileName}"));
-        var toolDefinition = new OperationToolDefinition("tool", document);
+        var toolDefinition = new OperationToolDefinition(document);
 
         // act
-        var tool = new OperationToolFactory(schema).CreateTool(toolDefinition);
+        var tool = new OperationToolFactory(schema, new McpToolOptions()).CreateTool(toolDefinition);
 
         // assert
         Assert.Equal(idempotentHint, tool.Tool.Annotations?.IdempotentHint);
@@ -534,10 +647,10 @@ public sealed class OperationToolFactoryTests
                 .ModifyOptions(o => o.StrictValidation = false)
                 .Create();
         var document = Utf8GraphQLParser.Parse(File.ReadAllText($"__resources__/{fileName}"));
-        var toolDefinition = new OperationToolDefinition("tool", document);
+        var toolDefinition = new OperationToolDefinition(document);
 
         // act
-        var tool = new OperationToolFactory(schema).CreateTool(toolDefinition);
+        var tool = new OperationToolFactory(schema, new McpToolOptions()).CreateTool(toolDefinition);
 
         // assert
         Assert.Equal(idempotentHint, tool.Tool.Annotations?.IdempotentHint);
@@ -556,10 +669,10 @@ public sealed class OperationToolFactoryTests
         // arrange
         var schema = CreateSchema();
         var document = Utf8GraphQLParser.Parse(File.ReadAllText($"__resources__/{fileName}"));
-        var toolDefinition = new OperationToolDefinition("tool", document);
+        var toolDefinition = new OperationToolDefinition(document);
 
         // act
-        var tool = new OperationToolFactory(schema).CreateTool(toolDefinition);
+        var tool = new OperationToolFactory(schema, new McpToolOptions()).CreateTool(toolDefinition);
 
         // assert
         Assert.Equal(openWorldHint, tool.Tool.Annotations?.OpenWorldHint);
@@ -612,10 +725,10 @@ public sealed class OperationToolFactoryTests
                 .Use(next => next)
                 .Create();
         var document = Utf8GraphQLParser.Parse(File.ReadAllText($"__resources__/{fileName}"));
-        var toolDefinition = new OperationToolDefinition("tool", document);
+        var toolDefinition = new OperationToolDefinition(document);
 
         // act
-        var tool = new OperationToolFactory(schema).CreateTool(toolDefinition);
+        var tool = new OperationToolFactory(schema, new McpToolOptions()).CreateTool(toolDefinition);
 
         // assert
         Assert.Equal(openWorldHint, tool.Tool.Annotations?.OpenWorldHint);
@@ -661,10 +774,10 @@ public sealed class OperationToolFactoryTests
                 .Use(next => next)
                 .Create();
         var document = Utf8GraphQLParser.Parse(File.ReadAllText($"__resources__/{fileName}"));
-        var toolDefinition = new OperationToolDefinition("tool", document);
+        var toolDefinition = new OperationToolDefinition(document);
 
         // act
-        var tool = new OperationToolFactory(schema).CreateTool(toolDefinition);
+        var tool = new OperationToolFactory(schema, new McpToolOptions()).CreateTool(toolDefinition);
 
         // assert
         Assert.Equal(openWorldHint, tool.Tool.Annotations?.OpenWorldHint);
@@ -678,10 +791,10 @@ public sealed class OperationToolFactoryTests
         var document =
             Utf8GraphQLParser.Parse(
                 File.ReadAllText("__resources__/AnnotationsWithFragment.graphql"));
-        var toolDefinition = new OperationToolDefinition("annotations_with_fragment", document);
+        var toolDefinition = new OperationToolDefinition(document);
 
         // act
-        var tool = new OperationToolFactory(schema).CreateTool(toolDefinition);
+        var tool = new OperationToolFactory(schema, new McpToolOptions()).CreateTool(toolDefinition);
         var mcpTool = tool.Tool;
 
         // assert
@@ -709,5 +822,29 @@ public sealed class OperationToolFactoryTests
         configure?.Invoke(schemaBuilder);
 
         return schemaBuilder.Create();
+    }
+
+    private static Schema CreateRecursiveFilterSchema()
+    {
+        return SchemaBuilder
+            .New()
+            .AddMcp()
+            .AddQueryType<RecursiveFilterQuery>()
+            .ModifyOptions(o => o.StrictValidation = false)
+            .Create();
+    }
+
+    public sealed class RecursiveFilterQuery
+    {
+        public int GetWithRecursiveFilter(RecursiveFilter? filter) => filter is null ? 0 : 1;
+    }
+
+    public sealed class RecursiveFilter
+    {
+        public RecursiveFilter[]? And { get; set; }
+
+        public RecursiveFilter[]? Or { get; set; }
+
+        public string? Name { get; set; }
     }
 }

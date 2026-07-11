@@ -13,7 +13,6 @@ namespace HotChocolate.Types;
 public abstract class NamedTypeBase<TConfiguration>
     : TypeSystemObject<TConfiguration>
     , ITypeDefinition
-    , IHasRuntimeType
     , ITypeIdentityProvider
     , ITypeConfigurationProvider
     where TConfiguration : TypeSystemConfiguration, IDirectiveConfigurationProvider, ITypeConfiguration
@@ -130,7 +129,9 @@ public abstract class NamedTypeBase<TConfiguration>
         }
         else if (RuntimeType != typeof(object))
         {
+#pragma warning disable IL2055, IL3050
             TypeIdentity = typeDefinitionOrIdentity.MakeGenericType(RuntimeType);
+#pragma warning restore IL2055, IL3050
         }
     }
 
@@ -149,7 +150,7 @@ public abstract class NamedTypeBase<TConfiguration>
     /// <summary>
     /// Returns a <see cref="ITypeDefinitionNode"/> from the named type.
     /// </summary>
-    /// <returns></returns>
+    /// <returns>The type definition syntax node.</returns>
     public ITypeDefinitionNode ToSyntaxNode() => FormatType();
 
     ISyntaxNode ISyntaxNodeProvider.ToSyntaxNode() => FormatType();

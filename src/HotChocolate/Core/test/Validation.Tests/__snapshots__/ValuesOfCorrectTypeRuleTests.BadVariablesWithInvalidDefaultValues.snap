@@ -1,34 +1,31 @@
-[
-  {
-    "Message": "The specified input object field `requiredField` does not exist.",
-    "Code": null,
-    "Path": null,
-    "Locations": [
-      {
-        "Line": 4,
-        "Column": 26
-      }
-    ],
-    "Extensions": {
-      "field": "requiredField",
-      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Input-Object-Field-Names"
-    },
-    "Exception": null
-  },
-  {
-    "Message": "The specified input object field `intField` does not exist.",
-    "Code": null,
-    "Path": null,
-    "Locations": [
-      {
-        "Line": 4,
-        "Column": 47
-      }
-    ],
-    "Extensions": {
-      "field": "intField",
-      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Input-Object-Field-Names"
-    },
-    "Exception": null
+---------------
+{
+  "message": "The specified input object field \u0060requiredField\u0060 does not exist.",
+  "locations": [
+    {
+      "line": 4,
+      "column": 26
+    }
+  ],
+  "extensions": {
+    "field": "requiredField",
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Input-Object-Field-Names"
   }
-]
+}
+---------------
+
+---------------
+{
+  "message": "The specified input object field \u0060intField\u0060 does not exist.",
+  "locations": [
+    {
+      "line": 4,
+      "column": 47
+    }
+  ],
+  "extensions": {
+    "field": "intField",
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Input-Object-Field-Names"
+  }
+}
+---------------

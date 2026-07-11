@@ -38,6 +38,9 @@ public sealed class SchemaValidator
     public void AddDefaultRules()
     {
         _rules.Add(new DirectiveDefinitionIncludesLocationRule());
+        _rules.Add(new DirectiveDefinitionNoSelfReferenceRule());
+        _rules.Add(new DirectiveIsDefinedRule());
+        _rules.Add(new EnumValueIsDefinedRule());
         _rules.Add(new NoInputObjectCycleRule());
         _rules.Add(new NoInputObjectDefaultValueCycleRule());
         _rules.Add(new NonEmptyEnumTypeRule());
@@ -58,7 +61,9 @@ public sealed class SchemaValidator
     /// </summary>
     /// <param name="schema">The schema to validate.</param>
     /// <param name="log">The log to which validation issues will be reported.</param>
-    /// <returns></returns>
+    /// <returns>
+    /// <c>true</c> if the schema is valid; otherwise, <c>false</c>.
+    /// </returns>
     public bool Validate(ISchemaDefinition schema, IValidationLog log)
     {
         ArgumentNullException.ThrowIfNull(schema);
@@ -79,6 +84,7 @@ public sealed class SchemaValidator
         foreach (var type in schema.Types)
         {
             PublishEvent(new TypeEvent(type), context);
+            PublishDirectiveEvents(type, context);
 
             if (type is INameProvider namedMember)
             {
@@ -111,7 +117,11 @@ public sealed class SchemaValidator
                             PublishEvent(new ArgumentEvent(argument), context);
                             PublishEvent(new InputValueEvent(argument), context);
                             PublishEvent(new NamedMemberEvent(argument), context);
+
+                            PublishDirectiveEvents(argument, context);
                         }
+
+                        PublishDirectiveEvents(field, context);
                     }
 
                     break;
@@ -136,6 +146,8 @@ public sealed class SchemaValidator
                         PublishEvent(new InputFieldEvent(field), context);
                         PublishEvent(new InputValueEvent(field), context);
                         PublishEvent(new NamedMemberEvent(field), context);
+
+                        PublishDirectiveEvents(field, context);
                     }
 
                     break;
@@ -151,11 +163,41 @@ public sealed class SchemaValidator
             PublishEvent(new DirectiveDefinitionEvent(directiveDefinition), context);
             PublishEvent(new NamedMemberEvent(directiveDefinition), context);
 
+            PublishDirectiveEvents(directiveDefinition, context);
+
             foreach (var argument in directiveDefinition.Arguments)
             {
                 PublishEvent(new ArgumentEvent(argument), context);
                 PublishEvent(new InputValueEvent(argument), context);
                 PublishEvent(new NamedMemberEvent(argument), context);
+            }
+        }
+    }
+
+    private void PublishDirectiveEvents(
+        IDirectivesProvider member,
+        ValidationContext context)
+    {
+        foreach (var directive in member.Directives)
+        {
+            PublishEvent(new DirectiveEvent(directive, member), context);
+
+            foreach (var argumentAssignment in directive.Arguments)
+            {
+                if (!directive.Definition.Arguments.TryGetField(
+                    argumentAssignment.Name,
+                    out var directiveArgument))
+                {
+                    continue;
+                }
+
+                PublishEvent(
+                    new DirectiveArgumentAssignmentEvent(
+                        argumentAssignment,
+                        directiveArgument,
+                        directive,
+                        member),
+                    context);
             }
         }
     }

@@ -1,10 +1,10 @@
-﻿{
+{
   "errors": [
     {
       "message": "Detected a non-null violation in argument `name`.",
       "locations": [
         {
-          "line": 1,
+          "line": 2,
           "column": 12
         }
       ],
@@ -12,7 +12,7 @@
         "sayHello"
       ],
       "extensions": {
-        "errorPath": [
+        "inputPath": [
           "name"
         ]
       }

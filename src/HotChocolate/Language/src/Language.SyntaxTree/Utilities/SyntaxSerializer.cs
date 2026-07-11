@@ -6,11 +6,13 @@ namespace HotChocolate.Language.Utilities;
 public sealed partial class SyntaxSerializer
 {
     private readonly bool _indented;
+    private readonly int _printWidth;
     private readonly int _maxDirectivesPerLine;
 
     public SyntaxSerializer(SyntaxSerializerOptions options = default)
     {
         _indented = options.Indented;
+        _printWidth = options.PrintWidth;
         _maxDirectivesPerLine = options.MaxDirectivesPerLine;
     }
 
@@ -40,7 +42,7 @@ public sealed partial class SyntaxSerializer
                 VisitField((FieldNode)node, writer);
                 break;
             case SyntaxKind.Argument:
-                writer.WriteArgument((ArgumentNode)node);
+                WriteArgument((ArgumentNode)node, writer);
                 break;
             case SyntaxKind.FragmentSpread:
                 VisitFragmentSpread((FragmentSpreadNode)node, writer);
@@ -52,7 +54,7 @@ public sealed partial class SyntaxSerializer
                 VisitFragmentDefinition((FragmentDefinitionNode)node, writer);
                 break;
             case SyntaxKind.Directive:
-                writer.WriteDirective((DirectiveNode)node);
+                WriteDirective((DirectiveNode)node, writer);
                 break;
             case SyntaxKind.NamedType:
             case SyntaxKind.ListType:
@@ -67,10 +69,10 @@ public sealed partial class SyntaxSerializer
             case SyntaxKind.IntValue:
             case SyntaxKind.NullValue:
             case SyntaxKind.StringValue:
-                writer.WriteValue((IValueNode)node);
+                WriteValue((IValueNode)node, writer);
                 break;
             case SyntaxKind.ObjectField:
-                writer.WriteObjectField((ObjectFieldNode)node);
+                WriteObjectField((ObjectFieldNode)node, writer);
                 break;
             case SyntaxKind.SchemaDefinition:
                 VisitSchemaDefinition((SchemaDefinitionNode)node, writer);
@@ -128,6 +130,9 @@ public sealed partial class SyntaxSerializer
                 break;
             case SyntaxKind.InputObjectTypeExtension:
                 VisitInputObjectTypeExtension((InputObjectTypeExtensionNode)node, writer);
+                break;
+            case SyntaxKind.DirectiveExtension:
+                VisitDirectiveExtension((DirectiveExtensionNode)node, writer);
                 break;
             case SyntaxKind.SchemaCoordinate:
                 VisitSchemaCoordinate((SchemaCoordinateNode)node, writer);
@@ -215,6 +220,9 @@ public sealed partial class SyntaxSerializer
                 break;
             case SyntaxKind.InputObjectTypeExtension:
                 VisitInputObjectTypeExtension((InputObjectTypeExtensionNode)node, writer);
+                break;
+            case SyntaxKind.DirectiveExtension:
+                VisitDirectiveExtension((DirectiveExtensionNode)node, writer);
                 break;
             default:
                 ThrowHelper.NodeKindIsNotSupported(node.Kind);

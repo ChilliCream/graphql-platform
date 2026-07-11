@@ -9,13 +9,13 @@ namespace HotChocolate.Data.Projections.Expressions.Handlers;
 public class QueryableProjectionListHandler
     : QueryableProjectionHandlerBase
 {
-    public override bool CanHandle(ISelection selection) =>
-        selection.Field.Member is { }
+    public override bool CanHandle(Selection selection) =>
+        CanProjectMember(selection)
         && (selection.IsList || selection.IsMemberIsList());
 
     public override QueryableProjectionContext OnBeforeEnter(
         QueryableProjectionContext context,
-        ISelection selection)
+        Selection selection)
     {
         var field = selection.Field;
         if (field.Member is PropertyInfo { CanWrite: true })
@@ -30,7 +30,7 @@ public class QueryableProjectionListHandler
 
     public override bool TryHandleEnter(
         QueryableProjectionContext context,
-        ISelection selection,
+        Selection selection,
         [NotNullWhen(true)] out ISelectionVisitorAction? action)
     {
         var field = selection.Field;
@@ -58,7 +58,7 @@ public class QueryableProjectionListHandler
 
     public override bool TryHandleLeave(
         QueryableProjectionContext context,
-        ISelection selection,
+        Selection selection,
         [NotNullWhen(true)] out ISelectionVisitorAction? action)
     {
         var field = selection.Field;
@@ -85,6 +85,11 @@ public class QueryableProjectionListHandler
         if (!queryableScope.HasAbstractTypes()
             && (queryableScope.Level.Count == 0 || queryableScope.Level.Peek().Count == 0))
         {
+            // No member is projected for this list, so the instance pushed in OnBeforeEnter
+            // is popped here to keep the instance stack aligned with the parent scope,
+            // mirroring the pop the non-empty path performs below via CreateSelection.
+            context.PopInstance();
+
             action = SelectionVisitor.Continue;
 
             return true;
@@ -101,5 +106,5 @@ public class QueryableProjectionListHandler
         return true;
     }
 
-    public static QueryableProjectionListHandler Create(ProjectionProviderContext context) => new();
+    public static QueryableProjectionListHandler Create(ProjectionProviderContext _) => new();
 }

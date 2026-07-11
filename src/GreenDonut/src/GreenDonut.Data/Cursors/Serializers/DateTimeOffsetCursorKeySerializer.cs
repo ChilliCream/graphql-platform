@@ -14,7 +14,7 @@ internal sealed class DateTimeOffsetCursorKeySerializer : ICursorKeySerializer
     private const string OffsetFormat = "hhmm";
 
     public bool IsSupported(Type type)
-        => type == typeof(DateTimeOffset);
+        => type == typeof(DateTimeOffset) || type == typeof(DateTimeOffset?);
 
     public MethodInfo GetCompareToMethod(Type type)
         => s_compareTo;

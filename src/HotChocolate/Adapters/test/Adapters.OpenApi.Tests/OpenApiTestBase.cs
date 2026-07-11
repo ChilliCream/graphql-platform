@@ -1,6 +1,7 @@
 using System.Collections.Immutable;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using HotChocolate.Adapters.OpenApi.Storage;
 using HotChocolate.Language;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.OpenApi;
@@ -20,7 +21,7 @@ public abstract class OpenApiTestBase : IAsyncLifetime
 
     private readonly TestServerSession _testServerSession = new();
 
-    protected static TestOpenApiDefinitionStorage CreateBasicTestDocumentStorage()
+    protected static TestOpenApiDefinitionStorage CreateBasicTestDefinitionStorage()
     {
         return new TestOpenApiDefinitionStorage(
             """
@@ -74,6 +75,19 @@ public abstract class OpenApiTestBase : IAsyncLifetime
             }
             """,
             """
+            mutation UpdateDeeplyNestedObject($input: DeeplyNestedInput! @body)
+              @http(method: PUT, route: "/object/{userId:$input.userId}", queryParameters: ["field:$input.object.field2"]) {
+              updateDeeplyNestedObject(input: $input) {
+                userId
+                field
+                object {
+                  otherField
+                  field2
+                }
+              }
+            }
+            """,
+            """
             "The user's address"
             fragment UserAddress on Address {
               street
@@ -110,12 +124,13 @@ public abstract class OpenApiTestBase : IAsyncLifetime
             query ComplexObjectQuery($input: ComplexObjectInput! @body) @http(method: POST, route: "/complex") {
               complexObject(input: $input) {
                 any
+                base64String
                 boolean
                 byte
-                byteArray
                 date
                 dateTime
                 decimal
+                duration
                 enum
                 float
                 id
@@ -135,7 +150,6 @@ public abstract class OpenApiTestBase : IAsyncLifetime
                 }
                 short
                 string
-                timeSpan
                 unknown
                 url
                 uuid
@@ -144,17 +158,17 @@ public abstract class OpenApiTestBase : IAsyncLifetime
             """);
     }
 
-    public Task InitializeAsync()
+    public ValueTask InitializeAsync()
     {
         return InitializeAsync(_testServerSession);
     }
 
-    protected virtual Task InitializeAsync(TestServerSession serverSession) => Task.CompletedTask;
+    protected virtual ValueTask InitializeAsync(TestServerSession serverSession) => ValueTask.CompletedTask;
 
-    public Task DisposeAsync()
+    public ValueTask DisposeAsync()
     {
         _testServerSession.Dispose();
-        return Task.CompletedTask;
+        return ValueTask.CompletedTask;
     }
 
     protected abstract void ConfigureStorage(
@@ -237,7 +251,9 @@ public abstract class OpenApiTestBase : IAsyncLifetime
                                 IssuerSigningKey = s_tokenKey
                             });
 
-                services.AddGraphQLServer()
+                services
+                    .AddGraphQLServer()
+                    .AddSourceSchemaDefaults()
                     .AddBasicServer();
             },
             app =>
@@ -258,13 +274,22 @@ public abstract class OpenApiTestBase : IAsyncLifetime
         return await response.Content.ReadAsStringAsync();
     }
 
+    protected static async Task SpinWaitAsync(Func<Task<bool>> condition, CancellationToken cancellationToken)
+    {
+        while (!await condition())
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            await Task.Delay(10, cancellationToken);
+        }
+    }
+
     protected sealed class TestOpenApiDiagnosticEventListener : OpenApiDiagnosticEventListener
     {
-        public List<IOpenApiError> Errors { get; } = [];
+        public List<OpenApiDefinitionValidationError> Errors { get; } = [];
 
         public ManualResetEventSlim HasReportedErrors { get; } = new(false);
 
-        public override void ValidationErrors(IReadOnlyList<IOpenApiError> errors)
+        public override void ValidationErrors(IReadOnlyList<OpenApiDefinitionValidationError> errors)
         {
             Errors.AddRange(errors);
             HasReportedErrors.Set();
@@ -292,35 +317,69 @@ public abstract class OpenApiTestBase : IAsyncLifetime
 
     protected sealed class TestOpenApiDefinitionStorage : IOpenApiDefinitionStorage, IDisposable
     {
+#if NET9_0_OR_GREATER
         private readonly Lock _lock = new();
-        private readonly Dictionary<string, OpenApiDocumentDefinition> _documentsById = [];
+#else
+        private readonly object _lock = new();
+#endif
+        private readonly Dictionary<string, IOpenApiDefinition> _definitionsById = [];
         private ImmutableList<ObserverSession> _sessions = [];
         private bool _disposed;
-        private readonly object _sync = new();
 
         public TestOpenApiDefinitionStorage(params IEnumerable<string>? documents)
         {
             if (documents is not null)
             {
-                var i = 0;
+                var index = 0;
                 foreach (var document in documents)
                 {
-                    var id = i++.ToString();
-                    var parsed = Utf8GraphQLParser.Parse(document);
+                    var documentNode = Utf8GraphQLParser.Parse(document);
+                    var definition = OpenApiDefinitionParser.Parse(documentNode);
 
-                    _documentsById.Add(id, new OpenApiDocumentDefinition(id, parsed));
+                    _definitionsById.Add(index.ToString(), definition);
+                    index++;
                 }
             }
         }
 
-        public ValueTask<IEnumerable<OpenApiDocumentDefinition>> GetDocumentsAsync(
-            CancellationToken cancellationToken)
+        public ValueTask<IEnumerable<IOpenApiDefinition>> GetDefinitionsAsync(CancellationToken cancellationToken = default)
         {
             lock (_lock)
             {
-                var documents = _documentsById.Values.ToList();
+                return ValueTask.FromResult<IEnumerable<IOpenApiDefinition>>(_definitionsById.Values.ToList());
+            }
+        }
 
-                return ValueTask.FromResult<IEnumerable<OpenApiDocumentDefinition>>(documents);
+        public void AddOrUpdateDocument(string id, string document)
+        {
+            var documentNode = Utf8GraphQLParser.Parse(document);
+            var definition = OpenApiDefinitionParser.Parse(documentNode);
+
+            AddOrUpdateDefinition(id, definition);
+        }
+
+        public void AddOrUpdateDefinition(string id, IOpenApiDefinition definition)
+        {
+            lock (_lock)
+            {
+                _definitionsById[id] = definition;
+            }
+
+            Notify(id, definition, OpenApiDefinitionStorageEventType.Updated);
+        }
+
+        public void RemoveDocument(string id)
+        {
+            bool removed;
+
+            lock (_lock)
+            {
+                removed = _definitionsById.Remove(id);
+            }
+
+            if (removed)
+            {
+                Notify(id, definition: null, OpenApiDefinitionStorageEventType.Removed);
             }
         }
 
@@ -329,49 +388,11 @@ public abstract class OpenApiTestBase : IAsyncLifetime
             return new ObserverSession(this, observer);
         }
 
-        public void AddOrUpdateDocument(string id, string document)
+        private void Notify(string name, IOpenApiDefinition? definition, OpenApiDefinitionStorageEventType type)
         {
-            lock (_lock)
+            if (type is OpenApiDefinitionStorageEventType.Updated)
             {
-                var parsedDocument = Utf8GraphQLParser.Parse(document);
-
-                var documentDefinition = new OpenApiDocumentDefinition(id, parsedDocument);
-                OpenApiDefinitionStorageEventType type;
-                if (_documentsById.TryAdd(id, documentDefinition))
-                {
-                    type = OpenApiDefinitionStorageEventType.Added;
-                }
-                else
-                {
-                    _documentsById[id] = documentDefinition;
-                    type = OpenApiDefinitionStorageEventType.Modified;
-                }
-
-                NotifySubscribers(id, documentDefinition, type);
-            }
-        }
-
-        public void RemoveDocument(string id)
-        {
-            lock (_lock)
-            {
-                var removed = _documentsById.Remove(id);
-
-                if (removed)
-                {
-                    NotifySubscribers(id, null, OpenApiDefinitionStorageEventType.Removed);
-                }
-            }
-        }
-
-        private void NotifySubscribers(
-            string id,
-            OpenApiDocumentDefinition? toolDefinition,
-            OpenApiDefinitionStorageEventType type)
-        {
-            if (type is OpenApiDefinitionStorageEventType.Added or OpenApiDefinitionStorageEventType.Modified)
-            {
-                ArgumentNullException.ThrowIfNull(toolDefinition);
+                ArgumentNullException.ThrowIfNull(definition);
             }
 
             if (_disposed)
@@ -380,7 +401,7 @@ public abstract class OpenApiTestBase : IAsyncLifetime
             }
 
             var sessions = _sessions;
-            var eventArgs = new OpenApiDefinitionStorageEventArgs(id, type, toolDefinition);
+            var eventArgs = new OpenApiDefinitionStorageEventArgs(name, type, definition);
 
             foreach (var session in sessions)
             {
@@ -390,31 +411,28 @@ public abstract class OpenApiTestBase : IAsyncLifetime
 
         public void Dispose()
         {
-            Dispose(true);
-        }
-
-        private void Dispose(bool disposing)
-        {
-            if (!_disposed && disposing)
+            if (_disposed)
             {
-                lock (_sync)
-                {
-                    foreach (var session in _sessions)
-                    {
-                        session.Dispose();
-                    }
+                return;
+            }
 
-                    _sessions = [];
-                    _disposed = true;
+            lock (_lock)
+            {
+                foreach (var session in _sessions)
+                {
+                    session.Dispose();
                 }
+
+                _sessions = [];
+                _disposed = true;
             }
         }
 
         private sealed class ObserverSession : IDisposable
         {
-            private bool _disposed;
             private readonly TestOpenApiDefinitionStorage _storage;
             private readonly IObserver<OpenApiDefinitionStorageEventArgs> _observer;
+            private bool _disposed;
 
             public ObserverSession(
                 TestOpenApiDefinitionStorage storage,
@@ -423,7 +441,7 @@ public abstract class OpenApiTestBase : IAsyncLifetime
                 _storage = storage;
                 _observer = observer;
 
-                lock (storage._sync)
+                lock (storage._lock)
                 {
                     _storage._sessions = _storage._sessions.Add(this);
                 }
@@ -444,7 +462,7 @@ public abstract class OpenApiTestBase : IAsyncLifetime
                     return;
                 }
 
-                lock (_storage._sync)
+                lock (_storage._lock)
                 {
                     _storage._sessions = _storage._sessions.Remove(this);
                 }

@@ -28,7 +28,7 @@ public class ProjectionVisitorTestBase(PostgreSqlResource<PostgisConfig> resourc
             await dbContext.SaveChangesAsync();
         }
 
-        return ctx => dbContext.Data.AsQueryable();
+        return _ => dbContext.Data.AsQueryable();
     }
 
     protected async Task<IRequestExecutor> CreateSchemaAsync<TEntity>(
@@ -72,11 +72,8 @@ public class ProjectionVisitorTestBase(PostgreSqlResource<PostgisConfig> resourc
 
                 if (context.ContextData.TryGetValue("sql", out var queryString))
                 {
-                    context.Result =
-                        OperationResultBuilder
-                            .FromResult(context.Result!.ExpectOperationResult())
-                            .SetContextData("sql", queryString)
-                            .Build();
+                    var result = context.Result.ExpectOperationResult();
+                    result.ContextData = result.ContextData.SetItem("sql", queryString);
                 }
             })
             .UseDefaultPipeline()

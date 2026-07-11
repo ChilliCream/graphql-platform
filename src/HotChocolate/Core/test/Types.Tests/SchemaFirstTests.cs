@@ -23,7 +23,7 @@ public class SchemaFirstTests
             .AddDocumentFromString(source)
             .ModifyOptions(o => o.SortFieldsByName = true)
             .UseField(next => next)
-            .ExecuteRequestAsync(query)
+            .ExecuteRequestAsync(query, cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -59,7 +59,7 @@ public class SchemaFirstTests
 
         // assert
         var executor = schema.MakeExecutable();
-        var result = await executor.ExecuteAsync(query);
+        var result = await executor.ExecuteAsync(query, TestContext.Current.CancellationToken);
         result.ToJson().MatchSnapshot();
     }
 
@@ -90,7 +90,7 @@ public class SchemaFirstTests
             .AddResolver<PetQuery>("Query")
             .BindRuntimeType<Cat>()
             .BindRuntimeType<Dog>()
-            .BuildSchemaAsync()
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -121,7 +121,9 @@ public class SchemaFirstTests
             .AddResolver<PetQuery>("Query")
             .BindRuntimeType<Cat>()
             .BindRuntimeType<Dog>()
-            .ExecuteRequestAsync("{ pet { name __typename } }")
+            .ExecuteRequestAsync(
+                "{ pet { name __typename } }",
+                cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -143,7 +145,9 @@ public class SchemaFirstTests
         // assert
         var executor = schema.MakeExecutable();
         var result =
-            await executor.ExecuteAsync("{ __schema { description } }");
+            await executor.ExecuteAsync(
+                "{ __schema { description } }",
+                TestContext.Current.CancellationToken);
         result.ToJson().MatchSnapshot();
     }
 
@@ -162,7 +166,7 @@ public class SchemaFirstTests
         // assert
         var executor = schema.MakeExecutable();
         var result =
-            await executor.ExecuteAsync("{ hello }");
+            await executor.ExecuteAsync("{ hello }", TestContext.Current.CancellationToken);
         result.ToJson().MatchSnapshot();
     }
 
@@ -181,7 +185,7 @@ public class SchemaFirstTests
         // assert
         var executor = schema.MakeExecutable();
         var result =
-            await executor.ExecuteAsync("{ hello }");
+            await executor.ExecuteAsync("{ hello }", TestContext.Current.CancellationToken);
         result.ToJson().MatchSnapshot();
     }
 
@@ -278,14 +282,15 @@ public class SchemaFirstTests
         const string sourceText = "type Query { hello: Any }";
 
         // act
-        var schema = SchemaBuilder.New()
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
             .AddDocumentFromString(sourceText)
             .AddResolver<Query>()
-            .Create();
+            .AddJsonTypeConverter()
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
-        var executor = schema.MakeExecutable();
-        var result = await executor.ExecuteAsync("{ hello }");
+        var result = await executor.ExecuteAsync("{ hello }", TestContext.Current.CancellationToken);
         result.ToJson().MatchSnapshot();
     }
 
@@ -301,7 +306,7 @@ public class SchemaFirstTests
                 .AddGraphQL()
                 .AddDocumentFromString(sdl)
                 .BindRuntimeType<QueryWithItems>("Query")
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         schema.ToString().MatchSnapshot();
@@ -319,7 +324,7 @@ public class SchemaFirstTests
                 .AddGraphQL()
                 .AddDocumentFromString(sdl)
                 .BindRuntimeType<QueryWithOffsetItems>("Query")
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         schema.ToString().MatchSnapshot();
@@ -337,7 +342,7 @@ public class SchemaFirstTests
                 .AddGraphQL()
                 .AddDocumentFromString(sdl)
                 .BindRuntimeType<QueryWithPersons>("Query")
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         schema.ToString().MatchSnapshot();
@@ -355,7 +360,7 @@ public class SchemaFirstTests
                 .AddGraphQL()
                 .AddDocumentFromString(sdl)
                 .BindRuntimeType<QueryWithItems>("Query")
-                .ExecuteRequestAsync("{ items { nodes } }");
+                .ExecuteRequestAsync("{ items { nodes } }", cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -373,7 +378,9 @@ public class SchemaFirstTests
                 .AddGraphQL()
                 .AddDocumentFromString(sdl)
                 .BindRuntimeType<QueryWithPersons>("Query")
-                .ExecuteRequestAsync("{ items { nodes { name } } }");
+                .ExecuteRequestAsync(
+                    "{ items { nodes { name } } }",
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -391,7 +398,7 @@ public class SchemaFirstTests
                 .AddGraphQL()
                 .AddDocumentFromString(sdl)
                 .AddResolver<QueryWithItems>("Query")
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         schema.ToString().MatchSnapshot();
@@ -410,7 +417,7 @@ public class SchemaFirstTests
                 .AddDocumentFromString(sdl)
                 .AddQueryType<QueryCodeFirst>()
                 .BindRuntimeType<Person>()
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         schema.ToString().MatchSnapshot();
@@ -430,7 +437,7 @@ public class SchemaFirstTests
                 .AddQueryType<QueryCodeFirst>()
                 .BindRuntimeType<Person>()
                 .ConfigureSchema(sb => sb.TryAddSchemaDirective(new CustomDescriptionDirective()))
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal(
@@ -451,7 +458,9 @@ public class SchemaFirstTests
                     enum TestEnumInput { FOO_BAR_INPUT }
                     enum TestEnum { FOO_BAR }")
             .AddResolver<QueryEnumExample>("Query")
-            .ExecuteRequestAsync("{ book(input: FOO_BAR_INPUT) }")
+            .ExecuteRequestAsync(
+                "{ book(input: FOO_BAR_INPUT) }",
+                cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -463,14 +472,16 @@ public class SchemaFirstTests
             .AddDocumentFromString(
                 """
                 type Query {
-                   book(input: Foo): String
+                    book(input: Foo): String
                 }
 
                 input Foo { bar: String = "baz" }
                 """)
             .AddResolver<QueryWithFooInput>("Query")
             .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
-            .ExecuteRequestAsync("{ book(input: { }) }")
+            .ExecuteRequestAsync(
+                "{ book(input: { }) }",
+                cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -488,7 +499,9 @@ public class SchemaFirstTests
                 input Foo { bar: String = "baz" }
                 """)
             .AddResolver<QueryWithFooInput>("Query")
-            .ExecuteRequestAsync("{ book(input: { bar: \"baz123\" }) }")
+            .ExecuteRequestAsync(
+                "{ book(input: { bar: \"baz123\" }) }",
+                cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -505,8 +518,296 @@ public class SchemaFirstTests
                     enum TestEnumInput { FOO_BAR_INPUT }
                     enum TestEnum { FOO_BAR }")
             .BindRuntimeType<QueryEnumExample>("Query")
-            .ExecuteRequestAsync("{ book(input: FOO_BAR_INPUT) }")
+            .ExecuteRequestAsync(
+                "{ book(input: FOO_BAR_INPUT) }",
+                cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
+    }
+
+    [Fact]
+    public async Task SchemaFirst_DirectivesOnDirectiveDefinition_AreBound()
+    {
+        // arrange
+        const string source =
+            """
+            type Query {
+                field: String
+            }
+
+            directive @onDirectiveDefinition on DIRECTIVE_DEFINITION
+
+            directive @custom @onDirectiveDefinition on OBJECT
+
+            directive @old @deprecated(reason: "Use @custom.") on OBJECT
+            """;
+
+        // act
+        var schema = await new ServiceCollection()
+            .AddGraphQL()
+            .AddDocumentFromString(source)
+            .ModifyOptions(o => o.RemoveUnusedTypeSystemDirectives = false)
+            .UseField(next => next)
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // assert
+        var custom = schema.DirectiveTypes["custom"];
+        var old = schema.DirectiveTypes["old"];
+        var directive = Assert.Single(custom.Directives);
+        Assert.Equal("onDirectiveDefinition", directive.Name);
+        Assert.True(old.IsDeprecated);
+        Assert.Equal("Use @custom.", old.DeprecationReason);
+    }
+
+    [Fact]
+    public void SchemaFirst_DirectiveOnDirectiveDefinitionWrongLocation_Errors()
+    {
+        // arrange
+        const string source =
+            """
+            type Query {
+                field: String
+            }
+
+            directive @onObject on OBJECT
+
+            directive @custom @onObject on OBJECT
+            """;
+
+        // act
+        static void Action() => SchemaBuilder.New()
+            .AddDocumentFromString(source)
+            .Use(next => next)
+            .Create();
+
+        // assert
+        var exception = Assert.Throws<SchemaException>(Action);
+        exception.Errors.Single().ToString().MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task SchemaFirst_DirectiveAppliedOnlyToDirectiveDefinition_SurvivesPruning()
+    {
+        // arrange
+        // @custom is applied on Query so it survives pruning; @meta is applied
+        // only to @custom's definition, so it must be kept alive transitively.
+        const string source =
+            """
+            type Query @custom {
+                field: String
+            }
+
+            directive @meta on DIRECTIVE_DEFINITION
+
+            directive @custom @meta on OBJECT
+            """;
+
+        // act
+        var schema = await new ServiceCollection()
+            .AddGraphQL()
+            .AddDocumentFromString(source)
+            .UseField(next => next)
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.True(schema.DirectiveTypes.ContainsName("meta"));
+    }
+
+    [Fact]
+    public async Task SchemaFirst_DirectivesOnDirectiveDefinition_RoundTripInSdl()
+    {
+        // arrange
+        // @custom and @old are applied to Query so they survive default
+        // pruning; @onDirectiveDefinition survives transitively via @custom.
+        const string source =
+            """
+            type Query @custom @old {
+                field: String
+            }
+
+            directive @onDirectiveDefinition on DIRECTIVE_DEFINITION
+
+            directive @custom @onDirectiveDefinition on OBJECT
+
+            directive @old @deprecated(reason: "Use @custom.") on OBJECT
+            """;
+
+        // act
+        var schema = await new ServiceCollection()
+            .AddGraphQL()
+            .AddDocumentFromString(source)
+            .UseField(next => next)
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // assert
+        schema.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task DirectiveType_ToSyntaxNode_IncludesDirectivesAndDeprecated()
+    {
+        // arrange
+        // @old is applied to Query so it survives default pruning.
+        const string source =
+            """
+            type Query @old {
+                field: String
+            }
+
+            directive @old @deprecated(reason: "Use @custom.") on OBJECT
+            """;
+
+        var schema = await new ServiceCollection()
+            .AddGraphQL()
+            .AddDocumentFromString(source)
+            .UseField(next => next)
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // act
+        var sdl = schema.DirectiveTypes["old"].ToString();
+
+        // assert
+        sdl.MatchInlineSnapshot(
+            """
+            directive @old @deprecated(reason: "Use @custom.") on OBJECT
+            """);
+    }
+
+    [Fact]
+    public async Task SchemaFirst_ExtendDirective_MergesDirectivesIntoDefinition()
+    {
+        // arrange
+        // @custom is applied on Query so it survives pruning; the directive
+        // extensions add @onDirectiveDefinition and @deprecated to its definition.
+        const string source =
+            """
+            type Query @custom {
+                field: String
+            }
+
+            directive @onDirectiveDefinition on DIRECTIVE_DEFINITION
+
+            directive @custom on OBJECT
+
+            extend directive @custom @onDirectiveDefinition
+
+            extend directive @custom @deprecated(reason: "Use something else.")
+            """;
+
+        // act
+        var schema = await new ServiceCollection()
+            .AddGraphQL()
+            .AddDocumentFromString(source)
+            .UseField(next => next)
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // assert
+        var custom = schema.DirectiveTypes["custom"];
+        var directive = Assert.Single(custom.Directives);
+        Assert.Equal("onDirectiveDefinition", directive.Name);
+        Assert.True(custom.IsDeprecated);
+        Assert.Equal("Use something else.", custom.DeprecationReason);
+    }
+
+    [Fact]
+    public void SchemaFirst_ExtendDirectiveUnknownTarget_Errors()
+    {
+        // arrange
+        const string source =
+            """
+            type Query {
+                field: String
+            }
+
+            directive @onDirectiveDefinition on DIRECTIVE_DEFINITION
+
+            extend directive @unknown @onDirectiveDefinition
+            """;
+
+        // act
+        static void Action() => SchemaBuilder.New()
+            .AddDocumentFromString(source)
+            .Use(next => next)
+            .Create();
+
+        // assert
+        var exception = Assert.Throws<SchemaException>(Action);
+        exception.Errors.Single().ToString().MatchSnapshot();
+    }
+
+    [Fact]
+    public void SchemaFirst_ExtendDirectiveNonRepeatableDuplicate_Errors()
+    {
+        // arrange
+        const string source =
+            """
+            type Query {
+                field: String
+            }
+
+            directive @onDirectiveDefinition on DIRECTIVE_DEFINITION
+
+            directive @custom @onDirectiveDefinition on OBJECT
+
+            extend directive @custom @onDirectiveDefinition
+            """;
+
+        // act
+        static void Action() => SchemaBuilder.New()
+            .AddDocumentFromString(source)
+            .Use(next => next)
+            .Create();
+
+        // assert
+        var exception = Assert.Throws<SchemaException>(Action);
+        exception.Errors.Single().ToString().MatchSnapshot();
+    }
+
+    [Fact]
+    public void SchemaFirst_DirectiveDefinitionSelfApplication_Errors()
+    {
+        // arrange
+        const string source =
+            """
+            type Query {
+                field: String
+            }
+
+            directive @custom @custom on DIRECTIVE_DEFINITION
+            """;
+
+        // act
+        static void Action() => SchemaBuilder.New()
+            .AddDocumentFromString(source)
+            .Use(next => next)
+            .Create();
+
+        // assert
+        var exception = Assert.Throws<SchemaException>(Action);
+        exception.Errors.Single().ToString().MatchSnapshot();
+    }
+
+    [Fact]
+    public void SchemaFirst_DirectiveDefinitionArgumentSelfApplication_Errors()
+    {
+        // arrange
+        const string source =
+            """
+            type Query {
+                field: String
+            }
+
+            directive @custom(arg: Int @custom) on ARGUMENT_DEFINITION | DIRECTIVE_DEFINITION
+            """;
+
+        // act
+        static void Action() => SchemaBuilder.New()
+            .AddDocumentFromString(source)
+            .Use(next => next)
+            .Create();
+
+        // assert
+        var exception = Assert.Throws<SchemaException>(Action);
+        exception.Errors.Single().ToString().MatchSnapshot();
     }
 
     public class Query

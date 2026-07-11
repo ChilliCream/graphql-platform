@@ -6,7 +6,7 @@ namespace HotChocolate.Adapters.OpenApi;
 internal interface IOpenApiResultFormatter
 {
     Task FormatResultAsync(
-        IOperationResult operationResult,
+        OperationResult operationResult,
         HttpContext httpContext,
         OpenApiEndpointDescriptor endpoint,
         CancellationToken cancellationToken);

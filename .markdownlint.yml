@@ -11,21 +11,23 @@ MD029: false # Rationale: The documentation currently misuses list formatting fo
 MD033:
   allowed_elements:
     - a
-    - ApiChoiceTabs
     - br
     - Code
+    - em
     - ExampleTabs
+    - FusionSubscriptionsDiagram
     - img
     - Implementation
     - InputChoiceTabs
     - List
+    - MochaTopologyVisualization
     - PackageInstallation
-    - Panel
+    - PhotoGrid
+    - PipelineChoiceTabs
     - Schema
+    - span
     - strong
-    - Tab
-    - u
-    - Video
+    - style
 MD036: false # Rationale: Possibly too strict, used frequently in documentation.
 MD059: false # Rationale: Already used in many places in the documentation.
 MD060:

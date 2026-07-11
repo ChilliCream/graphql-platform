@@ -1,0 +1,14 @@
+{
+  "data": {
+    "customSortBooks": [
+      {
+        "id": 1,
+        "title": "Zebra"
+      },
+      {
+        "id": 2,
+        "title": "Apple"
+      }
+    ]
+  }
+}

@@ -13,7 +13,7 @@ public class OperationRequestTests
             null,
             "abc",
             "myOperation",
-            variables: new Dictionary<string, object?>()
+            variables: new Dictionary<string, object?>
             {
                 ["abc"] = "def",
                 ["hij"] = null
@@ -24,12 +24,39 @@ public class OperationRequestTests
 
         // act
         request.WriteTo(writer);
-        await writer.FlushAsync();
+        await writer.FlushAsync(TestContext.Current.CancellationToken);
 
         // assert
         var result = Encoding.UTF8.GetString(memory.ToArray());
         Assert.Equal(
             """{"id":"abc","operationName":"myOperation","variables":{"abc":"def","hij":null}}""",
+            result);
+    }
+
+    [Fact]
+    public async Task Should_WriteSByteVariableAsNumber()
+    {
+        // arrange
+        var request = new OperationRequest(
+            null,
+            "abc",
+            "myOperation",
+            variables: new Dictionary<string, object?>
+            {
+                ["value"] = (sbyte)2
+            });
+
+        await using var memory = new MemoryStream();
+        await using var writer = new Utf8JsonWriter(memory);
+
+        // act
+        request.WriteTo(writer);
+        await writer.FlushAsync(TestContext.Current.CancellationToken);
+
+        // assert
+        var result = Encoding.UTF8.GetString(memory.ToArray());
+        Assert.Equal(
+            """{"id":"abc","operationName":"myOperation","variables":{"value":2}}""",
             result);
     }
 }

@@ -55,6 +55,17 @@ internal static class LogEntryHelper
             .Build();
     }
 
+    public static LogEntry DirectiveDefinitionSelfApplication(IDirectiveDefinition directiveDefinition)
+    {
+        return LogEntryBuilder.New()
+            .SetMessage(LogEntryHelper_DirectiveDefinitionSelfApplication, directiveDefinition.Name)
+            .SetCode(LogEntryCodes.DirectiveDefinitionSelfApplication)
+            .SetSeverity(LogSeverity.Error)
+            .SetTypeSystemMember(directiveDefinition)
+            .SetSpecifiedBy(TypeKind.Directive)
+            .Build();
+    }
+
     public static LogEntry EmptyEnumType(IEnumTypeDefinition enumType)
     {
         return LogEntryBuilder.New()
@@ -315,6 +326,43 @@ internal static class LogEntryHelper
             .Build();
     }
 
+    public static LogEntry UndefinedArgumentAssignedEnumValue(
+        string enumValue,
+        string argumentName,
+        string directiveName,
+        string enumTypeName,
+        ITypeSystemMember member)
+    {
+        return LogEntryBuilder.New()
+            .SetMessage(
+                LogEntryHelper_UndefinedArgumentAssignedEnumValue,
+                enumValue,
+                argumentName,
+                directiveName,
+                enumTypeName)
+            .SetCode(LogEntryCodes.UndefinedArgumentAssignedEnumValue)
+            .SetSeverity(LogSeverity.Error)
+            .SetTypeSystemMember(member)
+            .Build();
+    }
+
+    public static LogEntry UndefinedArgumentDefaultEnumValue(
+        string enumValue,
+        IInputValueDefinition argument,
+        string enumTypeName)
+    {
+        return LogEntryBuilder.New()
+            .SetMessage(
+                LogEntryHelper_UndefinedArgumentDefaultEnumValue,
+                enumValue,
+                argument.Coordinate,
+                enumTypeName)
+            .SetCode(LogEntryCodes.UndefinedArgumentDefaultEnumValue)
+            .SetSeverity(LogSeverity.Error)
+            .SetTypeSystemMember(argument)
+            .Build();
+    }
+
     public static LogEntry UndefinedArgumentType(IInputValueDefinition argument)
     {
         return LogEntryBuilder.New()
@@ -328,6 +376,19 @@ internal static class LogEntryHelper
             .Build();
     }
 
+    public static LogEntry UndefinedDirective(IDirective directive, ITypeSystemMember member)
+    {
+        return LogEntryBuilder.New()
+            .SetMessage(
+                LogEntryHelper_UndefinedDirective,
+                directive.Name,
+                member is ISchemaCoordinateProvider m ? m.Coordinate.ToString() : "?")
+            .SetCode(LogEntryCodes.UndefinedDirective)
+            .SetSeverity(LogSeverity.Error)
+            .SetTypeSystemMember(member)
+            .Build();
+    }
+
     public static LogEntry UndefinedFieldType(IFieldDefinition field)
     {
         return LogEntryBuilder.New()
@@ -338,6 +399,23 @@ internal static class LogEntryHelper
             .SetCode(LogEntryCodes.UndefinedFieldType)
             .SetSeverity(LogSeverity.Error)
             .SetTypeSystemMember(field)
+            .Build();
+    }
+
+    public static LogEntry UndefinedInputFieldDefaultEnumValue(
+        string enumValue,
+        IInputValueDefinition inputField,
+        string enumTypeName)
+    {
+        return LogEntryBuilder.New()
+            .SetMessage(
+                LogEntryHelper_UndefinedInputFieldDefaultEnumValue,
+                enumValue,
+                inputField.Coordinate,
+                enumTypeName)
+            .SetCode(LogEntryCodes.UndefinedInputFieldDefaultEnumValue)
+            .SetSeverity(LogSeverity.Error)
+            .SetTypeSystemMember(inputField)
             .Build();
     }
 

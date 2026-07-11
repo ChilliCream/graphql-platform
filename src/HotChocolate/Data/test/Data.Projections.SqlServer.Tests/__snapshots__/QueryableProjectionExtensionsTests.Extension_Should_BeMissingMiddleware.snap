@@ -4,12 +4,6 @@ Result:
   "errors": [
     {
       "message": "Cannot return null for non-nullable field.",
-      "locations": [
-        {
-          "line": 1,
-          "column": 3
-        }
-      ],
       "path": [
         "missingMiddleware"
       ],

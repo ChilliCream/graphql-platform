@@ -8,7 +8,7 @@ namespace HotChocolate.Types.Analyzers.Helpers;
 internal static class GeneratorUtils
 {
     private static readonly Regex s_invalidCharsRegex = new("[^a-zA-Z0-9]", RegexOptions.Compiled);
-    private static readonly Regex s_xmlWhitespaceRegex = new(@"(\n[ \t]*)", RegexOptions.Compiled);
+    private static readonly Regex s_xmlWhitespaceRegex = new(@"\n[ \t]*", RegexOptions.Compiled);
 
     public static ModuleInfo GetModuleInfo(
         this ImmutableArray<SyntaxInfo> syntaxInfos,
@@ -86,7 +86,7 @@ internal static class GeneratorUtils
 
         if (type.SpecialType == SpecialType.System_Boolean)
         {
-            return defaultValue.ToString()!.ToLower();
+            return defaultValue.ToString().ToLower();
         }
 
         if (type.SpecialType == SpecialType.System_Double
@@ -106,24 +106,33 @@ internal static class GeneratorUtils
             return $"{defaultValue}L";
         }
 
-        if (type.TypeKind == TypeKind.Enum && type is INamedTypeSymbol namedTypeSymbol)
+        if (type is INamedTypeSymbol namedTypeSymbol)
         {
-            var enumType = namedTypeSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
-
-            // Find the enum member that matches the default value
-            foreach (var member in namedTypeSymbol.GetMembers())
+            if (type.TypeKind == TypeKind.Enum)
             {
-                if (member is IFieldSymbol field && field.HasConstantValue && Equals(field.ConstantValue, defaultValue))
+                var enumType = namedTypeSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+
+                // Find the enum member that matches the default value
+                foreach (var member in namedTypeSymbol.GetMembers())
                 {
-                    return $"{enumType}.{field.Name}";
+                    if (member is IFieldSymbol { HasConstantValue: true } field
+                        && Equals(field.ConstantValue, defaultValue))
+                    {
+                        return $"{enumType}.{field.Name}";
+                    }
                 }
+
+                // Fallback to integer value if no matching member found
+                return defaultValue.ToString();
             }
 
-            // Fallback to integer value if no matching member found
-            return defaultValue.ToString()!;
+            if (type.IsNullableValueType())
+            {
+                return ConvertDefaultValueToString(defaultValue, namedTypeSymbol.TypeArguments[0]);
+            }
         }
 
-        return defaultValue.ToString()!;
+        return defaultValue.ToString();
     }
 
     public static string SanitizeIdentifier(string input)
@@ -150,7 +159,11 @@ internal static class GeneratorUtils
         }
 
         // Normalize line endings and trim outer newlines
-        var normalized = "\n" + documentation!.Replace("\r", string.Empty).Trim('\n');
+        var normalized = documentation!.Replace("\r", string.Empty);
+        if (normalized[0] == ' ')
+        {
+            normalized = "\n" + normalized;
+        }
 
         // Find common leading whitespace pattern
         var whitespace = s_xmlWhitespaceRegex.Match(normalized).Value;
@@ -171,12 +184,8 @@ internal static class GeneratorUtils
     /// </summary>
     public static string? EscapeForStringLiteral(string? s)
     {
-        if (s == null)
-        {
-            return null;
-        }
-
-        return s.Replace("\\", "\\\\")
+        return s?
+            .Replace("\\", "\\\\")
             .Replace("\"", "\\\"")
             .Replace("\n", "\\n")
             .Replace("\r", "\\r")

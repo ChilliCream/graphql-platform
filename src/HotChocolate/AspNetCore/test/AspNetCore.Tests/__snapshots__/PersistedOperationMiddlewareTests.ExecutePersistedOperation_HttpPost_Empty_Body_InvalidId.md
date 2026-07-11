@@ -4,7 +4,7 @@
 {
   "errors": [
     {
-      "message": "The operation id has an invalid format."
+      "message": "The GraphQL document ID contains invalid characters."
     }
   ]
 }

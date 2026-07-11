@@ -19,6 +19,11 @@ public class DefaultHttpRequestInterceptor : IHttpRequestInterceptor
     {
         var userState = new UserState(context.User);
 
+        if (context.Features.Get<IFileLookup>() is { } featureLookup)
+        {
+            requestBuilder.Features.Set(featureLookup);
+        }
+
         requestBuilder.Features.Set(userState);
         requestBuilder.Features.Set(context);
         requestBuilder.Features.Set(context.User);

@@ -197,9 +197,8 @@ public sealed class BindMemberAnalyzer : DiagnosticAnalyzer
         ITypeSymbol objectTypeArg,
         AttributeSyntax attribute)
     {
-        // Check if the member exists on the type
-        var members = objectTypeArg.GetMembers(memberName);
-        if (members.IsEmpty)
+        // Check if the member exists on the type or any of its base types
+        if (!HasMember(objectTypeArg, memberName))
         {
             var diagnostic = Diagnostic.Create(
                 Errors.BindMemberNotFound,
@@ -209,5 +208,22 @@ public sealed class BindMemberAnalyzer : DiagnosticAnalyzer
 
             context.ReportDiagnostic(diagnostic);
         }
+    }
+
+    private static bool HasMember(ITypeSymbol type, string memberName)
+    {
+        var current = type;
+
+        while (current is not null)
+        {
+            if (!current.GetMembers(memberName).IsEmpty)
+            {
+                return true;
+            }
+
+            current = current.BaseType;
+        }
+
+        return false;
     }
 }

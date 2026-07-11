@@ -1,8 +1,8 @@
+using System.Collections.Concurrent;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text.Encodings.Web;
 using System.Text.Json;
-using System.Text.Json.Nodes;
 using HotChocolate.Adapters.Mcp.Diagnostics;
 using HotChocolate.Adapters.Mcp.Storage;
 using HotChocolate.Execution;
@@ -11,7 +11,7 @@ using HotChocolate.Types;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
-using ModelContextProtocol.AspNetCore;
+using ModelContextProtocol;
 using ModelContextProtocol.Client;
 using ModelContextProtocol.Protocol;
 using ModelContextProtocol.Server;
@@ -21,21 +21,629 @@ namespace HotChocolate.Adapters.Mcp;
 public abstract class IntegrationTestBase
 {
     [Fact]
-    public async Task ListTools_Valid_ReturnsTools()
+    public async Task ListPrompts_Valid_ReturnsPrompts()
     {
         // arrange
-        var storage = new TestOperationToolStorage();
-        await storage.AddOrUpdateToolAsync(
-            Utf8GraphQLParser.Parse(
-                await File.ReadAllTextAsync("__resources__/GetWithNullableVariables.graphql")));
-        await storage.AddOrUpdateToolAsync(
-            Utf8GraphQLParser.Parse(
-                await File.ReadAllTextAsync("__resources__/GetWithNonNullableVariables.graphql")));
+        var storage = new TestMcpStorage();
+        await storage.AddOrUpdatePromptAsync(
+            new PromptDefinition("code_review")
+            {
+                Title = "Code Review",
+                Description = "Asks the LLM to analyze code quality and suggest improvements.",
+                Arguments =
+                [
+                    new PromptArgumentDefinition("code")
+                    {
+                        Title = "Code to Review",
+                        Description = "The code to review",
+                        Required = true
+                    }
+                ],
+                Icons =
+                [
+                    new IconDefinition(new Uri("https://example.com/icon.png"))
+                    {
+                        MimeType = "image/png",
+                        Sizes = ["48x48"],
+                        Theme = "light"
+                    }
+                ],
+                Messages =
+                [
+                    new PromptMessageDefinition(
+                        RoleDefinition.User,
+                        new TextContentBlockDefinition(
+                            """
+                            Please review this code:
+
+                            ```
+                            {code}
+                            ```
+                            """))
+                ]
+            },
+            TestContext.Current.CancellationToken);
+        await storage.AddOrUpdatePromptAsync(
+            new PromptDefinition("bug_finder")
+            {
+                Title = "Bug Finder",
+                Description = "Asks the LLM to find bugs in the provided code.",
+                Arguments =
+                [
+                    new PromptArgumentDefinition("code")
+                    {
+                        Title = "Code to Analyze",
+                        Description = "The code to analyze for bugs",
+                        Required = true
+                    }
+                ],
+                Messages =
+                [
+                    new PromptMessageDefinition(
+                        RoleDefinition.User,
+                        new TextContentBlockDefinition(
+                            """
+                            Please find bugs in this code:
+
+                            ```
+                            {code}
+                            ```
+                            """))
+                ]
+            },
+            TestContext.Current.CancellationToken);
         var server = await CreateTestServerAsync(storage);
         var mcpClient = await CreateMcpClientAsync(server.CreateClient());
 
         // act
-        var tools = await mcpClient.ListToolsAsync();
+        var prompts = await mcpClient.ListPromptsAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // assert
+        JsonSerializer.Serialize(prompts.Select(t => t.ProtocolPrompt), JsonSerializerOptions)
+            .ReplaceLineEndings("\n")
+            .MatchSnapshot(extension: ".json");
+    }
+
+    [Fact]
+    public async Task ListPrompts_AfterPromptsUpdate_ReturnsUpdatedPrompts()
+    {
+        // arrange
+        var storage = new TestMcpStorage();
+        await storage.AddOrUpdatePromptAsync(
+            new PromptDefinition("code_review")
+            {
+                Title = "Code Review",
+                Description = "Asks the LLM to analyze code quality and suggest improvements.",
+                Arguments =
+                [
+                    new PromptArgumentDefinition("code")
+                    {
+                        Title = "Code to Review",
+                        Description = "The code to review",
+                        Required = true
+                    }
+                ],
+                Icons =
+                [
+                    new IconDefinition(new Uri("https://example.com/icon.png"))
+                    {
+                        MimeType = "image/png",
+                        Sizes = ["48x48"],
+                        Theme = "light"
+                    }
+                ],
+                Messages =
+                [
+                    new PromptMessageDefinition(
+                        RoleDefinition.User,
+                        new TextContentBlockDefinition(
+                            """
+                            Please review this code:
+
+                            ```
+                            {code}
+                            ```
+                            """))
+                ]
+            },
+            TestContext.Current.CancellationToken);
+        var server = await CreateTestServerAsync(storage);
+        var mcpClient = await CreateMcpClientAsync(server.CreateClient());
+        var listChangedResetEvent = new ManualResetEventSlim(false);
+        mcpClient.RegisterNotificationHandler(
+            NotificationMethods.PromptListChangedNotification,
+            async (_, _) =>
+            {
+                listChangedResetEvent.Set();
+                await ValueTask.CompletedTask;
+            });
+
+        // act
+        var prompts = await mcpClient.ListPromptsAsync(cancellationToken: TestContext.Current.CancellationToken);
+        IList<McpClientPrompt>? updatedPrompts = null;
+
+        await storage.AddOrUpdatePromptAsync(
+            new PromptDefinition("bug_finder")
+            {
+                Title = "Bug Finder",
+                Description = "Asks the LLM to find bugs in the provided code.",
+                Arguments =
+                [
+                    new PromptArgumentDefinition("code")
+                    {
+                        Title = "Code to Analyze",
+                        Description = "The code to analyze for bugs",
+                        Required = true
+                    }
+                ],
+                Messages =
+                [
+                    new PromptMessageDefinition(
+                        RoleDefinition.User,
+                        new TextContentBlockDefinition(
+                            """
+                            Please find bugs in this code:
+
+                            ```
+                            {code}
+                            ```
+                            """))
+                ]
+            },
+            TestContext.Current.CancellationToken);
+
+        if (listChangedResetEvent.Wait(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken))
+        {
+            updatedPrompts = await mcpClient.ListPromptsAsync(cancellationToken: TestContext.Current.CancellationToken);
+        }
+
+        // assert
+        Assert.NotNull(updatedPrompts);
+        JsonSerializer.Serialize(
+                prompts.Concat(updatedPrompts).Select(t => t.ProtocolPrompt),
+                JsonSerializerOptions)
+            .ReplaceLineEndings("\n")
+            .MatchSnapshot(extension: ".json");
+    }
+
+    [Fact]
+    public async Task GetPrompt_Valid_ReturnsPrompt()
+    {
+        // arrange
+        var storage = new TestMcpStorage();
+        var prompt =
+            new PromptDefinition("code_review")
+            {
+                Title = "Code Review",
+                Description = "Asks the LLM to analyze code quality and suggest improvements.",
+                Arguments =
+                [
+                    new PromptArgumentDefinition("code")
+                    {
+                        Title = "Code to Review",
+                        Description = "The code to review",
+                        Required = true
+                    }
+                ],
+                Icons =
+                [
+                    new IconDefinition(new Uri("https://example.com/icon.png"))
+                    {
+                        MimeType = "image/png",
+                        Sizes = ["48x48"],
+                        Theme = "light"
+                    }
+                ],
+                Messages =
+                [
+                    new PromptMessageDefinition(
+                        RoleDefinition.User,
+                        new TextContentBlockDefinition(
+                            """
+                            Please review this code:
+
+                            ```
+                            {code}
+                            ```
+                            """))
+                ]
+            };
+        await storage.AddOrUpdatePromptAsync(prompt, TestContext.Current.CancellationToken);
+        var server = await CreateTestServerAsync(storage);
+        var mcpClient = await CreateMcpClientAsync(server.CreateClient());
+
+        // act
+        var result = await mcpClient.GetPromptAsync(
+            prompt.Name,
+            new Dictionary<string, object?>
+            {
+                {
+                    "code",
+                    """
+                    // Example code.
+                    console.log("Hello, World!");
+                    """
+                }
+            },
+            cancellationToken: TestContext.Current.CancellationToken);
+
+        // assert
+        JsonSerializer.Serialize(result, JsonSerializerOptions)
+            .ReplaceLineEndings("\n")
+            .MatchSnapshot(extension: ".json");
+    }
+
+    [Fact]
+    public async Task ListPrompts_DuplicateName_DeduplicatesAndDoesNotCrash()
+    {
+        // arrange
+        var storage = new MultiCollectionMcpStorage(
+            prompts:
+            [
+                new PromptDefinition("code_review")
+                {
+                    Title = "First Code Review",
+                    Messages =
+                    [
+                        new PromptMessageDefinition(
+                            RoleDefinition.User,
+                            new TextContentBlockDefinition("Review (first)."))
+                    ]
+                },
+                new PromptDefinition("code_review")
+                {
+                    Title = "Second Code Review",
+                    Messages =
+                    [
+                        new PromptMessageDefinition(
+                            RoleDefinition.User,
+                            new TextContentBlockDefinition("Review (second)."))
+                    ]
+                }
+            ]);
+        var server = await CreateTestServerAsync(storage);
+        var mcpClient = await CreateMcpClientAsync(server.CreateClient());
+
+        // act
+        var prompts = await mcpClient.ListPromptsAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // assert
+        var prompt = Assert.Single(prompts);
+        Assert.Equal("code_review", prompt.Name);
+        Assert.Equal("First Code Review", prompt.ProtocolPrompt.Title);
+    }
+
+    [Fact]
+    public async Task ListTools_DuplicateName_DeduplicatesAndDoesNotCrash()
+    {
+        // arrange
+        var storage = new MultiCollectionMcpStorage(
+            tools:
+            [
+                new OperationToolDefinition(
+                    Utf8GraphQLParser.Parse("query GetBooks { books { title } }"))
+                {
+                    Title = "First GetBooks"
+                },
+                new OperationToolDefinition(
+                    Utf8GraphQLParser.Parse("query GetBooks { books { title } }"))
+                {
+                    Title = "Second GetBooks"
+                }
+            ]);
+        var server = await CreateTestServerAsync(storage);
+        var mcpClient = await CreateMcpClientAsync(server.CreateClient());
+
+        // act
+        var tools = await mcpClient.ListToolsAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // assert
+        var tool = Assert.Single(tools);
+        Assert.Equal("get_books", tool.Name);
+        Assert.Equal("First GetBooks", tool.Title);
+    }
+
+    [Fact]
+    public async Task ListPrompts_RemoveWinningDuplicate_LoserSurfaces()
+    {
+        // arrange
+        var winning = new PromptDefinition("code_review")
+        {
+            Title = "First Code Review",
+            Messages =
+            [
+                new PromptMessageDefinition(
+                    RoleDefinition.User,
+                    new TextContentBlockDefinition("Review (first)."))
+            ]
+        };
+        var losing = new PromptDefinition("code_review")
+        {
+            Title = "Second Code Review",
+            Messages =
+            [
+                new PromptMessageDefinition(
+                    RoleDefinition.User,
+                    new TextContentBlockDefinition("Review (second)."))
+            ]
+        };
+        var storage = new MultiCollectionMcpStorage(prompts: [winning, losing]);
+        var server = await CreateTestServerAsync(storage);
+        var mcpClient = await CreateMcpClientAsync(server.CreateClient());
+        var listChangedResetEvent = new ManualResetEventSlim(false);
+        mcpClient.RegisterNotificationHandler(
+            NotificationMethods.PromptListChangedNotification,
+            async (_, _) =>
+            {
+                listChangedResetEvent.Set();
+                await ValueTask.CompletedTask;
+            });
+
+        // act
+        storage.RemovePromptAt(0);
+        var notified = listChangedResetEvent.Wait(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
+        var prompts = await mcpClient.ListPromptsAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.True(notified);
+        var prompt = Assert.Single(prompts);
+        Assert.Equal("Second Code Review", prompt.ProtocolPrompt.Title);
+    }
+
+    [Fact]
+    public async Task ListPrompts_UpdateLosingDuplicate_WinnerUnchanged()
+    {
+        // arrange
+        var winning = new PromptDefinition("code_review")
+        {
+            Title = "First Code Review",
+            Messages =
+            [
+                new PromptMessageDefinition(
+                    RoleDefinition.User,
+                    new TextContentBlockDefinition("Review (first)."))
+            ]
+        };
+        var losing = new PromptDefinition("code_review")
+        {
+            Title = "Second Code Review",
+            Messages =
+            [
+                new PromptMessageDefinition(
+                    RoleDefinition.User,
+                    new TextContentBlockDefinition("Review (second)."))
+            ]
+        };
+        var storage = new MultiCollectionMcpStorage(prompts: [winning, losing]);
+        var server = await CreateTestServerAsync(storage);
+        var mcpClient = await CreateMcpClientAsync(server.CreateClient());
+        var listChangedResetEvent = new ManualResetEventSlim(false);
+        mcpClient.RegisterNotificationHandler(
+            NotificationMethods.PromptListChangedNotification,
+            async (_, _) =>
+            {
+                listChangedResetEvent.Set();
+                await ValueTask.CompletedTask;
+            });
+
+        // act
+        storage.ReplacePromptAt(
+            1,
+            new PromptDefinition("code_review")
+            {
+                Title = "Second Code Review (updated)",
+                Messages =
+                [
+                    new PromptMessageDefinition(
+                        RoleDefinition.User,
+                        new TextContentBlockDefinition("Review (second updated)."))
+                ]
+            });
+        var notified = listChangedResetEvent.Wait(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
+        var prompts = await mcpClient.ListPromptsAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.True(notified);
+        var prompt = Assert.Single(prompts);
+        Assert.Equal("First Code Review", prompt.ProtocolPrompt.Title);
+    }
+
+    [Fact]
+    public async Task ListTools_RemoveWinningDuplicate_LoserSurfaces()
+    {
+        // arrange
+        var winning = new OperationToolDefinition(
+            Utf8GraphQLParser.Parse("query GetBooks { books { title } }"))
+        {
+            Title = "First GetBooks"
+        };
+        var losing = new OperationToolDefinition(
+            Utf8GraphQLParser.Parse("query GetBooks { books { title } }"))
+        {
+            Title = "Second GetBooks"
+        };
+        var storage = new MultiCollectionMcpStorage(tools: [winning, losing]);
+        var server = await CreateTestServerAsync(storage);
+        var mcpClient = await CreateMcpClientAsync(server.CreateClient());
+        var listChangedResetEvent = new ManualResetEventSlim(false);
+        mcpClient.RegisterNotificationHandler(
+            NotificationMethods.ToolListChangedNotification,
+            async (_, _) =>
+            {
+                listChangedResetEvent.Set();
+                await ValueTask.CompletedTask;
+            });
+
+        // act
+        storage.RemoveToolAt(0);
+        var notified = listChangedResetEvent.Wait(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
+        var tools = await mcpClient.ListToolsAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.True(notified);
+        var tool = Assert.Single(tools);
+        Assert.Equal("Second GetBooks", tool.Title);
+    }
+
+    [Fact]
+    public async Task ListTools_DuplicateName_FirstInvalidSecondValid_PrefersValid()
+    {
+        // arrange
+        // Storage returns the invalid definition first, then a valid one with the same name.
+        // A strict first-in-storage-order rule would surface the invalid tool. Prefer-valid
+        // must promote the valid duplicate so the tool is callable.
+        var invalid = new OperationToolDefinition(
+            Utf8GraphQLParser.Parse("query GetBooks { doesNotExist }"))
+        {
+            Title = "Invalid GetBooks"
+        };
+        var valid = new OperationToolDefinition(
+            Utf8GraphQLParser.Parse("query GetBooks { books { title } }"))
+        {
+            Title = "Valid GetBooks"
+        };
+        var storage = new MultiCollectionMcpStorage(tools: [invalid, valid]);
+        var server = await CreateTestServerAsync(storage);
+        var mcpClient = await CreateMcpClientAsync(server.CreateClient());
+
+        // act
+        var tools = await mcpClient.ListToolsAsync(cancellationToken: TestContext.Current.CancellationToken);
+        var callResult = await mcpClient.CallToolAsync(
+            "get_books",
+            cancellationToken: TestContext.Current.CancellationToken);
+
+        // assert
+        var tool = Assert.Single(tools);
+        Assert.Equal("Valid GetBooks", tool.Title);
+        Assert.False(callResult.IsError);
+    }
+
+    [Fact]
+    public async Task ListTools_RemoveWinningDuplicate_WhenLoserIsInvalid_LoserSurfacesAsInvalid()
+    {
+        // arrange
+        var winning = new OperationToolDefinition(
+            Utf8GraphQLParser.Parse("query GetBooks { books { title } }"))
+        {
+            Title = "Valid GetBooks"
+        };
+        var losing = new OperationToolDefinition(
+            Utf8GraphQLParser.Parse("query GetBooks { doesNotExist }"))
+        {
+            Title = "Invalid GetBooks"
+        };
+        var storage = new MultiCollectionMcpStorage(tools: [winning, losing]);
+        var server = await CreateTestServerAsync(storage);
+        var mcpClient = await CreateMcpClientAsync(server.CreateClient());
+        var listChangedResetEvent = new ManualResetEventSlim(false);
+        mcpClient.RegisterNotificationHandler(
+            NotificationMethods.ToolListChangedNotification,
+            async (_, _) =>
+            {
+                listChangedResetEvent.Set();
+                await ValueTask.CompletedTask;
+            });
+
+        // act
+        storage.RemoveToolAt(0);
+        var notified = listChangedResetEvent.Wait(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
+        var tools = await mcpClient.ListToolsAsync(cancellationToken: TestContext.Current.CancellationToken);
+        var callResult = await mcpClient.CallToolAsync(
+            "get_books",
+            cancellationToken: TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.True(notified);
+        var tool = Assert.Single(tools);
+        Assert.Equal("Invalid GetBooks", tool.Title);
+        Assert.True(callResult.IsError);
+    }
+
+    [Fact]
+    public async Task ListTools_UpdateLosingDuplicate_WinnerUnchanged()
+    {
+        // arrange
+        var winning = new OperationToolDefinition(
+            Utf8GraphQLParser.Parse("query GetBooks { books { title } }"))
+        {
+            Title = "First GetBooks"
+        };
+        var losing = new OperationToolDefinition(
+            Utf8GraphQLParser.Parse("query GetBooks { books { title } }"))
+        {
+            Title = "Second GetBooks"
+        };
+        var storage = new MultiCollectionMcpStorage(tools: [winning, losing]);
+        var server = await CreateTestServerAsync(storage);
+        var mcpClient = await CreateMcpClientAsync(server.CreateClient());
+        var listChangedResetEvent = new ManualResetEventSlim(false);
+        mcpClient.RegisterNotificationHandler(
+            NotificationMethods.ToolListChangedNotification,
+            async (_, _) =>
+            {
+                listChangedResetEvent.Set();
+                await ValueTask.CompletedTask;
+            });
+
+        // act
+        storage.ReplaceToolAt(
+            1,
+            new OperationToolDefinition(
+                Utf8GraphQLParser.Parse("query GetBooks { books { title } }"))
+            {
+                Title = "Second GetBooks (updated)"
+            });
+        var notified = listChangedResetEvent.Wait(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
+        var tools = await mcpClient.ListToolsAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.True(notified);
+        var tool = Assert.Single(tools);
+        Assert.Equal("First GetBooks", tool.Title);
+    }
+
+    [Fact]
+    public async Task GetPrompt_Missing_ThrowsException()
+    {
+        // arrange
+        var storage = new TestMcpStorage();
+        var server = await CreateTestServerAsync(storage);
+        var mcpClient = await CreateMcpClientAsync(server.CreateClient());
+
+        // act
+        async Task Action() => await mcpClient.GetPromptAsync("missing");
+
+        // assert
+        var exception = await Assert.ThrowsAsync<McpProtocolException>(Action);
+        Assert.EndsWith("Prompt not found.", exception.Message);
+        Assert.Equal(-32602, (int)exception.ErrorCode);
+        Assert.Equal("missing", exception.Data["name"]);
+    }
+
+    [Fact]
+    public async Task ListTools_Valid_ReturnsTools()
+    {
+        // arrange
+        var storage = new TestMcpStorage();
+        await storage.AddOrUpdateToolAsync(
+            new OperationToolDefinition(
+                Utf8GraphQLParser.Parse(
+                    await File.ReadAllTextAsync(
+                        "__resources__/GetWithNullableVariables.graphql",
+                        TestContext.Current.CancellationToken))),
+            TestContext.Current.CancellationToken);
+        await storage.AddOrUpdateToolAsync(
+            new OperationToolDefinition(
+                Utf8GraphQLParser.Parse(
+                    await File.ReadAllTextAsync(
+                        "__resources__/GetWithNonNullableVariables.graphql",
+                        TestContext.Current.CancellationToken))),
+            TestContext.Current.CancellationToken);
+        var server = await CreateTestServerAsync(storage);
+        var mcpClient = await CreateMcpClientAsync(server.CreateClient());
+
+        // act
+        var tools = await mcpClient.ListToolsAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         JsonSerializer.Serialize(
@@ -56,14 +664,18 @@ public abstract class IntegrationTestBase
     public async Task ListTools_AfterToolsUpdate_ReturnsUpdatedTools()
     {
         // arrange
-        var storage = new TestOperationToolStorage();
+        var storage = new TestMcpStorage();
         await storage.AddOrUpdateToolAsync(
-            Utf8GraphQLParser.Parse(
-                await File.ReadAllTextAsync("__resources__/GetBooksWithTitle1.graphql")));
+            new OperationToolDefinition(
+                Utf8GraphQLParser.Parse(
+                    await File.ReadAllTextAsync(
+                        "__resources__/GetBooksWithTitle1.graphql",
+                        TestContext.Current.CancellationToken))),
+            TestContext.Current.CancellationToken);
         var server = await CreateTestServerAsync(storage);
-        var mcpClient1 = await CreateMcpClientAsync(server.CreateClient());
+        var mcpClient = await CreateMcpClientAsync(server.CreateClient());
         var listChangedResetEvent = new ManualResetEventSlim(false);
-        mcpClient1.RegisterNotificationHandler(
+        mcpClient.RegisterNotificationHandler(
             NotificationMethods.ToolListChangedNotification,
             async (_, _) =>
             {
@@ -72,16 +684,20 @@ public abstract class IntegrationTestBase
             });
 
         // act
-        var tools = await mcpClient1.ListToolsAsync();
+        var tools = await mcpClient.ListToolsAsync(cancellationToken: TestContext.Current.CancellationToken);
         IList<McpClientTool>? updatedTools = null;
 
         await storage.AddOrUpdateToolAsync(
-            Utf8GraphQLParser.Parse(
-                await File.ReadAllTextAsync("__resources__/GetBooksWithTitle2.graphql")));
+            new OperationToolDefinition(
+                Utf8GraphQLParser.Parse(
+                    await File.ReadAllTextAsync(
+                        "__resources__/GetBooksWithTitle2.graphql",
+                        TestContext.Current.CancellationToken))),
+            TestContext.Current.CancellationToken);
 
-        if (listChangedResetEvent.Wait(TimeSpan.FromSeconds(5)))
+        if (listChangedResetEvent.Wait(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken))
         {
-            updatedTools = await mcpClient1.ListToolsAsync();
+            updatedTools = await mcpClient.ListToolsAsync(cancellationToken: TestContext.Current.CancellationToken);
         }
 
         // assert
@@ -106,9 +722,11 @@ public abstract class IntegrationTestBase
     public async Task ListTools_WithCustomTool_ReturnsExpectedResult()
     {
         // arrange
-        var storage = new TestOperationToolStorage();
+        var storage = new TestMcpStorage();
         await storage.AddOrUpdateToolAsync(
-            Utf8GraphQLParser.Parse("query GetBooks { books { title } }"));
+            new OperationToolDefinition(
+                Utf8GraphQLParser.Parse("query GetBooks { books { title } }")),
+            TestContext.Current.CancellationToken);
         var server =
             await CreateTestServerAsync(
                 storage,
@@ -116,7 +734,7 @@ public abstract class IntegrationTestBase
         var mcpClient = await CreateMcpClientAsync(server.CreateClient());
 
         // act
-        var tools = await mcpClient.ListToolsAsync();
+        var tools = await mcpClient.ListToolsAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal("get_books", tools[0].Name);
@@ -124,46 +742,159 @@ public abstract class IntegrationTestBase
     }
 
     [Fact]
-    public async Task ListTools_SetTitle_ReturnsExpectedResult()
+    public async Task ListTools_WithMcpAppView_ReturnsExpectedResult()
     {
         // arrange
-        var storage = new TestOperationToolStorage();
-        await storage.AddOrUpdateToolAsync(
+        var storage = new TestMcpStorage();
+        var document1 =
             Utf8GraphQLParser.Parse(
-                """
-                query GetBooks @mcpTool(title: "Custom Title") {
-                    books {
-                        title
-                    }
-                }
-                """));
+                await File.ReadAllTextAsync(
+                    "__resources__/GetWithNullableVariables.graphql",
+                    TestContext.Current.CancellationToken));
+        var document2 =
+            Utf8GraphQLParser.Parse(
+                await File.ReadAllTextAsync(
+                    "__resources__/GetWithNonNullableVariables.graphql",
+                    TestContext.Current.CancellationToken));
+        await storage.AddOrUpdateToolAsync(
+            new OperationToolDefinition(document1),
+            TestContext.Current.CancellationToken);
+        await storage.AddOrUpdateToolAsync(
+            new OperationToolDefinition(document2)
+            {
+                View = new McpAppView(
+                    html: await File.ReadAllTextAsync(
+                        "__resources__/McpAppView.html",
+                        TestContext.Current.CancellationToken))
+            },
+            TestContext.Current.CancellationToken);
         var server = await CreateTestServerAsync(storage);
         var mcpClient = await CreateMcpClientAsync(server.CreateClient());
 
         // act
-        var tools = await mcpClient.ListToolsAsync();
+        var tools = await mcpClient.ListToolsAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // assert
+        JsonSerializer.Serialize(
+                tools.Select(
+                    t =>
+                        new
+                        {
+                            t.Name,
+                            t.Title,
+                            t.Description,
+                            t.ProtocolTool.Meta
+                        }),
+                JsonSerializerOptions)
+            .ReplaceLineEndings("\n")
+            .MatchSnapshot(extension: ".json");
+    }
+
+    [Fact]
+    public async Task ListTools_SetTitle_ReturnsExpectedResult()
+    {
+        // arrange
+        var storage = new TestMcpStorage();
+        await storage.AddOrUpdateToolAsync(
+            new OperationToolDefinition(
+                Utf8GraphQLParser.Parse(
+                    """
+                    query GetBooks {
+                        books {
+                            title
+                        }
+                    }
+                    """))
+            {
+                Title = "Custom Title"
+            },
+            TestContext.Current.CancellationToken);
+        var server = await CreateTestServerAsync(storage);
+        var mcpClient = await CreateMcpClientAsync(server.CreateClient());
+
+        // act
+        var tools = await mcpClient.ListToolsAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal("Custom Title", tools[0].Title);
     }
 
     [Fact]
-    public async Task ListTools_SetAnnotationsInDocument_ReturnsExpectedResult()
+    public async Task ListTools_SetIcons_ReturnsExpectedResult()
     {
         // arrange
-        var storage = new TestOperationToolStorage();
+        var storage = new TestMcpStorage();
         await storage.AddOrUpdateToolAsync(
-            Utf8GraphQLParser.Parse(
-                """
-                mutation AddBook @mcpTool(destructiveHint: false, idempotentHint: true, openWorldHint: false) {
-                    addBook { title }
-                }
-                """));
+            new OperationToolDefinition(
+                Utf8GraphQLParser.Parse(
+                    """
+                    query GetBooks {
+                        books {
+                            title
+                        }
+                    }
+                    """))
+            {
+                Icons =
+                [
+                    new IconDefinition(new Uri("https://example.com/icon.png"))
+                    {
+                        MimeType = "image/png",
+                        Sizes = ["48x48"],
+                        Theme = "light"
+                    },
+                    new IconDefinition(new Uri("data:image/svg+xml;base64,..."))
+                    {
+                        MimeType = "image/svg+xml",
+                        Sizes = ["any"],
+                        Theme = "dark"
+                    }
+                ]
+            },
+            TestContext.Current.CancellationToken);
         var server = await CreateTestServerAsync(storage);
         var mcpClient = await CreateMcpClientAsync(server.CreateClient());
 
         // act
-        var tools = await mcpClient.ListToolsAsync();
+        var tools = await mcpClient.ListToolsAsync(cancellationToken: TestContext.Current.CancellationToken);
+        var icons = tools[0].ProtocolTool.Icons;
+
+        // assert
+        Assert.Equal(2, icons?.Count);
+        Assert.Equal("https://example.com/icon.png", icons?[0].Source);
+        Assert.Equal("image/png", icons?[0].MimeType);
+        Assert.Equal(["48x48"], icons?[0].Sizes);
+        Assert.Equal("light", icons?[0].Theme);
+        Assert.Equal("data:image/svg+xml;base64,...", icons?[1].Source);
+        Assert.Equal("image/svg+xml", icons?[1].MimeType);
+        Assert.Equal(["any"], icons?[1].Sizes);
+        Assert.Equal("dark", icons?[1].Theme);
+    }
+
+    [Fact]
+    public async Task ListTools_SetAnnotations_ReturnsExpectedResult()
+    {
+        // arrange
+        var storage = new TestMcpStorage();
+        await storage.AddOrUpdateToolAsync(
+            new OperationToolDefinition(
+                Utf8GraphQLParser.Parse(
+                    """
+                    mutation AddBook {
+                        addBook { title }
+                    }
+                    """))
+            {
+                DestructiveHint = false,
+                IdempotentHint = true,
+                OpenWorldHint = false
+            },
+            TestContext.Current.CancellationToken);
+        var server = await CreateTestServerAsync(storage);
+        var mcpClient = await CreateMcpClientAsync(server.CreateClient());
+
+        // act
+        var tools = await mcpClient.ListToolsAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal(false, tools[0].ProtocolTool.Annotations?.DestructiveHint);
@@ -175,21 +906,33 @@ public abstract class IntegrationTestBase
     public async Task ListTools_SetAnnotationsInSchema_ReturnsExpectedResult()
     {
         // arrange
-        var storage = new TestOperationToolStorage();
+        var storage = new TestMcpStorage();
         await storage.AddOrUpdateToolAsync(
-            Utf8GraphQLParser.Parse(
-                await File.ReadAllTextAsync("__resources__/ExplicitNonDestructiveTool.graphql")));
+            new OperationToolDefinition(
+                Utf8GraphQLParser.Parse(
+                    await File.ReadAllTextAsync(
+                        "__resources__/ExplicitNonDestructiveTool.graphql",
+                        TestContext.Current.CancellationToken))),
+            TestContext.Current.CancellationToken);
         await storage.AddOrUpdateToolAsync(
-            Utf8GraphQLParser.Parse(
-                await File.ReadAllTextAsync("__resources__/ExplicitIdempotentTool.graphql")));
+            new OperationToolDefinition(
+                Utf8GraphQLParser.Parse(
+                    await File.ReadAllTextAsync(
+                        "__resources__/ExplicitIdempotentTool.graphql",
+                        TestContext.Current.CancellationToken))),
+            TestContext.Current.CancellationToken);
         await storage.AddOrUpdateToolAsync(
-            Utf8GraphQLParser.Parse(
-                await File.ReadAllTextAsync("__resources__/ExplicitClosedWorldTool.graphql")));
+            new OperationToolDefinition(
+                Utf8GraphQLParser.Parse(
+                    await File.ReadAllTextAsync(
+                        "__resources__/ExplicitClosedWorldTool.graphql",
+                        TestContext.Current.CancellationToken))),
+            TestContext.Current.CancellationToken);
         var server = await CreateTestServerAsync(storage);
         var mcpClient = await CreateMcpClientAsync(server.CreateClient());
 
         // act
-        var tools = await mcpClient.ListToolsAsync();
+        var tools = await mcpClient.ListToolsAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal(false, tools[0].ProtocolTool.Annotations?.DestructiveHint);
@@ -198,23 +941,29 @@ public abstract class IntegrationTestBase
     }
 
     [Fact]
-    public async Task ListTools_InitializeToolsInvalidDocument_ReturnsExpectedResult()
+    public async Task ListTools_InitializeToolsInvalidDocument_SurfacesBothToolsAndLogsErrors()
     {
         // arrange
-        var storage = new TestOperationToolStorage();
+        var storage = new TestMcpStorage();
         await storage.AddOrUpdateToolAsync(
-            Utf8GraphQLParser.Parse("query Invalid { doesNotExist1, doesNotExist2 }"));
+            new OperationToolDefinition(
+                Utf8GraphQLParser.Parse("query Invalid { doesNotExist1, doesNotExist2 }")),
+            TestContext.Current.CancellationToken);
         await storage.AddOrUpdateToolAsync(
-            Utf8GraphQLParser.Parse("query Valid { books { title } }"));
+            new OperationToolDefinition(
+                Utf8GraphQLParser.Parse("query Valid { books { title } }")),
+            TestContext.Current.CancellationToken);
         var listener = new TestMcpDiagnosticEventListener();
         var server = await CreateTestServerAsync(storage, diagnosticEventListener: listener);
         var mcpClient = await CreateMcpClientAsync(server.CreateClient());
 
         // act
-        var result = await mcpClient.ListToolsAsync();
+        var result = await mcpClient.ListToolsAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
-        Assert.Single(result, tool => tool.Name == "valid"); // The invalid tool is ignored.
+        Assert.Equal(2, result.Count);
+        Assert.Contains(result, tool => tool.Name == "valid");
+        Assert.Contains(result, tool => tool.Name == "invalid");
         Assert.Collection(
             listener.ValidationErrorLog,
             firstError =>
@@ -224,24 +973,70 @@ public abstract class IntegrationTestBase
     }
 
     [Fact]
-    public async Task ListTools_UpdateToolsInvalidDocument_ReturnsExpectedResult()
+    public async Task CallTool_InvalidDocument_ReturnsErrorResult()
     {
         // arrange
-        var storage = new TestOperationToolStorage();
+        var storage = new TestMcpStorage();
         await storage.AddOrUpdateToolAsync(
-            Utf8GraphQLParser.Parse("""query Tool @mcpTool(title: "BEFORE") { books { title } }"""));
+            new OperationToolDefinition(
+                Utf8GraphQLParser.Parse("query Invalid { doesNotExist1 }")),
+            TestContext.Current.CancellationToken);
         var listener = new TestMcpDiagnosticEventListener();
         var server = await CreateTestServerAsync(storage, diagnosticEventListener: listener);
         var mcpClient = await CreateMcpClientAsync(server.CreateClient());
 
         // act
-        await storage.AddOrUpdateToolAsync(
-            Utf8GraphQLParser.Parse("""query Tool @mcpTool(title: "AFTER") { doesNotExist1, doesNotExist2 }"""));
-        await Task.Delay(500); // Wait for the observer buffer to flush.
-        var result = await mcpClient.ListToolsAsync();
+        var result = await mcpClient.CallToolAsync("invalid", cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
-        Assert.Single(result, tool => tool.Title == "BEFORE"); // The invalid update is ignored.
+        Assert.True(result.IsError);
+        var content = Assert.Single(result.Content);
+        var text = Assert.IsType<TextContentBlock>(content).Text;
+        Assert.Equal("The tool 'invalid' is currently unavailable.", text);
+    }
+
+    [Fact]
+    public async Task ListTools_UpdateToolsInvalidDocument_KeepsToolInListButCallFails()
+    {
+        // arrange
+        var storage = new TestMcpStorage();
+        await storage.AddOrUpdateToolAsync(
+            new OperationToolDefinition(Utf8GraphQLParser.Parse("query Tool { books { title } }"))
+            {
+                Title = "BEFORE"
+            },
+            TestContext.Current.CancellationToken);
+        var listener = new TestMcpDiagnosticEventListener();
+        var server = await CreateTestServerAsync(storage, diagnosticEventListener: listener);
+        var mcpClient = await CreateMcpClientAsync(server.CreateClient());
+        var listChangedResetEvent = new ManualResetEventSlim(false);
+        mcpClient.RegisterNotificationHandler(
+            NotificationMethods.ToolListChangedNotification,
+            async (_, _) =>
+            {
+                listChangedResetEvent.Set();
+                await ValueTask.CompletedTask;
+            });
+
+        // act
+        await storage.AddOrUpdateToolAsync(
+            new OperationToolDefinition(
+                Utf8GraphQLParser.Parse("query Tool { doesNotExist1, doesNotExist2 }"))
+            {
+                Title = "AFTER"
+            },
+            TestContext.Current.CancellationToken);
+        var notified = listChangedResetEvent.Wait(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
+        var listed = await mcpClient.ListToolsAsync(cancellationToken: TestContext.Current.CancellationToken);
+        var callResult = await mcpClient.CallToolAsync(
+            "tool",
+            cancellationToken: TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.True(notified);
+        var tool = Assert.Single(listed);
+        Assert.Equal("AFTER", tool.Title);
+        Assert.True(callResult.IsError);
         Assert.Collection(
             listener.ValidationErrorLog,
             firstError =>
@@ -254,10 +1049,14 @@ public abstract class IntegrationTestBase
     public async Task CallTool_GetWithNullableVariables_ReturnsExpectedResult()
     {
         // arrange
-        var storage = new TestOperationToolStorage();
+        var storage = new TestMcpStorage();
         await storage.AddOrUpdateToolAsync(
-            Utf8GraphQLParser.Parse(
-                await File.ReadAllTextAsync("__resources__/GetWithNullableVariables.graphql")));
+            new OperationToolDefinition(
+                Utf8GraphQLParser.Parse(
+                    await File.ReadAllTextAsync(
+                        "__resources__/GetWithNullableVariables.graphql",
+                        TestContext.Current.CancellationToken))),
+            TestContext.Current.CancellationToken);
         var server = await CreateTestServerAsync(storage);
         var mcpClient = await CreateMcpClientAsync(server.CreateClient());
 
@@ -267,12 +1066,13 @@ public abstract class IntegrationTestBase
             new Dictionary<string, object?>
             {
                 { "any", null },
+                { "base64String", null },
                 { "boolean", null },
                 { "byte", null },
-                { "byteArray", null },
                 { "date", null },
                 { "dateTime", null },
                 { "decimal", null },
+                { "duration", null },
                 { "enum", null },
                 { "float", null },
                 { "id", null },
@@ -286,28 +1086,34 @@ public abstract class IntegrationTestBase
                 { "object", null },
                 { "short", null },
                 { "string", null },
-                { "timeSpan", null },
                 { "unknown", null },
+                { "unsignedByte", null },
+                { "unsignedInt", null },
+                { "unsignedLong", null },
+                { "unsignedShort", null },
+                { "uri", null },
                 { "url", null },
                 { "uuid", null }
             },
-            serializerOptions: JsonSerializerOptions.Default);
+            options: new RequestOptions { JsonSerializerOptions = JsonSerializerOptions.Default },
+            cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
-        result.StructuredContent!
-            .ToString()
-            .ReplaceLineEndings("\n")
-            .MatchSnapshot(extension: ".json");
+        result.StructuredContent.MatchSnapshot(extension: ".json");
     }
 
     [Fact]
     public async Task CallTool_GetWithNonNullableVariables_ReturnsExpectedResult()
     {
         // arrange
-        var storage = new TestOperationToolStorage();
+        var storage = new TestMcpStorage();
         await storage.AddOrUpdateToolAsync(
-            Utf8GraphQLParser.Parse(
-                await File.ReadAllTextAsync("__resources__/GetWithNonNullableVariables.graphql")));
+            new OperationToolDefinition(
+                Utf8GraphQLParser.Parse(
+                    await File.ReadAllTextAsync(
+                        "__resources__/GetWithNonNullableVariables.graphql",
+                        TestContext.Current.CancellationToken))),
+            TestContext.Current.CancellationToken);
         var server = await CreateTestServerAsync(storage);
         var mcpClient = await CreateMcpClientAsync(server.CreateClient());
 
@@ -318,12 +1124,13 @@ public abstract class IntegrationTestBase
             new Dictionary<string, object?>
             {
                 { "any", new { key = "value" } },
+                { "base64String", "dGVzdA==" },
                 { "boolean", true },
                 { "byte", 1 },
-                { "byteArray", "dGVzdA==" },
                 { "date", "2000-01-01" },
                 { "dateTime", "2000-01-01T12:00:00Z" },
                 { "decimal", 79228162514264337593543950335m },
+                { "duration", "PT5M" },
                 { "enum", "VALUE1" },
                 { "float", 1.5 },
                 { "id", "test" },
@@ -337,50 +1144,59 @@ public abstract class IntegrationTestBase
                 { "object", new { field1A = new { field1B = new { field1C = "12:00:00" } } } },
                 { "short", 1 },
                 { "string", "test" },
-                { "timeSpan", "PT5M" },
                 { "unknown", "test" },
+                { "unsignedByte", 1 },
+                { "unsignedInt", 65536 },
+                { "unsignedLong", 4294967296 },
+                { "unsignedShort", 256 },
+                { "uri", "https://example.com" },
                 { "url", "https://example.com" },
                 { "uuid", "00000000-0000-0000-0000-000000000000" }
             },
-            serializerOptions: JsonSerializerOptions.Default);
+            options: new RequestOptions { JsonSerializerOptions = JsonSerializerOptions.Default },
+            cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
-        result.StructuredContent!
-            .ToString()
-            .ReplaceLineEndings("\n")
-            .MatchSnapshot(extension: ".json");
+        result.StructuredContent.MatchSnapshot(extension: ".json");
     }
 
     [Fact]
     public async Task CallTool_GetWithDefaultedVariables_ReturnsExpectedResult()
     {
         // arrange
-        var storage = new TestOperationToolStorage();
+        var storage = new TestMcpStorage();
         await storage.AddOrUpdateToolAsync(
-            Utf8GraphQLParser.Parse(
-                await File.ReadAllTextAsync("__resources__/GetWithDefaultedVariables.graphql")));
+            new OperationToolDefinition(
+                Utf8GraphQLParser.Parse(
+                    await File.ReadAllTextAsync(
+                        "__resources__/GetWithDefaultedVariables.graphql",
+                        TestContext.Current.CancellationToken))),
+            TestContext.Current.CancellationToken);
         var server = await CreateTestServerAsync(storage);
         var mcpClient = await CreateMcpClientAsync(server.CreateClient());
 
         // act
-        var result = await mcpClient.CallToolAsync("get_with_defaulted_variables");
+        var result = await mcpClient.CallToolAsync(
+            "get_with_defaulted_variables",
+            cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
-        result.StructuredContent!
-            .ToString()
-            .ReplaceLineEndings("\n")
-            .MatchSnapshot(extension: ".json");
+        result.StructuredContent.MatchSnapshot(extension: ".json");
     }
 
     [Fact]
     public async Task CallTool_GetWithComplexVariables_ReturnsExpectedResult()
     {
         // arrange
-        var storage = new TestOperationToolStorage();
+        var storage = new TestMcpStorage();
         await storage.AddOrUpdateToolAsync(
-            Utf8GraphQLParser.Parse(
-                await File.ReadAllTextAsync("__resources__/GetWithComplexVariables.graphql")));
-        var server = await CreateTestServerAsync(storage, [new TimeSpanType(TimeSpanFormat.DotNet)]);
+            new OperationToolDefinition(
+                Utf8GraphQLParser.Parse(
+                    await File.ReadAllTextAsync(
+                        "__resources__/GetWithComplexVariables.graphql",
+                        TestContext.Current.CancellationToken))),
+            TestContext.Current.CancellationToken);
+        var server = await CreateTestServerAsync(storage, [new DurationType(DurationFormat.DotNet)]);
         var mcpClient = await CreateMcpClientAsync(server.CreateClient());
 
         // act
@@ -409,76 +1225,82 @@ public abstract class IntegrationTestBase
                 { "oneOf", new { field1 = 1 } },
                 { "oneOfList", new object[] { new { field1 = 1 }, new { field2 = "test" } } },
                 { "objectWithOneOfField", new { field = new { field1 = 1 } } },
-                { "timeSpanDotNet", "00:05:00" }
+                { "durationDotNet", "00:05:00" }
             },
-            serializerOptions: JsonSerializerOptions.Default);
+            options: new RequestOptions { JsonSerializerOptions = JsonSerializerOptions.Default },
+            cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
-        result.StructuredContent!
-            .ToString()
-            .ReplaceLineEndings("\n")
-            .MatchSnapshot(extension: ".json");
+        result.StructuredContent.MatchSnapshot(extension: ".json");
     }
 
     [Fact]
     public async Task CallTool_GetWithErrors_ReturnsExpectedResult()
     {
         // arrange
-        var storage = new TestOperationToolStorage();
+        var storage = new TestMcpStorage();
         await storage.AddOrUpdateToolAsync(
-            Utf8GraphQLParser.Parse("query GetWithErrors { withErrors }"));
+            new OperationToolDefinition(
+                Utf8GraphQLParser.Parse("query GetWithErrors { withErrors }")),
+            TestContext.Current.CancellationToken);
         var server = await CreateTestServerAsync(storage);
         var mcpClient = await CreateMcpClientAsync(server.CreateClient());
 
         // act
-        var result = await mcpClient.CallToolAsync("get_with_errors");
+        var result = await mcpClient.CallToolAsync(
+            "get_with_errors",
+            cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
-        result.StructuredContent!
-            .RemoveLocations()
-            .ToString()
-            .ReplaceLineEndings("\n")
-            .MatchSnapshot(extension: ".json");
+        result.StructuredContent.MatchSnapshot(extension: ".json");
     }
 
     [Fact]
     public async Task CallTool_GetWithAuthSuccess_ReturnsExpectedResult()
     {
         // arrange
-        var storage = new TestOperationToolStorage();
-        await storage.AddOrUpdateToolAsync(Utf8GraphQLParser.Parse("query GetWithAuth { withAuth }"));
+        var storage = new TestMcpStorage();
+        await storage.AddOrUpdateToolAsync(
+            new OperationToolDefinition(
+                Utf8GraphQLParser.Parse("query GetWithAuth { withAuth }")),
+            TestContext.Current.CancellationToken);
         var server = await CreateTestServerAsync(storage);
         var mcpClient = await CreateMcpClientAsync(server.CreateClient(), TestJwtTokenHelper.GenerateToken());
 
         // act
-        var result1 = await mcpClient.CallToolAsync("get_with_auth");
-        var result2 = await mcpClient.CallToolAsync("get_with_auth");
+        var result1 = await mcpClient.CallToolAsync(
+            "get_with_auth",
+            cancellationToken: TestContext.Current.CancellationToken);
+        var result2 = await mcpClient.CallToolAsync(
+            "get_with_auth",
+            cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         var snapshot = new Snapshot();
-        snapshot.Add(result1.StructuredContent, "Result 1", markdownLanguage: "json");
-        snapshot.Add(result2.StructuredContent, "Result 2", markdownLanguage: "json");
-        await snapshot.MatchMarkdownAsync();
+        snapshot.Add(result1.StructuredContent, "Result 1");
+        snapshot.Add(result2.StructuredContent, "Result 2");
+        await snapshot.MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
     public async Task CallTool_GetWithAuthFailure_ReturnsExpectedResult()
     {
         // arrange
-        var storage = new TestOperationToolStorage();
-        await storage.AddOrUpdateToolAsync(Utf8GraphQLParser.Parse("query GetWithAuth { withAuth }"));
+        var storage = new TestMcpStorage();
+        await storage.AddOrUpdateToolAsync(
+            new OperationToolDefinition(
+                Utf8GraphQLParser.Parse("query GetWithAuth { withAuth }")),
+            TestContext.Current.CancellationToken);
         var server = await CreateTestServerAsync(storage);
         var mcpClient = await CreateMcpClientAsync(server.CreateClient());
 
         // act
-        var result = await mcpClient.CallToolAsync("get_with_auth");
+        var result = await mcpClient.CallToolAsync(
+            "get_with_auth",
+            cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
-        result.StructuredContent!
-            .RemoveLocations()
-            .ToString()
-            .ReplaceLineEndings("\n")
-            .MatchSnapshot(extension: ".json");
+        result.StructuredContent.MatchSnapshot(extension: ".json");
     }
 
     [Fact]
@@ -487,7 +1309,7 @@ public abstract class IntegrationTestBase
         // arrange
         var server =
             await CreateTestServerAsync(
-                new TestOperationToolStorage(),
+                new TestMcpStorage(),
                 configureMcpServer: b => b.WithTools([typeof(TestTool)]));
         var mcpClient = await CreateMcpClientAsync(server.CreateClient());
 
@@ -497,10 +1319,82 @@ public abstract class IntegrationTestBase
             new Dictionary<string, object?>
             {
                 { "message", "Hello, World!" }
-            });
+            },
+            cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal("Hello, World!", ((TextContentBlock)result.Content[0]).Text);
+    }
+
+    [Fact]
+    public async Task ReadResource_Valid_ReturnsResource()
+    {
+        // arrange
+        var storage = new TestMcpStorage();
+        var documentNode = Utf8GraphQLParser.Parse(
+            await File.ReadAllTextAsync(
+                "__resources__/GetBooksWithTitle1.graphql",
+                TestContext.Current.CancellationToken));
+        var tool =
+            new OperationToolDefinition(documentNode)
+            {
+                View = new McpAppView(
+                    html: await File.ReadAllTextAsync(
+                        "__resources__/McpAppView.html",
+                        TestContext.Current.CancellationToken))
+                {
+                    Csp =
+                        new McpAppViewCsp
+                        {
+                            BaseUriDomains = ["https://example.com"],
+                            ConnectDomains = ["https://example.com"],
+                            FrameDomains = ["https://example.com"],
+                            ResourceDomains = ["https://example.com"]
+                        },
+                    Domain = "https://example.com",
+                    Permissions =
+                        new McpAppViewPermissions
+                        {
+                            Camera = true,
+                            ClipboardWrite = false,
+                            Geolocation = true,
+                            Microphone = false
+                        },
+                    PrefersBorder = true
+                },
+                Visibility = [McpAppViewVisibility.App]
+            };
+        await storage.AddOrUpdateToolAsync(tool, TestContext.Current.CancellationToken);
+        var server = await CreateTestServerAsync(storage);
+        var mcpClient = await CreateMcpClientAsync(server.CreateClient());
+
+        // act
+        var result = await mcpClient.ReadResourceAsync(
+            tool.ViewResourceUri!,
+            cancellationToken: TestContext.Current.CancellationToken);
+
+        // assert
+        JsonSerializer.Serialize(result, JsonSerializerOptions)
+            .ReplaceLineEndings("\n")
+            .MatchSnapshot(extension: ".json");
+    }
+
+    [Fact]
+    public async Task ReadResource_Missing_ThrowsException()
+    {
+        // arrange
+        var storage = new TestMcpStorage();
+        var server = await CreateTestServerAsync(storage);
+        var mcpClient = await CreateMcpClientAsync(server.CreateClient());
+
+        // act
+        async Task Action() => await mcpClient.ReadResourceAsync("ui://views/missing.html");
+
+        // assert
+        var exception = await Assert.ThrowsAsync<McpProtocolException>(Action);
+        Assert.EndsWith("Resource not found.", exception.Message);
+        Assert.Equal(-32002, (int)exception.ErrorCode);
+        Assert.Equal("ui://views/missing.html", exception.Data["uri"]);
     }
 
     [Fact]
@@ -509,35 +1403,36 @@ public abstract class IntegrationTestBase
         // arrange & act
         var server =
             await CreateTestServerAsync(
-                new TestOperationToolStorage(),
+                new TestMcpStorage(),
                 configureMcpServerOptions: o => o.InitializationTimeout = TimeSpan.FromSeconds(10));
         await CreateMcpClientAsync(server.CreateClient());
-        var executor = await server.Services.GetRequiredService<IRequestExecutorProvider>().GetExecutorAsync();
-        var handler = executor.Schema.Services.GetRequiredService<StreamableHttpHandler>();
-        var options = handler.Sessions.Values.First().Server!.ServerOptions;
+        var executor = await server.Services.GetRequiredService<IRequestExecutorProvider>().GetExecutorAsync(
+            cancellationToken: TestContext.Current.CancellationToken);
+        var mcpServers = executor.Schema.Services.GetRequiredService<ConcurrentDictionary<string, McpServer>>();
+        var options = mcpServers.Values.First().ServerOptions;
 
         // assert
         Assert.Equal(TimeSpan.FromSeconds(10), options.InitializationTimeout);
     }
 
     protected abstract Task<TestServer> CreateTestServerAsync(
-        IOperationToolStorage storage,
+        IMcpStorage storage,
         ITypeDefinition[]? additionalTypes = null,
         McpDiagnosticEventListener? diagnosticEventListener = null,
         Action<McpServerOptions>? configureMcpServerOptions = null,
         Action<IMcpServerBuilder>? configureMcpServer = null);
 
-    protected static async Task<IMcpClient> CreateMcpClientAsync(
+    protected static async Task<McpClient> CreateMcpClientAsync(
         HttpClient httpClient,
         string? token = null)
     {
         return
-            await McpClientFactory.CreateAsync(
-                new SseClientTransport(
-                    new SseClientTransportOptions
+            await McpClient.CreateAsync(
+                new HttpClientTransport(
+                    new HttpClientTransportOptions
                     {
                         Endpoint = new Uri(httpClient.BaseAddress!, "/graphql/mcp"),
-                        AdditionalHeaders = new Dictionary<string, string>()
+                        AdditionalHeaders = new Dictionary<string, string>
                         {
                             { "Authorization", $"Bearer {token}" }
                         }
@@ -595,24 +1490,5 @@ public sealed class TestMcpDiagnosticEventListener : McpDiagnosticEventListener
     public override void ValidationErrors(IReadOnlyList<IError> errors)
     {
         ValidationErrorLog.AddRange(errors);
-    }
-}
-
-file static class JsonNodeExtensions
-{
-    public static JsonNode RemoveLocations(this JsonNode node)
-    {
-        if (node["errors"] is JsonArray errors)
-        {
-            foreach (var error in errors)
-            {
-                if (error is JsonObject errorObject)
-                {
-                    errorObject.Remove("locations");
-                }
-            }
-        }
-
-        return node;
     }
 }

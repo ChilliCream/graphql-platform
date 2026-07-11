@@ -2,12 +2,12 @@
   "errors": [
     {
       "message": "`null` was set to the field `a`of the OneOf Input Object `ExampleInput`. OneOf Input Objects are a special variant of Input Objects where the type system asserts that exactly one of the fields must be set and non-null.",
-      "path": [
-        "var",
-        "a"
-      ],
       "extensions": {
         "code": "HC0056",
+        "inputPath": [
+          "var",
+          "a"
+        ],
         "coordinate": "ExampleInput.a"
       }
     }

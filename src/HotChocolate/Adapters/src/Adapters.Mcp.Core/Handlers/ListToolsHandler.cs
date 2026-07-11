@@ -8,7 +8,7 @@ internal static class ListToolsHandler
 {
     public static ListToolsResult Handle(RequestContext<ListToolsRequestParams> context)
     {
-        var registry = context.Services!.GetRequiredService<ToolRegistry>();
+        var registry = context.Services!.GetRequiredService<McpFeatureRegistry>();
 
         return new ListToolsResult
         {

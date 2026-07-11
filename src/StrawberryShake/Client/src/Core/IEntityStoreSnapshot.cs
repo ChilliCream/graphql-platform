@@ -54,7 +54,9 @@ public interface IEntityStoreSnapshot
     /// <typeparam name="TEntity">
     /// The entity type.
     /// </typeparam>
-    /// <returns></returns>
+    /// <returns>
+    /// The list of tracked entities matching the provided IDs.
+    /// </returns>
     IReadOnlyList<TEntity> GetEntities<TEntity>(IEnumerable<EntityId> ids)
         where TEntity : class;
 

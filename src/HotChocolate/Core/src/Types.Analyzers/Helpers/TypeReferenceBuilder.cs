@@ -1,7 +1,5 @@
-using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Security.Cryptography;
 using HotChocolate.Types.Analyzers.Models;
 using Microsoft.CodeAnalysis;
 
@@ -16,7 +14,10 @@ public static class TypeReferenceBuilder
         "HotChocolate.Optional<T>"
     ];
 
-    public static SchemaTypeReference CreateTypeReference(this Compilation compilation, ISymbol member)
+    public static SchemaTypeReference CreateTypeReference(
+        this Compilation compilation,
+        ISymbol member,
+        bool isBatchResolver = false)
     {
         var typeAttribute = compilation.GetTypeByMetadataName(WellKnownAttributes.GraphQLTypeAttribute);
         var genericTypeAttribute = compilation.GetTypeByMetadataName(WellKnownAttributes.GraphQLTypeAttribute + "`1");
@@ -74,26 +75,44 @@ public static class TypeReferenceBuilder
         // First, we unwrap any non-essential wrapper types and IFieldResult implementations.
         var unwrapped = UnwrapNonEssentialTypes(member.GetReturnType()!, compilation);
 
+        // For batch resolvers, the return type is a list (e.g. List<string>) and we need
+        // to unwrap to the element type (e.g. string) for the GraphQL field type.
+        if (isBatchResolver)
+        {
+            unwrapped = UnwrapListElementType(unwrapped) ?? unwrapped;
+        }
+
+        var flagsAttribute = compilation.GetTypeByMetadataName(WellKnownAttributes.FlagsAttribute);
+        if (flagsAttribute is not null && ContainsFlagsEnum(unwrapped, flagsAttribute))
+        {
+            return new SchemaTypeReference(
+                SchemaTypeReferenceKind.ExtendedTypeReference,
+                GetFullyQualifiedTypeName(unwrapped),
+                nullability: CreateNullabilityLiteral(unwrapped, IsNullable(unwrapped)));
+        }
+
         // Next, we create a key that describes the type and ensures we are only executing the type factory once.
-        var (typeStructure, typeDefinition, isSimpleType) = CreateTypeKey(unwrapped);
+        var (typeStructure, typeDefinition, nullability, isSimpleType) = CreateTypeKey(unwrapped);
 
         if (isSimpleType)
         {
             return new SchemaTypeReference(
                 SchemaTypeReferenceKind.ExtendedTypeReference,
-                typeDefinition);
+                typeDefinition,
+                nullability: nullability);
         }
 
         return new SchemaTypeReference(
             SchemaTypeReferenceKind.FactoryTypeReference,
             typeDefinition,
-            typeStructure);
+            typeStructure,
+            nullability);
     }
 
-    private static (string TypeStructure, string TypeDefinition, bool IsSimpleType) CreateTypeKey(
+    private static (string TypeStructure, string TypeDefinition, string? Nullability, bool IsSimpleType) CreateTypeKey(
         ITypeSymbol unwrappedType)
     {
-        bool isNullable;;
+        bool isNullable;
         ITypeSymbol underlyingType;
 
         // We first check if the type is a nullable value type (int?, Guid?, etc.).
@@ -117,10 +136,9 @@ public static class TypeReferenceBuilder
             isNullable = false;
         }
 
-        if (underlyingType is INamedTypeSymbol namedType && IsListType(namedType))
+        if (underlyingType is INamedTypeSymbol namedType && TryGetListElementType(namedType, out var listElementType))
         {
-            var listElementType = namedType.TypeArguments[0];
-            var (typeStructure, typeDefinition, _) = CreateTypeKey(listElementType);
+            var (typeStructure, typeDefinition, elementNullability, _) = CreateTypeKey(listElementType);
 
             if (isNullable)
             {
@@ -138,12 +156,12 @@ public static class TypeReferenceBuilder
                     typeStructure);
             }
 
-            return (typeStructure, typeDefinition, false);
+            return (typeStructure, typeDefinition, elementNullability, false);
         }
 
         if (IsArrayType(unwrappedType, out var arrayElementType))
         {
-            var (typeStructure, typeDefinition, _) = CreateTypeKey(arrayElementType);
+            var (typeStructure, typeDefinition, elementNullability, _) = CreateTypeKey(arrayElementType);
 
             if (isNullable)
             {
@@ -161,11 +179,14 @@ public static class TypeReferenceBuilder
                     typeStructure);
             }
 
-            return (typeStructure, typeDefinition, false);
+            return (typeStructure, typeDefinition, elementNullability, false);
         }
 
         var typeName = GetFullyQualifiedTypeName(underlyingType);
         var compliantTypeName = MakeGraphQLCompliant(typeName);
+        var nullability = ShouldPreserveNullability(underlyingType)
+            ? CreateNullabilityLiteral(underlyingType, isNullable)
+            : null;
 
         if (isNullable)
         {
@@ -173,7 +194,7 @@ public static class TypeReferenceBuilder
                 "new global::{0}(\"{1}\")",
                 WellKnownTypes.NamedTypeNode,
                 compliantTypeName);
-            return (typeStructure, typeName, IsSimpleType: unwrappedType.IsReferenceType);
+            return (typeStructure, typeName, nullability, IsSimpleType: unwrappedType.IsReferenceType);
         }
         else
         {
@@ -182,8 +203,91 @@ public static class TypeReferenceBuilder
                 WellKnownTypes.NonNullTypeNode,
                 WellKnownTypes.NamedTypeNode,
                 compliantTypeName);
-            return (typeStructure, typeName, IsSimpleType: false);
+            return (typeStructure, typeName, nullability, IsSimpleType: false);
         }
+    }
+
+    private static bool ShouldPreserveNullability(ITypeSymbol typeSymbol)
+        => typeSymbol is INamedTypeSymbol { IsGenericType: true };
+
+    private static string CreateNullabilityLiteral(
+        ITypeSymbol typeSymbol,
+        bool isNullable)
+    {
+        var flags = new List<string>();
+        CollectNullability(typeSymbol, isNullable, flags);
+
+        return flags.Count == 0
+            ? "[]"
+            : $"[{string.Join(", ", flags)}]";
+    }
+
+    private static void CollectNullability(
+        ITypeSymbol typeSymbol,
+        bool isNullable,
+        List<string> flags)
+    {
+        flags.Add(isNullable ? "true" : "false");
+
+        if (typeSymbol is IArrayTypeSymbol arrayType)
+        {
+            CollectNullability(
+                arrayType.ElementType,
+                IsNullable(arrayType.ElementType),
+                flags);
+            return;
+        }
+
+        if (typeSymbol is not INamedTypeSymbol namedType || !namedType.IsGenericType)
+        {
+            return;
+        }
+
+        // Nullable<T> is represented by the wrapped value type and a nullable root flag.
+        if (namedType.OriginalDefinition.SpecialType is SpecialType.System_Nullable_T)
+        {
+            if (namedType.TypeArguments.Length == 1
+                && namedType.TypeArguments[0] is INamedTypeSymbol innerNamed
+                && innerNamed.IsGenericType)
+            {
+                foreach (var argument in innerNamed.TypeArguments)
+                {
+                    CollectNullability(argument, IsNullable(argument), flags);
+                }
+            }
+            return;
+        }
+
+        foreach (var argument in namedType.TypeArguments)
+        {
+            CollectNullability(argument, IsNullable(argument), flags);
+        }
+    }
+
+    private static bool IsNullable(ITypeSymbol typeSymbol)
+    {
+        if (typeSymbol is INamedTypeSymbol { OriginalDefinition.SpecialType: SpecialType.System_Nullable_T })
+        {
+            return true;
+        }
+
+        return typeSymbol.IsReferenceType
+            && typeSymbol.NullableAnnotation == NullableAnnotation.Annotated;
+    }
+
+    private static ITypeSymbol? UnwrapListElementType(ITypeSymbol typeSymbol)
+    {
+        if (typeSymbol is IArrayTypeSymbol arrayType)
+        {
+            return arrayType.ElementType;
+        }
+
+        if (typeSymbol is INamedTypeSymbol namedType && TryGetListElementType(namedType, out var elementType))
+        {
+            return elementType;
+        }
+
+        return null;
     }
 
     private static ITypeSymbol UnwrapNonEssentialTypes(ITypeSymbol typeSymbol, Compilation compilation)
@@ -242,10 +346,50 @@ public static class TypeReferenceBuilder
         return false;
     }
 
-    private static bool IsListType(INamedTypeSymbol namedType)
+    private static bool ContainsFlagsEnum(
+        ITypeSymbol typeSymbol,
+        INamedTypeSymbol flagsAttribute)
+    {
+        if (typeSymbol is INamedTypeSymbol nullableType
+            && nullableType.OriginalDefinition.SpecialType is SpecialType.System_Nullable_T)
+        {
+            return ContainsFlagsEnum(nullableType.TypeArguments[0], flagsAttribute);
+        }
+
+        if (typeSymbol is IArrayTypeSymbol arrayType)
+        {
+            return ContainsFlagsEnum(arrayType.ElementType, flagsAttribute);
+        }
+
+        if (typeSymbol is INamedTypeSymbol namedType
+            && TryGetListElementType(namedType, out var elementType))
+        {
+            return ContainsFlagsEnum(elementType, flagsAttribute);
+        }
+
+        if (typeSymbol.TypeKind is not TypeKind.Enum)
+        {
+            return false;
+        }
+
+        foreach (var attribute in typeSymbol.GetAttributes())
+        {
+            if (SymbolEqualityComparer.Default.Equals(attribute.AttributeClass, flagsAttribute))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static bool TryGetListElementType(
+        INamedTypeSymbol namedType,
+        [NotNullWhen(true)] out ITypeSymbol? elementType)
     {
         if (!namedType.IsGenericType)
         {
+            elementType = null;
             return false;
         }
 
@@ -256,10 +400,13 @@ public static class TypeReferenceBuilder
         if (WellKnownTypes.ListInterfaceTypes.Contains(typeDefinition)
             || WellKnownTypes.ListClassTypes.Contains(typeDefinition))
         {
+            elementType = namedType.TypeArguments[0];
             return true;
         }
 
-        // Check if the type implements any of the known list interfaces
+        // Check if the type implements any of the known list interfaces.
+        // This handles cases like Dictionary<K,V> which implements IEnumerable<KeyValuePair<K,V>>.
+        // We extract the element type from the interface, not from the type's own type arguments.
         foreach (var interfaceType in namedType.AllInterfaces)
         {
             if (!interfaceType.IsGenericType)
@@ -270,6 +417,7 @@ public static class TypeReferenceBuilder
             var interfaceDefinition = GetGenericTypeDefinition(interfaceType.OriginalDefinition);
             if (WellKnownTypes.ListInterfaceTypes.Contains(interfaceDefinition))
             {
+                elementType = interfaceType.TypeArguments[0];
                 return true;
             }
         }
@@ -287,12 +435,14 @@ public static class TypeReferenceBuilder
             var baseDefinition = GetGenericTypeDefinition(currentType.OriginalDefinition);
             if (WellKnownTypes.ListClassTypes.Contains(baseDefinition))
             {
+                elementType = currentType.TypeArguments[0];
                 return true;
             }
 
             currentType = currentType.BaseType;
         }
 
+        elementType = null;
         return false;
     }
 
@@ -355,7 +505,6 @@ public static class TypeReferenceBuilder
                         var dimensions = 1;
                         while (i < typeName.Length && typeName[i] == '[')
                         {
-                            var start = i;
                             while (i < typeName.Length && typeName[i] != ']')
                             {
                                 i++;

@@ -1,17 +1,17 @@
 "GetWithNonNullableVariables description"
 query GetWithNonNullableVariables(
   "Any description" $any: Any!
+  "Base64String description" $base64String: Base64String!
   "Boolean description" $boolean: Boolean!
   "Byte description" $byte: Byte!
-  "ByteArray description" $byteArray: ByteArray!
   "Date description" $date: Date!
   "DateTime description" $dateTime: DateTime!
   "Decimal description" $decimal: Decimal!
+  "Duration description" $duration: Duration!
   "Enum description" $enum: TestEnum!
   "Float description" $float: Float!
   "ID description" $id: ID!
   "Int description" $int: Int!
-  "JSON description" $json: JSON!
   "List description" $list: [String!]!
   "LocalDate description" $localDate: LocalDate!
   "LocalDateTime description" $localDateTime: LocalDateTime!
@@ -20,24 +20,28 @@ query GetWithNonNullableVariables(
   "Object description" $object: Object1NonNullableInput!
   "Short description" $short: Short!
   "String description" $string: String!
-  "TimeSpan description" $timeSpan: TimeSpan!
   "Unknown description" $unknown: Unknown!
+  "UnsignedByte description" $unsignedByte: UnsignedByte!
+  "UnsignedInt description" $unsignedInt: UnsignedInt!
+  "UnsignedLong description" $unsignedLong: UnsignedLong!
+  "UnsignedShort description" $unsignedShort: UnsignedShort!
+  "URI description" $uri: URI!
   "URL description" $url: URL!
   "UUID description" $uuid: UUID!
 ) {
   withNonNullableVariables(
     any: $any
+    base64String: $base64String
     boolean: $boolean
     byte: $byte
-    byteArray: $byteArray
     date: $date
     dateTime: $dateTime
     decimal: $decimal
+    duration: $duration
     enum: $enum
     float: $float
     id: $id
     int: $int
-    json: $json
     list: $list
     localDate: $localDate
     localDateTime: $localDateTime
@@ -46,23 +50,27 @@ query GetWithNonNullableVariables(
     object: $object
     short: $short
     string: $string
-    timeSpan: $timeSpan
     unknown: $unknown
+    unsignedByte: $unsignedByte
+    unsignedInt: $unsignedInt
+    unsignedLong: $unsignedLong
+    unsignedShort: $unsignedShort
+    uri: $uri
     url: $url
     uuid: $uuid
   ) {
     any
+    base64String
     boolean
     byte
-    byteArray
     date
     dateTime
     decimal
+    duration
     enum
     float
     id
     int
-    json
     list
     localDate
     localDateTime
@@ -77,8 +85,12 @@ query GetWithNonNullableVariables(
     }
     short
     string
-    timeSpan
     unknown
+    unsignedByte
+    unsignedInt
+    unsignedLong
+    unsignedShort
+    uri
     url
     uuid
   }

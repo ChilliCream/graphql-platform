@@ -1,17 +1,12 @@
-[
-  {
-    "Message": "A document containing TypeSystemDefinition is invalid for execution.",
-    "Code": null,
-    "Path": null,
-    "Locations": [
-      {
-        "Line": 6,
-        "Column": 1
-      }
-    ],
-    "Extensions": {
-      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Executable-Definitions"
-    },
-    "Exception": null
+{
+  "message": "A document containing TypeSystemDefinition is invalid for execution.",
+  "locations": [
+    {
+      "line": 6,
+      "column": 1
+    }
+  ],
+  "extensions": {
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Executable-Definitions"
   }
-]
+}

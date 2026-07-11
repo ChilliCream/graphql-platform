@@ -2,14 +2,14 @@ schema {
   query: Query1
 }
 
+type Query1 {
+  foos(where: FooFilterInput): [Foo!]!
+}
+
 type Foo {
   bar: String!
   baz: Int!
   qux: Int
-}
-
-type Query1 {
-  foos(where: FooFilterInput): [Foo!]!
 }
 
 input FooFilterInput {
@@ -65,5 +65,6 @@ input StringOperationFilterInput {
   nendsWith: String
 }
 
-"The `Long` scalar type represents non-fractional signed whole 64-bit numeric values. Long can represent values between -(2^63) and 2^63 - 1."
+"The `Long` scalar type represents a signed 64-bit integer."
 scalar Long
+  @specifiedBy(url: "https://scalars.graphql.org/chillicream/long.html")

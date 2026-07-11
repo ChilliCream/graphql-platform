@@ -21,7 +21,8 @@ public class IsSelectedTests
                             email
                         }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchMarkdownSnapshot();
     }
@@ -40,7 +41,8 @@ public class IsSelectedTests
                             name
                         }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchMarkdownSnapshot();
     }
@@ -60,7 +62,8 @@ public class IsSelectedTests
                             email
                         }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchMarkdownSnapshot();
     }
@@ -80,7 +83,8 @@ public class IsSelectedTests
                             password
                         }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchMarkdownSnapshot();
     }
@@ -99,7 +103,8 @@ public class IsSelectedTests
                             name
                         }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchMarkdownSnapshot();
     }
@@ -119,7 +124,8 @@ public class IsSelectedTests
                             email
                         }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchMarkdownSnapshot();
     }
@@ -139,7 +145,8 @@ public class IsSelectedTests
                             password
                         }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchMarkdownSnapshot();
     }
@@ -159,7 +166,8 @@ public class IsSelectedTests
                             phoneNumber
                         }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchMarkdownSnapshot();
     }
@@ -178,7 +186,8 @@ public class IsSelectedTests
                             name
                         }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchMarkdownSnapshot();
     }
@@ -198,7 +207,8 @@ public class IsSelectedTests
                             email
                         }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchMarkdownSnapshot();
     }
@@ -218,7 +228,8 @@ public class IsSelectedTests
                             password
                         }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchMarkdownSnapshot();
     }
@@ -238,7 +249,8 @@ public class IsSelectedTests
                             phoneNumber
                         }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchMarkdownSnapshot();
     }
@@ -258,7 +270,8 @@ public class IsSelectedTests
                             address
                         }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchMarkdownSnapshot();
     }
@@ -277,7 +290,8 @@ public class IsSelectedTests
                             name
                         }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchMarkdownSnapshot();
     }
@@ -301,7 +315,8 @@ public class IsSelectedTests
                             }
                         }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchMarkdownSnapshot();
     }
@@ -323,7 +338,8 @@ public class IsSelectedTests
                             }
                         }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchMarkdownSnapshot();
     }
@@ -347,7 +363,8 @@ public class IsSelectedTests
                             }
                         }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchMarkdownSnapshot();
     }
@@ -369,7 +386,8 @@ public class IsSelectedTests
                             }
                         }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchMarkdownSnapshot();
     }
@@ -402,7 +420,7 @@ public class IsSelectedTests
             snapshot.Add(error.Message);
         }
 
-        await snapshot.MatchMarkdownAsync();
+        await snapshot.MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -420,7 +438,8 @@ public class IsSelectedTests
                             email
                         }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchMarkdownSnapshot();
     }
@@ -439,7 +458,8 @@ public class IsSelectedTests
                             name
                         }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchMarkdownSnapshot();
     }
@@ -459,7 +479,8 @@ public class IsSelectedTests
                             email
                         }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchMarkdownSnapshot();
     }
@@ -479,7 +500,8 @@ public class IsSelectedTests
                             password
                         }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchMarkdownSnapshot();
     }
@@ -498,7 +520,8 @@ public class IsSelectedTests
                             name
                         }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchMarkdownSnapshot();
     }
@@ -518,7 +541,8 @@ public class IsSelectedTests
                             email
                         }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchMarkdownSnapshot();
     }
@@ -538,7 +562,8 @@ public class IsSelectedTests
                             password
                         }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchMarkdownSnapshot();
     }
@@ -558,7 +583,8 @@ public class IsSelectedTests
                             phoneNumber
                         }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchMarkdownSnapshot();
     }
@@ -577,7 +603,8 @@ public class IsSelectedTests
                             name
                         }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchMarkdownSnapshot();
     }
@@ -597,7 +624,8 @@ public class IsSelectedTests
                             email
                         }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchMarkdownSnapshot();
     }
@@ -617,7 +645,8 @@ public class IsSelectedTests
                             password
                         }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchMarkdownSnapshot();
     }
@@ -637,7 +666,8 @@ public class IsSelectedTests
                             phoneNumber
                         }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchMarkdownSnapshot();
     }
@@ -657,7 +687,8 @@ public class IsSelectedTests
                             address
                         }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchMarkdownSnapshot();
     }
@@ -676,7 +707,8 @@ public class IsSelectedTests
                             name
                         }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchMarkdownSnapshot();
     }
@@ -713,7 +745,8 @@ public class IsSelectedTests
                             }
                         }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchMarkdownSnapshot();
     }
@@ -766,7 +799,8 @@ public class IsSelectedTests
                             }
                         }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchMarkdownSnapshot();
     }
@@ -805,7 +839,8 @@ public class IsSelectedTests
                             }
                         }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchMarkdownSnapshot();
     }
@@ -827,7 +862,8 @@ public class IsSelectedTests
                             }
                         }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchMarkdownSnapshot();
     }
@@ -846,7 +882,33 @@ public class IsSelectedTests
                             author { name }
                         }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
+
+        result.MatchMarkdownSnapshot();
+    }
+
+    [Fact]
+    public async Task IsSelected_Pattern_On_NonQueryType_Should_Build_Schema()
+    {
+        // Arrange & Act - should not throw KeyNotFoundException
+        var result =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<QueryWithNestedIsSelected>()
+                .ExecuteRequestAsync(
+                    """
+                    query {
+                        metrics {
+                            latency {
+                                dataset {
+                                    p50
+                                }
+                            }
+                        }
+                    }
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchMarkdownSnapshot();
     }
@@ -1141,4 +1203,24 @@ public class IsSelectedTests
     public record Book(string Title, Author Author);
 
     public record Author(string Name);
+
+    public sealed record MetricsInnerData(double P50, double P95);
+
+    public sealed record MetricsOuterGraph(List<MetricsInnerData> Dataset);
+
+    public class MetricsType
+    {
+        public MetricsOuterGraph? GetLatency(
+            [IsSelected("dataset { p50 }")] bool isP50Selected,
+            IResolverContext context)
+        {
+            ((IMiddlewareContext)context).OperationResult.SetExtension("isSelected", isP50Selected);
+            return null;
+        }
+    }
+
+    public class QueryWithNestedIsSelected
+    {
+        public MetricsType GetMetrics() => new();
+    }
 }

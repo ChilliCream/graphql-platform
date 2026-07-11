@@ -1,3 +1,4 @@
+using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Execution;
@@ -46,7 +47,7 @@ public class NullErrorPropagationTests
                 .Build();
 
         // act
-        var result = await executor.ExecuteAsync(request);
+        var result = await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
 
         // assert
         snapshot.Add(result);
@@ -71,7 +72,7 @@ public class NullErrorPropagationTests
                 .Build();
 
         // act
-        var result = await executor.ExecuteAsync(request);
+        var result = await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
 
         // assert
         snapshot.Add(result);
@@ -96,7 +97,7 @@ public class NullErrorPropagationTests
                 .Build();
 
         // act
-        var result = await executor.ExecuteAsync(request);
+        var result = await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
 
         // assert
         snapshot.Add(result);
@@ -119,7 +120,7 @@ public class NullErrorPropagationTests
                 .Build();
 
         // act
-        var result = await executor.ExecuteAsync(request);
+        var result = await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
 
         // assert
         snapshot.Add(result);
@@ -142,39 +143,235 @@ public class NullErrorPropagationTests
                 .Build();
 
         // act
-        var result = await executor.ExecuteAsync(request);
+        var result = await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
 
         // assert
         snapshot.Add(result);
     }
 
+    [InlineData("nonnull_prop")]
+    [InlineData("nullable_prop")]
+    [Theory]
+    public async Task Object_NonNullElementIsNull_NullMode(string fieldType)
+    {
+        // arrange
+        using var snapshot = SnapshotHelpers.StartResultSnapshot(fieldType);
+
+        var executor = await CreateExecutorAsync();
+
+        var request =
+            OperationRequestBuilder.New()
+                .SetDocument($"{{ foo {{ {fieldType} {{ b }} }} }}")
+                .AddGlobalState("b", null)
+                .SetErrorHandlingMode(ErrorHandlingMode.Null)
+                .Build();
+
+        // act
+        var result = await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        snapshot.Add(result);
+    }
+
+    [InlineData("nonnull_prop")]
+    [InlineData("nullable_prop")]
+    [Theory]
+    public async Task Object_NonNullElementHasError_NullMode(string fieldType)
+    {
+        // arrange
+        using var snapshot = SnapshotHelpers.StartResultSnapshot(fieldType);
+
+        var executor = await CreateExecutorAsync();
+
+        var request =
+            OperationRequestBuilder.New()
+                .SetDocument($"{{ foo {{ {fieldType} {{ c }} }} }}")
+                .AddGlobalState("b", null)
+                .SetErrorHandlingMode(ErrorHandlingMode.Null)
+                .Build();
+
+        // act
+        var result = await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        snapshot.Add(result);
+    }
+
+    [InlineData("nullable_list_nullable_element")]
+    [InlineData("nonnull_list_nullable_element")]
+    [InlineData("nullable_list_nonnull_element")]
+    [InlineData("nonnull_list_nonnull_element")]
+    [Theory]
+    public async Task List_NonNullElementIsNull_NullMode(string fieldType)
+    {
+        // arrange
+        using var snapshot = SnapshotHelpers.StartResultSnapshot(fieldType);
+
+        var executor = await CreateExecutorAsync();
+
+        var request =
+            OperationRequestBuilder.New()
+                .SetDocument($"{{ foo {{ {fieldType} {{ b }} }} }}")
+                .AddGlobalState("b", null)
+                .SetErrorHandlingMode(ErrorHandlingMode.Null)
+                .Build();
+
+        // act
+        var result = await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        snapshot.Add(result);
+    }
+
+    [InlineData("nullable_list_nullable_element")]
+    [InlineData("nonnull_list_nullable_element")]
+    [InlineData("nullable_list_nonnull_element")]
+    [InlineData("nonnull_list_nonnull_element")]
+    [Theory]
+    public async Task List_NonNullElementHasError_NullMode(string fieldType)
+    {
+        // arrange
+        using var snapshot = SnapshotHelpers.StartResultSnapshot(fieldType);
+
+        var executor = await CreateExecutorAsync();
+
+        var request =
+            OperationRequestBuilder.New()
+                .SetDocument($"{{ foo {{ {fieldType} {{ c }} }} }}")
+                .AddGlobalState("b", null)
+                .SetErrorHandlingMode(ErrorHandlingMode.Null)
+                .Build();
+
+        // act
+        var result = await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        snapshot.Add(result);
+    }
+
+    [Fact]
+    public async Task DefaultErrorHandlingMode_AppliesFromRequestExecutorOptions()
+    {
+        // arrange
+        using var snapshot = SnapshotHelpers.StartResultSnapshot();
+
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddDocumentFromString(SchemaText)
+            .ModifyRequestOptions(o => o.DefaultErrorHandlingMode = ErrorHandlingMode.Null)
+            .AddResolver("Query", "foo", _ => new(new object()))
+            .AddResolver("Foo", "nullable_list_nullable_element", _ => new(new[] { new object() }))
+            .AddResolver("Foo", "nonnull_list_nullable_element", _ => new(new[] { new object() }))
+            .AddResolver("Foo", "nullable_list_nonnull_element", _ => new(new[] { new object() }))
+            .AddResolver("Foo", "nonnull_list_nonnull_element", _ => new(new[] { new object() }))
+            .AddResolver("Foo", "nonnull_prop", _ => new(new object()))
+            .AddResolver("Foo", "nullable_prop", _ => new(new object()))
+            .AddResolver("Bar", "a", c => new(c.GetGlobalStateOrDefault<string>("a")))
+            .AddResolver("Bar", "b", c => new(c.GetGlobalStateOrDefault<string>("b")))
+            .AddResolver("Bar", "c", _ => throw new GraphQLException("ERROR"))
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        var request =
+            OperationRequestBuilder.New()
+                .SetDocument("{ foo { nonnull_prop { b } } }")
+                .AddGlobalState("b", null)
+                .Build();
+
+        // act
+        var result = await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        snapshot.Add(result);
+    }
+
+    [Fact]
+    public async Task PerRequestOverride_OverridesDefaultErrorHandlingMode()
+    {
+        // arrange
+        using var snapshot = SnapshotHelpers.StartResultSnapshot();
+
+        // Request executor options use Propagate (default), but the request specifies Null.
+        var executor = await CreateExecutorAsync();
+
+        var request =
+            OperationRequestBuilder.New()
+                .SetDocument("{ foo { nonnull_prop { b } } }")
+                .AddGlobalState("b", null)
+                .SetErrorHandlingMode(ErrorHandlingMode.Null)
+                .Build();
+
+        // act
+        var result = await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        snapshot.Add(result);
+    }
+
+    [Fact]
+    public async Task PerRequestOverride_IsIgnored_When_AllowErrorHandlingModeOverride_IsDisabled()
+    {
+        // arrange
+        using var snapshot = SnapshotHelpers.StartResultSnapshot();
+
+        // Request executor options use Propagate (default) and override disabled (default).
+        // Even though the request asks for Null, the configured DefaultErrorHandlingMode must win.
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddDocumentFromString(SchemaText)
+            .AddResolver("Query", "foo", _ => new(new object()))
+            .AddResolver("Foo", "nullable_list_nullable_element", _ => new(new[] { new object() }))
+            .AddResolver("Foo", "nonnull_list_nullable_element", _ => new(new[] { new object() }))
+            .AddResolver("Foo", "nullable_list_nonnull_element", _ => new(new[] { new object() }))
+            .AddResolver("Foo", "nonnull_list_nonnull_element", _ => new(new[] { new object() }))
+            .AddResolver("Foo", "nonnull_prop", _ => new(new object()))
+            .AddResolver("Foo", "nullable_prop", _ => new(new object()))
+            .AddResolver("Bar", "a", c => new(c.GetGlobalStateOrDefault<string>("a")))
+            .AddResolver("Bar", "b", c => new(c.GetGlobalStateOrDefault<string>("b")))
+            .AddResolver("Bar", "c", _ => throw new GraphQLException("ERROR"))
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        var request =
+            OperationRequestBuilder.New()
+                .SetDocument("{ foo { nonnull_prop { b } } }")
+                .AddGlobalState("b", null)
+                .SetErrorHandlingMode(ErrorHandlingMode.Null)
+                .Build();
+
+        // act
+        var result = await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        snapshot.Add(result);
+    }
+
+    private const string SchemaText =
+        """
+        type Query {
+            foo: Foo
+        }
+
+        type Foo {
+            nullable_list_nullable_element: [Bar]
+            nonnull_list_nullable_element: [Bar]!
+            nullable_list_nonnull_element: [Bar!]
+            nonnull_list_nonnull_element: [Bar!]!
+            nonnull_prop: Bar!
+            nullable_prop: Bar
+        }
+
+        type Bar {
+            a: String
+            b: String!
+            c: String!
+        }
+        """;
+
     private static async Task<IRequestExecutor> CreateExecutorAsync()
     {
-        const string schema =
-            """
-            type Query {
-                foo: Foo
-            }
-
-            type Foo {
-                nullable_list_nullable_element: [Bar]
-                nonnull_list_nullable_element: [Bar]!
-                nullable_list_nonnull_element: [Bar!]
-                nonnull_list_nonnull_element: [Bar!]!
-                nonnull_prop: Bar!
-                nullable_prop: Bar
-            }
-
-            type Bar {
-                a: String
-                b: String!
-                c: String!
-            }
-            """;
-
         return await new ServiceCollection()
             .AddGraphQL()
-            .AddDocumentFromString(schema)
+            .AddDocumentFromString(SchemaText)
+            .ModifyRequestOptions(o => o.AllowErrorHandlingModeOverride = true)
             .AddResolver("Query", "foo", _ => new(new object()))
             .AddResolver("Foo", "nullable_list_nullable_element", _ => new(new[] { new object() }))
             .AddResolver("Foo", "nonnull_list_nullable_element", _ => new(new[] { new object() }))

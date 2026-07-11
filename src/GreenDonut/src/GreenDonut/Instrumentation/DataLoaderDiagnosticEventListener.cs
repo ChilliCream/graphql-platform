@@ -59,7 +59,7 @@ public class DataLoaderDiagnosticEventListener : IDataLoaderDiagnosticEventListe
     { }
 
     /// <inheritdoc />
-    public virtual void BatchDispatched(int dispatchedBatches, bool inParallel)
+    public virtual void BatchDispatched(int dispatchedBatches)
     { }
 
     private sealed class EmptyActivityScope : IDisposable

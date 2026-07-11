@@ -1,8 +1,8 @@
+using System.Collections.Concurrent;
 using HotChocolate.Execution;
 using HotChocolate.Features;
 using HotChocolate.Utilities;
 using Microsoft.Extensions.DependencyInjection;
-using ModelContextProtocol;
 using ModelContextProtocol.AspNetCore;
 using ModelContextProtocol.Server;
 using static ModelContextProtocol.Protocol.NotificationMethods;
@@ -46,13 +46,10 @@ internal sealed class McpRequestExecutorProxy(
         if (oldExecutor is not null)
         {
             newExecutor.Features.Set(
-                oldExecutor.Schema.Services.GetRequiredService<StreamableHttpHandler>().Sessions.Values);
+                oldExecutor.Schema.Services.GetRequiredService<ConcurrentDictionary<string, McpServer>>());
         }
 
-        var session =
-            new McpExecutorSession(
-                newExecutor.Schema.Services.GetRequiredService<StreamableHttpHandler>(),
-                newExecutor.Schema.Services.GetRequiredService<SseHandler>());
+        var session = new McpExecutorSession(newExecutor.Schema.Services.GetRequiredService<StreamableHttpHandler>());
 
         newExecutor.Features.Set(session);
         _session = session;
@@ -62,13 +59,12 @@ internal sealed class McpRequestExecutorProxy(
         IRequestExecutor newExecutor,
         IRequestExecutor oldExecutor)
     {
-        // https://github.com/modelcontextprotocol/csharp-sdk/issues/564#issuecomment-3184188188
-        var mcpSessions =
-            newExecutor.Features.GetRequired<ICollection<HttpMcpSession<StreamableHttpServerTransport>>>();
+        var mcpServers =
+            newExecutor.Features.GetRequired<ConcurrentDictionary<string, McpServer>>();
 
-        foreach (var session in mcpSessions)
+        foreach (var mcpServer in mcpServers.Values)
         {
-            session.Server?.SendNotificationAsync(ToolListChangedNotification).FireAndForget();
+            mcpServer.SendNotificationAsync(ToolListChangedNotification).FireAndForget();
         }
     }
 }

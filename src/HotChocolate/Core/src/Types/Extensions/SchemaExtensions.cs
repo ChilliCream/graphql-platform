@@ -44,9 +44,6 @@ public static class SchemaExtensions
     /// <c>true</c> if a type system member was found with the given
     /// <paramref name="coordinateString"/>; otherwise, <c>false</c>.
     /// </returns>
-    /// <exception cref="ArgumentNullException">
-    /// <paramref name="schema"/> is <c>null</c>.
-    /// </exception>
     public static bool TryGetMember(
         this Schema schema,
         string coordinateString,
@@ -77,16 +74,11 @@ public static class SchemaExtensions
     /// <c>true</c> if a type system member was found with the given
     /// <paramref name="coordinate"/>; otherwise, <c>false</c>.
     /// </returns>
-    /// <exception cref="ArgumentNullException">
-    /// <paramref name="schema"/> is <c>null</c>.
-    /// </exception>
     public static bool TryGetMember(
         this Schema schema,
         SchemaCoordinate coordinate,
         [NotNullWhen(true)] out ITypeSystemMember? member)
     {
-        ArgumentNullException.ThrowIfNull(schema);
-
         if (coordinate.OfDirective)
         {
             if (schema.DirectiveTypes.TryGetDirective(coordinate.Name, out var directive))
@@ -178,9 +170,6 @@ public static class SchemaExtensions
     /// <returns>
     /// Returns the resolved type system member.
     /// </returns>
-    /// <exception cref="ArgumentNullException">
-    /// <paramref name="schema"/> is <c>null</c>.
-    /// </exception>
     /// <exception cref="SyntaxException">
     /// The <paramref name="coordinateString"/> has invalid syntax.
     /// </exception>
@@ -205,9 +194,6 @@ public static class SchemaExtensions
     /// <returns>
     /// Returns the resolved type system member.
     /// </returns>
-    /// <exception cref="ArgumentNullException">
-    /// <paramref name="schema"/> is <c>null</c>.
-    /// </exception>
     /// <exception cref="InvalidSchemaCoordinateException">
     /// Unable to resolve a type system member with the
     /// specified <paramref name="coordinate"/>.
@@ -216,8 +202,6 @@ public static class SchemaExtensions
         this Schema schema,
         SchemaCoordinate coordinate)
     {
-        ArgumentNullException.ThrowIfNull(schema);
-
         if (coordinate.OfDirective)
         {
             if (schema.DirectiveTypes.TryGetDirective(coordinate.Name, out var directive))

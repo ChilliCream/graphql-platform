@@ -8,8 +8,8 @@ namespace StrawberryShake.Serialization;
 /// </summary>
 public class DateTimeSerializer : ScalarSerializer<string, DateTimeOffset>
 {
-    private const string UtcFormat = "yyyy-MM-ddTHH\\:mm\\:ss.fffZ";
-    private const string LocalFormat = "yyyy-MM-ddTHH\\:mm\\:ss.fffzzz";
+    private const string UtcFormat = "yyyy-MM-ddTHH\\:mm\\:ss.FFFFFFFZ";
+    private const string LocalFormat = "yyyy-MM-ddTHH\\:mm\\:ss.FFFFFFFzzz";
 
     public DateTimeSerializer(string typeName = BuiltInScalarNames.DateTime)
         : base(typeName)

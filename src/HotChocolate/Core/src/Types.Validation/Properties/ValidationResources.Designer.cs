@@ -87,6 +87,15 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The directive definition &apos;@{0}&apos; must not reference itself..
+        /// </summary>
+        internal static string LogEntryHelper_DirectiveDefinitionSelfApplication {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_DirectiveDefinitionSelfApplication", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The Enum type &apos;{0}&apos; must define one or more values..
         /// </summary>
         internal static string LogEntryHelper_EmptyEnumType {
@@ -258,6 +267,24 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The assigned value &apos;{0}&apos; of argument &apos;{1}&apos; on directive &apos;@{2}&apos; is not defined in the enum &apos;{3}&apos;..
+        /// </summary>
+        internal static string LogEntryHelper_UndefinedArgumentAssignedEnumValue {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_UndefinedArgumentAssignedEnumValue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The default value &apos;{0}&apos; of argument &apos;{1}&apos; is not defined in the enum &apos;{2}&apos;..
+        /// </summary>
+        internal static string LogEntryHelper_UndefinedArgumentDefaultEnumValue {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_UndefinedArgumentDefaultEnumValue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The type &apos;{0}&apos; of argument &apos;{1}&apos; is not defined in the schema..
         /// </summary>
         internal static string LogEntryHelper_UndefinedArgumentType {
@@ -267,11 +294,29 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The directive &apos;@{0}&apos; on &apos;{1}&apos; is not defined in the schema..
+        /// </summary>
+        internal static string LogEntryHelper_UndefinedDirective {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_UndefinedDirective", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The type &apos;{0}&apos; of field &apos;{1}&apos; is not defined in the schema..
         /// </summary>
         internal static string LogEntryHelper_UndefinedFieldType {
             get {
                 return ResourceManager.GetString("LogEntryHelper_UndefinedFieldType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The default value &apos;{0}&apos; of field &apos;{1}&apos; is not defined in the enum &apos;{2}&apos;..
+        /// </summary>
+        internal static string LogEntryHelper_UndefinedInputFieldDefaultEnumValue {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_UndefinedInputFieldDefaultEnumValue", resourceCulture);
             }
         }
     }

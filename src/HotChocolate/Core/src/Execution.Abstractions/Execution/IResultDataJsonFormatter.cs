@@ -1,4 +1,5 @@
 using System.Text.Json;
+using HotChocolate.Text.Json;
 
 namespace HotChocolate.Execution;
 
@@ -17,11 +18,7 @@ public interface IResultDataJsonFormatter
     /// The serializer options.
     /// If options are set to null <see cref="JsonSerializerOptions"/>.Web will be used.
     /// </param>
-    /// <param name="nullIgnoreCondition">
-    /// The null ignore condition.
-    /// </param>
     void WriteTo(
-        Utf8JsonWriter writer,
-        JsonSerializerOptions? options = null,
-        JsonNullIgnoreCondition nullIgnoreCondition = JsonNullIgnoreCondition.None);
+        JsonWriter writer,
+        JsonSerializerOptions? options = null);
 }

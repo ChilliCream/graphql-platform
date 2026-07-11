@@ -9,8 +9,10 @@ on:
       - "src/**"
 
 concurrency:
-  group: main-coverage
-  cancel-in-progress: true
+  group: main-coverage-${{ github.ref }}
+
+permissions:
+  contents: read
 
 jobs:
   configure:
@@ -22,24 +24,13 @@ jobs:
 
     steps:
       - name: Checkout to repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
           show-progress: false
 
-      - name: Install .NET
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: |
-            8.x
-            9.x
-            10.x
-
       - name: Generate Test Matrix
-        run: dotnet run --project ./.build -- GenerateMatrix
-
-      - name: Export Test Matrix
         id: set-matrix
-        run: echo "matrix=$(jq -c . < ./matrix.json)" >> $GITHUB_OUTPUT
+        uses: ./.github/actions/generate-test-matrix
 
   library-tests:
     name: Run ${{ matrix.name }}
@@ -54,25 +45,26 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
           show-progress: false
 
       - name: Install .NET
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@9a946fdbd5fb07b82b2f5a4466058b876ab72bb2 # v5.3.0
         with:
           dotnet-version: |
             8.x
             9.x
             10.x
+            11.0.100-preview.5.26302.115
 
       - name: Run Build
         id: run-build
-        run: dotnet build ${{ matrix.path }} --framework net10.0 --verbosity q
+        run: dotnet build ${{ matrix.path }} --framework net11.0 --verbosity q
         timeout-minutes: 5
 
       - name: Log in to Docker Hub
-        uses: docker/login-action@v3
+        uses: docker/login-action@650006c6eb7dba73a995cc03b0b2d7f5ca915bee # v4.2.0
         with:
           username: ${{ vars.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
@@ -82,34 +74,33 @@ jobs:
         timeout-minutes: 15
         continue-on-error: true
         run: >
-          dotnet test ${{ matrix.path }}
-          --collect:"XPlat Code Coverage;Format=opencover"
-          --framework net10.0
-          --logger trx
+          dotnet test
+          --project ${{ matrix.path }}
+          --framework net11.0
           --no-build
+          --coverage
+          --coverage-output-format cobertura
+          --report-trx
+          --results-directory ${{ matrix.directoryPath }}/TestResults
           --verbosity q
-          --
-          DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.ExcludeByFile="**/test/**"
         env:
           CI_BUILD: true
 
       - name: Upload Test Results as Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: test-results-${{ matrix.name }}
           path: ${{ matrix.directoryPath }}/TestResults/*.trx
 
       - name: Upload Coverage File as Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: coverage-${{ matrix.name }}
-          # The * matches a single directory that is named with a GUID.
-          # Take note of https://github.com/microsoft/vstest/issues/2334.
-          path: ${{ matrix.directoryPath }}/TestResults/*/coverage.opencover.xml
+          path: ${{ matrix.directoryPath }}/TestResults/*.cobertura.xml
 
       - name: Upload mismatch files as Artifact
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: mismatch-files-${{ matrix.name }}
           path: ${{ matrix.directoryPath }}/**/__mismatch__/*
@@ -119,25 +110,3 @@ jobs:
         if: |
           steps.run-tests.outcome == 'failure' ||
           steps.run-tests.outcome == 'cancelled'
-
-  upload-coverage:
-    name: Upload Coverage
-    needs: library-tests
-    runs-on: ubuntu-latest
-    steps:
-      - name: Download all coverage artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: ./output/download
-          pattern: coverage-*
-
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v5
-        timeout-minutes: 10
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          name: graphql-platform
-          files: "./output/download/coverage-*/*/coverage.opencover.xml"
-          disable_search: true
-          flags: unittests
-          fail_ci_if_error: true

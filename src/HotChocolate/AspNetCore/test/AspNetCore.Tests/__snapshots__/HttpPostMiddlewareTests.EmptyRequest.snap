@@ -4,9 +4,9 @@
   "Data": null,
   "Errors": [
     {
-      "message": "The GraphQL request is empty.",
+      "message": "Invalid JSON document.",
       "extensions": {
-        "code": "HC0009"
+        "code": "HC0012"
       }
     }
   ],

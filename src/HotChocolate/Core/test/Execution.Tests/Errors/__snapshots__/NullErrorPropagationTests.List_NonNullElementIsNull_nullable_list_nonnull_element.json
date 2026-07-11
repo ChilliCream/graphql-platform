@@ -2,12 +2,6 @@
   "errors": [
     {
       "message": "Cannot return null for non-nullable field.",
-      "locations": [
-        {
-          "line": 1,
-          "column": 41
-        }
-      ],
       "path": [
         "foo",
         "nullable_list_nonnull_element",

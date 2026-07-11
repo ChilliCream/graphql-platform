@@ -15,7 +15,7 @@ public class FusionHttpEndpointIntegrationTests : HttpEndpointIntegrationTestBas
     private TestServer _subgraph = null!;
     private DocumentNode _compositeSchema = null!;
 
-    protected override async Task InitializeAsync(TestServerSession serverSession)
+    protected override async ValueTask InitializeAsync(TestServerSession serverSession)
     {
         var server = CreateSourceSchema();
 
@@ -63,11 +63,38 @@ public class FusionHttpEndpointIntegrationTests : HttpEndpointIntegrationTestBas
         var builder = services.AddGraphQLGatewayServer()
             .AddInMemoryConfiguration(_compositeSchema)
             .AddHttpClientConfiguration("A", new Uri("http://localhost:5000/graphql"))
+            .AddOpenApi()
             .AddOpenApiDefinitionStorage(storage);
 
         if (eventListener is not null)
         {
             builder.AddDiagnosticEventListener(_ => eventListener);
         }
+    }
+
+    [Fact]
+    public async Task Http_Post_Body_Field_Has_Wrong_Type()
+    {
+        // arrange
+        var storage = CreateBasicTestDefinitionStorage();
+        var server = CreateTestServer(storage);
+        var client = server.CreateClient();
+
+        // act
+        var content = new StringContent(
+            """
+            {
+              "id": "6",
+              "name": "Test",
+              "email": 123
+            }
+            """,
+            Encoding.UTF8,
+            "application/json");
+
+        var response = await client.PostAsync("/users", content, TestContext.Current.CancellationToken);
+
+        // assert
+        response.MatchSnapshot();
     }
 }

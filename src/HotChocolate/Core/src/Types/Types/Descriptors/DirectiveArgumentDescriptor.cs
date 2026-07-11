@@ -101,6 +101,31 @@ public class DirectiveArgumentDescriptor
     }
 
     /// <inheritdoc />
+    public new IDirectiveArgumentDescriptor Directive<T>(T directiveInstance)
+        where T : class
+    {
+        base.Directive(directiveInstance);
+        return this;
+    }
+
+    /// <inheritdoc />
+    public new IDirectiveArgumentDescriptor Directive<T>()
+        where T : class, new()
+    {
+        base.Directive<T>();
+        return this;
+    }
+
+    /// <inheritdoc />
+    public new IDirectiveArgumentDescriptor Directive(
+        string name,
+        params ArgumentNode[] arguments)
+    {
+        base.Directive(name, arguments);
+        return this;
+    }
+
+    /// <inheritdoc />
     public new IDirectiveArgumentDescriptor Description(string value)
     {
         base.Description(value);

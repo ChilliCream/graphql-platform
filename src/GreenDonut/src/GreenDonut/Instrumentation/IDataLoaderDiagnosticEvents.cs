@@ -95,8 +95,5 @@ public interface IDataLoaderDiagnosticEvents
     /// <param name="dispatchedBatches">
     /// The number of batches that have been dispatched.
     /// </param>
-    /// <param name="inParallel">
-    /// Indicates whether the batches have been dispatched in parallel.
-    /// </param>
-    void BatchDispatched(int dispatchedBatches, bool inParallel);
+    void BatchDispatched(int dispatchedBatches);
 }

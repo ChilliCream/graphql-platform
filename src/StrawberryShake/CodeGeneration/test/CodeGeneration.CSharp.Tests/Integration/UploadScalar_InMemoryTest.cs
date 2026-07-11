@@ -27,7 +27,8 @@ public class UploadScalarInMemoryTest : ServerTestBase
             null,
             null,
             null,
-            null);
+            null,
+            TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal($"[test-file:a|{contentType}]", result.Data!.Upload);
@@ -51,7 +52,8 @@ public class UploadScalarInMemoryTest : ServerTestBase
             null,
             null,
             null,
-            null);
+            null,
+            TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal($"[A:a|{contentType}],[B:b|{contentType}]", result.Data!.Upload);
@@ -75,7 +77,8 @@ public class UploadScalarInMemoryTest : ServerTestBase
             new[] { new Upload?[] { new Upload(dataA, "A", contentType), new Upload(dataB, "B", contentType) } },
             null,
             null,
-            null);
+            null,
+            TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal($"[A:a|{contentType}],[B:b|{contentType}]", result.Data!.Upload);
@@ -96,15 +99,16 @@ public class UploadScalarInMemoryTest : ServerTestBase
             null,
             null,
             null,
-            new TestInput()
+            new TestInput
             {
-                Bar = new BarInput()
+                Bar = new BarInput
                 {
-                    Baz = new BazInput() { File = new Upload(data, "test-file", contentType) }
+                    Baz = new BazInput { File = new Upload(data, "test-file", contentType) }
                 }
             },
             null,
-            null);
+            null,
+            TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal($"[test-file:a|{contentType}]", result.Data!.Upload);
@@ -128,22 +132,23 @@ public class UploadScalarInMemoryTest : ServerTestBase
             null,
             new[]
             {
-                new TestInput()
+                new TestInput
                 {
-                    Bar = new BarInput()
+                    Bar = new BarInput
                     {
-                        Baz = new BazInput() { File = new Upload(dataA, "A", contentType) }
+                        Baz = new BazInput { File = new Upload(dataA, "A", contentType) }
                     }
                 },
-                new TestInput()
+                new TestInput
                 {
-                    Bar = new BarInput()
+                    Bar = new BarInput
                     {
-                        Baz = new BazInput() { File = new Upload(dataB, "B", contentType) }
+                        Baz = new BazInput { File = new Upload(dataB, "B", contentType) }
                     }
                 }
             },
-            null);
+            null,
+            TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal($"[A:a|{contentType}],[B:b|{contentType}]", result.Data!.Upload);
@@ -171,22 +176,23 @@ public class UploadScalarInMemoryTest : ServerTestBase
             {
                 new[]
                 {
-                    new TestInput()
+                    new TestInput
                     {
-                        Bar = new BarInput()
+                        Bar = new BarInput
                         {
-                            Baz = new BazInput() { File = new Upload(dataA, "A", contentType) }
+                            Baz = new BazInput { File = new Upload(dataA, "A", contentType) }
                         }
                     },
-                    new TestInput()
+                    new TestInput
                     {
-                        Bar = new BarInput()
+                        Bar = new BarInput
                         {
-                            Baz = new BazInput() { File = new Upload(dataB, "B", contentType) }
+                            Baz = new BazInput { File = new Upload(dataB, "B", contentType) }
                         }
                     }
                 }
-            });
+            },
+            TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal($"[A:a|{contentType}],[B:b|{contentType}]", result.Data!.Upload);

@@ -1,4 +1,3 @@
-using System.Collections.Concurrent;
 using HotChocolate.Features;
 using HotChocolate.Language;
 
@@ -47,7 +46,7 @@ public sealed class PooledRequestContext : RequestContext
     public override IFeatureCollection Features => _features;
 
     /// <inheritdoc />
-    public override IDictionary<string, object?> ContextData { get; } = new ConcurrentDictionary<string, object?>();
+    public override IDictionary<string, object?> ContextData { get; } = new RequestContextData();
 
     /// <summary>
     /// Initializes the request context after renting it from the pool.
@@ -112,6 +111,8 @@ public sealed class PooledRequestContext : RequestContext
         RequestAborted = CancellationToken.None;
         VariableValues = [];
         Result = null;
+        // dispose the arena if it was never detached (error or zero-event paths).
+        TryDetachMemory()?.Dispose();
         _features.Reset();
         ContextData.Clear();
     }

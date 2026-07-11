@@ -13,7 +13,7 @@ public static class SpecifiedByDirectiveTypeTests
             await new ServiceCollection()
                 .AddGraphQLServer()
                 .AddQueryType<Query1>()
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         schema.MatchSnapshot();
     }
@@ -25,7 +25,7 @@ public static class SpecifiedByDirectiveTypeTests
             await new ServiceCollection()
                 .AddGraphQLServer()
                 .AddQueryType<Query1>()
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         Assert.Contains(
             schema.DirectiveTypes,
@@ -57,11 +57,11 @@ public static class SpecifiedByDirectiveTypeTests
                     "The `@specifiedBy` directive is used within the type system definition language to provide a URL for specifying the behavior of custom scalar definitions."
                     directive @specifiedBy("The specifiedBy URL points to a human-readable specification. This field will only read a result for scalar types." url: String!) on SCALAR
 
-                    "The `DateTime` scalar represents an exact point in time. This point in time is specified by having an offset to UTC and does not use a time zone."
-                    scalar DateTime @specifiedBy(url: "https:\/\/scalars.graphql.org\/andimarek\/date-time.html")
+                    "The `DateTime` scalar type represents a date and time with time zone offset information."
+                    scalar DateTime @specifiedBy(url: "https://scalars.graphql.org/chillicream/date-time.html")
                     """)
                 .UseField(next => next)
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         Assert.Contains(
             schema.DirectiveTypes,
@@ -94,7 +94,7 @@ public static class SpecifiedByDirectiveTypeTests
                     directive @specifiedBy("The specifiedBy URL points to a human-readable specification. This field will only read a result for scalar types." url: String!) on SCALAR
                     """)
                 .UseField(next => next)
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         Assert.Contains(
             schema.DirectiveTypes,

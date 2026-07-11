@@ -141,12 +141,6 @@ public class AuthorizationTests(TestServerFactory serverFactory) : ServerTestBas
               "Errors": [
                 {
                   "message": "The `HasAgeDefined` authorization policy does not exist.",
-                  "locations": [
-                    {
-                      "line": 1,
-                      "column": 3
-                    }
-                  ],
                   "path": [
                     "age"
                   ],
@@ -200,7 +194,7 @@ public class AuthorizationTests(TestServerFactory serverFactory) : ServerTestBas
     {
         // arrange
         var server = CreateTestServer(
-           builder =>
+            builder =>
             {
                 configure(builder);
                 builder.Services.AddAuthorization(options =>

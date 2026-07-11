@@ -1,0 +1,238 @@
+using HotChocolate.Caching.Memory;
+using HotChocolate.Execution.Relay;
+using HotChocolate.Fusion.Types;
+
+namespace HotChocolate.Fusion.Execution;
+
+public sealed class FusionOptions : IFusionSchemaOptions, ICloneable
+{
+    private bool _isReadOnly;
+
+    /// <summary>
+    /// Gets or sets the time that the executor manager waits to dispose the schema services.
+    /// <c>30s</c> by default.
+    /// </summary>
+    public TimeSpan EvictionTimeout
+    {
+        get;
+        set
+        {
+            ExpectMutableOptions();
+
+            field = value;
+        }
+    } = TimeSpan.FromSeconds(30);
+
+    /// <summary>
+    /// Gets or sets the size of the operation execution plan cache.
+    /// <c>256</c> by default. <c>16</c> is the minimum.
+    /// </summary>
+    public int OperationExecutionPlanCacheSize
+    {
+        get;
+        set
+        {
+            ExpectMutableOptions();
+
+            if (value < 16)
+            {
+                throw new ArgumentException(
+                    "The size of operation execution plan cache must be at least 16.");
+            }
+
+            field = value;
+        }
+    } = 256;
+
+    /// <summary>
+    /// Gets or sets the diagnostics for the operation execution plan cache.
+    /// </summary>
+    public CacheDiagnostics? OperationExecutionPlanCacheDiagnostics
+    {
+        get;
+        set
+        {
+            ExpectMutableOptions();
+
+            field = value;
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the size of the operation document cache.
+    /// <c>256</c> by default. <c>16</c> is the minimum.
+    /// </summary>
+    public int OperationDocumentCacheSize
+    {
+        get;
+        set
+        {
+            ExpectMutableOptions();
+
+            if (value < 16)
+            {
+                throw new ArgumentException(
+                    "The size of operation document cache must be at least 16.");
+            }
+
+            field = value;
+        }
+    } = 256;
+
+    /// <summary>
+    /// Gets or sets the initial capacity of the local path segment pool used during result composition.
+    /// <c>64</c> by default. <c>1</c> is the minimum.
+    /// </summary>
+    public int PathSegmentLocalPoolCapacity
+    {
+        get;
+        set
+        {
+            ExpectMutableOptions();
+
+            if (value < 1)
+            {
+                throw new ArgumentException(
+                    "The path segment local pool capacity must be at least 1.");
+            }
+
+            field = value;
+        }
+    } = 64;
+
+    /// <summary>
+    /// Gets or sets whether the request executor should be initialized lazily.
+    /// <c>false</c> by default.
+    /// </summary>
+    /// <remarks>
+    /// When set to <c>true</c> the creation of the schema and request executor, as well as
+    /// the load of the Fusion configuration, is deferred until the request executor
+    /// is first requested.
+    /// This can significantly slow down and block initial requests.
+    /// Therefore, it is recommended to not use this option for production environments.
+    /// </remarks>
+    public bool LazyInitialization
+    {
+        get;
+        set
+        {
+            ExpectMutableOptions();
+
+            field = value;
+        }
+    }
+
+    /// <summary>
+    /// Specifies the format for Global Object Identifiers.
+    /// <see cref="NodeIdSerializerFormat.Base64"/> by default.
+    /// </summary>
+    public NodeIdSerializerFormat NodeIdSerializerFormat
+    {
+        get;
+        set
+        {
+            ExpectMutableOptions();
+
+            field = value;
+        }
+    } = NodeIdSerializerFormat.Base64;
+
+    /// <summary>
+    /// Applies the @serializeAs directive to scalar types that specify a serialization format.
+    /// </summary>
+    public bool ApplySerializeAsToScalars
+    {
+        get;
+        set
+        {
+            ExpectMutableOptions();
+
+            field = value;
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets whether <c>@defer</c> is enabled.
+    /// When <c>false</c>, the <c>@defer</c> directive is not exposed in the schema
+    /// and deferred execution is disabled.
+    /// <c>true</c> by default.
+    /// </summary>
+    public bool EnableDefer
+    {
+        get;
+        set
+        {
+            ExpectMutableOptions();
+
+            field = value;
+        }
+    } = true;
+
+    /// <summary>
+    /// Gets or sets whether opt-in feature support is enabled. When <c>true</c>, the introspection
+    /// schema exposes the <c>includeOptIn</c> argument and opt-in members are hidden from
+    /// introspection unless the client opts into their feature.
+    /// </summary>
+    public bool EnableOptInFeatures
+    {
+        get;
+        set
+        {
+            ExpectMutableOptions();
+
+            field = value;
+        }
+    }
+
+    /// <summary>
+    /// Enables the <c>__search</c> and <c>__definitions</c> introspection fields
+    /// for semantic schema discovery.
+    /// </summary>
+    public bool EnableSemanticIntrospection
+    {
+        get;
+        set
+        {
+            ExpectMutableOptions();
+
+            field = value;
+        }
+    } = true;
+
+    /// <summary>
+    /// Clones the options into a new mutable instance.
+    /// </summary>
+    /// <returns>
+    /// A new mutable instance of <see cref="FusionOptions"/> with the same properties.
+    /// </returns>
+    public FusionOptions Clone()
+    {
+        return new FusionOptions
+        {
+            EvictionTimeout = EvictionTimeout,
+            OperationExecutionPlanCacheSize = OperationExecutionPlanCacheSize,
+            OperationExecutionPlanCacheDiagnostics = OperationExecutionPlanCacheDiagnostics,
+            OperationDocumentCacheSize = OperationDocumentCacheSize,
+            PathSegmentLocalPoolCapacity = PathSegmentLocalPoolCapacity,
+            LazyInitialization = LazyInitialization,
+            NodeIdSerializerFormat = NodeIdSerializerFormat,
+            ApplySerializeAsToScalars = ApplySerializeAsToScalars,
+            EnableDefer = EnableDefer,
+            EnableOptInFeatures = EnableOptInFeatures,
+            EnableSemanticIntrospection = EnableSemanticIntrospection
+        };
+    }
+
+    object ICloneable.Clone() => Clone();
+
+    internal void MakeReadOnly()
+        => _isReadOnly = true;
+
+    private void ExpectMutableOptions()
+    {
+        if (_isReadOnly)
+        {
+            throw new InvalidOperationException("The options are read-only.");
+        }
+    }
+}

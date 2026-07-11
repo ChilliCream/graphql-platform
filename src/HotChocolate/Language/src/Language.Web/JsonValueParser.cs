@@ -1,6 +1,6 @@
 using System.Buffers;
-using System.Text.Json;
 using System.Runtime.InteropServices;
+using System.Text.Json;
 using HotChocolate.Buffers;
 
 namespace HotChocolate.Language;
@@ -12,7 +12,8 @@ public ref struct JsonValueParser
 {
     private const int DefaultMaxAllowedDepth = 64;
     private readonly int _maxAllowedDepth;
-    private Utf8MemoryBuilder? _memory;
+    private readonly bool _doNotSeal;
+    internal Utf8MemoryBuilder? _memory;
     private readonly PooledArrayWriter? _externalBuffer;
 
     public JsonValueParser()
@@ -37,6 +38,12 @@ public ref struct JsonValueParser
         _externalBuffer = buffer;
     }
 
+    internal JsonValueParser(bool doNotSeal)
+    {
+        _maxAllowedDepth = DefaultMaxAllowedDepth;
+        _doNotSeal = doNotSeal;
+    }
+
     public IValueNode Parse(JsonElement element)
     {
         if (element.ValueKind is JsonValueKind.Undefined)
@@ -56,12 +63,15 @@ public ref struct JsonValueParser
         }
         finally
         {
-            _memory?.Seal();
-            _memory = null;
+            if (!_doNotSeal)
+            {
+                _memory?.Seal();
+                _memory = null;
+            }
         }
     }
 
-    private IValueNode Parse(JsonElement element, int depth)
+    internal IValueNode Parse(JsonElement element, int depth)
     {
         if (depth > _maxAllowedDepth)
         {
@@ -80,15 +90,10 @@ public ref struct JsonValueParser
                 return BooleanValueNode.False;
 
             case JsonValueKind.String:
-            {
-                var value = JsonMarshal.GetRawUtf8Value(element);
-                value = value.Slice(1, value.Length - 2); // Remove quotes.
-                var segment = WriteValue(value);
-                return new StringValueNode(null, segment, false);
-            }
+                var stringValue = element.GetString()!;
+                return new StringValueNode(null, stringValue, false);
 
             case JsonValueKind.Number:
-            {
                 var value = JsonMarshal.GetRawUtf8Value(element);
                 var segment = WriteValue(value);
 
@@ -103,7 +108,6 @@ public ref struct JsonValueParser
                 }
 
                 return new IntValueNode(segment);
-            }
 
             case JsonValueKind.Array:
             {
@@ -184,6 +188,17 @@ public ref struct JsonValueParser
     }
 
     /// <summary>
+    /// Parses a JSON span as a GraphQL value node.
+    /// </summary>
+    /// <param name="json">The JSON span to parse.</param>
+    /// <returns>The parsed GraphQL value node.</returns>
+    public IValueNode Parse(ReadOnlySequence<byte> json)
+    {
+        var reader = new Utf8JsonReader(json, isFinalBlock: true, state: default);
+        return Parse(ref reader);
+    }
+
+    /// <summary>
     /// Parses a JSON reader as a GraphQL value node.
     /// </summary>
     /// <param name="reader">The JSON reader to parse.</param>
@@ -202,8 +217,11 @@ public ref struct JsonValueParser
         }
         finally
         {
-            _memory?.Seal();
-            _memory = null;
+            if (!_doNotSeal)
+            {
+                _memory?.Seal();
+                _memory = null;
+            }
         }
     }
 

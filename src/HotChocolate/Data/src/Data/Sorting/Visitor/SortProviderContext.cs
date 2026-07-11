@@ -13,7 +13,7 @@ public readonly struct SortProviderContext(
     InputParser inputParser)
 {
     public IServiceProvider SchemaServices { get; } = schemaServices;
-    
+
     public ISortProvider SortProvider { get; } = sortProvider;
 
     public IConventionContext ConventionContext { get; } = conventionContext;

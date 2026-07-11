@@ -48,6 +48,7 @@ namespace TestNamespace
 
                     configuration.Type = typeInspector.GetTypeRef(typeof(global::HotChocolate.Types.StringType), HotChocolate.Types.TypeContext.Output);
                     configuration.ResultType = typeof(global::TestNamespace.Author);
+                    configuration.DeclaringType = context.ThisType;
 
                     configuration.SetSourceGeneratorFlags();
 
@@ -60,7 +61,7 @@ namespace TestNamespace
                         var argumentConfiguration = new global::HotChocolate.Types.Descriptors.Configurations.ArgumentConfiguration
                         {
                             Name = naming.GetMemberName("version", global::HotChocolate.Types.MemberKind.Argument),
-                            RuntimeDefaultValue = 0,
+                            RuntimeDefaultValue = global::TestNamespace.Foo.Bar,
                             Type = global::HotChocolate.Types.Descriptors.TypeReference.Create(
                                 typeInspector.GetTypeRef(typeof(global::TestNamespace.Foo), HotChocolate.Types.TypeContext.Input),
                                 new global::HotChocolate.Language.NamedTypeNode("global__TestNamespace_Foo")),
@@ -162,4 +163,3 @@ namespace Microsoft.Extensions.DependencyInjection
 }
 
 ```
-

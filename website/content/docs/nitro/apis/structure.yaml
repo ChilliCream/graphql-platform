@@ -1,0 +1,16 @@
+title: APIs
+items:
+  - path: overview
+    title: Overview
+  - path: stages
+    title: Stages
+  - path: deployments
+    title: Deployments
+  - path: fusion
+    title: Fusion
+  - path: schema-registry
+    title: Schema Registry
+  - path: client-registry
+    title: Client Registry
+  - path: operation-reporting
+    title: Operation Reporting

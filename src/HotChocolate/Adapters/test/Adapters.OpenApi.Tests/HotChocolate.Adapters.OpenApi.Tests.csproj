@@ -1,10 +1,11 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-  <Import Project="$([MSBuild]::GetPathOfFileAbove('Xunit2.Directory.Build.props', '$(MSBuildThisFileDirectory)..\'))" />
+
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Test.props', '$(MSBuildThisFileDirectory)'))" />
 
   <PropertyGroup>
     <RootNamespace>HotChocolate.Adapters.OpenApi</RootNamespace>
     <PackageId>HotChocolate.Adapters.OpenApi.Tests</PackageId>
-    <TargetFrameworks>net10.0; net9.0</TargetFrameworks>
+    <TargetFrameworks>$(OpenApiTargetFrameworks)</TargetFrameworks>
   </PropertyGroup>
 
   <ItemGroup>
@@ -15,10 +16,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\..\Nitro\Common\src\ChilliCream.Nitro.Adapters.OpenApi\ChilliCream.Nitro.Adapters.OpenApi.csproj" />
     <ProjectReference Include="..\..\src\Adapters.OpenApi\HotChocolate.Adapters.OpenApi.csproj" />
     <ProjectReference Include="..\..\src\Fusion.Adapters.OpenApi\HotChocolate.Fusion.Adapters.OpenApi.csproj" />
     <ProjectReference Include="..\..\..\AspNetCore\src\AspNetCore.Authorization\HotChocolate.AspNetCore.Authorization.csproj" />
-    <ProjectReference Include="..\..\..\Fusion-vnext\src\Fusion.Composition\HotChocolate.Fusion.Composition.csproj" />
+    <ProjectReference Include="..\..\..\Fusion\src\Fusion.Composition\HotChocolate.Fusion.Composition.csproj" />
     <ProjectReference Include="..\..\..\Mutable\src\Types.Mutable\HotChocolate.Types.Mutable.csproj" />
   </ItemGroup>
 

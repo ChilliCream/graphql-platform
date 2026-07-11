@@ -1,5 +1,4 @@
 using Microsoft.Extensions.DependencyInjection;
-using Xunit.Abstractions;
 using static GreenDonut.TestHelpers;
 // ReSharper disable CollectionNeverUpdated.Local
 // ReSharper disable InconsistentNaming
@@ -74,10 +73,10 @@ public class DataLoaderTests(ITestOutputHelper output)
         const string key = "Foo";
 
         // act
-        var loadResult = loader.LoadAsync(key);
+        var loadResult = loader.LoadAsync(key, TestContext.Current.CancellationToken);
 
         // assert
-        await Task.Delay(25);
+        await Task.Delay(25, TestContext.Current.CancellationToken);
         batchScheduler.Dispatch();
         (await loadResult).MatchSnapshot();
     }
@@ -92,10 +91,10 @@ public class DataLoaderTests(ITestOutputHelper output)
         const string key = "Foo";
 
         // first load.
-        (await loader.LoadAsync(key)).MatchSnapshot();
+        (await loader.LoadAsync(key, TestContext.Current.CancellationToken)).MatchSnapshot();
 
         // act
-        var result = await loader.LoadAsync(key);
+        var result = await loader.LoadAsync(key, TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -114,10 +113,10 @@ public class DataLoaderTests(ITestOutputHelper output)
         const string key = "Foo";
 
         // act
-        var loadResult = loader.LoadAsync(key);
+        var loadResult = loader.LoadAsync(key, TestContext.Current.CancellationToken);
 
         // assert
-        await Task.Delay(25);
+        await Task.Delay(25, TestContext.Current.CancellationToken);
         batchScheduler.Dispatch();
         (await loadResult).MatchSnapshot();
     }
@@ -136,7 +135,7 @@ public class DataLoaderTests(ITestOutputHelper output)
 
         // assert
         var task = Assert.ThrowsAsync<InvalidOperationException>(Verify);
-        await Task.Delay(25);
+        await Task.Delay(25, TestContext.Current.CancellationToken);
         batchScheduler.Dispatch();
 
         await task;
@@ -167,10 +166,10 @@ public class DataLoaderTests(ITestOutputHelper output)
         var keys = Array.Empty<string>();
 
         // act
-        var loadResult = loader.LoadAsync(keys);
+        var loadResult = loader.LoadAsync(keys, TestContext.Current.CancellationToken);
 
         // assert
-        await Task.Delay(25);
+        await Task.Delay(25, TestContext.Current.CancellationToken);
         batchScheduler.Dispatch();
         Assert.Empty(await loadResult);
     }
@@ -186,10 +185,10 @@ public class DataLoaderTests(ITestOutputHelper output)
         var keys = new[] { "Foo" };
 
         // act
-        var loadResult = loader.LoadAsync(keys);
+        var loadResult = loader.LoadAsync(keys, TestContext.Current.CancellationToken);
 
         // assert
-        await Task.Delay(25);
+        await Task.Delay(25, TestContext.Current.CancellationToken);
         batchScheduler.Dispatch();
         (await loadResult).MatchSnapshot();
     }
@@ -223,7 +222,7 @@ public class DataLoaderTests(ITestOutputHelper output)
         var loadResult = loader.LoadAsync(keys, CancellationToken.None);
 
         // assert
-        await Task.Delay(25);
+        await Task.Delay(25, TestContext.Current.CancellationToken);
         batchScheduler.Dispatch();
         Assert.Empty(await loadResult);
     }
@@ -321,7 +320,7 @@ public class DataLoaderTests(ITestOutputHelper output)
         var requestKeys = new[] { "Foo", "Bar", "Baz", "Qux" };
 
         // act
-        var loadResult = loader.LoadAsync(requestKeys);
+        var loadResult = loader.LoadAsync(requestKeys, TestContext.Current.CancellationToken);
         batchScheduler.Dispatch();
 
         // assert
@@ -653,10 +652,10 @@ public class DataLoaderTests(ITestOutputHelper output)
         object key = "Foo";
 
         // act
-        var loadResult = loader.LoadAsync(key);
+        var loadResult = loader.LoadAsync(key, TestContext.Current.CancellationToken);
 
         // assert
-        await Task.Delay(25);
+        await Task.Delay(25, TestContext.Current.CancellationToken);
         batchScheduler.Dispatch();
         (await loadResult).MatchSnapshot();
     }
@@ -677,7 +676,7 @@ public class DataLoaderTests(ITestOutputHelper output)
         var task =
             Assert.ThrowsAsync<InvalidOperationException>(Verify);
 
-        await Task.Delay(25);
+        await Task.Delay(25, TestContext.Current.CancellationToken);
         batchScheduler.Dispatch();
 
         await task;
@@ -708,7 +707,7 @@ public class DataLoaderTests(ITestOutputHelper output)
         var keys = Array.Empty<object>();
 
         // act
-        var loadResult = await loader.LoadAsync(keys);
+        var loadResult = await loader.LoadAsync(keys, TestContext.Current.CancellationToken);
 
         // assert
         Assert.Empty(loadResult);
@@ -724,10 +723,10 @@ public class DataLoaderTests(ITestOutputHelper output)
         var keys = new object[] { "Foo" };
 
         // act
-        var loadResult = loader.LoadAsync(keys);
+        var loadResult = loader.LoadAsync(keys, TestContext.Current.CancellationToken);
 
         // assert
-        await Task.Delay(25);
+        await Task.Delay(25, TestContext.Current.CancellationToken);
         batchScheduler.Dispatch();
         (await loadResult).MatchSnapshot();
     }
@@ -758,7 +757,7 @@ public class DataLoaderTests(ITestOutputHelper output)
         var keys = new List<object>();
 
         // act
-        var loadResult = await loader.LoadAsync(keys);
+        var loadResult = await loader.LoadAsync(keys, TestContext.Current.CancellationToken);
 
         // assert
         Assert.Empty(loadResult);
@@ -774,10 +773,10 @@ public class DataLoaderTests(ITestOutputHelper output)
         var keys = new List<object> { "Foo" };
 
         // act
-        var loadResult = loader.LoadAsync(keys);
+        var loadResult = loader.LoadAsync(keys, TestContext.Current.CancellationToken);
 
         // assert
-        await Task.Delay(25);
+        await Task.Delay(25, TestContext.Current.CancellationToken);
         batchScheduler.Dispatch();
         (await loadResult).MatchSnapshot();
     }
@@ -934,7 +933,7 @@ public class DataLoaderTests(ITestOutputHelper output)
             new AutoBatchScheduler(),
             new DataLoaderOptions { Cache = cache });
         var entity1 = await dataLoader1.LoadAsync(1, CancellationToken.None);
-        await Task.Delay(500);
+        await Task.Delay(500, TestContext.Current.CancellationToken);
 
         // act
         var dataLoader2 = new TestDataLoader2(

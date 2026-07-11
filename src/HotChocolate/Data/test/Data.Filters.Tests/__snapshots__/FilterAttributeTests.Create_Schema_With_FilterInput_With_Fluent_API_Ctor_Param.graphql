@@ -2,14 +2,14 @@ schema {
   query: Query3
 }
 
+type Query3 {
+  foos(where: FooFilterInput): [Foo!]!
+}
+
 type Foo {
   bar: String!
   baz: Int!
   qux: Int
-}
-
-type Query3 {
-  foos(where: FooFilterInput): [Foo!]!
 }
 
 input FooFilterInput {

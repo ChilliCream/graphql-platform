@@ -1,121 +1,170 @@
-using HotChocolate.Adapters.Mcp.Diagnostics;
-using HotChocolate.Adapters.Mcp.Handlers;
-using HotChocolate.Adapters.Mcp.Proxies;
+using System.Diagnostics.CodeAnalysis;
+using HotChocolate.Adapters.Mcp;
+using HotChocolate.Adapters.Mcp.Configuration;
+using HotChocolate.Adapters.Mcp.Extensions;
 using HotChocolate.Adapters.Mcp.Storage;
-using HotChocolate.Execution;
 using HotChocolate.Fusion.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-using ModelContextProtocol.AspNetCore;
 using ModelContextProtocol.Server;
 
-namespace HotChocolate.Adapters.Mcp.Extensions;
+// ReSharper disable once CheckNamespace
+namespace Microsoft.Extensions.DependencyInjection;
 
+#if !NET9_0_OR_GREATER
+[RequiresDynamicCode(
+    "JSON serialization and deserialization might require types that cannot be statically analyzed and might need runtime code generation. Use System.Text.Json source generation for native AOT applications.")]
+[RequiresUnreferencedCode(
+    "JSON serialization and deserialization might require types that cannot be statically analyzed. Use the overload that takes a JsonTypeInfo or JsonSerializerContext, or make sure all of the required types are preserved.")]
+#endif
 public static class FusionGatewayBuilderExtensions
 {
     public static IFusionGatewayBuilder AddMcp(
         this IFusionGatewayBuilder builder,
         Action<McpServerOptions>? configureServerOptions = null,
-        Action<IMcpServerBuilder>? configureServer = null)
+        Action<IMcpServerBuilder>? configureServer = null,
+        Func<IServiceProvider, bool>? skipIf = null)
     {
         ArgumentNullException.ThrowIfNull(builder);
 
-        builder.Services
-            .AddHttpContextAccessor()
-            .AddKeyedSingleton(
-                builder.Name,
-                static (sp, name) => new McpRequestExecutorProxy(
-                    sp.GetRequiredService<IRequestExecutorProvider>(),
-                    sp.GetRequiredService<IRequestExecutorEvents>(),
-                    (string)name))
-            .AddKeyedSingleton(
-                builder.Name,
-                static (sp, name) => new StreamableHttpHandlerProxy(
-                    sp.GetRequiredKeyedService<McpRequestExecutorProxy>(name)))
-            .AddKeyedSingleton(
-                builder.Name,
-                static (sp, name) => new SseHandlerProxy(
-                    sp.GetRequiredKeyedService<McpRequestExecutorProxy>(name)));
+        builder.Services.TryAddMcpServices();
+        builder.Services.ConfigureMcpSetup(builder.Name, configureServerOptions, configureServer);
 
         builder.ConfigureSchemaServices(
-            (_, services) =>
-            {
-                services
-                    .TryAddSingleton(
-                        static sp => new OperationToolFactory(
-                            sp.GetRequiredService<ISchemaDefinition>()));
+            (applicationServices, schemaServices) =>
+                schemaServices.AddMcpSchemaServices(applicationServices, builder.Name));
 
-                services.TryAddSingleton<IMcpDiagnosticEvents>(sp =>
-                {
-                    var listeners = sp.GetServices<IMcpDiagnosticEventListener>().ToArray();
-                    return listeners.Length switch
-                    {
-                        0 => new NoopMcpDiagnosticEvents(),
-                        1 => listeners[0],
-                        _ => new AggregateMcpDiagnosticEvents(listeners)
-                    };
-                });
-
-                services
-                    .TryAddSingleton(
-                        static sp => new ToolStorageObserver(
-                            sp.GetRequiredService<ISchemaDefinition>(),
-                            sp.GetRequiredService<ToolRegistry>(),
-                            sp.GetRequiredService<OperationToolFactory>(),
-                            sp.GetRequiredService<StreamableHttpHandler>(),
-                            sp.GetRequiredService<IOperationToolStorage>(),
-                            sp.GetRequiredService<IMcpDiagnosticEvents>()));
-
-                services
-                    .AddSingleton(
-                        static sp => sp
-                            .GetRequiredService<IRootServiceProviderAccessor>().ServiceProvider
-                            .GetRequiredService<IHostApplicationLifetime>())
-                    .AddSingleton(
-                        static sp => sp
-                            .GetRequiredService<IRootServiceProviderAccessor>().ServiceProvider
-                            .GetRequiredService<ILoggerFactory>())
-                    .AddSingleton<ToolRegistry>();
-
-                var mcpServerBuilder =
-                    services
-                        .AddMcpServer(o =>
-                        {
-                            configureServerOptions?.Invoke(o);
-                            o.Capabilities?.Tools?.ListChanged = true;
-                        })
-                        .WithHttpTransport()
-                        .WithListToolsHandler(
-                            (context, _) => ValueTask.FromResult(ListToolsHandler.Handle(context)))
-                        .WithCallToolHandler(
-                            async (context, cancellationToken)
-                                => await CallToolHandler
-                                    .HandleAsync(context, cancellationToken)
-                                    .ConfigureAwait(false));
-
-                configureServer?.Invoke(mcpServerBuilder);
-            });
-
-        builder.AddWarmupTask(async (executor, cancellationToken) =>
-        {
-            var schema = executor.Schema;
-            var storageObserver = schema.Services.GetRequiredService<ToolStorageObserver>();
-            await storageObserver.StartAsync(cancellationToken);
-        });
+        builder.AddWarmupTask(
+            schemaServices => new McpStorageWarmupTask(schemaServices.GetRequiredService<McpStorageObserver>()),
+            skipIf);
 
         return builder;
     }
 
-    public static IFusionGatewayBuilder AddMcpToolStorage(
+    /// <summary>
+    /// Modifies the options that control how MCP tools are generated from operations.
+    /// </summary>
+    /// <param name="builder">
+    /// The <see cref="IFusionGatewayBuilder"/>.
+    /// </param>
+    /// <param name="configure">
+    /// A delegate to modify the <see cref="McpToolOptions"/>.
+    /// </param>
+    /// <returns>
+    /// Returns the <see cref="IFusionGatewayBuilder"/> so that configuration can be chained.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// The <paramref name="builder"/> is <c>null</c>.
+    /// </exception>
+    /// <exception cref="ArgumentNullException">
+    /// The <paramref name="configure"/> is <c>null</c>.
+    /// </exception>
+    public static IFusionGatewayBuilder ModifyMcpToolOptions(
         this IFusionGatewayBuilder builder,
-        IOperationToolStorage storage)
+        Action<McpToolOptions> configure)
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(configure);
+
+        builder.ConfigureSchemaServices((_, services) => services.AddSingleton(configure));
+
+        return builder;
+    }
+
+    /// <summary>
+    /// Adds an MCP storage to the gateway.
+    /// </summary>
+    /// <param name="builder">
+    /// The <see cref="IFusionGatewayBuilder"/>.
+    /// </param>
+    /// <param name="storage">
+    /// The MCP storage instance.
+    /// </param>
+    /// <returns>
+    /// Returns the <see cref="IFusionGatewayBuilder"/> so that configuration can be chained.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// The <paramref name="builder"/> is <c>null</c>.
+    /// </exception>
+    /// <exception cref="ArgumentNullException">
+    /// The <paramref name="storage"/> is <c>null</c>.
+    /// </exception>
+    public static IFusionGatewayBuilder AddMcpStorage(
+        this IFusionGatewayBuilder builder,
+        IMcpStorage storage)
     {
         ArgumentNullException.ThrowIfNull(builder);
         ArgumentNullException.ThrowIfNull(storage);
 
-        builder.ConfigureSchemaServices((_, s) => s.AddSingleton(storage));
+        builder.Services.Configure<McpSetup>(
+            builder.Name,
+            setup => setup.StorageFactory = _ => storage);
+
+        return builder;
+    }
+
+    /// <summary>
+    /// Adds an MCP storage to the gateway.
+    /// </summary>
+    /// <param name="builder">
+    /// The <see cref="IFusionGatewayBuilder"/>.
+    /// </param>
+    /// <typeparam name="T">
+    /// The type of the MCP storage.
+    /// </typeparam>
+    /// <returns>
+    /// Returns the <see cref="IFusionGatewayBuilder"/> so that configuration can be chained.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// The <paramref name="builder"/> is <c>null</c>.
+    /// </exception>
+    /// <remarks>
+    /// The <typeparamref name="T"/> will be activated with the <see cref="IServiceProvider"/> of the application services.
+    /// </remarks>
+    public static IFusionGatewayBuilder AddMcpStorage<
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(
+        this IFusionGatewayBuilder builder)
+        where T : class, IMcpStorage
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+
+        builder.Services.Configure<McpSetup>(
+            builder.Name,
+            setup => setup.StorageFactory = ActivatorUtilities.GetServiceOrCreateInstance<T>);
+
+        return builder;
+    }
+
+    /// <summary>
+    /// Adds an MCP storage to the gateway.
+    /// </summary>
+    /// <param name="builder">
+    /// The <see cref="IFusionGatewayBuilder"/>.
+    /// </param>
+    /// <param name="factory">
+    /// The factory to create the MCP storage.
+    /// </param>
+    /// <returns>
+    /// Returns the <see cref="IFusionGatewayBuilder"/> so that configuration can be chained.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// The <paramref name="builder"/> is <c>null</c>.
+    /// </exception>
+    /// <exception cref="ArgumentNullException">
+    /// The <paramref name="factory"/> is <c>null</c>.
+    /// </exception>
+    /// <remarks>
+    /// The <see cref="IServiceProvider"/> passed to the <paramref name="factory"/>
+    /// is for the application services.
+    /// </remarks>
+    public static IFusionGatewayBuilder AddMcpStorage(
+        this IFusionGatewayBuilder builder,
+        Func<IServiceProvider, IMcpStorage> factory)
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(factory);
+
+        builder.Services.Configure<McpSetup>(
+            builder.Name,
+            setup => setup.StorageFactory = factory);
 
         return builder;
     }

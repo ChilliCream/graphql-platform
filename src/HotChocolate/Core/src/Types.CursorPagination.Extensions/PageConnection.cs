@@ -45,12 +45,12 @@ public class PageConnection<TNode> : ConnectionBase<TNode, PageEdge<TNode>, Page
         {
             if (_edges is null)
             {
-                var items = _page.Items;
-                var edges = new PageEdge<TNode>[items.Length];
+                var entries = _page.Entries;
+                var edges = new PageEdge<TNode>[entries.Length];
 
-                for (var i = 0; i < items.Length; i++)
+                for (var i = 0; i < entries.Length; i++)
                 {
-                    edges[i] = new PageEdge<TNode>(_page, items[i]);
+                    edges[i] = new PageEdge<TNode>(_page, entries[i]);
                 }
 
                 _edges = edges;
@@ -64,7 +64,7 @@ public class PageConnection<TNode> : ConnectionBase<TNode, PageEdge<TNode>, Page
     /// A flattened list of the nodes.
     /// </summary>
     [GraphQLDescription("A flattened list of the nodes")]
-    public virtual IReadOnlyList<TNode>? Nodes => _page.Items;
+    public virtual IReadOnlyList<TNode>? Nodes => _page;
 
     /// <summary>
     /// Information to aid in pagination.
@@ -76,5 +76,14 @@ public class PageConnection<TNode> : ConnectionBase<TNode, PageEdge<TNode>, Page
     /// Identifies the total count of items in the connection.
     /// </summary>
     [GraphQLDescription("Identifies the total count of items in the connection.")]
-    public int TotalCount => _page.TotalCount ?? 0;
+    public int TotalCount => _page.TotalCount ?? -1;
+
+    /// <summary>
+    /// Converts a <see cref="Page{TNode}"/> to a <see cref="PageConnection{TNode}"/>.
+    /// </summary>
+    /// <param name="page">
+    /// The page to convert.
+    /// </param>
+    public static implicit operator PageConnection<TNode>(Page<TNode> page)
+        => new(page);
 }

@@ -1,7 +1,7 @@
 {
   "data": {
     "bar": {
-      "localDateTime": "9999-12-31T23:59:59"
+      "localDateTime": "9999-12-31T23:59:59.9999999"
     }
   }
 }

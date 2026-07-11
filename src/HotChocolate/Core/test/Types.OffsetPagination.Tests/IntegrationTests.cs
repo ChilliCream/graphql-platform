@@ -18,7 +18,7 @@ public class IntegrationTests
                 .AddQueryType<QueryType>()
                 .Services
                 .BuildServiceProvider()
-                .GetRequestExecutorAsync();
+                .GetRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         executor.Schema.ToString().MatchSnapshot();
     }
@@ -32,7 +32,7 @@ public class IntegrationTests
                 .AddQueryType<QueryAttr>()
                 .Services
                 .BuildServiceProvider()
-                .GetRequestExecutorAsync();
+                .GetRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         executor.Schema.ToString().MatchSnapshot();
     }
@@ -46,10 +46,11 @@ public class IntegrationTests
                 .AddQueryType<QueryType>()
                 .Services
                 .BuildServiceProvider()
-                .GetRequestExecutorAsync();
+                .GetRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         (await executor
-            .ExecuteAsync(@"
+            .ExecuteAsync(
+                @"
                 {
                     letters {
                         items
@@ -58,7 +59,8 @@ public class IntegrationTests
                             hasPreviousPage
                         }
                     }
-                }"))
+                }",
+                TestContext.Current.CancellationToken))
             .MatchSnapshot();
     }
 
@@ -72,10 +74,11 @@ public class IntegrationTests
                 .ModifyPagingOptions(o => o.RequirePagingBoundaries = true)
                 .Services
                 .BuildServiceProvider()
-                .GetRequestExecutorAsync();
+                .GetRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         await executor
-            .ExecuteAsync(@"
+            .ExecuteAsync(
+                @"
                 {
                     letters {
                         items
@@ -84,7 +87,8 @@ public class IntegrationTests
                             hasPreviousPage
                         }
                     }
-                }")
+                }",
+                TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -98,10 +102,11 @@ public class IntegrationTests
                 .ModifyPagingOptions(o => o.RequirePagingBoundaries = true)
                 .Services
                 .BuildServiceProvider()
-                .GetRequestExecutorAsync();
+                .GetRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         await executor
-            .ExecuteAsync($@"
+            .ExecuteAsync(
+                $@"
                 {{
                     letters(take: {51}) {{
                         items
@@ -110,7 +115,8 @@ public class IntegrationTests
                             hasPreviousPage
                         }}
                     }}
-                }}")
+                }}",
+                TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -123,10 +129,11 @@ public class IntegrationTests
                 .AddQueryType<QueryAttr>()
                 .Services
                 .BuildServiceProvider()
-                .GetRequestExecutorAsync();
+                .GetRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         (await executor
-            .ExecuteAsync(@"
+            .ExecuteAsync(
+                @"
                 {
                     letters {
                         items
@@ -135,7 +142,8 @@ public class IntegrationTests
                             hasPreviousPage
                         }
                     }
-                }"))
+                }",
+                TestContext.Current.CancellationToken))
             .MatchSnapshot();
     }
 
@@ -148,10 +156,11 @@ public class IntegrationTests
                 .AddQueryType<QueryType>()
                 .Services
                 .BuildServiceProvider()
-                .GetRequestExecutorAsync();
+                .GetRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         (await executor
-            .ExecuteAsync(@"
+            .ExecuteAsync(
+                @"
                 {
                     letters(take: 2) {
                         items
@@ -160,7 +169,8 @@ public class IntegrationTests
                             hasPreviousPage
                         }
                     }
-                }"))
+                }",
+                TestContext.Current.CancellationToken))
             .MatchSnapshot();
     }
 
@@ -173,10 +183,11 @@ public class IntegrationTests
                 .AddQueryType<QueryAttr>()
                 .Services
                 .BuildServiceProvider()
-                .GetRequestExecutorAsync();
+                .GetRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         (await executor
-            .ExecuteAsync(@"
+            .ExecuteAsync(
+                @"
                 {
                     letters(take: 2) {
                         items
@@ -185,7 +196,8 @@ public class IntegrationTests
                             hasPreviousPage
                         }
                     }
-                }"))
+                }",
+                TestContext.Current.CancellationToken))
             .MatchSnapshot();
     }
 
@@ -198,10 +210,11 @@ public class IntegrationTests
                 .AddQueryType<QueryType>()
                 .Services
                 .BuildServiceProvider()
-                .GetRequestExecutorAsync();
+                .GetRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         (await executor
-            .ExecuteAsync(@"
+            .ExecuteAsync(
+                @"
                 {
                     letters(take: 2 skip: 2) {
                         items
@@ -210,7 +223,8 @@ public class IntegrationTests
                             hasPreviousPage
                         }
                     }
-                }"))
+                }",
+                TestContext.Current.CancellationToken))
             .MatchSnapshot();
     }
 
@@ -223,10 +237,11 @@ public class IntegrationTests
                 .AddQueryType<QueryAttr>()
                 .Services
                 .BuildServiceProvider()
-                .GetRequestExecutorAsync();
+                .GetRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         (await executor
-            .ExecuteAsync(@"
+            .ExecuteAsync(
+                @"
                 {
                     letters(take: 2 skip: 2) {
                         items
@@ -235,7 +250,8 @@ public class IntegrationTests
                             hasPreviousPage
                         }
                     }
-                }"))
+                }",
+                TestContext.Current.CancellationToken))
             .MatchSnapshot();
     }
 
@@ -249,10 +265,11 @@ public class IntegrationTests
                 .ModifyPagingOptions(o => o.DefaultPageSize = 2)
                 .Services
                 .BuildServiceProvider()
-                .GetRequestExecutorAsync();
+                .GetRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         (await executor
-            .ExecuteAsync(@"
+            .ExecuteAsync(
+                @"
                 {
                     letters {
                         items
@@ -261,7 +278,8 @@ public class IntegrationTests
                             hasPreviousPage
                         }
                     }
-                }"))
+                }",
+                TestContext.Current.CancellationToken))
             .MatchSnapshot();
     }
 
@@ -275,10 +293,11 @@ public class IntegrationTests
                 .ModifyPagingOptions(o => o.DefaultPageSize = 50)
                 .Services
                 .BuildServiceProvider()
-                .GetRequestExecutorAsync();
+                .GetRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         (await executor
-            .ExecuteAsync(@"
+            .ExecuteAsync(
+                @"
                 {
                     letters {
                         items
@@ -287,7 +306,8 @@ public class IntegrationTests
                             hasPreviousPage
                         }
                     }
-                }"))
+                }",
+                TestContext.Current.CancellationToken))
             .MatchSnapshot();
     }
 
@@ -301,10 +321,11 @@ public class IntegrationTests
                 .ModifyPagingOptions(o => o.DefaultPageSize = 2)
                 .Services
                 .BuildServiceProvider()
-                .GetRequestExecutorAsync();
+                .GetRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         (await executor
-            .ExecuteAsync(@"
+            .ExecuteAsync(
+                @"
                 {
                     letters(take: 2) {
                         items
@@ -313,7 +334,8 @@ public class IntegrationTests
                             hasPreviousPage
                         }
                     }
-                }"))
+                }",
+                TestContext.Current.CancellationToken))
             .MatchSnapshot();
     }
 
@@ -326,10 +348,11 @@ public class IntegrationTests
                 .AddQueryType<QueryType>()
                 .Services
                 .BuildServiceProvider()
-                .GetRequestExecutorAsync();
+                .GetRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         (await executor
-            .ExecuteAsync(@"
+            .ExecuteAsync(
+                @"
                 {
                     explicitType(take: 2) {
                         items
@@ -338,7 +361,8 @@ public class IntegrationTests
                             hasPreviousPage
                         }
                     }
-                }"))
+                }",
+                TestContext.Current.CancellationToken))
             .MatchSnapshot();
     }
 
@@ -351,10 +375,11 @@ public class IntegrationTests
                 .AddQueryType<QueryAttr>()
                 .Services
                 .BuildServiceProvider()
-                .GetRequestExecutorAsync();
+                .GetRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         (await executor
-            .ExecuteAsync(@"
+            .ExecuteAsync(
+                @"
                 {
                     explicitType(take: 2) {
                         items
@@ -363,7 +388,8 @@ public class IntegrationTests
                             hasPreviousPage
                         }
                     }
-                }"))
+                }",
+                TestContext.Current.CancellationToken))
             .MatchSnapshot();
     }
 
@@ -376,10 +402,11 @@ public class IntegrationTests
                 .AddQueryType<QueryType>()
                 .Services
                 .BuildServiceProvider()
-                .GetRequestExecutorAsync();
+                .GetRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         (await executor
-            .ExecuteAsync(@"
+            .ExecuteAsync(
+                @"
                 {
                     nestedObjectList {
                         items {
@@ -391,7 +418,8 @@ public class IntegrationTests
                         }
                         totalCount
                     }
-                }"))
+                }",
+                TestContext.Current.CancellationToken))
             .MatchSnapshot();
     }
 
@@ -404,10 +432,11 @@ public class IntegrationTests
                 .AddQueryType<ExecutableQueryType>()
                 .Services
                 .BuildServiceProvider()
-                .GetRequestExecutorAsync();
+                .GetRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         (await executor
-            .ExecuteAsync(@"
+            .ExecuteAsync(
+                @"
                 {
                     fooExecutable {
                         items {
@@ -419,8 +448,43 @@ public class IntegrationTests
                         }
                         totalCount
                     }
-                }"))
+                }",
+                TestContext.Current.CancellationToken))
             .MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Executable_With_QueryableOffsetPagingProvider()
+    {
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<ExecutableQueryType>()
+                .AddQueryableOffsetPagingProvider()
+                .Services
+                .BuildServiceProvider()
+                .GetRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        var result = await executor.ExecuteAsync(
+            """
+            {
+                fooExecutable {
+                    items {
+                        bar
+                    }
+                    pageInfo {
+                        hasNextPage
+                        hasPreviousPage
+                    }
+                    totalCount
+                }
+            }
+            """,
+            TestContext.Current.CancellationToken);
+
+        var operationResult = result.ExpectOperationResult();
+        Assert.True(operationResult.Errors is null || operationResult.Errors.Count == 0);
+        Assert.NotNull(operationResult.Data);
     }
 
     [Fact]
@@ -432,10 +496,11 @@ public class IntegrationTests
                 .AddQueryType<QueryAttr>()
                 .Services
                 .BuildServiceProvider()
-                .GetRequestExecutorAsync();
+                .GetRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         (await executor
-            .ExecuteAsync(@"
+            .ExecuteAsync(
+                @"
                 {
                     nestedObjectList {
                         items {
@@ -447,7 +512,8 @@ public class IntegrationTests
                         }
                         totalCount
                     }
-                }")).MatchSnapshot();
+                }",
+                TestContext.Current.CancellationToken)).MatchSnapshot();
     }
 
     [Fact]
@@ -459,10 +525,11 @@ public class IntegrationTests
                 .AddQueryType<QueryType>()
                 .Services
                 .BuildServiceProvider()
-                .GetRequestExecutorAsync();
+                .GetRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         (await executor
-            .ExecuteAsync(@"
+            .ExecuteAsync(
+                @"
                 {
                     nestedObjectList(skip: 2) {
                         items {
@@ -474,7 +541,8 @@ public class IntegrationTests
                         }
                         totalCount
                     }
-                }"))
+                }",
+                TestContext.Current.CancellationToken))
             .MatchSnapshot();
     }
 
@@ -487,10 +555,11 @@ public class IntegrationTests
                 .AddQueryType<QueryAttr>()
                 .Services
                 .BuildServiceProvider()
-                .GetRequestExecutorAsync();
+                .GetRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         (await executor
-            .ExecuteAsync(@"
+            .ExecuteAsync(
+                @"
                 {
                     nestedObjectList(skip: 2) {
                         items {
@@ -502,7 +571,8 @@ public class IntegrationTests
                         }
                         totalCount
                     }
-                }"))
+                }",
+                TestContext.Current.CancellationToken))
             .MatchSnapshot();
     }
 
@@ -515,15 +585,17 @@ public class IntegrationTests
                 .AddQueryType<QueryType>()
                 .Services
                 .BuildServiceProvider()
-                .GetRequestExecutorAsync();
+                .GetRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         (await executor
-            .ExecuteAsync(@"
+            .ExecuteAsync(
+                @"
                 {
                     extendedTypeRef {
                         items
                     }
-                }"))
+                }",
+                TestContext.Current.CancellationToken))
             .MatchSnapshot();
     }
 
@@ -536,15 +608,17 @@ public class IntegrationTests
                 .AddQueryType<QueryType>()
                 .Services
                 .BuildServiceProvider()
-                .GetRequestExecutorAsync();
+                .GetRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         (await executor
-            .ExecuteAsync(@"
+            .ExecuteAsync(
+                @"
                 {
                     extendedTypeRefNested {
                         items
                     }
-                }"))
+                }",
+                TestContext.Current.CancellationToken))
             .MatchSnapshot();
     }
 
@@ -566,7 +640,7 @@ public class IntegrationTests
                 })
                 .Services
                 .BuildServiceProvider()
-                .GetSchemaAsync();
+                .GetSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         schema.ToString().MatchSnapshot();
     }
@@ -586,7 +660,7 @@ public class IntegrationTests
                 })
                 .Services
                 .BuildServiceProvider()
-                .GetSchemaAsync();
+                .GetSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         schema.ToString().MatchSnapshot();
     }
@@ -602,7 +676,7 @@ public class IntegrationTests
                 .AddQueryType<FluentPaging>()
                 .Services
                 .BuildServiceProvider()
-                .GetRequestExecutorAsync();
+                .GetRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         snapshot.Add(
             await executor.ExecuteAsync(
@@ -612,9 +686,10 @@ public class IntegrationTests
                         items
                     }
                 }
-                """));
+                """,
+                cancellationToken: TestContext.Current.CancellationToken));
 
-        await snapshot.MatchAsync();
+        await snapshot.MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -624,7 +699,7 @@ public class IntegrationTests
         var executor = await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<CustomCollectionSegmentQuery>()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         const string query = @"
@@ -635,7 +710,7 @@ public class IntegrationTests
             }
             ";
 
-        var result = await executor.ExecuteAsync(query);
+        var result = await executor.ExecuteAsync(query, TestContext.Current.CancellationToken);
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -648,18 +723,32 @@ public class IntegrationTests
         var executor = await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<QueryEnumerableValueType>()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         const string query = "{ test { items } }";
 
-        var result = await executor.ExecuteAsync(query);
+        var result = await executor.ExecuteAsync(query, TestContext.Current.CancellationToken);
         var errors = result.ExpectOperationResult().Errors;
 
         // assert
         Assert.NotNull(errors);
         var error = Assert.Single(errors);
         Assert.Equal("Cannot handle the specified data source.", error.Message);
+    }
+
+    [Fact]
+    public async Task Attribute_Dictionary_ReturnType_ThrowsSchemaException()
+    {
+        // act
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<UglyLegacyQuery>()
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // assert
+        schema.MatchSnapshot();
     }
 
     public class QueryType : ObjectType<Query>
@@ -794,6 +883,16 @@ public class IntegrationTests
         [UseOffsetPaging]
         public ImmutableArray<int> Test()
         {
+            return [];
+        }
+    }
+
+    public class UglyLegacyQuery
+    {
+        [UseOffsetPaging]
+        public async Task<Dictionary<string, string>> UglyLegacyResolver()
+        {
+            await Task.Yield();
             return [];
         }
     }

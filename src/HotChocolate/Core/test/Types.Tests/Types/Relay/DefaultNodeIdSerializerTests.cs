@@ -48,7 +48,7 @@ public class DefaultNodeIdSerializerTests
         var value = Encoding.UTF8.GetString(Convert.FromBase64String("Rm9vOkberW9vVHlwZe+/vSs="));
         var id = serializer.Format("Foo", value);
 
-        Assert.Equal("Rm9vCmRGb286Rt6tb29UeXBl77-9Kw==", id);
+        Assert.Equal("Rm9vCmRGb286Rt6tb29UeXBl77-9Kw", id);
     }
 
     [Fact]
@@ -725,6 +725,18 @@ public class DefaultNodeIdSerializerTests
     public void Parse_CompositeId2()
     {
         var compositeId = new CompositeId("foo", 42, Guid.Empty, true);
+        var serializer = CreateSerializer(new CompositeIdNodeIdValueSerializer());
+        var id = serializer.Format("Foo", compositeId);
+
+        var parsed = serializer.Parse(id, typeof(CompositeId));
+
+        Assert.Equal(compositeId, parsed.InternalId);
+    }
+
+    [Fact]
+    public void Parse_CompositeId_Long_StringPart()
+    {
+        var compositeId = new CompositeId(new string('a', 300), 42, Guid.Empty, true);
         var serializer = CreateSerializer(new CompositeIdNodeIdValueSerializer());
         var id = serializer.Format("Foo", compositeId);
 

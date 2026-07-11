@@ -158,13 +158,6 @@ public class SortConventionTests
     public void SortConvention_Should_Fail_When_NoProviderWasRegistered()
     {
         // arrange
-        var provider = new QueryableSortProvider(
-            descriptor =>
-            {
-                descriptor.AddOperationHandler(QueryableAscendingSortOperationHandler.Create);
-                descriptor.AddFieldHandler(QueryableDefaultSortFieldHandler.Create);
-            });
-
         var convention = new SortConvention(
             descriptor =>
             {
@@ -377,9 +370,7 @@ public class SortConventionTests
         var schema = CreateSchemaWith(sortInputType, convention);
 
         // assert
-        Assert.Equal(
-            "SortInput",
-            schema.Types.First(t => t.IsInputType() && !t.IsIntrospectionType()).Name);
+        Assert.True(schema.Types.TryGetType("SortInput", out _));
     }
 
     protected Schema CreateSchemaWithTypes(

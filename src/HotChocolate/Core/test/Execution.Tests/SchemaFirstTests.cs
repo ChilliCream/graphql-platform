@@ -1,4 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
+using System.Text.Json;
 
 namespace HotChocolate.Execution;
 
@@ -20,10 +21,11 @@ public class SchemaFirstTests
         // act
         var result =
             await schema.MakeExecutable().ExecuteAsync(
-                "{ test testProp }");
+                "{ test testProp }",
+                TestContext.Current.CancellationToken);
 
         // assert
-        Assert.Null(Assert.IsType<OperationResult>(result).Errors);
+        Assert.Empty(Assert.IsType<OperationResult>(result).Errors);
         result.MatchSnapshot();
     }
 
@@ -52,10 +54,11 @@ public class SchemaFirstTests
         // act
         var result =
             await schema.MakeExecutable().ExecuteAsync(
-                "{ foo(bar: { baz: \"hello\"}) }");
+                "{ foo(bar: { baz: \"hello\"}) }",
+                TestContext.Current.CancellationToken);
 
         // assert
-        Assert.Null(Assert.IsType<OperationResult>(result).Errors);
+        Assert.Empty(Assert.IsType<OperationResult>(result).Errors);
         result.MatchSnapshot();
     }
 
@@ -79,10 +82,11 @@ public class SchemaFirstTests
         // act
         var result =
             await schema.MakeExecutable().ExecuteAsync(
-                "{ enumValue }");
+                "{ enumValue }",
+                TestContext.Current.CancellationToken);
 
         // assert
-        Assert.Null(Assert.IsType<OperationResult>(result).Errors);
+        Assert.Empty(Assert.IsType<OperationResult>(result).Errors);
         result.MatchSnapshot();
     }
 
@@ -106,10 +110,11 @@ public class SchemaFirstTests
         // act
         var result =
             await schema.MakeExecutable().ExecuteAsync(
-                "{ setEnumValue(value:BAZ_BAR) }");
+                "{ setEnumValue(value:BAZ_BAR) }",
+                TestContext.Current.CancellationToken);
 
         // assert
-        Assert.Null(Assert.IsType<OperationResult>(result).Errors);
+        Assert.Empty(Assert.IsType<OperationResult>(result).Errors);
         result.MatchSnapshot();
     }
 
@@ -140,10 +145,11 @@ public class SchemaFirstTests
         // act
         var result =
             await schema.MakeExecutable().ExecuteAsync(
-                "{ enumInInputObject(payload: { value:BAZ } ) }");
+                "{ enumInInputObject(payload: { value:BAZ } ) }",
+                TestContext.Current.CancellationToken);
 
         // assert
-        Assert.Null(Assert.IsType<OperationResult>(result).Errors);
+        Assert.Empty(Assert.IsType<OperationResult>(result).Errors);
         result.MatchSnapshot();
     }
 
@@ -164,13 +170,13 @@ public class SchemaFirstTests
                     }
 
                     type Query {
-                       dummy: String!
+                      dummy: String!
                     }
 
                     type Mutation {
-                        changeChannelParameters(
-                            input: ChangeChannelParameterInput!)
-                            : ChangeChannelParameterPayload!
+                      changeChannelParameters(
+                        input: ChangeChannelParameterInput!)
+                        : ChangeChannelParameterPayload!
                     }
 
                     input ChangeChannelParameterInput {
@@ -193,12 +199,13 @@ public class SchemaFirstTests
                     """
                     mutation {
                       changeChannelParameters(input: {
-                        parameterChangeInfo: [ { value: { a: "b" } } ]
+                        parameterChangeInfo: [{ value: { a: "b" } }]
                       }) {
                         message
                       }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchInlineSnapshot(
             """
@@ -276,9 +283,8 @@ public class SchemaFirstTests
             ChangeChannelParameterInput input,
             CancellationToken _)
         {
-            var message = Assert.IsType<string>(
-                Assert.IsType<Dictionary<string, object>>(
-                    input.ParameterChangeInfo[0].Value)["a"]);
+            var value = Assert.IsType<JsonElement>(input.ParameterChangeInfo[0].Value);
+            var message = Assert.IsType<string>(value.GetProperty("a").GetString());
 
             return Task.FromResult(new ChangeChannelParameterPayload { Message = message });
         }

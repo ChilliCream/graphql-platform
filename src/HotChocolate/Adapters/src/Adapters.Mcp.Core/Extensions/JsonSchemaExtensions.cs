@@ -7,10 +7,10 @@ internal static class JsonSchemaExtensions
 {
     public static JsonElement ToJsonElement(this JsonSchema jsonSchema)
     {
-         var json =
-             JsonSerializer.Serialize(
-                 jsonSchema,
-                 JsonSchemaJsonSerializerContext.Default.JsonSchema);
+        var json =
+            JsonSerializer.Serialize(
+                jsonSchema,
+                JsonSchemaJsonSerializerContext.Default.JsonSchema);
 
         return JsonDocument.Parse(json).RootElement;
     }

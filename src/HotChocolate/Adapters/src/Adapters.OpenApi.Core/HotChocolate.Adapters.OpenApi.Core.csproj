@@ -1,22 +1,23 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <RootNamespace>HotChocolate.Adapters.OpenApi</RootNamespace>
     <PackageId>HotChocolate.Adapters.OpenApi.Core</PackageId>
-    <TargetFrameworks>net10.0; net9.0</TargetFrameworks>
   </PropertyGroup>
 
   <ItemGroup>
     <InternalsVisibleTo Include="HotChocolate.Adapters.OpenApi.Tests" />
     <InternalsVisibleTo Include="HotChocolate.Adapters.OpenApi" />
     <InternalsVisibleTo Include="HotChocolate.Fusion.Adapters.OpenApi" />
+    <InternalsVisibleTo Include="HotChocolate.Adapters.OpenApi.AspNetCore" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
+    <PackageReference Include="System.Reactive" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Adapters.OpenApi.Abstractions\HotChocolate.Adapters.OpenApi.Abstractions.csproj" />
     <ProjectReference Include="..\..\..\AspNetCore\src\AspNetCore.Pipeline\HotChocolate.AspNetCore.Pipeline.csproj" />
     <ProjectReference Include="..\..\..\Core\src\Execution.Abstractions\HotChocolate.Execution.Abstractions.csproj" />
     <ProjectReference Include="..\..\..\Core\src\Types.Abstractions\HotChocolate.Types.Abstractions.csproj" />

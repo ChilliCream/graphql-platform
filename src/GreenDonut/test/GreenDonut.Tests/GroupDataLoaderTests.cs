@@ -11,7 +11,7 @@ public class GroupDataLoaderTests
             new DataLoaderOptions());
 
         // act
-        var result = await dataLoader.LoadRequiredAsync("abc");
+        var result = await dataLoader.LoadRequiredAsync("abc", TestContext.Current.CancellationToken);
 
         // assert
         Assert.Collection(result, t => Assert.Equal("Value:abc", t));
@@ -26,8 +26,8 @@ public class GroupDataLoaderTests
             new DataLoaderOptions());
 
         // act
-        var result1 = dataLoader.LoadRequiredAsync("1abc");
-        var result2 = dataLoader.LoadRequiredAsync("0abc");
+        var result1 = dataLoader.LoadRequiredAsync("1abc", TestContext.Current.CancellationToken);
+        var result2 = dataLoader.LoadRequiredAsync("0abc", TestContext.Current.CancellationToken);
 
         // assert
         Assert.Collection(await result1, t => Assert.Equal("Value:1abc", t));

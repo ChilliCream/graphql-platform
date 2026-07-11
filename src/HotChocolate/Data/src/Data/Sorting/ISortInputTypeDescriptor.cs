@@ -8,7 +8,7 @@ namespace HotChocolate.Data.Sorting;
 /// </summary>
 public interface ISortInputTypeDescriptor
     : IDescriptor<SortInputTypeConfiguration>
-    , IHasRuntimeType
+    , IRuntimeTypeProvider
     , IFluent
 {
     /// <summary>

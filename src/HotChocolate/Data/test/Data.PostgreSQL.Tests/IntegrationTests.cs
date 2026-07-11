@@ -4,15 +4,24 @@ using HotChocolate.Data.Migrations;
 using HotChocolate.Data.Models;
 using HotChocolate.Data.Services;
 using HotChocolate.Execution;
+using HotChocolate.Resolvers;
+using HotChocolate.Types;
+using HotChocolate.Types.Descriptors;
+using HotChocolate.Types.Relay;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
 using Squadron;
+using System.Reflection;
+using System.Runtime.CompilerServices;
+using System.Text.Json;
+using System.Text.RegularExpressions;
+using static CookieCrumble.TestEnvironment;
 
 namespace HotChocolate.Data;
 
 [Collection(PostgresCacheCollectionFixture.DefinitionName)]
-public sealed class IntegrationTests(PostgreSqlResource resource)
+public sealed partial class IntegrationTests(PostgreSqlResource resource)
 {
     [Fact]
     public async Task CreateSchema()
@@ -21,7 +30,8 @@ public sealed class IntegrationTests(PostgreSqlResource resource)
         var connectionString = resource.GetConnectionString(db);
         await using var services = CreateServer(connectionString);
         await using var scope = services.CreateAsyncScope();
-        var executor = await services.GetRequiredService<IRequestExecutorProvider>().GetExecutorAsync();
+        var executor = await services.GetRequiredService<IRequestExecutorProvider>().GetExecutorAsync(
+            cancellationToken: TestContext.Current.CancellationToken);
         executor.Schema.MatchSnapshot();
     }
 
@@ -45,7 +55,7 @@ public sealed class IntegrationTests(PostgreSqlResource resource)
             """);
 
         // assert
-        MatchSnapshot(result, interceptor);
+        MatchSnapshot(result, interceptor, Postfix([NET8_0, NET9_0]));
     }
 
     [Fact]
@@ -68,7 +78,7 @@ public sealed class IntegrationTests(PostgreSqlResource resource)
             """);
 
         // assert
-        MatchSnapshot(result, interceptor);
+        MatchSnapshot(result, interceptor, Postfix([NET8_0, NET9_0]));
     }
 
     [Fact]
@@ -97,7 +107,58 @@ public sealed class IntegrationTests(PostgreSqlResource resource)
             """);
 
         // assert
-        MatchSnapshot(result, interceptor);
+        MatchSnapshot(result, interceptor, Postfix([NET8_0], [NET9_0]));
+    }
+
+    [Fact]
+    public async Task Query_Brands_With_BatchResolver_ProductCount()
+    {
+        // arrange
+        using var interceptor = new TestQueryInterceptor();
+
+        // act
+        var result = await ExecuteAsync(
+            """
+            {
+                brands(first: 5) {
+                    nodes {
+                        id
+                        name
+                        productCount
+                    }
+                }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(result, interceptor, Postfix([NET8_0, NET9_0]));
+    }
+
+    [Fact]
+    public async Task Query_Brands_With_BatchResolver_Supplier()
+    {
+        // arrange
+        using var interceptor = new TestQueryInterceptor();
+
+        // act
+        var result = await ExecuteAsync(
+            """
+            {
+                brands(first: 5) {
+                    nodes {
+                        id
+                        name
+                        supplier {
+                            name
+                            website
+                        }
+                    }
+                }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(result, interceptor, Postfix([NET8_0, NET9_0]));
     }
 
     [Fact]
@@ -126,7 +187,7 @@ public sealed class IntegrationTests(PostgreSqlResource resource)
             """);
 
         // assert
-        MatchSnapshot(result, interceptor);
+        MatchSnapshot(result, interceptor, Postfix([NET8_0], [NET9_0]));
     }
 
     [Fact]
@@ -157,7 +218,7 @@ public sealed class IntegrationTests(PostgreSqlResource resource)
             """);
 
         // assert
-        MatchSnapshot(result, interceptor);
+        MatchSnapshot(result, interceptor, Postfix([NET8_0], [NET9_0]));
     }
 
     [Fact]
@@ -180,7 +241,7 @@ public sealed class IntegrationTests(PostgreSqlResource resource)
             """);
 
         // assert
-        MatchSnapshot(result, interceptor);
+        MatchSnapshot(result, interceptor, Postfix([NET8_0, NET9_0]));
     }
 
     [Fact]
@@ -203,7 +264,7 @@ public sealed class IntegrationTests(PostgreSqlResource resource)
             """);
 
         // assert
-        MatchSnapshot(result, interceptor);
+        MatchSnapshot(result, interceptor, Postfix([NET8_0, NET9_0]));
     }
 
     [Fact]
@@ -228,7 +289,7 @@ public sealed class IntegrationTests(PostgreSqlResource resource)
             """);
 
         // assert
-        MatchSnapshot(result, interceptor);
+        MatchSnapshot(result, interceptor, Postfix([NET8_0, NET9_0]));
     }
 
     [Fact]
@@ -251,7 +312,7 @@ public sealed class IntegrationTests(PostgreSqlResource resource)
             """);
 
         // assert
-        MatchSnapshot(result, interceptor);
+        MatchSnapshot(result, interceptor, Postfix([NET8_0], [NET9_0]));
     }
 
     [Fact]
@@ -278,7 +339,7 @@ public sealed class IntegrationTests(PostgreSqlResource resource)
             """);
 
         // assert
-        MatchSnapshot(result, interceptor);
+        MatchSnapshot(result, interceptor, Postfix([NET8_0], [NET9_0]));
     }
 
     [Fact]
@@ -305,7 +366,7 @@ public sealed class IntegrationTests(PostgreSqlResource resource)
             """);
 
         // assert
-        MatchSnapshot(result, interceptor);
+        MatchSnapshot(result, interceptor, Postfix([NET8_0, NET9_0], [NET10_0]));
     }
 
     [Fact]
@@ -335,7 +396,7 @@ public sealed class IntegrationTests(PostgreSqlResource resource)
             """);
 
         // assert
-        MatchSnapshot(result, interceptor);
+        MatchSnapshot(result, interceptor, Postfix([NET8_0], [NET9_0]));
     }
 
     [Fact]
@@ -361,7 +422,7 @@ public sealed class IntegrationTests(PostgreSqlResource resource)
             """);
 
         // assert
-        MatchSnapshot(result, interceptor);
+        MatchSnapshot(result, interceptor, Postfix([NET8_0, NET9_0]));
     }
 
     [Fact]
@@ -385,7 +446,7 @@ public sealed class IntegrationTests(PostgreSqlResource resource)
             """);
 
         // assert
-        MatchSnapshot(result, interceptor);
+        MatchSnapshot(result, interceptor, Postfix([NET8_0], [NET9_0]));
     }
 
     [Fact]
@@ -408,7 +469,7 @@ public sealed class IntegrationTests(PostgreSqlResource resource)
             """);
 
         // assert
-        MatchSnapshot(result, interceptor);
+        MatchSnapshot(result, interceptor, Postfix([NET8_0, NET9_0]));
     }
 
     [Fact]
@@ -454,6 +515,38 @@ public sealed class IntegrationTests(PostgreSqlResource resource)
     }
 
     [Fact]
+    public async Task Query_InterfaceType_Derived_Implementation_Is_Resolved()
+    {
+        // act
+        var result = await ExecuteAsync(
+            """
+            {
+                statementTransaction {
+                    __typename
+                    id
+                    ... on DepositStatementTransaction {
+                        collectionAmount
+                    }
+                }
+            }
+            """);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "statementTransaction": {
+                  "__typename": "DepositStatementTransaction",
+                  "id": 1,
+                  "collectionAmount": 42
+                }
+              }
+            }
+            """);
+    }
+
+    [Fact]
     public async Task SecondLevelCache_Is_Used()
     {
         // arrange
@@ -463,11 +556,12 @@ public sealed class IntegrationTests(PostgreSqlResource resource)
         await using var scope = services.CreateAsyncScope();
         var context = scope.ServiceProvider.GetRequiredService<CatalogContext>();
         var seeder = scope.ServiceProvider.GetRequiredService<IDbSeeder<CatalogContext>>();
-        await context.Database.EnsureCreatedAsync();
+        await context.Database.EnsureCreatedAsync(TestContext.Current.CancellationToken);
         await seeder.SeedAsync(context);
 
         // act
-        var executor = await services.GetRequiredService<IRequestExecutorProvider>().GetExecutorAsync();
+        var executor = await services.GetRequiredService<IRequestExecutorProvider>().GetExecutorAsync(
+            cancellationToken: TestContext.Current.CancellationToken);
         await executor.ExecuteAsync(
             """
             {
@@ -478,7 +572,8 @@ public sealed class IntegrationTests(PostgreSqlResource resource)
                     }
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         var cache = services.GetRequiredService<IMemoryCache>();
@@ -500,7 +595,7 @@ public sealed class IntegrationTests(PostgreSqlResource resource)
         await using var scope = services.CreateAsyncScope();
         var context = scope.ServiceProvider.GetRequiredService<CatalogContext>();
         var seeder = scope.ServiceProvider.GetRequiredService<IDbSeeder<CatalogContext>>();
-        await context.Database.EnsureCreatedAsync();
+        await context.Database.EnsureCreatedAsync(TestContext.Current.CancellationToken);
         await seeder.SeedAsync(context);
 
         var cache = services.GetRequiredService<IMemoryCache>();
@@ -509,7 +604,8 @@ public sealed class IntegrationTests(PostgreSqlResource resource)
             new Promise<Brand>(new Brand { Id = 1, Name = "Test" }));
 
         // act
-        var executor = await services.GetRequiredService<IRequestExecutorProvider>().GetExecutorAsync();
+        var executor = await services.GetRequiredService<IRequestExecutorProvider>().GetExecutorAsync(
+            cancellationToken: TestContext.Current.CancellationToken);
         var result = await executor.ExecuteAsync(
             """
             {
@@ -520,7 +616,8 @@ public sealed class IntegrationTests(PostgreSqlResource resource)
                     }
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchInlineSnapshot(
@@ -537,21 +634,38 @@ public sealed class IntegrationTests(PostgreSqlResource resource)
     }
 
     [Fact]
-    public async Task Query_ProductTypes_TotalCount_Zero_When_No_Results_Due_To_FilterCondition()
+    public async Task Generated_BrandKey_NodeIdValueSerializer_RoundTrip()
     {
         // arrange
-        using var interceptor = new TestQueryInterceptor();
+        var db = "db_" + Guid.NewGuid().ToString("N");
+        var connectionString = resource.GetConnectionString(db);
+        await using var services = CreateServer(connectionString);
 
+        // We need to initialize the executor so that all services are registered.
+        await services.GetRequiredService<IRequestExecutorProvider>().GetExecutorAsync(
+            cancellationToken: TestContext.Current.CancellationToken);
+
+        var serializer = services.GetRequiredService<INodeIdSerializer>();
+        var original = new BrandKey(42, 7);
+
+        // act
+        var formatted = serializer.Format("BrandKey", original);
+        var parsed = serializer.Parse(formatted, typeof(BrandKey));
+
+        // assert
+        Assert.Equal("BrandKey", parsed.TypeName);
+        Assert.IsType<BrandKey>(parsed.InternalId);
+        Assert.Equal(original, (BrandKey)parsed.InternalId);
+    }
+
+    [Fact]
+    public async Task Query_ScopeState_With_Derived_ScopedState_Attribute()
+    {
         // act
         var result = await ExecuteAsync(
             """
             {
-                productTypes(first: 100, order: { name: ASC } where: { name: { eq: "Not Existing" } }) {
-                    totalCount
-                    nodes {
-                        name
-                    }
-                }
+                scopeState
             }
             """);
 
@@ -560,16 +674,120 @@ public sealed class IntegrationTests(PostgreSqlResource resource)
             """
             {
               "data": {
-                "productTypes": {
-                  "totalCount": 0,
-                  "nodes": []
-                }
+                "scopeState": "Hello World"
               }
             }
             """);
     }
 
-    private static ServiceProvider CreateServer(string connectionString)
+    [Fact]
+    public async Task MaxPageSize_Should_Be_Enforced_On_Connection_Without_UseConnection()
+    {
+        // BrandQueries.GetBrandsAsync returns CatalogConnection<Brand> WITHOUT
+        // an explicit [UseConnection] attribute. The source generator should
+        // auto-inject UseConnectionAttribute, which adds the validation middleware
+        // that enforces MaxPageSize.
+        var db = "db_" + Guid.NewGuid().ToString("N");
+        var connectionString = resource.GetConnectionString(db);
+        await using var services = CreateServer(connectionString, maxPageSize: 2);
+        await using var scope = services.CreateAsyncScope();
+        var context = scope.ServiceProvider.GetRequiredService<CatalogContext>();
+        var seeder = scope.ServiceProvider.GetRequiredService<IDbSeeder<CatalogContext>>();
+        await context.Database.EnsureCreatedAsync(TestContext.Current.CancellationToken);
+        await seeder.SeedAsync(context);
+        var executor = await services.GetRequiredService<IRequestExecutorProvider>().GetExecutorAsync(
+            cancellationToken: TestContext.Current.CancellationToken);
+
+        var result = await executor.ExecuteAsync(
+            """
+            {
+                brands(first: 5) {
+                    nodes {
+                        name
+                    }
+                }
+            }
+            """,
+            TestContext.Current.CancellationToken);
+
+        result.MatchInlineSnapshot(
+            """
+            {
+              "errors": [
+                {
+                  "message": "The maximum allowed items per page were exceeded.",
+                  "path": [
+                    "brands"
+                  ],
+                  "extensions": {
+                    "code": "HC0051",
+                    "coordinate": "Query.brands",
+                    "requestedItems": 5,
+                    "maxAllowedItems": 2
+                  }
+                }
+              ],
+              "data": null
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task Query_Brand_Products_Aliased_Same_Operator_Different_Value()
+    {
+        // arrange
+        // Two distinct queries must be issued, one per predicate value; a single query
+        // means the aliases collapsed onto one DataLoader branch.
+        using var interceptor = new TestQueryInterceptor();
+
+        // act
+        var result = await ExecuteAsync(
+            """
+            {
+                brands(where: { name: { eq: "Daybird" } }) {
+                    nodes {
+                        name
+                        a: products(where: { name: { eq: "Wanderer Black Hiking Boots" } }) {
+                            nodes {
+                                name
+                            }
+                        }
+                        b: products(where: { name: { eq: "Trailblaze hiking backpack" } }) {
+                            nodes {
+                                name
+                            }
+                        }
+                    }
+                }
+            }
+            """);
+        using var doc = JsonDocument.Parse(result.ToJson());
+
+        // assert
+        var node = doc.RootElement
+            .GetProperty("data")
+            .GetProperty("brands")
+            .GetProperty("nodes")[0];
+        var aNames = node.GetProperty("a")
+            .GetProperty("nodes")
+            .EnumerateArray()
+            .Select(e => e.GetProperty("name").GetString())
+            .ToArray();
+        var bNames = node.GetProperty("b")
+            .GetProperty("nodes")
+            .EnumerateArray()
+            .Select(e => e.GetProperty("name").GetString())
+            .ToArray();
+
+        Assert.Equal(new[] { "Wanderer Black Hiking Boots" }, aNames);
+        Assert.Equal(new[] { "Trailblaze hiking backpack" }, bNames);
+
+        // One query for the brands page and one per product predicate value. A count of
+        // two means the aliases collapsed onto a single DataLoader branch.
+        Assert.Equal(3, interceptor.Queries.Count);
+    }
+
+    private static ServiceProvider CreateServer(string connectionString, int? maxPageSize = null)
     {
         var services = new ServiceCollection();
 
@@ -592,8 +810,17 @@ public sealed class IntegrationTests(PostgreSqlResource resource)
             .AddPagingArguments()
             .AddFiltering()
             .AddSorting()
+            .AddNodeIdValueSerializerFrom<BrandKey>()
             .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
-            .ModifyPagingOptions(o => o.RelativeCursorFields = o.RelativeCursorFields.Add("endCursors"));
+            .ModifyPagingOptions(o =>
+            {
+                o.RelativeCursorFields = o.RelativeCursorFields.Add("endCursors");
+
+                if (maxPageSize.HasValue)
+                {
+                    o.MaxPageSize = maxPageSize.Value;
+                }
+            });
 
         services.AddSingleton<IDbSeeder<CatalogContext>, CatalogContextSeed>();
 
@@ -616,19 +843,126 @@ public sealed class IntegrationTests(PostgreSqlResource resource)
 
     private static void MatchSnapshot(
         IExecutionResult result,
-        TestQueryInterceptor queryInterceptor)
+        TestQueryInterceptor queryInterceptor,
+        string? postfix = null)
     {
-        var snapshot = Snapshot.Create(postFix: TestEnvironment.TargetFramework);
+        var snapshot = Snapshot.Create(postfix);
+        var queries = NormalizeBrandLookupBatching(queryInterceptor.Queries);
 
         snapshot.Add(result.ToJson(), "Result", MarkdownLanguages.Json);
 
-        for (var i = 0; i < queryInterceptor.Queries.Count; i++)
+        for (var i = 0; i < queries.Count; i++)
         {
-            var sql = queryInterceptor.Queries[i];
+            var sql = queries[i];
             snapshot.Add(sql, $"Query {i + 1}", MarkdownLanguages.Sql);
         }
 
         snapshot.MatchMarkdown();
+    }
+
+    private static IReadOnlyList<string> NormalizeBrandLookupBatching(IReadOnlyList<string> queries)
+    {
+        var indices = new List<int>();
+        var ids = new HashSet<int>();
+        string? body = null;
+
+        for (var i = 0; i < queries.Count; i++)
+        {
+            var query = queries[i];
+            if (!IsBrandLookupQuery(query, out var currentIds, out var currentBody))
+            {
+                continue;
+            }
+
+            if (body is not null && !string.Equals(body, currentBody, StringComparison.Ordinal))
+            {
+                return queries;
+            }
+
+            body = currentBody;
+            indices.Add(i);
+
+            foreach (var id in currentIds)
+            {
+                ids.Add(id);
+            }
+        }
+
+        if (indices.Count <= 1 || body is null || ids.Count == 0)
+        {
+            return queries;
+        }
+
+        var orderedIds = ids.OrderBy(t => t).Select(t => $"'{t}'");
+        var merged = CurlyBraceBlockRegex().Replace(queries[indices[0]], "{ " + string.Join(", ", orderedIds) + " }");
+
+        var normalized = new List<string>(queries.Count - indices.Count + 1);
+        var first = indices[0];
+        var indexSet = indices.ToHashSet();
+
+        for (var i = 0; i < queries.Count; i++)
+        {
+            if (i == first)
+            {
+                normalized.Add(merged);
+            }
+
+            if (!indexSet.Contains(i))
+            {
+                normalized.Add(queries[i]);
+            }
+        }
+
+        return normalized;
+    }
+
+    private static bool IsBrandLookupQuery(
+        string query,
+        out IReadOnlyList<int> ids,
+        out string body)
+    {
+        ids = [];
+        body = query;
+
+        var lines = query
+            .Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+        if (lines.Length < 4)
+        {
+            return false;
+        }
+
+        if (!lines[0].StartsWith("-- @", StringComparison.Ordinal)
+            || !query.Contains("SELECT b.\"Name\", b.\"Id\"", StringComparison.Ordinal)
+            || !query.Contains("FROM \"Brands\" AS b", StringComparison.Ordinal)
+            || !query.Contains("WHERE b.\"Id\" = ANY (", StringComparison.Ordinal))
+        {
+            return false;
+        }
+
+        var matches = QuotedNumericIdRegex().Matches(lines[0]);
+        if (matches.Count == 0)
+        {
+            return false;
+        }
+
+        var parsed = new List<int>(matches.Count);
+        foreach (Match match in matches)
+        {
+            if (int.TryParse(match.Groups["id"].Value, out var id))
+            {
+                parsed.Add(id);
+            }
+        }
+
+        if (parsed.Count == 0)
+        {
+            return false;
+        }
+
+        ids = parsed;
+        body = string.Join('\n', lines.Skip(1));
+        return true;
     }
 
     private class DataLoaderSecondLevelCache : IPromiseCacheInterceptor
@@ -649,6 +983,52 @@ public sealed class IntegrationTests(PostgreSqlResource resource)
         {
             _memoryCache.Set(key, promise);
             return true;
+        }
+    }
+
+    [GeneratedRegex(@"\{[^}]*\}", RegexOptions.CultureInvariant)]
+    private static partial Regex CurlyBraceBlockRegex();
+
+    [GeneratedRegex(@"'(?<id>\d+)'", RegexOptions.CultureInvariant)]
+    private static partial Regex QuotedNumericIdRegex();
+}
+
+[QueryType]
+public static partial class ScopeStateQuery
+{
+    [UseScopeStateMiddleware]
+    public static string ScopeState([ScopeState] string scope)
+        => scope;
+}
+
+[AttributeUsage(AttributeTargets.Parameter)]
+public sealed class ScopeStateAttribute()
+    : ScopedStateAttribute(LookupKey)
+{
+    public const string LookupKey = "ScopeState";
+}
+
+[AttributeUsage(AttributeTargets.Property | AttributeTargets.Method)]
+public sealed class UseScopeStateMiddlewareAttribute : ObjectFieldDescriptorAttribute
+{
+    public UseScopeStateMiddlewareAttribute([CallerLineNumber] int order = 0)
+        => Order = order;
+
+    protected override void OnConfigure(
+        IDescriptorContext context,
+        IObjectFieldDescriptor descriptor,
+        MemberInfo? member) =>
+        descriptor.Use<ScopeStateMiddleware>();
+
+    private sealed class ScopeStateMiddleware(FieldDelegate next)
+    {
+        public async Task InvokeAsync(IMiddlewareContext context)
+        {
+            context.SetScopedState(ScopeStateAttribute.LookupKey, "Hello World");
+
+            await next(context);
+
+            context.RemoveScopedState(ScopeStateAttribute.LookupKey);
         }
     }
 }

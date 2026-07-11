@@ -433,7 +433,7 @@ internal sealed class OptimizedNodeIdSerializer : INodeIdSerializer
 
             Clear(rentedBuffer);
 
-            throw new NodeIdInvalidFormatException(value);
+            throw new NodeIdInvalidValueException(typeName, value);
         }
 
         private string FormatBase64(Span<byte> span, int written, bool urlSafeBase64, ref byte[]? rentedBuffer, int capacity)
@@ -472,6 +472,8 @@ internal sealed class OptimizedNodeIdSerializer : INodeIdSerializer
                         span[i] = (byte)'_';
                     }
                 }
+
+                span = span.TrimEnd((byte)'=');
             }
 
             return OptimizedNodeIdSerializer.ToString(span);
@@ -548,7 +550,7 @@ internal sealed class OptimizedNodeIdSerializer : INodeIdSerializer
             for (; insertAt < bucketSize; insertAt++)
             {
                 var entry = bucket[insertAt];
-                if (entry.Key == null!)
+                if (entry.Key == null)
                 {
                     foundSpot = true;
                     break;
@@ -595,7 +597,7 @@ internal sealed class OptimizedNodeIdSerializer : INodeIdSerializer
 
             while (Unsafe.IsAddressLessThan(ref entry, ref end))
             {
-                if (entry.Key == null!)
+                if (entry.Key == null)
                 {
                     // we have reached end of entries in this bucket
                     break;

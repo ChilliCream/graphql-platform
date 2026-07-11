@@ -1,3 +1,4 @@
+using System.Text.Json;
 using HotChocolate.Execution;
 using HotChocolate.Tests;
 using HotChocolate.Types.Relay;
@@ -43,7 +44,7 @@ public class NodeTypeTests : TypeTestBase
             .AddGraphQL()
             .AddQueryType<Query>()
             .AddGlobalObjectIdentification()
-            .BuildSchemaAsync()
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -96,7 +97,9 @@ public class NodeTypeTests : TypeTestBase
             .AddGraphQL()
             .AddQueryType<Query>()
             .AddGlobalObjectIdentification()
-            .ExecuteRequestAsync("{ fooById(id: \"Rm9vOmFiYw==\") { id clearTextId } }")
+            .ExecuteRequestAsync(
+                "{ fooById(id: \"Rm9vOmFiYw==\") { id clearTextId } }",
+                cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -107,8 +110,60 @@ public class NodeTypeTests : TypeTestBase
             .AddGraphQL()
             .AddQueryType<Query>()
             .AddGlobalObjectIdentification()
-            .ExecuteRequestAsync("{ node(id: \"Rm9vOmFiYw==\") { id __typename } }")
+            .ExecuteRequestAsync(
+                "{ node(id: \"Rm9vOmFiYw==\") { id __typename } }",
+                cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
+    }
+
+    [Fact]
+    public async Task Infer_Node_From_Query_Field_Resolve_Node_With_Runtime_Type_Conversion()
+    {
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<Query10Type>()
+            .AddGlobalObjectIdentification()
+            .AddTypeConverter<FooWrapper, Foo>(wrapper => wrapper.Value)
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        var serializer = executor.Schema.Services.GetRequiredService<INodeIdSerializer>();
+        var id = serializer.Format("Foo", "abc");
+
+        var result = await executor.ExecuteAsync(
+            OperationRequestBuilder.New()
+                .SetDocument(
+                    """
+                    query ($id: ID!) {
+                        node(id: $id) {
+                            ... on Foo {
+                                id
+                                clearTextId
+                            }
+                        }
+                        nodes(ids: [$id, $id]) {
+                            ... on Foo {
+                                clearTextId
+                            }
+                        }
+                    }
+                    """)
+                .SetVariableValues(new Dictionary<string, object?> { { "id", id } })
+                .Build(),
+            TestContext.Current.CancellationToken);
+
+        var operationResult = result.ExpectOperationResult();
+
+        Assert.True(
+            operationResult.Errors.Count == 0,
+            $"Expected no errors but got: {operationResult.ToJson()}");
+
+        using var document = JsonDocument.Parse(operationResult.ToJson());
+        var data = document.RootElement.GetProperty("data");
+
+        Assert.Equal(id, data.GetProperty("node").GetProperty("id").GetString());
+        Assert.Equal("abc", data.GetProperty("node").GetProperty("clearTextId").GetString());
+        Assert.Equal("abc", data.GetProperty("nodes")[0].GetProperty("clearTextId").GetString());
+        Assert.Equal("abc", data.GetProperty("nodes")[1].GetProperty("clearTextId").GetString());
     }
 
     [Fact]
@@ -118,7 +173,9 @@ public class NodeTypeTests : TypeTestBase
             .AddGraphQL()
             .AddQueryType<Query2>()
             .AddGlobalObjectIdentification()
-            .ExecuteRequestAsync("{ node(id: \"Rm9vOmFiYw==\") { id __typename } }")
+            .ExecuteRequestAsync(
+                "{ node(id: \"Rm9vOmFiYw==\") { id __typename } }",
+                cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -129,7 +186,9 @@ public class NodeTypeTests : TypeTestBase
             .AddGraphQL()
             .AddQueryType<Query2>()
             .AddGlobalObjectIdentification()
-            .ExecuteRequestAsync("{ nodes(ids: \"Rm9vOmFiYw==\") { id __typename } }")
+            .ExecuteRequestAsync(
+                "{ nodes(ids: \"Rm9vOmFiYw==\") { id __typename } }",
+                cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -141,7 +200,8 @@ public class NodeTypeTests : TypeTestBase
             .AddQueryType<Query2>()
             .AddGlobalObjectIdentification()
             .ExecuteRequestAsync(
-                "{ nodes(ids: [\"Rm9vOmFiYw==\", \"Rm9vOmFiYw==\"]) { id __typename } }")
+                "{ nodes(ids: [\"Rm9vOmFiYw==\", \"Rm9vOmFiYw==\"]) { id __typename } }",
+                cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -152,13 +212,13 @@ public class NodeTypeTests : TypeTestBase
             .AddGraphQL()
             .AddQueryType<Query3>()
             .AddGlobalObjectIdentification()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var serializer = executor.Schema.Services.GetRequiredService<INodeIdSerializer>();
         var id = serializer.Format("Bar", 123);
 
         await executor.ExecuteAsync(
-                OperationRequestBuilder.New()
+            OperationRequestBuilder.New()
                     .SetDocument(
                         @"query ($id: ID!) {
                             node(id: $id) {
@@ -170,7 +230,8 @@ public class NodeTypeTests : TypeTestBase
                             }
                         }")
                     .SetVariableValues(new Dictionary<string, object?> { { "id", id } })
-                    .Build())
+                    .Build(),
+            TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -181,7 +242,7 @@ public class NodeTypeTests : TypeTestBase
             .AddGraphQL()
             .AddQueryType<Query7>()
             .AddGlobalObjectIdentification()
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         schema.ToString().MatchSnapshot();
     }
@@ -194,7 +255,7 @@ public class NodeTypeTests : TypeTestBase
             .AddQueryType<Query8>()
             .AddTypeExtension<Foo2>()
             .AddGlobalObjectIdentification()
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         schema.ToString().MatchSnapshot();
     }
@@ -207,13 +268,13 @@ public class NodeTypeTests : TypeTestBase
             .AddQueryType<Query8>()
             .AddTypeExtension<Foo2>()
             .AddGlobalObjectIdentification()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var serializer = executor.Schema.Services.GetRequiredService<INodeIdSerializer>();
         var id = serializer.Format("Foo1", "123");
 
         await executor.ExecuteAsync(
-                OperationRequestBuilder.New()
+            OperationRequestBuilder.New()
                     .SetDocument(
                         @"query ($id: ID!) {
                             node(id: $id) {
@@ -225,7 +286,8 @@ public class NodeTypeTests : TypeTestBase
                             }
                         }")
                     .SetVariableValues(new Dictionary<string, object?> { { "id", id } })
-                    .Build())
+                    .Build(),
+            TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -250,7 +312,7 @@ public class NodeTypeTests : TypeTestBase
             .AddGraphQL()
             .AddQueryType<Query9>()
             .AddGlobalObjectIdentification(o => o.EnsureAllNodesCanBeResolved = false)
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         Assert.NotNull(schema);
     }
@@ -265,6 +327,18 @@ public class NodeTypeTests : TypeTestBase
     {
         [NodeResolver]
         public Foo GetFooById(string abc) => new(abc);
+    }
+
+    public class Query10
+    {
+        [NodeResolver]
+        public object GetFooById(string id) => new FooWrapper(new Foo(id));
+    }
+
+    public class Query10Type : ObjectType<Query10>
+    {
+        protected override void Configure(IObjectTypeDescriptor<Query10> descriptor)
+            => descriptor.Field(t => t.GetFooById(default!)).Type<ObjectType<Foo>>();
     }
 
     public class Query3
@@ -297,6 +371,11 @@ public class NodeTypeTests : TypeTestBase
         public string Id { get; } = id;
 
         public string ClearTextId => Id;
+    }
+
+    public sealed class FooWrapper(Foo value)
+    {
+        public Foo Value { get; } = value;
     }
 
     public class Bar(int id)

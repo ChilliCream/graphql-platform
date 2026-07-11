@@ -14,9 +14,9 @@ internal static class ThrowHelper
     /// Either the syntax node is invalid when parsing the literal or the syntax
     /// node value has an invalid format.
     /// </summary>
-    public static SerializationException FieldSet_InvalidFormat(
+    public static LeafCoercionException FieldSet_InvalidFormat(
         FieldSetType fieldSetType) =>
-        new SerializationException(
+        new LeafCoercionException(
             ErrorBuilder.New()
                 .SetMessage(ThrowHelper_FieldSet_HasInvalidFormat)
                 .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
@@ -27,9 +27,9 @@ internal static class ThrowHelper
     /// Either the syntax node is invalid when parsing the literal or the syntax
     /// node value has an invalid format.
     /// </summary>
-    public static SerializationException Any_InvalidFormat(
+    public static LeafCoercionException Any_InvalidFormat(
         _AnyType anyType) =>
-        new SerializationException(
+        new LeafCoercionException(
             ErrorBuilder.New()
                 .SetMessage(ThrowHelper_Any_HasInvalidFormat)
                 .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
@@ -70,10 +70,10 @@ internal static class ThrowHelper
     /// <summary>
     /// The runtime type is not supported by the scalars ParseValue method.
     /// </summary>
-    public static SerializationException Scalar_CannotParseValue(
+    public static LeafCoercionException Scalar_CannotParseValue(
         ScalarType scalarType,
         Type valueType) =>
-        new SerializationException(
+        new LeafCoercionException(
             ErrorBuilder.New()
                 .SetMessage(
                     ThrowHelper_Scalar_CannotParseValue,

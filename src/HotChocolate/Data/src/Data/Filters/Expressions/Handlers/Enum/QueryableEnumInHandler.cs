@@ -24,6 +24,6 @@ public class QueryableEnumInHandler
             && operationField.Id == Operation;
     }
 
-    public new static QueryableEnumInHandler Create(FilterProviderContext context)
+    public static new QueryableEnumInHandler Create(FilterProviderContext context)
         => new(context.TypeConverter, context.InputParser);
 }

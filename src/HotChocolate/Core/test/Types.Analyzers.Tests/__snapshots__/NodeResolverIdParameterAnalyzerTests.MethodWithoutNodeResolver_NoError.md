@@ -72,6 +72,7 @@ namespace TestNamespace
 
                     configuration.Type = typeInspector.GetTypeRef(typeof(global::TestNamespace.Product), HotChocolate.Types.TypeContext.Output);
                     configuration.ResultType = typeof(global::TestNamespace.Product);
+                    configuration.DeclaringType = context.ThisType;
 
                     configuration.SetSourceGeneratorFlags();
 
@@ -154,7 +155,7 @@ namespace TestNamespace
                 var args2_filter = global::HotChocolate.Data.Filters.FilterContextResolverContextExtensions.GetFilterContext(context);
                 var args2_sorting = global::HotChocolate.Data.Sorting.SortingContextResolverContextExtensions.GetSortingContext(context);
                 var args2 = new global::GreenDonut.Data.QueryContext<global::TestNamespace.Product>(
-                    global::HotChocolate.Execution.Processing.HotChocolateExecutionSelectionExtensions.AsSelector<global::TestNamespace.Product>(args2_selection),
+                    global::HotChocolate.Execution.Processing.HotChocolateExecutionSelectionExtensions.AsSelector<global::TestNamespace.Product>(args2_selection, context.IncludeFlags),
                     args2_filter?.AsPredicate<global::TestNamespace.Product>(),
                     args2_sorting?.AsSortDefinition<global::TestNamespace.Product>());
                 var args3 = context.RequestAborted;
@@ -167,4 +168,3 @@ namespace TestNamespace
 
 
 ```
-

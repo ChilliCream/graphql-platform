@@ -1,30 +1,16 @@
-[
-  {
-    "Message": "Field \"doesKnowCommand\" must not have a selection since type \"Boolean!\" has no subfields.",
-    "Code": null,
-    "Path": {
-      "Name": "dog",
-      "Parent": {
-        "Parent": null,
-        "Length": 0,
-        "IsRoot": true
-      },
-      "Length": 1,
-      "IsRoot": false
-    },
-    "Locations": [
-      {
-        "Line": 3,
-        "Column": 5
-      }
-    ],
-    "Extensions": {
-      "declaringType": "Dog",
-      "field": "doesKnowCommand",
-      "type": "Boolean!",
-      "responseName": "doesKnowCommand",
-      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Leaf-Field-Selections"
-    },
-    "Exception": null
+{
+  "message": "Field \u0022doesKnowCommand\u0022 must not have a selection since type \u0022Boolean!\u0022 has no subfields.",
+  "locations": [
+    {
+      "line": 3,
+      "column": 5
+    }
+  ],
+  "extensions": {
+    "declaringType": "Dog",
+    "field": "doesKnowCommand",
+    "type": "Boolean!",
+    "responseName": "doesKnowCommand",
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Leaf-Field-Selections"
   }
-]
+}

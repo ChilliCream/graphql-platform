@@ -1,0 +1,783 @@
+{
+  "services": [
+    {
+      "host": {
+        "serviceName": "Explorer",
+        "assemblyName": "Explorer",
+        "instanceId": "019c32d6-c0b2-72dc-a8e8-8ec0d4ea5153"
+      },
+      "messageTypes": [
+        {
+          "identity": "urn:message:chilli-cream.message-bus.events:not-acknowledged-event",
+          "runtimeType": "NotAcknowledgedEvent",
+          "runtimeTypeFullName": "Mocha.Events.NotAcknowledgedEvent",
+          "isInterface": false,
+          "isInternal": true,
+          "enclosedMessageIdentities": [
+            "urn:message:chilli-cream.message-bus.events:not-acknowledged-event",
+            "urn:message:chilli-cream.message-bus:i-event"
+          ]
+        },
+        {
+          "identity": "urn:message:chilli-cream.message-bus.events:acknowledged-event",
+          "runtimeType": "AcknowledgedEvent",
+          "runtimeTypeFullName": "Mocha.Events.AcknowledgedEvent",
+          "isInterface": false,
+          "isInternal": true,
+          "enclosedMessageIdentities": [
+            "urn:message:chilli-cream.message-bus.events:acknowledged-event",
+            "urn:message:chilli-cream.message-bus:i-event"
+          ]
+        },
+        {
+          "identity": "urn:message:my-company.project-name:bar-event",
+          "runtimeType": "BarEvent",
+          "runtimeTypeFullName": "MyCompany.ProjectName.BarEvent",
+          "isInterface": false,
+          "isInternal": false,
+          "enclosedMessageIdentities": [
+            "urn:message:my-company.project-name:bar-event",
+            "urn:message:chilli-cream.message-bus:i-event"
+          ]
+        },
+        {
+          "identity": "urn:message:my-company.project-name:process-payment-request",
+          "runtimeType": "ProcessPaymentRequest",
+          "runtimeTypeFullName": "MyCompany.ProjectName.ProcessPaymentRequest",
+          "isInterface": false,
+          "isInternal": false,
+          "enclosedMessageIdentities": [
+            "urn:message:my-company.project-name:process-payment-request",
+            "urn:message:chilli-cream.message-bus:i-event-request[process-payment-response]",
+            "urn:message:chilli-cream.message-bus:i-event-request",
+            "urn:message:chilli-cream.message-bus:i-event"
+          ]
+        },
+        {
+          "identity": "urn:message:my-company.project-name:process-payment-response",
+          "runtimeType": "ProcessPaymentResponse",
+          "runtimeTypeFullName": "MyCompany.ProjectName.ProcessPaymentResponse",
+          "isInterface": false,
+          "isInternal": false,
+          "enclosedMessageIdentities": [
+            "urn:message:my-company.project-name:process-payment-response",
+            "urn:message:chilli-cream.message-bus:i-event"
+          ]
+        },
+        {
+          "identity": "urn:message:my-company.project-name:place-order-request",
+          "runtimeType": "PlaceOrderRequest",
+          "runtimeTypeFullName": "MyCompany.ProjectName.PlaceOrderRequest",
+          "isInterface": false,
+          "isInternal": false,
+          "enclosedMessageIdentities": [
+            "urn:message:my-company.project-name:place-order-request",
+            "urn:message:chilli-cream.message-bus:i-event-request[order-response]",
+            "urn:message:chilli-cream.message-bus:i-event-request",
+            "urn:message:chilli-cream.message-bus:i-event"
+          ]
+        },
+        {
+          "identity": "urn:message:my-company.project-name:order-response",
+          "runtimeType": "OrderResponse",
+          "runtimeTypeFullName": "MyCompany.ProjectName.OrderResponse",
+          "isInterface": false,
+          "isInternal": false,
+          "enclosedMessageIdentities": [
+            "urn:message:my-company.project-name:order-response",
+            "urn:message:chilli-cream.message-bus:i-event"
+          ]
+        },
+        {
+          "identity": "urn:message:my-company.project-name:payment-succeeded",
+          "runtimeType": "PaymentSucceeded",
+          "runtimeTypeFullName": "MyCompany.ProjectName.PaymentSucceeded",
+          "isInterface": false,
+          "isInternal": false,
+          "enclosedMessageIdentities": [
+            "urn:message:my-company.project-name:payment-succeeded",
+            "urn:message:my-company.project-name:process-payment-response",
+            "urn:message:chilli-cream.message-bus:i-event"
+          ]
+        },
+        {
+          "identity": "urn:message:my-company.project-name:payment-failed",
+          "runtimeType": "PaymentFailed",
+          "runtimeTypeFullName": "MyCompany.ProjectName.PaymentFailed",
+          "isInterface": false,
+          "isInternal": false,
+          "enclosedMessageIdentities": [
+            "urn:message:my-company.project-name:payment-failed",
+            "urn:message:my-company.project-name:process-payment-response",
+            "urn:message:chilli-cream.message-bus:i-event"
+          ]
+        }
+      ],
+      "consumers": [
+        {
+          "name": "SimpleHandler",
+          "identityType": "SimpleHandler",
+          "identityTypeFullName": "MyCompany.ProjectName.SimpleHandler"
+        },
+        {
+          "name": "ProcessPaymentHandler",
+          "identityType": "ProcessPaymentHandler",
+          "identityTypeFullName": "ProcessPaymentHandler"
+        },
+        {
+          "name": "Reply",
+          "identityType": "ReplyConsumer",
+          "identityTypeFullName": "Mocha.ReplyConsumer"
+        },
+        {
+          "name": "order-saga",
+          "identityType": "OrderSaga",
+          "identityTypeFullName": "MyCompany.ProjectName.OrderSaga",
+          "sagaName": "order-saga"
+        },
+        {
+          "name": "ThisIsMyBarHandler",
+          "identityType": "ThisIsMyBarHandler",
+          "identityTypeFullName": "MyCompany.ProjectName.ThisIsMyBarHandler"
+        }
+      ],
+      "routes": {
+        "inbound": [
+          {
+            "kind": "subscribe",
+            "messageTypeIdentity": "urn:message:my-company.project-name:bar-event",
+            "consumerName": "SimpleHandler",
+            "endpoint": {
+              "name": "explorer.simple",
+              "address": "rabbitmq://localhost/explorer.simple",
+              "transportName": "rabbitmq"
+            }
+          },
+          {
+            "kind": "request",
+            "messageTypeIdentity": "urn:message:my-company.project-name:process-payment-request",
+            "consumerName": "ProcessPaymentHandler",
+            "endpoint": {
+              "name": "process-payment-request",
+              "address": "rabbitmq://localhost/process-payment-request",
+              "transportName": "rabbitmq"
+            }
+          },
+          {
+            "kind": "subscribe",
+            "messageTypeIdentity": "urn:message:my-company.project-name:bar-event",
+            "consumerName": "ThisIsMyBarHandler",
+            "endpoint": {
+              "name": "explorer.this-is-my-bar",
+              "address": "rabbitmq://localhost/explorer.this-is-my-bar",
+              "transportName": "rabbitmq"
+            }
+          },
+          {
+            "kind": "request",
+            "messageTypeIdentity": "urn:message:my-company.project-name:place-order-request",
+            "consumerName": "order-saga",
+            "endpoint": {
+              "name": "place-order-request",
+              "address": "rabbitmq://localhost/place-order-request",
+              "transportName": "rabbitmq"
+            }
+          },
+          {
+            "kind": "reply",
+            "messageTypeIdentity": "urn:message:my-company.project-name:payment-succeeded",
+            "consumerName": "order-saga",
+            "endpoint": {
+              "name": "Replies",
+              "address": "rabbitmq://localhost/Replies",
+              "transportName": "rabbitmq"
+            }
+          },
+          {
+            "kind": "reply",
+            "messageTypeIdentity": "urn:message:my-company.project-name:payment-failed",
+            "consumerName": "order-saga",
+            "endpoint": {
+              "name": "Replies",
+              "address": "rabbitmq://localhost/Replies",
+              "transportName": "rabbitmq"
+            }
+          },
+          {
+            "kind": "reply",
+            "consumerName": "Reply",
+            "endpoint": {
+              "name": "Replies",
+              "address": "rabbitmq://localhost/Replies",
+              "transportName": "rabbitmq"
+            }
+          }
+        ],
+        "outbound": [
+          {
+            "kind": "publish",
+            "messageTypeIdentity": "urn:message:my-company.project-name:bar-event",
+            "endpoint": {
+              "name": "e/my-company.project-name.bar",
+              "address": "rabbitmq://localhost/e/my-company.project-name.bar",
+              "transportName": "rabbitmq"
+            }
+          },
+          {
+            "kind": "send",
+            "messageTypeIdentity": "urn:message:my-company.project-name:process-payment-request",
+            "endpoint": {
+              "name": "q/process-payment-request",
+              "address": "rabbitmq://localhost/q/process-payment-request",
+              "transportName": "rabbitmq"
+            }
+          },
+          {
+            "kind": "send",
+            "messageTypeIdentity": "urn:message:my-company.project-name:place-order-request",
+            "endpoint": {
+              "name": "q/place-order-request",
+              "address": "rabbitmq://localhost/q/place-order-request",
+              "transportName": "rabbitmq"
+            }
+          }
+        ]
+      },
+      "sagas": [
+        {
+          "name": "order-saga",
+          "stateType": "OrderSagaState",
+          "stateTypeFullName": "MyCompany.ProjectName.OrderSagaState",
+          "consumerName": "order-saga",
+          "states": [
+            {
+              "name": "__Initial",
+              "isInitial": true,
+              "isFinal": false,
+              "onEntry": {},
+              "transitions": [
+                {
+                  "eventType": "PlaceOrderRequest",
+                  "eventTypeFullName": "MyCompany.ProjectName.PlaceOrderRequest",
+                  "transitionTo": "PaymentPending",
+                  "transitionKind": "request",
+                  "autoProvision": true,
+                  "send": [
+                    {
+                      "messageType": "ProcessPaymentRequest",
+                      "messageTypeFullName": "MyCompany.ProjectName.ProcessPaymentRequest"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "PaymentPending",
+              "isInitial": false,
+              "isFinal": false,
+              "onEntry": {},
+              "transitions": [
+                {
+                  "eventType": "PaymentSucceeded",
+                  "eventTypeFullName": "MyCompany.ProjectName.PaymentSucceeded",
+                  "transitionTo": "Completed",
+                  "transitionKind": "reply",
+                  "autoProvision": true
+                },
+                {
+                  "eventType": "PaymentFailed",
+                  "eventTypeFullName": "MyCompany.ProjectName.PaymentFailed",
+                  "transitionTo": "Failed",
+                  "transitionKind": "reply",
+                  "autoProvision": true
+                }
+              ]
+            },
+            {
+              "name": "Completed",
+              "isInitial": false,
+              "isFinal": true,
+              "onEntry": {},
+              "response": {
+                "eventType": "OrderResponse",
+                "eventTypeFullName": "MyCompany.ProjectName.OrderResponse"
+              },
+              "transitions": []
+            },
+            {
+              "name": "Failed",
+              "isInitial": false,
+              "isFinal": true,
+              "onEntry": {},
+              "response": {
+                "eventType": "OrderResponse",
+                "eventTypeFullName": "MyCompany.ProjectName.OrderResponse"
+              },
+              "transitions": []
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "transports": [
+    {
+      "identifier": "rabbitmq://localhost:5672/",
+      "name": "rabbitmq",
+      "schema": "rabbitmq",
+      "transportType": "RabbitMQMessagingTransport",
+      "receiveEndpoints": [
+        {
+          "name": "Replies",
+          "kind": "reply",
+          "address": "rabbitmq://localhost/Replies",
+          "source": {
+            "address": "rabbitmq://localhost:5672/q/response-019c32d6c0b272dca8e88ec0d4ea5153"
+          }
+        },
+        {
+          "name": "explorer.simple",
+          "kind": "default",
+          "address": "rabbitmq://localhost/explorer.simple",
+          "source": {
+            "address": "rabbitmq://localhost:5672/q/explorer.simple"
+          }
+        },
+        {
+          "name": "process-payment-request",
+          "kind": "default",
+          "address": "rabbitmq://localhost/process-payment-request",
+          "source": {
+            "address": "rabbitmq://localhost:5672/q/process-payment-request"
+          }
+        },
+        {
+          "name": "explorer.this-is-my-bar",
+          "kind": "default",
+          "address": "rabbitmq://localhost/explorer.this-is-my-bar",
+          "source": {
+            "address": "rabbitmq://localhost:5672/q/explorer.this-is-my-bar"
+          }
+        },
+        {
+          "name": "place-order-request",
+          "kind": "default",
+          "address": "rabbitmq://localhost/place-order-request",
+          "source": {
+            "address": "rabbitmq://localhost:5672/q/place-order-request"
+          }
+        }
+      ],
+      "dispatchEndpoints": [
+        {
+          "name": "Replies",
+          "kind": "reply",
+          "address": "rabbitmq://localhost/Replies",
+          "destination": {
+            "address": "rabbitmq://localhost:5672/q/response-019c32d6c0b272dca8e88ec0d4ea5153"
+          }
+        },
+        {
+          "name": "e/my-company.project-name.bar",
+          "kind": "default",
+          "address": "rabbitmq://localhost/e/my-company.project-name.bar",
+          "destination": {
+            "address": "rabbitmq://localhost:5672/e/my-company.project-name.bar"
+          }
+        },
+        {
+          "name": "q/process-payment-request",
+          "kind": "default",
+          "address": "rabbitmq://localhost/q/process-payment-request",
+          "destination": {
+            "address": "rabbitmq://localhost:5672/q/process-payment-request"
+          }
+        },
+        {
+          "name": "q/place-order-request",
+          "kind": "default",
+          "address": "rabbitmq://localhost/q/place-order-request",
+          "destination": {
+            "address": "rabbitmq://localhost:5672/q/place-order-request"
+          }
+        },
+        {
+          "name": "q/explorer.simple_error",
+          "kind": "default",
+          "address": "rabbitmq://localhost/q/explorer.simple_error",
+          "destination": {
+            "address": "rabbitmq://localhost:5672/q/explorer.simple_error"
+          }
+        },
+        {
+          "name": "q/explorer.simple_skipped",
+          "kind": "default",
+          "address": "rabbitmq://localhost/q/explorer.simple_skipped",
+          "destination": {
+            "address": "rabbitmq://localhost:5672/q/explorer.simple_skipped"
+          }
+        },
+        {
+          "name": "q/process-payment-request_error",
+          "kind": "default",
+          "address": "rabbitmq://localhost/q/process-payment-request_error",
+          "destination": {
+            "address": "rabbitmq://localhost:5672/q/process-payment-request_error"
+          }
+        },
+        {
+          "name": "q/process-payment-request_skipped",
+          "kind": "default",
+          "address": "rabbitmq://localhost/q/process-payment-request_skipped",
+          "destination": {
+            "address": "rabbitmq://localhost:5672/q/process-payment-request_skipped"
+          }
+        },
+        {
+          "name": "q/explorer.this-is-my-bar_error",
+          "kind": "default",
+          "address": "rabbitmq://localhost/q/explorer.this-is-my-bar_error",
+          "destination": {
+            "address": "rabbitmq://localhost:5672/q/explorer.this-is-my-bar_error"
+          }
+        },
+        {
+          "name": "q/explorer.this-is-my-bar_skipped",
+          "kind": "default",
+          "address": "rabbitmq://localhost/q/explorer.this-is-my-bar_skipped",
+          "destination": {
+            "address": "rabbitmq://localhost:5672/q/explorer.this-is-my-bar_skipped"
+          }
+        },
+        {
+          "name": "q/place-order-request_error",
+          "kind": "default",
+          "address": "rabbitmq://localhost/q/place-order-request_error",
+          "destination": {
+            "address": "rabbitmq://localhost:5672/q/place-order-request_error"
+          }
+        },
+        {
+          "name": "q/place-order-request_skipped",
+          "kind": "default",
+          "address": "rabbitmq://localhost/q/place-order-request_skipped",
+          "destination": {
+            "address": "rabbitmq://localhost:5672/q/place-order-request_skipped"
+          }
+        }
+      ],
+      "topology": {
+        "address": "rabbitmq://localhost:5672/",
+        "entities": [
+          {
+            "kind": "exchange",
+            "name": "my-company.project-name.bar",
+            "address": "rabbitmq://localhost:5672/e/my-company.project-name.bar",
+            "flow": "inbound",
+            "properties": {
+              "type": "fanout",
+              "durable": true,
+              "autoDelete": false,
+              "autoProvision": true
+            }
+          },
+          {
+            "kind": "exchange",
+            "name": "bar",
+            "address": "rabbitmq://localhost:5672/e/bar",
+            "flow": "inbound",
+            "properties": {
+              "type": "fanout",
+              "durable": true,
+              "autoDelete": false,
+              "autoProvision": true
+            }
+          },
+          {
+            "kind": "exchange",
+            "name": "my-company.project-name.process-payment-request",
+            "address": "rabbitmq://localhost:5672/e/my-company.project-name.process-payment-request",
+            "flow": "inbound",
+            "properties": {
+              "type": "fanout",
+              "durable": true,
+              "autoDelete": false,
+              "autoProvision": true
+            }
+          },
+          {
+            "kind": "exchange",
+            "name": "process-payment-request",
+            "address": "rabbitmq://localhost:5672/e/process-payment-request",
+            "flow": "inbound",
+            "properties": {
+              "type": "fanout",
+              "durable": true,
+              "autoDelete": false,
+              "autoProvision": true
+            }
+          },
+          {
+            "kind": "exchange",
+            "name": "my-company.project-name.place-order-request",
+            "address": "rabbitmq://localhost:5672/e/my-company.project-name.place-order-request",
+            "flow": "inbound",
+            "properties": {
+              "type": "fanout",
+              "durable": true,
+              "autoDelete": false,
+              "autoProvision": true
+            }
+          },
+          {
+            "kind": "exchange",
+            "name": "place-order-request",
+            "address": "rabbitmq://localhost:5672/e/place-order-request",
+            "flow": "inbound",
+            "properties": {
+              "type": "fanout",
+              "durable": true,
+              "autoDelete": false,
+              "autoProvision": true
+            }
+          },
+          {
+            "kind": "queue",
+            "name": "response-019c32d6c0b272dca8e88ec0d4ea5153",
+            "address": "rabbitmq://localhost:5672/q/response-019c32d6c0b272dca8e88ec0d4ea5153",
+            "flow": "outbound",
+            "properties": {
+              "durable": true,
+              "exclusive": false,
+              "autoDelete": true,
+              "autoProvision": true
+            }
+          },
+          {
+            "kind": "queue",
+            "name": "explorer.simple",
+            "address": "rabbitmq://localhost:5672/q/explorer.simple",
+            "flow": "outbound",
+            "properties": {
+              "durable": true,
+              "exclusive": false,
+              "autoDelete": false,
+              "autoProvision": true
+            }
+          },
+          {
+            "kind": "queue",
+            "name": "process-payment-request",
+            "address": "rabbitmq://localhost:5672/q/process-payment-request",
+            "flow": "outbound",
+            "properties": {
+              "durable": true,
+              "exclusive": false,
+              "autoDelete": false,
+              "autoProvision": true
+            }
+          },
+          {
+            "kind": "queue",
+            "name": "explorer.this-is-my-bar",
+            "address": "rabbitmq://localhost:5672/q/explorer.this-is-my-bar",
+            "flow": "outbound",
+            "properties": {
+              "durable": true,
+              "exclusive": false,
+              "autoDelete": false,
+              "autoProvision": true
+            }
+          },
+          {
+            "kind": "queue",
+            "name": "place-order-request",
+            "address": "rabbitmq://localhost:5672/q/place-order-request",
+            "flow": "outbound",
+            "properties": {
+              "durable": true,
+              "exclusive": false,
+              "autoDelete": false,
+              "autoProvision": true
+            }
+          },
+          {
+            "kind": "queue",
+            "name": "explorer.simple_error",
+            "address": "rabbitmq://localhost:5672/q/explorer.simple_error",
+            "flow": "outbound",
+            "properties": {
+              "durable": true,
+              "exclusive": false,
+              "autoDelete": false,
+              "autoProvision": true
+            }
+          },
+          {
+            "kind": "queue",
+            "name": "explorer.simple_skipped",
+            "address": "rabbitmq://localhost:5672/q/explorer.simple_skipped",
+            "flow": "outbound",
+            "properties": {
+              "durable": true,
+              "exclusive": false,
+              "autoDelete": false,
+              "autoProvision": true
+            }
+          },
+          {
+            "kind": "queue",
+            "name": "process-payment-request_error",
+            "address": "rabbitmq://localhost:5672/q/process-payment-request_error",
+            "flow": "outbound",
+            "properties": {
+              "durable": true,
+              "exclusive": false,
+              "autoDelete": false,
+              "autoProvision": true
+            }
+          },
+          {
+            "kind": "queue",
+            "name": "process-payment-request_skipped",
+            "address": "rabbitmq://localhost:5672/q/process-payment-request_skipped",
+            "flow": "outbound",
+            "properties": {
+              "durable": true,
+              "exclusive": false,
+              "autoDelete": false,
+              "autoProvision": true
+            }
+          },
+          {
+            "kind": "queue",
+            "name": "explorer.this-is-my-bar_error",
+            "address": "rabbitmq://localhost:5672/q/explorer.this-is-my-bar_error",
+            "flow": "outbound",
+            "properties": {
+              "durable": true,
+              "exclusive": false,
+              "autoDelete": false,
+              "autoProvision": true
+            }
+          },
+          {
+            "kind": "queue",
+            "name": "explorer.this-is-my-bar_skipped",
+            "address": "rabbitmq://localhost:5672/q/explorer.this-is-my-bar_skipped",
+            "flow": "outbound",
+            "properties": {
+              "durable": true,
+              "exclusive": false,
+              "autoDelete": false,
+              "autoProvision": true
+            }
+          },
+          {
+            "kind": "queue",
+            "name": "place-order-request_error",
+            "address": "rabbitmq://localhost:5672/q/place-order-request_error",
+            "flow": "outbound",
+            "properties": {
+              "durable": true,
+              "exclusive": false,
+              "autoDelete": false,
+              "autoProvision": true
+            }
+          },
+          {
+            "kind": "queue",
+            "name": "place-order-request_skipped",
+            "address": "rabbitmq://localhost:5672/q/place-order-request_skipped",
+            "flow": "outbound",
+            "properties": {
+              "durable": true,
+              "exclusive": false,
+              "autoDelete": false,
+              "autoProvision": true
+            }
+          }
+        ],
+        "links": [
+          {
+            "kind": "bind",
+            "address": "rabbitmq://localhost:5672/b/e/my-company.project-name.bar/e/bar",
+            "source": "rabbitmq://localhost:5672/e/my-company.project-name.bar",
+            "target": "rabbitmq://localhost:5672/e/bar",
+            "direction": "forward",
+            "properties": {
+              "routingKey": null,
+              "autoProvision": true
+            }
+          },
+          {
+            "kind": "bind",
+            "address": "rabbitmq://localhost:5672/b/e/bar/q/explorer.simple",
+            "source": "rabbitmq://localhost:5672/e/bar",
+            "target": "rabbitmq://localhost:5672/q/explorer.simple",
+            "direction": "forward",
+            "properties": {
+              "routingKey": null,
+              "autoProvision": true
+            }
+          },
+          {
+            "kind": "bind",
+            "address": "rabbitmq://localhost:5672/b/e/my-company.project-name.process-payment-request/e/process-payment-request",
+            "source": "rabbitmq://localhost:5672/e/my-company.project-name.process-payment-request",
+            "target": "rabbitmq://localhost:5672/e/process-payment-request",
+            "direction": "forward",
+            "properties": {
+              "routingKey": null,
+              "autoProvision": true
+            }
+          },
+          {
+            "kind": "bind",
+            "address": "rabbitmq://localhost:5672/b/e/process-payment-request/q/process-payment-request",
+            "source": "rabbitmq://localhost:5672/e/process-payment-request",
+            "target": "rabbitmq://localhost:5672/q/process-payment-request",
+            "direction": "forward",
+            "properties": {
+              "routingKey": null,
+              "autoProvision": true
+            }
+          },
+          {
+            "kind": "bind",
+            "address": "rabbitmq://localhost:5672/b/e/bar/q/explorer.this-is-my-bar",
+            "source": "rabbitmq://localhost:5672/e/bar",
+            "target": "rabbitmq://localhost:5672/q/explorer.this-is-my-bar",
+            "direction": "forward",
+            "properties": {
+              "routingKey": null,
+              "autoProvision": true
+            }
+          },
+          {
+            "kind": "bind",
+            "address": "rabbitmq://localhost:5672/b/e/my-company.project-name.place-order-request/e/place-order-request",
+            "source": "rabbitmq://localhost:5672/e/my-company.project-name.place-order-request",
+            "target": "rabbitmq://localhost:5672/e/place-order-request",
+            "direction": "forward",
+            "properties": {
+              "routingKey": null,
+              "autoProvision": true
+            }
+          },
+          {
+            "kind": "bind",
+            "address": "rabbitmq://localhost:5672/b/e/place-order-request/q/place-order-request",
+            "source": "rabbitmq://localhost:5672/e/place-order-request",
+            "target": "rabbitmq://localhost:5672/q/place-order-request",
+            "direction": "forward",
+            "properties": {
+              "routingKey": null,
+              "autoProvision": true
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

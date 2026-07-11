@@ -97,8 +97,17 @@ internal sealed class TypeReferenceResolver
         switch (typeRef)
         {
             case ExtendedTypeReference r:
-                var typeFactory = _typeInspector.CreateTypeFactory(r.Type);
-                type = typeFactory.CreateType(typeDefinition);
+                if (_typeRegistry.IsExplicitBinding(r)
+                    && RuntimeTypeBindingHelper.RequiresExactBinding(r.Type))
+                {
+                    type = CreateExplicitBoundType(typeDefinition, r.Type);
+                }
+                else
+                {
+                    var typeFactory = _typeInspector.CreateTypeFactory(r.Type);
+                    type = typeFactory.CreateType(typeDefinition);
+                }
+
                 _typeCache[typeId] = type;
                 return true;
 
@@ -153,6 +162,18 @@ internal sealed class TypeReferenceResolver
         }
 
         return namedType;
+    }
+
+    private static IType CreateExplicitBoundType(ITypeDefinition typeDefinition, IExtendedType runtimeType)
+    {
+        IType type = typeDefinition;
+
+        if (!runtimeType.IsNullable && typeDefinition.Kind is not TypeKind.NonNull)
+        {
+            type = new NonNullType(typeDefinition);
+        }
+
+        return type;
     }
 
     private TypeId CreateId(TypeReference typeRef, TypeReference namedTypeRef)

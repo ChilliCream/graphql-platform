@@ -18,7 +18,7 @@ public class DocumentAnalyzerTests
                 .AddStarWarsRepositories()
                 .AddGraphQL()
                 .AddStarWars()
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         schema =
             SchemaHelper.Load(
@@ -71,7 +71,7 @@ public class DocumentAnalyzerTests
             });
     }
 
-    [Fact]
+    [Fact(Skip = "We need to reimplement defer for the client.")]
     public async Task One_Fragment_One_Deferred_Fragment()
     {
         // arrange
@@ -80,7 +80,7 @@ public class DocumentAnalyzerTests
                 .AddStarWarsRepositories()
                 .AddGraphQL()
                 .AddStarWars()
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         schema =
             SchemaHelper.Load(

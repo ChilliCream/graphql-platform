@@ -23,7 +23,6 @@ public static class ArgumentDescriptorExtensions
     /// Returns the input field descriptor for configuration chaining.
     /// </returns>
     /// <exception cref="ArgumentNullException">
-    /// <paramref name="descriptor"/> is <c>null</c>.
     /// <paramref name="syntax"/> is <c>null</c>.
     /// </exception>
     /// <exception cref="SyntaxException">
@@ -33,9 +32,7 @@ public static class ArgumentDescriptorExtensions
         this IArgumentDescriptor descriptor,
         [StringSyntax("graphql")] string syntax)
     {
-        ArgumentNullException.ThrowIfNull(descriptor);
         ArgumentNullException.ThrowIfNull(syntax);
-
         var value = Utf8GraphQLParser.Syntax.ParseValueLiteral(syntax);
         return descriptor.DefaultValue(value);
     }

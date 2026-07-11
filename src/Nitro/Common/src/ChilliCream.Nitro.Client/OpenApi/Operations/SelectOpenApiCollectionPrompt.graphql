@@ -1,0 +1,25 @@
+query SelectOpenApiCollectionPromptQuery($apiId: ID!, $after: String, $first: Int) {
+  apiById(id: $apiId) {
+    openApiCollections(after: $after, first: $first) {
+      edges {
+        ...SelectOpenApiCollectionPrompt_OpenApiCollectionEdge
+      }
+      pageInfo {
+        ...PageInfo
+      }
+    }
+  }
+}
+
+fragment SelectOpenApiCollectionPrompt_OpenApiCollectionEdge on ApiOpenApiCollectionsEdge {
+  cursor
+  node {
+    ...SelectOpenApiCollectionPrompt_OpenApiCollection
+  }
+}
+
+fragment SelectOpenApiCollectionPrompt_OpenApiCollection on OpenApiCollection {
+  id
+  name
+  ...OpenApiCollectionDetailPrompt_OpenApiCollection
+}

@@ -22,7 +22,7 @@ public class ResolverTests
             }
 
             internal class Test;
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -45,7 +45,7 @@ public class ResolverTests
             }
 
             internal class Test;
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -68,7 +68,73 @@ public class ResolverTests
             }
 
             internal class Test;
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
+    }
+
+    [Fact]
+    public async Task GenerateSource_ResolverWithLocalStateDerivedAttribute_PrimaryConstructorBaseKey_MatchesSnapshot()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            """
+            using System;
+            using HotChocolate;
+            using HotChocolate.Types;
+
+            namespace TestNamespace;
+
+            [ObjectType<Test>]
+            internal static partial class TestType
+            {
+                public static string GetTest([ScopeState] string scope)
+                {
+                    return scope;
+                }
+            }
+
+            [AttributeUsage(AttributeTargets.Parameter)]
+            public sealed class ScopeStateAttribute()
+                : LocalStateAttribute(LookupKey)
+            {
+                public const string LookupKey = "ScopeState";
+            }
+
+            internal class Test;
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
+    }
+
+    [Fact]
+    public async Task GenerateSource_ResolverWithScopedStateDerivedAttribute_BaseConstructorKey_MatchesSnapshot()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            """
+            using System;
+            using HotChocolate;
+            using HotChocolate.Types;
+
+            namespace TestNamespace;
+
+            [ObjectType<Test>]
+            internal static partial class TestType
+            {
+                public static string GetTest([ScopeState] string scope)
+                {
+                    return scope;
+                }
+            }
+
+            [AttributeUsage(AttributeTargets.Parameter)]
+            public sealed class ScopeStateAttribute : ScopedStateAttribute
+            {
+                public const string LookupKey = "ScopeState";
+
+                public ScopeStateAttribute()
+                    : base(LookupKey)
+                {
+                }
+            }
+
+            internal class Test;
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -92,7 +158,7 @@ public class ResolverTests
             }
 
             internal class Test;
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -116,7 +182,7 @@ public class ResolverTests
             }
 
             internal class Test;
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -140,7 +206,7 @@ public class ResolverTests
             }
 
             internal class Test;
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -167,7 +233,66 @@ public class ResolverTests
             internal class Test;
 
             internal class Entity;
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
+    }
+
+    [Fact]
+    public async Task GenerateSource_ResolverWithNativeImplicitParameters_MatchesSnapshot()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            """
+            using System.Security.Claims;
+            using System.Threading;
+            using HotChocolate.Execution;
+            using HotChocolate.Language;
+            using HotChocolate.Types;
+            using HotChocolate.Types.Pagination;
+
+            namespace TestNamespace;
+
+            [ObjectType<Test>]
+            internal static partial class TestType
+            {
+                public static string GetTest(
+                    CancellationToken cancellationToken,
+                    ClaimsPrincipal claimsPrincipal,
+                    DocumentNode documentNode,
+                    FieldNode fieldNode,
+                    IOutputFieldDefinition outputField,
+                    ConnectionFlags connectionFlags,
+                    ISelection selection)
+                    => "test";
+            }
+
+            internal class Test;
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
+    }
+
+    [Fact]
+    public async Task GenerateSource_BatchResolverWithCustomParameterBinding_MatchesSnapshot()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            """
+            using System.Collections.Generic;
+            using HotChocolate;
+            using HotChocolate.Types;
+
+            namespace TestNamespace;
+
+            public sealed class User;
+
+            public sealed class CurrentUser;
+
+            [ObjectType<User>]
+            public static partial class UserType
+            {
+                [BatchResolver]
+                public static List<string> GetGreeting(
+                    [Parent] List<User> users,
+                    CurrentUser currentUser)
+                    => default!;
+            }
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -203,7 +328,7 @@ public class ResolverTests
 
                 public string Name { get; set; }
             }
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -239,7 +364,7 @@ public class ResolverTests
 
                 public string Name { get; set; }
             }
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -268,7 +393,7 @@ public class ResolverTests
 
                 public string Name { get; set; }
             }
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -292,7 +417,7 @@ public class ResolverTests
             }
 
             internal class Test;
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -316,6 +441,275 @@ public class ResolverTests
             }
 
             internal class Test;
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
+    }
+
+    [Fact]
+    public async Task Resolver_With_Generated_DataLoader_Parameter_MatchesSnapshot()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+        [
+            """
+            using System.Collections.Generic;
+            using System.Threading;
+            using System.Threading.Tasks;
+            using GreenDonut;
+
+            namespace TestNamespace;
+
+            internal static class DataLoaders
+            {
+                [DataLoader]
+                public static Task<IReadOnlyDictionary<int, Entity>> GetEntityByIdAsync(
+                    IReadOnlyList<int> entityIds,
+                    CancellationToken cancellationToken)
+                    => default!;
+            }
+
+            public class Entity
+            {
+                public int Id { get; set; }
+                public string Name { get; set; } = default!;
+            }
+            """,
+            """
+            using System.Threading;
+            using System.Threading.Tasks;
+            using HotChocolate.Types;
+
+            namespace TestNamespace;
+
+            [QueryType]
+            internal static partial class Query
+            {
+                public static async Task<Entity?> GetEntityAsync(
+                    int id,
+                    IEntityByIdDataLoader dataLoader,
+                    CancellationToken cancellationToken)
+                    => await dataLoader.LoadAsync(id, cancellationToken);
+            }
+            """
+        ]).MatchMarkdownAsync(TestContext.Current.CancellationToken);
+    }
+
+    [Fact]
+    public async Task Resolver_With_Generated_DataLoader_From_Different_Namespace_MatchesSnapshot()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+        [
+            """
+            using System.Collections.Generic;
+            using System.Threading;
+            using System.Threading.Tasks;
+            using GreenDonut;
+
+            namespace TestNamespace.DataAccess;
+
+            internal static class DataLoaders
+            {
+                [DataLoader]
+                public static Task<IReadOnlyDictionary<int, Entity>> GetEntityByIdAsync(
+                    IReadOnlyList<int> entityIds,
+                    CancellationToken cancellationToken)
+                    => default!;
+            }
+
+            public class Entity
+            {
+                public int Id { get; set; }
+                public string Name { get; set; } = default!;
+            }
+            """,
+            """
+            using System.Threading;
+            using System.Threading.Tasks;
+            using HotChocolate.Types;
+            using TestNamespace.DataAccess;
+
+            namespace TestNamespace;
+
+            [QueryType]
+            internal static partial class Query
+            {
+                public static async Task<Entity?> GetEntityAsync(
+                    int id,
+                    IEntityByIdDataLoader dataLoader,
+                    CancellationToken cancellationToken)
+                    => await dataLoader.LoadAsync(id, cancellationToken);
+            }
+            """
+        ]).MatchMarkdownAsync(TestContext.Current.CancellationToken);
+    }
+
+    [Fact]
+    public async Task Resolver_With_Multiple_DataLoaders_Same_Name_Different_Namespaces_MatchesSnapshot()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+        [
+            """
+            using System.Collections.Generic;
+            using System.Threading;
+            using System.Threading.Tasks;
+            using GreenDonut;
+
+            namespace TestNamespace.DataAccess.Entities;
+
+            internal static class EntityDataLoaders
+            {
+                [DataLoader]
+                public static Task<IReadOnlyDictionary<int, Entity>> GetEntityByIdAsync(
+                    IReadOnlyList<int> entityIds,
+                    CancellationToken cancellationToken)
+                    => default!;
+            }
+
+            public class Entity
+            {
+                public int Id { get; set; }
+                public string Name { get; set; } = default!;
+            }
+            """,
+            """
+            using System.Collections.Generic;
+            using System.Threading;
+            using System.Threading.Tasks;
+            using GreenDonut;
+
+            namespace TestNamespace.DataAccess.Products;
+
+            internal static class ProductDataLoaders
+            {
+                [DataLoader]
+                public static Task<IReadOnlyDictionary<int, Product>> GetEntityByIdAsync(
+                    IReadOnlyList<int> entityIds,
+                    CancellationToken cancellationToken)
+                    => default!;
+            }
+
+            public class Product
+            {
+                public int Id { get; set; }
+                public string Name { get; set; } = default!;
+            }
+            """,
+            """
+            using System.Threading;
+            using System.Threading.Tasks;
+            using HotChocolate.Types;
+            using TestNamespace.DataAccess.Entities;
+
+            namespace TestNamespace;
+
+            [QueryType]
+            internal static partial class Query
+            {
+                public static async Task<Entity?> GetEntityAsync(
+                    int id,
+                    IEntityByIdDataLoader dataLoader,
+                    CancellationToken cancellationToken)
+                    => await dataLoader.LoadAsync(id, cancellationToken);
+            }
+            """
+        ]).MatchMarkdownAsync(TestContext.Current.CancellationToken);
+    }
+
+    [Fact]
+    public async Task GenerateSource_ResolverWithIsSelectedSingleField_MatchesSnapshot()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            """
+            using HotChocolate;
+            using HotChocolate.Types;
+
+            namespace TestNamespace;
+
+            [ObjectType<Test>]
+            internal static partial class TestType
+            {
+                public static int GetTest([IsSelected("email")] bool isSelected)
+                {
+                    return isSelected ? 1 : 0;
+                }
+            }
+
+            internal class Test;
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
+    }
+
+    [Fact]
+    public async Task GenerateSource_ResolverWithIsSelectedMultipleFields_MatchesSnapshot()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            """
+            using HotChocolate;
+            using HotChocolate.Types;
+
+            namespace TestNamespace;
+
+            [ObjectType<Test>]
+            internal static partial class TestType
+            {
+                public static int GetTest([IsSelected("email", "password", "name", "address")] bool isSelected)
+                {
+                    return isSelected ? 1 : 0;
+                }
+            }
+
+            internal class Test;
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
+    }
+
+    [Fact]
+    public async Task GenerateSource_ResolverWithIsSelectedPattern_MatchesSnapshot()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            """
+            using HotChocolate;
+            using HotChocolate.Types;
+
+            namespace TestNamespace;
+
+            [ObjectType<Test>]
+            internal static partial class TestType
+            {
+                public static int GetTest([IsSelected("email category { name }")] bool isSelected)
+                {
+                    return isSelected ? 1 : 0;
+                }
+            }
+
+            internal class Test;
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
+    }
+
+    [Fact]
+    public async Task GenerateSource_NodeResolverWithIsSelectedPattern_MatchesSnapshot()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            """
+            using HotChocolate;
+            using HotChocolate.Types;
+            using HotChocolate.Types.Relay;
+            using System.Threading.Tasks;
+
+            namespace TestNamespace;
+
+            [ObjectType<Test>]
+            internal static partial class TestType
+            {
+                [NodeResolver]
+                internal static Task<Test?> GetTestByIdAsync(
+                    int id,
+                    [IsSelected("name address { city }")] bool isSelected)
+                    => Task.FromResult<Test?>(null);
+            }
+
+            internal class Test
+            {
+                public int Id { get; set; }
+
+                public string Name { get; set; }
+            }
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 }

@@ -116,7 +116,7 @@ internal sealed class TypeLookup
         }
 
         // we check each component layer since there could be a binding on a list type,
-        // e.g. list<byte> to ByteArray.
+        // e.g. list<byte> to Base64String.
         for (var i = 0; i < typeInfo.Components.Count; i++)
         {
             var componentType = typeInfo.Components[i].Type;

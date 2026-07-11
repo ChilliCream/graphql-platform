@@ -76,8 +76,8 @@ public sealed class InaccessibleAttribute : DescriptorAttribute
                 inputFieldDescriptor.Inaccessible();
                 break;
 
-            case IObjectTypeDescriptor objectFieldDescriptor:
-                objectFieldDescriptor.Inaccessible(IsScoped);
+            case IObjectTypeDescriptor objectTypeDescriptor:
+                objectTypeDescriptor.Inaccessible(IsScoped);
                 break;
 
             case IObjectFieldDescriptor objectFieldDescriptor:

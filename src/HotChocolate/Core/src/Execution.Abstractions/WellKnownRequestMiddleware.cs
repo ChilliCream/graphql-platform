@@ -26,6 +26,9 @@ public static class WellKnownRequestMiddleware
     /// <summary>Gets the key for the OperationCacheMiddleware.</summary>
     public const string OperationCacheMiddleware = "OperationCacheMiddleware";
 
+    /// <summary>Gets the key for the ConcurrencyGateMiddleware.</summary>
+    public const string ConcurrencyGateMiddleware = "ConcurrencyGateMiddleware";
+
     /// <summary>Gets the key for the OperationExecutionMiddleware.</summary>
     public const string OperationExecutionMiddleware = "OperationExecutionMiddleware";
 

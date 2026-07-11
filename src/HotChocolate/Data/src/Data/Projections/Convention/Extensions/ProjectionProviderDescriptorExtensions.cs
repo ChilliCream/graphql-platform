@@ -1,6 +1,7 @@
 using HotChocolate.Data.Projections;
 using HotChocolate.Data.Projections.Expressions.Handlers;
 using HotChocolate.Data.Projections.Handlers;
+using HotChocolate.Data.Projections.Optimizers;
 
 namespace HotChocolate.Data;
 
@@ -25,6 +26,7 @@ public static class ProjectionProviderDescriptorExtensions
         descriptor.RegisterFieldInterceptor(QueryableSingleOrDefaultInterceptor.Create);
 
         descriptor.RegisterOptimizer(IsProjectedProjectionOptimizer.Create);
+        descriptor.RegisterOptimizer(QueryableRequirementsProjectionOptimizer.Create);
         descriptor.RegisterOptimizer(QueryablePagingProjectionOptimizer.Create);
         descriptor.RegisterOptimizer(QueryableFilterProjectionOptimizer.Create);
         descriptor.RegisterOptimizer(QueryableSortProjectionOptimizer.Create);
