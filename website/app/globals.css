@@ -85,8 +85,9 @@
   --color-cc-youtube: #ff0000;
   --color-cc-youtube-hover: #cc0000;
 
-  /* Docs sidebar: cool-slate nav text. */
+  /* Docs sidebar: cool-slate nav text + a dimmer muted section-label tone. */
   --color-cc-nav-text: #cad5e2;
+  --color-cc-nav-label: #62748e;
 }
 
 @layer base {
@@ -479,6 +480,7 @@ svg[role="graphics-document"][id^="mermaid-"] {
     --color-cc-accent: #0e7490;
     --color-cc-accent-hover: #0e7490;
     --color-cc-nav-text: #1f2937;
+    --color-cc-nav-label: #4b5563;
     --cc-dark-surface: none;
   }
 
