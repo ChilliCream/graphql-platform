@@ -41,6 +41,9 @@ type Query {
   ): PublisherConnection
   animal: Animal!
   zoo: Zoo!
+  formatAnimalKinds(kinds: AnimalKind!): String!
+  formatNullableAnimalKinds(kinds: AnimalKind): String!
+  formatAnimalKindList(kinds: [AnimalKind]!): String!
   isSelectedTest: IsSelectedNode!
   """
   Gets the product.
@@ -298,7 +301,17 @@ type Television implements Product {
 }
 
 type Zoo {
+  propertyAnimals: AnimalKind!
   animals: AnimalKind!
+  nullableAnimals: AnimalKind
+  taskAnimals: AnimalKind!
+  valueTaskAnimals: AnimalKind!
+  animalArray: [AnimalKind]
+  animalList: [AnimalKind!]!
+  nestedAnimalList: [[AnimalKind!]!]!
+  taskAnimalList: [AnimalKind!]!
+  batchAnimals: AnimalKind!
+  fauxFlags: FauxFlagsKind!
   id: String!
 }
 
@@ -320,6 +333,11 @@ input ShapeInput {
 enum AnimalKind {
   DOG
   CAT
+}
+
+enum FauxFlagsKind {
+  FIRST
+  SECOND
 }
 
 scalar Version
