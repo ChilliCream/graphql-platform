@@ -12,6 +12,8 @@ items:
     title: Guides
   - path: entities-and-lookups
     title: Entities and Lookups
+  - path: interface-objects
+    title: Interface Objects
   - path: data-requirements-and-mapping
     title: Data Requirements
   - path: field-ownership-and-sharing

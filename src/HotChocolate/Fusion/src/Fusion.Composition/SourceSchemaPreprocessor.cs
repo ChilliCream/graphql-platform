@@ -35,15 +35,19 @@ internal sealed partial class SourceSchemaPreprocessor(
     {
         var fusionV1CompatibilityMode = sourceSchemaVersion?.Major == 1;
 
+        SourceExternalFieldMetadata.CaptureMarker(schema);
+
         var isFederationSchema = FederationSchemaTransformer.IsFederationSchema(schema)
             && FederationSchemaAnalyzer.Validate(schema, log);
 
         if (isFederationSchema)
         {
+            SourceExternalFieldMetadata.Capture(schema);
             RemoveFederationInfrastructure.Apply(schema);
             GenerateLookupFields.Apply(schema);
             RewriteKeyDirectives.Apply(schema);
             MarkKeyFieldsShareable.Apply(schema, schemas);
+            SynthesizeImplementDirectives.Apply(schema, schemas);
             TransformRequiresToRequire.Apply(schema);
             GenerateNodeLookup.Apply(schema);
             StampConnectorKind.Apply(schema);

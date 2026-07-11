@@ -3,7 +3,6 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Converters;
-using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Language;
 using HotChocolate.Fusion.Planning.Partitioners;
@@ -27,6 +26,7 @@ public sealed partial class OperationPlanner
     private readonly SelectionSetPartitioner _partitioner;
     private readonly SelectionSetByTypePartitioner _selectionSetByTypePartitioner;
     private readonly NodeFieldSelectionSetPartitioner _nodeFieldSelectionSetPartitioner;
+    private readonly SourceSchemaNodeCandidateResolver _sourceSchemaNodeCandidateResolver;
     private readonly OperationPlannerOptions _options;
     private bool? _schemaHasDivergentInterfaceFields;
 
@@ -52,6 +52,7 @@ public sealed partial class OperationPlanner
         _partitioner = new SelectionSetPartitioner(schema);
         _selectionSetByTypePartitioner = new SelectionSetByTypePartitioner(schema);
         _nodeFieldSelectionSetPartitioner = new NodeFieldSelectionSetPartitioner(schema);
+        _sourceSchemaNodeCandidateResolver = new SourceSchemaNodeCandidateResolver(schema);
         _options = options;
     }
 
@@ -1042,7 +1043,8 @@ public sealed partial class OperationPlanner
             workItem.EstimatedDepth,
             backlog,
             workItem.Conditions,
-            workItem.AllowSourceSchemaReentry);
+            workItem.AllowSourceSchemaReentry,
+            workItem.SourceSchemaNodePolicy);
         PlanSelections(
             workItem,
             current,
@@ -1078,14 +1080,27 @@ public sealed partial class OperationPlanner
                 ? CreateEventStreamProvidedSelectionSet(
                     workItem.SelectionSet.Node,
                     current.EventStreamDirective!)
-                : null
+                : null,
+            TreatSourceExternalAsUnresolvable = workItem.SourceSchemaNodePolicy is not null
         };
 
         (var resolvable, var unresolvable, var fieldsWithRequirements, index) = _partitioner.Partition(input);
 
+        if (resolvable is not { Selections.Count: > 0 }
+            && workItem.SourceSchemaNodePolicy is not null
+            && !fieldsWithRequirements.IsEmpty)
+        {
+            resolvable = new SelectionSetNode([new FieldNode(IntrospectionFieldNames.TypeName)]);
+            var strictIndexBuilder = index.ToBuilder();
+            strictIndexBuilder.Register(workItem.SelectionSet.Id, resolvable);
+            index = strictIndexBuilder;
+        }
+
         // if we cannot resolve any selection with the current source schema then this path
         // cannot be used to resolve the data for the current operation, and we need to skip it.
-        if (resolvable is null)
+        if (resolvable is null
+            || (workItem.SourceSchemaNodePolicy is not null
+                && resolvable.Selections.Count == 0))
         {
             return;
         }
@@ -1094,8 +1109,17 @@ public sealed partial class OperationPlanner
             unresolvable,
             current.SchemaName,
             stepDepth,
-            allowSourceSchemaReentry: isEventStreamRoot);
-        backlog = backlog.PushRequirements(fieldsWithRequirements, new StepConsumer(stepId), stepDepth);
+            allowSourceSchemaReentry: isEventStreamRoot,
+            sourceSchemaNodePolicy: workItem.SourceSchemaNodePolicy is null
+                ? null
+                : SourceSchemaNodePlanningPolicy.Descendant);
+        backlog = backlog.PushRequirements(
+            fieldsWithRequirements,
+            new StepConsumer(stepId),
+            stepDepth,
+            workItem.SourceSchemaNodePolicy is null
+                ? null
+                : SourceSchemaNodePlanningPolicy.Descendant);
 
         // Lookups are always queries. Root work items can also be rewritten to the query root
         // when walking shared paths (for example the viewer convention in mutations).
@@ -1206,13 +1230,17 @@ public sealed partial class OperationPlanner
         int lookupStepDepth,
         Backlog backlog,
         ExecutionNodeCondition[]? conditions = null,
-        bool allowSourceSchemaReentry = false)
+        bool allowSourceSchemaReentry = false,
+        SourceSchemaNodePlanningPolicy? sourceSchemaNodePolicy = null)
     {
         var processed = new HashSet<string>();
         var lookupStepId = current.Steps.NextId();
         var steps = current.Steps;
         var index = current.SelectionSetIndex.ToBuilder();
         var selectionSet = lookup.Requirements;
+        var descendantPolicy = sourceSchemaNodePolicy is null
+            ? null
+            : SourceSchemaNodePlanningPolicy.Descendant;
 
         if (index.IsRegistered(selectionSet))
         {
@@ -1266,7 +1294,8 @@ public sealed partial class OperationPlanner
             {
                 SchemaName = schemaName,
                 SelectionSet = workItemSelectionSet with { Node = selectionSet },
-                SelectionSetIndex = index
+                SelectionSetIndex = index,
+                TreatSourceExternalAsUnresolvable = sourceSchemaNodePolicy is not null
             };
 
             var (resolvable, unresolvable, _, _) = _partitioner.Partition(input);
@@ -1311,7 +1340,8 @@ public sealed partial class OperationPlanner
                         unresolvable,
                         current.SchemaName,
                         GetOperationStepDepth(current, step.Id),
-                        dependents: ImmutableHashSet<int>.Empty.Add(lookupStepId));
+                        dependents: ImmutableHashSet<int>.Empty.Add(lookupStepId),
+                        sourceSchemaNodePolicy: descendantPolicy);
                 }
             }
 
@@ -1340,7 +1370,8 @@ public sealed partial class OperationPlanner
                 lookupStepId,
                 index,
                 ref steps,
-                out var unresolvable))
+                out var unresolvable,
+                treatSourceExternalAsUnresolvable: sourceSchemaNodePolicy is not null))
             {
                 selectionSet = null;
 
@@ -1357,7 +1388,8 @@ public sealed partial class OperationPlanner
                         unresolvable,
                         current.SchemaName,
                         GetOperationStepDepth(current, ancestorMatch.Step.Id),
-                        dependents: ImmutableHashSet<int>.Empty.Add(lookupStepId));
+                        dependents: ImmutableHashSet<int>.Empty.Add(lookupStepId),
+                        sourceSchemaNodePolicy: descendantPolicy);
                 }
             }
         }
@@ -1377,7 +1409,8 @@ public sealed partial class OperationPlanner
                 lookup.SchemaName,
                 ImmutableHashSet<int>.Empty.Add(lookupStepId),
                 lookupStepDepth,
-                conditions ?? []);
+                conditions ?? [],
+                sourceSchemaNodePolicy);
         }
 
         var remainingCost =
@@ -1475,7 +1508,8 @@ public sealed partial class OperationPlanner
                 workItem.Selection,
                 current,
                 index,
-                ref backlog);
+                ref backlog,
+                workItem.SourceSchemaNodePolicy);
 
         var operation =
             InlineSelections(
@@ -1584,7 +1618,8 @@ public sealed partial class OperationPlanner
                 lookup,
                 workItem.EstimatedDepth,
                 backlog,
-                workItem.Conditions);
+                workItem.Conditions,
+                sourceSchemaNodePolicy: workItem.SourceSchemaNodePolicy);
             backlog = current.Backlog;
 
             if (current.Steps.ById(stepConsumer.StepId) is not OperationPlanStep updatedCurrentStep)
@@ -1631,7 +1666,8 @@ public sealed partial class OperationPlanner
                 lookup.SchemaName,
                 ImmutableHashSet<int>.Empty.Add(stepId),
                 stepDepth,
-                workItem.Conditions);
+                workItem.Conditions,
+                workItem.SourceSchemaNodePolicy);
         }
 
         var compositeField = workItem.Selection.Field;
@@ -1684,7 +1720,8 @@ public sealed partial class OperationPlanner
                 workItem.Selection,
                 current,
                 indexBuilder,
-                ref backlog);
+                ref backlog,
+                workItem.SourceSchemaNodePolicy);
 
         var selectionSetNode = new SelectionSetNode(
             [workItem.Selection.Node.WithArguments(arguments).WithSelectionSet(childSelections)]);
@@ -1894,20 +1931,53 @@ public sealed partial class OperationPlanner
         {
             SchemaName = current.SchemaName,
             SelectionSet = workItem.SelectionSet,
-            SelectionSetIndex = index
+            SelectionSetIndex = index,
+            TreatSourceExternalAsUnresolvable = workItem.SourceSchemaNodePolicy is not null
         };
 
         (var resolvable, var unresolvable, var fieldsWithRequirements, index) = _partitioner.Partition(input);
 
+        if (resolvable is not { Selections.Count: > 0 }
+            && workItem.SourceSchemaNodePolicy is { } sourceSchemaNodePolicy)
+        {
+            if (!CanSeedSourceSchemaNodeBranch(
+                current.SchemaName,
+                fieldsWithRequirements,
+                unresolvable,
+                sourceSchemaNodePolicy,
+                index))
+            {
+                return;
+            }
+
+            resolvable = new SelectionSetNode([new FieldNode(IntrospectionFieldNames.TypeName)]);
+            var strictIndexBuilder = index.ToBuilder();
+            strictIndexBuilder.Register(workItem.SelectionSet.Id, resolvable);
+            index = strictIndexBuilder;
+        }
+
         // if we cannot resolve any selection with the current source schema then this path
         // cannot be used to resolve the data for the current operation, and we need to skip it.
-        if (resolvable is null)
+        if (resolvable is null
+            || (workItem.SourceSchemaNodePolicy is not null
+                && resolvable.Selections.Count == 0))
         {
             return;
         }
 
-        backlog = backlog.PushUnresolvable(unresolvable, current.SchemaName, stepDepth);
-        backlog = backlog.PushRequirements(fieldsWithRequirements, new StepConsumer(stepId), stepDepth);
+        var descendantPolicy = workItem.SourceSchemaNodePolicy is null
+            ? null
+            : SourceSchemaNodePlanningPolicy.Descendant;
+        backlog = backlog.PushUnresolvable(
+            unresolvable,
+            current.SchemaName,
+            stepDepth,
+            sourceSchemaNodePolicy: descendantPolicy);
+        backlog = backlog.PushRequirements(
+            fieldsWithRequirements,
+            new StepConsumer(stepId),
+            stepDepth,
+            descendantPolicy);
 
         var resolvableSelections = resolvable.Selections;
         if (!resolvableSelections.Any(IsTypeNameSelection))
@@ -2006,6 +2076,61 @@ public sealed partial class OperationPlanner
         possiblePlans.EnqueueBranches(next);
     }
 
+    private bool CanSeedSourceSchemaNodeBranch(
+        string schemaName,
+        ImmutableStack<ConditionedFieldSelection> fieldsWithRequirements,
+        ImmutableStack<ConditionedSelectionSet> unresolvable,
+        SourceSchemaNodePlanningPolicy policy,
+        ISelectionSetIndex index)
+    {
+        if (!fieldsWithRequirements.IsEmpty)
+        {
+            foreach (var entry in fieldsWithRequirements)
+            {
+                var selection = entry.FieldSelection;
+                if (!selection.Field.Sources.TryGetMember(schemaName, out var sourceField)
+                    || sourceField.Requirements is not { } sourceRequirements)
+                {
+                    return false;
+                }
+
+                var requirementIndex = index.ToBuilder();
+                requirementIndex.Register(
+                    selection.SelectionSetId,
+                    sourceRequirements.Requirements);
+                RegisterRequirementSelectionSets(
+                    sourceRequirements.Requirements,
+                    requirementIndex);
+
+                var input = new SelectionSetPartitionerInput
+                {
+                    SchemaName = schemaName,
+                    SelectionSet = new SelectionSet(
+                        selection.SelectionSetId,
+                        sourceRequirements.Requirements,
+                        selection.Field.DeclaringType,
+                        selection.Path),
+                    SelectionSetIndex = requirementIndex,
+                    TreatSourceExternalAsUnresolvable = true
+                };
+
+                var (resolvable, requirementUnresolvable, nestedRequirements, _) =
+                    _partitioner.Partition(input);
+
+                if (resolvable is not { Selections.Count: > 0 }
+                    || !requirementUnresolvable.IsEmpty
+                    || !nestedRequirements.IsEmpty)
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        return policy.CandidateGroupId is null && !unresolvable.IsEmpty;
+    }
+
     private void PlanNode(
         NodeFieldWorkItem workItem,
         PlanNode current,
@@ -2019,8 +2144,7 @@ public sealed partial class OperationPlanner
         var nodeField = workItem.NodeField.Field;
         var responseName = nodeField.Alias?.Value ?? nodeField.Name.Value;
         var selectionPath = SelectionPath.Root.AppendField(responseName);
-        var sourceSchemaResolution =
-            _schema.Features.Get<FusionOptions>()?.NodeResolution == NodeResolution.SourceSchema;
+        var sourceSchemaResolution = _schema.NodeResolution == NodeResolution.SourceSchema;
 
         var idArgumentValue = nodeField.Arguments.First(a => a.Name.Value == "id").Value;
 
@@ -2033,6 +2157,39 @@ public sealed partial class OperationPlanner
         var input = new SelectionSetByTypePartitionerInput { SelectionSet = selectionSet, SelectionSetIndex = index };
 
         (var sharedSelectionSet, var selectionSetsByType, index) = _selectionSetByTypePartitioner.Partition(input);
+
+        var hasSharedClientSelections = sharedSelectionSet?.Selections.Any(
+            selection => !IsTypeNameSelection(selection)) == true;
+        ImmutableDictionary<string, ImmutableHashSet<string>>? candidateSchemasByType = null;
+        var branches = selectionSetsByType;
+
+        if (sourceSchemaResolution)
+        {
+            var abstractType = (FusionComplexTypeDefinition)selectionSet.Type;
+            candidateSchemasByType = _sourceSchemaNodeCandidateResolver.Resolve(
+                nodeField,
+                abstractType);
+
+            if (hasSharedClientSelections)
+            {
+                var branchesByType = selectionSetsByType.ToDictionary(
+                    branch => branch.Type.Name,
+                    StringComparer.Ordinal);
+                var branchBuilder = ImmutableArray.CreateBuilder<SelectionSetByType>();
+
+                foreach (var possibleType in _schema.GetPossibleTypes(
+                    abstractType,
+                    includeInaccessible: true).OrderBy(type => type.Name, StringComparer.Ordinal))
+                {
+                    branchBuilder.Add(
+                        branchesByType.TryGetValue(possibleType.Name, out var branch)
+                            ? branch
+                            : new SelectionSetByType(possibleType, sharedSelectionSet!));
+                }
+
+                branches = branchBuilder.ToImmutable();
+            }
+        }
 
         var sharedSelections = sharedSelectionSet?.Selections ?? [];
         if (sourceSchemaResolution)
@@ -2093,8 +2250,21 @@ public sealed partial class OperationPlanner
             SourceSchemaResolution = sourceSchemaResolution
         };
 
-        foreach (var (type, selectionSetNode) in selectionSetsByType)
+        foreach (var (type, selectionSetNode) in branches)
         {
+            SourceSchemaNodePlanningPolicy? sourceSchemaNodePolicy = null;
+            if (candidateSchemasByType is not null)
+            {
+                if (!candidateSchemasByType.TryGetValue(type.Name, out var candidateSchemas))
+                {
+                    continue;
+                }
+
+                sourceSchemaNodePolicy = new SourceSchemaNodePlanningPolicy(
+                    candidateSchemas,
+                    hasSharedClientSelections ? stepId : null);
+            }
+
             var nodeSelectionSet = new SelectionSet(
                 index.GetId(selectionSetNode),
                 selectionSetNode,
@@ -2107,7 +2277,8 @@ public sealed partial class OperationPlanner
                 idArgumentValue,
                 nodeSelectionSet)
             {
-                ParentDepth = stepDepth
+                ParentDepth = stepDepth,
+                SourceSchemaNodePolicy = sourceSchemaNodePolicy
             };
 
             backlog = backlog.Push(newWorkItem);
@@ -2226,7 +2397,8 @@ public sealed partial class OperationPlanner
         FieldSelection selection,
         PlanNode current,
         SelectionSetIndexBuilder index,
-        ref Backlog backlog)
+        ref Backlog backlog,
+        SourceSchemaNodePlanningPolicy? sourceSchemaNodePolicy)
     {
         if (selection.Node.SelectionSet is null)
         {
@@ -2252,12 +2424,24 @@ public sealed partial class OperationPlanner
         {
             SchemaName = current.SchemaName,
             SelectionSet = selectionSet,
-            SelectionSetIndex = index
+            SelectionSetIndex = index,
+            TreatSourceExternalAsUnresolvable = sourceSchemaNodePolicy is not null
         };
 
         var (resolvable, unresolvable, fieldsWithRequirements, _) = _partitioner.Partition(input);
-        backlog = backlog.PushUnresolvable(unresolvable, current.SchemaName, stepDepth);
-        backlog = backlog.PushRequirements(fieldsWithRequirements, new StepConsumer(stepId), stepDepth);
+        var descendantPolicy = sourceSchemaNodePolicy is null
+            ? null
+            : SourceSchemaNodePlanningPolicy.Descendant;
+        backlog = backlog.PushUnresolvable(
+            unresolvable,
+            current.SchemaName,
+            stepDepth,
+            sourceSchemaNodePolicy: descendantPolicy);
+        backlog = backlog.PushRequirements(
+            fieldsWithRequirements,
+            new StepConsumer(stepId),
+            stepDepth,
+            descendantPolicy);
         return resolvable;
     }
 
@@ -2278,10 +2462,14 @@ public sealed partial class OperationPlanner
         string fromSchema,
         ImmutableHashSet<int> dependents,
         int parentDepth,
-        ExecutionNodeCondition[] conditions)
+        ExecutionNodeCondition[] conditions,
+        SourceSchemaNodePlanningPolicy? sourceSchemaNodePolicy)
     {
         var complexType = entityType as FusionComplexTypeDefinition;
         List<ISelectionNode>? directSelections = null;
+        var descendantPolicy = sourceSchemaNodePolicy is null
+            ? null
+            : SourceSchemaNodePlanningPolicy.Descendant;
 
         foreach (var selection in leftover.Selections)
         {
@@ -2319,7 +2507,8 @@ public sealed partial class OperationPlanner
                     {
                         Dependents = dependents,
                         ParentDepth = parentDepth,
-                        Conditions = conditions
+                        Conditions = conditions,
+                        SourceSchemaNodePolicy = descendantPolicy
                     });
                 continue;
             }
@@ -2343,7 +2532,8 @@ public sealed partial class OperationPlanner
                 {
                     Dependents = dependents,
                     ParentDepth = parentDepth,
-                    Conditions = conditions
+                    Conditions = conditions,
+                    SourceSchemaNodePolicy = descendantPolicy
                 });
         }
 
@@ -2457,7 +2647,8 @@ public sealed partial class OperationPlanner
                 index,
                 requirementAliases,
                 out var updatedStep,
-                out var unresolvable))
+                out var unresolvable,
+                treatSourceExternalAsUnresolvable: workItem.SourceSchemaNodePolicy is not null))
             {
                 // if we cannot resolve any selection with the current source we cannot inline the
                 // field requirements into this step.
@@ -2489,7 +2680,10 @@ public sealed partial class OperationPlanner
                             FromSchema: current.SchemaName)
                         {
                             ParentDepth = GetOperationStepDepth(current, step.Id),
-                            Conditions = entry.Conditions
+                            Conditions = entry.Conditions,
+                            SourceSchemaNodePolicy = workItem.SourceSchemaNodePolicy is null
+                                ? null
+                                : SourceSchemaNodePlanningPolicy.Descendant
                         });
                 }
             }
@@ -2529,7 +2723,8 @@ public sealed partial class OperationPlanner
             if (TryInlineIntoAncestorStep(
                 ancestorMatch, requirements, workItem.Selection.Path,
                 dependentStepId, index, ref steps, out var unresolvable,
-                resolvableRegistrationId: workItem.Selection.SelectionSetId))
+                resolvableRegistrationId: workItem.Selection.SelectionSetId,
+                treatSourceExternalAsUnresolvable: workItem.SourceSchemaNodePolicy is not null))
             {
                 requirements = null;
 
@@ -2551,7 +2746,10 @@ public sealed partial class OperationPlanner
                                 FromSchema: current.SchemaName)
                             {
                                 ParentDepth = GetOperationStepDepth(current, ancestorMatch.Step.Id),
-                                Conditions = entry.Conditions
+                                Conditions = entry.Conditions,
+                                SourceSchemaNodePolicy = workItem.SourceSchemaNodePolicy is null
+                                    ? null
+                                    : SourceSchemaNodePlanningPolicy.Descendant
                             });
                     }
                 }
@@ -2571,7 +2769,8 @@ public sealed partial class OperationPlanner
         SelectionSetIndexBuilder index,
         RequirementAliasContext requirementAliases,
         out OperationPlanStep updatedStep,
-        out ImmutableStack<ConditionedSelectionSet> unresolvable)
+        out ImmutableStack<ConditionedSelectionSet> unresolvable,
+        bool treatSourceExternalAsUnresolvable = false)
     {
         index.Register(targetSelectionSetId, requirementSelections);
 
@@ -2583,7 +2782,8 @@ public sealed partial class OperationPlanner
                 requirementSelections,
                 selectionSetType,
                 path),
-            SelectionSetIndex = index
+            SelectionSetIndex = index,
+            TreatSourceExternalAsUnresolvable = treatSourceExternalAsUnresolvable
         };
 
         var (resolvable, partitionUnresolvable, _, _) = _partitioner.Partition(input);
@@ -3668,7 +3868,8 @@ public sealed partial class OperationPlanner
         SelectionSetIndexBuilder index,
         ref ImmutableList<PlanStep> steps,
         out ImmutableStack<ConditionedSelectionSet> unresolvable,
-        uint? resolvableRegistrationId = null)
+        uint? resolvableRegistrationId = null,
+        bool treatSourceExternalAsUnresolvable = false)
     {
         unresolvable = [];
 
@@ -3690,7 +3891,8 @@ public sealed partial class OperationPlanner
                 wrappedSelections,
                 match.Type,
                 path),
-            SelectionSetIndex = index
+            SelectionSetIndex = index,
+            TreatSourceExternalAsUnresolvable = treatSourceExternalAsUnresolvable
         };
 
         var (resolvable, partitionUnresolvable, _, _) = _partitioner.Partition(input);
@@ -3875,7 +4077,8 @@ internal static class PlannerExtensions
 
     public static IEnumerable<(string SchemaName, double Cost)> GetPossibleSchemas(
         this FusionSchemaDefinition compositeSchema,
-        SelectionSet selectionSet)
+        SelectionSet selectionSet,
+        IEnumerable<string>? additionalCandidateSchemas = null)
     {
         ArgumentNullException.ThrowIfNull(compositeSchema);
         ArgumentNullException.ThrowIfNull(selectionSet);
@@ -3888,6 +4091,11 @@ internal static class PlannerExtensions
             selectionSet.Type,
             selectionSet.Selections,
             candidateSchemas);
+
+        if (additionalCandidateSchemas is not null)
+        {
+            candidateSchemas.UnionWith(additionalCandidateSchemas);
+        }
 
         CollectFieldResolutions(
             compositeSchema,
@@ -3978,6 +4186,24 @@ internal static class PlannerExtensions
                     case FieldNode fieldNode:
                         if (fieldNode.Name.Value == IntrospectionFieldNames.TypeName)
                         {
+                            // __typename is resolvable on any schema, so it normally does not
+                            // constrain schema choice. The exception is an @interfaceObject-opaque
+                            // position: the stand-in cannot provide an authoritative concrete
+                            // __typename, so identity recovery requires a concrete-aware source
+                            // (one where the interface is not a stand-in), reached through its
+                            // covering interface lookup.
+                            if (complexType is FusionInterfaceTypeDefinition interfaceType
+                                && interfaceType.Sources.Any(t => t.IsInterfaceObject))
+                            {
+                                foreach (var source in interfaceType.Sources)
+                                {
+                                    if (!source.IsInterfaceObject)
+                                    {
+                                        candidateSchemas.Add(source.SchemaName);
+                                    }
+                                }
+                            }
+
                             continue;
                         }
 
@@ -4008,6 +4234,25 @@ internal static class PlannerExtensions
                             typeCondition = compositeSchema.Types.GetType(
                                 inlineFragmentNode.TypeCondition.Name.Value,
                                 allowInaccessibleFields: true);
+                        }
+
+                        // Narrowing an @interfaceObject-opaque interface to a concrete possible type
+                        // observes identity: the stand-in cannot authoritatively tell whether a
+                        // value is that concrete type, so a concrete-aware source (one where the
+                        // interface is not a stand-in) must recover it through its covering
+                        // interface lookup. Mirrors the interface-level __typename handling above so
+                        // a fragment that selects only __typename still yields a candidate schema.
+                        if (complexType is FusionInterfaceTypeDefinition fragmentParentInterface
+                            && typeCondition is FusionObjectTypeDefinition
+                            && fragmentParentInterface.Sources.Any(t => t.IsInterfaceObject))
+                        {
+                            foreach (var source in fragmentParentInterface.Sources)
+                            {
+                                if (!source.IsInterfaceObject)
+                                {
+                                    candidateSchemas.Add(source.SchemaName);
+                                }
+                            }
                         }
 
                         CollectCandidateSchemas(

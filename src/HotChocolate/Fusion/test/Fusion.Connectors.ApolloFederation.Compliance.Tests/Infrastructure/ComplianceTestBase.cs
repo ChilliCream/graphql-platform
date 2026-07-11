@@ -27,8 +27,8 @@ public abstract class ComplianceTestBase : IAsyncLifetime
     /// </summary>
     /// <param name="query">The GraphQL operation to execute.</param>
     /// <param name="expectedData">
-    /// The expected <c>data</c> payload as a JSON object. When <see langword="null"/>,
-    /// the <c>data</c> payload is not asserted.
+    /// The expected <c>data</c> payload as JSON. A <see langword="null"/> value expects the
+    /// response data to be absent or explicitly <see langword="null"/>.
     /// </param>
     /// <param name="expectsErrors">
     /// When not <see langword="null"/>, asserts whether an <c>errors</c> array is

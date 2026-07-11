@@ -20,7 +20,9 @@ internal static class FusionBuiltIns
         [
             new EventCursorMutableDirectiveDefinition(),
             new ExternalMutableDirectiveDefinition(),
+            new ImplementMutableDirectiveDefinition(),
             new InaccessibleMutableDirectiveDefinition(),
+            new InterfaceObjectMutableDirectiveDefinition(),
             new InternalMutableDirectiveDefinition(),
             new IsMutableDirectiveDefinition(s_fieldSelectionMapType),
             new KeyMutableDirectiveDefinition(s_fieldSelectionSetType),

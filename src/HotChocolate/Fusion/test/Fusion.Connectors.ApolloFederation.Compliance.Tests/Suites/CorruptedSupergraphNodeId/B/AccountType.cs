@@ -17,7 +17,7 @@ public sealed class AccountType : ObjectType<Account>
             .Key("id")
             .ResolveReferenceWith(_ => ResolveById(default!));
 
-        descriptor.Field(a => a.Id).Type<NonNullType<IdType>>();
+        descriptor.Field(a => a.Id).External().Type<NonNullType<IdType>>();
 
         descriptor
             .Field("chats")

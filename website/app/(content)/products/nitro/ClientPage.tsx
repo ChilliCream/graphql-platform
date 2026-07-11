@@ -13,6 +13,7 @@ import type { CSSProperties, ReactNode } from "react";
 import { useEffect, useId, useRef } from "react";
 
 import { ControlPlaneConsole } from "@/src/components/nitro/ControlPlaneConsole";
+import { NitroDownload } from "@/src/components/nitro/NitroDownload";
 import { RisingParticles } from "@/src/components/nitro/RisingParticles";
 import { RevealOnScroll } from "@/src/components/RevealOnScroll";
 import { OutlineButton, SolidButton } from "@/src/design-system/Button";
@@ -1410,7 +1411,7 @@ function Hero({ reduced }: HeroProps) {
       <HeroAurora reduced={reduced} />
 
       <div className="relative z-10 mx-auto max-w-7xl px-5 pt-24 pb-16 sm:px-12 sm:pt-30">
-        <RevealOnScroll className="flex max-w-2xl flex-col gap-6">
+        <RevealOnScroll className="relative z-20 flex max-w-2xl flex-col gap-6">
           <div className="flex items-center gap-3">
             <span
               aria-hidden="true"
@@ -1445,7 +1446,7 @@ function Hero({ reduced }: HeroProps) {
                   "0 0 24px rgba(22,185,228,0.5), 0 0 52px rgba(240,120,106,0.28)",
               }}
             >
-              <SolidButton href="/docs/nitro">See it in action</SolidButton>
+              <NitroDownload />
             </span>
             <OutlineButton href="https://nitro.chillicream.com">
               Launch Nitro

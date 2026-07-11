@@ -1,0 +1,196 @@
+title: Fragment_Narrowing_Resolves_ConcreteOwned_Field_From_Opaque_Root
+request:
+  document: |
+    query testQuery {
+      trendingMedia {
+        ... on Book {
+          isbn
+        }
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "trendingMedia": [
+          {
+            "isbn": "Book: TWVkaWE6MQ=="
+          },
+          {
+            "isbn": "Book: TWVkaWE6Mg=="
+          },
+          {
+            "isbn": "Book: TWVkaWE6Mw=="
+          }
+        ]
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        mediaById(id: ID!): Media @lookup
+      }
+
+      type Book implements Media @key(fields: "id") {
+        id: ID!
+        title: String!
+        isbn: String!
+      }
+
+      type Movie implements Media @key(fields: "id") {
+        id: ID!
+        title: String!
+        runtime: Int!
+      }
+
+      interface Media {
+        id: ID!
+        title: String!
+      }
+    interactions:
+      - request:
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
+          document: |
+            query testQuery_ac84cf0c_2($__fusion_1_id: ID!) {
+              mediaById(id: $__fusion_1_id) {
+                __typename
+                ... on Book {
+                  isbn
+                }
+              }
+            }
+          variables: |
+            [
+              {
+                "__fusion_1_id": "TWVkaWE6MQ=="
+              },
+              {
+                "__fusion_1_id": "TWVkaWE6Mg=="
+              },
+              {
+                "__fusion_1_id": "TWVkaWE6Mw=="
+              }
+            ]
+        response:
+          contentType: application/jsonl; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "mediaById": {
+                    "__typename": "Book",
+                    "isbn": "Book: TWVkaWE6MQ=="
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "mediaById": {
+                    "__typename": "Book",
+                    "isbn": "Book: TWVkaWE6Mg=="
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "mediaById": {
+                    "__typename": "Book",
+                    "isbn": "Book: TWVkaWE6Mw=="
+                  }
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        trendingMedia: [Media!]!
+        mediaByKey(id: ID!): Media @lookup @internal
+      }
+
+      type Media @interfaceObject @key(fields: "id") {
+        id: ID!
+        views: Int!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query testQuery_ac84cf0c_1 {
+              trendingMedia {
+                id
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "trendingMedia": [
+                    {
+                      "id": "TWVkaWE6MQ=="
+                    },
+                    {
+                      "id": "TWVkaWE6Mg=="
+                    },
+                    {
+                      "id": "TWVkaWE6Mw=="
+                    }
+                  ]
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        query testQuery {
+          trendingMedia {
+            __typename @fusion__requirement
+            id @fusion__requirement
+            ... on Book {
+              isbn
+            }
+          }
+        }
+      name: testQuery
+      hash: ac84cf0c3518213271a745d56f4ba095
+      searchSpace: 1
+      expandedNodes: 2
+  nodes:
+    - id: 1
+      type: Operation
+      schema: B
+      operation: |
+        query testQuery_ac84cf0c_1 {
+          trendingMedia {
+            id
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: A
+      operation: |
+        query testQuery_ac84cf0c_2($__fusion_1_id: ID!) {
+          mediaById(id: $__fusion_1_id) {
+            __typename
+            ... on Book {
+              isbn
+            }
+          }
+        }
+      source: $.mediaById
+      target: $.trendingMedia
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1

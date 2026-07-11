@@ -80,27 +80,173 @@ Composition resolves Apollo Federation constructs before clients see the schema.
 | `@override(from: "...")`                   | Preserved as override semantics.                                                                  |
 | `@inaccessible`                            | Preserved.                                                                                        |
 | `@tag`                                     | Preserved.                                                                                        |
+| `@interfaceObject`                         | Projects fields onto the same-named interface and compatible implementations.                     |
 | Union members contributed across subgraphs | Merged into a single union in the composed schema.                                                |
 
-# Global Object Identification
+# Shareable Abstract Field Routing
 
-If your Apollo Federation subgraphs implement the Relay `node` field (a `Query.node(id: ID!): Node` field over a `Node` interface), the connector turns it into a lookup during composition. The gateway can then resolve any `Node` type through that lookup.
+Apollo Federation subgraphs can define the same shareable field while declaring different members for its interface or union result type. Fusion offers two policies for routing selections under inline fragments and other type conditions:
 
-Configure how the gateway resolves `node(id:)` at runtime with the `NodeResolution` option on `FusionOptions`:
+| Composition API value | CLI value              | Execution-schema value | Behavior                                                                                                                                                                  |
+| --------------------- | ---------------------- | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `SourceLocal`         | `source-local`         | `SOURCE_LOCAL`         | Routes type-conditioned selections according to the source schema that resolves the shareable field. This is the default, including for archives that predate the policy. |
+| `CommonRuntimeTypes`  | `common-runtime-types` | `COMMON_RUNTIME_TYPES` | Routes only runtime types shared by viable Apollo providers: those in current scope, directly reachable through one entity lookup, or non-external at an operation root.  |
 
-| Value                         | Behavior                                                                                                                                                                                                                                                                                |
-| ----------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `NodeResolution.Gateway`      | The gateway decodes the `id`, determines the object's type from it, and routes the lookup to the source schema that owns that type. This is the default.                                                                                                                                |
-| `NodeResolution.SourceSchema` | The gateway does not interpret the `id`. It forwards `node(id:)` to a source schema that owns a node lookup, and that subgraph resolves the type. Use this when identifiers are opaque to the gateway, which is often the case for Apollo Federation subgraphs that mint their own IDs. |
+`CommonRuntimeTypes` does not filter objects returned by a source or change `__typename`. A source-specific object can still appear in the response, while fields requested only through a type condition that was not routed can be `null`.
 
-Set the option on the gateway builder with `ModifyOptions`:
+Use `CommonRuntimeTypes` to reproduce the conservative routing exercised by the legacy `PartialUnion` and `PartialUnionComplex` federation gateway-audit cases, or whenever viable providers expose different members of the same interface or union. Select it while composing:
+
+```bash
+nitro fusion compose \
+  --source-schema-file ./products/schema.graphqls \
+  --source-schema-file ./reviews/schema.graphqls \
+  --shareable-field-runtime-type-routing common-runtime-types \
+  --archive gateway.far
+```
+
+For programmatic composition, set the compatibility option:
+
+```csharp
+var options = new SchemaComposerOptions();
+options.ApolloFederationCompatibility.ShareableFieldRuntimeTypeRouting =
+    ShareableFieldRuntimeTypeRouting.CommonRuntimeTypes;
+
+var log = new CompositionLog();
+var result = new SchemaComposer(sourceSchemas, options, log).Compose();
+```
+
+With Aspire, set `GraphQLCompositionSettings.ShareableFieldRuntimeTypeRouting` to `ShareableFieldRuntimeTypeRouting.CommonRuntimeTypes`. See [Composition Settings](../aspire-integration.md#composition-settings). To update an existing archive, use [`nitro fusion settings set`](../cli.md#nitro-fusion-settings-set).
+
+Composition records the policy in the execution schema. For example, `common-runtime-types` produces:
+
+```graphql
+schema
+  @fusion__execution(
+    nodeResolution: GATEWAY
+    shareableFieldRuntimeTypeRouting: COMMON_RUNTIME_TYPES
+  ) {
+  query: Query
+}
+```
+
+The default is recorded as `shareableFieldRuntimeTypeRouting: SOURCE_LOCAL`.
+
+# Interface Objects
+
+Apollo Federation v2 interface objects compose with native GraphQL Federation interfaces. Keep the Apollo declaration and its Federation v2 import in the subgraph SDL:
+
+```graphql
+extend schema
+  @link(
+    url: "https://specs.apollo.dev/federation/v2.6"
+    import: ["@key", "@interfaceObject"]
+  )
+
+type Media @key(fields: "id") @interfaceObject {
+  id: ID!
+  views: Int!
+}
+```
+
+Fusion projects this stand-in's fields onto the interface and compatible implementations. Values produced by the stand-in remain opaque until Fusion recovers their concrete type through a source that knows the implementations.
+
+Apollo Federation does not define Fusion's native `@implement` directive. When an Apollo implementing type redeclares a projected field, mark the compatible declarations with Apollo `@shareable`. Fusion uses that declaration as the explicit replacement contract. A redeclaration that is not shareable fails composition.
+
+At runtime, Fusion enters the Apollo stand-in through `_entities`. Native GraphQL Federation interface objects use `@lookup` fields instead. Both source kinds can participate in the same interface.
+
+See [Interface Objects](../interface-objects.md) for field projection, opaque identity, covering lookups, and native source-schema examples.
+
+## Allow Non-Resolvable Interface Objects
+
+By default, composition rejects an Apollo interface object whose key uses `resolvable: false` when Fusion cannot build the required route. This strict default catches projected fields that the gateway could not fetch.
+
+For compatibility with an existing Apollo graph, you can allow these stand-ins during programmatic composition:
+
+```csharp
+var options = new SchemaComposerOptions();
+options.ApolloFederationCompatibility.AllowNonResolvableInterfaceObjects = true;
+
+var log = new CompositionLog();
+var result = new SchemaComposer(sourceSchemas, options, log).Compose();
+```
+
+Here, `sourceSchemas` is the `IEnumerable<SourceSchemaText>` used by your existing programmatic composition flow. Inspect `result` and `log` as you do for other composition errors.
+
+With Aspire composition, set the equivalent property:
 
 ```csharp
 builder
-    .AddGraphQLGateway()
-    .ModifyOptions(options => options.NodeResolution = NodeResolution.SourceSchema)
-    .AddFileSystemConfiguration("./gateway.far");
+    .AddProject<Projects.Gateway>("gateway-api")
+    .WithGraphQLSchemaComposition(
+        settings: new GraphQLCompositionSettings
+        {
+            AllowNonResolvableInterfaceObjects = true
+        });
 ```
+
+> This option applies only to source schemas detected as Apollo Federation schemas. It does not relax native interface-object satisfiability. Enabling it does not create a lookup route, so an unresolved selection produces a field error at runtime.
+
+# Global Object Identification
+
+If your Apollo Federation subgraphs implement the Relay `node` field (a `Query.node(id: ID!): Node` field over a `Node` interface), the connector turns it into a lookup during composition. Keep the Apollo Federation SDL as exported. You do not need to add Fusion's `@lookup` directive to the field.
+
+## Configure node resolution
+
+Choose how the gateway resolves `node(id:)` when you compose the gateway archive. Fusion records the mode in the execution schema, so every compatible gateway that loads the archive uses the same behavior.
+
+| CLI value       | Execution-schema value | Behavior                                                                                                                                                                                                                                                                                        |
+| --------------- | ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `gateway`       | `GATEWAY`              | The gateway decodes the ID, determines the object type, and routes the lookup to the source schema that owns that type. This is the default.                                                                                                                                                    |
+| `source-schema` | `SOURCE_SCHEMA`        | The gateway forwards the opaque ID to a source schema with a public root `Query.node(id: ID!): Node` lookup. That source schema determines the object type and can resolve the concrete `Node` implementations that it declares. Use this mode when the gateway cannot decode your identifiers. |
+
+To use source-schema resolution, enable Global Object Identification and select the mode in the compose command:
+
+```bash
+nitro fusion compose \
+  --source-schema-file ./accounts/schema.graphqls \
+  --source-schema-file ./reviews/schema.graphqls \
+  --archive gateway.far \
+  --enable-global-object-identification \
+  --node-resolution source-schema
+```
+
+To update an existing archive, enable Global Object Identification before changing the node-resolution setting:
+
+```bash
+nitro fusion settings set global-object-identification true \
+  --archive gateway.far
+
+nitro fusion settings set node-resolution source-schema \
+  --archive gateway.far
+```
+
+For the settings command reference, see [nitro fusion settings set](../cli.md#nitro-fusion-settings-set). If you compose through Aspire, set `EnableGlobalObjectIdentification` to `true` and `NodeResolution` to `NodeResolution.SourceSchema` in `GraphQLCompositionSettings`. See [Composition settings](../aspire-integration.md#composition-settings).
+
+## Verify node resolution
+
+After a successful composition, Nitro prints the archive path:
+
+```text
+✅ Composite schema written to '/absolute/path/to/gateway.far'.
+```
+
+The generated execution schema should also contain:
+
+```graphql
+schema @fusion__execution(nodeResolution: SOURCE_SCHEMA) {
+  query: Query
+}
+```
+
+Deploy a `SOURCE_SCHEMA` archive only to compatible gateways that support the `@fusion__execution` metadata. An older gateway can fall back to gateway-side ID decoding.
+
+## Troubleshoot source-schema resolution
+
+If composition reports `Source-schema node resolution requires global object identification to be enabled.`, you selected `source-schema` without enabling Global Object Identification. Add both `--enable-global-object-identification` and `--node-resolution source-schema` to the compose command.
+
+Source-schema resolution covers only concrete `Node` implementations declared by a source schema with a public root `Query.node(id: ID!): Node` lookup. If a valid dispatcher covers some implementations but another composite `Node` type is uncovered, composition emits an `UNSATISFIABLE_QUERY_PATH` warning. A request for an uncovered type can return `node: null`, with an error if the source resolver reports one. Add the type as a `Node` implementation in a source schema with a public root node lookup. If no public root dispatcher covers any `Node` implementation, composition fails.
+
+See [GraphQL Global Object Identification](../entities-and-lookups.md#graphql-global-object-identification) for the required schema shape and the [composition log-code reference](../composition.md#log-codes-reference) for diagnostic details.
 
 # Runtime Behavior
 
@@ -119,7 +265,7 @@ When a query plan needs several different lookups from the same subgraph, the ga
 The connector is under active development and ships as a preview. Composition rejects unsupported Apollo Federation features with a specific error code, so the gateway does not produce a schema that would misbehave at runtime.
 
 - **Apollo Federation v1 is not supported.** A subgraph must be an Apollo Federation v2 schema, which means it carries a `@link` to `https://specs.apollo.dev/federation`. A v1 subgraph (which has no such `@link`) is rejected with `FEDERATION_V1_NOT_SUPPORTED`. Upgrade the subgraph to Apollo Federation v2.
-- **Several Apollo Federation v2 directives are not supported.** Composition rejects `@interfaceObject`, `@composeDirective`, `@authenticated`, `@requiresScopes`, and `@policy` with `FEDERATION_DIRECTIVE_NOT_SUPPORTED`. Remove the directive, or express the equivalent with a GraphQL Federation construct.
+- **Several Apollo Federation v2 directives are not supported.** Composition rejects `@composeDirective`, `@authenticated`, `@requiresScopes`, and `@policy` with `FEDERATION_DIRECTIVE_NOT_SUPPORTED`. Remove the directive, or express the equivalent with a GraphQL Federation construct.
 
 Both error codes are listed in the [Composition log-code reference](../composition.md#log-codes-reference).
 
@@ -135,4 +281,5 @@ You do not have to choose one protocol for the whole graph. Apollo Federation an
 
 - Compose and run a gateway: [nitro fusion compose](../cli.md#nitro-fusion-compose) and [Getting Started](../getting-started.md).
 - Understand entity resolution in the GraphQL Federation model: [Entities and Lookups](../entities-and-lookups.md).
+- Extend interfaces across source schemas: [Interface Objects](../interface-objects.md).
 - Move subgraphs to the GraphQL Federation protocol: [Coming from Apollo Federation](../migration/coming-from-apollo-federation.md).

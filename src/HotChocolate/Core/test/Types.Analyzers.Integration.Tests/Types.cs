@@ -3,6 +3,7 @@ using System.Text.Json;
 using GreenDonut.Data;
 using HotChocolate.Features;
 using HotChocolate.Language;
+using HotChocolate.Resolvers;
 using HotChocolate.Text.Json;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Configurations;
@@ -27,6 +28,27 @@ public class Book : Product
 {
     public required string Title { get; set; }
 }
+
+[ObjectType<Book>]
+public static partial class BookBatchType
+{
+    [BatchResolver]
+    public static List<string> GetBatchGreeting(
+        [Parent] List<Book> books,
+        BatchCurrentUser currentUser)
+    {
+        var result = new List<string>(books.Count);
+
+        foreach (var book in books)
+        {
+            result.Add($"{currentUser.Name}:{book.Title}");
+        }
+
+        return result;
+    }
+}
+
+public sealed record BatchCurrentUser(string Name);
 
 public class Television : Product;
 
@@ -133,7 +155,16 @@ public static partial class Mutation
     // which must coerce the inner type and honor whether the argument was provided.
     public static string SetOptionalValue(Optional<string?> value)
         => value.HasValue ? value.Value ?? "null" : "unset";
+
+    // When the CurrentUser parameter is supplied through AddParameterExpressionBuilder,
+    // the source-generated binding must resolve it from that custom builder rather than
+    // exposing it as a GraphQL input argument. Without a custom builder registered the
+    // parameter legitimately becomes an implicit argument of type CurrentUserInput.
+    public static string CreateExport(CurrentUser currentUser, string name)
+        => $"{currentUser.Name}:{name}";
 }
+
+public sealed record CurrentUser(string Name);
 
 public class IsSelectedNode
 {

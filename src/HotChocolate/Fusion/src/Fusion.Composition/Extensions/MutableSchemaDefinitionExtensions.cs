@@ -40,7 +40,9 @@ internal static class MutableSchemaDefinitionExtensions
         MutableComplexTypeDefinition type,
         string? schemaName = null)
     {
-        if (!string.IsNullOrEmpty(schemaName) && !type.ExistsInSchema(schemaName))
+        if (!string.IsNullOrEmpty(schemaName)
+            && !type.ExistsInSchema(schemaName)
+            && !ReachesInterfaceObjectStandIn(schema, type, schemaName))
         {
             return [];
         }
@@ -90,6 +92,34 @@ internal static class MutableSchemaDefinitionExtensions
                 GetFusionLookupDirectives(interfaceType, implementedInSchemaName);
 
             lookups.AddRange(interfaceLookupsInSchema);
+        }
+
+        // Get the interface lookups of any @interfaceObject stand-in for an interface this type
+        // implements. A stand-in resolves every possible type of its interface by the shared key,
+        // so its interface-typed lookups are available for this type even in schemas that do not
+        // define the type. The implements relation is read from the completed set on the type,
+        // which includes edges derived by transitive closure.
+        var standInInterfaceNames = new HashSet<string>(StringComparer.Ordinal);
+
+        foreach (var implementedInterface in type.Implements)
+        {
+            if (!standInInterfaceNames.Add(implementedInterface.Name)
+                || !schema.Types.TryGetType<MutableInterfaceTypeDefinition>(
+                    implementedInterface.Name,
+                    out var standInInterfaceType))
+            {
+                continue;
+            }
+
+            foreach (var standInSchemaName in GetInterfaceObjectSchemaNames(standInInterfaceType))
+            {
+                if (!string.IsNullOrEmpty(schemaName) && standInSchemaName != schemaName)
+                {
+                    continue;
+                }
+
+                lookups.AddRange(GetFusionLookupDirectives(standInInterfaceType, standInSchemaName));
+            }
         }
 
         // Get the lookups of unions this type is a member of,
@@ -314,6 +344,47 @@ internal static class MutableSchemaDefinitionExtensions
                 }
             }
         }
+    }
+
+    /// <summary>
+    /// Gets the source schema names in which <paramref name="interfaceType"/> is declared as an
+    /// <c>@interfaceObject</c> stand-in, read from its <c>@fusion__interfaceObject(schema:)</c>
+    /// directives on the merged schema.
+    /// </summary>
+    internal static IEnumerable<string> GetInterfaceObjectSchemaNames(
+        MutableInterfaceTypeDefinition interfaceType)
+    {
+        foreach (var directive in interfaceType.Directives.AsEnumerable())
+        {
+            if (directive.Name == WellKnownDirectiveNames.FusionInterfaceObject)
+            {
+                yield return (string)directive.Arguments[WellKnownArgumentNames.Schema].Value!;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Determines whether <paramref name="type"/> implements an interface that has an
+    /// <c>@interfaceObject</c> stand-in in <paramref name="schemaName"/>. Such a type can be looked
+    /// up in that schema through the stand-in even though the schema does not define the type.
+    /// </summary>
+    internal static bool ReachesInterfaceObjectStandIn(
+        MutableSchemaDefinition schema,
+        MutableComplexTypeDefinition type,
+        string schemaName)
+    {
+        foreach (var implementedInterface in type.Implements)
+        {
+            if (schema.Types.TryGetType<MutableInterfaceTypeDefinition>(
+                    implementedInterface.Name,
+                    out var interfaceType)
+                && GetInterfaceObjectSchemaNames(interfaceType).Contains(schemaName))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private static List<IDirective> GetFusionLookupDirectives(

@@ -28,6 +28,7 @@ public sealed class CorruptedSupergraphNodeIdTests : ComplianceTestBase
               }
             }
             """,
+        expectedData: "null",
         expectsErrors: true);
 
     [Fact]
@@ -154,6 +155,7 @@ public sealed class CorruptedSupergraphNodeIdTests : ComplianceTestBase
               }
             }
             """,
+        expectedData: "null",
         expectsErrors: true);
 
     [Fact]

@@ -12,7 +12,9 @@ namespace HotChocolate.Fusion.Definitions;
 /// </summary>
 internal sealed class FusionSchemaMetadataMutableDirectiveDefinition : MutableDirectiveDefinition
 {
-    public FusionSchemaMetadataMutableDirectiveDefinition(MutableScalarTypeDefinition stringType)
+    public FusionSchemaMetadataMutableDirectiveDefinition(
+        MutableScalarTypeDefinition stringType,
+        MutableScalarTypeDefinition booleanType)
         : base(FusionSchemaMetadata)
     {
         Description = FusionSchemaMetadataMutableDirectiveDefinition_Description;
@@ -23,6 +25,11 @@ internal sealed class FusionSchemaMetadataMutableDirectiveDefinition : MutableDi
         });
 
         Arguments.Add(new MutableInputFieldDefinition(argNames.Kind, stringType));
+
+        Arguments.Add(
+            new MutableInputFieldDefinition(
+                argNames.AllowNonResolvableInterfaceObjects,
+                booleanType));
 
         Locations = DirectiveLocation.EnumValue;
     }
