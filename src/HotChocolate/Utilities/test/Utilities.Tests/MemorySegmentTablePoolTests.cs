@@ -72,6 +72,7 @@ public class MemorySegmentTablePoolTests
         {
             // assert
             Assert.True(recycled.Length >= 256);
+            Assert.Same(table, recycled);
             Assert.All(
                 recycled,
                 static segment =>
