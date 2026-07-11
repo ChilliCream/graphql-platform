@@ -158,20 +158,6 @@ namespace HotChocolate.Types.Pagination
                     configuration.SetSourceGeneratorFlags();
                     configuration.SetConnectionTotalCountFieldFlags();
 
-                    configuration.Member = context.ThisType.GetMethod(
-                        "TotalCount",
-                        global::HotChocolate.Utilities.ReflectionUtils.InstanceMemberFlags,
-                        global::System.Array.Empty<global::System.Type>());
-
-                    var fieldDescriptor = global::HotChocolate.Types.Descriptors.ObjectFieldDescriptor.From(field.Context, configuration);
-                    HotChocolate.Internal.ConfigurationHelper.ApplyConfiguration(
-                        field.Context,
-                        fieldDescriptor,
-                        configuration.Member,
-                        new global::HotChocolate.Types.Pagination.PageConnectionTotalCountAttribute());
-                    configuration.ConfigurationsAreApplied = true;
-                    fieldDescriptor.CreateConfiguration();
-
                     configuration.Resolvers = context.Resolvers.TotalCount();
                 },
                 (Resolvers: resolvers, ThisType: thisType));

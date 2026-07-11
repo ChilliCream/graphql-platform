@@ -10,9 +10,7 @@ namespace HotChocolate.Types.Pagination;
 /// </typeparam>
 [GraphQLName("{0}Connection")]
 [GraphQLDescription("A connection to a list of items.")]
-public class PageConnection<TNode>
-    : ConnectionBase<TNode, PageEdge<TNode>, PageInfo>,
-    IPageConnectionTotalCountProvider
+public class PageConnection<TNode> : ConnectionBase<TNode, PageEdge<TNode>, PageInfo>
 {
     private readonly Page<TNode> _page;
     private readonly int _maxRelativeCursorCount;
@@ -78,10 +76,7 @@ public class PageConnection<TNode>
     /// Identifies the total count of items in the connection.
     /// </summary>
     [GraphQLDescription("Identifies the total count of items in the connection.")]
-    [PageConnectionTotalCount]
     public int TotalCount => _page.TotalCount ?? -1;
-
-    int? IPageConnectionTotalCountProvider.TotalCount => _page.TotalCount;
 
     /// <summary>
     /// Converts a <see cref="Page{TNode}"/> to a <see cref="PageConnection{TNode}"/>.
