@@ -36,6 +36,17 @@ internal static class MutableOutputFieldDefinitionExtensions
             }
         }
 
+        public void ApplyImplementDirective()
+        {
+            var implementDirectiveExists =
+                field.Directives.AsEnumerable().Any(d => d.Name == DirectiveNames.Implement);
+
+            if (!implementDirectiveExists)
+            {
+                field.Directives.Add(new Directive(FusionBuiltIns.SourceSchemaDirectives[DirectiveNames.Implement]));
+            }
+        }
+
         public bool ExistsInSchema(string schemaName)
         {
             return field.Directives.AsEnumerable().Any(

@@ -20,35 +20,48 @@ internal static class OperationPlanExecutor
         OperationPlan operationPlan,
         CancellationToken cancellationToken)
     {
-        // We create a new CancellationTokenSource that can be used to halt the execution engine,
-        // without also cancelling the entire request pipeline.
-        using var executionCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-
         await using var context = requestContext.Schema.Services.GetRequiredService<OperationPlanContextPool>().Rent();
-        context.Initialize(requestContext, variables, operationPlan, executionCts);
 
-        context.Begin();
+        // We reuse a pooled CancellationTokenSource that can halt the execution engine without
+        // cancelling the entire request pipeline. The request token is linked in so that
+        // client-abort / server-shutdown still propagates.
+        var (executionCts, cancellationRegistration) = context.RentEngineCancellation(cancellationToken);
 
-        switch (operationPlan.Operation.Definition.Operation)
+        try
         {
-            case OperationType.Query:
-                await ExecuteQueryAsync(context, operationPlan, executionCts.Token);
-                break;
+            context.Initialize(requestContext, variables, operationPlan, executionCts);
 
-            case OperationType.Mutation:
-                await ExecuteMutationAsync(context, operationPlan, executionCts.Token);
-                break;
+            context.Begin();
 
-            default:
-                throw new InvalidOperationException("Only queries and mutations can be executed.");
+            switch (operationPlan.Operation.Definition.Operation)
+            {
+                case OperationType.Query:
+                    await ExecuteQueryAsync(context, operationPlan, executionCts.Token);
+                    break;
+
+                case OperationType.Mutation:
+                    await ExecuteMutationAsync(context, operationPlan, executionCts.Token);
+                    break;
+
+                default:
+                    throw new InvalidOperationException("Only queries and mutations can be executed.");
+            }
+
+            // If the original CancellationToken of the request was cancelled,
+            // the Execution nodes and the PlanExecutor should have been gracefully cancelled,
+            // so we throw here to properly cancel the request execution.
+            cancellationToken.ThrowIfCancellationRequested();
+
+            return context.Complete();
         }
-
-        // If the original CancellationToken of the request was cancelled,
-        // the Execution nodes and the PlanExecutor should have been gracefully cancelled,
-        // so we throw here to properly cancel the request execution.
-        cancellationToken.ThrowIfCancellationRequested();
-
-        return context.Complete();
+        finally
+        {
+            // Dispose the parent-token registration BEFORE returning the source for reuse so a
+            // stale registration can never fire into a reset source. DisposeAsync waits for an
+            // in-flight cancel callback to finish.
+            await cancellationRegistration.DisposeAsync();
+            context.ReturnEngineCancellation();
+        }
     }
 
     public static async Task<IExecutionResult> ExecuteWithDeferAsync(

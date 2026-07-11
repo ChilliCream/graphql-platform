@@ -1,3 +1,4 @@
+using HotChocolate.Fusion.Options;
 using HotChocolate.Fusion.Suites.PartialUnionComplex.A;
 using HotChocolate.Fusion.Suites.PartialUnionComplex.B;
 
@@ -10,13 +11,18 @@ namespace HotChocolate.Fusion.Suites;
 /// <c>Wrapper.actions</c> union. The union <c>Action</c> exposes a member
 /// (<c>OnlyA</c>) only in <c>a</c> and a member (<c>OnlyB</c>) only in <c>b</c>,
 /// with <c>Common</c> shared. The gateway must keep the union member fragments
-/// resolvable for the subgraph that owns the current path rather than the global
-/// intersection of all members.
+/// that are common to every viable provider of a shareable field. Provider scope
+/// may expand across the keyed <c>Container</c>, but narrows again below provider-specific fields.
 /// </summary>
 public sealed class PartialUnionComplexTests : ComplianceTestBase
 {
     protected override Task<FusionGateway> BuildGatewayAsync()
         => FusionGatewayBuilder.ComposeAsync(
+            new ApolloFederationCompatibilityOptions
+            {
+                ShareableFieldRuntimeTypeRouting =
+                    ShareableFieldRuntimeTypeRouting.CommonRuntimeTypes
+            },
             (ASubgraph.Name, ASubgraph.BuildAsync),
             (BSubgraph.Name, BSubgraph.BuildAsync));
 
@@ -169,6 +175,39 @@ public sealed class PartialUnionComplexTests : ComplianceTestBase
                   ]
                 }
               }
+            }
+            """);
+
+    [Fact]
+    public Task SharedRoot_Actions_UsesCommonRuntimeTypesAcrossRootProviders() => RunAsync(
+        query: """
+            query {
+              sharedActions {
+                __typename
+                ... on Common {
+                  label
+                }
+                ... on OnlyA {
+                  a
+                }
+                ... on OnlyB {
+                  b
+                }
+              }
+            }
+            """,
+        expectedData: """
+            {
+              "sharedActions": [
+                {
+                  "__typename": "Common",
+                  "label": "common label"
+                },
+                {
+                  "__typename": "OnlyA",
+                  "a": null
+                }
+              ]
             }
             """);
 

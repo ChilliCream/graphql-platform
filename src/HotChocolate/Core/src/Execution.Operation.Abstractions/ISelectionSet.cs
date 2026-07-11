@@ -35,9 +35,13 @@ public interface ISelectionSet
     bool HasIncrementalParts { get; }
 
     /// <summary>
-    /// Gets the type that declares this selection set.
+    /// Gets the complex type that declares this selection set.
     /// </summary>
-    IObjectTypeDefinition Type { get; }
+    /// <remarks>
+    /// This is typically an object type. It can be an interface type when the concrete runtime
+    /// type of a selection set is not yet known.
+    /// </remarks>
+    IComplexTypeDefinition Type { get; }
 
     /// <summary>
     /// Gets the selections that shall be executed.

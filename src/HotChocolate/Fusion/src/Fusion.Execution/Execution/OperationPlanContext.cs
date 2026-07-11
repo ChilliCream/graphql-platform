@@ -729,6 +729,9 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
         }
     }
 
+    internal ImmutableArray<CompactPath> GetResultPaths(SelectionPath selectionSet)
+        => _resultStore.GetResultPaths(selectionSet);
+
     internal PooledArrayWriter CreateRentedBuffer()
         => _resultStore.CreateRentedBuffer();
 

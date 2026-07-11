@@ -1,6 +1,11 @@
 namespace HotChocolate.Fusion.Suites.NonResolvableInterfaceObject.B;
 
-public sealed class Bread
+public interface IProduct
+{
+    string Id { get; }
+}
+
+public sealed class Bread : IProduct
 {
     public string Id { get; init; } = default!;
 

@@ -72,7 +72,11 @@ internal static class RemoveExternalFields
                     continue;
                 }
 
-                if (keyReferences.Contains((complexType.Name, field.Name)))
+                if (keyReferences.Contains((complexType.Name, field.Name))
+                    || SourceExternalFieldMetadata.Contains(
+                        schema,
+                        complexType.Name,
+                        field.Name))
                 {
                     var externalDirective = field.Directives.FirstOrDefault(
                         FederationDirectiveNames.External);
@@ -375,7 +379,7 @@ internal static class RemoveExternalFields
         return referenced;
     }
 
-    private static HashSet<(string TypeName, string FieldName)> CollectKeyReferences(
+    internal static HashSet<(string TypeName, string FieldName)> CollectKeyReferences(
         MutableSchemaDefinition schema)
     {
         var referenced = new HashSet<(string, string)>();

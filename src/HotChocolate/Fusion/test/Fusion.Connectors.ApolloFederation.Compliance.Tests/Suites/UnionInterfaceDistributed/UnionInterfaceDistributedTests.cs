@@ -1,3 +1,4 @@
+using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Suites.UnionInterfaceDistributed.A;
 using HotChocolate.Fusion.Suites.UnionInterfaceDistributed.B;
 
@@ -15,6 +16,7 @@ public sealed class UnionInterfaceDistributedTests : ComplianceTestBase
 {
     protected override Task<FusionGateway> BuildGatewayAsync()
         => FusionGatewayBuilder.ComposeAsync(
+            NodeResolution.SourceSchema,
             (SubgraphASubgraph.Name, SubgraphASubgraph.BuildAsync),
             (SubgraphBSubgraph.Name, SubgraphBSubgraph.BuildAsync));
 

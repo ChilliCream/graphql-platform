@@ -1,3 +1,4 @@
+using System.Text.Json;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Properties;
 
@@ -25,6 +26,11 @@ internal static class ThrowHelper
             FusionExecutionResources.OperationBatchExecutionNode_MissingBatchResult,
             operationId));
 
+    public static InvalidOperationException NodeLookupNotFound(string typeName)
+        => new(string.Format(
+            FusionExecutionResources.PlanQueue_NodeLookupNotFound,
+            typeName));
+
     public static InvalidOperationException SingleOperationRequired()
         => new(FusionExecutionResources.JsonOperationPlanParser_SingleOperationRequired);
 
@@ -40,4 +46,32 @@ internal static class ThrowHelper
 
     public static ArgumentException InvalidClientConfiguration(Type expected, Type actual)
         => new($"Expected client configuration of type '{expected.Name}' but received '{actual.Name}'.");
+
+    public static InvalidOperationException InvalidTargetValueKind(
+        SelectionPath selectionPath,
+        Path resultPath,
+        JsonValueKind valueKind)
+        => new(string.Format(
+            FusionExecutionResources.FetchResultStore_InvalidTargetValueKind,
+            selectionPath,
+            resultPath,
+            valueKind));
+
+    public static InvalidOperationException InvalidRepresentationResultKind(
+        SelectionPath sourcePath,
+        JsonValueKind valueKind)
+        => new(string.Format(
+            FusionExecutionResources.FetchResultStore_InvalidRepresentationResultKind,
+            sourcePath,
+            valueKind));
+
+    public static InvalidOperationException RepresentationResultCountMismatch(
+        SelectionPath sourcePath,
+        int actualCount,
+        int expectedCount)
+        => new(string.Format(
+            FusionExecutionResources.FetchResultStore_RepresentationResultCountMismatch,
+            sourcePath,
+            actualCount,
+            expectedCount));
 }

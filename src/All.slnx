@@ -229,6 +229,7 @@
     <Project Path="HotChocolate/Fusion/src/Fusion.SourceSchema.Packaging/HotChocolate.Fusion.SourceSchema.Packaging.csproj" />
   </Folder>
   <Folder Name="/HotChocolate/Fusion/test/">
+    <Project Path="HotChocolate/Fusion/test/Fusion.Aspire.Tests/HotChocolate.Fusion.Aspire.Tests.csproj" />
     <Project Path="HotChocolate/Fusion/test/Fusion.AspNetCore.Tests/HotChocolate.Fusion.AspNetCore.Tests.csproj" />
     <Project Path="HotChocolate/Fusion/test/Fusion.Composition.Tests/HotChocolate.Fusion.Composition.Tests.csproj" />
     <Project Path="HotChocolate/Fusion/test/Fusion.Composition.ApolloFederation.Tests/HotChocolate.Fusion.Composition.ApolloFederation.Tests.csproj" />

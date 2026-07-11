@@ -416,6 +416,50 @@ public sealed class FederationSchemaTransformerTests
     }
 
     [Fact]
+    public void Transform_Should_PreserveExternalKeyField_When_GeneratingLookup()
+    {
+        // arrange
+        const string federationSdl =
+            """
+            schema @link(url: "https://specs.apollo.dev/federation/v2.6", import: ["@key", "@external"]) {
+              query: Query
+            }
+
+            type Product @key(fields: "id") {
+              id: ID! @external
+              name: String
+            }
+
+            type Query {
+              products: [Product]
+              _service: _Service!
+              _entities(representations: [_Any!]!): [_Entity]!
+            }
+
+            type _Service { sdl: String! }
+
+            union _Entity = Product
+
+            scalar FieldSet
+            scalar _Any
+
+            directive @key(fields: FieldSet! resolvable: Boolean = true) repeatable on OBJECT | INTERFACE
+            directive @external on FIELD_DEFINITION
+            directive @link(url: String! import: [String!]) repeatable on SCHEMA
+            """;
+
+        // act
+        var result = FederationSchemaTransformer.Transform(federationSdl);
+
+        // assert
+        Assert.True(result.IsSuccess);
+        Snapshot.Create()
+            .Add(federationSdl, "Apollo Federation SDL", "graphql")
+            .Add(result.Value, "Transformed SDL", "graphql")
+            .MatchMarkdownSnapshot();
+    }
+
+    [Fact]
     public void Transform_NonResolvableKey()
     {
         // arrange
@@ -610,7 +654,7 @@ public sealed class FederationSchemaTransformerTests
     }
 
     [Fact]
-    public void Transform_InterfaceObject_Should_ReturnError()
+    public void Transform_InterfaceObject_Should_Preserve()
     {
         // arrange
         const string federationSdl =
@@ -643,13 +687,16 @@ public sealed class FederationSchemaTransformerTests
             """;
 
         // act
+        // @interfaceObject maps 1:1 to the native construct, so it is translated rather than
+        // rejected: the transform keeps the directive and its application on the stand-in.
         var result = FederationSchemaTransformer.Transform(federationSdl);
 
         // assert
-        Assert.True(result.IsFailure);
-        Assert.Contains(
-            result.Errors,
-            e => e.Message.Contains("@interfaceObject"));
+        Assert.True(result.IsSuccess);
+        Snapshot.Create()
+            .Add(federationSdl, "Apollo Federation SDL", "graphql")
+            .Add(result.Value, "Transformed SDL", "graphql")
+            .MatchMarkdownSnapshot();
     }
 
     [Fact]

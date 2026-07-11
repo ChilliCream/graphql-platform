@@ -9,8 +9,9 @@ namespace HotChocolate.Fusion.ApolloFederation;
 /// </summary>
 internal static class RemoveFederationInfrastructure
 {
-    private static readonly HashSet<string> s_federationDirectiveNames = new(StringComparer.Ordinal)
-    {
+    private static readonly HashSet<string> s_federationDirectiveNames =
+    [
+        with(StringComparer.Ordinal),
         FederationDirectiveNames.Key,
         FederationDirectiveNames.Requires,
         FederationDirectiveNames.Provides,
@@ -20,19 +21,19 @@ internal static class RemoveFederationInfrastructure
         FederationDirectiveNames.Inaccessible,
         FederationDirectiveNames.Override,
         FederationDirectiveNames.Tag,
-        FederationDirectiveNames.InterfaceObject,
         FederationDirectiveNames.ComposeDirective,
         FederationDirectiveNames.Authenticated,
         FederationDirectiveNames.RequiresScopes,
         FederationDirectiveNames.Policy
-    };
+    ];
 
-    private static readonly HashSet<string> s_federationScalarNames = new(StringComparer.Ordinal)
-    {
+    private static readonly HashSet<string> s_federationScalarNames =
+    [
+        with(StringComparer.Ordinal),
         FederationTypeNames.Any,
         FederationTypeNames.FieldSet,
         FederationTypeNames.LegacyFieldSet
-    };
+    ];
 
     /// <summary>
     /// Applies the transformation to remove federation infrastructure from the schema.

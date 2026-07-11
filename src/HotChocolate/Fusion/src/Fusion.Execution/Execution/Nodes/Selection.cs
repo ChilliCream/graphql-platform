@@ -125,7 +125,7 @@ public sealed class Selection : ISelection
     /// The child selection set, or <c>null</c> when this selection has no child
     /// selection set.
     /// </returns>
-    public SelectionSet? GetSelectionSet(IObjectTypeDefinition typeContext)
+    public SelectionSet? GetSelectionSet(IComplexTypeDefinition typeContext)
     {
         if ((_flags & Flags.Leaf) == Flags.Leaf)
         {

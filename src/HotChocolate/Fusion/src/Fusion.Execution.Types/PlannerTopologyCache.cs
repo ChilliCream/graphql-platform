@@ -150,10 +150,8 @@ internal sealed class PlannerTopologyCache
 
         foreach (var complexType in complexTypes)
         {
-            foreach (var toSource in complexType.Sources)
+            foreach (var toSchema in GetTransitionTargetSchemas(complexType))
             {
-                var toSchema = toSource.SchemaName;
-
                 // A direct transition can only target a schema that has lookups for this
                 // type; if there are none, no from-schema can transition here, so skip the sweep.
                 if (schema.GetPossibleLookups(complexType, toSchema).Length == 0)
@@ -174,6 +172,36 @@ internal sealed class PlannerTopologyCache
         }
 
         return directTransitions;
+    }
+
+    // The schemas a transition may target for a type: the schemas that declare the type, plus the
+    // @interfaceObject stand-in schemas of the interfaces it implements. A stand-in holds no source
+    // for the concrete type yet resolves its projected fields through a single covering interface
+    // lookup, so a value must be able to transition there under a concrete type condition. Bounded
+    // to stand-in schemas, this leaves the transition sweep unchanged for schemas without
+    // interfaceObject.
+    private static IEnumerable<string> GetTransitionTargetSchemas(FusionComplexTypeDefinition complexType)
+    {
+        var targets = new HashSet<string>(StringComparer.Ordinal);
+
+        foreach (var source in complexType.Sources)
+        {
+            targets.Add(source.SchemaName);
+        }
+
+        foreach (var interfaceType in complexType.Implements)
+        {
+            foreach (var interfaceSource in interfaceType.Sources)
+            {
+                if (interfaceSource.IsInterfaceObject
+                    && !complexType.Sources.TryGetMember(interfaceSource.SchemaName, out _))
+                {
+                    targets.Add(interfaceSource.SchemaName);
+                }
+            }
+        }
+
+        return targets;
     }
 
     private static Lookup? FindBestDirectLookup(
