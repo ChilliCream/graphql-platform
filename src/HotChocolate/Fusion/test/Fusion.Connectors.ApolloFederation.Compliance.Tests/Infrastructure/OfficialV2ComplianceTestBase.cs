@@ -13,6 +13,11 @@ public abstract class OfficialV2ComplianceTestBase<TSuite> : ComplianceTestBase
     protected Task<FusionGateway> ComposeOfficialV2Async(
         params (string Name, Func<Task<SubgraphHost>> Factory)[] subgraphs)
         => FusionGatewayBuilder.ComposeOfficialV2Async<TSuite>(subgraphs);
+
+    protected Task<FusionGateway> ComposeOfficialV2Async(
+        SubgraphRequestCapture capture,
+        params (string Name, Func<Task<SubgraphHost>> Factory)[] subgraphs)
+        => FusionGatewayBuilder.ComposeOfficialV2Async<TSuite>(capture, subgraphs);
 }
 
 internal static class OfficialV2SuiteRun<TSuite>

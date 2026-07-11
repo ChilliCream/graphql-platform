@@ -163,12 +163,17 @@ internal static class FusionGatewayBuilder
 
     public static Task<FusionGateway> ComposeOfficialV2Async<TSuite>(
         params (string Name, Func<Task<SubgraphHost>> Factory)[] subgraphs)
+        => ComposeOfficialV2Async<TSuite>(capture: null, subgraphs);
+
+    public static Task<FusionGateway> ComposeOfficialV2Async<TSuite>(
+        SubgraphRequestCapture? capture,
+        params (string Name, Func<Task<SubgraphHost>> Factory)[] subgraphs)
     {
         var suite = AuditFixture.GetOfficialV2SuiteAttribute<TSuite>();
 
         return ComposeAsync(
             AuditFixture.GetOfficialV2SourceSchemas<TSuite>(),
-            capture: null,
+            capture,
             sourceSchemaSettings: null,
             suite.NodeResolution,
             suite.AllowNonResolvableInterfaceObjects,
