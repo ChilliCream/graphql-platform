@@ -1,7 +1,9 @@
 using System.Text;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
+using HotChocolate.Fusion.Execution.Results;
 using HotChocolate.Fusion.Execution.Rewriters;
+using HotChocolate.Fusion.Text.Json;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -273,6 +275,83 @@ public class OperationCompilerTests : FusionTestBase
 
         Assert.False(typeName.IsInternal);
         Assert.False(typeName.IsIncluded(flags));
+    }
+
+    [Fact]
+    public void Compile_Should_PrepareTypeNameLookup_When_InterfaceHasFourPossibleTypes()
+    {
+        var schema = ComposeSchema(
+            """
+            type Query {
+                node: Node
+            }
+
+            interface Node {
+                id: ID
+            }
+
+            type Type1 implements Node { id: ID }
+            type Type2 implements Node { id: ID }
+            type Type3 implements Node { id: ID }
+            type Type4 implements Node { id: ID }
+            """);
+        var interfaceType = schema.Types.GetType<FusionInterfaceTypeDefinition>("Node");
+
+        Assert.True(interfaceType.TypeNameLookupTypes.IsDefault);
+        Assert.False(ValueCompletion.TryResolveType(default, interfaceType, out _));
+
+        var operationDefinition = Utf8GraphQLParser.Parse("{ node { id } }")
+            .Definitions
+            .OfType<OperationDefinitionNode>()
+            .First();
+        var compiler = new OperationCompiler(schema, _fieldMapPool);
+        compiler.Compile("1", "1", operationDefinition);
+
+        Assert.Equal(
+            ["Type1", "Type2", "Type3", "Type4"],
+            interfaceType.TypeNameLookupTypes.Select(t => t.Name));
+        var json = "{\"__typename\":\"Type4\"}"u8.ToArray();
+        using var result = SourceResultDocument.Parse(
+            CommonTestExtensions.CreateArena(),
+            json,
+            json.Length);
+        Assert.True(ValueCompletion.TryResolveType(
+            result.Root.GetProperty("__typename"),
+            interfaceType,
+            out var resolvedType));
+        Assert.Same(schema.Types.GetType<FusionObjectTypeDefinition>("Type4"), resolvedType);
+    }
+
+    [Fact]
+    public void Compile_Should_DisableTypeNameLookup_When_InterfaceHasMoreThanFourPossibleTypes()
+    {
+        var schema = ComposeSchema(
+            """
+            type Query {
+                node: Node
+            }
+
+            interface Node {
+                id: ID
+            }
+
+            type Type1 implements Node { id: ID }
+            type Type2 implements Node { id: ID }
+            type Type3 implements Node { id: ID }
+            type Type4 implements Node { id: ID }
+            type Type5 implements Node { id: ID }
+            """);
+        var interfaceType = schema.Types.GetType<FusionInterfaceTypeDefinition>("Node");
+        var operationDefinition = Utf8GraphQLParser.Parse("{ node { id } }")
+            .Definitions
+            .OfType<OperationDefinitionNode>()
+            .First();
+        var compiler = new OperationCompiler(schema, _fieldMapPool);
+
+        compiler.Compile("1", "1", operationDefinition);
+
+        Assert.True(interfaceType.TypeNameLookupTypes.IsEmpty);
+        Assert.False(ValueCompletion.TryResolveType(default, interfaceType, out _));
     }
 
     public static FusionSchemaDefinition CreateSchema()

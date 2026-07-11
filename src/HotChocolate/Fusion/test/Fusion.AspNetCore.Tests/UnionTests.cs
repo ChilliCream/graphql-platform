@@ -1,5 +1,8 @@
+using System.Net;
+using System.Text;
 using HotChocolate.Transport;
 using HotChocolate.Transport.Http;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Fusion;
 
@@ -11,6 +14,112 @@ namespace HotChocolate.Fusion;
 public class UnionTests : FusionTestBase
 {
     #region union { ... }
+
+    [Fact]
+    public async Task Union_Field_Should_ResolveType_When_TypeNameIsEscaped()
+    {
+        using var server = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+              post: Post
+            }
+
+            union Post = Photo | Discussion
+
+            type Photo {
+              imageUrl: String!
+            }
+
+            type Discussion {
+              title: String
+            }
+            """,
+            mockHttpResponse: _ => Task.FromResult(
+                new HttpResponseMessage(HttpStatusCode.OK)
+                {
+                    Content = new StringContent(
+                        """{"data":{"post":{"__typename":"Ph\u006fto","imageUrl":"image.jpg"}}}""",
+                        Encoding.UTF8,
+                        "application/json")
+                }));
+
+        using var gateway = await CreateCompositeSchemaAsync(
+            [("A", server)],
+            configureGatewayBuilder: b =>
+                b.ModifyRequestOptions(o => o.AllowOperationPlanRequests = false));
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        using var result = await client.PostAsync(
+            "{ post { __typename ... on Photo { imageUrl } } }",
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        using var response = await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
+        response.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "post": {
+                  "__typename": "Photo",
+                  "imageUrl": "image.jpg"
+                }
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task Union_Field_Should_UseFallback_When_UnionHasMoreThanFourMembers()
+    {
+        using var server = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+              post: Post
+            }
+
+            union Post = Post1 | Post2 | Post3 | Post4 | Post5
+
+            type Post1 { value: String }
+            type Post2 { value: String }
+            type Post3 { value: String }
+            type Post4 { value: String }
+            type Post5 { value: String }
+            """,
+            mockHttpResponse: _ => Task.FromResult(
+                new HttpResponseMessage(HttpStatusCode.OK)
+                {
+                    Content = new StringContent(
+                        """{"data":{"post":{"__typename":"Post5","value":"five"}}}""",
+                        Encoding.UTF8,
+                        "application/json")
+                }));
+
+        using var gateway = await CreateCompositeSchemaAsync(
+            [("A", server)],
+            configureGatewayBuilder: b =>
+                b.ModifyRequestOptions(o => o.AllowOperationPlanRequests = false));
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        using var result = await client.PostAsync(
+            "{ post { __typename ... on Post5 { value } } }",
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        using var response = await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
+        response.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "post": {
+                  "__typename": "Post5",
+                  "value": "five"
+                }
+              }
+            }
+            """);
+    }
 
     [Fact]
     public async Task Union_Field_Just_Typename_Selected()
