@@ -1290,6 +1290,24 @@ public sealed partial class OperationPlanner
                 continue;
             }
 
+            var relativePath = workItemSelectionSet.Path.RelativeTo(step.Target);
+
+            // A lookup key can already be present in this step because an ancestor @provides
+            // scope selected the concrete runtime field. Match the actual operation path so
+            // sibling abstract branches that share a selection-set id cannot satisfy each
+            // other's requirements.
+            if (ContainsSelectionsAtPath(
+                step.Definition.SelectionSet,
+                relativePath,
+                selectionSet))
+            {
+                steps = steps.SetItem(
+                    stepIndex,
+                    step with { Dependents = step.Dependents.Add(lookupStepId) });
+                selectionSet = null;
+                break;
+            }
+
             var input = new SelectionSetPartitionerInput
             {
                 SchemaName = schemaName,
@@ -1429,6 +1447,122 @@ public sealed partial class OperationPlanner
             InternalOperationDefinition = internalOperation
         };
     }
+
+    internal static bool ContainsSelectionsAtPath(
+        SelectionSetNode current,
+        SelectionPath path,
+        SelectionSetNode required)
+        => ContainsSelectionsAtPath(current, path, pathIndex: 0, required);
+
+    private static bool ContainsSelectionsAtPath(
+        SelectionSetNode current,
+        SelectionPath path,
+        int pathIndex,
+        SelectionSetNode required)
+    {
+        if (pathIndex == path.Length)
+        {
+            return ContainsAllSelections(required, current);
+        }
+
+        var segment = path[pathIndex];
+
+        foreach (var selection in current.Selections)
+        {
+            if (selection is InlineFragmentNode
+                {
+                    TypeCondition: null,
+                    Directives.Count: 0
+                } wrapper
+                && ContainsSelectionsAtPath(wrapper.SelectionSet, path, pathIndex, required))
+            {
+                return true;
+            }
+
+            switch (segment.Kind)
+            {
+                case SelectionPathSegmentKind.Field
+                    when selection is FieldNode
+                        {
+                            SelectionSet: { } child,
+                            Directives.Count: 0
+                        } field
+                        && (field.Alias?.Value ?? field.Name.Value).Equals(
+                            segment.Name,
+                            StringComparison.Ordinal):
+                    if (ContainsSelectionsAtPath(child, path, pathIndex + 1, required))
+                    {
+                        return true;
+                    }
+                    break;
+
+                case SelectionPathSegmentKind.InlineFragment
+                    when selection is InlineFragmentNode
+                    {
+                        TypeCondition.Name.Value: var typeName,
+                        Directives.Count: 0
+                    } fragment
+                        && typeName.Equals(segment.Name, StringComparison.Ordinal):
+                    if (ContainsSelectionsAtPath(
+                        fragment.SelectionSet,
+                        path,
+                        pathIndex + 1,
+                        required))
+                    {
+                        return true;
+                    }
+                    break;
+            }
+        }
+
+        return false;
+    }
+
+    private static bool ContainsAllSelections(
+        SelectionSetNode required,
+        SelectionSetNode existing)
+    {
+        foreach (var requiredSelection in required.Selections)
+        {
+            var isCovered = requiredSelection switch
+            {
+                FieldNode requiredField => existing.Selections
+                    .OfType<FieldNode>()
+                    .Any(existingField => FieldContains(requiredField, existingField)),
+                InlineFragmentNode requiredFragment => existing.Selections
+                    .OfType<InlineFragmentNode>()
+                    .Any(existingFragment => FragmentContains(requiredFragment, existingFragment)),
+                _ => false
+            };
+
+            if (!isCovered)
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private static bool FieldContains(FieldNode required, FieldNode existing)
+    {
+        if (!SyntaxComparer.BySyntax.Equals(required.Name, existing.Name)
+            || !SyntaxComparer.BySyntax.Equals(required.Alias, existing.Alias)
+            || !required.Arguments.SequenceEqual(existing.Arguments, SyntaxComparer.BySyntax)
+            || !required.Directives.SequenceEqual(existing.Directives, SyntaxComparer.BySyntax))
+        {
+            return false;
+        }
+
+        return required.SelectionSet is null
+            || (existing.SelectionSet is not null
+                && ContainsAllSelections(required.SelectionSet, existing.SelectionSet));
+    }
+
+    private static bool FragmentContains(InlineFragmentNode required, InlineFragmentNode existing)
+        => SyntaxComparer.BySyntax.Equals(required.TypeCondition, existing.TypeCondition)
+            && required.Directives.SequenceEqual(existing.Directives, SyntaxComparer.BySyntax)
+            && ContainsAllSelections(required.SelectionSet, existing.SelectionSet);
 
     /// <summary>
     /// Tries to inline the field that has a requirement into its original intended plan step

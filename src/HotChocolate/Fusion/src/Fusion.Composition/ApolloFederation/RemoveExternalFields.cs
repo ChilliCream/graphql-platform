@@ -223,7 +223,7 @@ internal static class RemoveExternalFields
         return false;
     }
 
-    private static HashSet<(string TypeName, string FieldName)> CollectProvidesReferences(
+    internal static HashSet<(string TypeName, string FieldName)> CollectProvidesReferences(
         MutableSchemaDefinition schema)
     {
         var referenced = new HashSet<(string, string)>();
@@ -271,7 +271,12 @@ internal static class RemoveExternalFields
                     continue;
                 }
 
-                CollectReferencedFields(selectionSet, targetType, schema, referenced);
+                CollectReferencedFields(
+                    selectionSet,
+                    targetType,
+                    schema,
+                    referenced,
+                    includeInterfaceRuntimeFields: true);
             }
         }
 
@@ -411,7 +416,12 @@ internal static class RemoveExternalFields
                     continue;
                 }
 
-                CollectReferencedFields(selectionSet, complexType, schema, referenced);
+                CollectReferencedFields(
+                    selectionSet,
+                    complexType,
+                    schema,
+                    referenced,
+                    includeInterfaceRuntimeFields: false);
             }
         }
 
@@ -422,7 +432,8 @@ internal static class RemoveExternalFields
         SelectionSetNode selectionSet,
         MutableComplexTypeDefinition currentType,
         MutableSchemaDefinition schema,
-        HashSet<(string, string)> referenced)
+        HashSet<(string, string)> referenced,
+        bool includeInterfaceRuntimeFields)
     {
         foreach (var selection in selectionSet.Selections)
         {
@@ -430,6 +441,18 @@ internal static class RemoveExternalFields
             {
                 case FieldNode fieldNode:
                     referenced.Add((currentType.Name, fieldNode.Name.Value));
+
+                    if (includeInterfaceRuntimeFields
+                        && currentType is MutableInterfaceTypeDefinition interfaceType)
+                    {
+                        foreach (var possibleType in schema.GetPossibleTypes(interfaceType))
+                        {
+                            if (possibleType.Fields.ContainsName(fieldNode.Name.Value))
+                            {
+                                referenced.Add((possibleType.Name, fieldNode.Name.Value));
+                            }
+                        }
+                    }
 
                     if (fieldNode.SelectionSet?.Selections.Count > 0
                         && currentType.Fields.TryGetField(
@@ -441,7 +464,11 @@ internal static class RemoveExternalFields
                                 nestedNamedType.Name, out var nestedType))
                         {
                             CollectReferencedFields(
-                                fieldNode.SelectionSet, nestedType, schema, referenced);
+                                fieldNode.SelectionSet,
+                                nestedType,
+                                schema,
+                                referenced,
+                                includeInterfaceRuntimeFields);
                         }
                     }
 
@@ -454,7 +481,11 @@ internal static class RemoveExternalFields
                             inlineFragment.TypeCondition.Name.Value, out var fragmentType))
                     {
                         CollectReferencedFields(
-                            inlineFragment.SelectionSet, fragmentType, schema, referenced);
+                            inlineFragment.SelectionSet,
+                            fragmentType,
+                            schema,
+                            referenced,
+                            includeInterfaceRuntimeFields);
                     }
 
                     break;
