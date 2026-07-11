@@ -519,7 +519,9 @@ public class CompositeResultDocumentTests : FusionTestBase
         var childSelection = childSelectionSet.Selections[0];
         ref var metaDb = ref document._metaDb;
 
-        while (metaDb.NextCursor.Index < 49)
+        var firstChunkBoundary = CompositeResultDocument.Cursor.RowsPerChunkFor(0) - 2;
+
+        while (metaDb.NextCursor.Index < firstChunkBoundary)
         {
             metaDb.AppendNull(parentRow: 0);
         }
