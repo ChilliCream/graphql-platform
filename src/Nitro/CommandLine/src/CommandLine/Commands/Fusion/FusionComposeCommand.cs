@@ -15,8 +15,8 @@ internal sealed class FusionComposeCommand : Command
         Description = "Compose multiple source schemas into a single composite schema.";
 
         Options.Add(Opt<OptionalSourceSchemaFileListOption>.Instance);
-        Options.Add(Opt<OptionalSourceSchemaUrlListOption>.Instance);
-        Options.Add(Opt<OptionalSourceSchemaSettingsFileListOption>.Instance);
+        Options.Add(Opt<OptionalSourceSchemaUrlOption>.Instance);
+        Options.Add(Opt<OptionalSourceSchemaSettingsFileOption>.Instance);
         Options.Add(Opt<OptionalFusionArchiveFileOption>.Instance);
         Options.Add(Opt<FusionEnvironmentOption>.Instance);
         Options.Add(Opt<CacheControlMergeBehaviorOption>.Instance);
@@ -71,10 +71,16 @@ internal sealed class FusionComposeCommand : Command
         var workingDirectory = parseResult.GetValue(Opt<WorkingDirectoryOption>.Instance)
             ?? fileSystem.GetCurrentDirectory();
         var sourceSchemaFiles = parseResult.GetValue(Opt<OptionalSourceSchemaFileListOption>.Instance) ?? [];
-        var sourceSchemaUrlValues = parseResult.GetValue(
-            Opt<OptionalSourceSchemaUrlListOption>.Instance) ?? [];
-        var sourceSchemaSettingsFiles = parseResult.GetValue(
-            Opt<OptionalSourceSchemaSettingsFileListOption>.Instance) ?? [];
+        var sourceSchemaUrlValues = parseResult
+            .GetResult(Opt<OptionalSourceSchemaUrlOption>.Instance)?
+            .Tokens
+            .Select(token => token.Value)
+            .ToList() ?? [];
+        var sourceSchemaSettingsFiles = parseResult
+            .GetResult(Opt<OptionalSourceSchemaSettingsFileOption>.Instance)?
+            .Tokens
+            .Select(token => token.Value)
+            .ToList() ?? [];
         var archiveFile = parseResult.GetValue(Opt<OptionalFusionArchiveFileOption>.Instance);
         var environment = parseResult.GetValue(Opt<FusionEnvironmentOption>.Instance);
         var cacheControlMergeBehaviorOption = Opt<CacheControlMergeBehaviorOption>.Instance;

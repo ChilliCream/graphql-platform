@@ -28,11 +28,11 @@ internal static class Messages
         => $"Source schema settings file '{path}' must specify a non-empty string 'name'.";
 
     public static string SourceSchemaUrlInvalid()
-        => $"The value for '{OptionalSourceSchemaUrlListOption.OptionName}' must be an absolute HTTP URL without user information or a fragment.";
+        => $"The value for '{OptionalSourceSchemaUrlOption.OptionName}' must be an absolute HTTP URL without user information or a fragment.";
 
     public static string SourceSchemaUrlSettingsCountMismatch()
-        => $"The options '{OptionalSourceSchemaUrlListOption.OptionName}' and "
-            + $"'{OptionalSourceSchemaSettingsFileListOption.OptionName}' must be specified the same number of times.";
+        => $"The options '{OptionalSourceSchemaUrlOption.OptionName}' and "
+            + $"'{OptionalSourceSchemaSettingsFileOption.OptionName}' must be specified the same number of times.";
 
     public static string SourceSchemaTransportFailed(string sourceSchemaName)
         => $"Failed to connect to source schema '{sourceSchemaName}' while downloading its schema.";

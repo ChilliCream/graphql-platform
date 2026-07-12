@@ -906,7 +906,49 @@ public sealed class FusionRemoteComposeCommandTests(NitroCommandFixture fixture)
 
         var result = await ExecuteCommandAsync([.. arguments]);
 
+        result.AssertError(
+            "The options '--source-schema-url' and '--source-schema-settings-file' must be specified the same number of times.");
+        Assert.Equal(0, requestCount);
+        Assert.False(File.Exists(archiveFile));
+    }
+
+    [Theory]
+    [InlineData("--source-schema-url")]
+    [InlineData("--source-schema-settings-file")]
+    public async Task Compose_Should_RejectAdditionalValue_When_RemoteOptionOccursOnce(
+        string optionWithAdditionalValue)
+    {
+        const string settingsFile = "remote/schema-settings.json";
+        var archiveFile = CreateTempFile();
+        SetupFile(settingsFile, """{ "name": "Remote" }""");
+        List<string> arguments =
+        [
+            "fusion",
+            "compose",
+            "--source-schema-url",
+            "https://composition.example/graphql",
+            "--source-schema-settings-file",
+            settingsFile,
+            "--archive",
+            archiveFile
+        ];
+        var optionIndex = arguments.IndexOf(optionWithAdditionalValue);
+        arguments.Insert(optionIndex + 2, "unexpected");
+        var requestCount = 0;
+        using var client = CreateClient(_ =>
+        {
+            Interlocked.Increment(ref requestCount);
+            return Response(HttpStatusCode.OK, "type Query { remote: String }");
+        });
+        SetupHttpClient(client);
+
+        var result = await ExecuteCommandAsync([.. arguments]);
+
         Assert.Equal(1, result.ExitCode);
+        Assert.Contains(
+            "Unrecognized command or argument 'unexpected'.",
+            result.StdOut + result.StdErr,
+            StringComparison.Ordinal);
         Assert.Equal(0, requestCount);
         Assert.False(File.Exists(archiveFile));
     }

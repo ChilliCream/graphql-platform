@@ -1,10 +1,10 @@
 namespace ChilliCream.Nitro.CommandLine;
 
-internal sealed class OptionalSourceSchemaUrlListOption : Option<List<string>>
+internal sealed class OptionalSourceSchemaUrlOption : Option<string>
 {
     public const string OptionName = "--source-schema-url";
 
-    public OptionalSourceSchemaUrlListOption()
+    public OptionalSourceSchemaUrlOption()
         : base(OptionName)
     {
         Description = "A URL from which to download a source schema";

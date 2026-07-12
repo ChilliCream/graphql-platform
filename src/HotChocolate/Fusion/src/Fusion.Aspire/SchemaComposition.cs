@@ -449,15 +449,43 @@ internal sealed class SchemaComposition(
         CancellationToken cancellationToken)
     {
         const int maxRetries = 60;
-        const int delayMs = 2000;
         var endpoint = new Uri(schemaUrl);
-
-        logger.LogDebug("Waiting for schema service {SourceSchemaName}", sourceSchemaName);
 
         using var httpClient = new HttpClient
         {
             Timeout = TimeSpan.FromSeconds(10)
         };
+
+        return await FetchSchemaFromEndpointAsync(
+            sourceSchemaName,
+            endpoint,
+            protocol,
+            httpClient,
+            maxRetries,
+            TimeSpan.FromSeconds(2),
+            cancellationToken);
+    }
+
+    internal async Task<string?> FetchSchemaFromEndpointAsync(
+        string sourceSchemaName,
+        Uri endpoint,
+        SchemaEndpointProtocol protocol,
+        HttpClient httpClient,
+        int maxRetries,
+        TimeSpan retryDelay,
+        CancellationToken cancellationToken)
+    {
+        ArgumentException.ThrowIfNullOrEmpty(sourceSchemaName);
+        ArgumentNullException.ThrowIfNull(endpoint);
+        ArgumentNullException.ThrowIfNull(httpClient);
+        ArgumentOutOfRangeException.ThrowIfLessThan(maxRetries, 1);
+
+        if (retryDelay < TimeSpan.Zero)
+        {
+            throw new ArgumentOutOfRangeException(nameof(retryDelay));
+        }
+
+        logger.LogDebug("Waiting for schema service {SourceSchemaName}", sourceSchemaName);
 
         for (var i = 0; i < maxRetries; i++)
         {
@@ -505,7 +533,7 @@ internal sealed class SchemaComposition(
 
             if (i + 1 < maxRetries)
             {
-                await Task.Delay(delayMs, cancellationToken);
+                await Task.Delay(retryDelay, cancellationToken);
             }
         }
 

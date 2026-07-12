@@ -93,7 +93,7 @@ nitro fusion compose [options]
 | `--exclude-by-tag <tag>`                                                      | Exclude fields/types by tag. Can be repeated.                                                       | --                                                           |
 | `--working-directory <path>` (alias: `-w`)                                    | Working directory for resolving paths                                                               | Current directory                                            |
 
-Each local `.graphqls` file must have a companion `-settings.json` file. For example, `schema.graphqls` requires `schema-settings.json`. Local files do not use `--source-schema-settings-file`.
+Each local `.graphql` or `.graphqls` file must have a companion `-settings.json` file. For example, `schema.graphqls` requires `schema-settings.json`. Local files do not use `--source-schema-settings-file`.
 
 For remote schemas, repeat `--source-schema-url` and `--source-schema-settings-file` the same number of times. Nitro pairs them by occurrence: the first URL uses the first settings file, the second URL uses the second settings file, and so on. Keep each pair adjacent in scripts. The settings file selects GET or Apollo `_service.sdl` acquisition as described in [Getting the Subgraph Schema](./connectors/apollofederation.md#getting-the-subgraph-schema).
 

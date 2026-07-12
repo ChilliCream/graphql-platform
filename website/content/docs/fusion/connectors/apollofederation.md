@@ -128,7 +128,7 @@ query {
 }
 ```
 
-Save the `_service { sdl }` value unchanged to a `.graphqls` file. A schema stripped of its Federation directives cannot be detected and translated. Give each file a companion `<name>-settings.json` that tells the gateway how to reach the subgraph at runtime. See the [Schema Settings File Reference](../cli.md#schema-settings-file-reference) for the settings file format.
+Save the `_service { sdl }` value unchanged to a `.graphqls` file. A schema stripped of its Federation directives cannot be detected and translated. Give each file a companion settings file based on the schema file name. For example, `products.graphqls` uses `products-settings.json`. See the [Schema Settings File Reference](../cli.md#schema-settings-file-reference) for the settings file format.
 
 # Composing an Apollo Federation Subgraph
 
@@ -367,7 +367,7 @@ When a query plan needs several different lookups from the same subgraph, the ga
 
 The connector is under active development and ships as a preview. Composition rejects unsupported Apollo Federation features with a specific error code, so the gateway does not produce a schema that would misbehave at runtime.
 
-- **Apollo Federation v1 requires explicit source settings.** Set `extensions.chillicream.apolloFederationSupport.version` to exact `"1.0"` for that source. Raw v1 SDL without the marker is rejected with `FEDERATION_V1_NOT_SUPPORTED`. Federation v2 schemas continue to use their `@link`; the optional exact `"2.0"` marker selects `_service.sdl` acquisition without enabling the v1 parser.
+- **Apollo Federation v1 requires explicit source settings.** Set `extensions.chillicream.apolloFederationSupport.version` to exact `"1.0"` for that source. Raw v1 SDL without the marker is rejected with `FEDERATION_V1_NOT_SUPPORTED`. Federation v2 schemas continue to use their `@link`; for a remote source, the optional exact `"2.0"` marker selects `_service.sdl` acquisition without enabling the v1 parser.
 - **Several Apollo Federation v2 directives are not supported.** Composition rejects `@composeDirective`, `@authenticated`, `@requiresScopes`, and `@policy` with `FEDERATION_DIRECTIVE_NOT_SUPPORTED`. Remove the directive, or express the equivalent with a GraphQL Federation construct.
 
 Both error codes are listed in the [Composition log-code reference](../composition.md#log-codes-reference).

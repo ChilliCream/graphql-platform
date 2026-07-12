@@ -1,13 +1,13 @@
 namespace ChilliCream.Nitro.CommandLine;
 
-internal sealed class OptionalSourceSchemaSettingsFileListOption : Option<List<string>>
+internal sealed class OptionalSourceSchemaSettingsFileOption : Option<string>
 {
     public const string OptionName = "--source-schema-settings-file";
 
-    public OptionalSourceSchemaSettingsFileListOption()
+    public OptionalSourceSchemaSettingsFileOption()
         : base(OptionName)
     {
-        Description = $"A settings file paired by occurrence with '{OptionalSourceSchemaUrlListOption.OptionName}'";
+        Description = $"A settings file paired by occurrence with '{OptionalSourceSchemaUrlOption.OptionName}'";
         Arity = ArgumentArity.ExactlyOne;
         AllowMultipleArgumentsPerToken = false;
         this.LegalFilePathsOnly();
