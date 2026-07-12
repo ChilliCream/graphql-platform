@@ -26,7 +26,9 @@ public sealed class FetchResultStoreTests : FusionTestBase
     private static readonly FieldInfo s_dataElementStagingField =
         typeof(FetchResultStore).GetField(
             "_dataElementStaging",
-            BindingFlags.Instance | BindingFlags.NonPublic)!;
+            BindingFlags.Instance | BindingFlags.NonPublic)
+        ?? throw new InvalidOperationException(
+            "FetchResultStore no longer contains a non-public instance field named '_dataElementStaging'. Update the tests accordingly.");
     private static readonly byte[] s_fieldPayload = """{"data":{"field":"value"}}"""u8.ToArray();
     private static readonly FusionSchemaDefinition s_schema = CreateCompositeSchema();
 
