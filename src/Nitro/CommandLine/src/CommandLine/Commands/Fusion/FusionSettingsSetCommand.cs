@@ -1,4 +1,3 @@
-using System.Diagnostics.CodeAnalysis;
 using ChilliCream.Nitro.CommandLine.Arguments;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Services;
@@ -55,12 +54,24 @@ internal sealed class FusionSettingsSetCommand : Command
 
         switch (settingName)
         {
+            case FusionSettingsNameArgument.AllowNonResolvableInterfaceObjects:
+                if (!bool.TryParse(settingValue, out var allowNonResolvableInterfaceObjects))
+                {
+                    throw new ExitException($"Expected a boolean value for setting '{settingName}'.");
+                }
+
+                compositionSettings.ApolloFederationCompatibility
+                    .AllowNonResolvableInterfaceObjects = allowNonResolvableInterfaceObjects;
+                break;
+
             case FusionSettingsNameArgument.CacheControlMergeBehavior:
-                if (!TryParseDirectiveMergeBehavior(settingValue, out var cacheControlMergeBehavior))
+                if (!DirectiveMergeBehaviorParser.TryParse(
+                    settingValue,
+                    out var cacheControlMergeBehavior))
                 {
                     throw new ExitException(
                         $"Expected one of the following values for setting '{settingName}': "
-                        + $"{string.Join(", ", DirectiveMergeBehaviorNames.All)}");
+                        + $"{string.Join(", ", DirectiveMergeBehaviorParser.Values)}");
                 }
 
                 compositionSettings.Merger.CacheControlMergeBehavior = cacheControlMergeBehavior;
@@ -80,6 +91,16 @@ internal sealed class FusionSettingsSetCommand : Command
                 }
 
                 compositionSettings.Merger.EnableGlobalObjectIdentification = enableGlobalObjectIdentification;
+                break;
+
+            case FusionSettingsNameArgument.IncludeSatisfiabilityPaths:
+                if (!bool.TryParse(settingValue, out var includeSatisfiabilityPaths))
+                {
+                    throw new ExitException($"Expected a boolean value for setting '{settingName}'.");
+                }
+
+                compositionSettings.Satisfiability.IncludeSatisfiabilityPaths =
+                    includeSatisfiabilityPaths;
                 break;
 
             case FusionSettingsNameArgument.NodeResolution:
@@ -107,11 +128,13 @@ internal sealed class FusionSettingsSetCommand : Command
                 break;
 
             case FusionSettingsNameArgument.TagMergeBehavior:
-                if (!TryParseDirectiveMergeBehavior(settingValue, out var tagMergeBehavior))
+                if (!DirectiveMergeBehaviorParser.TryParse(
+                    settingValue,
+                    out var tagMergeBehavior))
                 {
                     throw new ExitException(
                         $"Expected one of the following values for setting '{settingName}': "
-                        + $"{string.Join(", ", DirectiveMergeBehaviorNames.All)}");
+                        + $"{string.Join(", ", DirectiveMergeBehaviorParser.Values)}");
                 }
 
                 compositionSettings.Merger.TagMergeBehavior = tagMergeBehavior;
@@ -173,34 +196,5 @@ internal sealed class FusionSettingsSetCommand : Command
 
             throw new ExitException();
         }
-    }
-
-    private static bool TryParseDirectiveMergeBehavior(
-        string value,
-        [NotNullWhen(true)] out DirectiveMergeBehavior? directiveMergeBehavior)
-    {
-        directiveMergeBehavior = value switch
-        {
-            DirectiveMergeBehaviorNames.Ignore => DirectiveMergeBehavior.Ignore,
-            DirectiveMergeBehaviorNames.Include => DirectiveMergeBehavior.Include,
-            DirectiveMergeBehaviorNames.IncludePrivate => DirectiveMergeBehavior.IncludePrivate,
-            _ => null
-        };
-
-        return directiveMergeBehavior is not null;
-    }
-
-    private static class DirectiveMergeBehaviorNames
-    {
-        public const string Ignore = "ignore";
-        public const string Include = "include";
-        public const string IncludePrivate = "include-private";
-
-        public static readonly string[] All =
-        [
-            Ignore,
-            Include,
-            IncludePrivate
-        ];
     }
 }
