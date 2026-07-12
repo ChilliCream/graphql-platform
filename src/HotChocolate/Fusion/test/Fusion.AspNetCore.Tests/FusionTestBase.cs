@@ -33,7 +33,7 @@ public abstract partial class FusionTestBase : IDisposable
     private readonly TestServerSession _testServerSession = new();
     private bool _disposed;
 
-    private protected async Task<Gateway> CreateCompositeSchemaAsync(
+    protected async Task<Gateway> CreateCompositeSchemaAsync(
         (string SchemaName, TestServer Server)[] sourceSchemaServers,
         Action<IServiceCollection>? configureServices = null,
         Action<IApplicationBuilder>? configureApplication = null,
@@ -271,25 +271,33 @@ public abstract partial class FusionTestBase : IDisposable
         }
     }
 
-    private protected class Gateway(
-        TestServer testServer,
-        List<SourceSchemaText> sourceSchemas,
-        ConcurrentDictionary<string, ConcurrentDictionary<int, SourceSchemaInteraction>> interactions) : IDisposable
+    protected class Gateway : IDisposable
     {
-        public HttpClient CreateClient() => testServer.CreateClient();
+        internal Gateway(
+            TestServer testServer,
+            List<SourceSchemaText> sourceSchemas,
+            ConcurrentDictionary<string, ConcurrentDictionary<int, SourceSchemaInteraction>> interactions)
+        {
+            _testServer = testServer;
+            SourceSchemas = sourceSchemas;
+            Interactions = interactions;
+        }
 
-        public WebSocketClient CreateWebSocketClient() => testServer.CreateWebSocketClient();
+        private readonly TestServer _testServer;
 
-        public IServiceProvider Services => testServer.Services;
+        public HttpClient CreateClient() => _testServer.CreateClient();
 
-        public List<SourceSchemaText> SourceSchemas => sourceSchemas;
+        public WebSocketClient CreateWebSocketClient() => _testServer.CreateWebSocketClient();
 
-        public ConcurrentDictionary<string, ConcurrentDictionary<int, SourceSchemaInteraction>> Interactions =>
-            interactions;
+        public IServiceProvider Services => _testServer.Services;
+
+        internal List<SourceSchemaText> SourceSchemas { get; }
+
+        public ConcurrentDictionary<string, ConcurrentDictionary<int, SourceSchemaInteraction>> Interactions { get; }
 
         public void Dispose()
         {
-            testServer.Dispose();
+            _testServer.Dispose();
         }
     }
 
