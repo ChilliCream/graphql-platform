@@ -195,6 +195,96 @@ public class CompositeResultDocumentTests : FusionTestBase
     }
 
     [Fact]
+    public void WriteTo_Should_MaskOnlyMarkedLogicalReference_When_ValueIsShared()
+    {
+        // arrange
+        var schema = CreateCompositeSchema();
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+              first: productBySlug(slug: "1") { id name }
+              second: productBySlug(slug: "1") { id name }
+            }
+            """);
+        var document = new CompositeResultDocument(CommonTestExtensions.CreateArena(), plan.Operation, 0);
+        var first = document.Data.GetProperty("first");
+        var second = document.Data.GetProperty("second");
+        var selectionSet = plan.Operation.GetSelectionSet(first.AssertSelection());
+        var shared = document.CreateObject(first.Cursor, selectionSet);
+        document.AssignCompositeValue(first, shared);
+        document.AssignCompositeValue(second, shared);
+
+        var payload = """{"id":1,"name":"shared"}"""u8.ToArray();
+        var source = SourceResultDocument.Parse(
+            CommonTestExtensions.CreateArena(),
+            payload,
+            payload.Length);
+        shared.GetProperty("id").SetLeafValue(source.Root.GetProperty("id"));
+        shared.GetProperty("name").SetLeafValue(source.Root.GetProperty("name"));
+
+        // act
+        first.SetNullMarker();
+
+        // assert
+        using var buffer = new PooledArrayWriter();
+        document.Data.WriteTo(buffer);
+        Encoding.UTF8.GetString(buffer.WrittenSpan).MatchInlineSnapshot(
+            """
+            {"first":null,"second":{"id":1,"name":"shared"}}
+            """);
+        Assert.Equal("shared", first.GetProperty("name").AssertString());
+        Assert.Equal("shared", second.GetProperty("name").AssertString());
+    }
+
+    [Fact]
+    public void NullMarkerState_Should_PreserveMarkers_AcrossFinalizationTransitions()
+    {
+        // arrange
+        var schema = CreateCompositeSchema();
+        var plan = PlanOperation(schema, "{ productBySlug(slug: \"1\") { id } }");
+        var document = new CompositeResultDocument(
+            CommonTestExtensions.CreateArena(),
+            plan.Operation,
+            0);
+        var states = new List<string>();
+
+        // act
+        RecordState("none");
+
+        document.RequireNullMarkerFinalization();
+        RecordState("requires");
+
+        document.CompleteNullMarkerFinalization();
+        RecordState("complete without marker");
+
+        document.Data.SetNullMarker();
+        RecordState("has marker");
+
+        document.RequireNullMarkerFinalization();
+        RecordState("both after later require");
+
+        document.CompleteNullMarkerFinalization();
+        RecordState("complete preserves marker");
+
+        // assert
+        string.Join(Environment.NewLine, states).MatchInlineSnapshot(
+            """
+            none: requires=False, markers=False
+            requires: requires=True, markers=False
+            complete without marker: requires=False, markers=False
+            has marker: requires=False, markers=True
+            both after later require: requires=True, markers=True
+            complete preserves marker: requires=False, markers=True
+            """);
+
+        void RecordState(string name)
+            => states.Add(
+                $"{name}: requires={document.RequiresNullMarkerFinalization}, "
+                + $"markers={document.HasNullMarkers}");
+    }
+
+    [Fact]
     public void Enumerate_Object()
     {
         // arrange

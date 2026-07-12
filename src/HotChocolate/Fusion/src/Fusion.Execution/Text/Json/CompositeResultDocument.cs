@@ -17,6 +17,7 @@ public sealed partial class CompositeResultDocument : IDisposable
     private readonly ulong _deferFlags;
     private readonly PathSegmentLocalPool? _pathPool;
     internal MetaDb _metaDb;
+    private NullMarkerState _nullMarkerState;
     private int _disposed;
 
     internal CompositeResultDocument(
@@ -283,6 +284,55 @@ public sealed partial class CompositeResultDocument : IDisposable
         }
 
         return false;
+    }
+
+    internal bool RequiresNullMarkerFinalization
+        => (_nullMarkerState & NullMarkerState.RequiresFinalization)
+            is NullMarkerState.RequiresFinalization;
+
+    internal bool HasNullMarkers
+        => (_nullMarkerState & NullMarkerState.HasMarkers) is NullMarkerState.HasMarkers;
+
+    internal bool IsNullMarker(Cursor current)
+    {
+        ObjectDisposedException.ThrowIf(_disposed != 0, this);
+
+        return (_metaDb.GetFlags(current) & ElementFlags.NullMarker) is ElementFlags.NullMarker;
+    }
+
+    internal void RequireNullMarkerFinalization()
+    {
+        ObjectDisposedException.ThrowIf(_disposed != 0, this);
+
+        _nullMarkerState |= NullMarkerState.RequiresFinalization;
+    }
+
+    internal void CompleteNullMarkerFinalization()
+    {
+        ObjectDisposedException.ThrowIf(_disposed != 0, this);
+
+        _nullMarkerState &= ~NullMarkerState.RequiresFinalization;
+    }
+
+    internal void SetNullMarker(Cursor current)
+    {
+        ObjectDisposedException.ThrowIf(_disposed != 0, this);
+
+        var flags = _metaDb.GetFlags(current);
+        if ((flags & ElementFlags.NullMarker) is not ElementFlags.NullMarker)
+        {
+            _metaDb.SetFlags(current, flags | ElementFlags.NullMarker);
+        }
+
+        _nullMarkerState |= NullMarkerState.HasMarkers;
+    }
+
+    [Flags]
+    private enum NullMarkerState : byte
+    {
+        None = 0,
+        RequiresFinalization = 1,
+        HasMarkers = 2
     }
 
     internal bool IsInternalProperty(Cursor current)

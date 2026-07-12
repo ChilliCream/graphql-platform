@@ -69,7 +69,8 @@ public sealed class SchemaComposer
                     schema,
                     _log,
                     options?.Parser,
-                    options?.InvalidFieldDeprecationSeverity ?? LogSeverity.Warning).Parse();
+                    options?.InvalidFieldDeprecationSeverity ?? LogSeverity.Warning,
+                    options?.IsApolloFederationV1 ?? false).Parse();
             }).Combine();
 
         if (parsingResult.IsFailure)
@@ -92,7 +93,8 @@ public sealed class SchemaComposer
                     _log,
                     options?.Version,
                     options?.Preprocessor,
-                    options?.InvalidFieldDeprecationSeverity ?? LogSeverity.Warning)
+                    options?.InvalidFieldDeprecationSeverity ?? LogSeverity.Warning,
+                    options?.IsApolloFederationV1 ?? false)
                     .Preprocess();
             }).Combine();
 

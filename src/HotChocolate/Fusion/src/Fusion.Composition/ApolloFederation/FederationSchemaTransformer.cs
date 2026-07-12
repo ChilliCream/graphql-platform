@@ -100,6 +100,7 @@ public static class FederationSchemaTransformer
         RemoveExternalFields.Apply(schema);
         GenerateNodeLookup.Apply(schema);
         SourceExternalFieldMetadata.WriteMarker(schema);
+        RemoveEmptyQueryRoot.Apply(schema);
 
         return SchemaFormatter.FormatAsString(schema);
     }

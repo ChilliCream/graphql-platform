@@ -1044,7 +1044,21 @@ public sealed partial class OperationPlanner
             backlog,
             workItem.Conditions,
             workItem.AllowSourceSchemaReentry,
-            workItem.SourceSchemaNodePolicy);
+            workItem.SourceSchemaNodePolicy,
+            out var unresolvedRequirements);
+
+        // A self-cyclic lookup can proceed only when an existing step supplies its key.
+        // If requirement inlining leaves the identical selection unresolved, this direct
+        // branch made no progress. The parent-path alternatives were enqueued separately.
+        if (unresolvedRequirements is not null
+            && PlanQueue.IsSelfCyclicLookup(workItem, lookup)
+            && SyntaxComparer.BySyntax.Equals(
+                unresolvedRequirements,
+                workItem.SelectionSet.Node))
+        {
+            return;
+        }
+
         PlanSelections(
             workItem,
             current,
@@ -1229,9 +1243,10 @@ public sealed partial class OperationPlanner
         Lookup lookup,
         int lookupStepDepth,
         Backlog backlog,
-        ExecutionNodeCondition[]? conditions = null,
-        bool allowSourceSchemaReentry = false,
-        SourceSchemaNodePlanningPolicy? sourceSchemaNodePolicy = null)
+        ExecutionNodeCondition[]? conditions,
+        bool allowSourceSchemaReentry,
+        SourceSchemaNodePlanningPolicy? sourceSchemaNodePolicy,
+        out SelectionSetNode? unresolvedRequirements)
     {
         var processed = new HashSet<string>();
         var lookupStepId = current.Steps.NextId();
@@ -1288,6 +1303,24 @@ public sealed partial class OperationPlanner
                 || (!allowSourceSchemaReentry && lookup.SchemaName.Equals(schemaName)))
             {
                 continue;
+            }
+
+            var relativePath = workItemSelectionSet.Path.RelativeTo(step.Target);
+
+            // A lookup key can already be present in this step because an ancestor @provides
+            // scope selected the concrete runtime field. Match the actual operation path so
+            // sibling abstract branches that share a selection-set id cannot satisfy each
+            // other's requirements.
+            if (ContainsSelectionsAtPath(
+                step.Definition.SelectionSet,
+                relativePath,
+                selectionSet))
+            {
+                steps = steps.SetItem(
+                    stepIndex,
+                    step with { Dependents = step.Dependents.Add(lookupStepId) });
+                selectionSet = null;
+                break;
             }
 
             var input = new SelectionSetPartitionerInput
@@ -1394,6 +1427,8 @@ public sealed partial class OperationPlanner
             }
         }
 
+        unresolvedRequirements = selectionSet;
+
         // if we have still selections left we need to add them to the backlog. A nested
         // object/list leftover is re-rooted at its own entity type so a requirement that
         // crosses an entity boundary resolves via that entity's key lookup.
@@ -1429,6 +1464,118 @@ public sealed partial class OperationPlanner
             InternalOperationDefinition = internalOperation
         };
     }
+
+    internal static bool ContainsSelectionsAtPath(
+        SelectionSetNode current,
+        SelectionPath path,
+        SelectionSetNode required)
+        => ContainsSelectionsAtPath(current, path, pathIndex: 0, required);
+
+    private static bool ContainsSelectionsAtPath(
+        SelectionSetNode current,
+        SelectionPath path,
+        int pathIndex,
+        SelectionSetNode required)
+    {
+        if (pathIndex == path.Length)
+        {
+            return ContainsAllSelections(required, current);
+        }
+
+        var segment = path[pathIndex];
+
+        foreach (var selection in current.Selections)
+        {
+            if (selection is InlineFragmentNode
+                {
+                    TypeCondition: null,
+                    Directives.Count: 0
+                } wrapper
+                && ContainsSelectionsAtPath(wrapper.SelectionSet, path, pathIndex, required))
+            {
+                return true;
+            }
+
+            switch (segment.Kind)
+            {
+                case SelectionPathSegmentKind.Field
+                    when selection is FieldNode
+                    {
+                        SelectionSet: { } child,
+                        Directives.Count: 0
+                    } field && (field.Alias?.Value ?? field.Name.Value).Equals(segment.Name, StringComparison.Ordinal):
+                    if (ContainsSelectionsAtPath(child, path, pathIndex + 1, required))
+                    {
+                        return true;
+                    }
+                    break;
+
+                case SelectionPathSegmentKind.InlineFragment
+                    when selection is InlineFragmentNode
+                    {
+                        TypeCondition.Name.Value: var typeName,
+                        Directives.Count: 0
+                    } fragment && typeName.Equals(segment.Name, StringComparison.Ordinal):
+                    if (ContainsSelectionsAtPath(
+                        fragment.SelectionSet,
+                        path,
+                        pathIndex + 1,
+                        required))
+                    {
+                        return true;
+                    }
+                    break;
+            }
+        }
+
+        return false;
+    }
+
+    private static bool ContainsAllSelections(
+        SelectionSetNode required,
+        SelectionSetNode existing)
+    {
+        foreach (var requiredSelection in required.Selections)
+        {
+            var isCovered = requiredSelection switch
+            {
+                FieldNode requiredField => existing.Selections
+                    .OfType<FieldNode>()
+                    .Any(existingField => FieldContains(requiredField, existingField)),
+                InlineFragmentNode requiredFragment => existing.Selections
+                    .OfType<InlineFragmentNode>()
+                    .Any(existingFragment => FragmentContains(requiredFragment, existingFragment)),
+                _ => false
+            };
+
+            if (!isCovered)
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private static bool FieldContains(FieldNode required, FieldNode existing)
+    {
+        if (!SyntaxComparer.BySyntax.Equals(required.Name, existing.Name)
+            || !SyntaxComparer.BySyntax.Equals(required.Alias, existing.Alias)
+            || !required.Arguments.SequenceEqual(existing.Arguments, SyntaxComparer.BySyntax)
+            || !required.Directives.SequenceEqual(existing.Directives, SyntaxComparer.BySyntax))
+        {
+            return false;
+        }
+
+        return required.SelectionSet is null
+            || (existing.SelectionSet is not null
+                && ContainsAllSelections(required.SelectionSet, existing.SelectionSet));
+    }
+
+    private static bool FragmentContains(InlineFragmentNode required, InlineFragmentNode existing)
+        => SyntaxComparer.BySyntax.Equals(required.TypeCondition, existing.TypeCondition)
+            && required.Directives.SequenceEqual(existing.Directives, SyntaxComparer.BySyntax)
+            && ContainsAllSelections(required.SelectionSet, existing.SelectionSet);
 
     /// <summary>
     /// Tries to inline the field that has a requirement into its original intended plan step
@@ -1619,7 +1766,9 @@ public sealed partial class OperationPlanner
                 workItem.EstimatedDepth,
                 backlog,
                 workItem.Conditions,
-                sourceSchemaNodePolicy: workItem.SourceSchemaNodePolicy);
+                allowSourceSchemaReentry: false,
+                workItem.SourceSchemaNodePolicy,
+                out _);
             backlog = current.Backlog;
 
             if (current.Steps.ById(stepConsumer.StepId) is not OperationPlanStep updatedCurrentStep)
@@ -3172,8 +3321,7 @@ public sealed partial class OperationPlanner
             ImmutableArray<(RequirementFieldSelectionKey Key, string Alias)> entries)
             => _entries = entries;
 
-        public static RequirementAliasRegistry Empty { get; } =
-            new(ImmutableArray<(RequirementFieldSelectionKey Key, string Alias)>.Empty);
+        public static RequirementAliasRegistry Empty { get; } = new([]);
 
         public RequirementAliasRegistry GetOrAdd(FieldNode field, out string alias)
         {

@@ -37,7 +37,7 @@ public sealed class HttpSourceSchemaClient : ISourceSchemaClient
     /// <param name="configuration">The transport configuration for this source schema.</param>
     /// <param name="annotateOperationKind">
     /// Whether the GraphQL operation kind is annotated onto outgoing subgraph HTTP requests via
-    /// <see cref="System.Net.Http.HttpRequestMessage.Options"/>, so that delegating handlers (such as the
+    /// <see cref="HttpRequestMessage.Options"/>, so that delegating handlers (such as the
     /// RequestDeduplicationHandler) can consume it. <c>false</c> by default because materializing the
     /// request options bag allocates per request.
     /// </param>
