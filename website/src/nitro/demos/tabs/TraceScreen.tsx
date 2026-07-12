@@ -11,6 +11,8 @@ import { Cursor } from "../../primitives/reel/Cursor";
 import { Flyout } from "../../primitives/reel/Flyout";
 import { TableList } from "../../primitives/reel/TableList";
 import { TABREEL_CANVAS } from "../../primitives/reel/TabReel";
+import { PanelTile } from "../../primitives/PanelTile";
+import { UnderlineTab } from "../../primitives/UnderlineTab";
 import { token } from "../../lib/tokens";
 import { ease } from "../../lib/motion";
 import { timeline } from "../../lib/timeline";
@@ -819,31 +821,13 @@ function GatewayViewNav() {
       {views.map((v) => {
         const on = v === "Monitoring";
         return (
-          <span
+          <UnderlineTab
             key={v}
-            style={{
-              position: "relative",
-              fontSize: 13,
-              height: "100%",
-              display: "flex",
-              alignItems: "center",
-              color: on ? token.textStrong : token.textSecondary,
-            }}
-          >
-            {v}
-            {on && (
-              <span
-                style={{
-                  position: "absolute",
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                  height: 2,
-                  background: ORANGE,
-                }}
-              />
-            )}
-          </span>
+            label={v}
+            active={on}
+            height="100%"
+            color={ORANGE}
+          />
         );
       })}
       <span
@@ -926,7 +910,7 @@ function MonitoringOverview() {
         gap: TILE_GAP,
       }}
     >
-      <Tile
+      <PanelTile
         title="Latency"
         height={LAT_TILE_H}
         headerExtra={<MetricBadge value="128 ms" sub="p95" />}
@@ -944,11 +928,11 @@ function MonitoringOverview() {
           legend
           jagged
         />
-      </Tile>
+      </PanelTile>
 
       <div style={{ display: "flex", gap: TILE_GAP, height: TP_TILE_H }}>
         <div style={{ flex: "0 0 61%", minWidth: 0, display: "flex" }}>
-          <Tile
+          <PanelTile
             title="Throughput"
             headerExtra={<MetricBadge value="4.9K" sub="opm" />}
           >
@@ -956,10 +940,10 @@ function MonitoringOverview() {
               values={OVERVIEW.throughput}
               color={token.chThroughput}
             />
-          </Tile>
+          </PanelTile>
         </div>
         <div style={{ flex: 1, minWidth: 0, display: "flex" }}>
-          <Tile
+          <PanelTile
             title="Clients"
             headerExtra={
               <span style={{ fontSize: 11, color: token.textSecondary }}>
@@ -968,22 +952,22 @@ function MonitoringOverview() {
             }
           >
             <ClientsBars />
-          </Tile>
+          </PanelTile>
         </div>
       </div>
 
       <div style={{ display: "flex", gap: TILE_GAP, height: FAIL_TILE_H }}>
         <div style={{ flex: "0 0 61%", minWidth: 0, display: "flex" }}>
-          <Tile title="Failed Operations">
+          <PanelTile title="Failed Operations">
             <AreaLineChart
               values={OVERVIEW.failed}
               color={token.chP95}
               legendLabel="GetHomePageQuery"
             />
-          </Tile>
+          </PanelTile>
         </div>
         <div style={{ flex: 1, minWidth: 0, display: "flex" }}>
-          <Tile
+          <PanelTile
             title="Errors"
             headerExtra={
               <span style={{ fontSize: 11, color: token.errorText }}>
@@ -992,71 +976,11 @@ function MonitoringOverview() {
             }
           >
             <ErrorList />
-          </Tile>
+          </PanelTile>
         </div>
       </div>
 
       <InsightsTable />
-    </div>
-  );
-}
-
-function Tile({
-  title,
-  height,
-  headerExtra,
-  children,
-}: {
-  title: string;
-  height?: number;
-  headerExtra?: React.ReactNode;
-  children: React.ReactNode;
-}) {
-  return (
-    <div
-      style={{
-        flex: 1,
-        minWidth: 0,
-        height,
-        background: token.card,
-        border: `1px solid ${token.border}`,
-        borderRadius: 8,
-        display: "flex",
-        flexDirection: "column",
-      }}
-    >
-      <div
-        style={{
-          height: 36,
-          flex: "0 0 auto",
-          display: "flex",
-          alignItems: "center",
-          gap: 10,
-          padding: "0 14px",
-          borderBottom: `1px solid ${token.border}`,
-        }}
-      >
-        <span
-          style={{ fontSize: 13, fontWeight: 600, color: token.textStrong }}
-        >
-          {title}
-        </span>
-        {headerExtra && (
-          <span style={{ marginLeft: "auto", display: "flex" }}>
-            {headerExtra}
-          </span>
-        )}
-      </div>
-      <div
-        style={{
-          flex: 1,
-          minHeight: 0,
-          padding: "12px 14px 10px",
-          position: "relative",
-        }}
-      >
-        {children}
-      </div>
     </div>
   );
 }
@@ -1733,13 +1657,13 @@ function OperationScreen() {
             flex: "0 0 auto",
           }}
         >
-          <Tile
+          <PanelTile
             title="Latency"
             headerExtra={<MetricBadge value="842 ms" sub="p95" />}
           >
             <AreaLineChart values={OPSERIES.latency} color={token.chP95} />
-          </Tile>
-          <Tile
+          </PanelTile>
+          <PanelTile
             title="Throughput"
             headerExtra={<MetricBadge value="8.4K" sub="opm" />}
           >
@@ -1747,13 +1671,13 @@ function OperationScreen() {
               values={OPSERIES.throughput}
               color={token.chThroughput}
             />
-          </Tile>
-          <Tile
+          </PanelTile>
+          <PanelTile
             title="Errors"
             headerExtra={<MetricBadge value="0.04" sub="%" />}
           >
             <AreaLineChart values={OPSERIES.errors} color={token.chP95} />
-          </Tile>
+          </PanelTile>
         </div>
         <div
           style={{

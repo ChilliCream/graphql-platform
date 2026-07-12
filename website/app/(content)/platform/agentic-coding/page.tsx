@@ -1,12 +1,12 @@
-import Link from "next/link";
-import type { ReactNode } from "react";
-
 import { AGENTS, AgentLogo } from "@/src/components/AgentLogo";
+import { ArrowLink } from "@/src/components/ArrowLink";
 import { CopyCommand } from "@/src/components/CopyCommand";
+import { KeyValueChip } from "@/src/components/KeyValueChip";
 import { PageHero } from "@/src/components/PageHero";
 import { SectionHeading } from "@/src/components/SectionHeading";
+import { Card } from "@/src/design-system/Card";
+import { Eyebrow } from "@/src/design-system/Eyebrow";
 import { pageMetadata } from "@/src/helpers/pageMetadata";
-import { ArrowRightIcon } from "@/src/icons/ArrowRight";
 
 import { ReviewSection } from "./ReviewSection";
 
@@ -80,15 +80,6 @@ const BEAMS: readonly BeamSpec[] = [
       "linear-gradient(180deg, rgba(94,234,212,0) 0%, rgba(94,234,212,0.10) 8%, rgba(94,234,212,0.04) 40%, transparent 75%)",
   },
 ];
-
-/** Shared eyebrow label used in every section header. */
-function SectionLabel({ children }: { readonly children: ReactNode }) {
-  return (
-    <span className="text-cc-nav-label font-mono text-xs tracking-[0.15em] uppercase">
-      {children}
-    </span>
-  );
-}
 
 // A single white streak falls down one beam at a time: the one animation
 // walks the drop through three legs (the 24%, 50%, and 92% beams), so at
@@ -218,12 +209,12 @@ function AgentDirectory() {
       <ul className="mt-10 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
         {AGENTS.map((agent) => (
           <li key={agent.slug}>
-            <div className="border-cc-card-border bg-cc-card-bg hover:border-cc-card-border-hover flex items-center gap-3 rounded-2xl border px-4 py-4 transition-colors">
+            <Card hoverBorder className="flex items-center gap-3 p-4">
               <AgentLogo agent={agent} className="size-7 shrink-0" />
               <span className="text-cc-ink font-mono text-sm">
                 {agent.name}
               </span>
-            </div>
+            </Card>
           </li>
         ))}
         <li>
@@ -277,13 +268,16 @@ function SkillsSection() {
 
       <div className="mt-10 grid grid-cols-1 gap-5 md:grid-cols-3">
         {SKILLS.map((skill) => (
-          <article
+          <Card
             key={skill.name}
-            className="border-cc-card-border bg-cc-card-bg hover:border-cc-card-border-hover flex flex-col rounded-3xl border p-6 transition-colors"
+            as="article"
+            variant="panel"
+            hoverBorder
+            className="flex flex-col"
           >
-            <p className="text-cc-nav-label font-mono text-[0.58rem] tracking-[0.15em] uppercase">
+            <Eyebrow size="xs" className="text-[0.58rem]">
               SKILL.md
-            </p>
+            </Eyebrow>
             <h3 className="text-cc-accent mt-3 font-mono text-sm break-words">
               {skill.name}
             </h3>
@@ -301,25 +295,15 @@ function SkillsSection() {
                 className="bg-cc-surface"
               />
             </div>
-          </article>
+          </Card>
         ))}
       </div>
 
       <div className="mt-8 flex flex-wrap items-center justify-center gap-x-8 gap-y-3">
-        <a
-          href="https://github.com/chillicream/agent-skills"
-          className="text-cc-accent hover:text-cc-accent-hover inline-flex items-center gap-1.5 text-sm font-medium transition-colors"
-        >
+        <ArrowLink href="https://github.com/chillicream/agent-skills">
           Browse chillicream/agent-skills
-          <ArrowRightIcon className="size-3.5" />
-        </a>
-        <Link
-          href="/docs/skillz"
-          className="text-cc-accent hover:text-cc-accent-hover inline-flex items-center gap-1.5 text-sm font-medium transition-colors"
-        >
-          Read the skillz docs
-          <ArrowRightIcon className="size-3.5" />
-        </Link>
+        </ArrowLink>
+        <ArrowLink href="/docs/skillz">Read the skillz docs</ArrowLink>
       </div>
     </section>
   );
@@ -344,8 +328,8 @@ const PATTERN_CHIPS = [
  */
 function PatternsTile() {
   return (
-    <article className="border-cc-card-border bg-cc-card-bg hover:border-cc-card-border-hover flex flex-col rounded-3xl border p-6 backdrop-blur-sm transition-colors sm:p-8">
-      <SectionLabel>Patterns</SectionLabel>
+    <Card as="article" variant="panel" hoverBorder className="flex flex-col">
+      <Eyebrow size="xs">Patterns</Eyebrow>
       <h2 className="font-heading text-cc-heading text-h5 sm:text-h4 mt-3 leading-tight font-semibold text-balance">
         One pattern per problem.
       </h2>
@@ -358,20 +342,15 @@ function PatternsTile() {
 
       <div className="mt-5 grid grid-cols-1 gap-2 sm:grid-cols-2">
         {PATTERN_CHIPS.map((chip) => (
-          <div
+          <KeyValueChip
             key={chip.label}
-            className="border-cc-card-border bg-cc-surface flex items-center justify-between gap-2 rounded-lg border px-3 py-2"
-          >
-            <span className="text-cc-nav-label min-w-0 truncate font-mono text-[0.55rem] tracking-[0.12em] uppercase">
-              {chip.label}
-            </span>
-            <code className="text-cc-accent shrink-0 font-mono text-[0.65rem]">
-              {chip.attr}
-            </code>
-          </div>
+            label={chip.label}
+            value={chip.attr}
+            labelTruncate
+          />
         ))}
       </div>
-    </article>
+    </Card>
   );
 }
 
@@ -391,8 +370,8 @@ const FEEDBACK_ROWS = [
  */
 function FeedbackTile() {
   return (
-    <article className="border-cc-card-border bg-cc-card-bg hover:border-cc-card-border-hover flex flex-col rounded-3xl border p-6 backdrop-blur-sm transition-colors sm:p-8">
-      <SectionLabel>Feedback</SectionLabel>
+    <Card as="article" variant="panel" hoverBorder className="flex flex-col">
+      <Eyebrow size="xs">Feedback</Eyebrow>
       <h2 className="font-heading text-cc-heading text-h5 sm:text-h4 mt-3 leading-tight font-semibold text-balance">
         Feedback before the merge.
       </h2>
@@ -405,20 +384,19 @@ function FeedbackTile() {
 
       <div className="mt-5 space-y-2">
         {FEEDBACK_ROWS.map((row) => (
-          <div
+          <KeyValueChip
             key={row.label}
-            className="border-cc-card-border bg-cc-surface flex items-center gap-3 rounded-lg border px-3 py-2.5"
-          >
-            <span className="text-cc-nav-label w-24 shrink-0 font-mono text-[0.55rem] tracking-[0.08em] uppercase">
-              {row.label}
-            </span>
-            <span className="text-cc-ink min-w-0 font-mono text-xs">
-              {row.value}
-            </span>
-          </div>
+            label={row.label}
+            value={row.value}
+            valueAs="span"
+            justify="start"
+            density="cozy"
+            labelTracking="normal"
+            labelWidth="6rem"
+          />
         ))}
       </div>
-    </article>
+    </Card>
   );
 }
 
@@ -454,33 +432,29 @@ function McpSection() {
               </>
             }
           />
-          <Link
+          <ArrowLink
             href="/docs/hotchocolate/build/adapters/mcp"
-            className="text-cc-accent hover:text-cc-accent-hover mt-6 inline-flex items-center gap-1.5 text-sm font-medium transition-colors"
+            className="mt-6"
           >
             Read the MCP adapter docs
-            <ArrowRightIcon className="size-3.5" />
-          </Link>
+          </ArrowLink>
         </div>
 
-        <div className="border-cc-card-border bg-cc-card-bg/60 rounded-3xl border p-6 backdrop-blur-sm sm:p-8">
-          <SectionLabel>Tool exposure</SectionLabel>
+        <Card variant="panel">
+          <Eyebrow size="xs">Tool exposure</Eyebrow>
           <div className="mt-4 space-y-2">
             {MCP_TOOLS.map((tool) => (
-              <div
+              <KeyValueChip
                 key={tool.name}
-                className="border-cc-card-border bg-cc-surface flex items-center justify-between gap-2 rounded-lg border px-3 py-2"
-              >
-                <span className="text-cc-ink font-mono text-xs">
-                  {tool.name}
-                </span>
-                <span className="text-cc-nav-label font-mono text-[0.55rem] tracking-[0.08em] uppercase">
-                  {tool.hint}
-                </span>
-              </div>
+                label={tool.hint}
+                value={tool.name}
+                valueAs="span"
+                order="value-first"
+                labelTracking="normal"
+              />
             ))}
           </div>
-        </div>
+        </Card>
       </div>
     </section>
   );

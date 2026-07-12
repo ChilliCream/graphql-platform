@@ -2,9 +2,11 @@ import type { ComponentType } from "react";
 
 import { Offering } from "@/src/components/Offering";
 import { OfferingGrid } from "@/src/components/OfferingGrid";
+import { PageSection } from "@/src/components/PageSection";
 import type { TierId } from "@/src/components/pricing/pricingData";
 import { TIERS } from "@/src/components/pricing/pricingData";
 import { OutlineButton } from "@/src/design-system/Button";
+import { Card } from "@/src/design-system/Card";
 import { DripBrewer } from "@/src/icons/DripBrewer";
 import { FrenchPress } from "@/src/icons/FrenchPress";
 import { PourOver } from "@/src/icons/PourOver";
@@ -28,7 +30,7 @@ const SELF_HOSTED = TIERS.find((tier) => tier.id === "self");
  */
 export function NitroPricing() {
   return (
-    <section className="mx-auto max-w-7xl px-5 py-16 sm:px-12 sm:py-24">
+    <PageSection className="py-16 sm:py-24">
       <h2 className="font-heading text-cc-heading text-h4 sm:text-h3 text-center font-semibold">
         Brew it your Way
       </h2>
@@ -55,7 +57,10 @@ export function NitroPricing() {
       </OfferingGrid>
 
       {SELF_HOSTED && (
-        <div className="border-cc-card-border bg-cc-card-bg/60 mt-6 flex flex-col gap-5 rounded-3xl border p-6 sm:flex-row sm:items-center sm:justify-between sm:p-8">
+        <Card
+          variant="panel"
+          className="mt-6 flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between"
+        >
           <div>
             <h3 className="font-heading text-cc-heading text-h6 font-semibold">
               {SELF_HOSTED.name}
@@ -71,8 +76,8 @@ export function NitroPricing() {
           >
             {SELF_HOSTED.cta}
           </OutlineButton>
-        </div>
+        </Card>
       )}
-    </section>
+    </PageSection>
   );
 }

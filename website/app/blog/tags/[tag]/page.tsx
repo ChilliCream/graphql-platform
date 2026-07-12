@@ -1,7 +1,5 @@
 import { notFound } from "next/navigation";
-import { Pagination } from "@/src/design-system/Pagination";
-import { BlogTeaserGrid } from "@/src/components/BlogTeaserGrid";
-import { Typography } from "@/src/design-system/Typography";
+import { BlogIndexShell } from "@/src/components/BlogIndexShell";
 import { listTags, paginate, postsForTag } from "@/src/helpers/blogPaging";
 import { listBlogPostSummaries } from "@/src/helpers/blogPosts";
 
@@ -38,24 +36,21 @@ export default async function TagIndex({ params }: PageProps) {
   }
 
   return (
-    <div className="px-5 py-8 sm:px-12">
-      <div className="mx-auto flex max-w-6xl flex-col gap-6">
-        <header className="flex flex-col gap-1">
-          <Typography variant="h1">#{tag}</Typography>
-          <p className="text-cc-ink-dim text-sm">
-            {tagged.length} {tagged.length === 1 ? "post" : "posts"} tagged “
-            {tag}”.
-          </p>
-        </header>
-        <BlogTeaserGrid posts={slice.posts} />
-        <Pagination
-          currentPage={slice.currentPage}
-          totalPages={slice.totalPages}
-          hrefForPage={(p) =>
-            p === 1 ? `/blog/tags/${tag}` : `/blog/tags/${tag}/${p}`
-          }
-        />
-      </div>
-    </div>
+    <BlogIndexShell
+      title={`#${tag}`}
+      subtitle={
+        <p className="text-cc-ink-dim text-sm">
+          {tagged.length} {tagged.length === 1 ? "post" : "posts"} tagged “{tag}
+          ”.
+        </p>
+      }
+      posts={slice.posts}
+      pagination={{
+        currentPage: slice.currentPage,
+        totalPages: slice.totalPages,
+        hrefForPage: (p) =>
+          p === 1 ? `/blog/tags/${tag}` : `/blog/tags/${tag}/${p}`,
+      }}
+    />
   );
 }
