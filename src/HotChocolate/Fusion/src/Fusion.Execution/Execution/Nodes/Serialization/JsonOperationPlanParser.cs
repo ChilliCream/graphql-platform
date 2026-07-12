@@ -555,7 +555,12 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
             Target = target ?? SelectionPath.Root,
             Requirements = requirements?.ToArray() ?? [],
             ForwardedVariables = forwardedVariables ?? [],
-            ResultSelectionSet = ResultSelectionSet.Create(resultSelectionSet!, schema, parentType, schemaName),
+            ResultSelectionSet =
+                ResultSelectionSet.CreateFromPlan(
+                    resultSelectionSet!,
+                    schema,
+                    parentType,
+                    schemaName),
             Dependencies = dependencies,
             ParentDependencies = parentDependencies,
             BatchingGroupId = batchingGroupId,
@@ -565,7 +570,7 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
         };
     }
 
-    private static ParsedOperationNodeInfo ParseApolloOperationNodeInfo(
+    private static ParsedApolloOperationNodeInfo ParseApolloOperationNodeInfo(
         JsonElement nodeElement, int id, FusionSchemaDefinition schema)
     {
         var (schemaName, opSource, source, requirements, forwardedVariables,
@@ -590,7 +595,12 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
             Target = target ?? SelectionPath.Root,
             Requirements = requirements?.ToArray() ?? [],
             ForwardedVariables = forwardedVariables ?? [],
-            ResultSelectionSet = ResultSelectionSet.Create(resultSelectionSet!, schema, parentType, schemaName),
+            ResultSelectionSet =
+                ResultSelectionSet.CreateFromPlan(
+                    resultSelectionSet!,
+                    schema,
+                    parentType,
+                    schemaName),
             Dependencies = dependencies,
             ParentDependencies = parentDependencies,
             BatchingGroupId = batchingGroupId,
@@ -624,7 +634,7 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
             FieldName = fieldName,
             Source = source,
             Target = target,
-            ResultSelectionSet = ResultSelectionSet.Create(resultSelectionSet, schema),
+            ResultSelectionSet = ResultSelectionSet.CreateFromPlan(resultSelectionSet, schema),
             EventStreamSource = eventStreamSource,
             Message = message,
             Dependencies = dependencies,
@@ -706,7 +716,12 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
             Targets = targets,
             Requirements = requirements?.ToArray() ?? [],
             ForwardedVariables = forwardedVariables ?? [],
-            ResultSelectionSet = ResultSelectionSet.Create(resultSelectionSet!, schema, parentType, schemaName),
+            ResultSelectionSet =
+                ResultSelectionSet.CreateFromPlan(
+                    resultSelectionSet!,
+                    schema,
+                    parentType,
+                    schemaName),
             Dependencies = dependencies,
             ParentDependencies = parentDependencies,
             BatchingGroupId = batchingGroupId,

@@ -372,6 +372,67 @@ public sealed class FederationSchemaTransformerTests
     }
 
     [Fact]
+    public void Transform_Should_PreserveOnlyConditionedUnionProvidesFields()
+    {
+        // arrange
+        const string federationSdl =
+            """
+            schema @link(
+                url: "https://specs.apollo.dev/federation/v2.6"
+                import: ["@external", "@key", "@provides", "@shareable"]) {
+              query: Query
+            }
+
+            type Query {
+              media: [Media] @shareable @provides(fields: "... on Book { title }")
+              wrapper: Wrapper @provides(fields: "media { ... on Book { subtitle } }")
+              _service: _Service!
+              _entities(representations: [_Any!]!): [_Entity]!
+            }
+
+            type Wrapper {
+              media: Media
+            }
+
+            union Media = Book | Movie
+
+            type Book @key(fields: "id") {
+              id: ID!
+              subtitle: String @external
+              title: String @external
+            }
+
+            type Movie @key(fields: "id") {
+              id: ID!
+              subtitle: String @external
+              title: String @external
+            }
+
+            type _Service { sdl: String! }
+
+            union _Entity = Book | Movie
+
+            scalar FieldSet
+            scalar _Any
+
+            directive @external on FIELD_DEFINITION
+            directive @key(fields: FieldSet! resolvable: Boolean = true) repeatable on OBJECT | INTERFACE
+            directive @link(url: String! import: [String!]) repeatable on SCHEMA
+            directive @provides(fields: FieldSet!) on FIELD_DEFINITION
+            directive @shareable repeatable on OBJECT | FIELD_DEFINITION
+            """;
+
+        // act
+        var result = FederationSchemaTransformer.Transform(federationSdl);
+
+        // assert
+        Assert.True(result.IsSuccess);
+        Snapshot.Create()
+            .Add(result.Value, "Transformed SDL", "graphql")
+            .MatchMarkdownSnapshot();
+    }
+
+    [Fact]
     public void Transform_ExternalDirective()
     {
         // arrange

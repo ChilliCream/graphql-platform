@@ -580,6 +580,7 @@ AddErrors_Next:
         lock (_lock)
         {
             _valueCompletion.FinalizePocketedErrors(_result.Data);
+            _valueCompletion.FinalizeInaccessibleRuntimeTypes(_result.Data);
         }
     }
 

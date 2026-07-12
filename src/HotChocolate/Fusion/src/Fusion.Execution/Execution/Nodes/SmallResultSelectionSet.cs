@@ -7,8 +7,9 @@ namespace HotChocolate.Fusion.Execution.Nodes;
 internal sealed class SmallResultSelectionSet(
     ResultSelection[] selections,
     ResultFragment[] fragments,
-    string[] allResponseNames)
-    : ResultSelectionSet(fragments, allResponseNames)
+    string[] allResponseNames,
+    SourceResponseNameMapping[]? sourceResponseNameMappings)
+    : ResultSelectionSet(fragments, allResponseNames, sourceResponseNameMappings)
 {
     protected override ReadOnlySpan<ResultSelection> DirectSelections => selections;
 

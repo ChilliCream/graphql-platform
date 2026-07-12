@@ -19,9 +19,15 @@ public sealed class CategoryEntityType : ObjectType<CategoryEntity>
             .ResolveReferenceWith(_ => ResolveById(default!));
 
         descriptor.Field(c => c.Id).Type<NonNullType<IdType>>();
-        descriptor.Field(c => c.SubCategories).Shareable().Type<ListType<CategoryEntityType>>();
+        descriptor
+            .Field(c => c.SubCategories)
+            .Shareable()
+            .Type<ListType<CategoryEntityType>>()
+            .Resolve(ctx => SubcategoriesData.GetSubCategories(ctx.Parent<CategoryEntity>().Id));
     }
 
-    private static CategoryEntity ResolveById(string id)
-        => SubcategoriesData.BuildCategory(id);
+    private static CategoryEntity? ResolveById(string id)
+        => SubcategoriesData.SubCategories.ContainsKey(id)
+            ? SubcategoriesData.BuildCategory(id)
+            : null;
 }

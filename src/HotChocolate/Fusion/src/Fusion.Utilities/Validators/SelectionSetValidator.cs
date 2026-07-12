@@ -39,6 +39,17 @@ public sealed class SelectionSetValidator(ISchemaDefinition schema)
 
         var type = context.TypeContext.Peek();
 
+        if (type is IUnionTypeDefinition unionType)
+        {
+            context.Errors.Add(
+                string.Format(
+                    SelectionSetValidator_FieldDoesNotExistOnType,
+                    node.Name.Value,
+                    unionType.Name));
+
+            return Skip;
+        }
+
         if (type is IComplexTypeDefinition complexType)
         {
             if (complexType.Fields.TryGetField(node.Name.Value, out var field))

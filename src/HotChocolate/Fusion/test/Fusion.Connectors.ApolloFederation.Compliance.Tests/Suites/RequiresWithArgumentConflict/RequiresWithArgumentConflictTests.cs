@@ -3,44 +3,18 @@ using HotChocolate.Fusion.Suites.RequiresWithArgumentConflict.B;
 
 namespace HotChocolate.Fusion.Suites;
 
-public sealed class RequiresWithArgumentConflictTests : ComplianceTestBase
+[OfficialV2Suite("requires-with-argument-conflict")]
+public sealed class RequiresWithArgumentConflictTests
+    : OfficialV2ComplianceTestBase<RequiresWithArgumentConflictTests>
 {
     protected override Task<FusionGateway> BuildGatewayAsync()
-        => FusionGatewayBuilder.ComposeAsync(
+        => ComposeOfficialV2Async(
             (ASubgraph.Name, ASubgraph.BuildAsync),
             (BSubgraph.Name, BSubgraph.BuildAsync));
 
-    [Fact]
-    public Task Products_ShippingEstimate_EUR_And_IsExpensiveCategory() => RunAsync(
-        query: """
-            query {
-              products {
-                upc
-                name
-                shippingEstimate
-                shippingEstimateEUR
-                isExpensiveCategory
-              }
-            }
-            """,
-        expectedData: """
-            {
-              "products": [
-                {
-                  "upc": "p1",
-                  "name": "p-name-1",
-                  "shippingEstimate": 110,
-                  "shippingEstimateEUR": 220,
-                  "isExpensiveCategory": false
-                },
-                {
-                  "upc": "p2",
-                  "name": "p-name-2",
-                  "shippingEstimate": 440,
-                  "shippingEstimateEUR": 880,
-                  "isExpensiveCategory": true
-                }
-              ]
-            }
-            """);
+    [Theory]
+    [MemberData(nameof(Cases))]
+    [Trait("Category", "OfficialV2")]
+    public Task OfficialCase_Should_MatchExpectedResult_When_Executed(string caseId)
+        => RunOfficialV2CaseAsync(caseId);
 }

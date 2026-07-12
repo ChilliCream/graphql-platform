@@ -145,7 +145,60 @@ internal static class FusionGatewayBuilder
     /// Determines how the gateway resolves the <c>Query.node</c> field.
     /// </param>
     /// <param name="subgraphs">Named subgraph factories.</param>
-    public static async Task<FusionGateway> ComposeAsync(
+    public static Task<FusionGateway> ComposeAsync(
+        SubgraphRequestCapture? capture,
+        IReadOnlyDictionary<string, string>? sourceSchemaSettings,
+        NodeResolution nodeResolution,
+        bool allowNonResolvableInterfaceObjects,
+        ShareableFieldRuntimeTypeRouting shareableFieldRuntimeTypeRouting,
+        params (string Name, Func<Task<SubgraphHost>> Factory)[] subgraphs)
+        => ComposeAsync(
+            officialSourceSchemas: null,
+            capture,
+            sourceSchemaSettings,
+            nodeResolution,
+            allowNonResolvableInterfaceObjects,
+            shareableFieldRuntimeTypeRouting,
+            subgraphs);
+
+    public static Task<FusionGateway> ComposeOfficialV2Async<TSuite>(
+        params (string Name, Func<Task<SubgraphHost>> Factory)[] subgraphs)
+        => ComposeOfficialV2Async<TSuite>(capture: null, subgraphs);
+
+    public static Task<FusionGateway> ComposeOfficialV1Async<TSuite>(
+        params (string Name, Func<Task<SubgraphHost>> Factory)[] subgraphs)
+        => ComposeOfficialV1Async<TSuite>(capture: null, subgraphs);
+
+    public static Task<FusionGateway> ComposeOfficialV1Async<TSuite>(
+        SubgraphRequestCapture? capture,
+        params (string Name, Func<Task<SubgraphHost>> Factory)[] subgraphs)
+        => ComposeAsync(
+            AuditFixture.GetOfficialV1SourceSchemas<TSuite>(),
+            capture,
+            sourceSchemaSettings: null,
+            NodeResolution.Gateway,
+            allowNonResolvableInterfaceObjects: false,
+            ShareableFieldRuntimeTypeRouting.SourceLocal,
+            subgraphs);
+
+    public static Task<FusionGateway> ComposeOfficialV2Async<TSuite>(
+        SubgraphRequestCapture? capture,
+        params (string Name, Func<Task<SubgraphHost>> Factory)[] subgraphs)
+    {
+        var suite = AuditFixture.GetOfficialV2SuiteAttribute<TSuite>();
+
+        return ComposeAsync(
+            AuditFixture.GetOfficialV2SourceSchemas<TSuite>(),
+            capture,
+            sourceSchemaSettings: null,
+            suite.NodeResolution,
+            suite.AllowNonResolvableInterfaceObjects,
+            suite.ShareableFieldRuntimeTypeRouting,
+            subgraphs);
+    }
+
+    private static async Task<FusionGateway> ComposeAsync(
+        IReadOnlyList<OfficialSourceSchema>? officialSourceSchemas,
         SubgraphRequestCapture? capture,
         IReadOnlyDictionary<string, string>? sourceSchemaSettings,
         NodeResolution nodeResolution,
@@ -162,14 +215,27 @@ internal static class FusionGatewayBuilder
                 nameof(subgraphs));
         }
 
+        if (officialSourceSchemas is not null)
+        {
+            var officialSourceNames = officialSourceSchemas.Select(source => source.Name);
+            var localSourceNames = subgraphs.Select(subgraph => subgraph.Name);
+
+            if (!officialSourceNames.SequenceEqual(localSourceNames, StringComparer.Ordinal))
+            {
+                throw new InvalidOperationException(
+                    "Local subgraph names and order must exactly match the official audit manifest.");
+            }
+        }
+
         var hosts = new List<SubgraphHost>(subgraphs.Length);
         var sourceSchemaTexts = new List<SourceSchemaText>(subgraphs.Length);
         var subgraphInfos = new List<SubgraphInfo>(subgraphs.Length);
 
         try
         {
-            foreach (var (name, factory) in subgraphs)
+            for (var i = 0; i < subgraphs.Length; i++)
             {
+                var (name, factory) = subgraphs[i];
                 var host = await factory().ConfigureAwait(false);
 
                 if (!string.Equals(host.Name, name, StringComparison.Ordinal))
@@ -180,7 +246,12 @@ internal static class FusionGatewayBuilder
 
                 hosts.Add(host);
 
-                var info = await BuildSubgraphInfoAsync(host).ConfigureAwait(false);
+                var info = officialSourceSchemas is null
+                    ? await BuildSubgraphInfoAsync(host).ConfigureAwait(false)
+                    : new SubgraphInfo(
+                        name,
+                        officialSourceSchemas[i].ServiceSdl,
+                        SubgraphAddress(name));
 
                 sourceSchemaTexts.Add(new SourceSchemaText(name, info.SourceSchemaSdl));
                 subgraphInfos.Add(info);
@@ -188,11 +259,15 @@ internal static class FusionGatewayBuilder
 
             var schemaDocument = ComposeSchema(
                 sourceSchemaTexts,
+                officialSourceSchemas,
                 nodeResolution != NodeResolution.Gateway,
                 nodeResolution,
                 allowNonResolvableInterfaceObjects,
                 shareableFieldRuntimeTypeRouting);
-            var settings = BuildGatewaySettings(subgraphInfos, sourceSchemaSettings);
+            var settings = BuildGatewaySettings(
+                subgraphInfos,
+                sourceSchemaSettings,
+                disableBatching: officialSourceSchemas is not null);
 
             var gatewayServices = new ServiceCollection();
             gatewayServices.AddSingleton<IHttpClientFactory>(
@@ -271,6 +346,7 @@ internal static class FusionGatewayBuilder
 
     private static DocumentNode ComposeSchema(
         IReadOnlyList<SourceSchemaText> sourceSchemas,
+        IReadOnlyList<OfficialSourceSchema>? officialSourceSchemas,
         bool enableGlobalObjectIdentification,
         NodeResolution nodeResolution,
         bool allowNonResolvableInterfaceObjects,
@@ -289,15 +365,36 @@ internal static class FusionGatewayBuilder
         // '@key' directive and prevents the composer from re-introducing
         // list-typed '@key' directives for nested list keys, which the
         // Composite Schema Spec disallows at type level.
-        foreach (var sourceSchema in sourceSchemas)
+        for (var i = 0; i < sourceSchemas.Count; i++)
         {
-            options.SourceSchemas[sourceSchema.Name] = new SourceSchemaOptions
+            var sourceSchema = sourceSchemas[i];
+            var sourceSchemaOptions = new SourceSchemaOptions();
+
+            if (officialSourceSchemas?[i].Settings is { } settingsJson)
             {
-                Preprocessor = new SourceSchemaPreprocessorOptions
+                using var settings = JsonDocument.Parse(settingsJson);
+
+                if (!SourceSchemaSettingsReader.TryRead(
+                    sourceSchema.Name,
+                    settings,
+                    compositionLog,
+                    out var settingsResult))
                 {
-                    InferKeysFromLookups = false
+                    throw new XunitException(
+                        string.Join(
+                            Environment.NewLine,
+                            compositionLog.Select(entry => entry.Message)));
                 }
+
+                sourceSchemaOptions = settingsResult.Options;
+                settingsResult.RuntimeSettings?.Dispose();
+            }
+
+            sourceSchemaOptions.Preprocessor = new SourceSchemaPreprocessorOptions
+            {
+                InferKeysFromLookups = false
             };
+            options.SourceSchemas[sourceSchema.Name] = sourceSchemaOptions;
         }
 
         if (enableGlobalObjectIdentification)
@@ -360,7 +457,8 @@ internal static class FusionGatewayBuilder
 
     private static JsonDocumentOwner BuildGatewaySettings(
         IReadOnlyList<SubgraphInfo> subgraphs,
-        IReadOnlyDictionary<string, string>? sourceSchemaSettings)
+        IReadOnlyDictionary<string, string>? sourceSchemaSettings,
+        bool disableBatching)
     {
         var buffer = new ArrayBufferWriter<byte>();
 
@@ -376,6 +474,17 @@ internal static class FusionGatewayBuilder
                 writer.WriteStartObject("transports");
                 writer.WriteStartObject("http");
                 writer.WriteString("url", subgraph.BaseAddress.ToString());
+
+                if (disableBatching)
+                {
+                    writer.WriteStartObject("capabilities");
+                    writer.WriteStartObject("batching");
+                    writer.WriteBoolean("variableBatching", false);
+                    writer.WriteBoolean("requestBatching", false);
+                    writer.WriteEndObject();
+                    writer.WriteEndObject();
+                }
+
                 writer.WriteEndObject();
                 writer.WriteEndObject();
 

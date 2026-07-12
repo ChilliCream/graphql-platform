@@ -26,9 +26,11 @@ public sealed class AccountType : ObjectType<Account>
             {
                 var account = ctx.Parent<Account>();
                 return SubgraphBData.Chats
-                    .Where(c => c.AccountId == account.Id)
+                    .Where(c => account.ChatIds.Contains(c.Id))
                     .ToList();
             });
+
+        descriptor.Field(a => a.ChatIds).Ignore();
     }
 
     private static Account? ResolveById(string id)

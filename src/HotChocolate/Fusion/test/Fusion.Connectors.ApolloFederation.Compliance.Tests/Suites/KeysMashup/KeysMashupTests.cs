@@ -3,51 +3,18 @@ using HotChocolate.Fusion.Suites.KeysMashup.B;
 
 namespace HotChocolate.Fusion.Suites;
 
-/// <summary>
-/// Port of the <c>keys-mashup</c> suite from
-/// <c>graphql-hive/federation-gateway-audit</c>. Two Apollo Federation
-/// subgraphs share the <c>A</c> entity through four overlapping keys
-/// (only one is resolvable on each side) plus a deeply nested key.
-/// Subgraph <c>b</c> exposes <c>nameInB</c> via <c>@requires(name)</c>.
-/// </summary>
-public sealed class KeysMashupTests : ComplianceTestBase
+[OfficialV2Suite("keys-mashup")]
+public sealed class KeysMashupTests
+    : OfficialV2ComplianceTestBase<KeysMashupTests>
 {
     protected override Task<FusionGateway> BuildGatewayAsync()
-        => FusionGatewayBuilder.ComposeAsync(
+        => ComposeOfficialV2Async(
             (ASubgraph.Name, ASubgraph.BuildAsync),
             (BSubgraph.Name, BSubgraph.BuildAsync));
 
-    /// <summary>
-    /// Walks <c>b.a[].name</c> (from subgraph <c>a</c>) and
-    /// <c>b.a[].nameInB</c> (from subgraph <c>b</c>'s
-    /// <c>@requires(name)</c>).
-    /// </summary>
-    [Fact]
-    public Task B_Resolves_A_Name_And_NameInB_Via_Requires() => RunAsync(
-        query: """
-            query {
-              b {
-                id
-                a {
-                  id
-                  name
-                  nameInB
-                }
-              }
-            }
-            """,
-        expectedData: """
-            {
-              "b": {
-                "id": "100",
-                "a": [
-                  {
-                    "id": "1",
-                    "name": "a.1",
-                    "nameInB": "b.a.nameInB a.1"
-                  }
-                ]
-              }
-            }
-            """);
+    [Theory]
+    [MemberData(nameof(Cases))]
+    [Trait("Category", "OfficialV2")]
+    public Task OfficialCase_Should_MatchExpectedResult_When_Executed(string caseId)
+        => RunOfficialV2CaseAsync(caseId);
 }

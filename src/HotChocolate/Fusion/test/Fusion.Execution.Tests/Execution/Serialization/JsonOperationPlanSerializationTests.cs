@@ -230,6 +230,58 @@ public class JsonOperationPlanSerializationTests : FusionTestBase
     }
 
     [Fact]
+    public void Parse_Should_PreserveSourceResponseNameMapping_When_PlanIsRoundTripped()
+    {
+        // arrange
+        var compositeSchema = CreateCompositeSchema();
+        var originalPlan = PlanOperation(
+            compositeSchema,
+            """
+            {
+                productBySlug(slug: "1") {
+                    clientName: name
+                }
+            }
+            """);
+        var formatter = new JsonOperationPlanFormatter(
+            new JsonWriterOptions
+            {
+                Indented = true,
+                Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+            });
+        var json = JsonNode.Parse(formatter.Format(originalPlan))!;
+        var operationNode = json["nodes"]!
+            .AsArray()
+            .Select(t => t!.AsObject())
+            .First(t => t["type"]?.GetValue<string>() is "Operation"
+                && t["resultSelectionSet"]?.GetValue<string>()
+                    .Contains("productBySlug", StringComparison.Ordinal) == true);
+        var operationNodeId = operationNode["id"]!.GetValue<int>();
+        const string resultSelectionSet =
+            "{ productBySlug { fusion__field_1: name "
+            + "@fusion__responseName(name: \"clientName\") } }";
+        operationNode["resultSelectionSet"] = resultSelectionSet;
+        var planSource = Encoding.UTF8.GetBytes(
+            json.ToJsonString(new JsonSerializerOptions { WriteIndented = true }));
+        var compiler = new OperationCompiler(
+            compositeSchema,
+            new DefaultObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>>(
+                new DefaultPooledObjectPolicy<OrderedDictionary<string, List<FieldSelectionNode>>>()));
+        var parser = new JsonOperationPlanParser(compiler);
+
+        // act
+        var parsedPlan = parser.Parse(planSource);
+
+        // assert
+        var parsedOperationNode = parsedPlan.AllNodes
+            .OfType<OperationExecutionNode>()
+            .Single(t => t.Id == operationNodeId);
+        Assert.Equal(
+            resultSelectionSet,
+            parsedOperationNode.ResultSelectionSet.ToString(indented: false));
+    }
+
+    [Fact]
     public void Parse_Plan_With_Node()
     {
         // arrange

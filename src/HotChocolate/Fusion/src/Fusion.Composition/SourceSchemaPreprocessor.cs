@@ -27,7 +27,8 @@ internal sealed partial class SourceSchemaPreprocessor(
     ICompositionLog log,
     Version? sourceSchemaVersion = null,
     SourceSchemaPreprocessorOptions? options = null,
-    LogSeverity invalidFieldDeprecationSeverity = LogSeverity.Warning)
+    LogSeverity invalidFieldDeprecationSeverity = LogSeverity.Warning,
+    bool isApolloFederationV1 = false)
 {
     private readonly SourceSchemaPreprocessorOptions _options = options ?? new SourceSchemaPreprocessorOptions();
 
@@ -37,8 +38,9 @@ internal sealed partial class SourceSchemaPreprocessor(
 
         SourceExternalFieldMetadata.CaptureMarker(schema);
 
-        var isFederationSchema = FederationSchemaTransformer.IsFederationSchema(schema)
-            && FederationSchemaAnalyzer.Validate(schema, log);
+        var isFederationSchema = isApolloFederationV1
+            || (FederationSchemaTransformer.IsFederationSchema(schema)
+                && FederationSchemaAnalyzer.Validate(schema, log));
 
         if (isFederationSchema)
         {
@@ -75,9 +77,16 @@ internal sealed partial class SourceSchemaPreprocessor(
         }
 
         // We need to run this after keys have been inferred, so we do not attempt to mark them as @shareable.
-        if (fusionV1CompatibilityMode || _options.InferShareable)
+        if (isApolloFederationV1
+            || fusionV1CompatibilityMode
+            || _options.InferShareable)
         {
             ApplyShareableDirectives();
+        }
+
+        if (isFederationSchema)
+        {
+            RemoveEmptyQueryRoot.Apply(schema);
         }
 
         // Additional schema validation will catch issues introduced during preprocessing. It runs
@@ -97,6 +106,7 @@ internal sealed partial class SourceSchemaPreprocessor(
         if (isFederationSchema)
         {
             RemoveExternalFields.Apply(schema);
+            RemoveEmptyQueryRoot.Apply(schema);
         }
 
         return log.HasErrors
@@ -374,13 +384,16 @@ internal sealed partial class SourceSchemaPreprocessor(
                         continue;
                     }
 
-                    if (field.Directives.ContainsName(WellKnownDirectiveNames.Internal) || field.Directives.ContainsName(Inaccessible))
+                    if (field.Directives.ContainsName(WellKnownDirectiveNames.Internal)
+                        || field.Directives.ContainsName(WellKnownDirectiveNames.External)
+                        || field.Directives.ContainsName(Inaccessible))
                     {
                         continue;
                     }
 
                     if (!otherType.Fields.TryGetField(field.Name, out var otherField)
                         || otherField.Directives.ContainsName(WellKnownDirectiveNames.Internal)
+                        || otherField.Directives.ContainsName(WellKnownDirectiveNames.External)
                         || otherField.Directives.ContainsName(Inaccessible))
                     {
                         continue;
