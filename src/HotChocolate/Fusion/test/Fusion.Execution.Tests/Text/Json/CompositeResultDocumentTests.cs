@@ -628,9 +628,10 @@ public class CompositeResultDocumentTests : FusionTestBase
         var childValue = childProperty + 1;
         metaDb.AppendEndObject();
 
+        var arrayBoundaryChunk = metaDb.NextCursor.Chunk;
         var arrayBoundary = CompositeResultDocument.Cursor.From(
-            chunkIndex: 1,
-            rowWithinChunk: CompositeResultDocument.Cursor.RowsPerChunkFor(1) - 1);
+            arrayBoundaryChunk,
+            CompositeResultDocument.Cursor.RowsPerChunkFor(arrayBoundaryChunk) - 1);
 
         while (metaDb.NextCursor.Index < arrayBoundary.Index)
         {
@@ -641,6 +642,7 @@ public class CompositeResultDocumentTests : FusionTestBase
             childValue.Value,
             length: 3,
             flags: CompositeResultDocument.ElementFlags.None);
+        Assert.Equal(arrayBoundary, arrayStart);
         metaDb.AppendNull(arrayStart.Value);
         metaDb.Append(ElementTokenType.True, parentRow: arrayStart.Value);
         metaDb.Append(ElementTokenType.False, parentRow: arrayStart.Value);

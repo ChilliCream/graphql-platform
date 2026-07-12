@@ -340,6 +340,12 @@ public sealed partial class CompositeResultDocument
         private (MemorySegment chunk, int byteOffset, Cursor cursor) ReserveRow()
         {
             var next = _next;
+
+            if (next == Cursor.End)
+            {
+                throw new InvalidOperationException("The metadata database has reached its maximum capacity.");
+            }
+
             var chunkIndex = next.Chunk;
             var byteOffset = next.ByteOffset;
 
