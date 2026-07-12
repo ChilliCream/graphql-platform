@@ -25,12 +25,12 @@ internal static class PostgresDispatchTargetResolver
 
                 if (kind is "t")
                 {
-                    return new PostgresDispatchTarget(IsTopic: true, new string(name));
+                    return PostgresDispatchTarget.Topic(new string(name));
                 }
 
                 if (kind is "q")
                 {
-                    return new PostgresDispatchTarget(IsTopic: false, new string(name));
+                    return PostgresDispatchTarget.Queue(new string(name));
                 }
             }
 
@@ -40,16 +40,20 @@ internal static class PostgresDispatchTargetResolver
 
         if (endpoint.Topic is not null)
         {
-            return new PostgresDispatchTarget(IsTopic: true, endpoint.Topic.Name);
+            return PostgresDispatchTarget.Topic(endpoint.Topic.Name);
         }
 
         if (endpoint.Queue is not null)
         {
-            return new PostgresDispatchTarget(IsTopic: false, endpoint.Queue.Name);
+            return PostgresDispatchTarget.Queue(endpoint.Queue.Name);
         }
 
         throw new InvalidOperationException("Resource not found");
     }
 }
 
-internal readonly record struct PostgresDispatchTarget(bool IsTopic, string Name);
+internal readonly record struct PostgresDispatchTarget(bool IsTopic, string Name)
+{
+    public static PostgresDispatchTarget Topic(string name) => new(true, name);
+    public static PostgresDispatchTarget Queue(string name) => new(false, name);
+}

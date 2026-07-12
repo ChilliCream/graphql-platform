@@ -46,7 +46,7 @@ public sealed class DispatchSchedulingMiddleware
 
         if (context.Envelope.ScheduledTime != scheduledTime)
         {
-            context.Envelope = new MessageEnvelope(context.Envelope) { ScheduledTime = scheduledTime };
+            context.Envelope = context.Envelope.WithScheduledTime(scheduledTime);
         }
 
         var resolver = context.Services.GetRequiredService<ScheduledMessageStoreResolver>();
@@ -76,4 +76,12 @@ public sealed class DispatchSchedulingMiddleware
                 return ctx => middleware.InvokeAsync(ctx, next);
             },
             "Scheduling");
+}
+
+file static class Extensions
+{
+    public static MessageEnvelope WithScheduledTime(this MessageEnvelope envelope, DateTimeOffset scheduledTime)
+    {
+        return new MessageEnvelope(envelope) { ScheduledTime = scheduledTime };
+    }
 }

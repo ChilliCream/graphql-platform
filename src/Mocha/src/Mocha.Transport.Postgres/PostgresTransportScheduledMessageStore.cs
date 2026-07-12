@@ -48,6 +48,11 @@ internal sealed class PostgresTransportScheduledMessageStore(PostgresMessagingTr
                 scheduledTime,
                 cancellationToken);
 
+            if (ids.Count == 0)
+            {
+                return "";
+            }
+
             return TokenPrefix + string.Join(',', ids);
         }
 

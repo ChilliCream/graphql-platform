@@ -30,6 +30,7 @@ internal sealed class EfCoreScheduledMessageStore(
     string cancelSql) : IScheduledMessageStore, IDisposable
 {
     internal const string ProviderPrefix = "postgres-scheduler:";
+
     private readonly SemaphoreSlim _semaphore = new(1, 1);
     private PooledArrayWriter? _arrayWriter;
 

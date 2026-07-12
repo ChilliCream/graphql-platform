@@ -193,7 +193,7 @@ public class SchedulingTests
         Assert.Equal(scheduledTime, result.ScheduledTime);
 
         // cleanup so the message does not get delivered to a future test run
-        await messageBus.CancelScheduledMessageAsync(result.Token!, CancellationToken.None);
+        await messageBus.CancelScheduledMessageAsync(result.Token, CancellationToken.None);
     }
 
     [Fact]

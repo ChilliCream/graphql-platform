@@ -9,14 +9,6 @@ internal sealed class ScheduledMessageStoreResolver
     private readonly ScheduledMessageStoreRegistration[] _registrations;
     private readonly IServiceProvider _services;
 
-    public static ScheduledMessageStoreResolver Create(IServiceProvider services)
-    {
-        var registrations = services.GetServices<ScheduledMessageStoreRegistration>().ToArray();
-        ValidateRegistrations(registrations);
-
-        return new ScheduledMessageStoreResolver(registrations, services);
-    }
-
     private ScheduledMessageStoreResolver(
         ScheduledMessageStoreRegistration[] registrations,
         IServiceProvider services)
@@ -102,6 +94,15 @@ internal sealed class ScheduledMessageStoreResolver
     private IScheduledMessageStore Resolve(ScheduledMessageStoreRegistration registration)
         => registration.Resolve(_services);
 
+    public static ScheduledMessageStoreResolver Create(IServiceProvider services)
+    {
+        var registrations = services.GetServices<ScheduledMessageStoreRegistration>().ToArray();
+
+        ValidateRegistrations(registrations);
+
+        return new ScheduledMessageStoreResolver(registrations, services);
+    }
+
     private static void ValidateRegistrations(IReadOnlyList<ScheduledMessageStoreRegistration> registrations)
     {
         foreach (var registration in registrations)
@@ -111,8 +112,7 @@ internal sealed class ScheduledMessageStoreResolver
                 throw ThrowHelper.ScheduledStoreTokenPrefixEmpty();
             }
 
-            var storeType = registration.StoreType;
-            if (storeType is not null
+            if (registration is { StoreType: { } storeType }
                 && !typeof(IScheduledMessageStore).IsAssignableFrom(storeType))
             {
                 throw ThrowHelper.ScheduledStoreTypeInvalid(storeType);
