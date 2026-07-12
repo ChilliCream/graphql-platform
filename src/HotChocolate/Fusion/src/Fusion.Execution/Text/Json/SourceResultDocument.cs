@@ -385,6 +385,7 @@ public sealed partial class SourceResultDocument : IDisposable
         var startChunkIndex = location >>> DataOffsetBits;
         var offsetInStartChunk = location & DataOffsetMask;
 
+        Debug.Assert((uint)startChunkIndex < (uint)_segments.Length);
         ref readonly var startSeg = ref Unsafe.Add(
             ref MemoryMarshal.GetArrayDataReference(_segments),
             startChunkIndex);
