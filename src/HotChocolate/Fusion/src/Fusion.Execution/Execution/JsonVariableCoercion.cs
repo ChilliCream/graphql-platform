@@ -1,5 +1,7 @@
 using System.Buffers;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Text.Json;
 using HotChocolate.Buffers;
 using HotChocolate.Execution;
@@ -13,13 +15,18 @@ namespace HotChocolate.Fusion.Execution;
 internal ref struct JsonVariableCoercion
 {
     private const int MaxAllowedDepth = 64;
+    private const int MaxPathSegments = MaxAllowedDepth + 2;
     private readonly IFeatureProvider _context;
     private readonly ref Utf8MemoryBuilder? _memory;
+    private DeferredPathSegmentBuffer _pathSegments;
+    private int _pathSegmentCount;
 
     public JsonVariableCoercion(IFeatureProvider context, ref Utf8MemoryBuilder? memory)
     {
         _context = context;
         _memory = ref memory;
+        _pathSegments = default;
+        _pathSegmentCount = 0;
     }
 
     public bool TryCoerceVariableValue(
@@ -34,11 +41,11 @@ internal ref struct JsonVariableCoercion
             throw new ArgumentException("Undefined JSON value kind.");
         }
 
-        var root = Path.Root.Append(variableName);
+        PushPathSegment(variableName);
 
         try
         {
-            if (TryParseAndValidate(variableType, inputValue, root, 0, out var valueLiteral, out error))
+            if (TryParseAndValidate(variableType, inputValue, 0, out var valueLiteral, out error))
             {
                 variableValue = new VariableValue(variableName, variableType, valueLiteral);
                 return true;
@@ -53,12 +60,15 @@ internal ref struct JsonVariableCoercion
             _memory = null;
             throw;
         }
+        finally
+        {
+            PopPathSegment();
+        }
     }
 
     private bool TryParseAndValidate(
         IInputType type,
         JsonElement element,
-        Path path,
         int depth,
         [NotNullWhen(true)] out IValueNode? value,
         [NotNullWhen(false)] out IError? error)
@@ -76,7 +86,7 @@ internal ref struct JsonVariableCoercion
                 value = null;
                 error = ErrorBuilder.New()
                     .SetMessage("The value is not a non-null value.")
-                    .SetExtension("variable", $"{path}")
+                    .SetExtension("variable", $"{BuildPath()}")
                     .Build();
                 return false;
             }
@@ -102,7 +112,6 @@ internal ref struct JsonVariableCoercion
                 if (!TryParseAndValidate(
                     elementType,
                     element,
-                    path,
                     depth + 1,
                     out var itemValue,
                     out error))
@@ -134,19 +143,28 @@ internal ref struct JsonVariableCoercion
                         ArrayPool<IValueNode>.Shared.Return(temp);
                     }
 
-                    if (!TryParseAndValidate(
-                        elementType,
-                        item,
-                        path.Append(index),
-                        depth + 1,
-                        out var itemValue,
-                        out error))
+                    PushPathSegment(index);
+
+                    try
                     {
-                        value = null;
-                        return false;
+                        if (!TryParseAndValidate(
+                            elementType,
+                            item,
+                            depth + 1,
+                            out var itemValue,
+                            out error))
+                        {
+                            value = null;
+                            return false;
+                        }
+
+                        buffer[count++] = itemValue;
+                    }
+                    finally
+                    {
+                        PopPathSegment();
                     }
 
-                    buffer[count++] = itemValue;
                     index++;
                 }
 
@@ -164,19 +182,19 @@ internal ref struct JsonVariableCoercion
         // Handle InputObject types
         if (type.Kind is TypeKind.InputObject)
         {
-            return TryParseInputObject(type, element, path, depth, out value, out error);
+            return TryParseInputObject(type, element, depth, out value, out error);
         }
 
         // Handle Scalar types
         if (type is FusionScalarTypeDefinition scalarType)
         {
-            return TryParseScalar(scalarType, element, path, depth, out value, out error);
+            return TryParseScalar(scalarType, element, depth, out value, out error);
         }
 
         // Handle Enum types
         if (type is FusionEnumTypeDefinition enumType)
         {
-            return TryParseEnum(enumType, element, path, out value, out error);
+            return TryParseEnum(enumType, element, out value, out error);
         }
 
         throw new NotSupportedException(
@@ -186,7 +204,6 @@ internal ref struct JsonVariableCoercion
     private bool TryParseInputObject(
         IInputType type,
         JsonElement element,
-        Path path,
         int depth,
         [NotNullWhen(true)] out IValueNode? value,
         [NotNullWhen(false)] out IError? error)
@@ -196,7 +213,7 @@ internal ref struct JsonVariableCoercion
             value = null;
             error = ErrorBuilder.New()
                 .SetMessage("The value is not an object value.")
-                .SetExtension("variable", $"{path}")
+                .SetExtension("variable", $"{BuildPath()}")
                 .Build();
             return false;
         }
@@ -204,11 +221,14 @@ internal ref struct JsonVariableCoercion
         var inputObjectType = (FusionInputObjectTypeDefinition)type;
         var oneOf = inputObjectType.IsOneOf;
 
-        // Count fields first for OneOf validation
         var fieldCount = 0;
-        foreach (var _ in element.EnumerateObject())
+
+        if (oneOf)
         {
-            fieldCount++;
+            foreach (var _ in element.EnumerateObject())
+            {
+                fieldCount++;
+            }
         }
 
         if (oneOf && fieldCount is 0)
@@ -217,7 +237,7 @@ internal ref struct JsonVariableCoercion
             error = ErrorBuilder.New()
                 .SetMessage("The OneOf Input Object `{0}` requires that exactly one field is supplied and that field must not be `null`. OneOf Input Objects are a special variant of Input Objects where the type system asserts that exactly one of the fields must be set and non-null.", inputObjectType.Name)
                 .SetCode(ErrorCodes.Execution.OneOfNoFieldSet)
-                .SetPath(path)
+                .SetPath(BuildPath())
                 .Build();
             return false;
         }
@@ -228,7 +248,7 @@ internal ref struct JsonVariableCoercion
             error = ErrorBuilder.New()
                 .SetMessage("More than one field of the OneOf Input Object `{0}` is set. OneOf Input Objects are a special variant of Input Objects where the type system asserts that exactly one of the fields must be set and non-null.", inputObjectType.Name)
                 .SetCode(ErrorCodes.Execution.OneOfMoreThanOneFieldSet)
-                .SetPath(path)
+                .SetPath(BuildPath())
                 .Build();
             return false;
         }
@@ -260,7 +280,7 @@ internal ref struct JsonVariableCoercion
                             "The field `{0}` is not defined on the input object type `{1}`.",
                             property.Name,
                             inputObjectType.Name)
-                        .SetExtension("variable", $"{path}")
+                        .SetExtension("variable", $"{BuildPath()}")
                         .Build();
                     return false;
                 }
@@ -271,7 +291,7 @@ internal ref struct JsonVariableCoercion
                     error = ErrorBuilder.New()
                         .SetMessage("`null` was set to the field `{0}` of the OneOf Input Object `{1}`. OneOf Input Objects are a special variant of Input Objects where the type system asserts that exactly one of the fields must be set and non-null.", property.Name, inputObjectType.Name)
                         .SetCode(ErrorCodes.Execution.OneOfFieldIsNull)
-                        .SetPath(path)
+                        .SetPath(BuildPath())
                         .SetCoordinate(fieldDefinition.Coordinate)
                         .Build();
                     return false;
@@ -287,21 +307,29 @@ internal ref struct JsonVariableCoercion
                     ArrayPool<ObjectFieldNode>.Shared.Return(temp);
                 }
 
-                if (!TryParseAndValidate(
-                    fieldDefinition.Type,
-                    property.Value,
-                    path.Append(property.Name),
-                    depth + 1,
-                    out var fieldValue,
-                    out error))
-                {
-                    value = null;
-                    return false;
-                }
+                PushPathSegment(property.Name);
 
-                buffer[count++] = new ObjectFieldNode(property.Name, fieldValue);
-                processed[fieldDefinition.Index] = true;
-                processedCount++;
+                try
+                {
+                    if (!TryParseAndValidate(
+                        fieldDefinition.Type,
+                        property.Value,
+                        depth + 1,
+                        out var fieldValue,
+                        out error))
+                    {
+                        value = null;
+                        return false;
+                    }
+
+                    buffer[count++] = new ObjectFieldNode(property.Name, fieldValue);
+                    processed[fieldDefinition.Index] = true;
+                    processedCount++;
+                }
+                finally
+                {
+                    PopPathSegment();
+                }
             }
 
             // Check for missing required fields
@@ -318,7 +346,7 @@ internal ref struct JsonVariableCoercion
                             value = null;
                             error = ErrorBuilder.New()
                                 .SetMessage("The required input field `{0}` is missing.", field.Name)
-                                .SetPath(path.Append(field.Name))
+                                .SetPath(BuildPath(field.Name))
                                 .SetExtension("field", field.Coordinate.ToString())
                                 .Build();
                             return false;
@@ -346,7 +374,6 @@ internal ref struct JsonVariableCoercion
     private readonly bool TryParseScalar(
         FusionScalarTypeDefinition scalarType,
         JsonElement element,
-        Path path,
         int depth,
         [NotNullWhen(true)] out IValueNode? value,
         [NotNullWhen(false)] out IError? error)
@@ -365,7 +392,7 @@ internal ref struct JsonVariableCoercion
 
             error = ErrorBuilder.New()
                 .SetMessage("The value is not a valid file.")
-                .SetExtension("variable", $"{path}")
+                .SetExtension("variable", $"{BuildPath()}")
                 .Build();
             value = null;
             return false;
@@ -381,7 +408,7 @@ internal ref struct JsonVariableCoercion
                         "The value `{0}` is not a valid value for the scalar type `{1}`.",
                         value,
                         scalarType.Name)
-                    .SetExtension("variable", $"{path}")
+                    .SetExtension("variable", $"{BuildPath()}")
                     .Build();
                 value = null;
                 return false;
@@ -392,10 +419,9 @@ internal ref struct JsonVariableCoercion
         return true;
     }
 
-    private static bool TryParseEnum(
+    private readonly bool TryParseEnum(
         FusionEnumTypeDefinition enumType,
         JsonElement element,
-        Path path,
         [NotNullWhen(true)] out IValueNode? value,
         [NotNullWhen(false)] out IError? error)
     {
@@ -404,7 +430,7 @@ internal ref struct JsonVariableCoercion
             value = null;
             error = ErrorBuilder.New()
                 .SetMessage("The value is not an enum value.")
-                .SetExtension("variable", $"{path}")
+                .SetExtension("variable", $"{BuildPath()}")
                 .Build();
             return false;
         }
@@ -416,7 +442,7 @@ internal ref struct JsonVariableCoercion
             value = null;
             error = ErrorBuilder.New()
                 .SetMessage("The value `{0}` is not a valid value for the enum type `{1}`.", enumValue, enumType.Name)
-                .SetExtension("variable", $"{path}")
+                .SetExtension("variable", $"{BuildPath()}")
                 .Build();
             return false;
         }
@@ -449,9 +475,7 @@ internal ref struct JsonVariableCoercion
                 return new StringValueNode(null, stringValue, false);
 
             case JsonValueKind.Number:
-                var rawValue = element.GetRawText();
-                var utf8Value = System.Text.Encoding.UTF8.GetBytes(rawValue);
-                var span = utf8Value.AsSpan();
+                var span = JsonMarshal.GetRawUtf8Value(element);
                 var segment = WriteValue(span);
 
                 if (span.IndexOfAny((byte)'e', (byte)'E') > -1)
@@ -539,5 +563,74 @@ internal ref struct JsonVariableCoercion
     {
         _memory ??= new Utf8MemoryBuilder();
         return _memory.Write(value);
+    }
+
+    private void PushPathSegment(string name)
+        => PushPathSegment(new DeferredPathSegment(name));
+
+    private void PushPathSegment(int index)
+        => PushPathSegment(new DeferredPathSegment(index));
+
+    private void PushPathSegment(DeferredPathSegment segment)
+    {
+        if (_pathSegmentCount == MaxPathSegments)
+        {
+            throw new InvalidOperationException("Max allowed depth reached.");
+        }
+
+        _pathSegments[_pathSegmentCount++] = segment;
+    }
+
+    private void PopPathSegment()
+    {
+        if (_pathSegmentCount == 0)
+        {
+            throw new InvalidOperationException("The deferred path is empty.");
+        }
+
+        _pathSegments[--_pathSegmentCount] = default;
+    }
+
+    private readonly Path BuildPath()
+    {
+        var path = Path.Root;
+
+        for (var i = 0; i < _pathSegmentCount; i++)
+        {
+            var segment = _pathSegments[i];
+            path = segment.Name is null
+                ? path.Append(segment.Index)
+                : path.Append(segment.Name);
+        }
+
+        return path;
+    }
+
+    private readonly Path BuildPath(string name)
+        => BuildPath().Append(name);
+
+    [InlineArray(MaxPathSegments)]
+    private struct DeferredPathSegmentBuffer
+    {
+        private DeferredPathSegment _element0;
+    }
+
+    private readonly struct DeferredPathSegment
+    {
+        public DeferredPathSegment(string name)
+        {
+            Name = name;
+            Index = -1;
+        }
+
+        public DeferredPathSegment(int index)
+        {
+            Name = null;
+            Index = index;
+        }
+
+        public string? Name { get; }
+
+        public int Index { get; }
     }
 }
