@@ -18,6 +18,21 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="ApolloFederationSchemaFetcher_EmptyResponse" xml:space="preserve">
+    <value>Source schema '{0}' returned an empty _service response.</value>
+  </data>
+  <data name="ApolloFederationSchemaFetcher_InvalidResponse" xml:space="preserve">
+    <value>Source schema '{0}' returned an invalid _service response.</value>
+  </data>
+  <data name="ApolloFederationSchemaFetcher_MissingServiceSdl" xml:space="preserve">
+    <value>Source schema '{0}' returned no _service.sdl.</value>
+  </data>
+  <data name="ApolloFederationSchemaFetcher_QueryRejected" xml:space="preserve">
+    <value>Source schema '{0}' rejected the _service query: {1}</value>
+  </data>
+  <data name="ApolloFederationSchemaFetcher_RequestFailed" xml:space="preserve">
+    <value>Source schema '{0}' returned HTTP {1} ({2}) for the _service query.</value>
+  </data>
   <data name="AuthorizeDirective_ApplyArgument_Invalid" xml:space="preserve">
     <value>The 'apply' argument of the @authorize directive must be of type ApplyPolicy.</value>
   </data>
@@ -36,6 +51,12 @@
   <data name="CostDirective_WeightArgument_Invalid" xml:space="preserve">
     <value>The @cost directive must have a 'weight' argument of type String.</value>
   </data>
+  <data name="DefaultSchemaFetcher_EmptyResponse" xml:space="preserve">
+    <value>Source schema '{0}' returned an empty schema response.</value>
+  </data>
+  <data name="DefaultSchemaFetcher_RequestFailed" xml:space="preserve">
+    <value>Source schema '{0}' returned HTTP {1} ({2}) while downloading its schema.</value>
+  </data>
   <data name="ErrorHelper_PostMergeValidationFailed" xml:space="preserve">
     <value>Post-merge validation failed.</value>
   </data>
@@ -53,6 +74,24 @@
   </data>
   <data name="ErrorHelper_SourceSchemaValidationFailed" xml:space="preserve">
     <value>Source schema validation failed.</value>
+  </data>
+  <data name="SchemaHttpResponseReader_ResponseTooLarge" xml:space="preserve">
+    <value>Source schema '{0}' returned a response larger than the maximum allowed size of {1} bytes.</value>
+  </data>
+  <data name="SourceSchemaSettingsReader_InvalidApolloFederationSupportShape" xml:space="preserve">
+    <value>The source schema setting '{0}' for source schema '{1}' must be an object containing only the 'version' property.</value>
+  </data>
+  <data name="SourceSchemaSettingsReader_SettingMustBeObject" xml:space="preserve">
+    <value>The source schema setting '{0}' for source schema '{1}' must be an object, but found '{2}'.</value>
+  </data>
+  <data name="SourceSchemaSettingsReader_SettingMustBeString" xml:space="preserve">
+    <value>The source schema setting '{0}' for source schema '{1}' must be a string, but found '{2}'.</value>
+  </data>
+  <data name="SourceSchemaSettingsReader_UnsupportedApolloFederationVersion" xml:space="preserve">
+    <value>The source schema setting '{0}' for source schema '{1}' has unsupported version '{2}'. The supported versions are '1.0' and '2.0'.</value>
+  </data>
+  <data name="SourceSchemaParser_ConflictingApolloFederationVersion" xml:space="preserve">
+    <value>Source schema '{0}' cannot enable Apollo Federation v1 support because it links to the Apollo Federation specification.</value>
   </data>
   <data name="ExternalMutableDirectiveDefinition_Description" xml:space="preserve">
     <value>The @external directive indicates that a field is recognized by the current source schema but is not directly contributed (resolved) by it.</value>

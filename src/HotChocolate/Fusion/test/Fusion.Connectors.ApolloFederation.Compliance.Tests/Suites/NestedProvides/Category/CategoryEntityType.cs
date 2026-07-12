@@ -23,5 +23,6 @@ public sealed class CategoryEntityType : ObjectType<CategoryEntity>
         descriptor.Field(c => c.SubCategories).External().Type<ListType<CategoryEntityType>>();
     }
 
-    private static CategoryEntity ResolveById(string id) => new() { Id = id };
+    private static CategoryEntity? ResolveById(string id)
+        => CategoryData.Categories.ContainsKey(id) ? new CategoryEntity { Id = id } : null;
 }

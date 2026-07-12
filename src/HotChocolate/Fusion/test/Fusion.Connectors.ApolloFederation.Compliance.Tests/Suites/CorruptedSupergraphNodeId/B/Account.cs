@@ -8,4 +8,6 @@ namespace HotChocolate.Fusion.Suites.CorruptedSupergraphNodeId.B;
 public sealed class Account : INode
 {
     public string Id { get; init; } = default!;
+
+    public IReadOnlyList<string> ChatIds { get; init; } = [];
 }

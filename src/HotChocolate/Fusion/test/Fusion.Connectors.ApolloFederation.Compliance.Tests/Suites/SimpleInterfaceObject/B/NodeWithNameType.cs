@@ -21,6 +21,7 @@ public sealed class NodeWithNameType : ObjectType<NodeWithName>
         descriptor.Field(n => n.Username).Type<StringType>();
     }
 
-    private static NodeWithName ResolveById(string id)
-        => new() { Id = id, Username = BData.FindUsername(id) };
+    private static NodeWithName? ResolveById(string id)
+        => BData.Users.FirstOrDefault(
+            user => string.Equals(user.Id, id, StringComparison.Ordinal));
 }

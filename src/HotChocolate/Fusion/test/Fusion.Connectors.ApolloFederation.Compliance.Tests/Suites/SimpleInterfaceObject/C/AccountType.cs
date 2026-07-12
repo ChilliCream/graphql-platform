@@ -22,5 +22,6 @@ public sealed class AccountType : ObjectType<Account>
         descriptor.Field(a => a.IsActive).Shareable().Type<NonNullType<BooleanType>>().Resolve(_ => false);
     }
 
-    private static Account ResolveById(string id) => new() { Id = id };
+    private static Account? ResolveById(string id)
+        => CData.AccountIds.Contains(id, StringComparer.Ordinal) ? new Account { Id = id } : null;
 }

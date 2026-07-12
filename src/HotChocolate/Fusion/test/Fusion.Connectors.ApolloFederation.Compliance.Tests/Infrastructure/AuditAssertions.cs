@@ -6,7 +6,9 @@ namespace HotChocolate.Fusion;
 /// <summary>
 /// Assertions for federation-gateway-audit test cases. Matches the audit runner
 /// contract from <c>graphql-hive/federation-gateway-audit/src/test.ts</c>: deep-compare
-/// the <c>data</c> payload and assert presence-of-errors independently.
+/// the <c>data</c> payload and assert presence-of-errors independently. Execution timeout
+/// errors are rejected because the official runner aborts the request before Fusion's
+/// execution timeout and therefore cannot observe them as a compliant GraphQL response.
 /// </summary>
 internal static class AuditAssertions
 {
@@ -33,6 +35,12 @@ internal static class AuditAssertions
 
         var actual = JsonNode.Parse(actualJson)
             ?? throw new InvalidOperationException("Gateway response JSON parsed to null.");
+
+        if (ContainsExecutionTimeout(actual["errors"]))
+        {
+            Xunit.Assert.Fail(
+                "A Fusion execution timeout cannot satisfy an official audit expectation.");
+        }
 
         var actualData = actual["data"];
         var expectedData = expectedDataJson is null
@@ -75,6 +83,26 @@ internal static class AuditAssertions
                         : $"Expected response to carry no errors, but errors were present: {errorsText}");
             }
         }
+    }
+
+    private static bool ContainsExecutionTimeout(JsonNode? errors)
+    {
+        if (errors is not JsonArray errorArray)
+        {
+            return false;
+        }
+
+        foreach (var error in errorArray)
+        {
+            if (error?["extensions"]?["code"] is JsonValue codeValue
+                && codeValue.TryGetValue<string>(out var code)
+                && string.Equals(code, ErrorCodes.Execution.Timeout, StringComparison.Ordinal))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private static readonly JsonSerializerOptions s_indented = new() { WriteIndented = true };

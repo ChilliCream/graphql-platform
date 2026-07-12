@@ -16,6 +16,7 @@ internal static class RemoveFederationInfrastructure
         FederationDirectiveNames.Requires,
         FederationDirectiveNames.Provides,
         FederationDirectiveNames.External,
+        FederationDirectiveNames.Extends,
         FederationDirectiveNames.Link,
         FederationDirectiveNames.Shareable,
         FederationDirectiveNames.Inaccessible,
@@ -57,11 +58,19 @@ internal static class RemoveFederationInfrastructure
         }
 
         // Remove @link directives from schema.
-        var linkDirectives = schema.Directives[FederationDirectiveNames.Link].ToList();
-
-        foreach (var directive in linkDirectives)
+        foreach (var directive in schema.Directives[FederationDirectiveNames.Link].ToList())
         {
             schema.Directives.Remove(directive);
+        }
+
+        // Federation v1's @extends marker is represented by the source schema's type
+        // contribution after preprocessing and has no Composite Schema equivalent.
+        foreach (var type in schema.Types.OfType<MutableComplexTypeDefinition>())
+        {
+            foreach (var directive in type.Directives[FederationDirectiveNames.Extends].ToList())
+            {
+                type.Directives.Remove(directive);
+            }
         }
 
         // Collect the type names still referenced after the federation directives and fields
