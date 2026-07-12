@@ -422,6 +422,12 @@ public sealed partial class CompositeResultDocument : IDisposable
     }
 
     internal CompositeResultElement CreateObject(Cursor parent, SelectionSet selectionSet)
+        => CreateObject(parent, selectionSet, out _);
+
+    internal CompositeResultElement CreateObject(
+        Cursor parent,
+        SelectionSet selectionSet,
+        out CompositeObjectContext objectContext)
     {
         var selections = selectionSet.Selections;
         var startObjectCursor = WriteStartObject(parent, selectionSet.Id, selections.Length);
@@ -444,6 +450,12 @@ public sealed partial class CompositeResultDocument : IDisposable
         }
 
         _metaDb.AppendEndObject();
+
+        objectContext = new CompositeObjectContext(
+            this,
+            startObjectCursor,
+            selectionSet,
+            (selections.Length * 2) + 1);
 
         return new CompositeResultElement(this, startObjectCursor);
     }
@@ -501,8 +513,14 @@ public sealed partial class CompositeResultDocument : IDisposable
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal void AssignSourceValue(CompositeResultElement target, SourceResultElement source)
+        => AssignSourceValue(target, source, source.GetValueRow());
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal void AssignSourceValue(
+        CompositeResultElement target,
+        SourceResultElement source,
+        SourceResultDocument.DbRow row)
     {
-        var row = source.GetValueRow();
         var parent = source._parent;
 
         if (parent.Id == -1)

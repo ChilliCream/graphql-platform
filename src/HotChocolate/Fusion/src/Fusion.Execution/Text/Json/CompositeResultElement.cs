@@ -1001,12 +1001,17 @@ public readonly partial struct CompositeResultElement
     }
 
     internal void SetObjectValue(SelectionSet selectionSet)
+        => SetObjectValue(selectionSet, out _);
+
+    internal void SetObjectValue(
+        SelectionSet selectionSet,
+        out CompositeObjectContext objectContext)
     {
         CheckValidInstance();
 
         ArgumentNullException.ThrowIfNull(selectionSet);
 
-        var obj = _parent.CreateObject(_cursor, selectionSet: selectionSet);
+        var obj = _parent.CreateObject(_cursor, selectionSet, out objectContext);
         _parent.AssignCompositeValue(this, obj);
     }
 
@@ -1025,6 +1030,13 @@ public readonly partial struct CompositeResultElement
         CheckValidInstance();
 
         _parent.AssignSourceValue(this, source);
+    }
+
+    internal void SetLeafValue(SourceResultElement source, SourceResultDocument.DbRow row)
+    {
+        CheckValidInstance();
+
+        _parent.AssignSourceValue(this, source, row);
     }
 
     internal void SetNullValue()
