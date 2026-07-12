@@ -5,6 +5,20 @@ namespace ChilliCream.Nitro.CommandLine;
 
 internal static class OptionExtensions
 {
+    public static void OneArgumentPerOccurrence<T>(this Option<T> option)
+    {
+        option.Arity = ArgumentArity.OneOrMore;
+        option.AllowMultipleArgumentsPerToken = false;
+        option.Validators.Add(result =>
+        {
+            if (result.IdentifierTokenCount != result.Tokens.Count)
+            {
+                result.AddError(
+                    $"Option '{option.Name}' requires exactly one argument for each occurrence.");
+            }
+        });
+    }
+
     public static void LegalFilePathsOnly(this Option<string> option)
     {
         option.Validators.Add(result =>

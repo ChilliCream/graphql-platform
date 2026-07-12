@@ -81,7 +81,7 @@ public sealed class SchemaCompositionTests
             {
                 attempts++;
                 cancellation.Cancel();
-                return Task.FromCanceled<HttpResponseMessage>(cancellation.Token);
+                throw new OperationCanceledException(cancellation.Token);
             }));
 
         // act

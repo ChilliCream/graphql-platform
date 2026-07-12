@@ -144,7 +144,7 @@ Watch mode for local development:
 nitro fusion compose --watch
 ```
 
-Watch mode observes local schema directories and paired remote settings files. A watched change triggers recomposition and refetches the remote schemas. Nitro does not poll remote URLs.
+Watch mode observes local schema directories and paired remote settings files. A watched change triggers recomposition and fetches the remote schemas again. Nitro does not poll remote URLs.
 
 Exclude fields tagged as experimental or internal:
 

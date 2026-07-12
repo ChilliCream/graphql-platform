@@ -479,11 +479,7 @@ internal sealed class SchemaComposition(
         ArgumentNullException.ThrowIfNull(endpoint);
         ArgumentNullException.ThrowIfNull(httpClient);
         ArgumentOutOfRangeException.ThrowIfLessThan(maxRetries, 1);
-
-        if (retryDelay < TimeSpan.Zero)
-        {
-            throw new ArgumentOutOfRangeException(nameof(retryDelay));
-        }
+        ArgumentOutOfRangeException.ThrowIfLessThan(retryDelay, TimeSpan.Zero);
 
         logger.LogDebug("Waiting for schema service {SourceSchemaName}", sourceSchemaName);
 

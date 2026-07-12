@@ -28,7 +28,7 @@ That pass maps Apollo Federation directives onto the GraphQL Federation model: `
 
 **At runtime**, when the gateway needs to resolve entity fields from an Apollo Federation subgraph, it calls that subgraph as an Apollo router would. It sends the `_entities(representations: [...])` query with typed representations (`{ __typename, <key fields> }`) and reads the entities back. The gateway enters GraphQL Federation subgraphs through their lookup fields instead. Both paths run inside the same query plan.
 
-Because detection happens per source schema, mixed graphs need no configuration. An Apollo Federation subgraph and a GraphQL Federation subgraph that both contribute fields to `Product` merge into one `Product` type in the composed schema.
+Because Federation v2 detection happens per source schema, mixed graphs with v2 Apollo Federation sources need no graph-wide connector configuration. Federation v1 sources still require the exact per-source `"1.0"` marker. An Apollo Federation subgraph and a GraphQL Federation subgraph that both contribute fields to `Product` merge into one `Product` type in the composed schema.
 
 # Getting the Subgraph Schema
 
@@ -134,7 +134,7 @@ Save the `_service { sdl }` value unchanged to a `.graphqls` file. A schema stri
 
 <!-- PENDING: assumes the federation-gated key-inference suppression fix lands before the preview build; if it does not, replace with the schema-settings InferKeysFromLookups:false workaround -->
 
-Compose Apollo Federation subgraphs the same way you compose GraphQL Federation subgraphs. There is no flag to set. Point `nitro fusion compose` at the source schema files, and the composer detects and translates Apollo Federation subgraphs automatically:
+Compose Apollo Federation subgraphs the same way you compose GraphQL Federation subgraphs. Federation v2 has no compose flag to set. Point `nitro fusion compose` at the source schema files, and the composer detects and translates v2 subgraphs automatically. Federation v1 sources still need the exact per-source `"1.0"` marker:
 
 ```bash
 nitro fusion compose \

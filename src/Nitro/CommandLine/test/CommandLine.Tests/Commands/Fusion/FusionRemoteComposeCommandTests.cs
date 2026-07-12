@@ -953,6 +953,72 @@ public sealed class FusionRemoteComposeCommandTests(NitroCommandFixture fixture)
         Assert.False(File.Exists(archiveFile));
     }
 
+    [Fact]
+    public async Task Compose_Should_RejectMissingValue_When_RemoteOptionIsRepeated()
+    {
+        SetupNoAuthentication();
+        var archiveFile = CreateTempFile();
+        SetupFile("a/schema-settings.json", """{ "name": "A" }""");
+        var requestCount = 0;
+        using var client = CreateClient(_ =>
+        {
+            Interlocked.Increment(ref requestCount);
+            return Response(HttpStatusCode.OK, "type Query { remote: String }");
+        });
+        SetupHttpClient(client);
+
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "compose",
+            "--source-schema-url",
+            "https://composition.example/a",
+            "--source-schema-settings-file",
+            "a/schema-settings.json",
+            "--archive",
+            archiveFile,
+            "--source-schema-url");
+
+        Assert.Equal(1, result.ExitCode);
+        Assert.Contains(
+            "Option '--source-schema-url' requires exactly one argument for each occurrence.",
+            result.StdOut + result.StdErr,
+            StringComparison.Ordinal);
+        Assert.Equal(0, requestCount);
+        Assert.False(File.Exists(archiveFile));
+    }
+
+    [Fact]
+    public async Task Compose_Should_NotFetchOrCreateArchive_When_MissingRemoteValuePrecedesOption()
+    {
+        var archiveFile = CreateTempFile();
+        SetupFile("a/schema-settings.json", """{ "name": "A" }""");
+        SetupFile("b/schema-settings.json", """{ "name": "B" }""");
+        var requestCount = 0;
+        using var client = CreateClient(_ =>
+        {
+            Interlocked.Increment(ref requestCount);
+            return Response(HttpStatusCode.OK, "type Query { remote: String }");
+        });
+        SetupHttpClient(client);
+
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "compose",
+            "--source-schema-url",
+            "https://composition.example/a",
+            "--source-schema-settings-file",
+            "a/schema-settings.json",
+            "--source-schema-url",
+            "--source-schema-settings-file",
+            "b/schema-settings.json",
+            "--archive",
+            archiveFile);
+
+        Assert.Equal(1, result.ExitCode);
+        Assert.Equal(0, requestCount);
+        Assert.False(File.Exists(archiveFile));
+    }
+
     private string CreateTempFile()
     {
         var path = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
