@@ -2,6 +2,8 @@ namespace HotChocolate.Fusion.Logging;
 
 public static class LogEntryCodes
 {
+    public const string ConflictingApolloFederationVersion =
+        "CONFLICTING_APOLLO_FEDERATION_VERSION";
     public const string ConflictingSourceSchemaName = "CONFLICTING_SOURCE_SCHEMA_NAME";
     public const string CursorArgumentNotString = "CURSOR_ARGUMENT_NOT_STRING";
     public const string CursorArgumentRequiresCursorField = "CURSOR_ARGUMENT_REQUIRES_CURSOR_FIELD";
@@ -27,6 +29,8 @@ public static class LogEntryCodes
     public const string ExternalUnused = "EXTERNAL_UNUSED";
     public const string FederationDirectiveNotSupported = "FEDERATION_DIRECTIVE_NOT_SUPPORTED";
     public const string FederationV1NotSupported = "FEDERATION_V1_NOT_SUPPORTED";
+    public const string FederationV1DirectiveNotSupported =
+        "FEDERATION_V1_DIRECTIVE_NOT_SUPPORTED";
     public const string FieldArgumentTypesNotMergeable = "FIELD_ARGUMENT_TYPES_NOT_MERGEABLE";
     public const string FieldWithMissingRequiredArgument = "FIELD_WITH_MISSING_REQUIRED_ARGUMENT";
     public const string ImplementedByInaccessible = "IMPLEMENTED_BY_INACCESSIBLE";
@@ -42,6 +46,8 @@ public static class LogEntryCodes
     public const string InterfaceObjectNoInterface = "INTERFACE_OBJECT_NO_INTERFACE";
     public const string InvalidFieldSharing = "INVALID_FIELD_SHARING";
     public const string InvalidGraphQL = "INVALID_GRAPHQL";
+    public const string InvalidApolloFederationSupportSettings =
+        "INVALID_APOLLO_FEDERATION_SUPPORT_SETTINGS";
     public const string InvalidNodeResolution = "INVALID_NODE_RESOLUTION";
     public const string InvalidProjectedFieldSharing = "INVALID_PROJECTED_FIELD_SHARING";
     public const string InvalidShareableUsage = "INVALID_SHAREABLE_USAGE";

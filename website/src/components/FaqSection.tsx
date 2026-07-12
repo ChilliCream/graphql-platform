@@ -1,5 +1,6 @@
 "use client";
 
+import { Card } from "@/src/design-system/Card";
 import { SectionHeading } from "@/src/components/SectionHeading";
 
 interface FaqSectionProps {
@@ -50,29 +51,31 @@ function FaqItem({
   readonly item: { readonly question: string; readonly answer: string };
 }) {
   return (
-    <details className="group border-cc-card-border hover:border-cc-card-border-hover bg-cc-card-bg/60 rounded-2xl border transition-colors">
-      <summary className="text-cc-heading font-heading flex cursor-pointer list-none items-start justify-between gap-4 p-5 text-base font-semibold">
-        <span>{item.question}</span>
-        <span
-          aria-hidden="true"
-          className="text-cc-accent mt-1 flex-none font-mono text-sm transition-transform group-open:rotate-45"
+    <Card className="bg-cc-card-bg/60" hoverBorder>
+      <details className="group">
+        <summary className="text-cc-heading font-heading flex cursor-pointer list-none items-start justify-between gap-4 p-5 text-base font-semibold">
+          <span>{item.question}</span>
+          <span
+            aria-hidden="true"
+            className="text-cc-accent mt-1 flex-none font-mono text-sm transition-transform group-open:rotate-45"
+          >
+            +
+          </span>
+        </summary>
+        <div
+          className="text-cc-ink cursor-pointer px-5 pb-5 text-sm leading-relaxed"
+          onClick={(event) => {
+            // Clicking the open answer collapses it, unless the user is selecting
+            // text. The accessible keyboard toggle stays the <summary>.
+            if (window.getSelection()?.toString()) {
+              return;
+            }
+            event.currentTarget.closest("details")?.removeAttribute("open");
+          }}
         >
-          +
-        </span>
-      </summary>
-      <div
-        className="text-cc-ink cursor-pointer px-5 pb-5 text-sm leading-relaxed"
-        onClick={(event) => {
-          // Clicking the open answer collapses it, unless the user is selecting
-          // text. The accessible keyboard toggle stays the <summary>.
-          if (window.getSelection()?.toString()) {
-            return;
-          }
-          event.currentTarget.closest("details")?.removeAttribute("open");
-        }}
-      >
-        {item.answer}
-      </div>
-    </details>
+          {item.answer}
+        </div>
+      </details>
+    </Card>
   );
 }

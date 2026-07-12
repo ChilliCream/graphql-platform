@@ -14,12 +14,9 @@ public sealed class DogType : ObjectType<Dog>
     {
         descriptor
             .Implements<AnimalInterfaceType>()
-            .Key("id")
-            .ResolveReferenceWith(_ => ResolveById(default!));
+            .Key("id");
 
-        descriptor.Field(d => d.Id).Type<NonNullType<IdType>>();
+        descriptor.Field(d => d.Id).External().Type<NonNullType<IdType>>();
+        descriptor.Field(d => d.Name).External().Type<StringType>();
     }
-
-    private static Dog? ResolveById(string id)
-        => new Dog { Id = id };
 }

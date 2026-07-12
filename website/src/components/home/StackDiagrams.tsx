@@ -1,5 +1,7 @@
 import type { ReactNode } from "react";
 
+import { PageSection } from "@/src/components/PageSection";
+
 const EDGE = "rgba(236,232,245,0.55)";
 
 interface NodeBox {
@@ -156,13 +158,13 @@ function StackRow({ title, diagram, reverse }: StackRowProps) {
  */
 export function StackDiagrams() {
   return (
-    <section className="mx-auto flex max-w-7xl flex-col gap-20 px-5 py-16 sm:px-12 sm:py-24 lg:gap-28">
+    <PageSection className="flex flex-col gap-20 py-16 sm:py-24 lg:gap-28">
       <StackRow title="Platform" diagram={<Hub className="h-auto w-full" />} />
       <StackRow
         title="Agentic Era"
         diagram={<Hub className="h-auto w-full" />}
         reverse
       />
-    </section>
+    </PageSection>
   );
 }

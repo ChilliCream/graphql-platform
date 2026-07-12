@@ -46,6 +46,22 @@ for (const story of stories) {
     // Wait for webfonts so text metrics are stable before the screenshot.
     await page.evaluate(() => document.fonts.ready);
 
+    // Wait for every image to finish loading (or fail) so the screenshot
+    // never races a slow request, e.g. the YouTube poster from i.ytimg.com.
+    await page.evaluate(() =>
+      Promise.all(
+        Array.from(document.images)
+          .filter((img) => !img.complete)
+          .map(
+            (img) =>
+              new Promise((resolve) => {
+                img.addEventListener("load", resolve, { once: true });
+                img.addEventListener("error", resolve, { once: true });
+              }),
+          ),
+      ),
+    );
+
     await expect(page).toHaveScreenshot(`${story.id}.png`, {
       fullPage: true,
     });

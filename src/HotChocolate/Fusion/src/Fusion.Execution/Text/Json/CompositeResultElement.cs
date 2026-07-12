@@ -43,9 +43,17 @@ public readonly partial struct CompositeResultElement
     {
         CheckValidInstance();
 
-        var formatter = new RawJsonFormatter(_parent, jsonWriter);
         var row = _parent._metaDb.Get(_cursor);
-        formatter.WriteValue(_cursor, row);
+        if (_parent.HasNullMarkers)
+        {
+            var formatter = new NullMarkerRawJsonFormatter(_parent, jsonWriter);
+            formatter.WriteValue(_cursor, row);
+        }
+        else
+        {
+            var formatter = new RawJsonFormatter(_parent, jsonWriter);
+            formatter.WriteValue(_cursor, row);
+        }
     }
 
     /// <summary>
@@ -185,6 +193,21 @@ public readonly partial struct CompositeResultElement
             }
 
             return _parent.IsNullOrInvalidated(_cursor);
+        }
+    }
+
+    internal bool IsRoot => _cursor.IsZero;
+
+    internal bool IsNullMarker
+    {
+        get
+        {
+            if (_parent is null)
+            {
+                return false;
+            }
+
+            return _parent.IsNullMarker(_cursor);
         }
     }
 
@@ -1009,6 +1032,13 @@ public readonly partial struct CompositeResultElement
         CheckValidInstance();
 
         _parent.AssignNullValue(this);
+    }
+
+    internal void SetNullMarker()
+    {
+        CheckValidInstance();
+
+        _parent.SetNullMarker(_cursor);
     }
 
     /// <inheritdoc />

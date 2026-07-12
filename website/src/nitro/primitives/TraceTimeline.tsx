@@ -5,6 +5,7 @@ import { ease } from "../lib/motion";
 import { token } from "../lib/tokens";
 import { useChartClock } from "../lib/useInViewLoop";
 import type { TraceSample } from "../lib/data";
+import { ChartCanvas } from "./ChartCanvas";
 
 export interface TraceTimelineProps {
   samples: TraceSample[];
@@ -59,13 +60,7 @@ export function TraceTimeline({
     `Trace sample timeline: ${samples.length} sampled requests, ${errors} errored, durations ${ms(dMin)} to ${ms(dMax)}`;
 
   return (
-    <div
-      ref={ref}
-      className={className}
-      style={{ position: "relative", width: "100%", height: "100%", ...style }}
-      role="img"
-      aria-label={label}
-    >
+    <ChartCanvas ref={ref} className={className} style={style} label={label}>
       <svg
         viewBox={`0 0 ${width} ${height}`}
         preserveAspectRatio="none"
@@ -133,7 +128,7 @@ export function TraceTimeline({
           {ms(v)}
         </span>
       ))}
-    </div>
+    </ChartCanvas>
   );
 }
 

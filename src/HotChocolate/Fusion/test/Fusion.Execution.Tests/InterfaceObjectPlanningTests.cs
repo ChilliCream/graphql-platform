@@ -66,10 +66,6 @@ public sealed class InterfaceObjectPlanningTests : FusionTestBase
         interface Node @key(fields: "id") {
           id: ID!
         }
-
-        type NodeImpl implements Node @key(fields: "id") {
-          id: ID!
-        }
         """;
 
     private const string NonResolvableSchemaB =
@@ -84,6 +80,19 @@ public sealed class InterfaceObjectPlanningTests : FusionTestBase
         }
 
         type Node @key(fields: "id", resolvable: false) @interfaceObject {
+          id: ID!
+          field: String
+        }
+        """;
+
+    private const string ResolvableSchemaB =
+        """
+        extend schema
+          @link(
+            url: "https://specs.apollo.dev/federation/v2.6"
+            import: ["@key", "@interfaceObject"])
+
+        type Node @key(fields: "id") @interfaceObject {
           id: ID!
           field: String
         }
@@ -359,10 +368,12 @@ public sealed class InterfaceObjectPlanningTests : FusionTestBase
     }
 
     [Fact]
-    public void Plan_Should_Fail_When_InterfaceObjectHasNoResolvableLookup()
+    public void Plan_Should_Fail_When_InterfaceObjectHasNoResolvableLookupAndNoPossibleType()
     {
         // arrange
-        var schema = ComposeNonResolvableInterfaceObjectSchema();
+        var schema = ComposeInterfaceObjectSchema(
+            NonResolvableSchemaB,
+            allowNonResolvableInterfaceObjects: true);
 
         // act
         var exception = Assert.Throws<InvalidOperationException>(
@@ -377,19 +388,45 @@ public sealed class InterfaceObjectPlanningTests : FusionTestBase
                 """));
 
         // assert
-        Assert.Equal("No possible plan was found.", exception.Message);
+        exception.Message.MatchInlineSnapshot("No possible plan was found.");
     }
 
-    private static FusionSchemaDefinition ComposeNonResolvableInterfaceObjectSchema()
+    [Fact]
+    public void Plan_Should_UseCoveringAbstractLookup_When_InterfaceHasNoPossibleType()
+    {
+        // arrange
+        var schema = ComposeInterfaceObjectSchema(
+            ResolvableSchemaB,
+            allowNonResolvableInterfaceObjects: false);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            query {
+              a {
+                field
+              }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    private static FusionSchemaDefinition ComposeInterfaceObjectSchema(
+        string schemaB,
+        bool allowNonResolvableInterfaceObjects)
     {
         var options = new SchemaComposerOptions();
-        options.ApolloFederationCompatibility.AllowNonResolvableInterfaceObjects = true;
+        options.ApolloFederationCompatibility.AllowNonResolvableInterfaceObjects =
+            allowNonResolvableInterfaceObjects;
 
         var log = new CompositionLog();
         var result = new SchemaComposer(
             [
                 new SourceSchemaText("a", NonResolvableSchemaA),
-                new SourceSchemaText("b", NonResolvableSchemaB)
+                new SourceSchemaText("b", schemaB)
             ],
             options,
             log).Compose();

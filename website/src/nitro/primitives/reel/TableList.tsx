@@ -1,5 +1,6 @@
 import { motion, useTransform, type MotionValue } from "motion/react";
 import { token } from "../../lib/tokens";
+import { StrokeIcon } from "./StrokeIcon";
 
 export interface TableRow {
   label: string;
@@ -43,18 +44,7 @@ export function TableList({
           opacity: headerOpacity,
         }}
       >
-        <svg
-          width={13}
-          height={13}
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth={1.8}
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <path d="M6 9l6 6 6-6" />
-        </svg>
+        <StrokeIcon d="M6 9l6 6 6-6" size={13} strokeWidth={1.8} />
         {title}
       </motion.div>
       <div style={{ display: "flex", flexDirection: "column" }}>

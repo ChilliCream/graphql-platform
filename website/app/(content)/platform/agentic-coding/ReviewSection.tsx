@@ -2,7 +2,10 @@
 
 import { useEffect, useRef, useState } from "react";
 
+import { Card } from "@/src/design-system/Card";
+import { Eyebrow } from "@/src/design-system/Eyebrow";
 import { SectionHeading } from "@/src/components/SectionHeading";
+import { MockWindowChrome } from "@/src/components/MockWindowChrome";
 import { BranchGlyph } from "@/src/icons/BranchGlyph";
 import { CheckGlyph } from "@/src/icons/CheckGlyph";
 
@@ -467,121 +470,126 @@ export function ReviewSection() {
       {/* The figure: the PR window replaying the review on the left, the
           time-to-ship payoff beside it. */}
       <div className="mt-10 grid grid-cols-1 gap-8 lg:grid-cols-3 lg:gap-10">
-        <div
-          ref={windowRef}
-          className="border-cc-card-border bg-cc-surface relative flex flex-col overflow-hidden rounded-xl border shadow-[0_28px_70px_-28px_rgba(0,0,0,0.7)] lg:col-span-2"
-        >
-          {/* Title bar */}
-          <div className="border-cc-card-border flex flex-wrap items-center gap-x-3 gap-y-2 border-b bg-white/[0.03] px-4 py-2.5">
-            <BranchGlyph className="text-cc-ink-dim size-3.5 shrink-0" />
-            <span className="text-cc-ink font-mono text-sm">
-              feat: add product reviews
-            </span>
-            <span className="text-cc-nav-label font-mono text-[0.65rem] tracking-[0.1em] uppercase">
-              3 files changed
-            </span>
-            <span className="font-mono text-[0.65rem]">
-              <span className="text-cc-success">+{TOTAL_ADDED}</span>{" "}
-              <span className="text-cc-danger">-{TOTAL_REMOVED}</span>
-            </span>
-            <StatusBadge status={demo.status} />
-          </div>
-
-          <div className="grow space-y-3 p-5">
-            {HUNKS.map((hunk, index) => (
-              <FileCard
-                key={hunk.file}
-                hunk={hunk}
-                viewed={demo.viewed[index] ?? false}
-                pressed={demo.clicking && demo.cursor === `file-${index}`}
-                checkboxRef={(el) => {
-                  targetRefs.current[`file-${index}` as CursorTarget] = el;
-                }}
-              />
-            ))}
-
-            {/* CI results under the diff: the platform's schema check runs
-                beside the usual build and tests. */}
-            <div className="border-cc-card-border bg-cc-card-bg rounded-xl border p-4 select-none">
-              <p className="text-cc-nav-label font-mono text-[0.6rem] tracking-[0.1em] uppercase">
-                Checks
-              </p>
-              <ul className="mt-2.5 space-y-1.5">
-                {CHECKS.map((check) => {
-                  const done = demo[check.key];
-                  return (
-                    <li
-                      key={check.name}
-                      className="flex items-center gap-2.5 font-mono text-xs"
-                    >
-                      {done ? (
-                        <CheckGlyph className="text-cc-success size-3.5" />
-                      ) : (
-                        <PendingSpinner />
-                      )}
-                      <span className="text-cc-ink">{check.name}</span>
-                      <span className="text-cc-ink-dim ml-auto text-[0.6rem]">
-                        {done ? "Succeeded" : "In progress"}
-                      </span>
-                    </li>
-                  );
-                })}
-              </ul>
-            </div>
-
-            {/* The review verdict; the pointer ends the pass here. */}
-            <div className="flex items-center justify-end pt-1 select-none">
-              <span
-                ref={(el) => {
-                  targetRefs.current.approve = el;
-                }}
-                className={`inline-flex items-center gap-1.5 rounded-lg border px-4 py-1.5 font-mono text-xs transition-all duration-150 ${
-                  demo.clicking && demo.cursor === "approve" ? "scale-95" : ""
-                } ${
-                  approved
-                    ? "border-cc-success/40 bg-cc-success/10 text-cc-success"
-                    : "border-cc-success/50 bg-cc-success/20 text-cc-success"
-                }`}
-              >
-                {approved && (
-                  <CheckGlyph className="text-cc-success size-3.5" />
-                )}
-                {approved ? "Approved" : "Approve"}
-              </span>
-            </div>
-          </div>
-
-          {/* The reviewer's pointer. */}
-          <div
-            ref={cursorRef}
-            aria-hidden="true"
-            className={`pointer-events-none absolute top-0 left-0 z-10 transition-[transform,opacity] duration-700 ease-in-out ${
-              demo.cursor ? "opacity-100" : "opacity-0"
-            }`}
-            style={{ transform: "translate(320px, 90px)" }}
+        <div ref={windowRef} className="lg:col-span-2">
+          <MockWindowChrome
+            shadow="soft"
+            headerClassName="flex flex-wrap items-center gap-x-3 gap-y-2 bg-white/[0.03] px-4 py-2.5"
+            header={{
+              variant: "custom",
+              content: (
+                <>
+                  <BranchGlyph className="text-cc-ink-dim size-3.5 shrink-0" />
+                  <span className="text-cc-ink font-mono text-sm">
+                    feat: add product reviews
+                  </span>
+                  <Eyebrow as="span" size="2xs">
+                    3 files changed
+                  </Eyebrow>
+                  <span className="font-mono text-[0.65rem]">
+                    <span className="text-cc-success">+{TOTAL_ADDED}</span>{" "}
+                    <span className="text-cc-danger">-{TOTAL_REMOVED}</span>
+                  </span>
+                  <StatusBadge status={demo.status} />
+                </>
+              ),
+            }}
           >
-            <CursorGlyph
-              className={`size-5 drop-shadow-md transition-transform duration-150 ${
-                demo.clicking ? "scale-90" : ""
+            <div className="grow space-y-3 p-5">
+              {HUNKS.map((hunk, index) => (
+                <FileCard
+                  key={hunk.file}
+                  hunk={hunk}
+                  viewed={demo.viewed[index] ?? false}
+                  pressed={demo.clicking && demo.cursor === `file-${index}`}
+                  checkboxRef={(el) => {
+                    targetRefs.current[`file-${index}` as CursorTarget] = el;
+                  }}
+                />
+              ))}
+
+              {/* CI results under the diff: the platform's schema check runs
+                beside the usual build and tests. */}
+              <Card className="p-4 select-none">
+                <Eyebrow as="p" className="text-[0.6rem]">
+                  Checks
+                </Eyebrow>
+                <ul className="mt-2.5 space-y-1.5">
+                  {CHECKS.map((check) => {
+                    const done = demo[check.key];
+                    return (
+                      <li
+                        key={check.name}
+                        className="flex items-center gap-2.5 font-mono text-xs"
+                      >
+                        {done ? (
+                          <CheckGlyph className="text-cc-success size-3.5" />
+                        ) : (
+                          <PendingSpinner />
+                        )}
+                        <span className="text-cc-ink">{check.name}</span>
+                        <span className="text-cc-ink-dim ml-auto text-[0.6rem]">
+                          {done ? "Succeeded" : "In progress"}
+                        </span>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </Card>
+
+              {/* The review verdict; the pointer ends the pass here. */}
+              <div className="flex items-center justify-end pt-1 select-none">
+                <span
+                  ref={(el) => {
+                    targetRefs.current.approve = el;
+                  }}
+                  className={`inline-flex items-center gap-1.5 rounded-lg border px-4 py-1.5 font-mono text-xs transition-all duration-150 ${
+                    demo.clicking && demo.cursor === "approve" ? "scale-95" : ""
+                  } ${
+                    approved
+                      ? "border-cc-success/40 bg-cc-success/10 text-cc-success"
+                      : "border-cc-success/50 bg-cc-success/20 text-cc-success"
+                  }`}
+                >
+                  {approved && (
+                    <CheckGlyph className="text-cc-success size-3.5" />
+                  )}
+                  {approved ? "Approved" : "Approve"}
+                </span>
+              </div>
+            </div>
+
+            {/* The reviewer's pointer. */}
+            <div
+              ref={cursorRef}
+              aria-hidden="true"
+              className={`pointer-events-none absolute top-0 left-0 z-10 transition-[transform,opacity] duration-700 ease-in-out ${
+                demo.cursor ? "opacity-100" : "opacity-0"
               }`}
-            />
-          </div>
+              style={{ transform: "translate(320px, 90px)" }}
+            >
+              <CursorGlyph
+                className={`size-5 drop-shadow-md transition-transform duration-150 ${
+                  demo.clicking ? "scale-90" : ""
+                }`}
+              />
+            </div>
+          </MockWindowChrome>
         </div>
 
         {/* The payoff, plain beside the window. */}
         <div className="flex flex-col justify-center lg:px-2">
-          <p className="text-cc-nav-label font-mono text-[0.65rem] tracking-[0.14em] uppercase">
+          <Eyebrow as="p" size="2xs">
             time to ship
-          </p>
+          </Eyebrow>
           <p className="font-heading text-cc-heading text-h5 mt-2 leading-tight font-semibold">
             reviewed in seconds
           </p>
           <div className="mt-5 space-y-3" aria-hidden="true">
             {TIME_BARS.map((bar) => (
               <div key={bar.label} className="flex items-center gap-3">
-                <span className="text-cc-nav-label w-24 shrink-0 font-mono text-[0.6rem] tracking-[0.08em] uppercase">
+                <Eyebrow as="span" className="w-24 shrink-0 text-[0.6rem]">
                   {bar.label}
-                </span>
+                </Eyebrow>
                 <span
                   className="h-2 flex-1 overflow-hidden rounded-full"
                   style={{ background: "rgba(245, 241, 234, 0.06)" }}

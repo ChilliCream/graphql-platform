@@ -1,3 +1,4 @@
+using System.Reflection;
 using System.Text;
 using System.Text.Json;
 using HotChocolate.Buffers;
@@ -22,6 +23,12 @@ namespace HotChocolate.Fusion.Execution.Results;
 
 public sealed class FetchResultStoreTests : FusionTestBase
 {
+    private static readonly FieldInfo s_dataElementStagingField =
+        typeof(FetchResultStore).GetField(
+            "_dataElementStaging",
+            BindingFlags.Instance | BindingFlags.NonPublic)
+        ?? throw new InvalidOperationException(
+            "FetchResultStore no longer contains a non-public instance field named '_dataElementStaging'. Update the tests accordingly.");
     private static readonly byte[] s_fieldPayload = """{"data":{"field":"value"}}"""u8.ToArray();
     private static readonly FusionSchemaDefinition s_schema = CreateCompositeSchema();
 
@@ -122,6 +129,193 @@ public sealed class FetchResultStoreTests : FusionTestBase
         Assert.Contains(results[0], store.MemoryOwners);
         Assert.Contains(results[1], store.MemoryOwners);
         Assert.Contains(results[2], store.MemoryOwners);
+
+        if (!containsErrors)
+        {
+            AssertDataElementStagingCleared(store, results.Length);
+        }
+    }
+
+    [Theory]
+    [InlineData(3)]
+    [InlineData(11)]
+    [InlineData(64)]
+    public void AddPartialResults_Should_ReuseRetainedStaging_When_NoErrorBatchIsWithinLimit(int count)
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: test
+            type Query {
+              field: String
+            }
+            """);
+
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+        using var store = CreateEmptyStore(schema, "{ field }", resultArena, out var resultSelectionSet);
+        var first = CreateSourceSchemaResults(sourceArena, count, "warm");
+        var second = CreateSourceSchemaResults(sourceArena, count, "final");
+
+        // act
+        Assert.True(
+            store.AddPartialResults(
+                SelectionPath.Root,
+                first,
+                resultSelectionSet,
+                containsErrors: false));
+
+        var staging = GetDataElementStaging(store);
+        Assert.Equal(256, staging.Length);
+        AssertDataElementStagingCleared(store, count);
+        AssertResultsRegisteredInOrder(store, first);
+
+        using (var dirt = CreateSourceSchemaResult(
+                   sourceArena,
+                   CompactPath.Root,
+                   """{"data":{"field":"dirt"}}"""))
+        {
+            staging.AsSpan(0, count).Fill(dirt.Data);
+
+            Assert.True(
+                store.AddPartialResults(
+                    SelectionPath.Root,
+                    second,
+                    resultSelectionSet,
+                    containsErrors: false));
+        }
+
+        // assert
+        Assert.Same(staging, GetDataElementStaging(store));
+        AssertDataElementStagingCleared(store, count);
+        AssertResultsRegisteredInOrder(store, second);
+        Assert.Equal($"{{\"field\":\"final-{count - 1}\"}}", RenderData(store));
+    }
+
+    [Fact]
+    public void AddPartialResults_Should_ClearRetainedStaging_When_DataReadThrows()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: test
+            type Query {
+              field: String
+            }
+            """);
+
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+        using var store = CreateEmptyStore(schema, "{ field }", resultArena, out var resultSelectionSet);
+        var results = CreateSourceSchemaResults(sourceArena, 3, "value");
+        results[1].Dispose();
+
+        try
+        {
+            // act
+            Assert.Throws<ObjectDisposedException>(
+                () => store.AddPartialResults(
+                    SelectionPath.Root,
+                    results,
+                    resultSelectionSet,
+                    containsErrors: false));
+
+            // assert
+            AssertDataElementStagingCleared(store, results.Length);
+            Assert.Collection(store.MemoryOwners, memory => Assert.Same(store.Result, memory));
+        }
+        finally
+        {
+            results[0].Dispose();
+            results[2].Dispose();
+        }
+    }
+
+    [Fact]
+    public void AddPartialResults_Should_ClearRetainedStaging_When_MergeStopsEarly()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: test
+            type Query {
+              field: String
+            }
+            """);
+
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+        using var store = CreateEmptyStore(schema, "{ field }", resultArena, out var resultSelectionSet);
+        var results = CreateSourceSchemaResults(sourceArena, 3, "value");
+        store.Result.Data.Invalidate();
+
+        // act
+        var added = store.AddPartialResults(
+            SelectionPath.Root,
+            results,
+            resultSelectionSet,
+            containsErrors: false);
+
+        // assert
+        Assert.False(added);
+        AssertDataElementStagingCleared(store, results.Length);
+        AssertResultsRegisteredInOrder(store, results);
+        Assert.Equal("{\"field\":null}", RenderData(store));
+    }
+
+    [Fact]
+    public void AddPartialResults_Should_GrowRetainedStagingGeometrically_When_NoErrorBatchCrossesBoundaries()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: test
+            type Query {
+              field: String
+            }
+            """);
+
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+        using var store = CreateEmptyStore(schema, "{ field }", resultArena, out var resultSelectionSet);
+
+        // act
+        var retained256 = AddBatch(256, "retained256");
+        var retained512 = AddBatch(257, "retained512Start");
+        var reused512 = AddBatch(512, "retained512End");
+        var retained1024 = AddBatch(513, "retained1024Start");
+        var reused1024 = AddBatch(1024, "retained1024End");
+        var afterFallback = AddBatch(1025, "pooled");
+
+        // assert
+        Assert.Equal(256, retained256.Length);
+        Assert.Equal(512, retained512.Length);
+        Assert.NotSame(retained256, retained512);
+        Assert.Same(retained512, reused512);
+        Assert.Equal(1024, retained1024.Length);
+        Assert.NotSame(retained512, retained1024);
+        Assert.Same(retained1024, reused1024);
+        Assert.Same(retained1024, afterFallback);
+        AssertDataElementStagingCleared(store, retained1024.Length);
+
+        SourceResultElement[] AddBatch(int count, string valuePrefix)
+        {
+            var results = CreateSourceSchemaResults(sourceArena, count, valuePrefix);
+            Assert.True(
+                store.AddPartialResults(
+                    SelectionPath.Root,
+                    results,
+                    resultSelectionSet,
+                    containsErrors: false));
+
+            var staging = GetDataElementStaging(store);
+            AssertDataElementStagingCleared(store, Math.Min(count, staging.Length));
+            AssertResultsRegisteredInOrder(store, results);
+            Assert.Equal(
+                $"{{\"field\":\"{valuePrefix}-{count - 1}\"}}",
+                RenderData(store));
+            return staging;
+        }
     }
 
     [Fact]
@@ -279,6 +473,89 @@ public sealed class FetchResultStoreTests : FusionTestBase
             """
             {"foo":{"id":"1","value":null},"sibling":"sibling"}
             """);
+    }
+
+    [Fact]
+    public void FinalizeInaccessibleRuntimeTypes_Should_MaskNullableAbstractValue_AndPreserveStoredValue()
+    {
+        // arrange
+        var schema = ComposeInaccessibleAbstractSchema("Foo");
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+        using var store = CreateLiveStore(
+            schema,
+            "{ value { __typename name } sibling }",
+            """{"data":{"value":{"__typename":"Baz","name":"secret"},"sibling":"visible"}}""",
+            resultArena,
+            sourceArena);
+
+        // act
+        store.FinalizePocketedErrors();
+
+        // assert
+        RenderData(store).MatchInlineSnapshot(
+            """
+            {"value":null,"sibling":"visible"}
+            """);
+        var storedValue = store.Result.Data.GetProperty("value");
+        Assert.Equal(JsonValueKind.Object, storedValue.ValueKind);
+        Assert.Equal("Baz", storedValue.GetProperty("__typename").AssertString());
+        Assert.Equal("secret", storedValue.GetProperty("name").AssertString());
+        Assert.Null(store.Errors);
+    }
+
+    [Fact]
+    public void FinalizeInaccessibleRuntimeTypes_Should_PropagateThroughNonNullAbstractField()
+    {
+        // arrange
+        var schema = ComposeInaccessibleAbstractSchema("Foo!");
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+        using var store = CreateLiveStore(
+            schema,
+            "{ value { __typename name } sibling }",
+            """{"data":{"value":{"__typename":"Baz","name":"secret"},"sibling":"visible"}}""",
+            resultArena,
+            sourceArena);
+
+        // act
+        store.FinalizePocketedErrors();
+
+        // assert
+        Assert.Equal("null", RenderData(store));
+        Assert.Null(store.Errors);
+    }
+
+    [Theory]
+    [InlineData("[Foo]", "{\"value\":[null,{\"__typename\":\"Qux\",\"name\":\"visible\"}],\"sibling\":\"visible\"}")]
+    [InlineData("[Foo!]", "{\"value\":null,\"sibling\":\"visible\"}")]
+    [InlineData("[Foo!]!", "null")]
+    public void FinalizeInaccessibleRuntimeTypes_Should_PropagateAccordingToListNullability(
+        string fieldType,
+        string expected)
+    {
+        // arrange
+        var schema = ComposeInaccessibleAbstractSchema(fieldType);
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+        using var store = CreateLiveStore(
+            schema,
+            "{ value { __typename name } sibling }",
+            """
+            {"data":{"value":[
+              {"__typename":"Baz","name":"secret"},
+              {"__typename":"Qux","name":"visible"}],
+              "sibling":"visible"}}
+            """,
+            resultArena,
+            sourceArena);
+
+        // act
+        store.FinalizePocketedErrors();
+
+        // assert
+        Assert.Equal(expected, RenderData(store));
+        Assert.Null(store.Errors);
     }
 
     [Fact]
@@ -1121,6 +1398,50 @@ public sealed class FetchResultStoreTests : FusionTestBase
         return store;
     }
 
+    private static FetchResultStore CreateEmptyStore(
+        FusionSchemaDefinition schema,
+        string operationText,
+        MemoryArena resultArena,
+        out ResultSelectionSet resultSelectionSet)
+    {
+        var plan = PlanOperation(schema, operationText);
+        var node = Assert.IsType<OperationExecutionNode>(Assert.Single(plan.RootNodes));
+        var store = new FetchResultStore();
+        store.Initialize(
+            resultArena,
+            schema,
+            DefaultErrorHandler.Default,
+            plan.Operation,
+            ErrorHandlingMode.Propagate,
+            includeFlags: 0,
+            deferFlags: 0,
+            pathSegmentLocalPoolCapacity: 16);
+        resultSelectionSet = node.ResultSelectionSet;
+        return store;
+    }
+
+    private static FusionSchemaDefinition ComposeInaccessibleAbstractSchema(string fieldType)
+        => ComposeSchema(
+            $$"""
+            # name: test
+            type Query {
+              value: {{fieldType}}
+              sibling: String
+            }
+
+            interface Foo {
+              name: String
+            }
+
+            type Baz implements Foo @inaccessible {
+              name: String
+            }
+
+            type Qux implements Foo {
+              name: String
+            }
+            """);
+
     private static VariableValues CreateVariableValues(
         FetchResultStore store,
         CompactPath path,
@@ -1175,6 +1496,62 @@ public sealed class FetchResultStoreTests : FusionTestBase
     {
         var document = SourceResultDocument.Parse(arena, s_fieldPayload, s_fieldPayload.Length);
         return new SourceSchemaResult(path, document);
+    }
+
+    private static SourceSchemaResult CreateSourceSchemaResult(
+        IMemoryArena arena,
+        CompactPath path,
+        string payloadJson)
+    {
+        var payload = Encoding.UTF8.GetBytes(payloadJson);
+        var document = SourceResultDocument.Parse(arena, payload, payload.Length);
+        return new SourceSchemaResult(path, document);
+    }
+
+    private static SourceSchemaResult[] CreateSourceSchemaResults(
+        IMemoryArena arena,
+        int count,
+        string valuePrefix)
+    {
+        var results = new SourceSchemaResult[count];
+
+        for (var i = 0; i < results.Length; i++)
+        {
+            results[i] = CreateSourceSchemaResult(
+                arena,
+                CompactPath.Root,
+                $"{{\"data\":{{\"field\":\"{valuePrefix}-{i}\"}}}}");
+        }
+
+        return results;
+    }
+
+    private static SourceResultElement[] GetDataElementStaging(FetchResultStore store)
+        => Assert.IsType<SourceResultElement[]>(s_dataElementStagingField.GetValue(store));
+
+    private static void AssertDataElementStagingCleared(FetchResultStore store, int count)
+    {
+        var staging = GetDataElementStaging(store);
+        Assert.True(staging.Length >= count);
+
+        for (var i = 0; i < count; i++)
+        {
+            Assert.Null(staging[i]._parent);
+        }
+    }
+
+    private static void AssertResultsRegisteredInOrder(
+        FetchResultStore store,
+        ReadOnlySpan<SourceSchemaResult> results)
+    {
+        var owners = store.MemoryOwners;
+        var offset = owners.Count - results.Length;
+        Assert.True(offset >= 0);
+
+        for (var i = 0; i < results.Length; i++)
+        {
+            Assert.Same(results[i], owners[offset + i]);
+        }
     }
 
     private static string Normalize(JsonSegment segment)

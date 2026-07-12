@@ -102,7 +102,7 @@ public sealed partial class CompositeResultDocument
         {
             Debug.Assert(parentRow is >= 0 and <= 0x1FFFFFFF);
             Debug.Assert(selectionId is >= 0 and <= 0x7FFF);
-            Debug.Assert((byte)flags <= 127);
+            Debug.Assert((int)flags is >= 0 and <= DbRow.FlagsMask);
 
             var (chunk, byteOffset, cursor) = ReserveRow();
 
@@ -117,7 +117,7 @@ public sealed partial class CompositeResultDocument
                 ref Unsafe.Add(ref row, 4),
                 selectionId
                 | ((int)OperationReferenceType.Selection << 15)
-                | ((int)flags << 17));
+                | (((int)flags & DbRow.FlagsMask) << DbRow.FlagsShift));
 
             // ints 2..3 must be zero (int 4 is written directly below)
             Unsafe.InitBlockUnaligned(ref Unsafe.Add(ref row, 8), 0, 8);
@@ -136,7 +136,7 @@ public sealed partial class CompositeResultDocument
         {
             Debug.Assert(parentRow is >= 0 and <= 0x1FFFFFFF);
             Debug.Assert(selectionId is >= 0 and <= 0x7FFF);
-            Debug.Assert((byte)flags <= 127);
+            Debug.Assert((int)flags is >= 0 and <= DbRow.FlagsMask);
 
             var next = _next;
             var byteOffset = next.ByteOffset;
@@ -156,7 +156,7 @@ public sealed partial class CompositeResultDocument
                     ref Unsafe.Add(ref row0, 4),
                     selectionId
                     | ((int)OperationReferenceType.Selection << 15)
-                    | ((int)flags << 17));
+                    | (((int)flags & DbRow.FlagsMask) << DbRow.FlagsShift));
                 Unsafe.InitBlockUnaligned(ref Unsafe.Add(ref row0, 8), 0, 8);
                 // int 4: PropertyName token
                 Unsafe.WriteUnaligned(
@@ -184,7 +184,7 @@ public sealed partial class CompositeResultDocument
             Debug.Assert(parentRow is >= 0 and <= 0x1FFFFFFF);
             Debug.Assert(selectionSetId is >= 0 and <= 0x7FFF);
             Debug.Assert(propertyCount is >= 0 and <= 0x0FFFFFFF); // room for (count*2)+1 in 29 bits
-            Debug.Assert((byte)flags <= 127);
+            Debug.Assert((int)flags is >= 0 and <= DbRow.FlagsMask);
 
             var (chunk, byteOffset, cursor) = ReserveRow();
 
@@ -199,7 +199,7 @@ public sealed partial class CompositeResultDocument
                 ref Unsafe.Add(ref row, 4),
                 selectionSetId
                 | ((int)OperationReferenceType.SelectionSet << 15)
-                | ((int)flags << 17));
+                | (((int)flags & DbRow.FlagsMask) << DbRow.FlagsShift));
 
             // int 2: sizeOrLength = property count
             Unsafe.WriteUnaligned(ref Unsafe.Add(ref row, 8), propertyCount);
@@ -221,7 +221,7 @@ public sealed partial class CompositeResultDocument
         {
             Debug.Assert(parentRow is >= 0 and <= 0x1FFFFFFF);
             Debug.Assert(length is >= 0 and <= int.MaxValue);
-            Debug.Assert((byte)flags <= 127);
+            Debug.Assert((int)flags is >= 0 and <= DbRow.FlagsMask);
 
             var (chunk, byteOffset, cursor) = ReserveRow();
 
@@ -234,7 +234,7 @@ public sealed partial class CompositeResultDocument
             // int 1: flags only (no OpRefId / no OpRefType for arrays)
             Unsafe.WriteUnaligned(
                 ref Unsafe.Add(ref row, 4),
-                (int)flags << 17);
+                ((int)flags & DbRow.FlagsMask) << DbRow.FlagsShift);
 
             // int 2: sizeOrLength = length
             Unsafe.WriteUnaligned(ref Unsafe.Add(ref row, 8), length);
@@ -340,6 +340,12 @@ public sealed partial class CompositeResultDocument
         private (MemorySegment chunk, int byteOffset, Cursor cursor) ReserveRow()
         {
             var next = _next;
+
+            if (next == Cursor.End)
+            {
+                throw new InvalidOperationException("The metadata database has reached its maximum capacity.");
+            }
+
             var chunkIndex = next.Chunk;
             var byteOffset = next.ByteOffset;
 
@@ -423,6 +429,7 @@ public sealed partial class CompositeResultDocument
             ElementFlags flags = ElementFlags.None)
         {
             AssertValidCursor(cursor);
+            Debug.Assert((int)flags is >= 0 and <= DbRow.FlagsMask);
 
             ref var row = ref RowRef(cursor);
 
@@ -431,7 +438,7 @@ public sealed partial class CompositeResultDocument
                 ref Unsafe.Add(ref row, DbRow.SelectionAndFlagsOffset),
                 operationReferenceId
                 | ((int)operationReferenceType << 15)
-                | ((int)flags << 17));
+                | (((int)flags & DbRow.FlagsMask) << DbRow.FlagsShift));
 
             // int 2: SizeOrLength (full 32 bits; preserves the sign bit / UnknownSize sentinel)
             Unsafe.WriteUnaligned(ref Unsafe.Add(ref row, DbRow.SizeOffset), sizeOrLength);
@@ -453,6 +460,107 @@ public sealed partial class CompositeResultDocument
             AssertValidCursor(cursor);
 
             return Unsafe.ReadUnaligned<DbRow>(ref RowRef(cursor));
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal readonly SequentialReader CreateSequentialReader(Cursor cursor)
+        {
+            AssertValidCursor(cursor);
+            return new SequentialReader(_chunks, cursor);
+        }
+
+        internal readonly struct PropertyMetadata
+        {
+            private readonly int _selectionAndFlags;
+
+            internal PropertyMetadata(int selectionAndFlags)
+            {
+                _selectionAndFlags = selectionAndFlags;
+            }
+
+            internal int SelectionId
+                => DbRow.ReadOperationReferenceId(_selectionAndFlags);
+
+            internal ElementFlags Flags
+                => DbRow.ReadFlags(_selectionAndFlags);
+        }
+
+        internal ref struct SequentialReader
+        {
+            private readonly MemorySegment[] _chunks;
+            private ref byte _chunkBase;
+            private int _chunkIndex;
+            private int _row;
+            private int _byteOffset;
+            private int _chunkLength;
+            private int _segmentOffset;
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            internal SequentialReader(MemorySegment[] chunks, Cursor cursor)
+            {
+                _chunks = chunks;
+                _chunkBase = ref Unsafe.NullRef<byte>();
+                _chunkIndex = 0;
+                _row = 0;
+                _byteOffset = 0;
+                _chunkLength = 0;
+                _segmentOffset = 0;
+                MoveTo(cursor);
+            }
+
+            internal readonly Cursor Cursor
+            {
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                get => Cursor.From(_chunkIndex, _row);
+            }
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            internal readonly DbRow PeekRow()
+                => Unsafe.ReadUnaligned<DbRow>(
+                    ref Unsafe.Add(ref _chunkBase, _segmentOffset + _byteOffset));
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            internal PropertyMetadata ReadProperty()
+            {
+                var selectionAndFlags = Unsafe.ReadUnaligned<int>(
+                    ref Unsafe.Add(
+                        ref _chunkBase,
+                        _segmentOffset + _byteOffset + DbRow.SelectionAndFlagsOffset));
+                var property = new PropertyMetadata(selectionAndFlags);
+
+                Advance(1);
+                return property;
+            }
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            internal void Advance(int rowCount)
+            {
+                Debug.Assert(rowCount > 0);
+                var nextRow = _row + rowCount;
+
+                if ((uint)nextRow < (uint)(_chunkLength / DbRow.Size))
+                {
+                    _row = nextRow;
+                    _byteOffset += rowCount * DbRow.Size;
+                    return;
+                }
+
+                MoveTo(Cursor.AddRows(rowCount));
+            }
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            private void MoveTo(Cursor cursor)
+            {
+                var segment = _chunks[cursor.Chunk];
+                Debug.Assert(segment.Buffer is not null);
+
+                _chunkIndex = cursor.Chunk;
+                _row = cursor.Row;
+                _byteOffset = cursor.ByteOffset;
+                _chunkLength = segment.Length;
+                _segmentOffset = segment.Offset;
+                _chunkBase = ref MemoryMarshal.GetArrayDataReference(segment.Buffer);
+            }
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -543,21 +651,22 @@ public sealed partial class CompositeResultDocument
             AssertValidCursor(cursor);
 
             var selectionAndFlags = Unsafe.ReadUnaligned<int>(ref Unsafe.Add(ref RowRef(cursor), DbRow.SelectionAndFlagsOffset));
-            return (ElementFlags)((selectionAndFlags >> 17) & 0x7F);
+            return (ElementFlags)((selectionAndFlags >>> DbRow.FlagsShift) & DbRow.FlagsMask);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal readonly void SetFlags(Cursor cursor, ElementFlags flags)
         {
             AssertValidCursor(cursor);
-            Debug.Assert((byte)flags <= 127, "Flags value exceeds 7-bit limit");
-
+            Debug.Assert(
+                (int)flags is >= 0 and <= DbRow.FlagsMask,
+                $"Flags value exceeds {DbRow.FlagsBitCount}-bit limit");
             var fieldSpan = RowSpan(cursor)[DbRow.SelectionAndFlagsOffset..];
             var currentValue = MemoryMarshal.Read<int>(fieldSpan);
 
-            // Clear bits 17..23 (7-bit Flags region) then OR new flags in.
-            var clearedValue = (int)((uint)currentValue & ~(0x7Fu << 17));
-            var newValue = clearedValue | ((int)flags << 17);
+            var clearedValue = currentValue & ~(DbRow.FlagsMask << DbRow.FlagsShift);
+            var newValue = clearedValue
+                | (((int)flags & DbRow.FlagsMask) << DbRow.FlagsShift);
 
             MemoryMarshal.Write(fieldSpan, newValue);
         }

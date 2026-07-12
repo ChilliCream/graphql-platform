@@ -10,6 +10,9 @@ import {
 } from "motion/react";
 import { useEffect, useRef, useState } from "react";
 
+import { Card } from "@/src/design-system/Card";
+import { Eyebrow } from "@/src/design-system/Eyebrow";
+import { MockWindowChrome } from "@/src/components/MockWindowChrome";
 import { useReducedMotionPreference } from "@/src/nitro/lib/motion";
 
 const ACCENT = "#5eead4";
@@ -82,15 +85,15 @@ function KpiTile({
   const rendered = format ? format(display) : display.toFixed(0);
 
   return (
-    <div className="border-cc-card-border bg-cc-card-bg rounded-lg border px-4 py-3">
-      <div className="text-cc-ink-dim font-mono text-[10px] tracking-[0.18em] uppercase">
+    <Card className="rounded-lg px-4 py-3">
+      <Eyebrow color="ink-dim" className="text-[10px]">
         {label}
-      </div>
+      </Eyebrow>
       <div className="text-cc-heading font-heading mt-1 flex items-baseline gap-1">
         <span className="text-2xl tabular-nums">{rendered}</span>
         <span className="text-cc-ink-dim text-xs">{suffix}</span>
       </div>
-    </div>
+    </Card>
   );
 }
 
@@ -307,7 +310,7 @@ function SchemaDiffStrip({ inView, reduceMotion }: SchemaDiffStripProps) {
   const palette = DIFF_PALETTE[current.kind];
 
   return (
-    <div className="border-cc-card-border bg-cc-card-bg flex items-center gap-3 rounded-lg border px-4 py-3">
+    <Card className="flex items-center gap-3 rounded-lg px-4 py-3">
       <AnimatePresence mode="wait">
         <motion.span
           key={`${index}-badge`}
@@ -333,7 +336,7 @@ function SchemaDiffStrip({ inView, reduceMotion }: SchemaDiffStripProps) {
           {current.text}
         </motion.code>
       </AnimatePresence>
-    </div>
+    </Card>
   );
 }
 
@@ -347,29 +350,21 @@ export function ControlPlaneConsole({ className }: ControlPlaneConsoleProps) {
   const inView = useInView(ref, { margin: "-10% 0px" });
 
   return (
-    <div
-      ref={ref}
-      className={["relative w-full", className ?? ""].filter(Boolean).join(" ")}
-    >
-      <div
-        aria-hidden="true"
-        className="absolute -inset-x-10 -inset-y-8 -z-10 rounded-[2.5rem] opacity-50 blur-3xl"
-        style={{
+    <div ref={ref} className={className}>
+      <MockWindowChrome
+        header={{ variant: "status-dot" }}
+        label="Nitro / production"
+        headerRight={
+          <span className="text-cc-ink-dim font-mono text-[10px]">live</span>
+        }
+        glow={{
           background:
             "radial-gradient(50% 50% at 50% 30%, rgba(94,234,212,0.16), transparent 70%)",
+          inset: "-inset-x-10 -inset-y-8",
+          blur: "blur-3xl",
+          rounded: "rounded-[2.5rem]",
         }}
-      />
-      <div className="border-cc-card-border bg-cc-surface overflow-hidden rounded-2xl border shadow-2xl shadow-black/50">
-        <div className="border-cc-card-border flex items-center gap-2 border-b px-4 py-2.5">
-          <span className="bg-cc-accent inline-block h-2 w-2 rounded-full" />
-          <span className="text-cc-ink-dim font-mono text-[10px] tracking-[0.18em] uppercase">
-            Nitro / production
-          </span>
-          <span className="text-cc-ink-dim ml-auto font-mono text-[10px]">
-            live
-          </span>
-        </div>
-
+      >
         <div className="grid gap-4 p-4 sm:p-6 lg:grid-cols-12">
           <div className="border-cc-card-border bg-cc-card-bg rounded-lg border p-4 lg:col-span-7">
             <div className="flex items-center justify-between">
@@ -430,7 +425,7 @@ export function ControlPlaneConsole({ className }: ControlPlaneConsoleProps) {
             <SchemaDiffStrip inView={inView} reduceMotion={reduceMotion} />
           </div>
         </div>
-      </div>
+      </MockWindowChrome>
     </div>
   );
 }

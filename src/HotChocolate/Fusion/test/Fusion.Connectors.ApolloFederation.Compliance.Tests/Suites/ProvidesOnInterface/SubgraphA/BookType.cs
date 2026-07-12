@@ -14,8 +14,7 @@ public sealed class BookType : ObjectType<Book>
     {
         descriptor
             .Implements<MediaInterfaceType>()
-            .Key("id")
-            .ResolveReferenceWith(_ => ResolveById(default!));
+            .Key("id");
 
         descriptor.Field(b => b.Id).Type<NonNullType<IdType>>();
 
@@ -23,25 +22,5 @@ public sealed class BookType : ObjectType<Book>
             .Field(b => b.Animals)
             .Shareable()
             .Type<ListType<AnimalInterfaceType>>();
-    }
-
-    private static Book? ResolveById(string id)
-    {
-        if (!SubgraphAData.BookAnimalIds.TryGetValue(id, out var animalIds))
-        {
-            return null;
-        }
-
-        var animals = animalIds
-            .Select<string, IAnimal>(aid =>
-            {
-                var type = SubgraphAData.AnimalTypes.GetValueOrDefault(aid, "Dog");
-                return type == "Cat"
-                    ? new Cat { Id = aid }
-                    : (IAnimal)new Dog { Id = aid };
-            })
-            .ToList();
-
-        return new Book { Id = id, Animals = animals };
     }
 }

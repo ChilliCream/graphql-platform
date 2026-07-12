@@ -20,5 +20,8 @@ public sealed class ProductType : ObjectType<Product>
         descriptor.Field(p => p.Id).Type<NonNullType<IdType>>();
     }
 
-    private static Product ResolveById(string id) => new() { Id = id };
+    private static Product? ResolveById(string id)
+        => Category.CategoryData.ProductCategories.ContainsKey(id)
+            ? new Product { Id = id }
+            : null;
 }

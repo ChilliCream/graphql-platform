@@ -29,6 +29,8 @@ namespace HotChocolate.Fusion.Execution.Results;
 
 internal sealed partial class FetchResultStore : IDisposable
 {
+    private const int MaxRetainedDataElementStagingLength = 1024;
+
     private static readonly ArrayPool<VariableValues> s_variableValuePool = ArrayPool<VariableValues>.Shared;
     private static readonly ArrayPool<object> s_objectPool = ArrayPool<object>.Shared;
 
@@ -50,6 +52,7 @@ internal sealed partial class FetchResultStore : IDisposable
     private CompositeResultElement[] _collectTargetA = ArrayPool<CompositeResultElement>.Shared.Rent(64);
     private CompositeResultElement[] _collectTargetB = ArrayPool<CompositeResultElement>.Shared.Rent(64);
     private CompositeResultElement[] _collectTargetCombined = ArrayPool<CompositeResultElement>.Shared.Rent(64);
+    private SourceResultElement[] _dataElementStaging = [];
     private PathSegmentLocalPool _pathPool = default!;
     private IMemoryArena _arena = default!;
     private HashSet<int[]> _seenPaths = new(ReferenceEqualityComparer.Instance);
@@ -210,7 +213,25 @@ internal sealed partial class FetchResultStore : IDisposable
         ReadOnlySpan<SourceSchemaResult> results,
         ResultSelectionSet resultSelectionSet)
     {
-        var dataElements = ArrayPool<SourceResultElement>.Shared.Rent(results.Length);
+        // Pending merges are consumed serially by OperationPlanExecutor, so this retained buffer
+        // cannot be used concurrently by two no-error multi-result merges on the same store.
+        var returnDataElements = results.Length > MaxRetainedDataElementStagingLength;
+        SourceResultElement[] dataElements;
+
+        if (returnDataElements)
+        {
+            dataElements = ArrayPool<SourceResultElement>.Shared.Rent(results.Length);
+        }
+        else
+        {
+            if (_dataElementStaging.Length < results.Length)
+            {
+                _dataElementStaging = CreateDataElementStaging(results.Length);
+            }
+
+            dataElements = _dataElementStaging;
+        }
+
         var dataElementsSpan = dataElements.AsSpan(0, results.Length);
 
         try
@@ -262,7 +283,11 @@ internal sealed partial class FetchResultStore : IDisposable
         finally
         {
             dataElementsSpan.Clear();
-            ArrayPool<SourceResultElement>.Shared.Return(dataElements);
+
+            if (returnDataElements)
+            {
+                ArrayPool<SourceResultElement>.Shared.Return(dataElements);
+            }
         }
 
         static void RegisterRemainingResults(
@@ -280,6 +305,20 @@ internal sealed partial class FetchResultStore : IDisposable
                 }
             }
         }
+    }
+
+    private static SourceResultElement[] CreateDataElementStaging(int minimumLength)
+    {
+        Debug.Assert(minimumLength is > 0 and <= MaxRetainedDataElementStagingLength);
+
+        var length = minimumLength switch
+        {
+            <= 256 => 256,
+            <= 512 => 512,
+            _ => MaxRetainedDataElementStagingLength
+        };
+
+        return new SourceResultElement[length];
     }
 
     private bool AddSinglePartialResult(
@@ -580,6 +619,7 @@ AddErrors_Next:
         lock (_lock)
         {
             _valueCompletion.FinalizePocketedErrors(_result.Data);
+            _valueCompletion.FinalizeInaccessibleRuntimeTypes(_result.Data);
         }
     }
 
