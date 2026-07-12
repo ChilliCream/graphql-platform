@@ -4,19 +4,11 @@ using HotChocolate.Buffers;
 using HotChocolate.Fusion.Logging;
 using HotChocolate.Fusion.Logging.Contracts;
 using HotChocolate.Fusion.Options;
-using static HotChocolate.Fusion.Properties.CompositionResources;
 
 namespace HotChocolate.Fusion;
 
 internal static class SourceSchemaSettingsReader
 {
-    private const string ExtensionsPath = "$.extensions";
-    private const string ChilliCreamPath = "$.extensions.chillicream";
-    private const string ApolloFederationSupportPath =
-        "$.extensions.chillicream.apolloFederationSupport";
-    private const string ApolloFederationVersionPath =
-        "$.extensions.chillicream.apolloFederationSupport.version";
-
     public static bool TryRead(
         string sourceSchemaName,
         JsonDocument sourceSchemaSettings,
@@ -29,11 +21,18 @@ internal static class SourceSchemaSettingsReader
 
         result = default;
 
-        var root = sourceSchemaSettings.RootElement;
-
-        if (root.ValueKind is not JsonValueKind.Object)
+        if (!ApolloFederationSourceSchemaSettings.TryReadVersion(
+            sourceSchemaName,
+            sourceSchemaSettings.RootElement,
+            out var version,
+            out var errorMessage))
         {
-            WriteMustBeObject(compositionLog, sourceSchemaName, "$", root.ValueKind);
+            compositionLog.Write(
+                LogEntryBuilder.New()
+                    .SetMessage(errorMessage)
+                    .SetCode(LogEntryCodes.InvalidApolloFederationSupportSettings)
+                    .SetSeverity(LogSeverity.Error)
+                    .Build());
             return false;
         }
 
@@ -41,113 +40,11 @@ internal static class SourceSchemaSettingsReader
             sourceSchemaSettings.Deserialize(SettingsJsonSerializerContext.Default.SourceSchemaSettings)!;
         var options = schemaSettings.ToOptions();
 
-        if (!root.TryGetProperty("extensions", out var extensions))
-        {
-            result = new(schemaSettings, options, null);
-            return true;
-        }
-
-        if (extensions.ValueKind is not JsonValueKind.Object)
-        {
-            WriteMustBeObject(
-                compositionLog,
-                sourceSchemaName,
-                ExtensionsPath,
-                extensions.ValueKind);
-            return false;
-        }
-
-        if (!extensions.TryGetProperty("chillicream", out var chilliCream))
-        {
-            result = new(schemaSettings, options, null);
-            return true;
-        }
-
-        if (chilliCream.ValueKind is not JsonValueKind.Object)
-        {
-            WriteMustBeObject(
-                compositionLog,
-                sourceSchemaName,
-                ChilliCreamPath,
-                chilliCream.ValueKind);
-            return false;
-        }
-
-        if (!chilliCream.TryGetProperty(
-            "apolloFederationSupport",
-            out var apolloFederationSupport))
-        {
-            result = new(schemaSettings, options, null);
-            return true;
-        }
-
-        if (apolloFederationSupport.ValueKind is not JsonValueKind.Object)
-        {
-            WriteMustBeObject(
-                compositionLog,
-                sourceSchemaName,
-                ApolloFederationSupportPath,
-                apolloFederationSupport.ValueKind);
-            return false;
-        }
-
-        using var properties = apolloFederationSupport.EnumerateObject();
-
-        if (!properties.MoveNext()
-            || !properties.Current.NameEquals("version")
-            || properties.MoveNext())
-        {
-            compositionLog.Write(
-                LogEntryBuilder.New()
-                    .SetMessage(
-                        SourceSchemaSettingsReader_InvalidApolloFederationSupportShape,
-                        ApolloFederationSupportPath,
-                        sourceSchemaName)
-                    .SetCode(LogEntryCodes.InvalidApolloFederationSupportSettings)
-                    .SetSeverity(LogSeverity.Error)
-                    .Build());
-            return false;
-        }
-
-        var version = apolloFederationSupport.GetProperty("version");
-
-        if (version.ValueKind is not JsonValueKind.String)
-        {
-            compositionLog.Write(
-                LogEntryBuilder.New()
-                    .SetMessage(
-                        SourceSchemaSettingsReader_SettingMustBeString,
-                        ApolloFederationVersionPath,
-                        sourceSchemaName,
-                        version.ValueKind)
-                    .SetCode(LogEntryCodes.InvalidApolloFederationSupportSettings)
-                    .SetSeverity(LogSeverity.Error)
-                    .Build());
-            return false;
-        }
-
-        var versionValue = version.GetString()!;
-
-        if (!versionValue.Equals("1.0", StringComparison.Ordinal))
-        {
-            compositionLog.Write(
-                LogEntryBuilder.New()
-                    .SetMessage(
-                        SourceSchemaSettingsReader_UnsupportedApolloFederationVersion,
-                        ApolloFederationVersionPath,
-                        sourceSchemaName,
-                        versionValue)
-                    .SetCode(LogEntryCodes.InvalidApolloFederationSupportSettings)
-                    .SetSeverity(LogSeverity.Error)
-                    .Build());
-            return false;
-        }
-
-        options.IsApolloFederationV1 = true;
+        options.IsApolloFederationV1 = version is ApolloFederationVersion.Version1;
         result = new(
             schemaSettings,
             options,
-            RemoveApolloFederationSupport(sourceSchemaSettings));
+            version is null ? null : RemoveApolloFederationSupport(sourceSchemaSettings));
         return true;
     }
 
@@ -178,24 +75,6 @@ internal static class SourceSchemaSettingsReader
         }
 
         return JsonDocument.Parse(buffer.WrittenMemory.ToArray());
-    }
-
-    private static void WriteMustBeObject(
-        ICompositionLog compositionLog,
-        string sourceSchemaName,
-        string path,
-        JsonValueKind actualKind)
-    {
-        compositionLog.Write(
-            LogEntryBuilder.New()
-                .SetMessage(
-                    SourceSchemaSettingsReader_SettingMustBeObject,
-                    path,
-                    sourceSchemaName,
-                    actualKind)
-                .SetCode(LogEntryCodes.InvalidApolloFederationSupportSettings)
-                .SetSeverity(LogSeverity.Error)
-                .Build());
     }
 }
 

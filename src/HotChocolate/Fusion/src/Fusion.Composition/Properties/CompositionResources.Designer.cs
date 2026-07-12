@@ -60,6 +60,51 @@ namespace HotChocolate.Fusion.Properties {
         }
 
         /// <summary>
+        ///   Looks up a localized string similar to Source schema '{0}' returned an empty _service response..
+        /// </summary>
+        internal static string ApolloFederationSchemaFetcher_EmptyResponse {
+            get {
+                return ResourceManager.GetString("ApolloFederationSchemaFetcher_EmptyResponse", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Source schema '{0}' returned an invalid _service response..
+        /// </summary>
+        internal static string ApolloFederationSchemaFetcher_InvalidResponse {
+            get {
+                return ResourceManager.GetString("ApolloFederationSchemaFetcher_InvalidResponse", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Source schema '{0}' returned no _service.sdl..
+        /// </summary>
+        internal static string ApolloFederationSchemaFetcher_MissingServiceSdl {
+            get {
+                return ResourceManager.GetString("ApolloFederationSchemaFetcher_MissingServiceSdl", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Source schema '{0}' rejected the _service query: {1}.
+        /// </summary>
+        internal static string ApolloFederationSchemaFetcher_QueryRejected {
+            get {
+                return ResourceManager.GetString("ApolloFederationSchemaFetcher_QueryRejected", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Source schema '{0}' returned HTTP {1} ({2}) for the _service query..
+        /// </summary>
+        internal static string ApolloFederationSchemaFetcher_RequestFailed {
+            get {
+                return ResourceManager.GetString("ApolloFederationSchemaFetcher_RequestFailed", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to The &apos;apply&apos; argument of the @authorize directive must be of type ApplyPolicy..
         /// </summary>
         internal static string AuthorizeDirective_ApplyArgument_Invalid {
@@ -110,6 +155,24 @@ namespace HotChocolate.Fusion.Properties {
         internal static string CostDirective_WeightArgument_Invalid {
             get {
                 return ResourceManager.GetString("CostDirective_WeightArgument_Invalid", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Source schema '{0}' returned an empty schema response..
+        /// </summary>
+        internal static string DefaultSchemaFetcher_EmptyResponse {
+            get {
+                return ResourceManager.GetString("DefaultSchemaFetcher_EmptyResponse", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Source schema '{0}' returned HTTP {1} ({2}) while downloading its schema..
+        /// </summary>
+        internal static string DefaultSchemaFetcher_RequestFailed {
+            get {
+                return ResourceManager.GetString("DefaultSchemaFetcher_RequestFailed", resourceCulture);
             }
         }
 
@@ -1844,6 +1907,15 @@ namespace HotChocolate.Fusion.Properties {
         }
 
         /// <summary>
+        ///   Looks up a localized string similar to Source schema '{0}' returned a response larger than the maximum allowed size of {1} bytes..
+        /// </summary>
+        internal static string SchemaHttpResponseReader_ResponseTooLarge {
+            get {
+                return ResourceManager.GetString("SchemaHttpResponseReader_ResponseTooLarge", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to The source schema setting '{0}' for source schema '{1}' must be an object containing only the 'version' property..
         /// </summary>
         internal static string SourceSchemaSettingsReader_InvalidApolloFederationSupportShape {
@@ -1871,7 +1943,7 @@ namespace HotChocolate.Fusion.Properties {
         }
 
         /// <summary>
-        ///   Looks up a localized string similar to The source schema setting '{0}' for source schema '{1}' has unsupported version '{2}'. The supported version is '1.0'..
+        ///   Looks up a localized string similar to The source schema setting '{0}' for source schema '{1}' has unsupported version '{2}'. The supported versions are '1.0' and '2.0'..
         /// </summary>
         internal static string SourceSchemaSettingsReader_UnsupportedApolloFederationVersion {
             get {
