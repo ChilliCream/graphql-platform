@@ -5,8 +5,14 @@ import type { ReactNode } from "react";
 import { useEffect, useState } from "react";
 
 import { AGENTS, AgentLogo } from "@/src/components/AgentLogo";
+import { ArrowLink } from "@/src/components/ArrowLink";
 import { CopyCommand } from "@/src/components/CopyCommand";
+import { KeyValueChipCard } from "@/src/components/KeyValueChipCard";
+import { MockWindowChrome } from "@/src/components/MockWindowChrome";
+import { PageSection } from "@/src/components/PageSection";
 import { RevealOnScroll } from "@/src/components/RevealOnScroll";
+import { Card } from "@/src/design-system/Card";
+import { Eyebrow } from "@/src/design-system/Eyebrow";
 import { ArrowRightIcon } from "@/src/icons/ArrowRight";
 import { BranchGlyph } from "@/src/icons/BranchGlyph";
 import { CheckGlyph } from "@/src/icons/CheckGlyph";
@@ -62,9 +68,7 @@ function FlipSlot({ activeIndex }: { readonly activeIndex: number }) {
 function AgentGroup() {
   return (
     <div>
-      <p className="text-cc-nav-label font-mono text-xs tracking-[0.2em] uppercase">
-        Works with
-      </p>
+      <Eyebrow>Works with</Eyebrow>
       <ul className="mt-5 grid grid-cols-2 gap-x-6 gap-y-3.5 sm:grid-cols-3">
         {AGENTS.map((agent) => (
           <li key={agent.slug} className="flex items-center gap-2.5">
@@ -137,7 +141,7 @@ const TIME_BARS: readonly TimeBar[] = [
 /** Compact PR figure: a uniform diff above the time it costs to review. */
 function ReviewFacet() {
   return (
-    <div className="border-cc-card-border bg-cc-card-bg rounded-2xl border p-4 select-none">
+    <Card className="p-4 select-none">
       <div className="flex items-center gap-2">
         <BranchGlyph className="text-cc-ink-dim size-3 shrink-0" />
         <span className="text-cc-ink min-w-0 truncate font-mono text-[0.7rem]">
@@ -196,7 +200,7 @@ function ReviewFacet() {
           </div>
         ))}
       </div>
-    </div>
+    </Card>
   );
 }
 
@@ -262,29 +266,19 @@ function PatternsFacet() {
   return (
     <div className="grid grid-cols-2 gap-2.5">
       {PATTERNS.map((pattern) => (
-        <div
+        <KeyValueChipCard
           key={pattern.label}
-          className="border-cc-card-border bg-cc-card-bg flex flex-col gap-2 rounded-xl border p-3"
-        >
-          <div className="flex items-center justify-between gap-1.5">
-            <span className="text-cc-nav-label min-w-0 truncate font-mono text-[0.55rem] tracking-[0.12em] uppercase">
-              {pattern.label}
+          label={pattern.label}
+          icon={<FollowsMark />}
+          value={pattern.line.map((token, index) => (
+            <span
+              key={index}
+              className={token.color ? TOKEN_CLASS[token.color] : "text-cc-ink"}
+            >
+              {token.text}
             </span>
-            <FollowsMark />
-          </div>
-          <code className="block truncate font-mono text-[0.6rem]">
-            {pattern.line.map((token, index) => (
-              <span
-                key={index}
-                className={
-                  token.color ? TOKEN_CLASS[token.color] : "text-cc-ink"
-                }
-              >
-                {token.text}
-              </span>
-            ))}
-          </code>
-        </div>
+          ))}
+        />
       ))}
     </div>
   );
@@ -332,30 +326,55 @@ const SKILL_LINES: readonly (readonly SkillToken[])[] = [
 /** A reviewed SKILL.md rendered as a compact code-editor card. */
 function SkillFacet() {
   return (
-    <div className="border-cc-card-border bg-cc-card-bg overflow-hidden rounded-2xl border select-none">
-      {/* window chrome: MD badge + file name, checked-in path on the right */}
-      <div className="border-cc-card-border bg-cc-surface/40 flex items-center justify-between gap-2.5 border-b px-3 py-2.5">
-        <span className="inline-flex items-center gap-2">
-          <span
-            className="inline-flex size-[18px] items-center justify-center rounded-[5px] font-mono text-[0.5rem] font-bold"
-            style={{
-              background: "rgba(139, 143, 240, 0.14)",
-              border: "1px solid rgba(139, 143, 240, 0.4)",
-              color: SKILL_VIOLET,
-            }}
-          >
-            MD
+    <MockWindowChrome
+      shadow="none"
+      surfaceClassName="bg-cc-card-bg select-none"
+      headerClassName="bg-cc-surface/40 flex items-center justify-between gap-2.5 px-3 py-2.5"
+      header={{
+        variant: "custom",
+        content: (
+          <span className="inline-flex items-center gap-2">
+            <span
+              className="inline-flex size-[18px] items-center justify-center rounded-[5px] font-mono text-[0.5rem] font-bold"
+              style={{
+                background: "rgba(139, 143, 240, 0.14)",
+                border: "1px solid rgba(139, 143, 240, 0.4)",
+                color: SKILL_VIOLET,
+              }}
+            >
+              MD
+            </span>
+            <span className="font-mono text-xs">
+              <span className="text-cc-heading">SKILL</span>
+              <span className="text-cc-ink-dim">.md</span>
+            </span>
           </span>
-          <span className="font-mono text-xs">
-            <span className="text-cc-heading">SKILL</span>
-            <span className="text-cc-ink-dim">.md</span>
-          </span>
-        </span>
+        ),
+      }}
+      headerRight={
         <span className="text-cc-nav-label font-mono text-[0.6rem] whitespace-nowrap">
           skills/
         </span>
-      </div>
-
+      }
+      footerClassName="bg-cc-surface/40 flex items-center justify-between gap-2.5 px-3 py-1.5"
+      footer={
+        <>
+          <span className="inline-flex items-center gap-3">
+            <span className="text-cc-nav-label inline-flex items-center gap-1.5 font-mono text-[0.6rem] whitespace-nowrap">
+              <BranchGlyph className="text-cc-ink-dim size-3 shrink-0" />
+              main
+            </span>
+            <span className="text-cc-nav-label font-mono text-[0.6rem]">
+              markdown
+            </span>
+          </span>
+          <span className="text-cc-ink-dim inline-flex items-center gap-1.5 font-mono text-[0.6rem] whitespace-nowrap">
+            <CheckGlyph className="text-cc-success size-3" />
+            reviewed
+          </span>
+        </>
+      }
+    >
       {/* file body: gutter numbers + syntax-tinted lines */}
       <div className="py-2">
         {SKILL_LINES.map((tokens, i) => (
@@ -376,24 +395,7 @@ function SkillFacet() {
           </div>
         ))}
       </div>
-
-      {/* status bar: checked-in branch + reviewed-like-code status */}
-      <div className="border-cc-card-border bg-cc-surface/40 flex items-center justify-between gap-2.5 border-t px-3 py-1.5">
-        <span className="inline-flex items-center gap-3">
-          <span className="text-cc-nav-label inline-flex items-center gap-1.5 font-mono text-[0.6rem] whitespace-nowrap">
-            <BranchGlyph className="text-cc-ink-dim size-3 shrink-0" />
-            main
-          </span>
-          <span className="text-cc-nav-label font-mono text-[0.6rem]">
-            markdown
-          </span>
-        </span>
-        <span className="text-cc-ink-dim inline-flex items-center gap-1.5 font-mono text-[0.6rem] whitespace-nowrap">
-          <CheckGlyph className="text-cc-success size-3" />
-          reviewed
-        </span>
-      </div>
-    </div>
+    </MockWindowChrome>
   );
 }
 
@@ -403,9 +405,7 @@ function SkillFacet() {
 function StartNowPanel() {
   return (
     <div>
-      <p className="text-cc-nav-label font-mono text-xs tracking-[0.2em] uppercase">
-        Start now
-      </p>
+      <Eyebrow>Start now</Eyebrow>
       <p className="text-cc-heading font-heading mt-3 text-lg font-semibold sm:text-xl">
         Add the skills to your agent.
       </p>
@@ -413,13 +413,9 @@ function StartNowPanel() {
         command="dnx skillz add chillicream/agent-skills"
         className="bg-cc-surface mt-5"
       />
-      <Link
-        href="/platform/agentic-coding"
-        className="text-cc-accent hover:text-cc-accent-hover mt-5 inline-flex items-center gap-1.5 text-sm font-medium transition-colors"
-      >
+      <ArrowLink href="/platform/agentic-coding" className="mt-5">
         Learn more
-        <ArrowRightIcon className="size-3.5" />
-      </Link>
+      </ArrowLink>
     </div>
   );
 }
@@ -473,12 +469,10 @@ export function AgenticSection() {
   }, []);
 
   return (
-    <section className="mx-auto max-w-7xl px-5 pt-16 sm:px-12 sm:pt-24">
+    <PageSection className="pt-16 sm:pt-24">
       <RevealOnScroll>
         <div className="max-w-3xl">
-          <p className="text-cc-nav-label font-mono text-xs tracking-[0.2em] uppercase">
-            Agentic coding
-          </p>
+          <Eyebrow>Agentic coding</Eyebrow>
           <h2 className="font-heading text-cc-heading text-h3 sm:text-h2 mt-5 leading-[1.1] font-semibold text-balance">
             Built for <FlipSlot activeIndex={activeIndex} />
           </h2>
@@ -509,6 +503,6 @@ export function AgenticSection() {
           ))}
         </div>
       </RevealOnScroll>
-    </section>
+    </PageSection>
   );
 }

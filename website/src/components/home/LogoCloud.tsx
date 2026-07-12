@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { Eyebrow } from "@/src/design-system/Eyebrow";
+import { PageSection } from "@/src/components/PageSection";
 import { FEATURED_COMPANIES, OTHER_COMPANIES, type Company } from "./companies";
 
 const ROTATE_INTERVAL_MS = 4000;
@@ -57,10 +59,8 @@ export function LogoCloud() {
   }, [companyQueue]);
 
   return (
-    <section className="mx-auto max-w-7xl px-5 py-12 text-center sm:px-12 sm:py-16">
-      <p className="text-cc-ink-dim font-mono text-xs tracking-[0.2em] uppercase">
-        Trusted by Enterprises
-      </p>
+    <PageSection className="py-12 text-center sm:py-16">
+      <Eyebrow color="ink-dim">Trusted by Enterprises</Eyebrow>
       <div className="text-cc-heading mt-10 grid grid-cols-1 place-items-center gap-y-10 sm:mt-14 sm:grid-cols-3 sm:gap-x-8">
         {slots.map((company, index) => (
           <LogoSlot
@@ -70,7 +70,7 @@ export function LogoCloud() {
           />
         ))}
       </div>
-    </section>
+    </PageSection>
   );
 }
 

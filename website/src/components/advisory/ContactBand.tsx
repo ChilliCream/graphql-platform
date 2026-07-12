@@ -6,8 +6,9 @@ import {
 } from "@/src/components/advisory/advisoryLinks";
 import { Band } from "@/src/components/Band";
 import { ButtonRow } from "@/src/components/ButtonRow";
-import { CheckIcon } from "@/src/components/CheckIcon";
+import { CheckListItem } from "@/src/components/CheckListItem";
 import { SectionHeading } from "@/src/components/SectionHeading";
+import { Eyebrow } from "@/src/design-system/Eyebrow";
 import { OutlineButton, SolidButton } from "@/src/design-system/Button";
 
 /**
@@ -60,18 +61,13 @@ function ContactSpec() {
   return (
     <ul className="mt-6 grid gap-3 sm:grid-cols-2">
       {items.map((item) => (
-        <li key={item.label} className="flex items-start gap-3">
-          <span className="text-cc-accent mt-[5px] flex-none">
-            <CheckIcon />
-          </span>
-          <span className="text-cc-ink text-sm">
-            <span className="text-cc-nav-label font-mono text-[0.65rem] tracking-[0.18em] uppercase">
-              {item.label}
-            </span>
-            <br />
-            {item.value}
-          </span>
-        </li>
+        <CheckListItem key={item.label}>
+          <Eyebrow as="span" size="2xs">
+            {item.label}
+          </Eyebrow>
+          <br />
+          {item.value}
+        </CheckListItem>
       ))}
     </ul>
   );

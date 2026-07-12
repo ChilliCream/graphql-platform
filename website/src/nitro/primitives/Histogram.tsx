@@ -5,6 +5,8 @@ import { ease } from "../lib/motion";
 import { token } from "../lib/tokens";
 import { useChartClock } from "../lib/useInViewLoop";
 import type { LatencyHistogram } from "../lib/data";
+import { ChartCanvas } from "./ChartCanvas";
+import { Badge } from "./Badge";
 
 export interface HistogramProps {
   histogram: LatencyHistogram;
@@ -82,13 +84,7 @@ export function Histogram({
       `operations, p95 at ${ms(p95)}.`;
 
   return (
-    <div
-      ref={ref}
-      className={className}
-      style={{ position: "relative", width: "100%", height: "100%", ...style }}
-      role="img"
-      aria-label={label}
-    >
+    <ChartCanvas ref={ref} className={className} style={style} label={label}>
       <svg
         viewBox={`0 0 ${width} ${height}`}
         preserveAspectRatio="none"
@@ -140,18 +136,6 @@ export function Histogram({
           top: 0,
           left: `${(p95X / width) * 100}%`,
           transform: "translateX(-50%)",
-          display: "flex",
-          alignItems: "center",
-          gap: 4,
-          padding: "1px 6px",
-          borderRadius: 4,
-          whiteSpace: "nowrap",
-          fontFamily: token.mono,
-          fontSize: 10,
-          lineHeight: 1.4,
-          color: token.textStrong,
-          background: token.surface,
-          border: `1px solid ${token.borderStrong}`,
           opacity: useTransform(
             t,
             [markerWin[0] + 0.04, markerWin[1]],
@@ -162,8 +146,21 @@ export function Histogram({
           ),
         }}
       >
-        <span style={{ color: token.textSecondary }}>p95</span>
-        <span>{ms(p95)}</span>
+        <Badge
+          size="xs"
+          mono
+          background={token.surface}
+          border={token.borderStrong}
+          color={token.textStrong}
+          style={{
+            padding: "1px 6px",
+            gap: 4,
+            lineHeight: 1.4,
+          }}
+        >
+          <span style={{ color: token.textSecondary }}>p95</span>
+          <span>{ms(p95)}</span>
+        </Badge>
       </motion.div>
 
       <div
@@ -194,7 +191,7 @@ export function Histogram({
           </span>
         ))}
       </div>
-    </div>
+    </ChartCanvas>
   );
 }
 

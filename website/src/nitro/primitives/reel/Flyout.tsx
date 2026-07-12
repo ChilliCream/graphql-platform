@@ -1,21 +1,9 @@
 import { useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { motion, useTransform, type MotionValue } from "motion/react";
 import { token } from "../../lib/tokens";
-
-const Chev = ({ up }: { up?: boolean }) => (
-  <svg
-    width={14}
-    height={14}
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth={1.8}
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d={up ? "M6 15l6-6 6 6" : "M6 9l6 6 6-6"} />
-  </svg>
-);
+import { StrokeIcon } from "../../primitives/reel/StrokeIcon";
+import { Chevron } from "../../primitives/reel/Chevron";
+import { UnderlineTab } from "../UnderlineTab";
 
 export interface TabSlide {
   from: string;
@@ -113,21 +101,11 @@ export function Flyout({
             color: token.textSecondary,
           }}
         >
-          <Chev up />
-          <Chev />
+          <Chevron up />
+          <Chevron />
         </span>
         <span style={{ color: token.textSecondary, marginLeft: 4 }}>
-          <svg
-            width={14}
-            height={14}
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth={1.8}
-            strokeLinecap="round"
-          >
-            <path d="M6 6l12 12M18 6L6 18" />
-          </svg>
+          <StrokeIcon d="M6 6l12 12M18 6L6 18" size={14} strokeWidth={1.8} />
         </span>
       </div>
 
@@ -151,36 +129,19 @@ export function Flyout({
               borderBottom: `1px solid ${token.border}`,
             }}
           >
-            {tabs.map((t) => {
-              const on = t === activeTab;
-              return (
-                <span
-                  key={t}
-                  style={{
-                    position: "relative",
-                    display: "flex",
-                    alignItems: "center",
-                    padding: "0 12px",
-                    fontSize: 13,
-                    color: on ? token.textStrong : token.textSecondary,
-                  }}
-                >
-                  {t}
-                  {on && (
-                    <span
-                      style={{
-                        position: "absolute",
-                        left: 6,
-                        right: 6,
-                        bottom: 0,
-                        height: 2,
-                        background: indicatorColor,
-                      }}
-                    />
-                  )}
-                </span>
-              );
-            })}
+            {tabs.map((t) => (
+              <UnderlineTab
+                key={t}
+                label={t}
+                active={t === activeTab}
+                fontSize={13}
+                height="100%"
+                color={indicatorColor}
+                underlineOffset={0}
+                underlineInset={6}
+                style={{ padding: "0 12px" }}
+              />
+            ))}
           </div>
         ))}
 

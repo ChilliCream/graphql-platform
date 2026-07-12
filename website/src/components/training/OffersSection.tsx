@@ -1,3 +1,4 @@
+import { CardGrid } from "@/src/components/CardGrid";
 import { PerkCard } from "@/src/components/PerkCard";
 import { SectionHeading } from "@/src/components/SectionHeading";
 import { TeamIcon } from "@/src/icons/TeamIcon";
@@ -55,7 +56,7 @@ export function OffersSection() {
           description="Both engagements use the same curriculum and the same trainers. They differ in how much hands-on project work sits at the end of the week."
         />
       </div>
-      <div className="grid gap-4 md:grid-cols-2">
+      <CardGrid cols={2} breakpoint="md" gap={4}>
         {OFFERS.map((offer) => (
           <PerkCard
             key={offer.kind}
@@ -73,7 +74,7 @@ export function OffersSection() {
             highlight={offer.highlight}
           />
         ))}
-      </div>
+      </CardGrid>
     </section>
   );
 }

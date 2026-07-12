@@ -1,5 +1,6 @@
 import type { CSSProperties } from "react";
 import { motion, useTransform, type MotionValue } from "motion/react";
+import { Badge } from "./Badge";
 import { Sparkline } from "./Sparkline";
 import { ease } from "../lib/motion";
 import { token, IMPACT_STOPS } from "../lib/tokens";
@@ -175,25 +176,17 @@ function Row({
         <div
           style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}
         >
-          <span
-            aria-label={SPAN_LABEL[row.spanKind]}
-            style={{
-              flex: "none",
-              width: 17,
-              height: 17,
-              display: "inline-flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontFamily: token.mono,
-              fontSize: 10,
-              fontWeight: 700,
-              color: token.textSecondary,
-              background: token.surface,
-              border: `1px solid ${token.border}`,
-              borderRadius: 4,
-            }}
-          >
-            Q
+          <span aria-label={SPAN_LABEL[row.spanKind]}>
+            <Badge
+              square
+              letter="Q"
+              mono
+              size="xs"
+              background={token.surface}
+              border={token.border}
+              color={token.textSecondary}
+              style={{ borderRadius: 4 }}
+            />
           </span>
           <span
             title={row.name}

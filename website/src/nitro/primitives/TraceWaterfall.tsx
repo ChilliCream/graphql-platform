@@ -1,5 +1,6 @@
 import type { CSSProperties } from "react";
 import { motion, useTransform, type MotionValue } from "motion/react";
+import { ChartCanvas } from "./ChartCanvas";
 import { ease } from "../lib/motion";
 import { token } from "../lib/tokens";
 import { useChartClock } from "../lib/useInViewLoop";
@@ -53,12 +54,12 @@ export function TraceWaterfall({
     ariaLabel ?? `Trace waterfall: ${n} spans over ${fmtDur(total)}`;
 
   return (
-    <div
+    <ChartCanvas
       ref={ref}
+      sizing="fill-width"
       className={className}
-      style={{ position: "relative", width: "100%", ...style }}
-      role="img"
-      aria-label={label}
+      style={style}
+      label={label}
     >
       <div style={{ position: "relative", height: 16, marginBottom: 4 }}>
         {ticks.map((tk) => (
@@ -117,7 +118,7 @@ export function TraceWaterfall({
           />
         ))}
       </div>
-    </div>
+    </ChartCanvas>
   );
 }
 

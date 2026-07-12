@@ -1,5 +1,18 @@
+import type { ComponentPropsWithoutRef, ElementType } from "react";
 import { CheckIcon } from "@/src/components/CheckIcon";
 import { SectionHeading } from "@/src/components/SectionHeading";
+import { Card } from "@/src/design-system/Card";
+import { Eyebrow } from "@/src/design-system/Eyebrow";
+
+/**
+ * Eyebrow only types its passthrough props against `<p>` attributes, so a
+ * `<th scope>` usage needs its own attribute type when rendered `as="th"`.
+ */
+const EyebrowAsTh = Eyebrow as unknown as (
+  props: ComponentPropsWithoutRef<typeof Eyebrow> & {
+    readonly as: ElementType;
+  } & ComponentPropsWithoutRef<"th">,
+) => ReturnType<typeof Eyebrow>;
 
 type Cell = boolean | string;
 
@@ -46,17 +59,20 @@ export function FeatureComparison({
         titleId={`${id}-heading`}
       />
 
-      <div className="border-cc-card-border bg-cc-card-bg/40 mt-10 overflow-hidden rounded-3xl border">
+      <Card variant="panel" className="mt-10">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[820px] border-collapse text-left text-sm">
             <thead>
               <tr className="border-cc-card-border border-b">
-                <th
+                <EyebrowAsTh
+                  as="th"
                   scope="col"
-                  className="text-cc-ink-dim px-5 py-4 font-mono text-[0.65rem] tracking-[0.15em] uppercase"
+                  size="2xs"
+                  color="ink-dim"
+                  className="px-5 py-4 text-left"
                 >
                   Capability
-                </th>
+                </EyebrowAsTh>
                 {columns.map((name) => (
                   <th
                     key={name}
@@ -75,13 +91,16 @@ export function FeatureComparison({
                     groupIndex === 0 ? "" : "border-cc-card-border border-t"
                   }`}
                 >
-                  <th
+                  <EyebrowAsTh
+                    as="th"
                     scope="colgroup"
                     colSpan={columns.length + 1}
-                    className="text-cc-ink-dim px-5 py-3 text-left font-mono text-[0.65rem] tracking-[0.15em] uppercase"
+                    size="2xs"
+                    color="ink-dim"
+                    className="px-5 py-3 text-left"
                   >
                     {group.title}
-                  </th>
+                  </EyebrowAsTh>
                 </tr>
                 {group.rows.map((row) => (
                   <tr
@@ -103,7 +122,7 @@ export function FeatureComparison({
             ))}
           </table>
         </div>
-      </div>
+      </Card>
     </section>
   );
 }

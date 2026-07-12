@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { motion, useTransform, type MotionValue } from "motion/react";
 import { token } from "../../lib/tokens";
+import { Badge } from "../Badge";
 import { CodeBlock } from "../CodeBlock";
 import type { PlanNode, PlanEdge, PlanStatus } from "../../lib/data/tabs";
 
@@ -338,19 +339,15 @@ function NodeCard({
             {node.title}
           </span>
           {node.batch != null && (
-            <span
-              style={{
-                marginLeft: "auto",
-                fontSize: 9.5,
-                padding: "1px 5px",
-                borderRadius: 4,
-                background: "rgba(88,166,255,0.18)",
-                color: token.blue,
-                whiteSpace: "nowrap",
-              }}
+            <Badge
+              size="xs"
+              background="rgba(88,166,255,0.18)"
+              border={false}
+              color={token.blue}
+              style={{ marginLeft: "auto" }}
             >
               Batch: {node.batch}
-            </span>
+            </Badge>
           )}
         </div>
         <div

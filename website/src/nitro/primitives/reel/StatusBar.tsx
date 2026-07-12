@@ -1,22 +1,11 @@
 import type { CSSProperties } from "react";
 import { token } from "../../lib/tokens";
+import { StrokeIcon } from "../../primitives/reel/StrokeIcon";
 
 export const STATUSBAR_H = 24;
 
 const I = ({ d, fill = "none" }: { d: string; fill?: string }) => (
-  <svg
-    width="12"
-    height="12"
-    viewBox="0 0 24 24"
-    fill={fill}
-    stroke="currentColor"
-    strokeWidth={1.7}
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    style={{ flex: "0 0 auto" }}
-  >
-    <path d={d} />
-  </svg>
+  <StrokeIcon d={d} size={12} strokeWidth={1.7} fill={fill} />
 );
 const P = {
   user: "M12 12a4 4 0 100-8 4 4 0 000 8zM4 20a8 8 0 0116 0",
