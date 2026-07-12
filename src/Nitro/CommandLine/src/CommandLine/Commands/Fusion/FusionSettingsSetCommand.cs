@@ -1,8 +1,10 @@
+#if !NET9_0_OR_GREATER
+using System.Diagnostics.CodeAnalysis;
+#endif
 using ChilliCream.Nitro.CommandLine.Arguments;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Services;
 using HotChocolate.Fusion;
-using HotChocolate.Fusion.Options;
 using HotChocolate.Fusion.Packaging;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Fusion;
