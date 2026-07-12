@@ -77,21 +77,21 @@ nitro fusion compose [options]
 
 ## Options
 
-| Option                                                                        | Description                                                                                         | Default                                                      |
-| ----------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- | ------------------------------------------------------------ |
-| `--source-schema-file <path>` (alias: `-f`)                                   | Path to a local source schema file or directory. Can be repeated.                                  | Auto-discovers `*.graphql`/`*.graphqls` in working directory |
-| `--source-schema-url <url>`                                                   | URL from which to download a source schema. Can be repeated.                                       | --                                                           |
-| `--source-schema-settings-file <path>`                                        | Settings file for the corresponding URL occurrence. Can be repeated.                               | --                                                           |
-| `--archive <path>` (alias: `-a`)                                              | Output path for the Fusion archive                                                                  | `./gateway.far`                                              |
-| `--environment <name>` (alias: `--env`, `-e`)                                 | Environment name for variable substitution                                                          | `ASPNETCORE_ENVIRONMENT` or `Development`                    |
-| `--enable-global-object-identification`                                       | Enable Relay-style global object identification                                                     | `false`                                                      |
-| `--node-resolution <gateway\|source-schema>`                                  | Choose who resolves `Query.node` identifiers                                                        | `gateway`                                                    |
-| `--shareable-field-runtime-type-routing <source-local\|common-runtime-types>` | Choose how type-conditioned selections are routed for Apollo shareable abstractions                 | `source-local`                                               |
-| `--allow-non-resolvable-interface-objects`                                    | Allow Apollo interface objects without a resolvable key                                             | `false`                                                      |
-| `--include-satisfiability-paths`                                              | Include satisfiability diagnostic paths                                                             | `false`                                                      |
-| `--watch`                                                                     | Recompose on file or paired remote-settings changes                                                 | `false`                                                      |
-| `--exclude-by-tag <tag>`                                                      | Exclude fields/types by tag. Can be repeated.                                                       | --                                                           |
-| `--working-directory <path>` (alias: `-w`)                                    | Working directory for resolving paths                                                               | Current directory                                            |
+| Option                                                                        | Description                                                                         | Default                                                      |
+| ----------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- | ------------------------------------------------------------ |
+| `--source-schema-file <path>` (alias: `-f`)                                   | Path to a local source schema file or directory. Can be repeated.                   | Auto-discovers `*.graphql`/`*.graphqls` in working directory |
+| `--source-schema-url <url>`                                                   | URL from which to download a source schema. Can be repeated.                        | --                                                           |
+| `--source-schema-settings-file <path>`                                        | Settings file for the corresponding URL occurrence. Can be repeated.                | --                                                           |
+| `--archive <path>` (alias: `-a`)                                              | Output path for the Fusion archive                                                  | `./gateway.far`                                              |
+| `--environment <name>` (alias: `--env`, `-e`)                                 | Environment name for variable substitution                                          | `ASPNETCORE_ENVIRONMENT` or `Development`                    |
+| `--enable-global-object-identification`                                       | Enable Relay-style global object identification                                     | `false`                                                      |
+| `--node-resolution <gateway\|source-schema>`                                  | Choose who resolves `Query.node` identifiers                                        | `gateway`                                                    |
+| `--shareable-field-runtime-type-routing <source-local\|common-runtime-types>` | Choose how type-conditioned selections are routed for Apollo shareable abstractions | `source-local`                                               |
+| `--allow-non-resolvable-interface-objects`                                    | Allow Apollo interface objects without a resolvable key                             | `false`                                                      |
+| `--include-satisfiability-paths`                                              | Include satisfiability diagnostic paths                                             | `false`                                                      |
+| `--watch`                                                                     | Recompose on file or paired remote-settings changes                                 | `false`                                                      |
+| `--exclude-by-tag <tag>`                                                      | Exclude fields/types by tag. Can be repeated.                                       | --                                                           |
+| `--working-directory <path>` (alias: `-w`)                                    | Working directory for resolving paths                                               | Current directory                                            |
 
 Each local `.graphql` or `.graphqls` file must have a companion `-settings.json` file. For example, `schema.graphqls` requires `schema-settings.json`. Local files do not use `--source-schema-settings-file`.
 
@@ -415,16 +415,16 @@ nitro fusion settings set <SETTING_NAME> <SETTING_VALUE> [options]
 
 ## Available Settings
 
-| Setting                                | Values                                 | Description                                                        |
-| -------------------------------------- | -------------------------------------- | ------------------------------------------------------------------ |
-| `allow-non-resolvable-interface-objects` | `true`, `false`                      | Allow Apollo interface objects without a resolvable key            |
-| `global-object-identification`         | `true`, `false`                        | Enable Relay-style node queries                                    |
-| `include-satisfiability-paths`         | `true`, `false`                        | Include paths in satisfiability diagnostics                        |
-| `node-resolution`                      | `gateway`, `source-schema`             | Choose who resolves `Query.node` IDs                               |
-| `shareable-field-runtime-type-routing` | `source-local`, `common-runtime-types` | Choose routing for type-conditioned selections on shareable fields |
-| `cache-control-merge-behavior`         | `ignore`, `include`, `include-private` | How to merge `@cacheControl` directives                            |
-| `tag-merge-behavior`                   | `ignore`, `include`, `include-private` | How to merge `@tag` directives                                     |
-| `exclude-by-tag`                       | Comma-separated tags                   | Exclude fields/types by tag                                        |
+| Setting                                  | Values                                 | Description                                                        |
+| ---------------------------------------- | -------------------------------------- | ------------------------------------------------------------------ |
+| `allow-non-resolvable-interface-objects` | `true`, `false`                        | Allow Apollo interface objects without a resolvable key            |
+| `global-object-identification`           | `true`, `false`                        | Enable Relay-style node queries                                    |
+| `include-satisfiability-paths`           | `true`, `false`                        | Include paths in satisfiability diagnostics                        |
+| `node-resolution`                        | `gateway`, `source-schema`             | Choose who resolves `Query.node` IDs                               |
+| `shareable-field-runtime-type-routing`   | `source-local`, `common-runtime-types` | Choose routing for type-conditioned selections on shareable fields |
+| `cache-control-merge-behavior`           | `ignore`, `include`, `include-private` | How to merge `@cacheControl` directives                            |
+| `tag-merge-behavior`                     | `ignore`, `include`, `include-private` | How to merge `@tag` directives                                     |
+| `exclude-by-tag`                         | Comma-separated tags                   | Exclude fields/types by tag                                        |
 
 ## Examples
 

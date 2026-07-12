@@ -86,11 +86,11 @@ For an Apollo Federation v2 endpoint, use a settings file such as:
 
 The `apolloFederationSupport` marker selects how Nitro uses the paired URL:
 
-| Marker | HTTP request | Composition behavior |
-| --- | --- | --- |
-| Absent | GET the exact supplied URL | Treat the response body as plain SDL. A returned v2 `@link` is still detected. |
-| Exact `"1.0"` | POST an Apollo `_service { sdl }` query | Enable Federation v1 composition for the returned SDL. |
-| Exact `"2.0"` | POST an Apollo `_service { sdl }` query | Use normal v2 `@link` detection for the returned SDL. |
+| Marker        | HTTP request                            | Composition behavior                                                           |
+| ------------- | --------------------------------------- | ------------------------------------------------------------------------------ |
+| Absent        | GET the exact supplied URL              | Treat the response body as plain SDL. A returned v2 `@link` is still detected. |
+| Exact `"1.0"` | POST an Apollo `_service { sdl }` query | Enable Federation v1 composition for the returned SDL.                         |
+| Exact `"2.0"` | POST an Apollo `_service { sdl }` query | Use normal v2 `@link` detection for the returned SDL.                          |
 
 The support object must contain only the `version` property. Only exact `"1.0"` and `"2.0"` values are accepted. Other values, whitespace variants, and extra properties fail validation before Nitro sends a schema request.
 
