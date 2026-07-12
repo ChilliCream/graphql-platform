@@ -57,9 +57,15 @@ internal static class CompositionHelper
             }
         }
 
+        var allSourceSchemas = new Dictionary<string, (SourceSchemaText, JsonDocument)>(
+            sourceSchemas,
+            sourceSchemas.Comparer);
+        using var carriedSourceSchemaConfigurations =
+            new CarriedSourceSchemaConfigurationCollection();
+
         foreach (var schemaName in existingSourceSchemaNames)
         {
-            if (sourceSchemas.ContainsKey(schemaName))
+            if (allSourceSchemas.ContainsKey(schemaName))
             {
                 // We have a new configuration for the schema, so we'll take that
                 // instead of the one in the gateway package.
@@ -73,10 +79,12 @@ internal static class CompositionHelper
                 continue;
             }
 
+            carriedSourceSchemaConfigurations.Add(configuration);
+
             var sourceText = await ReadSchemaSourceTextAsync(configuration, cancellationToken);
             var extensionsSourceText = await TryReadSchemaExtensionsTextAsync(configuration, cancellationToken);
 
-            sourceSchemas[schemaName] = (
+            allSourceSchemas[schemaName] = (
                 new SourceSchemaText(schemaName, sourceText, extensionsSourceText),
                 configuration.Settings);
         }
@@ -90,54 +98,83 @@ internal static class CompositionHelper
         var satisfiabilityOptions = mergedCompositionSettings.Satisfiability.ToOptions();
         var apolloFederationCompatibilityOptions =
             mergedCompositionSettings.ApolloFederationCompatibility.ToOptions();
-
-        foreach (var (sourceSchemaName, (_, sourceSchemaSettings)) in sourceSchemas)
-        {
-            var schemaSettings =
-                sourceSchemaSettings.Deserialize(SettingsJsonSerializerContext.Default.SourceSchemaSettings)!;
-
-            var sourceSchemaOptions = schemaSettings.ToOptions();
-
-            mergedCompositionSettings.Preprocessor?.MergeInto(sourceSchemaOptions.Preprocessor);
-            sourceSchemaOptionsMap.Add(sourceSchemaName, sourceSchemaOptions);
-            schemaSettings.Satisfiability?.MergeInto(satisfiabilityOptions);
-        }
-
-        var schemaComposerOptions = new SchemaComposerOptions
-        {
-            SourceSchemas = sourceSchemaOptionsMap,
-            Merger = mergerOptions,
-            Satisfiability = satisfiabilityOptions,
-            ApolloFederationCompatibility = apolloFederationCompatibilityOptions
-        };
-
-        var schemaComposer = new SchemaComposer(
-            sourceSchemas.Select(s => s.Value.Item1),
-            schemaComposerOptions,
-            compositionLog);
-
-        var result = schemaComposer.Compose();
-
-        if (result.IsFailure)
-        {
-            return result;
-        }
-
+        var runtimeSourceSchemaSettings = new List<JsonElement>(allSourceSchemas.Count);
+        var runtimeSettingsDocuments = new List<JsonDocument>();
+        CompositionResult<MutableSchemaDefinition> result;
         using var bufferWriter = new PooledArrayWriter();
-        new SettingsComposer().Compose(
-            bufferWriter,
-            sourceSchemas.Select(s => s.Value.Item2.RootElement).ToArray(),
-            environment);
+
+        try
+        {
+            foreach (var (sourceSchemaName, (_, sourceSchemaSettings)) in allSourceSchemas)
+            {
+                if (!SourceSchemaSettingsReader.TryRead(
+                    sourceSchemaName,
+                    sourceSchemaSettings,
+                    compositionLog,
+                    out var settingsResult))
+                {
+                    return (ImmutableArray<CompositionError>)[new("❌ Composition failed")];
+                }
+
+                var sourceSchemaOptions = settingsResult.Options;
+
+                mergedCompositionSettings.Preprocessor?.MergeInto(sourceSchemaOptions.Preprocessor);
+                sourceSchemaOptionsMap.Add(sourceSchemaName, sourceSchemaOptions);
+                settingsResult.Settings.Satisfiability?.MergeInto(satisfiabilityOptions);
+
+                if (settingsResult.RuntimeSettings is { } runtimeSettings)
+                {
+                    runtimeSettingsDocuments.Add(runtimeSettings);
+                    runtimeSourceSchemaSettings.Add(runtimeSettings.RootElement);
+                }
+                else
+                {
+                    runtimeSourceSchemaSettings.Add(sourceSchemaSettings.RootElement);
+                }
+            }
+
+            var schemaComposerOptions = new SchemaComposerOptions
+            {
+                SourceSchemas = sourceSchemaOptionsMap,
+                Merger = mergerOptions,
+                Satisfiability = satisfiabilityOptions,
+                ApolloFederationCompatibility = apolloFederationCompatibilityOptions
+            };
+
+            var schemaComposer = new SchemaComposer(
+                allSourceSchemas.Select(s => s.Value.Item1),
+                schemaComposerOptions,
+                compositionLog);
+
+            result = schemaComposer.Compose();
+
+            if (result.IsFailure)
+            {
+                return result;
+            }
+
+            new SettingsComposer().Compose(
+                bufferWriter,
+                [.. runtimeSourceSchemaSettings],
+                environment);
+        }
+        finally
+        {
+            foreach (var runtimeSettingsDocument in runtimeSettingsDocuments)
+            {
+                runtimeSettingsDocument.Dispose();
+            }
+        }
 
         var metadata = new ArchiveMetadata
         {
             SupportedGatewayFormats = [WellKnownVersions.LatestGatewayFormatVersion],
-            SourceSchemas = [.. sourceSchemas.Keys]
+            SourceSchemas = [.. allSourceSchemas.Keys]
         };
 
         await archive.SetArchiveMetadataAsync(metadata, cancellationToken);
 
-        foreach (var (schemaName, (schema, settings)) in sourceSchemas)
+        foreach (var (schemaName, (schema, settings)) in allSourceSchemas)
         {
             var schemaExtensions = schema.ExtensionsSourceText is null
                 ? default
@@ -151,9 +188,11 @@ internal static class CompositionHelper
                 cancellationToken);
         }
 
+        using var gatewaySettings = JsonDocument.Parse(bufferWriter.WrittenMemory);
+
         await archive.SetGatewayConfigurationAsync(
             result.Value + Environment.NewLine,
-            JsonDocument.Parse(bufferWriter.WrittenMemory),
+            gatewaySettings,
             WellKnownVersions.LatestGatewayFormatVersion,
             cancellationToken);
 
@@ -178,7 +217,7 @@ internal static class CompositionHelper
         FusionArchive archive,
         CancellationToken cancellationToken)
     {
-        var compositionSettings = await archive.GetCompositionSettingsAsync(cancellationToken);
+        using var compositionSettings = await archive.GetCompositionSettingsAsync(cancellationToken);
 
         return compositionSettings?.Deserialize(SettingsJsonSerializerContext.Default.CompositionSettings)
             ?? new CompositionSettings();
@@ -189,7 +228,7 @@ internal static class CompositionHelper
         CompositionSettings settings,
         CancellationToken cancellationToken)
     {
-        var settingsJson = JsonSerializer.SerializeToDocument(
+        using var settingsJson = JsonSerializer.SerializeToDocument(
             settings,
             SettingsJsonSerializerContext.Default.CompositionSettings);
 
@@ -218,5 +257,21 @@ internal static class CompositionHelper
 
         using var reader = new StreamReader(stream, Encoding.UTF8);
         return await reader.ReadToEndAsync(cancellationToken);
+    }
+
+    private sealed class CarriedSourceSchemaConfigurationCollection : IDisposable
+    {
+        private readonly List<SourceSchemaConfiguration> _configurations = [];
+
+        public void Add(SourceSchemaConfiguration configuration)
+            => _configurations.Add(configuration);
+
+        public void Dispose()
+        {
+            foreach (var configuration in _configurations)
+            {
+                configuration.Dispose();
+            }
+        }
     }
 }

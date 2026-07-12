@@ -1,3 +1,4 @@
+using HotChocolate.ApolloFederation.Resolvers;
 using HotChocolate.ApolloFederation.Types;
 using HotChocolate.Types;
 
@@ -18,7 +19,7 @@ public sealed class NodeWithNameType : ObjectType<NodeWithName>
 
         descriptor
             .Key("id")
-            .ResolveReferenceWith(_ => ResolveById(default!));
+            .ResolveReferenceWith(_ => ResolveById(default!, default));
 
         descriptor.Field(n => n.Id).Type<NonNullType<IdType>>();
         descriptor.Field(n => n.Name).External().Type<StringType>();
@@ -30,12 +31,20 @@ public sealed class NodeWithNameType : ObjectType<NodeWithName>
             .Resolve(ctx =>
             {
                 var node = ctx.Parent<NodeWithName>();
-                return BData.UsernamesById.TryGetValue(node.Id, out var username)
-                    ? username
-                    : null;
+                if (!BData.UsernamesById.TryGetValue(node.Id, out var username))
+                {
+                    return null;
+                }
+
+                if (node.Name is null)
+                {
+                    throw new InvalidOperationException("Requires field 'name' not provided.");
+                }
+
+                return username;
             });
     }
 
-    private static NodeWithName? ResolveById(string id)
-        => BData.Ids.Contains(id) ? new NodeWithName { Id = id } : null;
+    private static NodeWithName? ResolveById(string id, [Map("name")] string? name)
+        => BData.Ids.Contains(id) ? new NodeWithName { Id = id, Name = name } : null;
 }

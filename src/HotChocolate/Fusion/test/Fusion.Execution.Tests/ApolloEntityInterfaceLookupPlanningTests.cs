@@ -4,6 +4,7 @@ using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Execution.Nodes.Serialization;
 using HotChocolate.Fusion.Logging;
 using HotChocolate.Fusion.Options;
+using HotChocolate.Fusion.Planning;
 using HotChocolate.Fusion.Types;
 
 namespace HotChocolate.Fusion;
@@ -260,6 +261,76 @@ public sealed class ApolloEntityInterfaceLookupPlanningTests : FusionTestBase
                   }
                 }
                 """));
+
+        // assert
+        Assert.Equal("No possible plan was found.", exception.Message);
+    }
+
+    [Fact]
+    public void Plan_Should_FailWithoutCycling_When_SharedFieldHasNoCommonSource()
+    {
+        // arrange
+        var schema = CreateCorruptedNodeSchema();
+
+        // act
+        var exception = Assert.Throws<InvalidOperationException>(
+            () => PlanOperation(
+                schema,
+                """
+                {
+                  account: node(id: "a1") {
+                    id
+                    ... on Chat {
+                      id
+                    }
+                  }
+                  chat: node(id: "c1") {
+                    __typename
+                    ... on Account {
+                      id
+                    }
+                  }
+                }
+                """,
+                new OperationPlannerOptions
+                {
+                    MaxExpandedNodes = 100
+                }));
+
+        // assert
+        Assert.Equal("No possible plan was found.", exception.Message);
+    }
+
+    [Fact]
+    public void Plan_Should_FailWithoutCycling_When_RootFieldOrderIsReversed()
+    {
+        // arrange
+        var schema = CreateCorruptedNodeSchema();
+
+        // act
+        var exception = Assert.Throws<InvalidOperationException>(
+            () => PlanOperation(
+                schema,
+                """
+                {
+                  chat: node(id: "c1") {
+                    __typename
+                    ... on Account {
+                      id
+                    }
+                  }
+                  account: node(id: "a1") {
+                    id
+                    ... on Chat {
+                      id
+                    }
+                  }
+                }
+                """,
+                new OperationPlannerOptions
+                {
+                    MaxExpandedNodes = 100
+                }));
 
         // assert
         Assert.Equal("No possible plan was found.", exception.Message);

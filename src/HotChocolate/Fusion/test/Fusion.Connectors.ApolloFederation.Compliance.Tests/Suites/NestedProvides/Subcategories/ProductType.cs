@@ -21,6 +21,8 @@ public sealed class ProductType : ObjectType<Product>
         descriptor.Field(p => p.Categories).Shareable().Type<ListType<CategoryEntityType>>();
     }
 
-    private static Product ResolveById(string id)
-        => SubcategoriesData.BuildProduct(id);
+    private static Product? ResolveById(string id)
+        => SubcategoriesData.ProductCategories.ContainsKey(id)
+            ? SubcategoriesData.BuildProduct(id)
+            : null;
 }

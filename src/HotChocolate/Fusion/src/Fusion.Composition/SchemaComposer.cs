@@ -14,7 +14,7 @@ using LogSeverity = HotChocolate.Fusion.Logging.LogSeverity;
 
 namespace HotChocolate.Fusion;
 
-public sealed class SchemaComposer
+internal sealed class SchemaComposer
 {
     private readonly IEnumerable<SourceSchemaText> _sourceSchemas;
     private readonly SchemaComposerOptions _schemaComposerOptions;
@@ -69,7 +69,8 @@ public sealed class SchemaComposer
                     schema,
                     _log,
                     options?.Parser,
-                    options?.InvalidFieldDeprecationSeverity ?? LogSeverity.Warning).Parse();
+                    options?.InvalidFieldDeprecationSeverity ?? LogSeverity.Warning,
+                    options?.IsApolloFederationV1 ?? false).Parse();
             }).Combine();
 
         if (parsingResult.IsFailure)
@@ -92,7 +93,8 @@ public sealed class SchemaComposer
                     _log,
                     options?.Version,
                     options?.Preprocessor,
-                    options?.InvalidFieldDeprecationSeverity ?? LogSeverity.Warning)
+                    options?.InvalidFieldDeprecationSeverity ?? LogSeverity.Warning,
+                    options?.IsApolloFederationV1 ?? false)
                     .Preprocess();
             }).Combine();
 

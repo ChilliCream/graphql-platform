@@ -69,8 +69,10 @@ internal static class AspireCompositionHelper
         {
             Merger =
             {
+                CacheControlMergeBehavior = settings.CacheControlMergeBehavior,
                 EnableGlobalObjectIdentification = settings.EnableGlobalObjectIdentification,
-                NodeResolution = settings.NodeResolution
+                NodeResolution = settings.NodeResolution,
+                TagMergeBehavior = settings.TagMergeBehavior
             },
             Satisfiability = { IncludeSatisfiabilityPaths = settings.IncludeSatisfiabilityPaths },
             ApolloFederationCompatibility =

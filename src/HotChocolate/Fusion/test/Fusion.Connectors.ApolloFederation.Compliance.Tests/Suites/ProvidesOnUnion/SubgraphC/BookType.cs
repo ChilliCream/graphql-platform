@@ -16,5 +16,6 @@ public sealed class BookType : ObjectType<Book>
     }
 
     private static Book? ResolveById(string id)
-        => SubgraphCData.BooksById.TryGetValue(id, out var book) ? book : null;
+        => throw new InvalidOperationException(
+            "Book.title must be provided by subgraph 'b'.");
 }
