@@ -12,7 +12,6 @@ import { MockWindowChrome } from "@/src/components/MockWindowChrome";
 import { PageSection } from "@/src/components/PageSection";
 import { RevealOnScroll } from "@/src/components/RevealOnScroll";
 import { Card } from "@/src/design-system/Card";
-import { Eyebrow } from "@/src/design-system/Eyebrow";
 import { ArrowRightIcon } from "@/src/icons/ArrowRight";
 import { BranchGlyph } from "@/src/icons/BranchGlyph";
 import { CheckGlyph } from "@/src/icons/CheckGlyph";
@@ -68,8 +67,7 @@ function FlipSlot({ activeIndex }: { readonly activeIndex: number }) {
 function AgentGroup() {
   return (
     <div>
-      <Eyebrow>Works with</Eyebrow>
-      <ul className="mt-5 grid grid-cols-2 gap-x-6 gap-y-3.5 sm:grid-cols-3">
+      <ul className="grid grid-cols-2 gap-x-6 gap-y-3.5 sm:grid-cols-3">
         {AGENTS.map((agent) => (
           <li key={agent.slug} className="flex items-center gap-2.5">
             <AgentLogo agent={agent} className="size-6 shrink-0" />
@@ -405,8 +403,7 @@ function SkillFacet() {
 function StartNowPanel() {
   return (
     <div>
-      <Eyebrow>Start now</Eyebrow>
-      <p className="text-cc-heading font-heading mt-3 text-lg font-semibold sm:text-xl">
+      <p className="text-cc-heading font-heading text-lg font-semibold sm:text-xl">
         Add the skills to your agent.
       </p>
       <CopyCommand
@@ -472,8 +469,7 @@ export function AgenticSection() {
     <PageSection className="pt-16 sm:pt-24">
       <RevealOnScroll>
         <div className="max-w-3xl">
-          <Eyebrow>Agentic coding</Eyebrow>
-          <h2 className="font-heading text-cc-heading text-h3 sm:text-h2 mt-5 leading-[1.1] font-semibold text-balance">
+          <h2 className="font-heading text-cc-heading text-h3 sm:text-h2 leading-[1.1] font-semibold text-balance">
             Built for <FlipSlot activeIndex={activeIndex} />
           </h2>
           <p className="text-cc-ink mt-6 text-base text-pretty sm:text-lg">
