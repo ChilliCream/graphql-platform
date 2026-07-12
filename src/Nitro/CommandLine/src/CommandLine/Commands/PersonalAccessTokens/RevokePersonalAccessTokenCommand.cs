@@ -1,6 +1,5 @@
 using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.Client.PersonalAccessTokens;
-using ChilliCream.Nitro.CommandLine;
 using ChilliCream.Nitro.CommandLine.Arguments;
 using ChilliCream.Nitro.CommandLine.Commands.PersonalAccessTokens.Components;
 using ChilliCream.Nitro.CommandLine.Helpers;
@@ -43,7 +42,7 @@ internal sealed class RevokePersonalAccessTokenCommand : Command
         if (!force)
         {
             var confirmed = await console.ConfirmAsync(
-                $"Do you really want to delete PAT with ID {patId}",
+                Prompts.ConfirmRevokePersonalAccessToken(patId),
                 cancellationToken);
 
             if (!confirmed)
@@ -60,7 +59,7 @@ internal sealed class RevokePersonalAccessTokenCommand : Command
 
             if (data.Errors?.Count > 0)
             {
-                activity.Fail();
+                await activity.FailAllAsync();
 
                 foreach (var error in data.Errors)
                 {
@@ -79,7 +78,7 @@ internal sealed class RevokePersonalAccessTokenCommand : Command
 
             if (data.PersonalAccessToken is not IPersonalAccessTokenDetailPrompt_PersonalAccessToken token)
             {
-                activity.Fail();
+                await activity.FailAllAsync();
                 console.Error.WriteErrorLine("Could not revoke personal access token.");
                 return ExitCodes.Error;
             }

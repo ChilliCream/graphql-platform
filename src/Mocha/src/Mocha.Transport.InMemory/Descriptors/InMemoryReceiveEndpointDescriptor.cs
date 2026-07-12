@@ -1,3 +1,5 @@
+using Mocha.Features;
+
 namespace Mocha.Transport.InMemory;
 
 internal sealed class InMemoryReceiveEndpointDescriptor
@@ -38,6 +40,34 @@ internal sealed class InMemoryReceiveEndpointDescriptor
         return this;
     }
 
+    public new IInMemoryReceiveEndpointDescriptor Receives<TMessage>()
+    {
+        base.Receives<TMessage>();
+
+        return this;
+    }
+
+    public new IInMemoryReceiveEndpointDescriptor Receives(Type messageType)
+    {
+        base.Receives(messageType);
+
+        return this;
+    }
+
+    public new IInMemoryReceiveEndpointDescriptor BindImplicitly()
+    {
+        base.BindImplicitly();
+
+        return this;
+    }
+
+    public new IInMemoryReceiveEndpointDescriptor BindExplicitly()
+    {
+        base.BindExplicitly();
+
+        return this;
+    }
+
     public new IInMemoryReceiveEndpointDescriptor Kind(ReceiveEndpointKind kind)
     {
         base.Kind(kind);
@@ -52,23 +82,50 @@ internal sealed class InMemoryReceiveEndpointDescriptor
         return this;
     }
 
-    public IInMemoryReceiveEndpointDescriptor Queue(string name)
+    public IInMemoryReceiveEndpointDescriptor FaultEndpoint(Uri address)
     {
-        Configuration.QueueName = name;
+        ArgumentNullException.ThrowIfNull(address);
+        if (!address.IsAbsoluteUri)
+        {
+            throw new ArgumentException("The endpoint address must be an absolute URI.", nameof(address));
+        }
+
+        var feature = Configuration.Features.GetOrSet<ReceiveFaultEndpointFeature>();
+        feature.Address = address;
+        feature.IsDisabled = false;
 
         return this;
     }
 
-    public new IInMemoryReceiveEndpointDescriptor FaultEndpoint(string name)
+    public IInMemoryReceiveEndpointDescriptor DisableFaultEndpoint()
     {
-        base.FaultEndpoint(name);
+        var feature = Configuration.Features.GetOrSet<ReceiveFaultEndpointFeature>();
+        feature.Address = null;
+        feature.IsDisabled = true;
 
         return this;
     }
 
-    public new IInMemoryReceiveEndpointDescriptor SkippedEndpoint(string name)
+    public IInMemoryReceiveEndpointDescriptor SkippedEndpoint(Uri address)
     {
-        base.SkippedEndpoint(name);
+        ArgumentNullException.ThrowIfNull(address);
+        if (!address.IsAbsoluteUri)
+        {
+            throw new ArgumentException("The endpoint address must be an absolute URI.", nameof(address));
+        }
+
+        var feature = Configuration.Features.GetOrSet<ReceiveSkippedEndpointFeature>();
+        feature.Address = address;
+        feature.IsDisabled = false;
+
+        return this;
+    }
+
+    public IInMemoryReceiveEndpointDescriptor DisableSkippedEndpoint()
+    {
+        var feature = Configuration.Features.GetOrSet<ReceiveSkippedEndpointFeature>();
+        feature.Address = null;
+        feature.IsDisabled = true;
 
         return this;
     }

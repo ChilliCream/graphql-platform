@@ -1,6 +1,5 @@
 using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.Client.Environments;
-using ChilliCream.Nitro.CommandLine;
 using ChilliCream.Nitro.CommandLine.Commands.Environments.Components;
 using ChilliCream.Nitro.CommandLine.Commands.Environments.Options;
 using ChilliCream.Nitro.CommandLine.Helpers;
@@ -55,7 +54,7 @@ internal sealed class CreateEnvironmentCommand : Command
 
             if (data.Errors?.Count > 0)
             {
-                activity.Fail();
+                await activity.FailAllAsync();
 
                 foreach (var error in data.Errors)
                 {
@@ -81,7 +80,7 @@ internal sealed class CreateEnvironmentCommand : Command
 
             if (changeResult.Error is IError changeError)
             {
-                activity.Fail();
+                await activity.FailAllAsync();
                 console.Error.WriteErrorLine(changeError.Message);
                 return ExitCodes.Error;
             }

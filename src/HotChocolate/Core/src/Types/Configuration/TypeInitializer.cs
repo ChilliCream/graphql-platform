@@ -528,9 +528,7 @@ internal sealed class TypeInitializer
         ObjectFieldConfiguration definition,
         IResolverCompiler resolverCompiler)
     {
-        var method = (definition.ResolverMember ?? definition.Member) as MethodInfo;
-
-        if (method is null)
+        if ((definition.ResolverMember ?? definition.Member) is not MethodInfo method)
         {
             return null;
         }
@@ -560,9 +558,7 @@ internal sealed class TypeInitializer
         InterfaceFieldConfiguration definition,
         IResolverCompiler resolverCompiler)
     {
-        var method = (definition.ResolverMember ?? definition.Member) as MethodInfo;
-
-        if (method is null)
+        if ((definition.ResolverMember ?? definition.Member) is not MethodInfo method)
         {
             return null;
         }
@@ -765,7 +761,7 @@ internal sealed class TypeInitializer
             {
                 // the name might not be set at this point.
                 var name = string.IsNullOrEmpty(type.Type.Name)
-                    ? type.References[0].ToString()!
+                    ? type.References[0].ToString()
                     : type.Type.Name;
 
                 IReadOnlyList<TypeReference> needed =

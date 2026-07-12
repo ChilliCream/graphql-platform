@@ -34,7 +34,9 @@ public readonly struct Unit : IEquatable<Unit>, IComparable<Unit>
     /// <param name="left">The left operand.</param>
     /// <param name="right">The right operand.</param>
     /// <returns>Always <see langword="true"/>.</returns>
+#pragma warning disable RCS1163
     public static bool operator ==(Unit left, Unit right) => true;
+#pragma warning restore RCS1163
 
     /// <summary>
     /// Determines whether two <see cref="Unit"/> values are not equal. Always returns <see langword="false"/>.
@@ -42,7 +44,9 @@ public readonly struct Unit : IEquatable<Unit>, IComparable<Unit>
     /// <param name="left">The left operand.</param>
     /// <param name="right">The right operand.</param>
     /// <returns>Always <see langword="false"/>.</returns>
+#pragma warning disable RCS1163
     public static bool operator !=(Unit left, Unit right) => false;
+#pragma warning restore RCS1163
 
     /// <summary>
     /// Gets the default and only value of <see cref="Unit"/>.

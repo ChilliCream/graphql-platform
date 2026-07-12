@@ -36,5 +36,5 @@ public class MongoDbProjectionFieldHandler
         return true;
     }
 
-    public static MongoDbProjectionFieldHandler Create(ProjectionProviderContext context) => new();
+    public static MongoDbProjectionFieldHandler Create(ProjectionProviderContext _) => new();
 }

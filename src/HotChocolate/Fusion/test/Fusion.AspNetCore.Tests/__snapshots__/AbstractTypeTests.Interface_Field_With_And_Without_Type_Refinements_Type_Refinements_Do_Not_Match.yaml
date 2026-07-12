@@ -35,12 +35,9 @@ sourceSchemas:
         query: Query
       }
 
-      interface Node {
-        id: ID!
-      }
-
-      interface Votable @key(fields: "id") {
-        id: ID!
+      type Query {
+        abstractTypes: [Votable]
+        node(id: ID!): Node @lookup @shareable
       }
 
       type Author implements Votable & Node @key(fields: "id") {
@@ -51,9 +48,12 @@ sourceSchemas:
         id: ID!
       }
 
-      type Query {
-        abstractTypes: [Votable]
-        node(id: ID!): Node @lookup @shareable
+      interface Node {
+        id: ID!
+      }
+
+      interface Votable @key(fields: "id") {
+        id: ID!
       }
     interactions:
       - request:
@@ -92,13 +92,9 @@ sourceSchemas:
         query: Query
       }
 
-      interface Node {
-        id: ID!
-      }
-
-      interface Votable @key(fields: "id") {
-        id: ID!
-        upvotes: Int!
+      type Query {
+        node(id: ID!): Node @lookup @shareable
+        discussionById(id: ID!): Discussion @lookup @shareable
       }
 
       type Discussion implements Votable & Node @key(fields: "id") {
@@ -107,17 +103,19 @@ sourceSchemas:
         score: Int!
       }
 
-      type Query {
-        node(id: ID!): Node @lookup @shareable
-        discussionById(id: ID!): Discussion @lookup @shareable
+      interface Node {
+        id: ID!
+      }
+
+      interface Votable @key(fields: "id") {
+        id: ID!
+        upvotes: Int!
       }
     interactions:
       - request:
           accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
           document: |
-            query Op_3902e3a1_2(
-              $__fusion_1_id: ID!
-            ) {
+            query Op_3902e3a1_2($__fusion_1_id: ID!) {
               discussionById(id: $__fusion_1_id) {
                 upvotes
                 ... on Discussion {
@@ -161,6 +159,16 @@ sourceSchemas:
         query: Query
       }
 
+      type Query {
+        node(id: ID!): Node @lookup @shareable
+        authorById(id: ID!): Author @lookup @shareable
+      }
+
+      type Author implements Votable & Node @key(fields: "id") {
+        id: ID!
+        upvotes: Int!
+      }
+
       interface Node {
         id: ID!
       }
@@ -169,23 +177,11 @@ sourceSchemas:
         id: ID!
         upvotes: Int!
       }
-
-      type Author implements Votable & Node @key(fields: "id") {
-        id: ID!
-        upvotes: Int!
-      }
-
-      type Query {
-        node(id: ID!): Node @lookup @shareable
-        authorById(id: ID!): Author @lookup @shareable
-      }
     interactions:
       - request:
           accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
-            query Op_3902e3a1_3(
-              $__fusion_2_id: ID!
-            ) {
+            query Op_3902e3a1_3($__fusion_2_id: ID!) {
               authorById(id: $__fusion_2_id) {
                 upvotes
               }
@@ -235,9 +231,7 @@ operationPlan:
       type: Operation
       schema: B
       operation: |
-        query Op_3902e3a1_2(
-          $__fusion_1_id: ID!
-        ) {
+        query Op_3902e3a1_2($__fusion_1_id: ID!) {
           discussionById(id: $__fusion_1_id) {
             upvotes
             ... on Discussion {
@@ -257,9 +251,7 @@ operationPlan:
       type: Operation
       schema: C
       operation: |
-        query Op_3902e3a1_3(
-          $__fusion_2_id: ID!
-        ) {
+        query Op_3902e3a1_3($__fusion_2_id: ID!) {
           authorById(id: $__fusion_2_id) {
             upvotes
           }

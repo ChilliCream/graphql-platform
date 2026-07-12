@@ -1,5 +1,3 @@
-using ChilliCream.Nitro.Client;
-
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.PersonalAccessTokens;
 
 public sealed class ListPersonalAccessTokenCommandTests(NitroCommandFixture fixture)
@@ -25,8 +23,8 @@ public sealed class ListPersonalAccessTokenCommandTests(NitroCommandFixture fixt
 
             Options:
               --cursor <cursor>        The pagination cursor to resume from [env: NITRO_CURSOR]
-              --cloud-url <cloud-url>  The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL] [default: api.chillicream.com]
-              --api-key <api-key>      The API key used for authentication [env: NITRO_API_KEY]
+              --cloud-url <cloud-url>  The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL]
+              --api-key <api-key>      The API key or PAT used for authentication [env: NITRO_API_KEY]
               --output <json>          The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
               -?, -h, --help           Show help and usage information
 
@@ -53,7 +51,7 @@ public sealed class ListPersonalAccessTokenCommandTests(NitroCommandFixture fixt
             "list");
 
         command.SelectOption(0);
-        var result = await command.RunToCompletionAsync();
+        var result = await command.RunToCompletionAsync(TestContext.Current.CancellationToken);
 
         // assert
         result.AssertSuccess();
@@ -116,7 +114,7 @@ public sealed class ListPersonalAccessTokenCommandTests(NitroCommandFixture fixt
             "list");
 
         command.SelectOption(0);
-        var result = await command.RunToCompletionAsync();
+        var result = await command.RunToCompletionAsync(TestContext.Current.CancellationToken);
 
         // assert
         result.AssertSuccess();
@@ -166,7 +164,7 @@ public sealed class ListPersonalAccessTokenCommandTests(NitroCommandFixture fixt
             "cursor-1");
 
         command.SelectOption(0);
-        var result = await command.RunToCompletionAsync();
+        var result = await command.RunToCompletionAsync(TestContext.Current.CancellationToken);
 
         // assert
         result.AssertSuccess();

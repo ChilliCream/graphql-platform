@@ -89,6 +89,10 @@ sourceSchemas:
         query: Query
       }
 
+      type Query {
+        users: [User]
+      }
+
       type Author @key(fields: "id") {
         id: ID!
       }
@@ -105,10 +109,6 @@ sourceSchemas:
 
       type Product @key(fields: "id") {
         id: ID!
-      }
-
-      type Query {
-        users: [User]
       }
 
       type User {
@@ -218,21 +218,19 @@ sourceSchemas:
         query: Query
       }
 
+      type Query {
+        productById(id: ID!): Product @lookup
+      }
+
       type Product {
         id: ID!
         subgraph2: String!
-      }
-
-      type Query {
-        productById(id: ID!): Product @lookup
       }
     interactions:
       - request:
           accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
           document: |
-            query testQuery_eb2214e5_3(
-              $__fusion_2_id: ID!
-            ) {
+            query testQuery_eb2214e5_3($__fusion_2_id: ID!) {
               productById(id: $__fusion_2_id) {
                 subgraph2
               }
@@ -315,21 +313,19 @@ sourceSchemas:
         query: Query
       }
 
+      type Query {
+        authorById(id: ID!): Author @lookup
+      }
+
       type Author {
         id: ID!
         subgraph3: String!
-      }
-
-      type Query {
-        authorById(id: ID!): Author @lookup
       }
     interactions:
       - request:
           accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
           document: |
-            query testQuery_eb2214e5_2(
-              $__fusion_1_id: ID!
-            ) {
+            query testQuery_eb2214e5_2($__fusion_1_id: ID!) {
               authorById(id: $__fusion_1_id) {
                 subgraph3
               }
@@ -425,9 +421,7 @@ operationPlan:
       type: Operation
       schema: C
       operation: |
-        query testQuery_eb2214e5_2(
-          $__fusion_1_id: ID!
-        ) {
+        query testQuery_eb2214e5_2($__fusion_1_id: ID!) {
           authorById(id: $__fusion_1_id) {
             subgraph3
           }
@@ -444,9 +438,7 @@ operationPlan:
       type: Operation
       schema: B
       operation: |
-        query testQuery_eb2214e5_3(
-          $__fusion_2_id: ID!
-        ) {
+        query testQuery_eb2214e5_3($__fusion_2_id: ID!) {
           productById(id: $__fusion_2_id) {
             subgraph2
           }

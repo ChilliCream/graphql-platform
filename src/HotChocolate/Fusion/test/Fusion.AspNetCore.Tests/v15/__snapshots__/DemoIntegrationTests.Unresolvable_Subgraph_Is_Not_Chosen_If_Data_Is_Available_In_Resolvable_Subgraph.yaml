@@ -28,20 +28,20 @@ sourceSchemas:
         query: Query
       }
 
-      interface Node @key(fields: "id") {
-        id: ID!
+      type Query {
+        viewer: Viewer
       }
 
       type Product implements Node {
         id: ID!
       }
 
-      type Query {
-        viewer: Viewer
-      }
-
       type Viewer {
         product: Product!
+      }
+
+      interface Node @key(fields: "id") {
+        id: ID!
       }
     interactions:
       - request:
@@ -72,13 +72,13 @@ sourceSchemas:
         query: Query
       }
 
+      type Query {
+        test: Test!
+      }
+
       type Product @key(fields: "id") {
         id: ID!
         name: String! @shareable
-      }
-
-      type Query {
-        test: Test!
       }
 
       type Test {
@@ -90,8 +90,8 @@ sourceSchemas:
         query: Query
       }
 
-      interface Node {
-        id: ID!
+      type Query {
+        node(id: ID!): Node @lookup
       }
 
       type Product implements Node {
@@ -99,16 +99,14 @@ sourceSchemas:
         name: String! @shareable
       }
 
-      type Query {
-        node(id: ID!): Node @lookup
+      interface Node {
+        id: ID!
       }
     interactions:
       - request:
           accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
-            query Op_ab5a0549_2(
-              $__fusion_1_id: ID!
-            ) {
+            query Op_ab5a0549_2($__fusion_1_id: ID!) {
               node(id: $__fusion_1_id) {
                 __typename
                 ... on Product {
@@ -162,9 +160,7 @@ operationPlan:
       type: Operation
       schema: C
       operation: |
-        query Op_ab5a0549_2(
-          $__fusion_1_id: ID!
-        ) {
+        query Op_ab5a0549_2($__fusion_1_id: ID!) {
           node(id: $__fusion_1_id) {
             __typename
             ... on Product {

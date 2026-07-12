@@ -74,7 +74,7 @@ internal sealed class FusionConfigurationPublishCommitCommand : Command
             }
             else
             {
-                activity.Fail();
+                await activity.FailAllAsync();
             }
         }
 

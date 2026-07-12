@@ -121,9 +121,9 @@ internal sealed class WebSocketConnection : ISocketConnection
     }
 
     public async ValueTask CloseAsync(
-       string message,
-       ConnectionCloseReason reason,
-       CancellationToken cancellationToken = default)
+        string message,
+        ConnectionCloseReason reason,
+        CancellationToken cancellationToken = default)
     {
         try
         {

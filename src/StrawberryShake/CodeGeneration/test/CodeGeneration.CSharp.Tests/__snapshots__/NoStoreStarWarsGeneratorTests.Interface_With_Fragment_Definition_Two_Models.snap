@@ -550,14 +550,14 @@ namespace Foo.Bar
     /// query GetHero {
     ///   hero(episode: NEW_HOPE) {
     ///     __typename
-    ///     ... Hero
+    ///     ...Hero
     ///   }
     /// }
     /// 
     /// fragment Hero on Character {
     ///   name
-    ///   ... Human
-    ///   ... Droid
+    ///   ...Human
+    ///   ...Droid
     ///   friends {
     ///     __typename
     ///     nodes {
@@ -585,8 +585,8 @@ namespace Foo.Bar
 
         public static GetHeroQueryDocument Instance { get; } = new GetHeroQueryDocument();
         public global::StrawberryShake.OperationKind Kind => global::StrawberryShake.OperationKind.Query;
-        public global::System.ReadOnlySpan<global::System.Byte> Body => "query GetHero { hero(episode: NEW_HOPE) { __typename ... Hero } } fragment Hero on Character { name ... Human ... Droid friends { __typename nodes { __typename name } } } fragment Human on Human { homePlanet } fragment Droid on Droid { primaryFunction }"u8;
-        public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("sha1Hash", "7659b8661f962a731bed9124abcb483f2ea17ca7");
+        public global::System.ReadOnlySpan<global::System.Byte> Body => "query GetHero { hero(episode: NEW_HOPE) { __typename ...Hero } } fragment Hero on Character { name ...Human ...Droid friends { __typename nodes { __typename name } } } fragment Human on Human { homePlanet } fragment Droid on Droid { primaryFunction }"u8;
+        public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("sha1Hash", "3b3b349029ff18f98ae18ab38972732b8ad8102d");
 
         public override global::System.String ToString()
         {
@@ -605,14 +605,14 @@ namespace Foo.Bar
     /// query GetHero {
     ///   hero(episode: NEW_HOPE) {
     ///     __typename
-    ///     ... Hero
+    ///     ...Hero
     ///   }
     /// }
     /// 
     /// fragment Hero on Character {
     ///   name
-    ///   ... Human
-    ///   ... Droid
+    ///   ...Human
+    ///   ...Droid
     ///   friends {
     ///     __typename
     ///     nodes {
@@ -704,14 +704,14 @@ namespace Foo.Bar
     /// query GetHero {
     ///   hero(episode: NEW_HOPE) {
     ///     __typename
-    ///     ... Hero
+    ///     ...Hero
     ///   }
     /// }
     /// 
     /// fragment Hero on Character {
     ///   name
-    ///   ... Human
-    ///   ... Droid
+    ///   ...Human
+    ///   ...Droid
     ///   friends {
     ///     __typename
     ///     nodes {

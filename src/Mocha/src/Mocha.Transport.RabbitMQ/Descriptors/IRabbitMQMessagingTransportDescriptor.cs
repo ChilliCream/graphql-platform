@@ -13,11 +13,11 @@ public interface IRabbitMQMessagingTransportDescriptor
     /// <inheritdoc cref="IMessagingTransportDescriptor.Schema" />
     new IRabbitMQMessagingTransportDescriptor Schema(string schema);
 
-    /// <inheritdoc cref="IMessagingTransportDescriptor.BindHandlersImplicitly" />
-    new IRabbitMQMessagingTransportDescriptor BindHandlersImplicitly();
+    /// <inheritdoc cref="IMessagingTransportDescriptor.BindImplicitly" />
+    new IRabbitMQMessagingTransportDescriptor BindImplicitly();
 
-    /// <inheritdoc cref="IMessagingTransportDescriptor.BindHandlersExplicitly" />
-    new IRabbitMQMessagingTransportDescriptor BindHandlersExplicitly();
+    /// <inheritdoc cref="IMessagingTransportDescriptor.BindExplicitly" />
+    new IRabbitMQMessagingTransportDescriptor BindExplicitly();
 
     /// <summary>
     /// Sets a factory delegate that resolves an <see cref="IRabbitMQConnectionProvider"/> for creating RabbitMQ connections.
@@ -50,25 +50,29 @@ public interface IRabbitMQMessagingTransportDescriptor
 
     /// <summary>
     /// Declares or retrieves an exchange in the transport topology.
+    /// When called multiple times with the same name, the same descriptor instance is returned.
     /// </summary>
     /// <param name="name">The exchange name.</param>
     /// <returns>An exchange descriptor for further configuration.</returns>
-    IRabbitMQExchangeDescriptor DeclareExchange(string name);
+    IRabbitMQExchangeTopologyDescriptor DeclareExchange(string name);
 
     /// <summary>
     /// Declares or retrieves a queue in the transport topology.
+    /// When called multiple times with the same name, the same descriptor instance is returned.
     /// </summary>
     /// <param name="name">The queue name.</param>
-    /// <returns>A queue descriptor for further configuration.</returns>
-    IRabbitMQQueueDescriptor DeclareQueue(string name);
+    /// <returns>A queue topology descriptor for further configuration.</returns>
+    IRabbitMQQueueTopologyDescriptor DeclareQueue(string name);
 
     /// <summary>
-    /// Declares or retrieves a binding between an exchange and a queue in the transport topology.
+    /// Declares a new binding between an exchange and a queue in the transport topology.
+    /// Each call creates a distinct binding. To bind several routing keys between the same exchange
+    /// and queue, call this multiple times and set a different <c>RoutingKey</c> on each binding.
     /// </summary>
     /// <param name="exchange">The source exchange name.</param>
     /// <param name="queue">The destination queue name.</param>
     /// <returns>A binding descriptor for further configuration.</returns>
-    IRabbitMQBindingDescriptor DeclareBinding(string exchange, string queue);
+    IRabbitMQBindingTopologyDescriptor DeclareBinding(string exchange, string queue);
 
     /// <summary>
     /// Sets whether topology resources should be automatically provisioned on the broker.
@@ -90,6 +94,9 @@ public interface IRabbitMQMessagingTransportDescriptor
     /// <inheritdoc cref="IMessagingTransportDescriptor.IsDefaultTransport" />
     new IRabbitMQMessagingTransportDescriptor IsDefaultTransport();
 
+    /// <inheritdoc cref="IMessagingTransportDescriptor.UseRoutingStrategy(Func{IServiceProvider, RoutingStrategy})" />
+    new IRabbitMQMessagingTransportDescriptor UseRoutingStrategy(Func<IServiceProvider, RoutingStrategy> factory);
+
     /// <inheritdoc cref="IMessagingTransportDescriptor.UseDispatch" />
     new IRabbitMQMessagingTransportDescriptor UseDispatch(
         DispatchMiddlewareConfiguration configuration,
@@ -109,4 +116,13 @@ public interface IRabbitMQMessagingTransportDescriptor
     /// <summary>Claims a consumer for this transport, creating a convention-named endpoint.</summary>
     IMessagingTransportConsumerDescriptor<IRabbitMQReceiveEndpointDescriptor> Consumer<TConsumer>()
         where TConsumer : class, IConsumer;
+
+    /// <summary>
+    /// Gets or creates a queue descriptor for the given queue name. The queue is declared
+    /// in the topology and has a receive endpoint using the same identity. Calling this method
+    /// multiple times with the same name returns the same descriptor instance.
+    /// </summary>
+    /// <param name="name">The queue name, which also serves as the endpoint identity.</param>
+    /// <returns>A queue descriptor for further configuration.</returns>
+    IRabbitMQQueueDescriptor Queue(string name);
 }

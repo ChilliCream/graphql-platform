@@ -43,10 +43,11 @@ public class DiagnosticListenerTests : FusionTestBase
               }
             }
             """,
-            new Uri("http://localhost:5000/graphql"));
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
 
         // act
-        using var response = await result.ReadAsResultAsync();
+        using var response = await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
         Assert.True(listener.HitExecuteOperation);
     }
 
@@ -80,7 +81,7 @@ public class DiagnosticListenerTests : FusionTestBase
                 };
 
             [Lookup]
-            public Book GetBookById(int id)
+            public Book? GetBookById(int id)
                 => _books[id];
 
             [UsePaging]
@@ -128,12 +129,12 @@ public class DiagnosticListenerTests : FusionTestBase
 
             [Internal]
             [Lookup]
-            public Book GetBookById(int id)
+            public Book? GetBookById(int id)
                 => _books[id];
 
             [Internal]
             [Lookup]
-            public Author GetAuthorById(int id)
+            public Author? GetAuthorById(int id)
                 => _authors[id];
 
             [UsePaging]

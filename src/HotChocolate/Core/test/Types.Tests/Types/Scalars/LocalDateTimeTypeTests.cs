@@ -143,12 +143,35 @@ public class LocalDateTimeTypeTests
 
         // act
         var operation = CommonTestExtensions.CreateOperation();
-        var resultDocument = new ResultDocument(operation, 0);
+        var resultDocument = new ResultDocument(CommonTestExtensions.CreateArena(), operation, 0);
         var resultValue = resultDocument.Data.GetProperty("first");
         type.CoerceOutputValue(dateTime, resultValue);
 
         // assert
         resultValue.MatchInlineSnapshot($"\"{result}\"");
+    }
+
+    [Fact]
+    public void CoerceOutputValue_AlwaysOutputFractionalSeconds_PadsAtDefaultPrecision()
+    {
+        // arrange
+        // exercises the bypass of the `LocalFormat` const-string shortcut at default precision
+        var type = new LocalDateTimeType(
+            new DateTimeOptions
+            {
+                OutputPrecision = DateTimeOptions.DefaultOutputPrecision,
+                AlwaysOutputFractionalSeconds = true
+            });
+        var dateTime = new DateTime(2023, 12, 24, 15, 30, 0);
+
+        // act
+        var operation = CommonTestExtensions.CreateOperation();
+        var resultDocument = new ResultDocument(CommonTestExtensions.CreateArena(), operation, 0);
+        var resultValue = resultDocument.Data.GetProperty("first");
+        type.CoerceOutputValue(dateTime, resultValue);
+
+        // assert
+        resultValue.MatchInlineSnapshot("\"2023-12-24T15:30:00.0000000\"");
     }
 
     [Fact]
@@ -160,7 +183,7 @@ public class LocalDateTimeTypeTests
 
         // act
         var operation = CommonTestExtensions.CreateOperation();
-        var resultDocument = new ResultDocument(operation, 0);
+        var resultDocument = new ResultDocument(CommonTestExtensions.CreateArena(), operation, 0);
         var resultValue = resultDocument.Data.GetProperty("first");
         type.CoerceOutputValue(dateTime, resultValue);
 
@@ -176,7 +199,7 @@ public class LocalDateTimeTypeTests
 
         // act
         var operation = CommonTestExtensions.CreateOperation();
-        var resultDocument = new ResultDocument(operation, 0);
+        var resultDocument = new ResultDocument(CommonTestExtensions.CreateArena(), operation, 0);
         var resultValue = resultDocument.Data.GetProperty("first");
         void Action() => type.CoerceOutputValue(123, resultValue);
 
@@ -251,7 +274,7 @@ public class LocalDateTimeTypeTests
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<QueryDateTime1>()
-            .BuildSchemaAsync()
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -268,7 +291,8 @@ public class LocalDateTimeTypeTests
                         localDateTime(localDateTime: "2017-12-30T11:24:00")
                     }
                 }
-                """)
+                """,
+                cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -278,7 +302,7 @@ public class LocalDateTimeTypeTests
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<QueryDateTime2>()
-            .BuildSchemaAsync()
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -295,7 +319,8 @@ public class LocalDateTimeTypeTests
                         localDateTime
                     }
                 }
-                """)
+                """,
+                cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -394,8 +419,8 @@ public class LocalDateTimeTypeTests
             { DateTimeOptions.DefaultInputPrecision, "2023-12-24T15:30:00+05:30" },
             // Invalid separator (space instead of T or t).
             { DateTimeOptions.DefaultInputPrecision, "2023-12-24 15:30:00" },
-            // Invalid hour (25).
-            { DateTimeOptions.DefaultInputPrecision, "2023-12-24T25:00:00" },
+            // Invalid hour (24).
+            { DateTimeOptions.DefaultInputPrecision, "2023-12-24T24:00:00" },
             // Invalid minute (60).
             { DateTimeOptions.DefaultInputPrecision, "2023-12-24T15:60:00" },
             // ReSharper disable once GrammarMistakeInComment

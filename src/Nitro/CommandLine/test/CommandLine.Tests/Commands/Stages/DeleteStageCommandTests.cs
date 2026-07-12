@@ -1,5 +1,4 @@
 using ChilliCream.Nitro.Client;
-using ChilliCream.Nitro.Client.Stages;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Stages;
 
@@ -27,8 +26,8 @@ public sealed class DeleteStageCommandTests(NitroCommandFixture fixture) : Stage
               --api-id <api-id>           The ID of the API [env: NITRO_API_ID]
               --stage <stage> (REQUIRED)  The name of the stage [env: NITRO_STAGE]
               --force                     Skip confirmation prompts for deletes and overwrites
-              --cloud-url <cloud-url>     The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL] [default: api.chillicream.com]
-              --api-key <api-key>         The API key used for authentication [env: NITRO_API_KEY]
+              --cloud-url <cloud-url>     The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL]
+              --api-key <api-key>         The API key or PAT used for authentication [env: NITRO_API_KEY]
               --output <json>             The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
               -?, -h, --help              Show help and usage information
 
@@ -62,7 +61,7 @@ public sealed class DeleteStageCommandTests(NitroCommandFixture fixture) : Stage
         // assert
         result.AssertError(
             """
-            This command requires an authenticated user. Either specify '--api-key' or run 'nitro login'.
+            This command requires an authenticated user. Either specify '--api-key' or run `nitro login`.
             """);
     }
 
@@ -83,7 +82,7 @@ public sealed class DeleteStageCommandTests(NitroCommandFixture fixture) : Stage
 
         // act
         command.Confirm(false);
-        var result = await command.RunToCompletionAsync();
+        var result = await command.RunToCompletionAsync(TestContext.Current.CancellationToken);
 
         // assert
         result.StdErr.MatchInlineSnapshot(
@@ -111,7 +110,7 @@ public sealed class DeleteStageCommandTests(NitroCommandFixture fixture) : Stage
 
         // act
         command.Confirm(true);
-        var result = await command.RunToCompletionAsync();
+        var result = await command.RunToCompletionAsync(TestContext.Current.CancellationToken);
 
         // assert
         result.AssertSuccess();

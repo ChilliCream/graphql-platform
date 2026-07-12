@@ -87,7 +87,7 @@ public class RequirementTests : FusionTestBase
             }
 
             type Query {
-              productById(id: Int!): Product! @lookup @internal
+              productById(id: Int!): Product @lookup @internal
             }
             """");
 
@@ -151,7 +151,7 @@ public class RequirementTests : FusionTestBase
             }
 
             type Query {
-              productById(id: Int!): Product! @lookup @internal
+              productById(id: Int!): Product @lookup @internal
             }
 
             input NameInput {

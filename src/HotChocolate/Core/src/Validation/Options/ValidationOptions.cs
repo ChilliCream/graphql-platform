@@ -80,4 +80,50 @@ public sealed class ValidationOptions
         get;
         set => field = value > 0 ? value : (ushort)16;
     } = 1;
+
+    /// <summary>
+    /// <para>
+    /// The maximum number of field-merge comparisons allowed during
+    /// overlapping-fields-can-be-merged validation. This prevents
+    /// adversarial queries with deeply nested inline fragments from
+    /// consuming unbounded CPU.
+    /// </para>
+    /// <para>Default: <c>100,000</c></para>
+    /// </summary>
+    public int MaxAllowedFieldMergeComparisons
+    {
+        get;
+        set
+        {
+            if (value < 1)
+            {
+                value = 100_000;
+            }
+
+            field = value;
+        }
+    } = 100_000;
+
+    /// <summary>
+    /// <para>
+    /// The maximum number of fragment visits allowed during validation.
+    /// Each time a fragment spread is entered counts as one visit.
+    /// This prevents adversarial queries with deeply nested or repeated
+    /// fragment spreads from consuming unbounded CPU.
+    /// </para>
+    /// <para>Default: <c>1,000</c></para>
+    /// </summary>
+    public int MaxAllowedFragmentVisits
+    {
+        get;
+        set
+        {
+            if (value < 1)
+            {
+                value = 1_000;
+            }
+
+            field = value;
+        }
+    } = 1_000;
 }

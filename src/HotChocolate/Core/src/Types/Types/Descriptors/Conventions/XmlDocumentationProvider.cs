@@ -19,23 +19,19 @@ public partial class XmlDocumentationProvider : IDocumentationProvider
     private const string Code = "code";
     private const string Paramref = "paramref";
     private const string Name = "name";
-    private const BindingFlags BindingFlags =
-        System.Reflection.BindingFlags.Instance
-        | System.Reflection.BindingFlags.Static
-        | System.Reflection.BindingFlags.Public
-        | System.Reflection.BindingFlags.NonPublic
-        | System.Reflection.BindingFlags.DeclaredOnly;
-
     private static readonly char[] CrefTrimChars = ['!', ':', ' '];
 
     private readonly IXmlDocumentationResolver _documentationResolver;
     private readonly ObjectPool<StringBuilder> _stringBuilderPool;
 
     public XmlDocumentationProvider(
-        IXmlDocumentationResolver documentationResolver,
+        IXmlDocumentationFileResolver fileResolver,
         ObjectPool<StringBuilder> stringBuilderPool)
     {
-        _documentationResolver = documentationResolver ?? throw new ArgumentNullException(nameof(documentationResolver));
+        ArgumentNullException.ThrowIfNull(fileResolver);
+
+        _documentationResolver = fileResolver as IXmlDocumentationResolver
+            ?? new XmlDocumentationResolverAdapter(fileResolver);
         _stringBuilderPool = stringBuilderPool;
     }
 
@@ -134,7 +130,7 @@ public partial class XmlDocumentationProvider : IDocumentationProvider
         var errorCount = 0;
         foreach (var error in errors)
         {
-            if (!error.IsEmpty)
+            if (!string.IsNullOrEmpty(error.Value))
             {
                 var code = error.Attribute(Code);
                 if (code is not null)
@@ -251,7 +247,7 @@ public partial class XmlDocumentationProvider : IDocumentationProvider
     {
         try
         {
-            if (_documentationResolver.TryGetXmlDocument(
+            if (_documentationResolver.TryGetMemberLookup(
                 member.Module.Assembly,
                 out var elementLookup))
             {
@@ -276,7 +272,7 @@ public partial class XmlDocumentationProvider : IDocumentationProvider
     {
         try
         {
-            if (_documentationResolver.TryGetXmlDocument(
+            if (_documentationResolver.TryGetMemberLookup(
                 parameter.Member.Module.Assembly,
                 out var elementLookup))
             {
@@ -312,9 +308,13 @@ public partial class XmlDocumentationProvider : IDocumentationProvider
     {
         if (member.DeclaringType is not null)
         {
-            foreach (var baseInterface in member.DeclaringType.GetInterfaces())
+#pragma warning disable IL2075 // 'this' argument does not satisfy 'DynamicallyAccessedMembersAttribute' - DeclaringType is obtained from reflection which cannot be statically annotated.
+            foreach (var baseInterface in member.DeclaringType
+                .GetTypeInfo().ImplementedInterfaces)
             {
-                var baseMember = baseInterface.GetMember(member.Name, BindingFlags).SingleOrDefault();
+                var baseMember = baseInterface.GetTypeInfo()
+                    .DeclaredMembers.SingleOrDefault(m =>
+                        m.Name == member.Name);
                 if (baseMember != null)
                 {
                     var baseDoc = GetMemberElement(baseMember);
@@ -324,6 +324,7 @@ public partial class XmlDocumentationProvider : IDocumentationProvider
                     }
                 }
             }
+#pragma warning restore IL2075
         }
 
         return null;
@@ -333,7 +334,7 @@ public partial class XmlDocumentationProvider : IDocumentationProvider
         MemberInfo member,
         XElement element)
     {
-        if (element.Element(Inheritdoc) is null)
+        if (!element.Elements().Any(IsInheritdocElement))
         {
             return element;
         }
@@ -343,11 +344,15 @@ public partial class XmlDocumentationProvider : IDocumentationProvider
         // overhead since we only need to replace a few (generally 1) inheritdoc-elements.
         var elementCopy = new XElement(element.Name);
 
-        var baseType = member.DeclaringType?.BaseType;
-        var baseMember = baseType?.GetMember(member.Name, BindingFlags).SingleOrDefault();
+        var baseType = member.DeclaringType?.GetTypeInfo().BaseType;
+#pragma warning disable IL2075 // 'this' argument does not satisfy 'DynamicallyAccessedMembersAttribute' - baseType is obtained from reflection (BaseType) which cannot be statically annotated.
+        var baseMember = baseType?.GetTypeInfo().DeclaredMembers
+            .SingleOrDefault(m => m.Name == member.Name);
+#pragma warning restore IL2075
+
         foreach (var child in element.Elements())
         {
-            if (child.Name != Inheritdoc)
+            if (!IsInheritdocElement(child))
             {
                 elementCopy.Add(child);
                 continue;
@@ -366,6 +371,12 @@ public partial class XmlDocumentationProvider : IDocumentationProvider
 
         return elementCopy;
     }
+
+    private static bool IsInheritdocElement(XElement element) =>
+        string.Equals(
+            element.Name.LocalName,
+            Inheritdoc,
+            StringComparison.OrdinalIgnoreCase);
 
     private static string? RemoveLineBreakWhiteSpaces(StringBuilder stringBuilder)
     {
@@ -419,7 +430,8 @@ public partial class XmlDocumentationProvider : IDocumentationProvider
             materializedString = stringBuilder.ToString();
         }
 
-        return materializedString.Trim('\n', ' ');
+        materializedString = materializedString.Trim('\n', ' ');
+        return materializedString.Length == 0 ? null : materializedString;
     }
 
     private string GetMemberElementName(MemberInfo member)

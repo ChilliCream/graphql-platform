@@ -74,5 +74,5 @@ public class IsProjectedProjectionOptimizer : IProjectionOptimizer
         return selection;
     }
 
-    public static IsProjectedProjectionOptimizer Create(ProjectionProviderContext context) => new();
+    public static IsProjectedProjectionOptimizer Create(ProjectionProviderContext _) => new();
 }

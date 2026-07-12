@@ -70,9 +70,7 @@ public sealed class SourceSchemaMergerSerializeAsDirectiveTests : SourceSchemaMe
                 """
             ],
             """
-            scalar Foo
-                @fusion__type(schema: A)
-                @fusion__type(schema: B)
+            scalar Foo @fusion__type(schema: A) @fusion__type(schema: B)
             """,
             modifySchema: s_removeSerializeAsDirective);
     }
@@ -103,17 +101,11 @@ public sealed class SourceSchemaMergerSerializeAsDirectiveTests : SourceSchemaMe
                 """
             ],
             """
-            scalar Bar
-                @fusion__type(schema: A)
-                @fusion__type(schema: B)
+            scalar Bar @fusion__type(schema: A) @fusion__type(schema: B)
 
-            scalar Baz
-                @fusion__type(schema: A)
-                @fusion__type(schema: B)
+            scalar Baz @fusion__type(schema: A) @fusion__type(schema: B)
 
-            scalar Foo
-                @fusion__type(schema: A)
-                @fusion__type(schema: B)
+            scalar Foo @fusion__type(schema: A) @fusion__type(schema: B)
             """,
             modifySchema: s_removeSerializeAsDirective);
     }

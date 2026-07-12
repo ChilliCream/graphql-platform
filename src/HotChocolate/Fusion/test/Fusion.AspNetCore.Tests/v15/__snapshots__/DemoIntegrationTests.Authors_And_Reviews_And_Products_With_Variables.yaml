@@ -1,9 +1,7 @@
 title: Authors_And_Reviews_And_Products_With_Variables
 request:
   document: |
-    query TopProducts(
-      $first: Int!
-    ) {
+    query TopProducts($first: Int!) {
       topProducts(first: $first) {
         id
       }
@@ -36,16 +34,12 @@ sourceSchemas:
         query: Query
       }
 
-      interface Node {
-        id: ID!
-      }
-
       type Query {
         node(id: ID!): Node @lookup @shareable
         nodes(ids: [ID!]!): [Node]! @shareable
         userById(id: ID!): User!
         users: [User!]!
-        testWithTwoArgumentsDifferingNullability(first: Int! second: Int): String!
+        testWithTwoArgumentsDifferingNullability(first: Int!, second: Int): String!
       }
 
       type User implements Node {
@@ -54,26 +48,26 @@ sourceSchemas:
         username: String!
         birthdate: String!
       }
+
+      interface Node {
+        id: ID!
+      }
   - name: B
     schema: |
       schema {
         query: Query
       }
 
-      interface Node {
-        id: ID!
+      type Query {
+        node(id: ID!): Node @lookup @shareable
+        nodes(ids: [ID!]!): [Node]! @shareable
+        reviews: [Review!]!
       }
 
       type Product implements Node {
         id: ID!
         reviews: [Review!]!
         reviewCount: Int!
-      }
-
-      type Query {
-        node(id: ID!): Node @lookup @shareable
-        nodes(ids: [ID!]!): [Node]! @shareable
-        reviews: [Review!]!
       }
 
       type Review implements Node {
@@ -88,14 +82,21 @@ sourceSchemas:
         reviews: [Review!]!
         errorField: String @error
       }
+
+      interface Node {
+        id: ID!
+      }
   - name: C
     schema: |
       schema {
         query: Query
       }
 
-      interface Node {
-        id: ID!
+      type Query {
+        node(id: ID!): Node @lookup @shareable
+        nodes(ids: [ID!]!): [Node]! @shareable
+        productById(id: ID!): Product @lookup @shareable
+        topProducts(first: Int!): [Product!]!
       }
 
       type Product implements Node {
@@ -107,19 +108,16 @@ sourceSchemas:
         repeatData(data: RepeatDataInput!): RepeatDataPayload!
       }
 
-      type Query {
-        node(id: ID!): Node @lookup @shareable
-        nodes(ids: [ID!]!): [Node]! @shareable
-        productById(id: ID!): Product @lookup @shareable
-        topProducts(first: Int!): [Product!]!
-      }
-
       type RepeatDataData {
         num: Int!
       }
 
       type RepeatDataPayload {
         data: RepeatDataData!
+      }
+
+      interface Node {
+        id: ID!
       }
 
       input RepeatDataDataInput {
@@ -133,9 +131,7 @@ sourceSchemas:
       - request:
           accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
-            query TopProducts_42998eb3_1(
-              $first: Int!
-            ) {
+            query TopProducts_42998eb3_1($first: Int!) {
               topProducts(first: $first) {
                 id
               }
@@ -165,9 +161,7 @@ sourceSchemas:
 operationPlan:
   operation:
     - document: |
-        query TopProducts(
-          $first: Int!
-        ) {
+        query TopProducts($first: Int!) {
           topProducts(first: $first) {
             id
           }
@@ -181,9 +175,7 @@ operationPlan:
       type: Operation
       schema: C
       operation: |
-        query TopProducts_42998eb3_1(
-          $first: Int!
-        ) {
+        query TopProducts_42998eb3_1($first: Int!) {
           topProducts(first: $first) {
             id
           }

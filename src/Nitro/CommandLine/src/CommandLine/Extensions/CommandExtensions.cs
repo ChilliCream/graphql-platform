@@ -2,6 +2,7 @@ using System.Net;
 using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Results;
+using ChilliCream.Nitro.CommandLine.Services;
 
 namespace ChilliCream.Nitro.CommandLine;
 
@@ -13,8 +14,9 @@ internal static class CommandExtensions
     {
         command.SetAction(async (parseResult, cancellationToken) =>
         {
-            var services = CommandExecutionContext.Services.Value!;
+            var services = CommandExecutionContext.s_services.Value!;
             var console = services.GetRequiredService<INitroConsole>();
+            var context = services.GetRequiredService<NitroClientContext>();
 
             try
             {
@@ -27,17 +29,32 @@ internal static class CommandExtensions
                     console.Error.WriteErrorLine(exception.Message);
                 }
             }
+            catch (NitroClientNotFoundException ex)
+            {
+                console.Error.WriteErrorLine(
+                    ex.Message
+                    + Environment.NewLine
+                    + "This may mean the entity does not exist, or that you do not have permission to view it."
+                    + Environment.NewLine
+                    + $"If you are targeting a dedicated or self-hosted instance, make sure you supply the correct '{OptionalCloudUrlOption.OptionName}'. "
+                    + $"Currently targeting '{GetCleanApiUrl(context.Url)}'.");
+            }
             catch (NitroClientAuthorizationException)
             {
                 console.Error.WriteErrorLine(
-                    "The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.");
+                    "The server rejected your request as unauthorized."
+                    + Environment.NewLine
+                    + "Ensure your account or API key has the proper permissions for this action."
+                    + Environment.NewLine
+                    + $"If you are targeting a dedicated or self-hosted instance, make sure you supply the correct '{OptionalCloudUrlOption.OptionName}'. "
+                    + $"Currently targeting '{GetCleanApiUrl(context.Url)}'.");
             }
             catch (NitroClientHttpRequestException ex) when (ex.StatusCode == HttpStatusCode.RequestEntityTooLarge)
             {
                 console.Error.WriteErrorLine(
-                    "The server returned a 413 (Request Entity Too Large) HTTP status code. "
-                    + "If you are running a self-hosted instance, check your ingress controller body-size limits, "
-                    + "reverse proxy settings, or load balancer request size limits.");
+                    "The server returned a 413 (Request Entity Too Large) HTTP status code."
+                    + Environment.NewLine
+                    + "If you are targeting a self-hosted instance, check your ingress controller, reverse proxy, or load balancer request size limits.");
             }
             catch (NitroClientHttpRequestException ex)
             {
@@ -47,10 +64,12 @@ internal static class CommandExtensions
 
                 console.Error.WriteErrorLine(message);
             }
-            catch (NitroClientGraphQLException ex) when (ex.Code == "HC0067")
+            catch (NitroClientGraphQLException ex) when (ex.Code == "HC0020")
             {
                 console.Error.WriteErrorLine(
-                    "The server rejected the persisted operation of the command. Make sure your Nitro backend is on the latest version.");
+                    "The server rejected the persisted operation of the command."
+                    + Environment.NewLine
+                    + "If you are targeting a self-hosted instance, make sure it's running the latest version, or downgrade your CLI to match.");
             }
             catch (NitroClientGraphQLException ex)
             {
@@ -59,11 +78,6 @@ internal static class CommandExtensions
                     : $"The server returned an unexpected GraphQL error: {ex.ErrorMessage.EscapeMarkup()} ({ex.Code})";
 
                 console.Error.WriteErrorLine(message);
-            }
-            catch (NitroClientException ex)
-            {
-                console.Error.WriteErrorLine(
-                    $"There was an unexpected client error: {ex.Message.EscapeMarkup()}");
             }
             catch (Exception ex) when (ex is OperationCanceledException or TaskCanceledException)
             {
@@ -93,5 +107,19 @@ internal static class CommandExtensions
         command.Options.Add(Opt<OptionalOutputFormatOption>.Instance);
 
         return command;
+    }
+
+    private static string GetCleanApiUrl(Uri apiUrl)
+    {
+        var uriBuilder = new UriBuilder(apiUrl.AbsoluteUri)
+        {
+            Path = null,
+            Query = string.Empty,
+            Fragment = string.Empty,
+            UserName = string.Empty,
+            Password = string.Empty
+        };
+
+        return uriBuilder.Uri.AbsoluteUri.TrimEnd('/');
     }
 }

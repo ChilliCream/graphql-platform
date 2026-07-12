@@ -1,8 +1,6 @@
 operation:
   - document: |
-      query(
-        $included: Boolean!
-      ) {
+      query($included: Boolean!) {
         recommender @include(if: $included) {
           id
           results {

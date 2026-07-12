@@ -1,0 +1,16 @@
+title: Documents
+items:
+  - path: index
+    title: Overview
+  - path: operations
+    title: Operations
+  - path: response
+    title: Response Pane
+  - path: schema-reference
+    title: Schema Reference
+  - path: schema-definition
+    title: Schema Definition
+  - path: connection-settings
+    title: Connection Settings
+  - path: authentication
+    title: Authentication Flows

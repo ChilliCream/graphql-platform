@@ -27,20 +27,20 @@ sourceSchemas:
         query: Query
       }
 
-      type Author {
-        id: ID!
-      }
-
-      type Book {
-        author: Author
-        id: ID!
-        title: String!
-      }
-
       type Query {
         books: [Book!]!
         bookById(id: ID!): Book @lookup @internal
         authorById(id: ID!): Author @lookup @internal
+      }
+
+      type Author @key(fields: "id") {
+        id: ID!
+      }
+
+      type Book @key(fields: "id") {
+        author: Author
+        id: ID!
+        title: String!
       }
     interactions:
       - request:
@@ -72,27 +72,25 @@ sourceSchemas:
         query: Query
       }
 
-      type Author {
+      type Query {
+        bookById(id: ID!): Book @lookup @internal
+        authorById(id: ID!): Author @lookup @internal
+      }
+
+      type Author @key(fields: "id") {
         name(postFix: String): String!
         id: ID!
       }
 
-      type Book {
+      type Book @key(fields: "id") {
         rating: String!
         id: ID!
-      }
-
-      type Query {
-        bookById(id: ID!): Book @lookup @internal
-        authorById(id: ID!): Author @lookup @internal
       }
     interactions:
       - request:
           accept: application/jsonl
           document: |
-            query Op_490e9345_2(
-              $__fusion_1_id: ID!
-            ) {
+            query Op_490e9345_2($__fusion_1_id: ID!) {
               bookById(id: $__fusion_1_id) {
                 rating
               }
@@ -151,9 +149,7 @@ operationPlan:
       type: Operation
       schema: b
       operation: |
-        query Op_490e9345_2(
-          $__fusion_1_id: ID!
-        ) {
+        query Op_490e9345_2($__fusion_1_id: ID!) {
           bookById(id: $__fusion_1_id) {
             rating
           }

@@ -192,7 +192,7 @@ namespace Foo.Bar
     /// query GetAll {
     ///   listings {
     ///     __typename
-    ///     ... Offer
+    ///     ...Offer
     ///   }
     /// }
     /// 
@@ -211,8 +211,8 @@ namespace Foo.Bar
 
         public static GetAllQueryDocument Instance { get; } = new GetAllQueryDocument();
         public global::StrawberryShake.OperationKind Kind => global::StrawberryShake.OperationKind.Query;
-        public global::System.ReadOnlySpan<global::System.Byte> Body => "query GetAll { listings { __typename ... Offer } } fragment Offer on Offer { numberFloat numberInt }"u8;
-        public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("sha1Hash", "f1d55f52ab8224f1113e9ad0cb8321f1bafff815");
+        public global::System.ReadOnlySpan<global::System.Byte> Body => "query GetAll { listings { __typename ...Offer } } fragment Offer on Offer { numberFloat numberInt }"u8;
+        public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("sha1Hash", "252679150c3bc1c0307d65c10b0a5d3232cb1a7e");
 
         public override global::System.String ToString()
         {
@@ -231,7 +231,7 @@ namespace Foo.Bar
     /// query GetAll {
     ///   listings {
     ///     __typename
-    ///     ... Offer
+    ///     ...Offer
     ///   }
     /// }
     /// 
@@ -314,7 +314,7 @@ namespace Foo.Bar
     /// query GetAll {
     ///   listings {
     ///     __typename
-    ///     ... Offer
+    ///     ...Offer
     ///   }
     /// }
     /// 

@@ -1,10 +1,7 @@
 using ChilliCream.Nitro.Client.FusionConfiguration;
-using ChilliCream.Nitro.CommandLine;
-using ChilliCream.Nitro.CommandLine.Configuration;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Results;
 using ChilliCream.Nitro.CommandLine.Services;
-using ChilliCream.Nitro.CommandLine.Services.Configuration;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Fusion.PublishCommand;
@@ -52,10 +49,8 @@ internal sealed class FusionConfigurationPublishBeginCommand : Command
         var stageName = parseResult.GetRequiredValue(Opt<StageNameOption>.Instance);
         var apiId = parseResult.GetRequiredValue(Opt<ApiIdOption>.Instance);
         var tag = parseResult.GetRequiredValue(Opt<TagOption>.Instance);
-        var subgraphId =
-            parseResult.GetRequiredValue(Opt<OptionalSubgraphIdOption>.Instance);
-        var subgraphName =
-            parseResult.GetRequiredValue(Opt<OptionalSubgraphNameOption>.Instance);
+        var subgraphId = parseResult.GetValue(Opt<OptionalSubgraphIdOption>.Instance);
+        var subgraphName = parseResult.GetValue(Opt<OptionalSubgraphNameOption>.Instance);
         var waitForApproval =
             parseResult.GetValue(Opt<OptionalWaitForApprovalOption>.Instance);
         var sourceMetadataJson =
@@ -86,6 +81,8 @@ internal sealed class FusionConfigurationPublishBeginCommand : Command
                 console,
                 fusionConfigurationClient,
                 cancellationToken);
+
+            activity.Success("Deployment slot ready.");
 
             resultHolder.SetResult(new ObjectResult(new FusionConfigurationPublishBeginCommandResult { RequestId = requestId }));
 

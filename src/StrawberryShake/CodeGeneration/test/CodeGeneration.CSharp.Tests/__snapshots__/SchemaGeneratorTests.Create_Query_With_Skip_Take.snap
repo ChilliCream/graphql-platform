@@ -264,11 +264,7 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the SearchNewsItems GraphQL operation
     /// <code>
-    /// query SearchNewsItems(
-    ///   $query: String!
-    ///     $skip: Int
-    ///     $take: Int
-    /// ) {
+    /// query SearchNewsItems($query: String!, $skip: Int, $take: Int) {
     ///   newsItems(skip: $skip, take: $take, query: $query) {
     ///     __typename
     ///     items {
@@ -310,11 +306,7 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the SearchNewsItems GraphQL operation
     /// <code>
-    /// query SearchNewsItems(
-    ///   $query: String!
-    ///     $skip: Int
-    ///     $take: Int
-    /// ) {
+    /// query SearchNewsItems($query: String!, $skip: Int, $take: Int) {
     ///   newsItems(skip: $skip, take: $take, query: $query) {
     ///     __typename
     ///     items {
@@ -444,11 +436,7 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the SearchNewsItems GraphQL operation
     /// <code>
-    /// query SearchNewsItems(
-    ///   $query: String!
-    ///     $skip: Int
-    ///     $take: Int
-    /// ) {
+    /// query SearchNewsItems($query: String!, $skip: Int, $take: Int) {
     ///   newsItems(skip: $skip, take: $take, query: $query) {
     ///     __typename
     ///     items {

@@ -1,19 +1,15 @@
 using System.Net;
 using HotChocolate.AspNetCore.Tests.Utilities;
 using HotChocolate.Execution;
+using HotChocolate.Types;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace HotChocolate.AspNetCore;
 
-public class HttpGetSchemaMiddlewareTests : ServerTestBase
+public class HttpGetSchemaMiddlewareTests(TestServerFactory serverFactory) : ServerTestBase(serverFactory)
 {
-    public HttpGetSchemaMiddlewareTests(TestServerFactory serverFactory)
-        : base(serverFactory)
-    {
-    }
-
     [Fact]
     public async Task Download_GraphQL_SDL()
     {
@@ -23,11 +19,11 @@ public class HttpGetSchemaMiddlewareTests : ServerTestBase
         var request = new HttpRequestMessage(HttpMethod.Get, url);
 
         // act
-        var response = await server.CreateClient().SendAsync(request);
+        var response = await server.CreateClient().SendAsync(request, TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        var result = await response.Content.ReadAsStringAsync();
+        var result = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
 
         result.MatchSnapshot();
     }
@@ -50,7 +46,7 @@ public class HttpGetSchemaMiddlewareTests : ServerTestBase
         var request = new HttpRequestMessage(HttpMethod.Get, url);
 
         // act
-        var response = await server.CreateClient().SendAsync(request);
+        var response = await server.CreateClient().SendAsync(request, TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -79,7 +75,7 @@ public class HttpGetSchemaMiddlewareTests : ServerTestBase
         var request = new HttpRequestMessage(HttpMethod.Get, url);
 
         // act
-        var response = await server.CreateClient().SendAsync(request);
+        var response = await server.CreateClient().SendAsync(request, TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -106,7 +102,7 @@ public class HttpGetSchemaMiddlewareTests : ServerTestBase
         var request = new HttpRequestMessage(HttpMethod.Get, url);
 
         // act
-        var response = await server.CreateClient().SendAsync(request);
+        var response = await server.CreateClient().SendAsync(request, TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
@@ -121,11 +117,11 @@ public class HttpGetSchemaMiddlewareTests : ServerTestBase
         var request = new HttpRequestMessage(HttpMethod.Get, url);
 
         // act
-        var response = await server.CreateClient().SendAsync(request);
+        var response = await server.CreateClient().SendAsync(request, TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        var result = await response.Content.ReadAsStringAsync();
+        var result = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
 
         result.MatchSnapshot();
     }
@@ -139,11 +135,11 @@ public class HttpGetSchemaMiddlewareTests : ServerTestBase
         var request = new HttpRequestMessage(HttpMethod.Get, url);
 
         // act
-        var response = await server.CreateClient().SendAsync(request);
+        var response = await server.CreateClient().SendAsync(request, TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        var result = await response.Content.ReadAsStringAsync();
+        var result = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
 
         result.MatchSnapshot();
     }
@@ -157,11 +153,11 @@ public class HttpGetSchemaMiddlewareTests : ServerTestBase
         var request = new HttpRequestMessage(HttpMethod.Get, url);
 
         // act
-        var response = await server.CreateClient().SendAsync(request);
+        var response = await server.CreateClient().SendAsync(request, TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
-        var result = await response.Content.ReadAsStringAsync();
+        var result = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
         result.MatchSnapshot();
     }
 
@@ -174,11 +170,11 @@ public class HttpGetSchemaMiddlewareTests : ServerTestBase
         var request = new HttpRequestMessage(HttpMethod.Get, url);
 
         // act
-        var response = await server.CreateClient().SendAsync(request);
+        var response = await server.CreateClient().SendAsync(request, TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-        var result = await response.Content.ReadAsStringAsync();
+        var result = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
         result.MatchSnapshot();
     }
 
@@ -191,11 +187,11 @@ public class HttpGetSchemaMiddlewareTests : ServerTestBase
         var request = new HttpRequestMessage(HttpMethod.Get, url);
 
         // act
-        var response = await server.CreateClient().SendAsync(request);
+        var response = await server.CreateClient().SendAsync(request, TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-        var result = await response.Content.ReadAsStringAsync();
+        var result = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
         result.MatchSnapshot();
     }
 
@@ -208,11 +204,11 @@ public class HttpGetSchemaMiddlewareTests : ServerTestBase
         var request = new HttpRequestMessage(HttpMethod.Get, url);
 
         // act
-        var response = await server.CreateClient().SendAsync(request);
+        var response = await server.CreateClient().SendAsync(request, TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        var result = await response.Content.ReadAsStringAsync();
+        var result = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
 
         result.MatchSnapshot();
     }
@@ -226,11 +222,11 @@ public class HttpGetSchemaMiddlewareTests : ServerTestBase
         var request = new HttpRequestMessage(HttpMethod.Get, url);
 
         // act
-        var response = await server.CreateClient().SendAsync(request);
+        var response = await server.CreateClient().SendAsync(request, TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        var result = await response.Content.ReadAsStringAsync();
+        var result = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
         result.MatchSnapshot();
     }
 
@@ -251,16 +247,87 @@ public class HttpGetSchemaMiddlewareTests : ServerTestBase
         var request = new HttpRequestMessage(HttpMethod.Get, url);
 
         // act
-        var response = await server.CreateClient().SendAsync(request);
+        var response = await server.CreateClient().SendAsync(request, TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
-        var result = await response.Content.ReadAsStringAsync();
+        var result = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+        result.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Download_GraphQL_Schema_Does_Not_Include_Internal_Directives()
+    {
+        // arrange
+        var server = ServerFactory.Create(
+            services => services
+                .AddRouting()
+                .AddGraphQLServer()
+                .AddDirectiveType<InternalDirectiveType>()
+                .AddQueryType<DirectiveQueryType>(),
+            app => app
+                .UseRouting()
+                .UseEndpoints(endpoints => endpoints.MapGraphQLSchema()));
+        var url = TestServerExtensions.CreateUrl("/graphql/sdl");
+        var request = new HttpRequestMessage(HttpMethod.Get, url);
+
+        // act
+        var response = await server.CreateClient().SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var result = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+        result.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Download_GraphQL_Schema_Includes_Internal_Directives_When_DisableInternalDirectives_Is_True()
+    {
+        // arrange
+        var server = ServerFactory.Create(
+            services => services
+                .AddRouting()
+                .AddGraphQLServer()
+                .ModifyOptions(o => o.DisableInternalDirectives = true)
+                .AddDirectiveType<InternalDirectiveType>()
+                .AddQueryType<DirectiveQueryType>(),
+            app => app
+                .UseRouting()
+                .UseEndpoints(endpoints => endpoints.MapGraphQLSchema()));
+        var url = TestServerExtensions.CreateUrl("/graphql/sdl");
+        var request = new HttpRequestMessage(HttpMethod.Get, url);
+
+        // act
+        var response = await server.CreateClient().SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var result = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
         result.MatchSnapshot();
     }
 
     private sealed class StaticTimeProvider : ITimeProvider
     {
         public DateTimeOffset UtcNow { get; } = new(2021, 1, 1, 0, 0, 0, TimeSpan.Zero);
+    }
+
+    public class DirectiveQueryType : ObjectType
+    {
+        protected override void Configure(IObjectTypeDescriptor descriptor)
+        {
+            descriptor.Name("Query");
+            descriptor.Field("secret").Type<NonNullType<StringType>>().Resolve("secret").Directive("internal");
+            descriptor.Field("public").Type<NonNullType<StringType>>().Resolve("public");
+        }
+    }
+
+    public class InternalDirectiveType : DirectiveType
+    {
+        protected override void Configure(IDirectiveTypeDescriptor descriptor)
+        {
+            descriptor.Name("internal");
+            descriptor.Location(DirectiveLocation.FieldDefinition);
+            descriptor.Internal();
+        }
     }
 }

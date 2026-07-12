@@ -19,16 +19,19 @@ public ref struct Utf8GraphQLRequestParser
     private readonly IDocumentCache? _cache;
     private readonly bool _useCache;
     private readonly ParserOptions _options;
+    private readonly bool _skipDocumentBody;
 
     public Utf8GraphQLRequestParser(
         ParserOptions? options = null,
         IDocumentCache? cache = null,
-        IDocumentHashProvider? hashProvider = null)
+        IDocumentHashProvider? hashProvider = null,
+        bool skipDocumentBody = false)
     {
         _options = options ?? ParserOptions.Default;
         _cache = cache;
         _hashProvider = hashProvider;
         _useCache = cache is not null;
+        _skipDocumentBody = skipDocumentBody;
     }
 
     public readonly GraphQLRequest[] Parse(ReadOnlySpan<byte> requestData)
@@ -169,6 +172,7 @@ public ref struct Utf8GraphQLRequestParser
         ReadOnlySequence<byte> documentSequence = default;
         ReadOnlySpan<byte> documentSpan = default;
         var isDocumentEscaped = false;
+        var hasDocumentBody = false;
 
         while (reader.Read() && reader.TokenType != JsonTokenType.EndObject)
         {
@@ -183,15 +187,22 @@ public ref struct Utf8GraphQLRequestParser
                 reader.Read();
                 if (reader.TokenType == JsonTokenType.String)
                 {
-                    isDocumentEscaped = reader.ValueIsEscaped;
-
-                    if (reader.HasValueSequence)
+                    if (_skipDocumentBody)
                     {
-                        documentSequence = reader.ValueSequence;
+                        hasDocumentBody = true;
                     }
                     else
                     {
-                        documentSpan = reader.ValueSpan;
+                        isDocumentEscaped = reader.ValueIsEscaped;
+
+                        if (reader.HasValueSequence)
+                        {
+                            documentSequence = reader.ValueSequence;
+                        }
+                        else
+                        {
+                            documentSpan = reader.ValueSpan;
+                        }
                     }
                 }
                 else if (reader.TokenType == JsonTokenType.Null)
@@ -351,7 +362,7 @@ public ref struct Utf8GraphQLRequestParser
         }
 
         // Validation
-        if (document is null && documentId.IsEmpty)
+        if (document is null && documentId.IsEmpty && !hasDocumentBody)
         {
             throw new InvalidGraphQLRequestException("Request must contain either a query or a document id.");
         }
@@ -363,7 +374,8 @@ public ref struct Utf8GraphQLRequestParser
             operationName,
             errorHandlingMode,
             variables,
-            extensions);
+            extensions,
+            hasDocumentBody);
     }
 
     private readonly void ParseDocument(

@@ -4,6 +4,7 @@ using HotChocolate.AspNetCore;
 using HotChocolate.Configuration;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Fusion.Execution.Clients;
+using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.TestHost;
@@ -20,9 +21,11 @@ public abstract partial class FusionTestBase
         Action<IServiceCollection>? configureServices = null,
         Action<IApplicationBuilder>? configureApplication = null,
         Action<HttpClient>? configureHttpClient = null,
+        HttpClient? httpClient = null,
         bool isOffline = false,
         bool isTimingOut = false,
         SourceSchemaClientCapabilities capabilities = SourceSchemaClientCapabilities.All,
+        ErrorHandlingMode? onError = null,
         ImmutableArray<MediaTypeWithQualityHeaderValue>? defaultAcceptHeaderValues = null,
         ImmutableArray<MediaTypeWithQualityHeaderValue>? batchingAcceptHeaderValues = null,
         ImmutableArray<MediaTypeWithQualityHeaderValue>? subscriptionAcceptHeaderValues = null,
@@ -52,8 +55,10 @@ public abstract partial class FusionTestBase
                     opt.IsOffline = isOffline;
                     opt.IsTimingOut = isTimingOut;
                     opt.ConfigureHttpClient = configureHttpClient;
+                    opt.HttpClient = httpClient;
                     opt.MockHttpResponse = mockHttpResponse;
                     opt.Capabilities = capabilities;
+                    opt.OnError = onError;
                     opt.DefaultAcceptHeaderValues = defaultAcceptHeaderValues;
                     opt.BatchingAcceptHeaderValues = batchingAcceptHeaderValues;
                     opt.SubscriptionAcceptHeaderValues = subscriptionAcceptHeaderValues;
@@ -70,6 +75,7 @@ public abstract partial class FusionTestBase
         Action<HttpClient>? configureHttpClient = null,
         HttpClient? httpClient = null,
         SourceSchemaClientCapabilities capabilities = SourceSchemaClientCapabilities.All,
+        ErrorHandlingMode? onError = null,
         ImmutableArray<MediaTypeWithQualityHeaderValue>? defaultAcceptHeaderValues = null,
         ImmutableArray<MediaTypeWithQualityHeaderValue>? batchingAcceptHeaderValues = null,
         ImmutableArray<MediaTypeWithQualityHeaderValue>? subscriptionAcceptHeaderValues = null,
@@ -96,6 +102,7 @@ public abstract partial class FusionTestBase
                     opt.HttpClient = httpClient;
                     opt.MockHttpResponse = mockHttpResponse;
                     opt.Capabilities = capabilities;
+                    opt.OnError = onError;
                     opt.DefaultAcceptHeaderValues = defaultAcceptHeaderValues;
                     opt.BatchingAcceptHeaderValues = batchingAcceptHeaderValues;
                     opt.SubscriptionAcceptHeaderValues = subscriptionAcceptHeaderValues;
@@ -129,6 +136,8 @@ public abstract partial class FusionTestBase
                 yield return typeInspector.GetTypeRef(typeof(Composite.Is));
                 yield return typeInspector.GetTypeRef(typeof(Composite.Provides));
                 yield return typeInspector.GetTypeRef(typeof(Composite.Shareable));
+                yield return typeInspector.GetTypeRef(typeof(Composite.InterfaceObject));
+                yield return typeInspector.GetTypeRef(typeof(Composite.External));
 
                 _registeredTypes = true;
             }

@@ -45,10 +45,10 @@ public sealed class LogoutCommandTests(NitroCommandFixture fixture) : SessionCom
     }
 
     [Fact]
-    public async Task LogoutThrowsExitException_ReturnsError()
+    public async Task LogoutThrows_ReturnsError()
     {
         // arrange
-        SetupLogoutThrowsExitException();
+        SetupLogoutThrows();
 
         // act
         var result = await ExecuteCommandAsync("logout");
@@ -59,23 +59,6 @@ public sealed class LogoutCommandTests(NitroCommandFixture fixture) : SessionCom
             Logging out
             └── ✕ Failed to log out.
             """);
-        result.StdErr.MatchInlineSnapshot(
-            """
-            Session deletion failed.
-            """);
-        Assert.Equal(1, result.ExitCode);
-    }
-
-    [Fact]
-    public async Task LogoutThrows_ReturnsError()
-    {
-        // arrange
-        SetupLogoutThrows();
-
-        // act
-        var result = await ExecuteCommandAsync("logout");
-
-        // assert
         result.StdErr.MatchInlineSnapshot(
             """
             There was an unexpected error: Something unexpected happened.

@@ -23,7 +23,7 @@ public class EntityFrameworkResolverCompilerIntegrationTests
             .AddGraphQL()
             .AddQueryType<Query>()
             .RegisterDbContextFactory<BookContext>()
-            .ExecuteRequestAsync("{ books { title } }");
+            .ExecuteRequestAsync("{ books { title } }", cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
         result.MatchSnapshot();
     }
@@ -46,7 +46,8 @@ public class EntityFrameworkResolverCompilerIntegrationTests
             OperationRequestBuilder.New()
                 .SetDocument("{ books { title } }")
                 .SetServices(scope.ServiceProvider)
-                .Build());
+                .Build(),
+            cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
         result.MatchSnapshot();
     }
@@ -67,7 +68,8 @@ public class EntityFrameworkResolverCompilerIntegrationTests
             OperationRequestBuilder.New()
                 .SetDocument("{ books { title } }")
                 .SetServices(service)
-                .Build());
+                .Build(),
+            cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
         result.MatchSnapshot();
     }
@@ -88,7 +90,8 @@ public class EntityFrameworkResolverCompilerIntegrationTests
             OperationRequestBuilder.New()
                 .SetDocument("{ books { title } }")
                 .SetServices(service)
-                .Build());
+                .Build(),
+            cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
         result.MatchSnapshot();
     }

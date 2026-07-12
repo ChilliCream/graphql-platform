@@ -23,7 +23,7 @@ public class RabbitMQDispatchEndpointTests
 
         // assert
         Assert.NotNull(endpoint.Queue);
-        Assert.Equal("my-q", endpoint.Queue!.Name);
+        Assert.Equal("my-q", endpoint.Queue.Name);
         Assert.Null(endpoint.Exchange);
         Assert.IsType<RabbitMQQueue>(endpoint.Destination);
     }
@@ -46,7 +46,7 @@ public class RabbitMQDispatchEndpointTests
 
         // assert
         Assert.NotNull(endpoint.Exchange);
-        Assert.Equal("my-ex", endpoint.Exchange!.Name);
+        Assert.Equal("my-ex", endpoint.Exchange.Name);
         Assert.Null(endpoint.Queue);
         Assert.IsType<RabbitMQExchange>(endpoint.Destination);
     }

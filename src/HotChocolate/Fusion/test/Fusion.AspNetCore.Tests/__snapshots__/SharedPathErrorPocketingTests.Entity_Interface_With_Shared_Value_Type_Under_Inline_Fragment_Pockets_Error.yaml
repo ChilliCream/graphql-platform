@@ -40,8 +40,9 @@ sourceSchemas:
         query: Query
       }
 
-      interface INode @key(fields: "id") {
-        id: Int!
+      type Query {
+        node: INode @shareable
+        productA(id: Int!): Product @lookup
       }
 
       type Product implements INode @key(fields: "id") {
@@ -49,13 +50,12 @@ sourceSchemas:
         shared: SharedData @shareable @error
       }
 
-      type Query {
-        node: INode @shareable
-        productA(id: Int!): Product @lookup
-      }
-
       type SharedData @shareable {
         a: String
+      }
+
+      interface INode @key(fields: "id") {
+        id: Int!
       }
     interactions:
       - request:
@@ -97,8 +97,9 @@ sourceSchemas:
         query: Query
       }
 
-      interface INode @key(fields: "id") {
-        id: Int!
+      type Query {
+        node: INode @shareable
+        productB(id: Int!): Product @lookup
       }
 
       type Product implements INode @key(fields: "id") {
@@ -106,13 +107,12 @@ sourceSchemas:
         shared: SharedData @shareable
       }
 
-      type Query {
-        node: INode @shareable
-        productB(id: Int!): Product @lookup
-      }
-
       type SharedData @shareable {
         b: String
+      }
+
+      interface INode @key(fields: "id") {
+        id: Int!
       }
     interactions:
       - request:

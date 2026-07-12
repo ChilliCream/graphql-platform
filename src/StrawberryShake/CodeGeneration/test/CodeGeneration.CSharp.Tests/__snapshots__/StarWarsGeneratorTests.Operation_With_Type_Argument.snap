@@ -359,10 +359,7 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the CreateReviewMut GraphQL operation
     /// <code>
-    /// mutation CreateReviewMut(
-    ///   $episode: Episode!
-    ///     $review: ReviewInput!
-    /// ) {
+    /// mutation CreateReviewMut($episode: Episode!, $review: ReviewInput!) {
     ///   createReview(episode: $episode, review: $review) {
     ///     __typename
     ///     stars
@@ -397,10 +394,7 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the CreateReviewMut GraphQL operation
     /// <code>
-    /// mutation CreateReviewMut(
-    ///   $episode: Episode!
-    ///     $review: ReviewInput!
-    /// ) {
+    /// mutation CreateReviewMut($episode: Episode!, $review: ReviewInput!) {
     ///   createReview(episode: $episode, review: $review) {
     ///     __typename
     ///     stars
@@ -503,10 +497,7 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the CreateReviewMut GraphQL operation
     /// <code>
-    /// mutation CreateReviewMut(
-    ///   $episode: Episode!
-    ///     $review: ReviewInput!
-    /// ) {
+    /// mutation CreateReviewMut($episode: Episode!, $review: ReviewInput!) {
     ///   createReview(episode: $episode, review: $review) {
     ///     __typename
     ///     stars

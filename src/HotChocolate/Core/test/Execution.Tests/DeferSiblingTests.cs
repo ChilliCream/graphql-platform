@@ -74,7 +74,8 @@ public class DeferSiblingTests
                     }
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         var stream = Assert.IsType<ResponseStream>(result);
@@ -170,7 +171,8 @@ public class DeferSiblingTests
                     }
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         var stream = Assert.IsType<ResponseStream>(result);
@@ -277,7 +279,8 @@ public class DeferSiblingTests
                     }
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         var stream = Assert.IsType<ResponseStream>(result);
@@ -374,7 +377,8 @@ public class DeferSiblingTests
                     }
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         var stream = Assert.IsType<ResponseStream>(result);
@@ -460,7 +464,8 @@ public class DeferSiblingTests
             fragment FragB on Stage {
                 version
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         var stream = Assert.IsType<ResponseStream>(result);
@@ -523,7 +528,8 @@ public class DeferSiblingTests
                     }
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         var stream = Assert.IsType<ResponseStream>(result);

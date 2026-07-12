@@ -349,16 +349,16 @@ namespace Foo.Bar
     /// query GetAll {
     ///   listings {
     ///     __typename
-    ///     ... ListingsPayload
+    ///     ...ListingsPayload
     ///   }
     /// }
     /// 
     /// fragment ListingsPayload on ListingsPayload {
     ///   items {
     ///     __typename
-    ///     ... HasListingId
-    ///     ... Offer
-    ///     ... Auction
+    ///     ...HasListingId
+    ///     ...Offer
+    ///     ...Auction
     ///   }
     /// }
     /// 
@@ -384,8 +384,8 @@ namespace Foo.Bar
 
         public static GetAllQueryDocument Instance { get; } = new GetAllQueryDocument();
         public global::StrawberryShake.OperationKind Kind => global::StrawberryShake.OperationKind.Query;
-        public global::System.ReadOnlySpan<global::System.Byte> Body => "query GetAll { listings { __typename ... ListingsPayload } } fragment ListingsPayload on ListingsPayload { items { __typename ... HasListingId ... Offer ... Auction } } fragment HasListingId on Listing { listingId } fragment Offer on Offer { price } fragment Auction on Auction { startingPrice }"u8;
-        public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("sha1Hash", "c2ce13cb04932b7d4f0a3b22a6566fa34494b068");
+        public global::System.ReadOnlySpan<global::System.Byte> Body => "query GetAll { listings { __typename ...ListingsPayload } } fragment ListingsPayload on ListingsPayload { items { __typename ...HasListingId ...Offer ...Auction } } fragment HasListingId on Listing { listingId } fragment Offer on Offer { price } fragment Auction on Auction { startingPrice }"u8;
+        public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("sha1Hash", "aed0fe6ddfb3a3140d2d2fe0387b8b983d719fbe");
 
         public override global::System.String ToString()
         {
@@ -404,16 +404,16 @@ namespace Foo.Bar
     /// query GetAll {
     ///   listings {
     ///     __typename
-    ///     ... ListingsPayload
+    ///     ...ListingsPayload
     ///   }
     /// }
     /// 
     /// fragment ListingsPayload on ListingsPayload {
     ///   items {
     ///     __typename
-    ///     ... HasListingId
-    ///     ... Offer
-    ///     ... Auction
+    ///     ...HasListingId
+    ///     ...Offer
+    ///     ...Auction
     ///   }
     /// }
     /// 
@@ -503,16 +503,16 @@ namespace Foo.Bar
     /// query GetAll {
     ///   listings {
     ///     __typename
-    ///     ... ListingsPayload
+    ///     ...ListingsPayload
     ///   }
     /// }
     /// 
     /// fragment ListingsPayload on ListingsPayload {
     ///   items {
     ///     __typename
-    ///     ... HasListingId
-    ///     ... Offer
-    ///     ... Auction
+    ///     ...HasListingId
+    ///     ...Offer
+    ///     ...Auction
     ///   }
     /// }
     /// 

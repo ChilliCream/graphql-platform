@@ -17,9 +17,55 @@ internal static class Messages
     public static string UnexpectedMutationError(IError error)
         => $"Unexpected mutation error: {error.Message}";
 
+    public static string DuplicateName(string name, string entity)
+        => $"The name '{name.EscapeMarkup()}' is already in use by another {entity}.";
+
     public static string SchemaFileDoesNotExist(string path) => $"Schema file '{path}' does not exist.";
 
+    public static string SchemaSettingsFileDoesNotExist(string path) => $"Schema settings file '{path}' does not exist.";
+
+    public static string SourceSchemaSettingsNameInvalid(string path)
+        => $"Source schema settings file '{path}' must specify a non-empty string 'name'.";
+
+    public static string SourceSchemaUrlInvalid()
+        => $"The value for '{OptionalSourceSchemaUrlListOption.OptionName}' must be an absolute HTTP URL without user information or a fragment.";
+
+    public static string SourceSchemaUrlSettingsCountMismatch()
+        => $"The options '{OptionalSourceSchemaUrlListOption.OptionName}' and "
+            + $"'{OptionalSourceSchemaSettingsFileListOption.OptionName}' must be specified the same number of times.";
+
+    public static string SourceSchemaTransportFailed(string sourceSchemaName)
+        => $"Failed to connect to source schema '{sourceSchemaName}' while downloading its schema.";
+
+    public static string DuplicateSourceSchemaName(string sourceSchemaName)
+        => $"Source schema '{sourceSchemaName}' was specified more than once.";
+
+    public static string WatchedSourceSchemaNameChanged()
+        => "A source schema settings 'name' cannot change during watch mode.";
+
+    public static string SchemaExtensionsFileCannotBeUsedAsSchemaFile(string path)
+        => $"Schema extensions file '{path}' cannot be used as a source schema file. Provide the base schema file instead.";
+
     public static string ArchiveFileDoesNotExist(string path) => $"Archive file '{path}' does not exist.";
+
+    public static string SourceSchemaDoesNotExistInArchive(string sourceSchemaName, string archiveFile)
+        => $"Source schema '{sourceSchemaName}' does not exist in the Fusion archive '{archiveFile}'.";
+
+    public static string LegacyArchiveFileDoesNotExist(string path) => $"Legacy archive file '{path}' does not exist.";
+
+    public static string FailedToOpenLegacyArchive(string filePath, string detail)
+        => $"Failed to open legacy v1 archive '{filePath}': {detail}";
+
+    public static string LegacyArchiveRequiredForFgpStage(string stageName)
+        => $"Stage '{stageName.EscapeMarkup()}' currently has a Fusion v1 archive but no '{OptionalLegacyFusionArchiveFileOption.OptionName}' was provided. "
+            + "The server-stored Fusion v1 archive may be outdated and cannot be used as the composition base. "
+            + $"Please provide a local Fusion v1 archive via '{OptionalLegacyFusionArchiveFileOption.OptionName}'.";
+
+    public static string LegacyArchiveCorrupt(string filePath, string detail)
+        => $"Legacy v1 archive '{filePath}' is corrupt or malformed: {detail}";
+
+    public static string LegacyArchiveSchemaExtensionsNotSupported(string sourceSchemaName)
+        => $"Legacy archive source schema '{sourceSchemaName}' contains schema extensions which are not supported in .far archives.";
 
     public static string OperationsFileDoesNotExist(string path) => $"Operations file '{path}' does not exist.";
 
@@ -33,27 +79,11 @@ internal static class Messages
 
     public const string ForcePushEnabled = "Force push is enabled.";
 
-    public const string StartingValidationRequest = "Starting validation request";
-
-    public const string FailedToStartValidationRequest =
-        "Failed to start the validation request.";
-
-    public const string ValidatingActivity = "Validating";
-
     public const string Validating = "Validating...";
 
-    public const string ValidationPassed = "Validation passed.";
+    public const string ValidationPassed = "Passed validation.";
 
-    public const string ValidationFailed = "Validation failed.";
-
-    public const string StartingPublishRequest = "Starting publish request";
-
-    public const string FailedToStartPublishRequest =
-        "Failed to start publish request.";
-
-    public const string ProcessingActivity = "Processing";
-
-    public const string ProcessingFailed = "Processing failed.";
+    public const string ValidationFailed = "Failed validation.";
 
     public const string RequestReadyForProcessing =
         "Your request is ready for processing.";
@@ -66,8 +96,6 @@ internal static class Messages
 
     public const string RequestApproved =
         "Your request has been approved.";
-
-    public const string PublishedSuccessfully = "Published successfully.";
 
     public static string QueuedAtPosition(int position)
         => $"Your request is queued at position {position}.";

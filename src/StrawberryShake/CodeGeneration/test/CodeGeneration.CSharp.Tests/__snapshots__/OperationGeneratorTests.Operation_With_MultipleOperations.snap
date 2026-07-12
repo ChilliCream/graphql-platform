@@ -550,11 +550,7 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the TestOperation GraphQL operation
     /// <code>
-    /// query TestOperation(
-    ///   $single: Bar!
-    ///     $list: [Bar!]!
-    ///     $nestedList: [[Bar!]]
-    /// ) {
+    /// query TestOperation($single: Bar!, $list: [Bar!]!, $nestedList: [[Bar!]]) {
     ///   foo(single: $single, list: $list, nestedList: $nestedList)
     /// }
     /// </code>
@@ -585,11 +581,7 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the TestOperation GraphQL operation
     /// <code>
-    /// query TestOperation(
-    ///   $single: Bar!
-    ///     $list: [Bar!]!
-    ///     $nestedList: [[Bar!]]
-    /// ) {
+    /// query TestOperation($single: Bar!, $list: [Bar!]!, $nestedList: [[Bar!]]) {
     ///   foo(single: $single, list: $list, nestedList: $nestedList)
     /// }
     /// </code>
@@ -738,11 +730,7 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the TestOperation GraphQL operation
     /// <code>
-    /// query TestOperation(
-    ///   $single: Bar!
-    ///     $list: [Bar!]!
-    ///     $nestedList: [[Bar!]]
-    /// ) {
+    /// query TestOperation($single: Bar!, $list: [Bar!]!, $nestedList: [[Bar!]]) {
     ///   foo(single: $single, list: $list, nestedList: $nestedList)
     /// }
     /// </code>
@@ -761,11 +749,7 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the TestOperation2 GraphQL operation
     /// <code>
-    /// query TestOperation2(
-    ///   $single: Bar!
-    ///     $list: [Bar!]!
-    ///     $nestedList: [[Bar!]]
-    /// ) {
+    /// query TestOperation2($single: Bar!, $list: [Bar!]!, $nestedList: [[Bar!]]) {
     ///   foo(single: $single, list: $list, nestedList: $nestedList)
     /// }
     /// </code>
@@ -796,11 +780,7 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the TestOperation2 GraphQL operation
     /// <code>
-    /// query TestOperation2(
-    ///   $single: Bar!
-    ///     $list: [Bar!]!
-    ///     $nestedList: [[Bar!]]
-    /// ) {
+    /// query TestOperation2($single: Bar!, $list: [Bar!]!, $nestedList: [[Bar!]]) {
     ///   foo(single: $single, list: $list, nestedList: $nestedList)
     /// }
     /// </code>
@@ -949,11 +929,7 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the TestOperation2 GraphQL operation
     /// <code>
-    /// query TestOperation2(
-    ///   $single: Bar!
-    ///     $list: [Bar!]!
-    ///     $nestedList: [[Bar!]]
-    /// ) {
+    /// query TestOperation2($single: Bar!, $list: [Bar!]!, $nestedList: [[Bar!]]) {
     ///   foo(single: $single, list: $list, nestedList: $nestedList)
     /// }
     /// </code>
@@ -972,11 +948,7 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the TestOperation3 GraphQL operation
     /// <code>
-    /// query TestOperation3(
-    ///   $single: Bar!
-    ///     $list: [Bar!]!
-    ///     $nestedList: [[Bar!]]
-    /// ) {
+    /// query TestOperation3($single: Bar!, $list: [Bar!]!, $nestedList: [[Bar!]]) {
     ///   foo(single: $single, list: $list, nestedList: $nestedList)
     /// }
     /// </code>
@@ -1007,11 +979,7 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the TestOperation3 GraphQL operation
     /// <code>
-    /// query TestOperation3(
-    ///   $single: Bar!
-    ///     $list: [Bar!]!
-    ///     $nestedList: [[Bar!]]
-    /// ) {
+    /// query TestOperation3($single: Bar!, $list: [Bar!]!, $nestedList: [[Bar!]]) {
     ///   foo(single: $single, list: $list, nestedList: $nestedList)
     /// }
     /// </code>
@@ -1160,11 +1128,7 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the TestOperation3 GraphQL operation
     /// <code>
-    /// query TestOperation3(
-    ///   $single: Bar!
-    ///     $list: [Bar!]!
-    ///     $nestedList: [[Bar!]]
-    /// ) {
+    /// query TestOperation3($single: Bar!, $list: [Bar!]!, $nestedList: [[Bar!]]) {
     ///   foo(single: $single, list: $list, nestedList: $nestedList)
     /// }
     /// </code>

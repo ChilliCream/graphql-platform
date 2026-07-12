@@ -79,7 +79,7 @@ public interface IArgumentDescriptor
     /// </code>
     /// </example>
     /// </summary>
-    /// <typeparam name="TInputType"></typeparam>
+    /// <typeparam name="TInputType">The input type.</typeparam>
     IArgumentDescriptor Type<TInputType>()
         where TInputType : IInputType;
 
@@ -146,7 +146,9 @@ public interface IArgumentDescriptor
     /// </code>
     /// </example>
     /// </summary>
-    /// <param name="value"></param>
+    /// <param name="value">
+    /// The GraphQL value literal representing the default value.
+    /// </param>
     IArgumentDescriptor DefaultValue(IValueNode? value);
 
     /// <summary>
@@ -163,7 +165,9 @@ public interface IArgumentDescriptor
     /// </code>
     /// </example>
     /// </summary>
-    /// <param name="value"></param>
+    /// <param name="value">
+    /// The runtime default value.
+    /// </param>
     IArgumentDescriptor DefaultValue(object? value);
 
     /// <summary>

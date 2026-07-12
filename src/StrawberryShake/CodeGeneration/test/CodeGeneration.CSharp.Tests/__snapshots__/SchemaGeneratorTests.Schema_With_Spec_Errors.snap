@@ -188,7 +188,7 @@ namespace Foo.Bar
     /// query GetListingsCount {
     ///   listings {
     ///     __typename
-    ///     ... ListingsPayload
+    ///     ...ListingsPayload
     ///   }
     /// }
     /// 
@@ -206,8 +206,8 @@ namespace Foo.Bar
 
         public static GetListingsCountQueryDocument Instance { get; } = new GetListingsCountQueryDocument();
         public global::StrawberryShake.OperationKind Kind => global::StrawberryShake.OperationKind.Query;
-        public global::System.ReadOnlySpan<global::System.Byte> Body => "query GetListingsCount { listings { __typename ... ListingsPayload } } fragment ListingsPayload on ListingsPayload { count }"u8;
-        public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("sha1Hash", "c3a13333bd2282e2d7ed111b99934a7610014ba3");
+        public global::System.ReadOnlySpan<global::System.Byte> Body => "query GetListingsCount { listings { __typename ...ListingsPayload } } fragment ListingsPayload on ListingsPayload { count }"u8;
+        public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("sha1Hash", "8c330f179395c98dec1f0f30613121541ce699b9");
 
         public override global::System.String ToString()
         {
@@ -226,7 +226,7 @@ namespace Foo.Bar
     /// query GetListingsCount {
     ///   listings {
     ///     __typename
-    ///     ... ListingsPayload
+    ///     ...ListingsPayload
     ///   }
     /// }
     /// 
@@ -308,7 +308,7 @@ namespace Foo.Bar
     /// query GetListingsCount {
     ///   listings {
     ///     __typename
-    ///     ... ListingsPayload
+    ///     ...ListingsPayload
     ///   }
     /// }
     /// 

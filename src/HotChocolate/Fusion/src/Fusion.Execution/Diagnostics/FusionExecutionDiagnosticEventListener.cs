@@ -94,9 +94,44 @@ public class FusionExecutionDiagnosticEventListener : IFusionExecutionDiagnostic
         => EmptyScope;
 
     /// <inheritdoc />
+    public virtual IDisposable ExecuteApolloOperationExecutionNode(
+        OperationPlanContext context,
+        ApolloOperationExecutionNode node,
+        string schemaName)
+        => EmptyScope;
+
+    /// <inheritdoc />
     public virtual IDisposable ExecuteOperationBatchNode(
         OperationPlanContext context,
         OperationBatchExecutionNode node,
+        string schemaName)
+        => EmptyScope;
+
+    /// <inheritdoc />
+    public virtual IDisposable ExecuteApolloOperationBatchExecutionNode(
+        OperationPlanContext context,
+        ApolloOperationBatchExecutionNode node,
+        string schemaName)
+        => EmptyScope;
+
+    /// <inheritdoc />
+    public virtual IDisposable ExecuteSourceSchemaRequest(
+        OperationPlanContext context,
+        OperationExecutionNode node,
+        string schemaName)
+        => EmptyScope;
+
+    /// <inheritdoc />
+    public virtual IDisposable ExecuteSourceSchemaRequest(
+        OperationPlanContext context,
+        ApolloOperationExecutionNode node,
+        string schemaName)
+        => EmptyScope;
+
+    /// <inheritdoc />
+    public virtual IDisposable ExecuteSourceSchemaRequest(
+        OperationPlanContext context,
+        ApolloOperationBatchExecutionNode node,
         string schemaName)
         => EmptyScope;
 

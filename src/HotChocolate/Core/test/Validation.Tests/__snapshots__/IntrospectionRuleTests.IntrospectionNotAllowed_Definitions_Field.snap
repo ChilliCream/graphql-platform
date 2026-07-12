@@ -1,0 +1,15 @@
+"errors": [
+  {
+    "message": "Introspection is not allowed for the current request.",
+    "locations": [
+      {
+        "line": 2,
+        "column": 5
+      }
+    ],
+    "extensions": {
+      "code": "HC0046",
+      "field": "__definitions"
+    }
+  }
+]

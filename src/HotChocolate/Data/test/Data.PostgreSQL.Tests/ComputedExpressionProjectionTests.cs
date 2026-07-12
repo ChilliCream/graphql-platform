@@ -27,15 +27,15 @@ public sealed class ComputedExpressionProjectionTests(PostgreSqlResource resourc
 
         await using var scope = services.CreateAsyncScope();
         var context = scope.ServiceProvider.GetRequiredService<ExpressionPersonContext>();
-        await context.Database.EnsureCreatedAsync();
+        await context.Database.EnsureCreatedAsync(TestContext.Current.CancellationToken);
         context.People.AddRange(
             new ExpressionPerson { Id = 1, FirstName = "Jane", LastName = "Doe" },
             new ExpressionPerson { Id = 2, FirstName = "John", LastName = "Smith" });
-        await context.SaveChangesAsync();
+        await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         var executor = await services
             .GetRequiredService<IRequestExecutorProvider>()
-            .GetExecutorAsync();
+            .GetExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -46,7 +46,8 @@ public sealed class ComputedExpressionProjectionTests(PostgreSqlResource resourc
                 fullName
               }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchInlineSnapshot(

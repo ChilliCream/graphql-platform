@@ -1,4 +1,6 @@
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using Microsoft.Extensions.Primitives;
 
 namespace Mocha;
 
@@ -6,12 +8,6 @@ namespace Mocha;
 /// Base class for all messaging transports, managing the lifecycle of receive and dispatch endpoints,
 /// topology, and connection to the underlying messaging infrastructure (e.g., RabbitMQ, in-memory).
 /// </summary>
-/// <remarks>
-/// Transport implementations must override abstract members to provide endpoint creation, configuration,
-/// and topology details. The transport must be initialized before it can be started. Starting a transport
-/// activates all its receive endpoints; stopping deactivates them. Dispatch endpoints are created lazily
-/// as outbound routes are connected.
-/// </remarks>
 public abstract partial class MessagingTransport : IAsyncDisposable, IFeatureProvider
 {
     /// <summary>
@@ -25,12 +21,17 @@ public abstract partial class MessagingTransport : IAsyncDisposable, IFeaturePro
     public string Schema { get; protected set; } = null!;
 
     /// <summary>
+    /// Gets the stable URN identity of this transport.
+    /// </summary>
+    public string Urn { get; private set; } = null!;
+
+    /// <summary>
     /// Read-only transport-level options such as concurrency limits and prefetch settings.
     /// </summary>
     public IReadOnlyTransportOptions Options { get; private set; } = null!;
 
-    private readonly HashSet<ReceiveEndpoint> _receiveEndpoints = [];
-    private readonly HashSet<DispatchEndpoint> _dispatchEndpoints = [];
+    private ImmutableHashSet<ReceiveEndpoint> _receiveEndpoints = [];
+    private ImmutableHashSet<DispatchEndpoint> _dispatchEndpoints = [];
 
     /// <summary>
     /// The set of receive endpoints registered on this transport, each consuming messages from a source.
@@ -46,13 +47,13 @@ public abstract partial class MessagingTransport : IAsyncDisposable, IFeaturePro
     /// The receive endpoint used to accept reply messages for request/response flows, or
     /// <see langword="null"/> if the transport does not support replies.
     /// </summary>
-    public ReceiveEndpoint? ReplyReceiveEndpoint { get; protected set; }
+    public ReceiveEndpoint? ReplyReceiveEndpoint { get; protected internal set; }
 
     /// <summary>
     /// The dispatch endpoint used to send reply messages back to requestors, or
     /// <see langword="null"/> if the transport does not support replies.
     /// </summary>
-    public DispatchEndpoint? ReplyDispatchEndpoint { get; protected set; }
+    public DispatchEndpoint? ReplyDispatchEndpoint { get; protected internal set; }
 
     private IFeatureCollection? _features;
 
@@ -60,8 +61,7 @@ public abstract partial class MessagingTransport : IAsyncDisposable, IFeaturePro
     /// The feature collection for this transport, providing access to transport-scoped features.
     /// </summary>
     /// <exception cref="InvalidOperationException">Thrown if accessed before the transport is initialized.</exception>
-    public IFeatureCollection Features
-        => _features ?? throw ThrowHelper.FeaturesNotInitialized();
+    public IFeatureCollection Features => _features ?? throw ThrowHelper.FeaturesNotInitialized();
 
     /// <summary>
     /// The messaging topology that describes the transport's addressing structure (exchanges, queues, topics).
@@ -80,9 +80,29 @@ public abstract partial class MessagingTransport : IAsyncDisposable, IFeaturePro
     protected internal MessagingTransportConfiguration Configuration { get; protected set; } = null!;
 
     /// <summary>
+    /// Gets the bind mode that determines whether this transport derives missing
+    /// endpoints and routes from conventions or requires them to be configured explicitly.
+    /// When <see cref="MessagingBindMode.Implicit"/>, convention-based discovery and binds are enabled.
+    /// When <see cref="MessagingBindMode.Explicit"/>, discovery and convention binds are suppressed by default.
+    /// </summary>
+    public MessagingBindMode BindMode { get; private set; } = MessagingBindMode.Implicit;
+
+    /// <summary>
+    /// Gets a value indicating whether this transport is the designated default for routing when
+    /// multiple transports are registered and no explicit transport is specified for a message type.
+    /// </summary>
+    public bool IsDefaultTransport { get; private set; }
+
+    /// <summary>
     /// The convention registry scoped to this transport, applied during routing and endpoint configuration.
     /// </summary>
     public IConventionRegistry Conventions { get; protected set; } = null!;
+
+    /// <summary>
+    /// The routing strategy that resolves the transport's message routes and addresses into receive
+    /// and dispatch endpoint configurations and discovers the endpoints the transport exposes.
+    /// </summary>
+    public RoutingStrategy Routing { get; private set; } = null!;
 
     /// <summary>
     /// Produces a structural description of this transport including its endpoints, topology entities,
@@ -101,6 +121,7 @@ public abstract partial class MessagingTransport : IAsyncDisposable, IFeaturePro
 
         foreach (var endpoint in ReceiveEndpoints)
         {
+            // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
             if (endpoint.Source is not null)
             {
                 outboundResources.Add(endpoint.Source);
@@ -109,6 +130,7 @@ public abstract partial class MessagingTransport : IAsyncDisposable, IFeaturePro
 
         foreach (var endpoint in DispatchEndpoints)
         {
+            // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
             if (endpoint.Destination is not null)
             {
                 inboundResources.Add(endpoint.Destination);
@@ -117,11 +139,13 @@ public abstract partial class MessagingTransport : IAsyncDisposable, IFeaturePro
 
         foreach (var resource in outboundResources)
         {
+            var address = resource.Address.ToString();
             entities.Add(
                 new TopologyEntityDescription(
+                    MochaUrn.TopologyEntity(address, resource.GetType().Name.ToLowerInvariant(), null),
                     resource.GetType().Name.ToLowerInvariant(),
                     null,
-                    resource.Address?.ToString(),
+                    address,
                     "outbound",
                     null));
         }
@@ -133,11 +157,13 @@ public abstract partial class MessagingTransport : IAsyncDisposable, IFeaturePro
                 continue;
             }
 
+            var address = resource.Address.ToString();
             entities.Add(
                 new TopologyEntityDescription(
+                    MochaUrn.TopologyEntity(address, resource.GetType().Name.ToLowerInvariant(), null),
                     resource.GetType().Name.ToLowerInvariant(),
                     null,
-                    resource.Address?.ToString(),
+                    address,
                     "inbound",
                     null));
         }
@@ -145,6 +171,7 @@ public abstract partial class MessagingTransport : IAsyncDisposable, IFeaturePro
         var topology = new TopologyDescription(Topology.Address.ToString(), entities, []);
 
         return new TransportDescription(
+            Urn,
             Topology.Address.ToString(),
             Name,
             Schema,
@@ -153,6 +180,11 @@ public abstract partial class MessagingTransport : IAsyncDisposable, IFeaturePro
             dispatchEndpoints,
             topology);
     }
+
+    /// <summary>
+    /// Gets a change token that fires when the transport topology may have changed.
+    /// </summary>
+    public virtual IChangeToken GetChangeToken() => NullChangeToken.Singleton;
 
     /// <summary>
     /// Attempts to retrieve an existing dispatch endpoint for the specified address.
@@ -301,7 +333,7 @@ public abstract partial class MessagingTransport : IAsyncDisposable, IFeaturePro
 
         endpoint.Initialize(context, configuration);
 
-        _dispatchEndpoints.Add(endpoint);
+        ImmutableInterlocked.Update(ref _dispatchEndpoints, static (set, e) => set.Add(e), endpoint);
 
         return endpoint;
     }
@@ -320,7 +352,7 @@ public abstract partial class MessagingTransport : IAsyncDisposable, IFeaturePro
 
         endpoint.Initialize(context, configuration);
 
-        _receiveEndpoints.Add(endpoint);
+        ImmutableInterlocked.Update(ref _receiveEndpoints, static (set, e) => set.Add(e), endpoint);
 
         return endpoint;
     }
@@ -336,9 +368,10 @@ public abstract partial class MessagingTransport : IAsyncDisposable, IFeaturePro
     /// A <see cref="DispatchEndpointConfiguration"/> if the route can be served by this transport;
     /// otherwise <see langword="null"/>.
     /// </returns>
-    public abstract DispatchEndpointConfiguration? CreateEndpointConfiguration(
+    public virtual DispatchEndpointConfiguration? CreateEndpointConfiguration(
         IMessagingConfigurationContext context,
-        OutboundRoute route);
+        OutboundRoute route)
+        => Routing.CreateEndpointConfiguration(context, route);
 
     /// <summary>
     /// Creates the dispatch endpoint configuration for the given destination address, or returns
@@ -350,9 +383,10 @@ public abstract partial class MessagingTransport : IAsyncDisposable, IFeaturePro
     /// A <see cref="DispatchEndpointConfiguration"/> if the address can be served by this transport;
     /// otherwise <see langword="null"/>.
     /// </returns>
-    public abstract DispatchEndpointConfiguration? CreateEndpointConfiguration(
+    public virtual DispatchEndpointConfiguration? CreateEndpointConfiguration(
         IMessagingConfigurationContext context,
-        Uri address);
+        Uri address)
+        => Routing.CreateEndpointConfiguration(context, address);
 
     /// <summary>
     /// Creates the receive endpoint configuration for the given inbound route, or returns
@@ -364,9 +398,10 @@ public abstract partial class MessagingTransport : IAsyncDisposable, IFeaturePro
     /// A <see cref="ReceiveEndpointConfiguration"/> if the route can be served by this transport;
     /// otherwise <see langword="null"/>.
     /// </returns>
-    public abstract ReceiveEndpointConfiguration? CreateEndpointConfiguration(
+    public virtual ReceiveEndpointConfiguration? CreateEndpointConfiguration(
         IMessagingConfigurationContext context,
-        InboundRoute route);
+        InboundRoute route)
+        => Routing.CreateEndpointConfiguration(context, route);
 
     /// <summary>
     /// Factory method to create a transport-specific receive endpoint instance.
@@ -379,6 +414,57 @@ public abstract partial class MessagingTransport : IAsyncDisposable, IFeaturePro
     /// </summary>
     /// <returns>A new, uninitialized <see cref="DispatchEndpoint"/> appropriate for this transport.</returns>
     protected abstract DispatchEndpoint CreateDispatchEndpoint();
+
+    /// <summary>
+    /// Attempts to read a resource name from URI forms such as <c>queue:name</c> and <c>queue://name</c>.
+    /// </summary>
+    /// <param name="address">The address to inspect.</param>
+    /// <param name="scheme">The expected resource scheme.</param>
+    /// <param name="name">The resource name when the address matches the scheme and contains one segment.</param>
+    /// <returns><c>true</c> if the address contains a resource name for the expected scheme.</returns>
+    protected static bool TryGetResourceName(Uri address, string scheme, [NotNullWhen(true)] out string? name)
+    {
+        if (address.Scheme != scheme)
+        {
+            name = null;
+            return false;
+        }
+
+        if (!string.IsNullOrEmpty(address.Host))
+        {
+            name = address.Host;
+            return true;
+        }
+
+        name = address.AbsolutePath;
+        return name.Length > 0 && !name.Contains('/');
+    }
+
+    /// <summary>
+    /// Attempts to resolve the stable reply alias for this transport.
+    /// </summary>
+    /// <remarks>
+    /// The completed reply dispatch endpoint uses an instance-specific destination, so the
+    /// <c>{Schema}:replies</c> alias has to resolve to the existing endpoint instead of
+    /// creating another reply dispatch endpoint.
+    /// </remarks>
+    /// <param name="address">The address to inspect.</param>
+    /// <param name="endpoint">The reply dispatch endpoint when the address is a reply alias.</param>
+    /// <returns><c>true</c> if the address is this transport's reply alias.</returns>
+    protected bool TryGetReplyDispatchEndpoint(Uri address, [NotNullWhen(true)] out DispatchEndpoint? endpoint)
+    {
+        if (address.Scheme == Schema
+            && address.Host.Length == 0
+            && address.AbsolutePath == "replies"
+            && ReplyDispatchEndpoint is { IsCompleted: true } reply)
+        {
+            endpoint = reply;
+            return true;
+        }
+
+        endpoint = null;
+        return false;
+    }
 
     /// <inheritdoc />
     public virtual ValueTask DisposeAsync() => ValueTask.CompletedTask;

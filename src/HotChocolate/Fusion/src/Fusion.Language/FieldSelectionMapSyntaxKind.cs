@@ -10,5 +10,15 @@ public enum FieldSelectionMapSyntaxKind
     ListValueSelection,
     PathObjectValueSelection,
     PathListValueSelection,
-    ChoiceValueSelection
+    ChoiceValueSelection,
+    Argument,
+    ObjectField,
+    IntValue,
+    FloatValue,
+    StringValue,
+    BooleanValue,
+    NullValue,
+    EnumValue,
+    ListValue,
+    ObjectValue
 }

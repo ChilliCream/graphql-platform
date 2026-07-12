@@ -46,8 +46,8 @@ sourceSchemas:
         query: Query
       }
 
-      interface Authorable {
-        author: Author
+      type Query {
+        wrappers: [Wrapper]
       }
 
       type Author @key(fields: "id") {
@@ -62,12 +62,12 @@ sourceSchemas:
         author: Author
       }
 
-      type Query {
-        wrappers: [Wrapper]
-      }
-
       type Wrapper {
         authorable: Authorable
+      }
+
+      interface Authorable {
+        author: Author
       }
     interactions:
       - request:
@@ -122,21 +122,19 @@ sourceSchemas:
         query: Query
       }
 
+      type Query {
+        authorById(id: ID!): Author @lookup
+      }
+
       type Author {
         id: ID!
         displayName: String!
-      }
-
-      type Query {
-        authorById(id: ID!): Author @lookup
       }
     interactions:
       - request:
           accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
           document: |
-            query testQuery_bdd3c6f6_2(
-              $__fusion_1_id: ID!
-            ) {
+            query testQuery_bdd3c6f6_2($__fusion_1_id: ID!) {
               authorById(id: $__fusion_1_id) {
                 displayName
               }
@@ -217,9 +215,7 @@ operationPlan:
       type: Operation
       schema: B
       operation: |
-        query testQuery_bdd3c6f6_2(
-          $__fusion_1_id: ID!
-        ) {
+        query testQuery_bdd3c6f6_2($__fusion_1_id: ID!) {
           authorById(id: $__fusion_1_id) {
             displayName
           }

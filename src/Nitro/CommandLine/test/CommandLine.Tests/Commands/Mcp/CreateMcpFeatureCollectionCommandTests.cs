@@ -1,5 +1,4 @@
 using ChilliCream.Nitro.Client;
-using ChilliCream.Nitro.Client.Mcp;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Mcp;
 
@@ -26,8 +25,8 @@ public sealed class CreateMcpFeatureCollectionCommandTests(NitroCommandFixture f
             Options:
                             --api-id <api-id>        The ID of the API [env: NITRO_API_ID]
                             --name <name>            The name of the MCP Feature Collection [env: NITRO_MCP_FEATURE_COLLECTION_NAME]
-                            --cloud-url <cloud-url>  The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL] [default: api.chillicream.com]
-                            --api-key <api-key>      The API key used for authentication [env: NITRO_API_KEY]
+                            --cloud-url <cloud-url>  The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL]
+                            --api-key <api-key>      The API key or PAT used for authentication [env: NITRO_API_KEY]
                             --output <json>          The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
                             -?, -h, --help           Show help and usage information
 
@@ -60,7 +59,7 @@ public sealed class CreateMcpFeatureCollectionCommandTests(NitroCommandFixture f
         // assert
         result.AssertError(
             """
-            This command requires an authenticated user. Either specify '--api-key' or run 'nitro login'.
+            This command requires an authenticated user. Either specify '--api-key' or run `nitro login`.
             """);
     }
 
@@ -105,7 +104,7 @@ public sealed class CreateMcpFeatureCollectionCommandTests(NitroCommandFixture f
         // assert
         result.AssertError(
             """
-            You are not logged in. Run `[bold blue]nitro login[/]` to sign in or manually specify the '--workspace-id' option (if available).
+            Missing required option '--api-id'.
             """);
     }
 
@@ -259,6 +258,11 @@ public sealed class CreateMcpFeatureCollectionCommandTests(NitroCommandFixture f
             new CreateMcpFeatureCollectionCommandMutation_CreateMcpFeatureCollection_Errors_UnauthorizedOperation(
                 "Not authorized", "UnauthorizedOperation"),
             "Not authorized"
+        },
+        {
+            new CreateMcpFeatureCollectionCommandMutation_CreateMcpFeatureCollection_Errors_DuplicateNameError(
+                "Name already in use", "DuplicateNameError"),
+            "The name 'my-mcp' is already in use by another MCP Feature Collection."
         }
     };
 }

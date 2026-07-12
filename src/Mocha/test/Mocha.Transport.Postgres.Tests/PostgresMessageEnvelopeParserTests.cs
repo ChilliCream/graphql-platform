@@ -229,7 +229,7 @@ public class PostgresMessageEnvelopeParserTests
 
         // assert
         Assert.NotNull(envelope.EnclosedMessageTypes);
-        Assert.Equal(2, envelope.EnclosedMessageTypes!.Value.Length);
+        Assert.Equal(2, envelope.EnclosedMessageTypes.Value.Length);
         Assert.Equal("OrderCreated", envelope.EnclosedMessageTypes.Value[0]);
         Assert.Equal("IEvent", envelope.EnclosedMessageTypes.Value[1]);
     }
@@ -343,7 +343,7 @@ public class PostgresMessageEnvelopeParserTests
 
         // assert
         Assert.NotNull(envelope.ScheduledTime);
-        Assert.Equal(2026, envelope.ScheduledTime!.Value.Year);
+        Assert.Equal(2026, envelope.ScheduledTime.Value.Year);
         Assert.Equal(6, envelope.ScheduledTime.Value.Month);
         Assert.Equal(1, envelope.ScheduledTime.Value.Day);
         Assert.Equal(12, envelope.ScheduledTime.Value.Hour);

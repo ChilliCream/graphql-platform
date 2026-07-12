@@ -31,10 +31,7 @@ nodes:
     type: Operation
     schema: b
     operation: |
-      query Op_123456789101112_2(
-        $__fusion_1_id: Int!
-          $__fusion_2_name: String!
-      ) {
+      query Op_123456789101112_2($__fusion_1_id: Int!, $__fusion_2_name: String!) {
         productById(id: $__fusion_1_id) {
           nameAndId(name: $__fusion_2_name)
         }

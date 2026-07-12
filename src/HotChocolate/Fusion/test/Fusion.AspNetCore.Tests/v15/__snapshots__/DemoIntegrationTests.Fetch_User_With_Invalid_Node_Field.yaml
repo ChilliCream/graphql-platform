@@ -1,9 +1,7 @@
 title: Fetch_User_With_Invalid_Node_Field
 request:
   document: |
-    query FetchNode(
-      $id: ID!
-    ) {
+    query FetchNode($id: ID!) {
       node(id: $id) {
         ... on User {
           id
@@ -28,16 +26,12 @@ sourceSchemas:
         query: Query
       }
 
-      interface Node {
-        id: ID!
-      }
-
       type Query {
         node(id: ID!): Node @lookup @shareable
         nodes(ids: [ID!]!): [Node]! @shareable
         userById(id: ID!): User!
         users: [User!]!
-        testWithTwoArgumentsDifferingNullability(first: Int! second: Int): String!
+        testWithTwoArgumentsDifferingNullability(first: Int!, second: Int): String!
       }
 
       type User implements Node {
@@ -46,26 +40,26 @@ sourceSchemas:
         username: String!
         birthdate: String!
       }
+
+      interface Node {
+        id: ID!
+      }
   - name: B
     schema: |
       schema {
         query: Query
       }
 
-      interface Node {
-        id: ID!
+      type Query {
+        node(id: ID!): Node @lookup @shareable
+        nodes(ids: [ID!]!): [Node]! @shareable
+        reviews: [Review!]!
       }
 
       type Product implements Node {
         id: ID!
         reviews: [Review!]!
         reviewCount: Int!
-      }
-
-      type Query {
-        node(id: ID!): Node @lookup @shareable
-        nodes(ids: [ID!]!): [Node]! @shareable
-        reviews: [Review!]!
       }
 
       type Review implements Node {
@@ -80,14 +74,21 @@ sourceSchemas:
         reviews: [Review!]!
         errorField: String @error
       }
+
+      interface Node {
+        id: ID!
+      }
   - name: C
     schema: |
       schema {
         query: Query
       }
 
-      interface Node {
-        id: ID!
+      type Query {
+        node(id: ID!): Node @lookup @shareable
+        nodes(ids: [ID!]!): [Node]! @shareable
+        productById(id: ID!): Product @lookup @shareable
+        topProducts(first: Int!): [Product!]!
       }
 
       type Product implements Node {
@@ -99,19 +100,16 @@ sourceSchemas:
         repeatData(data: RepeatDataInput!): RepeatDataPayload!
       }
 
-      type Query {
-        node(id: ID!): Node @lookup @shareable
-        nodes(ids: [ID!]!): [Node]! @shareable
-        productById(id: ID!): Product @lookup @shareable
-        topProducts(first: Int!): [Product!]!
-      }
-
       type RepeatDataData {
         num: Int!
       }
 
       type RepeatDataPayload {
         data: RepeatDataData!
+      }
+
+      interface Node {
+        id: ID!
       }
 
       input RepeatDataDataInput {
@@ -124,9 +122,7 @@ sourceSchemas:
 operationPlan:
   operation:
     - document: |
-        query FetchNode(
-          $id: ID!
-        ) {
+        query FetchNode($id: ID!) {
           node(id: $id) {
             __typename @fusion__requirement
             ... on User {
@@ -149,9 +145,7 @@ operationPlan:
     - id: 2
       type: Operation
       operation: |
-        query FetchNode_7eae38bd_2(
-          $id: ID!
-        ) {
+        query FetchNode_7eae38bd_2($id: ID!) {
           node(id: $id) {
             __typename
           }
@@ -164,9 +158,7 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query FetchNode_7eae38bd_3(
-          $id: ID!
-        ) {
+        query FetchNode_7eae38bd_3($id: ID!) {
           node(id: $id) {
             __typename
             ... on User {

@@ -2,13 +2,13 @@ schema {
   query: Query
 }
 
+type Query {
+  foo(where: IgnoreTestFilterInput): [IgnoreTest]
+}
+
 type IgnoreTest {
   id: Int!
   name: String!
-}
-
-type Query {
-  foo(where: IgnoreTestFilterInput): [IgnoreTest]
 }
 
 input IgnoreTestFilterInput {

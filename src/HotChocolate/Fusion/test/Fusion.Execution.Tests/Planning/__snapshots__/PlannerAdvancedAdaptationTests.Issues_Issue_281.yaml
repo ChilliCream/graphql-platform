@@ -54,9 +54,7 @@ nodes:
     type: Operation
     schema: c
     operation: |
-      query Op_123456789101112_2(
-        $__fusion_1_pid: ID!
-      ) {
+      query Op_123456789101112_2($__fusion_1_pid: ID!) {
         productByPid(pid: $__fusion_1_pid) {
           c
           pid
@@ -74,9 +72,7 @@ nodes:
     type: Operation
     schema: d
     operation: |
-      query Op_123456789101112_3(
-        $__fusion_2_pid: ID!
-      ) {
+      query Op_123456789101112_3($__fusion_2_pid: ID!) {
         productByPid(pid: $__fusion_2_pid) {
           d
         }
@@ -93,9 +89,7 @@ nodes:
     type: Operation
     schema: b
     operation: |
-      query Op_123456789101112_4(
-        $__fusion_3_id: ID!
-      ) {
+      query Op_123456789101112_4($__fusion_3_id: ID!) {
         productById(id: $__fusion_3_id) {
           pid
         }
@@ -113,9 +107,7 @@ nodes:
     type: Operation
     schema: b
     operation: |
-      query Op_123456789101112_5(
-        $__fusion_4_id: ID!
-      ) {
+      query Op_123456789101112_5($__fusion_4_id: ID!) {
         productById(id: $__fusion_4_id) {
           b
         }

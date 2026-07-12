@@ -1,9 +1,7 @@
 title: NodeField_Skip_Around_Shared_Selections
 request:
   document: |
-    query testQuery(
-      $skip: Boolean!
-    ) {
+    query testQuery($skip: Boolean!) {
       node(id: "RGlzY3Vzc2lvbjox") {
         ... @skip(if: $skip) {
           id
@@ -33,8 +31,8 @@ sourceSchemas:
         query: Query
       }
 
-      interface Node {
-        id: ID!
+      type Query {
+        node(id: ID!): Node @lookup @shareable
       }
 
       type Discussion implements Node {
@@ -42,16 +40,14 @@ sourceSchemas:
         title: String
       }
 
-      type Query {
-        node(id: ID!): Node @lookup @shareable
+      interface Node {
+        id: ID!
       }
     interactions:
       - request:
           accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
-            query testQuery_61fcbd49_3(
-              $skip: Boolean!
-            ) {
+            query testQuery_61fcbd49_3($skip: Boolean!) {
               node(id: "RGlzY3Vzc2lvbjox") {
                 __typename
                 ... on Discussion {
@@ -82,8 +78,8 @@ sourceSchemas:
         query: Query
       }
 
-      interface Node {
-        id: ID!
+      type Query {
+        node(id: ID!): Node @lookup @shareable
       }
 
       type Author implements Node {
@@ -91,15 +87,13 @@ sourceSchemas:
         username: String
       }
 
-      type Query {
-        node(id: ID!): Node @lookup @shareable
+      interface Node {
+        id: ID!
       }
 operationPlan:
   operation:
     - document: |
-        query testQuery(
-          $skip: Boolean!
-        ) {
+        query testQuery($skip: Boolean!) {
           node(id: "RGlzY3Vzc2lvbjox") {
             __typename @fusion__requirement
             ... on Discussion {
@@ -123,9 +117,7 @@ operationPlan:
     - id: 2
       type: Operation
       operation: |
-        query testQuery_61fcbd49_2(
-          $skip: Boolean!
-        ) {
+        query testQuery_61fcbd49_2($skip: Boolean!) {
           node(id: "RGlzY3Vzc2lvbjox") {
             __typename
             id @skip(if: $skip)
@@ -139,9 +131,7 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query testQuery_61fcbd49_3(
-          $skip: Boolean!
-        ) {
+        query testQuery_61fcbd49_3($skip: Boolean!) {
           node(id: "RGlzY3Vzc2lvbjox") {
             __typename
             ... on Discussion {

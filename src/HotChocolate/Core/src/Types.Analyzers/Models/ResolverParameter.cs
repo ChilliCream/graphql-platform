@@ -89,7 +89,8 @@ public sealed class ResolverParameter
             ResolverParameterKind.OutputField or
             ResolverParameterKind.ClaimsPrincipal or
             ResolverParameterKind.ConnectionFlags or
-            ResolverParameterKind.Selection;
+            ResolverParameterKind.Selection or
+            ResolverParameterKind.IsSelected;
 
     public bool RequiresBinding
         => Kind == ResolverParameterKind.Unknown;

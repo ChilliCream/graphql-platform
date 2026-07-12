@@ -75,7 +75,7 @@ public class Utf8HelperTests
     [InlineData("\\\"")]
     [Theory]
     public void Unescape_BlockStringInvalidEscapeChars_Exception(
-       string escaped)
+        string escaped)
     {
         // arrange
         var inputData = Encoding.UTF8.GetBytes("hello_123_" + escaped);
@@ -103,7 +103,7 @@ public class Utf8HelperTests
     [InlineData("\\u20AC", "€")]
     [Theory]
     public void Unescape_UnicodeEscapeChars_OutputIsUnescaped(
-       string escaped, string unescaped)
+        string escaped, string unescaped)
     {
         // arrange
         var inputData = Encoding.UTF8.GetBytes("hello_123_" + escaped);

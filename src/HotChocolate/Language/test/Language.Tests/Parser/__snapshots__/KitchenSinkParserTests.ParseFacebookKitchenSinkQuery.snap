@@ -1,12 +1,7 @@
 SDL:
 ---------------
 "Query description"
-query queryName(
-  "$foo description"
-  $foo: ComplexType
-  "$site description"
-  $site: Site = MOBILE
-) {
+query queryName($foo: ComplexType, $site: Site = MOBILE) {
   whoever123is: node(id: [123, 456]) {
     id
     ... on User @defer {
@@ -14,7 +9,7 @@ query queryName(
         id
         alias: field1(first: 10, after: $foo) @include(if: $foo) {
           id
-          ... frag
+          ...frag
         }
       }
     }
@@ -37,10 +32,7 @@ mutation likeStory {
 }
 
 "Subscription description"
-subscription StoryLikeSubscription(
-  "$input description"
-  $input: StoryLikeSubscribeInput
-) {
+subscription StoryLikeSubscription($input: StoryLikeSubscribeInput) {
   storyLikeSubscribe(input: $input) {
     story {
       likers {
@@ -55,9 +47,16 @@ subscription StoryLikeSubscription(
 
 "Fragment description"
 fragment frag on Friend {
-  foo(size: $size, bar: $b, obj: { key: "value", block: """
+  foo(
+    size: $size
+    bar: $b
+    obj: {
+      key: "value"
+      block: """
       block string uses \"""
-  """ })
+      """
+    }
+  )
 }
 
 {

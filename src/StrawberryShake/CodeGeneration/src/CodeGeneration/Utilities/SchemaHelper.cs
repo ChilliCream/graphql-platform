@@ -91,6 +91,7 @@ public static class SchemaHelper
                     o.EnableStream = true;
                     o.EnableTag = false;
                     o.EnableFlagEnums = false;
+                    o.EnableSemanticIntrospection = false;
                 })
             .SetSchema(d => d.Extend().OnBeforeCreate(
                 c => c.Features.Set(typeInfos)))

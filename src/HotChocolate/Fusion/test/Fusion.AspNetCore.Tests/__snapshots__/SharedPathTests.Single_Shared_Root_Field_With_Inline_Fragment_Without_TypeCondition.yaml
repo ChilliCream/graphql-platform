@@ -1,9 +1,7 @@
 title: Single_Shared_Root_Field_With_Inline_Fragment_Without_TypeCondition
 request:
   document: |
-    query(
-      $skip: Boolean!
-    ) {
+    query($skip: Boolean!) {
       viewer {
         ... @skip(if: $skip) {
           schema1
@@ -32,16 +30,6 @@ sourceSchemas:
         query: Query
       }
 
-      interface IInterface @key(fields: "id") {
-        id: Int!
-      }
-
-      type Product implements IInterface {
-        id: Int!
-        schema1: String!
-        shared: SharedProduct @shareable
-      }
-
       type Query {
         productById(id: Int!): Product @lookup
         viewer: Viewer! @shareable
@@ -50,6 +38,12 @@ sourceSchemas:
         unsharedInterface: IInterface!
         union: IUnion! @shareable
         topReview: Review! @shareable
+      }
+
+      type Product implements IInterface @key(fields: "id") {
+        id: Int!
+        schema1: String!
+        shared: SharedProduct @shareable
       }
 
       type Review implements IInterface {
@@ -75,14 +69,16 @@ sourceSchemas:
         schema1: String!
       }
 
+      interface IInterface @key(fields: "id") {
+        id: Int!
+      }
+
       union IUnion = Product | Review
     interactions:
       - request:
           accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
-            query Op_88b508ac_1(
-              $skip: Boolean!
-            ) {
+            query Op_88b508ac_1($skip: Boolean!) {
               viewer {
                 ... @skip(if: $skip) {
                   schema1
@@ -109,16 +105,6 @@ sourceSchemas:
         query: Query
       }
 
-      interface IInterface @key(fields: "id") {
-        id: Int!
-      }
-
-      type Product implements IInterface {
-        id: Int!
-        schema2: String!
-        shared: SharedProduct @shareable
-      }
-
       type Query {
         product(id: Int!): Product @lookup
         viewer: Viewer! @shareable
@@ -126,6 +112,12 @@ sourceSchemas:
         interface: IInterface! @shareable
         union: IUnion! @shareable
         topReview: Review! @shareable
+      }
+
+      type Product implements IInterface @key(fields: "id") {
+        id: Int!
+        schema2: String!
+        shared: SharedProduct @shareable
       }
 
       type Review implements IInterface {
@@ -151,6 +143,10 @@ sourceSchemas:
         schema2: String!
       }
 
+      interface IInterface @key(fields: "id") {
+        id: Int!
+      }
+
       union IUnion = Product | Review
     interactions:
       - request:
@@ -174,9 +170,7 @@ sourceSchemas:
 operationPlan:
   operation:
     - document: |
-        query(
-          $skip: Boolean!
-        ) {
+        query($skip: Boolean!) {
           viewer {
             ... @skip(if: $skip) {
               schema1
@@ -192,9 +186,7 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query Op_88b508ac_1(
-          $skip: Boolean!
-        ) {
+        query Op_88b508ac_1($skip: Boolean!) {
           viewer {
             ... @skip(if: $skip) {
               schema1

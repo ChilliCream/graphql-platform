@@ -50,7 +50,8 @@ public class RequireTests : FusionTestBase
 
         using var result = await client.PostAsync(
             request,
-            new Uri("http://localhost:5000/graphql"));
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
 
         // assert
         await MatchSnapshotAsync(gateway, request, result);
@@ -97,7 +98,8 @@ public class RequireTests : FusionTestBase
 
         using var result = await client.PostAsync(
             request,
-            new Uri("http://localhost:5000/graphql"));
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
 
         // assert
         await MatchSnapshotAsync(gateway, request, result);
@@ -148,7 +150,8 @@ public class RequireTests : FusionTestBase
 
         using var result = await client.PostAsync(
             request,
-            new Uri("http://localhost:5000/graphql"));
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
 
         // assert
         await MatchSnapshotAsync(gateway, request, result);
@@ -199,7 +202,198 @@ public class RequireTests : FusionTestBase
 
         using var result = await client.PostAsync(
             request,
-            new Uri("http://localhost:5000/graphql"));
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    [Fact]
+    public async Task Lookup_With_NonNull_Argument_Selecting_Nullable_Path_Returning_Null()
+    {
+        // arrange
+        // The lookup argument is non-null, but its key selection resolves null
+        // at runtime. The entity fetch must be skipped instead of sending an
+        // invalid null variable to the source schema.
+        var server1 = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+              productById(id: ID!): Product @lookup
+            }
+
+            type Product {
+              id: ID!
+              brand: Brand @null
+            }
+
+            type Brand {
+              name: String!
+            }
+            """);
+
+        var server2 = CreateSourceSchema(
+            "B",
+            """
+            type Query {
+              productByBrandName(brandName: String! @is(field: "brand.name")): Product @lookup @internal
+            }
+
+            type Product {
+              fieldB: String
+            }
+            """);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1),
+            ("B", server2)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            {
+              productById(id: "1") {
+                fieldB
+              }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    [Fact]
+    public async Task Lookup_With_NonNull_Input_Field_Selecting_Nullable_Field_Returning_Null()
+    {
+        // arrange
+        // The non-null input field of the lookup key cannot be satisfied by
+        // the null value, so the entity fetch must be skipped instead of
+        // sending an invalid input object to the source schema.
+        var server1 = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+              productById(id: ID!): Product @lookup
+            }
+
+            type Product {
+              id: ID!
+              sku: String @null
+            }
+            """);
+
+        var server2 = CreateSourceSchema(
+            "B",
+            """
+            type Query {
+              productByKey(key: ProductKeyInput! @is(field: "{ sku }")): Product @lookup @internal
+            }
+
+            type Product {
+              fieldB: String
+            }
+
+            input ProductKeyInput {
+              sku: String!
+            }
+            """);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1),
+            ("B", server2)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            {
+              productById(id: "1") {
+                fieldB
+              }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    [Fact]
+    public async Task Require_With_NonNull_Input_Field_Selecting_Nullable_Field_Returning_Null()
+    {
+        // arrange
+        // The non-null input field of the requirement cannot be satisfied by
+        // the null value, so the entity fetch must be skipped instead of
+        // sending an invalid input object to the source schema.
+        var server1 = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+              productById(id: ID!): Product @lookup
+            }
+
+            type Product {
+              id: ID!
+              sku: String @null
+            }
+            """);
+
+        var server2 = CreateSourceSchema(
+            "B",
+            """
+            type Query {
+              productById(id: ID!): Product @lookup @internal
+            }
+
+            type Product {
+              id: ID!
+              fieldB(key: ProductKeyInput! @require(field: "{ sku }")): String
+            }
+
+            input ProductKeyInput {
+              sku: String!
+            }
+            """);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1),
+            ("B", server2)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            {
+              productById(id: "1") {
+                fieldB
+              }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
 
         // assert
         await MatchSnapshotAsync(gateway, request, result);
@@ -251,7 +445,64 @@ public class RequireTests : FusionTestBase
 
         using var result = await client.PostAsync(
             request,
-            new Uri("http://localhost:5000/graphql"));
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    [Fact]
+    public async Task Require_DoesNotLeak_RequirementOnlyChild_When_ClientSelectsParent()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "a",
+            b => b.AddQueryType<BookCatalog.Query>());
+
+        using var server2 = CreateSourceSchema(
+            "b",
+            b => b.AddQueryType<BookInventory.Query>());
+
+        using var server3 = CreateSourceSchema(
+            "c",
+            b => b.AddQueryType<BookShipping.Query>());
+
+        using var server4 = CreateSourceSchema(
+            "d",
+            b => b.AddQueryType<BookGenre.Query>()
+                .AddType<BookGenre.Query>());
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("a", server1),
+            ("b", server2),
+            ("c", server3),
+            ("d", server4)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            {
+                books {
+                  nodes {
+                    title
+                    dimension {
+                      width
+                    }
+                    estimatedDelivery
+                  }
+                }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
 
         // assert
         await MatchSnapshotAsync(gateway, request, result);
@@ -295,7 +546,7 @@ public class RequireTests : FusionTestBase
                   nodes {
                     title
                     genres {
-                     name
+                      name
                     }
                   }
                 }
@@ -304,7 +555,8 @@ public class RequireTests : FusionTestBase
 
         using var result = await client.PostAsync(
             request,
-            new Uri("http://localhost:5000/graphql"));
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
 
         // assert
         await MatchSnapshotAsync(gateway, request, result);
@@ -378,7 +630,8 @@ public class RequireTests : FusionTestBase
 
         using var result = await client.PostAsync(
             request,
-            new Uri("http://localhost:5000/graphql"));
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
 
         // assert
         await MatchSnapshotAsync(gateway, request, result);

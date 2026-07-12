@@ -25,14 +25,14 @@ public class PagingHelperSqlServerNullableTests(SqlServerResource resource)
             .OrderBy(t => t.Date)
             .ThenBy(t => t.Time)
             .ThenBy(t => t.Id)
-            .ToPageAsync(arguments);
+            .ToPageAsync(arguments, Xunit.TestContext.Current.CancellationToken);
 
         arguments = arguments with { After = page1.CreateEndCursor() };
         var page2 = await context.Records
             .OrderBy(t => t.Date)
             .ThenBy(t => t.Time)
             .ThenBy(t => t.Id)
-            .ToPageAsync(arguments);
+            .ToPageAsync(arguments, Xunit.TestContext.Current.CancellationToken);
 
         // Assert
         var snapshot = new Snapshot(postFix: TestEnvironment.TargetFramework);
@@ -57,14 +57,14 @@ public class PagingHelperSqlServerNullableTests(SqlServerResource resource)
             .OrderByDescending(t => t.Date)
             .ThenByDescending(t => t.Time)
             .ThenByDescending(t => t.Id)
-            .ToPageAsync(arguments);
+            .ToPageAsync(arguments, Xunit.TestContext.Current.CancellationToken);
 
         arguments = arguments with { After = page1.CreateEndCursor() };
         var page2 = await context.Records
             .OrderByDescending(t => t.Date)
             .ThenByDescending(t => t.Time)
             .ThenByDescending(t => t.Id)
-            .ToPageAsync(arguments);
+            .ToPageAsync(arguments, Xunit.TestContext.Current.CancellationToken);
 
         // Assert
         var snapshot = new Snapshot(postFix: TestEnvironment.TargetFramework);
@@ -89,14 +89,14 @@ public class PagingHelperSqlServerNullableTests(SqlServerResource resource)
             .OrderBy(t => t.Date)
             .ThenBy(t => t.Time)
             .ThenBy(t => t.Id)
-            .ToPageAsync(arguments);
+            .ToPageAsync(arguments, Xunit.TestContext.Current.CancellationToken);
 
         arguments = arguments with { After = page1.CreateEndCursor() };
         var page2 = await context.Records
             .OrderBy(t => t.Date)
             .ThenBy(t => t.Time)
             .ThenBy(t => t.Id)
-            .ToPageAsync(arguments);
+            .ToPageAsync(arguments, Xunit.TestContext.Current.CancellationToken);
 
         // Assert
         var snapshot = new Snapshot(postFix: TestEnvironment.TargetFramework);
@@ -121,14 +121,14 @@ public class PagingHelperSqlServerNullableTests(SqlServerResource resource)
             .OrderByDescending(t => t.Date)
             .ThenByDescending(t => t.Time)
             .ThenByDescending(t => t.Id)
-            .ToPageAsync(arguments);
+            .ToPageAsync(arguments, Xunit.TestContext.Current.CancellationToken);
 
         arguments = arguments with { After = page1.CreateEndCursor() };
         var page2 = await context.Records
             .OrderByDescending(t => t.Date)
             .ThenByDescending(t => t.Time)
             .ThenByDescending(t => t.Id)
-            .ToPageAsync(arguments);
+            .ToPageAsync(arguments, Xunit.TestContext.Current.CancellationToken);
 
         // Assert
         var snapshot = new Snapshot(postFix: TestEnvironment.TargetFramework);
@@ -153,14 +153,14 @@ public class PagingHelperSqlServerNullableTests(SqlServerResource resource)
             .OrderBy(t => t.Date)
             .ThenBy(t => t.String)
             .ThenBy(t => t.Id)
-            .ToPageAsync(arguments);
+            .ToPageAsync(arguments, Xunit.TestContext.Current.CancellationToken);
 
         arguments = arguments with { After = page1.CreateEndCursor() };
         var page2 = await context.Records
             .OrderBy(t => t.Date)
             .ThenBy(t => t.String)
             .ThenBy(t => t.Id)
-            .ToPageAsync(arguments);
+            .ToPageAsync(arguments, Xunit.TestContext.Current.CancellationToken);
 
         // Assert
         var snapshot = new Snapshot(postFix: TestEnvironment.TargetFramework);
@@ -185,14 +185,14 @@ public class PagingHelperSqlServerNullableTests(SqlServerResource resource)
             .OrderByDescending(t => t.Date)
             .ThenByDescending(t => t.String)
             .ThenByDescending(t => t.Id)
-            .ToPageAsync(arguments);
+            .ToPageAsync(arguments, Xunit.TestContext.Current.CancellationToken);
 
         arguments = arguments with { After = page1.CreateEndCursor() };
         var page2 = await context.Records
             .OrderByDescending(t => t.Date)
             .ThenByDescending(t => t.String)
             .ThenByDescending(t => t.Id)
-            .ToPageAsync(arguments);
+            .ToPageAsync(arguments, Xunit.TestContext.Current.CancellationToken);
 
         // Assert
         var snapshot = new Snapshot(TestEnvironment.TargetFramework);
@@ -217,14 +217,14 @@ public class PagingHelperSqlServerNullableTests(SqlServerResource resource)
             .OrderBy(t => t.Date)
             .ThenBy(t => t.String)
             .ThenBy(t => t.Id)
-            .ToPageAsync(arguments);
+            .ToPageAsync(arguments, Xunit.TestContext.Current.CancellationToken);
 
         arguments = arguments with { After = page1.CreateEndCursor() };
         var page2 = await context.Records
             .OrderBy(t => t.Date)
             .ThenBy(t => t.String)
             .ThenBy(t => t.Id)
-            .ToPageAsync(arguments);
+            .ToPageAsync(arguments, Xunit.TestContext.Current.CancellationToken);
 
         // Assert
         var snapshot = new Snapshot(postFix: TestEnvironment.TargetFramework);
@@ -249,14 +249,14 @@ public class PagingHelperSqlServerNullableTests(SqlServerResource resource)
             .OrderByDescending(t => t.Date)
             .ThenByDescending(t => t.String)
             .ThenByDescending(t => t.Id)
-            .ToPageAsync(arguments);
+            .ToPageAsync(arguments, Xunit.TestContext.Current.CancellationToken);
 
         arguments = arguments with { After = page1.CreateEndCursor() };
         var page2 = await context.Records
             .OrderByDescending(t => t.Date)
             .ThenByDescending(t => t.String)
             .ThenByDescending(t => t.Id)
-            .ToPageAsync(arguments);
+            .ToPageAsync(arguments, Xunit.TestContext.Current.CancellationToken);
 
         // Assert
         var snapshot = new Snapshot(TestEnvironment.TargetFramework);
@@ -264,6 +264,64 @@ public class PagingHelperSqlServerNullableTests(SqlServerResource resource)
         snapshot.Add(page2);
         snapshot.AddSql(interceptor);
         snapshot.MatchMarkdownSnapshot();
+    }
+
+    [Fact]
+    public async Task Paging_NullableNavigation_ValueTypeLeaf_Pages_Across_Null_Boundary()
+    {
+        // Arrange
+        var connectionString = CreateConnectionString();
+        await SeedItemsAsync(connectionString);
+        await using var context = new NullableTestsContext(Provider.SqlServer, connectionString);
+
+        // Act
+        // Sort by a non-nullable value-type leaf (Detail.Number) behind a nullable
+        // navigation; with nulls first the second page is requested after a
+        // null-navigation boundary.
+        var arguments = new PagingArguments(2) { NullOrdering = NullOrdering.NativeNullsFirst };
+        var page1 = await context.Items
+            .OrderBy(x => x.Detail!.Number)
+            .ThenBy(x => x.Id)
+            .ToPageAsync(arguments, Xunit.TestContext.Current.CancellationToken);
+
+        arguments = arguments with { After = page1.CreateEndCursor() };
+        var page2 = await context.Items
+            .OrderBy(x => x.Detail!.Number)
+            .ThenBy(x => x.Id)
+            .ToPageAsync(arguments, Xunit.TestContext.Current.CancellationToken);
+
+        // Assert
+        Assert.Equal([2, 3], page1.Select(x => x.Id));
+        Assert.Equal([4, 1], page2.Select(x => x.Id));
+    }
+
+    [Fact]
+    public async Task Paging_NullableNavigation_ReferenceLeaf_Pages_Across_Null_Boundary()
+    {
+        // Arrange
+        var connectionString = CreateConnectionString();
+        await SeedItemsAsync(connectionString);
+        await using var context = new NullableTestsContext(Provider.SqlServer, connectionString);
+
+        // Act
+        // Sort by a non-nullable reference leaf (Detail.Name) behind a nullable
+        // navigation; with nulls first the second page is requested after a
+        // null-navigation boundary.
+        var arguments = new PagingArguments(2) { NullOrdering = NullOrdering.NativeNullsFirst };
+        var page1 = await context.Items
+            .OrderBy(x => x.Detail!.Name)
+            .ThenBy(x => x.Id)
+            .ToPageAsync(arguments, Xunit.TestContext.Current.CancellationToken);
+
+        arguments = arguments with { After = page1.CreateEndCursor() };
+        var page2 = await context.Items
+            .OrderBy(x => x.Detail!.Name)
+            .ThenBy(x => x.Id)
+            .ToPageAsync(arguments, Xunit.TestContext.Current.CancellationToken);
+
+        // Assert
+        Assert.Equal([2, 3], page1.Select(x => x.Id));
+        Assert.Equal([4, 1], page2.Select(x => x.Id));
     }
 
     private static async Task SeedAsync(string connectionString)
@@ -309,6 +367,22 @@ public class PagingHelperSqlServerNullableTests(SqlServerResource resource)
                 Time = new TimeOnly(19, 40, 00),
                 String = "19:40:00"
             });
+
+        await context.SaveChangesAsync();
+    }
+
+    private static async Task SeedItemsAsync(string connectionString)
+    {
+        await using var context = new NullableTestsContext(Provider.SqlServer, connectionString);
+        await context.Database.EnsureCreatedAsync();
+
+        // Only the first item has a navigation; the rest are null and sort first,
+        // so paging crosses a null-navigation boundary between page 1 and page 2.
+        context.Items.AddRange(
+            new Item { Id = 1, Detail = new Detail { Number = 10, Name = "a" } },
+            new Item { Id = 2 },
+            new Item { Id = 3 },
+            new Item { Id = 4 });
 
         await context.SaveChangesAsync();
     }

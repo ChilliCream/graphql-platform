@@ -24,16 +24,16 @@ sourceSchemas:
         query: Query
       }
 
-      interface Votable @key(fields: "id") {
-        id: ID!
+      type Query {
+        votable: Votable
       }
 
       type Discussion implements Votable @key(fields: "id") {
         id: ID!
       }
 
-      type Query {
-        votable: Votable
+      interface Votable @key(fields: "id") {
+        id: ID!
       }
     interactions:
       - request:
@@ -62,9 +62,8 @@ sourceSchemas:
         query: Query
       }
 
-      interface Votable {
-        id: ID!
-        viewerCanVote: Boolean!
+      type Query {
+        votableById(id: ID!): Votable @lookup
       }
 
       type Discussion implements Votable {
@@ -72,21 +71,18 @@ sourceSchemas:
         viewerCanVote: Boolean!
       }
 
-      type Query {
-        votableById(id: ID!): Votable @lookup
+      interface Votable {
+        id: ID!
+        viewerCanVote: Boolean!
       }
     interactions:
       - request:
           accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
-            query Op_fb4e28df_2(
-              $__fusion_1_id: ID!
-            ) {
+            query Op_fb4e28df_2($__fusion_1_id: ID!) {
               votableById(id: $__fusion_1_id) {
                 __typename
-                ... on Discussion {
-                  viewerCanVote
-                }
+                viewerCanVote
               }
             }
           variables: |
@@ -116,8 +112,8 @@ operationPlan:
           }
         }
       hash: fb4e28df20f489a10c0f71a560445d04
-      searchSpace: 2
-      expandedNodes: 3
+      searchSpace: 1
+      expandedNodes: 2
   nodes:
     - id: 1
       type: Operation
@@ -133,18 +129,14 @@ operationPlan:
       type: Operation
       schema: B
       operation: |
-        query Op_fb4e28df_2(
-          $__fusion_1_id: ID!
-        ) {
+        query Op_fb4e28df_2($__fusion_1_id: ID!) {
           votableById(id: $__fusion_1_id) {
             __typename
-            ... on Discussion {
-              viewerCanVote
-            }
+            viewerCanVote
           }
         }
-      source: $.votableById<Discussion>
-      target: $.votable<Discussion>
+      source: $.votableById
+      target: $.votable
       requirements:
         - name: __fusion_1_id
           selectionMap: >-

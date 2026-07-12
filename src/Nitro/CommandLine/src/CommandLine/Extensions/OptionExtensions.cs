@@ -1,18 +1,32 @@
 using System.CommandLine.Parsing;
-using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Services;
 
 namespace ChilliCream.Nitro.CommandLine;
 
 internal static class OptionExtensions
 {
+    public static void OneArgumentPerOccurrence<T>(this Option<T> option)
+    {
+        option.Arity = ArgumentArity.OneOrMore;
+        option.AllowMultipleArgumentsPerToken = false;
+        option.Validators.Add(result =>
+        {
+            if (result.IdentifierTokenCount != result.Tokens.Count)
+            {
+                result.AddError(
+                    $"Option '{option.Name}' requires exactly one argument for each occurrence.");
+            }
+        });
+    }
+
     public static void LegalFilePathsOnly(this Option<string> option)
     {
         option.Validators.Add(result =>
         {
-            var value = result.GetValueOrDefault<string>();
-
-            ValidateFilePath(result, value);
+            foreach (var token in result.Tokens)
+            {
+                ValidateFilePath(result, token.Value);
+            }
         });
     }
 
@@ -20,11 +34,9 @@ internal static class OptionExtensions
     {
         option.Validators.Add(result =>
         {
-            var values = result.GetValueOrDefault<List<string>>();
-
-            foreach (var value in values ?? [])
+            foreach (var token in result.Tokens)
             {
-                ValidateFilePath(result, value);
+                ValidateFilePath(result, token.Value);
             }
         });
     }
@@ -69,9 +81,9 @@ internal static class OptionExtensions
         string name,
         T? defaultValue = default)
     {
-        option.DefaultValueFactory = r =>
+        option.DefaultValueFactory = _ =>
         {
-            var provider = CommandExecutionContext.Services.Value!
+            var provider = CommandExecutionContext.s_services.Value!
                 .GetRequiredService<IEnvironmentVariableProvider>();
             var value = s_prefixes
                 .Select(prefix => provider.GetEnvironmentVariable(prefix + name))

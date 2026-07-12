@@ -150,4 +150,74 @@ public sealed class ImplementedByInaccessibleRuleTests : RuleTestBase
                 """
             ]);
     }
+
+    // When two source schemas declare the same-named interface with different fields, the merged
+    // interface holds the union of those fields, so an implementing type does not necessarily
+    // provide every field of the interface. This rule must not assume the field exists on the
+    // implementing type; the unimplemented field is reported by InterfaceFieldNoImplementationRule.
+    [Fact]
+    public void Validate_MergedInterfaceFieldNotOnAllImplementers_Succeeds()
+    {
+        AssertValid(
+        [
+            """
+            interface Error {
+                code: String!
+            }
+
+            type ErrorWithCode implements Error {
+                code: String!
+            }
+            """,
+            """
+            interface Error {
+                message: String!
+            }
+
+            type ErrorWithMessage implements Error {
+                message: String!
+            }
+            """
+        ]);
+    }
+
+    // The entire 'User' type is @inaccessible and thus removed from the public schema, so it is
+    // not a visible implementor of 'Node' and no interface contract is violated.
+    [Fact]
+    public void Validate_NotImplementedByInaccessibleObjectTypeInaccessible_Succeeds()
+    {
+        AssertValid(
+        [
+            """
+            interface Node {
+                id: ID!
+            }
+
+            type User implements Node @inaccessible {
+                id: ID!
+                name: String
+            }
+            """
+        ]);
+    }
+
+    // The entire 'User' interface type is @inaccessible and thus removed from the public schema,
+    // so it is not a visible implementor of 'Node' and no interface contract is violated.
+    [Fact]
+    public void Validate_NotImplementedByInaccessibleInterfaceTypeInaccessible_Succeeds()
+    {
+        AssertValid(
+        [
+            """
+            interface Node {
+                id: ID!
+            }
+
+            interface User implements Node @inaccessible {
+                id: ID!
+                name: String
+            }
+            """
+        ]);
+    }
 }

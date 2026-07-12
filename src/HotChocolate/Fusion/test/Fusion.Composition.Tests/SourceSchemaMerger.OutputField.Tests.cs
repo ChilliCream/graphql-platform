@@ -26,15 +26,11 @@ public sealed class SourceSchemaMergerOutputFieldTests : SourceSchemaMergerTestB
                 """
             ],
             """
-            type Product
-                @fusion__type(schema: A)
-                @fusion__type(schema: B) {
-                "Computes a discount as a percentage of the product's list price."
-                discountPercentage(percent: Int = 10
-                    @fusion__inputField(schema: A)
-                    @fusion__inputField(schema: B)): Int
-                    @fusion__field(schema: A, sourceType: "Int!")
-                    @fusion__field(schema: B)
+            type Product @fusion__type(schema: A) @fusion__type(schema: B) {
+              "Computes a discount as a percentage of the product's list price."
+              discountPercentage(
+                percent: Int = 10 @fusion__inputField(schema: A) @fusion__inputField(schema: B)
+              ): Int @fusion__field(schema: A, sourceType: "Int!") @fusion__field(schema: B)
             }
             """);
     }
@@ -60,12 +56,8 @@ public sealed class SourceSchemaMergerOutputFieldTests : SourceSchemaMergerTestB
                 """
             ],
             """
-            type Product
-                @fusion__type(schema: A)
-                @fusion__type(schema: B) {
-                discountPercentage: Int
-                    @fusion__field(schema: A)
-                    @fusion__field(schema: B)
+            type Product @fusion__type(schema: A) @fusion__type(schema: B) {
+              discountPercentage: Int @fusion__field(schema: A) @fusion__field(schema: B)
             }
             """);
     }
@@ -91,15 +83,10 @@ public sealed class SourceSchemaMergerOutputFieldTests : SourceSchemaMergerTestB
                 """
             ],
             """
-            type Product
-                @fusion__type(schema: A)
-                @fusion__type(schema: B) {
-                discountPercentage(percent: Int
-                    @fusion__inputField(schema: A)
-                    @fusion__inputField(schema: B)
-                    @fusion__inaccessible): Int
-                    @fusion__field(schema: A)
-                    @fusion__field(schema: B)
+            type Product @fusion__type(schema: A) @fusion__type(schema: B) {
+              discountPercentage(
+                percent: Int @fusion__inputField(schema: A) @fusion__inputField(schema: B) @fusion__inaccessible
+              ): Int @fusion__field(schema: A) @fusion__field(schema: B)
             }
             """);
     }
@@ -126,15 +113,17 @@ public sealed class SourceSchemaMergerOutputFieldTests : SourceSchemaMergerTestB
                 """
             ],
             """
-            type Product
-                @fusion__type(schema: A)
-                @fusion__type(schema: B) {
-                discountPercentage: Int
-                    @fusion__field(schema: A)
-                    @fusion__field(schema: B)
-                    @fusion__requires(schema: B, requirements: "percent", field: "discountPercentage(percent: Int): Int", map: ["percent"])
-                percent: Int
-                    @fusion__field(schema: A)
+            type Product @fusion__type(schema: A) @fusion__type(schema: B) {
+              discountPercentage: Int
+                @fusion__field(schema: A)
+                @fusion__field(schema: B)
+                @fusion__requires(
+                  schema: B
+                  requirements: "percent"
+                  field: "discountPercentage(percent: Int): Int"
+                  map: ["percent"]
+                )
+              percent: Int @fusion__field(schema: A)
             }
             """);
     }
@@ -162,11 +151,8 @@ public sealed class SourceSchemaMergerOutputFieldTests : SourceSchemaMergerTestB
                 """
             ],
             """
-            type Product
-                @fusion__type(schema: A)
-                @fusion__type(schema: B) {
-                discountPercentage: Int
-                    @fusion__field(schema: A)
+            type Product @fusion__type(schema: A) @fusion__type(schema: B) {
+              discountPercentage: Int @fusion__field(schema: A)
             }
             """);
     }
@@ -193,11 +179,8 @@ public sealed class SourceSchemaMergerOutputFieldTests : SourceSchemaMergerTestB
                 """
             ],
             """
-            type Product
-                @fusion__type(schema: A)
-                @fusion__type(schema: B) {
-                name: String!
-                    @fusion__field(schema: A)
+            type Product @fusion__type(schema: A) @fusion__type(schema: B) {
+              name: String! @fusion__field(schema: A)
             }
             """);
     }
@@ -223,13 +206,11 @@ public sealed class SourceSchemaMergerOutputFieldTests : SourceSchemaMergerTestB
                 """
             ],
             """
-            type Product
-                @fusion__type(schema: A)
-                @fusion__type(schema: B) {
-                discountPercentage: Int
-                    @fusion__field(schema: A)
-                    @fusion__field(schema: B)
-                    @fusion__inaccessible
+            type Product @fusion__type(schema: A) @fusion__type(schema: B) {
+              discountPercentage: Int
+                @fusion__field(schema: A)
+                @fusion__field(schema: B)
+                @fusion__inaccessible
             }
             """);
     }
@@ -264,20 +245,16 @@ public sealed class SourceSchemaMergerOutputFieldTests : SourceSchemaMergerTestB
             ],
             """
             type Product
-                @fusion__type(schema: A)
-                @fusion__type(schema: B)
-                @fusion__type(schema: C) {
-                id: ID!
-                    @fusion__field(schema: A)
-                    @fusion__field(schema: B, partial: true)
-                    @fusion__field(schema: C, partial: true)
-                name: String!
-                    @fusion__field(schema: A)
-                price: Float!
-                    @fusion__field(schema: C)
-                tax: Float!
-                    @fusion__field(schema: B)
-                    @fusion__field(schema: C)
+              @fusion__type(schema: A)
+              @fusion__type(schema: B)
+              @fusion__type(schema: C) {
+              id: ID!
+                @fusion__field(schema: A)
+                @fusion__field(schema: B, partial: true)
+                @fusion__field(schema: C, partial: true)
+              name: String! @fusion__field(schema: A)
+              price: Float! @fusion__field(schema: C)
+              tax: Float! @fusion__field(schema: B) @fusion__field(schema: C)
             }
             """);
     }
@@ -309,36 +286,74 @@ public sealed class SourceSchemaMergerOutputFieldTests : SourceSchemaMergerTestB
             ],
             """
             schema {
-                query: Query
+              query: Query
             }
 
-            type Query
-                @fusion__type(schema: A) {
-                reviews: [Review!]
-                    @fusion__field(schema: A)
-                users: [User!]
-                    @fusion__field(schema: A)
+            type Query @fusion__type(schema: A) {
+              reviews: [Review!] @fusion__field(schema: A)
+              users: [User!] @fusion__field(schema: A)
             }
 
-            type Review
-                @fusion__type(schema: A) {
-                author: User
-                    @fusion__field(schema: A, provides: "email")
-                body: String!
-                    @fusion__field(schema: A)
-                id: ID!
-                    @fusion__field(schema: A)
+            type Review @fusion__type(schema: A) {
+              author: User @fusion__field(schema: A, provides: "email")
+              body: String! @fusion__field(schema: A)
+              id: ID! @fusion__field(schema: A)
             }
 
-            type User
-                @fusion__type(schema: A) {
-                email: String!
-                    @fusion__field(schema: A, partial: true)
-                id: ID!
-                    @fusion__field(schema: A)
-                name: String!
-                    @fusion__field(schema: A)
+            type User @fusion__type(schema: A) {
+              email: String! @fusion__field(schema: A, partial: true)
+              id: ID! @fusion__field(schema: A)
+              name: String! @fusion__field(schema: A)
             }
+            """);
+    }
+
+    [Fact]
+    public void Merge_Should_PreserveConditionedProvides_When_FieldReturnsUnion()
+    {
+        AssertMatches(
+            [
+                """
+                type Query {
+                    media: [Media] @provides(fields: "... on Book { title }")
+                }
+
+                union Media = Book | Movie
+
+                type Book {
+                    id: ID!
+                    title: String @external
+                }
+
+                type Movie {
+                    id: ID!
+                    title: String
+                }
+                """
+            ],
+            """
+            schema {
+              query: Query
+            }
+
+            type Query @fusion__type(schema: A) {
+              media: [Media] @fusion__field(schema: A, provides: "... on Book { title }")
+            }
+
+            type Book @fusion__type(schema: A) {
+              id: ID! @fusion__field(schema: A)
+              title: String @fusion__field(schema: A, partial: true)
+            }
+
+            type Movie @fusion__type(schema: A) {
+              id: ID! @fusion__field(schema: A)
+              title: String @fusion__field(schema: A)
+            }
+
+            union Media
+              @fusion__type(schema: A)
+              @fusion__unionMember(schema: A, member: "Book")
+              @fusion__unionMember(schema: A, member: "Movie") = Book | Movie
             """);
     }
 
@@ -363,13 +378,11 @@ public sealed class SourceSchemaMergerOutputFieldTests : SourceSchemaMergerTestB
                 """
             ],
             """
-            type Product
-                @fusion__type(schema: A)
-                @fusion__type(schema: B) {
-                name: String
-                    @fusion__field(schema: A)
-                    @fusion__field(schema: B)
-                    @deprecated(reason: "Some reason")
+            type Product @fusion__type(schema: A) @fusion__type(schema: B) {
+              name: String
+                @fusion__field(schema: A)
+                @fusion__field(schema: B)
+                @deprecated(reason: "Some reason")
             }
             """);
     }
@@ -395,13 +408,11 @@ public sealed class SourceSchemaMergerOutputFieldTests : SourceSchemaMergerTestB
                 """
             ],
             """
-            type Product
-                @fusion__type(schema: A)
-                @fusion__type(schema: B) {
-                name: String
-                    @fusion__field(schema: A)
-                    @fusion__field(schema: B)
-                    @deprecated(reason: "Some reason")
+            type Product @fusion__type(schema: A) @fusion__type(schema: B) {
+              name: String
+                @fusion__field(schema: A)
+                @fusion__field(schema: B)
+                @deprecated(reason: "Some reason")
             }
             """);
     }
@@ -427,13 +438,109 @@ public sealed class SourceSchemaMergerOutputFieldTests : SourceSchemaMergerTestB
                 """
             ],
             """
-            type Product
-                @fusion__type(schema: A)
-                @fusion__type(schema: B) {
-                name: String
-                    @fusion__field(schema: A)
-                    @fusion__field(schema: B)
-                    @deprecated(reason: "No longer supported.")
+            type Product @fusion__type(schema: A) @fusion__type(schema: B) {
+              name: String
+                @fusion__field(schema: A)
+                @fusion__field(schema: B)
+                @deprecated(reason: "No longer supported.")
+            }
+            """);
+    }
+
+    // When one schema returns an object type and another returns a composite supertype of that
+    // object type, the composed field uses the supertype, regardless of source schema order.
+    [Fact]
+    public void Merge_OutputFieldsCompositeSupertype_MatchesSnapshot()
+    {
+        AssertMatches(
+            [
+                """
+                # Schema A
+                type Query {
+                    featured: FeaturedItem
+                }
+
+                union FeaturedItem = Product
+
+                type Product {
+                    id: ID
+                }
+                """,
+                """
+                # Schema B
+                type Query {
+                    featured: Product
+                }
+
+                type Product {
+                    id: ID
+                }
+                """
+            ],
+            """
+            schema {
+              query: Query
+            }
+
+            type Query @fusion__type(schema: A) @fusion__type(schema: B) {
+              featured: FeaturedItem
+                @fusion__field(schema: A)
+                @fusion__field(schema: B, sourceType: "Product")
+            }
+
+            type Product @fusion__type(schema: A) @fusion__type(schema: B) {
+              id: ID @fusion__field(schema: A) @fusion__field(schema: B)
+            }
+
+            union FeaturedItem
+              @fusion__type(schema: A)
+              @fusion__unionMember(schema: A, member: "Product") = Product
+            """);
+    }
+
+    // When an argument uses @require with a field selection map that contains a constant argument
+    // (e.g. dimension(unit: METRIC).length), the composed @fusion__requires directive preserves the
+    // constant argument in the requirements selection string.
+    [Fact]
+    public void Merge_OutputFieldsWithRequireAndConstantArgument_MatchesSnapshot()
+    {
+        AssertMatches(
+            [
+                """
+                # Schema A
+                type Product {
+                    dimension(unit: String): Dimension
+                    weight(unit: String @require(field: "dimension(unit: METRIC).length")): Float
+                }
+
+                type Dimension {
+                    length: Float
+                }
+                """,
+                """
+                # Schema B
+                type Product {
+                    weight(unit: String): Float
+                }
+                """
+            ],
+            """
+            type Dimension @fusion__type(schema: A) {
+              length: Float @fusion__field(schema: A)
+            }
+
+            type Product @fusion__type(schema: A) @fusion__type(schema: B) {
+              dimension(unit: String @fusion__inputField(schema: A)): Dimension
+                @fusion__field(schema: A)
+              weight: Float
+                @fusion__field(schema: A)
+                @fusion__field(schema: B)
+                @fusion__requires(
+                  schema: A
+                  requirements: "dimension(unit: METRIC) { length }"
+                  field: "weight(unit: String): Float"
+                  map: ["dimension(unit: METRIC).length"]
+                )
             }
             """);
     }

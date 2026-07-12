@@ -1491,10 +1491,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
     /// <summary>
     /// Represents the operation service of the CreateReviewMut GraphQL operation
     /// <code>
-    /// mutation CreateReviewMut(
-    ///   $episode: Episode!
-    ///     $review: ReviewInput!
-    /// ) {
+    /// mutation CreateReviewMut($episode: Episode!, $review: ReviewInput!) {
     ///   createReview(episode: $episode, review: $review) {
     ///     __typename
     ///     stars
@@ -1529,10 +1526,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
     /// <summary>
     /// Represents the operation service of the CreateReviewMut GraphQL operation
     /// <code>
-    /// mutation CreateReviewMut(
-    ///   $episode: Episode!
-    ///     $review: ReviewInput!
-    /// ) {
+    /// mutation CreateReviewMut($episode: Episode!, $review: ReviewInput!) {
     ///   createReview(episode: $episode, review: $review) {
     ///     __typename
     ///     stars
@@ -1635,10 +1629,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
     /// <summary>
     /// Represents the operation service of the CreateReviewMut GraphQL operation
     /// <code>
-    /// mutation CreateReviewMut(
-    ///   $episode: Episode!
-    ///     $review: ReviewInput!
-    /// ) {
+    /// mutation CreateReviewMut($episode: Episode!, $review: ReviewInput!) {
     ///   createReview(episode: $episode, review: $review) {
     ///     __typename
     ///     stars

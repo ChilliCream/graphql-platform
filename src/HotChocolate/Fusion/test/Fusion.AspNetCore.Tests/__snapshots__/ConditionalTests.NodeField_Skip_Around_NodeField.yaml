@@ -1,9 +1,7 @@
 title: NodeField_Skip_Around_NodeField
 request:
   document: |
-    query testQuery(
-      $skip: Boolean!
-    ) {
+    query testQuery($skip: Boolean!) {
       ... @skip(if: $skip) {
         __typename
         node(id: "RGlzY3Vzc2lvbjox") {
@@ -27,8 +25,8 @@ sourceSchemas:
         query: Query
       }
 
-      interface Node {
-        id: ID!
+      type Query {
+        node(id: ID!): Node @lookup
       }
 
       type Discussion implements Node {
@@ -36,15 +34,13 @@ sourceSchemas:
         title: String
       }
 
-      type Query {
-        node(id: ID!): Node @lookup
+      interface Node {
+        id: ID!
       }
 operationPlan:
   operation:
     - document: |
-        query testQuery(
-          $skip: Boolean!
-        ) {
+        query testQuery($skip: Boolean!) {
           ... @skip(if: $skip) {
             __typename
             node(id: "RGlzY3Vzc2lvbjox") {

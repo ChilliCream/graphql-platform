@@ -3,8 +3,9 @@ using HotChocolate.Execution.Configuration;
 using HotChocolate.Fusion.Configuration;
 using HotChocolate.Fusion.Connectors.InMemory;
 using HotChocolate.Fusion.Execution.Clients;
+using HotChocolate.Fusion.Options;
 using HotChocolate.Transport.Formatters;
-using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Options;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
@@ -13,6 +14,23 @@ namespace Microsoft.Extensions.DependencyInjection;
 /// </summary>
 public static class InMemoryFusionGatewayBuilderExtensions
 {
+    /// <summary>
+    /// Registers a callback to modify the options used to compose in-memory source schemas.
+    /// </summary>
+    /// <param name="builder">The fusion gateway builder.</param>
+    /// <param name="configure">A delegate that modifies the schema composer options.</param>
+    /// <returns>The fusion gateway builder for chaining.</returns>
+    public static IFusionGatewayBuilder ModifyInMemoryCompositionOptions(
+        this IFusionGatewayBuilder builder,
+        Action<SchemaComposerOptions> configure)
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(configure);
+
+        builder.Services.Configure(configure);
+        return builder;
+    }
+
     /// <summary>
     /// Adds an in-memory schema connector that executes operations directly in-process
     /// against the schema registered by the given <paramref name="schemaBuilder"/>.
@@ -46,9 +64,11 @@ public static class InMemoryFusionGatewayBuilderExtensions
         ArgumentNullException.ThrowIfNull(builder);
         ArgumentException.ThrowIfNullOrEmpty(schemaName);
 
+        builder.Services.AddOptions<SchemaComposerOptions>();
+
         if (!builder.Services.Any(d => d.ServiceType == typeof(InMemorySourceSchemaClientFactory)))
         {
-            // Remove default HTTP client factory — in-memory mode doesn't need it.
+            // Remove default HTTP client factory; in-memory mode doesn't need it.
             for (var i = builder.Services.Count - 1; i >= 0; i--)
             {
                 if (builder.Services[i].ServiceType == typeof(ISourceSchemaClientFactory))
@@ -78,7 +98,8 @@ public static class InMemoryFusionGatewayBuilderExtensions
                 return new InMemoryConfigurationProvider(
                     names,
                     sp.GetRequiredService<IRequestExecutorProvider>(),
-                    sp.GetRequiredService<IRequestExecutorEvents>());
+                    sp.GetRequiredService<IRequestExecutorEvents>(),
+                    sp.GetRequiredService<IOptions<SchemaComposerOptions>>().Value);
             });
 
         FusionSetupUtilities.Configure(

@@ -15,24 +15,32 @@ internal sealed class ScheduledMessageWorker(
     ScheduledMessageDispatcher dispatcher)
     : IHostedService
 {
+    private readonly object _lock = new();
     private NpgsqlDataSource? _dataSource;
     private ContinuousTask? _task;
 
     /// <summary>
-    /// Starts the scheduled message processing background task.
+    /// Starts the scheduled message processing background task. This call is idempotent: invoking it
+    /// again while the worker is already running is a no-op that returns without starting a second loop.
     /// </summary>
     /// <param name="cancellationToken">A token that signals when startup should be aborted.</param>
     /// <returns>A completed task once the background loop has been initiated.</returns>
-    /// <exception cref="InvalidOperationException">Thrown if the worker is already running.</exception>
     public Task StartAsync(CancellationToken cancellationToken)
     {
-        if (_task is not null)
+        lock (_lock)
         {
-            throw new InvalidOperationException("The worker is already running.");
-        }
+            if (_task is not null)
+            {
+                return Task.CompletedTask;
+            }
 
-        _dataSource = NpgsqlDataSource.Create(options.ConnectionString);
-        _task = new ContinuousTask(ProcessAsync);
+            // The loop captures its own data source rather than reading the field, so that
+            // StopAsync (or a concurrent restart) can clear and dispose the field without
+            // affecting an already-running loop.
+            var dataSource = NpgsqlDataSource.Create(options.ConnectionString);
+            _task = new ContinuousTask(token => ProcessAsync(dataSource, token));
+            _dataSource = dataSource;
+        }
 
         return Task.CompletedTask;
     }
@@ -43,24 +51,40 @@ internal sealed class ScheduledMessageWorker(
     /// <param name="cancellationToken">A token that signals when shutdown should be forced.</param>
     public async Task StopAsync(CancellationToken cancellationToken)
     {
-        if (_task is null)
+        ContinuousTask? task;
+        NpgsqlDataSource? dataSource;
+
+        lock (_lock)
+        {
+            task = _task;
+            dataSource = _dataSource;
+            _task = null;
+            _dataSource = null;
+        }
+
+        if (task is null)
         {
             return;
         }
 
-        await _task.DisposeAsync();
-        _task = null;
-
-        if (_dataSource is not null)
+        // Dispose the data source even if the loop fails to shut down cleanly, so the
+        // underlying connection pool is always released.
+        try
         {
-            await _dataSource.DisposeAsync();
-            _dataSource = null;
+            await task.DisposeAsync();
+        }
+        finally
+        {
+            if (dataSource is not null)
+            {
+                await dataSource.DisposeAsync();
+            }
         }
     }
 
-    private async Task ProcessAsync(CancellationToken stoppingToken)
+    private async Task ProcessAsync(NpgsqlDataSource dataSource, CancellationToken stoppingToken)
     {
-        await using var connection = await _dataSource!.OpenConnectionAsync(stoppingToken);
+        await using var connection = await dataSource.OpenConnectionAsync(stoppingToken);
 
         await dispatcher.ProcessAsync(connection, stoppingToken);
     }

@@ -1,5 +1,9 @@
+using System.Text.Json;
 using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.Client.FusionConfiguration;
+using ChilliCream.Nitro.CommandLine.FusionCompatibility;
+using HotChocolate.Fusion.Packaging;
+using Moq;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Fusion;
 
@@ -27,11 +31,12 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
               -s, --source-schema <source-schema>            One or more source schemas that should be included in the composition. Source schemas can either be just a name ('example') or a name and a version ('example@1.0.0'). If no version is specified the value of the '--tag' option is taken as the source schema version.
               -f, --source-schema-file <source-schema-file>  One or more paths to a source schema file (.graphqls) or directory containing a source schema file
               -a, --archive, --configuration <archive>       The path to a Fusion archive file (the '--configuration' alias is deprecated) [env: NITRO_FUSION_CONFIG_FILE]
+              --legacy-v1-archive <legacy-v1-archive>        The path to a Fusion v1 archive file. This option is only intended to be used during the migration from Fusion v1 to Fusion v2+.
               --force                                        Skip confirmation prompts for deletes and overwrites
               --wait-for-approval                            Wait for the deployment to be approved before completing [env: NITRO_WAIT_FOR_APPROVAL]
               -w, --working-directory <working-directory>    Set the working directory for the command
-              --cloud-url <cloud-url>                        The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL] [default: api.chillicream.com]
-              --api-key <api-key>                            The API key used for authentication [env: NITRO_API_KEY]
+              --cloud-url <cloud-url>                        The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL]
+              --api-key <api-key>                            The API key or PAT used for authentication [env: NITRO_API_KEY]
               --output <json>                                The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
               -?, -h, --help                                 Show help and usage information
 
@@ -78,7 +83,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         // assert
         result.AssertError(
             """
-            This command requires an authenticated user. Either specify '--api-key' or run 'nitro login'.
+            This command requires an authenticated user. Either specify '--api-key' or run `nitro login`.
             """);
     }
 
@@ -231,11 +236,41 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             ArchiveFile);
 
         // assert
-        result.StdErr.MatchInlineSnapshot(
+        result.AssertError(
             """
             Archive file '/some/working/directory/fusion.far' does not exist.
             """);
-        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.NonInteractive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task WithArchive_And_LegacyArchive_ReturnsError(InteractionMode mode)
+    {
+        // arrange
+        SetupInteractionMode(mode);
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "publish",
+            "--api-id",
+            ApiId,
+            "--stage",
+            Stage,
+            "--tag",
+            Tag,
+            "--archive",
+            ArchiveFile,
+            "--legacy-v1-archive",
+            LegacyArchiveFile);
+
+        // assert
+        result.AssertError(
+            """
+            The options '--archive' and '--legacy-v1-archive' are mutually exclusive.
+            """);
     }
 
     [Fact]
@@ -267,13 +302,15 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         // assert
         result.AssertSuccess(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
             ├── Requesting deployment slot
+            │   ├── Publication request created. (ID: request-id)
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
             │   └── ✓ Claimed deployment slot.
             ├── Validating configuration against 'dev'
-            │   └── ✓ Validated configuration.
+            │   ├── Validating...
+            │   └── ✓ Fusion configuration passed validation.
             ├── Uploading configuration to 'dev'
             │   └── ✓ Uploaded configuration.
             └── ✓ Published configuration 'v1' to 'dev'.
@@ -306,13 +343,15 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         // assert
         result.AssertSuccess(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
             ├── Requesting deployment slot
+            │   ├── Publication request created. (ID: request-id)
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
             │   └── ✓ Claimed deployment slot.
             ├── Validating configuration against 'dev'
-            │   └── ✓ Validated configuration.
+            │   ├── Validating...
+            │   └── ✓ Fusion configuration passed validation.
             ├── Uploading configuration to 'dev'
             │   └── ✓ Uploaded configuration.
             └── ✓ Published configuration 'v1' to 'dev'.
@@ -345,16 +384,13 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             ArchiveFile);
 
         // assert
-        result.StdErr.MatchInlineSnapshot(
-            $"""
-             {expectedErrorMessage}
-             """);
+        result.StdErr.MatchInlineSnapshot(expectedErrorMessage);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
             ├── Requesting deployment slot
             │   └── ✕ Failed to request a deployment slot.
-            └── ✕ Failed to publish Fusion configuration.
+            └── ✕ Failed to publish a new Fusion configuration version.
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -386,10 +422,10 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
             ├── Requesting deployment slot
             │   └── ✕ Failed to request a deployment slot.
-            └── ✕ Failed to publish Fusion configuration.
+            └── ✕ Failed to publish a new Fusion configuration version.
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -421,18 +457,16 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             ArchiveFile);
 
         // assert
-        result.StdErr.MatchInlineSnapshot(
-            $"""
-             {expectedErrorMessage}
-             """);
+        result.StdErr.MatchInlineSnapshot(expectedErrorMessage);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
             ├── Requesting deployment slot
+            │   ├── Publication request created. (ID: request-id)
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
             │   └── ✕ Failed to claim the deployment slot.
-            └── ✕ Failed to publish Fusion configuration.
+            └── ✕ Failed to publish a new Fusion configuration version.
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -467,12 +501,13 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
             ├── Requesting deployment slot
+            │   ├── Publication request created. (ID: request-id)
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
             │   └── ✕ Failed to claim the deployment slot.
-            └── ✕ Failed to publish Fusion configuration.
+            └── ✕ Failed to publish a new Fusion configuration version.
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -505,20 +540,18 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             ArchiveFile);
 
         // assert
-        result.StdErr.MatchInlineSnapshot(
-            $"""
-             {expectedErrorMessage}
-             """);
+        result.StdErr.MatchInlineSnapshot(expectedErrorMessage);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
             ├── Requesting deployment slot
+            │   ├── Publication request created. (ID: request-id)
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
             │   └── ✓ Claimed deployment slot.
             ├── Validating configuration against 'dev'
             │   └── ✕ Failed to validate the new configuration.
-            └── ✕ Failed to publish Fusion configuration.
+            └── ✕ Failed to publish a new Fusion configuration version.
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -554,14 +587,15 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
             ├── Requesting deployment slot
+            │   ├── Publication request created. (ID: request-id)
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
             │   └── ✓ Claimed deployment slot.
             ├── Validating configuration against 'dev'
             │   └── ✕ Failed to validate the new configuration.
-            └── ✕ Failed to publish Fusion configuration.
+            └── ✕ Failed to publish a new Fusion configuration version.
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -574,7 +608,6 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         SetupRequestDeploymentSlotMutation(waitForApproval: true);
         SetupRequestDeploymentSlotSubscription();
         SetupClaimDeploymentSlotMutation();
-        SetupReleaseDeploymentSlotMutation();
         var capturedStream = SetupFusionConfigurationUploadMutation();
         SetupFusionConfigurationUploadSubscription();
 
@@ -595,8 +628,9 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         // assert
         result.AssertSuccess(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
             ├── Requesting deployment slot
+            │   ├── Publication request created. (ID: request-id)
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
             │   └── ✓ Claimed deployment slot.
@@ -620,7 +654,6 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         SetupFusionConfigurationValidationSubscription(
             CreateValidationInProgressEvent(),
             CreateValidationFailedEventWithErrors());
-        SetupReleaseDeploymentSlotMutation();
 
         // act
         var result = await ExecuteCommandAsync(
@@ -638,17 +671,19 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         // assert
         result.StdErr.MatchInlineSnapshot(
             """
-            Failed to validate configuration.
+            Fusion configuration failed validation.
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
             ├── Requesting deployment slot
+            │   ├── Publication request created. (ID: request-id)
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
             │   └── ✓ Claimed deployment slot.
             ├── Validating configuration against 'dev'
-            │   └── ✕ Failed to validate the new configuration.
+            │   ├── Validating...
+            │   └── ✕ Fusion configuration failed validation.
             │       ├── GraphQL schema changes
             │       │   ├── ✕ Directive foo was modified
             │       │   │   ├── ✓ Directive location FieldDefinition added
@@ -662,7 +697,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             │       │   ├── ✓ Type system member NewType was added.
             │       │   └── ✕ Type system member OldType was removed.
             │       ├── Invalid GraphQL schema
-            │       │   └── There is no object type implementing interface `InterfaceWithoutImplementation`. SCHEMA_INTERFACE_NO_IMPL
+            │       │   └── There is no object type implementing interface `InterfaceWithoutImplementation`. (SCHEMA_INTERFACE_NO_IMPL)
             │       ├── Client 'TestClient' (ID: client-1)
             │       │   └── Operation '6D12E4A815C50C504695E548EAF680BC8F337AC87E763E5689C685522A01BC59' (Deployed tags: 1.0.0)
             │       │       └── foo (10:10)
@@ -673,7 +708,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             │       │   └── Tool 'Fail'
             │       │       └── The field `person` does not exist on the type `Query`. (1:14)
             │       └── An unexpected error occurred.
-            └── ✕ Failed to publish Fusion configuration.
+            └── ✕ Failed to publish a new Fusion configuration version.
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -710,14 +745,16 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         // assert
         result.AssertSuccess(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
             ├── ! Force push is enabled.
             ├── Requesting deployment slot
+            │   ├── Publication request created. (ID: request-id)
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
             │   └── ✓ Claimed deployment slot.
             ├── Validating configuration against 'dev'
-            │   └── ✕ Failed to validate the new configuration.
+            │   ├── Validating...
+            │   └── ✕ Fusion configuration failed validation.
             │       ├── GraphQL schema changes
             │       │   ├── ✕ Directive foo was modified
             │       │   │   ├── ✓ Directive location FieldDefinition added
@@ -731,7 +768,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             │       │   ├── ✓ Type system member NewType was added.
             │       │   └── ✕ Type system member OldType was removed.
             │       ├── Invalid GraphQL schema
-            │       │   └── There is no object type implementing interface `InterfaceWithoutImplementation`. SCHEMA_INTERFACE_NO_IMPL
+            │       │   └── There is no object type implementing interface `InterfaceWithoutImplementation`. (SCHEMA_INTERFACE_NO_IMPL)
             │       ├── Client 'TestClient' (ID: client-1)
             │       │   └── Operation '6D12E4A815C50C504695E548EAF680BC8F337AC87E763E5689C685522A01BC59' (Deployed tags: 1.0.0)
             │       │       └── foo (10:10)
@@ -781,15 +818,16 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         // assert
         result.AssertSuccess(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
             ├── Requesting deployment slot
+            │   ├── Publication request created. (ID: request-id)
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
             │   └── ✓ Claimed deployment slot.
             ├── Uploading configuration to 'dev'
-            │   ├── ! Validation failed.
+            │   ├── ! Failed validation.
             │   │   ├── Invalid GraphQL schema
-            │   │   │   └── There is no object type implementing interface `InterfaceWithoutImplementation`. SCHEMA_INTERFACE_NO_IMPL
+            │   │   │   └── There is no object type implementing interface `InterfaceWithoutImplementation`. (SCHEMA_INTERFACE_NO_IMPL)
             │   │   ├── Client 'TestClient' (ID: client-1)
             │   │   │   └── Operation '6D12E4A815C50C504695E548EAF680BC8F337AC87E763E5689C685522A01BC59' (Deployed tags: 1.0.0)
             │   │   │       └── foo (10:10)
@@ -839,19 +877,20 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         // assert
         result.StdErr.MatchInlineSnapshot(
             """
-            Failed to publish the new configuration.
+            Fusion configuration version was rejected.
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
             ├── Requesting deployment slot
+            │   ├── Publication request created. (ID: request-id)
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
             │   └── ✓ Claimed deployment slot.
             ├── Uploading configuration to 'dev'
-            │   ├── ! Validation failed.
+            │   ├── ! Failed validation.
             │   │   ├── Invalid GraphQL schema
-            │   │   │   └── There is no object type implementing interface `InterfaceWithoutImplementation`. SCHEMA_INTERFACE_NO_IMPL
+            │   │   │   └── There is no object type implementing interface `InterfaceWithoutImplementation`. (SCHEMA_INTERFACE_NO_IMPL)
             │   │   ├── Client 'TestClient' (ID: client-1)
             │   │   │   └── Operation '6D12E4A815C50C504695E548EAF680BC8F337AC87E763E5689C685522A01BC59' (Deployed tags: 1.0.0)
             │   │   │       └── foo (10:10)
@@ -862,8 +901,8 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             │   │       └── Tool 'Fail'
             │   │           └── The field `person` does not exist on the type `Query`. (1:14)
             │   ├── ⏳ Waiting for approval. Approve in Nitro to continue.
-            │   └── ✕ Failed to upload the new configuration.
-            └── ✕ Failed to publish Fusion configuration.
+            │   └── ✕ Fusion configuration version was rejected.
+            └── ✕ Failed to publish a new Fusion configuration version.
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -898,22 +937,21 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             ArchiveFile);
 
         // assert
-        result.StdErr.MatchInlineSnapshot(
-            $"""
-             {expectedErrorMessage}
-             """);
+        result.StdErr.MatchInlineSnapshot(expectedErrorMessage);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
             ├── Requesting deployment slot
+            │   ├── Publication request created. (ID: request-id)
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
             │   └── ✓ Claimed deployment slot.
             ├── Validating configuration against 'dev'
-            │   └── ✓ Validated configuration.
+            │   ├── Validating...
+            │   └── ✓ Fusion configuration passed validation.
             ├── Uploading configuration to 'dev'
             │   └── ✕ Failed to upload the new configuration.
-            └── ✕ Failed to publish Fusion configuration.
+            └── ✕ Failed to publish a new Fusion configuration version.
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -951,16 +989,18 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
             ├── Requesting deployment slot
+            │   ├── Publication request created. (ID: request-id)
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
             │   └── ✓ Claimed deployment slot.
             ├── Validating configuration against 'dev'
-            │   └── ✓ Validated configuration.
+            │   ├── Validating...
+            │   └── ✓ Fusion configuration passed validation.
             ├── Uploading configuration to 'dev'
             │   └── ✕ Failed to upload the new configuration.
-            └── ✕ Failed to publish Fusion configuration.
+            └── ✕ Failed to publish a new Fusion configuration version.
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -995,23 +1035,25 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         // assert
         result.StdErr.MatchInlineSnapshot(
             """
-            Failed to publish the new configuration.
+            Fusion configuration version was rejected.
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
             ├── Requesting deployment slot
+            │   ├── Publication request created. (ID: request-id)
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
             │   └── ✓ Claimed deployment slot.
             ├── Validating configuration against 'dev'
-            │   └── ✓ Validated configuration.
+            │   ├── Validating...
+            │   └── ✓ Fusion configuration passed validation.
             ├── Uploading configuration to 'dev'
-            │   └── ✕ Failed to upload the new configuration.
+            │   └── ✕ Fusion configuration version was rejected.
             │       ├── Invalid GraphQL schema
-            │       │   └── Field 'Query.foo' has no type. SCHEMA_ERROR
+            │       │   └── Field 'Query.foo' has no type. (SCHEMA_ERROR)
             │       └── An error occurred.
-            └── ✕ Failed to publish Fusion configuration.
+            └── ✕ Failed to publish a new Fusion configuration version.
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -1050,12 +1092,13 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
             ├── Requesting deployment slot
+            │   ├── Publication request created. (ID: request-id)
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
             │   └── ✕ Failed to claim the deployment slot.
-            └── ✕ Failed to publish Fusion configuration.
+            └── ✕ Failed to publish a new Fusion configuration version.
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -1090,19 +1133,20 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         // assert
         result.StdErr.MatchInlineSnapshot(
             $"""
-             Encountered the following errors while trying to release the deployment slot after an error during the publishing process:
-             {expectedErrorMessage}
-             This is the error that caused the publishing process to fail in the first place:
-             There was an unexpected error: Something unexpected happened.
-             """);
+            Encountered the following errors while trying to release the deployment slot after an error during the publishing process:
+            {expectedErrorMessage}
+            This is the error that caused the publishing process to fail in the first place:
+            There was an unexpected error: Something unexpected happened.
+            """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
             ├── Requesting deployment slot
+            │   ├── Publication request created. (ID: request-id)
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
             │   └── ✕ Failed to claim the deployment slot.
-            └── ✕ Failed to publish Fusion configuration.
+            └── ✕ Failed to publish a new Fusion configuration version.
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -1134,11 +1178,41 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             SourceSchemaFile);
 
         // assert
-        result.StdErr.MatchInlineSnapshot(
+        result.AssertError(
             """
             Schema file '/some/working/directory/products/schema.graphqls' does not exist.
             """);
-        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.NonInteractive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task WithSourceSchemaFile_And_LegacyArchive_FileDoesNotExist_ReturnsError(InteractionMode mode)
+    {
+        // arrange
+        SetupInteractionMode(mode);
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "publish",
+            "--api-id",
+            ApiId,
+            "--stage",
+            Stage,
+            "--tag",
+            Tag,
+            "--source-schema-file",
+            SourceSchemaFile,
+            "--legacy-v1-archive",
+            LegacyArchiveFile);
+
+        // assert
+        result.AssertError(
+            """
+            Legacy archive file '/some/working/directory/fusion-v1.fgp' does not exist.
+            """);
     }
 
     [Fact]
@@ -1172,8 +1246,9 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         // assert
         result.AssertSuccess(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
             ├── Requesting deployment slot
+            │   ├── Publication request created. (ID: request-id)
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
             │   └── ✓ Claimed deployment slot.
@@ -1182,7 +1257,452 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             ├── Composing new configuration
             │   └── ✓ Composed new configuration.
             ├── Validating configuration against 'dev'
-            │   └── ✓ Validated configuration.
+            │   ├── Validating...
+            │   └── ✓ Fusion configuration passed validation.
+            ├── Uploading configuration to 'dev'
+            │   └── ✓ Uploaded configuration.
+            └── ✓ Published configuration 'v1' to 'dev'.
+            """);
+        var schema = await GetFusionSchemaAsync(capturedStream);
+        AssertComposedFusionSchema(schema);
+    }
+
+    [Fact]
+    public async Task WithSourceSchemaFile_FarInRegistry_WithLegacyArchive_ReturnsSuccess()
+    {
+        // arrange
+        SetupSourceSchemaFile();
+        SetupLegacyArchiveFile();
+        SetupRequestDeploymentSlotMutation();
+        SetupRequestDeploymentSlotSubscription();
+        SetupClaimDeploymentSlotMutation();
+        SetupFusionConfigurationDownload();
+        SetupFusionConfigurationValidationMutation();
+        SetupFusionConfigurationValidationSubscription();
+        var capturedStream = SetupFusionConfigurationUploadMutation();
+        SetupFusionConfigurationUploadSubscription();
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "publish",
+            "--api-id",
+            ApiId,
+            "--stage",
+            Stage,
+            "--tag",
+            Tag,
+            "--source-schema-file",
+            SourceSchemaFile,
+            "--legacy-v1-archive",
+            LegacyArchiveFile);
+
+        // assert
+        result.AssertSuccess(
+            """
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
+            ├── Requesting deployment slot
+            │   ├── Publication request created. (ID: request-id)
+            │   └── ✓ Deployment slot ready.
+            ├── Claiming deployment slot
+            │   └── ✓ Claimed deployment slot.
+            ├── Downloading existing configuration from 'dev'
+            │   └── ✓ Downloaded existing configuration from 'dev'.
+            ├── Composing new configuration
+            │   └── ✓ Composed new configuration.
+            ├── Validating configuration against 'dev'
+            │   ├── Validating...
+            │   └── ✓ Fusion configuration passed validation.
+            ├── Uploading configuration to 'dev'
+            │   └── ✓ Uploaded configuration.
+            └── ✓ Published configuration 'v1' to 'dev'.
+            """);
+        var schema = await GetFarInRegistryWithLegacyArchiveSchemaAsync(capturedStream);
+        AssertComposedFusionSchema(schema);
+    }
+
+    [Fact]
+    public async Task WithSourceSchemaFile_FgpInRegistry_NoLocalLegacyArchive_ReturnsError()
+    {
+        // arrange
+        SetupSourceSchemaFile();
+        SetupRequestDeploymentSlotMutation();
+        SetupRequestDeploymentSlotSubscription();
+        SetupClaimDeploymentSlotMutation();
+        SetupMissingFusionConfigurationDownload();
+        SetupLegacyFusionConfigurationDownload();
+        SetupReleaseDeploymentSlotMutation();
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "publish",
+            "--api-id",
+            ApiId,
+            "--stage",
+            Stage,
+            "--tag",
+            Tag,
+            "--source-schema-file",
+            SourceSchemaFile);
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Stage 'dev' currently has a Fusion v1 archive but no '--legacy-v1-archive' was provided. The server-stored Fusion v1 archive may be outdated and cannot be used as the composition base. Please provide a local Fusion v1 archive via '--legacy-v1-archive'.
+            """);
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
+            ├── Requesting deployment slot
+            │   ├── Publication request created. (ID: request-id)
+            │   └── ✓ Deployment slot ready.
+            ├── Claiming deployment slot
+            │   └── ✓ Claimed deployment slot.
+            ├── Downloading existing configuration from 'dev'
+            │   └── ✕ Failed to download the existing Fusion configuration.
+            └── ✕ Failed to publish a new Fusion configuration version.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task WithSourceSchemaFile_LocalLegacyArchive_FgpInRegistry_NewSourceSchema_ReturnsSuccess()
+    {
+        // arrange
+        SetupSourceSchemaFile();
+        SetupLegacyArchiveFile();
+        SetupRequestDeploymentSlotMutation();
+        SetupRequestDeploymentSlotSubscription();
+        SetupClaimDeploymentSlotMutation();
+        SetupMissingFusionConfigurationDownload();
+        SetupFusionConfigurationValidationMutation();
+        SetupFusionConfigurationValidationSubscription();
+        var capturedStream = SetupFusionConfigurationUploadMutation();
+        SetupFusionConfigurationUploadSubscription();
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "publish",
+            "--api-id",
+            ApiId,
+            "--stage",
+            Stage,
+            "--tag",
+            Tag,
+            "--source-schema-file",
+            SourceSchemaFile,
+            "--legacy-v1-archive",
+            LegacyArchiveFile);
+
+        // assert
+        result.AssertSuccess(
+            """
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
+            ├── Requesting deployment slot
+            │   ├── Publication request created. (ID: request-id)
+            │   └── ✓ Deployment slot ready.
+            ├── Claiming deployment slot
+            │   └── ✓ Claimed deployment slot.
+            ├── Downloading existing configuration from 'dev'
+            │   └── ! There is no existing configuration on 'dev', using --legacy-v1-archive instead.
+            ├── Composing new configuration
+            │   └── ✓ Composed new configuration.
+            ├── Validating configuration against 'dev'
+            │   ├── Validating...
+            │   └── ✓ Fusion configuration passed validation.
+            ├── Uploading configuration to 'dev'
+            │   └── ✓ Uploaded configuration.
+            └── ✓ Published configuration 'v1' to 'dev'.
+            """);
+        var schema = await GetMigratedLegacyArchiveSchemaAsync(capturedStream);
+        AssertMigratedFusionSchema(schema);
+    }
+
+    [Fact]
+    public async Task WithSourceSchemaFile_LocalLegacyArchive_FgpInRegistry_OverridingSourceSchema_ReturnsSuccess()
+    {
+        // arrange
+        SetupSourceSchemaFile(
+            SourceSchemaReviewsFile,
+            SourceSchemaReviewsSettingsFile,
+            SourceSchemaReviews);
+        SetupLegacyArchiveFile();
+        SetupRequestDeploymentSlotMutation();
+        SetupRequestDeploymentSlotSubscription();
+        SetupClaimDeploymentSlotMutation();
+        SetupMissingFusionConfigurationDownload();
+        SetupFusionConfigurationValidationMutation();
+        SetupFusionConfigurationValidationSubscription();
+        var capturedStream = SetupFusionConfigurationUploadMutation();
+        SetupFusionConfigurationUploadSubscription();
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "publish",
+            "--api-id",
+            ApiId,
+            "--stage",
+            Stage,
+            "--tag",
+            Tag,
+            "--source-schema-file",
+            SourceSchemaReviewsFile,
+            "--legacy-v1-archive",
+            LegacyArchiveFile);
+
+        // assert
+        result.AssertSuccess(
+            """
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
+            ├── Requesting deployment slot
+            │   ├── Publication request created. (ID: request-id)
+            │   └── ✓ Deployment slot ready.
+            ├── Claiming deployment slot
+            │   └── ✓ Claimed deployment slot.
+            ├── Downloading existing configuration from 'dev'
+            │   └── ! There is no existing configuration on 'dev', using --legacy-v1-archive instead.
+            ├── Composing new configuration
+            │   └── ✓ Composed new configuration.
+            ├── Validating configuration against 'dev'
+            │   ├── Validating...
+            │   └── ✓ Fusion configuration passed validation.
+            ├── Uploading configuration to 'dev'
+            │   └── ✓ Uploaded configuration.
+            └── ✓ Published configuration 'v1' to 'dev'.
+            """);
+        var schema = await GetOverriddenLegacyArchiveSchemaAsync(capturedStream);
+        AssertOverriddenFusionSchema(schema);
+    }
+
+    [Fact]
+    public async Task WithSourceSchemaFile_LocalLegacyArchive_NoArchiveInRegistry_NewSourceSchema_ReturnsSuccess()
+    {
+        // arrange
+        SetupSourceSchemaFile();
+        SetupLegacyArchiveFile();
+        SetupRequestDeploymentSlotMutation();
+        SetupRequestDeploymentSlotSubscription();
+        SetupClaimDeploymentSlotMutation();
+        SetupMissingFusionConfigurationDownload();
+        SetupFusionConfigurationValidationMutation();
+        SetupFusionConfigurationValidationSubscription();
+        var capturedStream = SetupFusionConfigurationUploadMutation();
+        SetupFusionConfigurationUploadSubscription();
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "publish",
+            "--api-id",
+            ApiId,
+            "--stage",
+            Stage,
+            "--tag",
+            Tag,
+            "--source-schema-file",
+            SourceSchemaFile,
+            "--legacy-v1-archive",
+            LegacyArchiveFile);
+
+        // assert
+        result.AssertSuccess(
+            """
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
+            ├── Requesting deployment slot
+            │   ├── Publication request created. (ID: request-id)
+            │   └── ✓ Deployment slot ready.
+            ├── Claiming deployment slot
+            │   └── ✓ Claimed deployment slot.
+            ├── Downloading existing configuration from 'dev'
+            │   └── ! There is no existing configuration on 'dev', using --legacy-v1-archive instead.
+            ├── Composing new configuration
+            │   └── ✓ Composed new configuration.
+            ├── Validating configuration against 'dev'
+            │   ├── Validating...
+            │   └── ✓ Fusion configuration passed validation.
+            ├── Uploading configuration to 'dev'
+            │   └── ✓ Uploaded configuration.
+            └── ✓ Published configuration 'v1' to 'dev'.
+            """);
+        var schema = await GetMigratedLegacyArchiveSchemaAsync(capturedStream);
+        AssertMigratedFusionSchema(schema);
+    }
+
+    [Fact]
+    public async Task WithSourceSchemaFile_LocalLegacyArchive_NoArchiveInRegistry_OverridingSourceSchema_ReturnsSuccess()
+    {
+        // arrange
+        SetupSourceSchemaFile(
+            SourceSchemaReviewsFile,
+            SourceSchemaReviewsSettingsFile,
+            SourceSchemaReviews);
+        SetupLegacyArchiveFile();
+        SetupRequestDeploymentSlotMutation();
+        SetupRequestDeploymentSlotSubscription();
+        SetupClaimDeploymentSlotMutation();
+        SetupMissingFusionConfigurationDownload();
+        SetupFusionConfigurationValidationMutation();
+        SetupFusionConfigurationValidationSubscription();
+        var capturedStream = SetupFusionConfigurationUploadMutation();
+        SetupFusionConfigurationUploadSubscription();
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "publish",
+            "--api-id",
+            ApiId,
+            "--stage",
+            Stage,
+            "--tag",
+            Tag,
+            "--source-schema-file",
+            SourceSchemaReviewsFile,
+            "--legacy-v1-archive",
+            LegacyArchiveFile);
+
+        // assert
+        result.AssertSuccess(
+            """
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
+            ├── Requesting deployment slot
+            │   ├── Publication request created. (ID: request-id)
+            │   └── ✓ Deployment slot ready.
+            ├── Claiming deployment slot
+            │   └── ✓ Claimed deployment slot.
+            ├── Downloading existing configuration from 'dev'
+            │   └── ! There is no existing configuration on 'dev', using --legacy-v1-archive instead.
+            ├── Composing new configuration
+            │   └── ✓ Composed new configuration.
+            ├── Validating configuration against 'dev'
+            │   ├── Validating...
+            │   └── ✓ Fusion configuration passed validation.
+            ├── Uploading configuration to 'dev'
+            │   └── ✓ Uploaded configuration.
+            └── ✓ Published configuration 'v1' to 'dev'.
+            """);
+        var schema = await GetOverriddenLegacyArchiveSchemaAsync(capturedStream);
+        AssertOverriddenFusionSchema(schema);
+    }
+
+    [Fact]
+    public async Task WithSourceSchemaFile_LocalLegacyArchive_ExistingRequestId_ReusesSlotAndSkipsClaim()
+    {
+        // arrange
+        // Simulates a v1 to v2 migration workflow where prior `fusion publish begin`
+        // and `fusion publish start` invocations stored the request ID on disk and
+        // claimed the slot. Publish must reuse the request ID and skip both the
+        // deployment slot request and the claim mutations.
+        SetupFusionPublishingStateCache(RequestId);
+        SetupSourceSchemaFile();
+        SetupLegacyArchiveFile();
+        SetupMissingFusionConfigurationDownload();
+        SetupFusionConfigurationValidationMutation();
+        SetupFusionConfigurationValidationSubscription();
+        var capturedStream = SetupFusionConfigurationUploadMutation();
+        SetupFusionConfigurationUploadSubscription();
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "publish",
+            "--api-id",
+            ApiId,
+            "--stage",
+            Stage,
+            "--tag",
+            Tag,
+            "--source-schema-file",
+            SourceSchemaFile,
+            "--legacy-v1-archive",
+            LegacyArchiveFile);
+
+        // assert
+        result.AssertSuccess(
+            """
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
+            ├── Reusing existing publication request. (ID: request-id)
+            ├── Downloading existing configuration from 'dev'
+            │   └── ! There is no existing configuration on 'dev', using --legacy-v1-archive instead.
+            ├── Composing new configuration
+            │   └── ✓ Composed new configuration.
+            ├── Validating configuration against 'dev'
+            │   ├── Validating...
+            │   └── ✓ Fusion configuration passed validation.
+            ├── Uploading configuration to 'dev'
+            │   └── ✓ Uploaded configuration.
+            └── ✓ Published configuration 'v1' to 'dev'.
+            """);
+        var schema = await GetMigratedLegacyArchiveSchemaAsync(capturedStream);
+        AssertMigratedFusionSchema(schema);
+        FusionConfigurationClientMock.Verify(
+            x => x.RequestDeploymentSlotAsync(
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<string?>(),
+                It.IsAny<string?>(),
+                It.IsAny<SourceSchemaVersion[]?>(),
+                It.IsAny<bool>(),
+                It.IsAny<SourceMetadata?>(),
+                It.IsAny<CancellationToken>()),
+            Times.Never);
+        FusionConfigurationClientMock.Verify(
+            x => x.ClaimDeploymentSlotAsync(
+                It.IsAny<string>(),
+                It.IsAny<CancellationToken>()),
+            Times.Never);
+    }
+
+    [Fact]
+    public async Task WithSourceSchemaFile_NoLegacyArchive_ExistingRequestId_IgnoredAndRequestsNewSlot()
+    {
+        // arrange
+        // Without --legacy-v1-archive the cached request ID must be ignored and
+        // publish must request a new deployment slot as usual.
+        SetupFusionPublishingStateCache(RequestId);
+        SetupSourceSchemaFile();
+        SetupRequestDeploymentSlotMutation();
+        SetupRequestDeploymentSlotSubscription();
+        SetupClaimDeploymentSlotMutation();
+        SetupFusionConfigurationDownload();
+        SetupFusionConfigurationValidationMutation();
+        SetupFusionConfigurationValidationSubscription();
+        var capturedStream = SetupFusionConfigurationUploadMutation();
+        SetupFusionConfigurationUploadSubscription();
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "publish",
+            "--api-id",
+            ApiId,
+            "--stage",
+            Stage,
+            "--tag",
+            Tag,
+            "--source-schema-file",
+            SourceSchemaFile);
+
+        // assert
+        result.AssertSuccess(
+            """
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
+            ├── Requesting deployment slot
+            │   ├── Publication request created. (ID: request-id)
+            │   └── ✓ Deployment slot ready.
+            ├── Claiming deployment slot
+            │   └── ✓ Claimed deployment slot.
+            ├── Downloading existing configuration from 'dev'
+            │   └── ✓ Downloaded existing configuration from 'dev'.
+            ├── Composing new configuration
+            │   └── ✓ Composed new configuration.
+            ├── Validating configuration against 'dev'
+            │   ├── Validating...
+            │   └── ✓ Fusion configuration passed validation.
             ├── Uploading configuration to 'dev'
             │   └── ✓ Uploaded configuration.
             └── ✓ Published configuration 'v1' to 'dev'.
@@ -1219,8 +1739,9 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         // assert
         result.AssertSuccess(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
             ├── Requesting deployment slot
+            │   ├── Publication request created. (ID: request-id)
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
             │   └── ✓ Claimed deployment slot.
@@ -1229,7 +1750,8 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             ├── Composing new configuration
             │   └── ✓ Composed new configuration.
             ├── Validating configuration against 'dev'
-            │   └── ✓ Validated configuration.
+            │   ├── Validating...
+            │   └── ✓ Fusion configuration passed validation.
             ├── Uploading configuration to 'dev'
             │   └── ✓ Uploaded configuration.
             └── ✓ Published configuration 'v1' to 'dev'.
@@ -1262,16 +1784,13 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             SourceSchemaFile);
 
         // assert
-        result.StdErr.MatchInlineSnapshot(
-            $"""
-             {expectedErrorMessage}
-             """);
+        result.StdErr.MatchInlineSnapshot(expectedErrorMessage);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
             ├── Requesting deployment slot
             │   └── ✕ Failed to request a deployment slot.
-            └── ✕ Failed to publish Fusion configuration.
+            └── ✕ Failed to publish a new Fusion configuration version.
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -1303,10 +1822,10 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
             ├── Requesting deployment slot
             │   └── ✕ Failed to request a deployment slot.
-            └── ✕ Failed to publish Fusion configuration.
+            └── ✕ Failed to publish a new Fusion configuration version.
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -1338,18 +1857,16 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             SourceSchemaFile);
 
         // assert
-        result.StdErr.MatchInlineSnapshot(
-            $"""
-             {expectedErrorMessage}
-             """);
+        result.StdErr.MatchInlineSnapshot(expectedErrorMessage);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
             ├── Requesting deployment slot
+            │   ├── Publication request created. (ID: request-id)
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
             │   └── ✕ Failed to claim the deployment slot.
-            └── ✕ Failed to publish Fusion configuration.
+            └── ✕ Failed to publish a new Fusion configuration version.
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -1384,12 +1901,13 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
             ├── Requesting deployment slot
+            │   ├── Publication request created. (ID: request-id)
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
             │   └── ✕ Failed to claim the deployment slot.
-            └── ✕ Failed to publish Fusion configuration.
+            └── ✕ Failed to publish a new Fusion configuration version.
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -1425,14 +1943,15 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
             ├── Requesting deployment slot
+            │   ├── Publication request created. (ID: request-id)
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
             │   └── ✓ Claimed deployment slot.
             ├── Downloading existing configuration from 'dev'
             │   └── ✕ Failed to download the existing Fusion configuration.
-            └── ✕ Failed to publish Fusion configuration.
+            └── ✕ Failed to publish a new Fusion configuration version.
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -1468,8 +1987,9 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
             ├── Requesting deployment slot
+            │   ├── Publication request created. (ID: request-id)
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
             │   └── ✓ Claimed deployment slot.
@@ -1477,7 +1997,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             │   └── ✓ Downloaded existing configuration from 'dev'.
             ├── Composing new configuration
             │   └── ✕ Failed to compose new configuration.
-            └── ✕ Failed to publish Fusion configuration.
+            └── ✕ Failed to publish a new Fusion configuration version.
 
             ## Composition log
 
@@ -1515,14 +2035,12 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             SourceSchemaFile);
 
         // assert
-        result.StdErr.MatchInlineSnapshot(
-            $"""
-             {expectedErrorMessage}
-             """);
+        result.StdErr.MatchInlineSnapshot(expectedErrorMessage);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
             ├── Requesting deployment slot
+            │   ├── Publication request created. (ID: request-id)
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
             │   └── ✓ Claimed deployment slot.
@@ -1532,7 +2050,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             │   └── ✓ Composed new configuration.
             ├── Validating configuration against 'dev'
             │   └── ✕ Failed to validate the new configuration.
-            └── ✕ Failed to publish Fusion configuration.
+            └── ✕ Failed to publish a new Fusion configuration version.
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -1569,8 +2087,9 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
             ├── Requesting deployment slot
+            │   ├── Publication request created. (ID: request-id)
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
             │   └── ✓ Claimed deployment slot.
@@ -1580,7 +2099,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             │   └── ✓ Composed new configuration.
             ├── Validating configuration against 'dev'
             │   └── ✕ Failed to validate the new configuration.
-            └── ✕ Failed to publish Fusion configuration.
+            └── ✕ Failed to publish a new Fusion configuration version.
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -1598,7 +2117,6 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         SetupFusionConfigurationValidationSubscription(
             CreateValidationInProgressEvent(),
             CreateValidationFailedEventWithErrors());
-        SetupReleaseDeploymentSlotMutation();
 
         // act
         var result = await ExecuteCommandAsync(
@@ -1612,17 +2130,17 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             Tag,
             "--source-schema-file",
             SourceSchemaFile);
-        ;
 
         // assert
         result.StdErr.MatchInlineSnapshot(
             """
-            Failed to validate configuration.
+            Fusion configuration failed validation.
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
             ├── Requesting deployment slot
+            │   ├── Publication request created. (ID: request-id)
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
             │   └── ✓ Claimed deployment slot.
@@ -1631,7 +2149,8 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             ├── Composing new configuration
             │   └── ✓ Composed new configuration.
             ├── Validating configuration against 'dev'
-            │   └── ✕ Failed to validate the new configuration.
+            │   ├── Validating...
+            │   └── ✕ Fusion configuration failed validation.
             │       ├── GraphQL schema changes
             │       │   ├── ✕ Directive foo was modified
             │       │   │   ├── ✓ Directive location FieldDefinition added
@@ -1645,7 +2164,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             │       │   ├── ✓ Type system member NewType was added.
             │       │   └── ✕ Type system member OldType was removed.
             │       ├── Invalid GraphQL schema
-            │       │   └── There is no object type implementing interface `InterfaceWithoutImplementation`. SCHEMA_INTERFACE_NO_IMPL
+            │       │   └── There is no object type implementing interface `InterfaceWithoutImplementation`. (SCHEMA_INTERFACE_NO_IMPL)
             │       ├── Client 'TestClient' (ID: client-1)
             │       │   └── Operation '6D12E4A815C50C504695E548EAF680BC8F337AC87E763E5689C685522A01BC59' (Deployed tags: 1.0.0)
             │       │       └── foo (10:10)
@@ -1656,7 +2175,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             │       │   └── Tool 'Fail'
             │       │       └── The field `person` does not exist on the type `Query`. (1:14)
             │       └── An unexpected error occurred.
-            └── ✕ Failed to publish Fusion configuration.
+            └── ✕ Failed to publish a new Fusion configuration version.
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -1694,9 +2213,10 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         // assert
         result.AssertSuccess(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
             ├── ! Force push is enabled.
             ├── Requesting deployment slot
+            │   ├── Publication request created. (ID: request-id)
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
             │   └── ✓ Claimed deployment slot.
@@ -1705,7 +2225,8 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             ├── Composing new configuration
             │   └── ✓ Composed new configuration.
             ├── Validating configuration against 'dev'
-            │   └── ✕ Failed to validate the new configuration.
+            │   ├── Validating...
+            │   └── ✕ Fusion configuration failed validation.
             │       ├── GraphQL schema changes
             │       │   ├── ✕ Directive foo was modified
             │       │   │   ├── ✓ Directive location FieldDefinition added
@@ -1719,7 +2240,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             │       │   ├── ✓ Type system member NewType was added.
             │       │   └── ✕ Type system member OldType was removed.
             │       ├── Invalid GraphQL schema
-            │       │   └── There is no object type implementing interface `InterfaceWithoutImplementation`. SCHEMA_INTERFACE_NO_IMPL
+            │       │   └── There is no object type implementing interface `InterfaceWithoutImplementation`. (SCHEMA_INTERFACE_NO_IMPL)
             │       ├── Client 'TestClient' (ID: client-1)
             │       │   └── Operation '6D12E4A815C50C504695E548EAF680BC8F337AC87E763E5689C685522A01BC59' (Deployed tags: 1.0.0)
             │       │       └── foo (10:10)
@@ -1747,7 +2268,6 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         SetupRequestDeploymentSlotSubscription();
         SetupClaimDeploymentSlotMutation();
         SetupFusionConfigurationDownload();
-        SetupReleaseDeploymentSlotMutation();
         var capturedStream = SetupFusionConfigurationUploadMutation();
         SetupFusionConfigurationUploadSubscription();
 
@@ -1768,8 +2288,9 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         // assert
         result.AssertSuccess(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
             ├── Requesting deployment slot
+            │   ├── Publication request created. (ID: request-id)
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
             │   └── ✓ Claimed deployment slot.
@@ -1817,8 +2338,9 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         // assert
         result.AssertSuccess(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
             ├── Requesting deployment slot
+            │   ├── Publication request created. (ID: request-id)
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
             │   └── ✓ Claimed deployment slot.
@@ -1827,9 +2349,9 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             ├── Composing new configuration
             │   └── ✓ Composed new configuration.
             ├── Uploading configuration to 'dev'
-            │   ├── ! Validation failed.
+            │   ├── ! Failed validation.
             │   │   ├── Invalid GraphQL schema
-            │   │   │   └── There is no object type implementing interface `InterfaceWithoutImplementation`. SCHEMA_INTERFACE_NO_IMPL
+            │   │   │   └── There is no object type implementing interface `InterfaceWithoutImplementation`. (SCHEMA_INTERFACE_NO_IMPL)
             │   │   ├── Client 'TestClient' (ID: client-1)
             │   │   │   └── Operation '6D12E4A815C50C504695E548EAF680BC8F337AC87E763E5689C685522A01BC59' (Deployed tags: 1.0.0)
             │   │   │       └── foo (10:10)
@@ -1880,12 +2402,13 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         // assert
         result.StdErr.MatchInlineSnapshot(
             """
-            Failed to publish the new configuration.
+            Fusion configuration version was rejected.
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
             ├── Requesting deployment slot
+            │   ├── Publication request created. (ID: request-id)
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
             │   └── ✓ Claimed deployment slot.
@@ -1894,9 +2417,9 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             ├── Composing new configuration
             │   └── ✓ Composed new configuration.
             ├── Uploading configuration to 'dev'
-            │   ├── ! Validation failed.
+            │   ├── ! Failed validation.
             │   │   ├── Invalid GraphQL schema
-            │   │   │   └── There is no object type implementing interface `InterfaceWithoutImplementation`. SCHEMA_INTERFACE_NO_IMPL
+            │   │   │   └── There is no object type implementing interface `InterfaceWithoutImplementation`. (SCHEMA_INTERFACE_NO_IMPL)
             │   │   ├── Client 'TestClient' (ID: client-1)
             │   │   │   └── Operation '6D12E4A815C50C504695E548EAF680BC8F337AC87E763E5689C685522A01BC59' (Deployed tags: 1.0.0)
             │   │   │       └── foo (10:10)
@@ -1907,8 +2430,8 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             │   │       └── Tool 'Fail'
             │   │           └── The field `person` does not exist on the type `Query`. (1:14)
             │   ├── ⏳ Waiting for approval. Approve in Nitro to continue.
-            │   └── ✕ Failed to upload the new configuration.
-            └── ✕ Failed to publish Fusion configuration.
+            │   └── ✕ Fusion configuration version was rejected.
+            └── ✕ Failed to publish a new Fusion configuration version.
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -1944,14 +2467,12 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             SourceSchemaFile);
 
         // assert
-        result.StdErr.MatchInlineSnapshot(
-            $"""
-             {expectedErrorMessage}
-             """);
+        result.StdErr.MatchInlineSnapshot(expectedErrorMessage);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
             ├── Requesting deployment slot
+            │   ├── Publication request created. (ID: request-id)
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
             │   └── ✓ Claimed deployment slot.
@@ -1960,10 +2481,11 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             ├── Composing new configuration
             │   └── ✓ Composed new configuration.
             ├── Validating configuration against 'dev'
-            │   └── ✓ Validated configuration.
+            │   ├── Validating...
+            │   └── ✓ Fusion configuration passed validation.
             ├── Uploading configuration to 'dev'
             │   └── ✕ Failed to upload the new configuration.
-            └── ✕ Failed to publish Fusion configuration.
+            └── ✕ Failed to publish a new Fusion configuration version.
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -2002,8 +2524,9 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
             ├── Requesting deployment slot
+            │   ├── Publication request created. (ID: request-id)
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
             │   └── ✓ Claimed deployment slot.
@@ -2012,10 +2535,11 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             ├── Composing new configuration
             │   └── ✓ Composed new configuration.
             ├── Validating configuration against 'dev'
-            │   └── ✓ Validated configuration.
+            │   ├── Validating...
+            │   └── ✓ Fusion configuration passed validation.
             ├── Uploading configuration to 'dev'
             │   └── ✕ Failed to upload the new configuration.
-            └── ✕ Failed to publish Fusion configuration.
+            └── ✕ Failed to publish a new Fusion configuration version.
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -2051,12 +2575,13 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         // assert
         result.StdErr.MatchInlineSnapshot(
             """
-            Failed to publish the new configuration.
+            Fusion configuration version was rejected.
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
             ├── Requesting deployment slot
+            │   ├── Publication request created. (ID: request-id)
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
             │   └── ✓ Claimed deployment slot.
@@ -2065,13 +2590,14 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             ├── Composing new configuration
             │   └── ✓ Composed new configuration.
             ├── Validating configuration against 'dev'
-            │   └── ✓ Validated configuration.
+            │   ├── Validating...
+            │   └── ✓ Fusion configuration passed validation.
             ├── Uploading configuration to 'dev'
-            │   └── ✕ Failed to upload the new configuration.
+            │   └── ✕ Fusion configuration version was rejected.
             │       ├── Invalid GraphQL schema
-            │       │   └── Field 'Query.foo' has no type. SCHEMA_ERROR
+            │       │   └── Field 'Query.foo' has no type. (SCHEMA_ERROR)
             │       └── An error occurred.
-            └── ✕ Failed to publish Fusion configuration.
+            └── ✕ Failed to publish a new Fusion configuration version.
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -2110,12 +2636,13 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
             ├── Requesting deployment slot
+            │   ├── Publication request created. (ID: request-id)
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
             │   └── ✕ Failed to claim the deployment slot.
-            └── ✕ Failed to publish Fusion configuration.
+            └── ✕ Failed to publish a new Fusion configuration version.
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -2150,19 +2677,20 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         // assert
         result.StdErr.MatchInlineSnapshot(
             $"""
-             Encountered the following errors while trying to release the deployment slot after an error during the publishing process:
-             {expectedErrorMessage}
-             This is the error that caused the publishing process to fail in the first place:
-             There was an unexpected error: Something unexpected happened.
-             """);
+            Encountered the following errors while trying to release the deployment slot after an error during the publishing process:
+            {expectedErrorMessage}
+            This is the error that caused the publishing process to fail in the first place:
+            There was an unexpected error: Something unexpected happened.
+            """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
             ├── Requesting deployment slot
+            │   ├── Publication request created. (ID: request-id)
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
             │   └── ✕ Failed to claim the deployment slot.
-            └── ✕ Failed to publish Fusion configuration.
+            └── ✕ Failed to publish a new Fusion configuration version.
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -2170,6 +2698,37 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
     #endregion
 
     #region Source Schema
+
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.NonInteractive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task WithSourceSchema_And_LegacyArchive_FileDoesNotExist_ReturnsError(InteractionMode mode)
+    {
+        // arrange
+        SetupInteractionMode(mode);
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "publish",
+            "--api-id",
+            ApiId,
+            "--stage",
+            Stage,
+            "--tag",
+            Tag,
+            "--source-schema",
+            SourceSchema,
+            "--legacy-v1-archive",
+            LegacyArchiveFile);
+
+        // assert
+        result.AssertError(
+            """
+            Legacy archive file '/some/working/directory/fusion-v1.fgp' does not exist.
+            """);
+    }
 
     [Fact]
     public async Task WithSourceSchema_SourceSchemaDoesNotExist_ReturnsError()
@@ -2197,10 +2756,10 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
             ├── Downloading 1 source schema(s)
             │   └── ✕ Could not find source schema 'products' with version 'v1'.
-            └── ✕ Failed to publish Fusion configuration.
+            └── ✕ Failed to publish a new Fusion configuration version.
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -2231,10 +2790,10 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
             ├── Downloading 1 source schema(s)
             │   └── ✕ Failed to download source schemas.
-            └── ✕ Failed to publish Fusion configuration.
+            └── ✕ Failed to publish a new Fusion configuration version.
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -2269,10 +2828,11 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         // assert
         result.AssertSuccess(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
             ├── Downloading 1 source schema(s)
             │   └── ✓ Downloaded 1 source schema(s).
             ├── Requesting deployment slot
+            │   ├── Publication request created. (ID: request-id)
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
             │   └── ✓ Claimed deployment slot.
@@ -2281,7 +2841,462 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             ├── Composing new configuration
             │   └── ✓ Composed new configuration.
             ├── Validating configuration against 'dev'
-            │   └── ✓ Validated configuration.
+            │   ├── Validating...
+            │   └── ✓ Fusion configuration passed validation.
+            ├── Uploading configuration to 'dev'
+            │   └── ✓ Uploaded configuration.
+            └── ✓ Published configuration 'v1' to 'dev'.
+            """);
+        var schema = await GetFusionSchemaAsync(capturedStream);
+        AssertComposedFusionSchema(schema);
+    }
+
+    [Fact]
+    public async Task WithSourceSchema_FarInRegistry_WithLegacyArchive_ReturnsSuccess()
+    {
+        // arrange
+        SetupSourceSchemaDownload();
+        SetupLegacyArchiveFile();
+        SetupRequestDeploymentSlotMutation(sourceSchemaVersions: SourceSchemaVersions);
+        SetupRequestDeploymentSlotSubscription();
+        SetupClaimDeploymentSlotMutation();
+        SetupFusionConfigurationDownload();
+        SetupFusionConfigurationValidationMutation();
+        SetupFusionConfigurationValidationSubscription();
+        var capturedStream = SetupFusionConfigurationUploadMutation();
+        SetupFusionConfigurationUploadSubscription();
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "publish",
+            "--api-id",
+            ApiId,
+            "--stage",
+            Stage,
+            "--tag",
+            Tag,
+            "--source-schema",
+            SourceSchema,
+            "--legacy-v1-archive",
+            LegacyArchiveFile);
+
+        // assert
+        result.AssertSuccess(
+            """
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
+            ├── Downloading 1 source schema(s)
+            │   └── ✓ Downloaded 1 source schema(s).
+            ├── Requesting deployment slot
+            │   ├── Publication request created. (ID: request-id)
+            │   └── ✓ Deployment slot ready.
+            ├── Claiming deployment slot
+            │   └── ✓ Claimed deployment slot.
+            ├── Downloading existing configuration from 'dev'
+            │   └── ✓ Downloaded existing configuration from 'dev'.
+            ├── Composing new configuration
+            │   └── ✓ Composed new configuration.
+            ├── Validating configuration against 'dev'
+            │   ├── Validating...
+            │   └── ✓ Fusion configuration passed validation.
+            ├── Uploading configuration to 'dev'
+            │   └── ✓ Uploaded configuration.
+            └── ✓ Published configuration 'v1' to 'dev'.
+            """);
+        var schema = await GetFarInRegistryWithLegacyArchiveSchemaAsync(capturedStream);
+        AssertComposedFusionSchema(schema);
+    }
+
+    [Fact]
+    public async Task WithSourceSchema_FgpInRegistry_NoLocalLegacyArchive_ReturnsError()
+    {
+        // arrange
+        SetupSourceSchemaDownload();
+        SetupRequestDeploymentSlotMutation(sourceSchemaVersions: SourceSchemaVersions);
+        SetupRequestDeploymentSlotSubscription();
+        SetupClaimDeploymentSlotMutation();
+        SetupMissingFusionConfigurationDownload();
+        SetupLegacyFusionConfigurationDownload();
+        SetupReleaseDeploymentSlotMutation();
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "publish",
+            "--api-id",
+            ApiId,
+            "--stage",
+            Stage,
+            "--tag",
+            Tag,
+            "--source-schema",
+            SourceSchema);
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Stage 'dev' currently has a Fusion v1 archive but no '--legacy-v1-archive' was provided. The server-stored Fusion v1 archive may be outdated and cannot be used as the composition base. Please provide a local Fusion v1 archive via '--legacy-v1-archive'.
+            """);
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
+            ├── Downloading 1 source schema(s)
+            │   └── ✓ Downloaded 1 source schema(s).
+            ├── Requesting deployment slot
+            │   ├── Publication request created. (ID: request-id)
+            │   └── ✓ Deployment slot ready.
+            ├── Claiming deployment slot
+            │   └── ✓ Claimed deployment slot.
+            ├── Downloading existing configuration from 'dev'
+            │   └── ✕ Failed to download the existing Fusion configuration.
+            └── ✕ Failed to publish a new Fusion configuration version.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task WithSourceSchema_LocalLegacyArchive_FgpInRegistry_NewSourceSchema_ReturnsSuccess()
+    {
+        // arrange
+        SetupSourceSchemaDownload();
+        SetupLegacyArchiveFile();
+        SetupRequestDeploymentSlotMutation(sourceSchemaVersions: SourceSchemaVersions);
+        SetupRequestDeploymentSlotSubscription();
+        SetupClaimDeploymentSlotMutation();
+        SetupMissingFusionConfigurationDownload();
+        SetupFusionConfigurationValidationMutation();
+        SetupFusionConfigurationValidationSubscription();
+        var capturedStream = SetupFusionConfigurationUploadMutation();
+        SetupFusionConfigurationUploadSubscription();
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "publish",
+            "--api-id",
+            ApiId,
+            "--stage",
+            Stage,
+            "--tag",
+            Tag,
+            "--source-schema",
+            SourceSchema,
+            "--legacy-v1-archive",
+            LegacyArchiveFile);
+
+        // assert
+        result.AssertSuccess(
+            """
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
+            ├── Downloading 1 source schema(s)
+            │   └── ✓ Downloaded 1 source schema(s).
+            ├── Requesting deployment slot
+            │   ├── Publication request created. (ID: request-id)
+            │   └── ✓ Deployment slot ready.
+            ├── Claiming deployment slot
+            │   └── ✓ Claimed deployment slot.
+            ├── Downloading existing configuration from 'dev'
+            │   └── ! There is no existing configuration on 'dev', using --legacy-v1-archive instead.
+            ├── Composing new configuration
+            │   └── ✓ Composed new configuration.
+            ├── Validating configuration against 'dev'
+            │   ├── Validating...
+            │   └── ✓ Fusion configuration passed validation.
+            ├── Uploading configuration to 'dev'
+            │   └── ✓ Uploaded configuration.
+            └── ✓ Published configuration 'v1' to 'dev'.
+            """);
+        var schema = await GetMigratedLegacyArchiveSchemaAsync(capturedStream);
+        AssertMigratedFusionSchema(schema);
+    }
+
+    [Fact]
+    public async Task WithSourceSchema_LocalLegacyArchive_FgpInRegistry_OverridingSourceSchema_ReturnsSuccess()
+    {
+        // arrange
+        SetupReviewsSourceSchemaDownload();
+        SetupLegacyArchiveFile();
+        SetupRequestDeploymentSlotMutation(sourceSchemaVersions: SourceSchemaReviewsVersions);
+        SetupRequestDeploymentSlotSubscription();
+        SetupClaimDeploymentSlotMutation();
+        SetupMissingFusionConfigurationDownload();
+        SetupFusionConfigurationValidationMutation();
+        SetupFusionConfigurationValidationSubscription();
+        var capturedStream = SetupFusionConfigurationUploadMutation();
+        SetupFusionConfigurationUploadSubscription();
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "publish",
+            "--api-id",
+            ApiId,
+            "--stage",
+            Stage,
+            "--tag",
+            Tag,
+            "--source-schema",
+            SourceSchemaReviews,
+            "--legacy-v1-archive",
+            LegacyArchiveFile);
+
+        // assert
+        result.AssertSuccess(
+            """
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
+            ├── Downloading 1 source schema(s)
+            │   └── ✓ Downloaded 1 source schema(s).
+            ├── Requesting deployment slot
+            │   ├── Publication request created. (ID: request-id)
+            │   └── ✓ Deployment slot ready.
+            ├── Claiming deployment slot
+            │   └── ✓ Claimed deployment slot.
+            ├── Downloading existing configuration from 'dev'
+            │   └── ! There is no existing configuration on 'dev', using --legacy-v1-archive instead.
+            ├── Composing new configuration
+            │   └── ✓ Composed new configuration.
+            ├── Validating configuration against 'dev'
+            │   ├── Validating...
+            │   └── ✓ Fusion configuration passed validation.
+            ├── Uploading configuration to 'dev'
+            │   └── ✓ Uploaded configuration.
+            └── ✓ Published configuration 'v1' to 'dev'.
+            """);
+        var schema = await GetOverriddenLegacyArchiveSchemaAsync(capturedStream);
+        AssertOverriddenFusionSchema(schema);
+    }
+
+    [Fact]
+    public async Task WithSourceSchema_LocalLegacyArchive_NoArchiveInRegistry_NewSourceSchema_ReturnsSuccess()
+    {
+        // arrange
+        SetupSourceSchemaDownload();
+        SetupLegacyArchiveFile();
+        SetupRequestDeploymentSlotMutation(sourceSchemaVersions: SourceSchemaVersions);
+        SetupRequestDeploymentSlotSubscription();
+        SetupClaimDeploymentSlotMutation();
+        SetupMissingFusionConfigurationDownload();
+        SetupFusionConfigurationValidationMutation();
+        SetupFusionConfigurationValidationSubscription();
+        var capturedStream = SetupFusionConfigurationUploadMutation();
+        SetupFusionConfigurationUploadSubscription();
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "publish",
+            "--api-id",
+            ApiId,
+            "--stage",
+            Stage,
+            "--tag",
+            Tag,
+            "--source-schema",
+            SourceSchema,
+            "--legacy-v1-archive",
+            LegacyArchiveFile);
+
+        // assert
+        result.AssertSuccess(
+            """
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
+            ├── Downloading 1 source schema(s)
+            │   └── ✓ Downloaded 1 source schema(s).
+            ├── Requesting deployment slot
+            │   ├── Publication request created. (ID: request-id)
+            │   └── ✓ Deployment slot ready.
+            ├── Claiming deployment slot
+            │   └── ✓ Claimed deployment slot.
+            ├── Downloading existing configuration from 'dev'
+            │   └── ! There is no existing configuration on 'dev', using --legacy-v1-archive instead.
+            ├── Composing new configuration
+            │   └── ✓ Composed new configuration.
+            ├── Validating configuration against 'dev'
+            │   ├── Validating...
+            │   └── ✓ Fusion configuration passed validation.
+            ├── Uploading configuration to 'dev'
+            │   └── ✓ Uploaded configuration.
+            └── ✓ Published configuration 'v1' to 'dev'.
+            """);
+        var schema = await GetMigratedLegacyArchiveSchemaAsync(capturedStream);
+        AssertMigratedFusionSchema(schema);
+    }
+
+    [Fact]
+    public async Task WithSourceSchema_LocalLegacyArchive_NoArchiveInRegistry_OverridingSourceSchema_ReturnsSuccess()
+    {
+        // arrange
+        SetupReviewsSourceSchemaDownload();
+        SetupLegacyArchiveFile();
+        SetupRequestDeploymentSlotMutation(sourceSchemaVersions: SourceSchemaReviewsVersions);
+        SetupRequestDeploymentSlotSubscription();
+        SetupClaimDeploymentSlotMutation();
+        SetupMissingFusionConfigurationDownload();
+        SetupFusionConfigurationValidationMutation();
+        SetupFusionConfigurationValidationSubscription();
+        var capturedStream = SetupFusionConfigurationUploadMutation();
+        SetupFusionConfigurationUploadSubscription();
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "publish",
+            "--api-id",
+            ApiId,
+            "--stage",
+            Stage,
+            "--tag",
+            Tag,
+            "--source-schema",
+            SourceSchemaReviews,
+            "--legacy-v1-archive",
+            LegacyArchiveFile);
+
+        // assert
+        result.AssertSuccess(
+            """
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
+            ├── Downloading 1 source schema(s)
+            │   └── ✓ Downloaded 1 source schema(s).
+            ├── Requesting deployment slot
+            │   ├── Publication request created. (ID: request-id)
+            │   └── ✓ Deployment slot ready.
+            ├── Claiming deployment slot
+            │   └── ✓ Claimed deployment slot.
+            ├── Downloading existing configuration from 'dev'
+            │   └── ! There is no existing configuration on 'dev', using --legacy-v1-archive instead.
+            ├── Composing new configuration
+            │   └── ✓ Composed new configuration.
+            ├── Validating configuration against 'dev'
+            │   ├── Validating...
+            │   └── ✓ Fusion configuration passed validation.
+            ├── Uploading configuration to 'dev'
+            │   └── ✓ Uploaded configuration.
+            └── ✓ Published configuration 'v1' to 'dev'.
+            """);
+        var schema = await GetOverriddenLegacyArchiveSchemaAsync(capturedStream);
+        AssertOverriddenFusionSchema(schema);
+    }
+
+    [Fact]
+    public async Task WithSourceSchema_LocalLegacyArchive_ExistingRequestId_ReusesSlotAndSkipsClaim()
+    {
+        // arrange
+        // Simulates a v1 to v2 migration workflow where prior `fusion publish begin`
+        // and `fusion publish start` invocations stored the request ID on disk and
+        // claimed the slot. Publish must reuse the request ID and skip both the
+        // deployment slot request and the claim mutations.
+        SetupFusionPublishingStateCache(RequestId);
+        SetupSourceSchemaDownload();
+        SetupLegacyArchiveFile();
+        SetupMissingFusionConfigurationDownload();
+        SetupFusionConfigurationValidationMutation();
+        SetupFusionConfigurationValidationSubscription();
+        var capturedStream = SetupFusionConfigurationUploadMutation();
+        SetupFusionConfigurationUploadSubscription();
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "publish",
+            "--api-id",
+            ApiId,
+            "--stage",
+            Stage,
+            "--tag",
+            Tag,
+            "--source-schema",
+            SourceSchema,
+            "--legacy-v1-archive",
+            LegacyArchiveFile);
+
+        // assert
+        result.AssertSuccess(
+            """
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
+            ├── Downloading 1 source schema(s)
+            │   └── ✓ Downloaded 1 source schema(s).
+            ├── Reusing existing publication request. (ID: request-id)
+            ├── Downloading existing configuration from 'dev'
+            │   └── ! There is no existing configuration on 'dev', using --legacy-v1-archive instead.
+            ├── Composing new configuration
+            │   └── ✓ Composed new configuration.
+            ├── Validating configuration against 'dev'
+            │   ├── Validating...
+            │   └── ✓ Fusion configuration passed validation.
+            ├── Uploading configuration to 'dev'
+            │   └── ✓ Uploaded configuration.
+            └── ✓ Published configuration 'v1' to 'dev'.
+            """);
+        var schema = await GetMigratedLegacyArchiveSchemaAsync(capturedStream);
+        AssertMigratedFusionSchema(schema);
+        FusionConfigurationClientMock.Verify(
+            x => x.RequestDeploymentSlotAsync(
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<string?>(),
+                It.IsAny<string?>(),
+                It.IsAny<SourceSchemaVersion[]?>(),
+                It.IsAny<bool>(),
+                It.IsAny<SourceMetadata?>(),
+                It.IsAny<CancellationToken>()),
+            Times.Never);
+        FusionConfigurationClientMock.Verify(
+            x => x.ClaimDeploymentSlotAsync(
+                It.IsAny<string>(),
+                It.IsAny<CancellationToken>()),
+            Times.Never);
+    }
+
+    [Fact]
+    public async Task WithSourceSchema_NoLegacyArchive_ExistingRequestId_IgnoredAndRequestsNewSlot()
+    {
+        // arrange
+        // Without --legacy-v1-archive the cached request ID must be ignored and
+        // publish must request a new deployment slot as usual.
+        SetupFusionPublishingStateCache(RequestId);
+        SetupSourceSchemaDownload();
+        SetupRequestDeploymentSlotMutation(sourceSchemaVersions: SourceSchemaVersions);
+        SetupRequestDeploymentSlotSubscription();
+        SetupClaimDeploymentSlotMutation();
+        SetupFusionConfigurationDownload();
+        SetupFusionConfigurationValidationMutation();
+        SetupFusionConfigurationValidationSubscription();
+        var capturedStream = SetupFusionConfigurationUploadMutation();
+        SetupFusionConfigurationUploadSubscription();
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "publish",
+            "--api-id",
+            ApiId,
+            "--stage",
+            Stage,
+            "--tag",
+            Tag,
+            "--source-schema",
+            SourceSchema);
+
+        // assert
+        result.AssertSuccess(
+            """
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
+            ├── Downloading 1 source schema(s)
+            │   └── ✓ Downloaded 1 source schema(s).
+            ├── Requesting deployment slot
+            │   ├── Publication request created. (ID: request-id)
+            │   └── ✓ Deployment slot ready.
+            ├── Claiming deployment slot
+            │   └── ✓ Claimed deployment slot.
+            ├── Downloading existing configuration from 'dev'
+            │   └── ✓ Downloaded existing configuration from 'dev'.
+            ├── Composing new configuration
+            │   └── ✓ Composed new configuration.
+            ├── Validating configuration against 'dev'
+            │   ├── Validating...
+            │   └── ✓ Fusion configuration passed validation.
             ├── Uploading configuration to 'dev'
             │   └── ✓ Uploaded configuration.
             └── ✓ Published configuration 'v1' to 'dev'.
@@ -2318,10 +3333,11 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         // assert
         result.AssertSuccess(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
             ├── Downloading 1 source schema(s)
             │   └── ✓ Downloaded 1 source schema(s).
             ├── Requesting deployment slot
+            │   ├── Publication request created. (ID: request-id)
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
             │   └── ✓ Claimed deployment slot.
@@ -2330,7 +3346,8 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             ├── Composing new configuration
             │   └── ✓ Composed new configuration.
             ├── Validating configuration against 'dev'
-            │   └── ✓ Validated configuration.
+            │   ├── Validating...
+            │   └── ✓ Fusion configuration passed validation.
             ├── Uploading configuration to 'dev'
             │   └── ✓ Uploaded configuration.
             └── ✓ Published configuration 'v1' to 'dev'.
@@ -2371,10 +3388,11 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         // assert
         result.AssertSuccess(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
             ├── Downloading 1 source schema(s)
             │   └── ✓ Downloaded 1 source schema(s).
             ├── Requesting deployment slot
+            │   ├── Publication request created. (ID: request-id)
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
             │   └── ✓ Claimed deployment slot.
@@ -2383,7 +3401,8 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             ├── Composing new configuration
             │   └── ✓ Composed new configuration.
             ├── Validating configuration against 'dev'
-            │   └── ✓ Validated configuration.
+            │   ├── Validating...
+            │   └── ✓ Fusion configuration passed validation.
             ├── Uploading configuration to 'dev'
             │   └── ✓ Uploaded configuration.
             └── ✓ Published configuration 'v1' to 'dev'.
@@ -2416,18 +3435,15 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             SourceSchema);
 
         // assert
-        result.StdErr.MatchInlineSnapshot(
-            $"""
-             {expectedErrorMessage}
-             """);
+        result.StdErr.MatchInlineSnapshot(expectedErrorMessage);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
             ├── Downloading 1 source schema(s)
             │   └── ✓ Downloaded 1 source schema(s).
             ├── Requesting deployment slot
             │   └── ✕ Failed to request a deployment slot.
-            └── ✕ Failed to publish Fusion configuration.
+            └── ✕ Failed to publish a new Fusion configuration version.
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -2459,12 +3475,12 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
             ├── Downloading 1 source schema(s)
             │   └── ✓ Downloaded 1 source schema(s).
             ├── Requesting deployment slot
             │   └── ✕ Failed to request a deployment slot.
-            └── ✕ Failed to publish Fusion configuration.
+            └── ✕ Failed to publish a new Fusion configuration version.
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -2496,20 +3512,18 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             SourceSchema);
 
         // assert
-        result.StdErr.MatchInlineSnapshot(
-            $"""
-             {expectedErrorMessage}
-             """);
+        result.StdErr.MatchInlineSnapshot(expectedErrorMessage);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
             ├── Downloading 1 source schema(s)
             │   └── ✓ Downloaded 1 source schema(s).
             ├── Requesting deployment slot
+            │   ├── Publication request created. (ID: request-id)
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
             │   └── ✕ Failed to claim the deployment slot.
-            └── ✕ Failed to publish Fusion configuration.
+            └── ✕ Failed to publish a new Fusion configuration version.
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -2544,14 +3558,15 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
             ├── Downloading 1 source schema(s)
             │   └── ✓ Downloaded 1 source schema(s).
             ├── Requesting deployment slot
+            │   ├── Publication request created. (ID: request-id)
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
             │   └── ✕ Failed to claim the deployment slot.
-            └── ✕ Failed to publish Fusion configuration.
+            └── ✕ Failed to publish a new Fusion configuration version.
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -2587,10 +3602,11 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
             ├── Downloading 1 source schema(s)
             │   └── ✓ Downloaded 1 source schema(s).
             ├── Requesting deployment slot
+            │   ├── Publication request created. (ID: request-id)
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
             │   └── ✓ Claimed deployment slot.
@@ -2598,7 +3614,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             │   └── ✓ Downloaded existing configuration from 'dev'.
             ├── Composing new configuration
             │   └── ✕ Failed to compose new configuration.
-            └── ✕ Failed to publish Fusion configuration.
+            └── ✕ Failed to publish a new Fusion configuration version.
 
             ## Composition log
 
@@ -2638,16 +3654,17 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
             ├── Downloading 1 source schema(s)
             │   └── ✓ Downloaded 1 source schema(s).
             ├── Requesting deployment slot
+            │   ├── Publication request created. (ID: request-id)
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
             │   └── ✓ Claimed deployment slot.
             ├── Downloading existing configuration from 'dev'
             │   └── ✕ Failed to download the existing Fusion configuration.
-            └── ✕ Failed to publish Fusion configuration.
+            └── ✕ Failed to publish a new Fusion configuration version.
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -2681,16 +3698,14 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             SourceSchema);
 
         // assert
-        result.StdErr.MatchInlineSnapshot(
-            $"""
-             {expectedErrorMessage}
-             """);
+        result.StdErr.MatchInlineSnapshot(expectedErrorMessage);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
             ├── Downloading 1 source schema(s)
             │   └── ✓ Downloaded 1 source schema(s).
             ├── Requesting deployment slot
+            │   ├── Publication request created. (ID: request-id)
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
             │   └── ✓ Claimed deployment slot.
@@ -2700,7 +3715,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             │   └── ✓ Composed new configuration.
             ├── Validating configuration against 'dev'
             │   └── ✕ Failed to validate the new configuration.
-            └── ✕ Failed to publish Fusion configuration.
+            └── ✕ Failed to publish a new Fusion configuration version.
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -2738,10 +3753,11 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
             ├── Downloading 1 source schema(s)
             │   └── ✓ Downloaded 1 source schema(s).
             ├── Requesting deployment slot
+            │   ├── Publication request created. (ID: request-id)
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
             │   └── ✓ Claimed deployment slot.
@@ -2751,7 +3767,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             │   └── ✓ Composed new configuration.
             ├── Validating configuration against 'dev'
             │   └── ✕ Failed to validate the new configuration.
-            └── ✕ Failed to publish Fusion configuration.
+            └── ✕ Failed to publish a new Fusion configuration version.
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -2769,7 +3785,6 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         SetupFusionConfigurationValidationSubscription(
             CreateValidationInProgressEvent(),
             CreateValidationFailedEventWithErrors());
-        SetupReleaseDeploymentSlotMutation();
 
         // act
         var result = await ExecuteCommandAsync(
@@ -2787,14 +3802,15 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         // assert
         result.StdErr.MatchInlineSnapshot(
             """
-            Failed to validate configuration.
+            Fusion configuration failed validation.
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
             ├── Downloading 1 source schema(s)
             │   └── ✓ Downloaded 1 source schema(s).
             ├── Requesting deployment slot
+            │   ├── Publication request created. (ID: request-id)
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
             │   └── ✓ Claimed deployment slot.
@@ -2803,7 +3819,8 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             ├── Composing new configuration
             │   └── ✓ Composed new configuration.
             ├── Validating configuration against 'dev'
-            │   └── ✕ Failed to validate the new configuration.
+            │   ├── Validating...
+            │   └── ✕ Fusion configuration failed validation.
             │       ├── GraphQL schema changes
             │       │   ├── ✕ Directive foo was modified
             │       │   │   ├── ✓ Directive location FieldDefinition added
@@ -2817,7 +3834,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             │       │   ├── ✓ Type system member NewType was added.
             │       │   └── ✕ Type system member OldType was removed.
             │       ├── Invalid GraphQL schema
-            │       │   └── There is no object type implementing interface `InterfaceWithoutImplementation`. SCHEMA_INTERFACE_NO_IMPL
+            │       │   └── There is no object type implementing interface `InterfaceWithoutImplementation`. (SCHEMA_INTERFACE_NO_IMPL)
             │       ├── Client 'TestClient' (ID: client-1)
             │       │   └── Operation '6D12E4A815C50C504695E548EAF680BC8F337AC87E763E5689C685522A01BC59' (Deployed tags: 1.0.0)
             │       │       └── foo (10:10)
@@ -2828,7 +3845,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             │       │   └── Tool 'Fail'
             │       │       └── The field `person` does not exist on the type `Query`. (1:14)
             │       └── An unexpected error occurred.
-            └── ✕ Failed to publish Fusion configuration.
+            └── ✕ Failed to publish a new Fusion configuration version.
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -2866,11 +3883,12 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         // assert
         result.AssertSuccess(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
             ├── ! Force push is enabled.
             ├── Downloading 1 source schema(s)
             │   └── ✓ Downloaded 1 source schema(s).
             ├── Requesting deployment slot
+            │   ├── Publication request created. (ID: request-id)
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
             │   └── ✓ Claimed deployment slot.
@@ -2879,7 +3897,8 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             ├── Composing new configuration
             │   └── ✓ Composed new configuration.
             ├── Validating configuration against 'dev'
-            │   └── ✕ Failed to validate the new configuration.
+            │   ├── Validating...
+            │   └── ✕ Fusion configuration failed validation.
             │       ├── GraphQL schema changes
             │       │   ├── ✕ Directive foo was modified
             │       │   │   ├── ✓ Directive location FieldDefinition added
@@ -2893,7 +3912,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             │       │   ├── ✓ Type system member NewType was added.
             │       │   └── ✕ Type system member OldType was removed.
             │       ├── Invalid GraphQL schema
-            │       │   └── There is no object type implementing interface `InterfaceWithoutImplementation`. SCHEMA_INTERFACE_NO_IMPL
+            │       │   └── There is no object type implementing interface `InterfaceWithoutImplementation`. (SCHEMA_INTERFACE_NO_IMPL)
             │       ├── Client 'TestClient' (ID: client-1)
             │       │   └── Operation '6D12E4A815C50C504695E548EAF680BC8F337AC87E763E5689C685522A01BC59' (Deployed tags: 1.0.0)
             │       │       └── foo (10:10)
@@ -2921,7 +3940,6 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         SetupRequestDeploymentSlotSubscription();
         SetupClaimDeploymentSlotMutation();
         SetupFusionConfigurationDownload();
-        SetupReleaseDeploymentSlotMutation();
         var capturedStream = SetupFusionConfigurationUploadMutation();
         SetupFusionConfigurationUploadSubscription();
 
@@ -2942,10 +3960,11 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         // assert
         result.AssertSuccess(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
             ├── Downloading 1 source schema(s)
             │   └── ✓ Downloaded 1 source schema(s).
             ├── Requesting deployment slot
+            │   ├── Publication request created. (ID: request-id)
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
             │   └── ✓ Claimed deployment slot.
@@ -2993,10 +4012,11 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         // assert
         result.AssertSuccess(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
             ├── Downloading 1 source schema(s)
             │   └── ✓ Downloaded 1 source schema(s).
             ├── Requesting deployment slot
+            │   ├── Publication request created. (ID: request-id)
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
             │   └── ✓ Claimed deployment slot.
@@ -3005,9 +4025,9 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             ├── Composing new configuration
             │   └── ✓ Composed new configuration.
             ├── Uploading configuration to 'dev'
-            │   ├── ! Validation failed.
+            │   ├── ! Failed validation.
             │   │   ├── Invalid GraphQL schema
-            │   │   │   └── There is no object type implementing interface `InterfaceWithoutImplementation`. SCHEMA_INTERFACE_NO_IMPL
+            │   │   │   └── There is no object type implementing interface `InterfaceWithoutImplementation`. (SCHEMA_INTERFACE_NO_IMPL)
             │   │   ├── Client 'TestClient' (ID: client-1)
             │   │   │   └── Operation '6D12E4A815C50C504695E548EAF680BC8F337AC87E763E5689C685522A01BC59' (Deployed tags: 1.0.0)
             │   │   │       └── foo (10:10)
@@ -3058,14 +4078,15 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         // assert
         result.StdErr.MatchInlineSnapshot(
             """
-            Failed to publish the new configuration.
+            Fusion configuration version was rejected.
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
             ├── Downloading 1 source schema(s)
             │   └── ✓ Downloaded 1 source schema(s).
             ├── Requesting deployment slot
+            │   ├── Publication request created. (ID: request-id)
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
             │   └── ✓ Claimed deployment slot.
@@ -3074,9 +4095,9 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             ├── Composing new configuration
             │   └── ✓ Composed new configuration.
             ├── Uploading configuration to 'dev'
-            │   ├── ! Validation failed.
+            │   ├── ! Failed validation.
             │   │   ├── Invalid GraphQL schema
-            │   │   │   └── There is no object type implementing interface `InterfaceWithoutImplementation`. SCHEMA_INTERFACE_NO_IMPL
+            │   │   │   └── There is no object type implementing interface `InterfaceWithoutImplementation`. (SCHEMA_INTERFACE_NO_IMPL)
             │   │   ├── Client 'TestClient' (ID: client-1)
             │   │   │   └── Operation '6D12E4A815C50C504695E548EAF680BC8F337AC87E763E5689C685522A01BC59' (Deployed tags: 1.0.0)
             │   │   │       └── foo (10:10)
@@ -3087,8 +4108,8 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             │   │       └── Tool 'Fail'
             │   │           └── The field `person` does not exist on the type `Query`. (1:14)
             │   ├── ⏳ Waiting for approval. Approve in Nitro to continue.
-            │   └── ✕ Failed to upload the new configuration.
-            └── ✕ Failed to publish Fusion configuration.
+            │   └── ✕ Fusion configuration version was rejected.
+            └── ✕ Failed to publish a new Fusion configuration version.
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -3124,16 +4145,14 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             SourceSchema);
 
         // assert
-        result.StdErr.MatchInlineSnapshot(
-            $"""
-             {expectedErrorMessage}
-             """);
+        result.StdErr.MatchInlineSnapshot(expectedErrorMessage);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
             ├── Downloading 1 source schema(s)
             │   └── ✓ Downloaded 1 source schema(s).
             ├── Requesting deployment slot
+            │   ├── Publication request created. (ID: request-id)
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
             │   └── ✓ Claimed deployment slot.
@@ -3142,10 +4161,11 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             ├── Composing new configuration
             │   └── ✓ Composed new configuration.
             ├── Validating configuration against 'dev'
-            │   └── ✓ Validated configuration.
+            │   ├── Validating...
+            │   └── ✓ Fusion configuration passed validation.
             ├── Uploading configuration to 'dev'
             │   └── ✕ Failed to upload the new configuration.
-            └── ✕ Failed to publish Fusion configuration.
+            └── ✕ Failed to publish a new Fusion configuration version.
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -3184,10 +4204,11 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
             ├── Downloading 1 source schema(s)
             │   └── ✓ Downloaded 1 source schema(s).
             ├── Requesting deployment slot
+            │   ├── Publication request created. (ID: request-id)
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
             │   └── ✓ Claimed deployment slot.
@@ -3196,10 +4217,11 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             ├── Composing new configuration
             │   └── ✓ Composed new configuration.
             ├── Validating configuration against 'dev'
-            │   └── ✓ Validated configuration.
+            │   ├── Validating...
+            │   └── ✓ Fusion configuration passed validation.
             ├── Uploading configuration to 'dev'
             │   └── ✕ Failed to upload the new configuration.
-            └── ✕ Failed to publish Fusion configuration.
+            └── ✕ Failed to publish a new Fusion configuration version.
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -3235,14 +4257,15 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         // assert
         result.StdErr.MatchInlineSnapshot(
             """
-            Failed to publish the new configuration.
+            Fusion configuration version was rejected.
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
             ├── Downloading 1 source schema(s)
             │   └── ✓ Downloaded 1 source schema(s).
             ├── Requesting deployment slot
+            │   ├── Publication request created. (ID: request-id)
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
             │   └── ✓ Claimed deployment slot.
@@ -3251,13 +4274,14 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             ├── Composing new configuration
             │   └── ✓ Composed new configuration.
             ├── Validating configuration against 'dev'
-            │   └── ✓ Validated configuration.
+            │   ├── Validating...
+            │   └── ✓ Fusion configuration passed validation.
             ├── Uploading configuration to 'dev'
-            │   └── ✕ Failed to upload the new configuration.
+            │   └── ✕ Fusion configuration version was rejected.
             │       ├── Invalid GraphQL schema
-            │       │   └── Field 'Query.foo' has no type. SCHEMA_ERROR
+            │       │   └── Field 'Query.foo' has no type. (SCHEMA_ERROR)
             │       └── An error occurred.
-            └── ✕ Failed to publish Fusion configuration.
+            └── ✕ Failed to publish a new Fusion configuration version.
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -3296,14 +4320,15 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
             ├── Downloading 1 source schema(s)
             │   └── ✓ Downloaded 1 source schema(s).
             ├── Requesting deployment slot
+            │   ├── Publication request created. (ID: request-id)
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
             │   └── ✕ Failed to claim the deployment slot.
-            └── ✕ Failed to publish Fusion configuration.
+            └── ✕ Failed to publish a new Fusion configuration version.
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -3338,21 +4363,22 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         // assert
         result.StdErr.MatchInlineSnapshot(
             $"""
-             Encountered the following errors while trying to release the deployment slot after an error during the publishing process:
-             {expectedErrorMessage}
-             This is the error that caused the publishing process to fail in the first place:
-             There was an unexpected error: Something unexpected happened.
-             """);
+            Encountered the following errors while trying to release the deployment slot after an error during the publishing process:
+            {expectedErrorMessage}
+            This is the error that caused the publishing process to fail in the first place:
+            There was an unexpected error: Something unexpected happened.
+            """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
             ├── Downloading 1 source schema(s)
             │   └── ✓ Downloaded 1 source schema(s).
             ├── Requesting deployment slot
+            │   ├── Publication request created. (ID: request-id)
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
             │   └── ✕ Failed to claim the deployment slot.
-            └── ✕ Failed to publish Fusion configuration.
+            └── ✕ Failed to publish a new Fusion configuration version.
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -3447,44 +4473,70 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             """);
     }
 
-    private void AssertComposedFusionSchema(string schema)
+    private void AssertMigratedFusionSchema(string schema)
     {
         schema.MatchInlineSnapshot(
             """
-            schema {
+            schema
+              @fusion__execution(
+                nodeResolution: GATEWAY
+                shareableFieldRuntimeTypeRouting: SOURCE_LOCAL
+              ) {
               query: Query
             }
 
-            type Query
-              @fusion__type(schema: PRODUCTS)
-              @fusion__type(schema: REVIEWS) {
+            type Query @fusion__type(schema: PRODUCTS) @fusion__type(schema: REVIEWS) {
               cachedField: String
                 @cacheControl(maxAge: 60, scope: PUBLIC)
                 @fusion__field(schema: REVIEWS)
-              field: String!
-                @fusion__field(schema: PRODUCTS)
-              tag1Field: String
+              field: String! @fusion__field(schema: PRODUCTS)
+              node(id: ID! @fusion__inputField(schema: REVIEWS)): Node
                 @fusion__field(schema: REVIEWS)
-              tag2Field: String
-                @fusion__field(schema: REVIEWS)
+              tag1Field: String @fusion__field(schema: REVIEWS)
+              tag2Field: String @fusion__field(schema: REVIEWS)
             }
 
-            enum CacheControlScope
-              @fusion__type(schema: REVIEWS) {
-              "The value to cache is specific to a single user."
-              PRIVATE
-                @fusion__enumValue(schema: REVIEWS)
+            type Review implements Node
+              @fusion__type(schema: REVIEWS)
+              @fusion__implements(schema: REVIEWS, interface: "Node") {
+              body: String @fusion__field(schema: REVIEWS)
+              id: ID! @fusion__field(schema: REVIEWS)
+            }
+
+            interface Node
+              @fusion__type(schema: REVIEWS)
+              @fusion__lookup(
+                schema: REVIEWS
+                key: "id"
+                field: "node(id: ID!): Node"
+                map: ["id"]
+                path: null
+                internal: false
+              ) {
+              id: ID! @fusion__field(schema: REVIEWS)
+            }
+
+            enum CacheControlScope @fusion__type(schema: REVIEWS) {
               "The value to cache is not tied to a single user."
-              PUBLIC
-                @fusion__enumValue(schema: REVIEWS)
+              PUBLIC @fusion__enumValue(schema: REVIEWS)
+              "The value to cache is specific to a single user."
+              PRIVATE @fusion__enumValue(schema: REVIEWS)
+            }
+
+            enum fusion__NodeResolution {
+              GATEWAY
+              SOURCE_SCHEMA
             }
 
             "The fusion__Schema enum is a generated type used within an execution schema document to refer to a source schema in a type-safe manner."
             enum fusion__Schema {
-              PRODUCTS
-                @fusion__schema_metadata(name: "products")
-              REVIEWS
-                @fusion__schema_metadata(name: "reviews")
+              PRODUCTS @fusion__schema_metadata(name: "products")
+              REVIEWS @fusion__schema_metadata(name: "reviews")
+            }
+
+            enum fusion__ShareableFieldRuntimeTypeRouting {
+              SOURCE_LOCAL
+              COMMON_RUNTIME_TYPES
             }
 
             "The fusion__FieldDefinition scalar is used to represent a GraphQL field definition specified in the GraphQL spec."
@@ -3499,43 +4551,665 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             "The fusion__FieldSelectionSet scalar is used to represent a GraphQL selection set. To simplify the syntax, the outermost selection set is not wrapped in curly braces."
             scalar fusion__FieldSelectionSet
 
-            directive @cacheControl(inheritMaxAge: Boolean maxAge: Int scope: CacheControlScope sharedMaxAge: Int vary: [String]) on OBJECT | FIELD_DEFINITION | INTERFACE | UNION
+            directive @cacheControl(
+              inheritMaxAge: Boolean
+              maxAge: Int
+              scope: CacheControlScope
+              sharedMaxAge: Int
+              vary: [String]
+            ) on OBJECT | FIELD_DEFINITION | INTERFACE | UNION
 
             "The @fusion__cost directive specifies cost metadata for each source schema."
-            directive @fusion__cost("The name of the source schema that defined the cost metadata." schema: fusion__Schema! "The weight defined in the source schema." weight: String!) repeatable on SCALAR | OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | ENUM | INPUT_FIELD_DEFINITION
+            directive @fusion__cost(
+              "The name of the source schema that defined the cost metadata."
+              schema: fusion__Schema!
+              "The weight defined in the source schema."
+              weight: String!
+            ) repeatable on
+              | SCALAR
+              | OBJECT
+              | FIELD_DEFINITION
+              | ARGUMENT_DEFINITION
+              | ENUM
+              | INPUT_FIELD_DEFINITION
 
             "The @fusion__enumValue directive specifies which source schema provides an enum value."
-            directive @fusion__enumValue("The name of the source schema that provides the specified enum value." schema: fusion__Schema!) repeatable on ENUM_VALUE
+            directive @fusion__enumValue(
+              "The name of the source schema that provides the specified enum value."
+              schema: fusion__Schema!
+            ) repeatable on ENUM_VALUE
+
+            directive @fusion__eventStream(
+              broker: String
+              cursorArgument: String
+              cursorField: String
+              message: fusion__FieldSelectionSet!
+              schema: fusion__Schema!
+              topics: [String!]
+            ) on FIELD_DEFINITION
+
+            directive @fusion__execution(
+              nodeResolution: fusion__NodeResolution! = GATEWAY
+              shareableFieldRuntimeTypeRouting: fusion__ShareableFieldRuntimeTypeRouting! = SOURCE_LOCAL
+            ) on SCHEMA
 
             "The @fusion__field directive specifies which source schema provides a field in a composite type and what execution behavior it has."
-            directive @fusion__field("Indicates that this field is only partially provided and must be combined with `provides`." partial: Boolean! = false "A selection set of fields this field provides in the composite schema." provides: fusion__FieldSelectionSet "The name of the source schema that originally provided this field." schema: fusion__Schema! "The field type in the source schema if it differs in nullability or structure." sourceType: String) repeatable on FIELD_DEFINITION
+            directive @fusion__field(
+              "Indicates that this field is only partially provided and must be combined with `provides`."
+              partial: Boolean! = false
+              "A selection set of fields this field provides in the composite schema."
+              provides: fusion__FieldSelectionSet
+              "The name of the source schema that originally provided this field."
+              schema: fusion__Schema!
+              "Indicates that the source field was declared as external before connector preprocessing."
+              sourceExternal: Boolean! = false
+              "The field type in the source schema if it differs in nullability or structure."
+              sourceType: String
+            ) repeatable on FIELD_DEFINITION
+
+            "The @fusion__gateway_field directive marks a field that is implemented by the gateway itself rather than resolved from an underlying source schema, such as the global object identification node field."
+            directive @fusion__gateway_field on FIELD_DEFINITION
 
             "The @fusion__implements directive specifies on which source schema an interface is implemented by an object or interface type."
-            directive @fusion__implements("The name of the interface type." interface: String! "The name of the source schema on which the annotated type implements the specified interface." schema: fusion__Schema!) repeatable on OBJECT | INTERFACE
+            directive @fusion__implements(
+              "The name of the interface type."
+              interface: String!
+              "The name of the source schema on which the annotated type implements the specified interface."
+              schema: fusion__Schema!
+            ) repeatable on OBJECT | INTERFACE
 
             "The @fusion__inaccessible directive is used to prevent specific type system members from being accessible through the client-facing composite schema, even if they are accessible in the underlying source schemas."
-            directive @fusion__inaccessible on SCALAR | OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | INTERFACE | UNION | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION
+            directive @fusion__inaccessible on
+              | SCALAR
+              | OBJECT
+              | FIELD_DEFINITION
+              | ARGUMENT_DEFINITION
+              | INTERFACE
+              | UNION
+              | ENUM
+              | ENUM_VALUE
+              | INPUT_OBJECT
+              | INPUT_FIELD_DEFINITION
 
             "The @fusion__inputField directive specifies which source schema provides an input field in a composite input type."
-            directive @fusion__inputField("The name of the source schema that originally provided this input field." schema: fusion__Schema! "The field type in the source schema if it differs in nullability or structure." sourceType: String) repeatable on ARGUMENT_DEFINITION | INPUT_FIELD_DEFINITION
+            directive @fusion__inputField(
+              "The name of the source schema that originally provided this input field."
+              schema: fusion__Schema!
+              "The field type in the source schema if it differs in nullability or structure."
+              sourceType: String
+            ) repeatable on ARGUMENT_DEFINITION | INPUT_FIELD_DEFINITION
+
+            "The @fusion__interfaceObject directive specifies the source schemas that expose an interface as an @interfaceObject stand-in, so values of the interface produced by those schemas are opaque."
+            directive @fusion__interfaceObject(
+              "The name of the source schema that exposes this interface as an @interfaceObject stand-in."
+              schema: fusion__Schema!
+            ) repeatable on INTERFACE
 
             "The @fusion__listSize directive specifies list size metadata for each source schema."
-            directive @fusion__listSize("The assumed size of the list as defined in the source schema." assumedSize: Int "The single slicing argument requirement of the list as defined in the source schema." requireOneSlicingArgument: Boolean "The name of the source schema that defined the list size metadata." schema: fusion__Schema! "The sized fields of the list as defined in the source schema." sizedFields: [String!] "The slicing argument default value of the list as defined in the source schema." slicingArgumentDefaultValue: Int "The slicing arguments of the list as defined in the source schema." slicingArguments: [String!]) repeatable on FIELD_DEFINITION
+            directive @fusion__listSize(
+              "The assumed size of the list as defined in the source schema."
+              assumedSize: Int
+              "The single slicing argument requirement of the list as defined in the source schema."
+              requireOneSlicingArgument: Boolean
+              "The name of the source schema that defined the list size metadata."
+              schema: fusion__Schema!
+              "The sized fields of the list as defined in the source schema."
+              sizedFields: [String!]
+              "The slicing argument default value of the list as defined in the source schema."
+              slicingArgumentDefaultValue: Int
+              "The slicing arguments of the list as defined in the source schema."
+              slicingArguments: [String!]
+            ) repeatable on FIELD_DEFINITION
 
             "The @fusion__lookup directive specifies how the distributed executor can resolve data for an entity type from a source schema by a stable key."
-            directive @fusion__lookup("The GraphQL field definition in the source schema that can be used to look up the entity." field: fusion__FieldDefinition! "Is the lookup meant as an entry point or just to provide more data." internal: Boolean! = false "A selection set on the annotated entity type that describes the stable key for the lookup." key: fusion__FieldSelectionSet! "The map describes how the key values are resolved from the annotated entity type." map: [fusion__FieldSelectionMap!]! "The path to the lookup field relative to the Query type." path: fusion__FieldSelectionPath "The name of the source schema where the annotated entity type can be looked up from." schema: fusion__Schema!) repeatable on OBJECT | INTERFACE | UNION
+            directive @fusion__lookup(
+              "The GraphQL field definition in the source schema that can be used to look up the entity."
+              field: fusion__FieldDefinition!
+              "Is the lookup meant as an entry point or just to provide more data."
+              internal: Boolean! = false
+              "A selection set on the annotated entity type that describes the stable key for the lookup."
+              key: fusion__FieldSelectionSet!
+              "The map describes how the key values are resolved from the annotated entity type."
+              map: [fusion__FieldSelectionMap!]!
+              "The path to the lookup field relative to the Query type."
+              path: fusion__FieldSelectionPath
+              "The name of the source schema where the annotated entity type can be looked up from."
+              schema: fusion__Schema!
+            ) repeatable on OBJECT | INTERFACE | UNION
 
             "The @fusion__requires directive specifies if a field has requirements on a source schema."
-            directive @fusion__requires("The GraphQL field definition in the source schema that this field depends on." field: fusion__FieldDefinition! "The map describes how the argument values for the source schema are resolved from the arguments of the field exposed in the client-facing composite schema and from required data relative to the current type." map: [fusion__FieldSelectionMap]! "A selection set on the annotated field that describes its requirements." requirements: fusion__FieldSelectionSet! "The name of the source schema where this field has requirements to data on other source schemas." schema: fusion__Schema!) repeatable on FIELD_DEFINITION
+            directive @fusion__requires(
+              "The GraphQL field definition in the source schema that this field depends on."
+              field: fusion__FieldDefinition!
+              "The map describes how the argument values for the source schema are resolved from the arguments of the field exposed in the client-facing composite schema and from required data relative to the current type."
+              map: [fusion__FieldSelectionMap]!
+              "A selection set on the annotated field that describes its requirements."
+              requirements: fusion__FieldSelectionSet!
+              "The name of the source schema where this field has requirements to data on other source schemas."
+              schema: fusion__Schema!
+            ) repeatable on FIELD_DEFINITION
 
             "The @fusion__schema_metadata directive is used to provide additional metadata for a source schema."
-            directive @fusion__schema_metadata("The name of the source schema." name: String!) on ENUM_VALUE
+            directive @fusion__schema_metadata(
+              allowNonResolvableInterfaceObjects: Boolean
+              kind: String
+              "The name of the source schema."
+              name: String!
+            ) on ENUM_VALUE
 
             "The @fusion__type directive specifies which source schemas provide parts of a composite type."
-            directive @fusion__type("The name of the source schema that originally provided part of the annotated type." schema: fusion__Schema!) repeatable on SCALAR | OBJECT | INTERFACE | UNION | ENUM | INPUT_OBJECT
+            directive @fusion__type(
+              "The name of the source schema that originally provided part of the annotated type."
+              schema: fusion__Schema!
+            ) repeatable on SCALAR | OBJECT | INTERFACE | UNION | ENUM | INPUT_OBJECT
 
             "The @fusion__unionMember directive specifies which source schema provides a member type of a union."
-            directive @fusion__unionMember("The name of the member type." member: String! "The name of the source schema that provides the specified member type." schema: fusion__Schema!) repeatable on UNION
+            directive @fusion__unionMember(
+              "The name of the member type."
+              member: String!
+              "The name of the source schema that provides the specified member type."
+              schema: fusion__Schema!
+            ) repeatable on UNION
+
+            """);
+    }
+
+    private void AssertOverriddenFusionSchema(string schema)
+    {
+        schema.MatchInlineSnapshot(
+            """
+            schema
+              @fusion__execution(
+                nodeResolution: GATEWAY
+                shareableFieldRuntimeTypeRouting: SOURCE_LOCAL
+              ) {
+              query: Query
+            }
+
+            type Query @fusion__type(schema: REVIEWS) {
+              field: String! @fusion__field(schema: REVIEWS)
+            }
+
+            enum fusion__NodeResolution {
+              GATEWAY
+              SOURCE_SCHEMA
+            }
+
+            "The fusion__Schema enum is a generated type used within an execution schema document to refer to a source schema in a type-safe manner."
+            enum fusion__Schema {
+              REVIEWS @fusion__schema_metadata(name: "reviews")
+            }
+
+            enum fusion__ShareableFieldRuntimeTypeRouting {
+              SOURCE_LOCAL
+              COMMON_RUNTIME_TYPES
+            }
+
+            "The fusion__FieldDefinition scalar is used to represent a GraphQL field definition specified in the GraphQL spec."
+            scalar fusion__FieldDefinition
+
+            "The fusion__FieldSelectionMap scalar is used to represent the FieldSelectionMap type specified in the GraphQL Composite Schemas Spec."
+            scalar fusion__FieldSelectionMap
+
+            "The fusion__FieldSelectionPath scalar is used to represent a path of field names relative to the Query type."
+            scalar fusion__FieldSelectionPath
+
+            "The fusion__FieldSelectionSet scalar is used to represent a GraphQL selection set. To simplify the syntax, the outermost selection set is not wrapped in curly braces."
+            scalar fusion__FieldSelectionSet
+
+            "The @fusion__cost directive specifies cost metadata for each source schema."
+            directive @fusion__cost(
+              "The name of the source schema that defined the cost metadata."
+              schema: fusion__Schema!
+              "The weight defined in the source schema."
+              weight: String!
+            ) repeatable on
+              | SCALAR
+              | OBJECT
+              | FIELD_DEFINITION
+              | ARGUMENT_DEFINITION
+              | ENUM
+              | INPUT_FIELD_DEFINITION
+
+            "The @fusion__enumValue directive specifies which source schema provides an enum value."
+            directive @fusion__enumValue(
+              "The name of the source schema that provides the specified enum value."
+              schema: fusion__Schema!
+            ) repeatable on ENUM_VALUE
+
+            directive @fusion__eventStream(
+              broker: String
+              cursorArgument: String
+              cursorField: String
+              message: fusion__FieldSelectionSet!
+              schema: fusion__Schema!
+              topics: [String!]
+            ) on FIELD_DEFINITION
+
+            directive @fusion__execution(
+              nodeResolution: fusion__NodeResolution! = GATEWAY
+              shareableFieldRuntimeTypeRouting: fusion__ShareableFieldRuntimeTypeRouting! = SOURCE_LOCAL
+            ) on SCHEMA
+
+            "The @fusion__field directive specifies which source schema provides a field in a composite type and what execution behavior it has."
+            directive @fusion__field(
+              "Indicates that this field is only partially provided and must be combined with `provides`."
+              partial: Boolean! = false
+              "A selection set of fields this field provides in the composite schema."
+              provides: fusion__FieldSelectionSet
+              "The name of the source schema that originally provided this field."
+              schema: fusion__Schema!
+              "Indicates that the source field was declared as external before connector preprocessing."
+              sourceExternal: Boolean! = false
+              "The field type in the source schema if it differs in nullability or structure."
+              sourceType: String
+            ) repeatable on FIELD_DEFINITION
+
+            "The @fusion__gateway_field directive marks a field that is implemented by the gateway itself rather than resolved from an underlying source schema, such as the global object identification node field."
+            directive @fusion__gateway_field on FIELD_DEFINITION
+
+            "The @fusion__implements directive specifies on which source schema an interface is implemented by an object or interface type."
+            directive @fusion__implements(
+              "The name of the interface type."
+              interface: String!
+              "The name of the source schema on which the annotated type implements the specified interface."
+              schema: fusion__Schema!
+            ) repeatable on OBJECT | INTERFACE
+
+            "The @fusion__inaccessible directive is used to prevent specific type system members from being accessible through the client-facing composite schema, even if they are accessible in the underlying source schemas."
+            directive @fusion__inaccessible on
+              | SCALAR
+              | OBJECT
+              | FIELD_DEFINITION
+              | ARGUMENT_DEFINITION
+              | INTERFACE
+              | UNION
+              | ENUM
+              | ENUM_VALUE
+              | INPUT_OBJECT
+              | INPUT_FIELD_DEFINITION
+
+            "The @fusion__inputField directive specifies which source schema provides an input field in a composite input type."
+            directive @fusion__inputField(
+              "The name of the source schema that originally provided this input field."
+              schema: fusion__Schema!
+              "The field type in the source schema if it differs in nullability or structure."
+              sourceType: String
+            ) repeatable on ARGUMENT_DEFINITION | INPUT_FIELD_DEFINITION
+
+            "The @fusion__interfaceObject directive specifies the source schemas that expose an interface as an @interfaceObject stand-in, so values of the interface produced by those schemas are opaque."
+            directive @fusion__interfaceObject(
+              "The name of the source schema that exposes this interface as an @interfaceObject stand-in."
+              schema: fusion__Schema!
+            ) repeatable on INTERFACE
+
+            "The @fusion__listSize directive specifies list size metadata for each source schema."
+            directive @fusion__listSize(
+              "The assumed size of the list as defined in the source schema."
+              assumedSize: Int
+              "The single slicing argument requirement of the list as defined in the source schema."
+              requireOneSlicingArgument: Boolean
+              "The name of the source schema that defined the list size metadata."
+              schema: fusion__Schema!
+              "The sized fields of the list as defined in the source schema."
+              sizedFields: [String!]
+              "The slicing argument default value of the list as defined in the source schema."
+              slicingArgumentDefaultValue: Int
+              "The slicing arguments of the list as defined in the source schema."
+              slicingArguments: [String!]
+            ) repeatable on FIELD_DEFINITION
+
+            "The @fusion__lookup directive specifies how the distributed executor can resolve data for an entity type from a source schema by a stable key."
+            directive @fusion__lookup(
+              "The GraphQL field definition in the source schema that can be used to look up the entity."
+              field: fusion__FieldDefinition!
+              "Is the lookup meant as an entry point or just to provide more data."
+              internal: Boolean! = false
+              "A selection set on the annotated entity type that describes the stable key for the lookup."
+              key: fusion__FieldSelectionSet!
+              "The map describes how the key values are resolved from the annotated entity type."
+              map: [fusion__FieldSelectionMap!]!
+              "The path to the lookup field relative to the Query type."
+              path: fusion__FieldSelectionPath
+              "The name of the source schema where the annotated entity type can be looked up from."
+              schema: fusion__Schema!
+            ) repeatable on OBJECT | INTERFACE | UNION
+
+            "The @fusion__requires directive specifies if a field has requirements on a source schema."
+            directive @fusion__requires(
+              "The GraphQL field definition in the source schema that this field depends on."
+              field: fusion__FieldDefinition!
+              "The map describes how the argument values for the source schema are resolved from the arguments of the field exposed in the client-facing composite schema and from required data relative to the current type."
+              map: [fusion__FieldSelectionMap]!
+              "A selection set on the annotated field that describes its requirements."
+              requirements: fusion__FieldSelectionSet!
+              "The name of the source schema where this field has requirements to data on other source schemas."
+              schema: fusion__Schema!
+            ) repeatable on FIELD_DEFINITION
+
+            "The @fusion__schema_metadata directive is used to provide additional metadata for a source schema."
+            directive @fusion__schema_metadata(
+              allowNonResolvableInterfaceObjects: Boolean
+              kind: String
+              "The name of the source schema."
+              name: String!
+            ) on ENUM_VALUE
+
+            "The @fusion__type directive specifies which source schemas provide parts of a composite type."
+            directive @fusion__type(
+              "The name of the source schema that originally provided part of the annotated type."
+              schema: fusion__Schema!
+            ) repeatable on SCALAR | OBJECT | INTERFACE | UNION | ENUM | INPUT_OBJECT
+
+            "The @fusion__unionMember directive specifies which source schema provides a member type of a union."
+            directive @fusion__unionMember(
+              "The name of the member type."
+              member: String!
+              "The name of the source schema that provides the specified member type."
+              schema: fusion__Schema!
+            ) repeatable on UNION
+
+            """);
+    }
+
+    private static async Task<string> GetFarInRegistryWithLegacyArchiveSchemaAsync(MemoryStream capturedStream)
+    {
+        using var archive = FusionArchive.Open(capturedStream);
+
+        var schema = await GetFusionSchemaAsync(archive);
+
+        await AssertEmbeddedLegacyArchiveAsync(archive);
+
+        return schema;
+    }
+
+    private static async Task<string> GetMigratedLegacyArchiveSchemaAsync(MemoryStream capturedStream)
+    {
+        using var archive = FusionArchive.Open(capturedStream);
+
+        var schema = await GetFusionSchemaAsync(archive);
+
+        var names = (await archive.GetSourceSchemaNamesAsync()).ToArray();
+        Assert.Equal(
+            new[] { SourceSchemaReviews, SourceSchema }.OrderBy(x => x),
+            names.OrderBy(x => x));
+
+        var products = await archive.TryGetSourceSchemaConfigurationAsync(SourceSchema);
+        Assert.NotNull(products);
+        Assert.Equal(
+            """{"name":"products"}""",
+            JsonSerializer.Serialize(products.Settings.RootElement));
+
+        var reviews = await archive.TryGetSourceSchemaConfigurationAsync(SourceSchemaReviews);
+        Assert.NotNull(reviews);
+        Assert.Equal(
+            """{"version":"1.0.0","name":"reviews"}""",
+            JsonSerializer.Serialize(reviews.Settings.RootElement));
+
+        await AssertEmbeddedLegacyArchiveAsync(archive);
+
+        return schema;
+    }
+
+    private static async Task<string> GetOverriddenLegacyArchiveSchemaAsync(MemoryStream capturedStream)
+    {
+        using var archive = FusionArchive.Open(capturedStream);
+
+        var schema = await GetFusionSchemaAsync(archive);
+
+        var names = (await archive.GetSourceSchemaNamesAsync()).ToArray();
+        Assert.Equal(new[] { SourceSchemaReviews }, names);
+
+        var reviews = await archive.TryGetSourceSchemaConfigurationAsync(SourceSchemaReviews);
+        Assert.NotNull(reviews);
+        Assert.Equal(
+            """{"name":"reviews"}""",
+            JsonSerializer.Serialize(reviews.Settings.RootElement));
+
+        await AssertEmbeddedLegacyArchiveAsync(archive);
+
+        return schema;
+    }
+
+    private static async Task AssertEmbeddedLegacyArchiveAsync(FusionArchive archive)
+    {
+        await using var stream = await archive.TryGetLegacyArchiveFileAsync();
+        Assert.NotNull(stream);
+        await using var package = FusionGraphPackage.Open(stream, FileAccess.Read);
+        var configs = await package.GetSubgraphConfigurationsAsync();
+        Assert.Equal(
+            new[] { SourceSchemaReviews },
+            configs.Select(c => c.Name).ToArray());
+    }
+
+    private void AssertComposedFusionSchema(string schema)
+    {
+        schema.MatchInlineSnapshot(
+            """
+            schema
+              @fusion__execution(
+                nodeResolution: GATEWAY
+                shareableFieldRuntimeTypeRouting: SOURCE_LOCAL
+              ) {
+              query: Query
+            }
+
+            type Query @fusion__type(schema: PRODUCTS) @fusion__type(schema: REVIEWS) {
+              cachedField: String
+                @cacheControl(maxAge: 60, scope: PUBLIC)
+                @fusion__field(schema: REVIEWS)
+              field: String! @fusion__field(schema: PRODUCTS)
+              node(id: ID! @fusion__inputField(schema: REVIEWS)): Node
+                @fusion__field(schema: REVIEWS)
+              tag1Field: String @fusion__field(schema: REVIEWS)
+              tag2Field: String @fusion__field(schema: REVIEWS)
+            }
+
+            type Review implements Node
+              @fusion__type(schema: REVIEWS)
+              @fusion__implements(schema: REVIEWS, interface: "Node") {
+              body: String @fusion__field(schema: REVIEWS)
+              id: ID! @fusion__field(schema: REVIEWS)
+            }
+
+            interface Node @fusion__type(schema: REVIEWS) {
+              id: ID! @fusion__field(schema: REVIEWS)
+            }
+
+            enum CacheControlScope @fusion__type(schema: REVIEWS) {
+              "The value to cache is not tied to a single user."
+              PUBLIC @fusion__enumValue(schema: REVIEWS)
+              "The value to cache is specific to a single user."
+              PRIVATE @fusion__enumValue(schema: REVIEWS)
+            }
+
+            enum fusion__NodeResolution {
+              GATEWAY
+              SOURCE_SCHEMA
+            }
+
+            "The fusion__Schema enum is a generated type used within an execution schema document to refer to a source schema in a type-safe manner."
+            enum fusion__Schema {
+              PRODUCTS @fusion__schema_metadata(name: "products")
+              REVIEWS @fusion__schema_metadata(name: "reviews")
+            }
+
+            enum fusion__ShareableFieldRuntimeTypeRouting {
+              SOURCE_LOCAL
+              COMMON_RUNTIME_TYPES
+            }
+
+            "The fusion__FieldDefinition scalar is used to represent a GraphQL field definition specified in the GraphQL spec."
+            scalar fusion__FieldDefinition
+
+            "The fusion__FieldSelectionMap scalar is used to represent the FieldSelectionMap type specified in the GraphQL Composite Schemas Spec."
+            scalar fusion__FieldSelectionMap
+
+            "The fusion__FieldSelectionPath scalar is used to represent a path of field names relative to the Query type."
+            scalar fusion__FieldSelectionPath
+
+            "The fusion__FieldSelectionSet scalar is used to represent a GraphQL selection set. To simplify the syntax, the outermost selection set is not wrapped in curly braces."
+            scalar fusion__FieldSelectionSet
+
+            directive @cacheControl(
+              inheritMaxAge: Boolean
+              maxAge: Int
+              scope: CacheControlScope
+              sharedMaxAge: Int
+              vary: [String]
+            ) on OBJECT | FIELD_DEFINITION | INTERFACE | UNION
+
+            "The @fusion__cost directive specifies cost metadata for each source schema."
+            directive @fusion__cost(
+              "The name of the source schema that defined the cost metadata."
+              schema: fusion__Schema!
+              "The weight defined in the source schema."
+              weight: String!
+            ) repeatable on
+              | SCALAR
+              | OBJECT
+              | FIELD_DEFINITION
+              | ARGUMENT_DEFINITION
+              | ENUM
+              | INPUT_FIELD_DEFINITION
+
+            "The @fusion__enumValue directive specifies which source schema provides an enum value."
+            directive @fusion__enumValue(
+              "The name of the source schema that provides the specified enum value."
+              schema: fusion__Schema!
+            ) repeatable on ENUM_VALUE
+
+            directive @fusion__eventStream(
+              broker: String
+              cursorArgument: String
+              cursorField: String
+              message: fusion__FieldSelectionSet!
+              schema: fusion__Schema!
+              topics: [String!]
+            ) on FIELD_DEFINITION
+
+            directive @fusion__execution(
+              nodeResolution: fusion__NodeResolution! = GATEWAY
+              shareableFieldRuntimeTypeRouting: fusion__ShareableFieldRuntimeTypeRouting! = SOURCE_LOCAL
+            ) on SCHEMA
+
+            "The @fusion__field directive specifies which source schema provides a field in a composite type and what execution behavior it has."
+            directive @fusion__field(
+              "Indicates that this field is only partially provided and must be combined with `provides`."
+              partial: Boolean! = false
+              "A selection set of fields this field provides in the composite schema."
+              provides: fusion__FieldSelectionSet
+              "The name of the source schema that originally provided this field."
+              schema: fusion__Schema!
+              "Indicates that the source field was declared as external before connector preprocessing."
+              sourceExternal: Boolean! = false
+              "The field type in the source schema if it differs in nullability or structure."
+              sourceType: String
+            ) repeatable on FIELD_DEFINITION
+
+            "The @fusion__gateway_field directive marks a field that is implemented by the gateway itself rather than resolved from an underlying source schema, such as the global object identification node field."
+            directive @fusion__gateway_field on FIELD_DEFINITION
+
+            "The @fusion__implements directive specifies on which source schema an interface is implemented by an object or interface type."
+            directive @fusion__implements(
+              "The name of the interface type."
+              interface: String!
+              "The name of the source schema on which the annotated type implements the specified interface."
+              schema: fusion__Schema!
+            ) repeatable on OBJECT | INTERFACE
+
+            "The @fusion__inaccessible directive is used to prevent specific type system members from being accessible through the client-facing composite schema, even if they are accessible in the underlying source schemas."
+            directive @fusion__inaccessible on
+              | SCALAR
+              | OBJECT
+              | FIELD_DEFINITION
+              | ARGUMENT_DEFINITION
+              | INTERFACE
+              | UNION
+              | ENUM
+              | ENUM_VALUE
+              | INPUT_OBJECT
+              | INPUT_FIELD_DEFINITION
+
+            "The @fusion__inputField directive specifies which source schema provides an input field in a composite input type."
+            directive @fusion__inputField(
+              "The name of the source schema that originally provided this input field."
+              schema: fusion__Schema!
+              "The field type in the source schema if it differs in nullability or structure."
+              sourceType: String
+            ) repeatable on ARGUMENT_DEFINITION | INPUT_FIELD_DEFINITION
+
+            "The @fusion__interfaceObject directive specifies the source schemas that expose an interface as an @interfaceObject stand-in, so values of the interface produced by those schemas are opaque."
+            directive @fusion__interfaceObject(
+              "The name of the source schema that exposes this interface as an @interfaceObject stand-in."
+              schema: fusion__Schema!
+            ) repeatable on INTERFACE
+
+            "The @fusion__listSize directive specifies list size metadata for each source schema."
+            directive @fusion__listSize(
+              "The assumed size of the list as defined in the source schema."
+              assumedSize: Int
+              "The single slicing argument requirement of the list as defined in the source schema."
+              requireOneSlicingArgument: Boolean
+              "The name of the source schema that defined the list size metadata."
+              schema: fusion__Schema!
+              "The sized fields of the list as defined in the source schema."
+              sizedFields: [String!]
+              "The slicing argument default value of the list as defined in the source schema."
+              slicingArgumentDefaultValue: Int
+              "The slicing arguments of the list as defined in the source schema."
+              slicingArguments: [String!]
+            ) repeatable on FIELD_DEFINITION
+
+            "The @fusion__lookup directive specifies how the distributed executor can resolve data for an entity type from a source schema by a stable key."
+            directive @fusion__lookup(
+              "The GraphQL field definition in the source schema that can be used to look up the entity."
+              field: fusion__FieldDefinition!
+              "Is the lookup meant as an entry point or just to provide more data."
+              internal: Boolean! = false
+              "A selection set on the annotated entity type that describes the stable key for the lookup."
+              key: fusion__FieldSelectionSet!
+              "The map describes how the key values are resolved from the annotated entity type."
+              map: [fusion__FieldSelectionMap!]!
+              "The path to the lookup field relative to the Query type."
+              path: fusion__FieldSelectionPath
+              "The name of the source schema where the annotated entity type can be looked up from."
+              schema: fusion__Schema!
+            ) repeatable on OBJECT | INTERFACE | UNION
+
+            "The @fusion__requires directive specifies if a field has requirements on a source schema."
+            directive @fusion__requires(
+              "The GraphQL field definition in the source schema that this field depends on."
+              field: fusion__FieldDefinition!
+              "The map describes how the argument values for the source schema are resolved from the arguments of the field exposed in the client-facing composite schema and from required data relative to the current type."
+              map: [fusion__FieldSelectionMap]!
+              "A selection set on the annotated field that describes its requirements."
+              requirements: fusion__FieldSelectionSet!
+              "The name of the source schema where this field has requirements to data on other source schemas."
+              schema: fusion__Schema!
+            ) repeatable on FIELD_DEFINITION
+
+            "The @fusion__schema_metadata directive is used to provide additional metadata for a source schema."
+            directive @fusion__schema_metadata(
+              allowNonResolvableInterfaceObjects: Boolean
+              kind: String
+              "The name of the source schema."
+              name: String!
+            ) on ENUM_VALUE
+
+            "The @fusion__type directive specifies which source schemas provide parts of a composite type."
+            directive @fusion__type(
+              "The name of the source schema that originally provided part of the annotated type."
+              schema: fusion__Schema!
+            ) repeatable on SCALAR | OBJECT | INTERFACE | UNION | ENUM | INPUT_OBJECT
+
+            "The @fusion__unionMember directive specifies which source schema provides a member type of a union."
+            directive @fusion__unionMember(
+              "The name of the member type."
+              member: String!
+              "The name of the source schema that provides the specified member type."
+              schema: fusion__Schema!
+            ) repeatable on UNION
 
             """);
     }

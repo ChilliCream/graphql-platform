@@ -593,7 +593,7 @@ public partial class InterfaceTypeTests : TypeTestBase
             .AddQueryType(x => x.Name("Query").Field("foo").Resolve(1))
             .AddInterfaceType<DeprecatedInterface>()
             .AddType<DeprecatedImplementation>()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         executor.Schema.ToString().MatchSnapshot();
@@ -638,7 +638,7 @@ public partial class InterfaceTypeTests : TypeTestBase
                 .Resolve("asd")
                 .Type<IntType>()
                 .Argument("baz", y => y.Type<IntType>().Deprecated("b")))
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         executor.Schema.ToString().MatchSnapshot();
@@ -692,7 +692,7 @@ public partial class InterfaceTypeTests : TypeTestBase
                 }
                 """)
             .AddResolver("Foo", "bar", x => 1)
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         executor.Schema.ToString().MatchSnapshot();
@@ -738,7 +738,7 @@ public partial class InterfaceTypeTests : TypeTestBase
                 .Resolve(() => null!))
             .AddResolver("Foo", "bar", x => 1)
             .ModifyOptions(o => o.StrictValidation = false)
-            .BuildSchemaAsync()
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -755,7 +755,7 @@ public partial class InterfaceTypeTests : TypeTestBase
             .AddResolver("Foo", "bar", x => 1)
             .ModifyOptions(o => o.StrictValidation = false)
             .ModifyOptions(o => o.StripLeadingIFromInterface = true)
-            .BuildSchemaAsync()
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
