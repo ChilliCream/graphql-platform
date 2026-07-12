@@ -340,6 +340,12 @@ public sealed partial class CompositeResultDocument
         private (MemorySegment chunk, int byteOffset, Cursor cursor) ReserveRow()
         {
             var next = _next;
+
+            if (next == Cursor.End)
+            {
+                throw new InvalidOperationException("The metadata database has reached its maximum capacity.");
+            }
+
             var chunkIndex = next.Chunk;
             var byteOffset = next.ByteOffset;
 
@@ -454,6 +460,107 @@ public sealed partial class CompositeResultDocument
             AssertValidCursor(cursor);
 
             return Unsafe.ReadUnaligned<DbRow>(ref RowRef(cursor));
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal readonly SequentialReader CreateSequentialReader(Cursor cursor)
+        {
+            AssertValidCursor(cursor);
+            return new SequentialReader(_chunks, cursor);
+        }
+
+        internal readonly struct PropertyMetadata
+        {
+            private readonly int _selectionAndFlags;
+
+            internal PropertyMetadata(int selectionAndFlags)
+            {
+                _selectionAndFlags = selectionAndFlags;
+            }
+
+            internal int SelectionId
+                => DbRow.ReadOperationReferenceId(_selectionAndFlags);
+
+            internal ElementFlags Flags
+                => DbRow.ReadFlags(_selectionAndFlags);
+        }
+
+        internal ref struct SequentialReader
+        {
+            private readonly MemorySegment[] _chunks;
+            private ref byte _chunkBase;
+            private int _chunkIndex;
+            private int _row;
+            private int _byteOffset;
+            private int _chunkLength;
+            private int _segmentOffset;
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            internal SequentialReader(MemorySegment[] chunks, Cursor cursor)
+            {
+                _chunks = chunks;
+                _chunkBase = ref Unsafe.NullRef<byte>();
+                _chunkIndex = 0;
+                _row = 0;
+                _byteOffset = 0;
+                _chunkLength = 0;
+                _segmentOffset = 0;
+                MoveTo(cursor);
+            }
+
+            internal readonly Cursor Cursor
+            {
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                get => Cursor.From(_chunkIndex, _row);
+            }
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            internal readonly DbRow PeekRow()
+                => Unsafe.ReadUnaligned<DbRow>(
+                    ref Unsafe.Add(ref _chunkBase, _segmentOffset + _byteOffset));
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            internal PropertyMetadata ReadProperty()
+            {
+                var selectionAndFlags = Unsafe.ReadUnaligned<int>(
+                    ref Unsafe.Add(
+                        ref _chunkBase,
+                        _segmentOffset + _byteOffset + DbRow.SelectionAndFlagsOffset));
+                var property = new PropertyMetadata(selectionAndFlags);
+
+                Advance(1);
+                return property;
+            }
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            internal void Advance(int rowCount)
+            {
+                Debug.Assert(rowCount > 0);
+                var nextRow = _row + rowCount;
+
+                if ((uint)nextRow < (uint)(_chunkLength / DbRow.Size))
+                {
+                    _row = nextRow;
+                    _byteOffset += rowCount * DbRow.Size;
+                    return;
+                }
+
+                MoveTo(Cursor.AddRows(rowCount));
+            }
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            private void MoveTo(Cursor cursor)
+            {
+                var segment = _chunks[cursor.Chunk];
+                Debug.Assert(segment.Buffer is not null);
+
+                _chunkIndex = cursor.Chunk;
+                _row = cursor.Row;
+                _byteOffset = cursor.ByteOffset;
+                _chunkLength = segment.Length;
+                _segmentOffset = segment.Offset;
+                _chunkBase = ref MemoryMarshal.GetArrayDataReference(segment.Buffer);
+            }
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

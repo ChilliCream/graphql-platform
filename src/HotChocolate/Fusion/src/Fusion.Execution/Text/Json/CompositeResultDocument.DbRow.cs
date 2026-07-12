@@ -157,6 +157,14 @@ public sealed partial class CompositeResultDocument
         public bool IsNullMarker
             => (Flags & ElementFlags.NullMarker) is ElementFlags.NullMarker;
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static int ReadOperationReferenceId(int selectionAndFlags)
+            => selectionAndFlags & 0x7FFF;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static ElementFlags ReadFlags(int selectionAndFlags)
+            => (ElementFlags)((selectionAndFlags >> 17) & 0x7F);
+
         /// <summary>
         /// True for primitive JSON values (strings, numbers, booleans, null).
         /// </summary>
