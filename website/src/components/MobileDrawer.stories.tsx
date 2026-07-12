@@ -76,8 +76,10 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-// Reproduces SidebarDrawer's mobile panel: left edge, lg breakpoint, default
-// close header, closes when a nav link inside the content is clicked.
+// Reproduces SidebarDrawer's mobile panel: left edge, default close header,
+// closes when a nav link inside the content is clicked. SidebarDrawer itself
+// uses the lg breakpoint; the story uses 2xl so the drawer stays visible in
+// the 1280px-wide visual-test viewport.
 export const Left: Story = {
   args: {
     side: "left",

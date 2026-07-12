@@ -1,18 +1,7 @@
-import type { ComponentPropsWithoutRef, ElementType } from "react";
 import { CheckIcon } from "@/src/components/CheckIcon";
 import { SectionHeading } from "@/src/components/SectionHeading";
 import { Card } from "@/src/design-system/Card";
 import { Eyebrow } from "@/src/design-system/Eyebrow";
-
-/**
- * Eyebrow only types its passthrough props against `<p>` attributes, so a
- * `<th scope>` usage needs its own attribute type when rendered `as="th"`.
- */
-const EyebrowAsTh = Eyebrow as unknown as (
-  props: ComponentPropsWithoutRef<typeof Eyebrow> & {
-    readonly as: ElementType;
-  } & ComponentPropsWithoutRef<"th">,
-) => ReturnType<typeof Eyebrow>;
 
 type Cell = boolean | string;
 
@@ -64,15 +53,14 @@ export function FeatureComparison({
           <table className="w-full min-w-[820px] border-collapse text-left text-sm">
             <thead>
               <tr className="border-cc-card-border border-b">
-                <EyebrowAsTh
-                  as="th"
-                  scope="col"
-                  size="2xs"
-                  color="ink-dim"
-                  className="px-5 py-4 text-left"
-                >
-                  Capability
-                </EyebrowAsTh>
+                <th scope="col" className="px-5 py-4 text-left">
+                  {/* Block-level (default <p>) so the cell's line box comes
+                      from the 0.65rem eyebrow text, not the table's text-sm
+                      strut, keeping the row heights unchanged. */}
+                  <Eyebrow size="2xs" color="ink-dim">
+                    Capability
+                  </Eyebrow>
+                </th>
                 {columns.map((name) => (
                   <th
                     key={name}
@@ -91,16 +79,15 @@ export function FeatureComparison({
                     groupIndex === 0 ? "" : "border-cc-card-border border-t"
                   }`}
                 >
-                  <EyebrowAsTh
-                    as="th"
+                  <th
                     scope="colgroup"
                     colSpan={columns.length + 1}
-                    size="2xs"
-                    color="ink-dim"
                     className="px-5 py-3 text-left"
                   >
-                    {group.title}
-                  </EyebrowAsTh>
+                    <Eyebrow size="2xs" color="ink-dim">
+                      {group.title}
+                    </Eyebrow>
+                  </th>
                 </tr>
                 {group.rows.map((row) => (
                   <tr

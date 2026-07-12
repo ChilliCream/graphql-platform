@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type MouseEvent, type ReactNode } from "react";
+import { useEffect, useRef, type MouseEvent, type ReactNode } from "react";
 import { usePathname } from "next/navigation";
 import { createPortal } from "react-dom";
 import { IconButton } from "@/src/design-system/IconButton";
@@ -62,13 +62,20 @@ export function MobileDrawer({
   panelClassName,
 }: MobileDrawerProps) {
   const pathname = usePathname();
-  const [prevPathname, setPrevPathname] = useState(pathname);
-  if (closeOnPathnameChange && prevPathname !== pathname) {
-    setPrevPathname(pathname);
-    if (open) {
+  const prevPathnameRef = useRef(pathname);
+  // Close on navigation from an effect: setting the parent's open state
+  // during render would violate React's cross-component update rule. The ref
+  // guard fires the close exactly once per pathname change, no matter how
+  // often the effect re-runs from open/callback identity changes.
+  useEffect(() => {
+    if (prevPathnameRef.current === pathname) {
+      return;
+    }
+    prevPathnameRef.current = pathname;
+    if (closeOnPathnameChange && open) {
       onOpenChange(false);
     }
-  }
+  }, [pathname, closeOnPathnameChange, open, onOpenChange]);
 
   useEffect(() => {
     if (!open) {

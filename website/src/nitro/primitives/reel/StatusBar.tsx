@@ -1,6 +1,6 @@
 import type { CSSProperties } from "react";
 import { token } from "../../lib/tokens";
-import { StrokeIcon } from "../../primitives/reel/StrokeIcon";
+import { StrokeIcon } from "./StrokeIcon";
 
 export const STATUSBAR_H = 24;
 
