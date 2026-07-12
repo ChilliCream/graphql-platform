@@ -14,7 +14,7 @@ using LogSeverity = HotChocolate.Fusion.Logging.LogSeverity;
 
 namespace HotChocolate.Fusion;
 
-public sealed class SchemaComposer
+internal sealed class SchemaComposer
 {
     private readonly IEnumerable<SourceSchemaText> _sourceSchemas;
     private readonly SchemaComposerOptions _schemaComposerOptions;

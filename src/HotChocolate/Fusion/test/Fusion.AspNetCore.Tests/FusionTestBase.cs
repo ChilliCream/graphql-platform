@@ -33,7 +33,7 @@ public abstract partial class FusionTestBase : IDisposable
     private readonly TestServerSession _testServerSession = new();
     private bool _disposed;
 
-    protected async Task<Gateway> CreateCompositeSchemaAsync(
+    private protected async Task<Gateway> CreateCompositeSchemaAsync(
         (string SchemaName, TestServer Server)[] sourceSchemaServers,
         Action<IServiceCollection>? configureServices = null,
         Action<IApplicationBuilder>? configureApplication = null,
@@ -271,7 +271,7 @@ public abstract partial class FusionTestBase : IDisposable
         }
     }
 
-    protected class Gateway(
+    private protected class Gateway(
         TestServer testServer,
         List<SourceSchemaText> sourceSchemas,
         ConcurrentDictionary<string, ConcurrentDictionary<int, SourceSchemaInteraction>> interactions) : IDisposable

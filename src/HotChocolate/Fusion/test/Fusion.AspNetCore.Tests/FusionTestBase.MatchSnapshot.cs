@@ -21,7 +21,7 @@ namespace HotChocolate.Fusion;
 
 public abstract partial class FusionTestBase
 {
-    protected Task MatchSnapshotAsync(
+    private protected Task MatchSnapshotAsync(
         Gateway gateway,
         OperationRequest request,
         GraphQLHttpResponse response,
@@ -37,7 +37,7 @@ public abstract partial class FusionTestBase
             rawRequest,
             stableStream);
 
-    protected Task AssertAndMatchSnapshotAsync(
+    private protected Task AssertAndMatchSnapshotAsync(
         Gateway gateway,
         OperationRequest request,
         GraphQLHttpResponse response,

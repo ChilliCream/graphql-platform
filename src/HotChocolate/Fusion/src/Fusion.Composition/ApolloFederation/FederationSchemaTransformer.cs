@@ -14,7 +14,7 @@ namespace HotChocolate.Fusion.ApolloFederation;
 /// Transforms an Apollo Federation v2 subgraph SDL into a Composite Schema Spec
 /// source schema SDL suitable for the HotChocolate Fusion composition pipeline.
 /// </summary>
-public static class FederationSchemaTransformer
+internal static class FederationSchemaTransformer
 {
     /// <summary>
     /// Determines whether the given schema is an Apollo Federation v2 subgraph
