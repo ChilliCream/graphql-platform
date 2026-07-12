@@ -1,5 +1,5 @@
-import Link from "next/link";
-
+import { CardGrid } from "@/src/components/CardGrid";
+import { LinkCard } from "@/src/components/LinkCard";
 import { PageHero } from "@/src/components/PageHero";
 import { Section } from "@/src/components/Section";
 import { pageMetadata } from "@/src/helpers/pageMetadata";
@@ -57,23 +57,18 @@ export default function ResourcesPage() {
         teaser="Everything you need to know about ChilliCream — contact us, legal terms, and more."
       />
       <Section title="Resources">
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <CardGrid cols={3} step="progressive">
           {COMPANY_LINKS.map((link) => (
-            <Link
+            <LinkCard
               key={link.href}
+              variant="plain"
               href={link.href}
-              {...(link.external
-                ? { target: "_blank", rel: "noopener noreferrer" }
-                : {})}
-              className="group border-cc-card-border bg-cc-card-bg hover:border-cc-accent flex flex-col rounded-xl border p-6 no-underline backdrop-blur-sm transition-colors"
-            >
-              <h2 className="text-cc-heading text-lg font-semibold">
-                {link.title}
-              </h2>
-              <p className="text-cc-ink-dim mt-2 text-sm">{link.description}</p>
-            </Link>
+              title={link.title}
+              description={link.description}
+              external={link.external}
+            />
           ))}
-        </div>
+        </CardGrid>
       </Section>
     </>
   );

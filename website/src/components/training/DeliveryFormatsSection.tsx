@@ -1,3 +1,4 @@
+import { CardGrid } from "@/src/components/CardGrid";
 import { IconFeatureCard } from "@/src/components/IconFeatureCard";
 import { SectionHeading } from "@/src/components/SectionHeading";
 import { HybridIcon } from "@/src/icons/HybridIcon";
@@ -47,7 +48,7 @@ export function DeliveryFormatsSection() {
           description="We have run training in all three formats. Pick the one that fits your calendar and your office, not the other way around."
         />
       </div>
-      <div className="grid gap-4 md:grid-cols-3">
+      <CardGrid cols={3} gap={4}>
         {FORMATS.map((format) => (
           <IconFeatureCard
             key={format.name}
@@ -59,7 +60,7 @@ export function DeliveryFormatsSection() {
             footnote={format.bestFor}
           />
         ))}
-      </div>
+      </CardGrid>
     </section>
   );
 }

@@ -2,6 +2,7 @@ import type { CSSProperties, ReactNode } from "react";
 import { motion, useMotionValue, type MotionValue } from "motion/react";
 import { useElementSize } from "../../lib/useElementSize";
 import { token } from "../../lib/tokens";
+import { ChartCanvas } from "../ChartCanvas";
 
 export interface StageCamera {
   x: MotionValue<number>;
@@ -50,11 +51,11 @@ export function Stage({
         };
 
   return (
-    <div
+    <ChartCanvas
       ref={ref}
+      sizing="none"
       className={className}
-      role="img"
-      aria-label={ariaLabel}
+      label={ariaLabel}
       style={{
         ...fillStyle,
         overflow: "hidden",
@@ -102,6 +103,6 @@ export function Stage({
           {overlay}
         </div>
       </div>
-    </div>
+    </ChartCanvas>
   );
 }

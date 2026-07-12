@@ -1,5 +1,5 @@
-import Link from "next/link";
-
+import { CardGrid } from "@/src/components/CardGrid";
+import { LinkCard } from "@/src/components/LinkCard";
 import { PageHero } from "@/src/components/PageHero";
 import { Section } from "@/src/components/Section";
 import { pageMetadata } from "@/src/helpers/pageMetadata";
@@ -37,25 +37,17 @@ export default function ServicesPage() {
         teaser="From a one-off conversation to embedded experts: choose the right level of help for your project."
       />
       <Section title="How We Can Help">
-        <div className="grid gap-6 md:grid-cols-3">
+        <CardGrid cols={3}>
           {SERVICE_SECTIONS.map((section) => (
-            <Link
+            <LinkCard
               key={section.href}
+              variant="trailing"
               href={section.href}
-              className="group border-cc-card-border bg-cc-card-bg hover:border-cc-accent flex flex-col rounded-xl border p-8 no-underline backdrop-blur-sm transition-colors"
-            >
-              <h2 className="text-cc-heading text-xl font-semibold">
-                {section.title}
-              </h2>
-              <p className="text-cc-ink-dim mt-3 text-sm">
-                {section.description}
-              </p>
-              <span className="text-cc-accent mt-6 text-sm font-medium">
-                Learn more →
-              </span>
-            </Link>
+              title={section.title}
+              description={section.description}
+            />
           ))}
-        </div>
+        </CardGrid>
       </Section>
     </>
   );

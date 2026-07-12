@@ -4,6 +4,7 @@ import { clamp, linScale } from "../lib/scale";
 import { ease } from "../lib/motion";
 import { token } from "../lib/tokens";
 import { useChartClock } from "../lib/useInViewLoop";
+import { ChartCanvas } from "./ChartCanvas";
 
 export interface BarSeriesProps {
   values: number[];
@@ -56,13 +57,7 @@ export function BarSeries({
     ariaLabel ?? `Bar series of ${n} values, peak ${Math.round(peak)}`;
 
   return (
-    <div
-      ref={ref}
-      className={className}
-      style={{ position: "relative", width: "100%", height: "100%", ...style }}
-      role="img"
-      aria-label={label}
-    >
+    <ChartCanvas ref={ref} className={className} style={style} label={label}>
       <svg
         viewBox={`0 0 ${width} ${height}`}
         preserveAspectRatio="none"
@@ -91,7 +86,7 @@ export function BarSeries({
           );
         })}
       </svg>
-    </div>
+    </ChartCanvas>
   );
 }
 

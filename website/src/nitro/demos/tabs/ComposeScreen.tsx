@@ -10,6 +10,7 @@ import { AppFrame } from "../../primitives/reel/AppFrame";
 import { Cursor } from "../../primitives/reel/Cursor";
 import { CodeBlock } from "../../primitives/CodeBlock";
 import { TABREEL_CANVAS } from "../../primitives/reel/TabReel";
+import { UnderlineTab } from "../../primitives/UnderlineTab";
 import { token } from "../../lib/tokens";
 import { ease } from "../../lib/motion";
 import { timeline } from "../../lib/timeline";
@@ -241,19 +242,12 @@ export function ComposeScreen({ progress }: ComposeScreenProps) {
                   fontSize: 12,
                 }}
               >
-                <span style={{ position: "relative", color: token.textStrong }}>
-                  GraphQL Variables
-                  <span
-                    style={{
-                      position: "absolute",
-                      left: 0,
-                      right: 0,
-                      bottom: -8,
-                      height: 2,
-                      background: ORANGE,
-                    }}
-                  />
-                </span>
+                <UnderlineTab
+                  label="GraphQL Variables"
+                  active
+                  fontSize={12}
+                  underlineOffset={-8}
+                />
                 <span style={{ color: token.textSecondary }}>HTTP Headers</span>
               </div>
               <div style={{ height: 76, overflow: "hidden" }}>
@@ -1127,29 +1121,13 @@ function ColumnHeader({
       }}
     >
       {title && (
-        <span
-          style={{
-            position: "relative",
-            fontSize: 14,
-            fontWeight: 600,
-            color: token.textStrong,
-            display: "flex",
-            alignItems: "center",
-            height: "100%",
-          }}
-        >
-          {title}
-          <span
-            style={{
-              position: "absolute",
-              left: 0,
-              right: 0,
-              bottom: 0,
-              height: 2,
-              background: ORANGE,
-            }}
-          />
-        </span>
+        <UnderlineTab
+          label={title}
+          active
+          fontSize={14}
+          fontWeight={600}
+          height="100%"
+        />
       )}
       <div
         style={{

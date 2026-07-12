@@ -1,7 +1,5 @@
 import { notFound } from "next/navigation";
-import { Pagination } from "@/src/design-system/Pagination";
-import { BlogTeaserGrid } from "@/src/components/BlogTeaserGrid";
-import { Typography } from "@/src/design-system/Typography";
+import { BlogIndexShell } from "@/src/components/BlogIndexShell";
 import {
   listTags,
   paginate,
@@ -50,18 +48,15 @@ export default async function TagPageN({ params }: PageProps) {
   }
 
   return (
-    <div className="px-5 py-8 sm:px-12">
-      <div className="mx-auto flex max-w-6xl flex-col gap-6">
-        <Typography variant="h1">#{tag}</Typography>
-        <BlogTeaserGrid posts={slice.posts} />
-        <Pagination
-          currentPage={slice.currentPage}
-          totalPages={slice.totalPages}
-          hrefForPage={(p) =>
-            p === 1 ? `/blog/tags/${tag}` : `/blog/tags/${tag}/${p}`
-          }
-        />
-      </div>
-    </div>
+    <BlogIndexShell
+      title={`#${tag}`}
+      posts={slice.posts}
+      pagination={{
+        currentPage: slice.currentPage,
+        totalPages: slice.totalPages,
+        hrefForPage: (p) =>
+          p === 1 ? `/blog/tags/${tag}` : `/blog/tags/${tag}/${p}`,
+      }}
+    />
   );
 }

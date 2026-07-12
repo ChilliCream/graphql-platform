@@ -5,6 +5,7 @@ import { ease } from "../lib/motion";
 import { token, IMPACT_STOPS } from "../lib/tokens";
 import { useChartClock } from "../lib/useInViewLoop";
 import type { Client } from "../lib/data";
+import { ChartCanvas } from "./ChartCanvas";
 
 export interface BarItem {
   label: string;
@@ -67,15 +68,11 @@ export function HBarSeries({
       .join(", ")}`;
 
   return (
-    <div
+    <ChartCanvas
       ref={ref}
       className={className}
-      role="img"
-      aria-label={label}
+      label={label}
       style={{
-        position: "relative",
-        width: "100%",
-        height: "100%",
         display: "flex",
         flexDirection: "column",
         justifyContent: "center",
@@ -99,7 +96,7 @@ export function HBarSeries({
           />
         );
       })}
-    </div>
+    </ChartCanvas>
   );
 }
 

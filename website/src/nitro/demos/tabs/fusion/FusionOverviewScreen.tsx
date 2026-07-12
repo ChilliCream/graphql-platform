@@ -4,6 +4,7 @@ import { AppFrame } from "../../../primitives/reel/AppFrame";
 import { Cursor } from "../../../primitives/reel/Cursor";
 import { GatewayChrome } from "../../../primitives/reel/GatewayChrome";
 import { TABREEL_CANVAS } from "../../../primitives/reel/TabReel";
+import { PanelTile } from "../../../primitives/PanelTile";
 import { token } from "../../../lib/tokens";
 import { ease } from "../../../lib/motion";
 import { timeline } from "../../../lib/timeline";
@@ -260,69 +261,6 @@ export function FusionOverviewScreen({
   );
 }
 
-function Tile({
-  title,
-  count,
-  children,
-  flex,
-}: {
-  title: string;
-  count?: string;
-  children: React.ReactNode;
-  flex: string;
-}) {
-  return (
-    <div
-      style={{
-        flex,
-        minWidth: 0,
-        display: "flex",
-        flexDirection: "column",
-        background: token.card,
-        border: `1px solid ${token.borderStrong}`,
-        borderRadius: 8,
-        overflow: "hidden",
-      }}
-    >
-      <div
-        style={{
-          height: TILE_HEAD,
-          flex: "0 0 auto",
-          display: "flex",
-          alignItems: "center",
-          gap: 8,
-          padding: "0 14px",
-          borderBottom: `1px solid ${token.border}`,
-        }}
-      >
-        <span
-          style={{ fontSize: 13.5, fontWeight: 600, color: token.textStrong }}
-        >
-          {title}
-        </span>
-        {count && (
-          <span
-            style={{
-              fontSize: 11.5,
-              fontWeight: 600,
-              color: token.textSecondary,
-              background: token.surface,
-              border: `1px solid ${token.border}`,
-              borderRadius: 10,
-              padding: "1px 8px",
-            }}
-          >
-            {count}
-          </span>
-        )}
-      </div>
-      <div style={{ flex: 1, minHeight: 0, overflow: "hidden" }}>
-        {children}
-      </div>
-    </div>
-  );
-}
-
 function SubgraphIcon({ size = 16 }: { size?: number }) {
   return <IconApiGateway size={size} color={token.pink} />;
 }
@@ -342,7 +280,7 @@ function TopologyTile() {
   }));
 
   return (
-    <Tile title="Topology" flex={`0 0 ${LEFT_W}px`}>
+    <PanelTile title="Topology" flex={`0 0 ${LEFT_W}px`} borderStrong>
       <div
         style={{
           position: "relative",
@@ -472,7 +410,7 @@ function TopologyTile() {
           </NodeBox>
         ))}
       </div>
-    </Tile>
+    </PanelTile>
   );
 }
 
@@ -529,7 +467,7 @@ function NodeBox({
 
 function DetailsTile() {
   return (
-    <Tile title="Details" flex="1">
+    <PanelTile title="Details" flex="1" borderStrong>
       <div
         style={{
           display: "flex",
@@ -642,7 +580,7 @@ function DetailsTile() {
           ))}
         </div>
       </div>
-    </Tile>
+    </PanelTile>
   );
 }
 
@@ -707,11 +645,16 @@ function HealthDot() {
 
 function SubgraphsTile() {
   return (
-    <Tile title="Subgraphs" count="4" flex={`0 0 ${LEFT_W}px`}>
+    <PanelTile
+      title="Subgraphs"
+      count="4"
+      flex={`0 0 ${LEFT_W}px`}
+      borderStrong
+    >
       {SUBGRAPHS.map((s, i) => (
         <SubgraphRow key={s.name} s={s} i={i} />
       ))}
-    </Tile>
+    </PanelTile>
   );
 }
 
@@ -799,7 +742,7 @@ function SubgraphRow({ s, i }: { s: Subgraph; i: number }) {
 
 function DeploymentsTile({ progress }: { progress: MotionValue<number> }) {
   return (
-    <Tile title="Deployments" flex="1">
+    <PanelTile title="Deployments" flex="1" borderStrong>
       {DEPLOYMENTS.map((d, i) => (
         <DeploymentRow
           key={`${d.tag}-${d.target}`}
@@ -808,7 +751,7 @@ function DeploymentsTile({ progress }: { progress: MotionValue<number> }) {
           progress={progress}
         />
       ))}
-    </Tile>
+    </PanelTile>
   );
 }
 
