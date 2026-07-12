@@ -24,6 +24,24 @@ internal static class Messages
 
     public static string SchemaSettingsFileDoesNotExist(string path) => $"Schema settings file '{path}' does not exist.";
 
+    public static string SourceSchemaSettingsNameInvalid(string path)
+        => $"Source schema settings file '{path}' must specify a non-empty string 'name'.";
+
+    public static string SourceSchemaUrlInvalid()
+        => $"The value for '{OptionalSourceSchemaUrlListOption.OptionName}' must be an absolute HTTP URL without user information or a fragment.";
+
+    public static string SourceSchemaUrlPairRequired()
+        => $"The option '{OptionalSourceSchemaUrlListOption.OptionName}' requires a URL followed by a source schema settings file.";
+
+    public static string SourceSchemaTransportFailed(string sourceSchemaName)
+        => $"Failed to connect to source schema '{sourceSchemaName}' while downloading its schema.";
+
+    public static string DuplicateSourceSchemaName(string sourceSchemaName)
+        => $"Source schema '{sourceSchemaName}' was specified more than once.";
+
+    public static string WatchedSourceSchemaNameChanged()
+        => "A source schema settings 'name' cannot change during watch mode.";
+
     public static string SchemaExtensionsFileCannotBeUsedAsSchemaFile(string path)
         => $"Schema extensions file '{path}' cannot be used as a source schema file. Provide the base schema file instead.";
 

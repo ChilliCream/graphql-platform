@@ -54,17 +54,17 @@ public sealed class GraphQLResourceBuilderExtensionsTests
     [InlineData(
         null,
         null,
-        "GetSchemaDocument",
+        "GraphQL",
         "/graphql/schema.graphql")]
     [InlineData(
         "1.0",
         "Version1",
-        "PostApolloFederationService",
+        "ApolloFederation",
         "/graphql")]
     [InlineData(
         "2.0",
         "Version2",
-        "PostApolloFederationService",
+        "ApolloFederation",
         "/graphql")]
     public void ReadEndpointConfiguration_Should_SelectProtocolAndImplicitPath_When_SettingsAreValid(
         string? version,

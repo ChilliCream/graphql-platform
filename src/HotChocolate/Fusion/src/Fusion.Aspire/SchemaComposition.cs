@@ -494,6 +494,14 @@ internal sealed class SchemaComposition(
                     i + 1,
                     maxRetries);
             }
+            catch (IOException)
+            {
+                logger.LogDebug(
+                    "Schema service {SourceSchemaName} was unavailable (attempt {Attempt}/{MaxRetries})",
+                    sourceSchemaName,
+                    i + 1,
+                    maxRetries);
+            }
 
             if (i + 1 < maxRetries)
             {

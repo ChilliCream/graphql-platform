@@ -188,9 +188,11 @@ internal static class CompositionHelper
                 cancellationToken);
         }
 
+        using var gatewaySettings = JsonDocument.Parse(bufferWriter.WrittenMemory);
+
         await archive.SetGatewayConfigurationAsync(
             result.Value + Environment.NewLine,
-            JsonDocument.Parse(bufferWriter.WrittenMemory),
+            gatewaySettings,
             WellKnownVersions.LatestGatewayFormatVersion,
             cancellationToken);
 
@@ -215,7 +217,7 @@ internal static class CompositionHelper
         FusionArchive archive,
         CancellationToken cancellationToken)
     {
-        var compositionSettings = await archive.GetCompositionSettingsAsync(cancellationToken);
+        using var compositionSettings = await archive.GetCompositionSettingsAsync(cancellationToken);
 
         return compositionSettings?.Deserialize(SettingsJsonSerializerContext.Default.CompositionSettings)
             ?? new CompositionSettings();
@@ -226,7 +228,7 @@ internal static class CompositionHelper
         CompositionSettings settings,
         CancellationToken cancellationToken)
     {
-        var settingsJson = JsonSerializer.SerializeToDocument(
+        using var settingsJson = JsonSerializer.SerializeToDocument(
             settings,
             SettingsJsonSerializerContext.Default.CompositionSettings);
 

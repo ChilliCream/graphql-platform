@@ -87,10 +87,10 @@ Composition resolves Apollo Federation constructs before clients see the schema.
 
 Apollo Federation subgraphs can define the same shareable field while declaring different members for its interface or union result type. Fusion offers two policies for routing selections under inline fragments and other type conditions:
 
-| Composition API value | CLI value              | Execution-schema value | Behavior                                                                                                                                                                  |
-| --------------------- | ---------------------- | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `SourceLocal`         | `source-local`         | `SOURCE_LOCAL`         | Routes type-conditioned selections according to the source schema that resolves the shareable field. This is the default, including for archives that predate the policy. |
-| `CommonRuntimeTypes`  | `common-runtime-types` | `COMMON_RUNTIME_TYPES` | Routes only runtime types shared by viable Apollo providers: those in current scope, directly reachable through one entity lookup, or non-external at an operation root.  |
+| C# setting value     | CLI value              | Execution-schema value | Behavior                                                                                                                                                                  |
+| -------------------- | ---------------------- | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `SourceLocal`        | `source-local`         | `SOURCE_LOCAL`         | Routes type-conditioned selections according to the source schema that resolves the shareable field. This is the default, including for archives that predate the policy. |
+| `CommonRuntimeTypes` | `common-runtime-types` | `COMMON_RUNTIME_TYPES` | Routes only runtime types shared by viable Apollo providers: those in current scope, directly reachable through one entity lookup, or non-external at an operation root.  |
 
 `CommonRuntimeTypes` does not filter objects returned by a source or change `__typename`. A source-specific object can still appear in the response, while fields requested only through a type condition that was not routed can be `null`.
 
@@ -104,18 +104,20 @@ nitro fusion compose \
   --archive gateway.far
 ```
 
-For programmatic composition, set the compatibility option:
+After a successful composition, Nitro prints the archive path:
 
-```csharp
-var options = new SchemaComposerOptions();
-options.ApolloFederationCompatibility.ShareableFieldRuntimeTypeRouting =
-    ShareableFieldRuntimeTypeRouting.CommonRuntimeTypes;
-
-var log = new CompositionLog();
-var result = new SchemaComposer(sourceSchemas, options, log).Compose();
+```text
+✅ Composite schema written to '/absolute/path/to/gateway.far'.
 ```
 
-With Aspire, set `GraphQLCompositionSettings.ShareableFieldRuntimeTypeRouting` to `ShareableFieldRuntimeTypeRouting.CommonRuntimeTypes`. See [Composition Settings](../aspire-integration.md#composition-settings). To update an existing archive, use [`nitro fusion settings set`](../cli.md#nitro-fusion-settings-set).
+To change the policy in an existing archive, run:
+
+```bash
+nitro fusion settings set shareable-field-runtime-type-routing common-runtime-types \
+  --archive gateway.far
+```
+
+Nitro reports `Composed new configuration.` after it recomposes the archive. With Aspire, set `GraphQLCompositionSettings.ShareableFieldRuntimeTypeRouting` to `ShareableFieldRuntimeTypeRouting.CommonRuntimeTypes`. See [Composition Settings](../aspire-integration.md#composition-settings).
 
 Composition records the policy in the execution schema. For example, `common-runtime-types` produces:
 
@@ -160,17 +162,30 @@ See [Interface Objects](../interface-objects.md) for field projection, opaque id
 
 By default, composition rejects an Apollo interface object whose key uses `resolvable: false` when Fusion cannot build the required route. This strict default catches projected fields that the gateway could not fetch.
 
-For compatibility with an existing Apollo graph, you can allow these stand-ins during programmatic composition:
+For compatibility with an existing Apollo graph, opt in while composing the archive:
 
-```csharp
-var options = new SchemaComposerOptions();
-options.ApolloFederationCompatibility.AllowNonResolvableInterfaceObjects = true;
-
-var log = new CompositionLog();
-var result = new SchemaComposer(sourceSchemas, options, log).Compose();
+```bash
+nitro fusion compose \
+  --source-schema-file ./products/schema.graphqls \
+  --source-schema-file ./reviews/schema.graphqls \
+  --allow-non-resolvable-interface-objects \
+  --archive gateway.far
 ```
 
-Here, `sourceSchemas` is the `IEnumerable<SourceSchemaText>` used by your existing programmatic composition flow. Inspect `result` and `log` as you do for other composition errors.
+After a successful composition, Nitro prints:
+
+```text
+✅ Composite schema written to '/absolute/path/to/gateway.far'.
+```
+
+To enable the option in an existing archive, run:
+
+```bash
+nitro fusion settings set allow-non-resolvable-interface-objects true \
+  --archive gateway.far
+```
+
+Nitro reports `Composed new configuration.` after it recomposes the archive.
 
 With Aspire composition, set the equivalent property:
 

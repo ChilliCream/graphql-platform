@@ -211,6 +211,324 @@ public sealed class FusionRemoteComposeCommandTests(NitroCommandFixture fixture)
     }
 
     [Fact]
+    public async Task ComposeWatch_Should_RefetchRemoteSchema_When_SettingsChangeWithoutRenaming()
+    {
+        const string initialSourceSchema = "type Query { initial: String }";
+        const string updatedSourceSchema = "type Query { updated: String }";
+        const string initialSettings =
+            """{ "name": "Remote", "transports": { "http": { "url": "http://runtime/initial" } } }""";
+        const string updatedSettings =
+            """{ "name": "Remote", "transports": { "http": { "url": "http://runtime/updated" } } }""";
+        var directory = CreateTempDirectory();
+        var settingsFile = Path.Combine(directory, "schema-settings.json");
+        var archiveFile = CreateTempFile();
+        await File.WriteAllTextAsync(
+            settingsFile,
+            initialSettings,
+            TestContext.Current.CancellationToken);
+        SetupFile(settingsFile, initialSettings);
+        var requestCount = 0;
+        using var client = CreateClient(_ =>
+        {
+            var currentRequest = Interlocked.Increment(ref requestCount);
+            return Response(
+                HttpStatusCode.OK,
+                currentRequest == 1 ? initialSourceSchema : updatedSourceSchema);
+        });
+        SetupHttpClient(client);
+        using var cancellationTokenSource = CreateWatchCancellationTokenSource();
+        var watchCommand = StartInteractiveCommand(
+            "fusion",
+            "compose",
+            "--source-schema-url",
+            "https://composition.example/graphql/schema.graphql",
+            settingsFile,
+            "--archive",
+            archiveFile,
+            "--watch");
+        var watchTask = watchCommand.RunToCompletionAsync(cancellationTokenSource.Token);
+        CommandResult? result = null;
+
+        try
+        {
+            await WaitForSourceSchemaAsync(
+                archiveFile,
+                "Remote",
+                initialSourceSchema,
+                cancellationTokenSource.Token);
+            Assert.Equal(1, Volatile.Read(ref requestCount));
+            SetupFile(settingsFile, updatedSettings);
+
+            await TriggerFileChangeUntilAsync(
+                settingsFile,
+                updatedSettings,
+                () => Volatile.Read(ref requestCount) >= 2,
+                cancellationTokenSource.Token);
+            await WaitForSourceSchemaAsync(
+                archiveFile,
+                "Remote",
+                updatedSourceSchema,
+                cancellationTokenSource.Token);
+            await Task.Delay(TimeSpan.FromSeconds(1), cancellationTokenSource.Token);
+        }
+        finally
+        {
+            await cancellationTokenSource.CancelAsync();
+            result = await watchTask;
+        }
+
+        Assert.Equal(0, result.ExitCode);
+        Assert.True(Volatile.Read(ref requestCount) >= 2);
+        using var archive = FusionArchive.Open(archiveFile);
+        using var configuration = await archive.TryGetSourceSchemaConfigurationAsync(
+            "Remote",
+            TestContext.Current.CancellationToken);
+        Assert.NotNull(configuration);
+        Assert.Equal(
+            "http://runtime/updated",
+            configuration.Settings.RootElement
+                .GetProperty("transports")
+                .GetProperty("http")
+                .GetProperty("url")
+                .GetString());
+    }
+
+    [Fact]
+    public async Task ComposeWatch_Should_RefetchRemoteSchemas_When_LocalSchemaChanges()
+    {
+        const string initialLocalSchema = "type Query { local: String }";
+        const string updatedLocalSchema = "type Query { local: String updated: String }";
+        const string localSettings =
+            """{ "name": "Local", "transports": { "http": { "url": "http://local/graphql" } } }""";
+        const string remoteSettings =
+            """{ "name": "Remote", "transports": { "http": { "url": "http://remote/graphql" } } }""";
+        var directory = CreateTempDirectory();
+        var localSchemaFile = Path.Combine(directory, "local.graphqls");
+        var localSettingsFile = Path.Combine(directory, "local-settings.json");
+        var remoteSettingsFile = Path.Combine(directory, "remote-settings.json");
+        var archiveFile = CreateTempFile();
+        await File.WriteAllTextAsync(
+            localSchemaFile,
+            initialLocalSchema,
+            TestContext.Current.CancellationToken);
+        await File.WriteAllTextAsync(
+            localSettingsFile,
+            localSettings,
+            TestContext.Current.CancellationToken);
+        await File.WriteAllTextAsync(
+            remoteSettingsFile,
+            remoteSettings,
+            TestContext.Current.CancellationToken);
+        SetupFile(localSchemaFile, initialLocalSchema);
+        SetupFile(localSettingsFile, localSettings);
+        SetupFile(remoteSettingsFile, remoteSettings);
+        var requestCount = 0;
+        using var client = CreateClient(_ =>
+        {
+            Interlocked.Increment(ref requestCount);
+            return Response(HttpStatusCode.OK, "type Query { remote: String }");
+        });
+        SetupHttpClient(client);
+        using var cancellationTokenSource = CreateWatchCancellationTokenSource();
+        var watchCommand = StartInteractiveCommand(
+            "fusion",
+            "compose",
+            "--source-schema-file",
+            localSchemaFile,
+            "--source-schema-url",
+            "https://composition.example/graphql/schema.graphql",
+            remoteSettingsFile,
+            "--archive",
+            archiveFile,
+            "--watch");
+        var watchTask = watchCommand.RunToCompletionAsync(cancellationTokenSource.Token);
+        CommandResult? result = null;
+
+        try
+        {
+            await WaitForSourceSchemaAsync(
+                archiveFile,
+                "Local",
+                initialLocalSchema,
+                cancellationTokenSource.Token);
+            Assert.Equal(1, Volatile.Read(ref requestCount));
+            SetupFile(localSchemaFile, updatedLocalSchema);
+
+            await TriggerFileChangeUntilAsync(
+                localSchemaFile,
+                updatedLocalSchema,
+                () => Volatile.Read(ref requestCount) >= 2,
+                cancellationTokenSource.Token);
+            await WaitForSourceSchemaAsync(
+                archiveFile,
+                "Local",
+                updatedLocalSchema,
+                cancellationTokenSource.Token);
+            await Task.Delay(TimeSpan.FromSeconds(1), cancellationTokenSource.Token);
+        }
+        finally
+        {
+            await cancellationTokenSource.CancelAsync();
+            result = await watchTask;
+        }
+
+        Assert.Equal(0, result.ExitCode);
+        Assert.True(Volatile.Read(ref requestCount) >= 2);
+    }
+
+    [Fact]
+    public async Task ComposeWatch_Should_RejectRemoteNameChangeBeforeFetching_AndPreserveArchive()
+    {
+        const string initialSettings =
+            """{ "name": "Remote", "transports": { "http": { "url": "http://runtime/graphql" } } }""";
+        const string renamedSettings =
+            """{ "name": "Renamed", "transports": { "http": { "url": "http://runtime/graphql" } } }""";
+        const string sourceSchema = "type Query { remote: String }";
+        var directory = CreateTempDirectory();
+        var settingsFile = Path.Combine(directory, "schema-settings.json");
+        var archiveFile = CreateTempFile();
+        await File.WriteAllTextAsync(
+            settingsFile,
+            initialSettings,
+            TestContext.Current.CancellationToken);
+        SetupFile(settingsFile, initialSettings);
+        var requestCount = 0;
+        using var client = CreateClient(_ =>
+        {
+            Interlocked.Increment(ref requestCount);
+            return Response(HttpStatusCode.OK, sourceSchema);
+        });
+        SetupHttpClient(client);
+        using var cancellationTokenSource = CreateWatchCancellationTokenSource();
+        var watchCommand = StartInteractiveCommand(
+            "fusion",
+            "compose",
+            "--source-schema-url",
+            "https://composition.example/graphql/schema.graphql",
+            settingsFile,
+            "--archive",
+            archiveFile,
+            "--watch");
+        var watchTask = watchCommand.RunToCompletionAsync(cancellationTokenSource.Token);
+        CommandResult? result = null;
+        byte[]? before = null;
+
+        try
+        {
+            await WaitForSourceSchemaAsync(
+                archiveFile,
+                "Remote",
+                sourceSchema,
+                cancellationTokenSource.Token);
+            Assert.Equal(1, Volatile.Read(ref requestCount));
+            before = await File.ReadAllBytesAsync(
+                archiveFile,
+                cancellationTokenSource.Token);
+            SetupFile(settingsFile, renamedSettings);
+
+            await TriggerFileChangesAsync(
+                settingsFile,
+                renamedSettings,
+                cancellationTokenSource.Token);
+        }
+        finally
+        {
+            await cancellationTokenSource.CancelAsync();
+            result = await watchTask;
+        }
+
+        Assert.Equal(0, result.ExitCode);
+        Assert.Equal(1, Volatile.Read(ref requestCount));
+        Assert.Contains(
+            "A source schema settings 'name' cannot change during watch mode.",
+            result.StdErr,
+            StringComparison.Ordinal);
+        Assert.Equal(
+            before,
+            await File.ReadAllBytesAsync(
+                archiveFile,
+                TestContext.Current.CancellationToken));
+    }
+
+    [Fact]
+    public async Task ComposeWatch_Should_PreserveArchive_When_RemoteRefetchFails()
+    {
+        const string initialSettings =
+            """{ "name": "Remote", "transports": { "http": { "url": "http://runtime/initial" } } }""";
+        const string updatedSettings =
+            """{ "name": "Remote", "transports": { "http": { "url": "http://runtime/updated" } } }""";
+        const string sourceSchema = "type Query { remote: String }";
+        var directory = CreateTempDirectory();
+        var settingsFile = Path.Combine(directory, "schema-settings.json");
+        var archiveFile = CreateTempFile();
+        await File.WriteAllTextAsync(
+            settingsFile,
+            initialSettings,
+            TestContext.Current.CancellationToken);
+        SetupFile(settingsFile, initialSettings);
+        var requestCount = 0;
+        using var client = CreateClient(_ =>
+        {
+            var currentRequest = Interlocked.Increment(ref requestCount);
+            return currentRequest == 1
+                ? Response(HttpStatusCode.OK, sourceSchema)
+                : Response(HttpStatusCode.ServiceUnavailable, "unavailable");
+        });
+        SetupHttpClient(client);
+        using var cancellationTokenSource = CreateWatchCancellationTokenSource();
+        var watchCommand = StartInteractiveCommand(
+            "fusion",
+            "compose",
+            "--source-schema-url",
+            "https://composition.example/graphql/schema.graphql",
+            settingsFile,
+            "--archive",
+            archiveFile,
+            "--watch");
+        var watchTask = watchCommand.RunToCompletionAsync(cancellationTokenSource.Token);
+        CommandResult? result = null;
+        byte[]? before = null;
+
+        try
+        {
+            await WaitForSourceSchemaAsync(
+                archiveFile,
+                "Remote",
+                sourceSchema,
+                cancellationTokenSource.Token);
+            Assert.Equal(1, Volatile.Read(ref requestCount));
+            before = await File.ReadAllBytesAsync(
+                archiveFile,
+                cancellationTokenSource.Token);
+            SetupFile(settingsFile, updatedSettings);
+
+            await TriggerFileChangeUntilAsync(
+                settingsFile,
+                updatedSettings,
+                () => Volatile.Read(ref requestCount) >= 2,
+                cancellationTokenSource.Token);
+            await Task.Delay(TimeSpan.FromSeconds(1), cancellationTokenSource.Token);
+        }
+        finally
+        {
+            await cancellationTokenSource.CancelAsync();
+            result = await watchTask;
+        }
+
+        Assert.Equal(0, result.ExitCode);
+        Assert.True(Volatile.Read(ref requestCount) >= 2);
+        Assert.Contains(
+            "Source schema 'Remote' returned HTTP 503 (Service Unavailable) while downloading its schema.",
+            result.StdErr,
+            StringComparison.Ordinal);
+        Assert.Equal(
+            before,
+            await File.ReadAllBytesAsync(
+                archiveFile,
+                TestContext.Current.CancellationToken));
+    }
+
+    [Fact]
     public async Task Compose_Should_LeaveArchiveUnchanged_When_RemoteVersionIsUnsupported()
     {
         var archiveFile = CreateTempFile();
@@ -553,6 +871,103 @@ public sealed class FusionRemoteComposeCommandTests(NitroCommandFixture fixture)
         return path;
     }
 
+    private string CreateTempDirectory()
+    {
+        var path = CreateTempFile();
+        Directory.CreateDirectory(path);
+        return path;
+    }
+
+    private static CancellationTokenSource CreateWatchCancellationTokenSource()
+    {
+        var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(
+            TestContext.Current.CancellationToken);
+        cancellationTokenSource.CancelAfter(TimeSpan.FromSeconds(15));
+        return cancellationTokenSource;
+    }
+
+    private static async Task TriggerFileChangeUntilAsync(
+        string file,
+        string content,
+        Func<bool> condition,
+        CancellationToken cancellationToken)
+    {
+        var suffixLength = 1;
+
+        while (!condition())
+        {
+            await File.WriteAllTextAsync(
+                file,
+                content + new string(' ', suffixLength++),
+                cancellationToken);
+
+            for (var i = 0; i < 20 && !condition(); i++)
+            {
+                await Task.Delay(50, cancellationToken);
+            }
+        }
+    }
+
+    private static async Task TriggerFileChangesAsync(
+        string file,
+        string content,
+        CancellationToken cancellationToken)
+    {
+        for (var i = 1; i <= 3; i++)
+        {
+            await File.WriteAllTextAsync(
+                file,
+                content + new string(' ', i),
+                cancellationToken);
+            await Task.Delay(500, cancellationToken);
+        }
+    }
+
+    private static async Task WaitForSourceSchemaAsync(
+        string archiveFile,
+        string sourceSchemaName,
+        string expectedSourceSchema,
+        CancellationToken cancellationToken)
+    {
+        while (true)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            if (File.Exists(archiveFile))
+            {
+                try
+                {
+                    using var archive = FusionArchive.Open(archiveFile);
+                    using var configuration = await archive.TryGetSourceSchemaConfigurationAsync(
+                        sourceSchemaName,
+                        cancellationToken);
+
+                    if (configuration is not null)
+                    {
+                        await using var schemaStream = await configuration.OpenReadSchemaAsync(
+                            cancellationToken);
+                        using var reader = new StreamReader(schemaStream);
+
+                        if (await reader.ReadToEndAsync(cancellationToken) == expectedSourceSchema)
+                        {
+                            return;
+                        }
+                    }
+                }
+                catch (IOException)
+                {
+                    // The watch composition is still committing the archive.
+                }
+                catch (InvalidDataException)
+                {
+                    // The watch composition is still committing the archive.
+                }
+            }
+
+            await Task.Delay(50, cancellationToken);
+        }
+    }
+
     private static HttpClient CreateClient(
         Func<HttpRequestMessage, HttpResponseMessage> responseFactory)
         => CreateClient(request => Task.FromResult(responseFactory(request)));
@@ -579,7 +994,11 @@ public sealed class FusionRemoteComposeCommandTests(NitroCommandFixture fixture)
     {
         foreach (var path in _tempFiles)
         {
-            if (File.Exists(path))
+            if (Directory.Exists(path))
+            {
+                Directory.Delete(path, recursive: true);
+            }
+            else if (File.Exists(path))
             {
                 File.Delete(path);
             }

@@ -64,6 +64,9 @@ public sealed class CompositionHelperTests
 
         // assert
         Assert.Equal(["Reviews"], reviews.Keys);
+        Assert.Equal(
+            "Reviews",
+            reviewsSettings.RootElement.GetProperty("name").GetString());
 
         stream.Position = 0;
         using var readArchive = FusionArchive.Open(stream, leaveOpen: true);
