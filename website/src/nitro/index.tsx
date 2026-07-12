@@ -26,7 +26,6 @@ export function NitroReel({ className, tabsOverlay }: NitroReelProps) {
   return (
     <ThemeProvider
       theme="dark"
-      reducedMotion="never"
       className={className}
       style={tabsOverlay ? { background: "transparent" } : undefined}
     >
@@ -49,7 +48,7 @@ function StandaloneScreen({
 }: StandaloneScreenProps) {
   const { ref, progress } = useMasterClock({ durationMs });
   return (
-    <ThemeProvider theme="dark" reducedMotion="never" className={className}>
+    <ThemeProvider theme="dark" className={className}>
       <div
         ref={ref}
         style={{
