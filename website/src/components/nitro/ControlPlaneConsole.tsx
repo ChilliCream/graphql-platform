@@ -344,7 +344,7 @@ interface ControlPlaneConsoleProps {
 export function ControlPlaneConsole({ className }: ControlPlaneConsoleProps) {
   const reduceMotion = useReducedMotionPreference();
   const ref = useRef<HTMLDivElement | null>(null);
-  const inView = useInView(ref, { margin: "-10% 0px", once: true });
+  const inView = useInView(ref, { margin: "-10% 0px" });
 
   return (
     <div

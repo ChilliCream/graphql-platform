@@ -156,7 +156,6 @@ function NitroCanvas({ children, className, style }: NitroCanvasProps) {
   return (
     <NitroTheme
       theme="dark"
-      reducedMotion="never"
       className={className}
       style={
         {
@@ -174,6 +173,21 @@ function NitroCanvas({ children, className, style }: NitroCanvasProps) {
 
 interface FramedVisualProps {
   readonly children: ReactNode;
+}
+
+interface DeferredVisualProps {
+  readonly children: ReactNode;
+}
+
+function DeferredVisual({ children }: DeferredVisualProps) {
+  const ref = useRef<HTMLDivElement>(null);
+  const inView = useInView(ref, { margin: "100% 0px" });
+
+  return (
+    <div ref={ref} style={{ aspectRatio: "1504 / 940" }}>
+      {inView ? children : null}
+    </div>
+  );
 }
 
 function FramedVisual({ children }: FramedVisualProps) {
@@ -248,7 +262,9 @@ function Showcase({
           ].join(" ")}
           hiddenClassName="translate-y-8 opacity-0"
         >
-          <FramedVisual>{visual}</FramedVisual>
+          <FramedVisual>
+            <DeferredVisual>{visual}</DeferredVisual>
+          </FramedVisual>
         </RevealOnScroll>
       </div>
     </section>
@@ -352,6 +368,7 @@ interface HeroSparksProps {
 
 function HeroSparks({ reduced, className }: HeroSparksProps) {
   const ref = useRef<HTMLCanvasElement | null>(null);
+  const inView = useInView(ref, { amount: 0.01 });
 
   useEffect(() => {
     const canvas = ref.current;
@@ -359,7 +376,7 @@ function HeroSparks({ reduced, className }: HeroSparksProps) {
       return;
     }
     const ctx = canvas.getContext("2d");
-    if (!ctx) {
+    if (!ctx || !inView) {
       return;
     }
 
@@ -462,7 +479,7 @@ function HeroSparks({ reduced, className }: HeroSparksProps) {
       cancelAnimationFrame(raf);
       observer.disconnect();
     };
-  }, [reduced]);
+  }, [inView, reduced]);
 
   return (
     <canvas
@@ -909,7 +926,7 @@ const TRACE: Trace = {
 function useBentoProgress() {
   const ref = useRef<HTMLDivElement>(null);
   const reduced = useReducedMotion() ?? false;
-  const inView = useInView(ref, { amount: 0.25, once: true });
+  const inView = useInView(ref, { amount: 0.25 });
   const progress = useMotionValue(reduced ? 1 : 0);
 
   useEffect(() => {
@@ -924,7 +941,7 @@ function useBentoProgress() {
     return () => controls.stop();
   }, [reduced, inView, progress]);
 
-  return { ref, progress };
+  return { ref, progress, inView };
 }
 
 const ERROR_CURVE = [
@@ -934,9 +951,10 @@ const ERROR_CURVE = [
 
 interface ErrorRateSparkProps {
   readonly progress: MotionValue<number>;
+  readonly active: boolean;
 }
 
-function ErrorRateSpark({ progress }: ErrorRateSparkProps) {
+function ErrorRateSpark({ progress, active }: ErrorRateSparkProps) {
   const W = 240;
   const H = 64;
   const PAD = 6;
@@ -1034,13 +1052,13 @@ function ErrorRateSpark({ progress }: ErrorRateSparkProps) {
             border: `1px solid ${stroke}`,
           }}
           animate={
-            reduced
-              ? undefined
+            reduced || !active
+              ? { scale: 0.7, opacity: 0 }
               : { scale: [0.7, 1.6, 0.7], opacity: [0.6, 0, 0.6] }
           }
           transition={
-            reduced
-              ? undefined
+            reduced || !active
+              ? { duration: 0 }
               : { repeat: Infinity, duration: 1.8, ease: "easeInOut" }
           }
         />
@@ -1067,7 +1085,7 @@ function ErrorRateSpark({ progress }: ErrorRateSparkProps) {
 }
 
 function SignalsBento() {
-  const { ref, progress } = useBentoProgress();
+  const { ref, progress, inView } = useBentoProgress();
 
   return (
     <div ref={ref} className="grid grid-cols-1 gap-4 sm:grid-cols-6">
@@ -1157,7 +1175,7 @@ function SignalsBento() {
             </span>
           </div>
           <div className="mt-3 h-16">
-            <ErrorRateSpark progress={progress} />
+            <ErrorRateSpark progress={progress} active={inView} />
           </div>
         </div>
       </Card>
@@ -1546,13 +1564,8 @@ function PageAtmosphere() {
       className="pointer-events-none absolute inset-0 left-1/2 -z-10 w-screen -translate-x-1/2 overflow-hidden"
     >
       <RisingParticles
-        color="22,185,228"
-        count={16}
-        className="absolute inset-0"
-      />
-      <RisingParticles
-        color="240,120,106"
-        count={12}
+        colors={["22,185,228", "240,120,106"]}
+        count={28}
         className="absolute inset-0"
       />
       <div
