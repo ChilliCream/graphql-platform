@@ -49,6 +49,7 @@ public sealed class FusionRemoteComposeCommandTests(NitroCommandFixture fixture)
             "compose",
             "--source-schema-url",
             "https://composition.example/graphql/schema.graphql",
+            "--source-schema-settings-file",
             "remote/schema-settings.json",
             "--archive",
             archiveFile);
@@ -137,6 +138,7 @@ public sealed class FusionRemoteComposeCommandTests(NitroCommandFixture fixture)
             "compose",
             "--source-schema-url",
             "https://composition.example/graphql",
+            "--source-schema-settings-file",
             "products/schema-settings.json",
             "--archive",
             archiveFile);
@@ -167,7 +169,7 @@ public sealed class FusionRemoteComposeCommandTests(NitroCommandFixture fixture)
     }
 
     [Fact]
-    public async Task Compose_Should_MixLocalAndRepeatedRemoteSourceSchemas()
+    public async Task Compose_Should_PairRepeatedRemoteInputsByOccurrence_When_MixedWithLocalSchema()
     {
         var archiveFile = CreateTempFile();
         SetupFile("local/schema.graphqls", "type Query { local: String }");
@@ -195,9 +197,11 @@ public sealed class FusionRemoteComposeCommandTests(NitroCommandFixture fixture)
             "local/schema.graphqls",
             "--source-schema-url",
             "https://composition.example/a",
+            "--source-schema-settings-file",
             "a/schema-settings.json",
             "--source-schema-url",
             "https://composition.example/b",
+            "--source-schema-settings-file",
             "b/schema-settings.json",
             "--archive",
             archiveFile);
@@ -208,6 +212,28 @@ public sealed class FusionRemoteComposeCommandTests(NitroCommandFixture fixture)
             ["A", "B", "Local"],
             await archive.GetSourceSchemaNamesAsync(
                 TestContext.Current.CancellationToken));
+        (string Name, string Schema, string RuntimeUrl)[] expectedConfigurations =
+        [
+            ("A", "type Query { a: String }", "http://a/graphql"),
+            ("B", "type Query { b: String }", "http://b/graphql"),
+            ("Local", "type Query { local: String }", "http://local/graphql")
+        ];
+        (string Name, string Schema, string RuntimeUrl)[] actualConfigurations =
+        [
+            await ReadSourceSchemaConfigurationAsync(
+                archive,
+                "A",
+                TestContext.Current.CancellationToken),
+            await ReadSourceSchemaConfigurationAsync(
+                archive,
+                "B",
+                TestContext.Current.CancellationToken),
+            await ReadSourceSchemaConfigurationAsync(
+                archive,
+                "Local",
+                TestContext.Current.CancellationToken)
+        ];
+        Assert.Equal(expectedConfigurations, actualConfigurations);
     }
 
     [Fact]
@@ -242,6 +268,7 @@ public sealed class FusionRemoteComposeCommandTests(NitroCommandFixture fixture)
             "compose",
             "--source-schema-url",
             "https://composition.example/graphql/schema.graphql",
+            "--source-schema-settings-file",
             settingsFile,
             "--archive",
             archiveFile,
@@ -337,6 +364,7 @@ public sealed class FusionRemoteComposeCommandTests(NitroCommandFixture fixture)
             localSchemaFile,
             "--source-schema-url",
             "https://composition.example/graphql/schema.graphql",
+            "--source-schema-settings-file",
             remoteSettingsFile,
             "--archive",
             archiveFile,
@@ -405,6 +433,7 @@ public sealed class FusionRemoteComposeCommandTests(NitroCommandFixture fixture)
             "compose",
             "--source-schema-url",
             "https://composition.example/graphql/schema.graphql",
+            "--source-schema-settings-file",
             settingsFile,
             "--archive",
             archiveFile,
@@ -481,6 +510,7 @@ public sealed class FusionRemoteComposeCommandTests(NitroCommandFixture fixture)
             "compose",
             "--source-schema-url",
             "https://composition.example/graphql/schema.graphql",
+            "--source-schema-settings-file",
             settingsFile,
             "--archive",
             archiveFile,
@@ -566,6 +596,7 @@ public sealed class FusionRemoteComposeCommandTests(NitroCommandFixture fixture)
             "compose",
             "--source-schema-url",
             "https://composition.example/graphql",
+            "--source-schema-settings-file",
             "remote/schema-settings.json",
             "--archive",
             archiveFile);
@@ -595,6 +626,7 @@ public sealed class FusionRemoteComposeCommandTests(NitroCommandFixture fixture)
             "compose",
             "--source-schema-url",
             "https://composition.example/graphql/schema.graphql",
+            "--source-schema-settings-file",
             "remote/schema-settings.json",
             "--archive",
             archiveFile);
@@ -626,6 +658,7 @@ public sealed class FusionRemoteComposeCommandTests(NitroCommandFixture fixture)
             "compose",
             "--source-schema-url",
             "https://composition.example/graphql/schema.graphql",
+            "--source-schema-settings-file",
             "remote/schema-settings.json",
             "--archive",
             archiveFile);
@@ -658,6 +691,7 @@ public sealed class FusionRemoteComposeCommandTests(NitroCommandFixture fixture)
             "compose",
             "--source-schema-url",
             "https://composition.example/graphql/schema.graphql?token=secret",
+            "--source-schema-settings-file",
             "remote/schema-settings.json",
             "--archive",
             archiveFile);
@@ -687,6 +721,7 @@ public sealed class FusionRemoteComposeCommandTests(NitroCommandFixture fixture)
             "compose",
             "--source-schema-url",
             "https://composition.example/graphql?token=secret",
+            "--source-schema-settings-file",
             "remote/schema-settings.json",
             "--archive",
             archiveFile);
@@ -723,6 +758,7 @@ public sealed class FusionRemoteComposeCommandTests(NitroCommandFixture fixture)
             "local/schema.graphqls",
             "--source-schema-url",
             "https://composition.example/graphql",
+            "--source-schema-settings-file",
             "remote/schema-settings.json",
             "--archive",
             archiveFile);
@@ -753,9 +789,11 @@ public sealed class FusionRemoteComposeCommandTests(NitroCommandFixture fixture)
             "compose",
             "--source-schema-url",
             "https://composition.example/a",
+            "--source-schema-settings-file",
             "a/schema-settings.json",
             "--source-schema-url",
             "https://composition.example/b",
+            "--source-schema-settings-file",
             "b/schema-settings.json",
             "--archive",
             archiveFile);
@@ -796,6 +834,7 @@ public sealed class FusionRemoteComposeCommandTests(NitroCommandFixture fixture)
             "compose",
             "--source-schema-url",
             "https://composition.example/graphql",
+            "--source-schema-settings-file",
             "remote/schema-settings.json",
             "--archive",
             archiveFile);
@@ -819,6 +858,7 @@ public sealed class FusionRemoteComposeCommandTests(NitroCommandFixture fixture)
             "compose",
             "--source-schema-url",
             sourceSchemaUrl,
+            "--source-schema-settings-file",
             "remote/schema-settings.json",
             "--archive",
             archiveFile);
@@ -828,39 +868,46 @@ public sealed class FusionRemoteComposeCommandTests(NitroCommandFixture fixture)
         Assert.False(File.Exists(archiveFile));
     }
 
-    [Fact]
-    public async Task Compose_Should_RejectSourceSchemaUrlWithoutSettingsFile()
+    [Theory]
+    [InlineData(1, 0)]
+    [InlineData(0, 1)]
+    [InlineData(2, 1)]
+    [InlineData(1, 2)]
+    public async Task Compose_Should_RejectUnequalRemoteInputCounts_BeforeFetchingOrCreatingArchive(
+        int sourceSchemaUrlCount,
+        int sourceSchemaSettingsFileCount)
     {
         var archiveFile = CreateTempFile();
+        List<string> arguments = ["fusion", "compose"];
 
-        var result = await ExecuteCommandAsync(
-            "fusion",
-            "compose",
-            "--source-schema-url",
-            "https://composition.example/graphql",
-            "--archive",
-            archiveFile);
+        for (var i = 0; i < sourceSchemaUrlCount; i++)
+        {
+            arguments.AddRange(
+                ["--source-schema-url", $"https://composition.example/schema-{i}"]);
+        }
+
+        for (var i = 0; i < sourceSchemaSettingsFileCount; i++)
+        {
+            var settingsFile = $"remote-{i}/schema-settings.json";
+            SetupFile(
+                settingsFile,
+                $$"""{ "name": "Remote{{i}}" }""");
+            arguments.AddRange(["--source-schema-settings-file", settingsFile]);
+        }
+
+        arguments.AddRange(["--archive", archiveFile]);
+        var requestCount = 0;
+        using var client = CreateClient(_ =>
+        {
+            Interlocked.Increment(ref requestCount);
+            return Response(HttpStatusCode.OK, "type Query { remote: String }");
+        });
+        SetupHttpClient(client);
+
+        var result = await ExecuteCommandAsync([.. arguments]);
 
         Assert.Equal(1, result.ExitCode);
-        Assert.False(File.Exists(archiveFile));
-    }
-
-    [Fact]
-    public async Task Compose_Should_RejectThreeValuesForOneSourceSchemaUrlOccurrence()
-    {
-        var archiveFile = CreateTempFile();
-
-        var result = await ExecuteCommandAsync(
-            "fusion",
-            "compose",
-            "--source-schema-url",
-            "https://composition.example/graphql",
-            "remote/schema-settings.json",
-            "unexpected",
-            "--archive",
-            archiveFile);
-
-        Assert.Equal(1, result.ExitCode);
+        Assert.Equal(0, requestCount);
         Assert.False(File.Exists(archiveFile));
     }
 
@@ -966,6 +1013,28 @@ public sealed class FusionRemoteComposeCommandTests(NitroCommandFixture fixture)
 
             await Task.Delay(50, cancellationToken);
         }
+    }
+
+    private static async Task<(string Name, string Schema, string RuntimeUrl)>
+        ReadSourceSchemaConfigurationAsync(
+            FusionArchive archive,
+            string sourceSchemaName,
+            CancellationToken cancellationToken)
+    {
+        using var configuration = await archive.TryGetSourceSchemaConfigurationAsync(
+            sourceSchemaName,
+            cancellationToken);
+        Assert.NotNull(configuration);
+        await using var schemaStream = await configuration.OpenReadSchemaAsync(cancellationToken);
+        using var reader = new StreamReader(schemaStream);
+        var schema = await reader.ReadToEndAsync(cancellationToken);
+        var runtimeUrl = configuration.Settings.RootElement
+            .GetProperty("transports")
+            .GetProperty("http")
+            .GetProperty("url")
+            .GetString();
+        Assert.NotNull(runtimeUrl);
+        return (sourceSchemaName, schema, runtimeUrl);
     }
 
     private static HttpClient CreateClient(

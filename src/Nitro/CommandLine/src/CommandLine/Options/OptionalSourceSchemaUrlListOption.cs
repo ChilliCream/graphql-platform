@@ -7,9 +7,8 @@ internal sealed class OptionalSourceSchemaUrlListOption : Option<List<string>>
     public OptionalSourceSchemaUrlListOption()
         : base(OptionName)
     {
-        Description = "A source schema URL followed by its source schema settings file";
-        HelpName = "url> <settings-file";
-        Arity = new ArgumentArity(2, 2);
-        AllowMultipleArgumentsPerToken = true;
+        Description = "A URL from which to download a source schema";
+        Arity = ArgumentArity.ExactlyOne;
+        AllowMultipleArgumentsPerToken = false;
     }
 }

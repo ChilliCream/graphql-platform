@@ -30,8 +30,9 @@ internal static class Messages
     public static string SourceSchemaUrlInvalid()
         => $"The value for '{OptionalSourceSchemaUrlListOption.OptionName}' must be an absolute HTTP URL without user information or a fragment.";
 
-    public static string SourceSchemaUrlPairRequired()
-        => $"The option '{OptionalSourceSchemaUrlListOption.OptionName}' requires a URL followed by a source schema settings file.";
+    public static string SourceSchemaUrlSettingsCountMismatch()
+        => $"The options '{OptionalSourceSchemaUrlListOption.OptionName}' and "
+            + $"'{OptionalSourceSchemaSettingsFileListOption.OptionName}' must be specified the same number of times.";
 
     public static string SourceSchemaTransportFailed(string sourceSchemaName)
         => $"Failed to connect to source schema '{sourceSchemaName}' while downloading its schema.";

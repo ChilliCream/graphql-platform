@@ -16,6 +16,7 @@ internal sealed class FusionComposeCommand : Command
 
         Options.Add(Opt<OptionalSourceSchemaFileListOption>.Instance);
         Options.Add(Opt<OptionalSourceSchemaUrlListOption>.Instance);
+        Options.Add(Opt<OptionalSourceSchemaSettingsFileListOption>.Instance);
         Options.Add(Opt<OptionalFusionArchiveFileOption>.Instance);
         Options.Add(Opt<FusionEnvironmentOption>.Instance);
         Options.Add(Opt<CacheControlMergeBehaviorOption>.Instance);
@@ -49,7 +50,8 @@ internal sealed class FusionComposeCommand : Command
             """
             fusion compose \
               --source-schema-file ./products/schema.graphqls \
-              --source-schema-file ./reviews/schema.graphqls \
+              --source-schema-url https://reviews.example.com/graphql \
+              --source-schema-settings-file ./reviews/schema-settings.json \
               --archive ./gateway.far \
               --env "dev"
             """);
@@ -71,6 +73,8 @@ internal sealed class FusionComposeCommand : Command
         var sourceSchemaFiles = parseResult.GetValue(Opt<OptionalSourceSchemaFileListOption>.Instance) ?? [];
         var sourceSchemaUrlValues = parseResult.GetValue(
             Opt<OptionalSourceSchemaUrlListOption>.Instance) ?? [];
+        var sourceSchemaSettingsFiles = parseResult.GetValue(
+            Opt<OptionalSourceSchemaSettingsFileListOption>.Instance) ?? [];
         var archiveFile = parseResult.GetValue(Opt<OptionalFusionArchiveFileOption>.Instance);
         var environment = parseResult.GetValue(Opt<FusionEnvironmentOption>.Instance);
         var cacheControlMergeBehaviorOption = Opt<CacheControlMergeBehaviorOption>.Instance;
@@ -106,14 +110,14 @@ internal sealed class FusionComposeCommand : Command
         archiveFile ??= workingDirectory;
 
         var remoteSourceSchemaInputs = new List<RemoteSourceSchemaInput>(
-            sourceSchemaUrlValues.Count / 2);
+            sourceSchemaUrlValues.Count);
 
-        if (sourceSchemaUrlValues.Count % 2 != 0)
+        if (sourceSchemaUrlValues.Count != sourceSchemaSettingsFiles.Count)
         {
-            throw new ExitException(Messages.SourceSchemaUrlPairRequired());
+            throw new ExitException(Messages.SourceSchemaUrlSettingsCountMismatch());
         }
 
-        for (var i = 0; i < sourceSchemaUrlValues.Count; i += 2)
+        for (var i = 0; i < sourceSchemaUrlValues.Count; i++)
         {
             var url = sourceSchemaUrlValues[i];
             if (!Uri.TryCreate(url, UriKind.Absolute, out var endpoint)
@@ -124,7 +128,7 @@ internal sealed class FusionComposeCommand : Command
                 throw new ExitException(Messages.SourceSchemaUrlInvalid());
             }
 
-            var settingsFile = sourceSchemaUrlValues[i + 1];
+            var settingsFile = sourceSchemaSettingsFiles[i];
             if (!Path.IsPathRooted(settingsFile))
             {
                 settingsFile = Path.Combine(workingDirectory, settingsFile);

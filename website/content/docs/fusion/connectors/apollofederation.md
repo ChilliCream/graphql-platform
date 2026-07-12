@@ -7,7 +7,7 @@ Fusion supports two subgraph protocols: GraphQL Federation and Apollo Federation
 
 The connector lets you put a Fusion gateway in front of existing Apollo Federation subgraphs without changing them. During composition, Fusion reads each subgraph's Apollo Federation SDL, detects Apollo Federation schemas, and translates them into the GraphQL Federation model. At runtime, the gateway speaks Apollo's wire protocol (the `_entities` field with typed representations) to Apollo Federation subgraphs. It speaks the GraphQL Federation protocol through lookup fields to GraphQL Federation subgraphs in the same graph. Your subgraphs keep their existing SDL, `__resolveReference` and reference resolvers, and deployment model.
 
-There is no separate mode to enable. Detection happens per source schema, so one graph can mix Apollo Federation subgraphs (in any language: Apollo Server, HotChocolate.ApolloFederation, graphql-java, and others) with GraphQL Federation subgraphs and compose them into the composed schema.
+Apollo Federation v2 has no separate mode to enable. Detection happens per source schema, so one graph can mix Apollo Federation subgraphs (in any language: Apollo Server, HotChocolate.ApolloFederation, graphql-java, and others) with GraphQL Federation subgraphs and compose them into the composed schema. Apollo Federation v1 requires an explicit source setting, as described in [Choose the Schema Acquisition Protocol](#choose-the-schema-acquisition-protocol).
 
 Use this page when you want to run Apollo Federation subgraphs as they are. To move a subgraph to the GraphQL Federation protocol instead, see [Coming from Apollo Federation](../migration/coming-from-apollo-federation.md). The two protocols interoperate, so you can move one subgraph at a time.
 
@@ -22,7 +22,7 @@ flowchart LR
     Gateway -->|"lookup fields"| GraphQLFed["GraphQL Federation subgraph"]
 ```
 
-**At composition time**, Fusion inspects each source schema. When a schema carries the Apollo Federation `@link` to `https://specs.apollo.dev/federation`, the composer recognizes it as an Apollo Federation subgraph and runs a translation pass over it.
+**At composition time**, Fusion inspects each source schema. When a v2 schema carries the Apollo Federation `@link` to `https://specs.apollo.dev/federation`, the composer recognizes it as an Apollo Federation subgraph and runs a translation pass over it. For a v1 schema, the source settings must opt into the legacy parser with the exact `"1.0"` marker shown below.
 
 That pass maps Apollo Federation directives onto the GraphQL Federation model: `@key` becomes lookup fields, `@requires` becomes `@require`, `@external` fields are resolved into the model, and the Relay `node` field becomes a lookup. Fusion removes the Apollo Federation infrastructure types (`_service`, `_entities`, `_Entity`, `_Any`). The result is the composed schema. Clients do not see Apollo Federation directives or infrastructure types.
 
@@ -32,7 +32,93 @@ Because detection happens per source schema, mixed graphs need no configuration.
 
 # Getting the Subgraph Schema
 
-Composition consumes the subgraph's Apollo Federation SDL in the exact form that the subgraph exposes through Apollo's `_service` field:
+Composition consumes Apollo Federation SDL in the form that the subgraph exposes through Apollo's `_service` field. For v2, this is the `@link`-carrying document that still contains `@key`, `@requires`, `@external`, and the other Federation directives.
+
+You can let Nitro download live schemas during composition, or save each schema to a file first.
+
+## Download Live Schemas with Nitro
+
+For each remote source, repeat both `--source-schema-url` and `--source-schema-settings-file`. Nitro pairs the first URL with the first settings file, the second URL with the second settings file, and so on. Keep each pair adjacent so the relationship is visible in scripts.
+
+Local schema files remain independent. They continue to use the companion settings file next to the schema, not `--source-schema-settings-file`.
+
+This example composes two live Apollo subgraphs and one saved GraphQL Federation schema:
+
+```bash
+nitro fusion compose \
+  --source-schema-url https://products.example.com/graphql \
+  --source-schema-settings-file ./products/schema-settings.json \
+  --source-schema-url https://reviews.example.com/graphql \
+  --source-schema-settings-file ./reviews/schema-settings.json \
+  --source-schema-file ./inventory/schema.graphqls \
+  --archive gateway.far
+```
+
+After a successful composition, Nitro prints:
+
+```text
+✅ Composite schema written to '/absolute/path/to/gateway.far'.
+```
+
+The URL option controls where Nitro acquires the schema during composition. The paired settings file still controls how the gateway reaches the source at runtime. These URLs can differ.
+
+For an Apollo Federation v2 endpoint, use a settings file such as:
+
+```json
+{
+  "name": "Products",
+  "transports": {
+    "http": {
+      "url": "https://products.internal/graphql"
+    }
+  },
+  "extensions": {
+    "chillicream": {
+      "apolloFederationSupport": {
+        "version": "2.0"
+      }
+    }
+  }
+}
+```
+
+## Choose the Schema Acquisition Protocol
+
+The `apolloFederationSupport` marker selects how Nitro uses the paired URL:
+
+| Marker | HTTP request | Composition behavior |
+| --- | --- | --- |
+| Absent | GET the exact supplied URL | Treat the response body as plain SDL. A returned v2 `@link` is still detected. |
+| Exact `"1.0"` | POST an Apollo `_service { sdl }` query | Enable Federation v1 composition for the returned SDL. |
+| Exact `"2.0"` | POST an Apollo `_service { sdl }` query | Use normal v2 `@link` detection for the returned SDL. |
+
+The support object must contain only the `version` property. Only exact `"1.0"` and `"2.0"` values are accepted. Other values, whitespace variants, and extra properties fail validation before Nitro sends a schema request.
+
+For a Federation v1 source, use the same settings shape with the v1 marker:
+
+```json
+{
+  "name": "Products",
+  "transports": {
+    "http": {
+      "url": "https://products.internal/graphql"
+    }
+  },
+  "extensions": {
+    "chillicream": {
+      "apolloFederationSupport": {
+        "version": "1.0"
+      }
+    }
+  }
+}
+```
+
+Raw Federation v1 SDL without the `"1.0"` marker remains unsupported. The marker is preserved in the archived source settings so future composition keeps the same acquisition contract, but it is removed from runtime gateway settings.
+
+## Save the SDL to a File
+
+To export a schema yourself, query the subgraph:
 
 ```graphql
 query {
@@ -42,11 +128,7 @@ query {
 }
 ```
 
-Pass this SDL to the composer unchanged. It is the `@link`-carrying document that still contains the Apollo Federation directives (`@key`, `@requires`, `@external`, and so on).
-
-Translation from Apollo Federation directives to the GraphQL Federation model happens inside composition, so the SDL must reach the composer in that form. A schema that has already been stripped of its Apollo Federation directives cannot be detected as an Apollo Federation schema and cannot be translated.
-
-Save each subgraph's `_service { sdl }` output to a `.graphqls` file, one file per subgraph. Give each file a companion `<name>-settings.json` that tells the gateway how to reach the subgraph at runtime. See the [Schema Settings File Reference](../cli.md#schema-settings-file-reference) for the settings file format.
+Save the `_service { sdl }` value unchanged to a `.graphqls` file. A schema stripped of its Federation directives cannot be detected and translated. Give each file a companion `<name>-settings.json` that tells the gateway how to reach the subgraph at runtime. See the [Schema Settings File Reference](../cli.md#schema-settings-file-reference) for the settings file format.
 
 # Composing an Apollo Federation Subgraph
 
@@ -59,6 +141,12 @@ nitro fusion compose \
   --source-schema-file ./accounts/schema.graphqls \
   --source-schema-file ./reviews/schema.graphqls \
   --archive gateway.far
+```
+
+After a successful composition, Nitro prints:
+
+```text
+✅ Composite schema written to '/absolute/path/to/gateway.far'.
 ```
 
 You can list Apollo Federation and GraphQL Federation source schema files in the same command. Composition produces a single `.far` archive that contains the composed schema. If a subgraph uses an Apollo Federation feature that Fusion does not yet support, composition fails with a specific error code (see [Current Limitations](#current-limitations)).
@@ -279,7 +367,7 @@ When a query plan needs several different lookups from the same subgraph, the ga
 
 The connector is under active development and ships as a preview. Composition rejects unsupported Apollo Federation features with a specific error code, so the gateway does not produce a schema that would misbehave at runtime.
 
-- **Apollo Federation v1 is not supported.** A subgraph must be an Apollo Federation v2 schema, which means it carries a `@link` to `https://specs.apollo.dev/federation`. A v1 subgraph (which has no such `@link`) is rejected with `FEDERATION_V1_NOT_SUPPORTED`. Upgrade the subgraph to Apollo Federation v2.
+- **Apollo Federation v1 requires explicit source settings.** Set `extensions.chillicream.apolloFederationSupport.version` to exact `"1.0"` for that source. Raw v1 SDL without the marker is rejected with `FEDERATION_V1_NOT_SUPPORTED`. Federation v2 schemas continue to use their `@link`; the optional exact `"2.0"` marker selects `_service.sdl` acquisition without enabling the v1 parser.
 - **Several Apollo Federation v2 directives are not supported.** Composition rejects `@composeDirective`, `@authenticated`, `@requiresScopes`, and `@policy` with `FEDERATION_DIRECTIVE_NOT_SUPPORTED`. Remove the directive, or express the equivalent with a GraphQL Federation construct.
 
 Both error codes are listed in the [Composition log-code reference](../composition.md#log-codes-reference).

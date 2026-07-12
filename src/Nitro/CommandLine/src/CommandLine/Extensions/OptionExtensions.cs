@@ -19,11 +19,9 @@ internal static class OptionExtensions
     {
         option.Validators.Add(result =>
         {
-            var values = result.GetValueOrDefault<List<string>>();
-
-            foreach (var value in values ?? [])
+            foreach (var token in result.Tokens)
             {
-                ValidateFilePath(result, value);
+                ValidateFilePath(result, token.Value);
             }
         });
     }
