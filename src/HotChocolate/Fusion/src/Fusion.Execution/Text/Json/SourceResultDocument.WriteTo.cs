@@ -72,7 +72,7 @@ public sealed partial class SourceResultDocument
                 Debug.Assert(nameRow.TokenType is JsonTokenType.PropertyName);
 
                 // property name
-                writer.WritePropertyName(document.ReadRawValue(nameRow, includeQuotes: false));
+                writer.WritePropertyNameUnescaped(document.ReadRawValue(nameRow, includeQuotes: false));
 
                 // property value
                 var valueCursor = current + 1;
