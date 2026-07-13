@@ -222,6 +222,11 @@ public sealed partial class JsonWriter
         _tokenType = JsonTokenType.PropertyName;
     }
 
+    /// <summary>
+    /// Writes a property name that is already JSON-escaped (without surrounding quotes).
+    /// This method does not apply additional escaping or the configured encoder.
+    /// </summary>
+    /// <param name="utf8PropertyName">The UTF-8 encoded, already-escaped property name (without quotes).</param>
     internal void WritePropertyNameUnescaped(ReadOnlySpan<byte> utf8PropertyName)
     {
         FlushDeferredPropertyName();
