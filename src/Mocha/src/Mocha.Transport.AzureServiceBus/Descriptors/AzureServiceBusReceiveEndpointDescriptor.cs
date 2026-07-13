@@ -125,11 +125,6 @@ internal sealed class AzureServiceBusReceiveEndpointDescriptor
     }
 
     /// <inheritdoc />
-    [Obsolete("Use FaultEndpoint(Uri) instead.")]
-    public IAzureServiceBusReceiveEndpointDescriptor FaultEndpoint(string address)
-        => FaultEndpoint(new Uri(address, UriKind.Absolute));
-
-    /// <inheritdoc />
     public IAzureServiceBusReceiveEndpointDescriptor DisableFaultEndpoint()
     {
         var feature = Configuration.Features.GetOrSet<ReceiveFaultEndpointFeature>();
@@ -154,11 +149,6 @@ internal sealed class AzureServiceBusReceiveEndpointDescriptor
 
         return this;
     }
-
-    /// <inheritdoc />
-    [Obsolete("Use SkippedEndpoint(Uri) instead.")]
-    public IAzureServiceBusReceiveEndpointDescriptor SkippedEndpoint(string address)
-        => SkippedEndpoint(new Uri(address, UriKind.Absolute));
 
     /// <inheritdoc />
     public IAzureServiceBusReceiveEndpointDescriptor DisableSkippedEndpoint()

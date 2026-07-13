@@ -65,7 +65,7 @@ Mocha core (post-merge) ships:
 
 3. **Scheduled-message store for cancellation.** New `Scheduling/AzureServiceBusScheduledMessageStore.cs` implements `IScheduledMessageStore`:
    - `PersistAsync` throws `InvalidOperationException("AzureServiceBusScheduledMessageStore should never be called via middleware path; SupportsSchedulingNatively is true.")`. Documents the invariant — the dispatch path handles persistence by virtue of `ScheduleMessageAsync` itself.
-   - `CancelAsync(token)` parses `"asb:{entityPath}:{sequenceNumber}"` (strict; errors return false), resolves the sender via `ClientManager.GetSender(entityPath)`, and calls `sender.CancelScheduledMessageAsync(seq, cancellationToken)`. Maps `ServiceBusException { Reason: MessageNotFound }` → `false`. All other exceptions propagate.
+   - `CancelAsync(token)` parses `"asb:{entityPath}:{sequenceNumber}"` (strict; errors return false), acquires a sender lease via `ClientManager.AcquireSender(entityPath)`, and calls `lease.Sender.CancelScheduledMessageAsync(seq, cancellationToken)`. Maps `ServiceBusException { Reason: MessageNotFound }` → `false`. All other exceptions propagate.
 
 4. **Register the store.** In `MessageBusBuilderExtensions.AddAzureServiceBus`, `services.TryAddScoped<IScheduledMessageStore>(…)` (matches Postgres's registration shape).
 
@@ -88,7 +88,7 @@ user bus.ScheduleSendAsync(msg, when)
 user bus.CancelScheduledMessageAsync(token)
   → DefaultMessageBus resolves IScheduledMessageStore → AzureServiceBusScheduledMessageStore
   → parses token "asb:{entity}:{seq}"
-  → ClientManager.GetSender(entity).CancelScheduledMessageAsync(seq) → bool
+  → ClientManager.AcquireSender(entity).Sender.CancelScheduledMessageAsync(seq) → bool
 ```
 
 ---

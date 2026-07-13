@@ -180,7 +180,6 @@ public sealed class AzureServiceBusRoutingStrategy : RoutingStrategy<AzureServic
             azureConfiguration.QueueName,
             _ => new AzureServiceBusQueueConfiguration
             {
-                AutoDelete = azureEndpoint.Kind == ReceiveEndpointKind.Reply,
                 AutoDeleteOnIdle = azureEndpoint.Kind == ReceiveEndpointKind.Reply
                     ? TimeSpan.FromHours(24)
                     : null,

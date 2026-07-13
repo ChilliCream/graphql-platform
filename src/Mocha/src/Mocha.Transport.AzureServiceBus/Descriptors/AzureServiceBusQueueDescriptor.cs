@@ -14,12 +14,6 @@ internal sealed class AzureServiceBusQueueDescriptor
 
     protected internal override AzureServiceBusQueueDescriptorConfiguration Configuration { get; protected set; }
 
-    public IAzureServiceBusQueueDescriptor AutoDelete(bool autoDelete = true)
-    {
-        Configuration.Queue.AutoDelete = autoDelete;
-        return this;
-    }
-
     public IAzureServiceBusQueueDescriptor AutoProvision(bool autoProvision = true)
     {
         Configuration.Queue.AutoProvision = autoProvision;
@@ -191,11 +185,6 @@ internal sealed class AzureServiceBusQueueDescriptor
         return this;
     }
 
-    /// <inheritdoc />
-    [Obsolete("Use FaultEndpoint(Uri) instead.")]
-    public IAzureServiceBusQueueDescriptor FaultEndpoint(string address)
-        => FaultEndpoint(new Uri(address, UriKind.Absolute));
-
     public IAzureServiceBusQueueDescriptor DisableFaultEndpoint()
     {
         var feature = Configuration.Features.GetOrSet<ReceiveFaultEndpointFeature>();
@@ -212,11 +201,6 @@ internal sealed class AzureServiceBusQueueDescriptor
         feature.IsDisabled = false;
         return this;
     }
-
-    /// <inheritdoc />
-    [Obsolete("Use SkippedEndpoint(Uri) instead.")]
-    public IAzureServiceBusQueueDescriptor SkippedEndpoint(string address)
-        => SkippedEndpoint(new Uri(address, UriKind.Absolute));
 
     public IAzureServiceBusQueueDescriptor DisableSkippedEndpoint()
     {

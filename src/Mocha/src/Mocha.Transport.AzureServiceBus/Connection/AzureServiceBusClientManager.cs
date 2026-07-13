@@ -13,7 +13,6 @@ public sealed class AzureServiceBusClientManager : IAsyncDisposable
 {
     private readonly ServiceBusConnection _connection;
     private readonly ConcurrentDictionary<string, SenderEntry> _senders = new();
-    private readonly ConcurrentQueue<SenderEntry> _compatibilitySenders = new();
     private volatile bool _isDisposed;
 
     /// <summary>
@@ -43,31 +42,6 @@ public sealed class AzureServiceBusClientManager : IAsyncDisposable
     }
 
     /// <summary>
-    /// Gets a cached <see cref="ServiceBusSender"/> for the specified entity path, creating one if necessary.
-    /// </summary>
-    /// <param name="entityPath">The queue or topic name to send to.</param>
-    /// <returns>A thread-safe sender for the entity.</returns>
-    [Obsolete("Use AcquireSender(string) and dispose the returned lease instead.")]
-    public ServiceBusSender GetSender(string entityPath)
-    {
-        ObjectDisposedException.ThrowIf(_isDisposed, this);
-
-        // Fast path: avoid delegate allocation on cache hit
-        if (_senders.TryGetValue(entityPath, out var entry))
-        {
-            entry.MarkCompatibilityAccess();
-            return entry.Sender;
-        }
-
-        entry = _senders.GetOrAdd(
-            entityPath,
-            static (path, connection) => new SenderEntry(connection.CreateSender(path)),
-            _connection);
-        entry.MarkCompatibilityAccess();
-        return entry.Sender;
-    }
-
-    /// <summary>
     /// Acquires a cached sender lease. Dispose the lease after the send operation so invalidation
     /// can close a retired AMQP link without racing an operation in progress.
     /// </summary>
@@ -93,7 +67,7 @@ public sealed class AzureServiceBusClientManager : IAsyncDisposable
 
     /// <summary>
     /// Removes the cached <see cref="ServiceBusSender"/> for <paramref name="entityPath"/> so the
-    /// next <see cref="GetSender"/> call builds a fresh one against a recreated entity. The
+    /// next <see cref="AcquireSender"/> call builds a fresh one against a recreated entity.
     /// The exact failed entry is removed, then disposed after its final lease is released.
     /// </summary>
     /// <param name="entityPath">The queue or topic name whose cached sender should be invalidated.</param>
@@ -107,12 +81,6 @@ public sealed class AzureServiceBusClientManager : IAsyncDisposable
 
         ((ICollection<KeyValuePair<string, SenderEntry>>)_senders)
             .Remove(new KeyValuePair<string, SenderEntry>(entityPath, entry));
-
-        if (entry.HasCompatibilityAccess)
-        {
-            _compatibilitySenders.Enqueue(entry);
-            return Task.CompletedTask;
-        }
 
         return entry.RetireAsync();
     }
@@ -213,10 +181,6 @@ public sealed class AzureServiceBusClientManager : IAsyncDisposable
 
         var disposalTasks = _senders.Values.Select(static entry => entry.RetireAsync()).ToList();
         _senders.Clear();
-        while (_compatibilitySenders.TryDequeue(out var compatibilitySender))
-        {
-            disposalTasks.Add(compatibilitySender.RetireAsync());
-        }
         await Task.WhenAll(disposalTasks);
 
         await _connection.DisposeAsync();
@@ -249,7 +213,6 @@ public sealed class AzureServiceBusClientManager : IAsyncDisposable
         private int _leaseCount;
         private bool _retired;
         private bool _disposeStarted;
-        private bool _compatibilityAccess;
 
         public SenderEntry(ServiceBusSender sender)
         {
@@ -257,25 +220,6 @@ public sealed class AzureServiceBusClientManager : IAsyncDisposable
         }
 
         public ServiceBusSender Sender { get; }
-
-        public bool HasCompatibilityAccess
-        {
-            get
-            {
-                lock (_sync)
-                {
-                    return _compatibilityAccess;
-                }
-            }
-        }
-
-        public void MarkCompatibilityAccess()
-        {
-            lock (_sync)
-            {
-                _compatibilityAccess = true;
-            }
-        }
 
         public bool TryAcquire()
         {

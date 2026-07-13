@@ -5,12 +5,6 @@ namespace Mocha.Transport.AzureServiceBus;
 /// </summary>
 public interface IAzureServiceBusQueueDescriptor : IMessagingDescriptor<AzureServiceBusQueueDescriptorConfiguration>
 {
-    /// <summary>
-    /// Compatibility toggle for <see cref="WithAutoDeleteOnIdle"/>. <c>true</c> alone configures
-    /// no broker option, while <c>false</c> suppresses a configured idle deletion policy.
-    /// </summary>
-    IAzureServiceBusQueueDescriptor AutoDelete(bool autoDelete = true);
-
     IAzureServiceBusQueueDescriptor AutoProvision(bool autoProvision = true);
 
     /// <summary>Configures the Azure Service Bus idle deletion policy.</summary>
@@ -64,15 +58,9 @@ public interface IAzureServiceBusQueueDescriptor : IMessagingDescriptor<AzureSer
 
     IAzureServiceBusQueueDescriptor FaultEndpoint(Uri address);
 
-    [Obsolete("Use FaultEndpoint(Uri) instead.")]
-    IAzureServiceBusQueueDescriptor FaultEndpoint(string address);
-
     IAzureServiceBusQueueDescriptor DisableFaultEndpoint();
 
     IAzureServiceBusQueueDescriptor SkippedEndpoint(Uri address);
-
-    [Obsolete("Use SkippedEndpoint(Uri) instead.")]
-    IAzureServiceBusQueueDescriptor SkippedEndpoint(string address);
 
     IAzureServiceBusQueueDescriptor DisableSkippedEndpoint();
 

@@ -27,13 +27,6 @@ internal sealed class AzureServiceBusQueueTopologyDescriptor
     }
 
     /// <inheritdoc />
-    public IAzureServiceBusQueueTopologyDescriptor AutoDelete(bool autoDelete = true)
-    {
-        Configuration.AutoDelete = autoDelete;
-        return this;
-    }
-
-    /// <inheritdoc />
     public IAzureServiceBusQueueTopologyDescriptor AutoProvision(bool autoProvision = true)
     {
         Configuration.AutoProvision = autoProvision;

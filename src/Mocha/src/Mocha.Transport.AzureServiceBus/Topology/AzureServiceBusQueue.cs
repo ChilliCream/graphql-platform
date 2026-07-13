@@ -20,11 +20,6 @@ public sealed class AzureServiceBusQueue
     public string Name { get; private set; } = null!;
 
     /// <summary>
-    /// Gets whether the configured idle deletion policy is enabled.
-    /// </summary>
-    public bool? AutoDelete { get; private set; }
-
-    /// <summary>
     /// Gets whether this queue should be auto-provisioned on the broker.
     /// </summary>
     public bool? AutoProvision { get; private set; }
@@ -87,9 +82,8 @@ public sealed class AzureServiceBusQueue
     protected override void OnInitialize(AzureServiceBusQueueConfiguration configuration)
     {
         Name = configuration.Name!;
-        AutoDelete = configuration.AutoDelete;
         AutoProvision = configuration.AutoProvision;
-        AutoDeleteOnIdle = configuration.AutoDelete == false ? null : configuration.AutoDeleteOnIdle;
+        AutoDeleteOnIdle = configuration.AutoDeleteOnIdle;
         LockDuration = configuration.LockDuration;
         MaxDeliveryCount = configuration.MaxDeliveryCount;
         DefaultMessageTimeToLive = configuration.DefaultMessageTimeToLive;

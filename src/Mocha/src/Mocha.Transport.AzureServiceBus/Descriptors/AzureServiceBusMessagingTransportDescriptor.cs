@@ -122,16 +122,6 @@ public sealed class AzureServiceBusMessagingTransportDescriptor
     }
 
     /// <inheritdoc />
-    [Obsolete("Use BindImplicitly() instead.")]
-    public IAzureServiceBusMessagingTransportDescriptor BindHandlersImplicitly()
-        => BindImplicitly();
-
-    /// <inheritdoc />
-    [Obsolete("Use BindExplicitly() instead.")]
-    public IAzureServiceBusMessagingTransportDescriptor BindHandlersExplicitly()
-        => BindExplicitly();
-
-    /// <inheritdoc />
     public IMessagingTransportHandlerDescriptor<IAzureServiceBusReceiveEndpointDescriptor> Handler<THandler>()
         where THandler : class, IHandler
     {
@@ -400,11 +390,6 @@ public sealed class AzureServiceBusMessagingTransportDescriptor
         AzureServiceBusQueueConfiguration configuration,
         IAzureServiceBusQueueTopologyDescriptor descriptor)
     {
-        if (configuration.AutoDelete is { } autoDelete)
-        {
-            descriptor.AutoDelete(autoDelete);
-        }
-
         if (configuration.AutoProvision is { } autoProvision)
         {
             descriptor.AutoProvision(autoProvision);

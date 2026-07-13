@@ -116,29 +116,6 @@ public class AzureServiceBusUnifiedQueueTests
     }
 
     [Fact]
-    public void CompatibilityAliases_Should_ForwardToCanonicalConfiguration()
-    {
-#pragma warning disable CS0618
-        var (_, configuration) = CreateTransport(t =>
-        {
-            t.BindHandlersImplicitly();
-            t.BindHandlersExplicitly();
-            t.Endpoint("orders")
-                .FaultEndpoint("queue:custom-error")
-                .SkippedEndpoint("queue:custom-skipped");
-        });
-#pragma warning restore CS0618
-        var endpoint = configuration.ReceiveEndpoints.Single();
-
-        Assert.Equal(
-            "queue:custom-error",
-            endpoint.Features.Get<ReceiveFaultEndpointFeature>()?.Address?.OriginalString);
-        Assert.Equal(
-            "queue:custom-skipped",
-            endpoint.Features.Get<ReceiveSkippedEndpointFeature>()?.Address?.OriginalString);
-    }
-
-    [Fact]
     public void Queue_Should_ClaimConsumerOnNamedEndpoint_When_BindingIsExplicit()
     {
         var services = new ServiceCollection();

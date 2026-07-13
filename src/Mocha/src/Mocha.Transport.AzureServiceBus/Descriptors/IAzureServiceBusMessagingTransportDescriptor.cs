@@ -20,12 +20,6 @@ public interface IAzureServiceBusMessagingTransportDescriptor
     /// <inheritdoc cref="IMessagingTransportDescriptor.BindExplicitly"/>
     new IAzureServiceBusMessagingTransportDescriptor BindExplicitly();
 
-    [Obsolete("Use BindImplicitly() instead.")]
-    IAzureServiceBusMessagingTransportDescriptor BindHandlersImplicitly();
-
-    [Obsolete("Use BindExplicitly() instead.")]
-    IAzureServiceBusMessagingTransportDescriptor BindHandlersExplicitly();
-
     /// <summary>
     /// Declares or retrieves a receive endpoint with the specified name.
     /// </summary>

@@ -39,17 +39,11 @@ public interface IAzureServiceBusReceiveEndpointDescriptor
     /// <summary>Sets the absolute address of the fault endpoint.</summary>
     IAzureServiceBusReceiveEndpointDescriptor FaultEndpoint(Uri address);
 
-    [Obsolete("Use FaultEndpoint(Uri) instead.")]
-    IAzureServiceBusReceiveEndpointDescriptor FaultEndpoint(string address);
-
     /// <summary>Disables forwarding failed messages to a fault endpoint.</summary>
     IAzureServiceBusReceiveEndpointDescriptor DisableFaultEndpoint();
 
     /// <summary>Sets the absolute address of the skipped endpoint.</summary>
     IAzureServiceBusReceiveEndpointDescriptor SkippedEndpoint(Uri address);
-
-    [Obsolete("Use SkippedEndpoint(Uri) instead.")]
-    IAzureServiceBusReceiveEndpointDescriptor SkippedEndpoint(string address);
 
     /// <summary>Disables forwarding skipped messages to a skipped endpoint.</summary>
     IAzureServiceBusReceiveEndpointDescriptor DisableSkippedEndpoint();

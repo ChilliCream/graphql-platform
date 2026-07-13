@@ -13,15 +13,6 @@ public interface IAzureServiceBusQueueTopologyDescriptor : IMessagingDescriptor<
     IAzureServiceBusQueueTopologyDescriptor Name(string name);
 
     /// <summary>
-    /// Compatibility toggle for <see cref="WithAutoDeleteOnIdle"/>. Azure Service Bus has no
-    /// separate auto-delete flag: <c>true</c> alone configures no broker option, while <c>false</c>
-    /// suppresses a configured idle deletion policy.
-    /// </summary>
-    /// <param name="autoDelete">Whether a configured idle deletion policy is enabled.</param>
-    /// <returns>The descriptor for method chaining.</returns>
-    IAzureServiceBusQueueTopologyDescriptor AutoDelete(bool autoDelete = true);
-
-    /// <summary>
     /// Sets whether the queue should be automatically provisioned.
     /// </summary>
     /// <param name="autoProvision">True to enable auto-provisioning (default: true).</param>
@@ -30,7 +21,6 @@ public interface IAzureServiceBusQueueTopologyDescriptor : IMessagingDescriptor<
 
     /// <summary>
     /// Controls how long the queue waits without activity before being automatically deleted.
-    /// This is the broker option that enables deletion. <see cref="AutoDelete"/> can suppress it.
     /// </summary>
     IAzureServiceBusQueueTopologyDescriptor WithAutoDeleteOnIdle(TimeSpan autoDeleteOnIdle);
 

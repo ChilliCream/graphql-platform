@@ -68,33 +68,26 @@ public class AzureServiceBusMessagingTopologyTests
     }
 
     [Fact]
-    public void AddQueue_Should_SuppressAutoDeleteOnIdle_When_AutoDeleteIsDisabled()
+    public void AddQueue_Should_PreserveAutoDeleteOnIdle_When_Configured()
     {
         var (_, _, topology) = CreateTopology();
 
         var queue = topology.AddQueue(new AzureServiceBusQueueConfiguration
         {
             Name = "orders",
-            AutoDelete = false,
             AutoDeleteOnIdle = TimeSpan.FromMinutes(5)
         });
 
-        Assert.False(queue.AutoDelete);
-        Assert.Null(queue.AutoDeleteOnIdle);
+        Assert.Equal(TimeSpan.FromMinutes(5), queue.AutoDeleteOnIdle);
     }
 
     [Fact]
-    public void AddQueue_Should_NotInventIdlePolicy_When_AutoDeleteIsEnabledAlone()
+    public void AddQueue_Should_NotInventAutoDeleteOnIdle_When_Omitted()
     {
         var (_, _, topology) = CreateTopology();
 
-        var queue = topology.AddQueue(new AzureServiceBusQueueConfiguration
-        {
-            Name = "orders",
-            AutoDelete = true
-        });
+        var queue = topology.AddQueue(new AzureServiceBusQueueConfiguration { Name = "orders" });
 
-        Assert.True(queue.AutoDelete);
         Assert.Null(queue.AutoDeleteOnIdle);
     }
 

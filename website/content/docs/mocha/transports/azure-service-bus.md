@@ -177,7 +177,6 @@ Available queue defaults:
 | Property                           | Type        | Description                                                                       |
 | ---------------------------------- | ----------- | --------------------------------------------------------------------------------- |
 | `AutoProvision`                    | `bool?`     | Whether queues are auto-provisioned at startup                                    |
-| `AutoDelete`                       | `bool?`     | Compatibility gate for `AutoDeleteOnIdle`; `false` suppresses the idle policy     |
 | `AutoDeleteOnIdle`                 | `TimeSpan?` | Idle window before the broker may delete the queue                                |
 | `LockDuration`                     | `TimeSpan?` | How long the broker holds a peek-lock on a delivered message                      |
 | `MaxDeliveryCount`                 | `int?`      | Attempts before the broker dead-letters the message (`MaxDeliveryCountExceeded`)  |
@@ -408,11 +407,18 @@ builder.Services
     });
 ```
 
-## Migrating from the previous Azure Service Bus API
+## Choose a queue configuration API
 
-- `DeclareQueue(name)` now returns the low-level topology descriptor. Use `Queue(name)` when one fluent declaration should create both the queue and its receive endpoint, attach handlers or consumers, and configure endpoint middleware.
-- The old transport topology convention hooks have been replaced by routing strategies. Register custom routing with `UseRoutingStrategy(factory)`.
-- Sender invalidation and recreation are managed inside the transport. Code that performs custom native sends should acquire and dispose a sender lease through `AzureServiceBusClientManager.AcquireSender(...)`; the raw `GetSender(...)` compatibility API is obsolete.
+Use `Queue(name)` for application queues. It combines the queue declaration with receive endpoint configuration, so handlers, consumers, bindings, middleware, concurrency, and broker settings can be configured in one place:
+
+```csharp
+transport.Queue("process-order")
+    .Handler<ProcessOrderCommandHandler>()
+    .WithMaxDeliveryCount(5)
+    .MaxConcurrency(8);
+```
+
+Use `DeclareQueue(name)` for low-level broker topology that does not represent an application receive endpoint. It configures the Azure Service Bus queue resource without attaching handlers or receive middleware.
 
 # Control auto-provisioning
 

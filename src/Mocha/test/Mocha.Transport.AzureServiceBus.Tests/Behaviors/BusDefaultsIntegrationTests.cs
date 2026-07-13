@@ -139,16 +139,16 @@ public class BusDefaultsIntegrationTests
     }
 
     [Fact]
-    public async Task ConfigureDefaults_Should_PropagateToDeclaredQueue_When_QueueOmitsAutoDelete()
+    public async Task ConfigureDefaults_Should_PropagateAutoDeleteOnIdle_When_QueueOmitsValue()
     {
-        // arrange - a queue declared without AutoDelete should inherit the bus-level default
+        // arrange - a queue without an idle policy should inherit the bus-level default
         var ctx = _fixture.CreateTestContext();
         await using var bus = await new ServiceCollection()
             .AddMessageBus()
             .AddAzureServiceBus(t =>
             {
                 t.ConnectionString(ctx.ConnectionString);
-                t.ConfigureDefaults(d => d.Queue.AutoDelete = true);
+                t.ConfigureDefaults(d => d.Queue.AutoDeleteOnIdle = TimeSpan.FromMinutes(10));
                 t.DeclareQueue("default-applies-q");
             })
             .BuildTestBusAsync();
@@ -158,22 +158,22 @@ public class BusDefaultsIntegrationTests
         var topology = (AzureServiceBusMessagingTopology)transport.Topology;
         var queue = topology.Queues.First(q => q.Name == "default-applies-q");
 
-        // assert - default AutoDelete propagated because the descriptor did not specify a value
-        Assert.True(queue.AutoDelete);
+        // assert - the default propagated because the descriptor did not specify a value
+        Assert.Equal(TimeSpan.FromMinutes(10), queue.AutoDeleteOnIdle);
     }
 
     [Fact]
-    public async Task ConfigureDefaults_Should_NotOverrideExplicitQueueSetting_When_QueueDeclaresAutoDelete()
+    public async Task ConfigureDefaults_Should_NotOverrideExplicitAutoDeleteOnIdle()
     {
-        // arrange - a queue that explicitly sets AutoDelete must keep its own value
+        // arrange - a queue that explicitly sets an idle policy must keep its own value
         var ctx = _fixture.CreateTestContext();
         await using var bus = await new ServiceCollection()
             .AddMessageBus()
             .AddAzureServiceBus(t =>
             {
                 t.ConnectionString(ctx.ConnectionString);
-                t.ConfigureDefaults(d => d.Queue.AutoDelete = true);
-                t.DeclareQueue("override-q").AutoDelete(false);
+                t.ConfigureDefaults(d => d.Queue.AutoDeleteOnIdle = TimeSpan.FromMinutes(10));
+                t.DeclareQueue("override-q").WithAutoDeleteOnIdle(TimeSpan.FromMinutes(5));
             })
             .BuildTestBusAsync();
 
@@ -183,7 +183,7 @@ public class BusDefaultsIntegrationTests
         var queue = topology.Queues.First(q => q.Name == "override-q");
 
         // assert - the per-queue value wins over the bus-level default
-        Assert.False(queue.AutoDelete);
+        Assert.Equal(TimeSpan.FromMinutes(5), queue.AutoDeleteOnIdle);
     }
 
     private static AzureServiceBusReceiveEndpoint GetDefaultEndpoint(TestBus bus)

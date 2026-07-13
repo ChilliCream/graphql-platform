@@ -192,7 +192,6 @@ public sealed class AzureServiceBusMessagingTransport : MessagingTransport
                     "both",
                     new Dictionary<string, object?>
                     {
-                        ["autoDelete"] = queue.AutoDelete,
                         ["autoProvision"] = queue.AutoProvision ?? autoProvision,
                         ["origin"] = queue.Origin
                     }));

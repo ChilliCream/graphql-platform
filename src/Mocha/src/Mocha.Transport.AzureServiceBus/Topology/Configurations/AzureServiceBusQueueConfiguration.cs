@@ -11,20 +11,13 @@ public sealed class AzureServiceBusQueueConfiguration : TopologyConfiguration<Az
     public string? Name { get; set; }
 
     /// <summary>
-    /// Gets or sets whether the configured <see cref="AutoDeleteOnIdle"/> policy is enabled.
-    /// Azure Service Bus has no separate auto-delete flag. Setting this to <c>false</c> suppresses
-    /// any configured idle deletion policy.
-    /// </summary>
-    public bool? AutoDelete { get; set; }
-
-    /// <summary>
     /// Gets or sets whether this queue should be auto-provisioned.
     /// When true, the queue will be created in Azure Service Bus during topology provisioning.
     /// </summary>
     public bool? AutoProvision { get; set; }
 
     /// <summary>
-    /// Idle window after which the broker may delete the queue. Only honored when set explicitly.
+    /// Idle window after which the broker may delete the queue.
     /// </summary>
     public TimeSpan? AutoDeleteOnIdle { get; set; }
 
