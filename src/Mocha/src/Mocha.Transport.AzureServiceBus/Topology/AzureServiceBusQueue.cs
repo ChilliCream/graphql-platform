@@ -20,7 +20,7 @@ public sealed class AzureServiceBusQueue
     public string Name { get; private set; } = null!;
 
     /// <summary>
-    /// Gets whether this queue should be automatically deleted when no longer in use.
+    /// Gets whether the configured idle deletion policy is enabled.
     /// </summary>
     public bool? AutoDelete { get; private set; }
 
@@ -89,7 +89,7 @@ public sealed class AzureServiceBusQueue
         Name = configuration.Name!;
         AutoDelete = configuration.AutoDelete;
         AutoProvision = configuration.AutoProvision;
-        AutoDeleteOnIdle = configuration.AutoDeleteOnIdle;
+        AutoDeleteOnIdle = configuration.AutoDelete == false ? null : configuration.AutoDeleteOnIdle;
         LockDuration = configuration.LockDuration;
         MaxDeliveryCount = configuration.MaxDeliveryCount;
         DefaultMessageTimeToLive = configuration.DefaultMessageTimeToLive;
@@ -99,6 +99,12 @@ public sealed class AzureServiceBusQueue
         ForwardTo = configuration.ForwardTo;
         ForwardDeadLetteredMessagesTo = configuration.ForwardDeadLetteredMessagesTo;
         DeadLetteringOnMessageExpiration = configuration.DeadLetteringOnMessageExpiration;
+
+        if (RequiresSession == true && ForwardTo is not null)
+        {
+            throw new InvalidOperationException(
+                $"Azure Service Bus queue '{Name}' cannot require sessions and auto-forward messages.");
+        }
     }
 
     protected override void OnComplete(AzureServiceBusQueueConfiguration configuration)
@@ -189,12 +195,7 @@ public sealed class AzureServiceBusQueue
         }
         catch (ServiceBusException ex) when (ex.Reason == ServiceBusFailureReason.MessagingEntityAlreadyExists)
         {
-            // Already provisioned by another instance — safe to ignore.
-        }
-        catch (Exception) when (AutoProvision is null or true)
-        {
-            // Best-effort provisioning — the entity may already exist or the admin API
-            // may be unavailable (e.g. emulator with Docker port mapping).
+            // Already provisioned by another instance, safe to ignore.
         }
     }
 }

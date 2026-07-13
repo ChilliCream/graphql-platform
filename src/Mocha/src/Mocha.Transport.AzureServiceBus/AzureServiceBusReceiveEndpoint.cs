@@ -16,7 +16,11 @@ namespace Mocha.Transport.AzureServiceBus;
 public sealed class AzureServiceBusReceiveEndpoint(AzureServiceBusMessagingTransport transport)
     : ReceiveEndpoint<AzureServiceBusReceiveEndpointConfiguration>(transport)
 {
+    private static readonly TimeSpan s_maximumRecoveryDelay = TimeSpan.FromSeconds(30);
+    private readonly object _processorRecoverySync = new();
     private MessageProcessor? _processor;
+    private CancellationTokenSource? _processorLifetime;
+    private Task _processorRecoveryTask = Task.CompletedTask;
     private QueueHeartbeat? _heartbeat;
     private ILogger<AzureServiceBusReceiveEndpoint> _logger = null!;
     private int _maxConcurrentCalls = 1;
@@ -82,7 +86,7 @@ public sealed class AzureServiceBusReceiveEndpoint(AzureServiceBusMessagingTrans
             if (sessionOnly.Count > 0)
             {
                 throw ThrowHelper.ReceiveEndpointHasSessionOnlyOptionsOnNonSessionQueue(
-                    configuration.Name,
+                    Name,
                     Queue.Name,
                     string.Join(", ", sessionOnly));
             }
@@ -99,6 +103,7 @@ public sealed class AzureServiceBusReceiveEndpoint(AzureServiceBusMessagingTrans
         }
 
         _logger = context.Services.GetRequiredService<ILogger<AzureServiceBusReceiveEndpoint>>();
+        _processorLifetime = new CancellationTokenSource();
 
         if (Queue.RequiresSession == true)
         {
@@ -194,7 +199,7 @@ public sealed class AzureServiceBusReceiveEndpoint(AzureServiceBusMessagingTrans
 
         if (args.Exception is ServiceBusException { Reason: ServiceBusFailureReason.MessagingEntityNotFound })
         {
-            _processor?.StopProcessingAsync();
+            BeginProcessorRecovery();
         }
 
         return Task.CompletedTask;
@@ -204,6 +209,24 @@ public sealed class AzureServiceBusReceiveEndpoint(AzureServiceBusMessagingTrans
         IMessagingRuntimeContext context,
         CancellationToken cancellationToken)
     {
+        var processorLifetime = _processorLifetime;
+        processorLifetime?.Cancel();
+
+        Task processorRecoveryTask;
+        lock (_processorRecoverySync)
+        {
+            processorRecoveryTask = _processorRecoveryTask;
+        }
+
+        try
+        {
+            await processorRecoveryTask;
+        }
+        catch (OperationCanceledException) when (processorLifetime?.IsCancellationRequested == true)
+        {
+            // Expected when endpoint shutdown interrupts an in-flight recovery.
+        }
+
         if (_heartbeat is not null)
         {
             await _heartbeat.DisposeAsync();
@@ -215,6 +238,105 @@ public sealed class AzureServiceBusReceiveEndpoint(AzureServiceBusMessagingTrans
             await _processor.StopProcessingAsync(cancellationToken);
             await _processor.DisposeAsync();
             _processor = null;
+        }
+
+        processorLifetime?.Dispose();
+        _processorLifetime = null;
+    }
+
+    private void BeginProcessorRecovery()
+    {
+        lock (_processorRecoverySync)
+        {
+            if (_processor is not { } processor
+                || _processorLifetime is not { IsCancellationRequested: false } processorLifetime
+                || !_processorRecoveryTask.IsCompleted)
+            {
+                return;
+            }
+
+            Task stopTask;
+            try
+            {
+                // Do not await this from ProcessErrorAsync. The SDK waits for the error callback
+                // while stopping, so recovery continues only after this callback has returned.
+                stopTask = processor.StopProcessingAsync(processorLifetime.Token);
+            }
+            catch (Exception exception)
+            {
+                stopTask = Task.FromException(exception);
+            }
+
+            _processorRecoveryTask = RecoverProcessorAsync(
+                processor,
+                stopTask,
+                processorLifetime.Token);
+        }
+    }
+
+    private async Task RecoverProcessorAsync(
+        MessageProcessor processor,
+        Task stopTask,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            await stopTask;
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            return;
+        }
+        catch (Exception exception)
+        {
+            _logger.ProcessorRecoveryFailed(exception, Queue.Name, TimeSpan.Zero);
+        }
+
+        var retryDelay = TimeSpan.FromSeconds(1);
+        while (!cancellationToken.IsCancellationRequested)
+        {
+            try
+            {
+                var topology = (AzureServiceBusMessagingTopology)transport.Topology;
+                if (Queue.AutoProvision ?? topology.AutoProvision)
+                {
+                    await Queue.ProvisionAsync(transport.ClientManager, cancellationToken);
+                }
+
+                if (!ReferenceEquals(_processor, processor))
+                {
+                    return;
+                }
+
+                await processor.StartProcessingAsync(cancellationToken);
+                _logger.ProcessorRecovered(Queue.Name);
+                return;
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                return;
+            }
+            catch (Exception exception)
+            {
+                _logger.ProcessorRecoveryFailed(exception, Queue.Name, retryDelay);
+
+                try
+                {
+                    await processor.StopProcessingAsync(cancellationToken);
+                }
+                catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+                {
+                    return;
+                }
+                catch (Exception stopException)
+                {
+                    _logger.ProcessorRecoveryFailed(stopException, Queue.Name, retryDelay);
+                }
+
+                await Task.Delay(retryDelay, cancellationToken);
+                retryDelay = TimeSpan.FromSeconds(
+                    Math.Min(retryDelay.TotalSeconds * 2, s_maximumRecoveryDelay.TotalSeconds));
+            }
         }
     }
 
@@ -256,6 +378,18 @@ internal static partial class Logs
         Exception exception,
         string entityPath,
         ServiceBusErrorSource errorSource);
+
+    [LoggerMessage(LogLevel.Information, "Azure Service Bus processor recovered on entity {EntityPath}")]
+    public static partial void ProcessorRecovered(this ILogger logger, string entityPath);
+
+    [LoggerMessage(
+        LogLevel.Warning,
+        "Azure Service Bus processor recovery failed on entity {EntityPath}; retrying after {RetryDelay}")]
+    public static partial void ProcessorRecoveryFailed(
+        this ILogger logger,
+        Exception exception,
+        string entityPath,
+        TimeSpan retryDelay);
 
     [LoggerMessage(LogLevel.Warning, "Reply queue keep-alive peek failed for {EntityPath}")]
     public static partial void ReplyQueueKeepAliveFailed(this ILogger logger, Exception exception, string entityPath);

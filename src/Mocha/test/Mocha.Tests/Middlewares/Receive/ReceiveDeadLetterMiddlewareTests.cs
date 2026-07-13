@@ -282,7 +282,7 @@ public sealed class ReceiveDeadLetterMiddlewareTests : ReceiveMiddlewareTestBase
 
         builder.AddInMemory(d =>
         {
-            d.Endpoint(NoopEndpointQueue).Handler<DeadLetterTestEventHandler>().Queue(NoopEndpointQueue);
+            d.Endpoint(NoopEndpointQueue).Handler<DeadLetterTestEventHandler>();
 
             if (registerSkippedConvention)
             {
@@ -692,7 +692,8 @@ public sealed class ReceiveDeadLetterMiddlewareTests : ReceiveMiddlewareTestBase
         {
             if (configuration is { Kind: ReceiveEndpointKind.Default, QueueName: { } queueName })
             {
-                configuration.SkippedEndpoint ??= new Uri($"{transport.Schema}:q/{queueName}_skipped");
+                configuration.Features.GetOrSet<ReceiveSkippedEndpointFeature>().Address ??=
+                    new Uri($"{transport.Schema}:q/{queueName}_skipped");
             }
         }
     }

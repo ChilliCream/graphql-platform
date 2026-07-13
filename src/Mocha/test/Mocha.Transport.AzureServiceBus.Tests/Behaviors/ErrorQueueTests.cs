@@ -29,7 +29,9 @@ public class ErrorQueueTests
             .AddAzureServiceBus(t =>
             {
                 t.ConnectionString(ctx.ConnectionString);
-                t.Endpoint("handler-ep").Handler<ThrowingOrderHandler>().FaultEndpoint("azuresb:q/handler-q_error");
+                t.Endpoint("handler-ep")
+                    .Handler<ThrowingOrderHandler>()
+                    .FaultEndpoint(new Uri("azuresb:q/handler-q_error"));
                 t.Endpoint("error-ep")
                     .Queue("handler-q_error")
                     // we mark it as an error because only then no route will be provisioned for the
@@ -71,7 +73,7 @@ public class ErrorQueueTests
                 t.ConnectionString(ctx.ConnectionString);
                 t.Endpoint("payment-ep")
                     .Handler<ThrowingPaymentHandler>()
-                    .FaultEndpoint("azuresb:q/payment-q_error");
+                    .FaultEndpoint(new Uri("azuresb:q/payment-q_error"));
                 t.Endpoint("payment-error-ep")
                     .Queue("payment-q_error")
                     // we mark it as an error because only then no route will be provisioned for the
@@ -111,7 +113,9 @@ public class ErrorQueueTests
             .AddAzureServiceBus(t =>
             {
                 t.ConnectionString(ctx.ConnectionString);
-                t.Endpoint("handler-ep").Handler<ThrowingOrderHandler>().FaultEndpoint("azuresb:q/handler-q_error");
+                t.Endpoint("handler-ep")
+                    .Handler<ThrowingOrderHandler>()
+                    .FaultEndpoint(new Uri("azuresb:q/handler-q_error"));
                 t.Endpoint("error-ep")
                     .Consumer<ErrorSpyConsumer>()
                     .Queue("handler-q_error")

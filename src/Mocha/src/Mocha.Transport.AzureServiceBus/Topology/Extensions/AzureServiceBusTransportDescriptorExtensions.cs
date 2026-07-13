@@ -10,10 +10,6 @@ public static class AzureServiceBusTransportDescriptorExtensions
     internal static IAzureServiceBusMessagingTransportDescriptor AddDefaults(
         this IAzureServiceBusMessagingTransportDescriptor descriptor)
     {
-        descriptor.AddConvention(new AzureServiceBusDefaultReceiveEndpointConvention());
-        descriptor.AddConvention(new AzureServiceBusReceiveEndpointTopologyConvention());
-        descriptor.AddConvention(new AzureServiceBusDispatchEndpointTopologyConvention());
-
         descriptor
             .UseReceive(AzureServiceBusReceiveMiddlewares.Acknowledgement, after: ReceiveMiddlewares.ConcurrencyLimiter.Key);
         descriptor

@@ -177,7 +177,7 @@ Available queue defaults:
 | Property                           | Type        | Description                                                                       |
 | ---------------------------------- | ----------- | --------------------------------------------------------------------------------- |
 | `AutoProvision`                    | `bool?`     | Whether queues are auto-provisioned at startup                                    |
-| `AutoDelete`                       | `bool?`     | Whether queues are auto-deleted when idle                                         |
+| `AutoDelete`                       | `bool?`     | Compatibility gate for `AutoDeleteOnIdle`; `false` suppresses the idle policy     |
 | `AutoDeleteOnIdle`                 | `TimeSpan?` | Idle window before the broker may delete the queue                                |
 | `LockDuration`                     | `TimeSpan?` | How long the broker holds a peek-lock on a delivered message                      |
 | `MaxDeliveryCount`                 | `int?`      | Attempts before the broker dead-letters the message (`MaxDeliveryCountExceeded`)  |
@@ -268,8 +268,8 @@ public sealed class GetOrderRequest : IEventRequest<OrderResponse>
 builder.Services
     .AddMessageBus()
     .AddMessage<GetOrderRequest>(m => m
-        // Every reply lands on a session keyed by the requester,
-        // so a shared reply queue fans back out cleanly.
+        // Tell the responder which session ID to apply when the
+        // configured reply destination is session-enabled.
         .UseAzureServiceBusReplyToSessionId<GetOrderRequest>(
             req => req.RequesterId))
     .AddAzureServiceBus(transport =>
@@ -278,9 +278,13 @@ builder.Services
     });
 ```
 
-Use `UseAzureServiceBusReplyToSessionId<T>()` for multiplexed request/reply over a single shared reply queue. Each requester sets its own `ReplyToSessionId` on outbound requests, and the responder copies that value into the reply's `SessionId` so each requester receives only its own replies. This is the [Return Address](https://www.enterpriseintegrationpatterns.com/patterns/messaging/ReturnAddress.html) pattern applied over a session-aware reply queue. See Microsoft Learn on [message routing and correlation](https://learn.microsoft.com/azure/service-bus-messaging/service-bus-messages-payloads#message-routing-and-correlation) for the full multiplexed request/reply protocol.
+Use `UseAzureServiceBusReplyToSessionId<T>()` to put the native `ReplyToSessionId` property on an outbound request. When Mocha dispatches the response, it promotes the received value to the reply's `SessionId` and `PartitionKey`. This preserves the native Azure Service Bus correlation contract for applications that provide a session-enabled reply destination.
 
 The extractor lives on the request type, not the response - the requester is the one that tells the responder where replies should land.
+
+:::note
+Mocha's default temporary reply queue is created per service instance and is not session-enabled. Configuring `ReplyToSessionId` does not turn that queue into a shared, multiplexed session queue. Native session multiplexing requires an explicitly managed session-enabled reply destination and receiver.
+:::
 
 :::tip
 `ReplyToSessionId` is capped at **128 characters**. Use a stable identifier per requester instance (a GUID created at process start is idiomatic) so replies reach the right receiver even after reconnects.
@@ -345,7 +349,7 @@ The dispatch middleware that invokes the four extractors checks `context.Headers
 | `AzureServiceBusMessageHeaders.ReplyToSessionId` | `x-mocha-reply-to-session-id` |
 | `AzureServiceBusMessageHeaders.To`               | `x-mocha-to`                  |
 
-The headers are framework-internal and are filtered out of `ApplicationProperties` on both send and receive, so they do not leak into the consumer-side header bag. This gives you one uniform override channel - whether from a send extension, a pipeline middleware, or a test harness.
+When a message is sent, these headers are mapped to native Service Bus fields and omitted from `ApplicationProperties`. On receive, Mocha restores `SessionId`, `PartitionKey`, `ReplyToSessionId`, and `To` into the normalized envelope headers. Fault, skipped, scheduled-redelivery, and other redispatch paths can therefore recreate the same native fields instead of losing session or partition affinity.
 
 ## Reference
 
@@ -390,7 +394,7 @@ builder.Services
     .AddAzureServiceBus(transport =>
     {
         transport.ConnectionString(connectionString);
-        transport.BindHandlersExplicitly();
+        transport.BindExplicitly();
 
         transport.DeclareQueue("process-order");
 
@@ -403,6 +407,12 @@ builder.Services
             .Send<ProcessOrderCommand>();
     });
 ```
+
+## Migrating from the previous Azure Service Bus API
+
+- `DeclareQueue(name)` now returns the low-level topology descriptor. Use `Queue(name)` when one fluent declaration should create both the queue and its receive endpoint, attach handlers or consumers, and configure endpoint middleware.
+- The old transport topology convention hooks have been replaced by routing strategies. Register custom routing with `UseRoutingStrategy(factory)`.
+- Sender invalidation and recreation are managed inside the transport. Code that performs custom native sends should acquire and dispose a sender lease through `AzureServiceBusClientManager.AcquireSender(...)`; the raw `GetSender(...)` compatibility API is obsolete.
 
 # Control auto-provisioning
 
@@ -510,10 +520,12 @@ public class ProcessInvoiceConsumer : IConsumer<ProcessInvoice>
 
         if (string.IsNullOrEmpty(message.CustomerId))
         {
-            await context.AzureServiceBus().DeadLetterAsync(
-                reason: "InvalidPayload",
-                description: "Missing customer id",
-                properties: new Dictionary<string, object>
+            var args = context.GetAzureServiceBusEventArgs();
+            await args.DeadLetterMessageAsync(
+                args.Message,
+                deadLetterReason: "InvalidPayload",
+                deadLetterErrorDescription: "Missing customer id",
+                propertiesToModify: new Dictionary<string, object>
                 {
                     ["InvoiceId"] = message.InvoiceId
                 },
@@ -531,50 +543,49 @@ If your processing code lives in an `IEventHandler<T>`, resolve the context thro
 
 The message is moved to the entity's `$DeadLetterQueue` with `DeadLetterReason = "InvalidPayload"` and `DeadLetterErrorDescription = "Missing customer id"`. Both fields are first-class columns in Service Bus Explorer and queryable through Azure Monitor.
 
-After `DeadLetterAsync` returns, the acknowledgement middleware skips the redundant `Complete` call - the lock is already released. If a `MessageLockLost` is observed (because, for example, the lock had already expired before the handler called `DeadLetterAsync`), the middleware treats the message as already settled and continues silently.
+After `DeadLetterAsync` returns, the acknowledgement middleware still attempts `Complete`. Azure Service Bus reports the already released lock as `MessageLockLost`; the middleware treats that result as already settled and continues without failing the consumer invocation.
 
-# `IAzureServiceBusMessageContext`
+# Native receive context
 
-Resolve the ASB-specific context from any active `IMessageContext` via the `AzureServiceBus()` extension method (or the non-throwing `TryGetAzureServiceBus(out ...)`). `IConsumeContext<T>` derives from `IMessageContext`, so consumer implementations have direct access:
+Resolve the native SDK event arguments from `IConsumeContext<T>`. Use `GetAzureServiceBusEventArgs()` for regular queues and `GetAzureServiceBusSessionEventArgs()` for session-enabled queues:
 
 ```csharp
 public class ReviewCustomerConsumer : IConsumer<ReviewCustomer>
 {
     public async ValueTask ConsumeAsync(IConsumeContext<ReviewCustomer> context)
     {
-        var asb = context.AzureServiceBus();
+        var args = context.GetAzureServiceBusEventArgs();
 
         // Inspect broker-managed metadata
-        var deliveries = asb.DeliveryCount;
-        var lockUntil = asb.LockedUntil;
+        var deliveries = args.Message.DeliveryCount;
+        var lockUntil = args.Message.LockedUntil;
 
         // Native dead-letter with structured reason code
-        await asb.DeadLetterAsync(
-            "BusinessReject",
-            "Customer flagged for review",
+        await args.DeadLetterMessageAsync(
+            args.Message,
+            deadLetterReason: "BusinessReject",
+            deadLetterErrorDescription: "Customer flagged for review",
             cancellationToken: context.CancellationToken);
     }
 }
 ```
 
-The interface exposes:
+The SDK event arguments expose:
 
-| Member                                               | Purpose                                                                                    |
-| ---------------------------------------------------- | ------------------------------------------------------------------------------------------ |
-| `Message` (`ServiceBusReceivedMessage`)              | The raw message as delivered by the broker                                                 |
-| `EntityPath`                                         | The queue or subscription the message was received from                                    |
-| `DeliveryCount`                                      | The broker-tracked delivery count                                                          |
-| `LockedUntil`                                        | The absolute time at which the broker-managed lock expires                                 |
-| `DeadLetterAsync(reason, description?, properties?)` | Move the message to `$DeadLetterQueue` with structured reason metadata                     |
-| `AbandonAsync(propertiesToModify?)`                  | Return the message to the queue for redelivery, optionally updating application properties |
+| Member                                  | Purpose                                                                                    |
+| --------------------------------------- | ------------------------------------------------------------------------------------------ |
+| `Message` (`ServiceBusReceivedMessage`) | The raw message, including delivery count and lock metadata                                |
+| `DeadLetterMessageAsync(...)`           | Move the message to `$DeadLetterQueue` with structured reason metadata                     |
+| `AbandonMessageAsync(...)`              | Return the message to the queue for redelivery, optionally updating application properties |
+| `CompleteMessageAsync(...)`             | Complete the message explicitly                                                            |
 
-The context is pooled together with the receive context and is only valid for the duration of the handler invocation. Calling `context.AzureServiceBus()` from a handler running on a different transport throws `InvalidOperationException` - use `TryGetAzureServiceBus` if you write transport-agnostic handlers.
+The event arguments are only valid for the duration of the consumer invocation. Calling either extension from a message received on the wrong endpoint kind throws `InvalidOperationException`.
 
 # Best practices
 
 - **Default to `_error`.** Handler exceptions should fall through to the `Fault` middleware. The `_error` queue is consistent across transports and keeps your handlers portable.
 - **Enable `UseNativeDeadLetterForwarding()` to consolidate ops.** When you want a single queue to monitor in production, forward broker-dead-lettered messages into `_error` so `MaxDeliveryCountExceeded` and handler exceptions share one operational surface.
-- **Use `IAzureServiceBusMessageContext.DeadLetterAsync` for domain-level rejection.** Reach for the native API only when you want a structured reason code visible to operators in Service Bus Explorer or Azure Monitor (`InvalidPayload`, `BusinessReject`, `DuplicateRequest`, etc.). Generic infrastructure failures still belong in the `_error` queue with a stack trace.
+- **Use `DeadLetterMessageAsync` for domain-level rejection.** Reach for the native API only when you want a structured reason code visible to operators in Service Bus Explorer or Azure Monitor (`InvalidPayload`, `BusinessReject`, `DuplicateRequest`, etc.). Generic infrastructure failures still belong in the `_error` queue with a stack trace.
 - **Tune `MaxDeliveryCount` deliberately.** The default is 10. Combined with retry middleware, a high count can produce many handler invocations before broker dead-lettering kicks in. Lower the count if you would rather see failures in `$DeadLetterQueue` sooner.
 - **Avoid building consumer endpoints over `$DeadLetterQueue`.** Treat the broker DLQ as an operations surface, not a normal pipeline destination. The same advice applies in MassTransit and other Service Bus clients - dead-lettered messages are typically inspected, fixed, and resubmitted, not auto-processed.
 
@@ -592,8 +603,8 @@ Both `WithForwardDeadLetteredMessagesTo("...")` and `UseNativeDeadLetterForwardi
 **`CancelScheduledMessageAsync` returns false.**
 The most common causes: the scheduled time has already passed (the broker enqueued the message and returned `MessageNotFound` to the cancel call), `IsCancellable` was `false` on the original `SchedulingResult`, or the token came from a different transport than the one that created the message. The transport's cancel path is idempotent - calling it twice is safe.
 
-**`context.AzureServiceBus()` throws `InvalidOperationException`.**
-The current message did not originate from the Azure Service Bus transport. Use `context.TryGetAzureServiceBus(out var asb)` if you write transport-agnostic handlers and want to no-op on other transports.
+**`GetAzureServiceBusEventArgs()` throws `InvalidOperationException`.**
+The current message did not originate from a non-session Azure Service Bus endpoint. Use `GetAzureServiceBusSessionEventArgs()` for session-enabled endpoints.
 
 **Receive endpoint logs `MessageLockLost`.**
 The broker reclaimed the lock before the acknowledgement middleware could `Complete` or `Abandon` the message - usually because the handler ran longer than `LockDuration`. The acknowledgement middleware swallows this exception (the broker will redeliver per its own rules), but you should consider either lengthening `LockDuration` on the queue or shortening the handler.

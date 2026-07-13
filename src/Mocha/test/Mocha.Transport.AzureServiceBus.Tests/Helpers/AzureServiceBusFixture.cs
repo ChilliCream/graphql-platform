@@ -6,7 +6,7 @@ using Xunit.Abstractions;
 
 namespace Mocha.Transport.AzureServiceBus.Tests.Helpers;
 
-public class MochaAzureServiceBusOptions : AzureCloudServiceBusOptions
+internal sealed class MochaAzureServiceBusOptions : AzureCloudServiceBusOptions
 {
     public override void Configure(ServiceBusOptionsBuilder builder)
     {
@@ -14,7 +14,7 @@ public class MochaAzureServiceBusOptions : AzureCloudServiceBusOptions
     }
 }
 
-public class MochaAzureServiceBusResource : AzureCloudServiceBusResource<MochaAzureServiceBusOptions>
+internal sealed class MochaAzureServiceBusResource : AzureCloudServiceBusResource<MochaAzureServiceBusOptions>
 {
     public MochaAzureServiceBusResource(IMessageSink messageSink)
         : base(messageSink)
@@ -26,17 +26,17 @@ public sealed class AzureServiceBusFixture : IAsyncLifetime
 {
     private readonly MochaAzureServiceBusResource _resource;
 
-    public AzureServiceBusFixture(IMessageSink messageSink)
+    public AzureServiceBusFixture()
     {
-        _resource = new MochaAzureServiceBusResource(messageSink);
+        _resource = new MochaAzureServiceBusResource(NoOpMessageSink.Instance);
     }
 
-    public async Task InitializeAsync()
+    public async ValueTask InitializeAsync()
     {
         await _resource.InitializeAsync();
     }
 
-    public async Task DisposeAsync()
+    public async ValueTask DisposeAsync()
     {
         await _resource.DisposeAsync();
     }
@@ -60,6 +60,15 @@ public sealed class AzureServiceBusFixture : IAsyncLifetime
         var hash = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(filePath)))[..8];
         return $"{testName}_{hash}";
     }
+
+#pragma warning disable xUnit3000 // This in-process adapter is never marshalled across AppDomains.
+    private sealed class NoOpMessageSink : IMessageSink
+    {
+        public static NoOpMessageSink Instance { get; } = new();
+
+        public bool OnMessage(IMessageSinkMessage message) => true;
+    }
+#pragma warning restore xUnit3000
 }
 
 /// <summary>

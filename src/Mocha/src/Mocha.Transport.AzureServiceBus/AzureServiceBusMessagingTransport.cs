@@ -1,7 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
-using Mocha.Features;
-using Mocha.Scheduling;
-using static System.StringSplitOptions;
+using Azure.Messaging.ServiceBus;
 
 namespace Mocha.Transport.AzureServiceBus;
 
@@ -44,10 +42,17 @@ public sealed class AzureServiceBusMessagingTransport : MessagingTransport
 
         ClientManager = new AzureServiceBusClientManager(configuration);
 
+        var fullyQualifiedNamespace = configuration.FullyQualifiedNamespace;
+        if (configuration.ConnectionString is { } connectionString)
+        {
+            fullyQualifiedNamespace =
+                ServiceBusConnectionStringProperties.Parse(connectionString).FullyQualifiedNamespace;
+        }
+
         var builder = new UriBuilder
         {
             Scheme = Schema,
-            Host = configuration.FullyQualifiedNamespace ?? "localhost",
+            Host = fullyQualifiedNamespace ?? "localhost",
             Path = "/"
         };
 
@@ -71,8 +76,6 @@ public sealed class AzureServiceBusMessagingTransport : MessagingTransport
         {
             _topology.AddSubscription(subscription);
         }
-
-        Features.Configure<SchedulingTransportFeature>(f => f.SupportsSchedulingNatively = true);
     }
 
     /// <summary>
@@ -95,12 +98,12 @@ public sealed class AzureServiceBusMessagingTransport : MessagingTransport
             }
         }
 
+        var provisionedQueues = new HashSet<string>(StringComparer.Ordinal);
+        var visitingQueues = new HashSet<string>(StringComparer.Ordinal);
+
         foreach (var queue in _topology.Queues)
         {
-            if (queue.AutoProvision ?? autoProvision)
-            {
-                await queue.ProvisionAsync(ClientManager, cancellationToken);
-            }
+            await ProvisionQueueAsync(queue);
         }
 
         foreach (var subscription in _topology.Subscriptions)
@@ -108,6 +111,46 @@ public sealed class AzureServiceBusMessagingTransport : MessagingTransport
             if (subscription.AutoProvision ?? autoProvision)
             {
                 await subscription.ProvisionAsync(ClientManager, cancellationToken);
+            }
+        }
+
+        async ValueTask ProvisionQueueAsync(AzureServiceBusQueue queue)
+        {
+            if (provisionedQueues.Contains(queue.Name))
+            {
+                return;
+            }
+
+            if (!visitingQueues.Add(queue.Name))
+            {
+                throw new InvalidOperationException(
+                    $"Azure Service Bus queue forwarding contains a cycle involving '{queue.Name}'.");
+            }
+
+            await ProvisionDependencyAsync(queue.ForwardTo);
+            await ProvisionDependencyAsync(queue.ForwardDeadLetteredMessagesTo);
+
+            visitingQueues.Remove(queue.Name);
+
+            if (queue.AutoProvision ?? autoProvision)
+            {
+                await queue.ProvisionAsync(ClientManager, cancellationToken);
+            }
+
+            provisionedQueues.Add(queue.Name);
+        }
+
+        async ValueTask ProvisionDependencyAsync(string? entityName)
+        {
+            if (entityName is null)
+            {
+                return;
+            }
+
+            var dependency = _topology.Queues.FirstOrDefault(q => q.Name == entityName);
+            if (dependency is not null)
+            {
+                await ProvisionQueueAsync(dependency);
             }
         }
     }
@@ -126,13 +169,15 @@ public sealed class AzureServiceBusMessagingTransport : MessagingTransport
         {
             entities.Add(
                 new TopologyEntityDescription(
+                    MochaUrn.TopologyEntity(topic.Address?.ToString(), "topic", topic.Name),
                     "topic",
                     topic.Name,
                     topic.Address?.ToString(),
-                    "inbound",
+                    "both",
                     new Dictionary<string, object?>
                     {
-                        ["autoProvision"] = topic.AutoProvision ?? autoProvision
+                        ["autoProvision"] = topic.AutoProvision ?? autoProvision,
+                        ["origin"] = topic.Origin
                     }));
         }
 
@@ -140,35 +185,44 @@ public sealed class AzureServiceBusMessagingTransport : MessagingTransport
         {
             entities.Add(
                 new TopologyEntityDescription(
+                    MochaUrn.TopologyEntity(queue.Address?.ToString(), "queue", queue.Name),
                     "queue",
                     queue.Name,
                     queue.Address?.ToString(),
-                    "outbound",
+                    "both",
                     new Dictionary<string, object?>
                     {
                         ["autoDelete"] = queue.AutoDelete,
-                        ["autoProvision"] = queue.AutoProvision ?? autoProvision
+                        ["autoProvision"] = queue.AutoProvision ?? autoProvision,
+                        ["origin"] = queue.Origin
                     }));
         }
 
         foreach (var subscription in _topology.Subscriptions)
         {
+            var source = subscription.Source.Address?.ToString();
+            var target = subscription.Destination.Address?.ToString();
+
             links.Add(
                 new TopologyLinkDescription(
+                    MochaUrn.TopologyLink(subscription.Address?.ToString(), "subscription", source, target),
                     "subscription",
                     subscription.Address?.ToString(),
-                    subscription.Source.Address?.ToString(),
-                    subscription.Destination.Address?.ToString(),
+                    source,
+                    target,
                     "forward",
                     new Dictionary<string, object?>
                     {
-                        ["autoProvision"] = subscription.AutoProvision ?? autoProvision
+                        ["name"] = subscription.Name,
+                        ["autoProvision"] = subscription.AutoProvision ?? autoProvision,
+                        ["origin"] = subscription.Origin
                     }));
         }
 
         var topology = new TopologyDescription(_topology.Address.ToString(), entities, links);
 
         return new TransportDescription(
+            Urn,
             _topology.Address.ToString(),
             Name,
             Schema,
@@ -181,10 +235,20 @@ public sealed class AzureServiceBusMessagingTransport : MessagingTransport
     /// <inheritdoc />
     public override bool TryGetDispatchEndpoint(Uri address, [NotNullWhen(true)] out DispatchEndpoint? endpoint)
     {
+        if (TryGetReplyDispatchEndpoint(address, out endpoint))
+        {
+            return true;
+        }
+
         if (address.Scheme == Schema)
         {
             foreach (var candidate in DispatchEndpoints)
             {
+                if (!candidate.IsCompleted)
+                {
+                    continue;
+                }
+
                 if (candidate.Address == address)
                 {
                     endpoint = candidate;
@@ -197,6 +261,11 @@ public sealed class AzureServiceBusMessagingTransport : MessagingTransport
         {
             foreach (var candidate in DispatchEndpoints)
             {
+                if (!candidate.IsCompleted)
+                {
+                    continue;
+                }
+
                 if (candidate.Destination.Address == address)
                 {
                     endpoint = candidate;
@@ -205,11 +274,15 @@ public sealed class AzureServiceBusMessagingTransport : MessagingTransport
             }
         }
 
-        // Convenience schemes: support both host-based (queue://name) and path-based (queue:///name) URIs
-        if (address is { Scheme: "queue", Host: { Length: > 0 } queueName })
+        if (TryGetResourceName(address, "queue", out var queueName))
         {
             foreach (var candidate in DispatchEndpoints)
             {
+                if (!candidate.IsCompleted)
+                {
+                    continue;
+                }
+
                 if (candidate.Destination is AzureServiceBusQueue queue && queue.Name == queueName)
                 {
                     endpoint = candidate;
@@ -218,10 +291,15 @@ public sealed class AzureServiceBusMessagingTransport : MessagingTransport
             }
         }
 
-        if (address is { Scheme: "topic", Host: { Length: > 0 } topicName })
+        if (TryGetResourceName(address, "topic", out var topicName))
         {
             foreach (var candidate in DispatchEndpoints)
             {
+                if (!candidate.IsCompleted)
+                {
+                    continue;
+                }
+
                 if (candidate.Destination is AzureServiceBusTopic topic && topic.Name == topicName)
                 {
                     endpoint = candidate;
@@ -265,173 +343,6 @@ public sealed class AzureServiceBusMessagingTransport : MessagingTransport
     protected override DispatchEndpoint CreateDispatchEndpoint()
     {
         return new AzureServiceBusDispatchEndpoint(this);
-    }
-
-    /// <inheritdoc />
-    public override DispatchEndpointConfiguration? CreateEndpointConfiguration(
-        IMessagingConfigurationContext context,
-        OutboundRoute route)
-    {
-        AzureServiceBusDispatchEndpointConfiguration? configuration = null;
-        if (route.Kind == OutboundRouteKind.Send)
-        {
-            var queueName = context.Naming.GetSendEndpointName(route.MessageType.RuntimeType);
-            configuration = new AzureServiceBusDispatchEndpointConfiguration
-            {
-                QueueName = queueName,
-                Name = "q/" + queueName
-            };
-        }
-        else if (route.Kind == OutboundRouteKind.Publish)
-        {
-            var topicName = context.Naming.GetPublishEndpointName(route.MessageType.RuntimeType);
-            configuration = new AzureServiceBusDispatchEndpointConfiguration
-            {
-                TopicName = topicName,
-                Name = "t/" + topicName
-            };
-        }
-
-        return configuration;
-    }
-
-    /// <inheritdoc />
-    public override DispatchEndpointConfiguration? CreateEndpointConfiguration(
-        IMessagingConfigurationContext context,
-        Uri address)
-    {
-        AzureServiceBusDispatchEndpointConfiguration? configuration = null;
-
-        var path = address.AbsolutePath.AsSpan();
-        Span<Range> ranges = stackalloc Range[2];
-        var segmentCount = path.Split(ranges, '/', RemoveEmptyEntries | TrimEntries);
-
-        // Handle azuresb:///replies and azuresb:///t/{name} / azuresb:///q/{name}
-        if (address.Scheme == Schema && address.Host is "")
-        {
-            if (segmentCount == 1 && path[ranges[0]] is "replies")
-            {
-                var instanceEndpointName = context.Naming.GetInstanceEndpoint(context.Host.InstanceId);
-                configuration = new AzureServiceBusDispatchEndpointConfiguration
-                {
-                    Kind = DispatchEndpointKind.Reply,
-                    QueueName = instanceEndpointName,
-                    Name = "Replies"
-                };
-            }
-
-            if (segmentCount == 2)
-            {
-                var kind = path[ranges[0]];
-                var name = path[ranges[1]];
-
-                if (kind is "t")
-                {
-                    configuration = new AzureServiceBusDispatchEndpointConfiguration
-                    {
-                        TopicName = new string(name),
-                        Name = "t/" + new string(name)
-                    };
-                }
-
-                if (kind is "q")
-                {
-                    configuration = new AzureServiceBusDispatchEndpointConfiguration
-                    {
-                        QueueName = new string(name),
-                        Name = "q/" + new string(name)
-                    };
-                }
-            }
-        }
-
-        // Handle full topology URLs
-        if (configuration is null && _topology.Address.IsBaseOf(address) && segmentCount == 2)
-        {
-            var kind = path[ranges[0]];
-            var name = path[ranges[1]];
-
-            if (kind is "t")
-            {
-                configuration = new AzureServiceBusDispatchEndpointConfiguration
-                {
-                    TopicName = new string(name),
-                    Name = "t/" + new string(name)
-                };
-            }
-
-            if (kind is "q")
-            {
-                configuration = new AzureServiceBusDispatchEndpointConfiguration
-                {
-                    QueueName = new string(name),
-                    Name = "q/" + new string(name)
-                };
-            }
-        }
-
-        // Handle convenience schemes (supports both host-based and path-based URIs)
-        if (configuration is null && address is { Scheme: "queue" })
-        {
-            var name =
-                !string.IsNullOrEmpty(address.Host) ? address.Host
-                : segmentCount == 1 ? new string(path[ranges[0]]) : null;
-
-            if (name is not null)
-            {
-                configuration = new AzureServiceBusDispatchEndpointConfiguration
-                {
-                    QueueName = name,
-                    Name = "q/" + name
-                };
-            }
-        }
-
-        if (configuration is null && address is { Scheme: "topic" })
-        {
-            var name =
-                !string.IsNullOrEmpty(address.Host) ? address.Host
-                : segmentCount == 1 ? new string(path[ranges[0]]) : null;
-
-            if (name is not null)
-            {
-                configuration = new AzureServiceBusDispatchEndpointConfiguration
-                {
-                    TopicName = name,
-                    Name = "t/" + name
-                };
-            }
-        }
-
-        return configuration;
-    }
-
-    /// <inheritdoc />
-    public override ReceiveEndpointConfiguration CreateEndpointConfiguration(
-        IMessagingConfigurationContext context,
-        InboundRoute route)
-    {
-        AzureServiceBusReceiveEndpointConfiguration configuration;
-        if (route.Kind == InboundRouteKind.Reply)
-        {
-            var instanceEndpointName = context.Naming.GetInstanceEndpoint(context.Host.InstanceId);
-            configuration = new AzureServiceBusReceiveEndpointConfiguration
-            {
-                Name = "Replies",
-                QueueName = instanceEndpointName,
-                IsTemporary = true,
-                Kind = ReceiveEndpointKind.Reply,
-                AutoProvision = true,
-                ReceiveMiddlewares = [ReplyReceiveMiddleware.Create()]
-            };
-        }
-        else
-        {
-            var queueName = context.Naming.GetReceiveEndpointName(route, ReceiveEndpointKind.Default);
-            configuration = new AzureServiceBusReceiveEndpointConfiguration { Name = queueName, QueueName = queueName };
-        }
-
-        return configuration;
     }
 
     /// <inheritdoc />

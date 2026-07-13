@@ -3,104 +3,109 @@ namespace Mocha.Transport.AzureServiceBus;
 /// <summary>
 /// Descriptor implementation for configuring an Azure Service Bus queue.
 /// </summary>
-internal sealed class AzureServiceBusQueueDescriptor
+internal sealed class AzureServiceBusQueueTopologyDescriptor
     : MessagingDescriptorBase<AzureServiceBusQueueConfiguration>
-    , IAzureServiceBusQueueDescriptor
+    , IAzureServiceBusQueueTopologyDescriptor
 {
-    public AzureServiceBusQueueDescriptor(IMessagingConfigurationContext context, string name) : base(context)
+    public AzureServiceBusQueueTopologyDescriptor(IMessagingConfigurationContext context, string name) : base(context)
     {
-        Configuration = new AzureServiceBusQueueConfiguration { Name = name };
+        Configuration = new AzureServiceBusQueueConfiguration
+        {
+            Name = name,
+            Origin = TopologyOrigin.Declared
+        };
     }
 
     /// <inheritdoc />
     protected internal override AzureServiceBusQueueConfiguration Configuration { get; protected set; }
 
     /// <inheritdoc />
-    public IAzureServiceBusQueueDescriptor Name(string name)
+    public IAzureServiceBusQueueTopologyDescriptor Name(string name)
     {
         Configuration.Name = name;
         return this;
     }
 
     /// <inheritdoc />
-    public IAzureServiceBusQueueDescriptor AutoDelete(bool autoDelete = true)
+    public IAzureServiceBusQueueTopologyDescriptor AutoDelete(bool autoDelete = true)
     {
         Configuration.AutoDelete = autoDelete;
         return this;
     }
 
     /// <inheritdoc />
-    public IAzureServiceBusQueueDescriptor AutoProvision(bool autoProvision = true)
+    public IAzureServiceBusQueueTopologyDescriptor AutoProvision(bool autoProvision = true)
     {
         Configuration.AutoProvision = autoProvision;
         return this;
     }
 
     /// <inheritdoc />
-    public IAzureServiceBusQueueDescriptor WithAutoDeleteOnIdle(TimeSpan autoDeleteOnIdle)
+    public IAzureServiceBusQueueTopologyDescriptor WithAutoDeleteOnIdle(TimeSpan autoDeleteOnIdle)
     {
         Configuration.AutoDeleteOnIdle = autoDeleteOnIdle;
         return this;
     }
 
     /// <inheritdoc />
-    public IAzureServiceBusQueueDescriptor WithLockDuration(TimeSpan lockDuration)
+    public IAzureServiceBusQueueTopologyDescriptor WithLockDuration(TimeSpan lockDuration)
     {
         Configuration.LockDuration = lockDuration;
         return this;
     }
 
     /// <inheritdoc />
-    public IAzureServiceBusQueueDescriptor WithMaxDeliveryCount(int maxDeliveryCount)
+    public IAzureServiceBusQueueTopologyDescriptor WithMaxDeliveryCount(int maxDeliveryCount)
     {
         Configuration.MaxDeliveryCount = maxDeliveryCount;
         return this;
     }
 
     /// <inheritdoc />
-    public IAzureServiceBusQueueDescriptor WithDefaultMessageTimeToLive(TimeSpan defaultMessageTimeToLive)
+    public IAzureServiceBusQueueTopologyDescriptor WithDefaultMessageTimeToLive(TimeSpan defaultMessageTimeToLive)
     {
         Configuration.DefaultMessageTimeToLive = defaultMessageTimeToLive;
         return this;
     }
 
     /// <inheritdoc />
-    public IAzureServiceBusQueueDescriptor WithMaxSizeInMegabytes(long maxSizeInMegabytes)
+    public IAzureServiceBusQueueTopologyDescriptor WithMaxSizeInMegabytes(long maxSizeInMegabytes)
     {
         Configuration.MaxSizeInMegabytes = maxSizeInMegabytes;
         return this;
     }
 
     /// <inheritdoc />
-    public IAzureServiceBusQueueDescriptor WithRequiresSession(bool requiresSession = true)
+    public IAzureServiceBusQueueTopologyDescriptor WithRequiresSession(bool requiresSession = true)
     {
         Configuration.RequiresSession = requiresSession;
         return this;
     }
 
     /// <inheritdoc />
-    public IAzureServiceBusQueueDescriptor WithEnablePartitioning(bool enablePartitioning = true)
+    public IAzureServiceBusQueueTopologyDescriptor WithEnablePartitioning(bool enablePartitioning = true)
     {
         Configuration.EnablePartitioning = enablePartitioning;
         return this;
     }
 
     /// <inheritdoc />
-    public IAzureServiceBusQueueDescriptor WithForwardTo(string entityName)
+    public IAzureServiceBusQueueTopologyDescriptor WithForwardTo(string entityName)
     {
         Configuration.ForwardTo = entityName;
         return this;
     }
 
     /// <inheritdoc />
-    public IAzureServiceBusQueueDescriptor WithForwardDeadLetteredMessagesTo(string entityName)
+    public IAzureServiceBusQueueTopologyDescriptor WithForwardDeadLetteredMessagesTo(string entityName)
     {
         Configuration.ForwardDeadLetteredMessagesTo = entityName;
         return this;
     }
 
     /// <inheritdoc />
-    public IAzureServiceBusQueueDescriptor WithDeadLetteringOnMessageExpiration(bool deadLetteringOnMessageExpiration = true)
+    public IAzureServiceBusQueueTopologyDescriptor WithDeadLetteringOnMessageExpiration(
+        bool deadLetteringOnMessageExpiration = true)
     {
         Configuration.DeadLetteringOnMessageExpiration = deadLetteringOnMessageExpiration;
         return this;
@@ -113,11 +118,11 @@ internal sealed class AzureServiceBusQueueDescriptor
     public AzureServiceBusQueueConfiguration CreateConfiguration() => Configuration;
 
     /// <summary>
-    /// Creates a new queue descriptor with the specified name.
+    /// Creates a new queue topology descriptor with the specified name.
     /// </summary>
     /// <param name="context">The messaging configuration context.</param>
     /// <param name="name">The queue name.</param>
     /// <returns>A new queue descriptor.</returns>
-    public static AzureServiceBusQueueDescriptor New(IMessagingConfigurationContext context, string name)
+    public static AzureServiceBusQueueTopologyDescriptor New(IMessagingConfigurationContext context, string name)
         => new(context, name);
 }

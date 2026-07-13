@@ -54,6 +54,11 @@ internal static class ThrowHelper
         => new InvalidOperationException(
             "AzureServiceBusScheduledMessageStore requires the envelope to carry a scheduled time.");
 
+    public static Exception ScheduledMessageStoreRequiresMatchingTransport()
+        => new InvalidOperationException(
+            "AzureServiceBusScheduledMessageStore requires the dispatch context and endpoint "
+            + "to belong to its registered Azure Service Bus transport.");
+
     // Topology
     public static Exception TopicAlreadyExists(string topicName)
         => new InvalidOperationException($"Topic '{topicName}' already exists");

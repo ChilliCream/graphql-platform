@@ -28,7 +28,7 @@ public class ExplicitTopologyTests
             .AddAzureServiceBus(t =>
             {
                 t.ConnectionString(ctx.ConnectionString);
-                t.BindHandlersExplicitly();
+                t.BindExplicitly();
                 t.DeclareTopic("custom-topic");
                 t.DeclareQueue("custom-q");
                 t.DeclareSubscription("custom-topic", "custom-q");
@@ -65,7 +65,7 @@ public class ExplicitTopologyTests
             .AddAzureServiceBus(t =>
             {
                 t.ConnectionString(ctx.ConnectionString);
-                t.BindHandlersImplicitly();
+                t.BindImplicitly();
                 t.DeclareTopic("custom-topic");
                 t.DeclareQueue("custom-q");
                 t.DeclareSubscription("custom-topic", "custom-q");

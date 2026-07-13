@@ -26,6 +26,14 @@ internal sealed class AzureServiceBusMessagePropertiesMiddleware
         {
             var headers = context.Headers;
 
+            if (headers.IsReply()
+                && headers.TryGetValue(AzureServiceBusMessageHeaders.ReplyToSessionId, out var replySessionValue)
+                && replySessionValue is string replySessionId)
+            {
+                headers.Set(AzureServiceBusMessageHeaders.SessionId, replySessionId);
+                headers.Set(AzureServiceBusMessageHeaders.PartitionKey, replySessionId);
+            }
+
             headers.SetIfExtracted<AzureServiceBusSessionIdExtractor>(
                 messageType,
                 message,

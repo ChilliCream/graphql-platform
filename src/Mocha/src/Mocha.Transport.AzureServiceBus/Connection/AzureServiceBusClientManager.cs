@@ -12,7 +12,8 @@ namespace Mocha.Transport.AzureServiceBus;
 public sealed class AzureServiceBusClientManager : IAsyncDisposable
 {
     private readonly ServiceBusConnection _connection;
-    private readonly ConcurrentDictionary<string, ServiceBusSender> _senders = new();
+    private readonly ConcurrentDictionary<string, SenderEntry> _senders = new();
+    private readonly ConcurrentQueue<SenderEntry> _compatibilitySenders = new();
     private volatile bool _isDisposed;
 
     /// <summary>
@@ -46,34 +47,74 @@ public sealed class AzureServiceBusClientManager : IAsyncDisposable
     /// </summary>
     /// <param name="entityPath">The queue or topic name to send to.</param>
     /// <returns>A thread-safe sender for the entity.</returns>
+    [Obsolete("Use AcquireSender(string) and dispose the returned lease instead.")]
     public ServiceBusSender GetSender(string entityPath)
     {
         ObjectDisposedException.ThrowIf(_isDisposed, this);
 
         // Fast path: avoid delegate allocation on cache hit
-        if (_senders.TryGetValue(entityPath, out var sender))
+        if (_senders.TryGetValue(entityPath, out var entry))
         {
-            return sender;
+            entry.MarkCompatibilityAccess();
+            return entry.Sender;
         }
 
-        return _senders.GetOrAdd(entityPath, static (path, conn) => conn.CreateSender(path), _connection);
+        entry = _senders.GetOrAdd(
+            entityPath,
+            static (path, connection) => new SenderEntry(connection.CreateSender(path)),
+            _connection);
+        entry.MarkCompatibilityAccess();
+        return entry.Sender;
+    }
+
+    /// <summary>
+    /// Acquires a cached sender lease. Dispose the lease after the send operation so invalidation
+    /// can close a retired AMQP link without racing an operation in progress.
+    /// </summary>
+    public SenderLease AcquireSender(string entityPath)
+    {
+        ObjectDisposedException.ThrowIf(_isDisposed, this);
+
+        while (true)
+        {
+            var entry = _senders.GetOrAdd(
+                entityPath,
+                static (path, connection) => new SenderEntry(connection.CreateSender(path)),
+                _connection);
+            if (entry.TryAcquire())
+            {
+                return new SenderLease(entry);
+            }
+
+            ((ICollection<KeyValuePair<string, SenderEntry>>)_senders)
+                .Remove(new KeyValuePair<string, SenderEntry>(entityPath, entry));
+        }
     }
 
     /// <summary>
     /// Removes the cached <see cref="ServiceBusSender"/> for <paramref name="entityPath"/> so the
     /// next <see cref="GetSender"/> call builds a fresh one against a recreated entity. The
-    /// orphaned sender is left to GC: a concurrent dispatcher may still be mid-send on it, and
-    /// disposing here would race them into <see cref="ObjectDisposedException"/>.
+    /// The exact failed entry is removed, then disposed after its final lease is released.
     /// </summary>
     /// <param name="entityPath">The queue or topic name whose cached sender should be invalidated.</param>
-    public void InvalidateSender(string entityPath)
+    /// <param name="entry">The exact cached entry observed by the failed operation.</param>
+    internal Task InvalidateSenderAsync(string entityPath, SenderEntry entry)
     {
         if (_isDisposed)
         {
-            return;
+            return Task.CompletedTask;
         }
 
-        _senders.TryRemove(entityPath, out _);
+        ((ICollection<KeyValuePair<string, SenderEntry>>)_senders)
+            .Remove(new KeyValuePair<string, SenderEntry>(entityPath, entry));
+
+        if (entry.HasCompatibilityAccess)
+        {
+            _compatibilitySenders.Enqueue(entry);
+            return Task.CompletedTask;
+        }
+
+        return entry.RetireAsync();
     }
 
     /// <summary>
@@ -170,13 +211,140 @@ public sealed class AzureServiceBusClientManager : IAsyncDisposable
 
         _isDisposed = true;
 
-        foreach (var sender in _senders.Values)
-        {
-            await sender.DisposeAsync();
-        }
-
+        var disposalTasks = _senders.Values.Select(static entry => entry.RetireAsync()).ToList();
         _senders.Clear();
+        while (_compatibilitySenders.TryDequeue(out var compatibilitySender))
+        {
+            disposalTasks.Add(compatibilitySender.RetireAsync());
+        }
+        await Task.WhenAll(disposalTasks);
 
         await _connection.DisposeAsync();
+    }
+
+    public sealed class SenderLease : IDisposable
+    {
+        private SenderEntry? _entry;
+
+        internal SenderLease(SenderEntry entry)
+        {
+            _entry = entry;
+        }
+
+        public ServiceBusSender Sender => Entry.Sender;
+
+        internal SenderEntry Entry
+            => _entry ?? throw new ObjectDisposedException(nameof(SenderLease));
+
+        public void Dispose()
+        {
+            Interlocked.Exchange(ref _entry, null)?.Release();
+        }
+    }
+
+    internal sealed class SenderEntry
+    {
+        private readonly object _sync = new();
+        private readonly TaskCompletionSource _disposed = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        private int _leaseCount;
+        private bool _retired;
+        private bool _disposeStarted;
+        private bool _compatibilityAccess;
+
+        public SenderEntry(ServiceBusSender sender)
+        {
+            Sender = sender;
+        }
+
+        public ServiceBusSender Sender { get; }
+
+        public bool HasCompatibilityAccess
+        {
+            get
+            {
+                lock (_sync)
+                {
+                    return _compatibilityAccess;
+                }
+            }
+        }
+
+        public void MarkCompatibilityAccess()
+        {
+            lock (_sync)
+            {
+                _compatibilityAccess = true;
+            }
+        }
+
+        public bool TryAcquire()
+        {
+            lock (_sync)
+            {
+                if (_retired)
+                {
+                    return false;
+                }
+
+                _leaseCount++;
+                return true;
+            }
+        }
+
+        public void Release()
+        {
+            var dispose = false;
+            lock (_sync)
+            {
+                _leaseCount--;
+                dispose = TryBeginDispose();
+            }
+
+            if (dispose)
+            {
+                _ = DisposeSenderAsync();
+            }
+        }
+
+        public Task RetireAsync()
+        {
+            var dispose = false;
+            lock (_sync)
+            {
+                _retired = true;
+                dispose = TryBeginDispose();
+            }
+
+            if (dispose)
+            {
+                _ = DisposeSenderAsync();
+            }
+
+            return _disposed.Task;
+        }
+
+        private bool TryBeginDispose()
+        {
+            if (!_retired || _leaseCount != 0 || _disposeStarted)
+            {
+                return false;
+            }
+
+            _disposeStarted = true;
+            return true;
+        }
+
+        private async Task DisposeSenderAsync()
+        {
+            try
+            {
+                await Sender.DisposeAsync();
+                _disposed.TrySetResult();
+            }
+            catch (Exception exception)
+            {
+                _disposed.TrySetException(exception);
+            }
+        }
     }
 }

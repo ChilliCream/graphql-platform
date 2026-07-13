@@ -6,8 +6,9 @@ namespace Mocha.Transport.AzureServiceBus;
 public sealed class AzureServiceBusDefaultQueueOptions
 {
     /// <summary>
-    /// Gets or sets whether queues are auto-deleted by default.
-    /// Default is null (uses the queue default of false).
+    /// Compatibility toggle for <see cref="AutoDeleteOnIdle"/>. Azure Service Bus has no separate
+    /// auto-delete flag. <c>true</c> alone configures no broker option, while <c>false</c> suppresses
+    /// the configured default idle deletion policy.
     /// </summary>
     public bool? AutoDelete { get; set; }
 
@@ -18,7 +19,8 @@ public sealed class AzureServiceBusDefaultQueueOptions
     public bool? AutoProvision { get; set; }
 
     /// <summary>
-    /// Default idle window after which the broker may delete the queue.
+    /// Default idle window after which the broker may delete the queue. This is the broker option
+    /// that enables deletion unless <see cref="AutoDelete"/> is explicitly <c>false</c>.
     /// </summary>
     public TimeSpan? AutoDeleteOnIdle { get; set; }
 

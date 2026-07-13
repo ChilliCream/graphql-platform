@@ -1,5 +1,4 @@
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 using Mocha.Scheduling;
 using Mocha.Transport.AzureServiceBus.Scheduling;
 
@@ -25,8 +24,11 @@ public static class MessageBusBuilderExtensions
 
         busBuilder.ConfigureMessageBus(b => b.AddTransport(transport));
 
-        busBuilder.Services.TryAddScoped<IScheduledMessageStore>(
-            _ => new AzureServiceBusScheduledMessageStore(transport.ClientManager));
+        busBuilder.Services.AddSingleton(
+            new ScheduledMessageStoreRegistration(
+                transport,
+                AzureServiceBusScheduledMessageStore.TokenPrefix,
+                _ => new AzureServiceBusScheduledMessageStore(transport)));
 
         return busBuilder;
     }

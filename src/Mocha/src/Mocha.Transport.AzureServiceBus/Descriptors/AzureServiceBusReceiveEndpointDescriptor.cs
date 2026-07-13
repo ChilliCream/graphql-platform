@@ -1,3 +1,5 @@
+using Mocha.Features;
+
 namespace Mocha.Transport.AzureServiceBus;
 
 internal sealed class AzureServiceBusReceiveEndpointDescriptor
@@ -19,9 +21,57 @@ internal sealed class AzureServiceBusReceiveEndpointDescriptor
     }
 
     /// <inheritdoc />
+    public new IAzureServiceBusReceiveEndpointDescriptor Handler(Type handlerType)
+    {
+        base.Handler(handlerType);
+
+        return this;
+    }
+
+    /// <inheritdoc />
+    public new IAzureServiceBusReceiveEndpointDescriptor Consumer(Type consumerType)
+    {
+        base.Consumer(consumerType);
+
+        return this;
+    }
+
+    /// <inheritdoc />
     public new IAzureServiceBusReceiveEndpointDescriptor Consumer<TConsumer>() where TConsumer : class, IConsumer
     {
         base.Consumer<TConsumer>();
+
+        return this;
+    }
+
+    /// <inheritdoc />
+    public new IAzureServiceBusReceiveEndpointDescriptor Receives<TMessage>()
+    {
+        base.Receives<TMessage>();
+
+        return this;
+    }
+
+    /// <inheritdoc />
+    public new IAzureServiceBusReceiveEndpointDescriptor Receives(Type messageType)
+    {
+        base.Receives(messageType);
+
+        return this;
+    }
+
+    /// <inheritdoc />
+    public new IAzureServiceBusReceiveEndpointDescriptor BindImplicitly()
+    {
+        base.BindImplicitly();
+
+        return this;
+    }
+
+    /// <inheritdoc />
+    public new IAzureServiceBusReceiveEndpointDescriptor BindExplicitly()
+    {
+        base.BindExplicitly();
 
         return this;
     }
@@ -59,17 +109,63 @@ internal sealed class AzureServiceBusReceiveEndpointDescriptor
     }
 
     /// <inheritdoc />
-    public new IAzureServiceBusReceiveEndpointDescriptor FaultEndpoint(string name)
+    public IAzureServiceBusReceiveEndpointDescriptor FaultEndpoint(Uri address)
     {
-        base.FaultEndpoint(name);
+        ArgumentNullException.ThrowIfNull(address);
+        if (!address.IsAbsoluteUri)
+        {
+            throw new ArgumentException("The endpoint address must be an absolute URI.", nameof(address));
+        }
+
+        var feature = Configuration.Features.GetOrSet<ReceiveFaultEndpointFeature>();
+        feature.Address = address;
+        feature.IsDisabled = false;
 
         return this;
     }
 
     /// <inheritdoc />
-    public new IAzureServiceBusReceiveEndpointDescriptor SkippedEndpoint(string name)
+    [Obsolete("Use FaultEndpoint(Uri) instead.")]
+    public IAzureServiceBusReceiveEndpointDescriptor FaultEndpoint(string address)
+        => FaultEndpoint(new Uri(address, UriKind.Absolute));
+
+    /// <inheritdoc />
+    public IAzureServiceBusReceiveEndpointDescriptor DisableFaultEndpoint()
     {
-        base.SkippedEndpoint(name);
+        var feature = Configuration.Features.GetOrSet<ReceiveFaultEndpointFeature>();
+        feature.Address = null;
+        feature.IsDisabled = true;
+
+        return this;
+    }
+
+    /// <inheritdoc />
+    public IAzureServiceBusReceiveEndpointDescriptor SkippedEndpoint(Uri address)
+    {
+        ArgumentNullException.ThrowIfNull(address);
+        if (!address.IsAbsoluteUri)
+        {
+            throw new ArgumentException("The endpoint address must be an absolute URI.", nameof(address));
+        }
+
+        var feature = Configuration.Features.GetOrSet<ReceiveSkippedEndpointFeature>();
+        feature.Address = address;
+        feature.IsDisabled = false;
+
+        return this;
+    }
+
+    /// <inheritdoc />
+    [Obsolete("Use SkippedEndpoint(Uri) instead.")]
+    public IAzureServiceBusReceiveEndpointDescriptor SkippedEndpoint(string address)
+        => SkippedEndpoint(new Uri(address, UriKind.Absolute));
+
+    /// <inheritdoc />
+    public IAzureServiceBusReceiveEndpointDescriptor DisableSkippedEndpoint()
+    {
+        var feature = Configuration.Features.GetOrSet<ReceiveSkippedEndpointFeature>();
+        feature.Address = null;
+        feature.IsDisabled = true;
 
         return this;
     }

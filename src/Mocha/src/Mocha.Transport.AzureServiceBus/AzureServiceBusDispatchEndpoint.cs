@@ -1,8 +1,4 @@
-using System.Globalization;
-using Azure.Messaging.ServiceBus;
-using Mocha.Features;
 using Mocha.Middlewares;
-using static System.StringSplitOptions;
 
 namespace Mocha.Transport.AzureServiceBus;
 
@@ -13,7 +9,8 @@ namespace Mocha.Transport.AzureServiceBus;
 /// <remarks>
 /// During completion the endpoint resolves its target resource from the topology. For reply
 /// endpoints the destination is determined dynamically from the envelope's destination address
-/// at dispatch time.
+/// at dispatch time. Scheduled dispatches are intercepted by the scheduling middleware and sent
+/// through <see cref="Scheduling.AzureServiceBusScheduledMessageStore"/>.
 /// </remarks>
 public sealed class AzureServiceBusDispatchEndpoint(AzureServiceBusMessagingTransport transport)
     : DispatchEndpoint<AzureServiceBusDispatchEndpointConfiguration>(transport)
@@ -50,219 +47,21 @@ public sealed class AzureServiceBusDispatchEndpoint(AzureServiceBusMessagingTran
 
         await EnsureProvisionedAsync(cancellationToken);
 
-        string entityPath;
+        var entityPath = AzureServiceBusEntityPathResolver.Resolve(this, envelope);
+        var message = AzureServiceBusMessageFactory.Create(envelope, DateTimeOffset.UtcNow);
 
-        if (Kind == DispatchEndpointKind.Reply)
-        {
-            if (!Uri.TryCreate(envelope.DestinationAddress, UriKind.Absolute, out var destinationAddress))
-            {
-                throw ThrowHelper.DispatchEndpointDestinationAddressInvalidUri();
-            }
-
-            var path = destinationAddress.AbsolutePath.AsSpan();
-            Span<Range> ranges = stackalloc Range[2];
-            var segmentCount = path.Split(ranges, '/', RemoveEmptyEntries | TrimEntries);
-
-            if (segmentCount != 2)
-            {
-                throw ThrowHelper.DispatchEndpointCannotDetermineDestinationName(destinationAddress.ToString());
-            }
-
-            var kind = path[ranges[0]];
-            var name = path[ranges[1]];
-
-            entityPath = new string(name);
-
-            if (kind is not ("t" or "q"))
-            {
-                throw ThrowHelper.DispatchEndpointCannotDetermineDestinationName(destinationAddress.ToString());
-            }
-        }
-        else if (Topic is not null)
-        {
-            entityPath = Topic.Name;
-        }
-        else if (Queue is not null)
-        {
-            entityPath = Queue.Name;
-        }
-        else
-        {
-            throw ThrowHelper.DispatchEndpointDestinationNotConfigured();
-        }
-
-        var sender = clientManager.GetSender(entityPath);
-        var message = CreateMessage(envelope);
-
-        try
-        {
-            await SendOrScheduleAsync(sender);
-        }
-        // The broker deleted the entity out from under us (e.g. AutoDeleteOnIdle fired, or it
-        // was deleted manually). Re-provision and retry once before giving up.
-        catch (ServiceBusException ex) when (ex.Reason == ServiceBusFailureReason.MessagingEntityNotFound)
-        {
-            InvalidateProvisioning();
-            await EnsureProvisionedAsync(cancellationToken);
-            clientManager.InvalidateSender(entityPath);
-            sender = clientManager.GetSender(entityPath);
-            await SendOrScheduleAsync(sender);
-        }
-
-        async ValueTask SendOrScheduleAsync(ServiceBusSender activeSender)
-        {
-            if (envelope.ScheduledTime is { } scheduledTime)
-            {
-                var sequenceNumber = await activeSender.ScheduleMessageAsync(message, scheduledTime, cancellationToken);
-                context.Features.Configure<ScheduledMessageFeature>(f =>
-                    f.Token = $"asb:{entityPath}:{sequenceNumber.ToString(CultureInfo.InvariantCulture)}"
-                );
-            }
-            else
-            {
-                await activeSender.SendMessageAsync(message, cancellationToken);
-            }
-        }
-    }
-
-    private static ServiceBusMessage CreateMessage(MessageEnvelope envelope)
-    {
-        // Zero-copy: ReadOnlyMemory<byte> passed directly to ServiceBusMessage constructor
-        var message = new ServiceBusMessage(envelope.Body)
-        {
-            MessageId = envelope.MessageId,
-            CorrelationId = envelope.CorrelationId,
-            ContentType = envelope.ContentType,
-            Subject = envelope.MessageType,
-            ReplyTo = envelope.ResponseAddress
-        };
-
-        if (envelope.DeliverBy is { } deliverBy)
-        {
-            var ttl = deliverBy - DateTimeOffset.UtcNow;
-            if (ttl > TimeSpan.Zero)
-            {
-                message.TimeToLive = ttl;
-            }
-        }
-
-        string? sessionId = null;
-        if (envelope.Headers is { } envelopeHeaders)
-        {
-            if (envelopeHeaders.TryGetValue(AzureServiceBusMessageHeaders.SessionId, out var sessionIdValue)
-                && sessionIdValue is string sessionIdString)
-            {
-                sessionId = sessionIdString;
-                message.SessionId = sessionIdString;
-            }
-
-            if (envelopeHeaders.TryGetValue(AzureServiceBusMessageHeaders.PartitionKey, out var partitionKeyValue)
-                && partitionKeyValue is string partitionKeyString)
-            {
-                if (sessionId is not null && partitionKeyString != sessionId)
-                {
-                    throw ThrowHelper.PartitionKeyMustEqualSessionId();
-                }
-
-                message.PartitionKey = partitionKeyString;
-            }
-            else if (sessionId is not null)
-            {
-                // Default PartitionKey to SessionId for partitioned + session-aware entities.
-                message.PartitionKey = sessionId;
-            }
-
-            if (envelopeHeaders.TryGetValue(
-                    AzureServiceBusMessageHeaders.ReplyToSessionId,
-                    out var replyToSessionIdValue) && replyToSessionIdValue is string replyToSessionIdString)
-            {
-                message.ReplyToSessionId = replyToSessionIdString;
-            }
-
-            if (envelopeHeaders.TryGetValue(AzureServiceBusMessageHeaders.To, out var toValue)
-                && toValue is string toString)
-            {
-                message.To = toString;
-            }
-        }
-
-        var props = message.ApplicationProperties;
-
-        if (envelope.ConversationId is not null)
-        {
-            props[AzureServiceBusMessageHeaders.ConversationId] = envelope.ConversationId;
-        }
-
-        if (envelope.CausationId is not null)
-        {
-            props[AzureServiceBusMessageHeaders.CausationId] = envelope.CausationId;
-        }
-
-        if (envelope.SourceAddress is not null)
-        {
-            props[AzureServiceBusMessageHeaders.SourceAddress] = envelope.SourceAddress;
-        }
-
-        if (envelope.DestinationAddress is not null)
-        {
-            props[AzureServiceBusMessageHeaders.DestinationAddress] = envelope.DestinationAddress;
-        }
-
-        if (envelope.FaultAddress is not null)
-        {
-            props[AzureServiceBusMessageHeaders.FaultAddress] = envelope.FaultAddress;
-        }
-
-        if (envelope.MessageType is not null)
-        {
-            props[AzureServiceBusMessageHeaders.MessageType] = envelope.MessageType;
-        }
-
-        if (envelope.EnclosedMessageTypes is { Length: > 0 } types)
-        {
-            props[AzureServiceBusMessageHeaders.EnclosedMessageTypes] =
-                types.Length == 1 ? types[0] : string.Join(";", types);
-        }
-
-        if (envelope.SentAt is { } sentAt)
-        {
-            props[AzureServiceBusMessageHeaders.SentAt] = sentAt.ToUnixTimeMilliseconds();
-        }
-
-        // User-defined headers. Framework-internal keys in the x-mocha-* namespace are already
-        // mapped to native SDK properties above (and stripped on receive), so they must not leak
-        // into ApplicationProperties.
-        if (envelope.Headers is not null)
-        {
-            foreach (var header in envelope.Headers)
-            {
-                if (header.Key.StartsWith("x-mocha-", StringComparison.Ordinal))
-                {
-                    continue;
-                }
-
-                if (header.Value is DateTimeOffset dto)
-                {
-                    props[header.Key] = dto.ToUnixTimeMilliseconds();
-                }
-                else if (header.Value is DateTime dt)
-                {
-                    props[header.Key] = new DateTimeOffset(dt).ToUnixTimeMilliseconds();
-                }
-                else if (header.Value is not null)
-                {
-                    props[header.Key] = header.Value;
-                }
-            }
-        }
-
-        return message;
+        await AzureServiceBusEntityNotFoundRetry.ExecuteAsync(
+            clientManager,
+            this,
+            entityPath,
+            (sender, ct) => sender.SendMessageAsync(message, ct),
+            cancellationToken);
     }
 
     private readonly SemaphoreSlim _provisionGate = new(1, 1);
     private volatile bool _provisioned;
 
-    private async Task EnsureProvisionedAsync(CancellationToken cancellationToken)
+    internal async Task EnsureProvisionedAsync(CancellationToken cancellationToken)
     {
         if (_provisioned)
         {
@@ -279,16 +78,14 @@ public sealed class AzureServiceBusDispatchEndpoint(AzureServiceBusMessagingTran
 
             var autoProvision = ((AzureServiceBusMessagingTopology)transport.Topology).AutoProvision;
 
-            // Provisioning runs detached from the caller's token so a cancelled caller does
-            // not tear down provisioning for other dispatchers waiting on the gate.
             if (Queue is not null && (Queue.AutoProvision ?? autoProvision))
             {
-                await Queue.ProvisionAsync(transport.ClientManager, CancellationToken.None).ConfigureAwait(false);
+                await Queue.ProvisionAsync(transport.ClientManager, cancellationToken).ConfigureAwait(false);
             }
 
             if (Topic is not null && (Topic.AutoProvision ?? autoProvision))
             {
-                await Topic.ProvisionAsync(transport.ClientManager, CancellationToken.None).ConfigureAwait(false);
+                await Topic.ProvisionAsync(transport.ClientManager, cancellationToken).ConfigureAwait(false);
             }
 
             _provisioned = true;
@@ -299,7 +96,7 @@ public sealed class AzureServiceBusDispatchEndpoint(AzureServiceBusMessagingTran
         }
     }
 
-    private void InvalidateProvisioning() => _provisioned = false;
+    internal void InvalidateProvisioning() => _provisioned = false;
 
     protected override void OnComplete(
         IMessagingConfigurationContext context,

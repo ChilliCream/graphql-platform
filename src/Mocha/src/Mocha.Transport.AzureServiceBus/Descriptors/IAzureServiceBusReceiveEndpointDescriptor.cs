@@ -12,17 +12,47 @@ public interface IAzureServiceBusReceiveEndpointDescriptor
     /// <inheritdoc cref="IReceiveEndpointDescriptor{T}.Handler{THandler}"/>
     new IAzureServiceBusReceiveEndpointDescriptor Handler<THandler>() where THandler : class, IHandler;
 
+    /// <inheritdoc cref="IReceiveEndpointDescriptor{T}.Handler(Type)"/>
+    new IAzureServiceBusReceiveEndpointDescriptor Handler(Type handlerType);
+
+    /// <inheritdoc cref="IReceiveEndpointDescriptor{T}.Consumer(Type)"/>
+    new IAzureServiceBusReceiveEndpointDescriptor Consumer(Type consumerType);
+
     /// <inheritdoc cref="IReceiveEndpointDescriptor{T}.Consumer{TConsumer}"/>
     new IAzureServiceBusReceiveEndpointDescriptor Consumer<TConsumer>() where TConsumer : class, IConsumer;
+
+    /// <inheritdoc />
+    new IAzureServiceBusReceiveEndpointDescriptor Receives<TMessage>();
+
+    /// <inheritdoc cref="IReceiveEndpointDescriptor{T}.Receives(Type)"/>
+    new IAzureServiceBusReceiveEndpointDescriptor Receives(Type messageType);
+
+    /// <inheritdoc cref="IReceiveEndpointDescriptor{T}.BindImplicitly"/>
+    new IAzureServiceBusReceiveEndpointDescriptor BindImplicitly();
+
+    /// <inheritdoc cref="IReceiveEndpointDescriptor{T}.BindExplicitly"/>
+    new IAzureServiceBusReceiveEndpointDescriptor BindExplicitly();
 
     /// <inheritdoc cref="IReceiveEndpointDescriptor{T}.Kind(ReceiveEndpointKind)"/>
     new IAzureServiceBusReceiveEndpointDescriptor Kind(ReceiveEndpointKind kind);
 
-    /// <inheritdoc cref="IReceiveEndpointDescriptor{T}.FaultEndpoint(string)"/>
-    new IAzureServiceBusReceiveEndpointDescriptor FaultEndpoint(string name);
+    /// <summary>Sets the absolute address of the fault endpoint.</summary>
+    IAzureServiceBusReceiveEndpointDescriptor FaultEndpoint(Uri address);
 
-    /// <inheritdoc cref="IReceiveEndpointDescriptor{T}.SkippedEndpoint(string)"/>
-    new IAzureServiceBusReceiveEndpointDescriptor SkippedEndpoint(string name);
+    [Obsolete("Use FaultEndpoint(Uri) instead.")]
+    IAzureServiceBusReceiveEndpointDescriptor FaultEndpoint(string address);
+
+    /// <summary>Disables forwarding failed messages to a fault endpoint.</summary>
+    IAzureServiceBusReceiveEndpointDescriptor DisableFaultEndpoint();
+
+    /// <summary>Sets the absolute address of the skipped endpoint.</summary>
+    IAzureServiceBusReceiveEndpointDescriptor SkippedEndpoint(Uri address);
+
+    [Obsolete("Use SkippedEndpoint(Uri) instead.")]
+    IAzureServiceBusReceiveEndpointDescriptor SkippedEndpoint(string address);
+
+    /// <summary>Disables forwarding skipped messages to a skipped endpoint.</summary>
+    IAzureServiceBusReceiveEndpointDescriptor DisableSkippedEndpoint();
 
     /// <inheritdoc cref="IReceiveEndpointDescriptor{T}.MaxConcurrency(int)"/>
     /// <remarks>

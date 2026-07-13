@@ -1,4 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
+using Mocha.Transport.AzureServiceBus.Scheduling;
 using Mocha.Transport.AzureServiceBus.Tests.Helpers;
 
 namespace Mocha.Transport.AzureServiceBus.Tests.Behaviors;
@@ -77,11 +78,41 @@ public class SchedulingTests
         // assert
         Assert.True(result.IsCancellable);
         Assert.NotNull(result.Token);
-        Assert.StartsWith("asb:", result.Token);
+        Assert.StartsWith("asb:v1:", result.Token);
         Assert.Equal(scheduledTime, result.ScheduledTime);
 
         // cleanup so the message does not get delivered to a future test run
         await messageBus.CancelScheduledMessageAsync(result.Token!, CancellationToken.None);
+    }
+
+    [Fact]
+    public async Task SchedulePublishAsync_Should_DelayDelivery_When_ScheduledTimeInFuture()
+    {
+        var recorder = new MessageRecorder();
+        var ctx = _fixture.CreateTestContext();
+        await using var bus = await new ServiceCollection()
+            .AddSingleton(recorder)
+            .AddMessageBus()
+            .AddEventHandler<OrderCreatedHandler>()
+            .AddAzureServiceBus(ctx.ConnectionString)
+            .BuildTestBusAsync();
+
+        using var scope = bus.Provider.CreateScope();
+        var messageBus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
+        var scheduledTime = DateTimeOffset.UtcNow.AddSeconds(5);
+
+        var result = await messageBus.SchedulePublishAsync(
+            new OrderCreated { OrderId = "ORD-PUBLISH" },
+            scheduledTime,
+            CancellationToken.None);
+
+        Assert.True(result.IsCancellable);
+        Assert.NotNull(result.Token);
+        Assert.StartsWith("asb:v1:", result.Token);
+        Assert.False(await recorder.WaitAsync(TimeSpan.FromSeconds(2)));
+        Assert.True(await recorder.WaitAsync(s_timeout));
+        var message = Assert.IsType<OrderCreated>(Assert.Single(recorder.Messages));
+        Assert.Equal("ORD-PUBLISH", message.OrderId);
     }
 
     [Fact]
@@ -136,6 +167,11 @@ public class SchedulingTests
         Assert.False(await messageBus.CancelScheduledMessageAsync("asb:queue:", CancellationToken.None));
         Assert.False(await messageBus.CancelScheduledMessageAsync("asb:queue:not-a-number", CancellationToken.None));
         Assert.False(await messageBus.CancelScheduledMessageAsync("asb:noseparator", CancellationToken.None));
+        var wrongOwner = AzureServiceBusScheduledMessageStore.CreateToken(
+            new string('0', 64),
+            "queue",
+            42);
+        Assert.False(await messageBus.CancelScheduledMessageAsync(wrongOwner, CancellationToken.None));
     }
 
     [Fact]

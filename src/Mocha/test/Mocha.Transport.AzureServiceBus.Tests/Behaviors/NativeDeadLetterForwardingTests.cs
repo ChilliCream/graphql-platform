@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using Azure.Messaging.ServiceBus;
 using Azure.Messaging.ServiceBus.Administration;
 using Microsoft.Extensions.DependencyInjection;
 using Mocha.Transport.AzureServiceBus.Tests.Helpers;
@@ -45,7 +46,7 @@ public class NativeDeadLetterForwardingTests
 
         // and the broker reflects it
         var adminClient = new ServiceBusAdministrationClient(ctx.ConnectionString);
-        var properties = await adminClient.GetQueueAsync(queueName);
+        var properties = await adminClient.GetQueueAsync(queueName, Xunit.TestContext.Current.CancellationToken);
         Assert.Equal($"{queueName}_error", properties.Value.ForwardDeadLetteredMessagesTo);
     }
 
@@ -88,7 +89,7 @@ public class NativeDeadLetterForwardingTests
         await using var bus = await new ServiceCollection()
             .AddSingleton(capture)
             .AddMessageBus()
-            .AddEventHandler<AlwaysThrowingHandler>()
+            .AddConsumer<AlwaysAbandoningConsumer>()
             .AddConsumer<ErrorSpyConsumer>()
             .AddAzureServiceBus(t =>
             {
@@ -98,7 +99,7 @@ public class NativeDeadLetterForwardingTests
                 // ForwardDeadLetteredMessagesTo binding.
                 t.DeclareQueue(queueName).WithMaxDeliveryCount(1);
                 t.Endpoint("max-dl-ep")
-                    .Handler<AlwaysThrowingHandler>()
+                    .Consumer<AlwaysAbandoningConsumer>()
                     .Queue(queueName)
                     .UseNativeDeadLetterForwarding();
                 t.Endpoint("max-dl-error-ep")
@@ -118,7 +119,10 @@ public class NativeDeadLetterForwardingTests
         Assert.True(
             await capture.WaitAsync(s_timeout),
             "Error queue consumer did not receive the broker-dead-lettered message");
-        Assert.Equal("ORD-DL", Assert.Single(capture.Messages).OrderId);
+        var deadLetter = Assert.Single(capture.Messages);
+        Assert.Equal("ORD-DL", deadLetter.Message.OrderId);
+        Assert.Equal(queueName, deadLetter.DeadLetterSource);
+        Assert.Equal("MaxDeliveryCountExceeded", deadLetter.DeadLetterReason);
     }
 
     private static AzureServiceBusMessagingTransport GetTransport(TestBus bus)
@@ -130,9 +134,9 @@ public class NativeDeadLetterForwardingTests
     public sealed class ErrorCapture
     {
         private readonly SemaphoreSlim _semaphore = new(0);
-        public ConcurrentBag<OrderCreated> Messages { get; } = [];
+        public ConcurrentBag<ErrorRecord> Messages { get; } = [];
 
-        public void Record(OrderCreated message)
+        public void Record(ErrorRecord message)
         {
             Messages.Add(message);
             _semaphore.Release();
@@ -141,11 +145,17 @@ public class NativeDeadLetterForwardingTests
         public Task<bool> WaitAsync(TimeSpan timeout) => _semaphore.WaitAsync(timeout);
     }
 
-    public sealed class AlwaysThrowingHandler : IEventHandler<OrderCreated>
+    public sealed record ErrorRecord(
+        OrderCreated Message,
+        string? DeadLetterSource,
+        string? DeadLetterReason);
+
+    public sealed class AlwaysAbandoningConsumer : IConsumer<OrderCreated>
     {
-        public ValueTask HandleAsync(OrderCreated message, CancellationToken cancellationToken)
+        public async ValueTask ConsumeAsync(IConsumeContext<OrderCreated> context)
         {
-            throw new InvalidOperationException("Handler always throws to trigger broker dead-lettering");
+            var args = context.GetAzureServiceBusEventArgs();
+            await args.AbandonMessageAsync(args.Message);
         }
     }
 
@@ -153,7 +163,11 @@ public class NativeDeadLetterForwardingTests
     {
         public ValueTask ConsumeAsync(IConsumeContext<OrderCreated> context)
         {
-            capture.Record(context.Message);
+            var message = context.GetAzureServiceBusEventArgs().Message;
+            capture.Record(new ErrorRecord(
+                context.Message,
+                message.DeadLetterSource,
+                message.DeadLetterReason));
             return default;
         }
     }

@@ -1,5 +1,7 @@
 using Azure.Messaging.ServiceBus;
 using Azure.Messaging.ServiceBus.Administration;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace Mocha.Transport.AzureServiceBus;
 
@@ -11,6 +13,13 @@ public sealed class AzureServiceBusSubscription
     : TopologyResource<AzureServiceBusSubscriptionConfiguration>
     , IAzureServiceBusResource
 {
+    private const int MaxSubscriptionNameLength = 50;
+
+    /// <summary>
+    /// Gets the deterministic broker subscription name.
+    /// </summary>
+    public string Name { get; private set; } = null!;
+
     /// <summary>
     /// Gets the source topic for this subscription.
     /// </summary>
@@ -99,6 +108,7 @@ public sealed class AzureServiceBusSubscription
     internal void SetDestination(AzureServiceBusQueue destination)
     {
         Destination = destination;
+        Name = CreateSubscriptionName(destination.Name);
     }
 
     /// <inheritdoc />
@@ -111,68 +121,70 @@ public sealed class AzureServiceBusSubscription
             return;
         }
 
+        var options = new CreateSubscriptionOptions(Source.Name, Name)
+        {
+            ForwardTo = ForwardTo ?? Destination.Name
+        };
+
+        // Only assign properties the user explicitly set so SDK defaults remain in effect otherwise.
+        if (LockDuration is not null)
+        {
+            options.LockDuration = LockDuration.Value;
+        }
+
+        if (MaxDeliveryCount is not null)
+        {
+            options.MaxDeliveryCount = MaxDeliveryCount.Value;
+        }
+
+        if (DefaultMessageTimeToLive is not null)
+        {
+            options.DefaultMessageTimeToLive = DefaultMessageTimeToLive.Value;
+        }
+
+        if (RequiresSession is not null)
+        {
+            options.RequiresSession = RequiresSession.Value;
+        }
+
+        if (ForwardDeadLetteredMessagesTo is not null)
+        {
+            options.ForwardDeadLetteredMessagesTo = ForwardDeadLetteredMessagesTo;
+        }
+
+        if (DeadLetteringOnMessageExpiration is not null)
+        {
+            options.DeadLetteringOnMessageExpiration = DeadLetteringOnMessageExpiration.Value;
+        }
+
+        if (AutoDeleteOnIdle is not null)
+        {
+            options.AutoDeleteOnIdle = AutoDeleteOnIdle.Value;
+        }
+
         try
         {
-            // Azure SB SDK rejects ForwardTo == subscription name ("cannot forward to itself"),
-            // even though subscriptions and queues are distinct entities. Use a prefixed name
-            // to avoid the validation while still forwarding to the destination queue.
-            var subscriptionName = "fwd-" + Destination.Name;
-            if (subscriptionName.Length > 50)
-            {
-                subscriptionName = subscriptionName[..50];
-            }
-
-            var options = new CreateSubscriptionOptions(Source.Name, subscriptionName)
-            {
-                ForwardTo = ForwardTo ?? Destination.Name
-            };
-
-            // Only assign properties the user explicitly set so SDK defaults remain in effect otherwise.
-            if (LockDuration is not null)
-            {
-                options.LockDuration = LockDuration.Value;
-            }
-
-            if (MaxDeliveryCount is not null)
-            {
-                options.MaxDeliveryCount = MaxDeliveryCount.Value;
-            }
-
-            if (DefaultMessageTimeToLive is not null)
-            {
-                options.DefaultMessageTimeToLive = DefaultMessageTimeToLive.Value;
-            }
-
-            if (RequiresSession is not null)
-            {
-                options.RequiresSession = RequiresSession.Value;
-            }
-
-            if (ForwardDeadLetteredMessagesTo is not null)
-            {
-                options.ForwardDeadLetteredMessagesTo = ForwardDeadLetteredMessagesTo;
-            }
-
-            if (DeadLetteringOnMessageExpiration is not null)
-            {
-                options.DeadLetteringOnMessageExpiration = DeadLetteringOnMessageExpiration.Value;
-            }
-
-            if (AutoDeleteOnIdle is not null)
-            {
-                options.AutoDeleteOnIdle = AutoDeleteOnIdle.Value;
-            }
-
             await clientManager.CreateSubscriptionAsync(options, cancellationToken);
         }
         catch (ServiceBusException ex) when (ex.Reason == ServiceBusFailureReason.MessagingEntityAlreadyExists)
         {
-            // Already provisioned by another instance — safe to ignore.
+            // Already provisioned by another instance, safe to ignore.
         }
-        catch (Exception) when (AutoProvision is null or true)
+    }
+
+    private static string CreateSubscriptionName(string destinationName)
+    {
+        var candidate = "fwd-" + destinationName;
+        if (candidate.Length <= MaxSubscriptionNameLength)
         {
-            // Best-effort provisioning — the entity may already exist or the admin API
-            // may be unavailable (e.g. emulator with Docker port mapping).
+            return candidate;
         }
+
+        var hash = Convert.ToHexString(
+            SHA256.HashData(Encoding.UTF8.GetBytes(destinationName)),
+            0,
+            4).ToLowerInvariant();
+        var prefixLength = MaxSubscriptionNameLength - hash.Length - 1;
+        return candidate[..prefixLength] + "-" + hash;
     }
 }

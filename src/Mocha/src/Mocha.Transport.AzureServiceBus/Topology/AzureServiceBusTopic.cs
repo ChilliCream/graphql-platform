@@ -145,12 +145,7 @@ public sealed class AzureServiceBusTopic
         }
         catch (ServiceBusException ex) when (ex.Reason == ServiceBusFailureReason.MessagingEntityAlreadyExists)
         {
-            // Already provisioned by another instance — safe to ignore.
-        }
-        catch (Exception) when (AutoProvision is null or true)
-        {
-            // Best-effort provisioning — the entity may already exist or the admin API
-            // may be unavailable (e.g. emulator with Docker port mapping).
+            // Already provisioned by another instance, safe to ignore.
         }
     }
 }

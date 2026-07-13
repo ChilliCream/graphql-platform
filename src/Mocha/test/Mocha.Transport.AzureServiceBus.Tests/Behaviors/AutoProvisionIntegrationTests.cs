@@ -115,7 +115,7 @@ public class AutoProvisionIntegrationTests
 
         // act - inspect the broker via the admin client
         var adminClient = new ServiceBusAdministrationClient(ctx.ConnectionString);
-        var properties = await adminClient.GetQueueAsync(queueName);
+        var properties = await adminClient.GetQueueAsync(queueName, Xunit.TestContext.Current.CancellationToken);
 
         // assert - the queue exists with the configured knobs propagated
         Assert.Equal(queueName, properties.Value.Name);
@@ -144,16 +144,21 @@ public class AutoProvisionIntegrationTests
 
         // act - inspect the broker
         var adminClient = new ServiceBusAdministrationClient(ctx.ConnectionString);
-        var topicExists = (await adminClient.TopicExistsAsync(topicName)).Value;
-        var queueExists = (await adminClient.QueueExistsAsync(queueName)).Value;
+        var cancellationToken = Xunit.TestContext.Current.CancellationToken;
+        var topicExists = (await adminClient.TopicExistsAsync(topicName, cancellationToken)).Value;
+        var queueExists = (await adminClient.QueueExistsAsync(queueName, cancellationToken)).Value;
 
         // assert - the topic, queue, and forwarding subscription all exist
         Assert.True(topicExists, $"Topic '{topicName}' was not provisioned");
         Assert.True(queueExists, $"Queue '{queueName}' was not provisioned");
 
-        // The subscription is named "fwd-{queue}" by AzureServiceBusSubscription.ProvisionAsync.
-        var subscriptionName = ToSubscriptionName(queueName);
-        var subscriptionExists = (await adminClient.SubscriptionExistsAsync(topicName, subscriptionName)).Value;
+        var runtime = (MessagingRuntime)bus.Provider.GetRequiredService<IMessagingRuntime>();
+        var transport = runtime.Transports.OfType<AzureServiceBusMessagingTransport>().Single();
+        var topology = (AzureServiceBusMessagingTopology)transport.Topology;
+        var subscriptionName = topology.Subscriptions.Single(s =>
+            s.Source.Name == topicName && s.Destination.Name == queueName).Name;
+        var subscriptionExists =
+            (await adminClient.SubscriptionExistsAsync(topicName, subscriptionName, cancellationToken)).Value;
         Assert.True(
             subscriptionExists,
             $"Subscription '{subscriptionName}' on topic '{topicName}' was not provisioned");
@@ -175,7 +180,7 @@ public class AutoProvisionIntegrationTests
             {
                 t.ConnectionString(ctx.ConnectionString);
                 t.AutoProvision(false);
-                t.BindHandlersExplicitly();
+                t.BindExplicitly();
                 t.DeclareTopic(topicName).AutoProvision(true);
                 t.DeclareQueue(queueName).AutoProvision(true);
                 t.DeclareSubscription(topicName, queueName).AutoProvision(true);
@@ -209,27 +214,18 @@ public class AutoProvisionIntegrationTests
             {
                 t.ConnectionString(ctx.ConnectionString);
                 t.AutoProvision(false);
-                t.BindHandlersExplicitly();
+                t.BindExplicitly();
                 t.DeclareQueue(queueName);
             })
             .BuildTestBusAsync();
 
         // act - inspect the broker
         var adminClient = new ServiceBusAdministrationClient(ctx.ConnectionString);
-        var queueExists = (await adminClient.QueueExistsAsync(queueName)).Value;
+        var queueExists =
+            (await adminClient.QueueExistsAsync(queueName, Xunit.TestContext.Current.CancellationToken)).Value;
 
         // assert - the queue should not exist because auto-provision was disabled
         Assert.False(queueExists, $"Queue '{queueName}' should NOT have been provisioned");
-    }
-
-    /// <summary>
-    /// Mirrors <see cref="AzureServiceBusSubscription.ProvisionAsync"/>'s naming logic so the test
-    /// can assert against the same subscription name produced at runtime.
-    /// </summary>
-    private static string ToSubscriptionName(string queueName)
-    {
-        var name = "fwd-" + queueName;
-        return name.Length > 50 ? name[..50] : name;
     }
 
     public sealed class ProcessPaymentHandler(MessageRecorder recorder) : IEventRequestHandler<ProcessPayment>

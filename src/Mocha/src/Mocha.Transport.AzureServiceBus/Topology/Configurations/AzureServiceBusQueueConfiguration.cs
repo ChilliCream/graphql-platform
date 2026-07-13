@@ -11,7 +11,9 @@ public sealed class AzureServiceBusQueueConfiguration : TopologyConfiguration<Az
     public string? Name { get; set; }
 
     /// <summary>
-    /// Gets or sets whether this queue should be automatically deleted when no longer in use.
+    /// Gets or sets whether the configured <see cref="AutoDeleteOnIdle"/> policy is enabled.
+    /// Azure Service Bus has no separate auto-delete flag. Setting this to <c>false</c> suppresses
+    /// any configured idle deletion policy.
     /// </summary>
     public bool? AutoDelete { get; set; }
 

@@ -12,7 +12,12 @@ internal sealed class AzureServiceBusSubscriptionDescriptor
         string source,
         string destination) : base(context)
     {
-        Configuration = new AzureServiceBusSubscriptionConfiguration { Source = source, Destination = destination };
+        Configuration = new AzureServiceBusSubscriptionConfiguration
+        {
+            Source = source,
+            Destination = destination,
+            Origin = TopologyOrigin.Declared
+        };
     }
 
     /// <inheritdoc />

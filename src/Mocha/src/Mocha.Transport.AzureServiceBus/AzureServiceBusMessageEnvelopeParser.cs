@@ -1,3 +1,4 @@
+using System.Buffers;
 using System.Collections.Immutable;
 using Azure.Messaging.ServiceBus;
 using Mocha.Middlewares;
@@ -44,7 +45,7 @@ internal sealed class AzureServiceBusMessageEnvelopeParser
             SentAt = sentAt ?? message.EnqueuedTime,
             DeliverBy = message.ExpiresAt != DateTimeOffset.MaxValue ? message.ExpiresAt : null,
             DeliveryCount = message.DeliveryCount,
-            Headers = BuildHeaders(props),
+            Headers = BuildHeaders(props, message),
             EnclosedMessageTypes = ParseEnclosedMessageTypes(props),
             Body = message.Body.ToMemory()  // Zero-copy
         };
@@ -58,30 +59,48 @@ internal sealed class AzureServiceBusMessageEnvelopeParser
         if (props.TryGetValue(AzureServiceBusMessageHeaders.EnclosedMessageTypes, out var value)
             && value is string encoded && !string.IsNullOrEmpty(encoded))
         {
-            // Span-based splitting to avoid intermediate string[] allocation
             var span = encoded.AsSpan();
-            Span<Range> ranges = stackalloc Range[32];
-            var count = span.Split(ranges, ';', StringSplitOptions.RemoveEmptyEntries);
-
-            var builder = ImmutableArray.CreateBuilder<string>(count);
-            for (var i = 0; i < count; i++)
+            var maximumRangeCount = 1;
+            foreach (var character in span)
             {
-                builder.Add(new string(span[ranges[i]]));
+                if (character == ';')
+                {
+                    maximumRangeCount++;
+                }
             }
 
-            return builder.MoveToImmutable();
+            Range[]? rentedRanges = null;
+            Span<Range> ranges = maximumRangeCount <= 32
+                ? stackalloc Range[32]
+                : rentedRanges = ArrayPool<Range>.Shared.Rent(maximumRangeCount);
+
+            try
+            {
+                var count = span.Split(ranges, ';', StringSplitOptions.RemoveEmptyEntries);
+                var builder = ImmutableArray.CreateBuilder<string>(count);
+                for (var i = 0; i < count; i++)
+                {
+                    builder.Add(new string(span[ranges[i]]));
+                }
+
+                return builder.MoveToImmutable();
+            }
+            finally
+            {
+                if (rentedRanges is not null)
+                {
+                    ArrayPool<Range>.Shared.Return(rentedRanges);
+                }
+            }
         }
 
         return [];
     }
 
-    private static Headers BuildHeaders(IDictionary<string, object?> props)
+    private static Headers BuildHeaders(
+        IDictionary<string, object?> props,
+        ServiceBusReceivedMessage message)
     {
-        if (props.Count == 0)
-        {
-            return Headers.Empty();
-        }
-
         // Count non-framework keys to avoid allocation when all properties are framework-internal
         var userKeyCount = 0;
         foreach (var key in props.Keys)
@@ -92,12 +111,13 @@ internal sealed class AzureServiceBusMessageEnvelopeParser
             }
         }
 
-        if (userKeyCount == 0)
+        var nativePropertyCount = CountNativeProperties(message);
+        if (userKeyCount == 0 && nativePropertyCount == 0)
         {
             return Headers.Empty();
         }
 
-        var result = new Headers(userKeyCount);
+        var result = new Headers(userKeyCount + nativePropertyCount);
         foreach (var (key, value) in props)
         {
             if (key.StartsWith("x-mocha-", StringComparison.Ordinal))
@@ -108,7 +128,30 @@ internal sealed class AzureServiceBusMessageEnvelopeParser
             result.Set(key, value);
         }
 
+        SetIfPresent(result, AzureServiceBusMessageHeaders.SessionId, message.SessionId);
+        SetIfPresent(result, AzureServiceBusMessageHeaders.PartitionKey, message.PartitionKey);
+        SetIfPresent(result, AzureServiceBusMessageHeaders.ReplyToSessionId, message.ReplyToSessionId);
+        SetIfPresent(result, AzureServiceBusMessageHeaders.To, message.To);
+
         return result;
+    }
+
+    private static int CountNativeProperties(ServiceBusReceivedMessage message)
+    {
+        var count = 0;
+        count += message.SessionId is null ? 0 : 1;
+        count += message.PartitionKey is null ? 0 : 1;
+        count += message.ReplyToSessionId is null ? 0 : 1;
+        count += message.To is null ? 0 : 1;
+        return count;
+    }
+
+    private static void SetIfPresent(Headers headers, string key, string? value)
+    {
+        if (value is not null)
+        {
+            headers.Set(key, value);
+        }
     }
 
     /// <summary>

@@ -26,6 +26,7 @@ public class AzureServiceBusTransportConfiguration : MessagingTransportConfigura
     {
         Name = DefaultName;
         Schema = DefaultSchema;
+        RoutingStrategyFactory = static _ => new AzureServiceBusRoutingStrategy();
     }
 
     /// <summary>

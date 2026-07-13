@@ -413,6 +413,29 @@ public class AzureServiceBusMessagePropertiesTests
         Assert.Equal("user-supplied", value);
     }
 
+    [Fact]
+    public async Task Middleware_Should_PromoteReplyToSessionId_When_DispatchingReply()
+    {
+        var runtime = CreateRuntime(b => b.AddMessage<OrderCreated>(_ => { }));
+        var context = new DispatchContext
+        {
+            MessageType = runtime.Messages.GetMessageType(typeof(OrderCreated)),
+            Message = new OrderCreated { OrderId = "ORD-REPLY" }
+        };
+        context.Headers.SetMessageKind(MessageKind.Reply);
+        context.Headers.Set(AzureServiceBusMessageHeaders.SessionId, "request-session");
+        context.Headers.Set(AzureServiceBusMessageHeaders.PartitionKey, "request-session");
+        context.Headers.Set(AzureServiceBusMessageHeaders.ReplyToSessionId, "reply-session");
+
+        var middleware = new AzureServiceBusMessagePropertiesMiddleware();
+        await middleware.InvokeAsync(context, _ => default);
+
+        Assert.True(context.Headers.TryGetValue(AzureServiceBusMessageHeaders.SessionId, out var sessionId));
+        Assert.True(context.Headers.TryGetValue(AzureServiceBusMessageHeaders.PartitionKey, out var partitionKey));
+        Assert.Equal("reply-session", sessionId);
+        Assert.Equal("reply-session", partitionKey);
+    }
+
     private static MessagingRuntime CreateRuntime(Action<IMessageBusHostBuilder> configure)
     {
         var services = new ServiceCollection();

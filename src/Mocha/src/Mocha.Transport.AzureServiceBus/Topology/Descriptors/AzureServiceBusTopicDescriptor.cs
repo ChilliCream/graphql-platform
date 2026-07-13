@@ -9,7 +9,11 @@ internal sealed class AzureServiceBusTopicDescriptor
 {
     public AzureServiceBusTopicDescriptor(IMessagingConfigurationContext context, string name) : base(context)
     {
-        Configuration = new AzureServiceBusTopicConfiguration { Name = name };
+        Configuration = new AzureServiceBusTopicConfiguration
+        {
+            Name = name,
+            Origin = TopologyOrigin.Declared
+        };
     }
 
     /// <inheritdoc />

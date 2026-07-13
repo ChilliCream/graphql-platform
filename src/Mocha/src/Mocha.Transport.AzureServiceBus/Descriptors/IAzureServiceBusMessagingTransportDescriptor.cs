@@ -14,11 +14,17 @@ public interface IAzureServiceBusMessagingTransportDescriptor
     /// <inheritdoc cref="IMessagingTransportDescriptor.Schema(string)"/>
     new IAzureServiceBusMessagingTransportDescriptor Schema(string schema);
 
-    /// <inheritdoc cref="IMessagingTransportDescriptor.BindHandlersImplicitly"/>
-    new IAzureServiceBusMessagingTransportDescriptor BindHandlersImplicitly();
+    /// <inheritdoc cref="IMessagingTransportDescriptor.BindImplicitly"/>
+    new IAzureServiceBusMessagingTransportDescriptor BindImplicitly();
 
-    /// <inheritdoc cref="IMessagingTransportDescriptor.BindHandlersExplicitly"/>
-    new IAzureServiceBusMessagingTransportDescriptor BindHandlersExplicitly();
+    /// <inheritdoc cref="IMessagingTransportDescriptor.BindExplicitly"/>
+    new IAzureServiceBusMessagingTransportDescriptor BindExplicitly();
+
+    [Obsolete("Use BindImplicitly() instead.")]
+    IAzureServiceBusMessagingTransportDescriptor BindHandlersImplicitly();
+
+    [Obsolete("Use BindExplicitly() instead.")]
+    IAzureServiceBusMessagingTransportDescriptor BindHandlersExplicitly();
 
     /// <summary>
     /// Declares or retrieves a receive endpoint with the specified name.
@@ -46,7 +52,7 @@ public interface IAzureServiceBusMessagingTransportDescriptor
     /// </summary>
     /// <param name="name">The queue name.</param>
     /// <returns>A descriptor for further configuring the queue.</returns>
-    IAzureServiceBusQueueDescriptor DeclareQueue(string name);
+    IAzureServiceBusQueueTopologyDescriptor DeclareQueue(string name);
 
     /// <summary>
     /// Declares a subscription that routes messages from a topic to a queue in the Azure Service Bus topology.
@@ -90,6 +96,23 @@ public interface IAzureServiceBusMessagingTransportDescriptor
     /// </param>
     /// <returns>The descriptor for method chaining.</returns>
     IAzureServiceBusMessagingTransportDescriptor AutoProvision(bool autoProvision = true);
+
+    /// <inheritdoc cref="IMessagingTransportDescriptor.UseRoutingStrategy(Func{IServiceProvider, RoutingStrategy})"/>
+    new IAzureServiceBusMessagingTransportDescriptor UseRoutingStrategy(
+        Func<IServiceProvider, RoutingStrategy> factory);
+
+    /// <summary>Claims a handler for this transport, creating a convention-named endpoint.</summary>
+    IMessagingTransportHandlerDescriptor<IAzureServiceBusReceiveEndpointDescriptor> Handler<THandler>()
+        where THandler : class, IHandler;
+
+    /// <summary>Claims a consumer for this transport, creating a convention-named endpoint.</summary>
+    IMessagingTransportConsumerDescriptor<IAzureServiceBusReceiveEndpointDescriptor> Consumer<TConsumer>()
+        where TConsumer : class, IConsumer;
+
+    /// <summary>
+    /// Gets or creates a queue that is both declared in topology and materialized as a receive endpoint.
+    /// </summary>
+    IAzureServiceBusQueueDescriptor Queue(string name);
 
     /// <inheritdoc cref="IMessagingTransportDescriptor.Name(string)"/>
     new IAzureServiceBusMessagingTransportDescriptor Name(string name);
