@@ -873,10 +873,12 @@ AddErrors_Next:
             }
             else if (segment.Kind is SelectionPathSegmentKind.Field)
             {
+                var lookupMemo = default(PropertyLookupMemo);
+
                 for (var j = 0; j < currentCount; j++)
                 {
                     var element = current[j];
-                    if (!element.TryGetProperty(segment.Name, out var value))
+                    if (!element.TryGetProperty(segment.Name, ref lookupMemo, out var value))
                     {
                         continue;
                     }
@@ -1155,12 +1157,14 @@ AddErrors_Next:
         var additionalPaths = new AdditionalPathAccumulator();
         var nextIndex = 0;
         var isNonNullRequirement = requirement.Type.Kind is SyntaxKind.NonNullType;
+        var lookupName = requirement.InternalAlias ?? fieldName;
+        var lookupMemo = default(PropertyLookupMemo);
 
         for (var i = 0; i < elements.Length; i++)
         {
             var result = elements[i];
 
-            if (!result.TryGetProperty(requirement.InternalAlias ?? fieldName, out var value))
+            if (!result.TryGetProperty(lookupName, ref lookupMemo, out var value))
             {
                 continue;
             }
@@ -1288,10 +1292,14 @@ AddErrors_Next:
         VariableValues[]? variableValueSets = null;
         var additionalPaths = new AdditionalPathAccumulator();
         var nextIndex = 0;
+        var lookupName1 = requirement1.InternalAlias ?? fieldName1;
+        var lookupName2 = requirement2.InternalAlias ?? fieldName2;
+        var lookupMemo1 = default(PropertyLookupMemo);
+        var lookupMemo2 = default(PropertyLookupMemo);
 
         foreach (var result in elements)
         {
-            if (!result.TryGetProperty(requirement1.InternalAlias ?? fieldName1, out var value1)
+            if (!result.TryGetProperty(lookupName1, ref lookupMemo1, out var value1)
                 || value1.ValueKind is JsonValueKind.Undefined
                 || (value1.ValueKind is JsonValueKind.Null
                     && requirement1.Type.Kind == SyntaxKind.NonNullType))
@@ -1299,7 +1307,7 @@ AddErrors_Next:
                 continue;
             }
 
-            if (!result.TryGetProperty(requirement2.InternalAlias ?? fieldName2, out var value2)
+            if (!result.TryGetProperty(lookupName2, ref lookupMemo2, out var value2)
                 || value2.ValueKind is JsonValueKind.Undefined
                 || (value2.ValueKind is JsonValueKind.Null
                     && requirement2.Type.Kind == SyntaxKind.NonNullType))
@@ -1441,10 +1449,16 @@ AddErrors_Next:
         VariableValues[]? variableValueSets = null;
         var additionalPaths = new AdditionalPathAccumulator();
         var nextIndex = 0;
+        var lookupName1 = requirement1.InternalAlias ?? fieldName1;
+        var lookupName2 = requirement2.InternalAlias ?? fieldName2;
+        var lookupName3 = requirement3.InternalAlias ?? fieldName3;
+        var lookupMemo1 = default(PropertyLookupMemo);
+        var lookupMemo2 = default(PropertyLookupMemo);
+        var lookupMemo3 = default(PropertyLookupMemo);
 
         foreach (var result in elements)
         {
-            if (!result.TryGetProperty(requirement1.InternalAlias ?? fieldName1, out var value1)
+            if (!result.TryGetProperty(lookupName1, ref lookupMemo1, out var value1)
                 || value1.ValueKind is JsonValueKind.Undefined
                 || (value1.ValueKind is JsonValueKind.Null
                     && requirement1.Type.Kind == SyntaxKind.NonNullType))
@@ -1452,7 +1466,7 @@ AddErrors_Next:
                 continue;
             }
 
-            if (!result.TryGetProperty(requirement2.InternalAlias ?? fieldName2, out var value2)
+            if (!result.TryGetProperty(lookupName2, ref lookupMemo2, out var value2)
                 || value2.ValueKind is JsonValueKind.Undefined
                 || (value2.ValueKind is JsonValueKind.Null
                     && requirement2.Type.Kind == SyntaxKind.NonNullType))
@@ -1460,7 +1474,7 @@ AddErrors_Next:
                 continue;
             }
 
-            if (!result.TryGetProperty(requirement3.InternalAlias ?? fieldName3, out var value3)
+            if (!result.TryGetProperty(lookupName3, ref lookupMemo3, out var value3)
                 || value3.ValueKind is JsonValueKind.Undefined
                 || (value3.ValueKind is JsonValueKind.Null
                     && requirement3.Type.Kind == SyntaxKind.NonNullType))
