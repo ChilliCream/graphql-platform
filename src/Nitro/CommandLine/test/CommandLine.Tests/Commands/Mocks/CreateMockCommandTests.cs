@@ -262,6 +262,27 @@ public sealed class CreateMockCommandTests(NitroCommandFixture fixture) : MocksC
     }
 
     [Fact]
+    public async Task ApiNotFound_ReturnsError()
+    {
+        // arrange
+        SetupCreateMockMutation(CreateCreateMockApiNotFoundError());
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "mock", "create", "--api-id", ApiId, "--extension", ExtensionFile,
+            "--schema", SchemaFile, "--url", DownstreamUrl, "--name", MockSchemaName);
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            API not found
+            This may mean the entity does not exist, or that you do not have permission to view it.
+            If you are targeting a dedicated or self-hosted instance, make sure you supply the correct '--cloud-url'. Currently targeting 'https://api.chillicream.com'.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
     public async Task WithOptions_ReturnsSuccess_NonInteractive()
     {
         // arrange
@@ -377,7 +398,6 @@ public sealed class CreateMockCommandTests(NitroCommandFixture fixture) : MocksC
     public static TheoryData<ICreateMockSchema_CreateMockSchema_Errors, string>
         GetCreateMockErrors() => new()
     {
-        { CreateCreateMockApiNotFoundError(), "API not found" },
         { CreateCreateMockNonUniqueNameError(), "Name already in use" },
         { CreateCreateMockUnauthorizedError(), "Not authorized" },
         { CreateCreateMockValidationError(), "Validation failed" }

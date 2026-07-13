@@ -88,7 +88,8 @@ internal sealed class DeleteOpenApiCollectionCommand : Command
                 {
                     var errorMessage = error switch
                     {
-                        IOpenApiCollectionNotFoundError err => err.Message,
+                        IOpenApiCollectionNotFoundError err =>
+                            throw new NitroClientNotFoundException(err.Message),
                         IUnauthorizedOperation err => err.Message,
                         IError err => Messages.UnexpectedMutationError(err),
                         _ => Messages.UnexpectedMutationError()

@@ -95,7 +95,8 @@ internal sealed class DeleteClientCommand : Command
                 {
                     var errorMessage = error switch
                     {
-                        IDeleteClientByIdCommandMutation_DeleteClientById_Errors_ClientNotFoundError err => err.Message,
+                        IDeleteClientByIdCommandMutation_DeleteClientById_Errors_ClientNotFoundError err =>
+                            throw new NitroClientNotFoundException(err.Message),
                         IDeleteClientByIdCommandMutation_DeleteClientById_Errors_UnauthorizedOperation err => err.Message,
                         IError err => Messages.UnexpectedMutationError(err),
                         _ => Messages.UnexpectedMutationError()

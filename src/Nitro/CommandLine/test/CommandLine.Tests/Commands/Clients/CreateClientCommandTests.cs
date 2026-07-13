@@ -239,6 +239,25 @@ public sealed class CreateClientCommandTests(NitroCommandFixture fixture) : Clie
     }
 
     [Fact]
+    public async Task ApiNotFound_ReturnsError()
+    {
+        var apiNotFound = new Mock<ICreateClientCommandMutation_CreateClient_Errors_ApiNotFoundError>(MockBehavior.Strict);
+        apiNotFound.As<IApiNotFoundError>().SetupGet(x => x.Message).Returns("The API was not found.");
+        SetupCreateClientMutation(errors: apiNotFound.Object);
+
+        var result = await ExecuteCommandAsync(
+            "client", "create", "--api-id", ApiId, "--name", ClientName);
+
+        result.StdErr.MatchInlineSnapshot(
+            """
+            The API was not found.
+            This may mean the entity does not exist, or that you do not have permission to view it.
+            If you are targeting a dedicated or self-hosted instance, make sure you supply the correct '--cloud-url'. Currently targeting 'https://api.chillicream.com'.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
     public async Task MutationReturnsNoClient_ReturnsError()
     {
         // arrange
@@ -314,9 +333,6 @@ public sealed class CreateClientCommandTests(NitroCommandFixture fixture) : Clie
 
     public static TheoryData<ICreateClientCommandMutation_CreateClient_Errors, string> GetCreateClientErrors()
     {
-        var apiNotFound = new Mock<ICreateClientCommandMutation_CreateClient_Errors_ApiNotFoundError>(MockBehavior.Strict);
-        apiNotFound.As<IApiNotFoundError>().SetupGet(x => x.Message).Returns("The API was not found.");
-
         var unauthorized = new Mock<ICreateClientCommandMutation_CreateClient_Errors_UnauthorizedOperation>(MockBehavior.Strict);
         unauthorized.As<IUnauthorizedOperation>().SetupGet(x => x.Message).Returns("Unauthorized operation.");
 
@@ -328,7 +344,6 @@ public sealed class CreateClientCommandTests(NitroCommandFixture fixture) : Clie
 
         return new()
         {
-            { apiNotFound.Object, "The API was not found." },
             { unauthorized.Object, "Unauthorized operation." },
             { duplicateName.Object, "The name 'web-client' is already in use by another Client." },
             { genericError.Object, "Unexpected mutation error: something bad happened" }

@@ -106,6 +106,27 @@ public sealed class FusionConfigurationPublishValidateCommandTests(NitroCommandF
     }
 
     [Fact]
+    public async Task RequestNotFound_ReturnsError()
+    {
+        // arrange
+        SetupArchiveFile();
+        SetupFusionConfigurationValidationMutation(CreateValidationRequestNotFoundError());
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion", "publish", "validate", "--archive", ArchiveFile, "--request-id", RequestId);
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Fusion configuration request was not found.
+            This may mean the entity does not exist, or that you do not have permission to view it.
+            If you are targeting a dedicated or self-hosted instance, make sure you supply the correct '--cloud-url'. Currently targeting 'https://api.chillicream.com'.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
     public async Task Subscription_ValidationSuccess_ReturnsSuccess()
     {
         // arrange
@@ -374,7 +395,6 @@ public sealed class FusionConfigurationPublishValidateCommandTests(NitroCommandF
         string> GetValidationErrors() => new()
     {
         { CreateValidationUnauthorizedError(), "Unauthorized." },
-        { CreateValidationRequestNotFoundError(), "Fusion configuration request was not found." },
         { CreateValidationInvalidStateTransitionError(), "Invalid processing state transition." }
     };
 
