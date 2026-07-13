@@ -1,40 +1,87 @@
-import {
-  IconDefinition,
-  IconLookup,
-  IconName,
-  byPrefixAndName,
-} from "@awesome.me/kit-04be88f754/icons";
+import type { IconName } from "@fortawesome/fontawesome-svg-core";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { ComponentProps, ReactNode } from "react";
+import type { ComponentProps, ReactNode } from "react";
 
-declare module "@fortawesome/fontawesome-svg-core" {
-  export function icon(icon: IconName | IconLookup, params?: IconParams): Icon;
-  export function findIconDefinition(iconLookup: IconLookup): IconDefinition;
-}
+import { library } from "@fortawesome/fontawesome-svg-core";
 
-// TODO implement a fallback for tokenless development since this is a public
-// repo
-const FREE_NAMESPACE = "todo";
+import {
+  faArrowRightArrowLeft,
+  faBlog,
+  faBuilding,
+  faBuildingLock,
+  faChartLineUp,
+  faChevronDown,
+  faCirclePlay,
+  faClipboardCheck,
+  faCloud,
+  faCodeBranch,
+  faCookieBite,
+  faCubes,
+  faDiagramProject,
+  faEllipsis,
+  faEnvelope,
+  faFileCertificate,
+  faFileContract,
+  faFileLines,
+  faGear,
+  faHandshakeAngle,
+  faHashtag,
+  faLayerGroup,
+  faLink,
+  faMessage,
+  faMessageQuestion,
+  faNewspaper,
+  faRightLeft,
+  faRocket,
+  faRoute,
+  faServer,
+  faShirt,
+  faStar,
+} from "@fortawesome/pro-solid-svg-icons";
 
-const STYLE_MAPPING = {
-  classic: "far",
-  duotone: "fadr",
-  duolight: "fadl",
-} as const;
+library.add(
+  faArrowRightArrowLeft,
+  faBlog,
+  faBuilding,
+  faBuildingLock,
+  faChartLineUp,
+  faChevronDown,
+  faCirclePlay,
+  faClipboardCheck,
+  faCloud,
+  faCodeBranch,
+  faCookieBite,
+  faCubes,
+  faDiagramProject,
+  faEllipsis,
+  faEnvelope,
+  faFileCertificate,
+  faFileContract,
+  faFileLines,
+  faGear,
+  faHandshakeAngle,
+  faHashtag,
+  faLayerGroup,
+  faLink,
+  faMessage,
+  faMessageQuestion,
+  faNewspaper,
+  faRightLeft,
+  faRocket,
+  faRocket,
+  faRoute,
+  faServer,
+  faShirt,
+  faStar,
+);
 
 interface IconElementProps extends Omit<
   ComponentProps<typeof FontAwesomeIcon>,
   "icon"
 > {
   icon: IconName;
-  variant?: keyof typeof STYLE_MAPPING;
 }
 
-export function IconElement({
-  icon,
-  variant = "classic",
-  ...rest
-}: IconElementProps): ReactNode {
-  const namespace = STYLE_MAPPING[variant];
-  return <FontAwesomeIcon icon={byPrefixAndName[namespace][icon]} {...rest} />;
+export function IconElement({ icon, ...rest }: IconElementProps): ReactNode {
+  return <FontAwesomeIcon icon={["fas", icon]} {...rest} />;
 }

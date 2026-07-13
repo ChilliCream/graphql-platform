@@ -19,12 +19,12 @@
     "test:visual:update": "yarn build-storybook:test && playwright test --update-snapshots"
   },
   "dependencies": {
-    "@awesome.me/kit-04be88f754": "^1.0.16",
     "@chillicream/mocha-visualizer": "file:../src/Mocha/src/mocha-visualizer",
     "@docsearch/css": "^4.6.3",
     "@docsearch/react": "^4.6.3",
-    "@fortawesome/fontawesome-svg-core": "^7.1.0",
-    "@fortawesome/free-solid-svg-icons": "^7.1.0",
+    "@fortawesome/fontawesome-svg-core": "^7.3.0",
+    "@fortawesome/free-solid-svg-icons": "^7.3.0",
+    "@fortawesome/pro-solid-svg-icons": "^7.3.0",
     "@fortawesome/react-fontawesome": "^3.3.1",
     "@mdx-js/loader": "^3.1.1",
     "@mdx-js/react": "^3.1.1",

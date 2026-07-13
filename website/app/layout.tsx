@@ -1,6 +1,3 @@
-import "./globals.css";
-import type { Metadata } from "next";
-import { Inter, Josefin_Sans } from "next/font/google";
 import { Analytics } from "@/src/components/Analytics";
 import { AnalyticsScripts } from "@/src/components/AnalyticsScripts";
 import { EnableSmoothScroll } from "@/src/components/EnableSmoothScroll";
@@ -14,6 +11,9 @@ import {
   TWITTER_HANDLE,
 } from "@/src/helpers/site";
 import { SITE_URL } from "@/src/helpers/siteUrl";
+import type { Metadata } from "next";
+import { Inter, Josefin_Sans } from "next/font/google";
+import "./globals.css";
 
 // Set up the styling for fontawesome, including duotone icons
 // https://docs.fontawesome.com/web/use-with/react/use-with#getting-font-awesome-css-to-work
