@@ -90,7 +90,7 @@ public sealed class FusionScalarTypeDefinition : IScalarTypeDefinition, IFusionT
     /// <summary>
     /// Gets the URL that specifies the behavior of this scalar type.
     /// </summary>
-    public Uri? SpecifiedBy { get; private set; }
+    public string? SpecifiedBy { get; private set; }
 
     /// <summary>
     /// Gets the serialization type for this scalar.

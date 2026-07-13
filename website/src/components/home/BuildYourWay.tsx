@@ -1,5 +1,7 @@
 import Link from "next/link";
 
+import { Eyebrow } from "@/src/design-system/Eyebrow";
+import { PageSection } from "@/src/components/PageSection";
 import { CoffeeTray } from "@/src/icons/CoffeeTray";
 import { Fusion } from "@/src/icons/Fusion";
 import { HotChocolate } from "@/src/icons/HotChocolate";
@@ -56,7 +58,7 @@ const PRODUCTS = [
  */
 export function BuildYourWay() {
   return (
-    <section className="mx-auto max-w-7xl px-5 py-8 sm:px-12">
+    <PageSection className="py-8">
       <div className="mx-auto max-w-7xl overflow-hidden rounded-3xl shadow-[0_24px_50px_rgba(0,0,0,0.4)]">
         {/* Pitch region (top of the card). */}
         <div
@@ -85,9 +87,9 @@ export function BuildYourWay() {
         <div className="bg-cc-surface px-5 pt-5 pb-5 sm:px-8 sm:pt-6 sm:pb-6">
           <div className="flex items-center gap-3 px-1">
             <span className="bg-cc-ink-faint h-px flex-1" />
-            <span className="text-cc-ink-dim font-mono text-[0.65rem] tracking-[0.15em] uppercase">
+            <Eyebrow as="span" size="2xs" color="ink-dim">
               Products
-            </span>
+            </Eyebrow>
             <span className="bg-cc-ink-faint h-px flex-1" />
           </div>
 
@@ -130,6 +132,6 @@ export function BuildYourWay() {
           </nav>
         </div>
       </div>
-    </section>
+    </PageSection>
   );
 }

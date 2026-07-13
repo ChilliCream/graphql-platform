@@ -33,7 +33,7 @@ public class LocalDateType : ScalarType<DateOnly, StringValueNode>
     {
         Description = description;
         Pattern = @"^\d{4}-\d{2}-\d{2}$";
-        SpecifiedBy = new Uri(SpecifiedByUri);
+        SpecifiedBy = SpecifiedByUri;
         _enforceSpecFormat = !disableFormatCheck;
     }
 

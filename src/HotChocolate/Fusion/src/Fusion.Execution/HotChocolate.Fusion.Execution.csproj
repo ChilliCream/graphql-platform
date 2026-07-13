@@ -5,6 +5,7 @@
     <RootNamespace>HotChocolate.Fusion</RootNamespace>
     <LangVersion>preview</LangVersion>
     <DefineConstants>$(DefineConstants);FUSION</DefineConstants>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
   <ItemGroup>
@@ -19,7 +20,6 @@
     <InternalsVisibleTo Include="ChilliCream.Nitro.Fusion" />
     <InternalsVisibleTo Include="HotChocolate.Fusion.AspNetCore" />
     <InternalsVisibleTo Include="HotChocolate.Fusion.Connectors.InMemory" />
-    <InternalsVisibleTo Include="HotChocolate.Fusion.Connectors.ApolloFederation" />
   </ItemGroup>
 
   <ItemGroup>

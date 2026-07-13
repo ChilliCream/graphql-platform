@@ -1,4 +1,6 @@
 import type { ReactElement } from "react";
+import { Card } from "@/src/design-system/Card";
+import { Eyebrow } from "@/src/design-system/Eyebrow";
 
 interface IconFeatureCardProps {
   readonly icon: ReactElement;
@@ -42,7 +44,7 @@ export function IconFeatureCard({
 }: IconFeatureCardProps) {
   if (layout === "inline") {
     return (
-      <article className="border-cc-card-border bg-cc-card-bg/60 flex h-full flex-col gap-4 rounded-3xl border p-6">
+      <Card as="article" variant="panel" className="flex h-full flex-col gap-4">
         <div className="flex items-center gap-3">
           <span className="text-cc-accent flex-none [&>svg]:h-7 [&>svg]:w-7">
             {icon}
@@ -52,9 +54,9 @@ export function IconFeatureCard({
               {title}
             </h3>
             {subtitle && (
-              <span className="text-cc-nav-label font-mono text-[0.65rem] tracking-[0.18em] uppercase">
+              <Eyebrow as="span" size="2xs">
                 {subtitle}
-              </span>
+              </Eyebrow>
             )}
           </div>
         </div>
@@ -64,22 +66,24 @@ export function IconFeatureCard({
             {footnote}
           </p>
         )}
-      </article>
+      </Card>
     );
   }
 
   const Heading = size === "lg" ? "h2" : "h3";
 
   return (
-    <article
-      className={`border-cc-card-border bg-cc-card-bg/60 flex h-full flex-col gap-4 rounded-3xl border p-6 sm:p-7 ${
+    <Card
+      as="article"
+      variant="panel"
+      className={`flex h-full flex-col gap-4 ${
         align === "center" ? "items-center text-center" : ""
       }`}
     >
       {eyebrow && (
-        <div className="text-cc-ink-dim font-mono text-[0.65rem] tracking-[0.18em] uppercase">
+        <Eyebrow as="div" size="2xs" color="ink-dim">
           {eyebrow}
-        </div>
+        </Eyebrow>
       )}
       <span className={`text-cc-accent ${STACKED_ICON_SIZE[size]}`}>
         {icon}
@@ -97,6 +101,6 @@ export function IconFeatureCard({
           {footnote}
         </p>
       )}
-    </article>
+    </Card>
   );
 }

@@ -11,7 +11,7 @@
 namespace Microsoft.Extensions.DependencyInjection
 {
     [global::System.CodeDom.Compiler.GeneratedCode("Mocha.Analyzers", "1.0.0")]
-    public static class TestsMediatorBuilderExtensions
+    public static partial class TestsMediatorBuilderExtensions
     {
         [global::Mocha.Mediator.MediatorModuleInfo(
             MessageTypes = new global::System.Type[]
@@ -28,25 +28,53 @@ namespace Microsoft.Extensions.DependencyInjection
             this global::Mocha.Mediator.IMediatorHostBuilder builder)
         {
 
-            // Register handler configurations
-            global::Mocha.Mediator.MediatorHostBuilderHandlerExtensions.AddHandlerConfiguration<global::TestApp.DeleteOrderHandlerA>(builder,
-                new global::Mocha.Mediator.MediatorHandlerConfiguration
-                {
-                    HandlerType = typeof(global::TestApp.DeleteOrderHandlerA),
-                    MessageType = typeof(global::TestApp.DeleteOrderCommand),
-                    Kind = global::Mocha.Mediator.MediatorHandlerKind.Command,
-                    Delegate = global::Mocha.Mediator.PipelineBuilder.BuildCommandPipeline<global::TestApp.DeleteOrderHandlerA, global::TestApp.DeleteOrderCommand>()
-                });
-            global::Mocha.Mediator.MediatorHostBuilderHandlerExtensions.AddHandlerConfiguration<global::TestApp.DeleteOrderHandlerB>(builder,
-                new global::Mocha.Mediator.MediatorHandlerConfiguration
-                {
-                    HandlerType = typeof(global::TestApp.DeleteOrderHandlerB),
-                    MessageType = typeof(global::TestApp.DeleteOrderCommand),
-                    Kind = global::Mocha.Mediator.MediatorHandlerKind.Command,
-                    Delegate = global::Mocha.Mediator.PipelineBuilder.BuildCommandPipeline<global::TestApp.DeleteOrderHandlerB, global::TestApp.DeleteOrderCommand>()
-                });
+            // Register handlers
+            global::Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions.TryAdd(
+                builder.Services,
+                new global::Microsoft.Extensions.DependencyInjection.ServiceDescriptor(
+                    typeof(global::TestApp.DeleteOrderHandlerA),
+                    typeof(global::TestApp.DeleteOrderHandlerA),
+                    builder.Options.ServiceLifetime));
+            global::Mocha.Mediator.MediatorHostBuilderExtensions.ConfigureMediator(
+                builder,
+                static b => b.AddHandler<global::TestApp.DeleteOrderHandlerA>(__Initialize_DeleteOrderHandlerA_Handler__6A_21jkTlzm2NjTpE40Jpg));
+            global::Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions.TryAdd(
+                builder.Services,
+                new global::Microsoft.Extensions.DependencyInjection.ServiceDescriptor(
+                    typeof(global::TestApp.DeleteOrderHandlerB),
+                    typeof(global::TestApp.DeleteOrderHandlerB),
+                    builder.Options.ServiceLifetime));
+            global::Mocha.Mediator.MediatorHostBuilderExtensions.ConfigureMediator(
+                builder,
+                static b => b.AddHandler<global::TestApp.DeleteOrderHandlerB>(__Initialize_DeleteOrderHandlerB_Handler__9u0jgUHdbQwGLC4WnEMIWA));
 
             return builder;
+        }
+
+        private static void __Initialize_DeleteOrderHandlerA_Handler__6A_21jkTlzm2NjTpE40Jpg(global::Mocha.Mediator.IMediatorHandlerDescriptor descriptor)
+        {
+            var configuration = descriptor.Extend().Configuration;
+            configuration.MessageType = typeof(global::TestApp.DeleteOrderCommand);
+            configuration.Kind = global::Mocha.Mediator.MediatorHandlerKind.Command;
+            configuration.Delegate = global::Mocha.Mediator.PipelineBuilder.BuildCommandPipeline<global::TestApp.DeleteOrderHandlerA, global::TestApp.DeleteOrderCommand>();
+            configuration.Source = new global::Mocha.SourceMetadata
+            {
+                Assembly = "Tests",
+                DeclarationLocation = new global::Mocha.DeclarationLocation("", null, 7, 1, 11, 2)
+            };
+        }
+
+        private static void __Initialize_DeleteOrderHandlerB_Handler__9u0jgUHdbQwGLC4WnEMIWA(global::Mocha.Mediator.IMediatorHandlerDescriptor descriptor)
+        {
+            var configuration = descriptor.Extend().Configuration;
+            configuration.MessageType = typeof(global::TestApp.DeleteOrderCommand);
+            configuration.Kind = global::Mocha.Mediator.MediatorHandlerKind.Command;
+            configuration.Delegate = global::Mocha.Mediator.PipelineBuilder.BuildCommandPipeline<global::TestApp.DeleteOrderHandlerB, global::TestApp.DeleteOrderCommand>();
+            configuration.Source = new global::Mocha.SourceMetadata
+            {
+                Assembly = "Tests",
+                DeclarationLocation = new global::Mocha.DeclarationLocation("", null, 13, 1, 17, 2)
+            };
         }
     }
 }

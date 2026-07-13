@@ -9,7 +9,7 @@
 namespace Microsoft.Extensions.DependencyInjection
 {
     [global::System.CodeDom.Compiler.GeneratedCode("Mocha.Analyzers", "1.0.0")]
-    public static class ApiMessageBusBuilderExtensions
+    public static partial class ApiMessageBusBuilderExtensions
     {
         [global::Mocha.MessagingModuleInfo(
             HandlerTypes = new global::System.Type[]
@@ -21,15 +21,49 @@ namespace Microsoft.Extensions.DependencyInjection
             this global::Mocha.IMessageBusHostBuilder builder)
         {
 
+            // --- Message Types ---
+            global::Mocha.MessageBusHostBuilderExtensions.AddMessage<global::TestApp.OrderPlacedEvent>(builder);
+            global::Mocha.MessageBusHostBuilderExtensions.ConfigureDescriptorContext(
+                builder,
+                static ctx => global::Mocha.Features.FeatureCollectionExtensions.GetRequired<global::Mocha.MessagingConfigurationFeature>(ctx.Features)
+                    .Configurations.TryAdd<global::Mocha.IMessageTypeDescriptor>(
+                        "My.OrderService.Api::TestApp.OrderPlacedEvent",
+                        typeof(global::TestApp.OrderPlacedEvent),
+                        __Initialize_OrderPlacedEvent_MessageType_dvhIfsYxAJnU0SPrLyZOEQ));
+
             // --- Event Handlers ---
-            global::Mocha.MessageBusHostBuilderExtensions.AddHandlerConfiguration<global::TestApp.OrderPlacedHandler>(builder,
-                new global::Mocha.MessagingHandlerConfiguration
-                {
-                    HandlerType = typeof(global::TestApp.OrderPlacedHandler),
-                    Factory = global::Mocha.ConsumerFactory.Subscribe<global::TestApp.OrderPlacedHandler, global::TestApp.OrderPlacedEvent>()
-                });
+            global::Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions.TryAddScoped<global::TestApp.OrderPlacedHandler>(
+                builder.Services);
+            global::Mocha.MessageBusHostBuilderExtensions.AddConsumer(
+                builder,
+                static () => global::Mocha.ConsumerFactory.Subscribe<global::TestApp.OrderPlacedHandler, global::TestApp.OrderPlacedEvent>());
+            global::Mocha.MessageBusHostBuilderExtensions.ConfigureDescriptorContext(
+                builder,
+                static ctx => global::Mocha.Features.FeatureCollectionExtensions.GetRequired<global::Mocha.MessagingConfigurationFeature>(ctx.Features)
+                    .Configurations.TryAdd<global::Mocha.IConsumerDescriptor>(
+                        "My.OrderService.Api::TestApp.OrderPlacedHandler",
+                        typeof(global::TestApp.OrderPlacedHandler),
+                        __Initialize_OrderPlacedHandler_Consumer_jup_xlxA4lU73SDscyj4Hw));
 
             return builder;
+        }
+
+        private static void __Initialize_OrderPlacedEvent_MessageType_dvhIfsYxAJnU0SPrLyZOEQ(global::Mocha.IMessageTypeDescriptor descriptor)
+        {
+            descriptor.Extend().Configuration.Source = new global::Mocha.SourceMetadata
+            {
+                Assembly = "My.OrderService.Api",
+                DeclarationLocation = new global::Mocha.DeclarationLocation("", null, 5, 1, 5, 45)
+            };
+        }
+
+        private static void __Initialize_OrderPlacedHandler_Consumer_jup_xlxA4lU73SDscyj4Hw(global::Mocha.IConsumerDescriptor descriptor)
+        {
+            descriptor.Extend().Configuration.Source = new global::Mocha.SourceMetadata
+            {
+                Assembly = "My.OrderService.Api",
+                DeclarationLocation = new global::Mocha.DeclarationLocation("", null, 7, 1, 11, 2)
+            };
         }
     }
 }

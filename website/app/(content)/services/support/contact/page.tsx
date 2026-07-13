@@ -1,3 +1,4 @@
+import { Card } from "@/src/design-system/Card";
 import { pageMetadata } from "@/src/helpers/pageMetadata";
 
 import { ContactForm } from "./ContactForm";
@@ -17,7 +18,7 @@ const SPECTRUM =
 export default function ContactPage() {
   return (
     <section className="py-12 sm:py-16">
-      <div className="border-cc-card-border bg-cc-card-bg/40 relative overflow-hidden rounded-3xl border">
+      <Card variant="panel">
         <div
           aria-hidden="true"
           className="pointer-events-none absolute inset-x-0 top-0 h-px"
@@ -31,7 +32,7 @@ export default function ContactPage() {
             <ContactForm />
           </div>
         </div>
-      </div>
+      </Card>
     </section>
   );
 }

@@ -6,6 +6,7 @@ namespace Mocha.Sagas;
 /// Defines a state transition within a saga, triggered by a specific event type, with associated actions, messages, and the target state.
 /// </summary>
 public sealed class SagaTransition(
+    string urn,
     Type eventType,
     string transitionTo,
     SagaTransitionKind transitionKind,
@@ -14,6 +15,11 @@ public sealed class SagaTransition(
     IEnumerable<SagaEventSend> send,
     Func<object, SagaStateBase>? stateFactory)
 {
+    /// <summary>
+    /// Gets the stable URN identity of this transition.
+    /// </summary>
+    public string Urn { get; } = urn;
+
     /// <summary>
     /// Gets the CLR type of the event that triggers this transition.
     /// </summary>

@@ -1,10 +1,20 @@
+using HotChocolate.Fusion.Suites.SimpleInaccessible.Age;
+using HotChocolate.Fusion.Suites.SimpleInaccessible.Friends;
+
 namespace HotChocolate.Fusion.Suites;
 
-public sealed class SimpleInaccessibleTests : ComplianceTestBase
+[OfficialV2Suite("simple-inaccessible")]
+public sealed class SimpleInaccessibleTests
+    : OfficialV2ComplianceTestBase<SimpleInaccessibleTests>
 {
     protected override Task<FusionGateway> BuildGatewayAsync()
-        => throw new NotImplementedException("Subgraphs not yet wired for this suite.");
+        => ComposeOfficialV2Async(
+            (FriendsSubgraph.Name, FriendsSubgraph.BuildAsync),
+            (AgeSubgraph.Name, AgeSubgraph.BuildAsync));
 
-    [Fact(Skip = "Pending: @inaccessible currently silently dropped.")]
-    public Task Pending() => Task.CompletedTask;
+    [Theory]
+    [MemberData(nameof(Cases))]
+    [Trait("Category", "OfficialV2")]
+    public Task OfficialCase_Should_MatchExpectedResult_When_Executed(string caseId)
+        => RunOfficialV2CaseAsync(caseId);
 }

@@ -85,6 +85,11 @@ public class QueryableProjectionListHandler
         if (!queryableScope.HasAbstractTypes()
             && (queryableScope.Level.Count == 0 || queryableScope.Level.Peek().Count == 0))
         {
+            // No member is projected for this list, so the instance pushed in OnBeforeEnter
+            // is popped here to keep the instance stack aligned with the parent scope,
+            // mirroring the pop the non-empty path performs below via CreateSelection.
+            context.PopInstance();
+
             action = SelectionVisitor.Continue;
 
             return true;

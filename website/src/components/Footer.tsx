@@ -59,6 +59,7 @@ export default function Footer() {
                 Continuous Integration
               </NavLink>
               <NavLink href="/platform/ecosystem">Ecosystem</NavLink>
+              <NavLink href="/platform/agentic-coding">Agentic Coding</NavLink>
               <NavLink href="/products/nitro">Nitro</NavLink>
             </LinkColumn>
             <LinkColumn title="Services">

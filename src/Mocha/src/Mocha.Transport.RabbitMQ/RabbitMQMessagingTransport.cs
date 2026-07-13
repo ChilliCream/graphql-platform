@@ -156,6 +156,7 @@ public sealed class RabbitMQMessagingTransport : MessagingTransport
         {
             entities.Add(
                 new TopologyEntityDescription(
+                    MochaUrn.TopologyEntity(exchange.Address?.ToString(), "exchange", exchange.Name),
                     "exchange",
                     exchange.Name,
                     exchange.Address?.ToString(),
@@ -174,6 +175,7 @@ public sealed class RabbitMQMessagingTransport : MessagingTransport
         {
             entities.Add(
                 new TopologyEntityDescription(
+                    MochaUrn.TopologyEntity(queue.Address?.ToString(), "queue", queue.Name),
                     "queue",
                     queue.Name,
                     queue.Address?.ToString(),
@@ -190,17 +192,21 @@ public sealed class RabbitMQMessagingTransport : MessagingTransport
 
         foreach (var binding in _topology.Bindings)
         {
+            var source = binding.Source.Address?.ToString();
+            var target = binding switch
+            {
+                RabbitMQQueueBinding qb => qb.Destination.Address?.ToString(),
+                RabbitMQExchangeBinding eb => eb.Destination.Address?.ToString(),
+                _ => null
+            };
+
             links.Add(
                 new TopologyLinkDescription(
+                    MochaUrn.TopologyLink(binding.Address?.ToString(), "bind", source, target),
                     "bind",
                     binding.Address?.ToString(),
-                    binding.Source.Address?.ToString(),
-                    binding switch
-                    {
-                        RabbitMQQueueBinding qb => qb.Destination.Address?.ToString(),
-                        RabbitMQExchangeBinding eb => eb.Destination.Address?.ToString(),
-                        _ => null
-                    },
+                    source,
+                    target,
                     "forward",
                     new Dictionary<string, object?>
                     {
@@ -213,6 +219,7 @@ public sealed class RabbitMQMessagingTransport : MessagingTransport
         var topology = new TopologyDescription(_topology.Address.ToString(), entities, links);
 
         return new TransportDescription(
+            Urn,
             _topology.Address.ToString(),
             Name,
             Schema,

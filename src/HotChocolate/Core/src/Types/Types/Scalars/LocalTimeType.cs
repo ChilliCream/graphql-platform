@@ -38,7 +38,7 @@ public partial class LocalTimeType : ScalarType<TimeOnly, StringValueNode>
         _options = options ?? new DateTimeOptions();
         Description = description;
         Pattern = GetPattern();
-        SpecifiedBy = new Uri(SpecifiedByUri);
+        SpecifiedBy = SpecifiedByUri;
         _localFormat = GetLocalFormat();
         _localTimeRegex = GetLocalTimeRegex();
     }
@@ -81,7 +81,7 @@ public partial class LocalTimeType : ScalarType<TimeOnly, StringValueNode>
         _options = new DateTimeOptions { ValidateInputFormat = !disableFormatCheck };
         Description = description;
         Pattern = GetPattern();
-        SpecifiedBy = new Uri(SpecifiedByUri);
+        SpecifiedBy = SpecifiedByUri;
         _localFormat = GetLocalFormat();
         _localTimeRegex = GetLocalTimeRegex();
     }

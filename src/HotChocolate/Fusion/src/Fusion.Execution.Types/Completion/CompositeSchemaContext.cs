@@ -14,7 +14,9 @@ internal sealed class CompositeSchemaBuilderContext : ICompositeSchemaBuilderCon
 #pragma warning disable IDE0052 // WIP
     private readonly DocumentNode _document;
 #pragma warning restore IDE0052
-    private readonly Dictionary<ITypeNode, IType> _compositeTypes = new(SyntaxComparer.BySyntax);
+    // A source type structure can be resolved against a differently named composite type.
+    // Both values are therefore part of the cache identity.
+    private readonly Dictionary<string, Dictionary<ITypeNode, IType>> _compositeTypes = [with(StringComparer.Ordinal)];
     private readonly Dictionary<string, IFusionTypeDefinition> _typeDefinitionLookup;
     private ImmutableDictionary<string, ITypeDefinitionNode> _typeDefinitionNodeLookup;
     private readonly Dictionary<string, FusionDirectiveDefinition> _directiveDefinitionLookup;
@@ -138,10 +140,16 @@ internal sealed class CompositeSchemaBuilderContext : ICompositeSchemaBuilderCon
     {
         typeName ??= typeStructure.NamedType().Name.Value;
 
-        if (!_compositeTypes.TryGetValue(typeStructure, out var type))
+        if (!_compositeTypes.TryGetValue(typeName, out var typeLookup))
+        {
+            typeLookup = [with(SyntaxComparer.BySyntax)];
+            _compositeTypes.Add(typeName, typeLookup);
+        }
+
+        if (!typeLookup.TryGetValue(typeStructure, out var type))
         {
             type = CreateType(typeStructure, typeName);
-            _compositeTypes[typeStructure] = type;
+            typeLookup.Add(typeStructure, type);
         }
 
         return type;

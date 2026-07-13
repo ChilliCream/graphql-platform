@@ -36,6 +36,7 @@ public abstract class CommandTestBase
     private readonly List<Stream> _files = [];
     private readonly Mock<IFileSystem> _fileSystemMock = new();
     private readonly Mock<IEnvironmentVariableProvider> _environmentVariableProviderMock = new();
+    private readonly Mock<IHttpClientFactory> _httpClientFactoryMock = new();
     protected readonly Mock<ISchemasClient> SchemasClientMock = new(MockBehavior.Strict);
     protected readonly Mock<IFusionConfigurationClient> FusionConfigurationClientMock = new(MockBehavior.Strict);
     protected readonly Mock<IClientsClient> ClientsClientMock = new(MockBehavior.Strict);
@@ -71,6 +72,13 @@ public abstract class CommandTestBase
     protected void SetupNoAuthentication()
     {
         _authenticated = false;
+    }
+
+    protected void SetupHttpClient(HttpClient client)
+    {
+        _httpClientFactoryMock
+            .Setup(factory => factory.CreateClient(It.IsAny<string>()))
+            .Returns(client);
     }
 
     protected void SetupSession()
@@ -228,6 +236,7 @@ public abstract class CommandTestBase
 
         services.Replace(ServiceDescriptor.Singleton(_fileSystemMock.Object));
         services.Replace(ServiceDescriptor.Singleton(_environmentVariableProviderMock.Object));
+        services.Replace(ServiceDescriptor.Singleton(_httpClientFactoryMock.Object));
         services.Replace(ServiceDescriptor.Singleton(_sessionServiceMock.Object));
         services.Replace(ServiceDescriptor.Singleton(_browserLauncherMock.Object));
         services.Replace(ServiceDescriptor.Singleton(WorkspacesClientMock.Object));

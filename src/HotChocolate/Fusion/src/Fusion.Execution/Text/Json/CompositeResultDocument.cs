@@ -17,6 +17,7 @@ public sealed partial class CompositeResultDocument : IDisposable
     private readonly ulong _deferFlags;
     private readonly PathSegmentLocalPool? _pathPool;
     internal MetaDb _metaDb;
+    private NullMarkerState _nullMarkerState;
     private int _disposed;
 
     internal CompositeResultDocument(
@@ -52,6 +53,11 @@ public sealed partial class CompositeResultDocument : IDisposable
     internal SelectionSet? GetSelectionSet(Cursor cursor)
     {
         var row = _metaDb.Get(cursor);
+
+        if (row.TokenType is ElementTokenType.Reference)
+        {
+            row = _metaDb.Get(new Cursor(row.Location));
+        }
 
         if (row.OperationReferenceType is not OperationReferenceType.SelectionSet)
         {
@@ -127,6 +133,7 @@ public sealed partial class CompositeResultDocument : IDisposable
         return row.SizeOrLength;
     }
 
+    [SkipLocalsInit]
     internal CompactPath CreateCompactPath(Cursor current)
     {
         var firstRow = _metaDb.Get(current);
@@ -279,6 +286,55 @@ public sealed partial class CompositeResultDocument : IDisposable
         return false;
     }
 
+    internal bool RequiresNullMarkerFinalization
+        => (_nullMarkerState & NullMarkerState.RequiresFinalization)
+            is NullMarkerState.RequiresFinalization;
+
+    internal bool HasNullMarkers
+        => (_nullMarkerState & NullMarkerState.HasMarkers) is NullMarkerState.HasMarkers;
+
+    internal bool IsNullMarker(Cursor current)
+    {
+        ObjectDisposedException.ThrowIf(_disposed != 0, this);
+
+        return (_metaDb.GetFlags(current) & ElementFlags.NullMarker) is ElementFlags.NullMarker;
+    }
+
+    internal void RequireNullMarkerFinalization()
+    {
+        ObjectDisposedException.ThrowIf(_disposed != 0, this);
+
+        _nullMarkerState |= NullMarkerState.RequiresFinalization;
+    }
+
+    internal void CompleteNullMarkerFinalization()
+    {
+        ObjectDisposedException.ThrowIf(_disposed != 0, this);
+
+        _nullMarkerState &= ~NullMarkerState.RequiresFinalization;
+    }
+
+    internal void SetNullMarker(Cursor current)
+    {
+        ObjectDisposedException.ThrowIf(_disposed != 0, this);
+
+        var flags = _metaDb.GetFlags(current);
+        if ((flags & ElementFlags.NullMarker) is not ElementFlags.NullMarker)
+        {
+            _metaDb.SetFlags(current, flags | ElementFlags.NullMarker);
+        }
+
+        _nullMarkerState |= NullMarkerState.HasMarkers;
+    }
+
+    [Flags]
+    private enum NullMarkerState : byte
+    {
+        None = 0,
+        RequiresFinalization = 1,
+        HasMarkers = 2
+    }
+
     internal bool IsInternalProperty(Cursor current)
     {
         ObjectDisposedException.ThrowIf(_disposed != 0, this);
@@ -287,6 +343,16 @@ public sealed partial class CompositeResultDocument : IDisposable
         var propertyCursor = current.AddRows(-1);
         var flags = _metaDb.GetFlags(propertyCursor);
         return (flags & ElementFlags.IsInternal) == ElementFlags.IsInternal;
+    }
+
+    internal bool IsEnumValueProperty(Cursor current)
+    {
+        ObjectDisposedException.ThrowIf(_disposed != 0, this);
+
+        // The flag sits on the property row (one before value)
+        var propertyCursor = current.AddRows(-1);
+        var flags = _metaDb.GetFlags(propertyCursor);
+        return (flags & ElementFlags.IsEnumValue) == ElementFlags.IsEnumValue;
     }
 
     internal void Invalidate(Cursor current)
@@ -356,6 +422,12 @@ public sealed partial class CompositeResultDocument : IDisposable
     }
 
     internal CompositeResultElement CreateObject(Cursor parent, SelectionSet selectionSet)
+        => CreateObject(parent, selectionSet, out _);
+
+    internal CompositeResultElement CreateObject(
+        Cursor parent,
+        SelectionSet selectionSet,
+        out CompositeObjectContext objectContext)
     {
         var selections = selectionSet.Selections;
         var startObjectCursor = WriteStartObject(parent, selectionSet.Id, selections.Length);
@@ -379,7 +451,44 @@ public sealed partial class CompositeResultDocument : IDisposable
 
         _metaDb.AppendEndObject();
 
+        objectContext = new CompositeObjectContext(
+            this,
+            startObjectCursor,
+            selectionSet,
+            (selections.Length * 2) + 1);
+
         return new CompositeResultElement(this, startObjectCursor);
+    }
+
+    /// <summary>
+    /// Upgrades an interface-typed element produced by an <c>@interfaceObject</c> stand-in to its
+    /// recovered concrete type. A new object is created with the concrete selection set, the
+    /// interface-declared fields already completed on the old object are carried over by response
+    /// name, and <paramref name="element"/> is re-pointed at the concrete object so the covering
+    /// lookup can complete the identity-dependent fields.
+    /// </summary>
+    internal void UpgradeObject(CompositeResultElement element, SelectionSet concreteSelectionSet)
+    {
+        var newObject = CreateObject(element.Cursor, concreteSelectionSet);
+
+        foreach (var property in element.EnumerateObject())
+        {
+            var selection = property.Selection;
+
+            // __typename is synthesized from the concrete selection set; the interface-named
+            // placeholder on the opaque object must never overwrite it.
+            if (selection is null || selection.Field.IsIntrospectionField)
+            {
+                continue;
+            }
+
+            if (newObject.TryGetProperty(selection.Utf8ResponseName, out var slot))
+            {
+                AssignCompositeValue(slot, property.Value);
+            }
+        }
+
+        AssignCompositeValue(element, newObject);
     }
 
     internal CompositeResultElement CreateArray(Cursor parent, int length)
@@ -396,17 +505,22 @@ public sealed partial class CompositeResultDocument : IDisposable
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal void AssignCompositeValue(CompositeResultElement target, CompositeResultElement value)
     {
-        _metaDb.Replace(
+        _metaDb.ReplacePreserveParent(
             cursor: target.Cursor,
             tokenType: ElementTokenType.Reference,
-            location: value.Cursor.Value,
-            parentRow: _metaDb.GetParent(target.Cursor));
+            location: value.Cursor.Value);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal void AssignSourceValue(CompositeResultElement target, SourceResultElement source)
+        => AssignSourceValue(target, source, source.GetValueRow());
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal void AssignSourceValue(
+        CompositeResultElement target,
+        SourceResultElement source,
+        SourceResultDocument.DbRow row)
     {
-        var value = source.GetValuePointer();
         var parent = source._parent;
 
         if (parent.Id == -1)
@@ -418,40 +532,37 @@ public sealed partial class CompositeResultDocument : IDisposable
 
         Debug.Assert(_sources.Contains(parent), "Expected the source document of the source element to be registered.");
 
-        var tokenType = source.TokenType.ToElementTokenType();
+        var tokenType = row.TokenType.ToElementTokenType();
 
         if (tokenType is ElementTokenType.StartObject or ElementTokenType.StartArray)
         {
             var sourceCursor = source._cursor;
 
-            _metaDb.Replace(
+            _metaDb.ReplacePreserveParent(
                 cursor: target.Cursor,
-                tokenType: source.TokenType.ToElementTokenType(),
+                tokenType: tokenType,
                 location: sourceCursor.Chunk,
                 sizeOrLength: sourceCursor.Row,
                 sourceDocumentId: parent.Id,
-                parentRow: _metaDb.GetParent(target.Cursor),
                 flags: ElementFlags.SourceResult);
             return;
         }
 
-        _metaDb.Replace(
+        _metaDb.ReplacePreserveParent(
             cursor: target.Cursor,
-            tokenType: source.TokenType.ToElementTokenType(),
-            location: value.Location,
-            sizeOrLength: value.Size,
+            tokenType: tokenType,
+            location: row.Location,
+            sizeOrLength: row.SizeOrLength,
             sourceDocumentId: parent.Id,
-            parentRow: _metaDb.GetParent(target.Cursor),
             flags: ElementFlags.SourceResult);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal void AssignNullValue(CompositeResultElement target)
     {
-        _metaDb.Replace(
+        _metaDb.ReplacePreserveParent(
             cursor: target.Cursor,
-            tokenType: ElementTokenType.Null,
-            parentRow: _metaDb.GetParent(target.Cursor));
+            tokenType: ElementTokenType.Null);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -506,6 +617,11 @@ public sealed partial class CompositeResultDocument : IDisposable
         if (selection.Type.Kind is not TypeKind.NonNull)
         {
             flags |= ElementFlags.IsNullable;
+        }
+
+        if (selection.IsEnumValue)
+        {
+            flags |= ElementFlags.IsEnumValue;
         }
 
         return flags;

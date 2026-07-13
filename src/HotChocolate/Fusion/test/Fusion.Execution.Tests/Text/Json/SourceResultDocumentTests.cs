@@ -1,5 +1,8 @@
+using System.Buffers;
 using System.Text;
 using System.Text.Json;
+using HotChocolate.Buffers;
+using HotChocolate.Text.Json;
 
 namespace HotChocolate.Fusion.Text.Json;
 
@@ -589,6 +592,98 @@ public class SourceResultDocumentTests
     }
 
     [Fact]
+    public void TryGetRawStringValue_Should_ReturnRawUtf8_When_StringIsNotEscaped()
+    {
+        var json = "{\"__typename\":\"Product\"}"u8.ToArray();
+        using var result = SourceResultDocument.Parse(
+            CommonTestExtensions.CreateArena(),
+            json,
+            json.Length);
+
+        var success = result.Root
+            .GetProperty("__typename")
+            .TryGetRawStringValue(out var typeName);
+
+        Assert.True(success);
+        Assert.True(typeName.SequenceEqual("Product"u8));
+    }
+
+    [Fact]
+    public void TryGetRawStringValue_Should_ReturnFalse_When_StringIsEscaped()
+    {
+        var json = "{\"__typename\":\"Pro\\u0064uct\"}"u8.ToArray();
+        using var result = SourceResultDocument.Parse(
+            CommonTestExtensions.CreateArena(),
+            json,
+            json.Length);
+
+        var success = result.Root
+            .GetProperty("__typename")
+            .TryGetRawStringValue(out var typeName);
+
+        Assert.False(success);
+        Assert.True(typeName.IsEmpty);
+        Assert.Equal("Product", result.Root.GetProperty("__typename").AssertString());
+    }
+
+    [Fact]
+    public void TryGetRawStringValue_Should_ReturnFalse_When_ValueIsNotString()
+    {
+        var json = "{\"__typename\":42}"u8.ToArray();
+        using var result = SourceResultDocument.Parse(
+            CommonTestExtensions.CreateArena(),
+            json,
+            json.Length);
+
+        var success = result.Root
+            .GetProperty("__typename")
+            .TryGetRawStringValue(out var typeName);
+
+        Assert.False(success);
+        Assert.True(typeName.IsEmpty);
+    }
+
+    [Fact]
+    public void TryGetRawStringValue_Should_ThrowInvalidOperation_When_ElementIsDefault()
+    {
+        Assert.Throws<InvalidOperationException>(
+            () => default(SourceResultElement).TryGetRawStringValue(out _));
+    }
+
+    [Fact]
+    public void TryGetRawStringValue_Should_ReturnFalseWithoutAllocating_When_StringSpansChunks()
+    {
+        var json = Encoding.UTF8.GetBytes(
+            $"{{\"padding\":\"{new string('x', 993)}\",\"__typename\":\"Product\"}}");
+        var chunks = new[]
+        {
+            json[..1024],
+            json[1024..]
+        };
+        using var result = SourceResultDocument.Parse(
+            CommonTestExtensions.CreateArena(),
+            chunks,
+            chunks[1].Length,
+            chunks.Length);
+        var element = result.Root.GetProperty("__typename");
+
+        element.TryGetRawStringValue(out _);
+        var allocatedBefore = GC.GetAllocatedBytesForCurrentThread();
+        var success = false;
+
+        for (var i = 0; i < 1000; i++)
+        {
+            success |= element.TryGetRawStringValue(out _);
+        }
+
+        var allocated = GC.GetAllocatedBytesForCurrentThread() - allocatedBefore;
+
+        Assert.False(success);
+        Assert.Equal(0, allocated);
+        Assert.Equal("Product", element.AssertString());
+    }
+
+    [Fact]
     public void TryGetProperty_EscapedPropertyNames_WorksCorrectly()
     {
         var json = "{\"prop\\nname\": 42}"u8.ToArray();
@@ -826,5 +921,78 @@ public class SourceResultDocumentTests
         var array = result.Root.GetProperty("arr");
         Assert.Equal("[1,2,3]", array.GetRawText());
         Assert.Equal("[1,2,3]", Encoding.UTF8.GetString(array.GetRawValueAsMemory().Span));
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void RawJsonFormatter_Should_WriteCrossChunkScalars_When_ValuesStraddleChunkBoundaries(
+        bool indented)
+    {
+        var escapedString = new string('a', 1018) + "\\nxx";
+        var padding = new string('b', 2037);
+        const string number = "1234567890";
+        var json = Encoding.UTF8.GetBytes($"[0,\"{escapedString}\",\"{padding}\",{number},1]");
+        const int stringStart = 3;
+        var stringEnd = stringStart + Encoding.UTF8.GetByteCount(escapedString) + 2;
+        var numberStart = stringEnd + Encoding.UTF8.GetByteCount(padding) + 4;
+        var numberEnd = numberStart + number.Length;
+        var firstChunkEnd = SourceResultDocument.GetDataChunkSize(0);
+        var secondChunkEnd = firstChunkEnd + SourceResultDocument.GetDataChunkSize(1);
+
+        Assert.True(stringStart < firstChunkEnd && firstChunkEnd < stringEnd);
+        Assert.True(numberStart < secondChunkEnd && secondChunkEnd < numberEnd);
+
+        using var arena = new MemoryArena();
+        using var input = new ArenaBufferWriter(arena);
+        var inputSpan = input.GetSpan(json.Length);
+        json.CopyTo(inputSpan);
+        input.Advance(json.Length);
+        using var document = SourceResultDocument.ParseFilled(
+            arena,
+            input.Segments,
+            input.UsedChunks,
+            input.LastLength);
+        var output = new ArrayBufferWriter<byte>();
+        var writer = new JsonWriter(output, new JsonWriterOptions { Indented = indented });
+        var formatter = new SourceResultDocument.RawJsonFormatter(document, writer);
+
+        formatter.WriteValue(default);
+
+        var expected = indented
+            ? $"[\n  0,\n  \"{escapedString}\",\n  \"{padding}\",\n  {number},\n  1\n]"
+            : Encoding.UTF8.GetString(json);
+        Assert.Equal(expected, Encoding.UTF8.GetString(output.WrittenSpan));
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void WriteRawValueTo_Should_ValidateBeforeWriting_When_ValueIsTooLarge(bool isString)
+    {
+        using var document = SourceResultDocument.Parse(
+            CommonTestExtensions.CreateArena(),
+            "0"u8.ToArray(),
+            1);
+        var output = new ArrayBufferWriter<byte>();
+        var writer = new JsonWriter(output, new JsonWriterOptions());
+
+        var exception = Assert.Throws<ArgumentException>(() =>
+        {
+            if (isString)
+            {
+                document.WriteRawStringValueTo(writer, location: 0, size: 166_666_667);
+            }
+            else
+            {
+                document.WriteRawNumberValueTo(writer, location: 0, size: 166_666_667);
+            }
+        });
+
+        Assert.Equal(
+            "The JSON value of length 166666667 is too large and not supported. (Parameter 'value')",
+            exception.Message);
+        Assert.Equal("value", exception.ParamName);
+        Assert.Equal(0, output.WrittenCount);
     }
 }

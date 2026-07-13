@@ -9,7 +9,7 @@
 namespace Microsoft.Extensions.DependencyInjection
 {
     [global::System.CodeDom.Compiler.GeneratedCode("Mocha.Analyzers", "1.0.0")]
-    public static class TestsMediatorBuilderExtensions
+    public static partial class TestsMediatorBuilderExtensions
     {
         [global::Mocha.Mediator.MediatorModuleInfo(
             MessageTypes = new global::System.Type[]
@@ -25,17 +25,31 @@ namespace Microsoft.Extensions.DependencyInjection
             this global::Mocha.Mediator.IMediatorHostBuilder builder)
         {
 
-            // Register handler configurations
-            global::Mocha.Mediator.MediatorHostBuilderHandlerExtensions.AddHandlerConfiguration<global::TestApp.ConcreteHandler>(builder,
-                new global::Mocha.Mediator.MediatorHandlerConfiguration
-                {
-                    HandlerType = typeof(global::TestApp.ConcreteHandler),
-                    MessageType = typeof(global::TestApp.MyCommand),
-                    Kind = global::Mocha.Mediator.MediatorHandlerKind.Command,
-                    Delegate = global::Mocha.Mediator.PipelineBuilder.BuildCommandPipeline<global::TestApp.ConcreteHandler, global::TestApp.MyCommand>()
-                });
+            // Register handlers
+            global::Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions.TryAdd(
+                builder.Services,
+                new global::Microsoft.Extensions.DependencyInjection.ServiceDescriptor(
+                    typeof(global::TestApp.ConcreteHandler),
+                    typeof(global::TestApp.ConcreteHandler),
+                    builder.Options.ServiceLifetime));
+            global::Mocha.Mediator.MediatorHostBuilderExtensions.ConfigureMediator(
+                builder,
+                static b => b.AddHandler<global::TestApp.ConcreteHandler>(__Initialize_ConcreteHandler_Handler_WqA80wsTDTAl7crZjmI3fA));
 
             return builder;
+        }
+
+        private static void __Initialize_ConcreteHandler_Handler_WqA80wsTDTAl7crZjmI3fA(global::Mocha.Mediator.IMediatorHandlerDescriptor descriptor)
+        {
+            var configuration = descriptor.Extend().Configuration;
+            configuration.MessageType = typeof(global::TestApp.MyCommand);
+            configuration.Kind = global::Mocha.Mediator.MediatorHandlerKind.Command;
+            configuration.Delegate = global::Mocha.Mediator.PipelineBuilder.BuildCommandPipeline<global::TestApp.ConcreteHandler, global::TestApp.MyCommand>();
+            configuration.Source = new global::Mocha.SourceMetadata
+            {
+                Assembly = "Tests",
+                DeclarationLocation = new global::Mocha.DeclarationLocation("", null, 7, 1, 11, 2)
+            };
         }
     }
 }

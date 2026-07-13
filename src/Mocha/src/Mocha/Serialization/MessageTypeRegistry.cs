@@ -63,7 +63,7 @@ public sealed class MessageTypeRegistry(
         {
             throw new InvalidOperationException(
                 $"Message type '{type.FullName}' was not registered at startup. "
-                    + "Register it via the source generator or AddMessageConfiguration(). "
+                    + "Register it via the source generator or AddMessage<T>(). "
                     + "Set IsAotCompatible = false to allow runtime type registration.");
         }
 
@@ -75,9 +75,8 @@ public sealed class MessageTypeRegistry(
                 return messageType;
             }
 
-            messageType = new MessageType();
-            var configuration = new MessageTypeConfiguration { RuntimeType = type };
-            messageType.Initialize(context, configuration);
+            messageType = new MessageType(type);
+            messageType.Initialize(context);
             AddMessageType(messageType);
             messageType.Complete(context);
 

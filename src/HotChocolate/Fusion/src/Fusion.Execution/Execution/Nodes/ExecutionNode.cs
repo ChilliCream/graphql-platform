@@ -76,8 +76,9 @@ public abstract class ExecutionNode : IOperationPlanNode, IEquatable<ExecutionNo
         OperationPlanContext context,
         CancellationToken cancellationToken = default)
     {
-        var start = Stopwatch.GetTimestamp();
-        var activity = Activity.Current;
+        var collectTelemetry = context.CollectTelemetry;
+        var start = collectTelemetry ? Stopwatch.GetTimestamp() : 0;
+        var activity = collectTelemetry ? Activity.Current : null;
         IDisposable? scope = null;
         var status = ExecutionStatus.Failed;
         Exception? error = null;
@@ -113,7 +114,7 @@ public abstract class ExecutionNode : IOperationPlanNode, IEquatable<ExecutionNo
                 Id,
                 activity,
                 status,
-                Stopwatch.GetElapsedTime(start),
+                collectTelemetry ? Stopwatch.GetElapsedTime(start) : default,
                 error,
                 context.GetDependentsToExecute(this),
                 context.GetSkippedDefinitions(this),

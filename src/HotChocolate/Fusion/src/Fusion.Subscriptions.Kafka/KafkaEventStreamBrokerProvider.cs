@@ -53,6 +53,24 @@ internal sealed class KafkaEventStreamBrokerProvider : IEventStreamBrokerProvide
                 "Kafka event stream broker options require a non-negative fetch queue backoff.");
         }
 
+        if (options.SeedingQueryTimeout <= TimeSpan.Zero)
+        {
+            throw new InvalidOperationException(
+                "Kafka event stream broker options require a positive seeding query timeout.");
+        }
+
+        if (options.SeedingDeadline <= TimeSpan.Zero)
+        {
+            throw new InvalidOperationException(
+                "Kafka event stream broker options require a positive seeding deadline.");
+        }
+
+        if (options.SeedingDeadline < options.SeedingQueryTimeout)
+        {
+            throw new InvalidOperationException(
+                "Kafka event stream broker options require a seeding deadline that is at least the seeding query timeout.");
+        }
+
         if (options.SecurityProtocol is
             SecurityProtocol.SaslPlaintext or
             SecurityProtocol.SaslSsl)

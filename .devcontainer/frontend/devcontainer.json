@@ -8,9 +8,9 @@
   "features": {
     "ghcr.io/devcontainers/features/github-cli:1": {}
   },
-  "forwardPorts": [3000, 6006],
+  "forwardPorts": [3001, 6006],
   "portsAttributes": {
-    "3000": {
+    "3001": {
       "label": "Next.js dev server",
       "onAutoForward": "notify"
     },
@@ -19,7 +19,7 @@
       "onAutoForward": "silent"
     }
   },
-  "workspaceFolder": "/workspaces/graphql-platform/website",
+  "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}/website",
   "postCreateCommand": "yarn install --immutable && yarn playwright install chromium",
   "containerEnv": {
     "NEXT_TELEMETRY_DISABLED": "1",

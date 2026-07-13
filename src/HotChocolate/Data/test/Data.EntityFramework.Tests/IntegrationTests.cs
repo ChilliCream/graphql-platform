@@ -113,6 +113,106 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
     }
 
     [Fact]
+    public async Task ExecuteAsync_Should_IncludeRequiredParentProperty_When_UsingParentRequiresWithString()
+    {
+        // arrange
+        var executor = await CreateParentRequiresExecutorAsync<AuthorTypeWithStringRequirement>();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            "{ authors { requirement } }",
+            Xunit.TestContext.Current.CancellationToken);
+        var resultWithExplicitSelection = await executor.ExecuteAsync(
+            "{ authors { name requirement } }",
+            Xunit.TestContext.Current.CancellationToken);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "authors": {
+                  "requirement": "Author Name: Foo"
+                }
+              }
+            }
+            """);
+        resultWithExplicitSelection.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "authors": {
+                  "name": "Foo",
+                  "requirement": "Author Name: Foo"
+                }
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_Should_IncludeRequiredParentProperty_When_UsingParentRequiresWithExpression()
+    {
+        // arrange
+        var executor = await CreateParentRequiresExecutorAsync<AuthorTypeWithExpressionRequirement>();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            "{ authors { requirement } }",
+            Xunit.TestContext.Current.CancellationToken);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "authors": {
+                  "requirement": "Author Name: Foo"
+                }
+              }
+            }
+            """);
+    }
+
+    private async Task<IRequestExecutor> CreateParentRequiresExecutorAsync<T>()
+        where T : ObjectType<Author>
+        => await new ServiceCollection()
+            .AddGraphQL()
+            .AddType<T>()
+            .AddProjections()
+            .AddQueryType(
+                descriptor => descriptor
+                    .Name("Query")
+                    .Field("authors")
+                    .Type<T>()
+                    .Resolve(Executable.From(_authors.AsNoTracking()))
+                    .UseFirstOrDefault()
+                    .UseProjection())
+            .BuildRequestExecutorAsync(cancellationToken: Xunit.TestContext.Current.CancellationToken);
+
+    public sealed class AuthorTypeWithStringRequirement : ObjectType<Author>
+    {
+        protected override void Configure(IObjectTypeDescriptor<Author> descriptor)
+        {
+            descriptor
+                .Field("requirement")
+                .ParentRequires(nameof(Author.Name))
+                .Resolve(context => "Author Name: " + context.Parent<Author>().Name);
+        }
+    }
+
+    public sealed class AuthorTypeWithExpressionRequirement : ObjectType<Author>
+    {
+        protected override void Configure(IObjectTypeDescriptor<Author> descriptor)
+        {
+            descriptor
+                .Field("requirement")
+                .ParentRequires<Author>(author => new { author.Name })
+                .Resolve(context => "Author Name: " + context.Parent<Author>().Name);
+        }
+    }
+
+    [Fact]
     public async Task ExecuteAsync_Should_ReturnAllItems_When_ToListAsync()
     {
         // arrange

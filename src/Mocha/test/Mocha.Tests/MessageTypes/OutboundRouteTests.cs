@@ -15,13 +15,19 @@ public class OutboundRouteTests
     {
         // arrange & act
         var runtime = CreateRuntime(b =>
-            b.AddMessage<TestEvent>(m => m.Publish(r => r.ToQueue("explicit-queue"))));
+        {
+            b.Host(h => h.ServiceName("orders"));
+            b.AddMessage<TestEvent>(m => m.Publish(r => r.ToQueue("explicit-queue")));
+        });
 
         // assert
         var route = runtime.Router.OutboundRoutes.Single(r => r.MessageType.RuntimeType == typeof(TestEvent));
         Assert.True(route.HasExplicitDestination);
         Assert.NotNull(route.Destination);
         Assert.Equal("queue:explicit-queue", route.Destination.ToString());
+        Assert.Equal(
+            MochaUrn.OutboundRoute("orders", "publish", route.MessageType.Identity, route.Endpoint.Name),
+            route.Urn);
     }
 
     [Fact]
@@ -45,6 +51,28 @@ public class OutboundRouteTests
 
         // This outbound route was not explicitly configured, so the flag should be false
         Assert.False(outboundRoute.HasExplicitDestination);
+    }
+
+    [Fact]
+    public void Urn_Should_UseConnectedEndpoint_When_DestinationIsImplicit()
+    {
+        // arrange & act
+        var runtime = CreateRuntime(b =>
+        {
+            b.Host(h => h.ServiceName("orders"));
+            b.AddEventHandler<ImplicitDestinationEventHandler>();
+        });
+
+        // assert
+        var route = Assert.Single(
+            runtime.Router.OutboundRoutes,
+            r => r.MessageType.RuntimeType == typeof(ImplicitDestinationEvent));
+
+        Assert.True(route.IsCompleted);
+        Assert.False(route.HasExplicitDestination);
+        Assert.Equal(
+            MochaUrn.OutboundRoute("orders", "publish", route.MessageType.Identity, route.Endpoint.Name),
+            route.Urn);
     }
 
     private static MessagingRuntime CreateRuntime(Action<IMessageBusHostBuilder> configure)
