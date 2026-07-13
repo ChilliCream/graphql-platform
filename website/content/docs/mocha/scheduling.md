@@ -129,7 +129,7 @@ if (result.IsCancellable)
 | `ScheduledTime` | `DateTimeOffset` | The time at which the message is scheduled for delivery.                                  |
 | `IsCancellable` | `bool`           | `true` when the scheduling infrastructure supports cancellation and a token was assigned. |
 
-`IsCancellable` is `true` when a store-based scheduling provider (like Postgres) is registered. If no store is registered, the message is still scheduled (through the transport's native scheduling), but cancellation is not available.
+The scheduling middleware is always part of the dispatch pipeline. When you set a `ScheduledTime`, it resolves a scheduled message store for the current transport - the transport's own store first (for example the PostgreSQL transport's native store), then the `UsePostgresScheduling()` fallback store if one is registered. `IsCancellable` is `true` whenever a store was found and persisted the message. If no store is available for the transport, scheduling does not silently fall back to native delivery - it throws `NotSupportedException`.
 
 ## Real-world example: cancellable reminder
 
@@ -173,7 +173,7 @@ public class OrderService(IMessageBus bus, IOrderRepository orders)
 
 # Set up store-based scheduling for RabbitMQ
 
-The InMemory and PostgreSQL transports handle scheduling natively with no extra setup. RabbitMQ does not support native scheduling, so you need to configure a Postgres-backed message store that persists scheduled messages and dispatches them through a background worker.
+The PostgreSQL transport handles scheduling natively with no extra setup. InMemory and RabbitMQ have no scheduling store of their own, so a scheduled dispatch on either one throws `NotSupportedException` unless you configure a fallback: a Postgres-backed message store that persists scheduled messages and dispatches them through a background worker.
 
 **1. Add the NuGet packages.**
 
@@ -226,19 +226,19 @@ dotnet ef database update
 
 # Transport scheduling behavior
 
-Each transport handles scheduling differently. Mocha adapts automatically based on what the transport supports.
+Only the PostgreSQL transport has a scheduling store of its own. InMemory and RabbitMQ need the `UsePostgresScheduling()` fallback; without it, a scheduled dispatch on either transport throws `NotSupportedException`.
 
-| Transport  | Scheduling type                       | Durability                   | Cancellation support                 | Setup required                            |
-| ---------- | ------------------------------------- | ---------------------------- | ------------------------------------ | ----------------------------------------- |
-| InMemory   | Native (in-process scheduler)         | Non-durable, lost on restart | No                                   | None                                      |
-| PostgreSQL | Native (scheduled_time column)        | Durable, survives restarts   | No                                   | None                                      |
-| RabbitMQ   | Store-based (via Postgres middleware) | Durable with Postgres store  | Yes (with `UsePostgresScheduling()`) | `UsePostgresScheduling()` + EF Core model |
+| Transport  | Scheduling type                           | Durability                      | Cancellation support                       | Setup required                            |
+| ---------- | ----------------------------------------- | ------------------------------- | ------------------------------------------ | ----------------------------------------- |
+| InMemory   | None - requires `UsePostgresScheduling()` | Durable, via the fallback store | Yes, via the fallback store                | `UsePostgresScheduling()` + EF Core model |
+| PostgreSQL | Native (transport-owned store)            | Durable, survives restarts      | Yes (token prefixed `postgres-transport:`) | None                                      |
+| RabbitMQ   | None - requires `UsePostgresScheduling()` | Durable, via the fallback store | Yes, via the fallback store                | `UsePostgresScheduling()` + EF Core model |
 
-**InMemory:** The transport schedules messages natively using an internal scheduler. Messages scheduled for a time in the past are delivered immediately. Scheduled messages are lost if the process restarts. Cancellation is not supported.
+**InMemory:** The transport has no scheduling store of its own. Scheduling a message throws `NotSupportedException` unless `UsePostgresScheduling()` is registered as a fallback. With the fallback configured, scheduled messages are persisted to Postgres and dispatched through a background worker, the same as RabbitMQ below.
 
-**PostgreSQL:** The transport handles scheduling natively. When you set `ScheduledTime`, the transport writes a `scheduled_time` column alongside the message. Messages are only delivered to consumers after the scheduled time has passed. No additional setup is required beyond the standard [PostgreSQL transport configuration](./transports/postgres.md). Cancellation is not supported with native scheduling.
+**PostgreSQL:** The transport handles scheduling natively through its own scheduled message store, registered automatically when you call `AddPostgres()`. When you set `ScheduledTime`, the transport writes a `scheduled_time` column alongside the message instead of sending it immediately, and only delivers it to consumers after the scheduled time has passed. No additional setup is required beyond the standard [PostgreSQL transport configuration](./transports/postgres.md). Cancellation is supported - the returned token is prefixed `postgres-transport:` and can be passed to `CancelScheduledMessageAsync`.
 
-**RabbitMQ:** RabbitMQ does not support native message scheduling. To enable scheduling, register `UsePostgresScheduling()` with an EF Core DbContext. Scheduled messages are intercepted before they reach the RabbitMQ transport and persisted to a Postgres `scheduled_messages` table. A background worker dispatches them at the scheduled time, routing through the RabbitMQ transport. Cancellation is fully supported - the `SchedulingResult` contains a token you can use with `CancelScheduledMessageAsync`.
+**RabbitMQ:** RabbitMQ does not support native message scheduling. Scheduling a message throws `NotSupportedException` unless you register `UsePostgresScheduling()` with an EF Core DbContext. Once configured, scheduled messages are persisted to a Postgres `scheduled_messages` table instead of reaching the RabbitMQ transport, and a background worker dispatches them at the scheduled time, routing through the RabbitMQ transport. Cancellation is fully supported - the returned token is prefixed `postgres-scheduler:` and the `SchedulingResult` contains it for use with `CancelScheduledMessageAsync`.
 
 ## Retry behavior
 
@@ -301,7 +301,7 @@ See [Sagas](./sagas.md) for the full saga configuration guide.
 # Troubleshooting
 
 **Scheduled messages are not being delivered.**
-Check that the background worker is running. Look for `Scheduler sleeping until ...` log entries at `Information` level. If there are no log entries, verify that `UsePostgresScheduling()` is registered in your service configuration. For InMemory transport, no additional setup is needed.
+Check that the background worker is running. Look for `Scheduler sleeping until ...` log entries at `Information` level. If there are no log entries, verify that `UsePostgresScheduling()` is registered in your service configuration. This applies to InMemory and RabbitMQ - neither has a scheduling store of its own, so both need the fallback to deliver scheduled messages at all.
 
 **Messages are delivered immediately instead of at the scheduled time.**
 Messages scheduled for a time in the past are dispatched immediately. Verify that your `ScheduledTime` is in the future.
@@ -324,8 +324,8 @@ This does not happen. The dispatcher uses row-level locking to ensure each messa
 **Cancellation returns false even though I have a valid token.**
 The message was already dispatched before the cancellation request reached the store. Once the background worker picks up a message and delivers it, the row is deleted and cancellation is no longer possible. If you need a wider cancellation window, schedule messages further in the future or check `SchedulingResult.IsCancellable` to confirm the infrastructure supports cancellation.
 
-**`SchedulingResult.IsCancellable` is false.**
-No store-based scheduling provider is registered. Cancellation requires a provider like `UsePostgresScheduling()` that persists messages to a store. Transports with native scheduling (InMemory, PostgreSQL) do not support cancellation. If you need cancellation support, configure `UsePostgresScheduling()` with an EF Core DbContext.
+**`SchedulePublishAsync`/`ScheduleSendAsync` throws `NotSupportedException` instead of returning a result.**
+No scheduled message store is available for the current transport. `SchedulingResult.IsCancellable` is `true` whenever a call succeeds - there is no store that persists a message without returning a cancellable token. Configure `UsePostgresScheduling()` with an EF Core DbContext as a fallback, or use the PostgreSQL transport, which registers its own store automatically.
 
 # Next steps
 
