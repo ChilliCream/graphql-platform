@@ -1,7 +1,5 @@
-using System.Text.Json;
 using Mocha.Features;
 using Mocha.Middlewares;
-using static System.StringSplitOptions;
 
 namespace Mocha.Transport.Postgres;
 
@@ -50,54 +48,17 @@ public sealed class PostgresDispatchEndpoint(PostgresMessagingTransport transpor
         var messageStore = transport.MessageStore;
 
         var feature = context.Features.GetOrSet<JsonHeadersFeature>();
-        var headers = WriteHeadersJson(feature, envelope);
+        var headers = PostgresMessageHeadersWriter.Write(feature, envelope);
         var body = envelope.Body;
-        var scheduledTime = envelope.ScheduledTime;
+        var target = PostgresDispatchTargetResolver.Resolve(this, envelope);
 
-        if (Kind == DispatchEndpointKind.Reply)
+        if (target.IsTopic)
         {
-            if (!Uri.TryCreate(envelope.DestinationAddress, UriKind.Absolute, out var destinationAddress))
-            {
-                throw new InvalidOperationException("Destination address is not a valid URI");
-            }
-
-            var path = destinationAddress.AbsolutePath.AsSpan();
-            Span<Range> ranges = stackalloc Range[2];
-            var segmentCount = path.Split(ranges, '/', RemoveEmptyEntries | TrimEntries);
-
-            if (segmentCount == 2)
-            {
-                var kind = path[ranges[0]];
-                var name = path[ranges[1]];
-
-                if (kind is "t")
-                {
-                    await messageStore.PublishAsync(body, headers, new string(name), scheduledTime, cancellationToken);
-                    return;
-                }
-
-                if (kind is "q")
-                {
-                    await messageStore.SendAsync(body, headers, new string(name), scheduledTime, cancellationToken);
-                    return;
-                }
-            }
-
-            throw new InvalidOperationException(
-                $"Cannot determine topic or queue name from destination address {destinationAddress}");
-        }
-
-        if (Topic is not null)
-        {
-            await messageStore.PublishAsync(body, headers, Topic.Name, scheduledTime, cancellationToken);
-        }
-        else if (Queue is not null)
-        {
-            await messageStore.SendAsync(body, headers, Queue.Name, scheduledTime, cancellationToken);
+            await messageStore.PublishAsync(body, headers, target.Name, scheduledTime: null, cancellationToken);
         }
         else
         {
-            throw new InvalidOperationException("Resource not found");
+            await messageStore.SendAsync(body, headers, target.Name, scheduledTime: null, cancellationToken);
         }
     }
 
@@ -124,102 +85,5 @@ public sealed class PostgresDispatchEndpoint(PostgresMessagingTransport transpor
             Topic as TopologyResource
             ?? Queue as TopologyResource
             ?? throw new InvalidOperationException("Destination is not set");
-    }
-
-    private static ReadOnlyMemory<byte> WriteHeadersJson(JsonHeadersFeature feature, MessageEnvelope envelope)
-    {
-        using var writer = new Utf8JsonWriter(feature.Writer);
-
-        writer.WriteStartObject();
-
-        if (envelope.MessageId is not null)
-        {
-            writer.WriteString(PostgresMessageHeaders.MessageId, envelope.MessageId);
-        }
-
-        if (envelope.CorrelationId is not null)
-        {
-            writer.WriteString(PostgresMessageHeaders.CorrelationId, envelope.CorrelationId);
-        }
-
-        if (envelope.ConversationId is not null)
-        {
-            writer.WriteString(PostgresMessageHeaders.ConversationId, envelope.ConversationId);
-        }
-
-        if (envelope.CausationId is not null)
-        {
-            writer.WriteString(PostgresMessageHeaders.CausationId, envelope.CausationId);
-        }
-
-        if (envelope.SourceAddress is not null)
-        {
-            writer.WriteString(PostgresMessageHeaders.SourceAddress, envelope.SourceAddress);
-        }
-
-        if (envelope.DestinationAddress is not null)
-        {
-            writer.WriteString(PostgresMessageHeaders.DestinationAddress, envelope.DestinationAddress);
-        }
-
-        if (envelope.ResponseAddress is not null)
-        {
-            writer.WriteString(PostgresMessageHeaders.ResponseAddress, envelope.ResponseAddress);
-        }
-
-        if (envelope.FaultAddress is not null)
-        {
-            writer.WriteString(PostgresMessageHeaders.FaultAddress, envelope.FaultAddress);
-        }
-
-        if (envelope.ContentType is not null)
-        {
-            writer.WriteString(PostgresMessageHeaders.ContentType, envelope.ContentType);
-        }
-
-        if (envelope.MessageType is not null)
-        {
-            writer.WriteString(PostgresMessageHeaders.MessageType, envelope.MessageType);
-        }
-
-        if (envelope.EnclosedMessageTypes is { Length: > 0 } enclosedTypes)
-        {
-            writer.WriteStartArray(PostgresMessageHeaders.EnclosedMessageTypes);
-
-            foreach (var type in enclosedTypes)
-            {
-                writer.WriteStringValue(type);
-            }
-
-            writer.WriteEndArray();
-        }
-
-        if (envelope.DeliverBy is { } deliverBy)
-        {
-            writer.WriteString(PostgresMessageHeaders.DeliverBy, deliverBy.ToString("O"));
-        }
-
-        if (envelope.ScheduledTime is { } scheduledTime)
-        {
-            writer.WriteString(PostgresMessageHeaders.ScheduledTime, scheduledTime.ToString("O"));
-        }
-
-        if (envelope.Headers is not null)
-        {
-            foreach (var header in envelope.Headers)
-            {
-                if (header.Value is not null)
-                {
-                    writer.WritePropertyName(header.Key);
-                    JsonSerializer.Serialize(writer, header.Value, header.Value.GetType());
-                }
-            }
-        }
-
-        writer.WriteEndObject();
-        writer.Flush();
-
-        var bytes = feature.GetWrittenBytes();
-        return bytes.Length <= 2 ? ReadOnlyMemory<byte>.Empty : bytes;
     }
 }
