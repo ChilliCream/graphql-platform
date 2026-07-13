@@ -202,11 +202,9 @@ file static class ClientExtensions
                             errorTree.AddStagePublishedDependencies(e);
                             break;
                         case IApiNotFoundError e:
-                            errorTree.AddErrorMessage(e.Message);
-                            break;
+                            throw new NitroClientNotFoundException(e.Message);
                         case IStageNotFoundError e:
-                            errorTree.AddErrorMessage(e.Message);
-                            break;
+                            throw new NitroClientNotFoundException(e.Message);
                         case IStageValidationError e:
                             errorTree.AddErrorMessage(e.Message);
                             break;

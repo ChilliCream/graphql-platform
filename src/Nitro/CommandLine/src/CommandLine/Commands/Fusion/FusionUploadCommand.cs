@@ -95,6 +95,8 @@ internal sealed class FusionUploadCommand : Command
                 var errorMessage = error switch
                 {
                     IUnauthorizedOperation err => err.Message,
+                    IUploadFusionSubgraph_UploadFusionSubgraph_Errors_ApiNotFoundError err =>
+                        throw new NitroClientNotFoundException(err.Message),
                     IInvalidSourceMetadataInputError err => err.Message,
                     IDuplicatedTagError err => err.Message,
                     IConcurrentOperationError err => err.Message,

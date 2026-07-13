@@ -159,6 +159,66 @@ public sealed class PublishMcpFeatureCollectionCommandTests(NitroCommandFixture 
     }
 
     [Fact]
+    public async Task StageNotFound_ReturnsError()
+    {
+        SetupPublishMcpFeatureCollectionMutation(errors:
+            new PublishMcpFeatureCollectionCommandMutation_PublishMcpFeatureCollection_Errors_StageNotFoundError(
+                "StageNotFoundError", "Stage not found.", Stage));
+
+        var result = await ExecuteCommandAsync(
+            "mcp", "publish", "--tag", Tag, "--stage", Stage,
+            "--mcp-feature-collection-id", McpFeatureCollectionId);
+
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Stage not found.
+            This may mean the entity does not exist, or that you do not have permission to view it.
+            If you are targeting a dedicated or self-hosted instance, make sure you supply the correct '--cloud-url'. Currently targeting 'https://api.chillicream.com'.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task CollectionNotFound_ReturnsError()
+    {
+        SetupPublishMcpFeatureCollectionMutation(errors:
+            new PublishMcpFeatureCollectionCommandMutation_PublishMcpFeatureCollection_Errors_McpFeatureCollectionNotFoundError(
+                McpFeatureCollectionId, "MCP Feature Collection not found."));
+
+        var result = await ExecuteCommandAsync(
+            "mcp", "publish", "--tag", Tag, "--stage", Stage,
+            "--mcp-feature-collection-id", McpFeatureCollectionId);
+
+        result.StdErr.MatchInlineSnapshot(
+            """
+            MCP Feature Collection not found.
+            This may mean the entity does not exist, or that you do not have permission to view it.
+            If you are targeting a dedicated or self-hosted instance, make sure you supply the correct '--cloud-url'. Currently targeting 'https://api.chillicream.com'.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task CollectionVersionNotFound_ReturnsError()
+    {
+        SetupPublishMcpFeatureCollectionMutation(errors:
+            new PublishMcpFeatureCollectionCommandMutation_PublishMcpFeatureCollection_Errors_McpFeatureCollectionVersionNotFoundError(
+                Tag, "MCP Feature Collection version not found.", McpFeatureCollectionId));
+
+        var result = await ExecuteCommandAsync(
+            "mcp", "publish", "--tag", Tag, "--stage", Stage,
+            "--mcp-feature-collection-id", McpFeatureCollectionId);
+
+        result.StdErr.MatchInlineSnapshot(
+            """
+            MCP Feature Collection version not found.
+            This may mean the entity does not exist, or that you do not have permission to view it.
+            If you are targeting a dedicated or self-hosted instance, make sure you supply the correct '--cloud-url'. Currently targeting 'https://api.chillicream.com'.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
     public async Task StartMcpFeatureCollectionPublishReturnsNullRequestId_ReturnsError()
     {
         // arrange
@@ -428,26 +488,6 @@ public sealed class PublishMcpFeatureCollectionCommandTests(NitroCommandFixture 
                     "UnauthorizedOperation",
                     "Not authorized to publish."),
                 "Not authorized to publish."
-            },
-            {
-                new PublishMcpFeatureCollectionCommandMutation_PublishMcpFeatureCollection_Errors_StageNotFoundError(
-                    "StageNotFoundError",
-                    "Stage not found.",
-                    Stage),
-                "Stage not found."
-            },
-            {
-                new PublishMcpFeatureCollectionCommandMutation_PublishMcpFeatureCollection_Errors_McpFeatureCollectionNotFoundError(
-                    McpFeatureCollectionId,
-                    "MCP Feature Collection not found."),
-                "MCP Feature Collection not found."
-            },
-            {
-                new PublishMcpFeatureCollectionCommandMutation_PublishMcpFeatureCollection_Errors_McpFeatureCollectionVersionNotFoundError(
-                    Tag,
-                    "MCP Feature Collection version not found.",
-                    McpFeatureCollectionId),
-                "MCP Feature Collection version not found."
             },
             {
                 unexpectedError.Object,
