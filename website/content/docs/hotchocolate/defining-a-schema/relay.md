@@ -7,7 +7,7 @@ The [GraphQL Global Object Identification Specification](https://relay.dev/graph
 
 This page covers three related features:
 
-- Global IDs expose type-aware, opaque IDs to clients while your business code continues to use its original CLR ID values.
+- Global IDs expose type-aware, opaque IDs to clients while your application continues to use the original ID values.
 - Global object identification adds the `Node` interface and the `node` and `nodes` query fields.
 - Mutation payload query fields let a mutation response read from the Query root.
 
