@@ -159,6 +159,66 @@ public sealed class PublishOpenApiCollectionCommandTests(NitroCommandFixture fix
     }
 
     [Fact]
+    public async Task StageNotFound_ReturnsError()
+    {
+        SetupPublishOpenApiCollectionMutation(errors:
+            new PublishOpenApiCollectionCommandMutation_PublishOpenApiCollection_Errors_StageNotFoundError(
+                "StageNotFoundError", "Stage not found.", Stage));
+
+        var result = await ExecuteCommandAsync(
+            "openapi", "publish", "--tag", Tag, "--stage", Stage,
+            "--openapi-collection-id", OpenApiCollectionId);
+
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Stage not found.
+            This may mean the entity does not exist, or that you do not have permission to view it.
+            If you are targeting a dedicated or self-hosted instance, make sure you supply the correct '--cloud-url'. Currently targeting 'https://api.chillicream.com'.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task CollectionNotFound_ReturnsError()
+    {
+        SetupPublishOpenApiCollectionMutation(errors:
+            new PublishOpenApiCollectionCommandMutation_PublishOpenApiCollection_Errors_OpenApiCollectionNotFoundError(
+                OpenApiCollectionId, "OpenAPI collection not found."));
+
+        var result = await ExecuteCommandAsync(
+            "openapi", "publish", "--tag", Tag, "--stage", Stage,
+            "--openapi-collection-id", OpenApiCollectionId);
+
+        result.StdErr.MatchInlineSnapshot(
+            """
+            OpenAPI collection not found.
+            This may mean the entity does not exist, or that you do not have permission to view it.
+            If you are targeting a dedicated or self-hosted instance, make sure you supply the correct '--cloud-url'. Currently targeting 'https://api.chillicream.com'.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task CollectionVersionNotFound_ReturnsError()
+    {
+        SetupPublishOpenApiCollectionMutation(errors:
+            new PublishOpenApiCollectionCommandMutation_PublishOpenApiCollection_Errors_OpenApiCollectionVersionNotFoundError(
+                Tag, "OpenAPI collection version not found.", OpenApiCollectionId));
+
+        var result = await ExecuteCommandAsync(
+            "openapi", "publish", "--tag", Tag, "--stage", Stage,
+            "--openapi-collection-id", OpenApiCollectionId);
+
+        result.StdErr.MatchInlineSnapshot(
+            """
+            OpenAPI collection version not found.
+            This may mean the entity does not exist, or that you do not have permission to view it.
+            If you are targeting a dedicated or self-hosted instance, make sure you supply the correct '--cloud-url'. Currently targeting 'https://api.chillicream.com'.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
     public async Task PublishOpenApiCollectionReturnsNullRequestId_ReturnsError()
     {
         // arrange
@@ -423,32 +483,6 @@ public sealed class PublishOpenApiCollectionCommandTests(NitroCommandFixture fix
                     "Not authorized to publish."),
                 """
                 Not authorized to publish.
-                """
-            },
-            {
-                new PublishOpenApiCollectionCommandMutation_PublishOpenApiCollection_Errors_StageNotFoundError(
-                    "StageNotFoundError",
-                    "Stage not found.",
-                    Stage),
-                """
-                Stage not found.
-                """
-            },
-            {
-                new PublishOpenApiCollectionCommandMutation_PublishOpenApiCollection_Errors_OpenApiCollectionNotFoundError(
-                    OpenApiCollectionId,
-                    "OpenAPI collection not found."),
-                """
-                OpenAPI collection not found.
-                """
-            },
-            {
-                new PublishOpenApiCollectionCommandMutation_PublishOpenApiCollection_Errors_OpenApiCollectionVersionNotFoundError(
-                    Tag,
-                    "OpenAPI collection version not found.",
-                    OpenApiCollectionId),
-                """
-                OpenAPI collection version not found.
                 """
             }
         };

@@ -14,6 +14,7 @@ using ChilliCream.Nitro.Client.Stages;
 using ChilliCream.Nitro.Client.Workspaces;
 using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
+using ChilliCream.Nitro.CommandLine.Tests.Commands;
 using ChilliCream.Nitro.CommandLine.Tests.Console;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -22,8 +23,26 @@ using Spectre.Console.Testing;
 
 namespace ChilliCream.Nitro.CommandLine.Tests;
 
-public class GlobalOptionsTests
+public sealed class GlobalOptionsTests(NitroCommandFixture fixture) : CommandTestBase(fixture)
 {
+    [Fact]
+    public async Task ExecuteAsync_InvalidOutputValue_ReturnsError()
+    {
+        // arrange
+        SetupNoAuthentication();
+
+        // act
+        var result = await ExecuteCommandAsync("api", "list", "--output", "wtf");
+
+        // assert
+        Assert.Equal(1, result.ExitCode);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Argument 'wtf' not recognized. Must be one of:
+                'json'
+            """);
+    }
+
     [Fact]
     public async Task ExecuteAsync_Should_ConfigureApiKeyAuth_When_ApiKeyOptionProvided()
     {

@@ -299,6 +299,57 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
     }
 
     [Fact]
+    public async Task ApiNotFound_WithArchive_ReturnsError()
+    {
+        SetupArchiveFile();
+        SetupSchemaValidationMutation(CreateValidateSchemaVersionApiNotFoundError());
+        var result = await ExecuteCommandAsync(
+            "fusion", "validate", "--api-id", ApiId, "--stage", Stage, "--archive", ArchiveFile);
+
+        result.StdErr.MatchInlineSnapshot(
+            """
+            API 'api-1' was not found.
+            This may mean the entity does not exist, or that you do not have permission to view it.
+            If you are targeting a dedicated or self-hosted instance, make sure you supply the correct '--cloud-url'. Currently targeting 'https://api.chillicream.com'.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task StageNotFound_WithArchive_ReturnsError()
+    {
+        SetupArchiveFile();
+        SetupSchemaValidationMutation(CreateValidateSchemaVersionStageNotFoundError());
+        var result = await ExecuteCommandAsync(
+            "fusion", "validate", "--api-id", ApiId, "--stage", Stage, "--archive", ArchiveFile);
+
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Stage 'dev' was not found.
+            This may mean the entity does not exist, or that you do not have permission to view it.
+            If you are targeting a dedicated or self-hosted instance, make sure you supply the correct '--cloud-url'. Currently targeting 'https://api.chillicream.com'.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task SchemaNotFound_WithArchive_ReturnsError()
+    {
+        SetupArchiveFile();
+        SetupSchemaValidationMutation(CreateValidateSchemaVersionSchemaNotFoundError());
+        var result = await ExecuteCommandAsync(
+            "fusion", "validate", "--api-id", ApiId, "--stage", Stage, "--archive", ArchiveFile);
+
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Schema not found.
+            This may mean the entity does not exist, or that you do not have permission to view it.
+            If you are targeting a dedicated or self-hosted instance, make sure you supply the correct '--cloud-url'. Currently targeting 'https://api.chillicream.com'.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
     public async Task WithArchive_ValidateSchemaVersionThrows_ReturnsError()
     {
         // arrange
@@ -775,6 +826,63 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
             ├── Composing new configuration
             │   └── ✓ Composed new configuration.
             └── ✕ Failed to validate the Fusion configuration.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task ApiNotFound_WithSourceSchema_ReturnsError()
+    {
+        SetupSourceSchemaFile();
+        SetupFusionConfigurationDownload();
+        SetupSchemaValidationMutation(CreateValidateSchemaVersionApiNotFoundError());
+        var result = await ExecuteCommandAsync(
+            "fusion", "validate", "--api-id", ApiId, "--stage", Stage,
+            "--source-schema-file", SourceSchemaFile);
+
+        result.StdErr.MatchInlineSnapshot(
+            """
+            API 'api-1' was not found.
+            This may mean the entity does not exist, or that you do not have permission to view it.
+            If you are targeting a dedicated or self-hosted instance, make sure you supply the correct '--cloud-url'. Currently targeting 'https://api.chillicream.com'.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task StageNotFound_WithSourceSchema_ReturnsError()
+    {
+        SetupSourceSchemaFile();
+        SetupFusionConfigurationDownload();
+        SetupSchemaValidationMutation(CreateValidateSchemaVersionStageNotFoundError());
+        var result = await ExecuteCommandAsync(
+            "fusion", "validate", "--api-id", ApiId, "--stage", Stage,
+            "--source-schema-file", SourceSchemaFile);
+
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Stage 'dev' was not found.
+            This may mean the entity does not exist, or that you do not have permission to view it.
+            If you are targeting a dedicated or self-hosted instance, make sure you supply the correct '--cloud-url'. Currently targeting 'https://api.chillicream.com'.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task SchemaNotFound_WithSourceSchema_ReturnsError()
+    {
+        SetupSourceSchemaFile();
+        SetupFusionConfigurationDownload();
+        SetupSchemaValidationMutation(CreateValidateSchemaVersionSchemaNotFoundError());
+        var result = await ExecuteCommandAsync(
+            "fusion", "validate", "--api-id", ApiId, "--stage", Stage,
+            "--source-schema-file", SourceSchemaFile);
+
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Schema not found.
+            This may mean the entity does not exist, or that you do not have permission to view it.
+            If you are targeting a dedicated or self-hosted instance, make sure you supply the correct '--cloud-url'. Currently targeting 'https://api.chillicream.com'.
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -1725,10 +1833,7 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
         IValidateSchemaVersion_ValidateSchema_Errors,
         string> GetValidateSchemaVersionErrors() => new()
     {
-        { CreateValidateSchemaVersionUnauthorizedError(), "Unauthorized." },
-        { CreateValidateSchemaVersionApiNotFoundError(), $"API '{ApiId}' was not found." },
-        { CreateValidateSchemaVersionStageNotFoundError(), $"Stage '{Stage}' was not found." },
-        { CreateValidateSchemaVersionSchemaNotFoundError(), "Schema not found." }
+        { CreateValidateSchemaVersionUnauthorizedError(), "Unauthorized." }
     };
 
     #endregion

@@ -176,6 +176,27 @@ public sealed class UploadOpenApiCollectionCommandTests(NitroCommandFixture fixt
     }
 
     [Fact]
+    public async Task CollectionNotFound_ReturnsError()
+    {
+        SetupOpenApiDocument();
+        SetupUploadOpenApiCollectionMutation(
+            new UploadOpenApiCollectionCommandMutation_UploadOpenApiCollection_Errors_OpenApiCollectionNotFoundError(
+                OpenApiCollectionId, "OpenAPI collection not found."));
+
+        var result = await ExecuteCommandAsync(
+            "openapi", "upload", "--tag", Tag, "--openapi-collection-id", OpenApiCollectionId,
+            "--pattern", "*.graphql");
+
+        result.StdErr.MatchInlineSnapshot(
+            """
+            OpenAPI collection not found.
+            This may mean the entity does not exist, or that you do not have permission to view it.
+            If you are targeting a dedicated or self-hosted instance, make sure you supply the correct '--cloud-url'. Currently targeting 'https://api.chillicream.com'.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
     public async Task UploadOpenApiCollectionReturnsNullVersion_ReturnsError()
     {
         // arrange
@@ -262,13 +283,6 @@ public sealed class UploadOpenApiCollectionCommandTests(NitroCommandFixture fixt
     {
         var data = new TheoryData<IUploadOpenApiCollectionCommandMutation_UploadOpenApiCollection_Errors, string>
         {
-            {
-                new UploadOpenApiCollectionCommandMutation_UploadOpenApiCollection_Errors_OpenApiCollectionNotFoundError(
-                    "oa-1", "OpenAPI collection not found."),
-                """
-                OpenAPI collection not found.
-                """
-            },
             {
                 new UploadOpenApiCollectionCommandMutation_UploadOpenApiCollection_Errors_UnauthorizedOperation(
                     "UnauthorizedOperation", "Not authorized to upload."),

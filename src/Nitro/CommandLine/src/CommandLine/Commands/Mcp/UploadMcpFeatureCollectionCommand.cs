@@ -90,7 +90,8 @@ internal sealed class UploadMcpFeatureCollectionCommand : Command
             {
                 var errorMessage = error switch
                 {
-                    IMcpFeatureCollectionNotFoundError err => err.Message,
+                    IMcpFeatureCollectionNotFoundError err =>
+                        throw new NitroClientNotFoundException(err.Message),
                     IUnauthorizedOperation err => err.Message,
                     IInvalidSourceMetadataInputError err => err.Message,
                     IDuplicatedTagError err => err.Message,

@@ -81,8 +81,10 @@ internal sealed class ValidateClientCommand : Command
                     var errorMessage = error switch
                     {
                         IValidateClientVersion_ValidateClient_Errors_UnauthorizedOperation err => err.Message,
-                        IValidateClientVersion_ValidateClient_Errors_ClientNotFoundError err => err.Message,
-                        IValidateClientVersion_ValidateClient_Errors_StageNotFoundError err => err.Message,
+                        IValidateClientVersion_ValidateClient_Errors_ClientNotFoundError err =>
+                            throw new NitroClientNotFoundException(err.Message),
+                        IValidateClientVersion_ValidateClient_Errors_StageNotFoundError err =>
+                            throw new NitroClientNotFoundException(err.Message),
                         IValidateClientVersion_ValidateClient_Errors_InvalidSourceMetadataInputError err => err.Message,
                         IError err => Messages.UnexpectedMutationError(err),
                         _ => Messages.UnexpectedMutationError()

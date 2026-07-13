@@ -165,6 +165,25 @@ public sealed class CreateMcpFeatureCollectionCommandTests(NitroCommandFixture f
     }
 
     [Fact]
+    public async Task ApiNotFound_ReturnsError()
+    {
+        SetupCreateMcpFeatureCollectionMutation(
+            new CreateMcpFeatureCollectionCommandMutation_CreateMcpFeatureCollection_Errors_ApiNotFoundError(
+                "API not found", "ApiNotFoundError", ApiId));
+
+        var result = await ExecuteCommandAsync(
+            "mcp", "create", "--api-id", ApiId, "--name", McpFeatureCollectionName);
+
+        result.StdErr.MatchInlineSnapshot(
+            """
+            API not found
+            This may mean the entity does not exist, or that you do not have permission to view it.
+            If you are targeting a dedicated or self-hosted instance, make sure you supply the correct '--cloud-url'. Currently targeting 'https://api.chillicream.com'.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
     public async Task CreateMcpFeatureCollectionReturnsNullResult_ReturnsError()
     {
         // arrange
@@ -249,11 +268,6 @@ public sealed class CreateMcpFeatureCollectionCommandTests(NitroCommandFixture f
     public static TheoryData<ICreateMcpFeatureCollectionCommandMutation_CreateMcpFeatureCollection_Errors, string>
         GetCreateMcpFeatureCollectionErrors() => new()
     {
-        {
-            new CreateMcpFeatureCollectionCommandMutation_CreateMcpFeatureCollection_Errors_ApiNotFoundError(
-                "API not found", "ApiNotFoundError", "api-1"),
-            "API not found"
-        },
         {
             new CreateMcpFeatureCollectionCommandMutation_CreateMcpFeatureCollection_Errors_UnauthorizedOperation(
                 "Not authorized", "UnauthorizedOperation"),
