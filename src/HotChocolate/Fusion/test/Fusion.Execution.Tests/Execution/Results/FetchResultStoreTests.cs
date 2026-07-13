@@ -979,6 +979,148 @@ public sealed class FetchResultStoreTests : FusionTestBase
     }
 
     [Fact]
+    public void CreateVariableValueSetsFromSnapshot_Should_ClearTrackedEntries_When_Reused()
+    {
+        // arrange
+        using var source = new FetchResultStore();
+        using var target = new FetchResultStore();
+
+        var firstEntries = new[]
+        {
+            CreateVariableValues(
+                source,
+                Path(1),
+                Field("__fusion_1_id", new StringValueNode("shared"))),
+            CreateVariableValues(
+                source,
+                Path(2),
+                Field("__fusion_1_id", new StringValueNode("first-only")))
+        };
+        var secondEntries = new[]
+        {
+            CreateVariableValues(
+                source,
+                Path(3),
+                Field("__fusion_1_id", new StringValueNode("shared"))),
+            CreateVariableValues(
+                source,
+                Path(4),
+                Field("__fusion_1_id", new StringValueNode("second-only")))
+        };
+
+        // act
+        var first = target.CreateVariableValueSetsFromSnapshot(
+            [.. firstEntries],
+            ImportedKeys("__fusion_1_id"),
+            [],
+            [Requirement("__fusion_1_id")]);
+        var second = target.CreateVariableValueSetsFromSnapshot(
+            [.. secondEntries],
+            ImportedKeys("__fusion_1_id"),
+            [],
+            [Requirement("__fusion_1_id")]);
+
+        // assert
+        ("first:\n" + Normalize(first) + "\nsecond:\n" + Normalize(second)).MatchInlineSnapshot(
+            """
+            first:
+            path=[1]; additional=[]; values={"__fusion_1_id":"shared"}
+            path=[2]; additional=[]; values={"__fusion_1_id":"first-only"}
+            second:
+            path=[3]; additional=[]; values={"__fusion_1_id":"shared"}
+            path=[4]; additional=[]; values={"__fusion_1_id":"second-only"}
+            """);
+    }
+
+    [Fact]
+    public void CreateVariableValueSetsFromSnapshot_Should_RebuildTrackedSlots_When_GrowthIsFollowedByReuse()
+    {
+        // arrange
+        using var source = new FetchResultStore();
+        using var target = new FetchResultStore();
+
+        var values = FindCollidingStringValues("__fusion_1_id", count: 5);
+        var entries = new VariableValues[values.Length];
+        var reusedEntries = new VariableValues[values.Length];
+
+        for (var i = 0; i < entries.Length; i++)
+        {
+            entries[i] = CreateVariableValues(
+                source,
+                Path(i + 1),
+                Field("__fusion_1_id", new StringValueNode(values[i])));
+            reusedEntries[i] = CreateVariableValues(
+                source,
+                Path(i + 101),
+                Field("__fusion_1_id", new StringValueNode(values[i])));
+        }
+
+        // act
+        var grown = target.CreateVariableValueSetsFromSnapshot(
+            [.. entries],
+            ImportedKeys("__fusion_1_id"),
+            [],
+            [Requirement("__fusion_1_id")]);
+        var reused = target.CreateVariableValueSetsFromSnapshot(
+            [.. reusedEntries],
+            ImportedKeys("__fusion_1_id"),
+            [],
+            [Requirement("__fusion_1_id")]);
+
+        // assert
+        var expected = values
+            .Select(static value => $"{{\"__fusion_1_id\":\"{value}\"}}")
+            .Concat(values.Select(static value => $"{{\"__fusion_1_id\":\"{value}\"}}"))
+            .ToArray();
+        var actual = grown
+            .Select(static entry => Normalize(entry.Values))
+            .Concat(reused.Select(static entry => Normalize(entry.Values)))
+            .ToArray();
+
+        Assert.Equal(expected, actual);
+    }
+
+    [Fact]
+    public void CreateVariableValueSetsFromSnapshot_Should_HealTrackedEntries_When_PreviousCallThrows()
+    {
+        // arrange
+        using var source = new FetchResultStore();
+        using var target = new FetchResultStore();
+        using var malformedWriter = new ChunkedArrayWriter();
+
+        var valid = CreateVariableValues(
+            source,
+            Path(1),
+            Field("__fusion_1_id", new StringValueNode("shared")));
+        var malformedJson = """{"__fusion_1_id":"""u8;
+        malformedJson.CopyTo(malformedWriter.GetSpan(malformedJson.Length));
+        malformedWriter.Advance(malformedJson.Length);
+        var malformed = new VariableValues(
+            Path(2),
+            JsonSegment.Create(malformedWriter, 0, malformedJson.Length));
+
+        Assert.ThrowsAny<JsonException>(
+            () => target.CreateVariableValueSetsFromSnapshot(
+                [valid, malformed],
+                ImportedKeys("__fusion_1_id"),
+                [],
+                [Requirement("__fusion_1_id")]));
+
+        // act
+        var healed = target.CreateVariableValueSetsFromSnapshot(
+            [valid],
+            ImportedKeys("__fusion_1_id"),
+            [],
+            [Requirement("__fusion_1_id")]);
+
+        // assert
+        Normalize(healed).MatchInlineSnapshot(
+            """
+            path=[1]; additional=[]; values={"__fusion_1_id":"shared"}
+            """);
+    }
+
+    [Fact]
     public void CreateVariableValueSets_Should_ShipNestedNull_When_NonNullInputFieldValueIsNull()
     {
         // arrange
@@ -1558,6 +1700,51 @@ public sealed class FetchResultStoreTests : FusionTestBase
     {
         using var document = JsonDocument.Parse(segment.AsSequence());
         return JsonSerializer.Serialize(document.RootElement);
+    }
+
+    private static string Normalize(IEnumerable<VariableValues> entries)
+        => string.Join("\n", entries.Select(Describe));
+
+    private static string Describe(VariableValues entry)
+    {
+        var path = string.Join(",", entry.Path.Segments.ToArray());
+        var additionalPaths = string.Join(
+            "|",
+            entry.AdditionalPaths
+                .AsSpan()
+                .ToArray()
+                .Select(static path => string.Join(",", path.Segments.ToArray())));
+
+        return $"path=[{path}]; additional=[{additionalPaths}]; values={Normalize(entry.Values)}";
+    }
+
+    private static string[] FindCollidingStringValues(string key, int count)
+    {
+        const int bucketCount = 16;
+        var valuesByBucket = new List<string>?[bucketCount];
+
+        for (var i = 0; i < 10_000; i++)
+        {
+            var value = $"value-{i}";
+            var bytes = Encoding.UTF8.GetBytes($"{{\"{key}\":\"{value}\"}}");
+            var hash = 0u;
+
+            foreach (var b in bytes)
+            {
+                hash = unchecked(hash * 31 + b);
+            }
+
+            var bucket = (int)(hash & (bucketCount - 1));
+            var values = valuesByBucket[bucket] ??= [];
+            values.Add(value);
+
+            if (values.Count == count)
+            {
+                return [.. values];
+            }
+        }
+
+        throw new InvalidOperationException("Could not find enough colliding variable values.");
     }
 
     private static string RenderData(FetchResultStore store)
