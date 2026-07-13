@@ -3436,7 +3436,7 @@ public sealed partial class OperationPlanner
         }
     }
 
-    private OperationDefinitionNode InlineSelections(
+    internal OperationDefinitionNode InlineSelections(
         OperationDefinitionNode operation,
         SelectionSetIndexBuilder index,
         ITypeDefinition selectionSetType,
@@ -3447,79 +3447,13 @@ public sealed partial class OperationPlanner
         List<SelectionSetNode>? backlog = null;
         var didInline = false;
 
-        var rewriter = SyntaxRewriter.Create<List<ISyntaxNode>>(
-            rewrite: (node, path) =>
-            {
-                if (node is not SelectionSetNode selectionSet)
-                {
-                    return node;
-                }
-
-                // if the node was rewritten we keep track that the rewritten node and
-                // the original node are semantically equivalent.
-                var originalSelectionSet = (SelectionSetNode)path.Peek();
-                var id = index.GetId(originalSelectionSet);
-
-                if (!ReferenceEquals(originalSelectionSet, selectionSet))
-                {
-                    index.Register(originalSelectionSet, selectionSet);
-                }
-
-                if (targetSelectionSetId != id)
-                {
-                    return node;
-                }
-
-                SelectionSetNode newSelectionSet;
-
-                if (inlineInternal)
-                {
-                    var size = selectionSet.Selections.Count + selectionsToInline.Selections.Count;
-                    var selections = new List<ISelectionNode>(size);
-                    selections.AddRange(originalSelectionSet.Selections);
-
-                    foreach (var selection in selectionsToInline.Selections)
-                    {
-                        var markedSelection = MarkInternalSubtree(selection, index);
-
-                        selections.Add(markedSelection);
-
-                        switch (markedSelection)
-                        {
-                            case FieldNode field:
-                                IndexInternalSelections(field.SelectionSet, index, ref backlog);
-                                break;
-
-                            case InlineFragmentNode inlineFragment:
-                                IndexInternalSelections(inlineFragment.SelectionSet, index, ref backlog);
-                                break;
-                        }
-                    }
-
-                    newSelectionSet = new SelectionSetNode(selections);
-                }
-                else
-                {
-                    newSelectionSet = _mergeRewriter.Merge(
-                        selectionSet,
-                        selectionsToInline,
-                        selectionSetType,
-                        index);
-                }
-
-                didInline = true;
-
-                index.Register(originalSelectionSet, newSelectionSet);
-                return newSelectionSet;
-            },
-            enter: (node, path) =>
-            {
-                path.Push(node);
-                return path;
-            },
-            leave: (_, path) => path.Pop());
-
-        var rewrittenOperation = (OperationDefinitionNode)rewriter.Rewrite(operation, [])!;
+        // Requirement inlining runs for many search branches. Only field and inline-fragment
+        // selection sets can change here, so walk that tree directly instead of visiting every
+        // syntax node in arguments, directives, variable definitions, names and types.
+        var rewrittenSelectionSet = RewriteSelectionSet(operation.SelectionSet);
+        var rewrittenOperation = ReferenceEquals(rewrittenSelectionSet, operation.SelectionSet)
+            ? operation
+            : operation.WithSelectionSet(rewrittenSelectionSet);
 
         if (!didInline)
         {
@@ -3529,6 +3463,111 @@ public sealed partial class OperationPlanner
         }
 
         return rewrittenOperation;
+
+        SelectionSetNode RewriteSelectionSet(SelectionSetNode originalSelectionSet)
+        {
+            List<ISelectionNode>? rewrittenSelections = null;
+
+            for (var i = 0; i < originalSelectionSet.Selections.Count; i++)
+            {
+                var originalSelection = originalSelectionSet.Selections[i];
+                var rewrittenSelection = originalSelection switch
+                {
+                    FieldNode { SelectionSet: { } childSelectionSet } field =>
+                        RewriteField(field, childSelectionSet),
+                    FieldNode => originalSelection,
+                    InlineFragmentNode inlineFragment => RewriteInlineFragment(inlineFragment),
+                    FragmentSpreadNode => originalSelection,
+                    _ => throw new ArgumentOutOfRangeException(nameof(originalSelection))
+                };
+
+                if (rewrittenSelections is null
+                    && !ReferenceEquals(originalSelection, rewrittenSelection))
+                {
+                    rewrittenSelections = new List<ISelectionNode>(originalSelectionSet.Selections.Count);
+
+                    for (var j = 0; j < i; j++)
+                    {
+                        rewrittenSelections.Add(originalSelectionSet.Selections[j]);
+                    }
+                }
+
+                rewrittenSelections?.Add(rewrittenSelection);
+            }
+
+            var selectionSet = rewrittenSelections is null
+                ? originalSelectionSet
+                : originalSelectionSet.WithSelections(rewrittenSelections);
+            var id = index.GetId(originalSelectionSet);
+
+            if (!ReferenceEquals(originalSelectionSet, selectionSet))
+            {
+                index.Register(originalSelectionSet, selectionSet);
+            }
+
+            if (targetSelectionSetId != id)
+            {
+                return selectionSet;
+            }
+
+            SelectionSetNode newSelectionSet;
+
+            if (inlineInternal)
+            {
+                var size = selectionSet.Selections.Count + selectionsToInline.Selections.Count;
+                var selections = new List<ISelectionNode>(size);
+                selections.AddRange(originalSelectionSet.Selections);
+
+                foreach (var selection in selectionsToInline.Selections)
+                {
+                    var markedSelection = MarkInternalSubtree(selection, index);
+
+                    selections.Add(markedSelection);
+
+                    switch (markedSelection)
+                    {
+                        case FieldNode field:
+                            IndexInternalSelections(field.SelectionSet, index, ref backlog);
+                            break;
+
+                        case InlineFragmentNode inlineFragment:
+                            IndexInternalSelections(inlineFragment.SelectionSet, index, ref backlog);
+                            break;
+                    }
+                }
+
+                newSelectionSet = new SelectionSetNode(selections);
+            }
+            else
+            {
+                newSelectionSet = _mergeRewriter.Merge(
+                    selectionSet,
+                    selectionsToInline,
+                    selectionSetType,
+                    index);
+            }
+
+            didInline = true;
+
+            index.Register(originalSelectionSet, newSelectionSet);
+            return newSelectionSet;
+        }
+
+        FieldNode RewriteField(FieldNode field, SelectionSetNode childSelectionSet)
+        {
+            var rewrittenChildSelectionSet = RewriteSelectionSet(childSelectionSet);
+            return ReferenceEquals(childSelectionSet, rewrittenChildSelectionSet)
+                ? field
+                : field.WithSelectionSet(rewrittenChildSelectionSet);
+        }
+
+        InlineFragmentNode RewriteInlineFragment(InlineFragmentNode inlineFragment)
+        {
+            var rewrittenChildSelectionSet = RewriteSelectionSet(inlineFragment.SelectionSet);
+            return ReferenceEquals(inlineFragment.SelectionSet, rewrittenChildSelectionSet)
+                ? inlineFragment
+                : inlineFragment.WithSelectionSet(rewrittenChildSelectionSet);
+        }
 
         static ISelectionNode MarkInternalSubtree(
             ISelectionNode selection,
