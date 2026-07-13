@@ -207,7 +207,7 @@ internal sealed partial class FetchResultStore
             representationWriter,
             new JsonWriterOptions { Indented = false });
         var resultPaths = s_entityResultPathPool.Rent(importedEntries.Length);
-        var additionalPaths = new RepresentationPathAccumulator();
+        var additionalPaths = new RepresentationPathAccumulator(importedEntries.Length);
         var completed = false;
         var variableStartPosition = StartRepresentationVariableValue();
         var nextIndex = 0;
@@ -260,7 +260,7 @@ internal sealed partial class FetchResultStore
                 ref additionalPaths,
                 nextIndex);
             completed = true;
-            resultPaths = null!;
+            resultPaths = null;
             return value;
         }
         finally
@@ -290,7 +290,7 @@ internal sealed partial class FetchResultStore
             representationWriter,
             new JsonWriterOptions { Indented = false });
         var resultPaths = s_entityResultPathPool.Rent(elements.Length);
-        var additionalPaths = new RepresentationPathAccumulator();
+        var additionalPaths = new RepresentationPathAccumulator(elements.Length);
         var completed = false;
         var variableStartPosition = StartRepresentationVariableValue();
         var nextIndex = 0;
@@ -1831,16 +1831,26 @@ internal sealed partial class FetchResultStore
 
     private ref struct RepresentationPathAccumulator
     {
+        private readonly int _capacityHint;
         private CompactPath[]? _paths;
         private int[]? _slotIndices;
         private int _count;
+
+        public RepresentationPathAccumulator(int capacityHint)
+        {
+            _capacityHint = capacityHint;
+            _paths = null;
+            _slotIndices = null;
+            _count = 0;
+        }
 
         public void Add(int slotIndex, CompactPath path)
         {
             if (_paths is null)
             {
-                _paths = ArrayPool<CompactPath>.Shared.Rent(16);
-                _slotIndices = ArrayPool<int>.Shared.Rent(16);
+                var capacity = Math.Max(16, _capacityHint);
+                _paths = ArrayPool<CompactPath>.Shared.Rent(capacity);
+                _slotIndices = ArrayPool<int>.Shared.Rent(capacity);
             }
             else if (_count == _paths.Length)
             {
