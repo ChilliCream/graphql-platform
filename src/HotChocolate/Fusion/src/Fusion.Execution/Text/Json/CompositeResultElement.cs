@@ -454,6 +454,16 @@ public readonly partial struct CompositeResultElement
         return _parent.TryGetNamedPropertyValue(_cursor, propertyName, out value);
     }
 
+    internal bool TryGetProperty(
+        string propertyName,
+        ref PropertyLookupMemo memo,
+        out CompositeResultElement value)
+    {
+        ArgumentNullException.ThrowIfNull(propertyName);
+
+        return _parent.TryGetNamedPropertyValue(_cursor, propertyName, ref memo, out value);
+    }
+
     /// <summary>
     /// Attempts to get a property by UTF-8 encoded name when the current element is an object.
     /// </summary>
