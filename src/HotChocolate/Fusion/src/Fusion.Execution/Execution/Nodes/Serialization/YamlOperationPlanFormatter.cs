@@ -91,6 +91,10 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
             case NodeFieldExecutionNode nodeExecutionNode:
                 WriteNodeFieldNode(nodeExecutionNode, nodeTrace, writer);
                 break;
+
+            case PolicyExecutionNode policyNode:
+                WritePolicyNode(policyNode, nodeTrace, writer);
+                break;
         }
     }
 
@@ -779,6 +783,54 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
         writer.Unindent();
     }
 
+    private static void WritePolicyNode(PolicyExecutionNode node, ExecutionNodeTrace? trace, CodeWriter writer)
+    {
+        writer.WriteLine("- id: {0}", node.Id);
+        writer.Indent();
+
+        writer.WriteLine("type: {0}", node.Type.ToString());
+
+        writer.WriteLine("targets:");
+        writer.Indent();
+        foreach (var target in node.Targets)
+        {
+            writer.WriteLine("- kind: {0}", target.Kind.ToString());
+            writer.Indent();
+
+            writer.WriteLine("path: {0}", target.Path.ToString());
+            writer.WriteLine("typeName: {0}", target.TypeName);
+
+            if (target.FieldName is not null)
+            {
+                writer.WriteLine("fieldName: {0}", target.FieldName);
+            }
+
+            writer.WriteLine("policies:");
+            writer.Indent();
+            foreach (var policy in target.Policies)
+            {
+                writer.WriteLine("- name: {0}", policy.Name);
+                writer.Indent();
+                writer.WriteLine("onDenied: {0}", policy.OnDenied.ToString());
+                writer.Unindent();
+            }
+            writer.Unindent();
+
+            TryWriteConditions(writer, target.Conditions);
+
+            writer.Unindent();
+        }
+        writer.Unindent();
+
+        TryWriteConditions(writer, node);
+
+        WriteDependencies(node.Dependencies, node.ParentDependencies, writer);
+
+        TryWriteNodeTrace(writer, trace);
+
+        writer.Unindent();
+    }
+
     private static void TryWriteNodeTrace(CodeWriter writer, ExecutionNodeTrace? trace)
     {
         if (trace is not null)
@@ -794,12 +846,15 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
     }
 
     private static void TryWriteConditions(CodeWriter writer, ExecutionNode node)
+        => TryWriteConditions(writer, node.Conditions);
+
+    private static void TryWriteConditions(CodeWriter writer, ReadOnlySpan<ExecutionNodeCondition> conditions)
     {
-        if (node.Conditions.Length > 0)
+        if (conditions.Length > 0)
         {
             writer.WriteLine("conditions:");
             writer.Indent();
-            foreach (var condition in node.Conditions)
+            foreach (var condition in conditions)
             {
                 writer.WriteLine("- variable: {0}", "$" + condition.VariableName);
                 writer.Indent();

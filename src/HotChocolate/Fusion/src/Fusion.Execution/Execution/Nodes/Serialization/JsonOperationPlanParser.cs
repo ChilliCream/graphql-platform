@@ -277,6 +277,10 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
                     parsedNodes.Add(ParseNodeFieldNodeInfo(nodeElement, id, operation));
                     break;
 
+                case "Policy":
+                    parsedNodes.Add(ParsePolicyNodeInfo(nodeElement, id));
+                    break;
+
                 default:
                     throw new NotSupportedException($"Unsupported node type: {nodeType}");
             }
@@ -975,6 +979,53 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
         };
     }
 
+    private static ParsedNodeInfo ParsePolicyNodeInfo(JsonElement nodeElement, int id)
+    {
+        var targetsElement = nodeElement.GetProperty("targets");
+        var targets = new List<PolicyExecutionTarget>();
+
+        foreach (var targetElement in targetsElement.EnumerateArray())
+        {
+            var policiesElement = targetElement.GetProperty("policies");
+            var policies = new List<PolicyApplication>();
+
+            foreach (var policyElement in policiesElement.EnumerateArray())
+            {
+                policies.Add(new PolicyApplication
+                {
+                    Name = policyElement.GetProperty("name").GetString()!,
+                    OnDenied = Enum.Parse<PolicyDenialBehavior>(
+                        policyElement.GetProperty("onDenied").GetString()!)
+                });
+            }
+
+            var fieldName = targetElement.TryGetProperty("fieldName", out var fieldNameElement)
+                ? fieldNameElement.GetString()
+                : null;
+
+            targets.Add(new PolicyExecutionTarget
+            {
+                Kind = Enum.Parse<PolicyTargetKind>(targetElement.GetProperty("kind").GetString()!),
+                Path = SelectionPath.Parse(targetElement.GetProperty("path").GetString()!),
+                TypeName = targetElement.GetProperty("typeName").GetString()!,
+                FieldName = fieldName,
+                Policies = policies.ToArray(),
+                Conditions = TryParseConditions(targetElement)
+            });
+        }
+
+        var dependencies = TryParseDependencies(nodeElement, out _);
+        var conditions = TryParseConditions(nodeElement);
+
+        return new ParsedPolicyNodeInfo
+        {
+            Id = id,
+            Targets = targets.ToArray(),
+            Conditions = conditions,
+            Dependencies = dependencies
+        };
+    }
+
     private static ExecutionNodeCondition[] TryParseConditions(JsonElement nodeElement)
     {
         if (!nodeElement.TryGetProperty("conditions", out var conditionsElement))
@@ -1249,6 +1300,19 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
             var node = new NodeFieldExecutionNode(Id, ResponseName, IdValue, Conditions);
 
             return (node, Dependencies, Branches, FallbackNodeId);
+        }
+    }
+
+    private sealed class ParsedPolicyNodeInfo : ParsedNodeInfo
+    {
+        public PolicyExecutionTarget[] Targets { get; init; } = [];
+        public ExecutionNodeCondition[] Conditions { get; init; } = [];
+
+        public override (ExecutionNode, int[]?, Dictionary<string, int>?, int?) ToExecutionNodeTuple()
+        {
+            var node = new PolicyExecutionNode(Id, Targets, Conditions);
+
+            return (node, Dependencies, null, null);
         }
     }
 }

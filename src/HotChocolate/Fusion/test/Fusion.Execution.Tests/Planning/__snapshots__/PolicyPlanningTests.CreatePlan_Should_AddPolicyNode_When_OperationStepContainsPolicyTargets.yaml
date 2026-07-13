@@ -1,0 +1,58 @@
+operation:
+  - document: |
+      query($includeName: Boolean!) {
+        product {
+          id
+          name @include(if: $includeName)
+        }
+      }
+    hash: 123456789101112
+    searchSpace: 1
+    expandedNodes: 1
+nodes:
+  - id: 1
+    type: Operation
+    schema: A
+    operation: |
+      query Op_123456789101112_1($includeName: Boolean!) {
+        product {
+          id
+          name @include(if: $includeName)
+        }
+      }
+    forwardedVariables:
+      - includeName
+  - id: 2
+    type: Policy
+    targets:
+      - kind: Object
+        path: $
+        typeName: Query
+        policies:
+          - name: CanReadQuery
+            onDenied: Error
+      - kind: Field
+        path: $.product
+        typeName: Query
+        fieldName: product
+        policies:
+          - name: CanReadProductField
+            onDenied: Abort
+      - kind: Object
+        path: $.product
+        typeName: Product
+        policies:
+          - name: CanReadProductObject
+            onDenied: Null
+      - kind: Field
+        path: $.product.name
+        typeName: Product
+        fieldName: name
+        policies:
+          - name: CanReadName
+            onDenied: Error
+        conditions:
+          - variable: $includeName
+            passingValue: true
+    dependencies:
+      - id: 1

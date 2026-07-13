@@ -511,6 +511,10 @@ public sealed partial class OperationPlanner
                     ctx.ExecutionNodes.Add(step.Id,
                         new NodeFieldExecutionNode(nodeStep.Id, nodeStep.ResponseName, nodeStep.IdValue, nodeStep.Conditions));
                 }
+                else if (step is PolicyPlanStep policyStep)
+                {
+                    ctx.ExecutionNodes.Add(step.Id, CreatePolicyExecutionNode(policyStep));
+                }
             }
 
             readySteps.Clear();
@@ -652,6 +656,12 @@ public sealed partial class OperationPlanner
 
         return node;
     }
+
+    private static PolicyExecutionNode CreatePolicyExecutionNode(PolicyPlanStep policyStep)
+        => new(
+            policyStep.Id,
+            policyStep.Targets.ToArray(),
+            policyStep.Conditions);
 
     private static EventStreamExecutionNode CreateEventStreamExecutionNode(
         OperationPlanStep operationStep,
@@ -1355,7 +1365,8 @@ public sealed partial class OperationPlanner
                     OperationExecutionNode
                     or OperationBatchExecutionNode
                     or ApolloOperationExecutionNode
-                    or ApolloOperationBatchExecutionNode))
+                    or ApolloOperationBatchExecutionNode
+                    or PolicyExecutionNode))
             {
                 continue;
             }
@@ -1384,7 +1395,8 @@ public sealed partial class OperationPlanner
                         or ApolloOperationExecutionNode
                         or ApolloOperationBatchExecutionNode
                         or NodeFieldExecutionNode
-                        or EventStreamExecutionNode))
+                        or EventStreamExecutionNode
+                        or PolicyExecutionNode))
                 {
                     continue;
                 }

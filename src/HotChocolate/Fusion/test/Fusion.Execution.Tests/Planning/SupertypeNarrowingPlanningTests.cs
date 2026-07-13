@@ -439,7 +439,7 @@ public sealed class SupertypeNarrowingPlanningTests : FusionTestBase
         Assert.Contains("Review", typeConditions);
 
         // act
-        var (resolvable, unresolvable, fieldsWithRequirements, _) = partitioner.Partition(
+        var (resolvable, unresolvable, fieldsWithRequirements, _, _) = partitioner.Partition(
             new SelectionSetPartitionerInput
             {
                 SchemaName = "B",
@@ -464,7 +464,7 @@ public sealed class SupertypeNarrowingPlanningTests : FusionTestBase
         var schema = CreateFeaturedItemSchemaWithRequirementsAndProductNameOnlyOnB();
 
         // act
-        var (_, _, fieldsWithRequirements, _) = PartitionSchemaB(
+        var (_, _, fieldsWithRequirements, _, _) = PartitionSchemaB(
             schema,
             """
             query {
@@ -489,7 +489,7 @@ public sealed class SupertypeNarrowingPlanningTests : FusionTestBase
         var schema = CreateCategoryFeaturedItemSchemaWithRequirements();
 
         // act
-        var (_, unresolvable, fieldsWithRequirements, _) = PartitionSchemaB(
+        var (_, unresolvable, fieldsWithRequirements, _, _) = PartitionSchemaB(
             schema,
             """
             query {
@@ -518,7 +518,7 @@ public sealed class SupertypeNarrowingPlanningTests : FusionTestBase
         var schema = CreateCategoryFeaturedItemSchemaWithRequirementsAndProductNameOnlyOnB();
 
         // act
-        var (_, _, fieldsWithRequirements, _) = PartitionSchemaB(
+        var (_, _, fieldsWithRequirements, _, _) = PartitionSchemaB(
             schema,
             """
             query {
@@ -547,7 +547,7 @@ public sealed class SupertypeNarrowingPlanningTests : FusionTestBase
         var schema = CreateDistributedInterfaceMembershipSchema();
 
         // act
-        var (resolvable, unresolvable, _, _) = PartitionSchemaA(
+        var (resolvable, unresolvable, _, _, _) = PartitionSchemaA(
             schema,
             """
             query {
@@ -586,7 +586,7 @@ public sealed class SupertypeNarrowingPlanningTests : FusionTestBase
         var schema = CreateDistributedInterfaceMembershipSchema();
 
         // act
-        var (resolvable, unresolvable, _, _) = PartitionSchemaA(
+        var (resolvable, unresolvable, _, _, _) = PartitionSchemaA(
             schema,
             """
             query {
@@ -642,7 +642,7 @@ public sealed class SupertypeNarrowingPlanningTests : FusionTestBase
         var schema = CreateDistributedInterfaceMembershipSchema();
 
         // act
-        var (_, unresolvable, _, index) = PartitionSchemaA(
+        var (_, unresolvable, _, _, index) = PartitionSchemaA(
             schema,
             """
             query {
@@ -771,7 +771,7 @@ public sealed class SupertypeNarrowingPlanningTests : FusionTestBase
         AssertSourceTypeName(schema, "item", "S", "B");
 
         // act
-        var (resolvable, unresolvable, _, _) = PartitionSchema(
+        var (resolvable, unresolvable, _, _, _) = PartitionSchema(
             schema,
             """
             query {
@@ -807,7 +807,7 @@ public sealed class SupertypeNarrowingPlanningTests : FusionTestBase
         var schema = CreateDistributedInterfaceMembershipSchema();
 
         // act
-        var (resolvable, unresolvable, _, _) = PartitionSchemaA(
+        var (resolvable, unresolvable, _, _, _) = PartitionSchemaA(
             schema,
             """
             query {
