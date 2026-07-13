@@ -222,7 +222,7 @@ public sealed partial class JsonWriter
         _tokenType = JsonTokenType.PropertyName;
     }
 
-    private void WritePropertyNameUnescaped(ReadOnlySpan<byte> utf8PropertyName)
+    internal void WritePropertyNameUnescaped(ReadOnlySpan<byte> utf8PropertyName)
     {
         FlushDeferredPropertyName();
 

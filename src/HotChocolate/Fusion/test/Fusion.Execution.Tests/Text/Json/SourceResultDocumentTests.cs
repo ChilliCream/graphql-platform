@@ -923,6 +923,47 @@ public class SourceResultDocumentTests
         Assert.Equal("[1,2,3]", Encoding.UTF8.GetString(array.GetRawValueAsMemory().Span));
     }
 
+    [Fact]
+    public void RawJsonFormatter_Should_PreservePropertyNames_When_SourceNamesContainEscapes()
+    {
+        var json =
+            """
+            {
+              "ascii": 1,
+              "quote\"name": 2,
+              "backslash\\name": 3,
+              "newline\nname": 4
+            }
+            """u8.ToArray();
+        using var arena = new MemoryArena();
+        using var document = SourceResultDocument.Parse(arena, json, json.Length);
+        var output = new ArrayBufferWriter<byte>();
+        var writer = new JsonWriter(output, new JsonWriterOptions());
+        var formatter = new SourceResultDocument.RawJsonFormatter(document, writer);
+
+        formatter.WriteValue(default);
+
+        var serialized = Encoding.UTF8.GetString(output.WrittenSpan);
+        Assert.Equal(
+            """{"ascii":1,"quote\"name":2,"backslash\\name":3,"newline\nname":4}""",
+            serialized);
+
+        using var emitted = JsonDocument.Parse(output.WrittenMemory);
+        var actual = emitted.RootElement
+            .EnumerateObject()
+            .Select(static property => (property.Name, property.Value.GetInt32()))
+            .ToArray();
+        var expected = new[]
+        {
+            ("ascii", 1),
+            ("quote\"name", 2),
+            ("backslash\\name", 3),
+            ("newline\nname", 4)
+        };
+
+        Assert.Equal(expected, actual);
+    }
+
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
