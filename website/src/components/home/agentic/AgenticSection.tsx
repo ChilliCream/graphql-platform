@@ -12,9 +12,9 @@ import { MockWindowChrome } from "@/src/components/MockWindowChrome";
 import { PageSection } from "@/src/components/PageSection";
 import { RevealOnScroll } from "@/src/components/RevealOnScroll";
 import { Card } from "@/src/design-system/Card";
-import { ArrowRightIcon } from "@/src/icons/ArrowRight";
 import { BranchGlyph } from "@/src/icons/BranchGlyph";
 import { CheckGlyph } from "@/src/icons/CheckGlyph";
+import { IconElement } from "@/src/icons/IconElement";
 
 const FLIP_INTERVAL_MS = 2500;
 
@@ -80,7 +80,7 @@ function AgentGroup() {
             className="border-cc-ink-faint text-cc-ink-dim hover:border-cc-accent/60 hover:text-cc-accent flex h-full items-center justify-center gap-1.5 rounded-xl border border-dashed px-3 py-1.5 font-mono text-sm transition-colors"
           >
             and many more
-            <ArrowRightIcon className="size-3.5" />
+            <IconElement icon="arrow-right" size="sm" />
           </Link>
         </li>
       </ul>

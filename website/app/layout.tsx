@@ -15,6 +15,12 @@ import {
 } from "@/src/helpers/site";
 import { SITE_URL } from "@/src/helpers/siteUrl";
 
+// Set up the styling for fontawesome, including duotone icons
+// https://docs.fontawesome.com/web/use-with/react/use-with#getting-font-awesome-css-to-work
+import { config } from "@fortawesome/fontawesome-svg-core";
+import "@fortawesome/fontawesome-svg-core/styles.css";
+config.autoAddCss = false;
+
 const inter = Inter({
   subsets: ["latin"],
   display: "swap",

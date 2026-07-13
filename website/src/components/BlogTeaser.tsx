@@ -1,7 +1,7 @@
-import Link from "next/link";
 import { Picture } from "@/src/design-system/Picture";
 import { formatDate } from "@/src/helpers/formatDate";
-import { ArrowRightIcon } from "@/src/icons/ArrowRight";
+import Link from "next/link";
+import { IconElement } from "../icons/IconElement";
 
 export type BlogTeaserData = {
   href: string;
@@ -56,7 +56,7 @@ export function BlogTeaser({ post }: BlogTeaserProps) {
           ) : null}
           <span className="text-cc-ink group-hover/teaser:text-cc-accent mt-auto inline-flex items-center gap-1.5 text-xs tracking-[0.18em] uppercase transition-colors">
             Read
-            <ArrowRightIcon className="size-3.5" />
+            <IconElement icon="arrow-right" size="sm" />
           </span>
         </div>
       </Link>

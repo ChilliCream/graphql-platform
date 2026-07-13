@@ -1,12 +1,12 @@
 "use client";
 
-import Link from "next/link";
-import { useState } from "react";
-import { SolidButton } from "@/src/design-system/Button";
 import { MobileDrawer } from "@/src/components/MobileDrawer";
-import { BarsIcon } from "@/src/icons/Bars";
+import { SolidButton } from "@/src/design-system/Button";
 import { ChilliCream } from "@/src/icons/ChilliCream";
 import { XmarkIcon } from "@/src/icons/Xmark";
+import Link from "next/link";
+import { useState } from "react";
+import { IconElement } from "../icons/IconElement";
 import { Search } from "./Search";
 
 type Item = { href: string; label: string };
@@ -34,7 +34,7 @@ export function MobileNav({ items, demoHref, nitroHref }: MobileNavProps) {
           onClick={() => setOpen(true)}
           className="text-cc-heading flex h-full items-center px-2"
         >
-          <BarsIcon className="h-5 w-5 fill-current" />
+          <IconElement icon="bars" size="lg" />
         </button>
       </div>
 

@@ -1,12 +1,12 @@
-import Link from "next/link";
-import type { ReactNode } from "react";
-import { BlogIcon } from "@/src/icons/Blog";
 import { ChilliCreamText } from "@/src/icons/ChilliCreamText";
 import { GitHubIcon } from "@/src/icons/GitHub";
 import { LinkedInIcon } from "@/src/icons/LinkedIn";
 import { SlackIcon } from "@/src/icons/Slack";
 import { XIcon } from "@/src/icons/X";
 import { YouTubeIcon } from "@/src/icons/YouTube";
+import Link from "next/link";
+import type { ReactNode } from "react";
+import { IconElement } from "../icons/IconElement";
 
 const tools = {
   blog: "/blog",
@@ -88,7 +88,7 @@ export default function Footer() {
         <Section>
           <nav className="text-cc-ink-dim flex flex-row gap-4">
             <SocialLink href={tools.blog} label="ChilliCream Blog">
-              <BlogIcon className="h-6 w-auto fill-current" />
+              <IconElement icon="blog" size="xl" />
             </SocialLink>
             <SocialLink href={tools.github} label="ChilliCream on GitHub">
               <GitHubIcon className="h-7 w-auto fill-current" />
