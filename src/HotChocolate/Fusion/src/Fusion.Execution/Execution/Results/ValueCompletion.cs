@@ -76,16 +76,17 @@ internal sealed class ValueCompletion
             return ApplyPocketedErrors(target);
         }
 
+        CompositeObjectContext objectContext;
+
         if (target.ValueKind is JsonValueKind.Undefined)
         {
-            InitializeTargetObject(source, target);
+            objectContext = InitializeTargetObject(source, target);
         }
         else
         {
             TryUpgradeOpaqueTarget(target, source);
+            objectContext = target.GetObjectContext();
         }
-
-        var objectContext = target.GetObjectContext();
 
         if (resultSelectionSet.HasSourceResponseNameMappings)
         {
@@ -125,7 +126,8 @@ internal sealed class ValueCompletion
                 }
 
                 var propertyValue = property.Value;
-                var propertyValueKind = propertyValue.ValueKind;
+                var propertyValueRow = propertyValue.GetValueRow();
+                var propertyValueKind = propertyValueRow.TokenType.ToValueKind();
 
                 if (errorTrie is null && propertyValueKind.IsScalarValue())
                 {
@@ -135,7 +137,7 @@ internal sealed class ValueCompletion
                         continue;
                     }
 
-                    resultField.SetLeafValue(propertyValue);
+                    resultField.SetLeafValue(propertyValue, propertyValueRow);
                     continue;
                 }
 
@@ -174,7 +176,8 @@ internal sealed class ValueCompletion
                 }
 
                 var propertyValue = property.Value;
-                var propertyValueKind = propertyValue.ValueKind;
+                var propertyValueRow = propertyValue.GetValueRow();
+                var propertyValueKind = propertyValueRow.TokenType.ToValueKind();
 
                 // Fast path: when there are no errors and the source value is a
                 // scalar (string, number, bool) we can set it directly without
@@ -187,7 +190,7 @@ internal sealed class ValueCompletion
                         continue;
                     }
 
-                    resultField.SetLeafValue(propertyValue);
+                    resultField.SetLeafValue(propertyValue, propertyValueRow);
                     continue;
                 }
 
@@ -224,7 +227,7 @@ internal sealed class ValueCompletion
         return ApplyPocketedErrors(target);
     }
 
-    private void InitializeTargetObject(
+    private CompositeObjectContext InitializeTargetObject(
         SourceResultElement source,
         CompositeResultElement target)
     {
@@ -238,7 +241,8 @@ internal sealed class ValueCompletion
         var objectType = GetType(type, source, isOpaque: false);
         var objectSelectionSet = selection.GetSelectionSet(objectType)!;
 
-        target.SetObjectValue(objectSelectionSet);
+        target.SetObjectValue(objectSelectionSet, out var objectContext);
+        return objectContext;
     }
 
     /// <summary>
@@ -1109,15 +1113,19 @@ TryCompleteList_MoveNext:
 
         // if the property value is yet undefined we need to initialize it
         // with the current selection set.
+        CompositeObjectContext objectContext;
+
         if (target.ValueKind is JsonValueKind.Undefined)
         {
             var objectSelectionSet = parentSelection.GetSelectionSet(objectType)
                 ?? throw new InvalidOperationException(
                     "Cannot initialize a result object without a selection set.");
-            target.SetObjectValue(objectSelectionSet);
+            target.SetObjectValue(objectSelectionSet, out objectContext);
         }
-
-        var objectContext = target.GetObjectContext();
+        else
+        {
+            objectContext = target.GetObjectContext();
+        }
 
         if (resultSelectionSet is { HasSourceResponseNameMappings: true })
         {
@@ -1157,7 +1165,8 @@ TryCompleteList_MoveNext:
                 }
 
                 var propertyValue = property.Value;
-                var propertyValueKind = propertyValue.ValueKind;
+                var propertyValueRow = propertyValue.GetValueRow();
+                var propertyValueKind = propertyValueRow.TokenType.ToValueKind();
 
                 if (errorTrie is null && propertyValueKind.IsScalarValue())
                 {
@@ -1167,7 +1176,7 @@ TryCompleteList_MoveNext:
                         continue;
                     }
 
-                    targetProperty.SetLeafValue(propertyValue);
+                    targetProperty.SetLeafValue(propertyValue, propertyValueRow);
                     continue;
                 }
 
@@ -1199,7 +1208,8 @@ TryCompleteList_MoveNext:
                 }
 
                 var propertyValue = property.Value;
-                var propertyValueKind = propertyValue.ValueKind;
+                var propertyValueRow = propertyValue.GetValueRow();
+                var propertyValueKind = propertyValueRow.TokenType.ToValueKind();
 
                 // Fast path: when there are no errors and the source value is a
                 // scalar (string, number, bool) we can set it directly without
@@ -1212,7 +1222,7 @@ TryCompleteList_MoveNext:
                         continue;
                     }
 
-                    targetProperty.SetLeafValue(propertyValue);
+                    targetProperty.SetLeafValue(propertyValue, propertyValueRow);
                     continue;
                 }
 

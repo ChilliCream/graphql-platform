@@ -46,6 +46,7 @@ public static class MessageBusBuilderExtensions
 
         builder.UseDispatch(DispatchMiddlewares.Instrumentation);
         builder.UseDispatch(DispatchMiddlewares.Serialization);
+        builder.UseDispatch(DispatchMiddlewares.Scheduling, after: "Serialization");
 
         builder.AddConcurrencyLimiter(o => o.MaxConcurrency = Environment.ProcessorCount * 2);
 
