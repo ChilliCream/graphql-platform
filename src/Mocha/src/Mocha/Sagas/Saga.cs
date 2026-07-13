@@ -156,7 +156,8 @@ public abstract partial class Saga : IFeatureProvider
             DescriptionHelpers.GetTypeName(StateType),
             StateType.FullName,
             Consumer.Name,
-            states);
+            states,
+            Configuration?.Source);
     }
 
     /// <summary>

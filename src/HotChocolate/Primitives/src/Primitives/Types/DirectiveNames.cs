@@ -340,6 +340,30 @@ public static class DirectiveNames
     }
 
     /// <summary>
+    /// The name constants of the @interfaceObject directive.
+    /// <see href="https://graphql.github.io/composite-schemas-spec/draft/#sec--interfaceObject"/>
+    /// </summary>
+    public static class InterfaceObject
+    {
+        /// <summary>
+        /// The name of the @interfaceObject directive.
+        /// </summary>
+        public const string Name = "interfaceObject";
+    }
+
+    /// <summary>
+    /// The name constants of the @implement directive.
+    /// <see href="https://graphql.github.io/composite-schemas-spec/draft/#sec--implement"/>
+    /// </summary>
+    public static class Implement
+    {
+        /// <summary>
+        /// The name of the @implement directive.
+        /// </summary>
+        public const string Name = "implement";
+    }
+
+    /// <summary>
     /// The name constants of the @require directive.
     /// <see href="https://graphql.github.io/composite-schemas-spec/draft/#sec--require"/>
     /// </summary>

@@ -729,6 +729,9 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
         }
     }
 
+    internal ImmutableArray<CompactPath> GetResultPaths(SelectionPath selectionSet)
+        => _resultStore.GetResultPaths(selectionSet);
+
     internal PooledArrayWriter CreateRentedBuffer()
         => _resultStore.CreateRentedBuffer();
 
@@ -768,7 +771,7 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
         var operationResult = new OperationResult(
             new OperationResultData(
                 resultDocument,
-                resultDocument.Data.IsNullOrInvalidated,
+                resultDocument.Data.IsNullOrInvalidated || resultDocument.Data.IsNullMarker,
                 resultDocument,
                 retainMemoryForDefer ? null : resultDocument),
             _resultStore.Errors?.ToImmutableList());

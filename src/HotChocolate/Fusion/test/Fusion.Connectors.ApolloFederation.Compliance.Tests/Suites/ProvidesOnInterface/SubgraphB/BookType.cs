@@ -15,6 +15,6 @@ public sealed class BookType : ObjectType<Book>
         descriptor.Implements<MediaInterfaceType>();
 
         descriptor.Field(b => b.Id).Shareable().Type<NonNullType<IdType>>();
-        descriptor.Field(b => b.Animals).Shareable().Type<ListType<AnimalInterfaceType>>();
+        descriptor.Field(b => b.Animals).External().Type<ListType<AnimalInterfaceType>>();
     }
 }

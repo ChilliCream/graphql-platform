@@ -157,11 +157,11 @@ public sealed class Operation : IOperation
     /// <exception cref="ArgumentException">
     /// The specified <paramref name="selection"/> has no selection set.
     /// </exception>
-    public SelectionSet GetSelectionSet(Selection selection, IObjectTypeDefinition typeContext)
+    public SelectionSet GetSelectionSet(Selection selection, IComplexTypeDefinition typeContext)
     {
         ArgumentNullException.ThrowIfNull(selection);
         ArgumentNullException.ThrowIfNull(typeContext);
-        Debug.Assert(typeContext is FusionObjectTypeDefinition);
+        Debug.Assert(typeContext is FusionComplexTypeDefinition);
 
         var key = (selection.Id, typeContext.Name);
 
@@ -174,7 +174,7 @@ public sealed class Operation : IOperation
                     selectionSet =
                         _compiler.CompileSelectionSet(
                             selection,
-                            (FusionObjectTypeDefinition)typeContext,
+                            (FusionComplexTypeDefinition)typeContext,
                             _includeConditions,
                             _deliveryGroupByFragment,
                             ref _elementsById,

@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using HotChocolate.Fusion.ApolloFederation;
 using HotChocolate.Fusion.Language;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -39,11 +40,29 @@ internal static class MutableSchemaDefinitionExtensions
         MutableComplexTypeDefinition type,
         string? schemaName = null)
     {
-        if (!string.IsNullOrEmpty(schemaName) && !type.ExistsInSchema(schemaName))
+        if (!string.IsNullOrEmpty(schemaName)
+            && !type.ExistsInSchema(schemaName)
+            && !ReachesInterfaceObjectStandIn(schema, type, schemaName))
         {
             return [];
         }
 
+        var unionsContainingType = type.Kind == TypeKind.Object
+            ? schema.Types
+                .OfType<MutableUnionTypeDefinition>()
+                .Where(u => u.Types.Contains(type))
+                .ToImmutableArray()
+            : [];
+
+        return GetPossibleFusionLookupDirectivesCore(schema, type, schemaName, unionsContainingType);
+    }
+
+    internal static List<IDirective> GetPossibleFusionLookupDirectivesCore(
+        MutableSchemaDefinition schema,
+        MutableComplexTypeDefinition type,
+        string? schemaName,
+        IReadOnlyList<MutableUnionTypeDefinition> unionsContainingType)
+    {
         // Get the lookups directly on the requested type.
         var lookups = GetFusionLookupDirectives(type, schemaName);
 
@@ -75,16 +94,39 @@ internal static class MutableSchemaDefinitionExtensions
             lookups.AddRange(interfaceLookupsInSchema);
         }
 
+        // Get the interface lookups of any @interfaceObject stand-in for an interface this type
+        // implements. A stand-in resolves every possible type of its interface by the shared key,
+        // so its interface-typed lookups are available for this type even in schemas that do not
+        // define the type. The implements relation is read from the completed set on the type,
+        // which includes edges derived by transitive closure.
+        var standInInterfaceNames = new HashSet<string>(StringComparer.Ordinal);
+
+        foreach (var implementedInterface in type.Implements)
+        {
+            if (!standInInterfaceNames.Add(implementedInterface.Name)
+                || !schema.Types.TryGetType<MutableInterfaceTypeDefinition>(
+                    implementedInterface.Name,
+                    out var standInInterfaceType))
+            {
+                continue;
+            }
+
+            foreach (var standInSchemaName in GetInterfaceObjectSchemaNames(standInInterfaceType))
+            {
+                if (!string.IsNullOrEmpty(schemaName) && standInSchemaName != schemaName)
+                {
+                    continue;
+                }
+
+                lookups.AddRange(GetFusionLookupDirectives(standInInterfaceType, standInSchemaName));
+            }
+        }
+
         // Get the lookups of unions this type is a member of,
         // if it's an object type.
         if (type.Kind == TypeKind.Object)
         {
-            var unionTypes = schema.Types
-                .OfType<MutableUnionTypeDefinition>()
-                .Where(u => u.Types.Contains(type))
-                .ToImmutableArray();
-
-            foreach (var unionType in unionTypes)
+            foreach (var unionType in unionsContainingType)
             {
                 if (!string.IsNullOrEmpty(schemaName) && !unionType.ExistsInSchema(schemaName))
                 {
@@ -139,7 +181,9 @@ internal static class MutableSchemaDefinitionExtensions
     }
 
     /// <summary>
-    /// Removes type system definitions that are not reachable from operation roots or preserved types.
+    /// Removes type system definitions that are not reachable from operation roots or preserved
+    /// types, then removes any <c>@external</c> fields the removals left unreferenced, repeating
+    /// until the schema is stable.
     /// </summary>
     /// <param name="schema">
     /// The schema from which unreferenced definitions are removed.
@@ -155,6 +199,24 @@ internal static class MutableSchemaDefinitionExtensions
     /// </param>
     public static void RemoveUnreferencedDefinitions(
         this MutableSchemaDefinition schema,
+        IReadOnlySet<string> preservedTypeNames,
+        bool seedUnionsAsRoots)
+    {
+        RemoveUnreachableDefinitions(schema, preservedTypeNames, seedUnionsAsRoots);
+
+        // Removing an unreachable type also removes the @require/@provides selections it carried.
+        // An @external field whose only references came from those selections is now dead, so
+        // prune it and re-run reachability: dropping the field can orphan its return type, whose
+        // own requirement selections can in turn orphan further externals. This converges quickly,
+        // and schemas with no dead externals never re-run reachability.
+        while (RemoveExternalFields.RemoveDeadExternalFields(schema))
+        {
+            RemoveUnreachableDefinitions(schema, preservedTypeNames, seedUnionsAsRoots);
+        }
+    }
+
+    private static void RemoveUnreachableDefinitions(
+        MutableSchemaDefinition schema,
         IReadOnlySet<string> preservedTypeNames,
         bool seedUnionsAsRoots)
     {
@@ -282,6 +344,47 @@ internal static class MutableSchemaDefinitionExtensions
                 }
             }
         }
+    }
+
+    /// <summary>
+    /// Gets the source schema names in which <paramref name="interfaceType"/> is declared as an
+    /// <c>@interfaceObject</c> stand-in, read from its <c>@fusion__interfaceObject(schema:)</c>
+    /// directives on the merged schema.
+    /// </summary>
+    internal static IEnumerable<string> GetInterfaceObjectSchemaNames(
+        MutableInterfaceTypeDefinition interfaceType)
+    {
+        foreach (var directive in interfaceType.Directives.AsEnumerable())
+        {
+            if (directive.Name == WellKnownDirectiveNames.FusionInterfaceObject)
+            {
+                yield return (string)directive.Arguments[WellKnownArgumentNames.Schema].Value!;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Determines whether <paramref name="type"/> implements an interface that has an
+    /// <c>@interfaceObject</c> stand-in in <paramref name="schemaName"/>. Such a type can be looked
+    /// up in that schema through the stand-in even though the schema does not define the type.
+    /// </summary>
+    internal static bool ReachesInterfaceObjectStandIn(
+        MutableSchemaDefinition schema,
+        MutableComplexTypeDefinition type,
+        string schemaName)
+    {
+        foreach (var implementedInterface in type.Implements)
+        {
+            if (schema.Types.TryGetType<MutableInterfaceTypeDefinition>(
+                    implementedInterface.Name,
+                    out var interfaceType)
+                && GetInterfaceObjectSchemaNames(interfaceType).Contains(schemaName))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private static List<IDirective> GetFusionLookupDirectives(

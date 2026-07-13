@@ -1,5 +1,6 @@
 <Solution>
   <Folder Name="/benchmarks/">
+    <Project Path="benchmarks/Composition/HotChocolate.Fusion.Composition.Benchmarks.csproj" />
     <Project Path="benchmarks/Fusion.Execution.Benchmarks/HotChocolate.Fusion.Execution.Benchmarks.csproj" />
   </Folder>
   <Folder Name="/src/">
@@ -22,6 +23,7 @@
     <Project Path="src/Fusion.Utilities/HotChocolate.Fusion.Utilities.csproj" />
   </Folder>
   <Folder Name="/test/">
+    <Project Path="test/Fusion.Aspire.Tests/HotChocolate.Fusion.Aspire.Tests.csproj" />
     <Project Path="test/Fusion.AspNetCore.Tests/HotChocolate.Fusion.AspNetCore.Tests.csproj" />
     <Project Path="test/Fusion.Composition.Tests/HotChocolate.Fusion.Composition.Tests.csproj" />
     <Project Path="test/Fusion.Composition.ApolloFederation.Tests/HotChocolate.Fusion.Composition.ApolloFederation.Tests.csproj" />

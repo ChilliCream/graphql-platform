@@ -17,7 +17,7 @@ public sealed class AccountType : ObjectType<Account>
             .Key("id")
             .ResolveReferenceWith(_ => ResolveById(default!));
 
-        descriptor.Field(a => a.Id).Type<NonNullType<IdType>>();
+        descriptor.Field(a => a.Id).External().Type<NonNullType<IdType>>();
 
         descriptor
             .Field("chats")
@@ -26,9 +26,11 @@ public sealed class AccountType : ObjectType<Account>
             {
                 var account = ctx.Parent<Account>();
                 return SubgraphBData.Chats
-                    .Where(c => c.AccountId == account.Id)
+                    .Where(c => account.ChatIds.Contains(c.Id))
                     .ToList();
             });
+
+        descriptor.Field(a => a.ChatIds).Ignore();
     }
 
     private static Account? ResolveById(string id)

@@ -13,7 +13,7 @@ public sealed class CatType : ObjectType<Cat>
     {
         descriptor.Implements<AnimalInterfaceType>();
 
-        descriptor.Field(c => c.Id).Shareable().Type<NonNullType<IdType>>();
-        descriptor.Field(c => c.Name).Shareable().Type<StringType>();
+        descriptor.Field(c => c.Id).External().Type<NonNullType<IdType>>();
+        descriptor.Field(c => c.Name).External().Type<StringType>();
     }
 }

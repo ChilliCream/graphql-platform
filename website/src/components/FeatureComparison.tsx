@@ -1,5 +1,7 @@
 import { CheckIcon } from "@/src/components/CheckIcon";
 import { SectionHeading } from "@/src/components/SectionHeading";
+import { Card } from "@/src/design-system/Card";
+import { Eyebrow } from "@/src/design-system/Eyebrow";
 
 type Cell = boolean | string;
 
@@ -46,16 +48,18 @@ export function FeatureComparison({
         titleId={`${id}-heading`}
       />
 
-      <div className="border-cc-card-border bg-cc-card-bg/40 mt-10 overflow-hidden rounded-3xl border">
+      <Card variant="panel" className="mt-10">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[820px] border-collapse text-left text-sm">
             <thead>
               <tr className="border-cc-card-border border-b">
-                <th
-                  scope="col"
-                  className="text-cc-ink-dim px-5 py-4 font-mono text-[0.65rem] tracking-[0.15em] uppercase"
-                >
-                  Capability
+                <th scope="col" className="px-5 py-4 text-left">
+                  {/* Block-level (default <p>) so the cell's line box comes
+                      from the 0.65rem eyebrow text, not the table's text-sm
+                      strut, keeping the row heights unchanged. */}
+                  <Eyebrow size="2xs" color="ink-dim">
+                    Capability
+                  </Eyebrow>
                 </th>
                 {columns.map((name) => (
                   <th
@@ -78,9 +82,11 @@ export function FeatureComparison({
                   <th
                     scope="colgroup"
                     colSpan={columns.length + 1}
-                    className="text-cc-ink-dim px-5 py-3 text-left font-mono text-[0.65rem] tracking-[0.15em] uppercase"
+                    className="px-5 py-3 text-left"
                   >
-                    {group.title}
+                    <Eyebrow size="2xs" color="ink-dim">
+                      {group.title}
+                    </Eyebrow>
                   </th>
                 </tr>
                 {group.rows.map((row) => (
@@ -103,7 +109,7 @@ export function FeatureComparison({
             ))}
           </table>
         </div>
-      </div>
+      </Card>
     </section>
   );
 }

@@ -43,9 +43,17 @@ public readonly partial struct CompositeResultElement
     {
         CheckValidInstance();
 
-        var formatter = new RawJsonFormatter(_parent, jsonWriter);
         var row = _parent._metaDb.Get(_cursor);
-        formatter.WriteValue(_cursor, row);
+        if (_parent.HasNullMarkers)
+        {
+            var formatter = new NullMarkerRawJsonFormatter(_parent, jsonWriter);
+            formatter.WriteValue(_cursor, row);
+        }
+        else
+        {
+            var formatter = new RawJsonFormatter(_parent, jsonWriter);
+            formatter.WriteValue(_cursor, row);
+        }
     }
 
     /// <summary>
@@ -185,6 +193,21 @@ public readonly partial struct CompositeResultElement
             }
 
             return _parent.IsNullOrInvalidated(_cursor);
+        }
+    }
+
+    internal bool IsRoot => _cursor.IsZero;
+
+    internal bool IsNullMarker
+    {
+        get
+        {
+            if (_parent is null)
+            {
+                return false;
+            }
+
+            return _parent.IsNullMarker(_cursor);
         }
     }
 
@@ -448,11 +471,30 @@ public readonly partial struct CompositeResultElement
         return _parent.TryGetNamedPropertyValue(_cursor, utf8PropertyName, out value);
     }
 
+    internal bool TryGetProperty(
+        ReadOnlySpan<byte> utf8PropertyName,
+        out CompositeResultElement value,
+        out Selection selection)
+    {
+        CheckValidInstance();
+
+        return _parent.TryGetNamedPropertyValue(_cursor, utf8PropertyName, out value, out selection);
+    }
+
     internal CompositeResultElement GetPropertyBySelectionId(int selectionId)
     {
         CheckValidInstance();
 
         return _parent.GetPropertyBySelectionId(_cursor, selectionId);
+    }
+
+    internal CompositeObjectContext GetObjectContext()
+    {
+        // The validity guard is hoisted here so it is paid once per object instead
+        // of once per property. See CompositeResultDocument.GetObjectContext.
+        CheckValidInstance();
+
+        return _parent.GetObjectContext(_cursor);
     }
 
     /// <summary>
@@ -959,12 +1001,17 @@ public readonly partial struct CompositeResultElement
     }
 
     internal void SetObjectValue(SelectionSet selectionSet)
+        => SetObjectValue(selectionSet, out _);
+
+    internal void SetObjectValue(
+        SelectionSet selectionSet,
+        out CompositeObjectContext objectContext)
     {
         CheckValidInstance();
 
         ArgumentNullException.ThrowIfNull(selectionSet);
 
-        var obj = _parent.CreateObject(_cursor, selectionSet: selectionSet);
+        var obj = _parent.CreateObject(_cursor, selectionSet, out objectContext);
         _parent.AssignCompositeValue(this, obj);
     }
 
@@ -985,11 +1032,25 @@ public readonly partial struct CompositeResultElement
         _parent.AssignSourceValue(this, source);
     }
 
+    internal void SetLeafValue(SourceResultElement source, SourceResultDocument.DbRow row)
+    {
+        CheckValidInstance();
+
+        _parent.AssignSourceValue(this, source, row);
+    }
+
     internal void SetNullValue()
     {
         CheckValidInstance();
 
         _parent.AssignNullValue(this);
+    }
+
+    internal void SetNullMarker()
+    {
+        CheckValidInstance();
+
+        _parent.SetNullMarker(_cursor);
     }
 
     /// <inheritdoc />

@@ -36,6 +36,22 @@ public class IdFilterTypeInterceptorTests
     }
 
     [Fact]
+    public void Interceptor_Should_PreserveCustomIdOperationType_When_ConfiguredWithGenericType()
+        => AssertCustomIdOperationType<SubscriptionFilterType>();
+
+    [Fact]
+    public void Interceptor_Should_PreserveCustomIdOperationType_When_ConfiguredWithInstance()
+        => AssertCustomIdOperationType<SubscriptionFilterTypeWithInstance>();
+
+    [Fact]
+    public void Interceptor_Should_PreserveCustomIdOperationType_When_GenericTypeIsNonNull()
+        => AssertCustomIdOperationType<SubscriptionFilterTypeWithGenericNonNull>(isNonNull: true);
+
+    [Fact]
+    public void Interceptor_Should_PreserveCustomIdOperationType_When_InstanceTypeIsNonNull()
+        => AssertCustomIdOperationType<SubscriptionFilterTypeWithInstanceNonNull>(isNonNull: true);
+
+    [Fact]
     public async Task Filtering_Should_InferType_When_AnnotatedGeneric()
     {
         var schema = await new ServiceCollection()
@@ -112,4 +128,76 @@ public class IdFilterTypeInterceptorTests
     public sealed class InheritedId(string? typeName = null) : IDAttribute(typeName);
 
     public sealed class InheritedId<T> : IDAttribute<T>;
+
+    private static void AssertCustomIdOperationType<TFilterType>(bool isNonNull = false)
+    {
+        var schema = SchemaBuilder.New()
+            .AddFiltering()
+            .AddQueryType(
+                d => d
+                    .Name("Query")
+                    .Field("subscriptions")
+                    .Resolve(new List<SubscriptionNode>())
+                    .UseFiltering<TFilterType>())
+            .Create();
+        var filterType = Assert.IsAssignableFrom<InputObjectType>(
+            schema.Types["SubscriptionNodeFilterInput"]);
+        var fieldType = filterType.Fields["id"].Type;
+
+        Assert.Equal(nameof(SubscriptionIdOperationFilterInput), fieldType.NamedType().Name);
+        Assert.Equal(isNonNull, fieldType is NonNullType);
+    }
+
+    public class SubscriptionNode
+    {
+        [ID]
+        public int Id { get; set; }
+    }
+
+    public class SubscriptionFilterType : FilterInputType<SubscriptionNode>
+    {
+        protected override void Configure(IFilterInputTypeDescriptor<SubscriptionNode> descriptor)
+        {
+            descriptor.BindFieldsExplicitly();
+            descriptor.Field(f => f.Id).Type<SubscriptionIdOperationFilterInput>();
+        }
+    }
+
+    public class SubscriptionFilterTypeWithInstance : FilterInputType<SubscriptionNode>
+    {
+        protected override void Configure(IFilterInputTypeDescriptor<SubscriptionNode> descriptor)
+        {
+            descriptor.BindFieldsExplicitly();
+            descriptor.Field(f => f.Id).Type(new SubscriptionIdOperationFilterInput());
+        }
+    }
+
+    public class SubscriptionFilterTypeWithGenericNonNull : FilterInputType<SubscriptionNode>
+    {
+        protected override void Configure(IFilterInputTypeDescriptor<SubscriptionNode> descriptor)
+        {
+            descriptor.BindFieldsExplicitly();
+            descriptor.Field(f => f.Id).Type<NonNullType<SubscriptionIdOperationFilterInput>>();
+        }
+    }
+
+    public class SubscriptionFilterTypeWithInstanceNonNull : FilterInputType<SubscriptionNode>
+    {
+        protected override void Configure(IFilterInputTypeDescriptor<SubscriptionNode> descriptor)
+        {
+            descriptor.BindFieldsExplicitly();
+            descriptor.Field(f => f.Id).Type(
+                new NonNullType(new SubscriptionIdOperationFilterInput()));
+        }
+    }
+
+    public class SubscriptionIdOperationFilterInput : IdOperationFilterInputType
+    {
+        protected override void Configure(IFilterInputTypeDescriptor descriptor)
+        {
+            descriptor.Operation(DefaultFilterOperations.Equals).Type<IdType>();
+            descriptor.Operation(DefaultFilterOperations.In).Type<ListType<IdType>>();
+            descriptor.AllowAnd(false).AllowOr(false);
+        }
+    }
 }

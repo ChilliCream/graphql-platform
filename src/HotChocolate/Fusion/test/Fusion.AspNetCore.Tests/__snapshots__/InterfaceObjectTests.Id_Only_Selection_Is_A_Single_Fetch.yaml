@@ -1,0 +1,117 @@
+title: Id_Only_Selection_Is_A_Single_Fetch
+request:
+  document: |
+    query testQuery {
+      trendingMedia {
+        id
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "trendingMedia": [
+          {
+            "id": "TWVkaWE6MQ=="
+          },
+          {
+            "id": "TWVkaWE6Mg=="
+          },
+          {
+            "id": "TWVkaWE6Mw=="
+          }
+        ]
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        mediaById(id: ID!): Media @lookup
+      }
+
+      type Book implements Media @key(fields: "id") {
+        id: ID!
+        title: String!
+        isbn: String!
+      }
+
+      type Movie implements Media @key(fields: "id") {
+        id: ID!
+        title: String!
+        runtime: Int!
+      }
+
+      interface Media {
+        id: ID!
+        title: String!
+      }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        trendingMedia: [Media!]!
+        mediaByKey(id: ID!): Media @lookup @internal
+      }
+
+      type Media @interfaceObject @key(fields: "id") {
+        id: ID!
+        views: Int!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query testQuery_751f491c_1 {
+              trendingMedia {
+                id
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "trendingMedia": [
+                    {
+                      "id": "TWVkaWE6MQ=="
+                    },
+                    {
+                      "id": "TWVkaWE6Mg=="
+                    },
+                    {
+                      "id": "TWVkaWE6Mw=="
+                    }
+                  ]
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        query testQuery {
+          trendingMedia {
+            __typename @fusion__requirement
+            id
+          }
+        }
+      name: testQuery
+      hash: 751f491cf027a6724db2222ee37d1b21
+      searchSpace: 1
+      expandedNodes: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: B
+      operation: |
+        query testQuery_751f491c_1 {
+          trendingMedia {
+            id
+          }
+        }

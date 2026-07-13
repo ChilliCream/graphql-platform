@@ -1,4 +1,5 @@
 import { ButtonRow } from "@/src/components/ButtonRow";
+import { CardGrid } from "@/src/components/CardGrid";
 import { IconFeatureCard } from "@/src/components/IconFeatureCard";
 import { MarketingHero } from "@/src/components/MarketingHero";
 import { OutlineButton, SolidButton } from "@/src/design-system/Button";
@@ -52,18 +53,20 @@ export function SupportHero() {
         </ButtonRow>
       }
     >
-      <div className="mt-14 grid gap-4 md:grid-cols-3">
-        {SCENARIOS.map((scenario) => (
-          <IconFeatureCard
-            key={scenario.label}
-            eyebrow={scenario.label}
-            icon={<scenario.Icon />}
-            title={scenario.title}
-            copy={scenario.copy}
-            size="lg"
-            align="center"
-          />
-        ))}
+      <div className="mt-14">
+        <CardGrid cols={3} gap={4}>
+          {SCENARIOS.map((scenario) => (
+            <IconFeatureCard
+              key={scenario.label}
+              eyebrow={scenario.label}
+              icon={<scenario.Icon />}
+              title={scenario.title}
+              copy={scenario.copy}
+              size="lg"
+              align="center"
+            />
+          ))}
+        </CardGrid>
       </div>
     </MarketingHero>
   );

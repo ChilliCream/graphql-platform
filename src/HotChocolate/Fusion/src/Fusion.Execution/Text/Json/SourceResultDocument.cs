@@ -1,5 +1,7 @@
 using System.Buffers;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Json;
 using HotChocolate.Buffers;
@@ -222,21 +224,29 @@ public sealed partial class SourceResultDocument : IDisposable
         var startChunkIndex = location >>> DataOffsetBits;
         var offsetInStartChunk = location & DataOffsetMask;
 
-        var startSeg = _segments[startChunkIndex];
+        Debug.Assert((uint)startChunkIndex < (uint)_segments.Length);
+        ref readonly var startSeg = ref Unsafe.Add(
+            ref MemoryMarshal.GetArrayDataReference(_segments),
+            startChunkIndex);
 
         // Fast path: the value lives in a single chunk and can be written without a copy.
         if (offsetInStartChunk + size <= startSeg.Length)
         {
-            writer.WriteStringValue(startSeg.Buffer.AsSpan(startSeg.Offset + offsetInStartChunk, size), skipEscaping: true);
+            ref var start = ref Unsafe.Add(
+                ref MemoryMarshal.GetArrayDataReference(startSeg.Buffer),
+                startSeg.Offset + offsetInStartChunk);
+            writer.WriteStringValue(
+                MemoryMarshal.CreateReadOnlySpan(ref start, size),
+                skipEscaping: true);
             return;
         }
 
-        // The value spans chunks and the writer needs a contiguous span, so a scratch buffer is
-        // gathered from the pool, written, and returned in place of a per-value allocation.
-        var scratch = ArrayPool<byte>.Shared.Rent(size);
-        GatherRawValue(scratch, startChunkIndex, offsetInStartChunk, size);
-        writer.WriteStringValue(scratch.AsSpan(0, size), skipEscaping: true);
-        ArrayPool<byte>.Shared.Return(scratch);
+        WriteCrossChunkValueTo(
+            writer,
+            startChunkIndex,
+            offsetInStartChunk,
+            size,
+            JsonTokenType.String);
     }
 
     internal void WriteRawNumberValueTo(JsonWriter writer, int location, int size)
@@ -244,21 +254,93 @@ public sealed partial class SourceResultDocument : IDisposable
         var startChunkIndex = location >>> DataOffsetBits;
         var offsetInStartChunk = location & DataOffsetMask;
 
-        var startSeg = _segments[startChunkIndex];
+        Debug.Assert((uint)startChunkIndex < (uint)_segments.Length);
+        ref readonly var startSeg = ref Unsafe.Add(
+            ref MemoryMarshal.GetArrayDataReference(_segments),
+            startChunkIndex);
 
         // Fast path: the value lives in a single chunk and can be written without a copy.
         if (offsetInStartChunk + size <= startSeg.Length)
         {
-            writer.WriteNumberValue(startSeg.Buffer.AsSpan(startSeg.Offset + offsetInStartChunk, size));
+            ref var start = ref Unsafe.Add(
+                ref MemoryMarshal.GetArrayDataReference(startSeg.Buffer),
+                startSeg.Offset + offsetInStartChunk);
+            writer.WriteNumberValue(MemoryMarshal.CreateReadOnlySpan(ref start, size));
             return;
         }
 
-        // The value spans chunks and the writer needs a contiguous span, so a scratch buffer is
-        // gathered from the pool, written, and returned in place of a per-value allocation.
-        var scratch = ArrayPool<byte>.Shared.Rent(size);
-        GatherRawValue(scratch, startChunkIndex, offsetInStartChunk, size);
-        writer.WriteNumberValue(scratch.AsSpan(0, size));
-        ArrayPool<byte>.Shared.Return(scratch);
+        WriteCrossChunkValueTo(
+            writer,
+            startChunkIndex,
+            offsetInStartChunk,
+            size,
+            JsonTokenType.Number);
+    }
+
+    private void WriteCrossChunkValueTo(
+        JsonWriter writer,
+        int startChunkIndex,
+        int offsetInStartChunk,
+        int size,
+        JsonTokenType tokenType)
+    {
+        Debug.Assert(tokenType is JsonTokenType.String or JsonTokenType.Number);
+
+        if (size > JsonConstants.MaxUnescapedTokenSize)
+        {
+            ThrowHelper.ThrowArgumentException_ValueTooLarge(size);
+        }
+
+        if (writer.Options.Indented)
+        {
+            var scratch = ArrayPool<byte>.Shared.Rent(size);
+
+            try
+            {
+                GatherRawValue(scratch, startChunkIndex, offsetInStartChunk, size);
+
+                if (tokenType is JsonTokenType.String)
+                {
+                    writer.WriteStringValue(scratch.AsSpan(0, size), skipEscaping: true);
+                }
+                else
+                {
+                    writer.WriteNumberValue(scratch.AsSpan(0, size));
+                }
+            }
+            finally
+            {
+                ArrayPool<byte>.Shared.Return(scratch);
+            }
+
+            return;
+        }
+
+        var bytesRead = 0;
+        var chunkIndex = startChunkIndex;
+        var offsetInChunk = offsetInStartChunk;
+
+        while (bytesRead < size)
+        {
+            var seg = _segments[chunkIndex];
+            var bytesToWrite = Math.Min(size - bytesRead, seg.Length - offsetInChunk);
+            var chunkSpan = seg.Buffer.AsSpan(seg.Offset + offsetInChunk, bytesToWrite);
+
+            if (bytesRead == 0)
+            {
+                writer.WriteRawValueStart(chunkSpan);
+            }
+            else
+            {
+                writer.WriteRawValueContinuation(chunkSpan);
+            }
+
+            bytesRead += bytesToWrite;
+            chunkIndex++;
+            offsetInChunk = 0;
+        }
+
+        writer.WriteRawValueEnd(tokenType);
     }
 
     private void GatherRawValue(byte[] destination, int startChunkIndex, int offsetInStartChunk, int size)
@@ -304,12 +386,18 @@ public sealed partial class SourceResultDocument : IDisposable
         var startChunkIndex = location >>> DataOffsetBits;
         var offsetInStartChunk = location & DataOffsetMask;
 
-        var startSeg = _segments[startChunkIndex];
+        Debug.Assert((uint)startChunkIndex < (uint)_segments.Length);
+        ref readonly var startSeg = ref Unsafe.Add(
+            ref MemoryMarshal.GetArrayDataReference(_segments),
+            startChunkIndex);
 
         // Fast path: data fits in a single chunk
         if (offsetInStartChunk + size <= startSeg.Length)
         {
-            return startSeg.Buffer.AsSpan(startSeg.Offset + offsetInStartChunk, size);
+            ref var start = ref Unsafe.Add(
+                ref MemoryMarshal.GetArrayDataReference(startSeg.Buffer),
+                startSeg.Offset + offsetInStartChunk);
+            return MemoryMarshal.CreateReadOnlySpan(ref start, size);
         }
 
         Span<byte> buffer = new byte[size];

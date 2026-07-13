@@ -197,7 +197,8 @@ public abstract class Consumer
             DescriptionHelpers.GetTypeName(Identity),
             Identity.FullName,
             null,
-            false);
+            false,
+            Configuration?.Source);
     }
 
     /// <summary>

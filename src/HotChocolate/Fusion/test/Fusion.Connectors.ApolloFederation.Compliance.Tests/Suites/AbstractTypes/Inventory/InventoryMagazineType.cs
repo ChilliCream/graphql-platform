@@ -8,6 +8,7 @@ public sealed class InventoryMagazineType : ObjectType<InventoryMagazine>
     protected override void Configure(IObjectTypeDescriptor<InventoryMagazine> descriptor)
     {
         descriptor.Name("Magazine");
+        descriptor.Implements<InventoryProductInterfaceType>();
 
         descriptor
             .Key("id")

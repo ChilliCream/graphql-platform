@@ -27,6 +27,7 @@ public sealed class HttpSourceSchemaClient : ISourceSchemaClient
     private readonly HttpSourceSchemaClientConfiguration _configuration;
     private readonly ErrorHandlingMode? _onError;
     private readonly bool _supportsVariableBatching;
+    private readonly bool _annotateOperationKind;
     private bool _disposed;
 
     /// <summary>
@@ -34,9 +35,16 @@ public sealed class HttpSourceSchemaClient : ISourceSchemaClient
     /// </summary>
     /// <param name="client">The underlying HTTP client used to send requests.</param>
     /// <param name="configuration">The transport configuration for this source schema.</param>
+    /// <param name="annotateOperationKind">
+    /// Whether the GraphQL operation kind is annotated onto outgoing subgraph HTTP requests via
+    /// <see cref="HttpRequestMessage.Options"/>, so that delegating handlers (such as the
+    /// RequestDeduplicationHandler) can consume it. <c>false</c> by default because materializing the
+    /// request options bag allocates per request.
+    /// </param>
     public HttpSourceSchemaClient(
         GraphQLHttpClient client,
-        HttpSourceSchemaClientConfiguration configuration)
+        HttpSourceSchemaClientConfiguration configuration,
+        bool annotateOperationKind = false)
     {
         ArgumentNullException.ThrowIfNull(client);
         ArgumentNullException.ThrowIfNull(configuration);
@@ -44,6 +52,7 @@ public sealed class HttpSourceSchemaClient : ISourceSchemaClient
         _client = client;
         _configuration = configuration;
         _onError = configuration.OnError;
+        _annotateOperationKind = annotateOperationKind;
 
         var capabilities = configuration.Capabilities;
 
@@ -465,7 +474,7 @@ public sealed class HttpSourceSchemaClient : ISourceSchemaClient
                 break;
         }
 
-        httpRequest.OperationKind = originalRequest.OperationType;
+        httpRequest.OperationKind = GetOperationKindHint(originalRequest.OperationType);
         return httpRequest;
     }
 
@@ -547,7 +556,7 @@ public sealed class HttpSourceSchemaClient : ISourceSchemaClient
                 Uri = _configuration.BaseAddress,
                 AcceptHeaderValue = _configuration.BatchingAcceptHeaderValue,
                 EnableFileUploads = true,
-                OperationKind = originalRequests[0].OperationType
+                OperationKind = GetOperationKindHint(originalRequests[0].OperationType)
             };
         }
         else
@@ -603,10 +612,13 @@ public sealed class HttpSourceSchemaClient : ISourceSchemaClient
             {
                 Uri = _configuration.BaseAddress,
                 AcceptHeaderValue = _configuration.BatchingAcceptHeaderValue,
-                OperationKind = originalRequests[0].OperationType
+                OperationKind = GetOperationKindHint(originalRequests[0].OperationType)
             };
         }
     }
+
+    private OperationType? GetOperationKindHint(OperationType operationType)
+        => _annotateOperationKind ? operationType : null;
 
     private static OperationRequest CreateSingleRequest(
         OperationPlanContext context,

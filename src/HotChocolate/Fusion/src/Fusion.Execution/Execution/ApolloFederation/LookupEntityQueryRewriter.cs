@@ -42,10 +42,12 @@ internal static class LookupEntityQueryRewriter
         ArgumentNullException.ThrowIfNull(schema);
         ArgumentException.ThrowIfNullOrEmpty(schemaName);
 
-        var lookupField = GetLookupField(operation);
+        var document = Utf8GraphQLParser.Parse(operation.SourceText);
+        var operationDefinition = GetOperationDefinition(document);
+        var lookupField = GetLookupField(operationDefinition);
         var lookup = ResolveLookup(schema, schemaName, lookupField);
         var entityTypeName = lookup.FieldType.Name;
-        var entityType = schema.Types.GetType<FusionObjectTypeDefinition>(entityTypeName);
+        var entityType = schema.Types.GetType<FusionComplexTypeDefinition>(entityTypeName);
 
         // Lift the lookup field's selection set into the inline fragment, stripping
         // the variable-bound '@require' arguments at any nesting depth.
@@ -55,7 +57,21 @@ internal static class LookupEntityQueryRewriter
             entityType,
             lookupField.SelectionSet);
 
-        var text = BuildEntitiesDocument(entityTypeName, strippedSelections);
+        // When the target schema exposes the entity as an @interfaceObject stand-in it holds no
+        // concrete implementing types, so a concrete type condition (e.g. `... on Admin`) would
+        // reference a type the schema does not define. The stand-in resolves its contributed fields
+        // uniformly for the interface, so such conditions are flattened to the interface level.
+        if (entityType is FusionInterfaceTypeDefinition entityInterface
+            && entityInterface.Sources.TryGetMember(schemaName, out var entitySource)
+            && entitySource.IsInterfaceObject)
+        {
+            strippedSelections = FlattenConcreteTypeConditions(strippedSelections);
+        }
+
+        var text = BuildEntitiesDocument(
+            entityTypeName,
+            strippedSelections,
+            operationDefinition.VariableDefinitions);
 
         return new RewrittenOperation(
             new OperationSourceText(operation.Name, operation.Type, text, operation.Hash),
@@ -63,10 +79,46 @@ internal static class LookupEntityQueryRewriter
             lookupField);
     }
 
-    private static FieldNode GetLookupField(OperationSourceText operation)
+    /// <summary>
+    /// Flattens the inline fragments of a stand-in's lookup selection into the interface level.
+    /// A stand-in schema defines no concrete implementing types, so a concrete type condition would
+    /// reference an unknown type; the contributed fields it wraps are resolved uniformly for the
+    /// interface. Fields are de-duplicated by response name.
+    /// </summary>
+    private static SelectionSetNode FlattenConcreteTypeConditions(SelectionSetNode selectionSet)
     {
-        var document = Utf8GraphQLParser.Parse(operation.SourceText);
-        var operationDefinition = GetOperationDefinition(document);
+        var flattened = new List<ISelectionNode>();
+        var seen = new HashSet<string>(StringComparer.Ordinal);
+        FlattenInto(selectionSet, flattened, seen);
+        return new SelectionSetNode(flattened);
+    }
+
+    private static void FlattenInto(
+        SelectionSetNode selectionSet,
+        List<ISelectionNode> target,
+        HashSet<string> seen)
+    {
+        foreach (var selection in selectionSet.Selections)
+        {
+            switch (selection)
+            {
+                case FieldNode field:
+                    if (seen.Add(field.Alias?.Value ?? field.Name.Value))
+                    {
+                        target.Add(field);
+                    }
+
+                    break;
+
+                case InlineFragmentNode fragment:
+                    FlattenInto(fragment.SelectionSet, target, seen);
+                    break;
+            }
+        }
+    }
+
+    private static FieldNode GetLookupField(OperationDefinitionNode operationDefinition)
+    {
         var selections = operationDefinition.SelectionSet.Selections;
 
         if (selections.Count == 0 || selections[0] is not FieldNode lookupField)
@@ -88,14 +140,16 @@ internal static class LookupEntityQueryRewriter
 
         foreach (var type in schema.Types.AsEnumerable(allowInaccessibleFields: true))
         {
-            if (type is not FusionObjectTypeDefinition objectType
-                || !objectType.IsEntityType
-                || !objectType.Sources.TryGetMember(schemaName, out var sourceObjectType))
+            // Interface entity types are considered too: an @interfaceObject covering lookup
+            // returns the interface itself and is recorded on the interface's source metadata.
+            if (type is not FusionComplexTypeDefinition complexType
+                || !complexType.IsEntityType
+                || !complexType.Sources.TryGetMember(schemaName, out var sourceComplexType))
             {
                 continue;
             }
 
-            foreach (var lookup in sourceObjectType.Lookups)
+            foreach (var lookup in sourceComplexType.Lookups)
             {
                 if (!string.Equals(lookup.FieldName, lookupField.Name.Value, StringComparison.Ordinal))
                 {
@@ -377,7 +431,8 @@ internal static class LookupEntityQueryRewriter
 
     private static string BuildEntitiesDocument(
         string entityTypeName,
-        SelectionSetNode selectionSet)
+        SelectionSetNode selectionSet,
+        IReadOnlyList<VariableDefinitionNode> availableVariableDefinitions)
     {
         var representationsVarDef = new VariableDefinitionNode(
             location: null,
@@ -409,11 +464,59 @@ internal static class LookupEntityQueryRewriter
             name: null,
             description: null,
             operation: OperationType.Query,
-            variableDefinitions: [representationsVarDef],
+            variableDefinitions: BuildVariableDefinitions(
+                selectionSet,
+                availableVariableDefinitions,
+                representationsVarDef),
             directives: [],
             selectionSet: new SelectionSetNode([entitiesField]));
 
         return new DocumentNode([operationDefinition]).ToString(indented: true);
+    }
+
+    private static List<VariableDefinitionNode> BuildVariableDefinitions(
+        SelectionSetNode selectionSet,
+        IReadOnlyList<VariableDefinitionNode> availableVariableDefinitions,
+        VariableDefinitionNode representationsVarDef)
+    {
+        if (availableVariableDefinitions.Count == 0)
+        {
+            return [representationsVarDef];
+        }
+
+        var usedVariables = new HashSet<string>(StringComparer.Ordinal);
+        CollectVariables(selectionSet, usedVariables);
+
+        if (usedVariables.Count == 0)
+        {
+            return [representationsVarDef];
+        }
+
+        var variableDefinitions = new List<VariableDefinitionNode> { representationsVarDef };
+
+        foreach (var variableDefinition in availableVariableDefinitions)
+        {
+            if (usedVariables.Contains(variableDefinition.Variable.Name.Value))
+            {
+                variableDefinitions.Add(variableDefinition);
+            }
+        }
+
+        return variableDefinitions;
+    }
+
+    private static void CollectVariables(ISyntaxNode node, HashSet<string> variables)
+    {
+        if (node is VariableNode variable)
+        {
+            variables.Add(variable.Name.Value);
+            return;
+        }
+
+        foreach (var child in node.GetNodes())
+        {
+            CollectVariables(child, variables);
+        }
     }
 
     private static OperationDefinitionNode GetOperationDefinition(DocumentNode document)

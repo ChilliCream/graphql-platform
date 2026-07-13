@@ -2,6 +2,7 @@ import type { ComponentType, SVGProps } from "react";
 import { BlogIcon } from "@/src/icons/Blog";
 import { GitHubIcon } from "@/src/icons/GitHub";
 import { LinkedInIcon } from "@/src/icons/LinkedIn";
+import { RobotIcon } from "@/src/icons/RobotIcon";
 import { SlackIcon } from "@/src/icons/Slack";
 import { XIcon } from "@/src/icons/X";
 import { YouTubeIcon } from "@/src/icons/YouTube";
@@ -82,6 +83,12 @@ export const NAV_ITEMS: NavItem[] = [
             description: "An Ecosystem You Trust and Love.",
             icon: CloudIcon,
           },
+          {
+            href: "/platform/agentic-coding",
+            label: "Agentic Coding",
+            description: "Consistently Good Code, from Any Agent.",
+            icon: RobotIcon,
+          },
         ],
       },
       {
@@ -90,7 +97,7 @@ export const NAV_ITEMS: NavItem[] = [
           {
             href: "/products/nitro",
             label: "Nitro",
-            description: "GraphQL IDE / API Cockpit",
+            description: "Observability, Governance, Delivery",
             icon: RocketIcon,
           },
         ],

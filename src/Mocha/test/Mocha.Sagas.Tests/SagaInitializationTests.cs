@@ -268,6 +268,70 @@ public class SagaInitializationTests
         Assert.Equal(startedCancel.Urn, startedCancelDescription.Id);
     }
 
+    [Fact]
+    public void Describe_Should_ReturnSource_When_SagaConfigurationHasSource()
+    {
+        // Arrange
+        var source = new SourceMetadata
+        {
+            Assembly = "Mocha.Sagas.Tests",
+            RepositoryUrl = "https://github.com/example/mocha",
+            Commit = "abc123",
+            XmlDocumentation = "<summary>Test saga.</summary>",
+            DeclarationLocation = new DeclarationLocation("TestSaga.cs", null, 1, 1, 10, 2)
+        };
+        var saga = CreateInitializedSagaWithSource(source);
+
+        // Act
+        var description = saga.Describe();
+
+        // Assert
+        Assert.Same(source, description.Source);
+    }
+
+    [Fact]
+    public void ConsumerDescribe_Should_FallBackToSagaSource_When_ConsumerConfigurationHasNoSource()
+    {
+        // Arrange - the saga consumer never sets Source on its own ConsumerConfiguration, so
+        // Consumer.Describe() must fall back to the saga's own Source.
+        var source = new SourceMetadata
+        {
+            Assembly = "Mocha.Sagas.Tests",
+            RepositoryUrl = "https://github.com/example/mocha",
+            Commit = "abc123",
+            XmlDocumentation = "<summary>Test saga.</summary>",
+            DeclarationLocation = new DeclarationLocation("TestSaga.cs", null, 1, 1, 10, 2)
+        };
+        var saga = CreateInitializedSagaWithSource(source);
+
+        // Act
+        var description = saga.Consumer.Describe();
+
+        // Assert
+        Assert.Same(source, description.Source);
+    }
+
+    private Saga<TestState> CreateInitializedSagaWithSource(SourceMetadata source)
+    {
+        var saga =
+            Saga.Create<TestState>(descriptor =>
+            {
+                descriptor.Extend().Configuration.Source = source;
+
+                descriptor
+                    .Initially()
+                    .OnEvent<StartEvent>()
+                    .TransitionTo("Started")
+                    .StateFactory(s => new TestState(Guid.NewGuid(), "Started"));
+                descriptor.During("Started").OnEvent<TriggerEvent>().TransitionTo("Success");
+                descriptor.Finally("Success");
+            });
+
+        saga.Initialize(_context);
+
+        return saga;
+    }
+
     private Saga<TestState> CreateInitializedSagaWithCancelTransitions()
     {
         var saga =

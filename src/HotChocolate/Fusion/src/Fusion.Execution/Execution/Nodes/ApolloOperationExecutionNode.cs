@@ -74,7 +74,11 @@ public sealed class ApolloOperationExecutionNode : ExecutionNode
         // execution time. The shape is a plan-time constant, so it is retained and
         // reused for every request this node serves.
         var representationShape =
-            RepresentationShapeBuilder.Build(rewritten.LookupField, requirements);
+            RepresentationShapeBuilder.Build(
+                rewritten.LookupField,
+                requirements,
+                schema,
+                rewritten.EntityTypeName);
 
         return new ApolloOperationExecutionNode(
             id,

@@ -56,6 +56,131 @@ public class JsonOperationPlanSerializationTests : FusionTestBase
         formatter.Format(parsedPlan).MatchInlineSnapshot(Encoding.UTF8.GetString(buffer.WrittenSpan));
     }
 
+    // Source schema A defines the Media interface and its implementing types; source schema B is
+    // an @interfaceObject stand-in contributing "views". A value produced by B is opaque, and that
+    // opacity is derived when the result selection set is (re)built, so it must survive a plan
+    // serialize/parse round-trip for a cached plan to execute correctly.
+    private const string InterfaceObjectSchemaA =
+        """
+        # name: a
+        type Query {
+          mediaById(id: ID!): Media @lookup
+        }
+        interface Media {
+          id: ID!
+          title: String!
+        }
+        type Book implements Media @key(fields: "id") {
+          id: ID!
+          title: String!
+          isbn: String!
+        }
+        type Movie implements Media @key(fields: "id") {
+          id: ID!
+          title: String!
+          runtime: Int!
+        }
+        """;
+
+    private const string InterfaceObjectSchemaB =
+        """
+        # name: b
+        type Query {
+          trendingMedia: [Media!]!
+          mediaByKey(id: ID!): Media @lookup @internal
+        }
+        type Media @interfaceObject @key(fields: "id") {
+          id: ID!
+          views: Int!
+        }
+        """;
+
+    [Fact]
+    public void Parse_Plan_Preserves_InterfaceObject_Opacity_On_StandIn_Fetch()
+    {
+        // arrange
+        var compositeSchema = ComposeSchema(InterfaceObjectSchemaA, InterfaceObjectSchemaB);
+        var originalPlan = PlanOperation(
+            compositeSchema,
+            """
+            query {
+              trendingMedia {
+                __typename
+                id
+                views
+              }
+            }
+            """);
+
+        var formatter = new JsonOperationPlanFormatter(
+            new JsonWriterOptions
+            {
+                Indented = true,
+                Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+            });
+        var planSource = Encoding.UTF8.GetBytes(formatter.Format(originalPlan));
+        var compiler = new OperationCompiler(
+            compositeSchema,
+            new DefaultObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>>(
+                new DefaultPooledObjectPolicy<OrderedDictionary<string, List<FieldSelectionNode>>>()));
+        var parser = new JsonOperationPlanParser(compiler);
+
+        // act
+        var parsedPlan = parser.Parse(planSource);
+
+        // assert
+        // The stand-in fetch (schema b) resolves { id views }; its trendingMedia child must carry
+        // the opacity marker after deserialization so the executor completes it interface-typed.
+        var standInNode = parsedPlan.AllNodes
+            .OfType<OperationExecutionNode>()
+            .Single(t => t.SchemaName == "b");
+        var opaqueChild = standInNode.ResultSelectionSet.TryGetChild("trendingMedia");
+        Assert.NotNull(opaqueChild);
+        Assert.True(opaqueChild.ProducesOpaqueElements);
+    }
+
+    [Fact]
+    public void Parse_Plan_Preserves_LazySkipped_InterfaceObject_Plan()
+    {
+        // arrange
+        var compositeSchema = ComposeSchema(InterfaceObjectSchemaA, InterfaceObjectSchemaB);
+        var originalPlan = PlanOperation(
+            compositeSchema,
+            """
+            query {
+              trendingMedia {
+                id
+              }
+            }
+            """);
+
+        var formatter = new JsonOperationPlanFormatter(
+            new JsonWriterOptions
+            {
+                Indented = true,
+                Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+            });
+        var planSource = Encoding.UTF8.GetBytes(formatter.Format(originalPlan));
+        var compiler = new OperationCompiler(
+            compositeSchema,
+            new DefaultObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>>(
+                new DefaultPooledObjectPolicy<OrderedDictionary<string, List<FieldSelectionNode>>>()));
+        var parser = new JsonOperationPlanParser(compiler);
+
+        // act
+        var parsedPlan = parser.Parse(planSource);
+
+        // assert
+        // Neither __typename nor any type-conditioned field is selected, so the plan is a single
+        // stand-in fetch with no covering lookup, and that shape survives the round-trip while the
+        // value still completes interface-typed (opacity preserved).
+        var standInNode = Assert.Single(parsedPlan.AllNodes.OfType<OperationExecutionNode>());
+        Assert.Equal("b", standInNode.SchemaName);
+        var opaqueChild = standInNode.ResultSelectionSet.TryGetChild("trendingMedia");
+        Assert.NotNull(opaqueChild);
+        Assert.True(opaqueChild.ProducesOpaqueElements);
+    }
+
     [Fact]
     public void Parse_Plan_Uses_SelectionSet_Syntax_When_Present()
     {
@@ -102,6 +227,58 @@ public class JsonOperationPlanSerializationTests : FusionTestBase
             .OfType<OperationExecutionNode>()
             .Single(t => t.Id == operationNodeId);
         Assert.Equal("{ __typename }", parsedOperationNode.ResultSelectionSet.ToString(indented: false));
+    }
+
+    [Fact]
+    public void Parse_Should_PreserveSourceResponseNameMapping_When_PlanIsRoundTripped()
+    {
+        // arrange
+        var compositeSchema = CreateCompositeSchema();
+        var originalPlan = PlanOperation(
+            compositeSchema,
+            """
+            {
+                productBySlug(slug: "1") {
+                    clientName: name
+                }
+            }
+            """);
+        var formatter = new JsonOperationPlanFormatter(
+            new JsonWriterOptions
+            {
+                Indented = true,
+                Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+            });
+        var json = JsonNode.Parse(formatter.Format(originalPlan))!;
+        var operationNode = json["nodes"]!
+            .AsArray()
+            .Select(t => t!.AsObject())
+            .First(t => t["type"]?.GetValue<string>() is "Operation"
+                && t["resultSelectionSet"]?.GetValue<string>()
+                    .Contains("productBySlug", StringComparison.Ordinal) == true);
+        var operationNodeId = operationNode["id"]!.GetValue<int>();
+        const string resultSelectionSet =
+            "{ productBySlug { fusion__field_1: name "
+            + "@fusion__responseName(name: \"clientName\") } }";
+        operationNode["resultSelectionSet"] = resultSelectionSet;
+        var planSource = Encoding.UTF8.GetBytes(
+            json.ToJsonString(new JsonSerializerOptions { WriteIndented = true }));
+        var compiler = new OperationCompiler(
+            compositeSchema,
+            new DefaultObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>>(
+                new DefaultPooledObjectPolicy<OrderedDictionary<string, List<FieldSelectionNode>>>()));
+        var parser = new JsonOperationPlanParser(compiler);
+
+        // act
+        var parsedPlan = parser.Parse(planSource);
+
+        // assert
+        var parsedOperationNode = parsedPlan.AllNodes
+            .OfType<OperationExecutionNode>()
+            .Single(t => t.Id == operationNodeId);
+        Assert.Equal(
+            resultSelectionSet,
+            parsedOperationNode.ResultSelectionSet.ToString(indented: false));
     }
 
     [Fact]

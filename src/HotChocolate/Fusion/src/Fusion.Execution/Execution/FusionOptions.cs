@@ -80,21 +80,6 @@ public sealed class FusionOptions : IFusionSchemaOptions, ICloneable
     } = 256;
 
     /// <summary>
-    /// Gets or sets how the gateway resolves the <c>Query.node</c> field.
-    /// <see cref="NodeResolution.Gateway"/> by default.
-    /// </summary>
-    public NodeResolution NodeResolution
-    {
-        get;
-        set
-        {
-            ExpectMutableOptions();
-
-            field = value;
-        }
-    } = NodeResolution.Gateway;
-
-    /// <summary>
     /// Gets or sets the initial capacity of the local path segment pool used during result composition.
     /// <c>64</c> by default. <c>1</c> is the minimum.
     /// </summary>
@@ -228,7 +213,6 @@ public sealed class FusionOptions : IFusionSchemaOptions, ICloneable
             OperationExecutionPlanCacheSize = OperationExecutionPlanCacheSize,
             OperationExecutionPlanCacheDiagnostics = OperationExecutionPlanCacheDiagnostics,
             OperationDocumentCacheSize = OperationDocumentCacheSize,
-            NodeResolution = NodeResolution,
             PathSegmentLocalPoolCapacity = PathSegmentLocalPoolCapacity,
             LazyInitialization = LazyInitialization,
             NodeIdSerializerFormat = NodeIdSerializerFormat,
