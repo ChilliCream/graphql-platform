@@ -1175,6 +1175,171 @@ public sealed class FetchResultStoreTests : FusionTestBase
     }
 
     [Fact]
+    public void CreateVariableValueSets_Should_ResolveInvariantNames_When_SelectionSetOrdinalsDiffer()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: test
+            type Query {
+              nodes: [Node]
+            }
+
+            interface Node {
+              target: Target
+            }
+
+            type A implements Node {
+              a: String
+              target: Target
+            }
+
+            type B implements Node {
+              target: Target
+              b: String
+            }
+
+            type Target {
+              pad: String
+              common: String
+              aliasSource: String
+            }
+            """);
+
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+        using var store = CreateLiveStore(
+            schema,
+            """
+            {
+              nodes {
+                __typename
+                ... on A {
+                  a
+                  target {
+                    pad
+                    common
+                    __fusion_internal_alias: aliasSource
+                  }
+                }
+                ... on B {
+                  target {
+                    __fusion_internal_alias: aliasSource
+                    pad
+                    common
+                  }
+                  b
+                }
+              }
+            }
+            """,
+            """
+            {"data":{"nodes":[
+              {"__typename":"A","a":"a-0","target":{"pad":"pad-a-0","common":"common-a-0","__fusion_internal_alias":"alias-a-0"}},
+              {"__typename":"A","a":"a-1","target":{"pad":"pad-a-1","common":"common-a-1","__fusion_internal_alias":"alias-a-1"}},
+              {"__typename":"B","target":{"__fusion_internal_alias":"alias-b-2","pad":"pad-b-2","common":"common-b-2"},"b":"b-2"}
+            ]}}
+            """,
+            resultArena,
+            sourceArena);
+
+        var aliasRequirement = new OperationRequirement(
+            "__fusion_2_alias",
+            new NamedTypeNode("String"),
+            SelectionPath.Root,
+            new FieldSelectionMapParser("aliasSource").Parse(),
+            "__fusion_internal_alias");
+
+        // act
+        var result = store.CreateVariableValueSets(
+            SelectionPath.Root.AppendField("nodes").AppendField("target"),
+            [],
+            [
+                Requirement(schema, "__fusion_1_common", "common", new NamedTypeNode("String")),
+                aliasRequirement
+            ]);
+
+        // assert
+        RenderVariableValueSets(store, result).MatchInlineSnapshot(
+            """
+            Path: nodes[0].target
+            Additional paths: []
+            Variables: {"__fusion_1_common":"common-a-0","__fusion_2_alias":"alias-a-0"}
+            Path: nodes[1].target
+            Additional paths: []
+            Variables: {"__fusion_1_common":"common-a-1","__fusion_2_alias":"alias-a-1"}
+            Path: nodes[2].target
+            Additional paths: []
+            Variables: {"__fusion_1_common":"common-b-2","__fusion_2_alias":"alias-b-2"}
+            """);
+    }
+
+    [Fact]
+    public void CreateVariableValueSets_Should_ResolveHit_When_PreviousSelectionSetMemoizedMiss()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: test
+            type Query {
+              nodes: [Node]
+            }
+
+            interface Node {
+              common: String
+            }
+
+            type A implements Node {
+              common: String
+            }
+
+            type B implements Node {
+              common: String
+              onlyB: String
+            }
+            """);
+
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+        using var store = CreateLiveStore(
+            schema,
+            """
+            {
+              nodes {
+                __typename
+                common
+                ... on B {
+                  onlyB
+                }
+              }
+            }
+            """,
+            """
+            {"data":{"nodes":[
+              {"__typename":"A","common":"a-0"},
+              {"__typename":"A","common":"a-1"},
+              {"__typename":"B","common":"b-2","onlyB":"hit"}
+            ]}}
+            """,
+            resultArena,
+            sourceArena);
+
+        // act
+        var result = store.CreateVariableValueSets(
+            SelectionPath.Root.AppendField("nodes"),
+            [],
+            [Requirement(schema, "__fusion_1_only_b", "onlyB", new NamedTypeNode("String"))]);
+
+        // assert
+        RenderVariableValueSets(store, result).MatchInlineSnapshot(
+            """
+            Path: nodes[2]
+            Additional paths: []
+            Variables: {"__fusion_1_only_b":"hit"}
+            """);
+    }
+
+    [Fact]
     public void CreateVariableValueSets_Should_ReadInternalAlias_When_RequirementHasInternalAlias()
     {
         // arrange
@@ -1745,6 +1910,38 @@ public sealed class FetchResultStoreTests : FusionTestBase
         }
 
         throw new InvalidOperationException("Could not find enough colliding variable values.");
+    }
+
+    private static string RenderVariableValueSets(
+        FetchResultStore store,
+        IEnumerable<VariableValues> entries)
+    {
+        var operation = store.Result.Data.Operation;
+        var output = new StringBuilder();
+
+        foreach (var entry in entries)
+        {
+            output.Append("Path: ");
+            output.AppendLine(entry.Path.ToPath(operation).Print());
+            output.Append("Additional paths: [");
+
+            var additionalPaths = entry.AdditionalPaths.AsSpan();
+            for (var i = 0; i < additionalPaths.Length; i++)
+            {
+                if (i > 0)
+                {
+                    output.Append(", ");
+                }
+
+                output.Append(additionalPaths[i].ToPath(operation).Print());
+            }
+
+            output.AppendLine("]");
+            output.Append("Variables: ");
+            output.AppendLine(Normalize(entry.Values));
+        }
+
+        return output.ToString().TrimEnd();
     }
 
     private static string RenderData(FetchResultStore store)
