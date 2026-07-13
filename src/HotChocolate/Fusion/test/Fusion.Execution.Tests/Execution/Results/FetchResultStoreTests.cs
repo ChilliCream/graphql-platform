@@ -979,7 +979,7 @@ public sealed class FetchResultStoreTests : FusionTestBase
     }
 
     [Fact]
-    public void CreateVariableValueSetsFromSnapshot_Should_ClearTrackedEntries_When_Reused()
+    public void CreateVariableValueSetsFromSnapshot_Should_ReinitializeDeduplicationTable_When_Reused()
     {
         // arrange
         using var source = new FetchResultStore();
@@ -1033,13 +1033,66 @@ public sealed class FetchResultStoreTests : FusionTestBase
     }
 
     [Fact]
-    public void CreateVariableValueSetsFromSnapshot_Should_RebuildTrackedSlots_When_GrowthIsFollowedByReuse()
+    public void CreateVariableValueSetsFromSnapshot_Should_ReinitializeDeduplicationTable_When_SparseTrackingOverflows()
+    {
+        // arrange
+        const int entryCount = 17;
+        using var source = new FetchResultStore();
+        using var target = new FetchResultStore();
+
+        var entries = new VariableValues[entryCount];
+
+        for (var i = 0; i < entries.Length; i++)
+        {
+            entries[i] = CreateVariableValues(
+                source,
+                Path(i + 1),
+                Field("__fusion_1_id", new StringValueNode($"value-{i}")));
+        }
+
+        var reusedEntry = CreateVariableValues(
+            source,
+            Path(101),
+            Field("__fusion_1_id", new StringValueNode("value-16")));
+
+        // act
+        var overflowed = target.CreateVariableValueSetsFromSnapshot(
+            [.. entries],
+            ImportedKeys("__fusion_1_id"),
+            [],
+            [Requirement("__fusion_1_id")]);
+        var reused = target.CreateVariableValueSetsFromSnapshot(
+            [reusedEntry],
+            ImportedKeys("__fusion_1_id"),
+            [],
+            [Requirement("__fusion_1_id")]);
+
+        // assert
+        var expected = Enumerable
+            .Range(0, entryCount)
+            .Select(static i =>
+                $"path=[{i + 1}]; additional=[]; values={{\"__fusion_1_id\":\"value-{i}\"}}")
+            .Append(
+                "path=[101]; additional=[]; values={\"__fusion_1_id\":\"value-16\"}")
+            .ToArray();
+        var actual = overflowed
+            .Concat(reused)
+            .Select(Describe)
+            .ToArray();
+
+        Assert.Equal(expected, actual);
+    }
+
+    [Fact]
+    public void CreateVariableValueSetsFromSnapshot_Should_ReinitializeDeduplicationTable_When_GrowthIsFollowedByReuse()
     {
         // arrange
         using var source = new FetchResultStore();
         using var target = new FetchResultStore();
 
-        var values = FindCollidingStringValues("__fusion_1_id", count: 5);
+        // The serialized values have distinct full hashes whose low eight bits are all E3.
+        // This fills one four-entry bucket and forces growth before the hashes redistribute.
+        string[] values = ["value-1", "value-43", "value-100", "value-188", "value-221"];
         var entries = new VariableValues[values.Length];
         var reusedEntries = new VariableValues[values.Length];
 
@@ -1081,7 +1134,7 @@ public sealed class FetchResultStoreTests : FusionTestBase
     }
 
     [Fact]
-    public void CreateVariableValueSetsFromSnapshot_Should_HealTrackedEntries_When_PreviousCallThrows()
+    public void CreateVariableValueSetsFromSnapshot_Should_ReinitializeDeduplicationTable_When_PreviousCallThrows()
     {
         // arrange
         using var source = new FetchResultStore();
@@ -1881,35 +1934,6 @@ public sealed class FetchResultStoreTests : FusionTestBase
                 .Select(static path => string.Join(",", path.Segments.ToArray())));
 
         return $"path=[{path}]; additional=[{additionalPaths}]; values={Normalize(entry.Values)}";
-    }
-
-    private static string[] FindCollidingStringValues(string key, int count)
-    {
-        const int bucketCount = 16;
-        var valuesByBucket = new List<string>?[bucketCount];
-
-        for (var i = 0; i < 10_000; i++)
-        {
-            var value = $"value-{i}";
-            var bytes = Encoding.UTF8.GetBytes($"{{\"{key}\":\"{value}\"}}");
-            var hash = 0u;
-
-            foreach (var b in bytes)
-            {
-                hash = unchecked(hash * 31 + b);
-            }
-
-            var bucket = (int)(hash & (bucketCount - 1));
-            var values = valuesByBucket[bucket] ??= [];
-            values.Add(value);
-
-            if (values.Count == count)
-            {
-                return [.. values];
-            }
-        }
-
-        throw new InvalidOperationException("Could not find enough colliding variable values.");
     }
 
     private static string RenderVariableValueSets(
