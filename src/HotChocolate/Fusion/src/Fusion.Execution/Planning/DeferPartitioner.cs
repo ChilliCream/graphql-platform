@@ -7,9 +7,9 @@ using HotChocolate.Types;
 namespace HotChocolate.Fusion.Planning;
 
 /// <summary>
-/// Walks an operation AST once and produces the <see cref="DeferUsage"/> tree
+/// Walks an operation AST once and produces the <see cref="DeliveryGroup"/> tree
 /// for all <c>@defer</c> occurrences. The resulting mapping from
-/// <see cref="InlineFragmentNode"/> instance to <see cref="DeferUsage"/> is the
+/// <see cref="InlineFragmentNode"/> instance to <see cref="DeliveryGroup"/> is the
 /// single source of truth for defer topology, consumed by the planner pipeline
 /// stages (rewriter, compiler) so they do not perform parallel AST walks with
 /// divergent state.
@@ -18,7 +18,7 @@ internal static class DeferPartitioner
 {
     /// <summary>
     /// Walks <paramref name="operation"/> and produces the complete
-    /// <see cref="DeferUsage"/> tree for every <c>... @defer</c> inline
+    /// <see cref="DeliveryGroup"/> tree for every <c>... @defer</c> inline
     /// fragment encountered. Defer conditions are registered into
     /// <paramref name="deferConditions"/> (passed in rather than owned so the
     /// caller can share one collection with the operation being compiled).
@@ -30,8 +30,8 @@ internal static class DeferPartitioner
         ArgumentNullException.ThrowIfNull(operation);
         ArgumentNullException.ThrowIfNull(deferConditions);
 
-        var byFragment = new Dictionary<InlineFragmentNode, DeferUsage>(ReferenceEqualityComparer.Instance);
-        var ordered = new List<DeferUsage>();
+        var byFragment = new Dictionary<InlineFragmentNode, DeliveryGroup>(ReferenceEqualityComparer.Instance);
+        var ordered = new List<DeliveryGroup>();
 
         Walk(
             operation.SelectionSet.Selections,
@@ -41,10 +41,8 @@ internal static class DeferPartitioner
             byFragment,
             ordered);
 
-        // Assign plan-stable Ids in declaration order. Re-create the records
-        // via `with { Id = i }` so downstream stages can key off Id for
-        // serialization and sorted DeferUsageSet emission. The re-creation
-        // also updates parent references to point to the Id-assigned parents.
+        // Assign plan-stable Ids in declaration order and update parent
+        // references to point to the Id-assigned records.
         var reassigned = AssignIds(ordered, byFragment);
 
         return new DeferPartitioningResult(reassigned, byFragment);
@@ -52,11 +50,11 @@ internal static class DeferPartitioner
 
     private static void Walk(
         IReadOnlyList<ISelectionNode> selections,
-        DeferUsage? parent,
+        DeliveryGroup? parent,
         SelectionPath currentPath,
         DeferConditionCollection deferConditions,
-        Dictionary<InlineFragmentNode, DeferUsage> byFragment,
-        List<DeferUsage> ordered)
+        Dictionary<InlineFragmentNode, DeliveryGroup> byFragment,
+        List<DeliveryGroup> ordered)
     {
         for (var i = 0; i < selections.Count; i++)
         {
@@ -85,7 +83,7 @@ internal static class DeferPartitioner
                     var label = GetDeferLabel(inline);
                     var ifVariable = GetDeferIfVariable(inline);
 
-                    var usage = new DeferUsage(label, parent, (byte)deferIndex)
+                    var usage = new DeliveryGroup(label, parent, (byte)deferIndex)
                     {
                         Path = currentPath,
                         IfVariable = ifVariable
@@ -105,22 +103,22 @@ internal static class DeferPartitioner
     }
 
     /// <summary>
-    /// Assigns plan-stable Ids to every <see cref="DeferUsage"/> in declaration
+    /// Assigns plan-stable Ids to every <see cref="DeliveryGroup"/> in declaration
     /// order and rebuilds parent references against the Id-assigned instances.
     /// The <paramref name="byFragment"/> map is updated in place so callers see
     /// the canonical records.
     /// </summary>
-    private static ImmutableArray<DeferUsage> AssignIds(
-        List<DeferUsage> ordered,
-        Dictionary<InlineFragmentNode, DeferUsage> byFragment)
+    private static ImmutableArray<DeliveryGroup> AssignIds(
+        List<DeliveryGroup> ordered,
+        Dictionary<InlineFragmentNode, DeliveryGroup> byFragment)
     {
         if (ordered.Count == 0)
         {
             return [];
         }
 
-        var remap = new Dictionary<DeferUsage, DeferUsage>(ordered.Count, ReferenceEqualityComparer.Instance);
-        var builder = ImmutableArray.CreateBuilder<DeferUsage>(ordered.Count);
+        var remap = new Dictionary<DeliveryGroup, DeliveryGroup>(ordered.Count, ReferenceEqualityComparer.Instance);
+        var builder = ImmutableArray.CreateBuilder<DeliveryGroup>(ordered.Count);
 
         for (var i = 0; i < ordered.Count; i++)
         {

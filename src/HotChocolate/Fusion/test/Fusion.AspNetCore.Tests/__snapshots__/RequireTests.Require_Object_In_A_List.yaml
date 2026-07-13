@@ -56,7 +56,7 @@ sourceSchemas:
         id: Int!
       }
 
-      type Book {
+      type Book @key(fields: "id") {
         id: Int!
         title: String!
         author: Author!
@@ -137,7 +137,7 @@ sourceSchemas:
         book(id: Int!): Book @lookup @shareable
       }
 
-      type Book {
+      type Book @key(fields: "id") {
         id: Int!
         dimension: BookDimension!
       }
@@ -216,7 +216,7 @@ sourceSchemas:
         book(id: Int!): Book @lookup @shareable
       }
 
-      type Book {
+      type Book @key(fields: "id") {
         estimatedDelivery(
           dimension: BookDimensionInput! @require(field: "{\n  title\n  width: dimension.width\n  height: dimension.height\n}")
         ): Int!
@@ -234,7 +234,7 @@ sourceSchemas:
           document: |
             query Op_1f7d6449_3(
               $__fusion_2_dimension: BookDimensionInput!
-              $__fusion_3_id: Int!
+                $__fusion_3_id: Int!
             ) {
               book(id: $__fusion_3_id) {
                 estimatedDelivery(dimension: $__fusion_2_dimension)
@@ -304,7 +304,7 @@ sourceSchemas:
         book(id: Int!): Book @lookup @shareable
       }
 
-      type Book {
+      type Book @key(fields: "id") {
         genres(genreIds: [Int!]! @require(field: "genreIds")): [Genre!]!
         id: Int!
       }
@@ -324,8 +324,8 @@ operationPlan:
               estimatedDelivery
               id @fusion__requirement
               dimension @fusion__requirement {
-                width
-                height
+                width @fusion__requirement
+                height @fusion__requirement
               }
             }
           }
@@ -352,7 +352,7 @@ operationPlan:
       operation: |
         query Op_1f7d6449_3(
           $__fusion_2_dimension: BookDimensionInput!
-          $__fusion_3_id: Int!
+            $__fusion_3_id: Int!
         ) {
           book(id: $__fusion_3_id) {
             estimatedDelivery(dimension: $__fusion_2_dimension)

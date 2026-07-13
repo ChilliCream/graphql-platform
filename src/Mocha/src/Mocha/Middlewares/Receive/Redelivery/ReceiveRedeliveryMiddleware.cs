@@ -2,6 +2,7 @@ using System.Collections.Immutable;
 using Microsoft.Extensions.DependencyInjection;
 using Mocha.Features;
 using Mocha.Middlewares;
+using Mocha.Scheduling;
 
 namespace Mocha;
 
@@ -95,7 +96,18 @@ internal sealed class ReceiveRedeliveryMiddleware(
                 context.CancellationToken);
 
             dispatchContext.Envelope = envelope;
-            dispatchContext.ScheduledTime = scheduledTime;
+
+            var resolver = context.Services.GetRequiredService<ScheduledMessageStoreResolver>();
+
+            if (resolver.CanSchedule(dispatchContext))
+            {
+                dispatchContext.ScheduledTime = scheduledTime;
+            }
+            else
+            {
+                // No scheduling store available for this transport, fall back to immediate redelivery.
+                dispatchContext.Features.Configure<SchedulingMiddlewareFeature>(f => f.SkipScheduler = true);
+            }
 
             await dispatchEndpoint.ExecuteAsync(dispatchContext);
         }
@@ -130,6 +142,12 @@ internal sealed class ReceiveRedeliveryMiddleware(
 
 file static class Extensions
 {
+    /// <summary>
+    /// Determines whether a scheduled message store is available for the dispatch context's transport.
+    /// </summary>
+    public static bool CanSchedule(this ScheduledMessageStoreResolver resolver, IDispatchContext context)
+        => resolver.TryResolve(context, out _);
+
     /// <summary>
     /// Resolves exception policy feature with the most specific scope taking precedence.
     /// Endpoint -> Transport -> Bus.

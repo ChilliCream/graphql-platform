@@ -51,7 +51,7 @@ internal sealed class OperationExecutionMiddleware
             {
                 if (context.VariableValues.Length > 1)
                 {
-                    if (!operationPlan.DeferredSubPlans.IsEmpty)
+                    if (!operationPlan.IncrementalPlans.IsEmpty)
                     {
                         var error = ErrorBuilder.New()
                             .SetMessage("Variable batching is not supported with @defer.")
@@ -78,7 +78,7 @@ internal sealed class OperationExecutionMiddleware
                     var results = ImmutableList.CreateRange(await Task.WhenAll(tasks));
                     context.Result = new OperationResultBatch(results);
                 }
-                else if (!operationPlan.DeferredSubPlans.IsEmpty)
+                else if (!operationPlan.IncrementalPlans.IsEmpty)
                 {
                     context.Result = await OperationPlanExecutor.ExecuteWithDeferAsync(
                         context,

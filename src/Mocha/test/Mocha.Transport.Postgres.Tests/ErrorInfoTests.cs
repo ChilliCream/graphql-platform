@@ -91,7 +91,7 @@ public class ErrorInfoTests
 
         // assert
         Assert.NotNull(errorInfo);
-        Assert.Equal("ArgumentException", errorInfo!.ExceptionType);
+        Assert.Equal("ArgumentException", errorInfo.ExceptionType);
         Assert.Equal("Bad arg", errorInfo.Message);
         Assert.Null(errorInfo.StackTrace);
     }

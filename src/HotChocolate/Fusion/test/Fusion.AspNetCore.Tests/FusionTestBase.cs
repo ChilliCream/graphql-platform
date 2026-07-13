@@ -1,6 +1,7 @@
 using System.Buffers;
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using System.Net.Http.Headers;
@@ -38,11 +39,13 @@ public abstract partial class FusionTestBase : IDisposable
         Action<IApplicationBuilder>? configureApplication = null,
         Action<IFusionGatewayBuilder>? configureGatewayBuilder = null,
         [StringSyntax("json")] string? gatewaySettings = null,
-        string? environmentName = "Development")
+        string? environmentName = "Development",
+        bool disableDefaultSecurity = false)
     {
         var sourceSchemas = new List<SourceSchemaText>();
         var gatewayServices = new ServiceCollection();
-        var gatewayBuilder = gatewayServices.AddGraphQLGatewayServer();
+        var gatewayBuilder = gatewayServices.AddGraphQLGatewayServer(
+            disableDefaultSecurity: disableDefaultSecurity);
         var interactions = new ConcurrentDictionary<string, ConcurrentDictionary<int, SourceSchemaInteraction>>();
         // Interactions are keyed by an atomically-incremented int, but looked up
         // by (OperationPlanId, NodeId) so that parallel mini-plans (e.g. deferred
@@ -167,6 +170,7 @@ public abstract partial class FusionTestBase : IDisposable
         {
             o.CollectOperationPlanTelemetry = false;
             o.AllowErrorHandlingModeOverride = true;
+            o.AllowOperationPlanRequests = true;
         });
         configureGatewayBuilder?.Invoke(gatewayBuilder);
 
@@ -267,23 +271,33 @@ public abstract partial class FusionTestBase : IDisposable
         }
     }
 
-    protected class Gateway(
-        TestServer testServer,
-        List<SourceSchemaText> sourceSchemas,
-        ConcurrentDictionary<string, ConcurrentDictionary<int, SourceSchemaInteraction>> interactions) : IDisposable
+    protected class Gateway : IDisposable
     {
-        public HttpClient CreateClient() => testServer.CreateClient();
+        internal Gateway(
+            TestServer testServer,
+            List<SourceSchemaText> sourceSchemas,
+            ConcurrentDictionary<string, ConcurrentDictionary<int, SourceSchemaInteraction>> interactions)
+        {
+            _testServer = testServer;
+            SourceSchemas = sourceSchemas;
+            Interactions = interactions;
+        }
 
-        public IServiceProvider Services => testServer.Services;
+        private readonly TestServer _testServer;
 
-        public List<SourceSchemaText> SourceSchemas => sourceSchemas;
+        public HttpClient CreateClient() => _testServer.CreateClient();
 
-        public ConcurrentDictionary<string, ConcurrentDictionary<int, SourceSchemaInteraction>> Interactions =>
-            interactions;
+        public WebSocketClient CreateWebSocketClient() => _testServer.CreateWebSocketClient();
+
+        public IServiceProvider Services => _testServer.Services;
+
+        internal List<SourceSchemaText> SourceSchemas { get; }
+
+        public ConcurrentDictionary<string, ConcurrentDictionary<int, SourceSchemaInteraction>> Interactions { get; }
 
         public void Dispose()
         {
-            testServer.Dispose();
+            _testServer.Dispose();
         }
     }
 
@@ -388,7 +402,14 @@ public abstract partial class FusionTestBase : IDisposable
                 }
                 else
                 {
-                    client = registration.Server.CreateClient();
+                    client = new HttpClient(
+                        new TraceContextPropagationHandler
+                        {
+                            InnerHandler = registration.Server.CreateHandler()
+                        })
+                    {
+                        BaseAddress = registration.Server.BaseAddress
+                    };
                 }
 
                 registration.Options.ConfigureHttpClient?.Invoke(client);
@@ -429,6 +450,58 @@ public abstract partial class FusionTestBase : IDisposable
                 HttpRequestMessage request,
                 CancellationToken cancellationToken)
                 => handler(request);
+        }
+
+        // The Fusion test harness routes gateway -> subgraph calls through the in-memory
+        // TestServer handler, which bypasses .NET's HttpClient diagnostics. This handler
+        // emits a client-kind HTTP span and forwards the W3C trace context to the subgraph
+        // host so the subgraph request continues the trace.
+        private sealed class TraceContextPropagationHandler : DelegatingHandler
+        {
+            private static readonly ActivitySource s_httpClientActivitySource = new("System.Net.Http");
+
+            protected override async Task<HttpResponseMessage> SendAsync(
+                HttpRequestMessage request,
+                CancellationToken cancellationToken)
+            {
+                var activity = s_httpClientActivitySource.StartActivity(
+                    "System.Net.Http.HttpRequestOut",
+                    ActivityKind.Client);
+
+                activity?.SetTag("http.request.method", request.Method.Method);
+                activity?.SetTag("server.address", request.RequestUri?.Host);
+                activity?.SetTag("server.port", request.RequestUri?.Port);
+                activity?.SetTag("url.full", request.RequestUri?.ToString());
+
+                DistributedContextPropagator.Current.Inject(
+                    activity,
+                    request,
+                    static (carrier, key, value) =>
+                        ((HttpRequestMessage)carrier!).Headers.TryAddWithoutValidation(key, value));
+
+                try
+                {
+                    var response = await base.SendAsync(request, cancellationToken);
+
+                    activity?.SetTag("http.response.status_code", (int)response.StatusCode);
+
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        activity?.SetStatus(ActivityStatusCode.Error);
+                    }
+
+                    return response;
+                }
+                catch
+                {
+                    activity?.SetStatus(ActivityStatusCode.Error);
+                    throw;
+                }
+                finally
+                {
+                    activity?.Dispose();
+                }
+            }
         }
     }
 

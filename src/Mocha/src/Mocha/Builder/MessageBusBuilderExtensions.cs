@@ -46,18 +46,21 @@ public static class MessageBusBuilderExtensions
 
         builder.UseDispatch(DispatchMiddlewares.Instrumentation);
         builder.UseDispatch(DispatchMiddlewares.Serialization);
+        builder.UseDispatch(DispatchMiddlewares.Scheduling, after: "Serialization");
 
         builder.AddConcurrencyLimiter(o => o.MaxConcurrency = Environment.ProcessorCount * 2);
 
         builder.AddMessage<NotAcknowledgedEvent>(x =>
         {
             x.AddSerializer(new JsonMessageSerializer(AcknowledgementJsonContext.Default.NotAcknowledgedEvent));
+            x.Extend().Configuration.EnclosedTypes = [typeof(NotAcknowledgedEvent)];
             x.Extend().Configuration.IsInternal = true;
         });
 
         builder.AddMessage<AcknowledgedEvent>(x =>
         {
             x.AddSerializer(new JsonMessageSerializer(AcknowledgementJsonContext.Default.AcknowledgedEvent));
+            x.Extend().Configuration.EnclosedTypes = [typeof(AcknowledgedEvent)];
             x.Extend().Configuration.IsInternal = true;
         });
     }

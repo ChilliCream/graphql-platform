@@ -106,23 +106,6 @@ sourceSchemas:
             query GetUser_9d7b4d57_1 {
               user(id: "1") {
                 name
-              }
-            }
-        response:
-          results:
-            - |
-              {
-                "data": {
-                  "user": {
-                    "name": "User: VXNlcjox"
-                  }
-                }
-              }
-      - request:
-          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
-          document: |
-            query GetUser_defer_1 {
-              user(id: "1") {
                 id
               }
             }
@@ -132,6 +115,7 @@ sourceSchemas:
               {
                 "data": {
                   "user": {
+                    "name": "User: VXNlcjox",
                     "id": "VXNlcjox"
                   }
                 }
@@ -200,6 +184,7 @@ operationPlan:
         query GetUser {
           user(id: "1") {
             name
+            id @fusion__requirement
           }
         }
       name: GetUser
@@ -214,27 +199,23 @@ operationPlan:
         query GetUser_9d7b4d57_1 {
           user(id: "1") {
             name
+            id
           }
         }
   deliveryGroups:
     - id: 0
       path: $.user
       label: reviews
-  deferredSubPlans:
+  incrementalPlans:
     - deliveryGroupIds:
         - 0
       parentNodeId: 1
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
       nodes:
         - id: 1
-          type: Operation
-          schema: A
-          operation: |
-            query GetUser_defer_1 {
-              user(id: "1") {
-                id
-              }
-            }
-        - id: 2
           type: Operation
           schema: B
           operation: |
@@ -253,4 +234,4 @@ operationPlan:
               selectionMap: >-
                 id
           dependencies:
-            - id: 1
+            - parentNodeId: 1

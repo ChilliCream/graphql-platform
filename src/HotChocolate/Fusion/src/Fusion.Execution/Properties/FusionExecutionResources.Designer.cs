@@ -105,6 +105,18 @@ namespace HotChocolate.Fusion.Properties {
             }
         }
 
+        internal static string SourceSchemaClient_SubscriptionsNotSupportedByExecute {
+            get {
+                return ResourceManager.GetString("SourceSchemaClient_SubscriptionsNotSupportedByExecute", resourceCulture);
+            }
+        }
+
+        internal static string SourceSchemaClient_SubscriptionsNotSupported {
+            get {
+                return ResourceManager.GetString("SourceSchemaClient_SubscriptionsNotSupported", resourceCulture);
+            }
+        }
+
         internal static string HttpSourceSchemaClient_InvalidRequestIndex {
             get {
                 return ResourceManager.GetString("HttpSourceSchemaClient_InvalidRequestIndex", resourceCulture);
@@ -135,6 +147,18 @@ namespace HotChocolate.Fusion.Properties {
             }
         }
 
+        internal static string FetchResultStore_InvalidRepresentationResultKind {
+            get {
+                return ResourceManager.GetString("FetchResultStore_InvalidRepresentationResultKind", resourceCulture);
+            }
+        }
+
+        internal static string FetchResultStore_RepresentationResultCountMismatch {
+            get {
+                return ResourceManager.GetString("FetchResultStore_RepresentationResultCountMismatch", resourceCulture);
+            }
+        }
+
         internal static string SourceSchemaRequestDispatcher_DuplicateNodeSubmission {
             get {
                 return ResourceManager.GetString("SourceSchemaRequestDispatcher_DuplicateNodeSubmission", resourceCulture);
@@ -159,9 +183,9 @@ namespace HotChocolate.Fusion.Properties {
             }
         }
 
-        internal static string OperationPlan_DeferredSubPlanParentNotFound {
+        internal static string OperationPlan_IncrementalPlanParentNotFound {
             get {
-                return ResourceManager.GetString("OperationPlan_DeferredSubPlanParentNotFound", resourceCulture);
+                return ResourceManager.GetString("OperationPlan_IncrementalPlanParentNotFound", resourceCulture);
             }
         }
 
@@ -177,9 +201,27 @@ namespace HotChocolate.Fusion.Properties {
             }
         }
 
+        internal static string PlanQueue_NodeLookupNotFound {
+            get {
+                return ResourceManager.GetString("PlanQueue_NodeLookupNotFound", resourceCulture);
+            }
+        }
+
         internal static string JsonOperationPlanParser_SingleOperationRequired {
             get {
                 return ResourceManager.GetString("JsonOperationPlanParser_SingleOperationRequired", resourceCulture);
+            }
+        }
+
+        internal static string NodeFieldExecutionNode_InvalidNodeIdFormat {
+            get {
+                return ResourceManager.GetString("NodeFieldExecutionNode_InvalidNodeIdFormat", resourceCulture);
+            }
+        }
+
+        internal static string FetchResultStore_InvalidTargetValueKind {
+            get {
+                return ResourceManager.GetString("FetchResultStore_InvalidTargetValueKind", resourceCulture);
             }
         }
     }

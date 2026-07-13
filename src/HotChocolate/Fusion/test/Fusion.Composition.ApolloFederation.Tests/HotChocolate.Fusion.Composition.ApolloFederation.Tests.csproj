@@ -1,5 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
-  <Import Project="$([MSBuild]::GetPathOfFileAbove('Xunit2.Directory.Build.props', '$(MSBuildThisFileDirectory)..\'))" />
+
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Test.props', '$(MSBuildThisFileDirectory)'))" />
 
   <PropertyGroup>
     <AssemblyName>HotChocolate.Fusion.Composition.ApolloFederation.Tests</AssemblyName>
@@ -7,7 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Fusion.Composition.ApolloFederation\HotChocolate.Fusion.Composition.ApolloFederation.csproj" />
+    <ProjectReference Include="..\..\src\Fusion.Composition\HotChocolate.Fusion.Composition.csproj" />
   </ItemGroup>
 
 </Project>

@@ -446,6 +446,9 @@ public sealed class FusionArchive : IDisposable
     /// <param name="schemaName">The name of the source schema.</param>
     /// <param name="schema">The source schema as UTF-8 encoded bytes.</param>
     /// <param name="settings">The source schema configuration.</param>
+    /// <param name="schemaExtensions">
+    /// The source schema extensions as UTF-8 encoded bytes. If empty, no extensions file is written.
+    /// </param>
     /// <param name="cancellationToken">Token to cancel the operation.</param>
     /// <exception cref="ArgumentException">Thrown when schemaName is null, empty, or invalid.</exception>
     /// <exception cref="ArgumentOutOfRangeException">Thrown when schema is empty.</exception>
@@ -455,6 +458,7 @@ public sealed class FusionArchive : IDisposable
         string schemaName,
         ReadOnlyMemory<byte> schema,
         JsonDocument settings,
+        ReadOnlyMemory<byte> schemaExtensions = default,
         CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrEmpty(schemaName);
@@ -486,6 +490,17 @@ public sealed class FusionArchive : IDisposable
         await using (var stream = _session.OpenWrite(FileNames.GetSourceSchemaPath(schemaName)))
         {
             await stream.WriteAsync(schema, cancellationToken);
+        }
+
+        if (schemaExtensions.Length > 0)
+        {
+            await using var stream = _session.OpenWrite(FileNames.GetSourceSchemaExtensionsPath(schemaName));
+            await stream.WriteAsync(schemaExtensions, cancellationToken);
+        }
+        else
+        {
+            // Ensure no stale extensions linger from a previous composition.
+            _session.Delete(FileNames.GetSourceSchemaExtensionsPath(schemaName));
         }
 
         await using (var stream = _session.OpenWrite(FileNames.GetSourceSchemaSettingsPath(schemaName)))
@@ -528,10 +543,63 @@ public sealed class FusionArchive : IDisposable
             settings = await JsonDocument.ParseAsync(stream, default, cancellationToken);
         }
 
-        return new SourceSchemaConfiguration(OpenReadSchemaAsync, settings);
+        return new SourceSchemaConfiguration(OpenReadSchemaAsync, TryOpenReadSchemaExtensionsAsync, settings);
 
         Task<Stream> OpenReadSchemaAsync(CancellationToken ct)
             => _session.OpenReadAsync(FileNames.GetSourceSchemaPath(schemaName), FileKind.Schema, ct);
+
+        async Task<Stream?> TryOpenReadSchemaExtensionsAsync(CancellationToken ct)
+        {
+            var extensionsPath = FileNames.GetSourceSchemaExtensionsPath(schemaName);
+
+            if (!await _session.ExistsAsync(extensionsPath, FileKind.Schema, ct))
+            {
+                return null;
+            }
+
+            return await _session.OpenReadAsync(extensionsPath, FileKind.Schema, ct);
+        }
+    }
+
+    /// <summary>
+    /// Removes a source schema configuration from the archive, deleting its files and
+    /// removing it from the archive metadata.
+    /// </summary>
+    /// <param name="schemaName">The name of the source schema to remove.</param>
+    /// <param name="cancellationToken">Token to cancel the operation.</param>
+    /// <returns>
+    /// <c>true</c> if the source schema was present and removed; otherwise, <c>false</c>.
+    /// </returns>
+    /// <exception cref="ArgumentException">Thrown when schemaName is null or empty.</exception>
+    /// <exception cref="ObjectDisposedException">Thrown when the archive has been disposed.</exception>
+    /// <exception cref="InvalidOperationException">Thrown when the archive is read-only.</exception>
+    public async Task<bool> RemoveSourceSchemaConfigurationAsync(
+        string schemaName,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrEmpty(schemaName);
+        ObjectDisposedException.ThrowIf(_disposed, this);
+        EnsureMutable();
+
+        var metadata = await GetArchiveMetadataAsync(cancellationToken);
+
+        if (metadata is null || !metadata.SourceSchemas.Contains(schemaName))
+        {
+            return false;
+        }
+
+        _session.Delete(FileNames.GetSourceSchemaPath(schemaName));
+        _session.Delete(FileNames.GetSourceSchemaSettingsPath(schemaName));
+        _session.Delete(FileNames.GetSourceSchemaExtensionsPath(schemaName));
+
+        var updatedMetadata = metadata with
+        {
+            SourceSchemas = metadata.SourceSchemas.Remove(schemaName)
+        };
+
+        await SetArchiveMetadataAsync(updatedMetadata, cancellationToken);
+
+        return true;
     }
 
     /// <summary>

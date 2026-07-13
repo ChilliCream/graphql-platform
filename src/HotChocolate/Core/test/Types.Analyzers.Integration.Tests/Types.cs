@@ -1,0 +1,404 @@
+using System.Reflection;
+using System.Text.Json;
+using GreenDonut.Data;
+using HotChocolate.Features;
+using HotChocolate.Language;
+using HotChocolate.Resolvers;
+using HotChocolate.Text.Json;
+using HotChocolate.Types.Descriptors;
+using HotChocolate.Types.Descriptors.Configurations;
+using HotChocolate.Types.Relay;
+
+namespace HotChocolate.Types;
+
+[InterfaceType]
+public class Product
+{
+    public required string Id { get; set; }
+}
+
+[InterfaceType<Product>]
+public static partial class ProductType
+{
+    public static string Kind() => "Product";
+}
+
+[ObjectType]
+public class Book : Product
+{
+    public required string Title { get; set; }
+}
+
+[ObjectType<Book>]
+public static partial class BookBatchType
+{
+    [BatchResolver]
+    public static List<string> GetBatchGreeting(
+        [Parent] List<Book> books,
+        BatchCurrentUser currentUser)
+    {
+        var result = new List<string>(books.Count);
+
+        foreach (var book in books)
+        {
+            result.Add($"{currentUser.Name}:{book.Title}");
+        }
+
+        return result;
+    }
+}
+
+public sealed record BatchCurrentUser(string Name);
+
+public class Television : Product;
+
+[ObjectType<Television>]
+public static partial class TelevisionType
+{
+    public static string ArgumentWithExplicitType(
+        [GraphQLType<NonNullType<VersionType>>]
+        long arg)
+        => throw new Exception();
+
+    public static string NullableArgumentWithExplicitType(
+        [GraphQLType<VersionType>] long? arg)
+        => throw new Exception();
+}
+
+[QueryType]
+public static partial class Query
+{
+    [GraphQLIgnore]
+    public static PagingArguments PagingArguments { get; private set; }
+
+    public static IsSelectedNode GetIsSelectedTest([IsSelected("name")] bool isSelected)
+    {
+        return new IsSelectedNode { WasNameSelected = isSelected };
+    }
+
+    /// <summary>
+    /// Gets the product.
+    /// </summary>
+    /// <returns>The only product.</returns>
+    public static Product GetProduct()
+        => new Book { Id = "1", Title = "GraphQL in Action" };
+
+    [UsePaging]
+    public static IEnumerable<Book> GetBooks() => [];
+
+    [UsePaging]
+    public static IEnumerable<Book> GetFavoriteBooks() => [];
+
+    [UsePaging]
+    public static IEnumerable<int> GetInts(PagingArguments pagingArguments)
+    {
+        PagingArguments = pagingArguments;
+        return [];
+    }
+
+    [UsePaging]
+    [RewriteAfterToVersion]
+    public static IQueryable<Product> GetProducts([GraphQLType<NonNullType<VersionType>>] long after)
+        => throw new Exception();
+
+    [RewriteArgToVersion]
+    public static string ArgumentWithExplicitType([GraphQLType<NonNullType<VersionType>>] long arg)
+        => throw new Exception();
+
+    [RewriteArgToVersion]
+    public static string NullableArgumentWithExplicitType([GraphQLType<VersionType>] long? arg)
+        => throw new Exception();
+
+    public static string NullableArrayArgumentRef(string[]? items)
+        => throw new Exception();
+
+    public static string ArrayArgumentRef(string[] items)
+        => throw new Exception();
+
+    public static string ArrayNullableElementArgumentRef(string?[] items)
+        => throw new Exception();
+
+    public static string NullableArrayNullableElementArgumentRef(string?[]? items)
+        => throw new Exception();
+
+    public static string NullableListArgumentRef(List<string>? items)
+        => throw new Exception();
+
+    public static string ListArgumentRef(List<string> items)
+        => throw new Exception();
+
+    public static string ListNullableElementArgumentRef(List<string?> items)
+        => throw new Exception();
+
+    public static string NullableListNullableElementArgumentRef(List<string?>? items)
+        => throw new Exception();
+
+    // Covers a regression where the same POCO used in both an output position
+    // (resolver return) and an input position (mutation argument) emitted two
+    // distinct GraphQL types but the FactoryTypeReference cache keyed only on
+    // the syntactic structure, so one position reused the IType of the other.
+    public static IReadOnlyCollection<Shape> GetShapes() => [];
+}
+
+public class Shape
+{
+    public required string Key { get; set; }
+    public required string Name { get; set; }
+}
+
+[MutationType]
+public static partial class Mutation
+{
+    public static bool SaveShapes(IReadOnlyList<Shape> shapes) => true;
+
+    // An Optional<T> parameter is bound through the runtime parameter binding,
+    // which must coerce the inner type and honor whether the argument was provided.
+    public static string SetOptionalValue(Optional<string?> value)
+        => value.HasValue ? value.Value ?? "null" : "unset";
+
+    // When the CurrentUser parameter is supplied through AddParameterExpressionBuilder,
+    // the source-generated binding must resolve it from that custom builder rather than
+    // exposing it as a GraphQL input argument. Without a custom builder registered the
+    // parameter legitimately becomes an implicit argument of type CurrentUserInput.
+    public static string CreateExport(CurrentUser currentUser, string name)
+        => $"{currentUser.Name}:{name}";
+}
+
+public sealed record CurrentUser(string Name);
+
+public class IsSelectedNode
+{
+    public int Id { get; set; }
+
+    public string Name { get; set; } = "test";
+
+    public string Description { get; set; } = "desc";
+
+    public bool WasNameSelected { get; set; }
+}
+
+[ObjectType<IsSelectedNode>]
+public static partial class IsSelectedNodeType
+{
+    [NodeResolver]
+    public static IsSelectedNode? GetIsSelectedNodeById(
+        int id,
+        [IsSelected("name")] bool isSelected)
+        => new() { Id = id, WasNameSelected = isSelected };
+}
+
+public class VersionType : ScalarType<long, StringValueNode>
+{
+    public VersionType() : base("Version", BindingBehavior.Explicit)
+    {
+    }
+
+    protected override long OnCoerceInputLiteral(StringValueNode valueLiteral)
+        => throw new NotImplementedException();
+
+    protected override long OnCoerceInputValue(JsonElement inputValue, IFeatureProvider context)
+        => throw new NotImplementedException();
+
+    protected override void OnCoerceOutputValue(long runtimeValue, ResultElement resultValue)
+        => throw new NotImplementedException();
+
+    protected override StringValueNode OnValueToLiteral(long runtimeValue)
+        => throw new NotImplementedException();
+}
+
+public class Version2Type : ScalarType<long, StringValueNode>
+{
+    public Version2Type() : base("Version2", BindingBehavior.Explicit)
+    {
+    }
+
+    protected override long OnCoerceInputLiteral(StringValueNode valueLiteral)
+        => throw new NotImplementedException();
+
+    protected override long OnCoerceInputValue(JsonElement inputValue, IFeatureProvider context)
+        => throw new NotImplementedException();
+
+    protected override void OnCoerceOutputValue(long runtimeValue, ResultElement resultValue)
+        => throw new NotImplementedException();
+
+    protected override StringValueNode OnValueToLiteral(long runtimeValue)
+        => throw new NotImplementedException();
+}
+
+public sealed class RewriteArgToVersionAttribute
+    : ObjectFieldDescriptorAttribute
+{
+    protected override void OnConfigure(
+        IDescriptorContext context,
+        IObjectFieldDescriptor descriptor,
+        MemberInfo? member)
+    {
+        descriptor
+            .ExtendWith(static extension =>
+            {
+                var argument = extension.Configuration.Arguments.First(arg => arg.Name == "arg");
+                argument.Type = extension.Context.TypeInspector.GetTypeRef(typeof(Version2Type), TypeContext.Input);
+            });
+    }
+}
+
+public sealed class RewriteAfterToVersionAttribute
+    : ObjectFieldDescriptorAttribute
+{
+    protected override void OnConfigure(
+        IDescriptorContext context,
+        IObjectFieldDescriptor descriptor,
+        MemberInfo? member)
+    {
+        descriptor
+            .Extend()
+            .OnBeforeCreate(static (context, field) =>
+            {
+                var argument = field.Arguments.First(arg => arg.Name == "after");
+                argument.Type = context.TypeInspector.GetTypeRef(typeof(Version2Type), TypeContext.Input);
+            });
+    }
+}
+
+public class DescriptorAttributeProbe
+{
+    public string Name { get; set; } = "default";
+}
+
+[ObjectType<DescriptorAttributeProbe>]
+[PrefixTypeName("renamed")]
+public static partial class DescriptorAttributeProbeType;
+
+public sealed class PrefixTypeNameAttribute(string prefix) : ObjectTypeDescriptorAttribute
+{
+    public string Prefix { get; } = prefix;
+
+    protected override void OnConfigure(
+        IDescriptorContext context,
+        IObjectTypeDescriptor descriptor,
+        Type? type)
+    {
+        if (type is null)
+        {
+            return;
+        }
+
+        var capturedPrefix = Prefix;
+        descriptor
+            .Extend()
+            .OnBeforeCreate((_, cfg) => cfg.Name = $"{capturedPrefix}_{cfg.Name}");
+    }
+}
+
+public class DeclaringTypeProbe
+{
+    public required string Id { get; set; }
+}
+
+[ObjectType<DeclaringTypeProbe>]
+[TagOwnFields]
+public static partial class DeclaringTypeProbeTypeA
+{
+    public static string FromPartialA() => "a";
+}
+
+[ObjectType<DeclaringTypeProbe>]
+public static partial class DeclaringTypeProbeTypeB
+{
+    public static string FromPartialB() => "b";
+}
+
+// Tags only the fields that were declared on the partial this attribute sits on.
+// The attribute provider (the type passed to OnConfigure) is the partial itself,
+// so the invariant field.DeclaringType == attributeProvider selects exactly the
+// fields this partial contributed to the merged object type configuration.
+public sealed class TagOwnFieldsAttribute : ObjectTypeDescriptorAttribute
+{
+    protected override void OnConfigure(
+        IDescriptorContext context,
+        IObjectTypeDescriptor descriptor,
+        Type? type)
+    {
+        if (type is null)
+        {
+            return;
+        }
+
+        var attributeProvider = type;
+        descriptor
+            .Extend()
+            .OnBeforeCompletion((_, cfg) =>
+            {
+                if (cfg is not ObjectTypeConfiguration objectConfig)
+                {
+                    return;
+                }
+
+                foreach (var field in objectConfig.Fields)
+                {
+                    if (field.DeclaringType == attributeProvider)
+                    {
+                        field.Description = "tagged";
+                    }
+                }
+            });
+    }
+}
+
+public class PrefixOwnFieldsProbe
+{
+    public required string Id { get; set; }
+}
+
+[ObjectType<PrefixOwnFieldsProbe>]
+[PrefixOwnFields("a_")]
+public static partial class PrefixOwnFieldsProbeTypeA
+{
+    public static string FromPartialA() => "a";
+}
+
+[ObjectType<PrefixOwnFieldsProbe>]
+public static partial class PrefixOwnFieldsProbeTypeB
+{
+    public static string FromPartialB() => "b";
+}
+
+// Renames only the fields that were declared on the partial this attribute sits on.
+// The attribute provider (the type passed to OnConfigure) is the partial itself,
+// so the invariant field.DeclaringType == attributeProvider selects exactly the
+// fields this partial contributed to the merged object type configuration.
+public sealed class PrefixOwnFieldsAttribute(string prefix) : ObjectTypeDescriptorAttribute
+{
+    public string Prefix { get; } = prefix;
+
+    protected override void OnConfigure(
+        IDescriptorContext context,
+        IObjectTypeDescriptor descriptor,
+        Type? type)
+    {
+        if (type is null)
+        {
+            return;
+        }
+
+        var attributeProvider = type;
+        var capturedPrefix = Prefix;
+        descriptor
+            .Extend()
+            .OnBeforeNaming((_, cfg) =>
+            {
+                if (cfg is not ObjectTypeConfiguration objectConfig)
+                {
+                    return;
+                }
+
+                foreach (var field in objectConfig.Fields)
+                {
+                    if (field.DeclaringType == attributeProvider)
+                    {
+                        field.Name = capturedPrefix + field.Name;
+                    }
+                }
+            });
+    }
+}

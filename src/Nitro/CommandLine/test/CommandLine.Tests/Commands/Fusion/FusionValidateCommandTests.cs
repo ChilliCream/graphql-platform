@@ -26,8 +26,8 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
               -a, --archive, --configuration <archive>       The path to a Fusion archive file (the '--configuration' alias is deprecated) [env: NITRO_FUSION_CONFIG_FILE]
               --legacy-v1-archive <legacy-v1-archive>        The path to a Fusion v1 archive file. This option is only intended to be used during the migration from Fusion v1 to Fusion v2+.
               -f, --source-schema-file <source-schema-file>  One or more paths to a source schema file (.graphqls) or directory containing a source schema file
-              --cloud-url <cloud-url>                        The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL] [default: api.chillicream.com]
-              --api-key <api-key>                            The API key used for authentication [env: NITRO_API_KEY]
+              --cloud-url <cloud-url>                        The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL]
+              --api-key <api-key>                            The API key or PAT used for authentication [env: NITRO_API_KEY]
               --output <json>                                The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
               -?, -h, --help                                 Show help and usage information
 
@@ -334,7 +334,6 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
     {
         // arrange
         SetupArchiveFile();
-        SetupFusionConfigurationDownload();
         SetupSchemaValidationMutation();
         SetupSchemaValidationSubscription(
             CreateSchemaVersionOperationInProgressEvent(),
@@ -524,14 +523,12 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
     }
 
     [Fact]
-    public async Task WithSourceSchemaFile_FgpInRegistry_NewSourceSchema_ReturnsSuccess()
+    public async Task WithSourceSchemaFile_FgpInRegistry_NoLocalLegacyArchive_ReturnsError()
     {
         // arrange
         SetupSourceSchemaFile();
         SetupMissingFusionConfigurationDownload();
         SetupLegacyFusionConfigurationDownload();
-        var capturedStream = SetupSchemaValidationMutation();
-        SetupSchemaValidationSubscription();
 
         // act
         var result = await ExecuteCommandAsync(
@@ -545,55 +542,18 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
             SourceSchemaFile);
 
         // assert
-        result.AssertSuccess(
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Stage 'dev' currently has a Fusion v1 archive but no '--legacy-v1-archive' was provided. The server-stored Fusion v1 archive may be outdated and cannot be used as the composition base. Please provide a local Fusion v1 archive via '--legacy-v1-archive'.
+            """);
+        result.StdOut.MatchInlineSnapshot(
             """
             Validating Fusion configuration of API 'api-1' against stage 'dev'
             ├── Downloading existing configuration from 'dev'
-            │   └── ✓ Downloaded existing legacy v1 configuration from 'dev'.
-            ├── Composing new configuration
-            │   └── ✓ Composed new configuration.
-            ├── Validation request created. (ID: request-id)
-            └── ✓ Fusion configuration passed validation.
+            │   └── ✕ Failed to download the existing Fusion configuration.
+            └── ✕ Failed to validate the Fusion configuration.
             """);
-        AssertSchemaUploadAfterCompose(capturedStream);
-    }
-
-    [Fact]
-    public async Task WithSourceSchemaFile_FgpInRegistry_OverridingSourceSchema_ReturnsSuccess()
-    {
-        // arrange
-        SetupSourceSchemaFile(
-            SourceSchemaReviewsFile,
-            SourceSchemaReviewsSettingsFile,
-            SourceSchemaReviews);
-        SetupMissingFusionConfigurationDownload();
-        SetupLegacyFusionConfigurationDownload();
-        var capturedStream = SetupSchemaValidationMutation();
-        SetupSchemaValidationSubscription();
-
-        // act
-        var result = await ExecuteCommandAsync(
-            "fusion",
-            "validate",
-            "--api-id",
-            ApiId,
-            "--stage",
-            Stage,
-            "--source-schema-file",
-            SourceSchemaReviewsFile);
-
-        // assert
-        result.AssertSuccess(
-            """
-            Validating Fusion configuration of API 'api-1' against stage 'dev'
-            ├── Downloading existing configuration from 'dev'
-            │   └── ✓ Downloaded existing legacy v1 configuration from 'dev'.
-            ├── Composing new configuration
-            │   └── ✓ Composed new configuration.
-            ├── Validation request created. (ID: request-id)
-            └── ✓ Fusion configuration passed validation.
-            """);
-        AssertOverriddenSchemaUpload(capturedStream);
+        Assert.Equal(1, result.ExitCode);
     }
 
     [Fact]
@@ -603,7 +563,6 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
         SetupSourceSchemaFile();
         SetupLegacyArchiveFile();
         SetupMissingFusionConfigurationDownload();
-        SetupLegacyFusionConfigurationDownload();
         var capturedStream = SetupSchemaValidationMutation();
         SetupSchemaValidationSubscription();
 
@@ -625,13 +584,13 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
             """
             Validating Fusion configuration of API 'api-1' against stage 'dev'
             ├── Downloading existing configuration from 'dev'
-            │   └── ✓ Downloaded existing legacy v1 configuration from 'dev'.
+            │   └── ! There is no existing configuration on 'dev', using --legacy-v1-archive instead.
             ├── Composing new configuration
             │   └── ✓ Composed new configuration.
             ├── Validation request created. (ID: request-id)
             └── ✓ Fusion configuration passed validation.
             """);
-        AssertSchemaUploadAfterCompose(capturedStream);
+        AssertMigratedSchemaUploadAfterCompose(capturedStream);
     }
 
     [Fact]
@@ -644,7 +603,6 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
             SourceSchemaReviews);
         SetupLegacyArchiveFile();
         SetupMissingFusionConfigurationDownload();
-        SetupLegacyFusionConfigurationDownload();
         var capturedStream = SetupSchemaValidationMutation();
         SetupSchemaValidationSubscription();
 
@@ -666,7 +624,7 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
             """
             Validating Fusion configuration of API 'api-1' against stage 'dev'
             ├── Downloading existing configuration from 'dev'
-            │   └── ✓ Downloaded existing legacy v1 configuration from 'dev'.
+            │   └── ! There is no existing configuration on 'dev', using --legacy-v1-archive instead.
             ├── Composing new configuration
             │   └── ✓ Composed new configuration.
             ├── Validation request created. (ID: request-id)
@@ -682,7 +640,6 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
         SetupSourceSchemaFile();
         SetupLegacyArchiveFile();
         SetupMissingFusionConfigurationDownload();
-        SetupMissingLegacyFusionConfigurationDownload();
         var capturedStream = SetupSchemaValidationMutation();
         SetupSchemaValidationSubscription();
 
@@ -704,13 +661,13 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
             """
             Validating Fusion configuration of API 'api-1' against stage 'dev'
             ├── Downloading existing configuration from 'dev'
-            │   └── ! There is no existing configuration on 'dev'.
+            │   └── ! There is no existing configuration on 'dev', using --legacy-v1-archive instead.
             ├── Composing new configuration
             │   └── ✓ Composed new configuration.
             ├── Validation request created. (ID: request-id)
             └── ✓ Fusion configuration passed validation.
             """);
-        AssertSchemaUploadAfterCompose(capturedStream);
+        AssertMigratedSchemaUploadAfterCompose(capturedStream);
     }
 
     [Fact]
@@ -723,7 +680,6 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
             SourceSchemaReviews);
         SetupLegacyArchiveFile();
         SetupMissingFusionConfigurationDownload();
-        SetupMissingLegacyFusionConfigurationDownload();
         var capturedStream = SetupSchemaValidationMutation();
         SetupSchemaValidationSubscription();
 
@@ -745,7 +701,7 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
             """
             Validating Fusion configuration of API 'api-1' against stage 'dev'
             ├── Downloading existing configuration from 'dev'
-            │   └── ! There is no existing configuration on 'dev'.
+            │   └── ! There is no existing configuration on 'dev', using --legacy-v1-archive instead.
             ├── Composing new configuration
             │   └── ✓ Composed new configuration.
             ├── Validation request created. (ID: request-id)
@@ -1094,7 +1050,11 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
         var str = Encoding.UTF8.GetString(stream.ToArray());
         str.MatchInlineSnapshot(
             """
-            schema {
+            schema
+              @fusion__execution(
+                nodeResolution: GATEWAY
+                shareableFieldRuntimeTypeRouting: SOURCE_LOCAL
+              ) {
               query: Query
             }
 
@@ -1102,9 +1062,19 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
               field: String! @fusion__field(schema: REVIEWS)
             }
 
+            enum fusion__NodeResolution {
+              GATEWAY
+              SOURCE_SCHEMA
+            }
+
             "The fusion__Schema enum is a generated type used within an execution schema document to refer to a source schema in a type-safe manner."
             enum fusion__Schema {
               REVIEWS @fusion__schema_metadata(name: "reviews")
+            }
+
+            enum fusion__ShareableFieldRuntimeTypeRouting {
+              SOURCE_LOCAL
+              COMMON_RUNTIME_TYPES
             }
 
             "The fusion__FieldDefinition scalar is used to represent a GraphQL field definition specified in the GraphQL spec."
@@ -1139,6 +1109,20 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
               schema: fusion__Schema!
             ) repeatable on ENUM_VALUE
 
+            directive @fusion__eventStream(
+              broker: String
+              cursorArgument: String
+              cursorField: String
+              message: fusion__FieldSelectionSet!
+              schema: fusion__Schema!
+              topics: [String!]
+            ) on FIELD_DEFINITION
+
+            directive @fusion__execution(
+              nodeResolution: fusion__NodeResolution! = GATEWAY
+              shareableFieldRuntimeTypeRouting: fusion__ShareableFieldRuntimeTypeRouting! = SOURCE_LOCAL
+            ) on SCHEMA
+
             "The @fusion__field directive specifies which source schema provides a field in a composite type and what execution behavior it has."
             directive @fusion__field(
               "Indicates that this field is only partially provided and must be combined with `provides`."
@@ -1147,9 +1131,14 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
               provides: fusion__FieldSelectionSet
               "The name of the source schema that originally provided this field."
               schema: fusion__Schema!
+              "Indicates that the source field was declared as external before connector preprocessing."
+              sourceExternal: Boolean! = false
               "The field type in the source schema if it differs in nullability or structure."
               sourceType: String
             ) repeatable on FIELD_DEFINITION
+
+            "The @fusion__gateway_field directive marks a field that is implemented by the gateway itself rather than resolved from an underlying source schema, such as the global object identification node field."
+            directive @fusion__gateway_field on FIELD_DEFINITION
 
             "The @fusion__implements directive specifies on which source schema an interface is implemented by an object or interface type."
             directive @fusion__implements(
@@ -1179,6 +1168,12 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
               "The field type in the source schema if it differs in nullability or structure."
               sourceType: String
             ) repeatable on ARGUMENT_DEFINITION | INPUT_FIELD_DEFINITION
+
+            "The @fusion__interfaceObject directive specifies the source schemas that expose an interface as an @interfaceObject stand-in, so values of the interface produced by those schemas are opaque."
+            directive @fusion__interfaceObject(
+              "The name of the source schema that exposes this interface as an @interfaceObject stand-in."
+              schema: fusion__Schema!
+            ) repeatable on INTERFACE
 
             "The @fusion__listSize directive specifies list size metadata for each source schema."
             directive @fusion__listSize(
@@ -1226,6 +1221,8 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
 
             "The @fusion__schema_metadata directive is used to provide additional metadata for a source schema."
             directive @fusion__schema_metadata(
+              allowNonResolvableInterfaceObjects: Boolean
+              kind: String
               "The name of the source schema."
               name: String!
             ) on ENUM_VALUE
@@ -1252,7 +1249,11 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
         var str = Encoding.UTF8.GetString(stream.ToArray());
         str.MatchInlineSnapshot(
             """
-            schema {
+            schema
+              @fusion__execution(
+                nodeResolution: GATEWAY
+                shareableFieldRuntimeTypeRouting: SOURCE_LOCAL
+              ) {
               query: Query
             }
 
@@ -1261,21 +1262,44 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
                 @cacheControl(maxAge: 60, scope: PUBLIC)
                 @fusion__field(schema: REVIEWS)
               field: String! @fusion__field(schema: PRODUCTS)
+              node(id: ID! @fusion__inputField(schema: REVIEWS)): Node
+                @fusion__field(schema: REVIEWS)
               tag1Field: String @fusion__field(schema: REVIEWS)
               tag2Field: String @fusion__field(schema: REVIEWS)
             }
 
+            type Review implements Node
+              @fusion__type(schema: REVIEWS)
+              @fusion__implements(schema: REVIEWS, interface: "Node") {
+              body: String @fusion__field(schema: REVIEWS)
+              id: ID! @fusion__field(schema: REVIEWS)
+            }
+
+            interface Node @fusion__type(schema: REVIEWS) {
+              id: ID! @fusion__field(schema: REVIEWS)
+            }
+
             enum CacheControlScope @fusion__type(schema: REVIEWS) {
-              "The value to cache is specific to a single user."
-              PRIVATE @fusion__enumValue(schema: REVIEWS)
               "The value to cache is not tied to a single user."
               PUBLIC @fusion__enumValue(schema: REVIEWS)
+              "The value to cache is specific to a single user."
+              PRIVATE @fusion__enumValue(schema: REVIEWS)
+            }
+
+            enum fusion__NodeResolution {
+              GATEWAY
+              SOURCE_SCHEMA
             }
 
             "The fusion__Schema enum is a generated type used within an execution schema document to refer to a source schema in a type-safe manner."
             enum fusion__Schema {
               PRODUCTS @fusion__schema_metadata(name: "products")
               REVIEWS @fusion__schema_metadata(name: "reviews")
+            }
+
+            enum fusion__ShareableFieldRuntimeTypeRouting {
+              SOURCE_LOCAL
+              COMMON_RUNTIME_TYPES
             }
 
             "The fusion__FieldDefinition scalar is used to represent a GraphQL field definition specified in the GraphQL spec."
@@ -1318,6 +1342,20 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
               schema: fusion__Schema!
             ) repeatable on ENUM_VALUE
 
+            directive @fusion__eventStream(
+              broker: String
+              cursorArgument: String
+              cursorField: String
+              message: fusion__FieldSelectionSet!
+              schema: fusion__Schema!
+              topics: [String!]
+            ) on FIELD_DEFINITION
+
+            directive @fusion__execution(
+              nodeResolution: fusion__NodeResolution! = GATEWAY
+              shareableFieldRuntimeTypeRouting: fusion__ShareableFieldRuntimeTypeRouting! = SOURCE_LOCAL
+            ) on SCHEMA
+
             "The @fusion__field directive specifies which source schema provides a field in a composite type and what execution behavior it has."
             directive @fusion__field(
               "Indicates that this field is only partially provided and must be combined with `provides`."
@@ -1326,9 +1364,14 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
               provides: fusion__FieldSelectionSet
               "The name of the source schema that originally provided this field."
               schema: fusion__Schema!
+              "Indicates that the source field was declared as external before connector preprocessing."
+              sourceExternal: Boolean! = false
               "The field type in the source schema if it differs in nullability or structure."
               sourceType: String
             ) repeatable on FIELD_DEFINITION
+
+            "The @fusion__gateway_field directive marks a field that is implemented by the gateway itself rather than resolved from an underlying source schema, such as the global object identification node field."
+            directive @fusion__gateway_field on FIELD_DEFINITION
 
             "The @fusion__implements directive specifies on which source schema an interface is implemented by an object or interface type."
             directive @fusion__implements(
@@ -1358,6 +1401,12 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
               "The field type in the source schema if it differs in nullability or structure."
               sourceType: String
             ) repeatable on ARGUMENT_DEFINITION | INPUT_FIELD_DEFINITION
+
+            "The @fusion__interfaceObject directive specifies the source schemas that expose an interface as an @interfaceObject stand-in, so values of the interface produced by those schemas are opaque."
+            directive @fusion__interfaceObject(
+              "The name of the source schema that exposes this interface as an @interfaceObject stand-in."
+              schema: fusion__Schema!
+            ) repeatable on INTERFACE
 
             "The @fusion__listSize directive specifies list size metadata for each source schema."
             directive @fusion__listSize(
@@ -1405,6 +1454,250 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
 
             "The @fusion__schema_metadata directive is used to provide additional metadata for a source schema."
             directive @fusion__schema_metadata(
+              allowNonResolvableInterfaceObjects: Boolean
+              kind: String
+              "The name of the source schema."
+              name: String!
+            ) on ENUM_VALUE
+
+            "The @fusion__type directive specifies which source schemas provide parts of a composite type."
+            directive @fusion__type(
+              "The name of the source schema that originally provided part of the annotated type."
+              schema: fusion__Schema!
+            ) repeatable on SCALAR | OBJECT | INTERFACE | UNION | ENUM | INPUT_OBJECT
+
+            "The @fusion__unionMember directive specifies which source schema provides a member type of a union."
+            directive @fusion__unionMember(
+              "The name of the member type."
+              member: String!
+              "The name of the source schema that provides the specified member type."
+              schema: fusion__Schema!
+            ) repeatable on UNION
+
+            """);
+    }
+
+    private static void AssertMigratedSchemaUploadAfterCompose(MemoryStream stream)
+    {
+        var str = Encoding.UTF8.GetString(stream.ToArray());
+        str.MatchInlineSnapshot(
+            """
+            schema
+              @fusion__execution(
+                nodeResolution: GATEWAY
+                shareableFieldRuntimeTypeRouting: SOURCE_LOCAL
+              ) {
+              query: Query
+            }
+
+            type Query @fusion__type(schema: PRODUCTS) @fusion__type(schema: REVIEWS) {
+              cachedField: String
+                @cacheControl(maxAge: 60, scope: PUBLIC)
+                @fusion__field(schema: REVIEWS)
+              field: String! @fusion__field(schema: PRODUCTS)
+              node(id: ID! @fusion__inputField(schema: REVIEWS)): Node
+                @fusion__field(schema: REVIEWS)
+              tag1Field: String @fusion__field(schema: REVIEWS)
+              tag2Field: String @fusion__field(schema: REVIEWS)
+            }
+
+            type Review implements Node
+              @fusion__type(schema: REVIEWS)
+              @fusion__implements(schema: REVIEWS, interface: "Node") {
+              body: String @fusion__field(schema: REVIEWS)
+              id: ID! @fusion__field(schema: REVIEWS)
+            }
+
+            interface Node
+              @fusion__type(schema: REVIEWS)
+              @fusion__lookup(
+                schema: REVIEWS
+                key: "id"
+                field: "node(id: ID!): Node"
+                map: ["id"]
+                path: null
+                internal: false
+              ) {
+              id: ID! @fusion__field(schema: REVIEWS)
+            }
+
+            enum CacheControlScope @fusion__type(schema: REVIEWS) {
+              "The value to cache is not tied to a single user."
+              PUBLIC @fusion__enumValue(schema: REVIEWS)
+              "The value to cache is specific to a single user."
+              PRIVATE @fusion__enumValue(schema: REVIEWS)
+            }
+
+            enum fusion__NodeResolution {
+              GATEWAY
+              SOURCE_SCHEMA
+            }
+
+            "The fusion__Schema enum is a generated type used within an execution schema document to refer to a source schema in a type-safe manner."
+            enum fusion__Schema {
+              PRODUCTS @fusion__schema_metadata(name: "products")
+              REVIEWS @fusion__schema_metadata(name: "reviews")
+            }
+
+            enum fusion__ShareableFieldRuntimeTypeRouting {
+              SOURCE_LOCAL
+              COMMON_RUNTIME_TYPES
+            }
+
+            "The fusion__FieldDefinition scalar is used to represent a GraphQL field definition specified in the GraphQL spec."
+            scalar fusion__FieldDefinition
+
+            "The fusion__FieldSelectionMap scalar is used to represent the FieldSelectionMap type specified in the GraphQL Composite Schemas Spec."
+            scalar fusion__FieldSelectionMap
+
+            "The fusion__FieldSelectionPath scalar is used to represent a path of field names relative to the Query type."
+            scalar fusion__FieldSelectionPath
+
+            "The fusion__FieldSelectionSet scalar is used to represent a GraphQL selection set. To simplify the syntax, the outermost selection set is not wrapped in curly braces."
+            scalar fusion__FieldSelectionSet
+
+            directive @cacheControl(
+              inheritMaxAge: Boolean
+              maxAge: Int
+              scope: CacheControlScope
+              sharedMaxAge: Int
+              vary: [String]
+            ) on OBJECT | FIELD_DEFINITION | INTERFACE | UNION
+
+            "The @fusion__cost directive specifies cost metadata for each source schema."
+            directive @fusion__cost(
+              "The name of the source schema that defined the cost metadata."
+              schema: fusion__Schema!
+              "The weight defined in the source schema."
+              weight: String!
+            ) repeatable on
+              | SCALAR
+              | OBJECT
+              | FIELD_DEFINITION
+              | ARGUMENT_DEFINITION
+              | ENUM
+              | INPUT_FIELD_DEFINITION
+
+            "The @fusion__enumValue directive specifies which source schema provides an enum value."
+            directive @fusion__enumValue(
+              "The name of the source schema that provides the specified enum value."
+              schema: fusion__Schema!
+            ) repeatable on ENUM_VALUE
+
+            directive @fusion__eventStream(
+              broker: String
+              cursorArgument: String
+              cursorField: String
+              message: fusion__FieldSelectionSet!
+              schema: fusion__Schema!
+              topics: [String!]
+            ) on FIELD_DEFINITION
+
+            directive @fusion__execution(
+              nodeResolution: fusion__NodeResolution! = GATEWAY
+              shareableFieldRuntimeTypeRouting: fusion__ShareableFieldRuntimeTypeRouting! = SOURCE_LOCAL
+            ) on SCHEMA
+
+            "The @fusion__field directive specifies which source schema provides a field in a composite type and what execution behavior it has."
+            directive @fusion__field(
+              "Indicates that this field is only partially provided and must be combined with `provides`."
+              partial: Boolean! = false
+              "A selection set of fields this field provides in the composite schema."
+              provides: fusion__FieldSelectionSet
+              "The name of the source schema that originally provided this field."
+              schema: fusion__Schema!
+              "Indicates that the source field was declared as external before connector preprocessing."
+              sourceExternal: Boolean! = false
+              "The field type in the source schema if it differs in nullability or structure."
+              sourceType: String
+            ) repeatable on FIELD_DEFINITION
+
+            "The @fusion__gateway_field directive marks a field that is implemented by the gateway itself rather than resolved from an underlying source schema, such as the global object identification node field."
+            directive @fusion__gateway_field on FIELD_DEFINITION
+
+            "The @fusion__implements directive specifies on which source schema an interface is implemented by an object or interface type."
+            directive @fusion__implements(
+              "The name of the interface type."
+              interface: String!
+              "The name of the source schema on which the annotated type implements the specified interface."
+              schema: fusion__Schema!
+            ) repeatable on OBJECT | INTERFACE
+
+            "The @fusion__inaccessible directive is used to prevent specific type system members from being accessible through the client-facing composite schema, even if they are accessible in the underlying source schemas."
+            directive @fusion__inaccessible on
+              | SCALAR
+              | OBJECT
+              | FIELD_DEFINITION
+              | ARGUMENT_DEFINITION
+              | INTERFACE
+              | UNION
+              | ENUM
+              | ENUM_VALUE
+              | INPUT_OBJECT
+              | INPUT_FIELD_DEFINITION
+
+            "The @fusion__inputField directive specifies which source schema provides an input field in a composite input type."
+            directive @fusion__inputField(
+              "The name of the source schema that originally provided this input field."
+              schema: fusion__Schema!
+              "The field type in the source schema if it differs in nullability or structure."
+              sourceType: String
+            ) repeatable on ARGUMENT_DEFINITION | INPUT_FIELD_DEFINITION
+
+            "The @fusion__interfaceObject directive specifies the source schemas that expose an interface as an @interfaceObject stand-in, so values of the interface produced by those schemas are opaque."
+            directive @fusion__interfaceObject(
+              "The name of the source schema that exposes this interface as an @interfaceObject stand-in."
+              schema: fusion__Schema!
+            ) repeatable on INTERFACE
+
+            "The @fusion__listSize directive specifies list size metadata for each source schema."
+            directive @fusion__listSize(
+              "The assumed size of the list as defined in the source schema."
+              assumedSize: Int
+              "The single slicing argument requirement of the list as defined in the source schema."
+              requireOneSlicingArgument: Boolean
+              "The name of the source schema that defined the list size metadata."
+              schema: fusion__Schema!
+              "The sized fields of the list as defined in the source schema."
+              sizedFields: [String!]
+              "The slicing argument default value of the list as defined in the source schema."
+              slicingArgumentDefaultValue: Int
+              "The slicing arguments of the list as defined in the source schema."
+              slicingArguments: [String!]
+            ) repeatable on FIELD_DEFINITION
+
+            "The @fusion__lookup directive specifies how the distributed executor can resolve data for an entity type from a source schema by a stable key."
+            directive @fusion__lookup(
+              "The GraphQL field definition in the source schema that can be used to look up the entity."
+              field: fusion__FieldDefinition!
+              "Is the lookup meant as an entry point or just to provide more data."
+              internal: Boolean! = false
+              "A selection set on the annotated entity type that describes the stable key for the lookup."
+              key: fusion__FieldSelectionSet!
+              "The map describes how the key values are resolved from the annotated entity type."
+              map: [fusion__FieldSelectionMap!]!
+              "The path to the lookup field relative to the Query type."
+              path: fusion__FieldSelectionPath
+              "The name of the source schema where the annotated entity type can be looked up from."
+              schema: fusion__Schema!
+            ) repeatable on OBJECT | INTERFACE | UNION
+
+            "The @fusion__requires directive specifies if a field has requirements on a source schema."
+            directive @fusion__requires(
+              "The GraphQL field definition in the source schema that this field depends on."
+              field: fusion__FieldDefinition!
+              "The map describes how the argument values for the source schema are resolved from the arguments of the field exposed in the client-facing composite schema and from required data relative to the current type."
+              map: [fusion__FieldSelectionMap]!
+              "A selection set on the annotated field that describes its requirements."
+              requirements: fusion__FieldSelectionSet!
+              "The name of the source schema where this field has requirements to data on other source schemas."
+              schema: fusion__Schema!
+            ) repeatable on FIELD_DEFINITION
+
+            "The @fusion__schema_metadata directive is used to provide additional metadata for a source schema."
+            directive @fusion__schema_metadata(
+              allowNonResolvableInterfaceObjects: Boolean
+              kind: String
               "The name of the source schema."
               name: String!
             ) on ENUM_VALUE

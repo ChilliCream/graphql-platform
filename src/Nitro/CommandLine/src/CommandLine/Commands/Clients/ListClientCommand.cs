@@ -40,7 +40,7 @@ internal sealed class ListClientCommand : Command
 
         var cursor = parseResult.GetValue(Opt<OptionalCursorOption>.Instance);
         var apiId = await console.GetOrPromptForApiIdAsync(
-            "For which API do you want to list the clients?",
+            Prompts.SelectApiForListClients,
             parseResult,
             apisClient,
             sessionService,
@@ -64,8 +64,7 @@ internal sealed class ListClientCommand : Command
     {
         var container = PaginationContainer
             .CreateConnectionData(async (after, first, cancellationToken) =>
-                await client.ListClientsAsync(apiId, after ?? cursor, first, cancellationToken)
-                    ?? throw new ExitException("The API was not found."))
+                await client.ListClientsAsync(apiId, after ?? cursor, first, cancellationToken))
             .PageSize(10);
 
         var selectedClient = await PagedTable
@@ -90,8 +89,7 @@ internal sealed class ListClientCommand : Command
         string? cursor,
         CancellationToken ct)
     {
-        var page = await client.ListClientsAsync(apiId, cursor, 10, ct)
-            ?? throw new ExitException("The API was not found.");
+        var page = await client.ListClientsAsync(apiId, cursor, 10, ct);
 
         var items = page.Items
             .Select(x => ClientDetailPrompt.From(x).ToObject())

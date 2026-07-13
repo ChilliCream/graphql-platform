@@ -9,12 +9,12 @@ using Xunit.Sdk;
 namespace CookieCrumble.Xunit.Attributes;
 
 /// <summary>
-/// Apply this attribute to your test method to replace the
-/// <see cref="Thread.CurrentThread" /> <see cref="CultureInfo.CurrentCulture" /> and
-/// <see cref="CultureInfo.CurrentUICulture" /> with another culture.
+/// Apply this attribute to a test class or method to replace the current thread's
+/// <see cref="CultureInfo.CurrentCulture" /> and <see cref="CultureInfo.CurrentUICulture" />
+/// with a specific culture while the test runs, restoring the originals afterward.
 /// </summary>
-[AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
-public class UseCultureAttribute : BeforeAfterTestAttribute
+[AttributeUsage(AttributeTargets.Class | AttributeTargets.Method)]
+public sealed class UseCultureAttribute : BeforeAfterTestAttribute
 {
     private readonly Lazy<CultureInfo> _culture;
     private readonly Lazy<CultureInfo> _uiCulture;
@@ -22,22 +22,16 @@ public class UseCultureAttribute : BeforeAfterTestAttribute
     private CultureInfo _originalUiCulture = null!;
 
     /// <summary>
-    /// Replaces the culture and UI culture of the current thread with
-    /// <paramref name="culture" />
+    /// Initializes the attribute to use <paramref name="culture" /> as both the
+    /// <see cref="Culture" /> and <see cref="UICulture" />.
     /// </summary>
     /// <param name="culture">The name of the culture.</param>
-    /// <remarks>
-    /// <para>
-    /// This constructor overload uses <paramref name="culture" /> for both
-    /// <see cref="Culture" /> and <see cref="UICulture" />.
-    /// </para>
-    /// </remarks>
     public UseCultureAttribute(string culture)
         : this(culture, culture) { }
 
     /// <summary>
-    /// Replaces the culture and UI culture of the current thread with
-    /// <paramref name="culture" /> and <paramref name="uiCulture" />
+    /// Initializes the attribute to use <paramref name="culture" /> as the <see cref="Culture" />
+    /// and <paramref name="uiCulture" /> as the <see cref="UICulture" />.
     /// </summary>
     /// <param name="culture">The name of the culture.</param>
     /// <param name="uiCulture">The name of the UI culture.</param>
@@ -58,11 +52,11 @@ public class UseCultureAttribute : BeforeAfterTestAttribute
     public CultureInfo UICulture { get { return _uiCulture.Value; } }
 
     /// <summary>
-    /// Stores the current <see cref="Thread.CurrentPrincipal" />
-    /// <see cref="CultureInfo.CurrentCulture" /> and <see cref="CultureInfo.CurrentUICulture" />
-    /// and replaces them with the new cultures defined in the constructor.
+    /// Captures the current thread's <see cref="CultureInfo.CurrentCulture" /> and
+    /// <see cref="CultureInfo.CurrentUICulture" />, then replaces them with
+    /// <see cref="Culture" /> and <see cref="UICulture" />.
     /// </summary>
-    /// <param name="methodUnderTest">The method under test</param>
+    /// <param name="methodUnderTest">The method under test.</param>
     public override void Before(MethodInfo methodUnderTest)
     {
         _originalCulture = Thread.CurrentThread.CurrentCulture;
@@ -76,10 +70,10 @@ public class UseCultureAttribute : BeforeAfterTestAttribute
     }
 
     /// <summary>
-    /// Restores the original <see cref="CultureInfo.CurrentCulture" /> and
-    /// <see cref="CultureInfo.CurrentUICulture" /> to <see cref="Thread.CurrentPrincipal" />
+    /// Restores the current thread's <see cref="CultureInfo.CurrentCulture" /> and
+    /// <see cref="CultureInfo.CurrentUICulture" /> to the values captured before the test ran.
     /// </summary>
-    /// <param name="methodUnderTest">The method under test</param>
+    /// <param name="methodUnderTest">The method under test.</param>
     public override void After(MethodInfo methodUnderTest)
     {
         Thread.CurrentThread.CurrentCulture = _originalCulture;

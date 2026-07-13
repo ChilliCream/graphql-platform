@@ -1,7 +1,6 @@
 using HotChocolate.Caching.Memory;
 using HotChocolate.Execution.Relay;
 using HotChocolate.Fusion.Types;
-using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Execution;
 
@@ -102,21 +101,6 @@ public sealed class FusionOptions : IFusionSchemaOptions, ICloneable
     } = 64;
 
     /// <summary>
-    /// Gets or sets the default error handling mode.
-    /// <see cref="ErrorHandlingMode.Propagate"/> by default.
-    /// </summary>
-    public ErrorHandlingMode DefaultErrorHandlingMode
-    {
-        get;
-        set
-        {
-            ExpectMutableOptions();
-
-            field = value;
-        }
-    } = ErrorHandlingMode.Propagate;
-
-    /// <summary>
     /// Gets or sets whether the request executor should be initialized lazily.
     /// <c>false</c> by default.
     /// </summary>
@@ -185,6 +169,22 @@ public sealed class FusionOptions : IFusionSchemaOptions, ICloneable
     } = true;
 
     /// <summary>
+    /// Gets or sets whether opt-in feature support is enabled. When <c>true</c>, the introspection
+    /// schema exposes the <c>includeOptIn</c> argument and opt-in members are hidden from
+    /// introspection unless the client opts into their feature.
+    /// </summary>
+    public bool EnableOptInFeatures
+    {
+        get;
+        set
+        {
+            ExpectMutableOptions();
+
+            field = value;
+        }
+    }
+
+    /// <summary>
     /// Enables the <c>__search</c> and <c>__definitions</c> introspection fields
     /// for semantic schema discovery.
     /// </summary>
@@ -197,7 +197,7 @@ public sealed class FusionOptions : IFusionSchemaOptions, ICloneable
 
             field = value;
         }
-    }
+    } = true;
 
     /// <summary>
     /// Clones the options into a new mutable instance.
@@ -214,11 +214,11 @@ public sealed class FusionOptions : IFusionSchemaOptions, ICloneable
             OperationExecutionPlanCacheDiagnostics = OperationExecutionPlanCacheDiagnostics,
             OperationDocumentCacheSize = OperationDocumentCacheSize,
             PathSegmentLocalPoolCapacity = PathSegmentLocalPoolCapacity,
-            DefaultErrorHandlingMode = DefaultErrorHandlingMode,
             LazyInitialization = LazyInitialization,
             NodeIdSerializerFormat = NodeIdSerializerFormat,
             ApplySerializeAsToScalars = ApplySerializeAsToScalars,
             EnableDefer = EnableDefer,
+            EnableOptInFeatures = EnableOptInFeatures,
             EnableSemanticIntrospection = EnableSemanticIntrospection
         };
     }

@@ -14,7 +14,9 @@ internal sealed class CompositeSchemaBuilderContext : ICompositeSchemaBuilderCon
 #pragma warning disable IDE0052 // WIP
     private readonly DocumentNode _document;
 #pragma warning restore IDE0052
-    private readonly Dictionary<ITypeNode, IType> _compositeTypes = new(SyntaxComparer.BySyntax);
+    // A source type structure can be resolved against a differently named composite type.
+    // Both values are therefore part of the cache identity.
+    private readonly Dictionary<string, Dictionary<ITypeNode, IType>> _compositeTypes = [with(StringComparer.Ordinal)];
     private readonly Dictionary<string, IFusionTypeDefinition> _typeDefinitionLookup;
     private ImmutableDictionary<string, ITypeDefinitionNode> _typeDefinitionNodeLookup;
     private readonly Dictionary<string, FusionDirectiveDefinition> _directiveDefinitionLookup;
@@ -138,10 +140,16 @@ internal sealed class CompositeSchemaBuilderContext : ICompositeSchemaBuilderCon
     {
         typeName ??= typeStructure.NamedType().Name.Value;
 
-        if (!_compositeTypes.TryGetValue(typeStructure, out var type))
+        if (!_compositeTypes.TryGetValue(typeName, out var typeLookup))
+        {
+            typeLookup = [with(SyntaxComparer.BySyntax)];
+            _compositeTypes.Add(typeName, typeLookup);
+        }
+
+        if (!typeLookup.TryGetValue(typeStructure, out var type))
         {
             type = CreateType(typeStructure, typeName);
-            _compositeTypes[typeStructure] = type;
+            typeLookup.Add(typeStructure, type);
         }
 
         return type;
@@ -278,6 +286,8 @@ internal sealed class CompositeSchemaBuilderContext : ICompositeSchemaBuilderCon
         var skipDirective = new FusionDirectiveDefinition(
             DirectiveNames.Skip.Name,
             "Directs the executor to skip this field or fragment when the `if` argument is true.",
+            isDeprecated: false,
+            deprecationReason: null,
             isRepeatable: false,
             new FusionInputFieldDefinitionCollection([ifField]),
             DirectiveLocation.Field | DirectiveLocation.FragmentSpread | DirectiveLocation.InlineFragment);
@@ -296,6 +306,7 @@ internal sealed class CompositeSchemaBuilderContext : ICompositeSchemaBuilderCon
                     null,
                     [])
             ],
+            [],
             [
                 new NameNode(HotChocolate.Language.DirectiveLocation.Field.Value),
                 new NameNode(HotChocolate.Language.DirectiveLocation.FragmentSpread.Value),
@@ -321,6 +332,8 @@ internal sealed class CompositeSchemaBuilderContext : ICompositeSchemaBuilderCon
         var includeDirective = new FusionDirectiveDefinition(
             DirectiveNames.Include.Name,
             "Directs the executor to include this field or fragment when the `if` argument is true.",
+            isDeprecated: false,
+            deprecationReason: null,
             isRepeatable: false,
             new FusionInputFieldDefinitionCollection([ifField]),
             DirectiveLocation.Field | DirectiveLocation.FragmentSpread | DirectiveLocation.InlineFragment);
@@ -339,6 +352,7 @@ internal sealed class CompositeSchemaBuilderContext : ICompositeSchemaBuilderCon
                     null,
                     Array.Empty<DirectiveNode>())
             ],
+            [],
             [
                 new NameNode(HotChocolate.Language.DirectiveLocation.Field.Value),
                 new NameNode(HotChocolate.Language.DirectiveLocation.FragmentSpread.Value),
@@ -364,6 +378,8 @@ internal sealed class CompositeSchemaBuilderContext : ICompositeSchemaBuilderCon
         var specifiedByDirective = new FusionDirectiveDefinition(
             DirectiveNames.SpecifiedBy.Name,
             "The `@specifiedBy` directive is used within the type system definition language to provide a URL for specifying the behavior of custom scalar definitions.",
+            isDeprecated: false,
+            deprecationReason: null,
             isRepeatable: false,
             new FusionInputFieldDefinitionCollection([urlField]),
             DirectiveLocation.Scalar);
@@ -382,6 +398,7 @@ internal sealed class CompositeSchemaBuilderContext : ICompositeSchemaBuilderCon
                     null,
                     Array.Empty<DirectiveNode>())
             ],
+            [],
             [
                 new NameNode(HotChocolate.Language.DirectiveLocation.Scalar.Value)
             ]);
@@ -396,6 +413,8 @@ internal sealed class CompositeSchemaBuilderContext : ICompositeSchemaBuilderCon
         var oneOfDirective = new FusionDirectiveDefinition(
             DirectiveNames.OneOf.Name,
             "The `@oneOf` directive is used within the type system definition language to indicate that an Input Object is a OneOf Input Object.",
+            isDeprecated: false,
+            deprecationReason: null,
             isRepeatable: false,
             new FusionInputFieldDefinitionCollection([]),
             DirectiveLocation.InputObject);
@@ -405,6 +424,7 @@ internal sealed class CompositeSchemaBuilderContext : ICompositeSchemaBuilderCon
             new NameNode(DirectiveNames.OneOf.Name),
             new StringValueNode("The `@oneOf` directive is used within the type system definition language to indicate that an Input Object is a OneOf Input Object."),
             isRepeatable: false,
+            [],
             [],
             [
                 new NameNode(HotChocolate.Language.DirectiveLocation.InputObject.Value)

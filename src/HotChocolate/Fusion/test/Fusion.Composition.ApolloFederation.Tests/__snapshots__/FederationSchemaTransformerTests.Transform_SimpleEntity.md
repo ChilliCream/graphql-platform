@@ -37,8 +37,8 @@ schema {
 }
 
 type Query {
+  fusion__lookup_productById(id: ID!): Product @internal @lookup
   product(id: ID!): Product
-  productById(id: ID!): Product @internal @lookup
 }
 
 type Product @key(fields: "id") {

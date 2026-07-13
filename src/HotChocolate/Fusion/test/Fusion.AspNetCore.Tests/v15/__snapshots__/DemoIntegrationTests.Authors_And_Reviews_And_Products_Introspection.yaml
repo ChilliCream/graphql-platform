@@ -326,12 +326,72 @@ response:
                     "name": null,
                     "kind": "NON_NULL"
                   }
+                },
+                {
+                  "name": "isDeprecated",
+                  "type": {
+                    "name": null,
+                    "kind": "NON_NULL"
+                  }
+                },
+                {
+                  "name": "deprecationReason",
+                  "type": {
+                    "name": "String",
+                    "kind": "SCALAR"
+                  }
                 }
               ]
             },
             {
               "name": "__DirectiveLocation",
               "kind": "ENUM",
+              "fields": null
+            },
+            {
+              "name": "__SearchResult",
+              "kind": "OBJECT",
+              "fields": [
+                {
+                  "name": "cursor",
+                  "type": {
+                    "name": null,
+                    "kind": "NON_NULL"
+                  }
+                },
+                {
+                  "name": "coordinate",
+                  "type": {
+                    "name": null,
+                    "kind": "NON_NULL"
+                  }
+                },
+                {
+                  "name": "definition",
+                  "type": {
+                    "name": null,
+                    "kind": "NON_NULL"
+                  }
+                },
+                {
+                  "name": "pathsToRoot",
+                  "type": {
+                    "name": null,
+                    "kind": "NON_NULL"
+                  }
+                },
+                {
+                  "name": "score",
+                  "type": {
+                    "name": "Float",
+                    "kind": "SCALAR"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "__SchemaDefinition",
+              "kind": "UNION",
               "fields": null
             },
             {
@@ -589,6 +649,11 @@ response:
             },
             {
               "name": "Boolean",
+              "kind": "SCALAR",
+              "fields": null
+            },
+            {
+              "name": "Float",
               "kind": "SCALAR",
               "fields": null
             },

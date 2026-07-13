@@ -20,10 +20,11 @@ public sealed class SelectionSet : ISelectionSet
 
     public SelectionSet(
         int id,
-        IObjectTypeDefinition type,
+        IComplexTypeDefinition type,
         Selection[] selections,
         bool isConditional,
-        bool hasIncrementalParts)
+        bool hasIncrementalParts,
+        Selection? declaringSelection)
     {
         ArgumentNullException.ThrowIfNull(selections);
 
@@ -36,6 +37,7 @@ public sealed class SelectionSet : ISelectionSet
         Type = type;
         IsConditional = isConditional;
         HasIncrementalParts = hasIncrementalParts;
+        DeclaringSelection = declaringSelection;
         _selections = selections;
         _responseNameLookup = _selections.ToFrozenDictionary(t => t.ResponseName);
         _utf8ResponseNameLookup = SelectionLookup.Create(this);
@@ -54,7 +56,19 @@ public sealed class SelectionSet : ISelectionSet
     /// <summary>
     /// Gets the type that declares this selection set.
     /// </summary>
-    public IObjectTypeDefinition Type { get; }
+    /// <remarks>
+    /// This is an object type for a fully resolved (concrete) selection set. It can be an
+    /// interface type while an element produced by an <c>@interfaceObject</c> stand-in still
+    /// awaits identity recovery through its covering lookup.
+    /// </remarks>
+    public IComplexTypeDefinition Type { get; }
+
+    /// <summary>
+    /// Gets the field selection whose child selection set this is, or <c>null</c> for the
+    /// operation's root selection set. Used to recompute the concrete selection set when an
+    /// opaque interface-typed element recovers its identity through a covering lookup.
+    /// </summary>
+    public Selection? DeclaringSelection { get; }
 
     /// <summary>
     /// Gets the declaring operation.

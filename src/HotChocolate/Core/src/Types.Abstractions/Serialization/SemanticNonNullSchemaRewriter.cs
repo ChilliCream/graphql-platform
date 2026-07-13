@@ -347,6 +347,7 @@ internal static class SemanticNonNullSchemaRewriter
             description: null,
             isRepeatable: false,
             arguments: new[] { argument },
+            directives: [],
             locations: new[] { new NameNode("FIELD_DEFINITION") });
     }
 }

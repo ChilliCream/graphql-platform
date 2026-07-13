@@ -1,5 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
-  <Import Project="$([MSBuild]::GetPathOfFileAbove('Xunit2.Directory.Build.props', '$(MSBuildThisFileDirectory)..\'))" />
+
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Test.props', '$(MSBuildThisFileDirectory)'))" />
 
   <PropertyGroup>
     <AssemblyName>HotChocolate.Fusion.Connectors.ApolloFederation.Compliance.Tests</AssemblyName>
@@ -7,8 +8,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Fusion.Connectors.ApolloFederation\HotChocolate.Fusion.Connectors.ApolloFederation.csproj" />
-    <ProjectReference Include="..\..\src\Fusion.Composition.ApolloFederation\HotChocolate.Fusion.Composition.ApolloFederation.csproj" />
     <ProjectReference Include="..\..\src\Fusion.Composition\HotChocolate.Fusion.Composition.csproj" />
     <ProjectReference Include="..\..\src\Fusion.AspNetCore\HotChocolate.Fusion.AspNetCore.csproj" />
     <ProjectReference Include="..\..\..\AspNetCore\src\AspNetCore\HotChocolate.AspNetCore.csproj" />
@@ -21,7 +20,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="Suites/**/*.graphql;Suites/**/*.json" />
+    <EmbeddedResource Include="OfficialAudit/**/*.json;Suites/**/*.graphql;Suites/**/*.json" />
   </ItemGroup>
 
 </Project>

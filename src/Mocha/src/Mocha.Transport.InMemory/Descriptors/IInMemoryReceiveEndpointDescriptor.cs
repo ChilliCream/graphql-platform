@@ -19,23 +19,48 @@ public interface IInMemoryReceiveEndpointDescriptor : IReceiveEndpointDescriptor
     new IInMemoryReceiveEndpointDescriptor Consumer<TConsumer>() where TConsumer : class, IConsumer;
 
     /// <inheritdoc />
+    new IInMemoryReceiveEndpointDescriptor Receives<TMessage>();
+
+    /// <inheritdoc />
+    new IInMemoryReceiveEndpointDescriptor Receives(Type messageType);
+
+    /// <inheritdoc />
+    new IInMemoryReceiveEndpointDescriptor BindImplicitly();
+
+    /// <inheritdoc />
+    new IInMemoryReceiveEndpointDescriptor BindExplicitly();
+
+    /// <inheritdoc />
     new IInMemoryReceiveEndpointDescriptor Kind(ReceiveEndpointKind kind);
 
-    /// <inheritdoc />
-    new IInMemoryReceiveEndpointDescriptor FaultEndpoint(string name);
+    /// <summary>
+    /// Sets the address of the fault endpoint where failed messages are forwarded.
+    /// </summary>
+    /// <param name="address">The fault endpoint address.</param>
+    /// <returns>The descriptor for method chaining.</returns>
+    IInMemoryReceiveEndpointDescriptor FaultEndpoint(Uri address);
 
-    /// <inheritdoc />
-    new IInMemoryReceiveEndpointDescriptor SkippedEndpoint(string name);
+    /// <summary>
+    /// Disables forwarding failed messages to a fault endpoint.
+    /// </summary>
+    /// <returns>The descriptor for method chaining.</returns>
+    IInMemoryReceiveEndpointDescriptor DisableFaultEndpoint();
+
+    /// <summary>
+    /// Sets the address of the endpoint where skipped messages are forwarded.
+    /// </summary>
+    /// <param name="address">The skipped endpoint address.</param>
+    /// <returns>The descriptor for method chaining.</returns>
+    IInMemoryReceiveEndpointDescriptor SkippedEndpoint(Uri address);
+
+    /// <summary>
+    /// Disables forwarding skipped messages to a skipped endpoint.
+    /// </summary>
+    /// <returns>The descriptor for method chaining.</returns>
+    IInMemoryReceiveEndpointDescriptor DisableSkippedEndpoint();
 
     /// <inheritdoc />
     new IInMemoryReceiveEndpointDescriptor MaxConcurrency(int maxConcurrency);
-
-    /// <summary>
-    /// Sets the name of the in-memory queue this endpoint will consume from.
-    /// </summary>
-    /// <param name="name">The queue name.</param>
-    /// <returns>The descriptor for method chaining.</returns>
-    IInMemoryReceiveEndpointDescriptor Queue(string name);
 
     /// <inheritdoc />
     new IInMemoryReceiveEndpointDescriptor UseReceive(

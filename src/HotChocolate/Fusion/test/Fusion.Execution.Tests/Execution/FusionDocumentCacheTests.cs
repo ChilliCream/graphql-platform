@@ -22,7 +22,8 @@ public class FusionDocumentCacheTests : FusionTestBase
                       field: String!
                     }
                     """));
-        var executor = await services.BuildServiceProvider().GetRequestExecutorAsync();
+        var executor = await services.BuildServiceProvider().GetRequestExecutorAsync(
+            cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var documentCache = executor.Schema.Services.GetRequiredService<IDocumentCache>();

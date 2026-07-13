@@ -6,10 +6,10 @@ using HotChocolate.Execution.Configuration;
 using HotChocolate.Fusion.Configuration;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Execution.Nodes.Serialization;
+using HotChocolate.Fusion.Execution.Rewriters;
 using HotChocolate.Fusion.Logging;
 using HotChocolate.Fusion.Options;
 using HotChocolate.Fusion.Planning;
-using HotChocolate.Fusion.Rewriters;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 using Microsoft.AspNetCore.Builder;
@@ -495,7 +495,8 @@ public abstract class FusionTestBase : IDisposable
 
     protected static OperationPlan PlanOperation(
         FusionSchemaDefinition schema,
-        [StringSyntax("graphql")] string operationText)
+        [StringSyntax("graphql")] string operationText,
+        OperationPlannerOptions? options = null)
     {
         var pool = new DefaultObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>>(
             new DefaultPooledObjectPolicy<OrderedDictionary<string, List<FieldSelectionNode>>>());
@@ -507,7 +508,9 @@ public abstract class FusionTestBase : IDisposable
         var operation = rewritten.Definitions.OfType<OperationDefinitionNode>().First();
 
         var compiler = new OperationCompiler(schema, pool);
-        var planner = new OperationPlanner(schema, compiler);
+        var planner = options is null
+            ? new OperationPlanner(schema, compiler)
+            : new OperationPlanner(schema, compiler, options);
         const string id = "123456789101112";
         return planner.CreatePlan(id, id, id, operation);
     }

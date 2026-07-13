@@ -24,8 +24,8 @@ public sealed class ListEnvironmentCommandTests(NitroCommandFixture fixture)
             Options:
               --cursor <cursor>              The pagination cursor to resume from [env: NITRO_CURSOR]
               --workspace-id <workspace-id>  The ID of the workspace [env: NITRO_WORKSPACE_ID]
-              --cloud-url <cloud-url>        The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL] [default: api.chillicream.com]
-              --api-key <api-key>            The API key used for authentication [env: NITRO_API_KEY]
+              --cloud-url <cloud-url>        The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL]
+              --api-key <api-key>            The API key or PAT used for authentication [env: NITRO_API_KEY]
               --output <json>                The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
               -?, -h, --help                 Show help and usage information
 
@@ -99,7 +99,7 @@ public sealed class ListEnvironmentCommandTests(NitroCommandFixture fixture)
             WorkspaceId);
 
         command.SelectOption(0);
-        var result = await command.RunToCompletionAsync();
+        var result = await command.RunToCompletionAsync(TestContext.Current.CancellationToken);
 
         // assert
         result.AssertSuccess();
@@ -167,7 +167,7 @@ public sealed class ListEnvironmentCommandTests(NitroCommandFixture fixture)
             "cursor-1");
 
         command.SelectOption(0);
-        var result = await command.RunToCompletionAsync();
+        var result = await command.RunToCompletionAsync(TestContext.Current.CancellationToken);
 
         // assert
         result.AssertSuccess();

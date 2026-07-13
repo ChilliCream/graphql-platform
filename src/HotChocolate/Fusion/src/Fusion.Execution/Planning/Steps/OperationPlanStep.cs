@@ -23,6 +23,8 @@ public record OperationPlanStep : PlanStep
 
     public ImmutableHashSet<int> Dependents { get; init; } = [];
 
+    public ImmutableHashSet<ParentStepRef> ParentDependencies { get; init; } = [];
+
     public ImmutableDictionary<string, OperationRequirement> Requirements { get; init; }
 #if NET10_0_OR_GREATER
         = [];
@@ -35,6 +37,8 @@ public record OperationPlanStep : PlanStep
     public required SelectionPath Source { get; init; }
 
     public Lookup? Lookup { get; init; }
+
+    internal EventStreamPlan? EventStreamPlan { get; init; }
 
     public bool DependsOn(OperationPlanStep otherStep, ImmutableList<PlanStep> allSteps)
         => DependsOnRecursive(otherStep, Id, allSteps, []);

@@ -15,6 +15,7 @@ public class HttpEndpointIntegrationTests : HttpEndpointIntegrationTestBase
         OpenApiDiagnosticEventListener? eventListener)
     {
         var builder = services.AddGraphQLServer()
+            .AddOpenApi()
             .AddOpenApiDefinitionStorage(storage)
             .AddBasicServer();
 
@@ -41,6 +42,7 @@ public class HttpEndpointIntegrationTests : HttpEndpointIntegrationTestBase
             {
                 services.AddRouting();
                 services.AddGraphQLServer("NamedSchema")
+                    .AddOpenApi()
                     .AddOpenApiDefinitionStorage(storage)
                     .AddBasicServer();
             })
@@ -53,10 +55,35 @@ public class HttpEndpointIntegrationTests : HttpEndpointIntegrationTestBase
         var client = server.CreateClient();
 
         // act
-        var response = await client.GetAsync("/users");
+        var response = await client.GetAsync("/users", TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+    }
+
+    [Fact]
+    public void MapOpenApiEndpoints_Should_Throw_When_AddOpenApiNotCalled()
+    {
+        // arrange
+        var builder = new WebHostBuilder()
+            .ConfigureServices(services =>
+            {
+                services.AddRouting();
+                services.AddGraphQLServer();
+            })
+            .Configure(app =>
+            {
+                app.UseRouting();
+                app.UseEndpoints(endpoints => endpoints.MapOpenApiEndpoints());
+            });
+
+        // act
+        var exception = Assert.Throws<InvalidOperationException>(() => new TestServer(builder));
+
+        // assert
+        Assert.Equal(
+            "Call `AddOpenApi()` when configuring the GraphQL server.",
+            exception.Message);
     }
 
     [Fact]
@@ -79,7 +106,7 @@ public class HttpEndpointIntegrationTests : HttpEndpointIntegrationTestBase
             Encoding.UTF8,
             "application/json");
 
-        var response = await client.PostAsync("/users", content);
+        var response = await client.PostAsync("/users", content, TestContext.Current.CancellationToken);
 
         // assert
         response.MatchSnapshot();

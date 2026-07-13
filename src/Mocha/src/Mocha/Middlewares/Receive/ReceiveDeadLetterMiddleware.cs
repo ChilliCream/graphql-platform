@@ -6,7 +6,7 @@ namespace Mocha.Middlewares;
 
 /// <summary>
 /// Final receive-pipeline safety net that guarantees unconsumed messages are forwarded to the
-/// endpoint-specific skipped endpoint.
+/// endpoint-specific skipped endpoint, or the fault endpoint when no skipped endpoint is configured.
 /// </summary>
 /// <remarks>
 /// Exceptions from downstream middleware are swallowed after logging because dead-lettering is the
@@ -15,7 +15,7 @@ namespace Mocha.Middlewares;
 /// repeatedly retried, wasting throughput and making the failure harder to diagnose and recover.
 /// </remarks>
 internal sealed class ReceiveDeadLetterMiddleware(
-    DispatchEndpoint skippedEndpoint,
+    DispatchEndpoint deadLetterEndpoint,
     IMessagingPools pools,
     ILogger<ReceiveDeadLetterMiddleware> logger)
 {
@@ -40,14 +40,14 @@ internal sealed class ReceiveDeadLetterMiddleware(
             {
                 dispatchContext.Initialize(
                     context.Services,
-                    skippedEndpoint,
+                    deadLetterEndpoint,
                     context.Runtime,
                     context.MessageType,
                     context.CancellationToken);
 
                 dispatchContext.Envelope = context.Envelope;
 
-                await skippedEndpoint.ExecuteAsync(dispatchContext);
+                await deadLetterEndpoint.ExecuteAsync(dispatchContext);
             }
             finally
             {
@@ -63,15 +63,18 @@ internal sealed class ReceiveDeadLetterMiddleware(
         => new(
             static (context, next) =>
             {
-                var skippedEndpoint = context.Endpoint.SkippedEndpoint;
-                if (skippedEndpoint is null)
+                var deadLetterEndpoint =
+                    context.Endpoint.Features.Get<ReceiveSkippedEndpointFeature>()?.Endpoint
+                    ?? context.Endpoint.Features.Get<ReceiveFaultEndpointFeature>()?.Endpoint;
+
+                if (deadLetterEndpoint is null)
                 {
                     return next;
                 }
 
                 var pools = context.Services.GetRequiredService<IMessagingPools>();
                 var logger = context.Services.GetRequiredService<ILogger<ReceiveDeadLetterMiddleware>>();
-                var middleware = new ReceiveDeadLetterMiddleware(skippedEndpoint, pools, logger);
+                var middleware = new ReceiveDeadLetterMiddleware(deadLetterEndpoint, pools, logger);
                 return ctx => middleware.InvokeAsync(ctx, next);
             },
             "DeadLetter");
@@ -81,6 +84,6 @@ internal static partial class ReceiveDeadLetterMiddlewareLogs
 {
     [LoggerMessage(
         LogLevel.Critical,
-        "An exception occurred while processing the message. The message will be moved to the error endpoint.")]
+        "An exception occurred while processing the message. The message will be moved to the dead-letter endpoint.")]
     public static partial void ExceptionOccurred(this ILogger<ReceiveDeadLetterMiddleware> logger, Exception ex);
 }

@@ -200,7 +200,24 @@ response:
                 {
                   "name": "directives",
                   "description": null,
-                  "args": [],
+                  "args": [
+                    {
+                      "name": "includeDeprecated",
+                      "description": null,
+                      "type": {
+                        "kind": "NON_NULL",
+                        "name": null,
+                        "ofType": {
+                          "kind": "SCALAR",
+                          "name": "Boolean",
+                          "ofType": null
+                        }
+                      },
+                      "defaultValue": "false",
+                      "isDeprecated": false,
+                      "deprecationReason": null
+                    }
+                  ],
                   "type": {
                     "kind": "NON_NULL",
                     "name": null,
@@ -935,6 +952,34 @@ response:
                   },
                   "isDeprecated": false,
                   "deprecationReason": null
+                },
+                {
+                  "name": "isDeprecated",
+                  "description": null,
+                  "args": [],
+                  "type": {
+                    "kind": "NON_NULL",
+                    "name": null,
+                    "ofType": {
+                      "kind": "SCALAR",
+                      "name": "Boolean",
+                      "ofType": null
+                    }
+                  },
+                  "isDeprecated": false,
+                  "deprecationReason": null
+                },
+                {
+                  "name": "deprecationReason",
+                  "description": null,
+                  "args": [],
+                  "type": {
+                    "kind": "SCALAR",
+                    "name": "String",
+                    "ofType": null
+                  },
+                  "isDeprecated": false,
+                  "deprecationReason": null
                 }
               ],
               "inputFields": null,
@@ -1065,9 +1110,157 @@ response:
                   "description": null,
                   "isDeprecated": false,
                   "deprecationReason": null
+                },
+                {
+                  "name": "DIRECTIVE_DEFINITION",
+                  "description": null,
+                  "isDeprecated": false,
+                  "deprecationReason": null
                 }
               ],
               "possibleTypes": null
+            },
+            {
+              "kind": "OBJECT",
+              "name": "__SearchResult",
+              "description": null,
+              "specifiedByURL": null,
+              "isOneOf": null,
+              "fields": [
+                {
+                  "name": "cursor",
+                  "description": null,
+                  "args": [],
+                  "type": {
+                    "kind": "NON_NULL",
+                    "name": null,
+                    "ofType": {
+                      "kind": "SCALAR",
+                      "name": "String",
+                      "ofType": null
+                    }
+                  },
+                  "isDeprecated": false,
+                  "deprecationReason": null
+                },
+                {
+                  "name": "coordinate",
+                  "description": null,
+                  "args": [],
+                  "type": {
+                    "kind": "NON_NULL",
+                    "name": null,
+                    "ofType": {
+                      "kind": "SCALAR",
+                      "name": "String",
+                      "ofType": null
+                    }
+                  },
+                  "isDeprecated": false,
+                  "deprecationReason": null
+                },
+                {
+                  "name": "definition",
+                  "description": null,
+                  "args": [],
+                  "type": {
+                    "kind": "NON_NULL",
+                    "name": null,
+                    "ofType": {
+                      "kind": "UNION",
+                      "name": "__SchemaDefinition",
+                      "ofType": null
+                    }
+                  },
+                  "isDeprecated": false,
+                  "deprecationReason": null
+                },
+                {
+                  "name": "pathsToRoot",
+                  "description": null,
+                  "args": [],
+                  "type": {
+                    "kind": "NON_NULL",
+                    "name": null,
+                    "ofType": {
+                      "kind": "LIST",
+                      "name": null,
+                      "ofType": {
+                        "kind": "NON_NULL",
+                        "name": null,
+                        "ofType": {
+                          "kind": "LIST",
+                          "name": null,
+                          "ofType": {
+                            "kind": "NON_NULL",
+                            "name": null,
+                            "ofType": {
+                              "kind": "SCALAR",
+                              "name": "String"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "isDeprecated": false,
+                  "deprecationReason": null
+                },
+                {
+                  "name": "score",
+                  "description": null,
+                  "args": [],
+                  "type": {
+                    "kind": "SCALAR",
+                    "name": "Float",
+                    "ofType": null
+                  },
+                  "isDeprecated": false,
+                  "deprecationReason": null
+                }
+              ],
+              "inputFields": null,
+              "interfaces": [],
+              "enumValues": null,
+              "possibleTypes": null
+            },
+            {
+              "kind": "UNION",
+              "name": "__SchemaDefinition",
+              "description": null,
+              "specifiedByURL": null,
+              "isOneOf": null,
+              "fields": null,
+              "inputFields": null,
+              "interfaces": null,
+              "enumValues": null,
+              "possibleTypes": [
+                {
+                  "kind": "OBJECT",
+                  "name": "__Directive",
+                  "ofType": null
+                },
+                {
+                  "kind": "OBJECT",
+                  "name": "__EnumValue",
+                  "ofType": null
+                },
+                {
+                  "kind": "OBJECT",
+                  "name": "__Field",
+                  "ofType": null
+                },
+                {
+                  "kind": "OBJECT",
+                  "name": "__InputValue",
+                  "ofType": null
+                },
+                {
+                  "kind": "OBJECT",
+                  "name": "__Type",
+                  "ofType": null
+                }
+              ]
             },
             {
               "kind": "OBJECT",
@@ -1599,16 +1792,16 @@ response:
               "interfaces": null,
               "enumValues": [
                 {
-                  "name": "PHOTO",
-                  "description": null,
-                  "isDeprecated": true,
-                  "deprecationReason": "No longer supported"
-                },
-                {
                   "name": "STORY",
                   "description": "Enum value description",
                   "isDeprecated": false,
                   "deprecationReason": null
+                },
+                {
+                  "name": "PHOTO",
+                  "description": null,
+                  "isDeprecated": true,
+                  "deprecationReason": "No longer supported"
                 }
               ],
               "possibleTypes": null
@@ -1629,6 +1822,18 @@ response:
               "kind": "SCALAR",
               "name": "Boolean",
               "description": "The \u0060Boolean\u0060 scalar type represents \u0060true\u0060 or \u0060false\u0060.",
+              "specifiedByURL": null,
+              "isOneOf": null,
+              "fields": null,
+              "inputFields": null,
+              "interfaces": null,
+              "enumValues": null,
+              "possibleTypes": null
+            },
+            {
+              "kind": "SCALAR",
+              "name": "Float",
+              "description": "The \u0060Float\u0060 scalar type represents signed double-precision finite values as specified by [IEEE 754](https://en.wikipedia.org/wiki/IEEE_floating_point).",
               "specifiedByURL": null,
               "isOneOf": null,
               "fields": null,

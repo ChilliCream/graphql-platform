@@ -16,7 +16,7 @@ public sealed class GlobalOptionsCommandTests(NitroCommandFixture fixture) : Com
         result.StdErr.MatchInlineSnapshot(
             """
             Argument 'wtf' not recognized. Must be one of:
-            	'json'
+                'json'
             """);
     }
 }

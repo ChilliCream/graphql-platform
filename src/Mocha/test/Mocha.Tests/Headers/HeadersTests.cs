@@ -227,7 +227,7 @@ public class HeadersTests
         var headers = JsonSerializer.Deserialize<IHeaders>(json, HeadersJsonConverter.Options);
 
         Assert.NotNull(headers);
-        Assert.Equal(0, headers!.Count);
+        Assert.Equal(0, headers.Count);
     }
 
     [Fact]
@@ -238,7 +238,7 @@ public class HeadersTests
         var headers = JsonSerializer.Deserialize<IHeaders>(json, HeadersJsonConverter.Options);
 
         Assert.NotNull(headers);
-        Assert.True(headers!.TryGetValue("key", out var val));
+        Assert.True(headers.TryGetValue("key", out var val));
         Assert.Equal("value", val);
     }
 
@@ -250,7 +250,7 @@ public class HeadersTests
         var headers = JsonSerializer.Deserialize<IHeaders>(json, HeadersJsonConverter.Options);
 
         Assert.NotNull(headers);
-        Assert.True(headers!.TryGetValue("count", out var val));
+        Assert.True(headers.TryGetValue("count", out var val));
         // JSON numbers may deserialize as different numeric types
         Assert.NotNull(val);
     }
@@ -263,7 +263,7 @@ public class HeadersTests
         var headers = JsonSerializer.Deserialize<IHeaders>(json, HeadersJsonConverter.Options);
 
         Assert.NotNull(headers);
-        Assert.True(headers!.TryGetValue("active", out var val));
+        Assert.True(headers.TryGetValue("active", out var val));
         Assert.Equal(true, val);
     }
 
@@ -275,7 +275,7 @@ public class HeadersTests
         var headers = JsonSerializer.Deserialize<IHeaders>(json, HeadersJsonConverter.Options);
 
         Assert.NotNull(headers);
-        Assert.True(headers!.TryGetValue("key", out var val));
+        Assert.True(headers.TryGetValue("key", out var val));
         Assert.Null(val);
     }
 
@@ -287,7 +287,7 @@ public class HeadersTests
         var headers = JsonSerializer.Deserialize<IHeaders>(json, HeadersJsonConverter.Options);
 
         Assert.NotNull(headers);
-        Assert.True(headers!.TryGetValue("nested", out var val));
+        Assert.True(headers.TryGetValue("nested", out var val));
         Assert.NotNull(val);
     }
 
@@ -299,7 +299,7 @@ public class HeadersTests
         var headers = JsonSerializer.Deserialize<IHeaders>(json, HeadersJsonConverter.Options);
 
         Assert.NotNull(headers);
-        Assert.True(headers!.TryGetValue("items", out var val));
+        Assert.True(headers.TryGetValue("items", out var val));
         Assert.NotNull(val);
     }
 
@@ -314,9 +314,9 @@ public class HeadersTests
         var deserialized = JsonSerializer.Deserialize<IHeaders>(json, HeadersJsonConverter.Options);
 
         Assert.NotNull(deserialized);
-        Assert.True(deserialized!.TryGetValue("key1", out var v1));
+        Assert.True(deserialized.TryGetValue("key1", out var v1));
         Assert.Equal("value1", v1);
-        Assert.True(deserialized!.TryGetValue("key2", out var v2));
+        Assert.True(deserialized.TryGetValue("key2", out var v2));
         Assert.Equal("value2", v2);
     }
 
@@ -331,7 +331,7 @@ public class HeadersTests
         var deserialized = JsonSerializer.Deserialize<IHeaders>(json, HeadersJsonConverter.Options);
 
         Assert.NotNull(deserialized);
-        Assert.True(deserialized!.TryGetValue("str", out var s));
+        Assert.True(deserialized.TryGetValue("str", out var s));
         Assert.Equal("hello", s);
     }
 }

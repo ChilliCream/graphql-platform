@@ -23,6 +23,13 @@ internal sealed class DirectiveTypeFactory : ITypeFactory<DirectiveDefinitionNod
             typeDefinition.IsPublic = true;
         }
 
+        if (node.DeprecationReason() is { Length: > 0 } reason)
+        {
+            typeDefinition.DeprecationReason = reason;
+        }
+
+        SdlToTypeSystemHelper.AddDirectives(context, typeDefinition, node, path);
+
         DeclareArguments(context, typeDefinition, node.Arguments, path);
         DeclareLocations(typeDefinition, node);
 

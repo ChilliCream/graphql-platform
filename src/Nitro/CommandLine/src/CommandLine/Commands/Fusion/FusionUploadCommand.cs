@@ -69,9 +69,14 @@ internal sealed class FusionUploadCommand : Command
             $"Uploading new version '{tag.EscapeMarkup()}' for source schema '{sourceSchemaName.EscapeMarkup()}' of API '{apiId.EscapeMarkup()}'",
             "Failed to upload a new source schema version.");
 
+        var schemaExtensions = sourceText.ExtensionsSourceText is null
+            ? default
+            : Encoding.UTF8.GetBytes(sourceText.ExtensionsSourceText);
+
         await using var archiveStream = await FusionSourceSchemaArchiveHelper.CreateArchiveStreamAsync(
             Encoding.UTF8.GetBytes(sourceText.SourceText),
             settings,
+            schemaExtensions,
             cancellationToken);
 
         var result = await fusionConfigurationClient.UploadFusionSubgraphAsync(

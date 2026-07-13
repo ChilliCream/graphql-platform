@@ -227,6 +227,12 @@ response:
                 },
                 {
                   "__typename": "__Field"
+                },
+                {
+                  "__typename": "__Field"
+                },
+                {
+                  "__typename": "__Field"
                 }
               ],
               "enumValues": null,
@@ -292,8 +298,39 @@ response:
                 },
                 {
                   "__typename": "__EnumValue"
+                },
+                {
+                  "__typename": "__EnumValue"
                 }
               ],
+              "inputFields": null
+            },
+            {
+              "__typename": "__Type",
+              "fields": [
+                {
+                  "__typename": "__Field"
+                },
+                {
+                  "__typename": "__Field"
+                },
+                {
+                  "__typename": "__Field"
+                },
+                {
+                  "__typename": "__Field"
+                },
+                {
+                  "__typename": "__Field"
+                }
+              ],
+              "enumValues": null,
+              "inputFields": null
+            },
+            {
+              "__typename": "__Type",
+              "fields": null,
+              "enumValues": null,
               "inputFields": null
             },
             {
@@ -422,6 +459,12 @@ response:
                   "__typename": "__EnumValue"
                 }
               ],
+              "inputFields": null
+            },
+            {
+              "__typename": "__Type",
+              "fields": null,
+              "enumValues": null,
               "inputFields": null
             },
             {

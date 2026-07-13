@@ -1,4 +1,3 @@
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
@@ -23,6 +22,23 @@ public sealed class OutboxServiceRegistrationTests
 
         // Assert
         Assert.Contains(hostedServices, s => s is PostgresMessageBusOutboxWorker);
+    }
+
+    [Fact]
+    public async Task StartAsync_Should_NotThrow_When_CalledMultipleTimes()
+    {
+        // arrange
+        await using var provider = BuildProvider();
+        var worker = provider.GetServices<IHostedService>()
+            .OfType<PostgresMessageBusOutboxWorker>()
+            .Single();
+
+        // act
+        await worker.StartAsync(CancellationToken.None);
+        await worker.StartAsync(CancellationToken.None);
+
+        // assert
+        await worker.StopAsync(CancellationToken.None);
     }
 
     [Fact]
@@ -61,7 +77,7 @@ public sealed class OutboxServiceRegistrationTests
 
         // Act
         var optionsMonitor = provider.GetRequiredService<IOptionsMonitor<PostgresMessageOutboxOptions>>();
-        var contextName = typeof(TestDbContext).FullName!;
+        var contextName = typeof(TestDbContext).FullName;
         var options = optionsMonitor.Get(contextName);
 
         // Assert
@@ -76,7 +92,7 @@ public sealed class OutboxServiceRegistrationTests
     {
         var services = new ServiceCollection();
         services.AddLogging();
-        services.AddDbContext<TestDbContext>(o => o.UseNpgsql(ConnectionString));
+        services.AddDbContext<TestDbContext>(o => o.UseTestNpgsql(ConnectionString));
 
         // Use a resilient signal to prevent ObjectDisposedException when
         // EF Core shares the internal service provider (and interceptors)

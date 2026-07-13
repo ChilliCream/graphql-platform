@@ -2,8 +2,8 @@ using HotChocolate.Language;
 
 namespace HotChocolate.ApolloFederation;
 
-internal sealed class ExternalSetter(Action<ObjectType, IValueNode, object> setter)
+internal sealed class ExternalSetter(Action<Schema, ObjectType, IValueNode, object> setter)
 {
-    public void Invoke(ObjectType type, IValueNode data, object obj)
-        => setter(type, data, obj);
+    public void Invoke(Schema schema, ObjectType type, IValueNode data, object obj)
+        => setter(schema, type, data, obj);
 }

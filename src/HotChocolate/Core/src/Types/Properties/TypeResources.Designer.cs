@@ -530,11 +530,29 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The directive extension `extend directive @{0}` targets an undefined directive..
+        /// </summary>
+        internal static string DirectiveExtension_UnknownTarget {
+            get {
+                return ResourceManager.GetString("DirectiveExtension_UnknownTarget", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Location adjacent to an argument definition.
         /// </summary>
         internal static string DirectiveLocation_ArgumentDefinition {
             get {
                 return ResourceManager.GetString("DirectiveLocation_ArgumentDefinition", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Location adjacent to a directive definition..
+        /// </summary>
+        internal static string DirectiveLocation_DirectiveDefinition {
+            get {
+                return ResourceManager.GetString("DirectiveLocation_DirectiveDefinition", resourceCulture);
             }
         }
         
@@ -886,6 +904,15 @@ namespace HotChocolate.Properties {
         internal static string ErrorHelper_DirectiveCollection_ArgumentValueTypeIsWrong {
             get {
                 return ResourceManager.GetString("ErrorHelper_DirectiveCollection_ArgumentValueTypeIsWrong", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The directive definition &apos;@{0}&apos; must not reference itself..
+        /// </summary>
+        internal static string ErrorHelper_DirectiveDefinitionSelfApplication {
+            get {
+                return ResourceManager.GetString("ErrorHelper_DirectiveDefinitionSelfApplication", resourceCulture);
             }
         }
         
@@ -1799,7 +1826,7 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Indicates that the given field, argument, input field, or enum value requires giving explicit consent before being used..
+        ///   Looks up a localized string similar to Indicates that the given field, argument, input field, enum value, or directive definition requires giving explicit consent before being used..
         /// </summary>
         internal static string RequiresOptInDirectiveType_TypeDescription {
             get {

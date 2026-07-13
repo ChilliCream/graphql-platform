@@ -47,12 +47,12 @@ internal sealed class DeleteOpenApiCollectionCommand : Command
             var apiId = await console.PromptForApiIdAsync(
                 apisClient,
                 workspaceId,
-                "For which API do you want to delete an OpenAPI collection?",
+                Prompts.SelectApiForDeleteOpenApiCollection,
                 cancellationToken);
 
             var selectedOpenApiCollection = await SelectOpenApiCollectionPrompt
                 .New(client, apiId)
-                .Title("Which OpenAPI collection do you want to delete?")
+                .Title(Prompts.DeleteOpenApiCollection)
                 .RenderAsync(console, cancellationToken) ?? throw new ExitException("You did not select an OpenAPI collection!");
 
             openApiCollectionId = selectedOpenApiCollection.Id;
@@ -62,7 +62,7 @@ internal sealed class DeleteOpenApiCollectionCommand : Command
         if (!force)
         {
             var confirmed = await console.ConfirmAsync(
-                $"Do you want to delete the OpenAPI collection with the ID {openApiCollectionId}?"
+                Prompts.ConfirmDeleteOpenApiCollection(openApiCollectionId)
                     .EscapeMarkup(),
                 cancellationToken);
 

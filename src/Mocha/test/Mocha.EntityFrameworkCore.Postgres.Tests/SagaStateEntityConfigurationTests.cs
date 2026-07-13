@@ -77,7 +77,7 @@ public sealed class SagaStateEntityConfigurationTests
 
     private static IModel CreateModel()
     {
-        var options = new DbContextOptionsBuilder<TestDbContext>().UseNpgsql("Host=localhost").Options;
+        var options = new DbContextOptionsBuilder<TestDbContext>().UseTestNpgsql("Host=localhost").Options;
         using var context = new TestDbContext(options);
         return context.GetService<IDesignTimeModel>().Model;
     }

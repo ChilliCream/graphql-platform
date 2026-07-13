@@ -21,7 +21,7 @@ public sealed class Operation : IOperation
     private readonly OperationCompiler _compiler;
     private readonly IncludeConditionCollection _includeConditions;
     private readonly DeferConditionCollection _deferConditions;
-    private readonly IReadOnlyDictionary<InlineFragmentNode, DeferUsage> _deferUsageByFragment;
+    private readonly IReadOnlyDictionary<InlineFragmentNode, DeliveryGroup> _deliveryGroupByFragment;
     private readonly OperationFeatureCollection _features;
     private readonly bool _hasIncrementalParts;
     private object[] _elementsById;
@@ -37,7 +37,7 @@ public sealed class Operation : IOperation
         OperationCompiler compiler,
         IncludeConditionCollection includeConditions,
         DeferConditionCollection deferConditions,
-        IReadOnlyDictionary<InlineFragmentNode, DeferUsage> deferUsageByFragment,
+        IReadOnlyDictionary<InlineFragmentNode, DeliveryGroup> deliveryGroupByFragment,
         bool hasIncrementalParts,
         int lastId,
         object[] elementsById)
@@ -51,7 +51,7 @@ public sealed class Operation : IOperation
         ArgumentNullException.ThrowIfNull(compiler);
         ArgumentNullException.ThrowIfNull(includeConditions);
         ArgumentNullException.ThrowIfNull(deferConditions);
-        ArgumentNullException.ThrowIfNull(deferUsageByFragment);
+        ArgumentNullException.ThrowIfNull(deliveryGroupByFragment);
         ArgumentNullException.ThrowIfNull(elementsById);
 
         Id = id;
@@ -63,7 +63,7 @@ public sealed class Operation : IOperation
         _compiler = compiler;
         _includeConditions = includeConditions;
         _deferConditions = deferConditions;
-        _deferUsageByFragment = deferUsageByFragment;
+        _deliveryGroupByFragment = deliveryGroupByFragment;
         _hasIncrementalParts = hasIncrementalParts;
         _lastId = lastId;
         _elementsById = elementsById;
@@ -157,11 +157,11 @@ public sealed class Operation : IOperation
     /// <exception cref="ArgumentException">
     /// The specified <paramref name="selection"/> has no selection set.
     /// </exception>
-    public SelectionSet GetSelectionSet(Selection selection, IObjectTypeDefinition typeContext)
+    public SelectionSet GetSelectionSet(Selection selection, IComplexTypeDefinition typeContext)
     {
         ArgumentNullException.ThrowIfNull(selection);
         ArgumentNullException.ThrowIfNull(typeContext);
-        Debug.Assert(typeContext is FusionObjectTypeDefinition);
+        Debug.Assert(typeContext is FusionComplexTypeDefinition);
 
         var key = (selection.Id, typeContext.Name);
 
@@ -174,9 +174,9 @@ public sealed class Operation : IOperation
                     selectionSet =
                         _compiler.CompileSelectionSet(
                             selection,
-                            (FusionObjectTypeDefinition)typeContext,
+                            (FusionComplexTypeDefinition)typeContext,
                             _includeConditions,
-                            _deferUsageByFragment,
+                            _deliveryGroupByFragment,
                             ref _elementsById,
                             ref _lastId);
                     selectionSet.Seal(this);
@@ -242,8 +242,10 @@ public sealed class Operation : IOperation
         {
             if (includeCondition.IsIncluded(variables))
             {
-                includeFlags |= 1ul << index++;
+                includeFlags |= 1ul << index;
             }
+
+            index++;
         }
 
         return includeFlags;

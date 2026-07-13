@@ -86,9 +86,15 @@ public class SchemaExportCommandTests : IDisposable
         await app.InvokeAsync($"schema export --output {tempFile}", output);
 
         // assert
-        snapshot.Add(await File.ReadAllTextAsync(tempFile + ".graphqls"), "Schema", markdownLanguage: "graphql");
-        snapshot.Add(await File.ReadAllTextAsync(tempFile + "-settings.json"), "Settings", markdownLanguage: "json");
-        await snapshot.MatchMarkdownAsync();
+        snapshot.Add(
+            await File.ReadAllTextAsync(tempFile + ".graphqls", TestContext.Current.CancellationToken),
+            "Schema",
+            markdownLanguage: "graphql");
+        snapshot.Add(
+            await File.ReadAllTextAsync(tempFile + "-settings.json", TestContext.Current.CancellationToken),
+            "Settings",
+            markdownLanguage: "json");
+        await snapshot.MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -114,9 +120,15 @@ public class SchemaExportCommandTests : IDisposable
         await app.InvokeAsync($"schema export --output {tempFile} --semantic-non-null", output);
 
         // assert
-        snapshot.Add(await File.ReadAllTextAsync(tempFile + ".graphqls"), "Schema", markdownLanguage: "graphql");
-        snapshot.Add(await File.ReadAllTextAsync(tempFile + "-settings.json"), "Settings", markdownLanguage: "json");
-        await snapshot.MatchMarkdownAsync();
+        snapshot.Add(
+            await File.ReadAllTextAsync(tempFile + ".graphqls", TestContext.Current.CancellationToken),
+            "Schema",
+            markdownLanguage: "graphql");
+        snapshot.Add(
+            await File.ReadAllTextAsync(tempFile + "-settings.json", TestContext.Current.CancellationToken),
+            "Settings",
+            markdownLanguage: "json");
+        await snapshot.MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -141,6 +153,62 @@ public class SchemaExportCommandTests : IDisposable
 
         // assert
         output.ToString().MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task App_Should_PreserveUnescapedAngleBrackets_When_UpdatingExistingSettingsFile()
+    {
+        // arrange
+        var services = new ServiceCollection();
+        services.AddGraphQL()
+            .AddQueryType(x => x.Name("Query").Field("foo").Resolve("bar"));
+
+        var hostMock = new Mock<IHost>();
+        hostMock
+            .Setup(x => x.Services)
+            .Returns(services.BuildServiceProvider());
+
+        var host = hostMock.Object;
+        var output = new StringWriter();
+        var app = new App(host);
+        var tempFile = CreateSchemaFileName();
+        var settingsFile = tempFile + "-settings.json";
+
+        const string existingSettings =
+            """
+            {
+              "name": "default",
+              "satisfiability": {
+                "ignoredNonAccessibleFields": {
+                  "Foo.bar": [
+                    "Schema1:Query.foo<Bar>"
+                  ]
+                }
+              }
+            }
+            """;
+
+        await File.WriteAllTextAsync(settingsFile, existingSettings, TestContext.Current.CancellationToken);
+
+        // act
+        await app.InvokeAsync($"schema export --output {tempFile}", output);
+
+        // assert
+        var actual = await File.ReadAllTextAsync(settingsFile, TestContext.Current.CancellationToken);
+        actual.ReplaceLineEndings("\n").MatchInlineSnapshot(
+            """
+            {
+              "name": "_Default",
+              "satisfiability": {
+                "ignoredNonAccessibleFields": {
+                  "Foo.bar": [
+                    "Schema1:Query.foo<Bar>"
+                  ]
+                }
+              }
+            }
+
+            """);
     }
 
     [Fact]

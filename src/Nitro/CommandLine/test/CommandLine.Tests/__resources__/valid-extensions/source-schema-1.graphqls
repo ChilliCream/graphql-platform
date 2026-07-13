@@ -1,0 +1,11 @@
+schema {
+  query: Query
+}
+
+type Query {
+  productById(id: ID!): Product
+}
+
+type Product {
+  id: ID!
+}

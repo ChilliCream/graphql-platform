@@ -5,9 +5,10 @@
     <AssemblyName>HotChocolate.Subscriptions.InMemory</AssemblyName>
     <RootNamespace>HotChocolate.Subscriptions.InMemory</RootNamespace>
     <Description>Contains an in-memory implementation for a Hot Chocolate GraphQL subscription provider.</Description>
+    <IsAotCompatible>true</IsAotCompatible>
   </PropertyGroup>
 
-  <ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == 'net8.0' or '$(TargetFramework)' == 'net9.0' or '$(TargetFramework)' == 'net10.0'">
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
   </ItemGroup>
 

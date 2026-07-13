@@ -181,7 +181,7 @@ public sealed class MessageBusChangeTokenSourceTests
         // assert
         Assert.NotNull(nextToken);
         Assert.NotSame(token, nextToken);
-        Assert.False(nextToken!.HasChanged);
+        Assert.False(nextToken.HasChanged);
     }
 
     [Fact]
@@ -224,7 +224,7 @@ public sealed class MessageBusChangeTokenSourceTests
         // assert
         Assert.NotNull(nextToken);
         Assert.NotSame(token, nextToken);
-        Assert.False(nextToken!.HasChanged);
+        Assert.False(nextToken.HasChanged);
     }
 
     [Fact]
@@ -275,7 +275,7 @@ public sealed class MessageBusChangeTokenSourceTests
         topology.Dispose();
 
         // act & assert
-        Assert.Throws<ObjectDisposedException>(() => topology.GetChangeToken());
+        Assert.Throws<ObjectDisposedException>(topology.GetChangeToken);
     }
 
     [Fact]
@@ -304,7 +304,7 @@ public sealed class MessageBusChangeTokenSourceTests
 
         // act
         topology.Dispose();
-        var exception = Record.Exception(() => topology.Dispose());
+        var exception = Record.Exception(topology.Dispose);
 
         // assert
         Assert.Null(exception);
@@ -391,7 +391,15 @@ public sealed class MessageBusChangeTokenSourceTests
         }
 
         public override TransportDescription Describe()
-            => new("test:/", "test", "test", nameof(MutableTokenTransport), [], [], null);
+            => new(
+                "urn:mocha:svc:test:transport:test:test",
+                "test:/",
+                "test",
+                "test",
+                nameof(MutableTokenTransport),
+                [],
+                [],
+                null);
 
         public override bool TryGetDispatchEndpoint(Uri address, [NotNullWhen(true)] out DispatchEndpoint? endpoint)
         {

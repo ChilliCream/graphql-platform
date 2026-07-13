@@ -14,11 +14,23 @@ using HotChocolate.Fusion.Text.Json;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Text.Json;
+using IntValueNode = HotChocolate.Language.IntValueNode;
+using FloatValueNode = HotChocolate.Language.FloatValueNode;
+using StringValueNode = HotChocolate.Language.StringValueNode;
+using BooleanValueNode = HotChocolate.Language.BooleanValueNode;
+using NullValueNode = HotChocolate.Language.NullValueNode;
+using EnumValueNode = HotChocolate.Language.EnumValueNode;
+using ListValueNode = HotChocolate.Language.ListValueNode;
+using ObjectValueNode = HotChocolate.Language.ObjectValueNode;
+using ObjectFieldNode = HotChocolate.Language.ObjectFieldNode;
+using IValueNode = HotChocolate.Language.IValueNode;
 
 namespace HotChocolate.Fusion.Execution.Results;
 
 internal sealed partial class FetchResultStore : IDisposable
 {
+    private const int MaxRetainedDataElementStagingLength = 1024;
+
     private static readonly ArrayPool<VariableValues> s_variableValuePool = ArrayPool<VariableValues>.Shared;
     private static readonly ArrayPool<object> s_objectPool = ArrayPool<object>.Shared;
 
@@ -40,7 +52,9 @@ internal sealed partial class FetchResultStore : IDisposable
     private CompositeResultElement[] _collectTargetA = ArrayPool<CompositeResultElement>.Shared.Rent(64);
     private CompositeResultElement[] _collectTargetB = ArrayPool<CompositeResultElement>.Shared.Rent(64);
     private CompositeResultElement[] _collectTargetCombined = ArrayPool<CompositeResultElement>.Shared.Rent(64);
+    private SourceResultElement[] _dataElementStaging = [];
     private PathSegmentLocalPool _pathPool = default!;
+    private IMemoryArena _arena = default!;
     private HashSet<int[]> _seenPaths = new(ReferenceEqualityComparer.Instance);
     private CompositeResultDocument _result = default!;
     private ValueCompletion _valueCompletion = default!;
@@ -127,6 +141,8 @@ internal sealed partial class FetchResultStore : IDisposable
 
             lock (_lock)
             {
+                var i = 0;
+
                 try
                 {
                     if (rootErrors is not null)
@@ -136,8 +152,7 @@ internal sealed partial class FetchResultStore : IDisposable
                     }
 
                     var resultData = _result.Data;
-
-                    for (var i = 0; i < results.Length; i++)
+                    for (i = 0; i < results.Length; i++)
                     {
                         var result = results[i];
                         _memory.Add(result);
@@ -150,11 +165,17 @@ internal sealed partial class FetchResultStore : IDisposable
                                 errorTriesSpan[i],
                                 resultSelectionSet))
                         {
+                            RegisterRemainingResults(_memory, results, i);
                             return false;
                         }
                     }
 
                     return true;
+                }
+                catch
+                {
+                    RegisterRemainingResults(_memory, results, i);
+                    throw;
                 }
                 finally
                 {
@@ -169,6 +190,22 @@ internal sealed partial class FetchResultStore : IDisposable
             ArrayPool<SourceResultElement>.Shared.Return(dataElements);
             ArrayPool<ErrorTrie?>.Shared.Return(errorTries);
         }
+
+        static void RegisterRemainingResults(
+            List<IDisposable> _memory,
+            ReadOnlySpan<SourceSchemaResult> results,
+            int i)
+        {
+            i++;
+
+            if (i < results.Length)
+            {
+                for (; i < results.Length; i++)
+                {
+                    _memory.Add(results[i]);
+                }
+            }
+        }
     }
 
     private bool AddPartialResultsNoErrors(
@@ -176,7 +213,25 @@ internal sealed partial class FetchResultStore : IDisposable
         ReadOnlySpan<SourceSchemaResult> results,
         ResultSelectionSet resultSelectionSet)
     {
-        var dataElements = ArrayPool<SourceResultElement>.Shared.Rent(results.Length);
+        // Pending merges are consumed serially by OperationPlanExecutor, so this retained buffer
+        // cannot be used concurrently by two no-error multi-result merges on the same store.
+        var returnDataElements = results.Length > MaxRetainedDataElementStagingLength;
+        SourceResultElement[] dataElements;
+
+        if (returnDataElements)
+        {
+            dataElements = ArrayPool<SourceResultElement>.Shared.Rent(results.Length);
+        }
+        else
+        {
+            if (_dataElementStaging.Length < results.Length)
+            {
+                _dataElementStaging = CreateDataElementStaging(results.Length);
+            }
+
+            dataElements = _dataElementStaging;
+        }
+
         var dataElementsSpan = dataElements.AsSpan(0, results.Length);
 
         try
@@ -188,11 +243,13 @@ internal sealed partial class FetchResultStore : IDisposable
 
             lock (_lock)
             {
+                var i = 0;
+
                 try
                 {
                     var resultData = _result.Data;
 
-                    for (var i = 0; i < results.Length; i++)
+                    for (i = 0; i < results.Length; i++)
                     {
                         var result = results[i];
                         _memory.Add(result);
@@ -205,11 +262,17 @@ internal sealed partial class FetchResultStore : IDisposable
                                 errorTrie: null,
                                 resultSelectionSet))
                         {
+                            RegisterRemainingResults(_memory, results, i);
                             return false;
                         }
                     }
 
                     return true;
+                }
+                catch
+                {
+                    RegisterRemainingResults(_memory, results, i);
+                    throw;
                 }
                 finally
                 {
@@ -220,8 +283,42 @@ internal sealed partial class FetchResultStore : IDisposable
         finally
         {
             dataElementsSpan.Clear();
-            ArrayPool<SourceResultElement>.Shared.Return(dataElements);
+
+            if (returnDataElements)
+            {
+                ArrayPool<SourceResultElement>.Shared.Return(dataElements);
+            }
         }
+
+        static void RegisterRemainingResults(
+            List<IDisposable> _memory,
+            ReadOnlySpan<SourceSchemaResult> results,
+            int i)
+        {
+            i++;
+
+            if (i < results.Length)
+            {
+                for (; i < results.Length; i++)
+                {
+                    _memory.Add(results[i]);
+                }
+            }
+        }
+    }
+
+    private static SourceResultElement[] CreateDataElementStaging(int minimumLength)
+    {
+        Debug.Assert(minimumLength is > 0 and <= MaxRetainedDataElementStagingLength);
+
+        var length = minimumLength switch
+        {
+            <= 256 => 256,
+            <= 512 => 512,
+            _ => MaxRetainedDataElementStagingLength
+        };
+
+        return new SourceResultElement[length];
     }
 
     private bool AddSinglePartialResult(
@@ -408,7 +505,7 @@ AddErrors_Next:
                 }
 
 AddErrors_Next:
-                path = ref Unsafe.Add(ref path, 1)!;
+                path = ref Unsafe.Add(ref path, 1);
             }
         }
 
@@ -522,6 +619,7 @@ AddErrors_Next:
         lock (_lock)
         {
             _valueCompletion.FinalizePocketedErrors(_result.Data);
+            _valueCompletion.FinalizeInaccessibleRuntimeTypes(_result.Data);
         }
     }
 
@@ -586,7 +684,9 @@ AddErrors_Next:
             return false;
         }
 
-        var element = path.IsRoot ? resultData : GetStartObjectResult(path);
+        var element = path.IsRoot ? resultData : GetStartResult(path);
+        Debug.Assert(element.ValueKind is JsonValueKind.Object or JsonValueKind.Null or JsonValueKind.Undefined);
+
         if (element.IsNullOrInvalidated)
         {
             return true;
@@ -689,6 +789,43 @@ AddErrors_Next:
         }
     }
 
+    internal ImmutableArray<VariableValues> CreateVariableValueSetsFromSnapshot(
+        ImmutableArray<VariableValues> importedEntries,
+        HashSet<string> importedKeys,
+        IReadOnlyList<ObjectFieldNode> requestVariables,
+        ReadOnlySpan<OperationRequirement> requiredData)
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+        ArgumentNullException.ThrowIfNull(importedKeys);
+        ArgumentNullException.ThrowIfNull(requestVariables);
+
+        if (requiredData.Length == 0)
+        {
+            throw new ArgumentException(
+                "The required data span must contain at least one requirement.",
+                nameof(requiredData));
+        }
+
+        if (importedEntries.IsDefaultOrEmpty)
+        {
+            return [];
+        }
+
+        foreach (var requirement in requiredData)
+        {
+            if (!importedKeys.Contains(requirement.Key))
+            {
+                throw new InvalidOperationException(
+                    "A deferred incremental plan fetch references a requirement that was not imported.");
+            }
+        }
+
+        lock (_lock)
+        {
+            return BuildVariableValueSetsFromSnapshot(importedEntries, requestVariables, requiredData);
+        }
+    }
+
     // Caller must hold _lock for reading.
     private ReadOnlySpan<CompositeResultElement> CollectTargetElements(SelectionPath selectionSet)
     {
@@ -705,12 +842,30 @@ AddErrors_Next:
 
             if (segment.Kind is SelectionPathSegmentKind.InlineFragment)
             {
+                IOutputTypeDefinition? segmentType = null;
+
                 for (var j = 0; j < currentCount; j++)
                 {
                     var element = current[j];
-                    if (element.TryGetProperty(IntrospectionFieldNames.TypeNameSpan, out var value)
-                        && value.ValueKind is JsonValueKind.String
-                        && value.TextEqualsHelper(segment.Name, isPropertyName: false))
+
+                    if (!element.TryGetProperty(IntrospectionFieldNames.TypeNameSpan, out var value)
+                        || value.ValueKind is not JsonValueKind.String)
+                    {
+                        continue;
+                    }
+
+                    // Fast path: the runtime __typename equals the type condition exactly.
+                    if (value.TextEqualsHelper(segment.Name, isPropertyName: false))
+                    {
+                        AddToBuffer(ref next, ref nextCount, element);
+                        continue;
+                    }
+
+                    // The type condition names an abstract type; accept elements whose
+                    // runtime type is a subtype of it.
+                    segmentType ??= _schema.Types.GetType<IOutputTypeDefinition>(segment.Name);
+
+                    if (segmentType.IsAssignableFrom(element.AssertSelectionSet().Type))
                     {
                         AddToBuffer(ref next, ref nextCount, element);
                     }
@@ -718,10 +873,12 @@ AddErrors_Next:
             }
             else if (segment.Kind is SelectionPathSegmentKind.Field)
             {
+                var lookupMemo = default(PropertyLookupMemo);
+
                 for (var j = 0; j < currentCount; j++)
                 {
                     var element = current[j];
-                    if (!element.TryGetProperty(segment.Name, out var value))
+                    if (!element.TryGetProperty(segment.Name, ref lookupMemo, out var value))
                     {
                         continue;
                     }
@@ -745,8 +902,10 @@ AddErrors_Next:
                         continue;
                     }
 
-                    // TODO : Better error
-                    throw new NotSupportedException("Must be list or object.");
+                    throw ThrowHelper.InvalidTargetValueKind(
+                        selectionSet.Slice(i + 1),
+                        value.Path,
+                        valueKind);
                 }
             }
 
@@ -755,17 +914,107 @@ AddErrors_Next:
 
             if (currentCount == 0)
             {
-                // Store potentially grown arrays back.
+                // Update collection state.
                 _collectTargetA = current;
                 _collectTargetB = next;
                 return [];
             }
         }
 
-        // Store potentially grown arrays back.
+        // Update collection state.
         _collectTargetA = current;
         _collectTargetB = next;
         return current.AsSpan(0, currentCount);
+    }
+
+    public ImmutableArray<CompactPath> GetResultPaths(SelectionPath selectionSet)
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+        ArgumentNullException.ThrowIfNull(selectionSet);
+
+        lock (_lock)
+        {
+            if (selectionSet.IsRoot)
+            {
+                return [CompactPath.Root];
+            }
+
+            var elements = CollectTargetElements(selectionSet);
+
+            if (elements.IsEmpty)
+            {
+                return [];
+            }
+
+            var paths = ImmutableArray.CreateBuilder<CompactPath>(elements.Length);
+
+            foreach (var element in elements)
+            {
+                paths.Add(element.CompactPath);
+            }
+
+            return paths.MoveToImmutable();
+        }
+    }
+
+    private ImmutableArray<VariableValues> BuildVariableValueSetsFromSnapshot(
+        ImmutableArray<VariableValues> importedEntries,
+        IReadOnlyList<ObjectFieldNode> requestVariables,
+        ReadOnlySpan<OperationRequirement> requiredData)
+    {
+        _variableDedupTable.Initialize(importedEntries.Length);
+
+        VariableValues[]? variableValueSets = null;
+        var additionalPaths = new AdditionalPathAccumulator();
+        var nextIndex = 0;
+
+        foreach (var importedEntry in importedEntries)
+        {
+            if (importedEntry.IsEmpty)
+            {
+                continue;
+            }
+
+            _jsonWriter.Reset(_variableWriter);
+            var startPosition = _variableWriter.Position;
+            _jsonWriter.WriteStartObject();
+
+            for (var i = 0; i < requestVariables.Count; i++)
+            {
+                var field = requestVariables[i];
+                _jsonWriter.WritePropertyName(field.Name.Value);
+                WriteValueNode(field.Value);
+            }
+
+            if (!TryWriteRequestedRequirementValues(importedEntry.Values, requiredData))
+            {
+                _variableWriter.ResetTo(startPosition);
+                continue;
+            }
+
+            _jsonWriter.WriteEndObject();
+
+            var entry = TryCreateVariableValues(
+                importedEntry.Path,
+                startPosition,
+                ref additionalPaths,
+                nextIndex,
+                out var dedupIndex);
+
+            if (entry is null)
+            {
+                additionalPaths.AddRange(dedupIndex, importedEntry.AdditionalPaths.AsSpan());
+                continue;
+            }
+
+            variableValueSets ??= s_variableValuePool.Rent(importedEntries.Length);
+            variableValueSets[nextIndex] = entry.Value;
+            additionalPaths.AddRange(nextIndex, importedEntry.AdditionalPaths.AsSpan());
+            nextIndex++;
+        }
+
+        _variableDedupTable.Clear();
+        return FinalizeVariableValueSets(variableValueSets, ref additionalPaths, nextIndex);
     }
 
     private ImmutableArray<VariableValues> BuildVariableValueSets(
@@ -834,11 +1083,18 @@ AddErrors_Next:
             // Write requirement fields.
             var failed = false;
 
-            foreach (var requirement in requiredData)
+            for (var i = 0; i < requiredData.Length; i++)
             {
+                var requirement = requiredData[i];
                 _jsonWriter.WritePropertyName(requirement.Key);
 
-                if (!ResultDataMapper.TryMap(result, requirement.Map, _schema, _jsonWriter))
+                if (!ResultDataMapper.TryMap(
+                    result,
+                    requirement.Map,
+                    requirement.Type,
+                    _schema,
+                    requirement.InternalAlias,
+                    _jsonWriter))
                 {
                     failed = true;
                     break;
@@ -880,7 +1136,11 @@ AddErrors_Next:
         ReadOnlySpan<CompositeResultElement> elements,
         OperationRequirement requirement)
     {
-        if (TryGetSimpleRequirementFieldName(requirement.Map, out var fieldName))
+        // The fast path copies values verbatim and only guards top-level nulls,
+        // so list-typed requirements take the slow path where the mapper checks
+        // element nullability.
+        if (TryGetSimpleRequirementFieldName(requirement, out var fieldName)
+            && !requirement.Type.IsListType())
         {
             return BuildVariableValueSetsSingleRequirementFastPath(elements, requirement, fieldName);
         }
@@ -897,12 +1157,14 @@ AddErrors_Next:
         var additionalPaths = new AdditionalPathAccumulator();
         var nextIndex = 0;
         var isNonNullRequirement = requirement.Type.Kind is SyntaxKind.NonNullType;
+        var lookupName = requirement.InternalAlias ?? fieldName;
+        var lookupMemo = default(PropertyLookupMemo);
 
         for (var i = 0; i < elements.Length; i++)
         {
             var result = elements[i];
 
-            if (!result.TryGetProperty(fieldName, out var value))
+            if (!result.TryGetProperty(lookupName, ref lookupMemo, out var value))
             {
                 continue;
             }
@@ -953,6 +1215,7 @@ AddErrors_Next:
         VariableValues[]? variableValueSets = null;
         var additionalPaths = new AdditionalPathAccumulator();
         var nextIndex = 0;
+        var requirementType = requirement.Type;
 
         foreach (var result in elements)
         {
@@ -963,7 +1226,13 @@ AddErrors_Next:
             _jsonWriter.WriteStartObject();
             _jsonWriter.WritePropertyName(requirement.Key);
 
-            if (!ResultDataMapper.TryMap(result, requirement.Map, _schema, _jsonWriter))
+            if (!ResultDataMapper.TryMap(
+                result,
+                requirement.Map,
+                requirementType,
+                _schema,
+                requirement.InternalAlias,
+                _jsonWriter))
             {
                 _variableWriter.ResetTo(startPosition);
                 continue;
@@ -991,8 +1260,13 @@ AddErrors_Next:
         OperationRequirement requirement1,
         OperationRequirement requirement2)
     {
-        if (TryGetSimpleRequirementFieldName(requirement1.Map, out var fieldName1)
-            && TryGetSimpleRequirementFieldName(requirement2.Map, out var fieldName2))
+        // The fast path copies values verbatim and only guards top-level nulls,
+        // so list-typed requirements take the slow path where the mapper checks
+        // element nullability.
+        if (TryGetSimpleRequirementFieldName(requirement1, out var fieldName1)
+            && !requirement1.Type.IsListType()
+            && TryGetSimpleRequirementFieldName(requirement2, out var fieldName2)
+            && !requirement2.Type.IsListType())
         {
             return BuildVariableValueSetsTwoRequirementsFastPath(
                 elements,
@@ -1018,10 +1292,14 @@ AddErrors_Next:
         VariableValues[]? variableValueSets = null;
         var additionalPaths = new AdditionalPathAccumulator();
         var nextIndex = 0;
+        var lookupName1 = requirement1.InternalAlias ?? fieldName1;
+        var lookupName2 = requirement2.InternalAlias ?? fieldName2;
+        var lookupMemo1 = default(PropertyLookupMemo);
+        var lookupMemo2 = default(PropertyLookupMemo);
 
         foreach (var result in elements)
         {
-            if (!result.TryGetProperty(fieldName1, out var value1)
+            if (!result.TryGetProperty(lookupName1, ref lookupMemo1, out var value1)
                 || value1.ValueKind is JsonValueKind.Undefined
                 || (value1.ValueKind is JsonValueKind.Null
                     && requirement1.Type.Kind == SyntaxKind.NonNullType))
@@ -1029,7 +1307,7 @@ AddErrors_Next:
                 continue;
             }
 
-            if (!result.TryGetProperty(fieldName2, out var value2)
+            if (!result.TryGetProperty(lookupName2, ref lookupMemo2, out var value2)
                 || value2.ValueKind is JsonValueKind.Undefined
                 || (value2.ValueKind is JsonValueKind.Null
                     && requirement2.Type.Kind == SyntaxKind.NonNullType))
@@ -1071,6 +1349,8 @@ AddErrors_Next:
         VariableValues[]? variableValueSets = null;
         var additionalPaths = new AdditionalPathAccumulator();
         var nextIndex = 0;
+        var requirementType1 = requirement1.Type;
+        var requirementType2 = requirement2.Type;
 
         foreach (var result in elements)
         {
@@ -1082,7 +1362,13 @@ AddErrors_Next:
 
             _jsonWriter.WritePropertyName(requirement1.Key);
 
-            if (!ResultDataMapper.TryMap(result, requirement1.Map, _schema, _jsonWriter))
+            if (!ResultDataMapper.TryMap(
+                result,
+                requirement1.Map,
+                requirementType1,
+                _schema,
+                requirement1.InternalAlias,
+                _jsonWriter))
             {
                 _variableWriter.ResetTo(startPosition);
                 continue;
@@ -1090,7 +1376,13 @@ AddErrors_Next:
 
             _jsonWriter.WritePropertyName(requirement2.Key);
 
-            if (!ResultDataMapper.TryMap(result, requirement2.Map, _schema, _jsonWriter))
+            if (!ResultDataMapper.TryMap(
+                result,
+                requirement2.Map,
+                requirementType2,
+                _schema,
+                requirement2.InternalAlias,
+                _jsonWriter))
             {
                 _variableWriter.ResetTo(startPosition);
                 continue;
@@ -1118,9 +1410,15 @@ AddErrors_Next:
         OperationRequirement requirement2,
         OperationRequirement requirement3)
     {
-        if (TryGetSimpleRequirementFieldName(requirement1.Map, out var fieldName1)
-            && TryGetSimpleRequirementFieldName(requirement2.Map, out var fieldName2)
-            && TryGetSimpleRequirementFieldName(requirement3.Map, out var fieldName3))
+        // The fast path copies values verbatim and only guards top-level nulls,
+        // so list-typed requirements take the slow path where the mapper checks
+        // element nullability.
+        if (TryGetSimpleRequirementFieldName(requirement1, out var fieldName1)
+            && !requirement1.Type.IsListType()
+            && TryGetSimpleRequirementFieldName(requirement2, out var fieldName2)
+            && !requirement2.Type.IsListType()
+            && TryGetSimpleRequirementFieldName(requirement3, out var fieldName3)
+            && !requirement3.Type.IsListType())
         {
             return BuildVariableValueSetsThreeRequirementsFastPath(
                 elements,
@@ -1151,10 +1449,16 @@ AddErrors_Next:
         VariableValues[]? variableValueSets = null;
         var additionalPaths = new AdditionalPathAccumulator();
         var nextIndex = 0;
+        var lookupName1 = requirement1.InternalAlias ?? fieldName1;
+        var lookupName2 = requirement2.InternalAlias ?? fieldName2;
+        var lookupName3 = requirement3.InternalAlias ?? fieldName3;
+        var lookupMemo1 = default(PropertyLookupMemo);
+        var lookupMemo2 = default(PropertyLookupMemo);
+        var lookupMemo3 = default(PropertyLookupMemo);
 
         foreach (var result in elements)
         {
-            if (!result.TryGetProperty(fieldName1, out var value1)
+            if (!result.TryGetProperty(lookupName1, ref lookupMemo1, out var value1)
                 || value1.ValueKind is JsonValueKind.Undefined
                 || (value1.ValueKind is JsonValueKind.Null
                     && requirement1.Type.Kind == SyntaxKind.NonNullType))
@@ -1162,7 +1466,7 @@ AddErrors_Next:
                 continue;
             }
 
-            if (!result.TryGetProperty(fieldName2, out var value2)
+            if (!result.TryGetProperty(lookupName2, ref lookupMemo2, out var value2)
                 || value2.ValueKind is JsonValueKind.Undefined
                 || (value2.ValueKind is JsonValueKind.Null
                     && requirement2.Type.Kind == SyntaxKind.NonNullType))
@@ -1170,7 +1474,7 @@ AddErrors_Next:
                 continue;
             }
 
-            if (!result.TryGetProperty(fieldName3, out var value3)
+            if (!result.TryGetProperty(lookupName3, ref lookupMemo3, out var value3)
                 || value3.ValueKind is JsonValueKind.Undefined
                 || (value3.ValueKind is JsonValueKind.Null
                     && requirement3.Type.Kind == SyntaxKind.NonNullType))
@@ -1214,6 +1518,9 @@ AddErrors_Next:
         VariableValues[]? variableValueSets = null;
         var additionalPaths = new AdditionalPathAccumulator();
         var nextIndex = 0;
+        var requirementType1 = requirement1.Type;
+        var requirementType2 = requirement2.Type;
+        var requirementType3 = requirement3.Type;
 
         foreach (var result in elements)
         {
@@ -1225,7 +1532,13 @@ AddErrors_Next:
 
             _jsonWriter.WritePropertyName(requirement1.Key);
 
-            if (!ResultDataMapper.TryMap(result, requirement1.Map, _schema, _jsonWriter))
+            if (!ResultDataMapper.TryMap(
+                result,
+                requirement1.Map,
+                requirementType1,
+                _schema,
+                requirement1.InternalAlias,
+                _jsonWriter))
             {
                 _variableWriter.ResetTo(startPosition);
                 continue;
@@ -1233,7 +1546,13 @@ AddErrors_Next:
 
             _jsonWriter.WritePropertyName(requirement2.Key);
 
-            if (!ResultDataMapper.TryMap(result, requirement2.Map, _schema, _jsonWriter))
+            if (!ResultDataMapper.TryMap(
+                result,
+                requirement2.Map,
+                requirementType2,
+                _schema,
+                requirement2.InternalAlias,
+                _jsonWriter))
             {
                 _variableWriter.ResetTo(startPosition);
                 continue;
@@ -1241,7 +1560,13 @@ AddErrors_Next:
 
             _jsonWriter.WritePropertyName(requirement3.Key);
 
-            if (!ResultDataMapper.TryMap(result, requirement3.Map, _schema, _jsonWriter))
+            if (!ResultDataMapper.TryMap(
+                result,
+                requirement3.Map,
+                requirementType3,
+                _schema,
+                requirement3.InternalAlias,
+                _jsonWriter))
             {
                 _variableWriter.ResetTo(startPosition);
                 continue;
@@ -1264,10 +1589,10 @@ AddErrors_Next:
     }
 
     private static bool TryGetSimpleRequirementFieldName(
-        IValueSelectionNode map,
+        OperationRequirement requirement,
         [NotNullWhen(true)] out string? fieldName)
     {
-        if (map is PathNode
+        if (requirement.Map is PathNode
             {
                 TypeName: null,
                 PathSegment:
@@ -1277,7 +1602,7 @@ AddErrors_Next:
                 } pathSegment
             })
         {
-            fieldName = pathSegment.FieldName.Value;
+            fieldName = requirement.InternalAlias ?? pathSegment.FieldName.Value;
             return true;
         }
 
@@ -1290,6 +1615,14 @@ AddErrors_Next:
         int startPosition,
         ref AdditionalPathAccumulator additionalPaths,
         int nextIndex)
+        => TryCreateVariableValues(path, startPosition, ref additionalPaths, nextIndex, out _);
+
+    private VariableValues? TryCreateVariableValues(
+        CompactPath path,
+        int startPosition,
+        ref AdditionalPathAccumulator additionalPaths,
+        int nextIndex,
+        out int dedupIndex)
     {
         var length = _variableWriter.Position - startPosition;
         var hash = _variableWriter.GetHashCode(startPosition, length);
@@ -1300,13 +1633,91 @@ AddErrors_Next:
         // this allows us to fetch once and then insert the data at different locations.
         if (_variableDedupTable.TryGet(hash, startPosition, length, out var existingIndex))
         {
+            dedupIndex = existingIndex;
             additionalPaths.Add(existingIndex, path);
             _variableWriter.ResetTo(startPosition);
             return null;
         }
 
+        dedupIndex = nextIndex;
         _variableDedupTable.Add(hash, nextIndex, startPosition, length);
         return new VariableValues(path, JsonSegment.Create(_variableWriter, startPosition, length));
+    }
+
+    private bool TryWriteRequestedRequirementValues(
+        JsonSegment values,
+        ReadOnlySpan<OperationRequirement> requiredData)
+    {
+        if (values.IsEmpty)
+        {
+            return false;
+        }
+
+        var sequence = values.AsSequence();
+
+        foreach (var requirement in requiredData)
+        {
+            if (!TryWriteRequirementValue(sequence, requirement.Key))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private bool TryWriteRequirementValue(ReadOnlySequence<byte> values, string key)
+    {
+        var reader = new Utf8JsonReader(values);
+
+        if (!reader.Read() || reader.TokenType is not JsonTokenType.StartObject)
+        {
+            return false;
+        }
+
+        while (reader.Read())
+        {
+            if (reader.TokenType is JsonTokenType.EndObject)
+            {
+                return false;
+            }
+
+            if (reader.TokenType is not JsonTokenType.PropertyName)
+            {
+                return false;
+            }
+
+            var matches = reader.ValueTextEquals(key);
+
+            if (!reader.Read())
+            {
+                return false;
+            }
+
+            var start = reader.TokenStartIndex;
+            reader.Skip();
+            var length = reader.BytesConsumed - start;
+
+            if (matches)
+            {
+                _jsonWriter.WritePropertyName(key);
+                WriteRawJsonValue(values.Slice(start, length));
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private void WriteRawJsonValue(ReadOnlySequence<byte> value)
+    {
+        if (value.IsSingleSegment)
+        {
+            _jsonWriter.WriteRawValue(value.FirstSpan);
+            return;
+        }
+
+        _jsonWriter.WriteRawValue(value.ToArray());
     }
 
     private void WriteValueNode(IValueNode value)
@@ -1392,6 +1803,100 @@ AddErrors_Next:
         return new VariableValues(path, JsonSegment.Create(_variableWriter, startPosition, length));
     }
 
+    /// <summary>
+    /// Imports variable value sets into this store for a child incremental plan.
+    /// </summary>
+    internal ImmutableArray<VariableValues> ImportVariableValues(
+        ImmutableArray<VariableValues> source)
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+
+        if (source.IsDefaultOrEmpty)
+        {
+            return [];
+        }
+
+        var builder = ImmutableArray.CreateBuilder<VariableValues>(source.Length);
+
+        ImmutableArray<VariableValues> imported;
+
+        lock (_lock)
+        {
+            foreach (var entry in source)
+            {
+                builder.Add(ImportVariableValuesEntry(entry));
+            }
+
+            imported = builder.MoveToImmutable();
+        }
+
+        InitializeTargetPaths(imported);
+
+        return imported;
+    }
+
+    private VariableValues ImportVariableValuesEntry(VariableValues source)
+    {
+        var path = ImportPath(source.Path);
+        var values = ImportJsonSegment(source.Values);
+        var additionalPaths = ImportAdditionalPaths(source.AdditionalPaths);
+
+        return new VariableValues(path, values)
+        {
+            AdditionalPaths = additionalPaths
+        };
+    }
+
+    private JsonSegment ImportJsonSegment(JsonSegment source)
+    {
+        if (source.IsEmpty)
+        {
+            return JsonSegment.Empty;
+        }
+
+        var startPosition = _variableWriter.Position;
+        foreach (var memory in source.AsSequence())
+        {
+            var span = _variableWriter.GetSpan(memory.Length);
+            memory.Span.CopyTo(span);
+            _variableWriter.Advance(memory.Length);
+        }
+
+        var length = _variableWriter.Position - startPosition;
+        return JsonSegment.Create(_variableWriter, startPosition, length);
+    }
+
+    private static CompactPath ImportPath(CompactPath source)
+    {
+        if (source.IsRoot)
+        {
+            return CompactPath.Root;
+        }
+
+        var segments = source.Segments;
+        var copy = new int[segments.Length + 1];
+        copy[0] = segments.Length;
+        segments.CopyTo(copy.AsSpan(1));
+        return new CompactPath(copy);
+    }
+
+    private static CompactPathSegment ImportAdditionalPaths(CompactPathSegment source)
+    {
+        if (source.IsDefaultOrEmpty)
+        {
+            return default;
+        }
+
+        var paths = source.AsSpan();
+        var copy = new CompactPath[paths.Length];
+        for (var i = 0; i < paths.Length; i++)
+        {
+            copy[i] = ImportPath(paths[i]);
+        }
+
+        return new CompactPathSegment(copy, 0, copy.Length);
+    }
+
     private static void AppendUnrolledLists(
         CompositeResultElement list,
         ref CompositeResultElement[] destination,
@@ -1469,7 +1974,7 @@ AddErrors_Next:
         return buffer;
     }
 
-    private static SourceResultElement GetDataElement(SelectionPath sourcePath, SourceResultElement data)
+    private SourceResultElement GetDataElement(SelectionPath sourcePath, SourceResultElement data)
     {
         if (sourcePath.IsRoot)
         {
@@ -1482,7 +1987,10 @@ AddErrors_Next:
         {
             if (current.ValueKind != JsonValueKind.Object)
             {
-                return default;
+                // An intermediate value on the path is not an object. If it is null, the target
+                // value null-propagates from here, so we surface the null element (not Undefined)
+                // and let value completion integrate it together with any source error.
+                return current.ValueKind is JsonValueKind.Null ? current : default;
             }
 
             var segment = sourcePath[i];
@@ -1499,10 +2007,15 @@ AddErrors_Next:
 
                 case SelectionPathSegmentKind.InlineFragment:
                     if (!current.TryGetProperty(IntrospectionFieldNames.TypeNameSpan, out var typeNameProperty)
-                            || typeNameProperty.ValueKind != JsonValueKind.String
-                            || !typeNameProperty.TextEqualsHelper(
-                                segment.Name,
-                                isPropertyName: false))
+                            || typeNameProperty.ValueKind != JsonValueKind.String)
+                    {
+                        return default;
+                    }
+
+                    // Fast path: exact __typename match. On a miss the type condition may name an
+                    // abstract type, so accept the element when its runtime type is a subtype.
+                    if (!typeNameProperty.TextEqualsHelper(segment.Name, isPropertyName: false)
+                        && !IsRuntimeTypeAssignableTo(segment.Name, typeNameProperty.GetString()))
                     {
                         return default;
                     }
@@ -1517,6 +2030,18 @@ AddErrors_Next:
         return current;
     }
 
+    private bool IsRuntimeTypeAssignableTo(string typeCondition, string? runtimeTypeName)
+    {
+        if (runtimeTypeName is null
+            || !_schema.Types.TryGetType<IOutputTypeDefinition>(typeCondition, out var conditionType)
+            || !_schema.Types.TryGetType<IOutputTypeDefinition>(runtimeTypeName, out var runtimeType))
+        {
+            return false;
+        }
+
+        return conditionType.IsAssignableFrom(runtimeType);
+    }
+
     private static ErrorTrie? GetErrorTrie(SelectionPath sourcePath, ErrorTrie? errors)
     {
         if (errors is null || sourcePath.IsRoot)
@@ -1529,6 +2054,13 @@ AddErrors_Next:
         for (var i = 0; i < sourcePath.Length; i++)
         {
             var segment = sourcePath[i];
+
+            // Source schema error paths only carry response names and list indices, never type
+            // conditions, so inline-fragment segments have no corresponding level in the trie.
+            if (segment.Kind is SelectionPathSegmentKind.InlineFragment)
+            {
+                continue;
+            }
 
             if (!current.TryGetValue(segment.Name, out current))
             {
@@ -1604,23 +2136,179 @@ AddErrors_Next:
 
             if (segment >= 0)
             {
+                if (element.ValueKind is not JsonValueKind.Object)
+                {
+                    throw new InvalidOperationException(
+                        $"The path segment '{segment}' does not exist in the data.");
+                }
+
                 element = element.GetPropertyBySelectionId(segment);
             }
             else
             {
                 var index = ~segment;
-
-                if (element.GetArrayLength() <= index)
-                {
-                    throw new InvalidOperationException(
-                        $"The path segment '[{index}]' does not exist in the data.");
-                }
-
                 element = element[index];
             }
         }
 
         return element;
+    }
+
+    private void InitializeTargetPaths(ImmutableArray<VariableValues> importedValues)
+    {
+        if (importedValues.IsDefaultOrEmpty)
+        {
+            return;
+        }
+
+        lock (_lock)
+        {
+            // Track list containers that need imported elements.
+            Dictionary<int, (CompositeResultElement Container, int MaxIndex)>? containers = null;
+
+            foreach (var entry in importedValues)
+            {
+                TrackListContainer(entry.Path, ref containers);
+                foreach (var additional in entry.AdditionalPaths.AsSpan())
+                {
+                    TrackListContainer(additional, ref containers);
+                }
+            }
+
+            if (containers is null)
+            {
+                return;
+            }
+
+            foreach (var (_, (container, maxIndex)) in containers)
+            {
+                if (container.ValueKind is JsonValueKind.Undefined)
+                {
+                    container.SetArrayValue(maxIndex + 1);
+                }
+                else if (container.ValueKind is JsonValueKind.Array)
+                {
+                    if (container.GetArrayLength() <= maxIndex)
+                    {
+                        throw new InvalidOperationException(
+                            $"The target path list container is shorter than required for index {maxIndex}.");
+                    }
+                }
+                else if (container.ValueKind is not JsonValueKind.Null)
+                {
+                    throw new InvalidOperationException(
+                        "The target path list container does not exist in the data.");
+                }
+            }
+        }
+    }
+
+    private void TrackListContainer(
+        CompactPath path,
+        ref Dictionary<int, (CompositeResultElement Container, int MaxIndex)>? containers)
+    {
+        if (path.IsRoot)
+        {
+            return;
+        }
+
+        var element = _result.Data;
+        var segments = path.Segments;
+
+        for (var i = 0; i < segments.Length; i++)
+        {
+            var seg = segments[i];
+
+            if (element.ValueKind is JsonValueKind.Null)
+            {
+                return;
+            }
+
+            if (seg >= 0)
+            {
+                var hasListAnchor = HasListAnchor(segments, i + 1);
+
+                if (element.ValueKind is JsonValueKind.Undefined)
+                {
+                    if (!hasListAnchor)
+                    {
+                        return;
+                    }
+
+                    InitializeIntermediateObject(element);
+                }
+
+                if (element.ValueKind is not JsonValueKind.Object)
+                {
+                    if (!hasListAnchor)
+                    {
+                        return;
+                    }
+
+                    throw new InvalidOperationException(
+                        $"The path segment '{seg}' does not exist in the data.");
+                }
+
+                element = element.GetPropertyBySelectionId(seg);
+            }
+            else
+            {
+                // Negative segment encodes a list index as ~index.
+                var index = ~seg;
+                var cursorKey = element.Cursor.Index;
+
+                containers ??= new Dictionary<int, (CompositeResultElement, int)>();
+
+                if (containers.TryGetValue(cursorKey, out var existing))
+                {
+                    if (index > existing.MaxIndex)
+                    {
+                        containers[cursorKey] = (existing.Container, index);
+                    }
+                }
+                else
+                {
+                    containers[cursorKey] = (element, index);
+                }
+
+                // Only process the outermost list anchor; stop here.
+                return;
+            }
+        }
+    }
+
+    private static bool HasListAnchor(ReadOnlySpan<int> segments, int start)
+    {
+        for (var i = start; i < segments.Length; i++)
+        {
+            if (segments[i] < 0)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private void InitializeIntermediateObject(CompositeResultElement element)
+    {
+        var selection = element.Selection
+            ?? throw new InvalidOperationException(
+                "Cannot initialize an intermediate target object without selection metadata.");
+
+        // An interface-typed named type is an @interfaceObject stand-in position that has not yet
+        // recovered its concrete identity; it initializes interface-typed against the interface's
+        // declared fields. Unions carry no such single type context and remain unsupported here.
+        if (selection.Type.NamedType() is not IComplexTypeDefinition complexType)
+        {
+            throw new InvalidOperationException(
+                "Cannot initialize an intermediate target object for an abstract selection.");
+        }
+
+        var selectionSet = selection.DeclaringSelectionSet.DeclaringOperation
+            .GetSelectionSet(selection, complexType);
+
+        element.SetObjectValue(selectionSet);
     }
 
     public void Dispose()

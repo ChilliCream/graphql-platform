@@ -1,6 +1,5 @@
 using System.Text.Json;
 using HotChocolate.Adapters.Mcp.Diagnostics;
-using HotChocolate.Adapters.Mcp.Extensions;
 using HotChocolate.Adapters.Mcp.Storage;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Language;
@@ -27,7 +26,8 @@ public sealed class CoreIntegrationTests : IntegrationTestBase
         var storage = new TestMcpStorage();
         await storage.AddOrUpdateToolAsync(
             new OperationToolDefinition(
-                Utf8GraphQLParser.Parse("query GetBooks { books { title } }")));
+                Utf8GraphQLParser.Parse("query GetBooks { books { title } }")),
+            TestContext.Current.CancellationToken);
         var builder = new WebHostBuilder()
             .ConfigureServices(
                 services => services
@@ -50,10 +50,34 @@ public sealed class CoreIntegrationTests : IntegrationTestBase
         var mcpClient = await CreateMcpClientAsync(server.CreateClient());
 
         // act
-        var tools = await mcpClient.ListToolsAsync();
+        var tools = await mcpClient.ListToolsAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal("get_books", Assert.Single(tools).Name);
+    }
+
+    [Fact]
+    public void MapGraphQLMcp_Should_Throw_When_AddMcpNotCalled()
+    {
+        // arrange
+        var builder = new WebHostBuilder()
+            .ConfigureServices(
+                services => services
+                    .AddRouting()
+                    .AddGraphQL()
+                    .AddQueryType<TestSchema.Query>())
+            .Configure(
+                app => app
+                    .UseRouting()
+                    .UseEndpoints(endpoints => endpoints.MapGraphQLMcp()));
+
+        // act
+        var exception = Assert.Throws<InvalidOperationException>(() => new TestServer(builder));
+
+        // assert
+        Assert.Equal(
+            "Call `AddMcp()` when configuring the GraphQL server.",
+            exception.Message);
     }
 
     [Fact]
@@ -64,7 +88,10 @@ public sealed class CoreIntegrationTests : IntegrationTestBase
         await storage.AddOrUpdateToolAsync(
             new OperationToolDefinition(
                 Utf8GraphQLParser.Parse(
-                    await File.ReadAllTextAsync("__resources__/GetSingleField.graphql"))));
+                    await File.ReadAllTextAsync(
+                        "__resources__/GetSingleField.graphql",
+                        TestContext.Current.CancellationToken))),
+            TestContext.Current.CancellationToken);
         var typeModule = new TestTypeModule();
         var builder = new WebHostBuilder()
             .ConfigureServices(
@@ -99,17 +126,19 @@ public sealed class CoreIntegrationTests : IntegrationTestBase
             });
 
         // act
-        var tools = await mcpClient1.ListToolsAsync();
+        var tools = await mcpClient1.ListToolsAsync(cancellationToken: TestContext.Current.CancellationToken);
         typeModule.TriggerChange();
         IList<McpClientTool>? updatedTools = null;
 
-        if (listChangedResetEvent1.Wait(TimeSpan.FromSeconds(5)))
+        if (listChangedResetEvent1.Wait(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken))
         {
             var mcpClient3 = await CreateMcpClientAsync(server.CreateClient());
-            updatedTools = await mcpClient3.ListToolsAsync();
+            updatedTools = await mcpClient3.ListToolsAsync(cancellationToken: TestContext.Current.CancellationToken);
         }
 
-        var secondClientNotified = listChangedResetEvent2.Wait(TimeSpan.FromSeconds(5));
+        var secondClientNotified = listChangedResetEvent2.Wait(
+            TimeSpan.FromSeconds(5),
+            TestContext.Current.CancellationToken);
 
         // assert
         Assert.NotNull(updatedTools);
@@ -156,7 +185,7 @@ public sealed class CoreIntegrationTests : IntegrationTestBase
 
                     var builder =
                         services
-                            .AddGraphQL()
+                            .AddGraphQLServer()
                             .AddAuthorization()
                             .AddMcp(configureMcpServerOptions, configureMcpServer)
                             .AddMcpStorage(storage)

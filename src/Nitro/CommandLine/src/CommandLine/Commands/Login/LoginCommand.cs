@@ -42,6 +42,7 @@ internal sealed class LoginCommand : Command
         var url = parseResult.GetValue(Opt<IdentityCloudUrlArgument>.Instance);
 
         url ??= cloudUrl;
+        url = NormalizeIdentityUrl(url);
 
         await using (var activity = console.StartActivity("Logging in via browser", "Failed to log in."))
         {
@@ -86,7 +87,7 @@ internal sealed class LoginCommand : Command
         var paginationContainer = PaginationContainer.CreateConnectionData(client.SelectWorkspacesAsync);
         var selected = await PagedSelectionPrompt
             .New(paginationContainer)
-            .Title("Which workspace do you want to use as your default?".AsQuestion())
+            .Title(Prompts.SelectDefaultWorkspace.AsQuestion())
             .UseConverter(x => x.Name)
             .RenderAsync(console, cancellationToken);
 
@@ -99,8 +100,32 @@ internal sealed class LoginCommand : Command
             new Workspace(selected.Id, selected.Name),
             cancellationToken);
 
-        console.MarkupLine($"(Workspace: [green]{selected.Name.EscapeMarkup()}[/])");
+        console.OkQuestion(Prompts.SelectDefaultWorkspace, selected.Name);
 
         return ExitCodes.Success;
+    }
+
+    private static string? NormalizeIdentityUrl(string? url)
+    {
+        if (string.IsNullOrWhiteSpace(url))
+        {
+            return url;
+        }
+
+        if (!url.StartsWith("https://") && !url.StartsWith("http://"))
+        {
+            url = $"https://{url}";
+        }
+
+        var uriBuilder = new UriBuilder(url)
+        {
+            Path = string.Empty,
+            Query = string.Empty,
+            Fragment = string.Empty,
+            UserName = string.Empty,
+            Password = string.Empty
+        };
+
+        return uriBuilder.Uri.GetLeftPart(UriPartial.Authority);
     }
 }

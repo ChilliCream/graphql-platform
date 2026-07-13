@@ -19,7 +19,7 @@ internal static class MiddlewareHelper
         // with a 400 Bad Request.
         if (headerResult.HasError)
         {
-            var errors = headerResult.ErrorResult.Errors!;
+            var errors = headerResult.ErrorResult.Errors;
             executorSession.DiagnosticEvents.HttpRequestError(context, errors[0]);
 
             return new ValidateAcceptContentTypeResult(
@@ -204,10 +204,6 @@ internal static class MiddlewareHelper
         return requestFlags;
     }
 
-#if !NET9_0_OR_GREATER
-    [RequiresDynamicCode("JSON serialization and deserialization might require types that cannot be statically analyzed and might need runtime code generation. Use System.Text.Json source generation for native AOT applications.")]
-    [RequiresUnreferencedCode("JSON serialization and deserialization might require types that cannot be statically analyzed. Use the overload that takes a JsonTypeInfo or JsonSerializerContext, or make sure all of the required types are preserved.")]
-#endif
     public static async Task<ExecuteRequestResult> ExecuteRequestAsync(
         GraphQLRequest request,
         RequestFlags flags,

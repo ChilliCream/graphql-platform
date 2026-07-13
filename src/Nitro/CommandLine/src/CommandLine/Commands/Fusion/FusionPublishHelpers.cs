@@ -422,75 +422,78 @@ internal static class FusionPublishHelpers
                          $"Downloading existing configuration from '{stageName}'",
                          "Failed to download the existing Fusion configuration."))
         {
-            existingArchiveStream = await client.DownloadLatestFusionArchiveAsync(
-                apiId,
-                stageName,
-                WellKnownVersions.LatestGatewayFormatVersion.ToString(),
-                ArchiveFormats.Far,
-                cancellationToken);
+            try
+            {
+                existingArchiveStream = await client.DownloadLatestFusionArchiveAsync(
+                    apiId,
+                    stageName,
+                    WellKnownVersions.LatestGatewayFormatVersion.ToString(),
+                    ArchiveFormats.Far,
+                    cancellationToken);
+            }
+            catch (NitroClientNotFoundException)
+            {
+                existingArchiveStream = null;
+            }
 
-            Stream? serverLegacyStream = null;
-
+            // Precedence:
+            //   server .far + no flag -> use .far (existing embedded .fgp carried forward via Update mode)
+            //   server .far + flag    -> use .far, refresh embedded .fgp from local flag
+            //   server .fgp + no flag -> error (server .fgp may be outdated, require explicit local flag)
+            //   server .fgp + flag    -> use local flag as migration source
+            //   nothing + flag        -> use local flag as composition base
+            //   nothing + no flag     -> fresh compose
             if (existingArchiveStream is not null)
             {
                 downloadActivity.Success($"Downloaded existing configuration from '{stageName}'.");
             }
+            else if (legacyArchiveFile is not null)
+            {
+                downloadActivity.Warning(
+                    $"There is no existing configuration on '{stageName.EscapeMarkup()}', using {OptionalLegacyFusionArchiveFileOption.OptionName} instead.");
+            }
             else
             {
-                serverLegacyStream = await client.DownloadLatestFusionArchiveAsync(
-                    apiId,
-                    stageName,
-                    WellKnownVersions.LegacyGatewayFormatVersion.ToString(),
-                    ArchiveFormats.Fgp,
-                    cancellationToken);
+                Stream? serverLegacyStream;
+                try
+                {
+                    serverLegacyStream = await client.DownloadLatestFusionArchiveAsync(
+                        apiId,
+                        stageName,
+                        WellKnownVersions.LegacyGatewayFormatVersion.ToString(),
+                        ArchiveFormats.Fgp,
+                        cancellationToken);
+                }
+                catch (NitroClientNotFoundException)
+                {
+                    serverLegacyStream = null;
+                }
 
                 if (serverLegacyStream is not null)
                 {
-                    downloadActivity.Success(
-                        $"Downloaded existing legacy v1 configuration from '{stageName}'.");
-                }
-                else
-                {
-                    downloadActivity.Warning($"There is no existing configuration on '{stageName}'.");
-                }
-            }
-
-            // Precedence:
-            //   server .far present        -> existingArchiveStream (flag silently ignored;
-            //                                 embedded .fgp carries forward via Update mode)
-            //   server .fgp + local flag   -> local flag wins (no warning — expected mid-migration)
-            //   server .fgp + no flag      -> server .fgp is the base
-            //   nothing + local flag       -> local flag is the base (bootstrap)
-            //   nothing + no flag          -> fresh compose
-            if (existingArchiveStream is null)
-            {
-                if (legacyArchiveFile is not null)
-                {
-                    if (serverLegacyStream is not null)
-                    {
-                        await serverLegacyStream.DisposeAsync();
-                    }
-
-                    try
-                    {
-                        await using var fs = fileSystem.OpenReadStream(legacyArchiveFile);
-                        legacyBuffer = new MemoryStream();
-                        await fs.CopyToAsync(legacyBuffer, cancellationToken);
-                        legacyBuffer.Position = 0;
-                    }
-                    catch (IOException ex)
-                    {
-                        throw new ExitException(
-                            Messages.FailedToOpenLegacyArchive(legacyArchiveFile, ex.Message));
-                    }
-                }
-                else if (serverLegacyStream is not null)
-                {
-                    legacyBuffer = new MemoryStream();
-                    await serverLegacyStream.CopyToAsync(legacyBuffer, cancellationToken);
-                    legacyBuffer.Position = 0;
                     await serverLegacyStream.DisposeAsync();
+
+                    throw new ExitException(
+                        Messages.LegacyArchiveRequiredForFgpStage(stageName));
                 }
+
+                downloadActivity.Warning($"There is no existing configuration on '{stageName}'.");
+            }
+        }
+
+        if (legacyArchiveFile is not null)
+        {
+            try
+            {
+                await using var fs = fileSystem.OpenReadStream(legacyArchiveFile);
+                legacyBuffer = new MemoryStream();
+                await fs.CopyToAsync(legacyBuffer, cancellationToken);
+                legacyBuffer.Position = 0;
+            }
+            catch (IOException ex)
+            {
+                throw new ExitException(
+                    Messages.FailedToOpenLegacyArchive(legacyArchiveFile, ex.Message));
             }
         }
 
@@ -500,7 +503,7 @@ internal static class FusionPublishHelpers
 
         try
         {
-            if (legacyBuffer is not null)
+            if (legacyBuffer is not null && existingArchiveStream is null)
             {
                 try
                 {

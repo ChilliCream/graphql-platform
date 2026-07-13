@@ -23,7 +23,9 @@ public class FromJsonDirectiveTests
                 ")
             .BindRuntimeType<Query>()
             .AddJsonSupport()
-            .ExecuteRequestAsync("{ foo { bar } }")
+            .ExecuteRequestAsync(
+                "{ foo { bar } }",
+                cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -44,7 +46,9 @@ public class FromJsonDirectiveTests
                 """)
             .BindRuntimeType<Query>()
             .AddJsonSupport()
-            .ExecuteRequestAsync("{ foo { baz } }")
+            .ExecuteRequestAsync(
+                "{ foo { baz } }",
+                cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -122,7 +126,8 @@ public class FromJsonDirectiveTests
                         uuid
                     }
                 }
-                """)
+                """,
+                cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
