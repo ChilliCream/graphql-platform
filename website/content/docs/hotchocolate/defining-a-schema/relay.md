@@ -137,20 +137,20 @@ public class UpdateProductInput
 
 ## ID Serializer
 
-You can access the `IIdSerializer` service directly to serialize or deserialize global IDs in custom code.
+You can access the `INodeIdSerializer` service directly to serialize or deserialize global IDs in custom code.
 
 ```csharp
 [QueryType]
 public static partial class ProductQueries
 {
-    public static string GetGlobalId(int productId, IIdSerializer serializer)
+    public static string GetGlobalId(int productId, INodeIdSerializer serializer)
     {
-        return serializer.Serialize(null, "Product", productId);
+        return serializer.Format("Product", productId);
     }
 }
 ```
 
-The `Serialize` method takes the schema name (or `null` for the default schema), the type name, and the raw ID.
+The `Format` method takes the type name and the raw ID.
 
 # Global Object Identification
 
@@ -340,7 +340,7 @@ builder
     .AddGlobalObjectIdentification();
 ```
 
-The source generator can produce a `NodeIdValueSerializer` for your custom ID type, reducing the need for manual converter registration.
+Alternatively, call `AddNodeIdValueSerializerFrom<ProductId>()` to have the source generator produce a `NodeIdValueSerializer` for your custom ID type, reducing the need for manual converter registration.
 
 # Query Field in Mutation Payloads
 
@@ -352,7 +352,7 @@ builder
     .AddQueryFieldToMutationPayloads();
 ```
 
-By default, a `query: Query` field is added to every mutation payload type whose name ends in `Payload`. You can customize this:
+By default, a `query: Query!` field is added to every mutation payload type whose name ends in `Payload`. You can customize this:
 
 ```csharp
 builder
@@ -361,7 +361,7 @@ builder
     {
         options.QueryFieldName = "rootQuery";
         options.MutationPayloadPredicate =
-            (type) => type.Name.Value.EndsWith("Result");
+            (type) => type.Name.EndsWith("Result");
     });
 ```
 
