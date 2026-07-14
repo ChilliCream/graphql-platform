@@ -98,10 +98,10 @@ public class PageConnectionTests
     public sealed class Query
     {
         public PageConnection<string>? GetUnknown()
-            => new(Page<string>.Empty);
+            => new(Page<string>.Create([], false, false, _ => string.Empty));
 
         public PageConnection<string> GetKnownEmpty()
-            => new(Page<string>.Create([], false, false, _ => string.Empty, totalCount: 0));
+            => new(Page<string>.Empty);
 
         public PageConnection<string> GetKnown()
             => new(Page<string>.Create(["a"], false, false, t => t, totalCount: 2));
