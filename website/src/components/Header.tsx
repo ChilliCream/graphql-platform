@@ -1,14 +1,13 @@
-import Link from "next/link";
 import { SolidButton } from "@/src/design-system/Button";
 import { Picture } from "@/src/design-system/Picture";
+import Link from "next/link";
 
 import { getLatestBlogPost } from "@/src/helpers/blogPosts";
 import { getGitHubStarCount } from "@/src/helpers/githubStars";
-import { ChilliCreamText } from "@/src/icons/ChilliCreamText";
-import { ChilliCreamWinking } from "@/src/icons/ChilliCreamWinking";
-import { GitHubIcon } from "@/src/icons/GitHub";
+import { GitHubIcon } from "@/src/icons/brands/GitHub";
+import { ChilliCreamText } from "@/src/icons/chillicream/ChilliCreamText";
+import { ChilliCreamWinking } from "@/src/icons/chillicream/ChilliCreamWinking";
 
-import { HeaderShell } from "./HeaderShell";
 import { HeaderNav } from "./header/HeaderNav";
 import {
   CONTACT_HREF,
@@ -17,6 +16,7 @@ import {
   MOBILE_ITEMS,
   TOOLS,
 } from "./header/navData";
+import { HeaderShell } from "./HeaderShell";
 import { MobileNav } from "./MobileNav";
 import { Search } from "./Search";
 

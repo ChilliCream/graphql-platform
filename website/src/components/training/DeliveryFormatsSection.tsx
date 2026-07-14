@@ -1,18 +1,22 @@
 import { CardGrid } from "@/src/components/CardGrid";
 import { IconFeatureCard } from "@/src/components/IconFeatureCard";
 import { SectionHeading } from "@/src/components/SectionHeading";
-import { HybridIcon } from "@/src/icons/HybridIcon";
-import { OnsiteIcon } from "@/src/icons/OnsiteIcon";
-import { RemoteIcon } from "@/src/icons/RemoteIcon";
+import { Icon, IconName } from "@/src/icons/Icon";
 
-const FORMATS = [
+const FORMATS: {
+  name: string;
+  subtitle: string;
+  description: string;
+  bestFor: string;
+  icon: IconName;
+}[] = [
   {
     name: "On site",
     subtitle: "We come to you",
     description:
       "A trainer joins your team in a room with a whiteboard and proper coffee. Best when you want the focused energy of being out of inboxes for a week.",
     bestFor: "Best for a single co-located team that can clear the calendar.",
-    Icon: OnsiteIcon,
+    icon: "house",
   },
   {
     name: "Remote",
@@ -21,7 +25,7 @@ const FORMATS = [
       "Live sessions over your call tool of choice, with shared notebooks, breakout rooms, and homework between days so timezones do not become a wall.",
     bestFor:
       "Best for distributed teams or when travel does not make business sense.",
-    Icon: RemoteIcon,
+    icon: "laptop",
   },
   {
     name: "Hybrid",
@@ -29,7 +33,7 @@ const FORMATS = [
     description:
       "Deliberate breakout design and exercises that work for the people in the room and the people on the call, with a good A/V setup so nobody is half-present.",
     bestFor: "Best when part of the team can fly in and part cannot.",
-    Icon: HybridIcon,
+    icon: "house-laptop",
   },
 ];
 
@@ -53,7 +57,7 @@ export function DeliveryFormatsSection() {
           <IconFeatureCard
             key={format.name}
             layout="inline"
-            icon={<format.Icon />}
+            icon={<Icon icon={format.icon} size="lg" />}
             title={format.name}
             subtitle={format.subtitle}
             copy={format.description}

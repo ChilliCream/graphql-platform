@@ -1,43 +1,38 @@
 import { CardGrid } from "@/src/components/CardGrid";
 import { IconFeatureCard } from "@/src/components/IconFeatureCard";
 import { SectionHeading } from "@/src/components/SectionHeading";
-import { BranchIcon } from "@/src/icons/BranchIcon";
-import { ChatIcon } from "@/src/icons/ChatIcon";
-import { GraphIcon } from "@/src/icons/GraphIcon";
-import { MapIcon } from "@/src/icons/MapIcon";
-import { PlugIcon } from "@/src/icons/PlugIcon";
-import { WrenchIcon } from "@/src/icons/WrenchIcon";
+import { Icon, IconName } from "@/src/icons/Icon";
 
-const OUTCOMES = [
+const OUTCOMES: { title: string; copy: string; icon: IconName }[] = [
   {
     title: "Read a schema like a map",
     copy: "Your team can navigate a large GraphQL schema, recognise the common shapes, and explain why a type is modelled the way it is.",
-    Icon: MapIcon,
+    icon: "map",
   },
   {
     title: "Write resolvers without surprises",
     copy: "From simple fields to data loaders and pagination, with the patterns that scale instead of the snippets that bite later.",
-    Icon: WrenchIcon,
+    icon: "wrench",
   },
   {
     title: "Plan a client they can live with",
     copy: "Fragments, variables, error handling, and a Relay or Apollo setup that the next person on the team can actually maintain.",
-    Icon: PlugIcon,
+    icon: "plug",
   },
   {
     title: "Diagnose the slow query",
     copy: "Open a trace, read the plan, find the N+1, and know which knobs to turn in Hot Chocolate before reaching for hacks.",
-    Icon: GraphIcon,
+    icon: "chart-line",
   },
   {
     title: "Have an opinion on federation",
     copy: "When to split a schema, when not to, and how Hot Chocolate Fusion fits with the platform they already run.",
-    Icon: BranchIcon,
+    icon: "code-branch",
   },
   {
     title: "Speak the same language",
     copy: "Backend, frontend, and platform engineers leave with one shared vocabulary, so the next design review is faster and friendlier.",
-    Icon: ChatIcon,
+    icon: "message",
   },
 ];
 
@@ -60,7 +55,7 @@ export function OutcomesSection() {
         {OUTCOMES.map((outcome) => (
           <IconFeatureCard
             key={outcome.title}
-            icon={<outcome.Icon />}
+            icon={<Icon icon={outcome.icon} size="lg" />}
             title={outcome.title}
             copy={outcome.copy}
           />

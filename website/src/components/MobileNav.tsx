@@ -2,11 +2,10 @@
 
 import { MobileDrawer } from "@/src/components/MobileDrawer";
 import { SolidButton } from "@/src/design-system/Button";
-import { ChilliCream } from "@/src/icons/ChilliCream";
-import { XmarkIcon } from "@/src/icons/Xmark";
+import { ChilliCream } from "@/src/icons/chillicream/ChilliCream";
 import Link from "next/link";
 import { useState } from "react";
-import { IconElement } from "../icons/IconElement";
+import { Icon } from "../icons/Icon";
 import { Search } from "./Search";
 
 type Item = { href: string; label: string };
@@ -34,7 +33,7 @@ export function MobileNav({ items, demoHref, nitroHref }: MobileNavProps) {
           onClick={() => setOpen(true)}
           className="text-cc-heading flex h-full items-center px-2"
         >
-          <IconElement icon="bars" size="lg" />
+          <Icon icon="bars" size="lg" />
         </button>
       </div>
 
@@ -59,7 +58,7 @@ export function MobileNav({ items, demoHref, nitroHref }: MobileNavProps) {
               onClick={() => setOpen(false)}
               className="text-cc-heading flex h-full items-center px-2"
             >
-              <XmarkIcon className="h-5 w-5 fill-current" />
+              <Icon icon="x" />
             </button>
           </div>
         }

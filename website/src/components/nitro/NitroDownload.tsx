@@ -10,8 +10,7 @@ import {
 } from "react";
 
 import { SolidButton } from "@/src/design-system/Button";
-import { ChevronDownIcon } from "@/src/icons/ChevronDown";
-import { CircleArrowDownIcon } from "@/src/icons/CircleArrowDown";
+import { Icon } from "@/src/icons/Icon";
 
 const DOWNLOAD_BASE_URL = "https://cdn.chillicream.com/app/";
 
@@ -422,10 +421,7 @@ function DownloadAppLink({ filename, onClick }: DownloadAppLinkProps) {
       className="text-cc-ink hover:text-cc-white flex items-center justify-center py-1"
       aria-label={"Download " + filename}
     >
-      <CircleArrowDownIcon
-        className="h-4 w-4 fill-current"
-        aria-hidden="true"
-      />
+      <Icon icon="circle-arrow-down" size="lg" />
     </a>
   );
 }
@@ -524,10 +520,7 @@ export function NitroDownload() {
         onClick={() => setOpen((prev) => !prev)}
         className="border-cc-surface/20 bg-cc-heading text-cc-surface hover:bg-cc-white inline-flex cursor-pointer items-center justify-center rounded-r-full border-l py-1.5 pr-5 pl-3 transition-colors"
       >
-        <ChevronDownIcon
-          className="h-3.5 w-3.5 fill-current"
-          aria-hidden="true"
-        />
+        <Icon icon="chevron-down" />
       </button>
       {open && (
         <div

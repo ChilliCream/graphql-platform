@@ -2,7 +2,7 @@
 
 import type { BlogPostSummary } from "@/src/helpers/blogPosts";
 import { formatDate } from "@/src/helpers/formatDate";
-import { IconElement } from "@/src/icons/IconElement";
+import { Icon } from "@/src/icons/Icon";
 import Link from "next/link";
 import { type MouseEvent, type ReactNode, useState } from "react";
 import {
@@ -98,7 +98,7 @@ function NavWithSubmenu({
         className="text-cc-heading flex items-center gap-1.5 px-4 text-sm font-medium no-underline"
       >
         {item.label}
-        <IconElement icon="chevron-down" widthAuto size="sm" />
+        <Icon icon="chevron-down" widthAuto size="sm" />
       </Link>
 
       <SubmenuPanel
@@ -245,7 +245,7 @@ function SubLinkRowIcon({ link }: { link: SubLink }) {
     return null;
   }
   if (typeof icon === "string") {
-    return <IconElement icon={icon} />;
+    return <Icon icon={icon} />;
   }
 
   const IconComponent = icon;

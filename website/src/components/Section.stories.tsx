@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 
+import { Icon } from "../icons/Icon";
 import { IconFeatureCard } from "./IconFeatureCard";
-import { CheckIcon } from "./CheckIcon";
 import { Section } from "./Section";
 
 const meta = {
@@ -42,12 +42,12 @@ export const WithCards: Story = {
     children: (
       <div className="mx-auto grid max-w-3xl gap-4 sm:grid-cols-2">
         <IconFeatureCard
-          icon={<CheckIcon size={16} />}
+          icon={<Icon icon="check" size="lg" />}
           title="Read a schema like a map"
           copy="Navigate a large GraphQL schema, recognise the common shapes, and explain why a type is modelled the way it is."
         />
         <IconFeatureCard
-          icon={<CheckIcon size={16} />}
+          icon={<Icon icon="check" size="lg" />}
           title="Design for change"
           copy="Evolve a schema without breaking clients, using deprecations and additive changes with confidence."
         />

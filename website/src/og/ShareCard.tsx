@@ -4,7 +4,7 @@ import {
   HERO_HEADLINE,
   HERO_SWIRLS,
 } from "@/src/components/home/heroArtwork";
-import { Swirl } from "@/src/icons/Swirl";
+import { Swirl } from "@/src/illustrations/Swirl";
 import { ccBg, ccDarkSurface, ccInk } from "@/src/theme/colors";
 
 type ShareCardProps = {

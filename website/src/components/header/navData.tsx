@@ -1,9 +1,10 @@
-import { GitHubIcon } from "@/src/icons/GitHub";
-import { LinkedInIcon } from "@/src/icons/LinkedIn";
-import { SlackIcon } from "@/src/icons/Slack";
-import { XIcon } from "@/src/icons/X";
-import { YouTubeIcon } from "@/src/icons/YouTube";
-import { IconName } from "@fortawesome/free-solid-svg-icons";
+import { GitHubIcon } from "@/src/icons/brands/GitHub";
+import { LinkedInIcon } from "@/src/icons/brands/LinkedIn";
+import { SlackIcon } from "@/src/icons/brands/Slack";
+import { XIcon } from "@/src/icons/brands/X";
+import { YouTubeIcon } from "@/src/icons/brands/YouTube";
+import { IconName } from "@/src/icons/Icon";
+
 import type { ComponentType, SVGProps } from "react";
 
 export const TOOLS = {

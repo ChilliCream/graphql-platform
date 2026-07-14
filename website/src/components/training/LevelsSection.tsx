@@ -1,9 +1,6 @@
 import { CardGrid } from "@/src/components/CardGrid";
 import { PerkCard } from "@/src/components/PerkCard";
 import { SectionHeading } from "@/src/components/SectionHeading";
-import { MixIcon } from "@/src/icons/MixIcon";
-import { SeedIcon } from "@/src/icons/SeedIcon";
-import { SummitIcon } from "@/src/icons/SummitIcon";
 
 const LEVELS = [
   {
@@ -19,7 +16,7 @@ const LEVELS = [
       "Wiring up a real Relay or Apollo client",
       "Pagination, errors, and the everyday traps",
     ],
-    Icon: SeedIcon,
+    icon: "seedling",
     accent: "accent",
   },
   {
@@ -35,7 +32,7 @@ const LEVELS = [
       "A real schema review on your codebase",
       "Working sessions on the bugs you brought with you",
     ],
-    Icon: MixIcon,
+    icon: "circle-half-stroke",
     accent: "violet",
   },
   {
@@ -51,7 +48,7 @@ const LEVELS = [
       "Observability and Nitro in production",
       "Versioning and breaking-change workflows",
     ],
-    Icon: SummitIcon,
+    icon: "mountain",
     accent: "coral",
   },
 ] as const;
@@ -81,7 +78,7 @@ export function LevelsSection() {
             intro={level.intro}
             listLabel="What we cover"
             items={level.covers}
-            Icon={level.Icon}
+            icon={level.icon}
             accent={level.accent}
           />
         ))}

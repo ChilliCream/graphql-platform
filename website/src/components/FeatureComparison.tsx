@@ -1,7 +1,7 @@
-import { CheckIcon } from "@/src/components/CheckIcon";
 import { SectionHeading } from "@/src/components/SectionHeading";
 import { Card } from "@/src/design-system/Card";
 import { Eyebrow } from "@/src/design-system/Eyebrow";
+import { Icon } from "../icons/Icon";
 
 type Cell = boolean | string;
 
@@ -119,7 +119,7 @@ function CompareCell({ value }: { readonly value: Cell }) {
     return (
       <td className="px-5 py-3 align-top">
         <span className="text-cc-accent inline-flex">
-          <CheckIcon />
+          <Icon icon="check" size="sm" />
         </span>
         <span className="sr-only">Included</span>
       </td>

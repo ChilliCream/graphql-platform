@@ -7,9 +7,9 @@ import type { TierId } from "@/src/components/pricing/pricingData";
 import { TIERS } from "@/src/components/pricing/pricingData";
 import { OutlineButton } from "@/src/design-system/Button";
 import { Card } from "@/src/design-system/Card";
-import { DripBrewer } from "@/src/icons/DripBrewer";
-import { FrenchPress } from "@/src/icons/FrenchPress";
-import { PourOver } from "@/src/icons/PourOver";
+import { DripBrewer } from "@/src/illustrations/DripBrewer";
+import { FrenchPress } from "@/src/illustrations/FrenchPress";
+import { PourOver } from "@/src/illustrations/PourOver";
 
 // Coffee-brew icon per cloud tier, lightest brew to strongest.
 const ICONS: Partial<

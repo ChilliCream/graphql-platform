@@ -2,12 +2,11 @@
 
 import { useEffect, useRef, useState } from "react";
 
+import { MockWindowChrome } from "@/src/components/MockWindowChrome";
+import { SectionHeading } from "@/src/components/SectionHeading";
 import { Card } from "@/src/design-system/Card";
 import { Eyebrow } from "@/src/design-system/Eyebrow";
-import { SectionHeading } from "@/src/components/SectionHeading";
-import { MockWindowChrome } from "@/src/components/MockWindowChrome";
-import { BranchGlyph } from "@/src/icons/BranchGlyph";
-import { CheckGlyph } from "@/src/icons/CheckGlyph";
+import { Icon } from "@/src/icons/Icon";
 
 interface HunkRun {
   readonly t: string;
@@ -271,7 +270,7 @@ function StatusBadge({ status }: { readonly status: DemoStatus }) {
   if (status === "approved") {
     return (
       <span className="border-cc-success/40 bg-cc-success/10 text-cc-success ml-auto inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 font-mono text-[0.65rem] tracking-[0.1em] uppercase">
-        <CheckGlyph className="text-cc-success size-3.5" />
+        <Icon icon="check" className="text-cc-success size-3.5" />
         Approved
       </span>
     );
@@ -339,7 +338,9 @@ function FileCard({
                 : "border-cc-ink-faint"
             } ${pressed ? "scale-90" : ""}`}
           >
-            {viewed && <CheckGlyph className="text-cc-accent size-2.5" />}
+            {viewed && (
+              <Icon icon="check" size="xs" className="text-cc-accent" />
+            )}
           </span>
           Viewed
         </span>
@@ -478,7 +479,11 @@ export function ReviewSection() {
               variant: "custom",
               content: (
                 <>
-                  <BranchGlyph className="text-cc-ink-dim size-3.5 shrink-0" />
+                  <Icon
+                    icon="code-branch"
+                    size="xs"
+                    className="text-cc-ink-dim size-3.5 shrink-0"
+                  />
                   <span className="text-cc-ink font-mono text-sm">
                     feat: add product reviews
                   </span>
@@ -522,7 +527,11 @@ export function ReviewSection() {
                         className="flex items-center gap-2.5 font-mono text-xs"
                       >
                         {done ? (
-                          <CheckGlyph className="text-cc-success size-3.5" />
+                          <Icon
+                            icon="check"
+                            size="sm"
+                            className="text-cc-success size-3.5"
+                          />
                         ) : (
                           <PendingSpinner />
                         )}
@@ -551,7 +560,7 @@ export function ReviewSection() {
                   }`}
                 >
                   {approved && (
-                    <CheckGlyph className="text-cc-success size-3.5" />
+                    <Icon icon="check" className="text-cc-success size-3.5" />
                   )}
                   {approved ? "Approved" : "Approve"}
                 </span>

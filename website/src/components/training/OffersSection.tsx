@@ -1,8 +1,6 @@
 import { CardGrid } from "@/src/components/CardGrid";
 import { PerkCard } from "@/src/components/PerkCard";
 import { SectionHeading } from "@/src/components/SectionHeading";
-import { TeamIcon } from "@/src/icons/TeamIcon";
-import { WorkshopIcon } from "@/src/icons/WorkshopIcon";
 
 const OFFERS = [
   {
@@ -18,7 +16,7 @@ const OFFERS = [
     ],
     ctaLabel: "Book Corporate Training",
     ctaHref: "mailto:contact@chillicream.com?subject=Corporate%20Training",
-    Icon: TeamIcon,
+    icon: "users",
     highlight: false,
   },
   {
@@ -36,10 +34,10 @@ const OFFERS = [
     ],
     ctaLabel: "Book Corporate Workshop",
     ctaHref: "mailto:contact@chillicream.com?subject=Corporate%20Workshop",
-    Icon: WorkshopIcon,
+    icon: "building-circle-arrow-right",
     highlight: true,
   },
-];
+] as const;
 
 /**
  * The two real corporate engagements as delivery options: training to align a
@@ -65,7 +63,7 @@ export function OffersSection() {
             intro={offer.description}
             listLabel="What is in the box"
             items={offer.perks}
-            Icon={offer.Icon}
+            icon={offer.icon}
             cta={{
               label: offer.ctaLabel,
               href: offer.ctaHref,

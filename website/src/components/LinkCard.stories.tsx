@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 
-import { Fusion } from "@/src/icons/Fusion";
+import { Fusion } from "@/src/icons/chillicream/Fusion";
 
 import { LinkCard } from "./LinkCard";
 

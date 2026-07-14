@@ -12,9 +12,7 @@ import { MockWindowChrome } from "@/src/components/MockWindowChrome";
 import { PageSection } from "@/src/components/PageSection";
 import { RevealOnScroll } from "@/src/components/RevealOnScroll";
 import { Card } from "@/src/design-system/Card";
-import { BranchGlyph } from "@/src/icons/BranchGlyph";
-import { CheckGlyph } from "@/src/icons/CheckGlyph";
-import { IconElement } from "@/src/icons/IconElement";
+import { Icon } from "@/src/icons/Icon";
 
 const FLIP_INTERVAL_MS = 2500;
 
@@ -80,7 +78,7 @@ function AgentGroup() {
             className="border-cc-ink-faint text-cc-ink-dim hover:border-cc-accent/60 hover:text-cc-accent flex h-full items-center justify-center gap-1.5 rounded-xl border border-dashed px-3 py-1.5 font-mono text-sm transition-colors"
           >
             and many more
-            <IconElement icon="arrow-right" size="sm" />
+            <Icon icon="arrow-right" size="sm" />
           </Link>
         </li>
       </ul>
@@ -141,12 +139,16 @@ function ReviewFacet() {
   return (
     <Card className="p-4 select-none">
       <div className="flex items-center gap-2">
-        <BranchGlyph className="text-cc-ink-dim size-3 shrink-0" />
+        <Icon
+          icon="code-branch"
+          size="xs"
+          className="text-cc-ink-dim shrink-0"
+        />
         <span className="text-cc-ink min-w-0 truncate font-mono text-[0.7rem]">
           feat: add reviews
         </span>
         <span className="border-cc-success/40 bg-cc-success/10 text-cc-success ml-auto inline-flex shrink-0 items-center gap-1 rounded-full border px-2 py-0.5 font-mono text-[0.55rem] tracking-[0.1em] uppercase">
-          <CheckGlyph className="text-cc-success size-3" />
+          <Icon icon="check" className="text-cc-success" />
           Approved
         </span>
       </div>
@@ -359,7 +361,10 @@ function SkillFacet() {
         <>
           <span className="inline-flex items-center gap-3">
             <span className="text-cc-nav-label inline-flex items-center gap-1.5 font-mono text-[0.6rem] whitespace-nowrap">
-              <BranchGlyph className="text-cc-ink-dim size-3 shrink-0" />
+              <Icon
+                icon="code-branch"
+                className="text-cc-ink-dim size-3 shrink-0"
+              />
               main
             </span>
             <span className="text-cc-nav-label font-mono text-[0.6rem]">
@@ -367,7 +372,7 @@ function SkillFacet() {
             </span>
           </span>
           <span className="text-cc-ink-dim inline-flex items-center gap-1.5 font-mono text-[0.6rem] whitespace-nowrap">
-            <CheckGlyph className="text-cc-success size-3" />
+            <Icon icon="check" className="text-cc-success" />
             reviewed
           </span>
         </>

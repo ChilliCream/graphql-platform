@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 
-import { CheckIcon } from "./CheckIcon";
+import { Icon } from "../icons/Icon";
 import { HighlightCard } from "./HighlightCard";
 
 const meta = {
@@ -42,8 +42,8 @@ function PerkBody() {
       <ul className="flex flex-1 flex-col gap-2">
         {perks.map((item) => (
           <li key={item} className="flex items-start gap-3">
-            <span className="text-cc-accent mt-1 flex-none">
-              <CheckIcon />
+            <span className="text-cc-accent mt-0.5 inline-flex">
+              <Icon icon="check" size="sm" />
             </span>
             <span className="text-cc-ink text-sm">{item}</span>
           </li>

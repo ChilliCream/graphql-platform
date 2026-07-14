@@ -1,6 +1,6 @@
+import { LinkedInIcon } from "@/src/icons/brands/LinkedIn";
+import { XIcon } from "@/src/icons/brands/X";
 import type { ReactNode } from "react";
-import { LinkedInIcon } from "@/src/icons/LinkedIn";
-import { XIcon } from "@/src/icons/X";
 
 type BlogShareBarProps = {
   /** Absolute URL of the blog post. */

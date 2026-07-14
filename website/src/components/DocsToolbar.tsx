@@ -1,7 +1,6 @@
 "use client";
 
-import { ListBulletsIcon } from "@/src/icons/ListBullets";
-import { MenuLinesIcon } from "@/src/icons/MenuLines";
+import { Icon } from "../icons/Icon";
 import { SIDEBAR_OPEN_EVENT } from "./SidebarDrawer";
 import { TOC_OPEN_EVENT } from "./TocDrawer";
 
@@ -20,7 +19,7 @@ export function DocsToolbar({
         label={menuPillLabel}
         className="lg:invisible"
       >
-        <MenuLinesIcon className="h-3.5 w-3.5" aria-hidden="true" />
+        <Icon icon="bars" />
       </PillButton>
       <PillButton
         ariaLabel="Open table of contents"
@@ -28,7 +27,7 @@ export function DocsToolbar({
         label="On this page"
         iconPosition="right"
       >
-        <ListBulletsIcon className="h-3.5 w-3.5" aria-hidden="true" />
+        <Icon icon="list" />
       </PillButton>
     </div>
   );
