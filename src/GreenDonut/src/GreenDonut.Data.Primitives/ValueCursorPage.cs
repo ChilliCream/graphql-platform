@@ -49,11 +49,6 @@ internal sealed class ValueCursorPage<T> : Page<T>
     /// </summary>
     public static new ValueCursorPage<T> Empty { get; } = new([], false, false, static _ => string.Empty, totalCount: 0);
 
-    /// <summary>
-    /// An empty page with unknown total count.
-    /// </summary>
-    internal static ValueCursorPage<T> EmptyWithUnknownCount { get; } = new([], false, false, static _ => string.Empty);
-
     protected override string CreateCursor(int index, int offset, int pageIndex, int totalCount)
         => _createCursor(new EdgeEntry<T>(Entries[index].Item, offset, pageIndex, totalCount));
 }

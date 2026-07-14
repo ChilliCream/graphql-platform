@@ -202,11 +202,6 @@ public abstract class Page<T> : IReadOnlyList<T>
     /// </summary>
     public static Page<T> Empty => ValueCursorPage<T>.Empty;
 
-    /// <summary>
-    /// An empty page with unknown total count.
-    /// </summary>
-    internal static Page<T> EmptyWithUnknownCount => ValueCursorPage<T>.EmptyWithUnknownCount;
-
     protected abstract string CreateCursor(int index, int offset, int pageIndex, int totalCount);
 
     private void EnsureIndex(int index)
