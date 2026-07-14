@@ -7,10 +7,12 @@ namespace HotChocolate.Data;
 public class Issue6953Tests
 {
     [Fact]
-    public async Task UseProjection_On_List_Union_With_Fragments_Does_Not_Throw()
+    public async Task UseProjection_Should_ProjectUnionMembers_When_FieldTypeIsExplicitUnion()
     {
+        // arrange
         var executor = await CreateExecutorAsync();
 
+        // act
         var result = await executor.ExecuteAsync(
             """
             {
@@ -24,17 +26,36 @@ public class Issue6953Tests
                 }
               }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
-        var operationResult = result.ExpectOperationResult();
-        Assert.Empty(operationResult.Errors ?? []);
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "unionTest": [
+                  {
+                    "__typename": "ChildA",
+                    "a": "value-a"
+                  },
+                  {
+                    "__typename": "ChildB",
+                    "b": "value-b"
+                  }
+                ]
+              }
+            }
+            """);
     }
 
     [Fact]
-    public async Task UseProjection_On_List_Union_With_Typename_Only_Does_Not_Throw()
+    public async Task UseProjection_Should_PreserveRuntimeTypes_When_OnlyTypenameIsSelected()
     {
+        // arrange
         var executor = await CreateExecutorAsync();
 
+        // act
         var result = await executor.ExecuteAsync(
             """
             {
@@ -42,10 +63,25 @@ public class Issue6953Tests
                 __typename
               }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
-        var operationResult = result.ExpectOperationResult();
-        Assert.Empty(operationResult.Errors ?? []);
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "unionTest": [
+                  {
+                    "__typename": "ChildA"
+                  },
+                  {
+                    "__typename": "ChildB"
+                  }
+                ]
+              }
+            }
+            """);
     }
 
     private static ValueTask<IRequestExecutor> CreateExecutorAsync()
@@ -57,7 +93,7 @@ public class Issue6953Tests
             .AddType<ChildBType>()
             .AddType<UnionTestType>()
             .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
     public class Query
     {
