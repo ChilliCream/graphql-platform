@@ -22,7 +22,7 @@ using StringValueNode = HotChocolate.Language.StringValueNode;
 using ObjectFieldNode = HotChocolate.Language.ObjectFieldNode;
 using IValueNode = HotChocolate.Language.IValueNode;
 
-namespace Fusion.Execution.Benchmarks;
+namespace HotChocolate.Fusion.Execution.Benchmarks;
 
 /// <summary>
 /// Measures the defer-only snapshot variable merge path
