@@ -22,6 +22,8 @@ public sealed class Sha1DocumentHashProvider : DocumentHashProviderBase
 
     public override string Name => "sha1Hash";
 
+    public override string AlgorithmName => "sha1";
+
 #if NETSTANDARD2_0
     protected override byte[] ComputeHash(byte[] document, int length)
         => _sha.Value!.ComputeHash(document, 0, length);

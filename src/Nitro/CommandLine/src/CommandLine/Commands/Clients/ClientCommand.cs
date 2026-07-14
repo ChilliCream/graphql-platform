@@ -12,18 +12,16 @@ internal sealed class ClientCommand : Command
 {
     public ClientCommand() : base("client")
     {
-        Description = "Manage clients";
+        Description = "Manage clients.";
 
-        this.AddNitroCloudDefaultOptions();
-
-        AddCommand(new PublishClientCommand());
-        AddCommand(new UnpublishClientCommand());
-        AddCommand(new ValidateClientCommand());
-        AddCommand(new UploadClientCommand());
-        AddCommand(new CreateClientCommand());
-        AddCommand(new DeleteClientCommand());
-        AddCommand(new ListClientCommand());
-        AddCommand(new ShowClientCommand());
-        AddCommand(new DownloadClientCommand());
+        Subcommands.Add(new PublishClientCommand());
+        Subcommands.Add(new UnpublishClientCommand());
+        Subcommands.Add(new ValidateClientCommand());
+        Subcommands.Add(new UploadClientCommand());
+        Subcommands.Add(new CreateClientCommand());
+        Subcommands.Add(new DeleteClientCommand());
+        Subcommands.Add(new ListClientCommand());
+        Subcommands.Add(new ShowClientCommand());
+        Subcommands.Add(new DownloadClientCommand());
     }
 }

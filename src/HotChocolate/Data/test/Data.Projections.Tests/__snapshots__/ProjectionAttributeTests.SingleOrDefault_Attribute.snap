@@ -2,11 +2,11 @@ schema {
   query: SingleOrDefaultQuery
 }
 
-type Foo {
-  bar: String!
-}
-
 type SingleOrDefaultQuery {
   fooQueryable: Foo
   fooEnumerable: Foo
+}
+
+type Foo {
+  bar: String!
 }

@@ -1,11 +1,11 @@
-using System.CommandLine.Invocation;
+using ChilliCream.Nitro.Client;
+using ChilliCream.Nitro.Client.Clients;
 using ChilliCream.Nitro.CommandLine.Arguments;
-using ChilliCream.Nitro.CommandLine.Client;
 using ChilliCream.Nitro.CommandLine.Commands.Clients.Components;
-using ChilliCream.Nitro.CommandLine.Configuration;
 using ChilliCream.Nitro.CommandLine.Helpers;
-using ChilliCream.Nitro.CommandLine.Options;
 using ChilliCream.Nitro.CommandLine.Results;
+using ChilliCream.Nitro.CommandLine.Services.Sessions;
+using static ChilliCream.Nitro.CommandLine.ThrowHelper;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Clients;
 
@@ -13,44 +13,38 @@ internal sealed class ShowClientCommand : Command
 {
     public ShowClientCommand() : base("show")
     {
-        Description = "Shows details of a client";
+        Description = "Show details of a client.";
 
-        AddArgument(Opt<IdArgument>.Instance);
-        AddOption(Opt<ClientDetailFieldsOption>.Instance);
+        Arguments.Add(Opt<IdArgument>.Instance);
 
-        this.SetHandler(
-            ExecuteAsync,
-            Bind.FromServiceProvider<InvocationContext>(),
-            Bind.FromServiceProvider<IAnsiConsole>(),
-            Bind.FromServiceProvider<IApiClient>(),
-            Opt<IdArgument>.Instance,
-            Opt<ClientDetailFieldsOption>.Instance,
-            Bind.FromServiceProvider<CancellationToken>());
+        this.AddGlobalNitroOptions();
+
+        this.AddExamples("client show \"<client-id>\"");
+
+        this.SetActionWithExceptionHandling(ExecuteAsync);
     }
 
     private static async Task<int> ExecuteAsync(
-        InvocationContext context,
-        IAnsiConsole console,
-        IApiClient client,
-        string id,
-        IEnumerable<string> fields,
+        ICommandServices services,
+        ParseResult parseResult,
         CancellationToken cancellationToken)
     {
-        var result = await client.ShowClientCommandQuery.ExecuteAsync(id, cancellationToken);
+        var client = services.GetRequiredService<IClientsClient>();
+        var sessionService = services.GetRequiredService<ISessionService>();
+        var resultHolder = services.GetRequiredService<IResultHolder>();
 
-        var data = result.EnsureData();
+        parseResult.AssertHasAuthentication(sessionService);
 
-        if (data.Node is IClientDetailPrompt_Client node)
+        var id = parseResult.GetRequiredValue(Opt<IdArgument>.Instance);
+
+        var model = await client.GetClientAsync(id, cancellationToken);
+
+        if (model is IShowClientCommandQuery_Node_Client clientModel)
         {
-            context.SetResult(
-                await ClientDetailPrompt.From(node, client).ToObject(fields.ToArray()));
-        }
-        else
-        {
-            console.ErrorLine(
-                $"Could not find a api with id {id.EscapeMarkup().AsHighlight()}");
+            resultHolder.SetResult(new ObjectResult(ClientDetailPrompt.From(clientModel).ToObject()));
+            return ExitCodes.Success;
         }
 
-        return ExitCodes.Success;
+        throw Exit($"The client with ID '{id}' was not found.");
     }
 }

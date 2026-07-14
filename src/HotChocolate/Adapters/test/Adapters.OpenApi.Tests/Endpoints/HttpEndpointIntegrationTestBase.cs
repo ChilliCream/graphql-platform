@@ -17,7 +17,7 @@ public abstract class HttpEndpointIntegrationTestBase : OpenApiTestBase
         var client = server.CreateClient();
 
         // act
-        var response = await client.GetAsync("/users/1");
+        var response = await client.GetAsync("/users/1", TestContext.Current.CancellationToken);
 
         // assert
         response.MatchSnapshot();
@@ -63,7 +63,7 @@ public abstract class HttpEndpointIntegrationTestBase : OpenApiTestBase
         var client = server.CreateClient();
 
         // act
-        var response = await client.GetAsync("/users/1");
+        var response = await client.GetAsync("/users/1", TestContext.Current.CancellationToken);
 
         // assert
         response.MatchSnapshot();
@@ -78,7 +78,30 @@ public abstract class HttpEndpointIntegrationTestBase : OpenApiTestBase
         var client = server.CreateClient();
 
         // act
-        var response = await client.GetAsync("/users/1/details?includeAddress=true");
+        var response = await client.GetAsync(
+            "/users/1/details?includeAddress=true",
+            TestContext.Current.CancellationToken);
+
+        // assert
+        response.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Http_Get_With_Missing_Required_Query_Parameter()
+    {
+        // arrange
+        var storage = new TestOpenApiDefinitionStorage(
+            """
+            query SearchProducts($text: String, $first: Int!)
+              @http(method: GET, route: "/products/search", queryParameters: ["text", "first"]) {
+              searchProductsPaginated(text: $text, first: $first)
+            }
+            """);
+        var server = CreateTestServer(storage);
+        var client = server.CreateClient();
+
+        // act
+        var response = await client.GetAsync("/products/search?text=Chair", TestContext.Current.CancellationToken);
 
         // assert
         response.MatchSnapshot();
@@ -105,7 +128,7 @@ public abstract class HttpEndpointIntegrationTestBase : OpenApiTestBase
         var client = server.CreateClient();
 
         // act
-        var response = await client.GetAsync("/users/1/details");
+        var response = await client.GetAsync("/users/1/details", TestContext.Current.CancellationToken);
 
         // assert
         response.MatchSnapshot();
@@ -129,7 +152,7 @@ public abstract class HttpEndpointIntegrationTestBase : OpenApiTestBase
         var client = server.CreateClient();
 
         // act
-        var response = await client.GetAsync("/users?includeEmail=true");
+        var response = await client.GetAsync("/users?includeEmail=true", TestContext.Current.CancellationToken);
 
         // assert
         response.MatchSnapshot();
@@ -153,7 +176,49 @@ public abstract class HttpEndpointIntegrationTestBase : OpenApiTestBase
         var client = server.CreateClient();
 
         // act
-        var response = await client.GetAsync("/users-details?userName=true");
+        var response = await client.GetAsync("/users-details?userName=true", TestContext.Current.CancellationToken);
+
+        // assert
+        response.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Http_Get_With_Query_Parameter_Float_Value()
+    {
+        // arrange
+        var storage = new TestOpenApiDefinitionStorage(
+            """
+            query SearchProducts($text: String, $minPrice: Float)
+              @http(method: GET, route: "/search", queryParameters: ["text", "minPrice"]) {
+              searchProducts(text: $text, minPrice: $minPrice)
+            }
+            """);
+        var server = CreateTestServer(storage);
+        var client = server.CreateClient();
+
+        // act
+        var response = await client.GetAsync("/search?text=Bed&minPrice=500", TestContext.Current.CancellationToken);
+
+        // assert
+        response.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Http_Get_With_Query_Parameter_Float_Value_With_Decimals()
+    {
+        // arrange
+        var storage = new TestOpenApiDefinitionStorage(
+            """
+            query SearchProducts($text: String, $minPrice: Float)
+              @http(method: GET, route: "/search", queryParameters: ["text", "minPrice"]) {
+              searchProducts(text: $text, minPrice: $minPrice)
+            }
+            """);
+        var server = CreateTestServer(storage);
+        var client = server.CreateClient();
+
+        // act
+        var response = await client.GetAsync("/search?text=Bed&minPrice=500.99", TestContext.Current.CancellationToken);
 
         // assert
         response.MatchSnapshot();
@@ -168,7 +233,7 @@ public abstract class HttpEndpointIntegrationTestBase : OpenApiTestBase
         var client = server.CreateClient();
 
         // act
-        var response = await client.GetAsync("/users/abc");
+        var response = await client.GetAsync("/users/abc", TestContext.Current.CancellationToken);
 
         // assert
         response.MatchSnapshot();
@@ -183,7 +248,7 @@ public abstract class HttpEndpointIntegrationTestBase : OpenApiTestBase
         var client = server.CreateClient();
 
         // act
-        var response = await client.GetAsync("/users/4");
+        var response = await client.GetAsync("/users/4", TestContext.Current.CancellationToken);
 
         // assert
         response.MatchSnapshot();
@@ -198,7 +263,7 @@ public abstract class HttpEndpointIntegrationTestBase : OpenApiTestBase
         var client = server.CreateClient();
 
         // act
-        var response = await client.GetAsync("/users/5");
+        var response = await client.GetAsync("/users/5", TestContext.Current.CancellationToken);
 
         // assert
         response.MatchSnapshot();
@@ -216,7 +281,7 @@ public abstract class HttpEndpointIntegrationTestBase : OpenApiTestBase
             TestJwtTokenHelper.GenerateToken());
 
         // act
-        var response = await client.GetAsync("/users");
+        var response = await client.GetAsync("/users", TestContext.Current.CancellationToken);
 
         // assert
         response.MatchSnapshot();
@@ -231,7 +296,7 @@ public abstract class HttpEndpointIntegrationTestBase : OpenApiTestBase
         var client = server.CreateClient();
 
         // act
-        var response = await client.GetAsync("/users");
+        var response = await client.GetAsync("/users", TestContext.Current.CancellationToken);
 
         // assert
         response.MatchSnapshot();
@@ -249,7 +314,7 @@ public abstract class HttpEndpointIntegrationTestBase : OpenApiTestBase
             TestJwtTokenHelper.GenerateToken("guest"));
 
         // act
-        var response = await client.GetAsync("/users");
+        var response = await client.GetAsync("/users", TestContext.Current.CancellationToken);
 
         // assert
         response.MatchSnapshot();
@@ -279,7 +344,7 @@ public abstract class HttpEndpointIntegrationTestBase : OpenApiTestBase
             Encoding.UTF8,
             "application/json");
 
-        var response = await client.PostAsync("/users", content);
+        var response = await client.PostAsync("/users", content, TestContext.Current.CancellationToken);
 
         // assert
         response.MatchSnapshot();
@@ -306,6 +371,7 @@ public abstract class HttpEndpointIntegrationTestBase : OpenApiTestBase
                 "date": "2000-01-01",
                 "dateTime": "2000-01-01T12:00:00.000Z",
                 "decimal": 79228162514264337593543950335,
+                "duration": "PT5M",
                 "enum": "VALUE1",
                 "float": 1.5,
                 "id": "test",
@@ -329,8 +395,11 @@ public abstract class HttpEndpointIntegrationTestBase : OpenApiTestBase
                 },
                 "short": 1,
                 "string": "test",
-                "timeSpan": "PT5M",
                 "unknown": "test",
+                "unsignedByte": 1,
+                "unsignedInt": 65536,
+                "unsignedLong": 4294967296,
+                "unsignedShort": 256,
                 "uri": "https://example.com/",
                 "url": "https://example.com/",
                 "uuid": "00000000-0000-0000-0000-000000000000"
@@ -339,7 +408,7 @@ public abstract class HttpEndpointIntegrationTestBase : OpenApiTestBase
             Encoding.UTF8,
             "application/json");
 
-        var response = await client.PostAsync("/complex", content);
+        var response = await client.PostAsync("/complex", content, TestContext.Current.CancellationToken);
 
         // assert
         response.MatchSnapshot();
@@ -366,7 +435,7 @@ public abstract class HttpEndpointIntegrationTestBase : OpenApiTestBase
             Encoding.UTF8,
             "application/json");
 
-        var response = await client.PostAsync("/example", content);
+        var response = await client.PostAsync("/example", content, TestContext.Current.CancellationToken);
 
         // assert
         response.MatchSnapshot();
@@ -393,7 +462,7 @@ public abstract class HttpEndpointIntegrationTestBase : OpenApiTestBase
             Encoding.UTF8,
             "application/json");
 
-        var response = await client.PostAsync("/example", content);
+        var response = await client.PostAsync("/example", content, TestContext.Current.CancellationToken);
 
         // assert
         response.MatchSnapshot();
@@ -415,7 +484,7 @@ public abstract class HttpEndpointIntegrationTestBase : OpenApiTestBase
             ["email"] = "Email"
         });
 
-        var response = await client.PostAsync("/users", content);
+        var response = await client.PostAsync("/users", content, TestContext.Current.CancellationToken);
 
         // assert
         response.MatchSnapshot();
@@ -440,7 +509,7 @@ public abstract class HttpEndpointIntegrationTestBase : OpenApiTestBase
             Encoding.UTF8,
             "application/json");
 
-        var response = await client.PostAsync("/users", content);
+        var response = await client.PostAsync("/users", content, TestContext.Current.CancellationToken);
 
         // assert
         response.MatchSnapshot();
@@ -457,7 +526,7 @@ public abstract class HttpEndpointIntegrationTestBase : OpenApiTestBase
         var content = new StringContent("", Encoding.UTF8, "application/json");
 
         // act
-        var response = await client.PostAsync("/users", content);
+        var response = await client.PostAsync("/users", content, TestContext.Current.CancellationToken);
 
         // assert
         response.MatchSnapshot();
@@ -486,7 +555,7 @@ public abstract class HttpEndpointIntegrationTestBase : OpenApiTestBase
             Encoding.UTF8,
             "application/json");
 
-        var response = await client.PutAsync("/users/6", content);
+        var response = await client.PutAsync("/users/6", content, TestContext.Current.CancellationToken);
 
         // assert
         response.MatchSnapshot();
@@ -513,7 +582,7 @@ public abstract class HttpEndpointIntegrationTestBase : OpenApiTestBase
             Encoding.UTF8,
             "application/json");
 
-        var response = await client.PutAsync("/object/6", content);
+        var response = await client.PutAsync("/object/6", content, TestContext.Current.CancellationToken);
 
         // assert
         response.MatchSnapshot();
@@ -534,7 +603,7 @@ public abstract class HttpEndpointIntegrationTestBase : OpenApiTestBase
 
         // act
         // assert
-        var response1 = await client.GetAsync("/users");
+        var response1 = await client.GetAsync("/users", TestContext.Current.CancellationToken);
 
         Assert.Equal(HttpStatusCode.NotFound, response1.StatusCode);
 
@@ -555,7 +624,7 @@ public abstract class HttpEndpointIntegrationTestBase : OpenApiTestBase
             return response2.StatusCode == HttpStatusCode.OK;
         }, cts.Token);
 
-        response2!.MatchSnapshot();
+        response2.MatchSnapshot();
     }
 
     [Fact]
@@ -578,8 +647,8 @@ public abstract class HttpEndpointIntegrationTestBase : OpenApiTestBase
 
         // act
         // assert
-        var response1 = await client.GetAsync("/users");
-        var content1 = await response1.Content.ReadAsStringAsync();
+        var response1 = await client.GetAsync("/users", TestContext.Current.CancellationToken);
+        var content1 = await response1.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
 
         storage.AddOrUpdateDocument(
             "users",
@@ -600,7 +669,7 @@ public abstract class HttpEndpointIntegrationTestBase : OpenApiTestBase
             return content != content1;
         }, cts.Token);
 
-        response2!.MatchSnapshot();
+        response2.MatchSnapshot();
     }
 
     [Fact]
@@ -623,7 +692,7 @@ public abstract class HttpEndpointIntegrationTestBase : OpenApiTestBase
 
         // act
         // assert
-        var oldRouteResponse1 = await client.GetAsync("/users");
+        var oldRouteResponse1 = await client.GetAsync("/users", TestContext.Current.CancellationToken);
 
         Assert.Equal(HttpStatusCode.OK, oldRouteResponse1.StatusCode);
 
@@ -645,11 +714,11 @@ public abstract class HttpEndpointIntegrationTestBase : OpenApiTestBase
             return newRouteResponse.StatusCode == HttpStatusCode.OK;
         }, cts.Token);
 
-        var oldRouteResponse2 = await client.GetAsync("/users");
+        var oldRouteResponse2 = await client.GetAsync("/users", TestContext.Current.CancellationToken);
 
         Assert.Equal(HttpStatusCode.NotFound, oldRouteResponse2.StatusCode);
 
-        newRouteResponse!.MatchSnapshot();
+        newRouteResponse.MatchSnapshot();
     }
 
     [Fact]
@@ -672,7 +741,7 @@ public abstract class HttpEndpointIntegrationTestBase : OpenApiTestBase
 
         // act
         // assert
-        var response1 = await client.GetAsync("/users");
+        var response1 = await client.GetAsync("/users", TestContext.Current.CancellationToken);
 
         Assert.Equal(HttpStatusCode.OK, response1.StatusCode);
 
@@ -704,13 +773,13 @@ public abstract class HttpEndpointIntegrationTestBase : OpenApiTestBase
 
         // act
         // assert
-        var response1 = await client.GetAsync("/users");
+        var response1 = await client.GetAsync("/users", TestContext.Current.CancellationToken);
 
         Assert.Equal(HttpStatusCode.OK, response1.StatusCode);
 
         storage.RemoveDocument("non-existent-id");
 
-        var response2 = await client.GetAsync("/users");
+        var response2 = await client.GetAsync("/users", TestContext.Current.CancellationToken);
 
         Assert.Equal(HttpStatusCode.OK, response2.StatusCode);
     }
@@ -743,11 +812,11 @@ public abstract class HttpEndpointIntegrationTestBase : OpenApiTestBase
 
         // act
         // assert
-        var validResponse = await client.GetAsync("/users");
+        var validResponse = await client.GetAsync("/users", TestContext.Current.CancellationToken);
 
         Assert.Equal(HttpStatusCode.OK, validResponse.StatusCode);
 
-        var invalidResponse = await client.GetAsync("/users/1");
+        var invalidResponse = await client.GetAsync("/users/1", TestContext.Current.CancellationToken);
 
         Assert.Equal(HttpStatusCode.InternalServerError, invalidResponse.StatusCode);
     }
@@ -776,11 +845,11 @@ public abstract class HttpEndpointIntegrationTestBase : OpenApiTestBase
 
         // act
         // assert
-        var validResponse = await client.GetAsync("/users");
+        var validResponse = await client.GetAsync("/users", TestContext.Current.CancellationToken);
 
         Assert.Equal(HttpStatusCode.OK, validResponse.StatusCode);
 
-        var invalidResponse = await client.GetAsync("/users/1");
+        var invalidResponse = await client.GetAsync("/users/1", TestContext.Current.CancellationToken);
 
         Assert.Equal(HttpStatusCode.InternalServerError, invalidResponse.StatusCode);
     }
@@ -811,7 +880,36 @@ public abstract class HttpEndpointIntegrationTestBase : OpenApiTestBase
         var client = server.CreateClient();
 
         // act
-        var response = await client.GetAsync("/users");
+        var response = await client.GetAsync("/users", TestContext.Current.CancellationToken);
+
+        // assert
+        response.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Duplicated_Routes_FirstInvalidSecondValid_PrefersValid()
+    {
+        // arrange
+        var storage = new TestOpenApiDefinitionStorage(
+            """
+            query A_InvalidFirst @http(method: GET, route: "/users") {
+              doesNotExist {
+                id
+              }
+            }
+            """,
+            """
+            query B_ValidSecond @http(method: GET, route: "/users") {
+              usersWithoutAuth {
+                id
+              }
+            }
+            """);
+        var server = CreateTestServer(storage);
+        var client = server.CreateClient();
+
+        // act
+        var response = await client.GetAsync("/users", TestContext.Current.CancellationToken);
 
         // assert
         response.MatchSnapshot();
@@ -846,7 +944,7 @@ public abstract class HttpEndpointIntegrationTestBase : OpenApiTestBase
         var client = server.CreateClient();
 
         // act
-        var response = await client.GetAsync("/users");
+        var response = await client.GetAsync("/users", TestContext.Current.CancellationToken);
 
         // assert
         response.MatchSnapshot();

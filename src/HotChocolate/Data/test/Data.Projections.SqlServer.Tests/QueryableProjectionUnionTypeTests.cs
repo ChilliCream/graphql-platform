@@ -85,13 +85,51 @@ public class QueryableProjectionUnionTypeTests
                                 }
                             }
                         }")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
             .Create()
             .AddResult(res1)
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
+    }
+
+    [Fact]
+    public async Task ParentRequires_Should_ProjectConcreteProperties_When_ReturnTypeIsUnion()
+    {
+        // arrange
+        var tester = _cache.CreateSchema(
+            s_barEntities,
+            OnModelCreating,
+            configure: ConfigureSchemaWithRequirements,
+            asNoTracking: true);
+
+        // act
+        var result = await tester.ExecuteAsync(
+            OperationRequestBuilder.New()
+                .SetDocument(
+                    """
+                    {
+                        root {
+                            __typename
+                            ... on Foo {
+                                requiredFooProp
+                            }
+                            ... on Bar {
+                                requiredBarProp
+                            }
+                        }
+                    }
+                    """)
+                .Build(),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await Snapshot
+            .Create()
+            .AddResult(result)
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -133,13 +171,14 @@ public class QueryableProjectionUnionTypeTests
                                 }
                             }
                         }")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
             .Create()
             .AddResult(res1)
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -166,13 +205,14 @@ public class QueryableProjectionUnionTypeTests
                                 }
                             }
                         }")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
             .Create()
             .AddResult(res1)
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -199,13 +239,14 @@ public class QueryableProjectionUnionTypeTests
                                 }
                             }
                         }")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
             .Create()
             .AddResult(res1)
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -227,13 +268,14 @@ public class QueryableProjectionUnionTypeTests
                                 }
                             }
                         }")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
             .Create()
             .AddResult(res1)
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -260,13 +302,14 @@ public class QueryableProjectionUnionTypeTests
                         }
                     }
                     """)
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
             .Create()
             .AddResult(result)
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -296,13 +339,14 @@ public class QueryableProjectionUnionTypeTests
                         }
                     }
                     """)
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
             .Create()
             .AddResult(result)
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     private static void OnModelCreating(ModelBuilder modelBuilder)
@@ -318,6 +362,25 @@ public class QueryableProjectionUnionTypeTests
         schemaBuilder
             .AddType(new ObjectType<Foo>())
             .AddType(new ObjectType<Bar>());
+    }
+
+    private static void ConfigureSchemaWithRequirements(ISchemaBuilder schemaBuilder)
+    {
+        schemaBuilder
+            .AddType(
+                new ObjectType<Foo>(
+                    descriptor => descriptor
+                        .Field("requiredFooProp")
+                        .Type<NonNullType<StringType>>()
+                        .ParentRequires<Foo>(foo => foo.FooProp)
+                        .Resolve(context => context.Parent<Foo>().FooProp)))
+            .AddType(
+                new ObjectType<Bar>(
+                    descriptor => descriptor
+                        .Field("requiredBarProp")
+                        .Type<NonNullType<StringType>>()
+                        .ParentRequires<Bar>(nameof(Bar.BarProp))
+                        .Resolve(context => context.Parent<Bar>().BarProp)));
     }
 
     private static void OnModelCreatingInspection(ModelBuilder modelBuilder)

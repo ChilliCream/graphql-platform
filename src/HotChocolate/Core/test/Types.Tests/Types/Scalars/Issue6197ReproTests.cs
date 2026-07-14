@@ -1,5 +1,4 @@
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using HotChocolate.Execution;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -18,11 +17,12 @@ public class Issue6197ReproTests
             .AddTypeConverter<TimeZoneInfo, JsonElement>(value => JsonSerializer.SerializeToElement(value.Id))
             .AddQueryType<Query>()
             .ExecuteRequestAsync(
-            """
+                """
             {
               value
             }
-            """);
+            """,
+                cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         result.MatchInlineSnapshot(

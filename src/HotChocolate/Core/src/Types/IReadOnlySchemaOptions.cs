@@ -48,6 +48,12 @@ public interface IReadOnlySchemaOptions
     bool SortFieldsByName { get; }
 
     /// <summary>
+    /// Defines if enum values shall be sorted by name.
+    /// Default: <c>false</c>
+    /// </summary>
+    bool SortEnumValuesByName { get; }
+
+    /// <summary>
     /// Defines if types shall be removed from the schema that are
     /// unreachable from the root types.
     /// </summary>
@@ -84,6 +90,13 @@ public interface IReadOnlySchemaOptions
     /// The default directive visibility when directive introspection is enabled.
     /// </summary>
     DirectiveVisibility DefaultDirectiveVisibility { get; }
+
+    /// <summary>
+    /// Disables the concept of internal directives so that all directives are treated as public.
+    /// When set to <c>true</c>, this overrides any explicit <c>Internal()</c> calls on
+    /// directive types and the <see cref="DefaultDirectiveVisibility"/> setting.
+    /// </summary>
+    bool DisableInternalDirectives { get; }
 
     /// <summary>
     /// Defines that the default resolver execution strategy.
@@ -154,13 +167,6 @@ public interface IReadOnlySchemaOptions
     bool EnableStream { get; }
 
     /// <summary>
-    /// Enables the @semanticNonNull directive and rewrites Non-Null types to nullable types
-    /// with this directive attached to indicate semantic non-nullability.
-    /// This feature is experimental and might be changed or removed in the future.
-    /// </summary>
-    bool EnableSemanticNonNull { get; }
-
-    /// <summary>
     /// Specified if the leading I shall be stripped from the interface name.
     /// </summary>
     bool StripLeadingIFromInterface { get; }
@@ -169,6 +175,22 @@ public interface IReadOnlySchemaOptions
     /// Specifies that the @tag directive shall be registered with the type system.
     /// </summary>
     bool EnableTag { get; }
+
+    /// <summary>
+    /// Enables opt-in features functionality, including the <c>@requiresOptIn</c> and
+    /// <c>@optInFeatureStability</c> directives. When enabled, schema elements can be marked as
+    /// requiring explicit opt-in, and introspection queries can filter results based on opted-in
+    /// features.
+    /// </summary>
+    bool EnableOptInFeatures { get; }
+
+    /// <summary>
+    /// Enables semantic introspection, including the <c>__search</c> and <c>__definitions</c>
+    /// introspection fields for AI-driven schema discovery.
+    /// When core introspection is disabled, semantic introspection is also disabled
+    /// regardless of this setting.
+    /// </summary>
+    bool EnableSemanticIntrospection { get; }
 
     /// <summary>
     /// Specifies the default dependency injection scope for query fields.
@@ -222,4 +244,10 @@ public interface IReadOnlySchemaOptions
     /// Applies the @serializeAs directive to scalar types that specify a serialization format.
     /// </summary>
     bool ApplySerializeAsToScalars { get; }
+
+    /// <summary>
+    /// Infers @key directives from the arguments of @lookup fields so that the published
+    /// source schema describes the entity keys that the lookups resolve.
+    /// </summary>
+    bool InferKeysFromLookups { get; }
 }

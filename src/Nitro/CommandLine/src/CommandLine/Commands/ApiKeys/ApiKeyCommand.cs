@@ -12,12 +12,10 @@ internal sealed class ApiKeyCommand : Command
 {
     public ApiKeyCommand() : base("api-key")
     {
-        Description = "Manage API keys";
+        Description = "Manage API keys.";
 
-        this.AddNitroCloudDefaultOptions();
-
-        AddCommand(new CreateApiKeyCommand());
-        AddCommand(new DeleteApiKeyCommand());
-        AddCommand(new ListApiKeyCommand());
+        Subcommands.Add(new CreateApiKeyCommand());
+        Subcommands.Add(new DeleteApiKeyCommand());
+        Subcommands.Add(new ListApiKeyCommand());
     }
 }

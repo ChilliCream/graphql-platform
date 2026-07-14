@@ -86,7 +86,7 @@ internal sealed class ReadPersistedOperationMiddleware
     private OperationDocumentHash GetDocumentHash(IOperationDocument document)
     {
         if (document is IOperationDocumentHashProvider hashProvider
-            && _documentHashAlgorithm.Name.Equals(hashProvider.Hash.AlgorithmName)
+            && _documentHashAlgorithm.AlgorithmName.Equals(hashProvider.Hash.AlgorithmName)
             && _documentHashAlgorithm.Format.Equals(hashProvider.Hash.Format))
         {
             return hashProvider.Hash;

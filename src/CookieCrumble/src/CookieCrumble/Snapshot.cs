@@ -15,7 +15,7 @@ namespace CookieCrumble;
 
 public class Snapshot
 {
-#if NET10_0_OR_GREATER
+#if NET9_0_OR_GREATER
     private static readonly Lock s_sync = new();
 #else
     private static readonly object s_sync = new();

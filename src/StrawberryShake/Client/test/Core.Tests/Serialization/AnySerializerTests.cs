@@ -24,7 +24,7 @@ public class AnySerializerTests
     public void ParseLarge()
     {
         // arrange
-        var json = System.Text.Json.JsonSerializer.SerializeToElement($@"""{"padding",10000}""");
+        var json = JsonSerializer.SerializeToElement($@"""{"padding",10000}""");
 
         // act
         var serialized = _serializer.Parse(json);

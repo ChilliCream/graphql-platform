@@ -115,7 +115,7 @@ internal class SelectableTable<TEdge>
     private IEnumerable<string> CreateRow(TEdge edge) => _columns.Select(c => c.Select(edge));
 
     public virtual async Task<TEdge?> RenderAsync(
-        IAnsiConsole console,
+        INitroConsole console,
         CancellationToken cancellationToken)
     {
         return await console
@@ -126,7 +126,7 @@ internal class SelectableTable<TEdge>
     }
 
     protected virtual async Task<TEdge?> RenderTableAsync(
-        IAnsiConsole console,
+        INitroConsole console,
         LiveDisplayContext ctx,
         CancellationToken cancellationToken)
     {
@@ -174,9 +174,7 @@ internal class SelectableTable<TEdge>
 
             ctx.UpdateTarget(new Rows(
                 title,
-                CreateTable()
-                    .Centered()
-                    .AddRows(SelectedIndex, Items.Select(CreateRow)),
+                Align.Center(CreateTable().AddRows(SelectedIndex, Items.Select(CreateRow))),
                 Align.Center(new Rows(columns))));
 
             ctx.Refresh();

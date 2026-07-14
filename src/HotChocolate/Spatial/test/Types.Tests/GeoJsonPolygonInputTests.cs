@@ -180,7 +180,8 @@ public class GeoJsonPolygonInputTests
 
         // act
         var result = await executor.ExecuteAsync(
-            "{ test(arg: { type: Polygon, coordinates:[ [30, 10], [40, 40], [20, 40], [10, 20], [30, 10] ] })}");
+            "{ test(arg: { type: Polygon, coordinates:[[30, 10], [40, 40], [20, 40], [10, 20], [30, 10]] })}",
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();

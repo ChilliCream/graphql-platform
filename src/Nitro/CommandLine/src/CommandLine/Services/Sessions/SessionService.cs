@@ -149,8 +149,7 @@ internal class SessionService : ISessionService
     private async Task EnsureSessionAsync(CancellationToken cancellationToken)
     {
         Session ??= await _configurationService.GetAsync<Session>(cancellationToken)
-            ?? throw new ExitException(
-                $"User session could not be loaded, run {"nitro login".AsCommand()} first.");
+            ?? throw new ExitException("User session could not be loaded, run `nitro login` first.");
     }
 
     private OidcClient CreateClient(Action<OidcClientOptions>? configure = null)
@@ -255,14 +254,9 @@ file static class LocalExtensions
             }
         }
 
-        if (userId is null
-            || sessionId is null
-            || email is null
-            || tenant is null
-            || issuer is null
-            || apiUrl is null)
+        if (userId is null || sessionId is null || email is null || tenant is null || issuer is null || apiUrl is null)
         {
-            throw new ExitException("The session");
+            throw new ExitException("The user session could not be constructed.");
         }
 
         return new Session(

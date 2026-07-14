@@ -2,8 +2,8 @@
 using System.Diagnostics.CodeAnalysis;
 #endif
 
-using ChilliCream.Nitro.CommandLine.Configuration;
 using ChilliCream.Nitro.CommandLine.Helpers;
+using ChilliCream.Nitro.CommandLine.Services.Sessions;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Launch;
 
@@ -15,23 +15,49 @@ internal sealed class LaunchCommand : Command
 {
     public LaunchCommand() : base("launch")
     {
-        Description = "Launch Nitro in your default browser";
+        Description = "Launch Nitro in your default browser.";
 
-        this.AddNitroCloudDefaultOptions();
+        this.AddExamples("launch");
 
-        this.SetHandler(
-            ExecuteAsync,
-            Bind.FromServiceProvider<IAnsiConsole>(),
-            Bind.FromServiceProvider<CancellationToken>());
+        this.SetActionWithExceptionHandling(ExecuteAsync);
     }
 
     private static Task<int> ExecuteAsync(
-        IAnsiConsole console,
+        ICommandServices services,
+        ParseResult parseResult,
         CancellationToken cancellationToken)
     {
-        SystemBrowser.Open(Constants.NitroWebUrl);
-        console.OkLine($"[link={Constants.NitroWebUrl}]Nitro[/] is launched!");
+        var console = services.GetRequiredService<INitroConsole>();
+        var sessionService = services.GetRequiredService<ISessionService>();
+        var browser = services.GetRequiredService<IBrowserLauncher>();
+
+        var url = ResolveUrl(sessionService.Session);
+
+        browser.Open(url);
+        console.OkLine($"[link={url.EscapeMarkup()}]Nitro[/] is launched!");
 
         return Task.FromResult(ExitCodes.Success);
+    }
+
+    private static string ResolveUrl(Session? session)
+    {
+        if (session is null)
+        {
+            return Constants.NitroWebUrl;
+        }
+
+        var defaultApiUrl = Constants.ApiUrl["https://".Length..];
+
+        if (session.ApiUrl == defaultApiUrl || session.ApiUrl == Constants.ApiUrl)
+        {
+            return Constants.NitroWebUrl;
+        }
+
+        var baseUrl = session.ApiUrl.StartsWith("https://", StringComparison.OrdinalIgnoreCase)
+                || session.ApiUrl.StartsWith("http://", StringComparison.OrdinalIgnoreCase)
+            ? session.ApiUrl
+            : $"https://{session.ApiUrl}";
+
+        return $"{baseUrl.TrimEnd('/')}/ui";
     }
 }

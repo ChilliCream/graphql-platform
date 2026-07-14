@@ -22,7 +22,9 @@ internal static class OperationContextExtensions
             {
                 foreach (var error in ex.Errors)
                 {
-                    context.ReportError(error, resolverContext);
+                    context.ReportError(
+                        error.Path is null ? error.WithPath(path) : error,
+                        resolverContext);
                 }
             }
             else
@@ -98,6 +100,7 @@ internal static class OperationContextExtensions
             {
                 RequestIndex = resultBuilder.RequestIndex > -1 ? resultBuilder.RequestIndex : null,
                 VariableIndex = resultBuilder.VariableIndex > -1 ? resultBuilder.VariableIndex : null,
+                Document = context.Operation.Document,
                 ContextData = resultBuilder.ContextData
             };
 

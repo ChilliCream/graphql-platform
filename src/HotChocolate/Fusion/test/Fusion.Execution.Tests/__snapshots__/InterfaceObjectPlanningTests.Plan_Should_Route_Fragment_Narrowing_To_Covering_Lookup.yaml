@@ -1,0 +1,53 @@
+operation:
+  - document: |
+      {
+        trendingMedia {
+          __typename
+          id
+          id @fusion__requirement
+          views
+          ... on Book {
+            isbn
+          }
+          ... on Movie {
+            runtime
+          }
+        }
+      }
+    hash: 123456789101112
+    searchSpace: 1
+    expandedNodes: 2
+nodes:
+  - id: 1
+    type: Operation
+    schema: b
+    operation: |
+      query Op_123456789101112_1 {
+        trendingMedia {
+          id
+          views
+        }
+      }
+  - id: 2
+    type: Operation
+    schema: a
+    operation: |
+      query Op_123456789101112_2($__fusion_1_id: ID!) {
+        mediaById(id: $__fusion_1_id) {
+          __typename
+          ... on Book {
+            isbn
+          }
+          ... on Movie {
+            runtime
+          }
+        }
+      }
+    source: $.mediaById
+    target: $.trendingMedia
+    requirements:
+      - name: __fusion_1_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 1

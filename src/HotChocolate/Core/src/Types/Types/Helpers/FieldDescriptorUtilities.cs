@@ -96,7 +96,8 @@ public static class FieldDescriptorUtilities
         ICollection<ArgumentConfiguration> arguments,
         MemberInfo? member,
         ParameterInfo[] parameters,
-        IReadOnlyList<IParameterExpressionBuilder>? parameterExpressionBuilders)
+        IReadOnlyList<IParameterExpressionBuilder>? parameterExpressionBuilders,
+        bool isBatchResolver = false)
     {
         ArgumentNullException.ThrowIfNull(arguments);
 
@@ -121,7 +122,7 @@ public static class FieldDescriptorUtilities
                 {
                     var argumentDefinition =
                         ArgumentDescriptor
-                            .New(context, parameter)
+                            .New(context, parameter, isBatchResolver)
                             .CreateConfiguration();
 
                     if (!string.IsNullOrEmpty(argumentDefinition.Name)
@@ -135,6 +136,27 @@ public static class FieldDescriptorUtilities
             {
                 TypeMemHelper.Return(processedNames);
             }
+        }
+    }
+
+    public static void DiscoverParentRequirements(
+        ParameterInfo[] parameters,
+        FieldConfiguration configuration)
+    {
+        foreach (var parameter in parameters)
+        {
+            if (!parameter.IsDefined(typeof(ParentAttribute)))
+            {
+                continue;
+            }
+
+            var requirements = parameter.GetCustomAttribute<ParentAttribute>()?.Requires;
+            if (!(requirements?.Length > 0))
+            {
+                continue;
+            }
+
+            configuration.SetFieldRequirements(requirements, parameter.ParameterType);
         }
     }
 }

@@ -1,6 +1,7 @@
 using HotChocolate.AspNetCore;
 using HotChocolate.AspNetCore.Formatters;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Options;
 using HotChocolate.AspNetCore.Instrumentation;
 using HotChocolate.AspNetCore.ParameterExpressionBuilders;
 using HotChocolate.AspNetCore.Parsers;
@@ -60,14 +61,9 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
                 (sp, _) =>
                 {
                     var environment = sp.GetService<IHostEnvironment>();
-                    return environment?.IsDevelopment() == false;
+                    return environment?.IsDevelopment() != true;
                 });
-            builder.AddMaxAllowedFieldCycleDepthRule(
-                isEnabled: (sp, _) =>
-                {
-                    var environment = sp.GetService<IHostEnvironment>();
-                    return environment?.IsDevelopment() == false;
-                });
+            builder.AddMaxAllowedFieldCycleDepthRule();
         }
 
         return builder;
@@ -120,12 +116,22 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
         this IRequestExecutorBuilder builder,
         int maxAllowedRequestSize = MaxAllowedRequestSize)
     {
-        builder.ConfigureSchemaServices(s =>
+        builder.ConfigureSchemaServices((applicationServices, s) =>
         {
+            s.TryAddSingleton(sp =>
+            {
+                var options = new GraphQLServerOptions();
+                foreach (var configure in sp.GetServices<Action<GraphQLServerOptions>>())
+                {
+                    configure(options);
+                }
+                return options;
+            });
             s.TryAddSingleton<IHttpResponseFormatter>(
                 sp => DefaultHttpResponseFormatter.Create(
                     new HttpResponseFormatterOptions { HttpTransportVersion = HttpTransportVersion.Latest },
-                    sp.GetRequiredService<ITimeProvider>()));
+                    sp.GetRequiredService<ITimeProvider>(),
+                    IncrementalDeliveryFormat.Version_0_2));
             s.TryAddSingleton<IHttpRequestParser>(
                 sp => new DefaultHttpRequestParser(
                     sp.GetRequiredService<IDocumentCache>(),
@@ -143,7 +149,21 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
                     _ => new AggregateServerDiagnosticEventListener(listeners)
                 };
             });
+
+            s.TryAddSingleton(schemaServices =>
+            {
+                var schemaName = schemaServices.GetRequiredService<ISchemaDefinition>().Name;
+                var serverOptions = applicationServices
+                    .GetRequiredService<IOptionsMonitor<GraphQLServerOptions>>()
+                    .Get(schemaName);
+                return new ExecutionConcurrencyGate(serverOptions.MaxConcurrentExecutions);
+            });
         });
+
+        builder.Services.TryAddEnumerable(
+            ServiceDescriptor.Singleton<
+                IPostConfigureOptions<GraphQLServerOptions>,
+                SourceSchemaServerOptionsPostConfigure>());
 
         if (!builder.Services.IsImplementationTypeRegistered<HttpContextParameterExpressionBuilder>())
         {

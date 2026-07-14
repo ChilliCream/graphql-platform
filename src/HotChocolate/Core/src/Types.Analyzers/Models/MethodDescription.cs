@@ -14,12 +14,17 @@ public readonly struct MethodDescription : IMemberDescription
     /// <param name="parameterDescriptions">
     /// The parameter descriptions in the same order as the method parameters.
     /// </param>
+    /// <param name="isDescriptionFromAttribute">
+    /// Whether the method description originates from a <c>[GraphQLDescription]</c> attribute.
+    /// </param>
     public MethodDescription(
         string? description,
-        ImmutableArray<string?> parameterDescriptions)
+        ImmutableArray<(string? Description, bool IsFromAttribute)> parameterDescriptions,
+        bool isDescriptionFromAttribute = false)
     {
         Description = description;
         ParameterDescriptions = parameterDescriptions;
+        IsDescriptionFromAttribute = isDescriptionFromAttribute;
     }
 
     /// <summary>
@@ -28,23 +33,36 @@ public readonly struct MethodDescription : IMemberDescription
     public string? Description { get; }
 
     /// <summary>
+    /// Gets whether the description originates from a <c>[GraphQLDescription]</c> attribute.
+    /// </summary>
+    public bool IsDescriptionFromAttribute { get; }
+
+    /// <summary>
     /// Gets the parameter descriptions in the same order as the method parameters.
     /// Each element is <c>null</c> if the parameter is not documented.
     /// </summary>
-    public ImmutableArray<string?> ParameterDescriptions { get; }
+    public ImmutableArray<(string? Description, bool IsFromAttribute)> ParameterDescriptions { get; }
 }
 
-public readonly struct PropertyDescription : IMemberDescription
+public readonly record struct PropertyDescription(
+    string? Description,
+    bool IsDescriptionFromAttribute = false) : IMemberDescription
 {
-    public PropertyDescription(string? description)
-    {
-        Description = description;
-    }
+    public string? Description { get; } = Description;
+    public bool IsDescriptionFromAttribute { get; } = IsDescriptionFromAttribute;
+}
 
-    public string? Description { get; }
+public readonly record struct ParameterDescription(
+    string? Description,
+    bool IsDescriptionFromAttribute = false) : IMemberDescription
+{
+    public string? Description { get; } = Description;
+    public bool IsDescriptionFromAttribute { get; } = IsDescriptionFromAttribute;
 }
 
 public interface IMemberDescription
 {
     string? Description { get; }
+
+    bool IsDescriptionFromAttribute { get; }
 }

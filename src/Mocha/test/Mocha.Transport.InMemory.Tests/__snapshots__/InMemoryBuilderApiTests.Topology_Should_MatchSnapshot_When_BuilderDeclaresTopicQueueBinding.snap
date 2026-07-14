@@ -1,0 +1,15 @@
+﻿{
+  "Topics": [
+    "audit-events"
+  ],
+  "Queues": [
+    "audit-queue"
+  ],
+  "Bindings": [
+    {
+      "Source": "audit-events",
+      "Destination": "audit-queue",
+      "Kind": "Queue"
+    }
+  ]
+}

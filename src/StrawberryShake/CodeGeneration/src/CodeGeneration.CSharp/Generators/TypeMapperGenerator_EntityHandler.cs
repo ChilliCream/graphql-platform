@@ -34,8 +34,7 @@ public partial class TypeMapperGenerator
 
         if (complexTypeDescriptor is InterfaceTypeDescriptor interfaceTypeDescriptor)
         {
-            foreach (var implementer in
-                     interfaceTypeDescriptor.ImplementedBy.Where(x => x.IsEntity()))
+            foreach (var implementer in interfaceTypeDescriptor.ImplementedBy.Where(x => x.IsEntity()))
             {
                 var dataMapperName =
                     CreateEntityMapperName(

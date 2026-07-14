@@ -1,7 +1,6 @@
 using System.Buffers;
 using System.Text.Json;
 using HotChocolate.Adapters.Mcp.Diagnostics;
-using HotChocolate.Adapters.Mcp.Extensions;
 using HotChocolate.Adapters.Mcp.Storage;
 using HotChocolate.Buffers;
 using HotChocolate.Execution;
@@ -33,9 +32,13 @@ public sealed class FusionIntegrationTests : IntegrationTestBase
         await storage.AddOrUpdateToolAsync(
             new OperationToolDefinition(
                 Utf8GraphQLParser.Parse(
-                    await File.ReadAllTextAsync("__resources__/GetBooksWithTitle1.graphql"))));
+                    await File.ReadAllTextAsync(
+                        "__resources__/GetBooksWithTitle1.graphql",
+                        TestContext.Current.CancellationToken))),
+            TestContext.Current.CancellationToken);
         var subgraph = CreateSubgraph([]);
-        var schemaDocument = await subgraph.Services.GetSchemaAsync();
+        var schemaDocument = await subgraph.Services.GetSchemaAsync(
+            cancellationToken: TestContext.Current.CancellationToken);
         var schemaComposer =
             new SchemaComposer(
                 [new SourceSchemaText(schemaDocument.Name, schemaDocument.ToString())],
@@ -81,7 +84,7 @@ public sealed class FusionIntegrationTests : IntegrationTestBase
             });
 
         // act
-        var tools = await mcpClient1.ListToolsAsync();
+        var tools = await mcpClient1.ListToolsAsync(cancellationToken: TestContext.Current.CancellationToken);
         ((MutableObjectTypeDefinition)schema.Types["Book"]).Fields["title"].Description = "Description";
         var newConfig =
             new FusionConfiguration(
@@ -90,13 +93,15 @@ public sealed class FusionIntegrationTests : IntegrationTestBase
         configProvider.UpdateConfiguration(newConfig);
         IList<McpClientTool>? updatedTools = null;
 
-        if (listChangedResetEvent1.Wait(TimeSpan.FromSeconds(5)))
+        if (listChangedResetEvent1.Wait(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken))
         {
             var mcpClient3 = await CreateMcpClientAsync(server.CreateClient());
-            updatedTools = await mcpClient3.ListToolsAsync();
+            updatedTools = await mcpClient3.ListToolsAsync(cancellationToken: TestContext.Current.CancellationToken);
         }
 
-        var secondClientNotified = listChangedResetEvent2.Wait(TimeSpan.FromSeconds(5));
+        var secondClientNotified = listChangedResetEvent2.Wait(
+            TimeSpan.FromSeconds(5),
+            TestContext.Current.CancellationToken);
 
         // assert
         Assert.NotNull(updatedTools);

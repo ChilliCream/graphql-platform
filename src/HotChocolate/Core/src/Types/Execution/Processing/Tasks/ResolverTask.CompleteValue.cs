@@ -44,7 +44,15 @@ internal sealed partial class ResolverTask
 
         if (resultValue is { IsNullable: false, IsNullOrInvalidated: true })
         {
-            PropagateNullValues(resultValue);
+            if (_operationContext.PropagateNullValues)
+            {
+                PropagateNullValues(resultValue);
+            }
+            else
+            {
+                resultValue.SetNullValue();
+            }
+
             _completionStatus = ExecutionTaskStatus.Faulted;
             _operationContext.Result.AddNonNullViolation(_context.Path);
             _taskBuffer.Clear();

@@ -12,13 +12,11 @@ internal sealed class SchemaCommand : Command
 {
     public SchemaCommand() : base("schema")
     {
-        Description = "Manage schemas";
+        Description = "Manage schemas.";
 
-        this.AddNitroCloudDefaultOptions();
-
-        AddCommand(new PublishSchemaCommand());
-        AddCommand(new ValidateSchemaCommand());
-        AddCommand(new UploadSchemaCommand());
-        AddCommand(new DownloadSchemaCommand());
+        Subcommands.Add(new PublishSchemaCommand());
+        Subcommands.Add(new ValidateSchemaCommand());
+        Subcommands.Add(new UploadSchemaCommand());
+        Subcommands.Add(new DownloadSchemaCommand());
     }
 }

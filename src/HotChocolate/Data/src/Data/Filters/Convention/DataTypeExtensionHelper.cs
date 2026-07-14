@@ -95,6 +95,7 @@ internal static class DataTypeExtensionHelper
                     && extensionField is FilterFieldConfiguration filterExtensionField)
                 {
                     filterTypeField.Handler ??= filterExtensionField.Handler;
+                    filterTypeField.IsImplicit &= filterExtensionField.IsImplicit;
                 }
 
                 typeField.Ignore |= extensionField.Ignore;
@@ -139,6 +140,7 @@ internal static class DataTypeExtensionHelper
                     && extensionField is SortFieldConfiguration filterExtensionField)
                 {
                     filterTypeField.Handler ??= filterExtensionField.Handler;
+                    filterTypeField.IsImplicit &= filterExtensionField.IsImplicit;
                 }
 
                 typeField.Description ??= extensionField.Description;

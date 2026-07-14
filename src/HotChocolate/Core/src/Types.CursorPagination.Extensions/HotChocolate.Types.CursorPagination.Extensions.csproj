@@ -5,6 +5,7 @@
     <AssemblyName>HotChocolate.Types.CursorPagination.Extensions</AssemblyName>
     <RootNamespace>HotChocolate.Types.Pagination</RootNamespace>
     <Description>Contains middleware and types for cursor based pagination.</Description>
+    <IsAotCompatible>true</IsAotCompatible>
   </PropertyGroup>
 
   <ItemGroup>

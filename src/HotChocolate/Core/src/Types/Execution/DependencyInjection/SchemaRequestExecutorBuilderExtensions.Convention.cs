@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using HotChocolate;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Properties;
@@ -176,6 +177,7 @@ public static partial class SchemaRequestExecutorBuilderExtensions
     public static IRequestExecutorBuilder AddConvention(
         this IRequestExecutorBuilder builder,
         Type convention,
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)]
         Type concreteConvention,
         string? scope = null)
     {
@@ -386,6 +388,7 @@ public static partial class SchemaRequestExecutorBuilderExtensions
     public static IRequestExecutorBuilder TryAddConvention(
         this IRequestExecutorBuilder builder,
         Type convention,
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)]
         Type concreteConvention,
         string? scope = null)
     {

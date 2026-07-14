@@ -1,0 +1,1062 @@
+using System.Security.Cryptography;
+using System.Security.Cryptography.X509Certificates;
+using System.Text;
+using System.Text.Json;
+
+namespace HotChocolate.Fusion.Packaging;
+
+public class FusionArchiveTests : IDisposable
+{
+    private readonly List<Stream> _streamsToDispose = [];
+    private readonly List<X509Certificate2> _certificatesToDispose = [];
+
+    [Fact]
+    public void Create_WithNullStream_ThrowsArgumentNullException()
+    {
+        // Act & Assert
+        Assert.Throws<ArgumentNullException>(() => FusionArchive.Create(null!));
+    }
+
+    [Fact]
+    public void Open_WithNullStream_ThrowsArgumentNullException()
+    {
+        // Act & Assert
+        Assert.Throws<ArgumentNullException>(() => FusionArchive.Open(default(Stream)!));
+    }
+
+    [Fact]
+    public void Open_WithNullString_ThrowsArgumentNullException()
+    {
+        // Act & Assert
+        Assert.Throws<ArgumentNullException>(() => FusionArchive.Open(default(string)!));
+    }
+
+    [Fact]
+    public async Task SetArchiveMetadata_WithValidData_StoresCorrectly()
+    {
+        // Arrange
+        await using var stream = CreateStream();
+        var metadata = new ArchiveMetadata
+        {
+            FormatVersion = new Version("1.0.0"),
+            SupportedGatewayFormats = [new Version("2.0.0"), new Version("2.1.0")],
+            SourceSchemas = ["user-service", "product-service"]
+        };
+
+        // Act & Assert
+        using var archive = FusionArchive.Create(stream, leaveOpen: true);
+        await archive.SetArchiveMetadataAsync(metadata, TestContext.Current.CancellationToken);
+
+        // Can read immediately within the same session
+        var retrieved = await archive.GetArchiveMetadataAsync(TestContext.Current.CancellationToken);
+        Assert.NotNull(retrieved);
+        Assert.Equal(metadata.FormatVersion, retrieved.FormatVersion);
+        Assert.Equal(metadata.SupportedGatewayFormats, retrieved.SupportedGatewayFormats);
+        Assert.Equal(metadata.SourceSchemas, retrieved.SourceSchemas);
+    }
+
+    [Fact]
+    public async Task GetArchiveMetadata_WhenNotSet_ReturnsNull()
+    {
+        // Arrange
+        await using var stream = CreateStream();
+
+        // Act & Assert
+        using var archive = FusionArchive.Create(stream);
+        var result = await archive.GetArchiveMetadataAsync(TestContext.Current.CancellationToken);
+        Assert.Null(result);
+    }
+
+    [Fact]
+    public async Task SetArchiveMetadata_WithNullMetadata_ThrowsArgumentNullException()
+    {
+        // Arrange
+        await using var stream = CreateStream();
+
+        // Act & Assert
+        using var archive = FusionArchive.Create(stream);
+        await Assert.ThrowsAsync<ArgumentNullException>(
+            () => archive.SetArchiveMetadataAsync(null!, TestContext.Current.CancellationToken));
+    }
+
+    [Fact]
+    public async Task GetLatestSupportedGatewayFormat_WithValidMetadata_ReturnsHighestVersion()
+    {
+        // Arrange
+        await using var stream = CreateStream();
+        var metadata = new ArchiveMetadata
+        {
+            SupportedGatewayFormats = [new Version("1.0.0"), new Version("2.1.0"), new Version("2.0.0")],
+            SourceSchemas = ["test-service"]
+        };
+
+        // Act & Assert
+        using var archive = FusionArchive.Create(stream, leaveOpen: true);
+        await archive.SetArchiveMetadataAsync(metadata, TestContext.Current.CancellationToken);
+        var latest = await archive.GetLatestSupportedGatewayFormatAsync(TestContext.Current.CancellationToken);
+        Assert.Equal(new Version("2.1.0"), latest);
+    }
+
+    [Fact]
+    public async Task GetLatestSupportedGatewayFormat_WithoutMetadata_ThrowsInvalidOperationException()
+    {
+        // Arrange
+        await using var stream = CreateStream();
+
+        // Act & Assert
+        using var archive = FusionArchive.Create(stream);
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            () => archive.GetLatestSupportedGatewayFormatAsync(TestContext.Current.CancellationToken));
+    }
+
+    [Fact]
+    public async Task SetCompositionSettings_WithValidJsonDocument_StoresCorrectly()
+    {
+        // Arrange
+        await using var stream = CreateStream();
+        const string settingsJson = """{"enableNodeSpec": true, "maxDepth": 10}""";
+        using var settings = JsonDocument.Parse(settingsJson);
+
+        // Act & Assert
+        using var archive = FusionArchive.Create(stream, leaveOpen: true);
+        await archive.SetCompositionSettingsAsync(settings, TestContext.Current.CancellationToken);
+
+        // Can read immediately within the same session
+        using var retrieved = await archive.GetCompositionSettingsAsync(TestContext.Current.CancellationToken);
+        Assert.NotNull(retrieved);
+        Assert.True(retrieved.RootElement.GetProperty("enableNodeSpec").GetBoolean());
+        Assert.Equal(10, retrieved.RootElement.GetProperty("maxDepth").GetInt32());
+    }
+
+    [Fact]
+    public async Task GetCompositionSettings_WhenNotSet_ReturnsNull()
+    {
+        // Arrange
+        await using var stream = CreateStream();
+
+        // Act & Assert
+        using var archive = FusionArchive.Create(stream);
+        var result = await archive.GetCompositionSettingsAsync(TestContext.Current.CancellationToken);
+        Assert.Null(result);
+    }
+
+    [Fact]
+    public async Task SetGatewaySchema_WithStringContent_StoresCorrectly()
+    {
+        // Arrange
+        await using var stream = CreateStream();
+        const string schema = "type Query { hello: String }";
+        var settings = CreateSettingsJson();
+        var version = new Version("2.0.0");
+
+        // Act & Assert
+        using var archive = FusionArchive.Create(stream, leaveOpen: true);
+        var metadata = CreateTestMetadata();
+        await archive.SetArchiveMetadataAsync(metadata, TestContext.Current.CancellationToken);
+        await archive.SetGatewayConfigurationAsync(schema, settings, version, TestContext.Current.CancellationToken);
+
+        // Can read immediately within the same session
+        var result = await archive.TryGetGatewayConfigurationAsync(version, TestContext.Current.CancellationToken);
+
+        Assert.NotNull(result);
+        Assert.Equal(version, result.Version);
+
+        using (var streamReader = new StreamReader(await result.OpenReadSchemaAsync(
+            TestContext.Current.CancellationToken)))
+        {
+            var retrievedSchema = await streamReader.ReadToEndAsync(TestContext.Current.CancellationToken);
+            Assert.Equal(schema, retrievedSchema);
+        }
+
+        result.Dispose();
+    }
+
+    [Fact]
+    public async Task SetGatewaySchema_WithByteContent_StoresCorrectly()
+    {
+        // Arrange
+        await using var stream = CreateStream();
+        var schema = "type Query { hello: String }"u8.ToArray();
+        var settings = CreateSettingsJson();
+        var version = new Version("2.0.0");
+
+        // Act & Assert
+        using var archive = FusionArchive.Create(stream, leaveOpen: true);
+        var metadata = CreateTestMetadata();
+        await archive.SetArchiveMetadataAsync(metadata, TestContext.Current.CancellationToken);
+        await archive.SetGatewayConfigurationAsync(schema, settings, version, TestContext.Current.CancellationToken);
+
+        // Can read immediately within the same session
+        var result = await archive.TryGetGatewayConfigurationAsync(version, TestContext.Current.CancellationToken);
+
+        Assert.NotNull(result);
+        Assert.Equal(version, result.Version);
+
+        using (var streamReader = new StreamReader(await result.OpenReadSchemaAsync(
+            TestContext.Current.CancellationToken)))
+        {
+            var retrievedSchema = await streamReader.ReadToEndAsync(TestContext.Current.CancellationToken);
+            Assert.Equal(Encoding.UTF8.GetString(schema), retrievedSchema);
+        }
+
+        result.Dispose();
+    }
+
+    [Fact]
+    public async Task SetGatewaySchema_WithoutMetadata_ThrowsInvalidOperationException()
+    {
+        // Arrange
+        await using var stream = CreateStream();
+
+        // Act & Assert
+        using var archive = FusionArchive.Create(stream);
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            () => archive.SetGatewayConfigurationAsync(
+                "schema",
+                CreateSettingsJson(),
+                new Version("1.0.0"),
+                TestContext.Current.CancellationToken));
+    }
+
+    [Fact]
+    public async Task SetGatewaySchema_WithUnsupportedVersion_ThrowsInvalidOperationException()
+    {
+        // Arrange
+        await using var stream = CreateStream();
+
+        // Act & Assert
+        using var archive = FusionArchive.Create(stream, leaveOpen: true);
+        var metadata = CreateTestMetadata();
+        await archive.SetArchiveMetadataAsync(metadata, TestContext.Current.CancellationToken);
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            archive.SetGatewayConfigurationAsync(
+                "schema",
+                CreateSettingsJson(),
+                new Version("3.0.0"),
+                TestContext.Current.CancellationToken));
+    }
+
+    [Fact]
+    public async Task TryGetGatewaySchema_WithCompatibleVersion_ReturnsCorrectVersion()
+    {
+        // Arrange
+        await using var stream = CreateStream();
+        var metadata = new ArchiveMetadata
+        {
+            SupportedGatewayFormats = [new Version("1.0.0"), new Version("2.0.0"), new Version("2.1.0")],
+            SourceSchemas = ["test-service"]
+        };
+
+        // Act & Assert
+        using var archive = FusionArchive.Create(stream, leaveOpen: true);
+        await archive.SetArchiveMetadataAsync(metadata, TestContext.Current.CancellationToken);
+        await archive.SetGatewayConfigurationAsync(
+            "schema v1.0",
+            CreateSettingsJson(),
+            new Version("1.0.0"),
+            TestContext.Current.CancellationToken);
+        await archive.SetGatewayConfigurationAsync(
+            "schema v2.0",
+            CreateSettingsJson(),
+            new Version("2.0.0"),
+            TestContext.Current.CancellationToken);
+        await archive.SetGatewayConfigurationAsync(
+            "schema v2.1",
+            CreateSettingsJson(),
+            new Version("2.1.0"),
+            TestContext.Current.CancellationToken);
+
+        // Request max version 2.0.0, should get 2.0.0
+        var result = await archive.TryGetGatewayConfigurationAsync(
+            new Version("2.0.0"),
+            TestContext.Current.CancellationToken);
+
+        Assert.NotNull(result);
+        Assert.Equal(new Version("2.0.0"), result.Version);
+
+        using (var streamReader = new StreamReader(await result.OpenReadSchemaAsync(
+            TestContext.Current.CancellationToken)))
+        {
+            var retrievedSchema = await streamReader.ReadToEndAsync(TestContext.Current.CancellationToken);
+            Assert.Equal("schema v2.0", retrievedSchema);
+        }
+
+        result.Dispose();
+    }
+
+    [Fact]
+    public async Task TryGetGatewaySchema_WithIncompatibleVersion_ReturnsFalse()
+    {
+        // Arrange
+        await using var stream = CreateStream();
+        var metadata = new ArchiveMetadata
+        {
+            SupportedGatewayFormats = [new Version("2.0.0")],
+            SourceSchemas = ["test-service"]
+        };
+
+        // Act & Assert
+        using var archive = FusionArchive.Create(stream, leaveOpen: true);
+        await archive.SetArchiveMetadataAsync(metadata, TestContext.Current.CancellationToken);
+
+        var result = await archive.TryGetGatewayConfigurationAsync(
+            new Version("1.0.0"),
+            TestContext.Current.CancellationToken);
+
+        Assert.Null(result);
+    }
+
+    [Fact]
+    public async Task SetSourceSchema_WithValidSchema_StoresCorrectly()
+    {
+        // Arrange
+        await using var stream = CreateStream();
+        var schemaContent = "type User { id: ID! name: String! }"u8.ToArray();
+        var settings = CreateSettingsJson();
+        const string schemaName = "user-service";
+
+        // Act & Assert
+        using var archive = FusionArchive.Create(stream, leaveOpen: true);
+        var metadata = CreateTestMetadata();
+        await archive.SetArchiveMetadataAsync(metadata, TestContext.Current.CancellationToken);
+        await archive.SetSourceSchemaConfigurationAsync(
+            schemaName,
+            schemaContent,
+            settings,
+            cancellationToken: TestContext.Current.CancellationToken);
+
+        // Can read immediately within the same session
+        var found = await archive.TryGetSourceSchemaConfigurationAsync(
+            schemaName,
+            TestContext.Current.CancellationToken);
+
+        Assert.NotNull(found);
+
+        using var streamReader = new StreamReader(await found.OpenReadSchemaAsync(
+            TestContext.Current.CancellationToken));
+        var retrievedSchema = await streamReader.ReadToEndAsync(TestContext.Current.CancellationToken);
+        Assert.Equal(Encoding.UTF8.GetString(schemaContent), retrievedSchema);
+    }
+
+    [Fact]
+    public async Task SetSourceSchema_WithSchemaExtensions_StoresAndReturnsExtensions()
+    {
+        // Arrange
+        await using var stream = CreateStream();
+        var schemaContent = "type User { id: ID! }"u8.ToArray();
+        var extensionsContent = "extend type User { name: String! }"u8.ToArray();
+        var settings = CreateSettingsJson();
+        const string schemaName = "user-service";
+
+        // Act
+        using var archive = FusionArchive.Create(stream, leaveOpen: true);
+        var metadata = CreateTestMetadata();
+        await archive.SetArchiveMetadataAsync(metadata, TestContext.Current.CancellationToken);
+        await archive.SetSourceSchemaConfigurationAsync(
+            schemaName,
+            schemaContent,
+            settings,
+            extensionsContent,
+            TestContext.Current.CancellationToken);
+
+        // Assert
+        var found = await archive.TryGetSourceSchemaConfigurationAsync(
+            schemaName,
+            TestContext.Current.CancellationToken);
+        Assert.NotNull(found);
+
+        await using var extensionsStream = await found.TryOpenReadSchemaExtensionsAsync(
+            TestContext.Current.CancellationToken);
+        Assert.NotNull(extensionsStream);
+        using var reader = new StreamReader(extensionsStream);
+        var retrievedExtensions = await reader.ReadToEndAsync(TestContext.Current.CancellationToken);
+        Assert.Equal(Encoding.UTF8.GetString(extensionsContent), retrievedExtensions);
+    }
+
+    [Fact]
+    public async Task SetSourceSchema_WithoutSchemaExtensions_RemovesPreviouslyStoredExtensions()
+    {
+        // Arrange
+        await using var stream = CreateStream();
+        var schemaContent = "type User { id: ID! }"u8.ToArray();
+        var extensionsContent = "extend type User { name: String! }"u8.ToArray();
+        var settings = CreateSettingsJson();
+        const string schemaName = "user-service";
+        var metadata = CreateTestMetadata();
+
+        // Act - initial archive with extensions
+        using (var archive = FusionArchive.Create(stream, leaveOpen: true))
+        {
+            await archive.SetArchiveMetadataAsync(metadata, TestContext.Current.CancellationToken);
+            await archive.SetSourceSchemaConfigurationAsync(
+                schemaName,
+                schemaContent,
+                settings,
+                extensionsContent,
+                TestContext.Current.CancellationToken);
+            await archive.CommitAsync(TestContext.Current.CancellationToken);
+        }
+
+        // Act - re-open in update mode and overwrite the same source schema without extensions
+        stream.Position = 0;
+        using (var updateArchive = FusionArchive.Open(stream, FusionArchiveMode.Update, leaveOpen: true))
+        {
+            await updateArchive.SetSourceSchemaConfigurationAsync(
+                schemaName,
+                schemaContent,
+                settings,
+                cancellationToken: TestContext.Current.CancellationToken);
+            await updateArchive.CommitAsync(TestContext.Current.CancellationToken);
+        }
+
+        // Assert - extensions are gone
+        stream.Position = 0;
+        using var readArchive = FusionArchive.Open(stream, leaveOpen: true);
+        var found = await readArchive.TryGetSourceSchemaConfigurationAsync(
+            schemaName,
+            TestContext.Current.CancellationToken);
+        Assert.NotNull(found);
+        Assert.Null(await found.TryOpenReadSchemaExtensionsAsync(TestContext.Current.CancellationToken));
+    }
+
+    [Fact]
+    public async Task SetSourceSchema_WithoutSchemaExtensions_TryOpenReadSchemaExtensionsReturnsNull()
+    {
+        // Arrange
+        await using var stream = CreateStream();
+        var schemaContent = "type User { id: ID! }"u8.ToArray();
+        var settings = CreateSettingsJson();
+        const string schemaName = "user-service";
+
+        // Act
+        using var archive = FusionArchive.Create(stream, leaveOpen: true);
+        var metadata = CreateTestMetadata();
+        await archive.SetArchiveMetadataAsync(metadata, TestContext.Current.CancellationToken);
+        await archive.SetSourceSchemaConfigurationAsync(
+            schemaName,
+            schemaContent,
+            settings,
+            cancellationToken: TestContext.Current.CancellationToken);
+
+        // Assert
+        var found = await archive.TryGetSourceSchemaConfigurationAsync(
+            schemaName,
+            TestContext.Current.CancellationToken);
+        Assert.NotNull(found);
+        Assert.Null(await found.TryOpenReadSchemaExtensionsAsync(TestContext.Current.CancellationToken));
+    }
+
+    [Fact]
+    public async Task SetSourceSchema_WithInvalidSchemaName_ThrowsArgumentException()
+    {
+        // Arrange
+        await using var stream = CreateStream();
+
+        // Act & Assert
+        using var archive = FusionArchive.Create(stream, leaveOpen: true);
+        var metadata = CreateTestMetadata();
+        await archive.SetArchiveMetadataAsync(metadata, TestContext.Current.CancellationToken);
+
+        await Assert.ThrowsAsync<ArgumentException>(
+            () => archive.SetSourceSchemaConfigurationAsync(
+                "invalid name!",
+                "schema"u8.ToArray(),
+                CreateSettingsJson(),
+                cancellationToken: TestContext.Current.CancellationToken));
+    }
+
+    [Fact]
+    public async Task SetSourceSchema_WithUndeclaredSchemaName_ThrowsInvalidOperationException()
+    {
+        // Arrange
+        await using var stream = CreateStream();
+        var metadata = new ArchiveMetadata
+        {
+            SupportedGatewayFormats = [new Version("2.0.0")],
+            SourceSchemas = ["declared-schema"]
+        };
+
+        // Act & Assert
+        using var archive = FusionArchive.Create(stream, leaveOpen: true);
+        await archive.SetArchiveMetadataAsync(metadata, TestContext.Current.CancellationToken);
+
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            () => archive.SetSourceSchemaConfigurationAsync(
+                "undeclared-schema",
+                "schema"u8.ToArray(),
+                CreateSettingsJson(),
+                cancellationToken: TestContext.Current.CancellationToken));
+    }
+
+    [Fact]
+    public async Task TryGetSourceSchema_WithNonExistentSchema_ReturnsFalse()
+    {
+        // Arrange
+        await using var stream = CreateStream();
+
+        // Act & Assert
+        using var archive = FusionArchive.Create(stream, leaveOpen: true);
+        var found = await archive.TryGetSourceSchemaConfigurationAsync(
+            "non-existent",
+            TestContext.Current.CancellationToken);
+        Assert.Null(found);
+    }
+
+    [Fact]
+    public async Task RemoveSourceSchema_WithExistingSchema_RemovesSchemaAndMetadata()
+    {
+        // Arrange
+        var schemaContent = "type User { id: ID! }"u8.ToArray();
+        await using var stream = CreateStream();
+        var metadata = new ArchiveMetadata
+        {
+            SupportedGatewayFormats = [new Version("2.0.0")],
+            SourceSchemas = ["schema-a", "schema-b"]
+        };
+
+        using (var archive = FusionArchive.Create(stream, leaveOpen: true))
+        {
+            await archive.SetArchiveMetadataAsync(metadata, TestContext.Current.CancellationToken);
+            await archive.SetSourceSchemaConfigurationAsync(
+                "schema-a",
+                schemaContent,
+                CreateSettingsJson(),
+                cancellationToken: TestContext.Current.CancellationToken);
+            await archive.SetSourceSchemaConfigurationAsync(
+                "schema-b",
+                schemaContent,
+                CreateSettingsJson(),
+                cancellationToken: TestContext.Current.CancellationToken);
+            await archive.CommitAsync(TestContext.Current.CancellationToken);
+        }
+
+        // Act
+        bool removed;
+        stream.Position = 0;
+        using (var updateArchive = FusionArchive.Open(stream, FusionArchiveMode.Update, leaveOpen: true))
+        {
+            removed = await updateArchive.RemoveSourceSchemaConfigurationAsync(
+                "schema-b",
+                TestContext.Current.CancellationToken);
+            await updateArchive.CommitAsync(TestContext.Current.CancellationToken);
+        }
+
+        // Assert
+        stream.Position = 0;
+        using var readArchive = FusionArchive.Open(stream, leaveOpen: true);
+        var names = await readArchive.GetSourceSchemaNamesAsync(TestContext.Current.CancellationToken);
+        var found = await readArchive.TryGetSourceSchemaConfigurationAsync(
+            "schema-b",
+            TestContext.Current.CancellationToken);
+        Assert.True(removed);
+        Assert.Equal(["schema-a"], names);
+        Assert.Null(found);
+    }
+
+    [Fact]
+    public async Task RemoveSourceSchema_WithNonExistentSchema_ReturnsFalse()
+    {
+        // Arrange
+        await using var stream = CreateStream();
+        var metadata = CreateTestMetadata();
+
+        // Act & Assert
+        using var archive = FusionArchive.Create(stream, leaveOpen: true);
+        await archive.SetArchiveMetadataAsync(metadata, TestContext.Current.CancellationToken);
+        var removed = await archive.RemoveSourceSchemaConfigurationAsync(
+            "non-existent",
+            TestContext.Current.CancellationToken);
+        Assert.False(removed);
+    }
+
+    [Fact]
+    public async Task SignArchive_WithValidCertificate_CreatesSignature()
+    {
+        // Arrange
+        await using var stream = CreateStream();
+        using var cert = CreateTestCertificate();
+
+        // Act & Assert
+        using var archive = FusionArchive.Create(stream, leaveOpen: true);
+        var metadata = CreateTestMetadata();
+        await archive.SetArchiveMetadataAsync(metadata, TestContext.Current.CancellationToken);
+        await archive.SetGatewayConfigurationAsync(
+            "schema",
+            CreateSettingsJson(),
+            new Version("2.0.0"),
+            TestContext.Current.CancellationToken);
+        await archive.SignArchiveAsync(cert, TestContext.Current.CancellationToken);
+
+        // Can verify immediately within the same session
+        Assert.True(archive.IsSigned);
+
+        var signatureInfo = await archive.GetSignatureInfoAsync(TestContext.Current.CancellationToken);
+        Assert.NotNull(signatureInfo);
+        Assert.Equal("SHA256", signatureInfo.Algorithm);
+        Assert.NotNull(signatureInfo.SignerCertificate);
+    }
+
+    [Fact]
+    public async Task SignArchive_WithCertificateWithoutPrivateKey_ThrowsArgumentException()
+    {
+        // Arrange
+        await using var stream = CreateStream();
+        using var cert = CreateTestCertificate();
+#if NET9_0_OR_GREATER
+        using var publicOnlyCert = X509CertificateLoader.LoadCertificate(cert.Export(X509ContentType.Cert));
+#else
+        using var publicOnlyCert = new X509Certificate2(cert.Export(X509ContentType.Cert));
+#endif
+
+        // Act & Assert
+        using var archive = FusionArchive.Create(stream);
+        await Assert.ThrowsAsync<ArgumentException>(
+            () => archive.SignArchiveAsync(publicOnlyCert, TestContext.Current.CancellationToken));
+    }
+
+    [Fact]
+    public async Task VerifySignature_WithValidSignature_ReturnsValid()
+    {
+        // Arrange
+        await using var stream = CreateStream();
+        using var cert = CreateTestCertificate(); // Has private key
+
+        // Extract public key only for verification
+#if NET9_0_OR_GREATER
+        using var publicOnlyCert = X509CertificateLoader.LoadCertificate(cert.Export(X509ContentType.Cert));
+#else
+        using var publicOnlyCert = new X509Certificate2(cert.Export(X509ContentType.Cert));
+#endif
+
+        // Act & Assert
+        using (var archive = FusionArchive.Create(stream, leaveOpen: true))
+        {
+            var metadata = CreateTestMetadata();
+            await archive.SetArchiveMetadataAsync(metadata, TestContext.Current.CancellationToken);
+            await archive.SetGatewayConfigurationAsync(
+                "schema",
+                CreateSettingsJson(),
+                new Version("2.0.0"),
+                TestContext.Current.CancellationToken);
+
+            // Sign with private key
+            await archive.SignArchiveAsync(cert, TestContext.Current.CancellationToken);
+
+            // Verify with public key only
+            var result = await archive.VerifySignatureAsync(publicOnlyCert, TestContext.Current.CancellationToken);
+            Assert.Equal(SignatureVerificationResult.Valid, result);
+        }
+    }
+
+    [Fact]
+    public async Task SignArchive_AfterRemovingSchemaExtensions_ProducesValidSignature()
+    {
+        // Arrange
+        await using var stream = CreateStream();
+        using var cert = CreateTestCertificate();
+#if NET9_0_OR_GREATER
+        using var publicOnlyCert = X509CertificateLoader.LoadCertificate(cert.Export(X509ContentType.Cert));
+#else
+        using var publicOnlyCert = new X509Certificate2(cert.Export(X509ContentType.Cert));
+#endif
+
+        var schemaContent = "type User { id: ID! }"u8.ToArray();
+        var extensionsContent = "extend type User { name: String! }"u8.ToArray();
+        var settings = CreateSettingsJson();
+        const string schemaName = "user-service";
+        var metadata = CreateTestMetadata();
+
+        // Act - initial archive with extensions
+        using (var archive = FusionArchive.Create(stream, leaveOpen: true))
+        {
+            await archive.SetArchiveMetadataAsync(metadata, TestContext.Current.CancellationToken);
+            await archive.SetSourceSchemaConfigurationAsync(
+                schemaName,
+                schemaContent,
+                settings,
+                extensionsContent,
+                TestContext.Current.CancellationToken);
+            await archive.CommitAsync(TestContext.Current.CancellationToken);
+        }
+
+        // Act - re-open in update mode, drop extensions, then sign
+        stream.Position = 0;
+        using (var updateArchive = FusionArchive.Open(stream, FusionArchiveMode.Update, leaveOpen: true))
+        {
+            await updateArchive.SetSourceSchemaConfigurationAsync(
+                schemaName,
+                schemaContent,
+                settings,
+                cancellationToken: TestContext.Current.CancellationToken);
+            await updateArchive.SignArchiveAsync(cert, TestContext.Current.CancellationToken);
+            await updateArchive.CommitAsync(TestContext.Current.CancellationToken);
+        }
+
+        // Assert - signature is valid against the post-deletion file set
+        stream.Position = 0;
+        using var readArchive = FusionArchive.Open(stream, leaveOpen: true);
+        var result = await readArchive.VerifySignatureAsync(publicOnlyCert, TestContext.Current.CancellationToken);
+        Assert.Equal(SignatureVerificationResult.Valid, result);
+    }
+
+    [Fact]
+    public async Task VerifySignature_WithUnsignedArchive_ReturnsNotSigned()
+    {
+        // Arrange
+        await using var stream = CreateStream();
+        using var cert = CreateTestCertificate();
+
+        // Act & Assert
+        using var archive = FusionArchive.Create(stream);
+        var result = await archive.VerifySignatureAsync(cert, TestContext.Current.CancellationToken);
+        Assert.Equal(SignatureVerificationResult.NotSigned, result);
+    }
+
+    [Fact]
+    public async Task CommitAndReopen_PersistsChanges()
+    {
+        // Arrange
+        await using var stream = CreateStream();
+        var metadata = new ArchiveMetadata
+        {
+            SupportedGatewayFormats = [new Version("2.0.0")],
+            SourceSchemas = ["test-service"]
+        };
+        const string schema = "type Query { hello: String }";
+
+        // Act - Create and commit
+        using (var archive = FusionArchive.Create(stream, leaveOpen: true))
+        {
+            await archive.SetArchiveMetadataAsync(metadata, TestContext.Current.CancellationToken);
+            await archive.SetGatewayConfigurationAsync(
+                schema,
+                CreateSettingsJson(),
+                new Version("2.0.0"),
+                TestContext.Current.CancellationToken);
+            await archive.CommitAsync(TestContext.Current.CancellationToken);
+        }
+
+        // Assert - Reopen and verify persistence
+        stream.Position = 0;
+        using (var readArchive = FusionArchive.Open(stream, leaveOpen: true))
+        {
+            var retrievedMetadata = await readArchive.GetArchiveMetadataAsync(TestContext.Current.CancellationToken);
+            Assert.NotNull(retrievedMetadata);
+            Assert.Equal(
+                metadata.SupportedGatewayFormats.ToArray(),
+                retrievedMetadata.SupportedGatewayFormats.ToArray());
+
+            var result = await readArchive.TryGetGatewayConfigurationAsync(
+                new Version("2.0.0"),
+                TestContext.Current.CancellationToken);
+            Assert.NotNull(result);
+
+            using var streamReader = new StreamReader(await result.OpenReadSchemaAsync(
+                TestContext.Current.CancellationToken));
+            var retrievedSchema = await streamReader.ReadToEndAsync(TestContext.Current.CancellationToken);
+            Assert.Equal(schema, retrievedSchema);
+
+            result.Dispose();
+        }
+    }
+
+    [Fact]
+    public async Task UpdateMode_CanModifyExistingArchive()
+    {
+        // Arrange
+        await using var stream = CreateStream();
+        var metadata = new ArchiveMetadata
+        {
+            SupportedGatewayFormats = [new Version("2.0.0")],
+            SourceSchemas = ["test-service"]
+        };
+
+        // Act - Create initial archive
+        using (var archive = FusionArchive.Create(stream, leaveOpen: true))
+        {
+            await archive.SetArchiveMetadataAsync(metadata, TestContext.Current.CancellationToken);
+            await archive.SetGatewayConfigurationAsync(
+                "original schema",
+                CreateSettingsJson(),
+                new Version("2.0.0"),
+                TestContext.Current.CancellationToken);
+            await archive.CommitAsync(TestContext.Current.CancellationToken);
+        }
+
+        // Act - Update existing archive
+        stream.Position = 0;
+        using (var updateArchive = FusionArchive.Open(stream, FusionArchiveMode.Update, leaveOpen: true))
+        {
+            await updateArchive.SetGatewayConfigurationAsync(
+                "modified schema",
+                CreateSettingsJson(),
+                new Version("2.0.0"),
+                TestContext.Current.CancellationToken);
+            await updateArchive.CommitAsync(TestContext.Current.CancellationToken);
+        }
+
+        // Assert - Verify modification
+        stream.Position = 0;
+        using (var readArchive = FusionArchive.Open(stream, leaveOpen: true))
+        {
+            var result = await readArchive.TryGetGatewayConfigurationAsync(
+                new Version("2.0.0"),
+                TestContext.Current.CancellationToken);
+            Assert.NotNull(result);
+
+            using var streamReader = new StreamReader(await result.OpenReadSchemaAsync(
+                TestContext.Current.CancellationToken));
+            var retrievedSchema = await streamReader.ReadToEndAsync(TestContext.Current.CancellationToken);
+            Assert.Equal("modified schema", retrievedSchema);
+
+            result.Dispose();
+        }
+    }
+
+    [Fact]
+    public async Task OverwriteFile_WithinSession_ReplacesContent()
+    {
+        // Arrange
+        await using var stream = CreateStream();
+
+        // Act & Assert
+        using var archive = FusionArchive.Create(stream, leaveOpen: true);
+        var metadata = CreateTestMetadata();
+        await archive.SetArchiveMetadataAsync(metadata, TestContext.Current.CancellationToken);
+
+        // Set schema twice within the same session
+        await archive.SetGatewayConfigurationAsync(
+            "first schema",
+            CreateSettingsJson(),
+            new Version("2.0.0"),
+            TestContext.Current.CancellationToken);
+        await archive.SetGatewayConfigurationAsync(
+            "second schema",
+            CreateSettingsJson(),
+            new Version("2.0.0"),
+            TestContext.Current.CancellationToken);
+
+        // Should get the last value
+        var result = await archive.TryGetGatewayConfigurationAsync(
+            new Version("2.0.0"),
+            TestContext.Current.CancellationToken);
+
+        Assert.NotNull(result);
+
+        using var streamReader = new StreamReader(await result.OpenReadSchemaAsync(
+            TestContext.Current.CancellationToken));
+        var retrievedSchema = await streamReader.ReadToEndAsync(TestContext.Current.CancellationToken);
+        Assert.Equal("second schema", retrievedSchema);
+
+        result.Dispose();
+    }
+
+    [Fact]
+    public async Task GetSourceSchemaNames_WithMetadata_ReturnsOrderedNames()
+    {
+        // Arrange
+        await using var stream = CreateStream();
+        var metadata = new ArchiveMetadata
+        {
+            SupportedGatewayFormats = [new Version("2.0.0")],
+            SourceSchemas = ["zebra-service", "alpha-service", "beta-service"]
+        };
+
+        // Act & Assert
+        using var archive = FusionArchive.Create(stream, leaveOpen: true);
+        await archive.SetArchiveMetadataAsync(metadata, TestContext.Current.CancellationToken);
+        var names = await archive.GetSourceSchemaNamesAsync(TestContext.Current.CancellationToken);
+        Assert.Equal(["alpha-service", "beta-service", "zebra-service"], names);
+    }
+
+    [Fact]
+    public async Task GetSupportedGatewayFormats_WithMetadata_ReturnsDescendingOrder()
+    {
+        // Arrange
+        await using var stream = CreateStream();
+        var metadata = new ArchiveMetadata
+        {
+            SupportedGatewayFormats = [new Version("1.0.0"), new Version("2.1.0"), new Version("2.0.0")],
+            SourceSchemas = ["test-service"]
+        };
+
+        // Act & Assert
+        using var archive = FusionArchive.Create(stream, leaveOpen: true);
+        await archive.SetArchiveMetadataAsync(metadata, TestContext.Current.CancellationToken);
+        var versions = await archive.GetSupportedGatewayFormatsAsync(TestContext.Current.CancellationToken);
+        Assert.Equal([new Version("2.1.0"), new Version("2.0.0"), new Version("1.0.0")], versions);
+    }
+
+    [Theory]
+    [InlineData("valid-schema")]
+    [InlineData("Valid_Schema")]
+    [InlineData("schema123")]
+    [InlineData("_schema")]
+    public async Task SetSourceSchema_WithValidSchemaNames_Succeeds(string schemaName)
+    {
+        // Arrange
+        await using var stream = CreateStream();
+        var metadata = new ArchiveMetadata
+        {
+            SupportedGatewayFormats = [new Version("2.0.0")],
+            SourceSchemas = [schemaName]
+        };
+
+        // Act & Assert - Should not throw
+        using var archive = FusionArchive.Create(stream, leaveOpen: true);
+        await archive.SetArchiveMetadataAsync(metadata, TestContext.Current.CancellationToken);
+        await archive.SetSourceSchemaConfigurationAsync(
+            schemaName,
+            "schema"u8.ToArray(),
+            CreateSettingsJson(),
+            cancellationToken: TestContext.Current.CancellationToken);
+    }
+
+    [Theory]
+    [InlineData("invalid name")]
+    [InlineData("123invalid")]
+    [InlineData("")]
+    [InlineData("schema/name")]
+    public async Task SetSourceSchema_WithInvalidSchemaNames_ThrowsException(string schemaName)
+    {
+        // Arrange
+        await using var stream = CreateStream();
+        var metadata = new ArchiveMetadata
+        {
+            SupportedGatewayFormats = [new Version("2.0.0")],
+            SourceSchemas = [schemaName]
+        };
+
+        // Act & Assert
+        using var archive = FusionArchive.Create(stream, leaveOpen: true);
+        await archive.SetArchiveMetadataAsync(metadata, TestContext.Current.CancellationToken);
+
+        await Assert.ThrowsAsync<ArgumentException>(
+            () => archive.SetSourceSchemaConfigurationAsync(
+                schemaName,
+                "schema"u8.ToArray(),
+                CreateSettingsJson(),
+                cancellationToken: TestContext.Current.CancellationToken));
+    }
+
+    [Fact]
+    public async Task GetSupportedGatewayFormats_WithoutMetadata_ReturnsEmpty()
+    {
+        // Arrange
+        await using var stream = CreateStream();
+
+        // Act & Assert
+        using var archive = FusionArchive.Create(stream);
+        var formats = await archive.GetSupportedGatewayFormatsAsync(TestContext.Current.CancellationToken);
+        Assert.Empty(formats);
+    }
+
+    [Fact]
+    public async Task GetSourceSchemaNames_WithoutMetadata_ReturnsEmpty()
+    {
+        // Arrange
+        await using var stream = CreateStream();
+
+        // Act & Assert
+        using var archive = FusionArchive.Create(stream);
+        var names = await archive.GetSourceSchemaNamesAsync(TestContext.Current.CancellationToken);
+        Assert.Empty(names);
+    }
+
+    [Fact]
+    public async Task SetLegacyArchiveFile_WithValidContent_RoundTripsCorrectly()
+    {
+        // arrange
+        await using var stream = CreateStream();
+        var content = "legacy archive payload"u8.ToArray();
+        await using var contentStream = new MemoryStream(content);
+
+        // act
+        using (var archive = FusionArchive.Create(stream, leaveOpen: true))
+        {
+            await archive.SetLegacyArchiveFileAsync(contentStream, TestContext.Current.CancellationToken);
+            await archive.CommitAsync(TestContext.Current.CancellationToken);
+        }
+
+        // assert
+        stream.Position = 0;
+        using var readArchive = FusionArchive.Open(stream, leaveOpen: true);
+        await using var retrieved = await readArchive.TryGetLegacyArchiveFileAsync(
+            TestContext.Current.CancellationToken);
+        Assert.NotNull(retrieved);
+        await using var buffer = new MemoryStream();
+        await retrieved.CopyToAsync(buffer, TestContext.Current.CancellationToken);
+        Assert.Equal(content, buffer.ToArray());
+    }
+
+    [Fact]
+    public async Task SetLegacyArchiveFile_WithNullContent_ThrowsArgumentNullException()
+    {
+        // arrange
+        await using var stream = CreateStream();
+        using var archive = FusionArchive.Create(stream);
+
+        // act & assert
+        await Assert.ThrowsAsync<ArgumentNullException>(
+            () => archive.SetLegacyArchiveFileAsync(null!, TestContext.Current.CancellationToken));
+    }
+
+    [Fact]
+    public async Task TryGetLegacyArchiveFile_WhenNotSet_ReturnsNull()
+    {
+        // arrange
+        await using var stream = CreateStream();
+        using var archive = FusionArchive.Create(stream);
+
+        // act
+        var result = await archive.TryGetLegacyArchiveFileAsync(TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Null(result);
+    }
+
+    private Stream CreateStream()
+    {
+        var stream = new MemoryStream();
+        _streamsToDispose.Add(stream);
+        return stream;
+    }
+
+    private ArchiveMetadata CreateTestMetadata()
+    {
+        return new ArchiveMetadata
+        {
+            SupportedGatewayFormats = [new Version("2.0.0"), new Version("2.1.0")],
+            SourceSchemas = ["user-service", "product-service"]
+        };
+    }
+
+    private JsonDocument CreateSettingsJson()
+    {
+        return JsonDocument.Parse("{ }");
+    }
+
+    private X509Certificate2 CreateTestCertificate()
+    {
+        using var rsa = RSA.Create(2048);
+        var req = new CertificateRequest("CN=Test", rsa, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
+        var cert = req.CreateSelfSigned(DateTimeOffset.Now, DateTimeOffset.Now.AddYears(1));
+
+        _certificatesToDispose.Add(cert);
+        return cert;
+    }
+
+    public void Dispose()
+    {
+        foreach (var stream in _streamsToDispose)
+        {
+            stream.Dispose();
+        }
+
+        foreach (var cert in _certificatesToDispose)
+        {
+            cert.Dispose();
+        }
+    }
+}

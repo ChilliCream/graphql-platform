@@ -27,6 +27,9 @@
   <data name="LogEntryHelper_DirectiveDefinitionMissingLocation" xml:space="preserve">
     <value>The Directive definition '@{0}' must include at least one DirectiveLocation.</value>
   </data>
+  <data name="LogEntryHelper_DirectiveDefinitionSelfApplication" xml:space="preserve">
+    <value>The directive definition '@{0}' must not reference itself.</value>
+  </data>
   <data name="LogEntryHelper_EmptyEnumType" xml:space="preserve">
     <value>The Enum type '{0}' must define one or more values.</value>
   </data>

@@ -222,7 +222,7 @@ public partial class JsonResultBuilderGenerator : ClassBaseGenerator<ResultBuild
                 .AddCode(jsonElementNullCheck)
                 .AddEmptyLine();
 
-            // When deserializing arrays of nullable values (e.g. [User] => [ { ... }, null, { ... }]) the second
+            // When deserializing arrays of nullable values (e.g. [User] => [{ ... }, null, { ... }]) the second
             // element will be not null, but instead a JSON element of kind JsonValueKind.Null.
             var jsonElementNullValueKindCheck = IfBuilder
                 .New()

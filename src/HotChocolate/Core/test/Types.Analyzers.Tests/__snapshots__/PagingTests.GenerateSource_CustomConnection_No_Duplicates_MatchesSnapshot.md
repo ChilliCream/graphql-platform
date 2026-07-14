@@ -48,6 +48,7 @@ namespace TestNamespace
 
                     configuration.Type = typeInspector.GetTypeRef(typeof(global::HotChocolate.Types.NonNullType<global::HotChocolate.Types.ListType<global::HotChocolate.Types.NonNullType<global::TestNamespace.AuthorEdgeType>>>), HotChocolate.Types.TypeContext.Output);
                     configuration.ResultType = typeof(global::System.Collections.Generic.IReadOnlyList<global::TestNamespace.AuthorEdge>);
+                    configuration.DeclaringType = context.ThisType;
 
                     configuration.SetSourceGeneratorFlags();
                     configuration.SetConnectionEdgesFieldFlags();
@@ -69,6 +70,7 @@ namespace TestNamespace
                         typeInspector.GetTypeRef(typeof(global::TestNamespace.Author), HotChocolate.Types.TypeContext.Output),
                         new global::HotChocolate.Language.NonNullTypeNode(new global::HotChocolate.Language.ListTypeNode(new global::HotChocolate.Language.NonNullTypeNode(new global::HotChocolate.Language.NamedTypeNode("global__TestNamespace_Author")))));
                     configuration.ResultType = typeof(global::System.Collections.Generic.IReadOnlyList<global::TestNamespace.Author>);
+                    configuration.DeclaringType = context.ThisType;
 
                     configuration.SetSourceGeneratorFlags();
                     configuration.SetConnectionNodesFieldFlags();
@@ -90,6 +92,7 @@ namespace TestNamespace
                         typeInspector.GetTypeRef(typeof(global::HotChocolate.Types.Pagination.ConnectionPageInfo), HotChocolate.Types.TypeContext.Output),
                         new global::HotChocolate.Language.NonNullTypeNode(new global::HotChocolate.Language.NamedTypeNode("global__HotChocolate_Types_Pagination_ConnectionPageInfo")));
                     configuration.ResultType = typeof(global::HotChocolate.Types.Pagination.ConnectionPageInfo);
+                    configuration.DeclaringType = context.ThisType;
 
                     configuration.SetSourceGeneratorFlags();
 
@@ -110,6 +113,7 @@ namespace TestNamespace
                         typeInspector.GetTypeRef(typeof(int), HotChocolate.Types.TypeContext.Output),
                         new global::HotChocolate.Language.NonNullTypeNode(new global::HotChocolate.Language.NamedTypeNode("int")));
                     configuration.ResultType = typeof(int);
+                    configuration.DeclaringType = context.ThisType;
 
                     configuration.SetSourceGeneratorFlags();
                     configuration.SetConnectionTotalCountFieldFlags();
@@ -213,6 +217,7 @@ namespace TestNamespace
                         typeInspector.GetTypeRef(typeof(global::TestNamespace.Author), HotChocolate.Types.TypeContext.Output),
                         new global::HotChocolate.Language.NonNullTypeNode(new global::HotChocolate.Language.NamedTypeNode("global__TestNamespace_Author")));
                     configuration.ResultType = typeof(global::TestNamespace.Author);
+                    configuration.DeclaringType = context.ThisType;
 
                     configuration.SetSourceGeneratorFlags();
 
@@ -233,6 +238,7 @@ namespace TestNamespace
                         typeInspector.GetTypeRef(typeof(string), HotChocolate.Types.TypeContext.Output),
                         new global::HotChocolate.Language.NonNullTypeNode(new global::HotChocolate.Language.NamedTypeNode("string")));
                     configuration.ResultType = typeof(string);
+                    configuration.DeclaringType = context.ThisType;
 
                     configuration.SetSourceGeneratorFlags();
 
@@ -309,11 +315,31 @@ namespace TestNamespace.Types.Nodes
 
                     configuration.Type = typeInspector.GetTypeRef(typeof(global::HotChocolate.Types.NonNullType<global::TestNamespace.AuthorConnectionType>), HotChocolate.Types.TypeContext.Output);
                     configuration.ResultType = typeof(global::TestNamespace.AuthorConnection);
+                    configuration.DeclaringType = context.ThisType;
 
                     configuration.SetSourceGeneratorFlags();
                     configuration.SetConnectionFlags();
                     var pagingOptions = global::HotChocolate.Types.Pagination.PagingHelper.GetPagingOptions(field.Context, null);
                     configuration.Features.Set(pagingOptions);
+
+                    configuration.Member = context.ThisType.GetMethod(
+                        "GetAuthorsAsync",
+                        global::HotChocolate.Utilities.ReflectionUtils.StaticMemberFlags,
+                        new global::System.Type[]
+                        {
+                            typeof(global::TestNamespace.Author),
+                            typeof(global::GreenDonut.Data.PagingArguments),
+                            typeof(global::System.Threading.CancellationToken)
+                        })!;
+
+                    var fieldDescriptor = global::HotChocolate.Types.Descriptors.ObjectFieldDescriptor.From(field.Context, configuration);
+                    HotChocolate.Internal.ConfigurationHelper.ApplyConfiguration(
+                        field.Context,
+                        fieldDescriptor,
+                        configuration.Member,
+                        new global::HotChocolate.Types.UseConnectionAttribute());
+                    configuration.ConfigurationsAreApplied = true;
+                    fieldDescriptor.CreateConfiguration();
 
                     configuration.Resolvers = context.Resolvers.GetAuthorsAsync();
                 },
@@ -363,7 +389,8 @@ namespace TestNamespace.Types.Nodes
                     args1_before,
                     args1_includeTotalCount)
                     {
-                        EnableRelativeCursors = args1_flags.HasFlag(global::HotChocolate.Types.Pagination.ConnectionFlags.RelativeCursor)
+                        EnableRelativeCursors = args1_flags.HasFlag(global::HotChocolate.Types.Pagination.ConnectionFlags.RelativeCursor),
+                        NullOrdering = args1_options.NullOrdering
                     };
                 var args2 = context.RequestAborted;
                 var result = await global::TestNamespace.Types.Nodes.AuthorNode.GetAuthorsAsync(args0, args1, args2);
@@ -407,7 +434,7 @@ namespace TestNamespace.Types.Root
             HotChocolate.Internal.ConfigurationHelper.ApplyConfiguration(
                 extension.Context,
                 descriptor,
-                null,
+                typeof(global::TestNamespace.Types.Root.AuthorQueries),
                 new global::HotChocolate.Types.QueryTypeAttribute());
             configuration.ConfigurationsAreApplied = true;
 
@@ -425,11 +452,30 @@ namespace TestNamespace.Types.Root
 
                     configuration.Type = typeInspector.GetTypeRef(typeof(global::HotChocolate.Types.NonNullType<global::TestNamespace.AuthorConnectionType>), HotChocolate.Types.TypeContext.Output);
                     configuration.ResultType = typeof(global::TestNamespace.AuthorConnection);
+                    configuration.DeclaringType = context.ThisType;
 
                     configuration.SetSourceGeneratorFlags();
                     configuration.SetConnectionFlags();
                     var pagingOptions = global::HotChocolate.Types.Pagination.PagingHelper.GetPagingOptions(field.Context, null);
                     configuration.Features.Set(pagingOptions);
+
+                    configuration.Member = context.ThisType.GetMethod(
+                        "GetAuthorsAsync",
+                        global::HotChocolate.Utilities.ReflectionUtils.StaticMemberFlags,
+                        new global::System.Type[]
+                        {
+                            typeof(global::GreenDonut.Data.PagingArguments),
+                            typeof(global::System.Threading.CancellationToken)
+                        })!;
+
+                    var fieldDescriptor = global::HotChocolate.Types.Descriptors.ObjectFieldDescriptor.From(field.Context, configuration);
+                    HotChocolate.Internal.ConfigurationHelper.ApplyConfiguration(
+                        field.Context,
+                        fieldDescriptor,
+                        configuration.Member,
+                        new global::HotChocolate.Types.UseConnectionAttribute());
+                    configuration.ConfigurationsAreApplied = true;
+                    fieldDescriptor.CreateConfiguration();
 
                     configuration.Resolvers = context.Resolvers.GetAuthorsAsync();
                 },
@@ -447,11 +493,30 @@ namespace TestNamespace.Types.Root
 
                     configuration.Type = typeInspector.GetTypeRef(typeof(global::HotChocolate.Types.NonNullType<global::TestNamespace.AuthorConnectionType>), HotChocolate.Types.TypeContext.Output);
                     configuration.ResultType = typeof(global::TestNamespace.AuthorConnection);
+                    configuration.DeclaringType = context.ThisType;
 
                     configuration.SetSourceGeneratorFlags();
                     configuration.SetConnectionFlags();
                     var pagingOptions = global::HotChocolate.Types.Pagination.PagingHelper.GetPagingOptions(field.Context, null);
                     configuration.Features.Set(pagingOptions);
+
+                    configuration.Member = context.ThisType.GetMethod(
+                        "GetAuthors2Async",
+                        global::HotChocolate.Utilities.ReflectionUtils.StaticMemberFlags,
+                        new global::System.Type[]
+                        {
+                            typeof(global::GreenDonut.Data.PagingArguments),
+                            typeof(global::System.Threading.CancellationToken)
+                        })!;
+
+                    var fieldDescriptor = global::HotChocolate.Types.Descriptors.ObjectFieldDescriptor.From(field.Context, configuration);
+                    HotChocolate.Internal.ConfigurationHelper.ApplyConfiguration(
+                        field.Context,
+                        fieldDescriptor,
+                        configuration.Member,
+                        new global::HotChocolate.Types.UseConnectionAttribute());
+                    configuration.ConfigurationsAreApplied = true;
+                    fieldDescriptor.CreateConfiguration();
 
                     configuration.Resolvers = context.Resolvers.GetAuthors2Async();
                 },
@@ -500,7 +565,8 @@ namespace TestNamespace.Types.Root
                     args0_before,
                     args0_includeTotalCount)
                     {
-                        EnableRelativeCursors = args0_flags.HasFlag(global::HotChocolate.Types.Pagination.ConnectionFlags.RelativeCursor)
+                        EnableRelativeCursors = args0_flags.HasFlag(global::HotChocolate.Types.Pagination.ConnectionFlags.RelativeCursor),
+                        NullOrdering = args0_options.NullOrdering
                     };
                 var args1 = context.RequestAborted;
                 var result = await global::TestNamespace.Types.Root.AuthorQueries.GetAuthorsAsync(args0, args1);
@@ -543,7 +609,8 @@ namespace TestNamespace.Types.Root
                     args0_before,
                     args0_includeTotalCount)
                     {
-                        EnableRelativeCursors = args0_flags.HasFlag(global::HotChocolate.Types.Pagination.ConnectionFlags.RelativeCursor)
+                        EnableRelativeCursors = args0_flags.HasFlag(global::HotChocolate.Types.Pagination.ConnectionFlags.RelativeCursor),
+                        NullOrdering = args0_options.NullOrdering
                     };
                 var args1 = context.RequestAborted;
                 var result = await global::TestNamespace.Types.Root.AuthorQueries.GetAuthors2Async(args0, args1);

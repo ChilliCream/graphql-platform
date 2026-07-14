@@ -11,7 +11,7 @@
       "moby": "true"
     }
   },
-  "postCreateCommand": "./init.sh",
+  "postCreateCommand": "dotnet build src/All.slnx",
   "customizations": {
     "vscode": {
       "extensions": [
@@ -27,7 +27,8 @@
         "openai.chatgpt"
       ],
       "settings": {
-        "dotnet.defaultSolution": "src/All.slnx"
+        "dotnet.defaultSolution": "src/All.slnx",
+        "terminal.integrated.defaultProfile.linux": "zsh"
       }
     }
   }

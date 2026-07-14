@@ -340,6 +340,30 @@ public static class DirectiveNames
     }
 
     /// <summary>
+    /// The name constants of the @interfaceObject directive.
+    /// <see href="https://graphql.github.io/composite-schemas-spec/draft/#sec--interfaceObject"/>
+    /// </summary>
+    public static class InterfaceObject
+    {
+        /// <summary>
+        /// The name of the @interfaceObject directive.
+        /// </summary>
+        public const string Name = "interfaceObject";
+    }
+
+    /// <summary>
+    /// The name constants of the @implement directive.
+    /// <see href="https://graphql.github.io/composite-schemas-spec/draft/#sec--implement"/>
+    /// </summary>
+    public static class Implement
+    {
+        /// <summary>
+        /// The name of the @implement directive.
+        /// </summary>
+        public const string Name = "implement";
+    }
+
+    /// <summary>
     /// The name constants of the @require directive.
     /// <see href="https://graphql.github.io/composite-schemas-spec/draft/#sec--require"/>
     /// </summary>
@@ -487,6 +511,98 @@ public static class DirectiveNames
             /// </summary>
             public const string RequireOneSlicingArgument = "requireOneSlicingArgument";
         }
+    }
+
+    /// <summary>
+    /// The name constants of the @requiresOptIn directive.
+    /// </summary>
+    public static class RequiresOptIn
+    {
+        /// <summary>
+        /// The name of the @requiresOptIn directive.
+        /// </summary>
+        public const string Name = "requiresOptIn";
+
+        /// <summary>
+        /// The argument names of the @requiresOptIn directive.
+        /// </summary>
+        public static class Arguments
+        {
+            /// <summary>
+            /// The name of the @requiresOptIn feature argument.
+            /// </summary>
+            public const string Feature = "feature";
+        }
+    }
+
+    /// <summary>
+    /// The name constants of the @optInFeatureStability directive.
+    /// </summary>
+    public static class OptInFeatureStability
+    {
+        /// <summary>
+        /// The name of the @optInFeatureStability directive.
+        /// </summary>
+        public const string Name = "optInFeatureStability";
+
+        /// <summary>
+        /// The argument names of the @optInFeatureStability directive.
+        /// </summary>
+        public static class Arguments
+        {
+            /// <summary>
+            /// The name of the @optInFeatureStability feature argument.
+            /// </summary>
+            public const string Feature = "feature";
+
+            /// <summary>
+            /// The name of the @optInFeatureStability stability argument.
+            /// </summary>
+            public const string Stability = "stability";
+        }
+    }
+
+    /// <summary>
+    /// The name constants of the @eventStream directive.
+    /// </summary>
+    public static class EventStream
+    {
+        /// <summary>
+        /// The name of the @eventStream directive.
+        /// </summary>
+        public const string Name = "eventStream";
+
+        /// <summary>
+        /// The argument names of the @eventStream directive.
+        /// </summary>
+        public static class Arguments
+        {
+            /// <summary>
+            /// The name of the message argument.
+            /// </summary>
+            public const string Message = "message";
+
+            /// <summary>
+            /// The name of the topics argument.
+            /// </summary>
+            public const string Topics = "topics";
+
+            /// <summary>
+            /// The name of the broker argument.
+            /// </summary>
+            public const string Broker = "broker";
+        }
+    }
+
+    /// <summary>
+    /// The name constants of the @eventCursor directive.
+    /// </summary>
+    public static class EventCursor
+    {
+        /// <summary>
+        /// The name of the @eventCursor directive.
+        /// </summary>
+        public const string Name = "eventCursor";
     }
 
     public static bool IsSpecDirective(string name)

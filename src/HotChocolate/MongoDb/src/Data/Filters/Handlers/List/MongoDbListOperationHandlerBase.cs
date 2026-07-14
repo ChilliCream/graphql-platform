@@ -98,7 +98,9 @@ public abstract class MongoDbListOperationHandlerBase
     /// <param name="field">The currently visited filter field</param>
     /// <param name="scope">The current scope of the visitor</param>
     /// <param name="path">The path that leads to this visitor</param>
-    /// <returns></returns>
+    /// <returns>
+    /// The MongoDB filter definition for the list operation.
+    /// </returns>
     protected abstract MongoDbFilterDefinition HandleListOperation(
         MongoDbFilterVisitorContext context,
         IFilterField field,

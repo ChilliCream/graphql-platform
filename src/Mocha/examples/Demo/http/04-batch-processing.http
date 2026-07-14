@@ -1,0 +1,145 @@
+### Batch Processing Demo
+### Demonstrates batch and per-message handlers coexisting for OrderPlacedEvent.
+### The per-message handler creates an invoice per order.
+### The batch handler aggregates orders into a single RevenueSummary row.
+
+@catalogUrl = http://localhost:5133
+@billingUrl = http://localhost:5042
+
+@productHeadphones = aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa
+@productKeyboard = bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb
+@productBook = cccccccc-cccc-cccc-cccc-cccccccccccc
+
+### ============================================
+### Part 1: Size-triggered batch (5 orders)
+### Place 5 orders rapidly → batch fills to MaxBatchSize=5 → CompletionMode=Size
+### ============================================
+
+### Order 1 of 5
+POST {{catalogUrl}}/api/orders
+Content-Type: application/json
+
+{
+  "productId": "{{productHeadphones}}",
+  "quantity": 2,
+  "customerId": "batch-customer-001",
+  "shippingAddress": "100 Batch Lane, Demo City, DC 10001"
+}
+
+###
+
+### Order 2 of 5
+POST {{catalogUrl}}/api/orders
+Content-Type: application/json
+
+{
+  "productId": "{{productKeyboard}}",
+  "quantity": 1,
+  "customerId": "batch-customer-002",
+  "shippingAddress": "200 Batch Lane, Demo City, DC 10002"
+}
+
+###
+
+### Order 3 of 5
+POST {{catalogUrl}}/api/orders
+Content-Type: application/json
+
+{
+  "productId": "{{productBook}}",
+  "quantity": 3,
+  "customerId": "batch-customer-003",
+  "shippingAddress": "300 Batch Lane, Demo City, DC 10003"
+}
+
+###
+
+### Order 4 of 5
+POST {{catalogUrl}}/api/orders
+Content-Type: application/json
+
+{
+  "productId": "{{productHeadphones}}",
+  "quantity": 1,
+  "customerId": "batch-customer-004",
+  "shippingAddress": "400 Batch Lane, Demo City, DC 10004"
+}
+
+###
+
+### Order 5 of 5
+POST {{catalogUrl}}/api/orders
+Content-Type: application/json
+
+{
+  "productId": "{{productKeyboard}}",
+  "quantity": 2,
+  "customerId": "batch-customer-005",
+  "shippingAddress": "500 Batch Lane, Demo City, DC 10005"
+}
+
+###
+
+### ============================================
+### Check results (wait 2-3 seconds after placing all 5 orders)
+### ============================================
+
+### Should show 5 new invoices (per-message handler)
+GET {{billingUrl}}/api/invoices
+
+###
+
+### Should show 1 revenue summary with CompletionMode=Size and OrderCount=5
+GET {{billingUrl}}/api/revenue-summaries
+
+###
+
+### Latest revenue summary
+GET {{billingUrl}}/api/revenue-summaries/latest
+
+###
+
+### ============================================
+### Part 2: Time-triggered batch (2 orders, wait for timeout)
+### Place 2 orders → wait 10s for BatchTimeout → CompletionMode=Time
+### ============================================
+
+### Order 1 of 2
+POST {{catalogUrl}}/api/orders
+Content-Type: application/json
+
+{
+  "productId": "{{productBook}}",
+  "quantity": 1,
+  "customerId": "batch-customer-006",
+  "shippingAddress": "600 Batch Lane, Demo City, DC 10006"
+}
+
+###
+
+### Order 2 of 2
+POST {{catalogUrl}}/api/orders
+Content-Type: application/json
+
+{
+  "productId": "{{productHeadphones}}",
+  "quantity": 1,
+  "customerId": "batch-customer-007",
+  "shippingAddress": "700 Batch Lane, Demo City, DC 10007"
+}
+
+###
+
+### ============================================
+### Check results (wait ~10 seconds for batch timeout to expire)
+### ============================================
+
+### Should now show 2 revenue summaries - one Size, one Time
+GET {{billingUrl}}/api/revenue-summaries
+
+###
+
+### Latest should be CompletionMode=Time with OrderCount=2
+GET {{billingUrl}}/api/revenue-summaries/latest
+
+###

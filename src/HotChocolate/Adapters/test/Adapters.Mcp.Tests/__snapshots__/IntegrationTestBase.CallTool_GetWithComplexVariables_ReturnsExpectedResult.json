@@ -54,7 +54,7 @@
           "field2": null
         }
       },
-      "timeSpanDotNet": "00:05:00"
+      "durationDotNet": "00:05:00"
     }
   }
 }

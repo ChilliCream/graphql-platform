@@ -16,7 +16,8 @@ public class PreparedOperationCacheTests
             .AddGraphQL()
             .ModifyOptions(o => o.PreparedOperationCacheSize = cacheCapacity)
             .AddQueryType(d => d.Field("foo").Resolve(""));
-        var executor = await services.BuildServiceProvider().GetRequestExecutorAsync();
+        var executor = await services.BuildServiceProvider().GetRequestExecutorAsync(
+            cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var operationCache = executor.Schema.Services.GetRequiredService<IPreparedOperationCache>();

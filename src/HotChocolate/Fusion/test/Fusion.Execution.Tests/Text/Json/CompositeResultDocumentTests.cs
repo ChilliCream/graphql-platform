@@ -1,0 +1,819 @@
+using System.IO.Pipelines;
+using System.Text;
+using System.Text.Json;
+using HotChocolate.Buffers;
+using HotChocolate.Execution;
+using HotChocolate.Text.Json;
+using HotChocolate.Transport.Formatters;
+
+namespace HotChocolate.Fusion.Text.Json;
+
+public class CompositeResultDocumentTests : FusionTestBase
+{
+    [Fact]
+    public void Initialize_Basic_Result()
+    {
+        // arrange
+        var schema = CreateCompositeSchema();
+
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+                productBySlug(slug: "1") {
+                    ... Product
+                }
+            }
+
+            fragment Product on Product {
+                id
+                name
+            }
+            """);
+
+        // act
+        var compositeResult = new CompositeResultDocument(CommonTestExtensions.CreateArena(), plan.Operation, 0);
+
+        // assert
+        Assert.Equal(1, compositeResult.Data.GetPropertyCount());
+        Assert.NotNull(compositeResult.Data.SelectionSet);
+
+        var propertyValue = compositeResult.Data.GetProperty("productBySlug");
+        Assert.Equal("productBySlug", propertyValue.GetPropertyName());
+        Assert.Equal(JsonValueKind.Undefined, propertyValue.ValueKind);
+    }
+
+    [Fact]
+    public void Add_Object_From_SelectionSet()
+    {
+        // arrange
+        var schema = CreateCompositeSchema();
+
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+                productBySlug(slug: "1") {
+                    ... Product
+                }
+            }
+
+            fragment Product on Product {
+                id
+                name
+            }
+            """);
+
+        var compositeResult = new CompositeResultDocument(CommonTestExtensions.CreateArena(), plan.Operation, 0);
+        var operation = compositeResult.Data.Operation;
+
+        var productBySlug = compositeResult.Data.GetProperty("productBySlug");
+        var productBySlugSelection = productBySlug.AssertSelection();
+        Assert.Equal("productBySlug", productBySlug.GetPropertyName());
+        Assert.Equal(JsonValueKind.Undefined, productBySlug.ValueKind);
+        Assert.False(productBySlugSelection.IsLeaf);
+
+        // act
+        var selectionSet = operation.GetSelectionSet(productBySlugSelection);
+        productBySlug.SetObjectValue(selectionSet);
+
+        // assert
+        Assert.Equal(JsonValueKind.Object, productBySlug.ValueKind);
+    }
+
+    [Fact]
+    public void Add_SourceResult_Leaf_Value()
+    {
+        // arrange
+        var schema = CreateCompositeSchema();
+
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+                productBySlug(slug: "1") {
+                    ... Product
+                }
+            }
+
+            fragment Product on Product {
+                id
+                name
+            }
+            """);
+
+        var compositeResult = new CompositeResultDocument(CommonTestExtensions.CreateArena(), plan.Operation, 0);
+        var operation = compositeResult.Data.Operation;
+
+        var productBySlug = compositeResult.Data.GetProperty("productBySlug");
+        var productBySlugSelection = productBySlug.AssertSelection();
+        var selectionSet = operation.GetSelectionSet(productBySlugSelection);
+        productBySlug.SetObjectValue(selectionSet);
+
+        var result =
+            """
+            {
+              "id": 1,
+              "name": "Abc"
+            }
+            """u8.ToArray();
+        var sourceResult = SourceResultDocument.Parse(CommonTestExtensions.CreateArena(), result, result.Length);
+
+        // act
+        productBySlug.GetProperty("id").SetLeafValue(sourceResult.Root.GetProperty("id"));
+        productBySlug.GetProperty("name").SetLeafValue(sourceResult.Root.GetProperty("name"));
+
+        // assert
+        Assert.Equal(JsonValueKind.Number, productBySlug.GetProperty("id").ValueKind);
+        Assert.Equal(JsonValueKind.String, productBySlug.GetProperty("name").ValueKind);
+    }
+
+    [Fact]
+    public void Invalidate_Object()
+    {
+        // arrange
+        var schema = CreateCompositeSchema();
+
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+                productBySlug(slug: "1") {
+                    ... Product
+                }
+            }
+
+            fragment Product on Product {
+                id
+                name
+            }
+            """);
+
+        var compositeResult = new CompositeResultDocument(CommonTestExtensions.CreateArena(), plan.Operation, 0);
+        var operation = compositeResult.Data.Operation;
+
+        var productBySlug = compositeResult.Data.GetProperty("productBySlug");
+        var productBySlugSelection = productBySlug.AssertSelection();
+        var selectionSet = operation.GetSelectionSet(productBySlugSelection);
+        productBySlug.SetObjectValue(selectionSet);
+
+        // act
+        productBySlug.Invalidate();
+
+        // assert
+        Assert.True(productBySlug.IsInvalidated);
+    }
+
+    [Fact]
+    public void Invalidate_Data()
+    {
+        // arrange
+        var schema = CreateCompositeSchema();
+
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+                productBySlug(slug: "1") {
+                    ... Product
+                }
+            }
+
+            fragment Product on Product {
+                id
+                name
+            }
+            """);
+
+        var compositeResult = new CompositeResultDocument(CommonTestExtensions.CreateArena(), plan.Operation, 0);
+
+        // act
+        compositeResult.Data.Invalidate();
+
+        // assert
+        Assert.True(compositeResult.Data.IsInvalidated);
+    }
+
+    [Fact]
+    public void WriteTo_Should_MaskOnlyMarkedLogicalReference_When_ValueIsShared()
+    {
+        // arrange
+        var schema = CreateCompositeSchema();
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+              first: productBySlug(slug: "1") { id name }
+              second: productBySlug(slug: "1") { id name }
+            }
+            """);
+        var document = new CompositeResultDocument(CommonTestExtensions.CreateArena(), plan.Operation, 0);
+        var first = document.Data.GetProperty("first");
+        var second = document.Data.GetProperty("second");
+        var selectionSet = plan.Operation.GetSelectionSet(first.AssertSelection());
+        var shared = document.CreateObject(first.Cursor, selectionSet);
+        document.AssignCompositeValue(first, shared);
+        document.AssignCompositeValue(second, shared);
+
+        var payload = """{"id":1,"name":"shared"}"""u8.ToArray();
+        var source = SourceResultDocument.Parse(
+            CommonTestExtensions.CreateArena(),
+            payload,
+            payload.Length);
+        shared.GetProperty("id").SetLeafValue(source.Root.GetProperty("id"));
+        shared.GetProperty("name").SetLeafValue(source.Root.GetProperty("name"));
+
+        // act
+        first.SetNullMarker();
+
+        // assert
+        using var buffer = new PooledArrayWriter();
+        document.Data.WriteTo(buffer);
+        Encoding.UTF8.GetString(buffer.WrittenSpan).MatchInlineSnapshot(
+            """
+            {"first":null,"second":{"id":1,"name":"shared"}}
+            """);
+        Assert.Equal("shared", first.GetProperty("name").AssertString());
+        Assert.Equal("shared", second.GetProperty("name").AssertString());
+    }
+
+    [Fact]
+    public void NullMarkerState_Should_PreserveMarkers_AcrossFinalizationTransitions()
+    {
+        // arrange
+        var schema = CreateCompositeSchema();
+        var plan = PlanOperation(schema, "{ productBySlug(slug: \"1\") { id } }");
+        var document = new CompositeResultDocument(
+            CommonTestExtensions.CreateArena(),
+            plan.Operation,
+            0);
+        var states = new List<string>();
+
+        // act
+        RecordState("none");
+
+        document.RequireNullMarkerFinalization();
+        RecordState("requires");
+
+        document.CompleteNullMarkerFinalization();
+        RecordState("complete without marker");
+
+        document.Data.SetNullMarker();
+        RecordState("has marker");
+
+        document.RequireNullMarkerFinalization();
+        RecordState("both after later require");
+
+        document.CompleteNullMarkerFinalization();
+        RecordState("complete preserves marker");
+
+        // assert
+        string.Join(Environment.NewLine, states).MatchInlineSnapshot(
+            """
+            none: requires=False, markers=False
+            requires: requires=True, markers=False
+            complete without marker: requires=False, markers=False
+            has marker: requires=False, markers=True
+            both after later require: requires=True, markers=True
+            complete preserves marker: requires=False, markers=True
+            """);
+
+        void RecordState(string name)
+            => states.Add(
+                $"{name}: requires={document.RequiresNullMarkerFinalization}, "
+                + $"markers={document.HasNullMarkers}");
+    }
+
+    [Fact]
+    public void Enumerate_Object()
+    {
+        // arrange
+        var schema = CreateCompositeSchema();
+
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+                productBySlug(slug: "1") {
+                    ... Product
+                }
+            }
+
+            fragment Product on Product {
+                id
+                name
+            }
+            """);
+
+        var compositeResult = new CompositeResultDocument(CommonTestExtensions.CreateArena(), plan.Operation, 0);
+        var operation = compositeResult.Data.Operation;
+
+        var productBySlug = compositeResult.Data.GetProperty("productBySlug");
+        var productBySlugSelection = productBySlug.AssertSelection();
+        var selectionSet = operation.GetSelectionSet(productBySlugSelection);
+        productBySlug.SetObjectValue(selectionSet);
+
+        var result =
+            """
+                {
+                  "id": 1,
+                  "name": "Abc"
+                }
+                """u8.ToArray();
+
+        var sourceResult = SourceResultDocument.Parse(CommonTestExtensions.CreateArena(), result, result.Length);
+        productBySlug.GetProperty("id").SetLeafValue(sourceResult.Root.GetProperty("id"));
+        productBySlug.GetProperty("name").SetLeafValue(sourceResult.Root.GetProperty("name"));
+
+        // act
+        var enumerator = productBySlug.EnumerateObject();
+
+        // assert
+        Assert.True(enumerator.MoveNext());
+        Assert.Equal("id", enumerator.Current.Name);
+        Assert.Equal(1, enumerator.Current.Value.GetInt32());
+
+        Assert.True(enumerator.MoveNext());
+        Assert.Equal("name", enumerator.Current.Name);
+        Assert.Equal("Abc", enumerator.Current.Value.AssertString());
+
+        Assert.False(enumerator.MoveNext());
+    }
+
+    [Fact]
+    public void Enumerate_Array()
+    {
+        // arrange
+        var schema = ComposeShoppingSchema();
+
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+                users {
+                    nodes {
+                        name
+                    }
+                }
+            }
+            """);
+
+        var compositeResult = new CompositeResultDocument(CommonTestExtensions.CreateArena(), plan.Operation, 0);
+        var operation = compositeResult.Data.Operation;
+
+        var users = compositeResult.Data.GetProperty("users");
+        var usersSelection = users.AssertSelection();
+        var usersSelectionSet = operation.GetSelectionSet(usersSelection);
+        users.SetObjectValue(usersSelectionSet);
+
+        var nodes = users.GetProperty("nodes");
+        var nodesSelection = nodes.AssertSelection();
+        var nodesSelectionSet = operation.GetSelectionSet(nodesSelection);
+        nodes.SetArrayValue(3);
+
+        var result =
+            """
+                {
+                  "name1": "Abc",
+                  "name2": "Def",
+                  "name3": "Ghi"
+                }
+                """u8.ToArray();
+
+        var sourceResult = SourceResultDocument.Parse(CommonTestExtensions.CreateArena(), result, result.Length);
+        var i = 0;
+
+        // act
+        foreach (var element in nodes.EnumerateArray())
+        {
+            element.SetObjectValue(nodesSelectionSet);
+            var name = element.GetProperty("name");
+            name.SetLeafValue(sourceResult.Root.GetProperty("name" + ++i));
+        }
+
+        // assert
+        using var enumerator = nodes.EnumerateArray().GetEnumerator();
+
+        Assert.True(enumerator.MoveNext());
+        Assert.Equal("Abc", enumerator.Current.GetProperty("name").AssertString());
+
+        Assert.True(enumerator.MoveNext());
+        Assert.Equal("Def", enumerator.Current.GetProperty("name").AssertString());
+
+        Assert.True(enumerator.MoveNext());
+        Assert.Equal("Ghi", enumerator.Current.GetProperty("name").AssertString());
+
+        Assert.False(enumerator.MoveNext());
+    }
+
+    [Fact]
+    public void Path_Fields_Only()
+    {
+        // arrange
+        var schema = CreateCompositeSchema();
+
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+                productBySlug(slug: "1") {
+                    ... Product
+                }
+            }
+
+            fragment Product on Product {
+                id
+                name
+            }
+            """);
+
+        var compositeResult = new CompositeResultDocument(CommonTestExtensions.CreateArena(), plan.Operation, 0);
+        var operation = compositeResult.Data.Operation;
+
+        var productBySlug = compositeResult.Data.GetProperty("productBySlug");
+        var productBySlugSelection = productBySlug.AssertSelection();
+        var selectionSet = operation.GetSelectionSet(productBySlugSelection);
+        productBySlug.SetObjectValue(selectionSet);
+
+        var result =
+            """
+                {
+                  "id": 1,
+                  "name": "Abc"
+                }
+                """u8.ToArray();
+
+        var sourceResult = SourceResultDocument.Parse(CommonTestExtensions.CreateArena(), result, result.Length);
+        productBySlug.GetProperty("id").SetLeafValue(sourceResult.Root.GetProperty("id"));
+        productBySlug.GetProperty("name").SetLeafValue(sourceResult.Root.GetProperty("name"));
+
+        // act
+        var path = productBySlug.GetProperty("name").Path;
+
+        // assert
+        Assert.Equal("productBySlug.name", path.ToString());
+    }
+
+    [Fact]
+    public void Path_Array_Index()
+    {
+        // arrange
+        var schema = ComposeShoppingSchema();
+
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+                users {
+                    nodes {
+                        name
+                    }
+                }
+            }
+            """);
+
+        var compositeResult = new CompositeResultDocument(CommonTestExtensions.CreateArena(), plan.Operation, 0);
+        var operation = compositeResult.Data.Operation;
+
+        var users = compositeResult.Data.GetProperty("users");
+        var usersSelection = users.AssertSelection();
+        var usersSelectionSet = operation.GetSelectionSet(usersSelection);
+        users.SetObjectValue(usersSelectionSet);
+
+        var nodes = users.GetProperty("nodes");
+        var nodesSelection = nodes.AssertSelection();
+        var nodesSelectionSet = operation.GetSelectionSet(nodesSelection);
+        nodes.SetArrayValue(1);
+
+        var element = nodes[0];
+        element.SetObjectValue(nodesSelectionSet);
+
+        var name = element.GetProperty("name");
+
+        var result =
+            """
+                {
+                  "name": "Abc"
+                }
+                """u8.ToArray();
+
+        var sourceResult = SourceResultDocument.Parse(CommonTestExtensions.CreateArena(), result, result.Length);
+        name.SetLeafValue(sourceResult.Root.GetProperty("name"));
+
+        // act
+        var path = name.Path;
+
+        // assert
+        Assert.Equal("users.nodes[0].name", path.ToString());
+    }
+
+    [Fact]
+    public void Write_Document_To_BufferWriter()
+    {
+        // arrange
+        using var buffer = new PooledArrayWriter();
+
+        var schema = ComposeShoppingSchema();
+
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+                users {
+                    nodes {
+                        name
+                    }
+                }
+            }
+            """);
+
+        var compositeResult = new CompositeResultDocument(CommonTestExtensions.CreateArena(), plan.Operation, 0);
+        var operation = compositeResult.Data.Operation;
+
+        var users = compositeResult.Data.GetProperty("users");
+        var usersSelection = users.AssertSelection();
+        var usersSelectionSet = operation.GetSelectionSet(usersSelection);
+        users.SetObjectValue(usersSelectionSet);
+
+        var nodes = users.GetProperty("nodes");
+        var nodesSelection = nodes.AssertSelection();
+        var nodesSelectionSet = operation.GetSelectionSet(nodesSelection);
+        nodes.SetArrayValue(3);
+
+        var result =
+            """
+                {
+                  "name1": "Abc",
+                  "name2": "Def",
+                  "name3": "Ghi"
+                }
+                """u8.ToArray();
+
+        var sourceResult = SourceResultDocument.Parse(CommonTestExtensions.CreateArena(), result, result.Length);
+        var i = 0;
+
+        foreach (var element in nodes.EnumerateArray())
+        {
+            element.SetObjectValue(nodesSelectionSet);
+            var name = element.GetProperty("name");
+            var propertyRow = compositeResult._metaDb.Get(name.Cursor - 1);
+            Assert.Equal(name.AssertSelection().Id, propertyRow.OperationReferenceId);
+
+            name.SetLeafValue(sourceResult.Root.GetProperty("name" + ++i));
+
+            var valueRow = compositeResult._metaDb.Get(name.Cursor);
+            Assert.Equal(0, valueRow.OperationReferenceId);
+            Assert.Equal(ElementTokenType.String, valueRow.TokenType);
+        }
+
+        // act
+        var operationResultData = new OperationResultData(
+            compositeResult,
+            compositeResult.Data.IsNullOrInvalidated,
+            compositeResult,
+            compositeResult);
+        var operationResult = new OperationResult(
+            operationResultData);
+
+        new JsonResultFormatter(indented: true).Format(operationResult, buffer);
+
+        // assert
+        var json = Encoding.UTF8.GetString(buffer.WrittenSpan);
+        json.MatchSnapshot();
+    }
+
+    [Theory]
+    [InlineData(false, "{\"productBySlug\":{\"id\":[null,true,false]}}")]
+    [InlineData(
+        true,
+        "{\n  \"productBySlug\": {\n    \"id\": [\n      null,\n      true,\n      false\n    ]\n  }\n}")]
+    public void WriteDataTo_Should_PreserveNestedValues_When_RowsCrossChunkBoundaries(
+        bool indented,
+        string expected)
+    {
+        var schema = CreateCompositeSchema();
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+                productBySlug(slug: "1") {
+                    id
+                }
+            }
+            """);
+        var document = new CompositeResultDocument(CommonTestExtensions.CreateArena(), plan.Operation, 0);
+        var rootValue = document.Data.GetProperty("productBySlug");
+        var rootSelection = rootValue.AssertSelection();
+        var childSelectionSet = plan.Operation.GetSelectionSet(rootSelection);
+        Assert.Equal(1, childSelectionSet.Selections.Length);
+        var childSelection = childSelectionSet.Selections[0];
+        ref var metaDb = ref document._metaDb;
+
+        var firstChunkBoundary = CompositeResultDocument.Cursor.RowsPerChunkFor(0) - 2;
+
+        while (metaDb.NextCursor.Index < firstChunkBoundary)
+        {
+            metaDb.AppendNull(parentRow: 0);
+        }
+
+        var objectStart = metaDb.AppendStartObject(
+            rootValue.Cursor.Value,
+            childSelectionSet.Id,
+            propertyCount: 1,
+            flags: CompositeResultDocument.ElementFlags.None);
+        var childProperty = metaDb.AppendEmptyPropertyWithNullValue(
+            objectStart.Value,
+            childSelection.Id,
+            flags: CompositeResultDocument.ElementFlags.None);
+        var childValue = childProperty + 1;
+        metaDb.AppendEndObject();
+
+        var arrayBoundaryChunk = metaDb.NextCursor.Chunk;
+        var arrayBoundary = CompositeResultDocument.Cursor.From(
+            arrayBoundaryChunk,
+            CompositeResultDocument.Cursor.RowsPerChunkFor(arrayBoundaryChunk) - 1);
+
+        while (metaDb.NextCursor.Index < arrayBoundary.Index)
+        {
+            metaDb.AppendNull(parentRow: 0);
+        }
+
+        var arrayStart = metaDb.AppendStartArray(
+            childValue.Value,
+            length: 3,
+            flags: CompositeResultDocument.ElementFlags.None);
+        Assert.Equal(arrayBoundary, arrayStart);
+        metaDb.AppendNull(arrayStart.Value);
+        metaDb.Append(ElementTokenType.True, parentRow: arrayStart.Value);
+        metaDb.Append(ElementTokenType.False, parentRow: arrayStart.Value);
+        metaDb.AppendEndArray();
+
+        metaDb.Replace(
+            childValue,
+            ElementTokenType.Reference,
+            location: arrayStart.Value,
+            parentRow: childProperty.Value);
+        metaDb.Replace(
+            rootValue.Cursor,
+            ElementTokenType.Reference,
+            location: objectStart.Value,
+            parentRow: (rootValue.Cursor - 1).Value);
+
+        using var buffer = new PooledArrayWriter();
+        var writer = new JsonWriter(
+            buffer,
+            new JsonWriterOptions { Indented = indented, SkipValidation = true });
+
+        document.WriteDataTo(writer);
+
+        Assert.Equal(expected, Encoding.UTF8.GetString(buffer.WrittenSpan));
+    }
+
+    [Fact]
+    public void WriteDataTo_Should_SkipInternalAndExcludedProperties_When_SkippedPairCrossesChunkBoundary()
+    {
+        const int propertyCount = 30;
+        var schema = CreateCompositeSchema();
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+                productBySlug(slug: "1") {
+                    id
+                }
+            }
+            """);
+        var document = new CompositeResultDocument(CommonTestExtensions.CreateArena(), plan.Operation, 0);
+        var rootValue = document.Data.GetProperty("productBySlug");
+        var childSelectionSet = plan.Operation.GetSelectionSet(rootValue.AssertSelection());
+        Assert.Equal(1, childSelectionSet.Selections.Length);
+        var childSelection = childSelectionSet.Selections[0];
+        ref var metaDb = ref document._metaDb;
+
+        while (metaDb.NextCursor.Index < 5)
+        {
+            metaDb.AppendNull(parentRow: 0);
+        }
+
+        var objectStart = metaDb.AppendStartObject(
+            rootValue.Cursor.Value,
+            childSelectionSet.Id,
+            propertyCount,
+            CompositeResultDocument.ElementFlags.None);
+
+        for (var i = 0; i < propertyCount; i++)
+        {
+            var flags = i switch
+            {
+                22 => CompositeResultDocument.ElementFlags.IsInternal,
+                23 => CompositeResultDocument.ElementFlags.IsExcluded,
+                _ => CompositeResultDocument.ElementFlags.None
+            };
+
+            metaDb.AppendEmptyPropertyWithNullValue(
+                objectStart.Value,
+                childSelection.Id,
+                flags);
+        }
+
+        metaDb.AppendEndObject();
+        metaDb.Replace(
+            rootValue.Cursor,
+            ElementTokenType.Reference,
+            location: objectStart.Value,
+            parentRow: (rootValue.Cursor - 1).Value);
+
+        using var buffer = new PooledArrayWriter();
+        var writer = new JsonWriter(
+            buffer,
+            new JsonWriterOptions { Indented = false, SkipValidation = true });
+
+        document.WriteDataTo(writer);
+
+        var expected = new StringBuilder("{\"productBySlug\":{");
+
+        for (var i = 0; i < propertyCount - 2; i++)
+        {
+            if (i > 0)
+            {
+                expected.Append(',');
+            }
+
+            expected.Append("\"id\":null");
+        }
+
+        expected.Append("}}");
+        Assert.Equal(expected.ToString(), Encoding.UTF8.GetString(buffer.WrittenSpan));
+    }
+
+    [Fact]
+    public async Task Write_Document_To_PipeWriter()
+    {
+        // arrange
+        var schema = ComposeShoppingSchema();
+
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+                users {
+                    nodes {
+                        name
+                    }
+                }
+            }
+            """);
+
+        var compositeResult = new CompositeResultDocument(CommonTestExtensions.CreateArena(), plan.Operation, 0);
+        var operation = compositeResult.Data.Operation;
+
+        var users = compositeResult.Data.GetProperty("users");
+        var usersSelection = users.AssertSelection();
+        var usersSelectionSet = operation.GetSelectionSet(usersSelection);
+        users.SetObjectValue(usersSelectionSet);
+
+        var nodes = users.GetProperty("nodes");
+        var nodesSelection = nodes.AssertSelection();
+        var nodesSelectionSet = operation.GetSelectionSet(nodesSelection);
+        nodes.SetArrayValue(3);
+
+        var result =
+            """
+                {
+                  "name1": "Abc",
+                  "name2": "Def",
+                  "name3": "Ghi"
+                }
+                """u8.ToArray();
+
+        var sourceResult = SourceResultDocument.Parse(CommonTestExtensions.CreateArena(), result, result.Length);
+        var i = 0;
+
+        foreach (var element in nodes.EnumerateArray())
+        {
+            element.SetObjectValue(nodesSelectionSet);
+            var name = element.GetProperty("name");
+            name.SetLeafValue(sourceResult.Root.GetProperty("name" + ++i));
+        }
+
+        // act
+        await using var memoryStream = new MemoryStream();
+        var writer = PipeWriter.Create(memoryStream);
+        var operationResultData = new OperationResultData(
+            compositeResult,
+            compositeResult.Data.IsNullOrInvalidated,
+            compositeResult,
+            compositeResult);
+        var operationResult = new OperationResult(
+            operationResultData);
+
+        new JsonResultFormatter(indented: true).Format(operationResult, writer);
+
+        await writer.FlushAsync(TestContext.Current.CancellationToken);
+        await writer.CompleteAsync();
+
+        // assert
+        var json = Encoding.UTF8.GetString(memoryStream.ToArray());
+        json.MatchSnapshot();
+    }
+}

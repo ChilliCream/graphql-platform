@@ -1,11 +1,12 @@
-namespace ChilliCream.Nitro.CommandLine.Options;
+namespace ChilliCream.Nitro.CommandLine;
 
-internal sealed class OperationsFileOption : Option<FileInfo>
+internal sealed class OperationsFileOption : Option<string>
 {
     public OperationsFileOption() : base("--operations-file")
     {
         Description = "The path to the json file with the operations";
-        IsRequired = true;
-        this.DefaultFileFromEnvironmentValue("OPERATIONS_FILE");
+        Required = true;
+        this.DefaultFileFromEnvironmentValue(EnvironmentVariables.OperationsFile);
+        this.LegalFilePathsOnly();
     }
 }

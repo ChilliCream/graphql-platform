@@ -28,6 +28,22 @@ public interface IOperationManager
     bool Enqueue(string sessionId, GraphQLRequest request);
 
     /// <summary>
+    /// Enqueues a batch of requests for execution with the operation manager.
+    /// </summary>
+    /// <param name="sessionId">
+    /// The operation sessionId given by the client. The sessionId must be unique within the
+    /// <see cref="ISocketSession"/>.
+    /// </param>
+    /// <param name="requests">
+    /// The GraphQL requests that shall be executed as a batch.
+    /// </param>
+    /// <returns>
+    /// Returns <c>true</c> if the <paramref name="requests"/>
+    /// were accepted and registered for execution.
+    /// </returns>
+    bool EnqueueBatch(string sessionId, GraphQLRequest[] requests);
+
+    /// <summary>
     /// Completes a request that was previously enqueued with the operation manager.
     /// </summary>
     /// <param name="sessionId">

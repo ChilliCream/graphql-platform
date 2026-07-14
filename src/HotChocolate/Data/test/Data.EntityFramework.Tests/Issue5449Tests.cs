@@ -24,19 +24,20 @@ public class Issue5449Tests
 
         var executor = await services
             .GetRequiredService<IRequestExecutorProvider>()
-            .GetExecutorAsync();
+            .GetExecutorAsync(cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
         await using (var scope = services.CreateAsyncScope())
         {
             await using var context = scope.ServiceProvider.GetRequiredService<Issue5449Context>();
-            await context.Blogs.AddAsync(new Issue5449Blog("hc"));
-            await context.SaveChangesAsync();
+            await context.Blogs.AddAsync(new Issue5449Blog("hc"), Xunit.TestContext.Current.CancellationToken);
+            await context.SaveChangesAsync(Xunit.TestContext.Current.CancellationToken);
         }
 
         await using (var scope = services.CreateAsyncScope())
         {
             await using var context = scope.ServiceProvider.GetRequiredService<Issue5449Context>();
-            var directMaterialization = await context.Blogs.AsNoTracking().SingleAsync();
+            var directMaterialization = await context.Blogs.AsNoTracking().SingleAsync(
+                Xunit.TestContext.Current.CancellationToken);
             Assert.True(directMaterialization.ContextInjected);
         }
 
@@ -48,7 +49,8 @@ public class Issue5449Tests
                 contextInjected
               }
             }
-            """);
+            """,
+            Xunit.TestContext.Current.CancellationToken);
 
         // assert
         var operationResult = result.ExpectOperationResult();
@@ -91,7 +93,9 @@ public class Issue5449Tests
             Name = name;
         }
 
+#pragma warning disable IDE0051 // Remove unused private members
         private Issue5449Blog(Issue5449Context context)
+#pragma warning restore IDE0051 // Remove unused private members
         {
             _context = context;
             Name = string.Empty;

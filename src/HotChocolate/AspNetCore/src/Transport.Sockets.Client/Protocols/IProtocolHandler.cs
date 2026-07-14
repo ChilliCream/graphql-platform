@@ -45,7 +45,7 @@ internal interface IProtocolHandler
     /// client context.
     /// </param>
     /// <param name="request">
-    /// The <see cref="OperationRequest"/> object representing the operation request
+    /// The <see cref="IOperationRequest"/> object representing the operation request
     /// to execute.
     /// </param>
     /// <param name="cancellationToken">
@@ -53,12 +53,34 @@ internal interface IProtocolHandler
     /// </param>
     /// <returns>
     /// A <see cref="SocketResult"/> that represents the asynchronous operation.
-    /// The <see cref="OperationRequest"/> object that represents the result of the
+    /// The <see cref="IOperationRequest"/> object that represents the result of the
     /// operation is the result of the task.
     /// </returns>
     ValueTask<SocketResult> ExecuteAsync(
         SocketClientContext context,
-        OperationRequest request,
+        IOperationRequest request,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Executes the specified batch operation request using the protocol handler.
+    /// </summary>
+    /// <param name="context">
+    /// The <see cref="SocketClientContext"/> object representing the WebSocket
+    /// client context.
+    /// </param>
+    /// <param name="request">
+    /// The <see cref="OperationBatchRequest"/> object representing the batch operation request
+    /// to execute.
+    /// </param>
+    /// <param name="cancellationToken">
+    /// A cancellation token that can be used to cancel the operation.
+    /// </param>
+    /// <returns>
+    /// A <see cref="SocketResult"/> that represents the asynchronous operation.
+    /// </returns>
+    ValueTask<SocketResult> ExecuteBatchAsync(
+        SocketClientContext context,
+        OperationBatchRequest request,
         CancellationToken cancellationToken = default);
 
     /// <summary>

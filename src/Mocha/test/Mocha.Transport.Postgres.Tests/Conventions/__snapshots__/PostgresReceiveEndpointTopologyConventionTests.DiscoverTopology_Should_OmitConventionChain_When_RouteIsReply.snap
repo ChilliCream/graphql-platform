@@ -1,0 +1,46 @@
+{
+  "Schema": "postgres",
+  "TransportType": "PostgresMessagingTransport",
+  "Entities": [
+    {
+      "Kind": "queue",
+      "Name": "mocha.transport.postgres.tests.order-stock-check-saga",
+      "AutoDelete": false,
+      "Origin": "endpoint"
+    },
+    {
+      "Kind": "queue",
+      "Name": "mocha.transport.postgres.tests.order-stock-check-saga_error",
+      "Origin": "endpoint"
+    },
+    {
+      "Kind": "queue",
+      "Name": "mocha.transport.postgres.tests.order-stock-check-saga_skipped",
+      "Origin": "endpoint"
+    },
+    {
+      "Kind": "topic",
+      "Name": "mocha.transport.postgres.tests.conventions.stock-check-started",
+      "Origin": "convention"
+    },
+    {
+      "Kind": "topic",
+      "Name": "stock-check-started",
+      "Origin": "convention"
+    }
+  ],
+  "Links": [
+    {
+      "Kind": "subscription",
+      "From": "postgres://localhost:5432/t/mocha.transport.postgres.tests.conventions.stock-check-started",
+      "To": "postgres://localhost:5432/q/mocha.transport.postgres.tests.order-stock-check-saga",
+      "Origin": "convention"
+    },
+    {
+      "Kind": "subscription",
+      "From": "postgres://localhost:5432/t/stock-check-started",
+      "To": "postgres://localhost:5432/q/mocha.transport.postgres.tests.order-stock-check-saga",
+      "Origin": "convention"
+    }
+  ]
+}

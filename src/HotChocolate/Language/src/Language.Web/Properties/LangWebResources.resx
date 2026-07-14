@@ -48,6 +48,9 @@
   <data name="ThrowHelper_InvalidOnErrorValue" xml:space="preserve">
     <value>Invalid 'onError' value. Expected string or null, but got {0}.</value>
   </data>
+  <data name="ThrowHelper_UnknownOnErrorValue" xml:space="preserve">
+    <value>Unknown 'onError' value '{0}'. Allowed values are 'PROPAGATE' or 'NULL'.</value>
+  </data>
   <data name="Utf8GraphQLRequestParser_Parse_EmptyJSONDocument" xml:space="preserve">
     <value>Empty JSON document.</value>
   </data>
