@@ -35,6 +35,27 @@ public sealed record OperationPlan : IOperationPlan
         IncrementalPlans = incrementalPlans;
         _nodesById = CreateNodeLookup(allNodes);
         MaxNodeId = _nodesById.Length > 0 ? _nodesById.Length - 1 : 0;
+
+        if (!allNodes.IsDefaultOrEmpty)
+        {
+            foreach (var node in allNodes)
+            {
+                if (node is NodeFieldExecutionNode)
+                {
+                    UsesDynamicSchemaNames = true;
+                }
+
+                if (node is OperationBatchExecutionNode or ApolloOperationBatchExecutionNode)
+                {
+                    UsesBatchNodes = true;
+                }
+
+                if (UsesDynamicSchemaNames && UsesBatchNodes)
+                {
+                    break;
+                }
+            }
+        }
     }
 
     /// <summary>
@@ -99,6 +120,10 @@ public sealed record OperationPlan : IOperationPlan
     /// Gets the highest plan node identifier that can be resolved by this plan.
     /// </summary>
     public int MaxNodeId { get; }
+
+    internal bool UsesDynamicSchemaNames { get; }
+
+    internal bool UsesBatchNodes { get; }
 
     /// <summary>
     /// Retrieves the execution node associated with a plan node identifier.

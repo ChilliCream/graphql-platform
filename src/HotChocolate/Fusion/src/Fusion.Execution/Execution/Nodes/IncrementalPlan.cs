@@ -43,6 +43,27 @@ public sealed class IncrementalPlan : IOperationPlan
         DeliveryGroups = deliveryGroups;
         Requirements = requirements.IsDefault ? [] : requirements;
         _nodesById = CreateNodeLookup(allNodes);
+
+        if (!allNodes.IsDefaultOrEmpty)
+        {
+            foreach (var node in allNodes)
+            {
+                if (node is NodeFieldExecutionNode)
+                {
+                    UsesDynamicSchemaNames = true;
+                }
+
+                if (node is OperationBatchExecutionNode or ApolloOperationBatchExecutionNode)
+                {
+                    UsesBatchNodes = true;
+                }
+
+                if (UsesDynamicSchemaNames && UsesBatchNodes)
+                {
+                    break;
+                }
+            }
+        }
     }
 
     /// <summary>
@@ -91,6 +112,10 @@ public sealed class IncrementalPlan : IOperationPlan
     /// Gets the highest plan node identifier that can be resolved by this plan.
     /// </summary>
     public int MaxNodeId => _nodesById.Length > 0 ? _nodesById.Length - 1 : 0;
+
+    internal bool UsesDynamicSchemaNames { get; }
+
+    internal bool UsesBatchNodes { get; }
 
     /// <summary>
     /// Gets the child incremental plans for this plan. Incremental plans do not
