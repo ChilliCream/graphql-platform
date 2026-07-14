@@ -254,7 +254,9 @@ public static class PagingQueryableExtensions
                 totalCount = await originalQuery.CountAsync(cancellationToken).ConfigureAwait(false);
             }
 
-            return Page<T>.Create([], false, false, _ => string.Empty, totalCount);
+            return totalCount is null
+                ? Page<T>.EmptyWithUnknownCount
+                : Page<T>.Create([], false, false, _ => string.Empty, totalCount);
         }
 
         if (isBackward)
