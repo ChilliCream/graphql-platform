@@ -47,7 +47,7 @@ internal sealed class ValueCursorPage<T> : Page<T>
     /// <summary>
     /// An empty page.
     /// </summary>
-    public static new ValueCursorPage<T> Empty { get; } = new([], false, false, _ => string.Empty, 0);
+    public static new ValueCursorPage<T> Empty { get; } = new([], false, false, static _ => string.Empty, totalCount: 0);
 
     /// <summary>
     /// An empty page with unknown total count.
