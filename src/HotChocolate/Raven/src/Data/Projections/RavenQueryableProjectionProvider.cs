@@ -13,6 +13,9 @@ namespace HotChocolate.Data.Raven.Projections;
 internal sealed class RavenQueryableProjectionProvider : QueryableProjectionProvider
 {
     /// <inheritdoc />
+    protected override bool SupportsNullChecksByKey => false;
+
+    /// <inheritdoc />
     protected override void Configure(IProjectionProviderDescriptor descriptor)
     {
         descriptor.AddDefaults();

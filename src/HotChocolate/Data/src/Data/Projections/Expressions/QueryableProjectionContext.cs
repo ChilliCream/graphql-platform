@@ -19,5 +19,7 @@ public class QueryableProjectionContext : ProjectionVisitorContext<Expression>
 
     public bool InMemory { get; }
 
+    internal bool SupportsNullChecksByKey { get; init; }
+
     internal NullabilityInfoContext NullabilityInfoContext { get; } = new();
 }
