@@ -546,7 +546,9 @@ public static class PagingQueryableExtensions
 
             if (item.Items.Count == 0)
             {
-                var page = Page<TValue>.Create([], false, false, _ => string.Empty, totalCount);
+                var page = totalCount is null
+                    ? Page<TValue>.EmptyWithUnknownCount
+                    : Page<TValue>.Create([], false, false, static _ => string.Empty, totalCount);
                 map.Add(item.Key, page);
                 continue;
             }
