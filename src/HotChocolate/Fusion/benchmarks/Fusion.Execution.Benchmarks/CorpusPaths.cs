@@ -1,7 +1,7 @@
 using System;
 using System.IO;
 
-namespace HotChocolate.Fusion.Benchmarks;
+namespace HotChocolate.Fusion.Execution.Benchmarks;
 
 /// <summary>
 /// Resolves the paths of the large federated graph benchmark corpus (the big-federated-graphs checkout) without
