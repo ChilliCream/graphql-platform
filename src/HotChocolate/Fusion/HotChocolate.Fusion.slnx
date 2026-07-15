@@ -10,7 +10,6 @@
     <Project Path="src/Fusion.Caching/HotChocolate.Fusion.Caching.csproj" />
     <Project Path="src/Fusion.Diagnostics/HotChocolate.Fusion.Diagnostics.csproj" />
     <Project Path="src/Fusion.Execution.Policies.Rego/HotChocolate.Fusion.Execution.Policies.Rego.csproj" />
-    <Project Path="src/Fusion.Execution.Types/HotChocolate.Fusion.Execution.Types.csproj" />
     <Project Path="src/Fusion.Execution/HotChocolate.Fusion.Execution.csproj" />
     <Project Path="src/Fusion.Language/HotChocolate.Fusion.Language.csproj" />
     <Project Path="src/Fusion.Packaging/HotChocolate.Fusion.Packaging.csproj" />

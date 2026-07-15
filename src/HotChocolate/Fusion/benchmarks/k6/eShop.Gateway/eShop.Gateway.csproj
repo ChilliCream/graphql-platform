@@ -8,7 +8,6 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\AspNetCore\src\AspNetCore.Pipeline\HotChocolate.AspNetCore.Pipeline.csproj" />
     <ProjectReference Include="..\..\..\src\Fusion.AspNetCore\HotChocolate.Fusion.AspNetCore.csproj" />
-    <ProjectReference Include="..\..\..\src\Fusion.Execution.Types\HotChocolate.Fusion.Execution.Types.csproj" />
     <ProjectReference Include="..\..\..\src\Fusion.Execution\HotChocolate.Fusion.Execution.csproj" />
   </ItemGroup>
 

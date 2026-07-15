@@ -83,7 +83,6 @@
     <Project Path="HotChocolate/Fusion/src/Fusion.Connectors.InMemory/HotChocolate.Fusion.Connectors.InMemory.csproj" />
     <Project Path="HotChocolate/Fusion/src/Fusion.Diagnostics/HotChocolate.Fusion.Diagnostics.csproj" />
     <Project Path="HotChocolate/Fusion/src/Fusion.Execution.Policies.Rego/HotChocolate.Fusion.Execution.Policies.Rego.csproj" />
-    <Project Path="HotChocolate/Fusion/src/Fusion.Execution.Types/HotChocolate.Fusion.Execution.Types.csproj" />
     <Project Path="HotChocolate/Fusion/src/Fusion.Execution/HotChocolate.Fusion.Execution.csproj" />
     <Project Path="HotChocolate/Fusion/src/Fusion.Language/HotChocolate.Fusion.Language.csproj" />
     <Project Path="HotChocolate/Fusion/src/Fusion.Packaging/HotChocolate.Fusion.Packaging.csproj" />
