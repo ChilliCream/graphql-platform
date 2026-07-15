@@ -9,6 +9,7 @@ using HotChocolate.Buffers;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Fusion.Execution.Nodes;
+using HotChocolate.Fusion.Types;
 using HotChocolate.Fusion.Language;
 using HotChocolate.Fusion.Text.Json;
 using HotChocolate.Language;
@@ -912,6 +913,62 @@ AddErrors_Next:
             }
 
             return paths.MoveToImmutable();
+        }
+    }
+
+    internal CompositeResultElement[] RentResultElements(
+        SelectionPath selectionSet,
+        out int count)
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+        ArgumentNullException.ThrowIfNull(selectionSet);
+
+        lock (_lock)
+        {
+            var elements = CollectTargetElements(selectionSet);
+            count = elements.Length;
+            var rented = ArrayPool<CompositeResultElement>.Shared.Rent(Math.Max(count, 1));
+            elements.CopyTo(rented);
+            return rented;
+        }
+    }
+
+    internal bool ApplyPolicyDenial(
+        CompositeResultElement element,
+        PolicyDenialBehavior behavior,
+        string policyName,
+        string? reason)
+    {
+        lock (_lock)
+        {
+            var error = behavior is PolicyDenialBehavior.Null
+                ? null
+                : ErrorHelper.AuthorizationPolicyDenied(element.Path, policyName, reason);
+
+            if (behavior is PolicyDenialBehavior.Abort)
+            {
+                _errors ??= [];
+                _errors.Add(_errorHandler.Handle(error!));
+                _result.Data.SetNullValue();
+                return false;
+            }
+
+            return _valueCompletion.ApplyPolicyDenial(element, error);
+        }
+    }
+
+    internal void AbortPolicyExecution()
+    {
+        lock (_lock)
+        {
+            // Hide all co-fetched protected data before invoking extension points such as
+            // the error handler. Even a secondary failure must not expose the response.
+            _result.Data.SetNullValue();
+
+            var error = ErrorHelper.AuthorizationPolicyExecutionFailed();
+
+            _errors ??= [];
+            _errors.Add(_errorHandler.Handle(error));
         }
     }
 

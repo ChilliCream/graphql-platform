@@ -41,4 +41,21 @@ internal static class ErrorHelper
             .SetMessage(FusionExecutionResources.NodeFieldExecutionNode_InvalidNodeIdFormat)
             .SetExtension("originalValue", originalValue)
             .Build();
+
+    public static IError AuthorizationPolicyDenied(
+        Path path,
+        string policyName,
+        string? reason)
+        => ErrorBuilder.New()
+            .SetMessage(reason ?? FusionExecutionResources.ErrorHelper_AuthorizationPolicyDenied)
+            .SetCode(ErrorCodes.Authentication.NotAuthorized)
+            .SetPath(path)
+            .SetExtension("policy", policyName)
+            .Build();
+
+    public static IError AuthorizationPolicyExecutionFailed()
+        => ErrorBuilder.New()
+            .SetMessage(FusionExecutionResources.ErrorHelper_AuthorizationPolicyExecutionFailed)
+            .SetCode(ErrorCodes.Authentication.NotAuthorized)
+            .Build();
 }

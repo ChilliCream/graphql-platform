@@ -988,15 +988,29 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
         {
             var policiesElement = targetElement.GetProperty("policies");
             var policies = new List<PolicyApplication>();
+            var requirements = new List<AuthorizationPolicyRequirement>();
 
             foreach (var policyElement in policiesElement.EnumerateArray())
             {
+                var policyName = policyElement.GetProperty("name").GetString()!;
                 policies.Add(new PolicyApplication
                 {
-                    Name = policyElement.GetProperty("name").GetString()!,
+                    Name = policyName,
                     OnDenied = Enum.Parse<PolicyDenialBehavior>(
                         policyElement.GetProperty("onDenied").GetString()!)
                 });
+
+                if (policyElement.TryGetProperty(
+                    "requirements",
+                    out var requirementsElement))
+                {
+                    requirements.Add(new AuthorizationPolicyRequirement
+                    {
+                        PolicyName = policyName,
+                        SelectionSet = Utf8GraphQLParser.Syntax.ParseSelectionSet(
+                            requirementsElement.GetString()!)
+                    });
+                }
             }
 
             var fieldName = targetElement.TryGetProperty("fieldName", out var fieldNameElement)
@@ -1010,6 +1024,7 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
                 TypeName = targetElement.GetProperty("typeName").GetString()!,
                 FieldName = fieldName,
                 Policies = policies.ToArray(),
+                Requirements = requirements.ToArray(),
                 Conditions = TryParseConditions(targetElement)
             });
         }

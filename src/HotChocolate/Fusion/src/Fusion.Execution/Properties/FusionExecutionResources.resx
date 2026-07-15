@@ -108,4 +108,10 @@
   <data name="FetchResultStore_InvalidTargetValueKind" xml:space="preserve">
     <value>Expected the value at result path '{1}' for selection path '{0}' to be an object or list, but found '{2}'.</value>
   </data>
+  <data name="ErrorHelper_AuthorizationPolicyDenied" xml:space="preserve">
+    <value>The current user is not authorized to access this resource.</value>
+  </data>
+  <data name="ErrorHelper_AuthorizationPolicyExecutionFailed" xml:space="preserve">
+    <value>Authorization policy execution failed.</value>
+  </data>
 </root>

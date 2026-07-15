@@ -8,12 +8,22 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Execution;
 
-public interface IAuthorizationPolicy
+/// <summary>
+/// Describes the plan-time metadata of an authorization policy.
+/// </summary>
+/// <remarks>
+/// Definitions are schema-stable services. They are intentionally separate from
+/// <see cref="IAuthorizationPolicy"/>, whose evaluator can be request scoped.
+/// </remarks>
+public interface IAuthorizationPolicyDefinition
 {
     string Name { get; }
 
     SelectionSetNode? Requirements { get; }
+}
 
+public interface IAuthorizationPolicy : IAuthorizationPolicyDefinition
+{
     ValueTask EvaluateAsync(
         IAuthorizationContext context,
         EntityData entities,
@@ -22,9 +32,9 @@ public interface IAuthorizationPolicy
 
 public interface IAuthorizationContext : IFeatureProvider
 {
-    ISelection Selection { get; }
+    ISelection? Selection { get; }
 
-    ITypeDefinition Type => Selection.Field.Type.AsTypeDefinition();
+    ITypeDefinition Type { get; }
 
     PolicyDenialBehavior OnDenied { get; }
 

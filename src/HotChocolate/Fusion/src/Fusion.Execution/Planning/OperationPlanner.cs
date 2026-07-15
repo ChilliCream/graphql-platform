@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Converters;
+using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Language;
 using HotChocolate.Fusion.Planning.Partitioners;
@@ -28,6 +29,7 @@ public sealed partial class OperationPlanner
     private readonly NodeFieldSelectionSetPartitioner _nodeFieldSelectionSetPartitioner;
     private readonly SourceSchemaNodeCandidateResolver _sourceSchemaNodeCandidateResolver;
     private readonly OperationPlannerOptions _options;
+    private readonly IReadOnlyDictionary<string, SelectionSetNode> _policyRequirements;
     private bool? _schemaHasDivergentInterfaceFields;
 
     public OperationPlanner(
@@ -41,10 +43,20 @@ public sealed partial class OperationPlanner
         FusionSchemaDefinition schema,
         OperationCompiler operationCompiler,
         OperationPlannerOptions options)
+        : this(schema, operationCompiler, options, [])
+    {
+    }
+
+    internal OperationPlanner(
+        FusionSchemaDefinition schema,
+        OperationCompiler operationCompiler,
+        OperationPlannerOptions options,
+        IEnumerable<IAuthorizationPolicyDefinition> policyDefinitions)
     {
         ArgumentNullException.ThrowIfNull(schema);
         ArgumentNullException.ThrowIfNull(operationCompiler);
         ArgumentNullException.ThrowIfNull(options);
+        ArgumentNullException.ThrowIfNull(policyDefinitions);
 
         _schema = schema;
         _operationCompiler = operationCompiler;
@@ -54,6 +66,7 @@ public sealed partial class OperationPlanner
         _nodeFieldSelectionSetPartitioner = new NodeFieldSelectionSetPartitioner(schema);
         _sourceSchemaNodeCandidateResolver = new SourceSchemaNodeCandidateResolver(schema);
         _options = options;
+        _policyRequirements = CreatePolicyRequirementMap(policyDefinitions);
     }
 
     internal OperationPlannerOptions Options => _options;
@@ -99,6 +112,11 @@ public sealed partial class OperationPlanner
 
         try
         {
+            if (_policyRequirements.Count > 0)
+            {
+                operationDefinition = InjectPolicyRequirements(operationDefinition);
+            }
+
             // Interface fields whose ownership diverges across concrete types (for example after an
             // @override) are expanded into per-concrete inline fragments up front. This runs before
             // the defer split so deferred selections carry the expansion too, and before selection
@@ -1237,7 +1255,7 @@ public sealed partial class OperationPlanner
         possiblePlans.EnqueueBranches(next);
     }
 
-    private static ImmutableArray<PolicyExecutionTarget> BuildPolicyTargets(
+    private ImmutableArray<PolicyExecutionTarget> BuildPolicyTargets(
         ImmutableStack<ConditionalPolicyExecutionTarget> policyTargets,
         SelectionSet selectionSet,
         ExecutionNodeCondition[] conditions)
@@ -1249,14 +1267,14 @@ public sealed partial class OperationPlanner
             && !objectType.PolicyApplications.IsDefaultOrEmpty)
         {
             builder ??= ImmutableArray.CreateBuilder<PolicyExecutionTarget>();
-            builder.Add(new PolicyExecutionTarget
+            builder.Add(AddPolicyRequirements(new PolicyExecutionTarget
             {
                 Kind = PolicyTargetKind.Object,
                 Path = SelectionPath.Root,
                 TypeName = objectType.Name,
                 Policies = objectType.PolicyApplications.ToArray(),
                 Conditions = conditions
-            });
+            }));
         }
 
         if (!policyTargets.IsEmpty)
@@ -1265,11 +1283,35 @@ public sealed partial class OperationPlanner
 
             foreach (var policyTarget in policyTargets.Reverse())
             {
-                builder.Add(policyTarget.Target);
+                builder.Add(AddPolicyRequirements(policyTarget.Target));
             }
         }
 
         return builder is null ? [] : builder.ToImmutable();
+    }
+
+    private PolicyExecutionTarget AddPolicyRequirements(PolicyExecutionTarget target)
+    {
+        List<AuthorizationPolicyRequirement>? requirements = null;
+
+        foreach (var application in target.Policies)
+        {
+            if (!_policyRequirements.TryGetValue(application.Name, out var selectionSet))
+            {
+                continue;
+            }
+
+            requirements ??= [];
+            requirements.Add(new AuthorizationPolicyRequirement
+            {
+                PolicyName = application.Name,
+                SelectionSet = selectionSet
+            });
+        }
+
+        return requirements is null
+            ? target
+            : target with { Requirements = requirements.ToArray() };
     }
 
     private bool IsQueryRootSelection(SelectionSet selectionSet)

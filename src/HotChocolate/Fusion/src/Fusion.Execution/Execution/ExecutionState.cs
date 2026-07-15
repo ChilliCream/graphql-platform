@@ -295,7 +295,7 @@ internal sealed class ExecutionState
         if (result.Status is ExecutionStatus.Success or ExecutionStatus.PartialSuccess)
         {
             // a node can explicitly choose which of its dependents should run
-            // by calling EnqueueDependentForExecution during execution.
+            // through the operation plan context during execution.
             // if it did, any dependent not in that list is skipped.
             if (!result.DependentsToExecute.IsDefault)
             {

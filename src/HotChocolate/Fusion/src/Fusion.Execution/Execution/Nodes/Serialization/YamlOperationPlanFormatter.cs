@@ -812,6 +812,18 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
                 writer.WriteLine("- name: {0}", policy.Name);
                 writer.Indent();
                 writer.WriteLine("onDenied: {0}", policy.OnDenied.ToString());
+
+                foreach (var requirement in target.Requirements)
+                {
+                    if (requirement.PolicyName.Equals(policy.Name, StringComparison.Ordinal))
+                    {
+                        writer.WriteLine(
+                            "requirements: {0}",
+                            requirement.SelectionSet.ToString(indented: false));
+                        break;
+                    }
+                }
+
                 writer.Unindent();
             }
             writer.Unindent();

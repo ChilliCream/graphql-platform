@@ -1,5 +1,6 @@
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Types;
+using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Execution.Nodes;
 
@@ -34,7 +35,22 @@ public sealed record PolicyExecutionTarget
     public required PolicyApplication[] Policies { get; init; }
 
     /// <summary>
+    /// Gets the immutable policy requirements used to build this operation plan.
+    /// </summary>
+    public AuthorizationPolicyRequirement[] Requirements { get; init; } = [];
+
+    /// <summary>
     /// Gets the conditions that control whether this target is active.
     /// </summary>
     public ExecutionNodeCondition[] Conditions { get; init; } = [];
+}
+
+/// <summary>
+/// Captures the requirements of one policy in an operation plan.
+/// </summary>
+public sealed record AuthorizationPolicyRequirement
+{
+    public required string PolicyName { get; init; }
+
+    public required SelectionSetNode SelectionSet { get; init; }
 }

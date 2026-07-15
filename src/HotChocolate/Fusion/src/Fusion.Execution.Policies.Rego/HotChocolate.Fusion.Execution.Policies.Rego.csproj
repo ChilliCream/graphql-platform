@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <PackageId>HotChocolate.Fusion.Execution.Policies.Rego</PackageId>
+    <AssemblyName>HotChocolate.Fusion.Execution.Policies.Rego</AssemblyName>
+    <RootNamespace>HotChocolate.Fusion.Execution.Policies.Rego</RootNamespace>
+    <Description>Provides Rego policy support for Hot Chocolate Fusion execution.</Description>
+    <IsAotCompatible>false</IsAotCompatible>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="ChilliCream.Regorus" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Fusion.Execution\HotChocolate.Fusion.Execution.csproj" />
+  </ItemGroup>
+
+</Project>

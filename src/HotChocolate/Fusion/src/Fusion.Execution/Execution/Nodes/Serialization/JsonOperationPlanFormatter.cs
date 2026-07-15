@@ -1173,6 +1173,18 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
                 jsonWriter.WritePropertyName("onDenied");
                 jsonWriter.WriteStringValue(policy.OnDenied.ToString());
 
+                foreach (var requirement in target.Requirements)
+                {
+                    if (!requirement.PolicyName.Equals(policy.Name, StringComparison.Ordinal))
+                    {
+                        continue;
+                    }
+
+                    jsonWriter.WritePropertyName("requirements");
+                    jsonWriter.WriteStringValue(requirement.SelectionSet.ToString(indented: false));
+                    break;
+                }
+
                 jsonWriter.WriteEndObject();
             }
 
